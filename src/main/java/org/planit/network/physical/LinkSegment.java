@@ -41,7 +41,7 @@ public class LinkSegment extends EdgeSegment {
 	/**
 	 *  Default number of lanes
 	 */		
-	public static final short DEFAULT_NUMBER_OF_LANES= 1;
+	public static final short DEFAULT_NUMBER_OF_LANES = 1;
 	
 	/**
 	 * Default maximum speed on a link segment

@@ -17,7 +17,7 @@ import org.planit.utils.IdGenerator;
  * @author markr
  *
  */
-public class ConnectoidSegment extends EdgeSegment{
+public class ConnectoidSegment extends EdgeSegment {
 	
 	/**
 	 * unique internal identifier 

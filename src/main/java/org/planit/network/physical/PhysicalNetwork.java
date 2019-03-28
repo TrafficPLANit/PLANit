@@ -99,7 +99,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		}		
 		
 		public LinkSegment createDirectionalLinkSegment(@Nonnull Link parentLink, boolean directionAB) throws PlanItException {
-			LinkSegment linkSegment = networkBuilder.createLinkSegment(parentLink,directionAB);
+			LinkSegment linkSegment = networkBuilder.createLinkSegment(parentLink, directionAB);
 			return linkSegment;
 		}			
 		

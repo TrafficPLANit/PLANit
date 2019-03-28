@@ -30,7 +30,6 @@ public class EdgeSegment implements Comparable<EdgeSegment> {
 	 */
 	protected final Vertex downstreamVertex;
 	
-	
 	/** generate unique edge segment id
 	 * @return linkId
 	 */
@@ -54,7 +53,6 @@ public class EdgeSegment implements Comparable<EdgeSegment> {
 		
 	// Public 
 		
-	
 	/** Collect the segment's upstream vertex
 	 * @return upstream node
 	 * @throws PlanItException

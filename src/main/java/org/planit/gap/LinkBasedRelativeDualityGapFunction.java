@@ -39,6 +39,7 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 	@Override
 	public double computeGap(){
 		gap = (systemTravelTime - convexityBound)/systemTravelTime;
+		System.out.println("System Travel Time = " + systemTravelTime + " Convexity Bound = " + convexityBound);
 		return gap;
 	}
 	

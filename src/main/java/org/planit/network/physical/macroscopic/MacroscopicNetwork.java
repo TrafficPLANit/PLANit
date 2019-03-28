@@ -47,9 +47,19 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	 * @return equalLinkSegmentType
 	 */
 	public MacroscopicLinkSegmentType findEqualMacroscopicLinkSegmentType(@Nonnull MacroscopicLinkSegmentType linkSegmentType) {
-		for(Iterator<MacroscopicLinkSegmentType> i = macroscopiclinkSegmentTypes().iterator();i.hasNext();) {
+/*
+		for (Iterator<MacroscopicLinkSegmentType> i = macroscopiclinkSegmentTypes().iterator();i.hasNext();) {
 			MacroscopicLinkSegmentType currentLinkSegmentType = i.next();
 			if(currentLinkSegmentType.equals(linkSegmentType)) {
+				return currentLinkSegmentType;
+			}
+		}
+		return null;
+*/		
+		Iterator<MacroscopicLinkSegmentType> iterator = macroscopiclinkSegmentTypes().iterator();
+		while (iterator.hasNext()) {
+			MacroscopicLinkSegmentType currentLinkSegmentType = iterator.next();
+			if (currentLinkSegmentType.equals(linkSegmentType)) {
 				return currentLinkSegmentType;
 			}
 		}
@@ -72,9 +82,9 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 		}
 		MacroscopicLinkSegmentType linkSegmentType = ((MacroscopicNetworkBuilder) networkBuilder).createLinkSegmentType(name, capacity, maximumDensity, modeProperties);
 		MacroscopicLinkSegmentType existingLinkSegmentType = findEqualMacroscopicLinkSegmentType(linkSegmentType);
-		if(existingLinkSegmentType == null){
+		if (existingLinkSegmentType == null) {
 			registerLinkSegmentType(linkSegmentType);			
-		}else {
+		} else {
 			linkSegmentType = existingLinkSegmentType;
 		}
 		return new Pair<MacroscopicLinkSegmentType, Boolean>(linkSegmentType,existingLinkSegmentType == linkSegmentType);
