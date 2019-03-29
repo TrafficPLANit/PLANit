@@ -21,4 +21,5 @@ public interface Cost<T extends EdgeSegment> {
  * @throws PlanItException
  */
 	public double calculateSegmentCost(Mode mode, T edgeSegment) throws PlanItException;
+	
 }

@@ -4,7 +4,6 @@ import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.userclass.Mode;
 
-//public class SpeedConnectoidTravelTimeCost extends ConnectoidTravelTimeCost {
 public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 
 	//Make Connectoid speed so fast that travel time comes out as zero

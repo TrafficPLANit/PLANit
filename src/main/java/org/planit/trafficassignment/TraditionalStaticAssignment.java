@@ -11,9 +11,10 @@ import java.util.logging.Logger;
 
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathAlgorithm;
+import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.demand.ODDemand;
 import org.planit.demand.ODDemandIterator;
-import org.planit.dto.ResultDto;
+import org.planit.dto.BprResultDto;
 import org.planit.event.InteractorListener;
 import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
@@ -41,12 +42,10 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	 */
 	private class ModeData{
 		
-		public double[] networkSegmentCosts 		= null;
 		public double[] currentNetworkSegmentFlows 	= null;
 		public double[] nextNetworkSegmentFlows 	= null;
 		
 		ModeData(int numberOfNetworkSegments){
-			this.networkSegmentCosts 		= (double[])emptySegmentArray.clone();
 			this.currentNetworkSegmentFlows = (double[])emptySegmentArray.clone();
 			this.nextNetworkSegmentFlows 	= (double[])emptySegmentArray.clone();			
 		}
@@ -144,7 +143,10 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	 * @throws PlanItException 
 	 */
 
-	private void executeModeTimePeriod(ODDemand odDemands, ModeData currentModeData, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+	private void executeModeTimePeriod(ODDemand odDemands, 
+			                                                        ModeData currentModeData, 
+			                                                        double[] networkSegmentCosts, 
+			                                                        ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
 		ODDemandIterator odDemandIter = odDemands.iterator();
 		
 		// loop over all available OD demands
@@ -184,7 +186,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 						throw new PlanItException("The solution could not find an Edge Segment for vertex " + startVertexId + " which has external reference " + currentPathStartVertex.getExternalId());
 					}
 					EdgeSegment currentEdgeSegment = vertexPathCost[startVertexId].getSecond();
-					double edgeSegmentCost = currentModeData.networkSegmentCosts[(int) currentEdgeSegment.getId()];
+					double edgeSegmentCost = networkSegmentCosts[(int) currentEdgeSegment.getId()];
 					shortestPathCost += edgeSegmentCost;
 					currentModeData.nextNetworkSegmentFlows[(int) currentEdgeSegment.getId()] += odDemand;											
 					currentPathStartVertex = currentEdgeSegment.getUpstreamVertex();	
@@ -195,6 +197,16 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		}
 	}	
 	
+	private double[] getTotalNetworkSegmentCosts(Set<Mode> modes) throws PlanItException {
+		double[] totalNetworkSegmentCosts = new double[numberOfNetworkSegments];
+		for(Mode mode : modes) {
+			double[] networkSegmentCostPerMode = collectUpdatedCosts(mode);
+			for (int i=0; i<numberOfNetworkSegments; i++) {
+				totalNetworkSegmentCosts[i] += networkSegmentCostPerMode[i];
+			}			
+		}
+		return totalNetworkSegmentCosts;
+	}
 			
 	/** Perform assignment for a given time period using Dijkstra's algorithm
 	 * @param timePeriod
@@ -204,16 +216,9 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	private void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
 		initialiseTimePeriodModeData(modes);	
 		boolean hasConverged = false;
-		ModeData currentModeData = null;
 		totalNetworkSegmentFlows = (double[])emptySegmentArray.clone();		
 		
-		// INITIAL  COSTS - PER MODE
-		for(Mode mode : modes) { //TODO: make method
-			// mode specific data
-			currentModeData = modeSpecificData.get(mode);			
-			// mode specific segment costs
-			currentModeData.networkSegmentCosts = collectUpdatedCosts(mode); //TODO: INSTEAD OF OVERWRITING --> ADD IT SINCE IT IS PER MODE			
-		}		
+		double[] totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
 		
 		while (!hasConverged) {
 			dualityGapFunction.reset();
@@ -223,28 +228,22 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 			totalNetworkSegmentFlows = (double[])emptySegmentArray.clone();
 			for(Mode mode : modes) {
 				// mode specific data
-				currentModeData = modeSpecificData.get(mode);		
+				ModeData currentModeData = modeSpecificData.get(mode);		
 				currentModeData.nextNetworkSegmentFlows = (double[])emptySegmentArray.clone();		
 				// AON based network loading
-				ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(currentModeData.networkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
+				ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(totalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
 				ODDemand odDemands = demands.get(mode, timePeriod);
-				executeModeTimePeriod(odDemands, currentModeData, shortestPathAlgorithm);
+				executeModeTimePeriod(odDemands, currentModeData, totalNetworkSegmentCosts, shortestPathAlgorithm);
+				
+				double sumProduct = ArrayOperations.sumProduct(currentModeData.currentNetworkSegmentFlows, totalNetworkSegmentCosts, numberOfNetworkSegments);
+				dualityGapFunction.increaseSystemTravelTime(sumProduct);			
 				applySmoothing(currentModeData);
 				// aggregate smoothed mode specific flows - for cost computation				
 				ArrayOperations.addTo(totalNetworkSegmentFlows, currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
+				modeSpecificData.put(mode, currentModeData);
 			}				
-			
-			// COSTS - PER MODE
-			for(Mode mode : modes) { //TODO move to method
-				// mode specific data
-				currentModeData = modeSpecificData.get(mode);			
-				// mode specific segment costs
-				currentModeData.networkSegmentCosts = collectUpdatedCosts(mode); //TODO: INSTEAD OF OVERWRITING --> ADD IT SINCE IT IS PER MODE
-				// Duality gap system travel time: summation of segment flows*costs for all segments
-				double sumProduct = ArrayOperations.sumProduct(currentModeData.currentNetworkSegmentFlows, currentModeData.networkSegmentCosts, numberOfNetworkSegments);
-				dualityGapFunction.increaseSystemTravelTime(sumProduct);							
-			}
-			
+
+			totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
 			dualityGapFunction.computeGap();
 			LOGGER.info("Iteration "+iterationIndex+": duality gap = " + dualityGapFunction.getGap());
 			++iterationIndex;			
@@ -271,28 +270,39 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	 * @throws PlanItException 
 	 */
 	@Override
-	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> executeEquilibration() throws PlanItException {
-		SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> results = new TreeMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>();
+	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeEquilibration() throws PlanItException {
+	SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = new TreeMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>();
 		// perform assignment per period - per mode
 		Set<TimePeriod> timePeriods = demands.getRegisteredTimePeriods();
 		System.out.println("There are " + timePeriods.size() + " time periods to loop through.");
+		BPRLinkTravelTimeCost bprLinkTravelTimeCost = (BPRLinkTravelTimeCost) physicalCost;
 		for(TimePeriod timePeriod : timePeriods) {
-			SortedMap<Mode, SortedSet<ResultDto>> resultsForCurrentTimePeriod = new TreeMap<Mode, SortedSet<ResultDto>>();
+			SortedMap<Mode, SortedSet<BprResultDto>> resultsForCurrentTimePeriod = new TreeMap<Mode, SortedSet<BprResultDto>>();
 			LOGGER.info("Equilibrating time period "+ timePeriod.toString());
 			Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
 			executeTimePeriod(timePeriod,modes);			
+			double[] totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
 			Iterator<LinkSegment> linkSegmentIter = getTransportNetwork().linkSegments.iterator();	
 			for (Mode mode : modes) {
-				SortedSet<ResultDto> resultsForCurrentModeAndTimePeriod = new TreeSet<ResultDto>();  //TreeSet implements SortedSet so stores results in order
+				SortedSet<BprResultDto> resultsForCurrentModeAndTimePeriod = new TreeSet<BprResultDto>();  //TreeSet implements SortedSet so stores results in order
 				double totalCost = 0.0;
 				while (linkSegmentIter.hasNext()) {
 					MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
 					int id = (int) linkSegment.getId();
 					if (totalNetworkSegmentFlows[id] > 0.0) {
-						double cost = linkSegment.computeFreeFlowTravelTime(mode);
+						double cost = totalNetworkSegmentCosts[id];
 						totalCost += totalNetworkSegmentFlows[id] * cost;
-						ResultDto resultDto = new ResultDto(linkSegment.getUpstreamVertex().getExternalId(), linkSegment.getDownstreamVertex().getExternalId(), totalNetworkSegmentFlows[id], cost, totalCost);
-						resultsForCurrentModeAndTimePeriod.add(resultDto);
+						BprResultDto bprResultDto = new BprResultDto(linkSegment.getUpstreamVertex().getExternalId(), 
+								                                                                        linkSegment.getDownstreamVertex().getExternalId(), 
+								                                                                        totalNetworkSegmentFlows[id], 
+								                                                                        cost, 
+								                                                                        totalCost,
+								                                                                        linkSegment.getLinkSegmentType().getCapacityPerLane() * linkSegment.getNumberOfLanes(),
+								                                                                        linkSegment.getParentLink().getLength(),
+								                                                                        linkSegment.getMaximumSpeed(),
+								                                                                        bprLinkTravelTimeCost.getAlpha(linkSegment),
+								                                                                        bprLinkTravelTimeCost.getBeta(linkSegment));
+						resultsForCurrentModeAndTimePeriod.add(bprResultDto);
 					}
 				}
 				if (!resultsForCurrentModeAndTimePeriod.isEmpty()) {

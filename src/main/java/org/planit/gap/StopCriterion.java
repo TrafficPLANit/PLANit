@@ -11,8 +11,8 @@ public class StopCriterion {
 	/**
 	 * Default Epsilon in case it is not set by user
 	 */
-	public final double DEFAULT_EPSILON = 0.00;
-	private static final int maxIterations = 500;
+	public final double DEFAULT_EPSILON = 0.001;
+	public final int MAX_ITERATIONS = 1000;
 	
 
 	/**
@@ -40,7 +40,7 @@ public class StopCriterion {
 	 * @return true, if gap is smaller than criterion, false otherwise
 	 */
 	public boolean hasConverged(double gap, int iterationIndex) {
-		if (iterationIndex > maxIterations)
+		if (iterationIndex == MAX_ITERATIONS)
 			return true;
 		return (Math.abs(gap) < epsilon);
 	}

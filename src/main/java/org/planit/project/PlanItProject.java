@@ -7,7 +7,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 
 import org.planit.demand.Demands;
-import org.planit.dto.ResultDto;
+import org.planit.dto.BprResultDto;
 import org.planit.network.physical.Node;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Centroid;
@@ -180,11 +180,11 @@ public class PlanItProject implements EventHandler {
 	/**
 	 * Execute all registered traffic assignments
 	 */
-	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> executeAllTrafficAssignmentsUsingGeometryId(PlanitGeoUtils planitGeoUtils) {
-		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>>();
+	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignmentsUsingGeometryId(PlanitGeoUtils planitGeoUtils) {
+		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
 		trafficAssignments.forEach( (id,ta) -> {
 			try {
-				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> results = ta.executeUsingGeometryId(planitGeoUtils);
+				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.executeUsingGeometryId(planitGeoUtils);
 				resultsMap.put(id, results);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -193,11 +193,11 @@ public class PlanItProject implements EventHandler {
 		return resultsMap;
 	}
 	
-	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> executeAllTrafficAssignmentsUsingGeometryId(double connectoidLength) {
-		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>>();
+	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignmentsUsingGeometryId(double connectoidLength) {
+		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
 		trafficAssignments.forEach( (id,ta) -> {
 			try {
-				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> results = ta.executeUsingGeometryId(connectoidLength);
+				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.executeUsingGeometryId(connectoidLength);
 				resultsMap.put(id, results);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -206,11 +206,11 @@ public class PlanItProject implements EventHandler {
 		return resultsMap;
 	}
 	
-	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> executeAllTrafficAssignmentsUsingCentroidMap(SortedMap<Centroid, Node> centroidMap, double connectoidLength) {
-		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>>();
+	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignmentsUsingCentroidMap(SortedMap<Centroid, Node> centroidMap, double connectoidLength) {
+		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
 		trafficAssignments.forEach( (id,ta) -> {
 			try {
-				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> results = ta.executeUsingCentroidMap(centroidMap, connectoidLength);
+				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.executeUsingCentroidMap(centroidMap, connectoidLength);
 				resultsMap.put(id, results);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -219,11 +219,11 @@ public class PlanItProject implements EventHandler {
 		return resultsMap;
 	}
 	
-	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> executeAllTrafficAssignmentsUsingGeometryId(SortedMap<Long, TrafficAssignment> trafficAssignments, PlanitGeoUtils planitGeoUtils) {
-		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>>();
+	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignmentsUsingGeometryId(SortedMap<Long, TrafficAssignment> trafficAssignments, PlanitGeoUtils planitGeoUtils) {
+		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
 		trafficAssignments.forEach( (id,ta) -> {
 			try {
-				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> results = ta.executeUsingGeometryId(planitGeoUtils);
+				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.executeUsingGeometryId(planitGeoUtils);
 				resultsMap.put(id, results);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -232,11 +232,11 @@ public class PlanItProject implements EventHandler {
 		return resultsMap;
 	}
 
-	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> executeAllTrafficAssignmentsUsingGeometryId(SortedMap<Long, TrafficAssignment> trafficAssignments, double connectoidLength) {
-		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>>();
+	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignmentsUsingGeometryId(SortedMap<Long, TrafficAssignment> trafficAssignments, double connectoidLength) {
+		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
 		trafficAssignments.forEach( (id,ta) -> {
 			try {
-				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> results = ta.executeUsingGeometryId(connectoidLength);
+				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.executeUsingGeometryId(connectoidLength);
 				resultsMap.put(id, results);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -245,11 +245,11 @@ public class PlanItProject implements EventHandler {
 		return resultsMap;
 	}
 
-	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> executeAllTrafficAssignmentsUsingCentroidMap(SortedMap<Long, TrafficAssignment> trafficAssignments, SortedMap<Centroid, Node> centroidMap, double connectoidLength) {
-		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>>();
+	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignmentsUsingCentroidMap(SortedMap<Long, TrafficAssignment> trafficAssignments, SortedMap<Centroid, Node> centroidMap, double connectoidLength) {
+		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
 		trafficAssignments.forEach( (id,ta) -> {
 			try {
-				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> results = ta.executeUsingCentroidMap(centroidMap, connectoidLength);
+				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.executeUsingCentroidMap(centroidMap, connectoidLength);
 				resultsMap.put(id, results);
 			} catch (Exception e) {
 				e.printStackTrace();

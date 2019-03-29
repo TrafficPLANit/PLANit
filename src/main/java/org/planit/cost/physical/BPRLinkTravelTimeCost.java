@@ -131,5 +131,12 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		}
 		this.linkVolumeAccessee = (LinkVolumeAccessee) accessee;		
 	}
-
+	
+	public double getAlpha(LinkSegment linkSegment) {
+		return bprEdgeSegmentParameters[(int) linkSegment.getId()].getAlpha();
+	}
+	
+	public double getBeta(LinkSegment linkSegment) {
+		return bprEdgeSegmentParameters[(int) linkSegment.getId()].getBeta();
+	}
 }

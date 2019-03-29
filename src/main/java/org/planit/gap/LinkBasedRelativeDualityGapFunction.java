@@ -19,12 +19,12 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 	/**
 	 * Current system travel time as it stands
 	 */
-	protected double systemTravelTime = 0;
+	protected double actualSystemTravelTime = 0;
 	
 	/**
-	 * represents the total travel time if all flow were to be diverted to the shortest paths for all ods
+	 * represents the total travel time if all flow were to be diverted to the shortest paths for all origin-destination pairs
 	 */
-	protected double convexityBound = 0;
+	protected double minimumSystemTravelTime = 0;
 	
 	/**
 	 * gap
@@ -38,23 +38,23 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 	 */
 	@Override
 	public double computeGap(){
-		gap = (systemTravelTime - convexityBound)/systemTravelTime;
-		System.out.println("System Travel Time = " + systemTravelTime + " Convexity Bound = " + convexityBound);
-		return gap;
+		gap = (actualSystemTravelTime - minimumSystemTravelTime) / actualSystemTravelTime;
+		System.out.println("actualSystemTravelTime = " + actualSystemTravelTime + " minimumSystemTravelTime = " + minimumSystemTravelTime);
+		return gap; 
 	}
 	
 	/** Set system travel time directly
 	 * @param systemTravelTime
 	 */
-	public void setSystemTravelTime(double systemTravelTime) {
-		this.systemTravelTime = systemTravelTime;
+	public void setSystemTravelTime(double actualSystemTravelTime) {
+		this.actualSystemTravelTime = actualSystemTravelTime;
 	}
 	
 	/** increase system travel time, i.e. compute it exogenously 
 	 * @param increaseValue
 	 */
 	public void increaseSystemTravelTime(double increaseValue) {
-		systemTravelTime += increaseValue;
+		actualSystemTravelTime += increaseValue;
 	}	
 	
 	/** Endogenously compute the system travel time based on network segment costs and flows
@@ -64,30 +64,30 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 	 */
 	public void updateSystemTravelTime(double[] networkSegmentCosts, double[] networkSegmentFlows, int numberOfNetworkSegments) {
 		for(int index=0;index<numberOfNetworkSegments;++index) {
-			systemTravelTime += networkSegmentCosts[index]*networkSegmentFlows[index];
+			actualSystemTravelTime += networkSegmentCosts[index]*networkSegmentFlows[index];
 		}
 	}	
 	
 	/** Set convexity bound travel time directly
 	 * @param systemTravelTime
 	 */	
-	public void setConvexityBound(double convexityBound) {
-		this.convexityBound = convexityBound;
+	public void setConvexityBound(double minimumSystemTravelTime) {
+		this.minimumSystemTravelTime = minimumSystemTravelTime;
 	}
 	
 	/** increase convexity bound travel time, i.e. compute it exogenously 
-	 * @param convexityBound
+	 * @param minimumSystemTravelTime
 	 */
-	public void increaseConvexityBound(double increaseConvexityBound) {
-		convexityBound += increaseConvexityBound;
+	public void increaseConvexityBound(double increaseMinimumSystemTravelTime) {
+		minimumSystemTravelTime += increaseMinimumSystemTravelTime;
 	}
 	
 	/**
 	 * reset system travel time and convexity bound to zero
 	 */
 	public void reset() {
-		this.systemTravelTime = 0;
-		this.convexityBound = 0;
+		this.actualSystemTravelTime = 0;
+		this.minimumSystemTravelTime = 0;
 	}
 
 	@Override

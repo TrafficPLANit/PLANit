@@ -9,8 +9,6 @@ import java.util.Set;
 import org.planit.network.Vertex;
 import org.planit.utils.IdGenerator;
 
-//import java.awt.geom.Point2D;
-
 /**
  * Node representation connected to one or more entry and exit links
  * @author markr

@@ -9,7 +9,6 @@ import java.util.HashMap;
 public class IdGenerator {
 
 	/** track unique id's per specific class */
-	//protected static final HashMap<Class<? extends Object>,Integer> idTypes = new HashMap<Class<? extends Object>, Integer>();
 	private static HashMap<Class<? extends Object>,Integer> idTypes;
 	
 	/** Create a new idGenerator for this type such that we track unique id's within this class

@@ -28,10 +28,6 @@ public class Link extends Edge {
 	protected final long linkId;	
 	
 	/**
-	 * Link length in km, to be derived from coordinates, but can be overridden manually 
-	 */
-	//protected double length = 0;	
-	/**
 	 * Centre-line geometry of the link, including the end node positions
 	 */
 	protected LineString centreLineGeometry = null; 	
@@ -101,12 +97,6 @@ public class Link extends Edge {
 	public long getLinkId() {
 		return linkId;
 	}	
-//	public double getLength() {
-//		return length;
-//	}
-//	public void setLength(double length) {
-//		this.length = length;
-//	}
 
 	public LineString getCentreLineGeometry() {
 		return centreLineGeometry;

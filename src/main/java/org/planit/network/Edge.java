@@ -42,7 +42,6 @@ public class Edge implements Comparable<Edge>{
 	 */
 	protected Vertex vertexB = null;
 	
-	//protected final double length;
 	protected double length;
 		
 	/**

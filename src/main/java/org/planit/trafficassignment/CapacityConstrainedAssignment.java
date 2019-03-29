@@ -3,7 +3,7 @@ package org.planit.trafficassignment;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-import org.planit.dto.ResultDto;
+import org.planit.dto.BprResultDto;
 import org.planit.exceptions.PlanItException;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
@@ -58,7 +58,7 @@ public class CapacityConstrainedAssignment extends TrafficAssignment {
 	}
 	
 	@Override
-	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> executeEquilibration() throws PlanItException {
+	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeEquilibration() throws PlanItException {
 		throw new PlanItException("Not yet implemented");		
 	}
 

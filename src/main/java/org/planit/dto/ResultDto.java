@@ -7,6 +7,7 @@ public class ResultDto implements Comparable<ResultDto> {
 	private double linkFlow;
 	private double linkCost;
 	private Double totalCostToEndNode;  //use this to order results
+	private final static double epsilon = 0.0001; 
 	
 	public ResultDto(long startNodeId, long endNodeId, double linkFlow, double linkCost, double  totalCostToEndNode) {
 		this.startNodeId = startNodeId;
@@ -55,11 +56,11 @@ public class ResultDto implements Comparable<ResultDto> {
 			return false;
 		if (endNodeId != other.getEndNodeId())
 			return false;
-		if (linkCost != other.getLinkCost())
+		if (Math.abs(linkCost - other.getLinkCost()) > epsilon)
 			return false;
-		if (linkFlow != other.getLinkFlow())
+		if (Math.abs(linkFlow - other.getLinkFlow()) > epsilon)
 			return false;
-		if (totalCostToEndNode != other.getTotalCostToEndNode())
+		if (Math.abs(totalCostToEndNode - other.getTotalCostToEndNode()) > epsilon)
 			return false;
 		return true;
 	}

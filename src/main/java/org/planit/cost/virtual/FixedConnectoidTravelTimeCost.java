@@ -11,7 +11,6 @@ import org.planit.userclass.Mode;
  * @author markr
  *
  */
-//public class FixedConnectoidTravelTimeCost extends ConnectoidTravelTimeCost {
 public class FixedConnectoidTravelTimeCost extends VirtualCost {
 	
 	/**

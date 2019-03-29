@@ -10,7 +10,7 @@ import javax.annotation.Nonnull;
 import org.opengis.referencing.operation.TransformException;
 import org.planit.cost.Cost;
 import org.planit.demand.Demands;
-import org.planit.dto.ResultDto;
+import org.planit.dto.BprResultDto;
 import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
 import org.planit.exceptions.PlanItIncompatibilityException;
@@ -148,7 +148,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * @throws PlanItIncompatibilityException 
 	 * @throws TransformException 
 	 */
-	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> executeUsingGeometryId(PlanitGeoUtils planitGeoUtils) throws PlanItException, 
+	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeUsingGeometryId(PlanitGeoUtils planitGeoUtils) throws PlanItException, 
 	                                                                                                                                                                                                                                    PlanItIncompatibilityException, 
 	                                                                                                                                                                                                                                    TransformException{
 		checkForEmptyComponents();	
@@ -156,14 +156,14 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		createAndRegisterTransportNetwork(physicalNetwork, zoning);		
 		network.integratePhysicalAndVirtualNetworksUsingGeometryId(planitGeoUtils); 			        // connect here since it marries the virtual and physical networks
 		initialiseBeforeEquilibration();			
-		SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> results = executeEquilibration();						                                    // Actual algorithm execution
+		SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = executeEquilibration();						                                    // Actual algorithm execution
 		LOGGER.info("Finished equilibration");
 		network.removeVirtualNetworkFromPhysicalNetwork();		// disconnect here since the physical network might be reused in a different assignment
 		LOGGER.info("Finished execution");
 		return results;
 	}
 		
-	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> executeUsingGeometryId(double connectoidLength) throws PlanItException, 
+	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeUsingGeometryId(double connectoidLength) throws PlanItException, 
 	                                                                                                                                                                                                                                PlanItIncompatibilityException, 
 	                                                                                                                                                                                                                                TransformException{
 		checkForEmptyComponents();	
@@ -171,14 +171,14 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		createAndRegisterTransportNetwork(physicalNetwork, zoning);		
 		network.integratePhysicalAndVirtualNetworksUsingGeometryId(connectoidLength); 			        // connect here since it marries the virtual and physical networks
 		initialiseBeforeEquilibration();			
-		SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> results = executeEquilibration();						                                    // Actual algorithm execution
+		SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = executeEquilibration();						                                    // Actual algorithm execution
 		LOGGER.info("Finished equilibration");
 		network.removeVirtualNetworkFromPhysicalNetwork();		// disconnect here since the physical network might be reused in a different assignment
 		LOGGER.info("Finished execution");
 		return results;
 	}
 		
-	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> executeUsingCentroidMap(SortedMap<Centroid, Node> centroidMap, double connectoidLength) throws PlanItException, 
+	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeUsingCentroidMap(SortedMap<Centroid, Node> centroidMap, double connectoidLength) throws PlanItException, 
 	                                                                                                                                                                                                                                                                                                       PlanItIncompatibilityException, 
 	                                                                                                                                                                                                                                                                                                       TransformException {
 		checkForEmptyComponents();	
@@ -186,7 +186,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		createAndRegisterTransportNetwork(physicalNetwork, zoning);		
 		network.integratePhysicalAndVirtualNetworksUsingCentroidMap(centroidMap, connectoidLength); 			        // connect here since it marries the virtual and physical networks
 		initialiseBeforeEquilibration();			
-		SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> results = executeEquilibration();						                                    // Actual algorithm execution
+		SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = executeEquilibration();						                                    // Actual algorithm execution
 		LOGGER.info("Finished equilibration");
 		network.removeVirtualNetworkFromPhysicalNetwork();		// disconnect here since the physical network might be reused in a different assignment
 		LOGGER.info("Finished execution");
@@ -199,7 +199,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * Execute assignment
 	 * @throws PlanItException 
 	 */
-	public abstract  SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>> executeEquilibration() throws PlanItException;
+	public abstract  SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeEquilibration() throws PlanItException;
 	
 	
 	// Getters - Setters
