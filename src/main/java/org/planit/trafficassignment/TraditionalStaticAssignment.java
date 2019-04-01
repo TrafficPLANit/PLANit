@@ -135,7 +135,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		// update flow arrays for next iteration
 		modeData.currentNetworkSegmentFlows = smoothedSegmentFlows;
 	}	
-	
+
 	/** Perform assignment for a given time period, mode and costs imposed on dijkstra shortest path
 	 * @param odDemands
 	 * @param currentModeData
@@ -236,7 +236,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 				executeModeTimePeriod(odDemands, currentModeData, totalNetworkSegmentCosts, shortestPathAlgorithm);
 				
 				double sumProduct = ArrayOperations.sumProduct(currentModeData.currentNetworkSegmentFlows, totalNetworkSegmentCosts, numberOfNetworkSegments);
-				dualityGapFunction.increaseSystemTravelTime(sumProduct);			
+				dualityGapFunction.increaseSystemTravelTime(sumProduct);		
 				applySmoothing(currentModeData);
 				// aggregate smoothed mode specific flows - for cost computation				
 				ArrayOperations.addTo(totalNetworkSegmentFlows, currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
@@ -245,8 +245,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 
 			totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
 			dualityGapFunction.computeGap();
-			LOGGER.info("Iteration "+iterationIndex+": duality gap = " + dualityGapFunction.getGap());
-			++iterationIndex;			
+		    iterationIndex++;			
+			LOGGER.info("Iteration " + iterationIndex + ": duality gap = " + dualityGapFunction.getGap());
 			hasConverged = dualityGapFunction.hasConverged(iterationIndex);
 		} 		
 	}
@@ -258,7 +258,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	@Override
 	public void initialiseBeforeEquilibration() {
 		// initialize members that are used throughout the assignment
-		this.iterationIndex = 1;
+		iterationIndex = 0;
 		this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
 		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
 		this.emptySegmentArray = new double[numberOfNetworkSegments];

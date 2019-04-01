@@ -39,7 +39,7 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 	@Override
 	public double computeGap(){
 		gap = (actualSystemTravelTime - minimumSystemTravelTime) / actualSystemTravelTime;
-		System.out.println("actualSystemTravelTime = " + actualSystemTravelTime + " minimumSystemTravelTime = " + minimumSystemTravelTime);
+//		System.out.println("actualSystemTravelTime = " + actualSystemTravelTime + " minimumSystemTravelTime = " + minimumSystemTravelTime);
 		return gap; 
 	}
 	
@@ -48,6 +48,10 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 	 */
 	public void setSystemTravelTime(double actualSystemTravelTime) {
 		this.actualSystemTravelTime = actualSystemTravelTime;
+	}
+	
+	public double getSystemTravelTime() {
+		return actualSystemTravelTime;
 	}
 	
 	/** increase system travel time, i.e. compute it exogenously 
@@ -62,11 +66,11 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 	 * @param networkSegmentFlows
 	 * @param numberOfNetworkSegments
 	 */
-	public void updateSystemTravelTime(double[] networkSegmentCosts, double[] networkSegmentFlows, int numberOfNetworkSegments) {
-		for(int index=0;index<numberOfNetworkSegments;++index) {
-			actualSystemTravelTime += networkSegmentCosts[index]*networkSegmentFlows[index];
-		}
-	}	
+//	public void updateSystemTravelTime(double[] networkSegmentCosts, double[] networkSegmentFlows, int numberOfNetworkSegments) {
+//		for(int index=0;index<numberOfNetworkSegments;++index) {
+//			actualSystemTravelTime += networkSegmentCosts[index]*networkSegmentFlows[index];
+//		}
+//	}	
 	
 	/** Set convexity bound travel time directly
 	 * @param systemTravelTime

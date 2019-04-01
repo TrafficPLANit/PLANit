@@ -149,8 +149,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * @throws TransformException 
 	 */
 	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeUsingGeometryId(PlanitGeoUtils planitGeoUtils) throws PlanItException, 
-	                                                                                                                                                                                                                                    PlanItIncompatibilityException, 
-	                                                                                                                                                                                                                                    TransformException{
+														                                                                                                                                                                                      PlanItIncompatibilityException, 
+														                                                                                                                                                                                      TransformException {
 		checkForEmptyComponents();	
 		verifyComponentCompatibility();
 		createAndRegisterTransportNetwork(physicalNetwork, zoning);		
@@ -164,8 +164,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	}
 		
 	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeUsingGeometryId(double connectoidLength) throws PlanItException, 
-	                                                                                                                                                                                                                                PlanItIncompatibilityException, 
-	                                                                                                                                                                                                                                TransformException{
+														                                                                                                                                                                                  PlanItIncompatibilityException, 
+														                                                                                                                                                                                  TransformException {
 		checkForEmptyComponents();	
 		verifyComponentCompatibility();
 		createAndRegisterTransportNetwork(physicalNetwork, zoning);		
@@ -179,8 +179,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	}
 		
 	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeUsingCentroidMap(SortedMap<Centroid, Node> centroidMap, double connectoidLength) throws PlanItException, 
-	                                                                                                                                                                                                                                                                                                       PlanItIncompatibilityException, 
-	                                                                                                                                                                                                                                                                                                       TransformException {
+														                                                                                                                                                                                                                                                         PlanItIncompatibilityException, 
+														                                                                                                                                                                                                                                                         TransformException {
 		checkForEmptyComponents();	
 		verifyComponentCompatibility();
 		createAndRegisterTransportNetwork(physicalNetwork, zoning);		

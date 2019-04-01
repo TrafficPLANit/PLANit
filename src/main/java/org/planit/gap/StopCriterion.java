@@ -11,14 +11,15 @@ public class StopCriterion {
 	/**
 	 * Default Epsilon in case it is not set by user
 	 */
-	public final double DEFAULT_EPSILON = 0.001;
-	public final int MAX_ITERATIONS = 1000;
+	public final double DEFAULT_EPSILON = 0.0;
+	public final int MAX_ITERATIONS = 500;
+	private int maxIterations;
 	
 
 	/**
 	 * Chosen epsilon for stop criterion
 	 */
-	protected final double epsilon;
+	private double epsilon;
 	
 	/** constructor
 	 * @param epsilon
@@ -32,16 +33,34 @@ public class StopCriterion {
 	 */
 	public StopCriterion() {
 		this.epsilon = DEFAULT_EPSILON;
+		this.maxIterations = MAX_ITERATIONS;
 	}
 
+	
 	/** check if converged based on the gap and the internal information
 	 * @param gap
 	 * @param iterationIndex
 	 * @return true, if gap is smaller than criterion, false otherwise
 	 */
 	public boolean hasConverged(double gap, int iterationIndex) {
-		if (iterationIndex == MAX_ITERATIONS)
+		if (iterationIndex == maxIterations)
 			return true;
 		return (Math.abs(gap) < epsilon);
+	}
+
+	public int getMaxIterations() {
+		return maxIterations;
+	}
+
+	public void setMaxIterations(int maxIterations) {
+		this.maxIterations = maxIterations;
+	}
+
+	public double getEpsilon() {
+		return epsilon;
+	}
+
+	public void setEpsilon(double epsilon) {
+		this.epsilon = epsilon;
 	}
 }

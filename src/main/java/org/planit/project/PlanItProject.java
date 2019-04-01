@@ -50,7 +50,7 @@ public class PlanItProject implements EventHandler {
 	private TrafficAssignmentComponentFactory<Zoning> zoningFactory;
 	private TrafficAssignmentComponentFactory<Demands> demandsFactory;
 	private TrafficAssignmentComponentFactory<NetworkLoading> assignmentFactory;
-
+	
 	public void setEventManager(EventManager eventManager) {
 		trafficAssignments = new TreeMap<Long,TrafficAssignment>();
 		physicalNetworks = new TreeMap<Long,PhysicalNetwork>();

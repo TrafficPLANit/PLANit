@@ -13,7 +13,7 @@ public class MSASmoothing extends Smoothing {
 	 */
 	@Override
 	public void update(int iterationIndex) {
-		this.stepSize = 1.0/iterationIndex;
+		this.stepSize = 1.0/(iterationIndex + 1);
 	}
 	
 	/* (non-Javadoc)

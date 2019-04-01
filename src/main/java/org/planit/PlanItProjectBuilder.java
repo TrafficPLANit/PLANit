@@ -59,7 +59,7 @@ public interface PlanItProjectBuilder {
 		taBuilder.registerZoning(zoning);
 		
 		// DEMAND SIDE	
-		taBuilder.registerDemands(demands);		
+		taBuilder.registerDemands(demands);	
 		
 		return project;
 	}

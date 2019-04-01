@@ -35,7 +35,7 @@ public abstract class GapFunction {
 	 * @return true, if stopcriterion is met, false otherwise
 	 */
 	public boolean hasConverged(int iterationIndex) {
-		return stopCriterion.hasConverged(getGap(),iterationIndex);
+		return stopCriterion.hasConverged(getGap(), iterationIndex);
 	}
 	
 }
