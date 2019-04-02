@@ -104,6 +104,22 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
 			}
 			
 		}
+	
+//TODO - Code below is useful for debugging and reporting paths in human-readable order, but not required for large networks
+/*
+		Arrays.sort(vertexCost);
+		for (int i=0; i<vertexCost.length; i++) {
+			if (vertexCost[i].getSecond() instanceof MacroscopicLinkSegment) {
+				System.out.println("Vertex id " + vertexCost[i].getSecond().getUpstreamVertex().getId() + " From node " + vertexCost[i].getSecond().getUpstreamVertex().getExternalId() + " to node " + vertexCost[i].getSecond().getDownstreamVertex().getExternalId() + " cost " + vertexCost[i].getFirst());
+			} else if (vertexCost[i].getSecond() != null) {
+				if (vertexCost[i].getSecond().getUpstreamVertex() instanceof Centroid) {
+					System.out.println("Vertex id " + vertexCost[i].getSecond().getUpstreamVertex().getId() + " From centroid " + vertexCost[i].getSecond().getUpstreamVertex().getId() + " to node " + vertexCost[i].getSecond().getDownstreamVertex().getExternalId() + " cost " + vertexCost[i].getFirst());
+				} else {
+					System.out.println("Vertex id " + vertexCost[i].getSecond().getUpstreamVertex().getId() + " From node " + vertexCost[i].getSecond().getUpstreamVertex().getExternalId() + " to centroid " + vertexCost[i].getSecond().getDownstreamVertex().getId() + " cost " + vertexCost[i].getFirst());
+				}
+			}
+		}
+*/
 		return vertexCost;
 	}
 

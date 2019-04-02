@@ -182,6 +182,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 				//System.out.println("currentPathStartVertex.getExternalId() = " + currentPathStartVertex.getExternalId() + " currentPathStartVertex.getId() = " + currentPathStartVertex.getId() + " currentPathStartVertex.getCentroidId() = " +  currentDestinationZone.getCentroid().getCentroidId());
 				while (currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId()) {	
 					int startVertexId = (int) currentPathStartVertex.getId();
+//TODO - commented-out lines below would be needed if vertexPathCost array is sorted by node external Id
+					//int startVertexId = 0;
+					//while ((vertexPathCost[startVertexId].getSecond() != null) &&   (vertexPathCost[startVertexId].getSecond().getDownstreamVertex().getId() != currentPathStartVertex.getId())) {
+					//	startVertexId++;
+					//}
 					if (vertexPathCost[startVertexId].getSecond() == null) {
 						throw new PlanItException("The solution could not find an Edge Segment for vertex " + startVertexId + " which has external reference " + currentPathStartVertex.getExternalId());
 					}
