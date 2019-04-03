@@ -12,7 +12,7 @@ import org.planit.trafficassignment.builder.CapacityConstrainedTrafficAssignment
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.userclass.Mode;
 
-public class CapacityConstrainedAssignment extends TrafficAssignment {
+public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	
 	// PROTECTED
 	

@@ -24,10 +24,22 @@ public class StopCriterion {
 	/** constructor
 	 * @param epsilon
 	 */
+/*
 	public StopCriterion(double epsilon){
 		this.epsilon = epsilon;
+		this.maxIterations = MAX_ITERATIONS;
 	}
 	
+	public StopCriterion(int maxIterations) {
+		this.epsilon = DEFAULT_EPSILON;
+		this.maxIterations = maxIterations;
+	}
+	
+	public StopCriterion(double epsilon, int maxIterations) {
+		this.epsilon = epsilon;
+		this.maxIterations = maxIterations;
+	}
+*/	
 	/**
 	 * Default constructor
 	 */

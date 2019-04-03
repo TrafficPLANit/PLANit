@@ -22,6 +22,7 @@ public abstract class CapacityRestrainedAssignment extends DeterministicTrafficA
  * Constructor for CapacityRestrainedAssignment
  */
 	public CapacityRestrainedAssignment() {
+		super();
 		capacityRestrainedBuilder = new CapacityRestrainedTrafficAssignmentBuilder(this);
 	}
 

@@ -6,6 +6,7 @@ import java.util.TreeMap;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.userclass.Mode;
+import org.planit.utils.IdGenerator;
 
 /**
  * Container class for all demands registered on the project. In PlanIt we assume that
@@ -22,7 +23,14 @@ import org.planit.userclass.Mode;
  */
 public class Demands extends TrafficAssignmentComponent<Demands>{
 		
+	// Protected
+	
 	/**
+	 * unique identifier for this demand set
+	 */
+	protected long id;
+	
+/**
 	 * Trip demand matrices
 	 */
 	protected final TreeMap<TimePeriod,TreeMap<Mode,ODDemand>> odDemands = new TreeMap<TimePeriod,TreeMap<Mode,ODDemand>>();	
@@ -32,6 +40,7 @@ public class Demands extends TrafficAssignmentComponent<Demands>{
 	 */
 	public Demands() {	
 		super();
+		this.id = IdGenerator.generateId(Demands.class);
 	}
 	
 	
@@ -53,10 +62,10 @@ public class Demands extends TrafficAssignmentComponent<Demands>{
 	 * @return odDemand, if any, otherwise null
 	 */
 	public ODDemand get(Mode mode, TimePeriod timePeriod) {
-		if(odDemands.containsKey(timePeriod) && odDemands.get(timePeriod).containsKey(mode))
+		if (odDemands.containsKey(timePeriod) && odDemands.get(timePeriod).containsKey(mode))
 		{
 			return odDemands.get(timePeriod).get(mode);			
-		}else{
+		} else {
 			return null;			
 		}
 	}
@@ -73,12 +82,16 @@ public class Demands extends TrafficAssignmentComponent<Demands>{
 	 * @return
 	 */
 	public Set<Mode> getRegisteredModesForTimePeriod(TimePeriod timePeriod) {
-		if(odDemands.containsKey(timePeriod)) {
+		if (odDemands.containsKey(timePeriod)) {
 			return odDemands.get(timePeriod).keySet();
-		}else{
+		} else {
 			return null;
 		}
 	}	
+	
+	public long getId() {
+		return this.id;
+	}
 	
 
 }

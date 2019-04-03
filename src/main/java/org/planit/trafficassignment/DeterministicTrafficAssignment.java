@@ -10,4 +10,8 @@ package org.planit.trafficassignment;
  */
 public abstract class DeterministicTrafficAssignment extends TrafficAssignment {
 	
+	public DeterministicTrafficAssignment() {
+		super();
+	}
+	
 }

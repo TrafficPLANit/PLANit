@@ -66,7 +66,7 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
 																						                                                                                                  PlanItException, 
 																						                                                                                                  IOException {
 		FundamentalDiagram createdFundamentalDiagram = fundamentalDiagramFactory.create(fundamentalDiagramType);
-		((CapacityConstrainedAssignment)parentAssignment).setFundamentalDiagram(createdFundamentalDiagram);
+		((CapacityConstrainedAssignment) parentAssignment).setFundamentalDiagram(createdFundamentalDiagram);
 		return createdFundamentalDiagram;
 	}
 	
@@ -93,7 +93,7 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
 	                                                                         PlanItException, 
 	                                                                         IOException {
 		NodeModel createdNodeModel = nodeModelFactory.create(nodeModelType);
-		((CapacityConstrainedAssignment)parentAssignment).setNodeModel(createdNodeModel);
+		((CapacityConstrainedAssignment) parentAssignment).setNodeModel(createdNodeModel);
 		return createdNodeModel;
 	}
 

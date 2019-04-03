@@ -41,11 +41,20 @@ public class PlanItProject implements EventHandler {
 	 * The zoning(s) registered on this project
 	 */
 	private TreeMap<Long, Zoning> zonings;
+
+	/**
+	 * The demands registered on this project
+	 */
+	private TreeMap<Long, Demands> demandsMap;
 	
 	/**
 	 * The traffic assignment(s) registered on this project
 	 */
 	private TreeMap<Long, TrafficAssignment> trafficAssignments;
+	
+	/**
+	 * Object Factory classes
+	 */
 	private TrafficAssignmentComponentFactory<PhysicalNetwork> physicalNetworkFactory;
 	private TrafficAssignmentComponentFactory<Zoning> zoningFactory;
 	private TrafficAssignmentComponentFactory<Demands> demandsFactory;
@@ -55,6 +64,7 @@ public class PlanItProject implements EventHandler {
 		trafficAssignments = new TreeMap<Long,TrafficAssignment>();
 		physicalNetworks = new TreeMap<Long,PhysicalNetwork>();
 		zonings = new TreeMap<Long,Zoning>();
+		demandsMap = new TreeMap<Long, Demands>();
 		
 		physicalNetworkFactory = new TrafficAssignmentComponentFactory<PhysicalNetwork>(PhysicalNetwork.class);		
 		physicalNetworkFactory.setEventManager(eventManager);
@@ -143,7 +153,9 @@ public class PlanItProject implements EventHandler {
 														                                        ClassNotFoundException, 
 														                                        PlanItException,
 	                                                                                            IOException {
-		return demandsFactory.create(Demands.class.getCanonicalName());
+		Demands demands = demandsFactory.create(Demands.class.getCanonicalName());
+		demandsMap.put(demands.getId(), demands);
+		return demands;
 	}	
 	
 	
@@ -176,6 +188,22 @@ public class PlanItProject implements EventHandler {
 		trafficAssignments.put(trafficAssignment.getId(), trafficAssignment);		
 		return trafficAssignment;
 	}	
+	
+	public Demands getDemands(long id) {
+		return demandsMap.get(id);
+	}
+	
+	public TrafficAssignment getTrafficAssignment(long id) {
+		return trafficAssignments.get(id);
+	}
+	
+	public Zoning getZoning(long id) {
+		return zonings.get(id);
+	}
+	
+	public PhysicalNetwork getPhysicalNetwork(long id) {
+		return physicalNetworks.get(id);
+	}
 	
 	/**
 	 * Execute all registered traffic assignments

@@ -14,6 +14,7 @@ import org.planit.dto.BprResultDto;
 import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
 import org.planit.exceptions.PlanItIncompatibilityException;
+import org.planit.gap.GapFunction;
 import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.interactor.InteractorAccessor;
 import org.planit.network.physical.LinkSegment;
@@ -119,6 +120,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	public TrafficAssignment() {
 		this.id = IdGenerator.generateId(TrafficAssignment.class);
+		createGapFunction();
 	}
 	
 	/** Each traffic assignment class can have its own builder which reveals what components need to be registered on the traffic assignment
@@ -218,6 +220,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public void setPhysicalNetwork(@Nonnull PhysicalNetwork physicalNetwork) {
 		this.physicalNetwork = physicalNetwork;
 	}
+	
+	public abstract GapFunction getGapFunction();
+	
+	protected abstract GapFunction createGapFunction();
 
 	public void setDemands(@Nonnull Demands demands) {
 		this.demands = demands;		
@@ -226,6 +232,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public void setZoning(@Nonnull Zoning zoning) {
 		this.zoning = zoning;		
 	}	
+	
 	public Cost<LinkSegment> getPhysicalCost() {
 		return physicalCost;
 	}

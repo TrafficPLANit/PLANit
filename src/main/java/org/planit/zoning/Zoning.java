@@ -93,6 +93,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
 	 * Constructor
 	 */
 	public Zoning() {
+		super();
 		this.id = IdGenerator.generateId(Zoning.class);
 	}
 		

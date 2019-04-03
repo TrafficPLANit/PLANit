@@ -19,15 +19,6 @@ public abstract class GapFunction {
 		this.stopCriterion = stopCriterion;
 	}
 
-	/** Compute the gap
-	 * 
-	 * @return gap
-	 */
-	public abstract double computeGap();
-	
-	/** collect the computed gap
-	 * @return
-	 */
 	public abstract double getGap();
 	
 	/** Verify if converged
@@ -38,4 +29,10 @@ public abstract class GapFunction {
 		return stopCriterion.hasConverged(getGap(), iterationIndex);
 	}
 	
+	public abstract void reset();
+	
+	public StopCriterion getStopCriterion() {
+		return stopCriterion;
+	}
+
 }

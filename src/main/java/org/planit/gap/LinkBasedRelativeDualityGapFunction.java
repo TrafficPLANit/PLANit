@@ -36,48 +36,21 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 	 * 
 	 * @see org.planit.gap.GapFunction#computeGap()
 	 */
-	@Override
 	public double computeGap(){
 		gap = (actualSystemTravelTime - minimumSystemTravelTime) / actualSystemTravelTime;
-//		System.out.println("actualSystemTravelTime = " + actualSystemTravelTime + " minimumSystemTravelTime = " + minimumSystemTravelTime);
 		return gap; 
 	}
 	
-	/** Set system travel time directly
-	 * @param systemTravelTime
-	 */
-	public void setSystemTravelTime(double actualSystemTravelTime) {
-		this.actualSystemTravelTime = actualSystemTravelTime;
-	}
-	
-	public double getSystemTravelTime() {
+	public double getActualSystemTravelTime() {
 		return actualSystemTravelTime;
 	}
 	
 	/** increase system travel time, i.e. compute it exogenously 
 	 * @param increaseValue
 	 */
-	public void increaseSystemTravelTime(double increaseValue) {
+	public void increaseActualSystemTravelTime(double increaseValue) {
 		actualSystemTravelTime += increaseValue;
 	}	
-	
-	/** Endogenously compute the system travel time based on network segment costs and flows
-	 * @param networkSegmentCosts
-	 * @param networkSegmentFlows
-	 * @param numberOfNetworkSegments
-	 */
-//	public void updateSystemTravelTime(double[] networkSegmentCosts, double[] networkSegmentFlows, int numberOfNetworkSegments) {
-//		for(int index=0;index<numberOfNetworkSegments;++index) {
-//			actualSystemTravelTime += networkSegmentCosts[index]*networkSegmentFlows[index];
-//		}
-//	}	
-	
-	/** Set convexity bound travel time directly
-	 * @param systemTravelTime
-	 */	
-	public void setConvexityBound(double minimumSystemTravelTime) {
-		this.minimumSystemTravelTime = minimumSystemTravelTime;
-	}
 	
 	/** increase convexity bound travel time, i.e. compute it exogenously 
 	 * @param minimumSystemTravelTime

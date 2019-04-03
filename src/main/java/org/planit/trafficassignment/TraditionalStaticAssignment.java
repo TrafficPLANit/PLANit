@@ -18,6 +18,7 @@ import org.planit.dto.BprResultDto;
 import org.planit.event.InteractorListener;
 import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
+import org.planit.gap.GapFunction;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.gap.StopCriterion;
 import org.planit.interactor.LinkVolumeAccessee;
@@ -46,8 +47,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		public double[] nextNetworkSegmentFlows 	= null;
 		
 		ModeData(int numberOfNetworkSegments){
-			this.currentNetworkSegmentFlows = (double[])emptySegmentArray.clone();
-			this.nextNetworkSegmentFlows 	= (double[])emptySegmentArray.clone();			
+			this.currentNetworkSegmentFlows = (double[]) emptySegmentArray.clone();
+			this.nextNetworkSegmentFlows 	= (double[]) emptySegmentArray.clone();			
 		}
 	}
 	
@@ -85,9 +86,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	 */
 	private int numberOfNetworkVertices;
 	
-	/**
-	 * Duality gap formulation used
-	 */
 	private LinkBasedRelativeDualityGapFunction dualityGapFunction;
 	
 	public TraditionalStaticAssignment() {
@@ -196,7 +194,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 					currentModeData.nextNetworkSegmentFlows[(int) currentEdgeSegment.getId()] += odDemand;											
 					currentPathStartVertex = currentEdgeSegment.getUpstreamVertex();	
 				}
-				dualityGapFunction.increaseConvexityBound(odDemand*shortestPathCost);			
+				dualityGapFunction.increaseConvexityBound(odDemand*shortestPathCost);	
 				previousOriginZoneId = originZoneId;
 			}
 		}
@@ -241,7 +239,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 				executeModeTimePeriod(odDemands, currentModeData, totalNetworkSegmentCosts, shortestPathAlgorithm);
 				
 				double sumProduct = ArrayOperations.sumProduct(currentModeData.currentNetworkSegmentFlows, totalNetworkSegmentCosts, numberOfNetworkSegments);
-				dualityGapFunction.increaseSystemTravelTime(sumProduct);		
+				dualityGapFunction.increaseActualSystemTravelTime(sumProduct);
 				applySmoothing(currentModeData);
 				// aggregate smoothed mode specific flows - for cost computation				
 				ArrayOperations.addTo(totalNetworkSegmentFlows, currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
@@ -251,8 +249,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 			totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
 			dualityGapFunction.computeGap();
 		    iterationIndex++;			
-			LOGGER.info("Iteration " + iterationIndex + ": duality gap = " + dualityGapFunction.getGap());
-			hasConverged = dualityGapFunction.hasConverged(iterationIndex);
+		    LOGGER.info("Iteration " + iterationIndex + ": duality gap = " + dualityGapFunction.getGap());
+		    hasConverged = dualityGapFunction.hasConverged(iterationIndex);
 		} 		
 	}
 	
@@ -267,7 +265,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
 		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
 		this.emptySegmentArray = new double[numberOfNetworkSegments];
-		this.dualityGapFunction = new LinkBasedRelativeDualityGapFunction(new StopCriterion());
 	}	
 	
 	/**
@@ -342,6 +339,15 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		if(e.getSourceAccessor().getRequestedAccessee().equals(LinkVolumeAccessee.class)) {
 			e.getSourceAccessor().setAccessee(this);
 		}
+	}
+	
+	protected GapFunction createGapFunction() {
+		dualityGapFunction = new LinkBasedRelativeDualityGapFunction(new StopCriterion());
+		return dualityGapFunction;
+	}
+	
+	public GapFunction getGapFunction() {
+		return dualityGapFunction;
 	}
 
 }
