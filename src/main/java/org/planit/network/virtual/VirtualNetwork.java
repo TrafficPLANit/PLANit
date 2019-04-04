@@ -158,33 +158,19 @@ public class VirtualNetwork {
 			return centroidMap.values().iterator();
 		}
 		
-		public Centroid findCentroidByGeometryId(long geometryId) {
+		public Centroid findCentroidByExternalId(long externalId) {
 			for (Centroid centroid : centroidMap.values()) {
-				if (centroid.getGeometryId() == geometryId) {
+				if (centroid.getExternalId() == externalId) {
 					return centroid;
 				}
 			}
 			return null;
 		}
 		
-//TODO - It looks like it is never necessary to create and register a new centroid at the same time.  The centroid must be created and registered in its zone first.
-		/** Add node to network identified via its id
-		 * @param node to add
-		 * @return node, new node 
-		 */
-/*
-		public Centroid registerNewCentroid(Zone zone, long connectoidId){
-			Centroid newCentroid = new Centroid(zone, connectoidId);
-			registerCentroid(newCentroid);
-			return newCentroid;
-		}		
-*/		
 		public int getNumberOfCentroids() {
 			return centroidMap.size();
 		}
 	}	
-	
-	// Private
 	
 	// Protected
 	

@@ -21,7 +21,7 @@ public class Node extends Vertex {
 	/**
 	 * Identifier defined in input files
 	 */
-	protected Set<Long> geometryIdSet = new HashSet<Long>();
+	protected Set<Long> externalLinkIdSet = new HashSet<Long>();
 	
 	/** generate unique node id
 	 * @return nodeId
@@ -53,12 +53,12 @@ public class Node extends Vertex {
 		return nodeId;
 	}
 	
-	public void addGeometryId(Long geometryId) {
-		geometryIdSet.add(geometryId);
+	public void addExternalLinkId(Long externalLinkId) {
+		externalLinkIdSet.add(externalLinkId);
 	}
 	
-	public Set<Long> getGeometryIdSet() {
-		return geometryIdSet;
+	public Set<Long> getExternalLinkIdSet() {
+		return externalLinkIdSet;
 	}
 
 }

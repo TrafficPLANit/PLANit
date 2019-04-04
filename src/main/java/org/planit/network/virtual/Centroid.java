@@ -22,7 +22,7 @@ public class Centroid extends Vertex {
 	 */	
 	protected final long centroidId;
 	
-	protected final long geometryId;
+	protected final long externalId;
 	
 	/**
 	 * the zone this centroid represents
@@ -35,25 +35,25 @@ public class Centroid extends Vertex {
 	 * Node constructor
 	 * @param id
 	 */
-	public Centroid(@Nonnull Zone parentZone, long geometryId) {
+	public Centroid(@Nonnull Zone parentZone, long externalId) {
 		super();
 		this.centroidId = generateCentroidId();
 		this.parentZone = parentZone;
-		this.geometryId = geometryId;
+		this.externalId = externalId;
 	}	
 	
-	public Centroid(long geometryId) {
+	public Centroid(long externalId) {
 		super();
 		this.centroidId = generateCentroidId();
 		this.parentZone = null;
-		this.geometryId = geometryId;
+		this.externalId = externalId;
 	}
 	
 	public Centroid() {
 		super();
 		this.centroidId = generateCentroidId();
 		this.parentZone = null;
-		this.geometryId = 0;
+		this.externalId = 0;
 	}
 	
 	// Getters-Setters
@@ -69,8 +69,9 @@ public class Centroid extends Vertex {
 		this.parentZone = parentZone;
 	}
 	
-	public long getGeometryId() {
-		return geometryId;
+	//public long getGeometryId() {
+	public long getExternalId() {
+		return externalId;
 	}
 
 }

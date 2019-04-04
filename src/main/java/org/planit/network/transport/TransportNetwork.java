@@ -182,12 +182,13 @@ public class TransportNetwork {
 	public void integratePhysicalAndVirtualNetworksUsingGeometryId(PlanitGeoUtils planitGeoUtils) throws PlanItException, TransformException {
 		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
 		for (Centroid centroid : virtualNetwork.centroids) {
-			long geometryId = centroid.getGeometryId();
-			Node node = physicalNetwork.nodes.findNodeByGeometryId(geometryId);
+			//long externalLinkId = centroid.getGeometryId();
+			long externalId = centroid.getExternalId();
+			Node node = physicalNetwork.nodes.findNodeByGeometryId(externalId);
 			if (node != null) {
 				virtualNetwork.connectoids.registerNewConnectoid(centroid, node, planitGeoUtils);
 			} else {
-				throw new PlanItException("There is a connectoid " + geometryId + " in the TAZ definition file but this cannot be matched to a GID in the network definition file.");
+				throw new PlanItException("There is a connectoid " + externalId + " in the TAZ definition file but this cannot be matched to a GID in the network definition file.");
 			}
 		}		
 		integrateConnectoidsAndLinks(virtualNetwork);
@@ -196,8 +197,9 @@ public class TransportNetwork {
 	public void integratePhysicalAndVirtualNetworksUsingGeometryId(double connectoidLength) throws PlanItException, TransformException {
 		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
 		for (Centroid centroid : virtualNetwork.centroids) {
-			long geometryId = centroid.getGeometryId();
-			Node node = physicalNetwork.nodes.findNodeByGeometryId(geometryId);
+			//long externalLinkId = centroid.getGeometryId();
+			long externalId = centroid.getExternalId();
+			Node node = physicalNetwork.nodes.findNodeByGeometryId(externalId);
 			virtualNetwork.connectoids.registerNewConnectoid(centroid, node, connectoidLength);
 		}		
 		integrateConnectoidsAndLinks(virtualNetwork);
