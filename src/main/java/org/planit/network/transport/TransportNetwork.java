@@ -1,7 +1,6 @@
 package org.planit.network.transport;
 
 import java.util.Iterator;
-import java.util.Map;
 
 import javax.annotation.Nonnull;
 
@@ -179,12 +178,11 @@ public class TransportNetwork {
 	 * @throws PlanItException 
 	 * @throws TransformException 
 	 */
-	public void integratePhysicalAndVirtualNetworksUsingGeometryId(PlanitGeoUtils planitGeoUtils) throws PlanItException, TransformException {
+	public void integratePhysicalAndVirtualNetworksUsingExternalLinkId(PlanitGeoUtils planitGeoUtils) throws PlanItException, TransformException {
 		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
 		for (Centroid centroid : virtualNetwork.centroids) {
-			//long externalLinkId = centroid.getGeometryId();
 			long externalId = centroid.getExternalId();
-			Node node = physicalNetwork.nodes.findNodeByGeometryId(externalId);
+			Node node = physicalNetwork.nodes.findNodeByExternalLinkId(externalId);
 			if (node != null) {
 				virtualNetwork.connectoids.registerNewConnectoid(centroid, node, planitGeoUtils);
 			} else {
@@ -194,22 +192,12 @@ public class TransportNetwork {
 		integrateConnectoidsAndLinks(virtualNetwork);
 	}	
 	
-	public void integratePhysicalAndVirtualNetworksUsingGeometryId(double connectoidLength) throws PlanItException, TransformException {
+	public void integratePhysicalAndVirtualNetworksUsingExternalLinkId(double connectoidLength) throws PlanItException, TransformException {
 		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
 		for (Centroid centroid : virtualNetwork.centroids) {
-			//long externalLinkId = centroid.getGeometryId();
 			long externalId = centroid.getExternalId();
-			Node node = physicalNetwork.nodes.findNodeByGeometryId(externalId);
+			Node node = physicalNetwork.nodes.findNodeByExternalLinkId(externalId);
 			virtualNetwork.connectoids.registerNewConnectoid(centroid, node, connectoidLength);
-		}		
-		integrateConnectoidsAndLinks(virtualNetwork);
-	}	
-	
-	
-	public void integratePhysicalAndVirtualNetworksUsingCentroidMap(Map<Centroid, Node> centroidMap, double connectoidLength) throws TransformException, PlanItException {
-		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
-		for (Centroid centroid : virtualNetwork.centroids) {
-			virtualNetwork.connectoids.registerNewConnectoid(centroid, centroidMap.get(centroid), connectoidLength);
 		}		
 		integrateConnectoidsAndLinks(virtualNetwork);
 	}	

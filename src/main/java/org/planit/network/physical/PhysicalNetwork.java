@@ -155,7 +155,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 			return nodeMap.size();
 		}
 		
-		public Node findNodeByGeometryId(long externalLinkId) {
+		public Node findNodeByExternalLinkId(long externalLinkId) {
 			for (Node node: nodeMap.values()) {
 				if  ((node.getExternalLinkIdSet().contains(externalLinkId)) && (node.getExternalId() != 0)) {
 					return node;
