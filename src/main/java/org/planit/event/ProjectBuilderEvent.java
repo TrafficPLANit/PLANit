@@ -13,7 +13,7 @@ public interface ProjectBuilderEvent extends Event {
 	 */
 	@Override
 	default public boolean isProcessedBy(EventListener listener) {
-		return listener instanceof ProjectBuilderListener;
+		return listener instanceof InputBuilderListener;
 	}
 
 }

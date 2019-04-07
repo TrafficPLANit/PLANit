@@ -9,7 +9,7 @@ import java.io.IOException;
  * @author markr
  *
  */
-public interface ProjectBuilderListener extends EventListener {
+public interface InputBuilderListener extends EventListener {
 	
 	
 	/** process event and call the right onX method
