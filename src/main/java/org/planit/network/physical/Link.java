@@ -5,7 +5,6 @@ import javax.annotation.Nonnull;
 
 import org.opengis.geometry.coordinate.LineSegment;
 import org.opengis.geometry.coordinate.LineString;
-import org.opengis.referencing.operation.TransformException;
 import org.planit.exceptions.PlanItException;
 import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.network.Edge;
@@ -45,10 +44,9 @@ public class Link extends Edge {
 	/**
 	 * Constructor which uses GeoTools to calculate link length
 	 * @throws PlanItException 
-	 * @throws TransformException 
 	 */
 
-	public Link(@Nonnull Node nodeA,@Nonnull Node nodeB, PlanitGeoUtils planitGeoUtils) throws TransformException, PlanItException
+	public Link(@Nonnull Node nodeA,@Nonnull Node nodeB, PlanitGeoUtils planitGeoUtils) throws PlanItException
 	{
 		super(nodeA, nodeB, planitGeoUtils);
 		this.linkId = generateLinkId();
@@ -57,9 +55,8 @@ public class Link extends Edge {
 	/**
 	 * Constructor which injects link length directly
 	 * @throws PlanItException 
-	 * @throws TransformException 
 	 */
-	public Link(@Nonnull Node nodeA,@Nonnull Node nodeB, double length) throws TransformException, PlanItException
+	public Link(@Nonnull Node nodeA,@Nonnull Node nodeB, double length) throws PlanItException
 	{
 		super(nodeA, nodeB, length);
 		this.linkId = generateLinkId();

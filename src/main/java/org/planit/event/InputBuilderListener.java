@@ -1,6 +1,6 @@
 package org.planit.event;
 
-import java.io.IOException;
+import org.planit.exceptions.PlanItException;
 
 /**
  * Listener which is invoked whenever a project component is created. To be used to populate the
@@ -16,16 +16,20 @@ public interface InputBuilderListener extends EventListener {
 	 * @see org.planit.event.EventListener#process(org.planit.event.Event)
 	 */
 	@Override
-	default public void process(Event e)  throws IOException {
-		if(e instanceof CreatedProjectComponentEvent<?>) {
-			onCreateProjectComponent((CreatedProjectComponentEvent<?>) e);
+	default public void process(Event event)  throws PlanItException {
+		try {
+			if (event instanceof CreatedProjectComponentEvent<?>) {
+				onCreateProjectComponent((CreatedProjectComponentEvent<?>) event);
+			}
+		} catch (Exception ex) {
+			throw new PlanItException(ex);
 		}
 	}
 	
 	/** Whenever a project component is created this method will be invoked
 	 * @param e, event containing the created (and empty) project component
 	 */
-	public void onCreateProjectComponent(CreatedProjectComponentEvent<?> e) throws IOException;
+	public void onCreateProjectComponent(CreatedProjectComponentEvent<?> e) throws PlanItException;
 	
 	public EventManager getEventManager();
 	

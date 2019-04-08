@@ -3,7 +3,6 @@ package org.planit.network.physical.macroscopic;
 import javax.annotation.Nonnull;
 
 import org.planit.network.physical.Node;
-import org.opengis.referencing.operation.TransformException;
 import org.planit.exceptions.PlanItException;
 import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.network.physical.Link;
@@ -30,10 +29,9 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
 	 * @see org.planit.network.physical.PhysicalNetworkBuilder#createLink()
 	 * @return link
 	 * @throws PlanItException 
-	 * @throws TransformException 
 	 */
 	@Override
-	public Link createLink(Node nodeA, Node nodeB, PlanitGeoUtils planitGeoUtils) throws TransformException, PlanItException {
+	public Link createLink(Node nodeA, Node nodeB, PlanitGeoUtils planitGeoUtils) throws PlanItException {
 		return new Link(nodeA, nodeB, planitGeoUtils);
 	}
 
@@ -41,10 +39,9 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
 	 * @see org.planit.network.physical.PhysicalNetworkBuilder#createLink()
 	 * @return link
 	 * @throws PlanItException 
-	 * @throws TransformException 
 	 */
 	@Override
-	public Link createLink(Node nodeA, Node nodeB, double length) throws TransformException, PlanItException {
+	public Link createLink(Node nodeA, Node nodeB, double length) throws PlanItException {
 		return new Link(nodeA, nodeB, length);
 	}
 

@@ -6,7 +6,6 @@ import java.util.TreeMap;
 
 import javax.annotation.Nonnull;
 
-import org.opengis.referencing.operation.TransformException;
 import org.planit.exceptions.PlanItException;
 import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.network.physical.LinkSegment;
@@ -44,9 +43,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		/** create new link to network identified via its id, using GeoTools to generate link length
 		 * @return link, new link
 		 * @throws PlanItException 
-		 * @throws TransformException 
 		 */
-		public Link registerNewLink(Node nodeA, Node nodeB, PlanitGeoUtils planitGeoUtils) throws TransformException, PlanItException {
+		public Link registerNewLink(Node nodeA, Node nodeB, PlanitGeoUtils planitGeoUtils) throws PlanItException {
 			Link newLink = networkBuilder.createLink(nodeA, nodeB, planitGeoUtils);
 			registerLink(newLink);
 			return newLink;
@@ -55,9 +53,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		/** create new link to network identified via its id, injecting link length directly
 		 * @return link, new link
 		 * @throws PlanItException 
-		 * @throws TransformException 
 		 */
-		public Link registerNewLink(Node nodeA, Node nodeB, double length) throws TransformException, PlanItException {
+		public Link registerNewLink(Node nodeA, Node nodeB, double length) throws PlanItException {
 			Link newLink = networkBuilder.createLink(nodeA, nodeB, length);
 			registerLink(newLink);
 			return newLink;

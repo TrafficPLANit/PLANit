@@ -8,7 +8,7 @@ import org.planit.userclass.TravellerType;
 import org.planit.userclass.UserClass;
 
 /**
- * Configuration store for MetroScan model parameters
+ * Configuration store for model parameters
  * 
  * @author gman6028
  *

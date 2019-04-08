@@ -1,7 +1,5 @@
 package org.planit.trafficassignment;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
@@ -129,40 +127,26 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
 	 * @param trafficAssignmentComponentClassName, the derived class name of the traffic assignment component (without packages)
 	 * @return trafficAssignmentComponentInstance
 	 * @throws PlanItException
-	 * @throws ClassNotFoundException 
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws IOException 
 	 */
 	@SuppressWarnings("unchecked")
-	public T create(String trafficAssignmentComponentClassName) throws PlanItException, 
-																														   InstantiationException, 
-																														   IllegalAccessException, 
-																														   IllegalArgumentException, 
-																														   InvocationTargetException, 
-																														   NoSuchMethodException, 
-																														   SecurityException, 
-																														   ClassNotFoundException, 
-																														   IOException {
+	public T create(String trafficAssignmentComponentClassName) throws PlanItException {
 		T newTrafficComponent = null;
 		TreeSet<String> eligibleComponentTypes = registeredTrafficAssignmentComponents.get(componentSuperType);
-		if (eligibleComponentTypes.contains(trafficAssignmentComponentClassName)) {
-			newTrafficComponent = (T) Class.forName(trafficAssignmentComponentClassName).getConstructor().newInstance();
-		} else {
-			throw new PlanItException("Provided Traffic Assignment Component class is not eligible for construction.");
+		try {
+			if (eligibleComponentTypes.contains(trafficAssignmentComponentClassName)) {
+				newTrafficComponent = (T) Class.forName(trafficAssignmentComponentClassName).getConstructor().newInstance();
+			} else {
+				throw new PlanItException("Provided Traffic Assignment Component class is not eligible for construction.");
+			}
+		} catch (Exception ex) {
+			throw new PlanItException(ex);
 		}
 		newTrafficComponent.setEventManager(eventManager);
 		registerEligibleInteractorListener(newTrafficComponent);
 		
         Event event = new CreatedProjectComponentEvent<T>(newTrafficComponent);
-		eventManager.dispatchEvent(event);
-
-		return newTrafficComponent;
-		
+ 		eventManager.dispatchEvent(event);
+		return newTrafficComponent;		
 	}
 
 	@Override

@@ -4,7 +4,6 @@ import java.util.Iterator;
 
 import javax.annotation.Nonnull;
 
-import org.opengis.referencing.operation.TransformException;
 import org.planit.exceptions.PlanItException;
 import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.network.Edge;
@@ -176,9 +175,8 @@ public class TransportNetwork {
 	/**
 	 * register the edges and (incoming/outgoing) and edge segments on the vertices of both virtual and physical networks 
 	 * @throws PlanItException 
-	 * @throws TransformException 
 	 */
-	public void integratePhysicalAndVirtualNetworks(PlanitGeoUtils planitGeoUtils) throws PlanItException, TransformException {
+	public void integratePhysicalAndVirtualNetworks(PlanitGeoUtils planitGeoUtils) throws PlanItException {
 		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
 		for (Centroid centroid : virtualNetwork.centroids) {
 			long externalId = centroid.getExternalId();
@@ -192,7 +190,7 @@ public class TransportNetwork {
 		integrateConnectoidsAndLinks(virtualNetwork);
 	}	
 	
-	public void integratePhysicalAndVirtualNetworks(double connectoidLength) throws PlanItException, TransformException {
+	public void integratePhysicalAndVirtualNetworks(double connectoidLength) throws PlanItException {
 		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
 		for (Centroid centroid : virtualNetwork.centroids) {
 			long externalId = centroid.getExternalId();

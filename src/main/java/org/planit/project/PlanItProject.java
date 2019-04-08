@@ -1,7 +1,5 @@
 package org.planit.project;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.TreeMap;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -19,6 +17,7 @@ import org.planit.zoning.Zoning;
 import org.planit.event.EventManager;
 import org.planit.event.InputBuilderListener;
 import org.planit.exceptions.PlanItException;
+import org.planit.exceptions.PlanItIncompatibilityException;
 import org.planit.geo.utils.PlanitGeoUtils;
 
 /**
@@ -82,23 +81,8 @@ public class PlanItProject {
 	 * @param network, to register
 	 * @return theCreatedNetwork
 	 * @throws PlanItException 
-	 * @throws ClassNotFoundException 
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
 	 */
-	public PhysicalNetwork createAndRegisterPhysicalNetwork(String physicalNetworkType) throws InstantiationException, 
-																				                                                                                  IllegalAccessException, 
-																				                                                                                  IllegalArgumentException, 
-																				                                                                                  InvocationTargetException, 
-																				                                                                                  NoSuchMethodException, 
-																				                                                                                  SecurityException, 
-																				                                                                                  ClassNotFoundException, 
-																				                                                                                  PlanItException,
-	                                                                                                                                                              IOException {
+	public PhysicalNetwork createAndRegisterPhysicalNetwork(String physicalNetworkType) throws PlanItException {
 		PhysicalNetwork thePhysicalNetwork = physicalNetworkFactory.create(physicalNetworkType);
 		physicalNetworks.put(thePhysicalNetwork.getId(), thePhysicalNetwork);
 		return thePhysicalNetwork;
@@ -108,23 +92,8 @@ public class PlanItProject {
 	 * @param zoningType
 	 * @return theCreatedZoning
 	 * @throws PlanItException 
-	 * @throws ClassNotFoundException 
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
 	 */
-	public Zoning createAndRegisterZoning() throws InstantiationException, 
-												                                     IllegalAccessException, 
-												                                     IllegalArgumentException, 
-												                                     InvocationTargetException, 
-												                                     NoSuchMethodException, 
-												                                     SecurityException, 
-												                                     ClassNotFoundException, 
-												                                     PlanItException,
-	                                                                                 IOException {
+	public Zoning createAndRegisterZoning() throws PlanItException {
 		Zoning theZoning = zoningFactory.create(Zoning.class.getCanonicalName());
 		zonings.put(theZoning.getId(), theZoning);
 		return theZoning;		
@@ -134,23 +103,8 @@ public class PlanItProject {
 	 * @param demands type, to register
 	 * @return theCreatedDemands
 	 * @throws PlanItException 
-	 * @throws ClassNotFoundException 
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
 	 */
-	public Demands createAndRegisterDemands() throws InstantiationException, 
-														                                        IllegalAccessException, 
-														                                        IllegalArgumentException, 
-														                                        InvocationTargetException, 
-														                                        NoSuchMethodException, 
-														                                        SecurityException, 
-														                                        ClassNotFoundException, 
-														                                        PlanItException,
-	                                                                                            IOException {
+	public Demands createAndRegisterDemands() throws PlanItException {
 		Demands demands = demandsFactory.create(Demands.class.getCanonicalName());
 		demandsMap.put(demands.getId(), demands);
 		return demands;
@@ -161,23 +115,8 @@ public class PlanItProject {
 	 * @param trafficAssignmentType
 	 * @return TrafficAssignment
 	 * @throws PlanItException 
-	 * @throws ClassNotFoundException 
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
 	 */
-	public DeterministicTrafficAssignment  createAndRegisterDeterministicAssignment(String trafficAssignmentType) throws PlanItException, 
-																												                                                                                           InstantiationException, 
-																												                                                                                           IllegalAccessException, 
-																												                                                                                           IllegalArgumentException, 
-																												                                                                                           InvocationTargetException, 
-																												                                                                                           NoSuchMethodException, 
-																												                                                                                           SecurityException, 
-																												                                                                                           ClassNotFoundException,
-							                                                                                                                                                                               IOException {
+	public DeterministicTrafficAssignment  createAndRegisterDeterministicAssignment(String trafficAssignmentType) throws PlanItException {
 		NetworkLoading networkLoadingAndAssignment = (NetworkLoading) assignmentFactory.create(trafficAssignmentType);
 		if  (!(networkLoadingAndAssignment instanceof DeterministicTrafficAssignment))  {
 			throw new PlanItException("Traffic assignment type is not a valid assignment type");
@@ -205,6 +144,8 @@ public class PlanItProject {
 	
 	/**
 	 * Execute all registered traffic assignments
+	 * @throws PlanItIncompatibilityException 
+	 * @throws PlanItException 
 	 */
 	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignments(PlanitGeoUtils planitGeoUtils) {
 		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();

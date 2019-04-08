@@ -1,7 +1,8 @@
 package org.planit.event;
 
-import java.io.IOException;
 import java.util.HashSet;
+
+import org.planit.exceptions.PlanItException;
 
 
 /**
@@ -32,19 +33,15 @@ public class EventDispatcher {
 	/** Dispatch event to eligible registered listeners for processing
 	 * @param event
 	 */
-/*
-	public void dispatch(Event event){
-		registeredListeners.forEach( listener -> 
-			{ if(event.isProcessedBy(listener)) {
-				listener.process(event);}
-			});
-	}	
-*/	
-	public void dispatch(Event event) throws IOException {
-		for (EventListener listener : registeredListeners) {
-			if(event.isProcessedBy(listener)) {
-				listener.process(event);
+	public void dispatch(Event event) throws PlanItException {
+		try {
+			for (EventListener listener : registeredListeners) {
+				if(event.isProcessedBy(listener)) {
+					listener.process(event);
+				}
 			}
+		} catch (Exception ex) {
+			throw new PlanItException(ex);
 		}
 			
 	}

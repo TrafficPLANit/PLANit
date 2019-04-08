@@ -5,7 +5,6 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
-import org.opengis.referencing.operation.TransformException;
 import org.planit.exceptions.PlanItException;
 import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.utils.IdGenerator;
@@ -65,9 +64,8 @@ public class Edge implements Comparable<Edge>{
 	/**
 	 * Constructor which uses GeoTools to generate link lengths
 	 * @throws PlanItException 
-	 * @throws TransformException 
 	 */
-	protected Edge(@Nonnull Vertex vertexA, @Nonnull Vertex vertexB, PlanitGeoUtils planitGeoUtils) throws TransformException, PlanItException
+	protected Edge(@Nonnull Vertex vertexA, @Nonnull Vertex vertexB, PlanitGeoUtils planitGeoUtils) throws PlanItException
 	{
 		this.id = generateEdgeId();
 		this.vertexA = vertexA;
@@ -78,9 +76,8 @@ public class Edge implements Comparable<Edge>{
 	/**
 	 * Constructor which injects link lengths directly
 	 * @throws PlanItException 
-	 * @throws TransformException 
 	 */
-	protected Edge(@Nonnull Vertex vertexA, @Nonnull Vertex vertexB, double length) throws TransformException, PlanItException
+	protected Edge(@Nonnull Vertex vertexA, @Nonnull Vertex vertexB, double length) throws PlanItException
 	{
 		this.id = generateEdgeId();
 		this.vertexA = vertexA;

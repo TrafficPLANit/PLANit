@@ -2,7 +2,6 @@ package org.planit.network.virtual;
 
 import javax.annotation.Nonnull;
 
-import org.opengis.referencing.operation.TransformException;
 import org.planit.exceptions.PlanItException;
 import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.network.Edge;
@@ -37,15 +36,14 @@ public class Connectoid extends Edge {
 	/**
 	 * Constructor
 	 * @throws PlanItException 
-	 * @throws TransformException 
 	 */
-	public Connectoid(@Nonnull Centroid centroidA, @Nonnull Node nodeB, PlanitGeoUtils planitGeoUtils) throws TransformException, PlanItException
+	public Connectoid(@Nonnull Centroid centroidA, @Nonnull Node nodeB, PlanitGeoUtils planitGeoUtils) throws PlanItException
 	{
 		super(centroidA, nodeB, planitGeoUtils);
 		this.connectoidId = generateConnectoidId();
 	}
 	
-	public Connectoid(@Nonnull Centroid centroidA, @Nonnull Node nodeB, double length) throws TransformException, PlanItException {
+	public Connectoid(@Nonnull Centroid centroidA, @Nonnull Node nodeB, double length) throws PlanItException {
 		super(centroidA, nodeB, length);
 		this.connectoidId = generateConnectoidId();
 	}

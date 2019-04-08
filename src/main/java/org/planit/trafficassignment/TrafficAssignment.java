@@ -1,13 +1,11 @@
 package org.planit.trafficassignment;
 
-import java.io.IOException;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
-import org.opengis.referencing.operation.TransformException;
 import org.planit.cost.Cost;
 import org.planit.demand.Demands;
 import org.planit.dto.BprResultDto;
@@ -146,9 +144,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * Execute assignment
 	 * @throws PlanItException 
 	 * @throws PlanItIncompatibilityException 
-	 * @throws TransformException 
 	 */
-	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> execute(PlanitGeoUtils planitGeoUtils) throws PlanItException, PlanItIncompatibilityException, TransformException {
+	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> execute(PlanitGeoUtils planitGeoUtils) throws PlanItException, PlanItIncompatibilityException {
 		checkForEmptyComponents();	
 		verifyComponentCompatibility();
 		createAndRegisterTransportNetwork(physicalNetwork, zoning);		
@@ -161,7 +158,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		return results;
 	}
 		
-	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> execute(double connectoidLength) throws PlanItException, PlanItIncompatibilityException, TransformException {
+	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> execute(double connectoidLength) throws PlanItException, PlanItIncompatibilityException {
 		checkForEmptyComponents();	
 		verifyComponentCompatibility();
 		createAndRegisterTransportNetwork(physicalNetwork, zoning);		
@@ -214,7 +211,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		return physicalCost;
 	}
 
-	public void setPhysicalCost(Cost<LinkSegment> physicalCost) throws IOException {
+	public void setPhysicalCost(Cost<LinkSegment> physicalCost) throws PlanItException {
 		this.physicalCost = physicalCost;
 		if (this.physicalCost instanceof InteractorAccessor) {
 			// accessor requires accessee --> request accessee via event --> and listen back for result
@@ -227,7 +224,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		return virtualCost;
 	}
 
-	public void setVirtualCost(Cost<ConnectoidSegment> virtualCost) throws IOException {
+	public void setVirtualCost(Cost<ConnectoidSegment> virtualCost) throws PlanItException {
 		this.virtualCost = virtualCost;
 		if (this.virtualCost instanceof InteractorAccessor) {
 			// accessor requires accessee --> request accessee via event --> and listen back for result

@@ -1,8 +1,5 @@
 package org.planit.trafficassignment.builder;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.event.EventManager;
@@ -42,24 +39,8 @@ public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmen
 	 * @param linkPerformancefunctionType
 	 * @return smoothing, that was registered
 	 * @throws PlanItException 
-	 * @throws ClassNotFoundException 
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws IOException 
 	 */
-	public PhysicalCost createAndRegisterPhysicalTravelTimeCostFunction(String physicalTraveltimeCostFunctionType) throws InstantiationException, 
-																										                                                                                                        IllegalAccessException, 
-																										                                                                                                        IllegalArgumentException, 
-																										                                                                                                        InvocationTargetException, 
-																										                                                                                                        NoSuchMethodException, 
-																										                                                                                                        SecurityException, 
-																										                                                                                                        ClassNotFoundException, 
-																										                                                                                                        PlanItException, 
-																										                                                                                                        IOException {
+	public PhysicalCost createAndRegisterPhysicalTravelTimeCostFunction(String physicalTraveltimeCostFunctionType) throws PlanItException {
 		PhysicalCost createdCost = physicalCostFactory.create(physicalTraveltimeCostFunctionType);
 		if (parentAssignment.getPhysicalCost() == null) {
 			parentAssignment.setPhysicalCost(createdCost);
@@ -71,23 +52,8 @@ public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmen
 	 * @param linkPerformancefunctionType
 	 * @return smoothing, that was registered
 	 * @throws PlanItException 
-	 * @throws ClassNotFoundException 
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
 	 */
-	public VirtualCost createAndRegisterVirtualTravelTimeCostFunction(String virtualTraveltimeCostFunctionType) throws InstantiationException, 
-																								                                                                                                     IllegalAccessException, 
-																								                                                                                                     IllegalArgumentException, 
-																								                                                                                                     InvocationTargetException, 
-																								                                                                                                     NoSuchMethodException, 
-																								                                                                                                     SecurityException, 
-																								                                                                                                     ClassNotFoundException, 
-																								                                                                                                     PlanItException, 
-																								                                                                                                     IOException {
+	public VirtualCost createAndRegisterVirtualTravelTimeCostFunction(String virtualTraveltimeCostFunctionType) throws PlanItException {
 		VirtualCost createdCost = virtualCostFactory.create(virtualTraveltimeCostFunctionType);
 		if (parentAssignment.getVirtualCost() == null) {
 			parentAssignment.setVirtualCost(createdCost);

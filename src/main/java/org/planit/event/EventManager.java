@@ -1,10 +1,10 @@
 package org.planit.event;
 
-import java.io.IOException;
+import org.planit.exceptions.PlanItException;
 
 public interface EventManager {
 
-	public void dispatchEvent(Event e) throws IOException;
+	public void dispatchEvent(Event e) throws PlanItException;
 		
 	/**
 	 * Add eventListener to the project

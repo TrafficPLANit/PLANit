@@ -11,7 +11,6 @@ import org.opengis.geometry.coordinate.GeometryFactory;
 import org.opengis.geometry.coordinate.LineString;
 import org.opengis.geometry.coordinate.Position;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.TransformException;
 import org.planit.exceptions.PlanItException;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -51,14 +50,17 @@ public class PlanitGeoUtils {
 	 * @param startPosition
 	 * @param endPosition
 	 * @return distance in meters
-	 * @throws TransformException 
 	 * @throws PlanItException 
 	 */
-	public double getDistanceInMeters(Position startPosition, Position endPosition) throws TransformException, PlanItException {
+	public double getDistanceInMeters(Position startPosition, Position endPosition) throws PlanItException {
 		// not threadsafe
-		geodeticDistanceCalculator.setStartingPosition(startPosition);
-		geodeticDistanceCalculator.setDestinationPosition(endPosition);		
-		return geodeticDistanceCalculator.getOrthodromicDistance();
+		try {
+			geodeticDistanceCalculator.setStartingPosition(startPosition);
+			geodeticDistanceCalculator.setDestinationPosition(endPosition);		
+			return geodeticDistanceCalculator.getOrthodromicDistance();
+		} catch (Exception ex) {
+			throw new PlanItException(ex);
+		}
 	}
 
 	/**

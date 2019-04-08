@@ -1,6 +1,6 @@
 package org.planit.event;
 
-import java.io.IOException;
+import org.planit.exceptions.PlanItException;
 
 public class SimpleEventManager implements EventManager {
 
@@ -15,8 +15,12 @@ public class SimpleEventManager implements EventManager {
 	
 	/** dispatch an event into the PlanIt project 
 	 */
-	public void dispatchEvent(Event e) throws IOException {
-		eventDispatcher.dispatch(e);
+	public void dispatchEvent(Event e) throws PlanItException {
+		try {
+			eventDispatcher.dispatch(e);
+		} catch (Exception ex) {
+			throw new PlanItException(ex);
+		}
 	}
 		
 	/**

@@ -1,8 +1,5 @@
 package org.planit.trafficassignment.builder;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-
 import org.planit.event.EventManager;
 import org.planit.exceptions.PlanItException;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
@@ -47,24 +44,8 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
 	 * @param fundamentalDiagramType
 	 * @return createdFundamentalDiagram
 	 * @throws PlanItException 
-	 * @throws ClassNotFoundException 
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws IOException 
 	 */
-	public FundamentalDiagram createAndRegisterFundamentalDiagram(String fundamentalDiagramType) throws InstantiationException, 
-																						                                                                                                  IllegalAccessException, 
-																						                                                                                                  IllegalArgumentException, 
-																						                                                                                                  InvocationTargetException,
-																						                                                                                                  NoSuchMethodException, 
-																						                                                                                                  SecurityException, 
-																						                                                                                                  ClassNotFoundException, 
-																						                                                                                                  PlanItException, 
-																						                                                                                                  IOException {
+	public FundamentalDiagram createAndRegisterFundamentalDiagram(String fundamentalDiagramType) throws PlanItException {
 		FundamentalDiagram createdFundamentalDiagram = fundamentalDiagramFactory.create(fundamentalDiagramType);
 		((CapacityConstrainedAssignment) parentAssignment).setFundamentalDiagram(createdFundamentalDiagram);
 		return createdFundamentalDiagram;
@@ -74,24 +55,8 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
 	 * @param fundamentalDiagramType
 	 * @return createdFundamentalDiagram
 	 * @throws PlanItException 
-	 * @throws ClassNotFoundException 
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
-	 * @throws IOException 
 	 */
-	public NodeModel createAndRegisterNodeModel(String nodeModelType) throws InstantiationException, 
-	                                                                         IllegalAccessException, 
-	                                                                         IllegalArgumentException, 
-	                                                                         InvocationTargetException, 
-	                                                                         NoSuchMethodException, 
-	                                                                         SecurityException, 
-	                                                                         ClassNotFoundException, 
-	                                                                         PlanItException, 
-	                                                                         IOException {
+	public NodeModel createAndRegisterNodeModel(String nodeModelType) throws PlanItException {
 		NodeModel createdNodeModel = nodeModelFactory.create(nodeModelType);
 		((CapacityConstrainedAssignment) parentAssignment).setNodeModel(createdNodeModel);
 		return createdNodeModel;

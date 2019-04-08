@@ -1,8 +1,5 @@
 package org.planit.trafficassignment.builder;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-
 import javax.annotation.Nonnull;
 
 import org.planit.demand.Demands;
@@ -48,23 +45,8 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
 	 * @param smoothingType
 	 * @return smoothing, that was registered
 	 * @throws PlanItException 
-	 * @throws ClassNotFoundException 
-	 * @throws SecurityException 
-	 * @throws NoSuchMethodException 
-	 * @throws InvocationTargetException 
-	 * @throws IllegalArgumentException 
-	 * @throws IllegalAccessException 
-	 * @throws InstantiationException 
 	 */
-	public Smoothing createAndRegisterSmoothing(String smoothingType) throws InstantiationException, 
-	                                                                                                                                  IllegalAccessException, 
-	                                                                                                                                  IllegalArgumentException, 
-	                                                                                                                                  InvocationTargetException, 
-	                                                                                                                                  NoSuchMethodException, 
-	                                                                                                                                  SecurityException, 
-	                                                                                                                                  ClassNotFoundException, 
-	                                                                                                                                  PlanItException,
-	                                                                                                                                  IOException {
+	public Smoothing createAndRegisterSmoothing(String smoothingType) throws PlanItException {
 		Smoothing smoothing = smoothingFactory.create(smoothingType);
 		parentAssignment.setSmoothing(smoothing);
 		return smoothing;

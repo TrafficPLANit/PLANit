@@ -6,7 +6,6 @@ import java.util.TreeMap;
 
 import javax.annotation.Nonnull;
 
-import org.opengis.referencing.operation.TransformException;
 import org.planit.exceptions.PlanItException;
 import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.network.physical.Node;
@@ -42,15 +41,14 @@ public class VirtualNetwork {
 		/** create new connectoid to network identified via its id
 		 * @return connectoid, new connectoid
 		 * @throws PlanItException 
-		 * @throws TransformException 
 		 */
-		public Connectoid registerNewConnectoid(Centroid centroid, Node node, PlanitGeoUtils planitGeoUtils) throws TransformException, PlanItException {
+		public Connectoid registerNewConnectoid(Centroid centroid, Node node, PlanitGeoUtils planitGeoUtils) throws PlanItException {
 			Connectoid newConnectoid = new Connectoid(centroid, node, planitGeoUtils);
 			registerConnectoid(newConnectoid);
 			return newConnectoid;
 		}		
 		
-		public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length) throws TransformException, PlanItException {
+		public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length) throws PlanItException {
 			Connectoid newConnectoid = new Connectoid(centroid, node, length);
 			registerConnectoid(newConnectoid);
 			return newConnectoid;

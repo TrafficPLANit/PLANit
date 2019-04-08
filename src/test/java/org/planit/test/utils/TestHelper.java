@@ -1,6 +1,5 @@
 package org.planit.test.utils;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -8,16 +7,13 @@ import java.util.SortedSet;
 import org.planit.dto.BprResultDto;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
-import org.planit.utils.PlanItUtils;
 
 import static org.junit.Assert.fail;
 
 public class TestHelper {
 
-	public static void compareResultsToCsvFileContents(
-		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap,
-		String resultsFileLocation) throws IOException {
-		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMapFromFile = PlanItUtils.createResultsMapFromCsvFile(resultsFileLocation);
+	public static void compareResultsToCsvFileContents(SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap, 
+			                                                                                  SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMapFromFile) {
 		if (resultsMap.keySet().size() != resultsMapFromFile.keySet().size()) {
 			fail("Test case returned " + resultsMap.keySet().size() + " runs where the results file contains " 	+ resultsMap.keySet().size() + ".");
 			return;
