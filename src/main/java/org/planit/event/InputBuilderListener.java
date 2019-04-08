@@ -27,4 +27,6 @@ public interface InputBuilderListener extends EventListener {
 	 */
 	public void onCreateProjectComponent(CreatedProjectComponentEvent<?> e) throws IOException;
 	
+	public EventManager getEventManager();
+	
 }

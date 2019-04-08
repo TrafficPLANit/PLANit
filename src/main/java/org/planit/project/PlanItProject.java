@@ -16,8 +16,8 @@ import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.userclass.Mode;
 import org.planit.zoning.Zoning;
-import org.planit.event.EventHandler;
 import org.planit.event.EventManager;
+import org.planit.event.InputBuilderListener;
 import org.planit.exceptions.PlanItException;
 import org.planit.geo.utils.PlanitGeoUtils;
 
@@ -28,7 +28,7 @@ import org.planit.geo.utils.PlanitGeoUtils;
  *
  */
 
-public class PlanItProject implements EventHandler {
+public class PlanItProject {
 	
 	/**
 	 * The physical networks registered on this project
@@ -58,7 +58,8 @@ public class PlanItProject implements EventHandler {
 	private TrafficAssignmentComponentFactory<Demands> demandsFactory;
 	private TrafficAssignmentComponentFactory<NetworkLoading> assignmentFactory;
 	
-	public void setEventManager(EventManager eventManager) {
+	public PlanItProject(InputBuilderListener inputBuilderListener) {
+		EventManager eventManager = inputBuilderListener.getEventManager();
 		trafficAssignments = new TreeMap<Long,TrafficAssignment>();
 		physicalNetworks = new TreeMap<Long,PhysicalNetwork>();
 		zonings = new TreeMap<Long,Zoning>();
