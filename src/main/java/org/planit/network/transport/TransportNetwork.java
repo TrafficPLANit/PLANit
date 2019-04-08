@@ -178,7 +178,7 @@ public class TransportNetwork {
 	 * @throws PlanItException 
 	 * @throws TransformException 
 	 */
-	public void integratePhysicalAndVirtualNetworksUsingExternalLinkId(PlanitGeoUtils planitGeoUtils) throws PlanItException, TransformException {
+	public void integratePhysicalAndVirtualNetworks(PlanitGeoUtils planitGeoUtils) throws PlanItException, TransformException {
 		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
 		for (Centroid centroid : virtualNetwork.centroids) {
 			long externalId = centroid.getExternalId();
@@ -192,7 +192,7 @@ public class TransportNetwork {
 		integrateConnectoidsAndLinks(virtualNetwork);
 	}	
 	
-	public void integratePhysicalAndVirtualNetworksUsingExternalLinkId(double connectoidLength) throws PlanItException, TransformException {
+	public void integratePhysicalAndVirtualNetworks(double connectoidLength) throws PlanItException, TransformException {
 		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
 		for (Centroid centroid : virtualNetwork.centroids) {
 			long externalId = centroid.getExternalId();

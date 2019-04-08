@@ -22,12 +22,11 @@ import org.planit.exceptions.PlanItException;
 import org.planit.geo.utils.PlanitGeoUtils;
 
 /**
- * Main class that hosts a single project that can consist of multiple networks, demands and traffic assignments all based on
+ * The main class which hosts a single project that can consist of multiple networks, demands and traffic assignments all based on
  * a single configuration (user classes, modes etc.)
  * @author markr
  *
  */
-
 public class PlanItProject {
 	
 	/**
@@ -207,11 +206,11 @@ public class PlanItProject {
 	/**
 	 * Execute all registered traffic assignments
 	 */
-	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignmentsUsingExternalLinkId(PlanitGeoUtils planitGeoUtils) {
+	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignments(PlanitGeoUtils planitGeoUtils) {
 		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
 		trafficAssignments.forEach( (id,ta) -> {
 			try {
-				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.executeUsingExternalLinkId(planitGeoUtils);
+				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.execute(planitGeoUtils);
 				resultsMap.put(id, results);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -220,11 +219,11 @@ public class PlanItProject {
 		return resultsMap;
 	}
 	
-	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignmentsUsingExternalLinkId(double connectoidLength) {
+	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignments(double connectoidLength) {
 		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
 		trafficAssignments.forEach( (id,ta) -> {
 			try {
-				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.executeUsingExternalLinkId(connectoidLength);
+				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.execute(connectoidLength);
 				resultsMap.put(id, results);
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -232,31 +231,4 @@ public class PlanItProject {
 		});	
 		return resultsMap;
 	}
-
-	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignmentsUsingExternalLinkId(SortedMap<Long, TrafficAssignment> trafficAssignments, PlanitGeoUtils planitGeoUtils) {
-		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
-		trafficAssignments.forEach( (id,ta) -> {
-			try {
-				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.executeUsingExternalLinkId(planitGeoUtils);
-				resultsMap.put(id, results);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});		
-		return resultsMap;
-	}
-
-	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignmentsUsingExternalLinkId(SortedMap<Long, TrafficAssignment> trafficAssignments, double connectoidLength) {
-		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
-		trafficAssignments.forEach( (id,ta) -> {
-			try {
-				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.executeUsingExternalLinkId(connectoidLength);
-				resultsMap.put(id, results);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});		
-		return resultsMap;
-	}
-
 }

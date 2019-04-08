@@ -148,13 +148,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * @throws PlanItIncompatibilityException 
 	 * @throws TransformException 
 	 */
-	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeUsingExternalLinkId(PlanitGeoUtils planitGeoUtils) throws PlanItException, 
-														                                                                                                                                                                                          PlanItIncompatibilityException, 
-														                                                                                                                                                                                          TransformException {
+	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> execute(PlanitGeoUtils planitGeoUtils) throws PlanItException, PlanItIncompatibilityException, TransformException {
 		checkForEmptyComponents();	
 		verifyComponentCompatibility();
 		createAndRegisterTransportNetwork(physicalNetwork, zoning);		
-		network.integratePhysicalAndVirtualNetworksUsingExternalLinkId(planitGeoUtils); 			        // connect here since it marries the virtual and physical networks
+		network.integratePhysicalAndVirtualNetworks(planitGeoUtils); 			        // connect here since it marries the virtual and physical networks
 		initialiseBeforeEquilibration();			
 		SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = executeEquilibration();						                                    // Actual algorithm execution
 		LOGGER.info("Finished equilibration");
@@ -163,13 +161,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		return results;
 	}
 		
-	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeUsingExternalLinkId(double connectoidLength) throws PlanItException, 
-														                                                                                                                                                                                      PlanItIncompatibilityException, 
-														                                                                                                                                                                                      TransformException {
+	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> execute(double connectoidLength) throws PlanItException, PlanItIncompatibilityException, TransformException {
 		checkForEmptyComponents();	
 		verifyComponentCompatibility();
 		createAndRegisterTransportNetwork(physicalNetwork, zoning);		
-		network.integratePhysicalAndVirtualNetworksUsingExternalLinkId(connectoidLength); 			        // connect here since it marries the virtual and physical networks
+		network.integratePhysicalAndVirtualNetworks(connectoidLength); 			        // connect here since it marries the virtual and physical networks
 		initialiseBeforeEquilibration();			
 		SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = executeEquilibration();						                                    // Actual algorithm execution
 		LOGGER.info("Finished equilibration");
