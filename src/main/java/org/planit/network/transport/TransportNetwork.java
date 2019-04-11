@@ -22,7 +22,7 @@ import org.planit.zoning.Zoning;
 import org.planit.zoning.Zoning.Zones;
 
 /**
- * Entire transport network that is being modelled including both the physical and virtual aspects of it as well
+ * Entire transport network that is being modeled including both the physical and virtual aspects of it as well
  * as the zoning. It acts as a wrapper unifying the two components during the assignment stage 
  * 
  * @author markr
@@ -172,17 +172,22 @@ public class TransportNetwork {
 		return new TransportSegmentIterator();
 	}
 
-	/**
-	 * register the edges and (incoming/outgoing) and edge segments on the vertices of both virtual and physical networks 
-	 * @throws PlanItException 
-	 */
+/**
+ * Integrate the virtual and physical networks using a PlanitGeoUtils object to calculate connectoid lengths
+ * 
+ * This method uses the PlanitGeoUtils object to calculate the length between a centroid and its related node.  This is the connectoid length for the centroid.
+ * 
+ * @param planitGeoUtils					PlanitGeoUtils object which can calculate the distance between two points
+ * @throws PlanItException 				thrown if there is an error
+ */
 	public void integratePhysicalAndVirtualNetworks(PlanitGeoUtils planitGeoUtils) throws PlanItException {
 		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
 		for (Centroid centroid : virtualNetwork.centroids) {
 			long externalId = centroid.getExternalId();
 			Node node = physicalNetwork.nodes.findNodeByExternalLinkId(externalId);
 			if (node != null) {
-				virtualNetwork.connectoids.registerNewConnectoid(centroid, node, planitGeoUtils);
+				double connectoidLength = planitGeoUtils.getDistanceInMeters(centroid.getCentrePointGeometry(), node.getCentrePointGeometry());
+				virtualNetwork.connectoids.registerNewConnectoid(centroid, node, connectoidLength);
 			} else {
 				throw new PlanItException("There is a connectoid " + externalId + " in the TAZ definition file but this cannot be matched to a GID in the network definition file.");
 			}
@@ -190,6 +195,12 @@ public class TransportNetwork {
 		integrateConnectoidsAndLinks(virtualNetwork);
 	}	
 	
+/**
+ * Integrate the virtual and physical networks using a fixed length for all connectoids
+ * 
+ * @param connectoidLength			the fixed connectoid length
+ * @throws PlanItException			thrown if there is an error
+ */
 	public void integratePhysicalAndVirtualNetworks(double connectoidLength) throws PlanItException {
 		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
 		for (Centroid centroid : virtualNetwork.centroids) {

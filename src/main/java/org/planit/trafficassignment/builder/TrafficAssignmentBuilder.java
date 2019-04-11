@@ -27,8 +27,6 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
 	 */
 	protected final TrafficAssignment parentAssignment;
 	
-	protected EventManager eventManager;
-
 	// PUBLIC
 	
 	/** Constructor 
@@ -71,7 +69,6 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
 	}
 
 	public void setEventManager(EventManager eventManager) {
-		this.eventManager = eventManager;
 		smoothingFactory.setEventManager(eventManager);
 	}	
 	

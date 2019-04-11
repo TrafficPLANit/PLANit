@@ -11,9 +11,7 @@ import org.planit.demand.Demands;
 import org.planit.dto.BprResultDto;
 import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
-import org.planit.exceptions.PlanItIncompatibilityException;
 import org.planit.gap.GapFunction;
-import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.interactor.InteractorAccessor;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetwork;
@@ -21,9 +19,9 @@ import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
-import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.userclass.Mode;
+import org.planit.time.TimePeriod;
 import org.planit.utils.IdGenerator;
 import org.planit.zoning.Zoning;
 
@@ -47,15 +45,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * The zoning to use
 	 */
 	private Zoning zoning;
-	
-	/** Construct the transport network from the combined physical and virtual network (part of the zoning) and
-	 * make it available for the derived classes
-	 * @param physicalNetwork
-	 * @param zoning
-	 */
-	private void createAndRegisterTransportNetwork(@Nonnull PhysicalNetwork physicalNetwork, @Nonnull Zoning zoning) {
-		this.network = new TransportNetwork(physicalNetwork, zoning);
-	}	
 	
 	// Protected
 	
@@ -107,6 +96,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		return network;
 	}
 		
+	public void setTransportNetwork(TransportNetwork network) {
+		this.network = network;
+	}
+	
 	// Public
 	
 	private static final Logger LOGGER = Logger.getLogger(TrafficAssignment.class.getName());
@@ -128,10 +121,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	
 	/**
 	 * Verify if the traffic assignment components are compatible and nonnull 
-	 * @throws PlanItIncompatibilityException 
 	 * @throws PlanItException 
 	 */
-	public void verifyComponentCompatibility() throws PlanItIncompatibilityException, PlanItException {
+//TODO - This method is currently empty.  It original version could throw PlanItIncompatibilityException.  We need to check whether we still need it and whether it should throw PlanItIncompatibilityException.
+	public void verifyComponentCompatibility() throws PlanItException {
 		//TODO
 	}
 	
@@ -143,26 +136,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	/**
 	 * Execute assignment
 	 * @throws PlanItException 
-	 * @throws PlanItIncompatibilityException 
 	 */
-	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> execute(PlanitGeoUtils planitGeoUtils) throws PlanItException, PlanItIncompatibilityException {
+	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> execute() throws PlanItException  {
 		checkForEmptyComponents();	
 		verifyComponentCompatibility();
-		createAndRegisterTransportNetwork(physicalNetwork, zoning);		
-		network.integratePhysicalAndVirtualNetworks(planitGeoUtils); 			        // connect here since it marries the virtual and physical networks
-		initialiseBeforeEquilibration();			
-		SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = executeEquilibration();						                                    // Actual algorithm execution
-		LOGGER.info("Finished equilibration");
-		network.removeVirtualNetworkFromPhysicalNetwork();		// disconnect here since the physical network might be reused in a different assignment
-		LOGGER.info("Finished execution");
-		return results;
-	}
-		
-	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> execute(double connectoidLength) throws PlanItException, PlanItIncompatibilityException {
-		checkForEmptyComponents();	
-		verifyComponentCompatibility();
-		createAndRegisterTransportNetwork(physicalNetwork, zoning);		
-		network.integratePhysicalAndVirtualNetworks(connectoidLength); 			        // connect here since it marries the virtual and physical networks
 		initialiseBeforeEquilibration();			
 		SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = executeEquilibration();						                                    // Actual algorithm execution
 		LOGGER.info("Finished equilibration");

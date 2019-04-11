@@ -3,7 +3,6 @@ package org.planit.network.virtual;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.network.Edge;
 import org.planit.network.physical.Node;
 import org.planit.utils.IdGenerator;
@@ -37,12 +36,6 @@ public class Connectoid extends Edge {
 	 * Constructor
 	 * @throws PlanItException 
 	 */
-	public Connectoid(@Nonnull Centroid centroidA, @Nonnull Node nodeB, PlanitGeoUtils planitGeoUtils) throws PlanItException
-	{
-		super(centroidA, nodeB, planitGeoUtils);
-		this.connectoidId = generateConnectoidId();
-	}
-	
 	public Connectoid(@Nonnull Centroid centroidA, @Nonnull Node nodeB, double length) throws PlanItException {
 		super(centroidA, nodeB, length);
 		this.connectoidId = generateConnectoidId();

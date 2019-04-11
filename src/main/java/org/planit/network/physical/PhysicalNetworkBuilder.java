@@ -1,7 +1,6 @@
 package org.planit.network.physical;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.geo.utils.PlanitGeoUtils;
 
 /**
  * Build network elements based on chosen network view. Implementations are registered on the network class which uses it
@@ -19,8 +18,6 @@ public interface PhysicalNetworkBuilder {
 	/** Create a new link instance
 	 * @return link
 	 */
-	Link createLink(Node nodeA, Node nodeB, PlanitGeoUtils planitGeoUtils) throws PlanItException;
-	
 	Link createLink(Node nodeA, Node nodeB, double length) throws PlanItException ;
 
 	/** Create a new physical link segment instance

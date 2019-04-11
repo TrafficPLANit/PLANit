@@ -47,15 +47,6 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	 * @return equalLinkSegmentType
 	 */
 	public MacroscopicLinkSegmentType findEqualMacroscopicLinkSegmentType(@Nonnull MacroscopicLinkSegmentType linkSegmentType) {
-/*
-		for (Iterator<MacroscopicLinkSegmentType> i = macroscopiclinkSegmentTypes().iterator();i.hasNext();) {
-			MacroscopicLinkSegmentType currentLinkSegmentType = i.next();
-			if(currentLinkSegmentType.equals(linkSegmentType)) {
-				return currentLinkSegmentType;
-			}
-		}
-		return null;
-*/		
 		Iterator<MacroscopicLinkSegmentType> iterator = macroscopiclinkSegmentTypes().iterator();
 		while (iterator.hasNext()) {
 			MacroscopicLinkSegmentType currentLinkSegmentType = iterator.next();
