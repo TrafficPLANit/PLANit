@@ -48,6 +48,6 @@ public interface InputBuilder extends EventListener {
  * @return											the integrated transport network
  * @throws PlanItException
  */
-	public TransportNetwork buildTransportNetwork(PhysicalNetwork physicalNetwork, Zoning zoning) throws PlanItException;
+	public TransportNetwork integrateVirtualAndPhysicalNetworks(PhysicalNetwork physicalNetwork, Zoning zoning) throws PlanItException;
 	
 }

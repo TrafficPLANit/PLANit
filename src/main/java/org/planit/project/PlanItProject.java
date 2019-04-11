@@ -146,7 +146,7 @@ public class PlanItProject {
 			throw new PlanItException("Traffic assignment type is not a valid assignment type");
 		}	
 		DeterministicTrafficAssignment trafficAssignment = (DeterministicTrafficAssignment) networkLoadingAndAssignment;
-		TransportNetwork transportNetwork = inputBuilder.buildTransportNetwork(physicalNetwork, zoning);
+		TransportNetwork transportNetwork = inputBuilder.integrateVirtualAndPhysicalNetworks(physicalNetwork, zoning);
 		trafficAssignment.setTransportNetwork(transportNetwork);
 		trafficAssignments.put(trafficAssignment.getId(), trafficAssignment);		
 		return trafficAssignment;
