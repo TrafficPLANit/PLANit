@@ -45,13 +45,14 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
 	 */
 	protected final int numberOfEdgeSegments;
 	
-/** Constructor for an edge cost based Dijkstra algorithm for finding shortest paths.
- * @param edgeCosts								 Edge segment costs								
+/** 
+ * Constructor for an edge cost based Dijkstra algorithm for finding shortest paths.
+ * 
+ * @param edgeSegmentCosts					 Edge segment costs								
  * @param numberOfEdgeSegments        Edge segments, both physical and connectoid
  * @param numberOfVertices                    Vertices, both nodes and centroids
- * @throws PlanItException 
  */
-	public DijkstraShortestPathAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) throws PlanItException {
+	public DijkstraShortestPathAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
 		this.edgeSegmentCosts = edgeSegmentCosts;
 		this.numberOfVertices = numberOfVertices;
 		this.numberOfEdgeSegments = numberOfEdgeSegments;		

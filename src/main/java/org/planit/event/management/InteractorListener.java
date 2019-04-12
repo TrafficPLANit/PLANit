@@ -1,4 +1,7 @@
-package org.planit.event;
+package org.planit.event.management;
+
+import org.planit.event.Event;
+import org.planit.event.RequestAccesseeEvent;
 
 public interface InteractorListener extends EventListener {
 

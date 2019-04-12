@@ -2,7 +2,7 @@ package org.planit.trafficassignment.builder;
 
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.virtual.VirtualCost;
-import org.planit.event.EventManager;
+import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
 import org.planit.trafficassignment.CapacityRestrainedAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
@@ -66,6 +66,6 @@ public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmen
 		super.setEventManager(eventManager);
 		physicalCostFactory.setEventManager(eventManager);
 		virtualCostFactory.setEventManager(eventManager);
-		}	
+	}	
 
 }

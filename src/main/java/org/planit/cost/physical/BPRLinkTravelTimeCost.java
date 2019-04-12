@@ -42,39 +42,39 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		 */		
 		protected final double beta;
 				
-	/** 
-	 * Constructor which injects BPR model parameters
-	 * 
-	 * @param alpha				alpha value for BPR model
-	 * @param beta				beta value for BPR model
-	 */
+/** 
+ * Constructor which injects BPR model parameters
+ * 
+ * @param alpha				alpha value for BPR model
+ * @param beta				beta value for BPR model
+ */
 		public BPRParameters(double alpha, double beta) {
 			this.alpha = alpha;
 			this.beta = beta;
 		}
 			
-	/**
-	 * Returns alpha value for BPR model
-	 * 
-	 * @return		alpha value for BPR model
-	 */
+/**
+ * Returns alpha value for BPR model
+ * 
+ * @return		alpha value for BPR model
+ */
 		public double getAlpha() {
 			return alpha;
 		}
 	
-	/**
-	 * Returns beta value for BPR model
-	 * 
-	 * @return		beta value for BPR value
-	 */
+/**
+ * Returns beta value for BPR model
+ * 
+ * @return		beta value for BPR value
+ */
 		public double getBeta() {
 			return beta;
 		}		
 	}
 	
-	/**
-	 * BPR parameters for all link segments
-	 */
+/**
+ * BPR parameters for all link segments
+ */
 	protected BPRParameters[] bprEdgeSegmentParameters = null;
 	
 	
@@ -90,8 +90,8 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
  *  
  *  @param mode					the current Mode of travel
  *  @param linkSegment		the current link segment
- *  @return the travel time for the current link
- * @throws PlanItException 
+ *  @return 							the travel time for the current link
+ *  @throws PlanItException 	thrown if there is an error
  *
  */
 	public double calculateSegmentCost(Mode mode, LinkSegment linkSegment) throws PlanItException {
@@ -119,11 +119,10 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	}
 	
 /**
- * Set accessee
+ * Set Accessee object for this LinkVolumeAccessor
  * 
- * @param accessee		
+ * @param accessee					Accessee object for this LinkVolumeAccessor
  */
-
 	@Override
 	public void setAccessee(InteractorAccessee accessee) {
 		if(!(accessee instanceof LinkVolumeAccessee)) {
@@ -132,10 +131,22 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		this.linkVolumeAccessee = (LinkVolumeAccessee) accessee;		
 	}
 	
+/**
+ * Returns the alpha value for a given link segment
+ * 
+ * @param linkSegment			the specified link segment
+ * @return								the alpha value for this link segment
+ */
 	public double getAlpha(LinkSegment linkSegment) {
 		return bprEdgeSegmentParameters[(int) linkSegment.getId()].getAlpha();
 	}
 	
+/**
+ * Returns the beta value for a given link segment
+ * 
+ * @param linkSegment			the specified link segment
+ * @return								the beta value for this link segment
+ */
 	public double getBeta(LinkSegment linkSegment) {
 		return bprEdgeSegmentParameters[(int) linkSegment.getId()].getBeta();
 	}

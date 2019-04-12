@@ -11,10 +11,10 @@ import org.planit.utils.Pair;
  */
 public class MatrixDemand extends ODDemand {
 	
-	/**
-	 * Iterator over entries masking its matrix based container
-	 * @author markr
-	 */
+/**
+ * Iterator over entries masking its matrix based container
+ * @author markr
+ */
 	protected class MatrixDemandIterator implements ODDemandIterator{
 		
 		private int originId = 0;
@@ -23,12 +23,22 @@ public class MatrixDemand extends ODDemand {
 		private int currentDestinationId = 1;
 		private int beyondEndID = numberOfTravelAnalysisZones-1;
 		boolean hasNext = numberOfTravelAnalysisZones>0;
-		
+	
+/**
+ * Tests whether this iterator has more object to find
+ * 
+ * @return			true if more object available, false otherwise
+ */
 		@Override
 		public boolean hasNext() {
 			return hasNext;
 		}
 
+/**
+ * Returns  the value in the next cell of the origin-demand matrix
+ * 
+ * @return       the value of the demand in the next cell
+ */
 		@Override
 		public Double next() {
 			currentDestinationId = destinationId + 1;
@@ -44,48 +54,66 @@ public class MatrixDemand extends ODDemand {
 			}
 			return value;
 		}
-		
+
+/**
+ * Returns the origin row of the current cell
+ * 
+ * @return		row number of origin of current cell
+ */
 		@Override
 		public int getCurrentOriginId() {
 			return currentOriginId;
 		}
 		
+/**
+ * Returns the destination column of the current cell
+ * 
+ * @return		column number of destination of the current cell
+ */
 		@Override
 		public int getCurrentDestinationId() {
 			return currentDestinationId;
 		}
 		
+/**
+ * Returns the origin and destination of the current cell as a Pair
+ * 
+ * @return			Pair containing the origin row and destination column of the current cell
+ */
 		@Override
 		public Pair<Integer, Integer> getCurrentODPair() {
 			return new Pair<Integer,Integer>(currentOriginId,currentDestinationId);
 		}		
-	}
+	}	
 	
-	
-	/**
-	 * Number of travel analysis zones considered in od demand matrix
-	 */
+/**
+ * Number of travel analysis zones considered in od demand matrix
+ */
 	protected final int numberOfTravelAnalysisZones;
 	
-	/**
-	 * the trips of this matrix
-	 */
+/**
+ * the trips of this matrix
+ */
 	protected final Array2D<Double> demandMatrixContents;	
 		
-	/**
-	 * constructor for matrix based od demand
-	 */
+/**
+ *Constructor for matrix based od demand
+ * 
+ * @param numberOfTravelAnalysisZones			number of travel analysis zones
+ */
 	public MatrixDemand(int numberOfTravelAnalysisZones) {
 		super();
 		this.numberOfTravelAnalysisZones = numberOfTravelAnalysisZones;
 		this.demandMatrixContents= Array2D.PRIMITIVE32.makeZero(numberOfTravelAnalysisZones, numberOfTravelAnalysisZones);
 	}
 	
-	/** Set a value (od flow) on a specified row and column
-	 * @param originZone
-	 * @param destinationZone
-	 * @param odTripFlowRate, desired od trip flow in pcu/h
-	 */
+/** 
+ * Set a value (od flow) on a specified row and column
+ * 
+ * @param originZone						the origin zone
+ * @param destinationZone			the destination zone
+ * @param 										odTripFlowRate to be set, in pcu/h
+ */
 	public void set(long originZone, long destinationZone, double odTripFlowRate) {
 		if ((originZone == destinationZone) && (odTripFlowRate > 0.0)) {
 			//adjust demand from any origin to itself to be zero
@@ -95,23 +123,33 @@ public class MatrixDemand extends ODDemand {
 		}
 	}
 	
-	/** Collect a value (odFlow) from a specified row and column
-	 * @param originZone
-	 * @param destinationZone
-	 */
+/** 
+ * Collect a value (odFlow) from a specified row and column
+ * 
+ * @param originZone					the origin zone
+ * @param destinationZone		the destination zone
+ * @return									odTripFlowRate for this OD pair, in pcu/h
+ */
 	public double get(long originZone, long destinationZone) {
 		return demandMatrixContents.get(originZone, destinationZone);
 	}
 	
-	/** Fill a row of trip values in pcu, i.e. if the mode of the matrix has a pcu>1 than the mode based trips are 
-	 * indeed less than the provided pcu trips
-	 * @param row
-	 * @param pcuODTripFlowRates, od trip flow rate in pcu/h
-	 */
+/** 
+ * Fill a row of trip values in pcu.
+ * If the mode of the matrix has a pcu greater than 1, the mode based trips are less than the provided pcu trips
+ * 
+ * @param row						origin zone
+ * @param 								pcuODTripFlowRates, od trip flow rate in pcu/h
+ */
 	public void fillRowInPCU(long originZone, Access1D<Double> pcuODTripFlowRates) {
 		demandMatrixContents.fillRow(originZone, pcuODTripFlowRates);
 	}
 
+/**
+ * Generate the iterator for this MatrixDemand object
+ * 
+ * @return				iterator for this MatrixDemand object
+ */
 	@Override
 	public ODDemandIterator iterator() {
 		return new MatrixDemandIterator();

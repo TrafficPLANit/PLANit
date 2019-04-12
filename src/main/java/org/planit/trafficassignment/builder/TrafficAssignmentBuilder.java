@@ -3,8 +3,8 @@ package org.planit.trafficassignment.builder;
 import javax.annotation.Nonnull;
 
 import org.planit.demand.Demands;
-import org.planit.event.EventHandler;
-import org.planit.event.EventManager;
+import org.planit.event.management.EventHandler;
+import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.sdinteraction.smoothing.Smoothing;

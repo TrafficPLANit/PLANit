@@ -1,5 +1,8 @@
 package org.planit.event;
 
+import org.planit.builders.InputBuilder;
+import org.planit.event.management.EventListener;
+
 /**
  * All projectbuilder events should derive from this interface such that the listener can distinguish what to process
  * @author markr

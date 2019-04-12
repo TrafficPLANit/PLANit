@@ -1,4 +1,4 @@
 /**
- * Classes for definition and management of events
+ * Classes for definition of events
  */
 package org.planit.event;

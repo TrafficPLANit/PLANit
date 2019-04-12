@@ -1,5 +1,8 @@
 package org.planit.event;
 
+import org.planit.event.management.EventListener;
+import org.planit.event.management.InteractorListener;
+
 public interface InteractorEvent extends Event {
 
 

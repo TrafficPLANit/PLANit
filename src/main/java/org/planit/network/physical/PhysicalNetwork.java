@@ -141,13 +141,13 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 			return nodeMap.size();
 		}
 		
-		public Node findNodeByExternalLinkId(long externalLinkId) {
+		public Node findNodeByExternalLinkId(long externalLinkId) throws PlanItException {
 			for (Node node: nodeMap.values()) {
 				if  ((node.getExternalLinkIdSet().contains(externalLinkId)) && (node.getExternalId() != 0)) {
 					return node;
 				}
 			}
-			return null;
+			throw new PlanItException("There is a connectoid " + externalLinkId + " in the zone definition file but this cannot be matched to a ID in the network definition file.");
 		}
 		
 		public Node findNodeByExternalIdentifier(long externalId) {

@@ -9,16 +9,16 @@ public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T
 	 */
 	protected final T projectComponent;
 
-	/** Constructor of project component
-	 * @param projectComponent
-	 */
+/** Constructor of project component
+ * @param projectComponent
+ */
 	public CreatedProjectComponentEvent(T projectComponent) {
 		this.projectComponent = projectComponent;		
 	}
 	
-	/** Collect project component that was created
-	 * @return projectComponent
-	 */
+/** Collect project component that was created
+ * @return projectComponent
+ */
 	public T getProjectComponent() {
 		return projectComponent;
 	}

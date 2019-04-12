@@ -1,5 +1,7 @@
 package org.planit.event;
 
+import org.planit.event.management.EventListener;
+
 /**
  * Base event class
  * @author markr

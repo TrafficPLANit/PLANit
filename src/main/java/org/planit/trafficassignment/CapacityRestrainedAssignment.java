@@ -1,6 +1,6 @@
 package org.planit.trafficassignment;
 
-import org.planit.event.InteractorListener;
+import org.planit.event.management.InteractorListener;
 import org.planit.trafficassignment.builder.CapacityRestrainedTrafficAssignmentBuilder;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 

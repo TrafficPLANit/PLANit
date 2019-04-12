@@ -4,8 +4,11 @@ import java.util.TreeMap;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
+import org.planit.builders.InputBuilder;
 import org.planit.demand.Demands;
 import org.planit.dto.BprResultDto;
+import org.planit.event.management.EventManager;
+import org.planit.event.management.SimpleEventManager;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.supply.networkloading.NetworkLoading;
@@ -15,9 +18,6 @@ import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.userclass.Mode;
 import org.planit.time.TimePeriod;
 import org.planit.zoning.Zoning;
-import org.planit.event.EventManager;
-import org.planit.event.InputBuilder;
-import org.planit.event.SimpleEventManager;
 import org.planit.exceptions.PlanItException;
 
 /**

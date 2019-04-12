@@ -1,9 +1,9 @@
 package org.planit.cost.physical;
 
-import org.planit.event.InteractorListener;
+import org.planit.event.management.InteractorListener;
 
 /**
- * 
+ * Link Travel Time cost function
  * 
  * @author gman6028
  *
