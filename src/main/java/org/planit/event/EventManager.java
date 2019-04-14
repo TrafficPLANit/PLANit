@@ -1,5 +1,6 @@
 package org.planit.event;
 
+import org.planit.event.listener.EventListener;
 import org.planit.exceptions.PlanItException;
 
 public interface EventManager {

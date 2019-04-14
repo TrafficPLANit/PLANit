@@ -15,7 +15,7 @@ import org.planit.event.CreatedProjectComponentEvent;
 import org.planit.event.Event;
 import org.planit.event.EventHandler;
 import org.planit.event.EventManager;
-import org.planit.event.InteractorListener;
+import org.planit.event.listener.InteractorListener;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;

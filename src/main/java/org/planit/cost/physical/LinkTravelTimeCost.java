@@ -1,6 +1,6 @@
 package org.planit.cost.physical;
 
-import org.planit.event.InteractorListener;
+import org.planit.event.listener.InteractorListener;
 
 /**
  * 

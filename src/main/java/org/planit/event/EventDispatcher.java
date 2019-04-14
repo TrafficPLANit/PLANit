@@ -2,6 +2,7 @@ package org.planit.event;
 
 import java.util.HashSet;
 
+import org.planit.event.listener.EventListener;
 import org.planit.exceptions.PlanItException;
 
 
