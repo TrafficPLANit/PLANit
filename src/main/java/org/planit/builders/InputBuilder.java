@@ -18,11 +18,11 @@ import org.planit.zoning.Zoning;
 public interface InputBuilder extends EventListener {
 	
 	
-/** 
- * Process event and call the right onX method
- * @param event			event to be processed
- * @see org.planit.event.EventListener#process(org.planit.event.Event)
- */
+	/** 
+	 * Process event and call the right onX method
+	 * @param event			event to be processed
+	 * @see org.planit.event.EventListener#process(org.planit.event.Event)
+	 */
 	@Override
 	default public void process(Event event) throws PlanItException {
 		try {
@@ -34,23 +34,12 @@ public interface InputBuilder extends EventListener {
 		}
 	}
 	
-/** 
- * Whenever a project component is created this method will be invoked
- * 
- * @param event 			event containing the created (and empty) project component
- */
+	/** 
+	 * Whenever a project component is created this method will be invoked
+	 * 
+	 * @param event 			event containing the created (and empty) project component
+	 */
 	public void onCreateProjectComponent(CreatedProjectComponentEvent<?> event) throws PlanItException;
 
-/**
- * Creates the integrated TransportNetwork object
- * 
- * This method integrates the physical and virtual networks.  
- * 
- * @param physicalNetwork				the physical network object
- * @param zoning								the zoning object (contain the virtual network)
- * @return											the integrated transport network
- * @throws PlanItException
- */
-	public TransportNetwork integrateVirtualAndPhysicalNetworks(PhysicalNetwork physicalNetwork, Zoning zoning) throws PlanItException;
 	
 }

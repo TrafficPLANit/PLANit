@@ -14,9 +14,12 @@ import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
 import org.planit.interactor.InteractorAccessor;
 import org.planit.network.physical.LinkSegment;
+import org.planit.network.physical.Node;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.transport.TransportNetwork;
+import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.ConnectoidSegment;
+import org.planit.network.virtual.VirtualNetwork;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
@@ -33,6 +36,8 @@ import org.planit.zoning.Zoning;
  *
  */
 public abstract class TrafficAssignment extends NetworkLoading {
+	
+	private static final Logger LOGGER = Logger.getLogger(TrafficAssignment.class.getName());	
 	
 	// Private
 	
@@ -71,6 +76,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * The demand to use
 	 */
 	protected Demands demands = null;
+	
+	/**
+	 * The Transport network containing both the physical and virtual network that we use
+	 */
+	protected TransportNetwork transportNetwork = null;
 		
 	/** check if any components are undefined, if so throw exception
 	 * @throws PlanItException
@@ -90,7 +100,45 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		}
 	}
 	
-	// Protected - getters- setters 
+	/**
+	 * Creates the integrated TransportNetwork object
+	 * 
+	 * This method integrates the physical and virtual networks using the PlanitGeoUtils object to calculate link and connectoid lengths.
+	 * 
+	 * @param physicalNetwork				the physical network object
+	 * @param zoning								the zoning object (contain the virtual network)
+	 * @return											the integrated transport network
+	 * @throws PlanItException
+	 */
+	protected TransportNetwork integrateVirtualAndPhysicalNetworks(PhysicalNetwork physicalNetwork, Zoning zoning) throws PlanItException {
+		transportNetwork = new TransportNetwork(physicalNetwork, zoning);
+		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
+		
+		// ONLY WHAT IS BELOW SHOULD BE MOVED TO THE PARSER + NO NEW METHOD NEEDED THERE --> JUST PARSE IT WHEN THE ZONING IS CREATED
+		
+// SO THIS GOES TO THE ZONING PARSER OF METROSCAN		
+//		for (Centroid centroid : virtualNetwork.centroids) {
+//			long externalId = centroid.getExternalId();
+//			Node node = physicalNetwork.nodes.findNodeByExternalLinkId(externalId);
+//			if (node != null) {
+//				double connectoidLength = planitGeoUtils.getDistanceInMeters(centroid.getCentrePointGeometry(), node.getCentrePointGeometry());
+//				virtualNetwork.connectoids.registerNewConnectoid(centroid, node, connectoidLength);
+//			} else {
+//				throw new PlanItException("There is a connectoid " + externalId + " in the TAZ definition file but this cannot be matched to a GID in the network definition file.");
+//			}
+//		}		
+
+// SO THIS GOES TO THE ZONING PARSER OF CSVMAIN		
+//        for (Centroid centroid : virtualNetwork.centroids) {
+//            long externalId = centroid.getExternalId();
+//            Node node = physicalNetwork.nodes.findNodeByExternalLinkId(externalId);
+//            virtualNetwork.connectoids.registerNewConnectoid(centroid, node, CONNECTOID_LENGTH);
+//        }   		
+		transportNetwork.integrateConnectoidsAndLinks(virtualNetwork);
+		return transportNetwork;
+	}	
+	
+	// protected getters and setters
 	
 	protected TransportNetwork getTransportNetwork() {
 		return network;
@@ -98,11 +146,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		
 	public void setTransportNetwork(TransportNetwork network) {
 		this.network = network;
-	}
+	}	
 	
 	// Public
-	
-	private static final Logger LOGGER = Logger.getLogger(TrafficAssignment.class.getName());
 
 	
 	/** Constructor
@@ -140,6 +186,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> execute() throws PlanItException  {
 		checkForEmptyComponents();	
 		verifyComponentCompatibility();
+		integrateVirtualAndPhysicalNetworks(physicalNetwork, zoning);		
 		initialiseBeforeEquilibration();			
 		SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = executeEquilibration();						                                    // Actual algorithm execution
 		LOGGER.info("Finished equilibration");

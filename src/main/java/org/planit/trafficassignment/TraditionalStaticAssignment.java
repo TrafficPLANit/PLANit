@@ -140,11 +140,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	 * @param shortestPathAlgorithm, shortest path algorithm
 	 * @throws PlanItException 
 	 */
-
-	private void executeModeTimePeriod(ODDemand odDemands, 
-			                                                        ModeData currentModeData, 
-			                                                        double[] networkSegmentCosts, 
-			                                                        ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+	private void executeModeTimePeriod(ODDemand odDemands, ModeData currentModeData, double[] networkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
 		ODDemandIterator odDemandIter = odDemands.iterator();
 		
 		// loop over all available OD demands
