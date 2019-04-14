@@ -1,4 +1,4 @@
-package org.planit.event;
+package org.planit.event.management;
 
 /**
  * Objects must implement this interface if they are required to handle events

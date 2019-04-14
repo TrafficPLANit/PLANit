@@ -5,15 +5,12 @@ import java.util.Iterator;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.network.Edge;
 import org.planit.network.EdgeSegment;
 import org.planit.network.physical.Link;
 import org.planit.network.physical.LinkSegment;
-import org.planit.network.physical.Node;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.PhysicalNetwork.LinkSegments;
-import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.Connectoid;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.network.virtual.VirtualNetwork;
@@ -22,7 +19,7 @@ import org.planit.zoning.Zoning;
 import org.planit.zoning.Zoning.Zones;
 
 /**
- * Entire transport network that is being modelled including both the physical and virtual aspects of it as well
+ * Entire transport network that is being modeled including both the physical and virtual aspects of it as well
  * as the zoning. It acts as a wrapper unifying the two components during the assignment stage 
  * 
  * @author markr
@@ -172,35 +169,7 @@ public class TransportNetwork {
 		return new TransportSegmentIterator();
 	}
 
-	/**
-	 * register the edges and (incoming/outgoing) and edge segments on the vertices of both virtual and physical networks 
-	 * @throws PlanItException 
-	 */
-	public void integratePhysicalAndVirtualNetworks(PlanitGeoUtils planitGeoUtils) throws PlanItException {
-		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
-		for (Centroid centroid : virtualNetwork.centroids) {
-			long externalId = centroid.getExternalId();
-			Node node = physicalNetwork.nodes.findNodeByExternalLinkId(externalId);
-			if (node != null) {
-				virtualNetwork.connectoids.registerNewConnectoid(centroid, node, planitGeoUtils);
-			} else {
-				throw new PlanItException("There is a connectoid " + externalId + " in the TAZ definition file but this cannot be matched to a GID in the network definition file.");
-			}
-		}		
-		integrateConnectoidsAndLinks(virtualNetwork);
-	}	
-	
-	public void integratePhysicalAndVirtualNetworks(double connectoidLength) throws PlanItException {
-		VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
-		for (Centroid centroid : virtualNetwork.centroids) {
-			long externalId = centroid.getExternalId();
-			Node node = physicalNetwork.nodes.findNodeByExternalLinkId(externalId);
-			virtualNetwork.connectoids.registerNewConnectoid(centroid, node, connectoidLength);
-		}		
-		integrateConnectoidsAndLinks(virtualNetwork);
-	}	
-	
-	private void integrateConnectoidsAndLinks(VirtualNetwork virtualNetwork) throws PlanItException {
+	public void integrateConnectoidsAndLinks(VirtualNetwork virtualNetwork) throws PlanItException {
 		for (Connectoid connectoid: virtualNetwork.connectoids) {
 			virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
 			virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, false);

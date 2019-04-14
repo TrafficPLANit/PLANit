@@ -6,7 +6,6 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.utils.IdGenerator;
 
 /** 
@@ -60,18 +59,6 @@ public class Edge implements Comparable<Edge>{
 	}	
 	
 	// Public
-	
-	/**
-	 * Constructor which uses GeoTools to generate link lengths
-	 * @throws PlanItException 
-	 */
-	protected Edge(@Nonnull Vertex vertexA, @Nonnull Vertex vertexB, PlanitGeoUtils planitGeoUtils) throws PlanItException
-	{
-		this.id = generateEdgeId();
-		this.vertexA = vertexA;
-		this.vertexB = vertexB;
-		this.length = planitGeoUtils.getDistanceInMeters(vertexA.getCentrePointGeometry(), vertexB.getCentrePointGeometry());
-	}
 	
 	/**
 	 * Constructor which injects link lengths directly

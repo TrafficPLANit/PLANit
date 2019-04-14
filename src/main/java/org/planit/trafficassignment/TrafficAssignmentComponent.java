@@ -1,7 +1,7 @@
 package org.planit.trafficassignment;
 
-import org.planit.event.EventManager;
-import org.planit.event.EventHandler;
+import org.planit.event.management.EventHandler;
+import org.planit.event.management.EventManager;
 
 /**
  * Traffic assignment components are the main building blocks to conduct traffic assignment on
@@ -10,23 +10,16 @@ import org.planit.event.EventHandler;
  */
 public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T>> implements  EventHandler {
 
-	/**
-	 * Traffic component type used to identify the component uniquely. If not provided to the constructor
-	 * the class name is used
-	 */
+/**
+ * Traffic component type used to identify the component uniquely. If not provided to the constructor
+ * the class name is used
+ */
 	protected final String trafficComponentType;
 	protected EventManager eventManager;
 	
-	/**
-	 * Constructor
-	 */
-	protected TrafficAssignmentComponent(String trafficComponentType, EventManager eventManager){
-		this.trafficComponentType = trafficComponentType;
-	}
-	
-	/**
-	 * Constructor
-	 */
+/**
+ * Constructor
+ */
 	protected TrafficAssignmentComponent(){
 		this.trafficComponentType = this.getClass().getCanonicalName();
 	}	

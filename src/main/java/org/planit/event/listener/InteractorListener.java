@@ -15,5 +15,5 @@ public interface InteractorListener extends EventListener {
 	public default void onRequestInteractorEvent(RequestAccesseeEvent e) {
 		// non-mandatory
 	}
-	
+
 }

@@ -7,7 +7,6 @@ import java.util.TreeMap;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.network.physical.LinkSegment;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.IdGenerator;
@@ -39,16 +38,6 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		public Iterator<Link> iterator() {
 			return linkMap.values().iterator();
 		}		
-		
-		/** create new link to network identified via its id, using GeoTools to generate link length
-		 * @return link, new link
-		 * @throws PlanItException 
-		 */
-		public Link registerNewLink(Node nodeA, Node nodeB, PlanitGeoUtils planitGeoUtils) throws PlanItException {
-			Link newLink = networkBuilder.createLink(nodeA, nodeB, planitGeoUtils);
-			registerLink(newLink);
-			return newLink;
-		}			
 		
 		/** create new link to network identified via its id, injecting link length directly
 		 * @return link, new link
@@ -152,13 +141,13 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 			return nodeMap.size();
 		}
 		
-		public Node findNodeByExternalLinkId(long externalLinkId) {
+		public Node findNodeByExternalLinkId(long externalLinkId) throws PlanItException {
 			for (Node node: nodeMap.values()) {
 				if  ((node.getExternalLinkIdSet().contains(externalLinkId)) && (node.getExternalId() != 0)) {
 					return node;
 				}
 			}
-			return null;
+			throw new PlanItException("There is a connectoid " + externalLinkId + " in the zone definition file but this cannot be matched to a ID in the network definition file.");
 		}
 		
 		public Node findNodeByExternalIdentifier(long externalId) {

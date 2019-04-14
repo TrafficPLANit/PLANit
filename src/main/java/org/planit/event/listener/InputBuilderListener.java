@@ -2,7 +2,6 @@ package org.planit.event.listener;
 
 import org.planit.event.CreatedProjectComponentEvent;
 import org.planit.event.Event;
-import org.planit.event.EventManager;
 import org.planit.exceptions.PlanItException;
 
 /**

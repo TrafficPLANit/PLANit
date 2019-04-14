@@ -12,9 +12,12 @@ import org.planit.exceptions.PlanItException;
  */
 public interface EventListener {
 	
-	/** Process the event
-	 * @param e
-	 */
+/** 
+ * Process the event
+ * 
+ * @param event							event to be processed
+ * @throws PlanItException		thrown if there is an error
+ */
 	public void process(Event event) throws PlanItException;	
 	
 }

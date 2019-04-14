@@ -1,6 +1,7 @@
 package org.planit.network.physical;
 
 import java.util.List;
+
 import javax.annotation.Nonnull;
 
 import org.opengis.geometry.coordinate.LineSegment;
@@ -41,17 +42,6 @@ public class Link extends Edge {
 	
 	// Public
 	
-	/**
-	 * Constructor which uses GeoTools to calculate link length
-	 * @throws PlanItException 
-	 */
-
-	public Link(@Nonnull Node nodeA,@Nonnull Node nodeB, PlanitGeoUtils planitGeoUtils) throws PlanItException
-	{
-		super(nodeA, nodeB, planitGeoUtils);
-		this.linkId = generateLinkId();
-	}
-
 	/**
 	 * Constructor which injects link length directly
 	 * @throws PlanItException 

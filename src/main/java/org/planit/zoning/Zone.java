@@ -29,9 +29,10 @@ public class Zone {
 	 */
 	protected final Centroid centroid;
 	
-	/** generate unique link segment id
-	 * @return linkId
-	 */
+/** Generate unique zone id
+ * 
+ * @return 				zone id
+ */
 	protected static int generateZoneId() {
 		return IdGenerator.generateId(Zone.class);
 	}
@@ -39,25 +40,32 @@ public class Zone {
 	
 	// Public
 	
-	/**
-	 * Constructor
-	 */
+/**
+ * Constructor
+ * 
+ * @param centroid			Centroid of this zone
+ */
 	public Zone(Centroid centroid){
 		this.id = generateZoneId();
 		centroid.setParentZone(this);
 		this.centroid = centroid;
 	}	
 	
-	
+/**
+ * Returns the id of this zone
+ * 	
+ * @return 			id of this zone
+ */
 	public long getId() {
 		return this.id;
 	}
 	
-	/**
-	 * Add a property from the original input that is not part of the readily available members
-	 * @param key
-	 * @param value
-	 */
+/**
+ * Add a property from the original input that is not part of the readily available members
+ * 
+ * @param key			property key
+ * @param value			property value
+ */
 	public void addInputProperty(String key, Object value) {
 		if (inputProperties == null) {
 			inputProperties = new HashMap<String, Object>();
@@ -65,14 +73,21 @@ public class Zone {
 		inputProperties.put(key, value);
 	}
 	
-	/** Get input property by its key
-	 * @param key
-	 * @return value
-	 */
+/** 
+ * Get input property by its key
+ * 
+ * @param key			property key
+ * @return 					property value
+ */
 	public Object getInputProperty(String key) {
 		return inputProperties.get(key);
 	}	
 	
+/**
+ * Returns the centroid of this zone
+ * 
+ * @return				centroid of this zone
+ */
 	public Centroid getCentroid() {
 		return centroid;
 	}

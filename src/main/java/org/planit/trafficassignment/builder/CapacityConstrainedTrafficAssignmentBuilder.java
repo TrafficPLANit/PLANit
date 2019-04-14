@@ -1,6 +1,6 @@
 package org.planit.trafficassignment.builder;
 
-import org.planit.event.EventManager;
+import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;

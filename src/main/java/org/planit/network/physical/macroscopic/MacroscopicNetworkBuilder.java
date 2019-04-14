@@ -4,7 +4,6 @@ import javax.annotation.Nonnull;
 
 import org.planit.network.physical.Node;
 import org.planit.exceptions.PlanItException;
-import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.network.physical.Link;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetworkBuilder;
@@ -23,16 +22,6 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
 	@Override
 	public Node createNode() {
 		return new Node();
-	}
-
-	/** create a new link, using GeoTools to calculate link length
-	 * @see org.planit.network.physical.PhysicalNetworkBuilder#createLink()
-	 * @return link
-	 * @throws PlanItException 
-	 */
-	@Override
-	public Link createLink(Node nodeA, Node nodeB, PlanitGeoUtils planitGeoUtils) throws PlanItException {
-		return new Link(nodeA, nodeB, planitGeoUtils);
 	}
 
 	/** create a new link, injecting link length directly

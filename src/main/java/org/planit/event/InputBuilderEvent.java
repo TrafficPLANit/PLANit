@@ -4,13 +4,13 @@ import org.planit.event.listener.EventListener;
 import org.planit.event.listener.InputBuilderListener;
 
 /**
- * All projectbuilder events should derive from this interface such that the listener can distinguish what to process
+ * All intput builder events should derive from this interface such that the listener can distinguish what to process
  * @author markr
  *
  */
-public interface ProjectBuilderEvent extends Event {
+public interface InputBuilderEvent extends Event {
 
-	/** all project builder events are processed by the ProjectBuilderListener
+	/** all input builder events are processed by the InputBuilderListener
 	 * @see org.planit.event.Event#isProcessedBy(org.planit.event.listener.EventListener)
 	 * @return true, if event is a project builder related event
 	 */

@@ -3,6 +3,7 @@ package org.planit.time;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.planit.exceptions.PlanItException;
 import org.planit.utils.IdGenerator;
 
 /**
@@ -54,39 +55,39 @@ public class TimePeriod implements Comparable<TimePeriod> {
 		timePeriods.put(this.id, this);
 	}
 	
-	public TimePeriod(long id, String description, String startTime24hour, int durationHours) throws Exception {
+	public TimePeriod(long id, String description, String startTime24hour, int durationHours) throws PlanItException {
 		this.id = id;
 		this.description = description;		
 		this.startTime = convertDurationToSeconds(startTime24hour);
 		if (durationHours > 24.0) {
-			throw new Exception("Duration more than 24 hours");
+			throw new PlanItException("Duration more than 24 hours");
 		}
 		this.duration = durationHours * 86400;
 		timePeriods.put(this.id, this);
 	}
 	
-	private int convertDurationToSeconds(String startTime24hour) throws Exception {
+	private int convertDurationToSeconds(String startTime24hour) throws PlanItException {
 		int startTime;
 		int startTimeHrs;
 		int startTimeMins;
 		if (startTime24hour.length() != 4) {
-			throw new Exception("Start time must contain exactly four digits");
+			throw new PlanItException("Start time must contain exactly four digits");
 		}
 		try {
 			startTime = Integer.parseInt(startTime24hour);
 		} catch (NumberFormatException e) {
-			throw new Exception("Start time must contain exactly four digits");
+			throw new PlanItException("Start time must contain exactly four digits");
 		}
 		if (startTime < 0) {
-			throw new Exception("Start time cannot be negative");
+			throw new PlanItException("Start time cannot be negative");
 		}
 		if (startTime > 2400) {
-			throw new Exception("Start time cannot be later than 2400");
+			throw new PlanItException("Start time cannot be later than 2400");
 		}
 		startTimeHrs = startTime % 100;
 		startTimeMins = startTime - 24 * startTimeHrs;
 		if (startTimeMins > 59) {
-			throw new Exception("Last two digits of start time cannot exceed 59");
+			throw new PlanItException("Last two digits of start time cannot exceed 59");
 		}
 		return (startTimeHrs * 3600) + (startTimeMins * 60);
 		

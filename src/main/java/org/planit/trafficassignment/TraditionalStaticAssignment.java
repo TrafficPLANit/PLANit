@@ -32,7 +32,7 @@ import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
 import org.planit.utils.ArrayOperations;
-import org.planit.utils.DoubleCompare;
+import org.planit.utils.DefaultValues;
 import org.planit.utils.Pair;
 import org.planit.zoning.Zone;
 
@@ -154,7 +154,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 			int destinationZoneId =  odDemandIter.getCurrentDestinationId();
 			//System.out.println("Calculating flow from origin zone " + originZoneId + " to " + destinationZoneId + " which has demand " + odDemand);
 			int previousOriginZoneId = 0;
-			if (DoubleCompare.flowGreaterThan(odDemand,0) && (originZoneId != destinationZoneId)) {
+			if  (((odDemand - DefaultValues.DEFAULT_EPSILON )> 0.0) && (originZoneId != destinationZoneId)) {
 				Zone currentOriginZone = null;
 				Pair<Double, EdgeSegment>[] vertexPathCost = null;
 				// UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
@@ -238,7 +238,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 				ODDemand odDemands = demands.get(mode, timePeriod);
 				executeModeTimePeriod(odDemands, currentModeData, totalNetworkSegmentCosts, shortestPathAlgorithm);
 				
-				double sumProduct = ArrayOperations.sumProduct(currentModeData.currentNetworkSegmentFlows, totalNetworkSegmentCosts, numberOfNetworkSegments);
+				double sumProduct = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows, totalNetworkSegmentCosts, numberOfNetworkSegments);
 				dualityGapFunction.increaseActualSystemTravelTime(sumProduct);
 				applySmoothing(currentModeData);
 				// aggregate smoothed mode specific flows - for cost computation				

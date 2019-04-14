@@ -6,35 +6,37 @@ import java.util.Objects;
  * Custom pair class similar to C++. By default we compare based on the first value
  * @author markr
  *
- * @param <A>
- * @param <B>
+ * @param <A>		first object in pair
+ * @param <B>		second object in pair
  */
 public class Pair<A extends Comparable<A>, B extends Comparable<B>> implements Comparable<Pair<A,B>> {
     	
 	protected final A first;
     protected final B second;
 
-    /** Constructor 
-     * @param first
-     * @param second
-     */
+/** Constructor
+ *  
+ * @param first				first object in pair
+ * @param second			second object in pair
+ */
     public Pair(A first, B second) {
         super();
         this.first = first;
         this.second = second;
     }
 
-    /**
-     * @see java.lang.Object#hashCode()
-     */
+/**
+ * @see java.lang.Object#hashCode()
+ */
     public int hashCode() {
     	return Objects.hash(first,second);
     }
 
-    /** compare to pairs
-     * @see java.lang.Object#equals(java.lang.Object)
-     * @param other pair
-     */
+/** Compare to another pair
+ * 
+ * @see java.lang.Object#equals(java.lang.Object)
+ * @param other 				pair being compared to
+ */
     public boolean equals(Object other) {
         if (other instanceof Pair) {
             @SuppressWarnings("rawtypes")
@@ -50,9 +52,9 @@ public class Pair<A extends Comparable<A>, B extends Comparable<B>> implements C
         return false;
     }
 
-    /** convert to string
-     * @see java.lang.Object#toString()
-     */
+ /** Convert to string
+  * @see java.lang.Object#toString()
+  */
     public String toString()
     { 
            return "(" + first + ", " + second + ")"; 
@@ -60,17 +62,28 @@ public class Pair<A extends Comparable<A>, B extends Comparable<B>> implements C
     
     // Getters
 
+/**
+ * Get first object in pair
+ * 
+ * @return		first object in pair
+ */
     public A getFirst() {
         return first;
     }
 
+/**
+ * Get second object in pair
+ * 
+ * @return		second object in pair
+ */
     public B getSecond() {
         return second;
     }
 
-	/** Compare based on first entry of pair
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
+/** Compare based on first entry of pair
+ * 
+ * @see java.lang.Comparable#compareTo(java.lang.Object)
+ */
 	@Override
 	public int compareTo(Pair<A, B> o) {
 		return getFirst().compareTo(((Pair<A, B>) o).getFirst());

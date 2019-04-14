@@ -17,10 +17,23 @@ import org.planit.exceptions.PlanItException;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
 
-public class PlanItUtils {
+/**
+ * Utility class containing methods for saving run results to a CSV file and reading previous run results from a CSV file.
+ * 
+ * At present MetroScan saves its results to a CSV file and retrieves previous results from a CSV file to use in unit testing.  Hence this class is in PlanIt rather than BasicCsvScan. 
+ * 
+ * @author gman6028
+ *
+ */
+public class CsvIoUtils {
 	
-	public static final double DEFAULT_EPSILON = 0.000001;
-
+/**
+ * Saves the results of a complete run to a CSV file
+ * 
+ * @param resultsMap					Map containing the results of the run
+ * @param resultsFileLocation		location of CSV file the results are saved to
+ * @throws PlanItException			thrown if there is an error creating the CSV file
+ */
 	public static void saveResultsToCsvFile(SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap, String resultsFileLocation) throws PlanItException {
 
 		File existingFile = new File(resultsFileLocation);
@@ -28,35 +41,41 @@ public class PlanItUtils {
 			existingFile.delete();
 		}
 		try (CSVPrinter printer = new CSVPrinter(new FileWriter(resultsFileLocation), CSVFormat.EXCEL)) {
-		printer.printRecord("Run Id", "Time Period Id", "Mode Id", "Start Node Id", "End Node Id", "Link Flow", "Capacity", "Length", "Speed", "Link Cost",  "Cost to End Node", "alpha", "beta");
-		for (Long runId : resultsMap.keySet()) {
-			for (TimePeriod timePeriod : resultsMap.get(runId).keySet()) {
-				for (Mode mode : resultsMap.get(runId).get(timePeriod).keySet()) {
-					for (BprResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
-						printer.printRecord(runId, 
-								                        timePeriod.getId(), 
-								                        mode.getId(), 
-								                        resultDto.getStartNodeId(),
-								                        resultDto.getEndNodeId(), 
-								                        resultDto.getLinkFlow(), 
-								                        resultDto.getCapacity(),
-								                        resultDto.getLength(),
-								                        resultDto.getSpeed(),
-								                        resultDto.getLinkCost(), 
-								                        resultDto.getTotalCostToEndNode(),
-								                        resultDto.getAlpha(),
-								                        resultDto.getBeta());
+			printer.printRecord("Run Id", "Time Period Id", "Mode Id", "Start Node Id", "End Node Id", "Link Flow", "Capacity", "Length", "Speed", "Link Cost",  "Cost to End Node", "alpha", "beta");
+			for (Long runId : resultsMap.keySet()) {
+				for (TimePeriod timePeriod : resultsMap.get(runId).keySet()) {
+					for (Mode mode : resultsMap.get(runId).get(timePeriod).keySet()) {
+						for (BprResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
+							printer.printRecord(runId, 
+									                        timePeriod.getId(), 
+									                        mode.getId(), 
+									                        resultDto.getStartNodeId(),
+									                        resultDto.getEndNodeId(), 
+									                        resultDto.getLinkFlow(), 
+									                        resultDto.getCapacity(),
+									                        resultDto.getLength(),
+									                        resultDto.getSpeed(),
+									                        resultDto.getLinkCost(), 
+									                        resultDto.getTotalCostToEndNode(),
+									                        resultDto.getAlpha(),
+									                        resultDto.getBeta());
+						}
 					}
-				}
-			}	
-		} 
-		printer.close();
+				}	
+			} 
+			printer.close();
 		} catch (Exception ex) {
 			throw new PlanItException(ex);
 		}
 	}
 	
-				
+/**
+ * Retrieves the results of a previous run from a CSV file
+ * 				
+ * @param resultsFileLocation		the location of the CSV file containing the run results
+ * @return										Map storing the run results
+ * @throws PlanItException			thrown if there is an error opening the file
+ */
 	public static SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> createResultsMapFromCsvFile(String resultsFileLocation) throws PlanItException {
 		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
 		try (Reader in = new FileReader(resultsFileLocation)) {

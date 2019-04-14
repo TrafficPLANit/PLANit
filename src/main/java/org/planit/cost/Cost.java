@@ -17,8 +17,8 @@ public interface Cost<T extends EdgeSegment> {
  * 
  * @param mode							the specified mode of travel
  * @param edgeSegment              the specified edge segment (which can be physical or virtual) 
- * @return  the cost of travel along the specified segment
- * @throws PlanItException
+ * @return  									the cost of travel along the specified segment
+ * @throws PlanItException			thrown if there is an error
  */
 	public double calculateSegmentCost(Mode mode, T edgeSegment) throws PlanItException;
 	

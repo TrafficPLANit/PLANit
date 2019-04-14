@@ -7,10 +7,10 @@ import org.planit.dto.BprResultDto;
 import org.planit.exceptions.PlanItException;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
-import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.CapacityConstrainedTrafficAssignmentBuilder;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.userclass.Mode;
+import org.planit.time.TimePeriod;
 
 public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	
