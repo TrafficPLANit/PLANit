@@ -10,21 +10,31 @@ import org.planit.exceptions.PlanItException;
  */
 public interface PhysicalNetworkBuilder {
 	
-	/** Create a new node instance
-	 * @return node
-	 */
+/** 
+ * Create a new node instance
+ * 
+ * @return          created node
+ */
 	Node createNode();
 
-	/** Create a new link instance
-	 * @return link
-	 */
+/** 
+ * Create a new link instance
+ * 
+ * @param nodeA                     the first node in this link
+ * @param nodeB                    the second node in this link
+ * @param length                     the length of this link
+ * @return                               created link
+ * @throws PlanItException    thrown if there is an error
+ */
 	Link createLink(Node nodeA, Node nodeB, double length) throws PlanItException ;
 
-	/** Create a new physical link segment instance
-	 * @param parentLink
-	 * @param directionAB, when true the segment takes on direction from A to B, otherwise from B to A
-	 * @return linkSegment
-	 */
+/** 
+ * Create a new physical link segment instance
+ * 
+ * @param parentLink       the parent link of the link segment
+ * @param directionAB     direction of travel
+ * @return linkSegment    the created link segment
+ */
 	LinkSegment createLinkSegment(Link parentLink, boolean directionAB);
 
 }

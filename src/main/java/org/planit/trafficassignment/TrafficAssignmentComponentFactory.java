@@ -81,9 +81,11 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
 		}
 	}
 	
-	/** If the provided traffic component is an interactive listener, it will now be registered as such
-	 * @param newTrafficComponent
-	 */
+/** 
+ * If the provided traffic component is an interactive listener, it will now be registered as such
+ * 
+ * @param newTrafficComponent         TrafficComponent to be registered as a listener
+ */
 	protected void registerEligibleInteractorListener(T newTrafficComponent) {
 		if(newTrafficComponent instanceof InteractorListener) {
 			eventManager.addEventListener((InteractorListener) newTrafficComponent);
@@ -92,19 +94,21 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
 	
 	// PUBLIC
 	
-	/** Constructor
-	 * @param componentSuperType
-	 */
+/** 
+ * Constructor
+ * 
+ * @param componentSuperType        super type for this factory
+ */
 	public TrafficAssignmentComponentFactory(Class<T> componentSuperType) {
 		this.componentSuperType = componentSuperType;
 	}
 
-	/** Register a component type that one can choose for the given traffic component
-	 * 
-	 * @param componentType
-	 * @param trafficComponent
-	 * @throws PlanItException 
-	 */
+/** 
+ * Register a component type that one can choose for the given traffic component
+ * 
+ * @param trafficAssignmentComponent       TrafficAssignmentComponent to be registered
+ * @throws PlanItException                            thrown if there is an error
+ */
 	public static void registerTrafficAssignmentComponentType(final Class<?> trafficAssignmentComponent) throws PlanItException {
 		Class<?> currentClass = trafficAssignmentComponent;
 		while (currentClass != null) {
@@ -123,11 +127,13 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
 		throw new PlanItException("trafficAssignmentComponent not eligible for registration");
 	}
 
-	/** Create traffic assignment component
-	 * @param trafficAssignmentComponentClassName, the derived class name of the traffic assignment component (without packages)
-	 * @return trafficAssignmentComponentInstance
-	 * @throws PlanItException
-	 */
+/** 
+ * Create traffic assignment component
+ * 
+ * @param trafficAssignmentComponentClassName                   the derived class name of the traffic assignment component (without packages)
+ * @return                                                                                      the created TrafficAssignmentComponent
+ * @throws PlanItException                                                           thrown if there is an error
+ */
 	@SuppressWarnings("unchecked")
 	public T create(String trafficAssignmentComponentClassName) throws PlanItException {
 		T newTrafficComponent = null;
@@ -149,6 +155,13 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
 		return newTrafficComponent;		
 	}
 
+/**
+ * Set the EventManager for this factory
+ * 
+ * The EventManager must be a singleton for each PlanItProject application.
+ * 
+ * @param eventManager      EventManager to be used to create traffic assignment
+ */
 	@Override
 	public void setEventManager(EventManager eventManager) {
 		this.eventManager = eventManager;	

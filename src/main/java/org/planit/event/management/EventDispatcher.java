@@ -25,16 +25,20 @@ public class EventDispatcher {
 	public EventDispatcher() {
 	}
 
-	/** Register a new listener 
-	 * @param eventListener
-	 */
+/** Register a new listener 
+ * 
+ * @param eventListener          eventListener to be registered with this dispatcher
+ */
 	public void addEventListener(EventListener eventListener) {
 		registeredListeners.add(eventListener);
 	}
 		
-	/** Dispatch event to eligible registered listeners for processing
-	 * @param event
-	 */
+/** 
+ * Dispatch event to eligible registered listeners for processing
+ * 
+ * @param event                      Event to be dispatched
+ * @throws PlanItException     thrown if there is an error
+ */
 	public void dispatch(Event event) throws PlanItException {
 		try {
 			for (EventListener listener : registeredListeners) {

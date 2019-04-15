@@ -92,10 +92,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		super();
 	}
 	
-	/**
-	 * Initialize a time period by creating the mode specific data
-	 * @param modes to consider in the given time period 
-	 */
+/**
+ * Initialize a time period by creating the mode specific data
+ * 
+ * @param modes                         Set of modes to consider in the given time period 
+ */
 	private void initialiseTimePeriodModeData(Set<Mode> modes) {
 		modeSpecificData.clear();
 		for(Mode mode : modes) {
@@ -103,11 +104,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		}
 	}
 	
-	/** Collect the updated edge segment costs for the given mode
-	 * @param mode
-	 * @return edgeSegmentcosts
-	 * @throws PlanItException 
-	 */
+/** 
+ * Collect the updated edge segment costs for the given mode
+ * 
+ * @param mode                            the current mode
+ * @return                                      array of updated edge segment costs
+ * @throws PlanItException           thrown if there is an error
+ */
 	private double[] collectUpdatedCosts(Mode mode) throws PlanItException {
 		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
 		Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();			
@@ -123,23 +126,26 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		return currentSegmentCosts;
 	}
 	
-	/**
-	 * Apply smoothing based on current and previous flows and the adopted smoothing method. the smoothed results are
-	 * registered as the current segment flows while the current segment flows are assigned to the previous segment flows (which are discarded)
-	 * @param modeData 
-	 */
+/**
+ * Apply smoothing based on current and previous flows and the adopted smoothing method.  The smoothed results are registered as the current segment flows while the current segment flows are assigned to the previous segment flows (which are discarded).
+ * 
+ * @param modeData      data for the current mode
+ */
 	private void applySmoothing(ModeData modeData) {
 		double[] smoothedSegmentFlows = smoothing.applySmoothing(modeData.currentNetworkSegmentFlows,  modeData.nextNetworkSegmentFlows, numberOfNetworkSegments);
 		// update flow arrays for next iteration
 		modeData.currentNetworkSegmentFlows = smoothedSegmentFlows;
 	}	
 
-	/** Perform assignment for a given time period, mode and costs imposed on dijkstra shortest path
-	 * @param odDemands
-	 * @param currentModeData
-	 * @param shortestPathAlgorithm, shortest path algorithm
-	 * @throws PlanItException 
-	 */
+/** 
+ * Perform assignment for a given time period, mode and costs imposed on Dijkstra shortest path
+ * 
+ * @param odDemands                    origin-demand store
+ * @param currentModeData            data for the current mode
+ * @param networkSegmentCosts   segment costs for the network
+ * @param shortestPathAlgorithm    shortest path algorithm to be used
+ * @throws PlanItException              thrown if there is an error
+ */
 	private void executeModeTimePeriod(ODDemand odDemands, ModeData currentModeData, double[] networkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
 		ODDemandIterator odDemandIter = odDemands.iterator();
 		
@@ -207,11 +213,12 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		return totalNetworkSegmentCosts;
 	}
 			
-	/** Perform assignment for a given time period using Dijkstra's algorithm
-	 * @param timePeriod
-	 * @param modes 
-	 * @throws PlanItException 
-	 */
+/** Perform assignment for a given time period using Dijkstra's algorithm
+ * 
+ * @param timePeriod            the time period for the current assignment
+ * @param modes                  the modes for the current assignment
+ * @throws PlanItException   thrown if there is an error
+ */
 	private void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
 		initialiseTimePeriodModeData(modes);	
 		boolean hasConverged = false;
@@ -264,8 +271,9 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	}	
 	
 	/**
-	 * Execute assignment (not yet implemented)
-	 * @throws PlanItException 
+	 * Execute assignment 
+	 * 
+	 * @throws PlanItException     thrown if there is an error
 	 */
 	@Override
 	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeEquilibration() throws PlanItException {

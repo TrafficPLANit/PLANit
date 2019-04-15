@@ -42,6 +42,11 @@ public class TransportNetwork {
 			currentIterator = physicalIterator.hasNext() ? physicalIterator : virtualIterator;
 		}
 
+/**
+ * Iterator through registered edge segments
+ * 
+ * @return          true if there are more EdgeSegment objects to loop through, false otherwise
+ */
 		@Override
 		public boolean hasNext() {
 			if(currentIterator.hasNext()) {
@@ -52,6 +57,11 @@ public class TransportNetwork {
 			return currentIterator.hasNext();
 		}
 
+/**
+ * Return next EdgeSegment object
+ * 
+ * @return         next EdgeSegment object
+ */
 		@Override
 		public EdgeSegment next() {
 			return (EdgeSegment) currentIterator.next();
@@ -68,37 +78,45 @@ public class TransportNetwork {
 	 */
 	protected final Zoning zoning;
 	
-	/** Add edge segment to the incoming or outgoing set of edge segments for the related vertices
-	 * @param edgeSegment
-	 * @throws PlanItException
-	 */
+/** 
+ * Add edge segment to the incoming or outgoing set of edge segments for the related vertices
+ * 
+ * @param edgeSegment            EdgeSegment to be added to upstream and downstream vertices
+ * @throws PlanItException        thrown if there is an error
+ */
 	protected void connectVerticesToEdgeSegment(EdgeSegment edgeSegment) throws PlanItException {
 		edgeSegment.getUpstreamVertex().exitEdgeSegments.addEdgeSegment(edgeSegment);
 		edgeSegment.getDownstreamVertex().entryEdgeSegments.addEdgeSegment(edgeSegment);	
 	}	
 	
-	/** remove edge segment from the incoming or outgoing set of edge segments for the related vertices
-	 * @param edgeSegment
-	 * @throws PlanItException
-	 */
+/** 
+ * Remove edge segment from the incoming or outgoing set of edge segments for the related vertices
+ * 
+ * @param edgeSegment          the EdgeSegment object to be removed from the network
+ * @throws PlanItException      thrown if there is an error
+ */
 	protected void disconnectVerticesFromEdgeSegment(EdgeSegment edgeSegment) throws PlanItException {
 		edgeSegment.getUpstreamVertex().exitEdgeSegments.removeEdgeSegment(edgeSegment);
 		edgeSegment.getDownstreamVertex().entryEdgeSegments.removeEdgeSegment(edgeSegment);	
 	}		
 	
-	/** Add connectoid to both vertices
-	 * @param connectoid
-	 * @throws PlanItException
-	 */
+/** 
+ * Add Edge to both vertices
+ * 
+ * @param edge                      Edge to be added to upstream and downstream vertices
+ * @throws PlanItException    thrown if there is an error
+ */
 	protected void connectVerticesToEdge(Edge edge) throws PlanItException {
 		edge.getVertexA().edges.addEdge(edge);
 		edge.getVertexB().edges.addEdge(edge);
 	}		
 	
-	/** Add connectoid to both vertices
-	 * @param connectoid
-	 * @throws PlanItException
-	 */
+/** 
+ * Remove Edge from both vertices
+ * 
+ * @param edge                     Edge to be removed from upstream and downstream vertices          
+ * @throws PlanItException   thrown if there is an error
+ */
 	protected void disconnectVerticesFromEdge(Edge edge) throws PlanItException {
 		edge.getVertexA().edges.removeEdge(edge);
 		edge.getVertexB().edges.removeEdge(edge);
@@ -121,11 +139,12 @@ public class TransportNetwork {
 	 */
 	public final Zones zones;
 	
-	/** Constructor
-	 * 
-	 * @param physicalNetwork
-	 * @param zoning
-	 */
+/** 
+ * Constructor
+ * 
+ * @param physicalNetwork    the PhysicalNetwork used to generate this TransportNetwork
+ * @param zoning                   the Zoning used to generate this TransportNetwork
+ */
 	public TransportNetwork(@Nonnull PhysicalNetwork physicalNetwork,@Nonnull Zoning zoning){
 		this.physicalNetwork = physicalNetwork;
 		this.zoning = zoning;
@@ -134,41 +153,57 @@ public class TransportNetwork {
 		this.zones = zoning.zones;
 	}
 	
-	/** Collect the total number of edge segments available in this traffic assignment by combining the physical and non-physical link segments
-	 * @return totalNumberOfEdgekSegments
-	 */
+/** 
+ * Returns the total number of edge segments available in this traffic assignment by combining the physical and non-physical link segments
+ * 
+ * @return    total number of physical and virtual edge segments
+ */
 	public int getTotalNumberOfEdgeSegments() {
 		return getTotalNumberOfLinkSegments() + getTotalNumberOfConnectoidSegments();
 	}
 	
-	/** Collect the total number of link segments available in this transport network 
-	 * @return totalNumberOfLinkSegments
-	 */
+/** 
+ * Returns the total number of link segments available in this transport network 
+
+ * @return               the number of physical link segments in this network
+ */
 	public int getTotalNumberOfLinkSegments() {
 		return physicalNetwork.linkSegments.getNumberOfLinkSegments();
 	}		
 	
-	/** Collect the total number of connectoid segments available in this transport network 
-	 * @return totalNumberOfLinkSegments
-	 */
+/** 
+ * Returns the total number of connectoid segments available in this transport network 
+ * 
+ * @return        the number of connectoid segments in this network
+ */
 	public int getTotalNumberOfConnectoidSegments() {
 		return zoning.getVirtualNetwork().connectoidSegments.getNumberOfConnectoidSegments();
 	}
 	
-	/** Collect the total number of virtual and physical vertices in this transport network
-	 * @return totalNumberOfVertices
-	 */
+/** 
+ * Returns the total number of virtual and physical vertices in this transport network
+ * 
+ * @return      the total number of physical and virtual vertices in this network
+ */
 	public int getTotalNumberOfVertices() {
 		return zoning.getVirtualNetwork().centroids.getNumberOfCentroids() + physicalNetwork.nodes.getNumberOfNodes();
 	}		
 	
-	/** collect an iterator that iterates over all edge segments both virtual and physical
-	 * @return
-	 */
+/** 
+ * Returns an iterator that iterates over all edge segments both virtual and physical
+ * 
+ * @return    iterator over TransportSegment objects
+ */
 	public TransportSegmentIterator getTransportSegmentIterator() {
 		return new TransportSegmentIterator();
 	}
 
+/**
+ * Integrate physical and virtual links
+ * 
+ * @param virtualNetwork            VirtualNetwork to be integrated into this TransportNetwork
+ * @throws PlanItException        thrown if there is an error
+ */
 	public void integrateConnectoidsAndLinks(VirtualNetwork virtualNetwork) throws PlanItException {
 		for (Connectoid connectoid: virtualNetwork.connectoids) {
 			virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
@@ -186,10 +221,11 @@ public class TransportNetwork {
 		}
 	}
 	
-	/**
-	 * de-register the edges and (incoming/outgoing) and edge segments on the vertices of both virtual and physical networks
-	 * @throws PlanItException 
-	 */
+/**
+ * Remove the edges and  edge segments on the vertices of both virtual and physical networks
+ * 
+ * @throws PlanItException       thrown if there is an error
+ */
 	public void removeVirtualNetworkFromPhysicalNetwork() throws PlanItException {
 		for (Connectoid connectoid: zoning.getVirtualNetwork().connectoids) {
 			disconnectVerticesFromEdge(connectoid);

@@ -92,9 +92,9 @@ public class PlanItProject {
 /** 
  * Add a network to the project.  If a network with the same id already exists the earlier network is replaced and returned (otherwise null)
  * 
- * @param network					name of physical network class to register
- * @return 								the generated physical network
- * @throws PlanItException 	thrown if there is an error
+ * @param physicalNetworkType					name of physical network class to register
+ * @return 								                        the generated physical network
+ * @throws PlanItException 	                        thrown if there is an error
  */
 	public PhysicalNetwork createAndRegisterPhysicalNetwork(String physicalNetworkType) throws PlanItException {
 		physicalNetwork = physicalNetworkFactory.create(physicalNetworkType);

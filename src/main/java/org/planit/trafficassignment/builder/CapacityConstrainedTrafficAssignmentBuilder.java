@@ -28,10 +28,11 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
 	 */
 	protected final TrafficAssignmentComponentFactory<NodeModel> nodeModelFactory;	
 	
-	/** Constructor
-	 * 
-	 * @param capacityConstrainedAssignment
-	 */
+/** 
+ * Constructor
+ * 
+ * @param capacityConstrainedAssignment                   CapacityConstrainedAssignment object to be built
+ */
 	public CapacityConstrainedTrafficAssignmentBuilder(CapacityConstrainedAssignment capacityConstrainedAssignment) {
 		super(capacityConstrainedAssignment);
 		fundamentalDiagramFactory = new TrafficAssignmentComponentFactory<FundamentalDiagram>(FundamentalDiagram.class);
@@ -40,28 +41,39 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
 
 	// FACTORY METHODS	
 	
-	/** Create and register FD on assignment 
-	 * @param fundamentalDiagramType
-	 * @return createdFundamentalDiagram
-	 * @throws PlanItException 
-	 */
+/** 
+ * Create and register FundamentalDiagram on assignment 
+ * 
+ * @param fundamentalDiagramType          the type of Fundamental Diagram to be created
+ * @return                                                    FundamentalDiagram created
+ * @throws PlanItException                         thrown if there is an error
+ */
 	public FundamentalDiagram createAndRegisterFundamentalDiagram(String fundamentalDiagramType) throws PlanItException {
 		FundamentalDiagram createdFundamentalDiagram = fundamentalDiagramFactory.create(fundamentalDiagramType);
 		((CapacityConstrainedAssignment) parentAssignment).setFundamentalDiagram(createdFundamentalDiagram);
 		return createdFundamentalDiagram;
 	}
 	
-	/** Create and register FD on assignment 
-	 * @param fundamentalDiagramType
-	 * @return createdFundamentalDiagram
-	 * @throws PlanItException 
-	 */
+/** 
+ * Create and register NodeMode on assignment 
+ * 
+ * @param nodeModelType                    the type of Node Model to be built
+ * @return                                              NodeModel created
+ * @throws PlanItException                   thrown if there is an error
+ */
 	public NodeModel createAndRegisterNodeModel(String nodeModelType) throws PlanItException {
 		NodeModel createdNodeModel = nodeModelFactory.create(nodeModelType);
 		((CapacityConstrainedAssignment) parentAssignment).setNodeModel(createdNodeModel);
 		return createdNodeModel;
 	}
 
+/**
+ * Set the EventManager for this builder
+ * 
+ * EventManager must be a singleton for each PlanItProject
+ * 
+ * @param eventManager               EventManager to be used to generate components
+ */
 	@Override
 	public void setEventManager(EventManager eventManager) {
 		super.setEventManager(eventManager);

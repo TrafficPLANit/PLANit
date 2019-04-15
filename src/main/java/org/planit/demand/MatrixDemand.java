@@ -13,6 +13,7 @@ public class MatrixDemand extends ODDemand {
 	
 /**
  * Iterator over entries masking its matrix based container
+ * 
  * @author markr
  */
 	protected class MatrixDemandIterator implements ODDemandIterator{
@@ -138,8 +139,8 @@ public class MatrixDemand extends ODDemand {
  * Fill a row of trip values in pcu.
  * If the mode of the matrix has a pcu greater than 1, the mode based trips are less than the provided pcu trips
  * 
- * @param row						origin zone
- * @param 								pcuODTripFlowRates, od trip flow rate in pcu/h
+ * @param originZone                       origin zone
+ * @param pcuODTripFlowRates     pcuODTripFlowRates, od trip flow rate in pcu/h
  */
 	public void fillRowInPCU(long originZone, Access1D<Double> pcuODTripFlowRates) {
 		demandMatrixContents.fillRow(originZone, pcuODTripFlowRates);

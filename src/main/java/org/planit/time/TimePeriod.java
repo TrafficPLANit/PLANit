@@ -30,12 +30,12 @@ public class TimePeriod implements Comparable<TimePeriod> {
 	
 	private static Map<Long, TimePeriod> timePeriods = new HashMap<Long, TimePeriod>();
 	
-	/**
-	 * Constructor
-	 * 
-	 * @param startTime in seconds from midnight
-	 * @param duration in seconds
-	 */
+/**
+ * Constructor
+ * 
+ * @param startTime in seconds from midnight
+ * @param duration in seconds
+ */
 	public TimePeriod(int startTime, int duration) {
 		this.id = IdGenerator.generateId(TimePeriod.class);
 		this.startTime = startTime;
@@ -43,18 +43,35 @@ public class TimePeriod implements Comparable<TimePeriod> {
 		description = null;
 		timePeriods.put(this.id, this);
 	}
-	
-	public TimePeriod(String description, String startTime24hour, int durationHours) throws Exception {
+
+/**
+ * Constructor
+ * 
+ * @param description                 description of this time period
+ * @param startTime24hour        start time of this time period
+ * @param durationHours            duration of this time period
+ * @throws PlanItException        thrown if duration is longer than 24 hours
+ */
+	public TimePeriod(String description, String startTime24hour, int durationHours) throws PlanItException {
 		this.id = IdGenerator.generateId(TimePeriod.class);
 		this.description = description;		
 		this.startTime = convertDurationToSeconds(startTime24hour);
 		if (durationHours > 24.0) {
-			throw new Exception("Duration more than 24 hours");
+			throw new PlanItException("Duration more than 24 hours");
 		}
-		this.duration = durationHours * 86400;
+		this.duration = durationHours * 3600;
 		timePeriods.put(this.id, this);
 	}
 	
+/**
+ * Constructor
+ * 
+ * @param id                                if of this time period
+ * @param description                 description of this time period
+ * @param startTime24hour        start time of this time period
+ * @param durationHours            duration of this time period
+ * @throws PlanItException        thrown if duration is longer than 24 hours
+ */
 	public TimePeriod(long id, String description, String startTime24hour, int durationHours) throws PlanItException {
 		this.id = id;
 		this.description = description;		
@@ -62,10 +79,17 @@ public class TimePeriod implements Comparable<TimePeriod> {
 		if (durationHours > 24.0) {
 			throw new PlanItException("Duration more than 24 hours");
 		}
-		this.duration = durationHours * 86400;
+		this.duration = durationHours * 3600;
 		timePeriods.put(this.id, this);
 	}
 	
+/**
+ * Convert duration to seconds given start time using the 24-hour clock
+ * 
+ * @param startTime24hour              start time in 24-hour clock format
+ * @return                                         duration in seconds
+ * @throws PlanItException              thrown if the input time is not in the correct format
+ */
 	private int convertDurationToSeconds(String startTime24hour) throws PlanItException {
 		int startTime;
 		int startTimeHrs;
@@ -95,66 +119,114 @@ public class TimePeriod implements Comparable<TimePeriod> {
 	
 	// Public static
 	
+/**
+ * Store time period by its id
+ * 
+ * @param timePeriod       the time period to be stored
+ */
 	public static void putById(TimePeriod timePeriod) {
 		timePeriods.put(timePeriod.getId(), timePeriod);
 	}
 	
+/**
+ * Retrieve time period by its id
+ * 
+ * @param id        the id of the time period to be retrieved
+ * @return           the TimePeriod object found
+ */
 	public static TimePeriod getById(long id) {
 		return timePeriods.get(id);
 	}
 	
-	/**
-	 * Factory method based on 24 hour input format
-	 */
+/**
+ * Create a time period given its start time and duration in hours
+ * 
+ * @param startHour          the starting hour
+ * @param durationHour    the duration in hours
+ * @return                         TimePeriod object generated
+ */
 	public static TimePeriod createTimePeriod24h(float startHour, float durationHour) {
 		return new TimePeriod(convertHourToSeconds(startHour), convertHourToSeconds(durationHour));
 	}
 	
-	
-	/**
-	 * Factory method based on seconds from midnight format
-	 */
+/**
+ * Create a time period given its start time and duration in seconds
+ * 
+ * @param startSeconds          the start time in seconds
+ * @param durationSeconds    the duration in seconds
+ * @return                                create TimePeriod object
+ */
 	public static TimePeriod createTimePeriodSeconds(int startSeconds, int durationSeconds) {
 		return new TimePeriod(startSeconds, durationSeconds);
 	}
 	
-	/** Convert hours in 24h format from midnight to seconds
-	 * @param hoursFromMidnight
-	 * @return secondsFromMidnight
-	 */
+/** 
+ * Convert hours in 24h format from midnight to seconds
+ * 
+ * @param hoursFromMidnight         the hours from midnight
+ * @return secondsFromMidnight    the seconds from midnight
+ */
 	public static int convertHourToSeconds(float hoursFromMidnight) {
 		return (Math.round(hoursFromMidnight*3600));
 	}
 	
-	/** Convert seconds to 24h format from midnight to seconds
-	 * @param hoursFromMidnight
-	 * @return secondsFromMidnight
-	 */
+/** 
+ * Convert seconds to 24h format from midnight to seconds
+ * 
+ * @param secondsFromMidnight         seconds from midnight
+ * @return                                              hours from midnight
+ */
 	public static float convertSecondsToHours(int secondsFromMidnight) {
 		return ((float)secondsFromMidnight)/3600;
 	}
 	
 	// Getters
 	
+/**
+ * Return the start time
+ * 
+ * @return         start time
+ */
 	public int getStartTime() {
 		return startTime;
 	}
 
+/**
+ * Return the duration in seconds
+ * 
+ * @return        duration
+ */
 	public int getDuration() {
 		return duration;
 	}
 	
+/**
+ * Return the description
+ * 
+ * @return       description of this TimePeriod
+ */
 	public String getDescription() {
 		return description;
 	}
 	
+/**
+ * Return the id of this time period
+ * 
+ * @return       id of this TimePeriod
+ */
 	public long getId() {
 		return id;
 	}
 
-	/** compare based on start time and duration
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
+/** 
+ * Compare this object with another TimePeriod obect
+ * 
+ * Comparison is based on start time and duration
+ * 
+ * @param o        TimePeriod this object is being compared to
+ * @return           result of comparison
+ * @see java.lang.Comparable#compareTo(java.lang.Object)
+ */
 	@Override
 	public int compareTo(TimePeriod o) {
 		int startTimeDiff = getStartTime()- ((TimePeriod)o).getStartTime();
@@ -165,6 +237,11 @@ public class TimePeriod implements Comparable<TimePeriod> {
 		}
 	}	
 
+/**
+ * Output this object as a String
+ * 
+ * @return          String containing the value of this TimePeriod
+ */
 	@Override
 	public String toString() {
 		int endTime = startTime + duration;

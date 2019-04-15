@@ -25,9 +25,11 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
 	 */
 	public class Zones implements Iterable<Zone> {
 		
-/** Add zone to the internal container.  
+/** 
+ * Add zone to the internal container.  
  * 
- * @return		the zone added
+ * @param zone    the zone to be added to this Zoning
+ * @return		       the zone added
  */
 		protected Zone registerZone(@Nonnull Zone zone) {
 			return zoneMap.put(zone.getId(),zone);

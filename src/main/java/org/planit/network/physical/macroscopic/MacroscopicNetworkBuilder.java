@@ -15,41 +15,54 @@ import org.planit.network.physical.PhysicalNetworkBuilder;
  */
 public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
 	
-	/** Create a new node
-	 * @see org.planit.network.physical.PhysicalNetworkBuilder#createNode()
-	 * @return node
-	 */
+/** 
+ * Create a new node
+ * 
+ * @see org.planit.network.physical.PhysicalNetworkBuilder#createNode()
+ * @return               Node object created
+ */
 	@Override
 	public Node createNode() {
 		return new Node();
 	}
 
-	/** create a new link, injecting link length directly
-	 * @see org.planit.network.physical.PhysicalNetworkBuilder#createLink()
-	 * @return link
-	 * @throws PlanItException 
-	 */
+/** 
+ * Create a new link, injecting link length directly
+ * 
+ * @param nodeA                      first node in the link
+ * @param nodeB                     second node in the link
+ * @param length                      length of the link
+ * @see org.planit.network.physical.PhysicalNetworkBuilder#createLink()
+ * @return                                Link object created
+ * @throws PlanItException     thrown if there is an error
+ */
 	@Override
 	public Link createLink(Node nodeA, Node nodeB, double length) throws PlanItException {
 		return new Link(nodeA, nodeB, length);
 	}
 
-	/** create a new MacroscopicLinkSegment
-	 * @see org.planit.network.physical.PhysicalNetworkBuilder#createLinkSegment()
-	 * @return macroscopicLinkSegment
-	 */
+/** 
+ * Create a new MacroscopicLinkSegment
+ *  
+ * @param parentLink                          the parent link of this link  segment
+ * @param directionAB                        the direction of this link
+ * @see org.planit.network.physical.PhysicalNetworkBuilder#createLinkSegment()
+ * @return                                           LinkSegment created
+ */
 	@Override
 	public LinkSegment createLinkSegment(Link parentLink, boolean directionAB) {
 		return new MacroscopicLinkSegment(parentLink, directionAB);
 	}
 	
-	/** Create a fully functional macroscopic link segment type instance
-	 * @param name
-	 * @param capacity
-	 * @param maximumDensity
-	 * @param modeProperties
-	 * @return macroscopicLinkSegmentType
-	 */
+/** 
+ * Create a fully functional macroscopic link segment type instance
+ * 
+ * @param name                                             the name of this link type
+ * @param capacity                                         the capacity of this link type
+ * @param maximumDensity                          the maximum density of this link type
+ * @param modeProperties                             the mode properties of this link
+ * @return macroscopicLinkSegmentType    the created link segment type
+ */
 	public MacroscopicLinkSegmentType createLinkSegmentType(@Nonnull String name, double capacity, double maximumDensity, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
 		return new MacroscopicLinkSegmentType(name, capacity, maximumDensity, modeProperties);
 	}

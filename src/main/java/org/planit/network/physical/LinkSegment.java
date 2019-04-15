@@ -20,17 +20,21 @@ public class LinkSegment extends EdgeSegment {
 	 */
 	protected double maximumSpeed = DEFAULT_MAX_SPEED; 
 	
-	/** generate unique link segment id
-	 * @return linkSegmentId
-	 */
+/** 
+ * Generate unique link segment id
+ * 
+ * @return       id of this link segment
+ */
 	protected static int generateLinkSegmentId() {
 		return IdGenerator.generateId(LinkSegment.class);
 	}		
 	
-	/**
-	 * Constructor
-	 * @param parentLink, parentLink of segment
-	 */
+/**
+ * Constructor
+ * 
+ * @param parentLink           parent link of segment
+ * @param directionAB         direction of travel
+ */
 	protected LinkSegment(Link parentLink, boolean directionAB){
 		super(parentLink, directionAB);
 		this.linkSegmentId = generateLinkSegmentId();

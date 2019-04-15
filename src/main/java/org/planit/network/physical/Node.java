@@ -38,10 +38,9 @@ public class Node extends Vertex {
 	
 	// Public
 	
-	/**
-	 * Node constructor
-	 * @param id
-	 */
+/**
+ * Node constructor
+  */
 	public Node() {
 		super();
 		this.nodeId = generateNodeId();

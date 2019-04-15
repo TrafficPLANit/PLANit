@@ -44,23 +44,26 @@ public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSeg
 	 * All mode specific properties are captured within this member
 	 */
 	protected final MacroscopicLinkSegmentTypeModeProperties modeProperties;
-	
-	
-	/** generate next id available
-	 * @return
-	 */
+		
+/** 
+ * Generate next id available
+ * 
+ * @return    id of this link segment
+ */
 	protected static int generateMacroscopicLinkSegmentTypeId() {
 		return IdGenerator.generateId(MacroscopicLinkSegmentType.class);
 	}
 		
 	// Public		
 
-	/** Constructor
-	 * @param name
-	 * @param capacityPerLane
-	 * @param maximumDensityPerLane
-	 * @param modeProperties
-	 */
+/** 
+ * Constructor
+ * 
+ * @param name                                      name of this link segment type
+ * @param capacityPerLane                    capacity per lane of this link segment type
+ * @param maximumDensityPerLane     maximum density per lane of this link segment type
+ * @param modeProperties                     properties of this link segment type
+ */
 	public MacroscopicLinkSegmentType(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
 		this.id = generateMacroscopicLinkSegmentTypeId();
 		this.name = name;
@@ -69,9 +72,11 @@ public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSeg
 		this.modeProperties = modeProperties;
 	}
 
-	/** Compare on content but not on name and id
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
+/** 
+ * Compare on content but not on name and id
+ * 
+ * @see java.lang.Object#equals(java.lang.Object)
+ */
 	@Override
 	public boolean equals(Object obj) {		
 		// Name is not what defines the characteristics, so we only consider capacity, max density, and mode specific information
@@ -114,6 +119,12 @@ public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSeg
 		return modeProperties;
 	}
 
+/**
+ * Compare this object to another link segment type
+ * 
+ * @param other        link segment type object to be compared to this one
+ * @return                 result of the comparison
+ */
 	@Override
 	public int compareTo(MacroscopicLinkSegmentType other) {
 		int compare = Double.compare(this.getCapacityPerLane(), other.getCapacityPerLane());

@@ -75,9 +75,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	protected Demands demands = null;
 	
-	/** check if any components are undefined, if so throw exception
-	 * @throws PlanItException
-	 */
+/** 
+ * Check if any components are undefined, if so throw exception
+ * 
+ * @throws PlanItException      thrown if any components are undefined
+ */
 	protected void checkForEmptyComponents() throws PlanItException {
 		if (demands == null) {
 			throw new PlanItException("Demand is null");
@@ -126,17 +128,19 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		createGapFunction();
 	}
 	
-	/** Each traffic assignment class can have its own builder which reveals what components need to be registered on the traffic assignment
-	 * instance in order to function properly.
-	 * @return trafficAssignmentBuilder to use
-	 */
+/** 
+ * Each traffic assignment class can have its own builder which reveals what components need to be registered on the traffic assignment instance in order to function properly.
+ * 
+ * @return            trafficAssignmentBuilder to use
+ */
 	public abstract TrafficAssignmentBuilder getBuilder();
 	
 	
-	/**
-	 * Verify if the traffic assignment components are compatible and nonnull 
-	 * @throws PlanItException 
-	 */
+/**
+ * Verify if the traffic assignment components are compatible and nonnull 
+ * 
+ * @throws PlanItException    thrown if the components are not compatible
+ */
 //TODO - This method is currently empty.  It original version could throw PlanItIncompatibilityException.  We need to check whether we still need it and whether it should throw PlanItIncompatibilityException.
 	public void verifyComponentCompatibility() throws PlanItException {
 		//TODO
@@ -147,10 +151,12 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	public abstract void initialiseBeforeEquilibration();
 	
-	/**
-	 * Execute assignment
-	 * @throws PlanItException 
-	 */
+/**
+ * Execute assignment
+ * 
+ * @return                              SortedMap containing results
+ * @throws PlanItException   thrown if there is an error
+ */
 	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> execute() throws PlanItException  {
 		checkForEmptyComponents();	
 		verifyComponentCompatibility();
@@ -163,10 +169,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		return results;
 	}
 
-	/**
-	 * Execute assignment
-	 * @throws PlanItException 
-	 */
+/**
+ * Execute assignment
+ * @return                              SortedMap containing results
+ * @throws PlanItException   thrown if there is an error
+ */
 	public abstract  SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeEquilibration() throws PlanItException;
 	
 	

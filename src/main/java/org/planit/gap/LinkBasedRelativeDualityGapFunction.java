@@ -9,9 +9,11 @@ package org.planit.gap;
  */
 public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 	
-	/** constructor
-	 * @param stopCriterion
-	 */
+/** 
+ * Constructor
+ * 
+ * @param stopCriterion         StopCriterion object being used
+ */
 	public LinkBasedRelativeDualityGapFunction(StopCriterion stopCriterion) {
 		super(stopCriterion);
 	}
@@ -32,45 +34,60 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 	protected double gap = Double.POSITIVE_INFINITY;
 	
 	
-	/** Compute the gap
-	 * 
-	 * @see org.planit.gap.GapFunction#computeGap()
-	 */
+/** 
+ * Compute the gap
+ * 
+ * @return               the gap for the current iteration
+ * @see org.planit.gap.GapFunction#computeGap()
+ */
 	public double computeGap(){
 		gap = (actualSystemTravelTime - minimumSystemTravelTime) / actualSystemTravelTime;
 		return gap; 
 	}
 	
+/**
+ * Return the actual system travel time
+ * 
+ * @return             the actual system travel time
+ */
 	public double getActualSystemTravelTime() {
 		return actualSystemTravelTime;
 	}
 	
-	/** increase system travel time, i.e. compute it exogenously 
-	 * @param increaseValue
-	 */
+/** 
+ * Increase system travel time, i.e. compute it exogenously
+ *  
+ * @param increaseValue        increase in actualSystemTravelTime for this iteration
+ */
 	public void increaseActualSystemTravelTime(double increaseValue) {
 		actualSystemTravelTime += increaseValue;
 	}	
 	
-	/** increase convexity bound travel time, i.e. compute it exogenously 
-	 * @param minimumSystemTravelTime
-	 */
+/** 
+ * Increase convexity bound travel time, i.e. compute it exogenously 
+ * 
+ * @param increaseMinimumSystemTravelTime      the increase in minimum system travel time
+ */
 	public void increaseConvexityBound(double increaseMinimumSystemTravelTime) {
 		minimumSystemTravelTime += increaseMinimumSystemTravelTime;
 	}
 	
-	/**
-	 * reset system travel time and convexity bound to zero
-	 */
+/**
+ * Reset system travel time and convexity bound to zero
+ */
 	public void reset() {
 		this.actualSystemTravelTime = 0;
 		this.minimumSystemTravelTime = 0;
 	}
 
+/**
+ * Return the gap for the current iteration
+ * 
+ * @return          the gap for the current iteration
+ */
 	@Override
 	public double getGap() {
 		return gap;
 	}
-
 
 }

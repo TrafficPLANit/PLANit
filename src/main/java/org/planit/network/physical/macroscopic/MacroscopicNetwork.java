@@ -25,9 +25,12 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	
 	protected Map<Integer, MacroscopicLinkSegmentType> linkSegmentTypeMap = new TreeMap<Integer, MacroscopicLinkSegmentType>();
 	
-	/** Register a link segment type on the network
-	 * @param linkSegmentType
-	 */
+/** 
+ * Register a link segment type on the network
+ * 
+ * @param linkSegmentType        the MacroscopicLinkSegmentType to be registered
+ * @return                                     the registered link segment type
+ */
 	protected MacroscopicLinkSegmentType registerLinkSegmentType(@Nonnull MacroscopicLinkSegmentType linkSegmentType) {	
 		return linkSegmentTypeMap.put(linkSegmentType.getId(), linkSegmentType);
 	}	
@@ -35,17 +38,19 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	
 	// Public
 
-	/**
-	 * Constructor
-	 */
+/**
+ * Constructor
+ */
 	public MacroscopicNetwork() {
 		super(new MacroscopicNetworkBuilder());
 	}
 	
-	/**
-	 * Find if there already exists a link segment type with the same contents, if so return it, otherwise return null
-	 * @return equalLinkSegmentType
-	 */
+/**
+ * If there already exists a link segment type with the same contents return it, otherwise return null
+ * 
+ * @param linkSegmentType                     the new MacroscopicLinkSegmentType being tested against
+ * @return                                                 existing MacroscopicLinkSegmentType equal to the new one if one exists, otherwise null
+ */
 	public MacroscopicLinkSegmentType findEqualMacroscopicLinkSegmentType(@Nonnull MacroscopicLinkSegmentType linkSegmentType) {
 		Iterator<MacroscopicLinkSegmentType> iterator = macroscopiclinkSegmentTypes().iterator();
 		while (iterator.hasNext()) {
@@ -57,16 +62,16 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 		return null;
 	}
 	
-	/** Create and register new link segment type on network. If there already exists a link segment type with the same contents the existing
-	 * type is returned and no new type will be registered
-	 * @param name
-	 * @param capacity
-	 * @param maximumDensity
-	 * @param macroscopicLinkSegmentTypeModeProperties
-	 * @return <createdLinkSegmentType, isAdded>, when the proposed link segment type contents (all but name and id) are unique, it is registered on the network isAdded is set to true and the object is returned.
-	 * Otherwise the returned object is the already registered (equal) link segment type and isAdded is set to false. 
-	 * @throws PlanItException 
-	 */
+/** 
+ * Create and register new link segment type on network. If there already exists a link segment type with the same contents the existing type is returned and no new type will be registered
+ * 
+ * @param name                                    name of the link segment type
+ * @param capacity                                capacity of the link segment type
+ * @param maximumDensity                 maximum density of the link segment type
+ * @param modeProperties                   mode properties of the link segment type
+ * @return                                              Pair containing the link segment type, plus boolean which is true if the link segment type already exists
+ * @throws PlanItException                   thrown if there is an error
+ */
 	public Pair<MacroscopicLinkSegmentType,Boolean> registerNewLinkSegmentType(@Nonnull String name, double capacity, double maximumDensity, MacroscopicLinkSegmentTypeModeProperties modeProperties) throws PlanItException {
 		if(!(networkBuilder instanceof MacroscopicNetworkBuilder)){
 			throw new PlanItException("Macroscopic network perspective only allows macroscopic link segment types to be registered");
@@ -81,10 +86,11 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 		return new Pair<MacroscopicLinkSegmentType, Boolean>(linkSegmentType,existingLinkSegmentType == linkSegmentType);
 	}	
 		
-	/**
-	 * Create iterator for macroscopiclinkSegmentTypesContainer
-	 * @return LinkSegmentTypes iterator
-	 */
+/**
+ * Create iterator for macroscopiclinkSegmentTypesContainer
+ * 
+ * @return                                                     LinkSegmentTypes iterator
+ */
 	public MacroscopicLinkSegmentTypes macroscopiclinkSegmentTypes() {
 		return new MacroscopicLinkSegmentTypes();
 	}		

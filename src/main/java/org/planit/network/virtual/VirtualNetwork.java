@@ -19,136 +19,188 @@ public class VirtualNetwork {
 	
 	// INNER CLASSES
 	
-	/**
-	 * Internal class for all Connectoid specific code
-	 *
-	 */
+/**
+ * Internal class for all Connectoid specific code
+ *
+ */
 	public class Connectoids implements Iterable<Connectoid> {
 		
-		/** Add connectoid to the internal container
-		 * @return connectoid, in case it overrides an existing connectoid, the removed connectoid is returned
-		 */
+/** 
+ * Add connectoid to the internal container
+ * 
+ * If new connectoid overrides an existing connectoid, the removed connectoid is returned
+ * 
+ * @param connectoid                    the connectoid to be registered
+ * @return                                       connectoid added
+ */
 		protected Connectoid registerConnectoid(@Nonnull Connectoid connectoid) {
 			return connectoidMap.put(connectoid.getId(),connectoid);
 		}
-		
+	
+/**
+ * Iterator through registered connectoids
+ * 
+ * @return       iterator through registered connectoids
+ */
 		@Override
 		public Iterator<Connectoid> iterator() {
 			return connectoidMap.values().iterator();
 		}		
 		
-		/** create new connectoid to network identified via its id
-		 * @return connectoid, new connectoid
-		 * @throws PlanItException 
-		 */
+/** 
+ * Create new connectoid to network
+ * 
+ * @param centroid                                 centroid at one end of the connectoid
+ * @param node                                      node at other end of the connectoid
+ * @param length                                    length of connectiod
+ * @return connectoid                            Connectoid object created and registered
+ * @throws PlanItException                    thrown if there is an error
+ */
 		public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length) throws PlanItException {
 			Connectoid newConnectoid = new Connectoid(centroid, node, length);
 			registerConnectoid(newConnectoid);
 			return newConnectoid;
 		}
 		
-		/**
-		 * Collect link by id 
-		 * @param id
-		 * @return link
-		 */
+/**
+ * Get connectoid by id 
+ * 
+ * @param id                 the id of this connectoid
+ * @return                    the retrieved connectoid
+ */
 		public Connectoid getConnectoid(long id) {
 			return connectoidMap.get(id);
 		}		
 		
-		/** Collect number of connectoids on the network
-		 * @return numberOfConnectoids
-		 */
+/** 
+ * Return number of connectoids on the network
+ * 
+ * @return                       the number of connectoids
+ */
 		public int getNumberOfConnectoids() {
 			return connectoidMap.size();			
 		}		
 	}	
 		
-	/**
-	 * Internal class for non-physical LinkSegment specific code, i.e. connectoid segments 
-	 * (physical link segments are placed in the network)
-	 *
-	 */
+/**
+ * Internal class for non-physical LinkSegment specific code, i.e. connectoid segments 
+ * (physical link segments are placed in the network)
+ *
+ */
 	public class ConnectoidSegments implements Iterable<ConnectoidSegment> {
 		
-		/** Register a link segment on the zoning
-		 * @param connectoidSegment
-		 */
+/** 
+ * Register a connectid segment on the zoning
+ * 
+ * @param connectoidSegment     ConnectoidSegment to be registered
+ * @return                                      the registered connectoid segment
+ */
 		protected ConnectoidSegment registerConnectoidSegment(@Nonnull ConnectoidSegment connectoidSegment) {	
 			return connectoidSegmentMap.put(connectoidSegment.getId(), connectoidSegment);
 		}
-		
+	
+/**
+ * Iterator through registered connectoids
+ * 
+ * @return         iterator through registered connectoids
+ */
 		@Override
 		public Iterator<ConnectoidSegment> iterator() {
 			return connectoidSegmentMap.values().iterator();
 		}		
 		
-		/** Create and register connectoid segment in AB direction on virtual network
-		 * @param parentConnectoid
-		 * @param directionAB
-		 * @return created connectoid segment
-		 * @throws PlanItException 
-		 */
+/** 
+ * Create and register connectoid segment in AB direction on virtual network
+ * 
+ * @param parentConnectoid                            the connectoid which will contain this connectoid segmetn
+ * @param directionAB                                      direction of travel
+ * @return                                                         created connectoid segment
+ * @throws PlanItException                              thrown if there is an error
+ */
 		public ConnectoidSegment createAndRegisterConnectoidSegment(@Nonnull Connectoid parentConnectoid, boolean directionAB) throws PlanItException {
 			ConnectoidSegment connectoidSegment = new ConnectoidSegment(parentConnectoid, directionAB);
 			parentConnectoid.registerConnectoidSegment(connectoidSegment, directionAB);
 			registerConnectoidSegment(connectoidSegment);
 			return connectoidSegment;
 		}			
-		
-		
-		/** Create and register connectoidSegment in AB direction on virtual network
-		 * @param parentConnectoid
-		 * @return created connectoid Segment
-		 * @throws PlanItException 
-		 */
+				
+/** 
+ * Create and register connectoidSegment in AB direction on virtual network
+ * 
+ * @param parentConnectoid                        the connectoid which will contain this connectoid segment
+ * @return                                                     created connectoid Segment
+ * @throws PlanItException                          thrown if there is an error
+ */
 		public ConnectoidSegment createAndRegisterConnectoidSegmentAB(@Nonnull Connectoid parentConnectoid) throws PlanItException {
 			return createAndRegisterConnectoidSegment(parentConnectoid, true /*abDirection*/);
 		}
 		
-
-		/** Create and register connectoidSegment in BA direction on zoning
-		 * @param parentConnectoid
-		 * @return connectoidSegment
-		 * @throws PlanItException 
-		 */
+/** 
+ * Create and register connectoidSegment in BA direction on zoning
+ * 
+ * @param parentConnectoid                        the connectoid which will contain this connectoid segment
+ * @return                                                     created connectoid Segment
+ * @throws PlanItException                          thrown if there is an error
+ */
 		public ConnectoidSegment createAndRegisterConnectoidSegmentBA(Connectoid parentConnectoid) throws PlanItException {
 			return createAndRegisterConnectoidSegment(parentConnectoid, false /*baDirection*/);
 		}		
 		
-		/**
-		 * Collect connectoid segment by id 
-		 * @param id
-		 * @return connectoidSegment
-		 */
+/**
+ * Get connectoid segment by id 
+ * 
+ * @param id                          the id of this connectoid segment
+ * @return                             retrieved ConnectoidSegment object
+ */
 		public ConnectoidSegment getConnectoidSegment(long id) {
 			return connectoidSegmentMap.get(id);
 		}			
 		
+/**
+ * Return the number of registered connectoid segments
+ * 
+ * @return       the number of registered connectoid segments
+ */
 		public int getNumberOfConnectoidSegments() {
 			return connectoidSegmentMap.size();			
 		}		
 	}	
-	
-		
-	/**
-	 * Internal class for all Centroid specific code
-	 *
-	 */
+			
+/**
+ * Internal class for all Centroid specific code
+ *
+ */
 	public class Centroids implements Iterable<Centroid> {
 		
-		/** Add centroid to the internal container
-		 * @return centroid, in case it overrides an existing centroid, the removed centroid is returned
-		 */	
+/** 
+ * Add centroid to the internal container
+ * 
+ * If centroid overrides an existing centroid, the removed centroid is returned
+ *  
+ * @param centroid          centroid to be registered
+ * @return                        registered centroid
+ */	
 		public Centroid registerCentroid(@Nonnull Centroid centroid) {
 			return centroidMap.put(centroid.getId(),centroid);
 		}		
 		
+/**
+ * Iterator through registerded centroid
+ * 
+ * @return       iterator through registered centroids
+ */
 		@Override
 		public Iterator<Centroid> iterator() {
 			return centroidMap.values().iterator();
 		}
 		
+/**
+ * Find centroid by the external Id of links connected to it
+ * 
+ * @param externalId      the external id of connecting link
+ * @return                      the retrieved centroid
+ */
+//TODO - this will need to be changed when we change MetroScan input files to use the IDs of nodes rather than links in the TAZ definition
 		public Centroid findCentroidByExternalId(long externalId) {
 			for (Centroid centroid : centroidMap.values()) {
 				if (centroid.getExternalId() == externalId) {
@@ -158,6 +210,11 @@ public class VirtualNetwork {
 			return null;
 		}
 		
+/**
+ * Return number of registered centroids
+ * 
+ * @return      number of registered centroids
+ */
 		public int getNumberOfCentroids() {
 			return centroidMap.size();
 		}

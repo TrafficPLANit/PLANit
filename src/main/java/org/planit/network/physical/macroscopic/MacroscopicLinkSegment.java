@@ -23,23 +23,32 @@ public class MacroscopicLinkSegment extends LinkSegment{
 	// Public
 	
 	
-	/** Constructor
-	 */
+/** 
+ * Constructor
+ * 
+ * @param parentLink      the parent link of this link segment
+ * @param directionAB    direction of traverl
+ */
 	public MacroscopicLinkSegment(@Nonnull Link parentLink, boolean directionAB) {
 		super(parentLink, directionAB);
 	}
 	
-	/** Compute the total capacity by multiplying the capacity per lane and number of lanes
-	 * @return linkSegmentCapacity in pcu
-	 */
+/** 
+ * Compute the total capacity by multiplying the capacity per lane and number of lanes
+ * 
+ * @return              linkSegmentCapacity in pcu
+ */
 	public double computeCapacity() {
 		return getLinkSegmentType().getCapacityPerLane()*getNumberOfLanes();
 	}
 	
-	/** Compute the free flow travel time by mode, i.e. when the link's maximum speed might be capped by the mode's maximum speed
-	 * @param mode
-	 * @return freeFlowTravelTime
-	 */
+/** 
+ * Compute the free flow travel time by mode, i.e. when the link's maximum speed might be capped by the mode's maximum speed
+ * 
+ * @param mode                       mode of travel
+ * @return                                 freeFlowTravelTime for this mode
+ * @throws PlanItException      thrown if there is an error      
+ */
 	public double computeFreeFlowTravelTime(Mode mode) throws PlanItException {
 		double linkLength = getParentLink().getLength() ;
 		double maximumSpeed = getMaximumSpeed();
@@ -55,7 +64,6 @@ public class MacroscopicLinkSegment extends LinkSegment{
 		return linkLength / computedMaximumSpeed;
 	}	
 		
-
 	// getters - setters
 	
 	public void setLinkSegmentType(MacroscopicLinkSegmentType linkSegmentType) {
@@ -65,7 +73,5 @@ public class MacroscopicLinkSegment extends LinkSegment{
 	public MacroscopicLinkSegmentType getLinkSegmentType() {
 		return linkSegmentType;
 	}
-
-				
 
 }

@@ -27,120 +27,186 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 */
 	public class Links implements Iterable<Link> {
 		
-		/** Add link to the internal container
-		 * @return link, in case it overrides an existing link, the removed link is returned
-		 */
+/** 
+ * Add link to the internal container
+ * 
+ * @param link              link to be registered in this network
+ * @return                    link, in case it overrides an existing link, the removed link is returned
+ */
 		protected Link registerLink(@Nonnull Link link) {
 			return linkMap.put(link.getId(),link);
 		}
-		
+	
+/**
+ * Iterator over registered links
+ * 
+ * @return    iterator over registered links
+ */
 		@Override
 		public Iterator<Link> iterator() {
 			return linkMap.values().iterator();
 		}		
 		
-		/** create new link to network identified via its id, injecting link length directly
-		 * @return link, new link
-		 * @throws PlanItException 
-		 */
+/** 
+ * Create new link to network identified via its id, injecting link length directly
+ * 
+ * @param nodeA                    the first node in this link
+ * @param nodeB                   the second node in this link
+ * @param length                    the length of this link
+ * @return                               the created link
+ * @throws PlanItException    thrown if there is an error
+ */
 		public Link registerNewLink(Node nodeA, Node nodeB, double length) throws PlanItException {
 			Link newLink = networkBuilder.createLink(nodeA, nodeB, length);
 			registerLink(newLink);
 			return newLink;
 		}			
 		
-		/**
-		 * Collect link by id 
-		 * @param id
-		 * @return link
-		 */
+/**
+ * Get link by id  
+ * 
+ * @param id      the id of the link
+ * @return         the retrieved link
+ */
 		public Link getLink(long id) {
 			return linkMap.get(id);
 		}		
 		
-		/** Collect number of links on the network
-		 * @return
-		 */
+/** 
+ * Get the number of links on the network
+ * 
+ * @return       the number of links in the network
+ */
 		public int getNumberOfLinks() {
 			return linkMap.size();			
 		}		
 	}
 	
-	/**
-	 * Internal class for LinkSegment specific code (non-physical link segments are placed in the zoning)
-	 *
-	 */
+/**
+ * Internal class for LinkSegment specific code (non-physical link segments are placed in the zoning)
+ *
+ */
 	public class LinkSegments implements Iterable<LinkSegment> {
 		
-		/** Register a link segment on the network
-		 * @param linkSegment
-		 */
+/** 
+ * Register a link segment on the network
+ * 
+ * @param linkSegment    the link segment to be registered
+ * @return                         the registered link segment
+ */
 		protected LinkSegment registerLinkSegment(@Nonnull LinkSegment linkSegment) {	
 			return linkSegmentMap.put(linkSegment.getId(), linkSegment);
 		}
-		
+	
+/**
+ * Iterator over registered link segments
+ * 
+ * @return     iterator over registered link segments
+ */
 		@Override
 		public Iterator<LinkSegment> iterator() {
 			return linkSegmentMap.values().iterator();
 		}		
 		
+/**
+ * Create directional link segment
+ * 
+ * @param parentLink               the parent link of this link segment
+ * @param directionAB             direction of travel
+ * @return                                the created link segment
+ * @throws PlanItException     thrown if there is an error
+ */
 		public LinkSegment createDirectionalLinkSegment(@Nonnull Link parentLink, boolean directionAB) throws PlanItException {
 			LinkSegment linkSegment = networkBuilder.createLinkSegment(parentLink, directionAB);
 			return linkSegment;
 		}			
 		
+/**
+ * Register a link segment
+ * 
+ * @param parentLink              the parent link which specified link segment will be registered on
+ * @param linkSegment           link segment to be registered
+ * @param directionAB            direction of travel
+ * @throws PlanItException    thrown if there is an error
+ */
 		public void registerLinkSegment(@Nonnull Link parentLink, LinkSegment linkSegment, boolean directionAB) throws PlanItException {
 			parentLink.registerLinkSegment(linkSegment, directionAB);
 			registerLinkSegment(linkSegment);
 		}
 	
-		/**
-		 * Collect link segment by id 
-		 * @param id
-		 * @return linkSegment
-		 */
+/**
+ * Get link segment by id 
+ * 
+ * @param id                    id of the link segment
+ * @return                       retrieved linkSegment
+ */
 		public LinkSegment getLinkSegment(long id) {
 			return linkSegmentMap.get(id);
 		}			
 		
+/**
+ * Return number of registered link segments
+ * 
+ * @return      number of registered link segments
+ */
 		public int getNumberOfLinkSegments() {
 			return linkSegmentMap.size();			
 		}		
 	}	
-	
-		
-	/**
-	 * Internal class for all Node specific code
-	 *
-	 */
+			
+/**
+ * Internal class for all Node specific code
+ *
+ */
 	public class Nodes implements Iterable<Node> {
 		
-		/** Add node to the internal container
-		 * @return node, in case it overrides an existing node, the removed node is returned
-		 */	
+/** 
+ * Add node to the internal container
+ * 
+ * @param node               node to be registered in this network
+ * @return                        node, in case it overrides an existing node, the removed node is returned
+ */	
 		public Node registerNode(@Nonnull Node node) {
 			return nodeMap.put(node.getId(),node);
 		}		
 		
+/**
+ * Iterator through registered nodes
+ * 
+ * @return    iterator through registered nodes
+ */
 		@Override
 		public Iterator<Node> iterator() {
 			return nodeMap.values().iterator();
 		}
 		
-		/** Add node to network identified via its id
-		 * @param node to add
-		 * @return node, new node 
-		 */
+/** 
+ * Create and register new node 
+ * 
+ * @return                    new node created
+ */
 		public Node registerNewNode(){
 			Node newNode = networkBuilder.createNode();
 			registerNode(newNode);
 			return newNode;
 		}		
 		
+/**
+ * Return number of registered nodes
+ * 
+ * @return      number of registered nodes
+ */
 		public int getNumberOfNodes() {
 			return nodeMap.size();
 		}
 		
+/**
+ * Find node by the external Id of link connected to it
+ * 
+ * @param externalLinkId        external Id of connecting link
+ * @return                               node connected to specified link
+ * @throws PlanItException    thrown if there is an error
+ */
 		public Node findNodeByExternalLinkId(long externalLinkId) throws PlanItException {
 			for (Node node: nodeMap.values()) {
 				if  ((node.getExternalLinkIdSet().contains(externalLinkId)) && (node.getExternalId() != 0)) {
@@ -150,6 +216,12 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 			throw new PlanItException("There is a connectoid " + externalLinkId + " in the zone definition file but this cannot be matched to a ID in the network definition file.");
 		}
 		
+/**
+ * Find a node by its external Id
+ * 
+ * @param externalId           external Id of node
+ * @return                           retrieved node
+ */
 		public Node findNodeByExternalIdentifier(long externalId) {
 			for (Node node: nodeMap.values()) {
 				if  (node.getExternalId() ==  externalId) {
@@ -196,10 +268,11 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 */		
 	public final Nodes nodes = new Nodes();	
 	
-	/**
-	 * Network Constructor
-	 * @param theNetworkBuilder 
-	 */
+/**
+ * Network Constructor
+ * 
+ * @param networkBuilder   the builder to be used to create this network
+ */
 	public PhysicalNetwork(@Nonnull PhysicalNetworkBuilder networkBuilder)
 	{		
 		this.id = IdGenerator.generateId(PhysicalNetwork.class);

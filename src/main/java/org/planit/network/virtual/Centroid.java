@@ -9,9 +9,11 @@ import org.planit.zoning.Zone;
 public class Centroid extends Vertex {
 	// Protected
 	
-	/** generate unique centroid id
-	 * @return nodeId
-	 */
+/** 
+ * Generate unique centroid id
+ * 
+ * @return             id of this Centroid
+ */
 	protected static int generateCentroidId() {
 		return IdGenerator.generateId(Centroid.class);
 	}	
@@ -31,10 +33,12 @@ public class Centroid extends Vertex {
 			
 	// Public
 	
-	/**
-	 * Node constructor
-	 * @param id
-	 */
+/**
+ * Constructor
+ * 
+* @param parentZone      zone containing this centroid
+* @param externalId         external Id of link connecting to this centroid
+ */
 	public Centroid(@Nonnull Zone parentZone, long externalId) {
 		super();
 		this.centroidId = generateCentroidId();
@@ -42,6 +46,11 @@ public class Centroid extends Vertex {
 		this.externalId = externalId;
 	}	
 	
+/**
+ * Constructor
+ * 
+ * @param externalId     external Id of link connecting to this centroid
+ */
 	public Centroid(long externalId) {
 		super();
 		this.centroidId = generateCentroidId();
@@ -49,6 +58,9 @@ public class Centroid extends Vertex {
 		this.externalId = externalId;
 	}
 	
+/**
+ * Constructor
+ */
 	public Centroid() {
 		super();
 		this.centroidId = generateCentroidId();
@@ -57,19 +69,39 @@ public class Centroid extends Vertex {
 	}
 	
 	// Getters-Setters
+	
+/**
+ * Return the id of this centroid
+ * 
+ * @return     id of this centroid
+ */
 	public long getCentroidId() {
 		return centroidId;
 	}
 	
+/**
+ * Return the parent zone of this centroid
+ * 
+ * @return        parent zone of this centroid
+ */
 	public Zone getParentZone() {
 		return this.parentZone;
 	}
 	
+/**
+ * Set the parent zone of this centroid
+ * 
+ * @param parentZone         parent zone of this centroid
+ */
 	public void setParentZone(Zone parentZone) {
 		this.parentZone = parentZone;
 	}
 	
-	//public long getGeometryId() {
+/**
+ * Return external Id of link connecting to this centroid
+ * 
+ * @return      external id of link connecting to this centroid
+ */
 	public long getExternalId() {
 		return externalId;
 	}

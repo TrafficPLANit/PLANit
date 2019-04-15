@@ -28,19 +28,22 @@ public class Vertex implements Comparable<Vertex> {
 			return edges.iterator();
 		}
 		
-		/** add edge, do not invoke when parsing networks, this connection is auto-populated before the assignment
-		 * starts based on the edge and its two vertices that have been registered.
-		 * @param exitEdge
-		 * @return true, when added, false when already present (and not added)
-		 */
+/** 
+ * Add edge, do not invoke when parsing networks, this connection is auto-populated before the assignment starts based on the edge and its two vertices that have been registered.
+ * 
+ * @param edge       Edge to be added
+ * @return                true, when added, false when already present (and not added)
+ */
 		public boolean addEdge(Edge edge) {
 			return edges.add(edge);
 		}
 		
-		/** remove edge
-		 * @param exitEdge
-		 * @return true, when removed, false when not present (and not removed)
-		 */
+/** 
+ * Remove edge
+ * 
+ * @param edge     Edge to be removed
+ * @return true, when removed, false when not present (and not removed)
+ */
 		public boolean removeEdge(Edge edge) {
 			return edges.remove(edge);
 		}		
@@ -58,34 +61,41 @@ public class Vertex implements Comparable<Vertex> {
 			return edgeSegments.iterator();
 		}
 		
-		/** add edgeSegment, do not invoke when parsing networks, this connection is auto-populated before the assignment
-		 * starts based on the edge segment vertices that have been registered.
-		 * @param edge
-		 * @return true, when added, false when already present (and not added)
-		 */
+/** 
+ * Add edgeSegment, do not invoke when parsing networks, this connection is auto-populated before the assignment starts based on the edge segment vertices that have been registered.
+ * 
+ * @param edgeSegment            EdgeSegment object to be added
+ * @return                                    true when added, false when already present (and not added)
+ */
 		public boolean addEdgeSegment(EdgeSegment edgeSegment) {
 			return edgeSegments.add(edgeSegment);
 		}
 		
-		/** remove edgeSegment
-		 * @param edge
-		 * @return true, when removed, false when not present (and not removed)
-		 */
+/** 
+ * Remove edgeSegment
+ * 
+ * @param edgeSegment    EdgeSegment object to be removed        
+ * @return                           true when removed, false when not present (and not removed)
+ */
 		public boolean removeEdgeSegment(EdgeSegment edgeSegment) {
 			return edgeSegments.remove(edgeSegment);
 		}		
 		
+/**
+ * Test whether no edge segments have been registered
+ * 
+ * @return         true if no edge segments have been registered, false otherwise
+ */
 		public boolean isEmpty() {
 			return edgeSegments.isEmpty();
 		}
 	}	
-		
-	
+			
 	// Protected
 	
-	/**
-	 * Centre point geometry which is coordinate reference system aware
-	 */
+/**
+ *  Centre point geometry which is coordinate reference system aware
+ */
 	protected DirectPosition centrePointGeometry;
 			
 	
@@ -124,10 +134,9 @@ public class Vertex implements Comparable<Vertex> {
 	
 	// Public
 	
-	/**
-	 * Node constructor
-	 * @param id
-	 */
+/**
+ * Constructor
+ */
 	protected Vertex() {
 		this.id = generateVertexId();
 	}	
@@ -153,11 +162,12 @@ public class Vertex implements Comparable<Vertex> {
 		this.externalId = externalId;
 	}
 
-	/**
-	 * Add a property from the original input that is not part of the readily available members
-	 * @param key
-	 * @param value
-	 */
+/**
+ * Add a property from the original input that is not part of the readily available members
+ * 
+ * @param key       key (name) of the input property
+ * @param value    value of the input property
+ */
 	public void addInputProperty(String key, Object value) {
 		if(inputProperties == null) {
 			inputProperties = new HashMap<String, Object>();
@@ -165,18 +175,24 @@ public class Vertex implements Comparable<Vertex> {
 		inputProperties.put(key, value);
 	}
 	
-	/** Get input property by its key
-	 * @param key
-	 * @return value
-	 */
+/** 
+ * Get input property by its key
+ * 
+ * @param key        the key of the input property
+ * @return value     the value of the input property
+ */
 	public Object getInputProperty(String key) {
 		return inputProperties.get(key);
 	}		
 	
-	/** compare vertices by their id
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	@Override
+/** 
+ * Compare vertices by their id
+ * 
+ * @param o         Vertex object to be compared to this one
+ * @return            result of comparison
+ * @see java.lang.Comparable#compareTo(java.lang.Object)
+ */
+   @Override
 	public int compareTo(Vertex o) {
 		return Long.valueOf(id).compareTo(o.getId());
 	}	

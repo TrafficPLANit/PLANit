@@ -14,9 +14,13 @@ import org.planit.exceptions.PlanItException;
 public interface InputBuilderListener extends EventListener {
 	
 	
-	/** process event and call the right onX method
-	 * @see org.planit.event.listener.EventListener#process(org.planit.event.Event)
-	 */
+/** 
+ * Process event and call the right onX method
+ * @see org.planit.event.listener.EventListener#process(org.planit.event.Event)
+ * 
+ * @param event                      Event to be processed
+ * @throws PlanItException     thrown if there is an error
+ */
 	@Override
 	default public void process(Event event)  throws PlanItException {
 		try {
@@ -28,9 +32,12 @@ public interface InputBuilderListener extends EventListener {
 		}
 	}
 	
-	/** Whenever a project component is created this method will be invoked
-	 * @param e, event containing the created (and empty) project component
-	 */
-	public void onCreateProjectComponent(CreatedProjectComponentEvent<?> e) throws PlanItException;
+/** 
+ * Whenever a project component is created this method will be invoked
+ * 
+ * @param event                     event containing the created (and empty) project component
+ * @throws PlanItException   thrown if there is an error
+ */
+	public void onCreateProjectComponent(CreatedProjectComponentEvent<?> event) throws PlanItException;
 		
 }

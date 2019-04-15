@@ -1,6 +1,5 @@
 package org.planit.network;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.utils.IdGenerator;
 
 /** EdgeSegment represents an edge in a particular (single) direction. Each edge has either one or two edge segments
@@ -30,19 +29,23 @@ public class EdgeSegment implements Comparable<EdgeSegment> {
 	 */
 	protected final Vertex downstreamVertex;
 	
-	/** generate unique edge segment id
-	 * @return linkId
-	 */
+/** 
+ * Generate unique edge segment id
+ * 
+ * @return id      id of this EdgeSegment
+ */
 	protected static int generateEdgeSegmentId() {
 		return IdGenerator.generateId(EdgeSegment.class);
 	}		
 	
 	// Public
 	
-	/**
-	 * Constructor
-	 * @param parentEdge, parent edge of segment
-	 */
+/**
+ * Constructor
+ * 
+ * @param parentEdge        parent edge of segment
+ * @param directionAB        direction of travel
+ */
 	protected EdgeSegment(Edge parentEdge, boolean directionAB)
 	{
 		this.id = generateEdgeSegmentId();
@@ -53,18 +56,20 @@ public class EdgeSegment implements Comparable<EdgeSegment> {
 		
 	// Public 
 		
-	/** Collect the segment's upstream vertex
-	 * @return upstream node
-	 * @throws PlanItException
-	 */
+/** 
+ * Get the segment's upstream vertex
+ * 
+ * @return              upstream vertex
+ */
 	public Vertex getUpstreamVertex(){
 		return upstreamVertex;
 	}
 	
-	/** collect the segment's downstream vertex
-	 * @return downstream node
-	 * @throws PlanItException
-	 */
+/** 
+ * Get the segment's downstream vertex
+ * 
+ * @return                                 downstream vertex
+ */
 	public Vertex getDownstreamVertex(){
 		return downstreamVertex;
 	}	

@@ -23,37 +23,52 @@ public class Connectoid extends Edge {
 	 */
 	protected final long connectoidId;	
 	
-	/** generate unique link id
-	 * @return linkId
-	 */
+/** 
+ * Generate connectoid id
+ * 
+ * @return     id of connectoid
+ */
 	protected static int generateConnectoidId() {
 		return IdGenerator.generateId(Connectoid.class);
 	}	
 	
 	// Public
 	
-	/**
-	 * Constructor
-	 * @throws PlanItException 
-	 */
+/**
+ * Constructor
+ * 
+ * @param centroidA              the centroid at one end of the connectoid
+ * @param nodeB                   the node at the other end of the connectoid
+ * @param length                   length of the current connectoid 
+ * @throws PlanItException   thrown if there is an error
+ */
 	public Connectoid(@Nonnull Centroid centroidA, @Nonnull Node nodeB, double length) throws PlanItException {
 		super(centroidA, nodeB, length);
 		this.connectoidId = generateConnectoidId();
 	}
-		
-	
-	/** Register connectoidSegment. If there already exists a connectoidSegment for that direction it is replaced and returned
-	 * @param connectoidSegment
-	 * @param directionAB
-	 * @return replacedConnectoidSegment
-	 * @throws PlanItException 
-	 */
+			
+/** 
+ * Register connectoidSegment. 
+ * 
+ * If there already exists a connectoidSegment for that direction it is replaced and returned
+ * 
+ * @param connectoidSegment             connectoid segment to be registered
+ * @param directionAB                           direction of travel
+ * @return                                              replaced ConnectoidSegment
+ * @throws PlanItException                   thrown if there is an error 
+ */
 	public ConnectoidSegment registerConnectoidSegment(ConnectoidSegment connectoidSegment, boolean directionAB) throws PlanItException {
 		return (ConnectoidSegment) registerEdgeSegment(connectoidSegment, directionAB);
 	}
 			
 	// Getters-Setters
 
+/**
+ * 
+ * Return the id of this connectoid
+ * 
+ * @return     id of this connectoid
+ */
 	public long getConnectoidId() {
 		return connectoidId;
 	}	

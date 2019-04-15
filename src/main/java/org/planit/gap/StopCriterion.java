@@ -21,57 +21,59 @@ public class StopCriterion {
 	 */
 	private double epsilon;
 	
-	/** constructor
-	 * @param epsilon
-	 */
-/*
-	public StopCriterion(double epsilon){
-		this.epsilon = epsilon;
-		this.maxIterations = MAX_ITERATIONS;
-	}
-	
-	public StopCriterion(int maxIterations) {
-		this.epsilon = DEFAULT_EPSILON;
-		this.maxIterations = maxIterations;
-	}
-	
-	public StopCriterion(double epsilon, int maxIterations) {
-		this.epsilon = epsilon;
-		this.maxIterations = maxIterations;
-	}
-*/	
-	/**
-	 * Default constructor
-	 */
+/**
+ * Default constructor
+ */
 	public StopCriterion() {
 		this.epsilon = DEFAULT_EPSILON;
 		this.maxIterations = MAX_ITERATIONS;
 	}
-
 	
-	/** check if converged based on the gap and the internal information
-	 * @param gap
-	 * @param iterationIndex
-	 * @return true, if gap is smaller than criterion, false otherwise
-	 */
+/** 
+ * Check if converged based on the gap and the internal information
+ * 
+ * @param gap                      gap for the current iteration
+ * @param iterationIndex       index of current iteration
+ * @return                             true if gap is smaller than criterion, false otherwise
+ */                    
 	public boolean hasConverged(double gap, int iterationIndex) {
 		if (iterationIndex == maxIterations)
 			return true;
 		return (Math.abs(gap) < epsilon);
 	}
 
+/**
+ * Return the maximum allowable number of iterations
+ * 
+ * @return       the maximum allowable number of iterations
+ */
 	public int getMaxIterations() {
 		return maxIterations;
 	}
 
+/**
+ * Set the maximum allowable number of iterations
+ * 
+ * @param maxIterations       the maximum allowable number of iterations
+ */
 	public void setMaxIterations(int maxIterations) {
 		this.maxIterations = maxIterations;
 	}
 
+/**
+ * Return the epsilon of this stopping criterion
+ * 
+ * @return       the epsilon of this stopping criterion
+ */
 	public double getEpsilon() {
 		return epsilon;
 	}
 
+/**
+ * Set the epsilon of this stopping criterion
+ * 
+ * @param epsilon       the epsilon of this stopping criterion
+ */
 	public void setEpsilon(double epsilon) {
 		this.epsilon = epsilon;
 	}
