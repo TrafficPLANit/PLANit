@@ -109,13 +109,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	 * @throws PlanItException 
 	 */
 	private double[] collectUpdatedCosts(Mode mode) throws PlanItException {
-		double[] currentSegmentCosts = new double[network.getTotalNumberOfEdgeSegments()];
-		Iterator<ConnectoidSegment> connectoidSegmentIter = network.connectoidSegments.iterator();			
+		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
+		Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();			
 		while(connectoidSegmentIter.hasNext()){
 			ConnectoidSegment currentSegment = connectoidSegmentIter.next();
 			currentSegmentCosts[(int) currentSegment.getId()] = virtualCost.calculateSegmentCost(mode, currentSegment);
 		}		
-		Iterator<LinkSegment> linkSegmentIter = network.linkSegments.iterator();			
+		Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();			
 		while (linkSegmentIter.hasNext()) {
 			LinkSegment currentSegment = linkSegmentIter.next();
 			currentSegmentCosts[(int) currentSegment.getId()] = physicalCost.calculateSegmentCost(mode, currentSegment);
@@ -331,9 +331,9 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	}	
 		
 	@Override
-	public void onRequestInteractorEvent(RequestAccesseeEvent e) {
-		if(e.getSourceAccessor().getRequestedAccessee().equals(LinkVolumeAccessee.class)) {
-			e.getSourceAccessor().setAccessee(this);
+	public void onRequestInteractorEvent(RequestAccesseeEvent event) {
+		if (event.getSourceAccessor().getRequestedAccessee().equals(LinkVolumeAccessee.class)) {
+			event.getSourceAccessor().setAccessee(this);
 		}
 	}
 	

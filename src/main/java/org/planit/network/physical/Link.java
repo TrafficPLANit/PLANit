@@ -1,13 +1,9 @@
 package org.planit.network.physical;
 
-import java.util.List;
-
 import javax.annotation.Nonnull;
 
-import org.opengis.geometry.coordinate.LineSegment;
 import org.opengis.geometry.coordinate.LineString;
 import org.planit.exceptions.PlanItException;
-import org.planit.geo.utils.PlanitGeoUtils;
 import org.planit.network.Edge;
 import org.planit.utils.IdGenerator;
 
@@ -62,23 +58,6 @@ public class Link extends Edge {
 		return (LinkSegment) registerEdgeSegment(linkSegment, directionAB);
 	}
 	
-	//TODO - at the moment this method is not used anywhere
-	/**
-	 * recompute length based on internal geometry
-	 */
-	public void recomputeLength(PlanitGeoUtils planitGeoUtils) throws Exception {	
-		if(getCentreLineGeometry() == null) {
-			throw new NullPointerException("geometry to extract length from is null");
-		}
-		List<LineSegment> lineSegments = centreLineGeometry.asLineSegments();		
-		double totalLengthInMeters = 0;	
-		for(LineSegment theSegment : lineSegments)
-		{
-			totalLengthInMeters += planitGeoUtils.getDistanceInMeters(theSegment.getStartPoint(), theSegment.getEndPoint());
-		}	
-		length = totalLengthInMeters;
-	}	
-		
 	// Getters-Setters
 
 	public long getLinkId() {

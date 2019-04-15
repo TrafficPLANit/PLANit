@@ -17,9 +17,9 @@ public class SimpleEventManager implements EventManager {
 	
 	/** dispatch an event into the PlanIt project 
 	 */
-	public void dispatchEvent(Event e) throws PlanItException {
+	public void dispatchEvent(Event event) throws PlanItException {
 		try {
-			eventDispatcher.dispatch(e);
+			eventDispatcher.dispatch(event);
 		} catch (Exception ex) {
 			throw new PlanItException(ex);
 		}

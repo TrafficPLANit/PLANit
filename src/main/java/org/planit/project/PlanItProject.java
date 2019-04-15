@@ -4,13 +4,12 @@ import java.util.TreeMap;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
-import org.planit.builders.InputBuilder;
 import org.planit.demand.Demands;
 import org.planit.dto.BprResultDto;
+import org.planit.event.listener.InputBuilderListener;
 import org.planit.event.management.EventManager;
 import org.planit.event.management.SimpleEventManager;
 import org.planit.network.physical.PhysicalNetwork;
-import org.planit.network.transport.TransportNetwork;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.trafficassignment.DeterministicTrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
@@ -59,7 +58,6 @@ public class PlanItProject {
 	private TrafficAssignmentComponentFactory<Zoning> zoningFactory;
 	private TrafficAssignmentComponentFactory<Demands> demandsFactory;
 	private TrafficAssignmentComponentFactory<NetworkLoading> assignmentFactory;
-	private InputBuilder inputBuilder;
 	
 /**
  * Constructor which reads in the input builder listener and instantiates the object factory classes.
@@ -70,10 +68,9 @@ public class PlanItProject {
  * 
  * @param inputBuilderListener				InputBuilderListener used to read in data
  */
-	public PlanItProject(InputBuilder inputBuilder) {
-		this.inputBuilder = inputBuilder;
+	public PlanItProject(InputBuilderListener inputBuilderListener) {
 		EventManager eventManager = new SimpleEventManager();
-		eventManager.addEventListener(inputBuilder);
+		eventManager.addEventListener(inputBuilderListener);
 		trafficAssignments = new TreeMap<Long,TrafficAssignment>();
 		physicalNetworks = new TreeMap<Long,PhysicalNetwork>();
 		zonings = new TreeMap<Long,Zoning>();

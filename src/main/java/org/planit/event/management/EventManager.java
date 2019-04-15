@@ -9,7 +9,7 @@ import org.planit.exceptions.PlanItException;
 public interface EventManager {
 
 
-	public void dispatchEvent(Event e) throws PlanItException;
+	public void dispatchEvent(Event event) throws PlanItException;
 
 		
 	/**

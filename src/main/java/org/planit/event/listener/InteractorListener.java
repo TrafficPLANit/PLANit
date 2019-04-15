@@ -6,13 +6,13 @@ import org.planit.event.RequestAccesseeEvent;
 public interface InteractorListener extends EventListener {
 
 	@Override
-	default public void process(Event e) {
-		if (e instanceof RequestAccesseeEvent) {
-			onRequestInteractorEvent((RequestAccesseeEvent) e);
+	default public void process(Event event) {
+		if (event instanceof RequestAccesseeEvent) {
+			onRequestInteractorEvent((RequestAccesseeEvent) event);
 		}
 	}
 	
-	public default void onRequestInteractorEvent(RequestAccesseeEvent e) {
+	public default void onRequestInteractorEvent(RequestAccesseeEvent event) {
 		// non-mandatory
 	}
 
