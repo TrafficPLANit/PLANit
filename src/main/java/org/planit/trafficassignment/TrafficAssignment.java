@@ -39,25 +39,31 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	
 	// Private
 	
-	/**
-	 * Physical network to use
-	 */
+/**
+ * Physical network to use
+ */
 	private PhysicalNetwork physicalNetwork;
 	
-	/**
-	 * The zoning to use
-	 */
+/**
+ * The zoning to use
+ */
 	private Zoning zoning;
 	
 	// Protected
 	
-	/**
-	 * The transport network to use which is an adaptor around the physical network and the zoning
-	 */
+/**
+ * The transport network to use which is an adaptor around the physical network and the zoning
+ */
 	protected TransportNetwork transportNetwork = null;	
 	
+/**
+ * The physical link cost function
+ */
 	protected Cost<LinkSegment> physicalCost;
 	
+/**
+ * The virtual link cost function
+ */
 	protected Cost<ConnectoidSegment> virtualCost;
 	
 	/**

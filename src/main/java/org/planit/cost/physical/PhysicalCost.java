@@ -12,6 +12,9 @@ import org.planit.trafficassignment.TrafficAssignmentComponent;
  */
 public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCost> implements Cost<LinkSegment> {
 
+ /**
+  * Constructor
+  */
 	public PhysicalCost() {
 		super();
 	}

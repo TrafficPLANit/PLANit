@@ -8,10 +8,25 @@ package org.planit.dto;
  */
 public class BprResultDto extends ResultDto {
 	
+ /**
+  * Link capacity
+  */
 	private double capacity;
+/**
+ * Link length
+ */
     private double length;
+ /**
+  * Link maximum speed
+  */
     private double speed;
+ /**
+  * Alpha value in BPR function
+  */
     private double alpha;
+ /**
+  * Beta value in BPR function
+  */
     private double beta;
     
  /**
@@ -22,12 +37,12 @@ public class BprResultDto extends ResultDto {
  * @param linkFlow								flow through link
  * @param linkCost								cost (travel time) of link
  * @param totalCostToEndNode			cumulative travel time from start of output path to the end of the current link
-  * @param capacity								capacity of the link
-  * @param length									length of the link
-  * @param speed									travel speed of the link
-  * @param alpha									alpha value used in BPR function
-  * @param beta										beta value used in BPR function
-  */
+ * @param capacity								capacity of the link
+ * @param length									length of the link
+ * @param speed									travel speed of the link
+ * @param alpha									    alpha value used in BPR function
+ * @param beta										beta value used in BPR function
+ */
 	public BprResultDto(long startNodeId, long endNodeId, double linkFlow, double linkCost, double totalCostToEndNode,
 			                             double capacity, double length, double speed, double alpha, double beta) {
 		super(startNodeId, endNodeId, linkFlow, linkCost, totalCostToEndNode);

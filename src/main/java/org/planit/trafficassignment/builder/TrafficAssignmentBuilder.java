@@ -21,10 +21,14 @@ import org.planit.zoning.Zoning;
  */
 public abstract class TrafficAssignmentBuilder implements EventHandler {
 	
+ /**
+  * The smoothing factory used in the assignment algorithm
+  */
 	protected final TrafficAssignmentComponentFactory<Smoothing> smoothingFactory;
-	/**
-	 * The assignment all components will be registered on
-	 */
+	
+/**
+ * The assignment all components will be registered on
+ */
 	protected final TrafficAssignment parentAssignment;
 	
 	// PUBLIC

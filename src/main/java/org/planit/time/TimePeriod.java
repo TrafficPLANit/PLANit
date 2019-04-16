@@ -15,19 +15,29 @@ import org.planit.utils.IdGenerator;
  */
 public class TimePeriod implements Comparable<TimePeriod> {
 	
-	/**
-	 * startTime in seconds from midnight 00:00:00
-	 */
+/**
+ * startTime in seconds from midnight 00:00:00
+ */
 	private final int startTime;
 	
-	/**
-	 * Duration in seconds
-	 */
+/**
+ * Duration in seconds
+ */
 	private final int duration;
 	
+/**
+ * Object id
+ */
 	private final long id;
+	
+/**
+ * Description of this time period
+ */
 	private final String description;
 	
+/**
+ * Map storing registered time periods
+ */
 	private static Map<Long, TimePeriod> timePeriods = new HashMap<Long, TimePeriod>();
 	
 /**

@@ -48,15 +48,33 @@ public class PlanItProject {
 	 */
 	private TreeMap<Long, TrafficAssignment> trafficAssignments;
 	
+/**
+ * The physical network used for this project
+ */
 	private PhysicalNetwork physicalNetwork;
 	
+/**
+ * The zoning used for this project.
+ */
 	private Zoning zoning;
-	/**
-	 * Object Factory classes
-	 */
+/**
+ * Object Factory for physical network object
+ */
 	private TrafficAssignmentComponentFactory<PhysicalNetwork> physicalNetworkFactory;
+	
+/**
+ * Object factory for zoning objects
+ */
 	private TrafficAssignmentComponentFactory<Zoning> zoningFactory;
+	
+/**
+ * Object factory for demands object
+ */
 	private TrafficAssignmentComponentFactory<Demands> demandsFactory;
+	
+/**
+ * Object factory for network loading object
+ */
 	private TrafficAssignmentComponentFactory<NetworkLoading> assignmentFactory;
 	
 /**

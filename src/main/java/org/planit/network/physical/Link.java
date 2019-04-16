@@ -28,7 +28,6 @@ public class Link extends Edge {
 	 */
 	protected LineString centreLineGeometry = null; 	
 
-	
 	/** generate unique link id
 	 * @return linkId
 	 */

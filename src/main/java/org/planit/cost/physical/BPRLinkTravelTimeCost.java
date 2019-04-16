@@ -14,32 +14,35 @@ import org.planit.userclass.Mode;
  * @author markr
  */
 public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAccessor  {
-		
+	
+/**
+ *   Link volume accessee object for this cost functionm
+ */
 	protected LinkVolumeAccessee linkVolumeAccessee = null;
 	
-	/**
-	 * linkSegmentVolumes that are provided through interactor
-	 */
+/**
+ * LinkSegmentVolumes that are provided through interactor
+ */
 	protected double[] linkSegmentVolumes = null;
 	
-	/**
-	 * Number of link segments we collect volumes and therefore costs for, obtained via interactor
-	 */
+/**
+ * Number of link segments we collect volumes and therefore costs for, obtained via interactor
+ */
 	protected int numberOfLinkSegments = -1;
 	
-	/**
-	 * alpha and beta parameters used in BPR function
-	 */
+/**
+ * alpha and beta parameters used in BPR function
+ */
 	public static class BPRParameters {
 		
-		/**
-		 * Alpha parameter in BPR function
-		 */
+/**
+ * Alpha parameter in BPR function
+ */
 		protected final double alpha;
 		
-		/**
-		 * Beta parameter in BPR function
-		 */		
+/**
+ * Beta parameter in BPR function
+ */		
 		protected final double beta;
 				
 /** 
@@ -125,7 +128,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
  */
 	@Override
 	public void setAccessee(InteractorAccessee accessee) {
-		if(!(accessee instanceof LinkVolumeAccessee)) {
+		if (!(accessee instanceof LinkVolumeAccessee)) {
 			//TODO:
 		}
 		this.linkVolumeAccessee = (LinkVolumeAccessee) accessee;		

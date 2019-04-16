@@ -6,6 +6,12 @@ import org.planit.network.Vertex;
 import org.planit.utils.IdGenerator;
 import org.planit.zoning.Zone;
 
+/**
+ * Centroid object
+ * 
+ * @author gman6028
+ *
+ */
 public class Centroid extends Vertex {
 	// Protected
 	
@@ -19,11 +25,14 @@ public class Centroid extends Vertex {
 	}	
 	
 
-	/**
-	 * Unique internal identifier 
-	 */	
+/**
+ * Unique internal identifier 
+ */	
 	protected final long centroidId;
-	
+
+/**
+ * External identifier for this centroid
+ */
 	protected final long externalId;
 	
 	/**

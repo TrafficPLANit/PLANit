@@ -7,7 +7,8 @@ import org.planit.network.physical.Link;
 import org.planit.network.physical.LinkSegment;
 import org.planit.userclass.Mode;
 
-/** Link segment for macroscopic transport networks.
+/** 
+ * Link segment for macroscopic transport networks.
  * @author markr
  */
 public class MacroscopicLinkSegment extends LinkSegment{
@@ -18,11 +19,9 @@ public class MacroscopicLinkSegment extends LinkSegment{
 	 * the link type of this link containing all macroscopic features by user class
 	 */
 	protected MacroscopicLinkSegmentType linkSegmentType = null;
-	
 		
 	// Public
-	
-	
+		
 /** 
  * Constructor
  * 

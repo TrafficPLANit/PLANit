@@ -2,8 +2,17 @@ package org.planit.event;
 
 import org.planit.interactor.InteractorAccessor;
 
+/**
+ * Request accessee events
+ * 
+ * @author gman6028
+ *
+ */
 public class RequestAccesseeEvent implements InteractorEvent {
 
+ /**
+  * Source accessor
+  */
 	protected InteractorAccessor sourceAccessor;
 			
 	public RequestAccesseeEvent(InteractorAccessor sourceAccessor){

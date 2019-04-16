@@ -10,11 +10,29 @@ package org.planit.dto;
  */
 public class ResultDto implements Comparable<ResultDto> {
 	
+ /**
+  * Id of start node
+  */
 	private long startNodeId;
+/**
+ * Id of end node
+ */
 	private long endNodeId;
+/**
+ * Link flow
+ */
 	private double linkFlow;
+/**
+ * Calculated link cost
+ */
 	private double linkCost;
+/**
+ * Total travel costs from start of path to the end of this node
+ */
 	private Double totalCostToEndNode;  //use this to order results
+/**
+ * epsilon used for comparing doubles
+ */
 	private final static double epsilon = 0.0001; 
 	
 /**

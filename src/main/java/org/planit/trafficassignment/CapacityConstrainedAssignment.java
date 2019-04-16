@@ -12,6 +12,12 @@ import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.userclass.Mode;
 import org.planit.time.TimePeriod;
 
+/**
+ * Capacity constrained traffic assignment component
+ * 
+ * @author gman6028
+ *
+ */
 public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	
 	// PROTECTED

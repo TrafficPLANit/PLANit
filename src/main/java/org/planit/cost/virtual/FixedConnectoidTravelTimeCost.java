@@ -15,15 +15,18 @@ import org.planit.userclass.Mode;
 public class FixedConnectoidTravelTimeCost extends VirtualCost {
 	
 /**
- *The fixed connectoid costs for the connectoid segments
+ * The fixed connectoid costs for the connectoid segments
  */
 	double[] fixedConnectoidCosts = null;
 	
-	/**
-	 * number of segments captured by the array
-	 */
+/**
+ * Number of segments captured by the array
+ */
 	int numberOfConnectoidSegments = -1;
 
+/**
+ * Constructor
+ */
 	public FixedConnectoidTravelTimeCost() {
 		super();
 	}

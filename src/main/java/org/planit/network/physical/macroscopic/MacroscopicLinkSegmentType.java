@@ -75,6 +75,8 @@ public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSeg
 /** 
  * Compare on content but not on name and id
  * 
+ * @param obj         object to be compared to this one
+ * @return               result of this comparison
  * @see java.lang.Object#equals(java.lang.Object)
  */
 	@Override
@@ -89,7 +91,6 @@ public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSeg
 		return false; 
 	}	
 	
-
 	// Getters - Setters
 	
 	public int getId() {

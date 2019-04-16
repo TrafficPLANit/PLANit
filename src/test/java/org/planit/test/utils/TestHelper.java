@@ -10,8 +10,20 @@ import org.planit.userclass.Mode;
 
 import static org.junit.Assert.fail;
 
+/**
+ * Helper class used by unit tests
+ * 
+ * @author gman6028
+ *
+ */
 public class TestHelper {
 
+ /**
+  * Compares the contents of a results map for the current run with a results map from a previous run which had been stored in a file.  It generates a JUnit test failure if the results maps have different contents
+  * 
+  * @param resultsMap                 Map storing result of the current test run
+  * @param resultsMapFromFile  Map storing results of a previous run which had been stored in a file
+  */
 	public static void compareResultsToCsvFileContents(SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap, 
 			                                                                                  SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMapFromFile) {
 		if (resultsMap.keySet().size() != resultsMapFromFile.keySet().size()) {

@@ -15,6 +15,10 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
  * the class name is used
  */
 	protected final String trafficComponentType;
+	
+/**
+ * Event manager used to handle events
+ */
 	protected EventManager eventManager;
 	
 /**

@@ -4,6 +4,12 @@ import org.planit.event.listener.EventListener;
 import org.planit.event.Event;
 import org.planit.exceptions.PlanItException;
 
+/**
+ * Implementation of EventManager
+ * 
+ * @author gman6028
+ *
+ */
 public class SimpleEventManager implements EventManager {
 
 /**
@@ -35,7 +41,7 @@ public class SimpleEventManager implements EventManager {
 /**
  * Add eventListener to the project
  * 
- * @param eventListener      EventListenerto be added
+ * @param eventListener      EventListener to be added
  */
 	public void addEventListener(EventListener eventListener) {
 		eventDispatcher.addEventListener(eventListener); 		

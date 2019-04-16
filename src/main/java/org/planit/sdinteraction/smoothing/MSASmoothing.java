@@ -1,7 +1,16 @@
 package org.planit.sdinteraction.smoothing;
 
+/**
+ * MSA smoothing object
+ * 
+ * @author gman6028
+ *
+ */
 public class MSASmoothing extends Smoothing {
 
+ /**
+  * Step size
+  */
 	protected double stepSize = 1;
 	
 	public MSASmoothing() {

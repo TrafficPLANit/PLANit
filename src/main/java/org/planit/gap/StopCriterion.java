@@ -8,17 +8,23 @@ package org.planit.gap;
  */
 public class StopCriterion {
 	
-	/**
-	 * Default Epsilon in case it is not set by user
-	 */
+/**
+ * Default Epsilon in case it is not set by user
+ */
 	public final double DEFAULT_EPSILON = 0.00;
+/**
+ * Default maximum number of iterations in case it is not set by user
+ */
 	public final int MAX_ITERATIONS = 500;
+	
+/**
+ * Chosen maximum number of iterations	
+ */
 	private int maxIterations;
 	
-
-	/**
-	 * Chosen epsilon for stop criterion
-	 */
+/**
+ * Chosen epsilon for stop criterion
+ */
 	private double epsilon;
 	
 /**

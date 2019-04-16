@@ -33,9 +33,14 @@ import org.planit.zoning.Zoning;
  */
 public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentComponent<T>>  implements EventHandler {
 	
-	/** instance of the super component class this factory creates subclass instances for */ 
+ /** 
+  * instance of the super component class this factory creates subclass instances for 
+  */ 
 	protected final Class<T> componentSuperType;
 	
+/**
+ * Event manager used to handle events
+ */
 	protected EventManager eventManager;
 	
 	/**

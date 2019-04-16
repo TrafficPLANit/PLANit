@@ -10,7 +10,10 @@ import org.planit.event.listener.InteractorListener;
  */
 public abstract class LinkTravelTimeCost extends PhysicalCost implements InteractorListener{
 
-	LinkTravelTimeCost(){
+ /**
+  * Constructor
+  */
+	LinkTravelTimeCost() {
 		super();
 	}
 	

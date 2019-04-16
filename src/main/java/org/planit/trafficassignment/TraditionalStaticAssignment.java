@@ -36,6 +36,12 @@ import org.planit.utils.DefaultValues;
 import org.planit.utils.Pair;
 import org.planit.zoning.Zone;
 
+/**
+ * Traditional static assignment traffic component
+ * 
+ * @author gman6028
+ *
+ */
 public class TraditionalStaticAssignment extends CapacityRestrainedAssignment implements LinkVolumeAccessee, InteractorListener {
 		
 	/**

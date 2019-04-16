@@ -26,7 +26,7 @@ import org.planit.utils.Pair;
 public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
 		
 	/**
-	 * track the cost for each edge to determine shortest paths
+	 * Track the cost for each edge to determine shortest paths
 	 */
 	protected final double[] edgeSegmentCosts;
 	
@@ -41,7 +41,7 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
 	protected final int numberOfVertices;
 	
 	/**
-	 * the number of edge segments considered
+	 * The number of edge segments considered
 	 */
 	protected final int numberOfEdgeSegments;
 	

@@ -10,6 +10,12 @@ import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.utils.Pair;
 
+/**
+ * Macroscopic Network which stores link segment types
+ * 
+ * @author gman6028
+ *
+ */
 public class MacroscopicNetwork extends PhysicalNetwork {
 	
 	// Private	
@@ -23,6 +29,9 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	
 	// Protected
 	
+/**
+ * Map which stores link segment types
+ */
 	protected Map<Integer, MacroscopicLinkSegmentType> linkSegmentTypeMap = new TreeMap<Integer, MacroscopicLinkSegmentType>();
 	
 /** 

@@ -13,6 +13,9 @@ import org.planit.trafficassignment.TrafficAssignmentComponent;
  */
 public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost> implements Cost<ConnectoidSegment> {
 
+ /**
+  * Constructor
+  */
 	public VirtualCost() {
 		super();
 	}
@@ -34,7 +37,7 @@ public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost
 	}	
 	
 /** 
- * Method to create the interactor event request
+ *  Creates the interactor event request
  *  
  * @return 	requestedInteractorEvent, null by default
  */

@@ -12,13 +12,39 @@ import org.planit.utils.IdGenerator;
  */
 public class UserClass {
 	
+ /**
+  * id of this user class
+  */
 	private long id;
+	
+/**
+ * Name of this user class
+ */
 	private String name;
+	
+/**
+ * Mode of travel of this user class
+ */
 	private Mode mode;
+	
+/**
+ * Traveller type of this user class
+ */
 	private TravellerType travellerType;
+	
+/**
+ * Id of mode of travel
+ */
 	private long modeId = 0;
+	
+/**
+ * Id of this traveller type
+ */
 	private long travellerTypeId = 0;
 	
+/**
+ * Map to store registered user classes
+ */
 	private static Map<Long, UserClass> userClasses = new HashMap<Long, UserClass>();
 	
 /**

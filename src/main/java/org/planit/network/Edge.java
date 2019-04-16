@@ -19,36 +19,38 @@ public class Edge implements Comparable<Edge>{
 		
 	// Protected
 	
-	/**
-	 * unique internal identifier 
-	 */
+/**
+ * Unique internal identifier 
+ */
 	protected final long id;	
-	/**
-	 * generic input property storage
-	 */
+/**
+ * Generic input property storage
+ */
 	protected Map<String, Object> inputProperties = null;	
-	/**
-	 * Name of the edge
-	 */
+/**
+ * Name of the edge
+ */
 	protected String name = null;
-	/**
-	 * vertex A
-	 */
+/**
+ * Vertex A
+ */
 	protected Vertex vertexA = null;
-	/**
-	 * vertex B
-	 */
+/**
+ * Vertex B
+ */
 	protected Vertex vertexB = null;
-	
+/**
+ * Length of edge	
+ */
 	protected double length;
 		
-	/**
-	 * edge segment A to B  direction
-	 */
+/**
+ * Edge segment A to B  direction
+ */
 	protected EdgeSegment edgeSegmentAB = null;
-	/**
-	 * edge segment B to A  direction
-	 */	
+/**
+ * Edge segment B to A  direction
+ */	
 	protected EdgeSegment edgeSegmentBA = null;
 	
 /** 

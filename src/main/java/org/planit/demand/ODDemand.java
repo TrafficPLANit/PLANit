@@ -10,9 +10,9 @@ import org.planit.utils.IdGenerator;
  */
 public abstract class ODDemand {
 
-	/**
-	 * Unique demand id
-	 */
+/**
+ * Unique demand id
+ */
 	protected final long id;
 	
 /**

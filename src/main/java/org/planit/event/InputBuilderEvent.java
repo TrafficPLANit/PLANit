@@ -10,10 +10,13 @@ import org.planit.event.listener.InputBuilderListener;
  */
 public interface InputBuilderEvent extends Event {
 
-	/** all input builder events are processed by the InputBuilderListener
-	 * @see org.planit.event.Event#isProcessedBy(org.planit.event.listener.EventListener)
-	 * @return true, if event is a project builder related event
-	 */
+/** 
+ * All input builder events are processed by the InputBuilderListener
+ * 
+ * @param listener      listener to process events
+ * @see org.planit.event.Event#isProcessedBy(org.planit.event.listener.EventListener)
+ * @return                   true if event is a project builder related event
+ */
 	@Override
 	default public boolean isProcessedBy(EventListener listener) {
 		return listener instanceof InputBuilderListener;

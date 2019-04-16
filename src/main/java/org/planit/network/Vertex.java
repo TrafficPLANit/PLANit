@@ -32,7 +32,7 @@ public class Vertex implements Comparable<Vertex> {
  * Add edge, do not invoke when parsing networks, this connection is auto-populated before the assignment starts based on the edge and its two vertices that have been registered.
  * 
  * @param edge       Edge to be added
- * @return                true, when added, false when already present (and not added)
+ * @return                true when added, false when already present (and not added)
  */
 		public boolean addEdge(Edge edge) {
 			return edges.add(edge);
@@ -42,18 +42,22 @@ public class Vertex implements Comparable<Vertex> {
  * Remove edge
  * 
  * @param edge     Edge to be removed
- * @return true, when removed, false when not present (and not removed)
+ * @return              true when removed, false when not present (and not removed)
  */
 		public boolean removeEdge(Edge edge) {
 			return edges.remove(edge);
 		}		
 	}		
 	
-	/** EdgeSegment container
-	 * @author markr
-	 */
+/** 
+ * EdgeSegment container
+ * @author markr
+ */
 	public class EdgeSegments implements Iterable<EdgeSegment> {
-		
+	
+/**
+ * Edge segments which connect to this vertex
+ */
 		protected Set<EdgeSegment> edgeSegments = new TreeSet<EdgeSegment>();
 		
 		@Override
@@ -106,18 +110,19 @@ public class Vertex implements Comparable<Vertex> {
 		return IdGenerator.generateId(Vertex.class);
 	}	
 	
-
-	/**
-	 * Unique internal identifier 
-	 */	
+/**
+ * Unique internal identifier 
+ */	
 	protected final long id;
 	
-	/**
-	 * generic input property storage
-	 */
+/**
+ * generic input property storage
+ */
 	protected Map<String, Object> inputProperties = null;		
 		
-
+/**
+ * External identifier for this vertex
+ */
 	protected long externalId;
 	/**
 	 * edge container

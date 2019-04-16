@@ -24,12 +24,12 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 	protected double actualSystemTravelTime = 0;
 	
 	/**
-	 * represents the total travel time if all flow were to be diverted to the shortest paths for all origin-destination pairs
+	 * Represents the total travel time if all flow were to be diverted to the shortest paths for all origin-destination pairs
 	 */
 	protected double minimumSystemTravelTime = 0;
 	
 	/**
-	 * gap
+	 * Gap
 	 */
 	protected double gap = Double.POSITIVE_INFINITY;
 	

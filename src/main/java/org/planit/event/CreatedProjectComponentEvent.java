@@ -2,10 +2,17 @@ package org.planit.event;
 
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 
+/**
+ * Event which is generated when a component is created
+ * 
+ * @author gman6028
+ *
+ * @param <T>               component created
+ */
 public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T>> implements InputBuilderEvent {
 
 /**
- * component that was created
+ * Component that was created
  */
 	protected final T projectComponent;
 
