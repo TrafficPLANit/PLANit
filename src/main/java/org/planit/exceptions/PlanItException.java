@@ -8,6 +8,9 @@ package org.planit.exceptions;
  */
 public class PlanItException extends Exception {
 
+    /**
+     * Logger for this class
+     */
 	private static final long serialVersionUID = 567458653348604906L;
 	
 /**

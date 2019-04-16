@@ -104,7 +104,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 /**
  * Creates the integrated TransportNetwork object
  * 
- * This method integrates the physical and virtual networks using the PlanitGeoUtils object to calculate link and connectoid lengths.
+ * This method integrates the physical and virtual networks.
  * 
  * @param physicalNetwork				the physical network object
  * @param zoning								the zoning object (contain the virtual network)

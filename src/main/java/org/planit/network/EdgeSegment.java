@@ -1,5 +1,6 @@
 package org.planit.network;
 
+import java.util.logging.Logger;
 import org.planit.utils.IdGenerator;
 
 /** EdgeSegment represents an edge in a particular (single) direction. Each edge has either one or two edge segments
@@ -9,6 +10,11 @@ import org.planit.utils.IdGenerator;
  */
 public class EdgeSegment implements Comparable<EdgeSegment> {
 
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(EdgeSegment.class.getName());
+        
 	/**
 	 * unique internal identifier 
 	 */

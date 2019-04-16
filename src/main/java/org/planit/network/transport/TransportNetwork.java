@@ -1,6 +1,7 @@
 package org.planit.network.transport;
 
 import java.util.Iterator;
+import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -27,7 +28,13 @@ import org.planit.zoning.Zoning.Zones;
  */
 public class TransportNetwork {
 	
-	/** Custom iterator over all registered edge segments by combining the physical and virtual edge segments
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(TransportNetwork.class.getName());
+        
+	/** 
+	 * Custom iterator over all registered edge segments by combining the physical and virtual edge segments
 	 * @author markr
 	 *
 	 */

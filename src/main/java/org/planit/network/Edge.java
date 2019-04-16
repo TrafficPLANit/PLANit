@@ -2,6 +2,7 @@ package org.planit.network;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -17,6 +18,11 @@ import org.planit.utils.IdGenerator;
 public class Edge implements Comparable<Edge>{
 	
 		
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(Edge.class.getName());
+        
 	// Protected
 	
 /**

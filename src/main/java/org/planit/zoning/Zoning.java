@@ -3,9 +3,9 @@ package org.planit.zoning;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
-
 import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
@@ -19,6 +19,11 @@ import org.planit.utils.IdGenerator;
  */
 public class Zoning extends TrafficAssignmentComponent<Zoning> {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(Zoning.class.getName());
+        
 	/**
 	 * Internal class for all zone specific code
 	 *

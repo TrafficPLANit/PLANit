@@ -1,5 +1,6 @@
 package org.planit.supply.networkloading;
 
+import java.util.logging.Logger;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 
 /**
@@ -10,6 +11,11 @@ import org.planit.trafficassignment.TrafficAssignmentComponent;
  */
 public abstract class NetworkLoading extends TrafficAssignmentComponent<NetworkLoading>   {
 				
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(NetworkLoading.class.getName());
+        
 	public NetworkLoading() {
 		super();
 	}

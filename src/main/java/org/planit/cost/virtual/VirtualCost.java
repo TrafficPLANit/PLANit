@@ -1,5 +1,7 @@
 package org.planit.cost.virtual;
 
+import java.util.logging.Logger;
+
 import org.planit.cost.Cost;
 import org.planit.event.RequestAccesseeEvent;
 import org.planit.network.virtual.ConnectoidSegment;
@@ -13,6 +15,11 @@ import org.planit.trafficassignment.TrafficAssignmentComponent;
  */
 public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost> implements Cost<ConnectoidSegment> {
 
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(VirtualCost.class.getName());
+        
  /**
   * Constructor
   */

@@ -1,5 +1,7 @@
 package org.planit.event;
 
+import java.util.logging.Logger;
+
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 
 /**
@@ -11,6 +13,11 @@ import org.planit.trafficassignment.TrafficAssignmentComponent;
  */
 public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T>> implements InputBuilderEvent {
 
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(CreatedProjectComponentEvent.class.getName());
+        
 /**
  * Component that was created
  */

@@ -44,6 +44,11 @@ import org.planit.zoning.Zone;
  */
 public class TraditionalStaticAssignment extends CapacityRestrainedAssignment implements LinkVolumeAccessee, InteractorListener {
 		
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(TraditionalStaticAssignment.class.getName());
+        
 	/**
 	 * Mode specific data
 	 */
@@ -63,11 +68,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	 */
 	private double[] emptySegmentArray;
 	
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger LOGGER = Logger.getLogger(TraditionalStaticAssignment.class.getName());
-		
 	/**
 	 * network wide segment flows
 	 */
@@ -160,7 +160,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 			double odDemand = odDemandIter.next();
 			int originZoneId =  odDemandIter.getCurrentOriginId();
 			int destinationZoneId =  odDemandIter.getCurrentDestinationId();
-			//System.out.println("Calculating flow from origin zone " + originZoneId + " to " + destinationZoneId + " which has demand " + odDemand);
 			int previousOriginZoneId = 0;
 			if  (((odDemand - DefaultValues.DEFAULT_EPSILON )> 0.0) && (originZoneId != destinationZoneId)) {
 				Zone currentOriginZone = null;
@@ -185,14 +184,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 					throw new PlanItException("currentDestinationZone is null for destinationZoneId = " + destinationZoneId);
 				}
 				Vertex currentPathStartVertex = currentDestinationZone.getCentroid();
-				//System.out.println("currentPathStartVertex.getExternalId() = " + currentPathStartVertex.getExternalId() + " currentPathStartVertex.getId() = " + currentPathStartVertex.getId() + " currentPathStartVertex.getCentroidId() = " +  currentDestinationZone.getCentroid().getCentroidId());
 				while (currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId()) {	
 					int startVertexId = (int) currentPathStartVertex.getId();
-//TODO - commented-out lines below would be needed if vertexPathCost array is sorted by node external Id
-					//int startVertexId = 0;
-					//while ((vertexPathCost[startVertexId].getSecond() != null) &&   (vertexPathCost[startVertexId].getSecond().getDownstreamVertex().getId() != currentPathStartVertex.getId())) {
-					//	startVertexId++;
-					//}
 					if (vertexPathCost[startVertexId].getSecond() == null) {
 						throw new PlanItException("The solution could not find an Edge Segment for vertex " + startVertexId + " which has external reference " + currentPathStartVertex.getExternalId());
 					}
@@ -208,6 +201,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		}
 	}	
 	
+/**
+ * Get total network segment codes
+ * 
+ * @param modes                   modes for this traffic assignment
+ * @return                               array of total network segment costs
+ * @throws PlanItException    thrown if there is an error
+ */
 	private double[] getTotalNetworkSegmentCosts(Set<Mode> modes) throws PlanItException {
 		double[] totalNetworkSegmentCosts = new double[numberOfNetworkSegments];
 		for(Mode mode : modes) {
@@ -276,17 +276,17 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		this.emptySegmentArray = new double[numberOfNetworkSegments];
 	}	
 	
-	/**
-	 * Execute assignment 
-	 * 
-	 * @throws PlanItException     thrown if there is an error
-	 */
+/**
+ * Execute assignment 
+ * 
+ * @throws PlanItException     thrown if there is an error
+ */
 	@Override
 	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeEquilibration() throws PlanItException {
 	SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = new TreeMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>();
 		// perform assignment per period - per mode
 		Set<TimePeriod> timePeriods = demands.getRegisteredTimePeriods();
-		System.out.println("There are " + timePeriods.size() + " time periods to loop through.");
+		LOGGER.info("There are " + timePeriods.size() + " time periods to loop through.");
 		BPRLinkTravelTimeCost bprLinkTravelTimeCost = (BPRLinkTravelTimeCost) physicalCost;
 		for(TimePeriod timePeriod : timePeriods) {
 			SortedMap<Mode, SortedSet<BprResultDto>> resultsForCurrentTimePeriod = new TreeMap<Mode, SortedSet<BprResultDto>>();

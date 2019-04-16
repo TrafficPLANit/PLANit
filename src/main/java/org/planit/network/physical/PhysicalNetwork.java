@@ -3,6 +3,7 @@ package org.planit.network.physical;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -19,6 +20,11 @@ import org.planit.utils.IdGenerator;
  */
 public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork> {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(PhysicalNetwork.class.getName());
+        
 	// INNER CLASSES
 	
 	/**

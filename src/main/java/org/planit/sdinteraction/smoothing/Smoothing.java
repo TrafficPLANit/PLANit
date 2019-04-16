@@ -1,5 +1,6 @@
 package org.planit.sdinteraction.smoothing;
 
+import java.util.logging.Logger;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 
 /** 
@@ -9,6 +10,11 @@ import org.planit.trafficassignment.TrafficAssignmentComponent;
  */
 public abstract class Smoothing extends TrafficAssignmentComponent<Smoothing>{
 
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(Smoothing.class.getName());
+        
 /** 
  * Determine the stepsize for the passed in iteraction
  * 

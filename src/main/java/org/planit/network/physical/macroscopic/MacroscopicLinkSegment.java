@@ -1,5 +1,7 @@
 package org.planit.network.physical.macroscopic;
 
+import java.util.logging.Logger;
+
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
@@ -13,6 +15,11 @@ import org.planit.userclass.Mode;
  */
 public class MacroscopicLinkSegment extends LinkSegment{
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegment.class.getName());
+        
 	// Protected
 		
 	/**

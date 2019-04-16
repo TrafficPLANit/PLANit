@@ -2,6 +2,7 @@ package org.planit.trafficassignment;
 
 import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.logging.Logger;
 
 import org.planit.dto.BprResultDto;
 import org.planit.exceptions.PlanItException;
@@ -20,6 +21,11 @@ import org.planit.time.TimePeriod;
  */
 public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(CapacityConstrainedAssignment.class.getName());
+        
 	// PROTECTED
 	
 	/**

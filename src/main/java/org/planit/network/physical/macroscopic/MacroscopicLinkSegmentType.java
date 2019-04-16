@@ -1,6 +1,8 @@
 package org.planit.network.physical.macroscopic;
 
 
+import java.util.logging.Logger;
+
 import javax.annotation.Nonnull;
 
 import org.planit.utils.DefaultValues;
@@ -14,6 +16,11 @@ import org.planit.utils.IdGenerator;
  */
 public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSegmentType>{
 		
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentType.class.getName());
+        
 	public static final double DEFAULT_MAXIMUM_DENSITY_LANE = 180;
 	
 	//public static final double DEFAULT_CAPACITY_LANE = 1800;	

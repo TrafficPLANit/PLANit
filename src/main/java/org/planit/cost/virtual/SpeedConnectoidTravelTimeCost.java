@@ -1,5 +1,7 @@
 package org.planit.cost.virtual;
 
+import java.util.logging.Logger;
+
 import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.userclass.Mode;
@@ -12,6 +14,11 @@ import org.planit.userclass.Mode;
  */
 public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(SpeedConnectoidTravelTimeCost.class.getName());
+        
 //TODO - At present connectoid speed is infinity, which makes travel time come out as zero.  Perhaps this should be configurable
 	public static final double CONNECTOID_SPEED_KPH = Double.POSITIVE_INFINITY;
 

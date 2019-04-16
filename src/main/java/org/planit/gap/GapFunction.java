@@ -1,5 +1,7 @@
 package org.planit.gap;
 
+import java.util.logging.Logger;
+
 /**
  * Interface for computing gap functions
  * @author markr
@@ -7,6 +9,11 @@ package org.planit.gap;
  */
 public abstract class GapFunction {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(GapFunction.class.getName());
+        
 /**
  *  The stopCriterion to use
  */

@@ -2,6 +2,7 @@ package org.planit.demand;
 
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.userclass.Mode;
@@ -23,6 +24,11 @@ import org.planit.utils.IdGenerator;
  */
 public class Demands extends TrafficAssignmentComponent<Demands>{
 		
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(Demands.class.getName());
+        
 	// Protected
 	
 	/**

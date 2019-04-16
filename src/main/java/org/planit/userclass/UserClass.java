@@ -2,7 +2,7 @@ package org.planit.userclass;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.logging.Logger;
 import org.planit.utils.IdGenerator;
 
 /** A user class defines a combination of one or more characteristics of users in an aggregate representation of traffic
@@ -12,6 +12,11 @@ import org.planit.utils.IdGenerator;
  */
 public class UserClass {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(UserClass.class.getName());
+        
  /**
   * id of this user class
   */

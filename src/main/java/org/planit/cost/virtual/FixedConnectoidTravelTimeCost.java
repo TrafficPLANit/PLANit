@@ -1,5 +1,7 @@
 package org.planit.cost.virtual;
 
+import java.util.logging.Logger;
+
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
@@ -14,6 +16,11 @@ import org.planit.userclass.Mode;
  */
 public class FixedConnectoidTravelTimeCost extends VirtualCost {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(FixedConnectoidTravelTimeCost.class.getName());
+        
 /**
  * The fixed connectoid costs for the connectoid segments
  */

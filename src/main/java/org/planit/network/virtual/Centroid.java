@@ -1,7 +1,7 @@
 package org.planit.network.virtual;
 
+import java.util.logging.Logger;
 import javax.annotation.Nonnull;
-
 import org.planit.network.Vertex;
 import org.planit.utils.IdGenerator;
 import org.planit.zoning.Zone;
@@ -15,6 +15,11 @@ import org.planit.zoning.Zone;
 public class Centroid extends Vertex {
 	// Protected
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(Centroid.class.getName());
+        
 /** 
  * Generate unique centroid id
  * 

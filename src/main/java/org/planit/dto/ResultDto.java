@@ -1,5 +1,7 @@
 package org.planit.dto;
 
+import java.util.logging.Logger;
+
 /**
  * Data transfer object to store the results of runs
  * 
@@ -10,6 +12,11 @@ package org.planit.dto;
  */
 public class ResultDto implements Comparable<ResultDto> {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(ResultDto.class.getName());
+        
  /**
   * Id of start node
   */

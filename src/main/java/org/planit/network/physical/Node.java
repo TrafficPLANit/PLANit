@@ -5,6 +5,7 @@ package org.planit.network.physical;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.planit.network.Vertex;
 import org.planit.utils.IdGenerator;
@@ -16,6 +17,11 @@ import org.planit.utils.IdGenerator;
  */
 public class Node extends Vertex {
 		
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(Node.class.getName());
+        
 	// Protected
 	
 	/**

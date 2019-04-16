@@ -1,5 +1,7 @@
 package org.planit.gap;
 
+import java.util.logging.Logger;
+
 /**
  * Gap function based on the work of Bovy and Jansen (1983) who take the different between the current system
  * travel time and the system travel time if all flow were to be assigned to the shortest paths, divided by the 
@@ -9,6 +11,11 @@ package org.planit.gap;
  */
 public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(LinkBasedRelativeDualityGapFunction.class.getName());
+        
 /** 
  * Constructor
  * 

@@ -1,5 +1,6 @@
 package org.planit.network.virtual;
 
+import java.util.logging.Logger;
 import org.planit.network.EdgeSegment;
 import org.planit.utils.IdGenerator;
 
@@ -19,6 +20,11 @@ import org.planit.utils.IdGenerator;
  */
 public class ConnectoidSegment extends EdgeSegment {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(ConnectoidSegment.class.getName());
+        
 	/**
 	 * unique internal identifier 
 	 */

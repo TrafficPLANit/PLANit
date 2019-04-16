@@ -1,11 +1,11 @@
 package org.planit.event.management;
 
 import java.util.HashSet;
+import java.util.logging.Logger;
 
 import org.planit.event.Event;
 import org.planit.event.listener.EventListener;
 import org.planit.exceptions.PlanItException;
-
 
 /**
  * Dispatches events to registered listeners
@@ -14,6 +14,11 @@ import org.planit.exceptions.PlanItException;
  */
 public class EventDispatcher {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(EventDispatcher.class.getName());
+        
 	/**
 	 * Registered listeners
 	 */

@@ -1,6 +1,7 @@
 package org.planit.project;
 
 import java.util.TreeMap;
+import java.util.logging.Logger;
 import java.util.SortedMap;
 import java.util.SortedSet;
 
@@ -28,6 +29,11 @@ import org.planit.exceptions.PlanItException;
  */
 public class PlanItProject {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(PlanItProject.class.getName());
+        
 	/**
 	 * The physical networks registered on this project
 	 */
@@ -211,7 +217,7 @@ public class PlanItProject {
  * Top-level error reporting is done in this class.  If several traffic assignments are registered and one fails, we report its error and continue with the next assignment. 
  * 
  * @return									map containing results categorized by run id, time period id and mode id
- * @throws PlanItException		thrown if the getPlanItGeoUtils() method in InputBuilderListener has not been overridden
+ * @throws PlanItException		thrown if there is an error
  * 
  */
 	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignments() throws PlanItException {

@@ -8,6 +8,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -27,6 +28,11 @@ import org.planit.userclass.Mode;
  */
 public class CsvIoUtils {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(CsvIoUtils.class.getName());
+        
 /**
  * Saves the results of a complete run to a CSV file
  * 

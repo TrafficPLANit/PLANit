@@ -1,5 +1,6 @@
 package org.planit.network.physical.macroscopic;
 
+import java.util.logging.Logger;
 import org.planit.utils.DefaultValues;
 
 /** Mode specific properties for the macroscopic perspective on the supply side, i.e. on a link segment of a particular type
@@ -9,6 +10,11 @@ import org.planit.utils.DefaultValues;
  */
 public class MacroscopicModeProperties {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(MacroscopicModeProperties.class.getName());
+        
 	/**
 	 * Maximum speed of mode (tied to a road segment)
 	 */

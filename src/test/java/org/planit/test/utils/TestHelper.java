@@ -3,6 +3,7 @@ package org.planit.test.utils;
 import java.util.Iterator;
 import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.logging.Logger;
 
 import org.planit.dto.BprResultDto;
 import org.planit.time.TimePeriod;
@@ -18,7 +19,12 @@ import static org.junit.Assert.fail;
  */
 public class TestHelper {
 
- /**
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(TestHelper.class.getName());
+        
+/**
   * Compares the contents of a results map for the current run with a results map from a previous run which had been stored in a file.  It generates a JUnit test failure if the results maps have different contents
   * 
   * @param resultsMap                 Map storing result of the current test run

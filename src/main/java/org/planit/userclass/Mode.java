@@ -2,7 +2,7 @@ package org.planit.userclass;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import java.util.logging.Logger;
 import org.planit.utils.IdGenerator;
 
 /** A Mode is a user class feature representing a single form of transport (car, truck etc.).
@@ -11,6 +11,11 @@ import org.planit.utils.IdGenerator;
  */
 public class Mode implements Comparable<Mode> {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(Mode.class.getName());
+        
 	// Protected
 	
 /**

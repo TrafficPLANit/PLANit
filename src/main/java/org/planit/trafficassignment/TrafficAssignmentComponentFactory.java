@@ -4,6 +4,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.physical.PhysicalCost;
@@ -33,7 +34,12 @@ import org.planit.zoning.Zoning;
  */
 public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentComponent<T>>  implements EventHandler {
 	
- /** 
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentComponentFactory.class.getName());
+        
+/** 
   * instance of the super component class this factory creates subclass instances for 
   */ 
 	protected final Class<T> componentSuperType;

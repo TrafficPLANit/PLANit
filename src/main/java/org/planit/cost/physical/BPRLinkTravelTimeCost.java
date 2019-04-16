@@ -1,5 +1,7 @@
 package org.planit.cost.physical;
 
+import java.util.logging.Logger;
+
 import org.planit.exceptions.PlanItException;
 import org.planit.interactor.InteractorAccessee;
 import org.planit.interactor.LinkVolumeAccessee;
@@ -15,6 +17,11 @@ import org.planit.userclass.Mode;
  */
 public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAccessor  {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(BPRLinkTravelTimeCost.class.getName());
+        
 /**
  *   Link volume accessee object for this cost functionm
  */

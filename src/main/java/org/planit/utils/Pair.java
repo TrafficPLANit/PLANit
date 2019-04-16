@@ -1,6 +1,7 @@
 package org.planit.utils;
 
 import java.util.Objects;
+import java.util.logging.Logger;
 
 /**
  * Custom pair class similar to C++. By default we compare based on the first value
@@ -10,8 +11,21 @@ import java.util.Objects;
  * @param <B>		second object in pair
  */
 public class Pair<A extends Comparable<A>, B extends Comparable<B>> implements Comparable<Pair<A,B>> {
-    	
+ 
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(Pair.class.getName());
+        
+
+ /**
+  * The first object in this Pair
+  */
 	protected final A first;
+	
+/**
+ * The second object in this Pair
+ */
     protected final B second;
 
 /** Constructor

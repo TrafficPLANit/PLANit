@@ -3,6 +3,7 @@ package org.planit.network.physical.macroscopic;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -18,6 +19,11 @@ import org.planit.utils.Pair;
  */
 public class MacroscopicNetwork extends PhysicalNetwork {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(MacroscopicNetwork.class.getName());
+        
 	// Private	
 	
 	private class MacroscopicLinkSegmentTypes implements Iterable<MacroscopicLinkSegmentType> {

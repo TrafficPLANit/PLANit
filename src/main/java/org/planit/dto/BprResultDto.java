@@ -1,5 +1,7 @@
 package org.planit.dto;
 
+import java.util.logging.Logger;
+
 /**
  * DTO object containing extra fields specific to BPR function
  * 
@@ -8,6 +10,11 @@ package org.planit.dto;
  */
 public class BprResultDto extends ResultDto {
 	
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(BprResultDto.class.getName());
+        
  /**
   * Link capacity
   */

@@ -1,6 +1,7 @@
 package org.planit.utils;
 
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 /** Convenience class to track unique ids across different classes that decide to use a generator for their id members
  * @author markr
@@ -8,6 +9,11 @@ import java.util.HashMap;
  */
 public class IdGenerator {
 
+    /**
+     * Logger for this class
+     */
+    private static final Logger LOGGER = Logger.getLogger(IdGenerator.class.getName());
+        
 	/** track unique id's per specific class */
 	private static HashMap<Class<? extends Object>,Integer> idTypes;
 	
