@@ -258,7 +258,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 			totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
 			dualityGapFunction.computeGap();
 		    iterationIndex++;			
-		    LOGGER.info("Iteration " + iterationIndex + ": duality gap = " + dualityGapFunction.getGap());
+		    LOGGER.fine("Iteration " + iterationIndex + ": duality gap = " + dualityGapFunction.getGap());
 		    hasConverged = dualityGapFunction.hasConverged(iterationIndex);
 		} 		
 	}
@@ -286,11 +286,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = new TreeMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>();
 		// perform assignment per period - per mode
 		Set<TimePeriod> timePeriods = demands.getRegisteredTimePeriods();
-		LOGGER.info("There are " + timePeriods.size() + " time periods to loop through.");
+		LOGGER.fine("There are " + timePeriods.size() + " time periods to loop through.");
 		BPRLinkTravelTimeCost bprLinkTravelTimeCost = (BPRLinkTravelTimeCost) physicalCost;
 		for(TimePeriod timePeriod : timePeriods) {
 			SortedMap<Mode, SortedSet<BprResultDto>> resultsForCurrentTimePeriod = new TreeMap<Mode, SortedSet<BprResultDto>>();
-			LOGGER.info("Equilibrating time period "+ timePeriod.toString());
+			LOGGER.fine("Equilibrating time period "+ timePeriod.toString());
 			Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
 			executeTimePeriod(timePeriod,modes);			
 			double[] totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
