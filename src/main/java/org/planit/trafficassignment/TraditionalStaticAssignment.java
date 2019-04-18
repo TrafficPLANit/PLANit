@@ -29,6 +29,9 @@ import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.ConnectoidSegment;
+import org.planit.output.OutputType;
+import org.planit.output.adapter.OutputAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
 import org.planit.utils.ArrayOperations;
@@ -257,18 +260,36 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 
 			totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
 			dualityGapFunction.computeGap();
-		    iterationIndex++;			
+		    iterationIndex++;	
 		    LOGGER.info("Iteration " + iterationIndex + ": duality gap = " + dualityGapFunction.getGap());
 		    hasConverged = dualityGapFunction.hasConverged(iterationIndex);
+		    // ask the output manager to trigger an update of the link outputs
+            outputManager.persistOutputData(OutputType.LINK); //<-- will invoked createOutputData when appropriate		    
 		} 		
 	}
 	
+    /**
+     * The Traditional Static Assignment output adapter that allows selective access to all data required for
+     * different output types
+     * @see org.planit.trafficassignment.TrafficAssignment#createOutputAdapter(org.planit.output.OutputType)
+     */
+    @Override
+    protected OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException {
+        OutputAdapter outputAdapter = null;
+        if(outputType.equals(OutputType.LINK)) {
+            outputAdapter = new TraditionalStaticAssignmentLinkOutputAdapter(this);
+        }else {
+            throw new PlanItException("No Output adapter exists for output type "+ outputType.toString() + " on "+ this.getClass().getName());
+        }
+        return outputAdapter;
+    }	
+
+    	
 	/* (non-Javadoc)
 	 * @see org.planit.trafficassignment.TrafficAssignment#initialiseBeforeEquilibration()
-	 */
-	
+	 */	
 	@Override
-	public void initialiseBeforeEquilibration() {
+	protected void initialiseBeforeEquilibration() {
 		// initialize members that are used throughout the assignment
 		iterationIndex = 0;
 		this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
@@ -276,11 +297,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		this.emptySegmentArray = new double[numberOfNetworkSegments];
 	}	
 	
-/**
- * Execute assignment 
- * 
- * @throws PlanItException     thrown if there is an error
- */
+    /**
+     * Execute assignment 
+     * 
+     * @throws PlanItException     thrown if there is an error
+     */
 	@Override
 	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeEquilibration() throws PlanItException {
 	SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = new TreeMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>();

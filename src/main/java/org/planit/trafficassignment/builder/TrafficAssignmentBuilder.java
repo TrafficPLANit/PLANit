@@ -9,6 +9,8 @@ import org.planit.event.management.EventHandler;
 import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.output.formatter.BaseOutputFormatter;
+import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
@@ -28,23 +30,23 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
      */
     private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentBuilder.class.getName());
         
- /**
-  * The smoothing factory used in the assignment algorithm
-  */
+     /**
+      * The smoothing factory used in the assignment algorithm
+      */
 	protected final TrafficAssignmentComponentFactory<Smoothing> smoothingFactory;
 	
-/**
- * The assignment all components will be registered on
- */
+    /**
+     * The assignment all components will be registered on
+     */
 	protected final TrafficAssignment parentAssignment;
 	
 	// PUBLIC
 	
-/** 
- * Constructor
- *  
- * @param parentAssignment    parent traffic assignment object for this builder
- */
+    /** 
+     * Constructor
+     *  
+     * @param parentAssignment    parent traffic assignment object for this builder
+     */
 	TrafficAssignmentBuilder(@Nonnull TrafficAssignment parentAssignment){
 		this.parentAssignment = parentAssignment;
 		smoothingFactory = new TrafficAssignmentComponentFactory<Smoothing>(Smoothing.class);
@@ -52,53 +54,60 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
 	
 	// 	PUBLIC FACTORY METHODS	
 	
-/** 
- * Create and Register smoothing component
- * 
- * @param smoothingType         the type of smoothing component to be created
- * @return                                  Smoothing object created
- * @throws PlanItException       thrown if there is an error
- */
+    /** 
+     * Create and Register smoothing component
+     * 
+     * @param smoothingType         the type of smoothing component to be created
+     * @return                                  Smoothing object created
+     * @throws PlanItException       thrown if there is an error
+     */
 	public Smoothing createAndRegisterSmoothing(String smoothingType) throws PlanItException {
 		Smoothing smoothing = smoothingFactory.create(smoothingType);
 		parentAssignment.setSmoothing(smoothing);
 		return smoothing;
 	}	
 	
-/** 
- * Register physical network object
- * 
- * @param network    PhysicalNetwork object be registered
- */
+    /** 
+     * Register physical network object
+     * 
+     * @param network    PhysicalNetwork object be registered
+     */
 	public void registerPhysicalNetwork(PhysicalNetwork network){
 		parentAssignment.setPhysicalNetwork(network);
 	}	
 	
-/** 
- * Register demands object
- * 
- * @param demands      Demands object to be registered
- */
+    /** 
+     * Register demands object
+     * 
+     * @param demands      Demands object to be registered
+     */
 	public void registerDemands(Demands demands){
 		parentAssignment.setDemands(demands);
 	}	
 	
-/**
- * Register zoning object
- * 
- * @param zoning     Zoning object to be registered
- */
+    /**
+     * Register zoning object
+     * 
+     * @param zoning     Zoning object to be registered
+     */
 	public void registerZoning(Zoning zoning) {
 		parentAssignment.setZoning(zoning);
 	}
+	
+	/** Register the output formatter which dictates in which format our outputs will be persisted
+	 * @param outputformatter
+	 */
+	public void registerOutputFormatter(OutputFormatter outputFormatter) {
+	    parentAssignment.registerOutputFormatter(outputFormatter);
+	}	
 
-/**
- * Set the EventManager for this builder
- * 
- * The EventManager must be a singleton for each PlanItProject application.
- * 
- * @param eventManager      EventManager to be used to create traffic assignment
- */
+    /**
+     * Set the EventManager for this builder
+     * 
+     * The EventManager must be a singleton for each PlanItProject application.
+     * 
+     * @param eventManager      EventManager to be used to create traffic assignment
+     */
 	public void setEventManager(EventManager eventManager) {
 		smoothingFactory.setEventManager(eventManager);
 	}	

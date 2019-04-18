@@ -7,7 +7,7 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class IdGenerator {
+public final class IdGenerator {
 
     /**
      * Logger for this class
