@@ -63,35 +63,34 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		}
 	}
 	
-	/**
-	 * empty array to quickly initialize new arrays when needed 
-	 */
+/**
+ * Empty array to quickly initialize new arrays when needed 
+ */
 	private double[] emptySegmentArray;
 	
-	/**
-	 * network wide segment flows
-	 */
+/**
+ * Network wide segment flows
+ */
 	private double[] totalNetworkSegmentFlows = null;
 	
-	/**
-	 * Store the mode specific data required during assignment
-	 */
+/**
+ * Store the mode specific data required during assignment
+ */
 	private final Map<Mode,ModeData> modeSpecificData = new TreeMap<Mode,ModeData>();
 	
-	/** 
-	 * Iteration index, tracking the iteration during execution
-	 */ 
-	private int iterationIndex;	
-	
-	/**
-	 * holds the count of segments in the transport network
-	 */
+/**
+ * Holds the count of segments in the transport network
+ */
 	private int numberOfNetworkSegments;
-	/**
-	 * holds the count of all vertices in the transport network
-	 */
+
+/**
+ * Holds the count of all vertices in the transport network
+ */
 	private int numberOfNetworkVertices;
-	
+
+/**
+ * Implementation of the Gap Function used in this Traffic Assignment
+ */
 	private LinkBasedRelativeDualityGapFunction dualityGapFunction;
 	
 	public TraditionalStaticAssignment() {
@@ -228,10 +227,9 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	private void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
 		initialiseTimePeriodModeData(modes);	
 		boolean hasConverged = false;
-		totalNetworkSegmentFlows = (double[])emptySegmentArray.clone();		
-		
+		totalNetworkSegmentFlows = (double[]) emptySegmentArray.clone();		
+		int iterationIndex = 0;   
 		double[] totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
-		
 		while (!hasConverged) {
 			dualityGapFunction.reset();
 			smoothing.update(iterationIndex);			
@@ -241,17 +239,17 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 			for(Mode mode : modes) {
 				// mode specific data
 				ModeData currentModeData = modeSpecificData.get(mode);		
-				currentModeData.nextNetworkSegmentFlows = (double[])emptySegmentArray.clone();		
+				currentModeData.nextNetworkSegmentFlows = (double[]) emptySegmentArray.clone();		
 				// AON based network loading
 				ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(totalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
 				ODDemand odDemands = demands.get(mode, timePeriod);
 				executeModeTimePeriod(odDemands, currentModeData, totalNetworkSegmentCosts, shortestPathAlgorithm);
 				
 				double sumProduct = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows, totalNetworkSegmentCosts, numberOfNetworkSegments);
-				dualityGapFunction.increaseActualSystemTravelTime(sumProduct);
+ 				dualityGapFunction.increaseActualSystemTravelTime(sumProduct);
 				applySmoothing(currentModeData);
 				// aggregate smoothed mode specific flows - for cost computation				
-				ArrayOperations.addTo(totalNetworkSegmentFlows, currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
+ 				ArrayOperations.addTo(totalNetworkSegmentFlows, currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
 				modeSpecificData.put(mode, currentModeData);
 			}				
 
@@ -270,7 +268,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	@Override
 	public void initialiseBeforeEquilibration() {
 		// initialize members that are used throughout the assignment
-		iterationIndex = 0;
 		this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
 		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
 		this.emptySegmentArray = new double[numberOfNetworkSegments];
@@ -292,7 +289,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 			SortedMap<Mode, SortedSet<BprResultDto>> resultsForCurrentTimePeriod = new TreeMap<Mode, SortedSet<BprResultDto>>();
 			LOGGER.fine("Equilibrating time period "+ timePeriod.toString());
 			Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
-			executeTimePeriod(timePeriod,modes);			
+			executeTimePeriod(timePeriod, modes);			
 			double[] totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
 			Iterator<LinkSegment> linkSegmentIter = getTransportNetwork().linkSegments.iterator();	
 			for (Mode mode : modes) {
@@ -351,11 +348,21 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		}
 	}
 	
+/**
+ * Create the Gap Function used by this Traffic Assignment
+ * 
+ * @return              GapFunction created
+ */
 	protected GapFunction createGapFunction() {
 		dualityGapFunction = new LinkBasedRelativeDualityGapFunction(new StopCriterion());
 		return dualityGapFunction;
 	}
 	
+/**
+ * Return the gap Function used by this Traffc Assignment
+ * 
+ * @return         GapFunction used
+ */
 	public GapFunction getGapFunction() {
 		return dualityGapFunction;
 	}
