@@ -60,6 +60,14 @@ public class TimePeriod implements Comparable<TimePeriod> {
 		timePeriods.put(this.id, this);
 	}
 
+    public TimePeriod(String description, int startTime, int duration) {
+        this.id = IdGenerator.generateId(TimePeriod.class);
+        this.startTime = startTime;
+        this.duration = duration;
+        this.description = description;
+        timePeriods.put(this.id, this);
+    }
+	
 /**
  * Constructor
  * 

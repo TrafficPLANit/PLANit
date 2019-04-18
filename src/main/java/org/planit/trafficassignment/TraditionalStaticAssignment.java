@@ -55,37 +55,114 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	/**
 	 * Mode specific data
 	 */
-	private class ModeData{
+	private class ModeData {
 		
 		public double[] currentNetworkSegmentFlows 	= null;
 		public double[] nextNetworkSegmentFlows 	= null;
 		
 		ModeData(int numberOfNetworkSegments){
-			this.currentNetworkSegmentFlows = (double[]) emptySegmentArray.clone();
-			this.nextNetworkSegmentFlows 	= (double[]) emptySegmentArray.clone();			
+			resetCurrentNetworkSegmentFlows();
+			resetNextNetworkSegmentFlows();			
+		}
+		
+		public void resetNextNetworkSegmentFlows(){
+		    nextNetworkSegmentFlows = simulationData.getEmptySegmentArray().clone();
+		}
+		
+		public void resetCurrentNetworkSegmentFlows() {
+		    currentNetworkSegmentFlows = simulationData.getEmptySegmentArray().clone();
 		}
 	}
 	
-	/**
-	 * empty array to quickly initialize new arrays when needed 
+	/** Simulation data that only is available during simulation
+	 * 
 	 */
-	private double[] emptySegmentArray;
+	public class SimulationData { 
+	    
+        /**
+	     * simulation variable
+	     */
+	    private boolean hasConverged = false;
+	        
+	    /** 
+	     * Iteration index, tracking the iteration during execution
+	     */ 
+	    private int iterationIndex = 0; 
+	    
+	    /**
+	     * empty array to quickly initialize new arrays when needed 
+	     */
+	    private double[] emptySegmentArray = null;
+	    
+	    /**
+	     * network wide segment flows
+	     */
+	    private double[] totalNetworkSegmentFlows = null;
+	    
+	    /**
+	     * Store the mode specific data required during assignment
+	     */
+	    private final Map<Mode,ModeData> modeSpecificData = new TreeMap<Mode,ModeData>();
+	    
+	    /**
+	     * reset total network segment flows by cloning empty array
+	     */
+	    public void resetTotalNetworkSegmentFlows() {
+	        setTotalNetworkSegmentFlows((double[]) simulationData.getEmptySegmentArray().clone());
+	    }
+	    
+        /**
+         * Increment iteration index by one
+         */
+        public void incrementIterationIndex() {
+            ++this.iterationIndex;
+        }	    
+	    
+	    // getters - setters	    
+	    
+        public boolean isConverged() {
+            return hasConverged;
+        }
+
+        public void setConverged(boolean hasConverged) {
+            this.hasConverged = hasConverged;
+        }
+
+        public int getIterationIndex() {
+            return iterationIndex;
+        }
+
+        public void setIterationIndex(int iterationIndex) {
+            this.iterationIndex = iterationIndex;
+        }
+
+        public double[] getEmptySegmentArray() {
+            return emptySegmentArray;
+        }
+
+        public void setEmptySegmentArray(double[] emptySegmentArray) {
+            this.emptySegmentArray = emptySegmentArray;
+        }
+
+        public double[] getTotalNetworkSegmentFlows() {
+            return totalNetworkSegmentFlows;
+        }
+
+        public void setTotalNetworkSegmentFlows(double[] totalNetworkSegmentFlows) {
+            this.totalNetworkSegmentFlows = totalNetworkSegmentFlows;
+        }
+
+        public Map<Mode, ModeData> getModeSpecificData() {
+            return modeSpecificData;
+        }
+	    
+	}
 	
 	/**
-	 * network wide segment flows
+	 * Holds the running simulation data for the assignment
 	 */
-	private double[] totalNetworkSegmentFlows = null;
-	
-	/**
-	 * Store the mode specific data required during assignment
-	 */
-	private final Map<Mode,ModeData> modeSpecificData = new TreeMap<Mode,ModeData>();
-	
-	/** 
-	 * Iteration index, tracking the iteration during execution
-	 */ 
-	private int iterationIndex;	
-	
+	private final SimulationData simulationData;
+			
 	/**
 	 * holds the count of segments in the transport network
 	 */
@@ -95,31 +172,42 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	 */
 	private int numberOfNetworkVertices;
 	
+	/**
+	 * duality gap function instance containing functionality to compute the duality gap
+	 */
 	private LinkBasedRelativeDualityGapFunction dualityGapFunction;
+	 
 	
+    /** Initialise running simulation variables for the time period
+     * 
+     * @param modes
+     */
+    private void initialiseTimePeriod(Set<Mode> modes) {
+        simulationData.setConverged(false);
+        simulationData.resetTotalNetworkSegmentFlows();        
+        simulationData.setIterationIndex(0);
+        simulationData.getModeSpecificData().clear();
+        for(Mode mode : modes) {
+            simulationData.getModeSpecificData().put(mode, new ModeData(numberOfNetworkSegments));
+        }
+    }
+    	
+	/**
+	 * Base Constructor
+	 */
 	public TraditionalStaticAssignment() {
 		super();
+		simulationData = new SimulationData();
 	}
 	
-/**
- * Initialize a time period by creating the mode specific data
- * 
- * @param modes                         Set of modes to consider in the given time period 
- */
-	private void initialiseTimePeriodModeData(Set<Mode> modes) {
-		modeSpecificData.clear();
-		for(Mode mode : modes) {
-			modeSpecificData.put(mode, new ModeData(numberOfNetworkSegments));
-		}
-	}
 	
-/** 
- * Collect the updated edge segment costs for the given mode
- * 
- * @param mode                            the current mode
- * @return                                      array of updated edge segment costs
- * @throws PlanItException           thrown if there is an error
- */
+    /** 
+     * Collect the updated edge segment costs for the given mode
+     * 
+     * @param mode                            the current mode
+     * @return                                      array of updated edge segment costs
+     * @throws PlanItException           thrown if there is an error
+     */
 	private double[] collectUpdatedCosts(Mode mode) throws PlanItException {
 		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
 		Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();			
@@ -135,26 +223,26 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		return currentSegmentCosts;
 	}
 	
-/**
- * Apply smoothing based on current and previous flows and the adopted smoothing method.  The smoothed results are registered as the current segment flows while the current segment flows are assigned to the previous segment flows (which are discarded).
- * 
- * @param modeData      data for the current mode
- */
+    /**
+     * Apply smoothing based on current and previous flows and the adopted smoothing method.  The smoothed results are registered as the current segment flows while the current segment flows are assigned to the previous segment flows (which are discarded).
+     * 
+     * @param modeData      data for the current mode
+     */
 	private void applySmoothing(ModeData modeData) {
 		double[] smoothedSegmentFlows = smoothing.applySmoothing(modeData.currentNetworkSegmentFlows,  modeData.nextNetworkSegmentFlows, numberOfNetworkSegments);
 		// update flow arrays for next iteration
 		modeData.currentNetworkSegmentFlows = smoothedSegmentFlows;
 	}	
 
-/** 
- * Perform assignment for a given time period, mode and costs imposed on Dijkstra shortest path
- * 
- * @param odDemands                    origin-demand store
- * @param currentModeData            data for the current mode
- * @param networkSegmentCosts   segment costs for the network
- * @param shortestPathAlgorithm    shortest path algorithm to be used
- * @throws PlanItException              thrown if there is an error
- */
+    /** 
+     * Perform assignment for a given time period, mode and costs imposed on Dijkstra shortest path
+     * 
+     * @param odDemands                    origin-demand store
+     * @param currentModeData            data for the current mode
+     * @param networkSegmentCosts   segment costs for the network
+     * @param shortestPathAlgorithm    shortest path algorithm to be used
+     * @throws PlanItException              thrown if there is an error
+     */
 	private void executeModeTimePeriod(ODDemand odDemands, ModeData currentModeData, double[] networkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
 		ODDemandIterator odDemandIter = odDemands.iterator();
 		
@@ -204,13 +292,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		}
 	}	
 	
-/**
- * Get total network segment codes
- * 
- * @param modes                   modes for this traffic assignment
- * @return                               array of total network segment costs
- * @throws PlanItException    thrown if there is an error
- */
+    /**
+     * Get total network segment codes
+     * 
+     * @param modes                   modes for this traffic assignment
+     * @return                               array of total network segment costs
+     * @throws PlanItException    thrown if there is an error
+     */
 	private double[] getTotalNetworkSegmentCosts(Set<Mode> modes) throws PlanItException {
 		double[] totalNetworkSegmentCosts = new double[numberOfNetworkSegments];
 		for(Mode mode : modes) {
@@ -222,29 +310,25 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		return totalNetworkSegmentCosts;
 	}
 			
-/** Perform assignment for a given time period using Dijkstra's algorithm
- * 
- * @param timePeriod            the time period for the current assignment
- * @param modes                  the modes for the current assignment
- * @throws PlanItException   thrown if there is an error
- */
+    /** Perform assignment for a given time period using Dijkstra's algorithm
+     * 
+     * @param timePeriod            the time period for the current assignment
+     * @param modes                  the modes for the current assignment
+     * @throws PlanItException   thrown if there is an error
+     */
 	private void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
-		initialiseTimePeriodModeData(modes);	
-		boolean hasConverged = false;
-		totalNetworkSegmentFlows = (double[])emptySegmentArray.clone();		
-		
+	    initialiseTimePeriod(modes);  
 		double[] totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
-		
-		while (!hasConverged) {
+		while (!simulationData.isConverged()) {
 			dualityGapFunction.reset();
-			smoothing.update(iterationIndex);			
+			smoothing.update(simulationData.getIterationIndex());			
 			
 			// NETWORK LOADING - PER MODE
-			totalNetworkSegmentFlows = (double[])emptySegmentArray.clone();
+			simulationData.resetTotalNetworkSegmentFlows(); // to be added up per mode
 			for(Mode mode : modes) {
 				// mode specific data
-				ModeData currentModeData = modeSpecificData.get(mode);		
-				currentModeData.nextNetworkSegmentFlows = (double[])emptySegmentArray.clone();		
+				ModeData currentModeData = simulationData.getModeSpecificData().get(mode);		
+				currentModeData.resetNextNetworkSegmentFlows();		
 				// AON based network loading
 				ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(totalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
 				ODDemand odDemands = demands.get(mode, timePeriod);
@@ -254,15 +338,15 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 				dualityGapFunction.increaseActualSystemTravelTime(sumProduct);
 				applySmoothing(currentModeData);
 				// aggregate smoothed mode specific flows - for cost computation				
-				ArrayOperations.addTo(totalNetworkSegmentFlows, currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
-				modeSpecificData.put(mode, currentModeData);
+ 				ArrayOperations.addTo(simulationData.getTotalNetworkSegmentFlows(), currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
+ 				simulationData.getModeSpecificData().put(mode, currentModeData);
 			}				
 
 			totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
-			dualityGapFunction.computeGap();
-		    iterationIndex++;	
-		    LOGGER.info("Iteration " + iterationIndex + ": duality gap = " + dualityGapFunction.getGap());
-		    hasConverged = dualityGapFunction.hasConverged(iterationIndex);
+			dualityGapFunction.computeGap();	
+			simulationData.incrementIterationIndex();	
+		    LOGGER.fine("Iteration " + simulationData.getIterationIndex() + ": duality gap = " + dualityGapFunction.getGap());
+		    simulationData.setConverged(dualityGapFunction.hasConverged(simulationData.getIterationIndex()));
 		    // ask the output manager to trigger an update of the link outputs
             outputManager.persistOutputData(OutputType.LINK); //<-- will invoked createOutputData when appropriate		    
 		} 		
@@ -289,14 +373,15 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	 * @see org.planit.trafficassignment.TrafficAssignment#initialiseBeforeEquilibration()
 	 */	
 	@Override
+
 	protected void initialiseBeforeEquilibration() {
 		// initialize members that are used throughout the assignment
-		iterationIndex = 0;
 		this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
 		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
-		this.emptySegmentArray = new double[numberOfNetworkSegments];
+		simulationData.setEmptySegmentArray(new double[numberOfNetworkSegments]);
 	}	
 	
+
     /**
      * Execute assignment 
      * 
@@ -307,13 +392,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = new TreeMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>();
 		// perform assignment per period - per mode
 		Set<TimePeriod> timePeriods = demands.getRegisteredTimePeriods();
-		LOGGER.info("There are " + timePeriods.size() + " time periods to loop through.");
+		LOGGER.fine("There are " + timePeriods.size() + " time periods to loop through.");
 		BPRLinkTravelTimeCost bprLinkTravelTimeCost = (BPRLinkTravelTimeCost) physicalCost;
 		for(TimePeriod timePeriod : timePeriods) {
 			SortedMap<Mode, SortedSet<BprResultDto>> resultsForCurrentTimePeriod = new TreeMap<Mode, SortedSet<BprResultDto>>();
-			LOGGER.info("Equilibrating time period "+ timePeriod.toString());
-			Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
-			executeTimePeriod(timePeriod,modes);			
+			LOGGER.fine("Equilibrating time period "+ timePeriod.toString());
+			Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);		
+			executeTimePeriod(timePeriod, modes);			
 			double[] totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
 			Iterator<LinkSegment> linkSegmentIter = getTransportNetwork().linkSegments.iterator();	
 			for (Mode mode : modes) {
@@ -322,19 +407,20 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 				while (linkSegmentIter.hasNext()) {
 					MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
 					int id = (int) linkSegment.getId();
-					if (totalNetworkSegmentFlows[id] > 0.0) {
+					if (simulationData.getTotalNetworkSegmentFlows()[id] > 0.0) {
 						double cost = totalNetworkSegmentCosts[id];
-						totalCost += totalNetworkSegmentFlows[id] * cost;
-						BprResultDto bprResultDto = new BprResultDto(linkSegment.getUpstreamVertex().getExternalId(), 
-								                                                                        linkSegment.getDownstreamVertex().getExternalId(), 
-								                                                                        totalNetworkSegmentFlows[id], 
-								                                                                        cost, 
-								                                                                        totalCost,
-								                                                                        linkSegment.getLinkSegmentType().getCapacityPerLane() * linkSegment.getNumberOfLanes(),
-								                                                                        linkSegment.getParentLink().getLength(),
-								                                                                        linkSegment.getMaximumSpeed(),
-								                                                                        bprLinkTravelTimeCost.getAlpha(linkSegment),
-								                                                                        bprLinkTravelTimeCost.getBeta(linkSegment));
+						totalCost += simulationData.getTotalNetworkSegmentFlows()[id] * cost;
+						BprResultDto bprResultDto = 
+						        new BprResultDto(linkSegment.getUpstreamVertex().getExternalId(), 
+						                linkSegment.getDownstreamVertex().getExternalId(), 
+								        simulationData.getTotalNetworkSegmentFlows()[id], 
+								        cost, 
+								        totalCost,
+								        linkSegment.getLinkSegmentType().getCapacityPerLane() * linkSegment.getNumberOfLanes(),
+								        linkSegment.getParentLink().getLength(),
+								        linkSegment.getMaximumSpeed(),
+								        bprLinkTravelTimeCost.getAlpha(linkSegment),
+								        bprLinkTravelTimeCost.getBeta(linkSegment));
 						resultsForCurrentModeAndTimePeriod.add(bprResultDto);
 					}
 				}
@@ -354,7 +440,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	 */
 	@Override
 	public double[] getLinkSegmentFlows() {
-		return totalNetworkSegmentFlows;
+		return simulationData.getTotalNetworkSegmentFlows();
 	}
 	
 	/* (non-Javadoc)
@@ -372,11 +458,21 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 		}
 	}
 	
+/**
+ * Create the Gap Function used by this Traffic Assignment
+ * 
+ * @return              GapFunction created
+ */
 	protected GapFunction createGapFunction() {
 		dualityGapFunction = new LinkBasedRelativeDualityGapFunction(new StopCriterion());
 		return dualityGapFunction;
 	}
 	
+/**
+ * Return the gap Function used by this Traffc Assignment
+ * 
+ * @return         GapFunction used
+ */
 	public GapFunction getGapFunction() {
 		return dualityGapFunction;
 	}
