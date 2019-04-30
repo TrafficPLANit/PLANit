@@ -1,17 +1,12 @@
 package org.planit.trafficassignment;
 
-import java.util.SortedMap;
-import java.util.SortedSet;
 import java.util.logging.Logger;
 
-import org.planit.dto.BprResultDto;
 import org.planit.exceptions.PlanItException;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
 import org.planit.trafficassignment.builder.CapacityConstrainedTrafficAssignmentBuilder;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
-import org.planit.userclass.Mode;
-import org.planit.time.TimePeriod;
 
 /**
  * Capacity constrained traffic assignment component
@@ -70,7 +65,6 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	}
 	
 	@Override
-//	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeEquilibration() throws PlanItException {
 	public void executeEquilibration() throws PlanItException {
 		throw new PlanItException("Not yet implemented");		
 	}
@@ -79,7 +73,6 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	public void initialiseBeforeEquilibration() {
 		// TODO Auto-generated method stub		
 	}	
-
 	
 	// Getters - Setters
 	

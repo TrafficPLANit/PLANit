@@ -1,4 +1,4 @@
-package org.planit.dto;
+package org.planit.test.dto;
 
 import java.util.logging.Logger;
 

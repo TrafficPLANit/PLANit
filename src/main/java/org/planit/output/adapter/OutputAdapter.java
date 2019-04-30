@@ -51,22 +51,11 @@ public abstract class OutputAdapter {
     }
 
 /**
- * Return the total network segment costs calculated for this assignment
- * 
- * @param modes                      Set of modes for the current assignment
- * @return                                  array storing the calculated network segment costs
- * @throws PlanItException       thrown if there is an error
- */
-    public double[] getTotalNetworkSegmentCosts(Set<Mode> modes) throws PlanItException {
-          return trafficAssignment.getTotalNetworkSegmentCosts(modes);
-    }
-
-/**
  * Return the id of this assignment run
  * 
  * @return       id of this assignment run
  */
-    public long getRunId() {
+    public long getTrafficAssignmentId() {
            return trafficAssignment.getId();
     }
         

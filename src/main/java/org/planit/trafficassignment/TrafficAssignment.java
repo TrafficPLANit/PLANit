@@ -234,17 +234,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
  */
 	public abstract void executeEquilibration() throws PlanItException;
 
-/**
- * Returns the calculated network segment costs 
- * 
- * The calculated costs are updated during each iteration of the assignment.  The costs after the final iteration represent the final results of the assignment.
- * 
- * @param modes                  Set of modes covered by these results
- * @return                              array containing calculated network segment costs
- * @throws PlanItException   thrown if there is an error
- */
-	public abstract double[] getTotalNetworkSegmentCosts(Set<Mode> modes) throws PlanItException; 
-	
 	// Getters - Setters
 
 /** collect traffic assignment id

@@ -1,4 +1,4 @@
-package org.planit.utils;
+package org.planit.test.utils;
 
 import java.io.File;
 import java.io.FileReader;
@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
-import org.planit.dto.BprResultDto;
+import org.planit.test.dto.BprResultDto;
 import org.planit.exceptions.PlanItException;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -63,8 +63,18 @@ public class CsvIoUtils {
 		}
 	}
 	
-	public static void printCurrentRecord(CSVPrinter printer, long runId, TimePeriod timePeriod, Mode mode, BprResultDto resultDto) throws Exception {
-        printer.printRecord(runId, 
+/**
+ * Print the current record to a CSV file
+ * 
+ * @param printer                         CSVPrinter to which record will be written
+ * @param trafficAssignmentId    id of the current traffic assignment run
+ * @param timePeriod                  the current time period
+ * @param mode                          the current mode
+ * @param resultDto                    BprResultDto storing the current results record
+ * @throws Exception                  thrown if the record cannot be written
+ */
+	public static void printCurrentRecord(CSVPrinter printer, long trafficAssignmentId, TimePeriod timePeriod, Mode mode, BprResultDto resultDto) throws Exception {
+        printer.printRecord(trafficAssignmentId, 
                                         timePeriod.getId(), 
                                         mode.getId(), 
                                         resultDto.getStartNodeId(),

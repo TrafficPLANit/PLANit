@@ -187,13 +187,15 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         }
     }
 
-/**
- * Get total network segment costs
- * 
- * @param modes                   modes for this traffic assignment
- * @return                               array of total network segment costs
- * @throws PlanItException    thrown if there is an error
- */
+ /**
+  * Returns the calculated network segment costs 
+  * 
+  * The calculated costs are updated during each iteration of the assignment.  The costs after the final iteration represent the final results of the assignment.
+  * 
+  * @param modes                  Set of modes covered by these results
+  * @return                              array containing calculated network segment costs
+  * @throws PlanItException   thrown if there is an error
+  */
     public double[] getTotalNetworkSegmentCosts(Set<Mode> modes) throws PlanItException {
         double[] totalNetworkSegmentCosts = new double[numberOfNetworkSegments];
         for (Mode mode : modes) {
