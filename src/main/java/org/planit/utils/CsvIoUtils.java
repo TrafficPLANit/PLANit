@@ -52,19 +52,7 @@ public class CsvIoUtils {
 				for (TimePeriod timePeriod : resultsMap.get(runId).keySet()) {
 					for (Mode mode : resultsMap.get(runId).get(timePeriod).keySet()) {
 						for (BprResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
-							printer.printRecord(runId, 
-									                        timePeriod.getId(), 
-									                        mode.getId(), 
-									                        resultDto.getStartNodeId(),
-									                        resultDto.getEndNodeId(), 
-									                        resultDto.getLinkFlow(), 
-									                        resultDto.getCapacity(),
-									                        resultDto.getLength(),
-									                        resultDto.getSpeed(),
-									                        resultDto.getLinkCost(), 
-									                        resultDto.getTotalCostToEndNode(),
-									                        resultDto.getAlpha(),
-									                        resultDto.getBeta());
+						    printCurrentRecord(printer, runId, timePeriod, mode, resultDto);
 						}
 					}
 				}	
@@ -73,6 +61,22 @@ public class CsvIoUtils {
 		} catch (Exception ex) {
 			throw new PlanItException(ex);
 		}
+	}
+	
+	public static void printCurrentRecord(CSVPrinter printer, long runId, TimePeriod timePeriod, Mode mode, BprResultDto resultDto) throws Exception {
+        printer.printRecord(runId, 
+                                        timePeriod.getId(), 
+                                        mode.getId(), 
+                                        resultDto.getStartNodeId(),
+                                        resultDto.getEndNodeId(), 
+                                        resultDto.getLinkFlow(), 
+                                        resultDto.getCapacity(),
+                                        resultDto.getLength(),
+                                        resultDto.getSpeed(),
+                                        resultDto.getLinkCost(), 
+                                        resultDto.getTotalCostToEndNode(),
+                                        resultDto.getAlpha(),
+                                        resultDto.getBeta());
 	}
 	
 /**

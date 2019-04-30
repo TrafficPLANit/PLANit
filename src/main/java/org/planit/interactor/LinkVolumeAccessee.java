@@ -13,7 +13,7 @@ public interface LinkVolumeAccessee extends InteractorAccessee {
  * 
  * @return       array storing link segment flows
  */
-	double[] getLinkSegmentFlows();
+	double[] getTotalNetworkSegmentFlows();
 	
 /**
  * Get number of link segments

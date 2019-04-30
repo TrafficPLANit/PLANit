@@ -4,11 +4,11 @@ import java.util.logging.Logger;
 import org.planit.output.adapter.OutputAdapter;
 
 /**
- * Configuration for a specific output type includeing the adapter allowing access to the underlying raw data
+ * Configuration for a specific output type including the adapter allowing access to the underlying raw data
  * @author markr
  *
  */
-public class OutputTypeConfiguration {
+public abstract class OutputTypeConfiguration {
     
     /**
      * Logger for this class
@@ -16,18 +16,8 @@ public class OutputTypeConfiguration {
     private static final Logger LOGGER = Logger.getLogger(OutputTypeConfiguration.class.getName());    
 
     /**
-     * Default for persisting link id
-     */
-    private final boolean EXCLUDE_LINK_ID = false;
-    
-    /**
-     * excluding link id from persistence
-     */
-    protected boolean excludeLinkId = EXCLUDE_LINK_ID; 
-    
-    /**
-     * The output adapter for thie output type which provides access the data when needed to the one
-     * utilising this configuration for persistence reasons
+     * The output adapter for the output type which provides access the data when needed to the one
+     * utilizing this configuration for persistence reasons
      */
     protected final OutputAdapter outputAdapter;
     
@@ -37,16 +27,6 @@ public class OutputTypeConfiguration {
      */
     public OutputTypeConfiguration(OutputAdapter outputAdapter) {
         this.outputAdapter = outputAdapter;
-    }
-    
-    // getters - setters
-    
-    public boolean isExcludeLinkId() {
-        return excludeLinkId;
-    }
-
-    public void setExcludeLinkId(boolean excludeLinkId) {
-        this.excludeLinkId = excludeLinkId;
     }
     
     /** Collect the output adapter granting access to selected parts of the traffic assignment model for retrieving persistence data

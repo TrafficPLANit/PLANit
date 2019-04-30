@@ -39,7 +39,6 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
  * @param nodeA                      first node in the link
  * @param nodeB                     second node in the link
  * @param length                      length of the link
- * @see org.planit.network.physical.PhysicalNetworkBuilder#createLink()
  * @return                                Link object created
  * @throws PlanItException     thrown if there is an error
  */
@@ -53,7 +52,6 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
  *  
  * @param parentLink                          the parent link of this link  segment
  * @param directionAB                        the direction of this link
- * @see org.planit.network.physical.PhysicalNetworkBuilder#createLinkSegment()
  * @return                                           LinkSegment created
  */
 	@Override

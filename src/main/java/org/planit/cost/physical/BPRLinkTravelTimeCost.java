@@ -105,7 +105,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
  *
  */
 	public double calculateSegmentCost(Mode mode, LinkSegment linkSegment) throws PlanItException {
-		double flow = linkVolumeAccessee.getLinkSegmentFlows()[(int)linkSegment.getId()];
+		double flow = linkVolumeAccessee.getTotalNetworkSegmentFlows()[(int)linkSegment.getId()];
 		BPRParameters parameters = bprEdgeSegmentParameters[(int) linkSegment.getId()];
 	
 		// BPR function with mode specific free flow time and general pcu based delay

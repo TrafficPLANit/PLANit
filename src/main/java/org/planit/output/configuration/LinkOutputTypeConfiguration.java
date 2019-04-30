@@ -21,6 +21,11 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
     private final boolean EXCLUDE_NUMBER_OF_LANES = true;
     
     /**
+     * Default for persisting link id
+     */
+    private final boolean EXCLUDE_LINK_ID = false;
+    
+   /**
      * choice to exclude number of lanes
      */     
     protected boolean excludeCapacityPerLane = EXCLUDE_CAPACITY_PER_LANE;
@@ -30,7 +35,12 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
      */         
     protected boolean excludeNumberOfLanes = EXCLUDE_NUMBER_OF_LANES;
     
-    /** Constructor
+    /**
+     * excluding link id from persistence
+     */
+    protected boolean excludeLinkId = EXCLUDE_LINK_ID; 
+    
+   /** Constructor
      * @param outputAdapter to access data for output persistence
      */
     public LinkOutputTypeConfiguration(OutputAdapter outputAdapter) {
@@ -55,5 +65,14 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
         this.excludeNumberOfLanes = excludeNumberOfLanes;
     }
     
+    // getters - setters
+    
+    public boolean isExcludeLinkId() {
+        return excludeLinkId;
+    }
+
+    public void setExcludeLinkId(boolean excludeLinkId) {
+        this.excludeLinkId = excludeLinkId;
+    }
     
 }

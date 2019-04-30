@@ -70,7 +70,8 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	}
 	
 	@Override
-	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeEquilibration() throws PlanItException {
+//	public SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> executeEquilibration() throws PlanItException {
+	public void executeEquilibration() throws PlanItException {
 		throw new PlanItException("Not yet implemented");		
 	}
 

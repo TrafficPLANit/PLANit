@@ -2,11 +2,8 @@ package org.planit.project;
 
 import java.util.TreeMap;
 import java.util.logging.Logger;
-import java.util.SortedMap;
-import java.util.SortedSet;
 
 import org.planit.demand.Demands;
-import org.planit.dto.BprResultDto;
 import org.planit.event.listener.InputBuilderListener;
 import org.planit.event.management.EventManager;
 import org.planit.event.management.SimpleEventManager;
@@ -17,8 +14,6 @@ import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.trafficassignment.DeterministicTrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
-import org.planit.userclass.Mode;
-import org.planit.time.TimePeriod;
 import org.planit.zoning.Zoning;
 import org.planit.exceptions.PlanItException;
 
@@ -163,13 +158,13 @@ public class PlanItProject {
 		return demands;
 	}	
 		
-    /** 
-     * Create and register a deterministic traffic assignment instance of a given type
-     * 
-     * @param trafficAssignmentType		the class name of the traffic assignment type object to be created
-     * @return							the generated traffic assignment object
-     * @throws PlanItException 			thrown if there is an error
-     */
+/** 
+ * Create and register a deterministic traffic assignment instance of a given type
+ * 
+ * @param trafficAssignmentType		the class name of the traffic assignment type object to be created
+ * @return							the generated traffic assignment object
+ * @throws PlanItException 			thrown if there is an error
+ */
 	public DeterministicTrafficAssignment  createAndRegisterDeterministicAssignment(String trafficAssignmentType) throws PlanItException {
 		NetworkLoading networkLoadingAndAssignment = (NetworkLoading) assignmentFactory.create(trafficAssignmentType);
 		if(!(networkLoadingAndAssignment instanceof DeterministicTrafficAssignment)){
@@ -180,92 +175,88 @@ public class PlanItProject {
 		return trafficAssignment;
 	}
 	
-    /** 
-     * Create and register an output formatter instance of a given type
-     * 
-     * @param outputFormatterType     the class name of the output formatter type object to be created
-     * @return                          the generated output formatter object
-     * @throws PlanItException          thrown if there is an error
-     */		
+/** 
+ * Create and register an output formatter instance of a given type
+ * 
+ * @param outputFormatterType     the class name of the output formatter type object to be created
+ * @return                          the generated output formatter object
+ * @throws PlanItException          thrown if there is an error
+ */		
 	public OutputFormatter createAndRegisterOutputFormatter(String outputFormatterType) throws PlanItException {
        OutputFormatter outputFormatter = OutputFormatterFactory.createOutputFormatter(outputFormatterType);
-        if(outputFormatter == null){
+        if (outputFormatter == null) {
             throw new PlanItException("Output writer of type "+ outputFormatterType+ " could not be created");
         }   
         outputFormatters.put(outputFormatter.getId(), outputFormatter);       
         return outputFormatter;
 	}
 
-    /**
-     * Retrieve a Demands object given its id
-     * 
-     * @param id		the id of the Demands object
-     * @return			the retrieved Demands object
-     */
+ /**
+  * Retrieve a Demands object given its id
+  * 
+  * @param id		the id of the Demands object
+  * @return			the retrieved Demands object
+  */
 	public Demands getDemands(long id) {
 		return demandsMap.get(id);
 	}
 	
-    /**
-     * Retrieve a TrafficAssigment object given its id
-     * 
-     * @param id		the id of the TrafficAssignment object
-     * @return			the retrieved TrafficAssignment object
-     */
+ /**
+  * Retrieve a TrafficAssigment object given its id
+  * 
+  * @param id		the id of the TrafficAssignment object
+  * @return			the retrieved TrafficAssignment object
+  */
 	public TrafficAssignment getTrafficAssignment(long id) {
 		return trafficAssignments.get(id);
 	}
 	
-    /**
-     * Retrieve an output formatter object given its id
-     * 
-     * @param id        the id of the output formatter object
-     * @return          the retrieved output formatter object
-     */
+ /**
+  * Retrieve an output formatter object given its id
+  * 
+  * @param id        the id of the output formatter object
+  * @return          the retrieved output formatter object
+  */
     public OutputFormatter getOutputFormatter(long id) {
         return outputFormatters.get(id);
     }	
 	
-    /**
-     * Retrieve a Zoning object given its id
-     * 
-     * @param id		the id of the the Zoning object
-     * @return			the retrieved Zoning object
-     */
+ /**
+  * Retrieve a Zoning object given its id
+  * 
+  * @param id		the id of the the Zoning object
+  * @return			the retrieved Zoning object
+  */
 	public Zoning getZoning(long id) {
 		return zonings.get(id);
 	}
 	
-    /**
-     * Retrieve a PhysicalNetwork object given its id
-     * 
-     * @param id		the id of the PhysicalNetwork object
-     * @return			the retrieved PhysicalNetwork object
-     */
-	public PhysicalNetwork getPhysicalNetwork(long id) {
+/**
+ * Retrieve a PhysicalNetwork object given its id
+ * 
+ * @param id		the id of the PhysicalNetwork object
+ * @return			the retrieved PhysicalNetwork object
+ */
+    public PhysicalNetwork getPhysicalNetwork(long id) {
 		return physicalNetworks.get(id);
 	}
 	
-    /**
-     * Execute all registered traffic assignments 
-     * 
-     * Top-level error reporting is done in this class.  If several traffic assignments are registered and one fails, we report its error and continue with the next assignment. 
-     * 
-     * @return									map containing results categorized by run id, time period id and mode id
-     * @throws PlanItException		thrown if there is an error
-     * 
-     */
-	public SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> executeAllTrafficAssignments() throws PlanItException {
-		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
+/**
+ * Execute all registered traffic assignments 
+ * 
+ * Top-level error reporting is done in this class.  If several traffic assignments are registered and one fails, we report its error and continue with the next assignment. 
+ * 
+ * @throws PlanItException		thrown if there is an error
+ * 
+ */
+	public void executeAllTrafficAssignments() throws PlanItException {
 		trafficAssignments.forEach( (id,ta) -> {
 			try {
-				SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>> results = ta.execute();
-				resultsMap.put(id, results);
+			    ta.execute();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		});	
-		return resultsMap;
 	}
 	
 }

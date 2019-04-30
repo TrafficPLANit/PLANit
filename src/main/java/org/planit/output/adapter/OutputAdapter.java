@@ -1,34 +1,80 @@
 package org.planit.output.adapter;
 
+import java.util.Set;
 import java.util.logging.Logger;
 
-import org.planit.demand.Demands;
+import org.planit.cost.Cost;
+import org.planit.exceptions.PlanItException;
+import org.planit.network.physical.LinkSegment;
+import org.planit.network.transport.TransportNetwork;
 import org.planit.trafficassignment.TrafficAssignment;
+import org.planit.userclass.Mode;
 
 /**
- * OutputAdapter class which wraps around a traffic assignment class to provide selective access to its data for persistence
+ * Adapter providing access to the data of a TrafficAssignment class relevant for link outputs
+ * without exposing the internals of the traffic assignment class itself
  * 
  * @author markr
  *
  */
-public class OutputAdapter {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(OutputAdapter.class.getName());
+public abstract class OutputAdapter {
     
-    /**
-     * the traffic assignment this adapter provides selective access to for persistence
-     */
+    private static final Logger LOGGER = Logger.getLogger(OutputAdapter.class.getName());    
+    
     protected final TrafficAssignment trafficAssignment;
-    
-    
-    /** OutputAdapter wrapping around a certain traffic assignment instance to provide selective access to data
-     * @param trafficAssignment
-     */
+   
+/**
+ * Constructor
+ * 
+ * @param trafficAssignment         TrafficAssignment object which this adapter wraps
+ */
     public OutputAdapter(TrafficAssignment trafficAssignment) {
-        this.trafficAssignment = trafficAssignment;
+         this.trafficAssignment = trafficAssignment;
     }
 
+/**
+ * Return the combined transport network for this assignment
+ * 
+ * @return             TransportNetwork used in this assignment      
+ */
+    public TransportNetwork getTransportNetwork() {
+            return trafficAssignment.getTransportNetwork();
+    }
+
+/**
+ * Return the physical cost object used in this assignment
+ * 
+ * @return      physical cost object used in this assignment
+ */
+    public Cost<LinkSegment> getPhysicalCost() {
+          return trafficAssignment.getPhysicalCost();
+    }
+
+/**
+ * Return the total network segment costs calculated for this assignment
+ * 
+ * @param modes                      Set of modes for the current assignment
+ * @return                                  array storing the calculated network segment costs
+ * @throws PlanItException       thrown if there is an error
+ */
+    public double[] getTotalNetworkSegmentCosts(Set<Mode> modes) throws PlanItException {
+          return trafficAssignment.getTotalNetworkSegmentCosts(modes);
+    }
+
+/**
+ * Return the id of this assignment run
+ * 
+ * @return       id of this assignment run
+ */
+    public long getRunId() {
+           return trafficAssignment.getId();
+    }
+        
+/**
+ * Returns whether the current assignment has converged
+ * 
+ * @return       true if the current assignment has converged, false otherwise
+ */
+    public abstract boolean isConverged();
+        
 }

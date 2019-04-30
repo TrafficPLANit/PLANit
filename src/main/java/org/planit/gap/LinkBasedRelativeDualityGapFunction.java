@@ -45,7 +45,6 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
  * Compute the gap
  * 
  * @return               the gap for the current iteration
- * @see org.planit.gap.GapFunction#computeGap()
  */
 	public double computeGap(){
 		gap = (actualSystemTravelTime - minimumSystemTravelTime) / actualSystemTravelTime;

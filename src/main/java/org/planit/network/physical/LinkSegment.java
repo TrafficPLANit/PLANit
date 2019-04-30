@@ -5,6 +5,12 @@ import java.util.logging.Logger;
 import org.planit.network.EdgeSegment;
 import org.planit.utils.IdGenerator;
 
+/**
+ * Link segment object representing physical links in the network and storing their properties
+ * 
+ * @author gman6028
+ *
+ */
 public class LinkSegment extends EdgeSegment {
 	
     /**

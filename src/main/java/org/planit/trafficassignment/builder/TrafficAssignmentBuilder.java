@@ -94,8 +94,10 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
 		parentAssignment.setZoning(zoning);
 	}
 	
-	/** Register the output formatter which dictates in which format our outputs will be persisted
-	 * @param outputformatter
+	/** 
+	 * Register the output formatter which dictates in which format our outputs will be persisted
+	 * 
+	 * @param outputFormatter      OutputFormatter being registered
 	 */
 	public void registerOutputFormatter(OutputFormatter outputFormatter) {
 	    parentAssignment.registerOutputFormatter(outputFormatter);
