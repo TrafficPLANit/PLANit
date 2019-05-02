@@ -1,11 +1,11 @@
 package org.planit.network.physical.macroscopic;
 
 
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
-import org.planit.utils.DefaultValues;
 import org.planit.utils.IdGenerator;
 
 /** 
@@ -14,7 +14,7 @@ import org.planit.utils.IdGenerator;
  * @author markr
  *
  */
-public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSegmentType>{
+public class MacroscopicLinkSegmentType {
 		
     /**
      * Logger for this class
@@ -23,8 +23,6 @@ public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSeg
         
 	public static final double DEFAULT_MAXIMUM_DENSITY_LANE = 180;
 	
-	//public static final double DEFAULT_CAPACITY_LANE = 1800;	
-			
 	// Protected
 		
 	/**
@@ -40,12 +38,12 @@ public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSeg
 	/**
 	 * Maximum flow, i.e. capacity in veh/h/lane
 	 */
-	protected final double capacityPerLane;
+	protected final Map<Long, Double> capacityPerLane;
 	
 	/**
 	 * Maximum density in veh/km/lane
 	 */
-	protected final double maximumDensityPerLane;	
+	protected final Map<Long, Double> maximumDensityPerLane;  
 	
 	/**
 	 * All mode specific properties are captured within this member
@@ -71,7 +69,7 @@ public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSeg
  * @param maximumDensityPerLane     maximum density per lane of this link segment type
  * @param modeProperties                     properties of this link segment type
  */
-	public MacroscopicLinkSegmentType(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
+	public MacroscopicLinkSegmentType(@Nonnull String name, Map<Long, Double> capacityPerLane, Map<Long, Double> maximumDensityPerLane, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
 		this.id = generateMacroscopicLinkSegmentTypeId();
 		this.name = name;
 		this.capacityPerLane = capacityPerLane;
@@ -79,25 +77,6 @@ public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSeg
 		this.modeProperties = modeProperties;
 	}
 
-/** 
- * Compare on content but not on name and id
- * 
- * @param obj         object to be compared to this one
- * @return               result of this comparison
- * @see java.lang.Object#equals(java.lang.Object)
- */
-	@Override
-	public boolean equals(Object obj) {		
-		// Name is not what defines the characteristics, so we only consider capacity, max density, and mode specific information
-		if(super.equals(obj) && obj instanceof MacroscopicLinkSegmentType) {
-			MacroscopicLinkSegmentType other = (MacroscopicLinkSegmentType) obj; 
-			return 	(Math.abs(this.getCapacityPerLane() - other.getCapacityPerLane()) < DefaultValues.DEFAULT_EPSILON) && 
-					        (Math.abs(this.getMaximumDensityPerLane() - other.getMaximumDensityPerLane()) < DefaultValues.DEFAULT_EPSILON) &&
-					        (this.modeProperties.equals(other.modeProperties));
-		}
-		return false; 
-	}	
-	
 	// Getters - Setters
 	
 	public int getId() {
@@ -112,12 +91,12 @@ public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSeg
 		this.name = name;
 	}
 	
-	public double getCapacityPerLane() {
-		return capacityPerLane;
+	public double getCapacityPerLane(long modeId) {
+	    return capacityPerLane.get(modeId);
 	}
 
-	public double getMaximumDensityPerLane() {
-		return maximumDensityPerLane;
+	public double getMaximumDensityPerLane(long modeId) {
+	    return maximumDensityPerLane.get(modeId);
 	}
 
 	/** reference to internal mode properties
@@ -127,19 +106,4 @@ public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSeg
 		return modeProperties;
 	}
 
-/**
- * Compare this object to another link segment type
- * 
- * @param other        link segment type object to be compared to this one
- * @return                 result of the comparison
- */
-	@Override
-	public int compareTo(MacroscopicLinkSegmentType other) {
-		int compare = Double.compare(this.getCapacityPerLane(), other.getCapacityPerLane());
-		if (compare != 0) {
-			return compare;
-		}		
-		return Double.compare(this.getMaximumDensityPerLane(), other.getMaximumDensityPerLane());
-	}		
-		
 }

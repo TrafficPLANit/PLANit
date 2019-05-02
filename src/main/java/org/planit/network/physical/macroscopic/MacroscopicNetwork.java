@@ -50,7 +50,6 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 		return linkSegmentTypeMap.put(linkSegmentType.getId(), linkSegmentType);
 	}	
 		
-	
 	// Public
 
 /**
@@ -87,8 +86,9 @@ public class MacroscopicNetwork extends PhysicalNetwork {
  * @return                                              Pair containing the link segment type, plus boolean which is true if the link segment type already exists
  * @throws PlanItException                   thrown if there is an error
  */
-	public Pair<MacroscopicLinkSegmentType,Boolean> registerNewLinkSegmentType(@Nonnull String name, double capacity, double maximumDensity, MacroscopicLinkSegmentTypeModeProperties modeProperties) throws PlanItException {
-		if(!(networkBuilder instanceof MacroscopicNetworkBuilder)){
+	public Pair<MacroscopicLinkSegmentType,Boolean> registerNewLinkSegmentType(@Nonnull String name, Map<Long, Double> capacity, Map<Long, Double> maximumDensity, MacroscopicLinkSegmentTypeModeProperties modeProperties) throws PlanItException {
+	    
+		if (!(networkBuilder instanceof MacroscopicNetworkBuilder)) {
 			throw new PlanItException("Macroscopic network perspective only allows macroscopic link segment types to be registered");
 		}
 		MacroscopicLinkSegmentType linkSegmentType = ((MacroscopicNetworkBuilder) networkBuilder).createLinkSegmentType(name, capacity, maximumDensity, modeProperties);
@@ -110,6 +110,4 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 		return new MacroscopicLinkSegmentTypes();
 	}		
 	
-	
-
 }

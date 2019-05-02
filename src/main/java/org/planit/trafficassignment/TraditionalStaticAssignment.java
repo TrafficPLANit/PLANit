@@ -97,7 +97,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
   * @return                                 array of updated edge segment costs
   * @throws PlanItException      thrown if there is an error
   */
-    private double[] collectUpdatedCosts(Mode mode) throws PlanItException {
+    public double[] getNetworkSegmentCosts(Mode mode) throws PlanItException {
         double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
         Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();
         while (connectoidSegmentIter.hasNext()) {
@@ -136,12 +136,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
  * @param shortestPathAlgorithm    shortest path algorithm to be used
  * @throws PlanItException              thrown if there is an error
  */
-    private void executeModeTimePeriod(ODDemand odDemands, ModeData currentModeData, double[] networkSegmentCosts,
+    private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData, double[] networkSegmentCosts,
             ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
         ODDemandIterator odDemandIter = odDemands.iterator();
 
         // loop over all available OD demands
         while (odDemandIter.hasNext()) {
+            //double odDemand = odDemandIter.next();
             double odDemand = odDemandIter.next();
             int originZoneId = odDemandIter.getCurrentOriginId();
             int destinationZoneId = odDemandIter.getCurrentDestinationId();
@@ -187,26 +188,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         }
     }
 
- /**
-  * Returns the calculated network segment costs 
-  * 
-  * The calculated costs are updated during each iteration of the assignment.  The costs after the final iteration represent the final results of the assignment.
-  * 
-  * @param modes                  Set of modes covered by these results
-  * @return                              array containing calculated network segment costs
-  * @throws PlanItException   thrown if there is an error
-  */
-    public double[] getTotalNetworkSegmentCosts(Set<Mode> modes) throws PlanItException {
-        double[] totalNetworkSegmentCosts = new double[numberOfNetworkSegments];
-        for (Mode mode : modes) {
-            double[] networkSegmentCostPerMode = collectUpdatedCosts(mode);
-            for (int i = 0; i < numberOfNetworkSegments; i++) {
-                totalNetworkSegmentCosts[i] += networkSegmentCostPerMode[i];
-            }
-        }
-        return totalNetworkSegmentCosts;
-    }
-
 /**
   * Perform assignment for a given time period using Dijkstra's algorithm
   * 
@@ -216,19 +197,18 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
     private void executeTimePeriod(TimePeriod timePeriod) throws PlanItException {
         Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
         initialiseTimePeriod(modes);
-        double[] totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
         while (!simulationData.isConverged()) {
             dualityGapFunction.reset();
             smoothing.update(simulationData.getIterationIndex());
 
             // NETWORK LOADING - PER MODE
-            simulationData.resetTotalNetworkSegmentFlows(); // to be added up per mode
-            
-            for (Mode mode : modes) {
+             for (Mode mode : modes) {
+                //double[] totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes); //TODO  <-- change to mode specific costs instead of total costs  
+                double[] totalNetworkSegmentCosts = getNetworkSegmentCosts(mode);
+                simulationData.resetTotalNetworkSegmentFlows();
                 executeAndSmoothTimePeriodAndMode(timePeriod, mode, totalNetworkSegmentCosts);
             }
              
-            totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes);
             dualityGapFunction.computeGap();
             simulationData.incrementIterationIndex();
             LOGGER.fine("Iteration " + simulationData.getIterationIndex() + ": duality gap = " + dualityGapFunction.getGap());
@@ -252,10 +232,10 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         // AON based network loading
         ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(totalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
         ODDemand odDemands = demands.get(mode, timePeriod);
-        executeModeTimePeriod(odDemands, currentModeData, totalNetworkSegmentCosts, shortestPathAlgorithm);
+        executeModeTimePeriod(mode, odDemands, currentModeData, totalNetworkSegmentCosts, shortestPathAlgorithm);
 
-        double sumProduct = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows, totalNetworkSegmentCosts, numberOfNetworkSegments);
-        dualityGapFunction.increaseActualSystemTravelTime(sumProduct);
+        double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows, totalNetworkSegmentCosts, numberOfNetworkSegments);
+        dualityGapFunction.increaseActualSystemTravelTime(totalModeSystemTravelTime);
         applySmoothing(currentModeData);
         // aggregate smoothed mode specific flows - for cost computation
         ArrayOperations.addTo(simulationData.getTotalNetworkSegmentFlows(), currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);

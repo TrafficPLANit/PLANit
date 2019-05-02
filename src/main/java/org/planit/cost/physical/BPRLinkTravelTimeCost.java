@@ -1,5 +1,6 @@
 package org.planit.cost.physical;
 
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
@@ -23,7 +24,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
     private static final Logger LOGGER = Logger.getLogger(BPRLinkTravelTimeCost.class.getName());
         
 /**
- *   Link volume accessee object for this cost functionm
+ *   Link volume accessee object for this cost function
  */
 	protected LinkVolumeAccessee linkVolumeAccessee = null;
 	
@@ -45,12 +46,12 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 /**
  * Alpha parameter in BPR function
  */
-		protected final double alpha;
+	    protected final Map<Long, Double> alpha;
 		
 /**
  * Beta parameter in BPR function
  */		
-		protected final double beta;
+	    protected final Map<Long, Double> beta;
 				
 /** 
  * Constructor which injects BPR model parameters
@@ -58,7 +59,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
  * @param alpha				alpha value for BPR model
  * @param beta				beta value for BPR model
  */
-		public BPRParameters(double alpha, double beta) {
+	    public BPRParameters(Map<Long, Double> alpha, Map<Long, Double> beta) {
 			this.alpha = alpha;
 			this.beta = beta;
 		}
@@ -68,8 +69,8 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
  * 
  * @return		alpha value for BPR model
  */
-		public double getAlpha() {
-			return alpha;
+	    public double getAlpha(long modeId) {
+	        return alpha.get(modeId);
 		}
 	
 /**
@@ -77,8 +78,8 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
  * 
  * @return		beta value for BPR value
  */
-		public double getBeta() {
-			return beta;
+	    public double getBeta(long modeId) {
+	        return beta.get(modeId);
 		}		
 	}
 	
@@ -86,8 +87,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
  * BPR parameters for all link segments
  */
 	protected BPRParameters[] bprEdgeSegmentParameters = null;
-	
-	
+		
 /**
  * Constructor
  */
@@ -105,16 +105,18 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
  *
  */
 	public double calculateSegmentCost(Mode mode, LinkSegment linkSegment) throws PlanItException {
-		double flow = linkVolumeAccessee.getTotalNetworkSegmentFlows()[(int)linkSegment.getId()];
+		double flow = linkVolumeAccessee.getTotalNetworkSegmentFlows()[(int) linkSegment.getId()];
 		BPRParameters parameters = bprEdgeSegmentParameters[(int) linkSegment.getId()];
 	
 		// BPR function with mode specific free flow time and general pcu based delay
 		MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
 		double freeFlowTravelTime = macroscopicLinkSegment.computeFreeFlowTravelTime(mode);
-		double capacity = macroscopicLinkSegment.computeCapacity();
-		double alpha = parameters.getAlpha();
-		double beta = parameters.getBeta();
-		double linkTravelTime = freeFlowTravelTime * (1.0 + alpha * Math.pow(flow/capacity, beta));   //Free Flow Travel Time * (1 + alpha*(v/c)^beta)
+		long modeId = mode.getId();
+		double capacity = macroscopicLinkSegment.computeCapacity(modeId);
+		double alpha = parameters.getAlpha(modeId);
+		double beta = parameters.getBeta(modeId);
+		//double linkTravelTime = freeFlowTravelTime * (1.0 + alpha * Math.pow(flow/capacity, beta));   //Free Flow Travel Time * (1 + alpha*(v/c)^beta)
+		double linkTravelTime = freeFlowTravelTime * (1.0 + alpha * Math.pow(flow * mode.getPcu()/capacity, beta));   //Free Flow Travel Time * (1 + alpha*(v/c)^beta)
 		return linkTravelTime;
 	}
 	
@@ -147,8 +149,8 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
  * @param linkSegment			the specified link segment
  * @return								the alpha value for this link segment
  */
-	public double getAlpha(LinkSegment linkSegment) {
-		return bprEdgeSegmentParameters[(int) linkSegment.getId()].getAlpha();
+	public double getAlpha(Mode mode, LinkSegment linkSegment) {
+	    return bprEdgeSegmentParameters[(int) linkSegment.getId()].getAlpha(mode.getId());
 	}
 	
 /**
@@ -157,7 +159,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
  * @param linkSegment			the specified link segment
  * @return								the beta value for this link segment
  */
-	public double getBeta(LinkSegment linkSegment) {
-		return bprEdgeSegmentParameters[(int) linkSegment.getId()].getBeta();
+	public double getBeta(Mode mode, LinkSegment linkSegment) {
+	    return bprEdgeSegmentParameters[(int) linkSegment.getId()].getBeta(mode.getId());
 	}
 }

@@ -10,7 +10,7 @@ import java.util.logging.Logger;
  * @param <A>		first object in pair
  * @param <B>		second object in pair
  */
-public class Pair<A extends Comparable<A>, B extends Comparable<B>> implements Comparable<Pair<A,B>> {
+public class Pair<A, B>  {
  
     /**
      * Logger for this class
@@ -93,14 +93,5 @@ public class Pair<A extends Comparable<A>, B extends Comparable<B>> implements C
     public B getSecond() {
         return second;
     }
-
-/** Compare based on first entry of pair
- * 
- * @see java.lang.Comparable#compareTo(java.lang.Object)
- */
-	@Override
-	public int compareTo(Pair<A, B> o) {
-		return getFirst().compareTo(((Pair<A, B>) o).getFirst());
-	}
 
 }

@@ -175,17 +175,17 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
   * @throws PlanItException            thrown if there is an error
   */
     private void writeResultsForCurrentTimePeriod(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
-        double[] totalNetworkSegmentCosts = outputAdapter.getTotalNetworkSegmentCosts(modes);
         Function<LinkSegment, Double> alphaFunction = null;
         Function<LinkSegment, Double>  betaFunction = null;
         Cost<LinkSegment> physicalCost = outputAdapter.getPhysicalCost();
-        if (physicalCost instanceof BPRLinkTravelTimeCost) {
-            alphaFunction = (linkSegment) -> {return ((BPRLinkTravelTimeCost) physicalCost).getAlpha(linkSegment);};
-            betaFunction = (linkSegment) -> {return ((BPRLinkTravelTimeCost) physicalCost).getBeta(linkSegment);};
-        }
         double[] totalNetworkSegmentFlows = outputAdapter.getTotalNetworkSegmentFlows();
         TransportNetwork transportNetwork = outputAdapter.getTransportNetwork();
         for (Mode mode : modes) {
+            double[] totalNetworkSegmentCosts = outputAdapter.getNetworkSegmentCosts(mode);
+            if (physicalCost instanceof BPRLinkTravelTimeCost) {
+                alphaFunction = (linkSegment) -> {return ((BPRLinkTravelTimeCost) physicalCost).getAlpha(mode, linkSegment);};
+                betaFunction = (linkSegment) -> {return ((BPRLinkTravelTimeCost) physicalCost).getBeta(mode, linkSegment);};
+            }
             writeResultsForCurrentModeAndTimePeriod(outputAdapter, 
                                                                                      mode, 
                                                                                      timePeriod,
@@ -235,9 +235,9 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
                                                     linkSegment.getUpstreamVertex().getExternalId(),
                                                     linkSegment.getDownstreamVertex().getExternalId(),
                                                     flow, 
-                                                    linkSegment.getLinkSegmentType().getCapacityPerLane() * linkSegment.getNumberOfLanes(),
+                                                    linkSegment.getLinkSegmentType().getCapacityPerLane(mode.getId()) * linkSegment.getNumberOfLanes(),
                                                     linkSegment.getParentLink().getLength(),
-                                                    linkSegment.getMaximumSpeed(),
+                                                    linkSegment.getMaximumSpeed(mode.getId()),
                                                     cost, 
                                                     totalCost,
                                                     alphaFunction.apply(linkSegment),

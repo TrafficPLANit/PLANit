@@ -43,10 +43,14 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
   * @return                                  array storing the calculated network segment costs
   * @throws PlanItException       thrown if there is an error
   */
-    public double[] getTotalNetworkSegmentCosts(Set<Mode> modes) throws PlanItException {
-         return ((TraditionalStaticAssignment) trafficAssignment).getTotalNetworkSegmentCosts(modes);
-    }
+//    public double[] getTotalNetworkSegmentCosts(Set<Mode> modes) throws PlanItException {
+//         return ((TraditionalStaticAssignment) trafficAssignment).getTotalNetworkSegmentCosts(modes);
+//    }
 
+    public double[] getNetworkSegmentCosts(Mode mode) throws PlanItException {
+        return ((TraditionalStaticAssignment) trafficAssignment).getNetworkSegmentCosts(mode); 
+    }
+    
 /**
  * Returns whether the current assignment has converged
  * 

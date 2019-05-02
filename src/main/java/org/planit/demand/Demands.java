@@ -60,7 +60,7 @@ public class Demands extends TrafficAssignmentComponent<Demands>{
 	public ODDemand registerODDemand(TimePeriod timePeriod, Mode mode, ODDemand odDemand) {
 		odDemands.putIfAbsent(timePeriod,new TreeMap<Mode,ODDemand>());
 		TreeMap<Mode,ODDemand> tripMatrixByMode = odDemands.get(timePeriod);
-		return tripMatrixByMode.put(mode, odDemand);		
+		return tripMatrixByMode.put(mode, odDemand);
 	}
 	
 /** 
@@ -70,6 +70,7 @@ public class Demands extends TrafficAssignmentComponent<Demands>{
  * @param timePeriod			the time period for which the ODDemand object is required
  * @return 								ODDemand object if found, otherwise null
  */
+
 	public ODDemand get(Mode mode, TimePeriod timePeriod) {
 		if (odDemands.containsKey(timePeriod) && odDemands.get(timePeriod).containsKey(mode))
 		{
