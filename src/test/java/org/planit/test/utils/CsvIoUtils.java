@@ -47,7 +47,7 @@ public class CsvIoUtils {
 			existingFile.delete();
 		}
 		try (CSVPrinter printer = new CSVPrinter(new FileWriter(resultsFileLocation), CSVFormat.EXCEL)) {
-			printer.printRecord("Run Id", "Time Period Id", "Mode Id", "Start Node Id", "End Node Id", "Link Flow", "Capacity", "Length", "Speed", "Link Cost",  "Cost to End Node", "alpha", "beta");
+			printer.printRecord("Run Id", "Time Period Id", "Mode Id", "Start Node Id", "End Node Id", "Link Flow", "Capacity", "Length", "Speed", "Link Cost",  "Cost to End Node");
 			for (Long runId : resultsMap.keySet()) {
 				for (TimePeriod timePeriod : resultsMap.get(runId).keySet()) {
 					for (Mode mode : resultsMap.get(runId).get(timePeriod).keySet()) {
@@ -84,10 +84,8 @@ public class CsvIoUtils {
                                         resultDto.getLength(),
                                         resultDto.getSpeed(),
                                         resultDto.getLinkCost(), 
-                                        resultDto.getTotalCostToEndNode(),
-                                        resultDto.getAlpha(),
-                                        resultDto.getBeta());
-	}
+                                        resultDto.getTotalCostToEndNode());
+ 	}
 	
 /**
  * Retrieves the results of a previous run from a CSV file
@@ -123,9 +121,7 @@ public class CsvIoUtils {
 				double capacity = Double.parseDouble(record.get("Capacity"));
 				double length = Double.parseDouble(record.get("Length"));
 				double speed = Double.parseDouble(record.get("Speed"));
-				double alpha = Double.parseDouble(record.get("alpha"));
-				double beta = Double.parseDouble(record.get("beta"));
-				BprResultDto resultDto = new BprResultDto(startNodeId, endNodeId, linkFlow, linkCost, totalCostToEndNode, capacity, length, speed, alpha, beta);
+				BprResultDto resultDto = new BprResultDto(startNodeId, endNodeId, linkFlow, linkCost, totalCostToEndNode, capacity, length, speed);
 				resultsMap.get(runId).get(timePeriod).get(mode).add(resultDto);
 			}
 			in.close();

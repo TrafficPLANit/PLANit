@@ -207,22 +207,6 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		}
 		
 /**
- * Find node by the external Id of link connected to it
- * 
- * @param externalLinkId        external Id of connecting link
- * @return                               node connected to specified link
- * @throws PlanItException    thrown if there is an error
- */
-		public Node findNodeByExternalLinkId(long externalLinkId) throws PlanItException {
-			for (Node node: nodeMap.values()) {
-				if  ((node.getExternalLinkIdSet().contains(externalLinkId)) && (node.getExternalId() != 0)) {
-					return node;
-				}
-			}
-			throw new PlanItException("There is a connectoid " + externalLinkId + " in the zone definition file but this cannot be matched to a ID in the network definition file.");
-		}
-		
-/**
  * Find a node by its external Id
  * 
  * @param externalId           external Id of node

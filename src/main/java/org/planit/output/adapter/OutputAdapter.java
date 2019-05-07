@@ -1,14 +1,11 @@
 package org.planit.output.adapter;
 
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.cost.Cost;
-import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.trafficassignment.TrafficAssignment;
-import org.planit.userclass.Mode;
 
 /**
  * Adapter providing access to the data of a TrafficAssignment class relevant for link outputs

@@ -65,18 +65,20 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		}
 			
 /**
- * Returns alpha value for BPR model
+ * Returns alpha value of the BPR model for a specified mode
  * 
- * @return		alpha value for BPR model
+ * @param modeId    id of the specified mode
+ * @return		           alpha value of BPR model for specified mode
  */
 	    public double getAlpha(long modeId) {
 	        return alpha.get(modeId);
 		}
 	
 /**
- * Returns beta value for BPR model
+ * Returns beta value of the BPR model for a specified mode
  * 
- * @return		beta value for BPR value
+ * @param modeId   id of the specified mode
+ * @return		          beta value of the BPR value for the specified mode
  */
 	    public double getBeta(long modeId) {
 	        return beta.get(modeId);
@@ -103,11 +105,11 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
  *  @return 							the travel time for the current link
  *  @throws PlanItException 	thrown if there is an error
  *
- */
+ */	
 	public double calculateSegmentCost(Mode mode, LinkSegment linkSegment) throws PlanItException {
 		double flow = linkVolumeAccessee.getTotalNetworkSegmentFlows()[(int) linkSegment.getId()];
-		BPRParameters parameters = bprEdgeSegmentParameters[(int) linkSegment.getId()];
-	
+        BPRParameters parameters = bprEdgeSegmentParameters[(int) linkSegment.getId()];	
+        
 		// BPR function with mode specific free flow time and general pcu based delay
 		MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
 		double freeFlowTravelTime = macroscopicLinkSegment.computeFreeFlowTravelTime(mode);
@@ -115,8 +117,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		double capacity = macroscopicLinkSegment.computeCapacity(modeId);
 		double alpha = parameters.getAlpha(modeId);
 		double beta = parameters.getBeta(modeId);
-		//double linkTravelTime = freeFlowTravelTime * (1.0 + alpha * Math.pow(flow/capacity, beta));   //Free Flow Travel Time * (1 + alpha*(v/c)^beta)
-		double linkTravelTime = freeFlowTravelTime * (1.0 + alpha * Math.pow(flow * mode.getPcu()/capacity, beta));   //Free Flow Travel Time * (1 + alpha*(v/c)^beta)
+		double linkTravelTime = freeFlowTravelTime * (1.0 + alpha * Math.pow(flow/capacity, beta));   //Free Flow Travel Time * (1 + alpha*(v/c)^beta)
 		return linkTravelTime;
 	}
 	
@@ -144,20 +145,22 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	}
 	
 /**
- * Returns the alpha value for a given link segment
+ * Returns the alpha value for a given link segment for the specified mode
  * 
+ * @param mode                    the specified mode
  * @param linkSegment			the specified link segment
- * @return								the alpha value for this link segment
+ * @return								the alpha value for this link segment for the specified mode
  */
 	public double getAlpha(Mode mode, LinkSegment linkSegment) {
 	    return bprEdgeSegmentParameters[(int) linkSegment.getId()].getAlpha(mode.getId());
 	}
 	
 /**
- * Returns the beta value for a given link segment
+ * Returns the beta value for a given link segment for the specified mode
  * 
+ * @param mode                    the specified mode
  * @param linkSegment			the specified link segment
- * @return								the beta value for this link segment
+ * @return								the beta value for this link segment for the specified mode
  */
 	public double getBeta(Mode mode, LinkSegment linkSegment) {
 	    return bprEdgeSegmentParameters[(int) linkSegment.getId()].getBeta(mode.getId());

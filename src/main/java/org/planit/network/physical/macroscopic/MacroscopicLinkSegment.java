@@ -40,9 +40,12 @@ public class MacroscopicLinkSegment extends LinkSegment{
 	}
 	
 /** 
+ * Return the total capacity for a specified mode
+ * 
  * Compute the total capacity by multiplying the capacity per lane and number of lanes
  * 
- * @return              linkSegmentCapacity in pcu
+ * @param  modeId    id of the specified mode
+ * @return                  linkSegmentCapacity in pcu
  */
 	public double computeCapacity(long modeId) {
 	    return getLinkSegmentType().getCapacityPerLane(modeId)*getNumberOfLanes();

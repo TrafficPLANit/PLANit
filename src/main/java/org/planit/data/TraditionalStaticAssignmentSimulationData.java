@@ -1,5 +1,6 @@
 package org.planit.data;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -19,9 +20,9 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     private double[] emptySegmentArray = null; // specific to tsa
     
     /**
-     * network wide segment flows
+     * segment flows for each mode
      */
-    private double[] totalNetworkSegmentFlows = null; // specific to tsa
+    private Map<Mode, double[]> modalNetworkSegmentFlows = null;
     
     /**
      * Store the mode specific data required during assignment
@@ -29,12 +30,26 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     private final Map<Mode,ModeData> modeSpecificData = new TreeMap<Mode,ModeData>(); // specific to tsa
     
  /**
-  * reset total network segment flows by cloning empty array
+  * Constructor
   */
-    public void resetTotalNetworkSegmentFlows() {
-         setTotalNetworkSegmentFlows((double[]) emptySegmentArray.clone()); 
+    public TraditionalStaticAssignmentSimulationData() {
+        modalNetworkSegmentFlows = new HashMap<Mode, double[]>();
     }
     
+ /**
+  * Reset modal network segment flows by cloning empty array
+  * 
+  * @param mode    the mode whose flows are to be reset
+  */
+    public void resetModalNetworkSegmentFlows(Mode mode) {
+        setModalNetworkSegmentFlows(mode, (double[]) emptySegmentArray.clone()); 
+   }
+    
+/**
+ * Return an empty segment array
+ * 
+ * @return        empty segment array
+ */
    public double[] getEmptySegmentArray() {
       return emptySegmentArray;
    }
@@ -43,16 +58,44 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
      this.emptySegmentArray = emptySegmentArray;
  }
 
-  public double[] getTotalNetworkSegmentFlows() {
-    return totalNetworkSegmentFlows;
-  }
+/**
+ * Get the flows for a specified mode
+ * 
+ * @param mode        the specified mode
+ * @return                  array of flows for current mode
+ */
+  public double[] getModalNetworkSegmentFlows(Mode mode) {
+      return modalNetworkSegmentFlows.get(mode);
+    }
 
-  public void setTotalNetworkSegmentFlows(double[] totalNetworkSegmentFlows) {
-    this.totalNetworkSegmentFlows = totalNetworkSegmentFlows;
-  }
-
+ /**
+  * Set the flows for a specifed mode
+  * 
+  * @param mode                                                the specified mode
+  * @param modalNetworkSegmentFlows         array of flows for the specified mode
+  */
+    public void setModalNetworkSegmentFlows(Mode mode, double[] modalNetworkSegmentFlows) {
+      this.modalNetworkSegmentFlows.put(mode, modalNetworkSegmentFlows);
+    }
+  
   public Map<Mode, ModeData> getModeSpecificData() {
     return modeSpecificData;
   }
+
+/**
+ * Calculate the total flows in the network over all modes
+ * 
+ * @return       the total flows in the network
+ */
+  public double[] getTotalNetworkSegmentFlows() {
+      double [] totalNetworkSegmentFlows = (double[]) emptySegmentArray.clone();
+      int size = totalNetworkSegmentFlows.length;
+      for (int i=0; i<size; i++) {
+          for (Mode mode : modalNetworkSegmentFlows.keySet()) {
+              totalNetworkSegmentFlows[i] += modalNetworkSegmentFlows.get(mode)[i];
+          }
+      }
+      return totalNetworkSegmentFlows;
+    }
 
 }

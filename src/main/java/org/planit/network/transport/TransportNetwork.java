@@ -152,7 +152,7 @@ public class TransportNetwork {
  * @param physicalNetwork    the PhysicalNetwork used to generate this TransportNetwork
  * @param zoning                   the Zoning used to generate this TransportNetwork
  */
-	public TransportNetwork(@Nonnull PhysicalNetwork physicalNetwork,@Nonnull Zoning zoning){
+	public TransportNetwork(@Nonnull PhysicalNetwork physicalNetwork, @Nonnull Zoning zoning){
 		this.physicalNetwork = physicalNetwork;
 		this.zoning = zoning;
 		this.connectoidSegments = zoning.getVirtualNetwork().connectoidSegments;

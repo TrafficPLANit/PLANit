@@ -51,7 +51,7 @@ public class Zone {
  * @param centroid			Centroid of this zone
  */
 	public Zone(Centroid centroid){
-		this.id = generateZoneId();
+	    this.id = centroid.getId();
 		centroid.setParentZone(this);
 		this.centroid = centroid;
 	}	

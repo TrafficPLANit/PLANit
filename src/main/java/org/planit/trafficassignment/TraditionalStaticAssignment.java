@@ -74,10 +74,10 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         simulationData = new TraditionalStaticAssignmentSimulationData();
         simulationData.setEmptySegmentArray(new double[numberOfNetworkSegments]);
         simulationData.setConverged(false);
-        simulationData.resetTotalNetworkSegmentFlows();
         simulationData.setIterationIndex(0);
         simulationData.getModeSpecificData().clear();
         for (Mode mode : modes) {
+            simulationData.resetModalNetworkSegmentFlows(mode);
             simulationData.getModeSpecificData().put(mode, new ModeData(simulationData.getEmptySegmentArray()));
         }
     }
@@ -127,22 +127,20 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
     }
 
 /**
- * Perform assignment for a given time period, mode and costs imposed on
- * Dijkstra shortest path
+ * Perform assignment for a given time period, mode and costs imposed on Dijkstra shortest path
  * 
+ * @param mode                               the current mode
  * @param odDemands                    origin-demand store
  * @param currentModeData            data for the current mode
  * @param networkSegmentCosts   segment costs for the network
  * @param shortestPathAlgorithm    shortest path algorithm to be used
  * @throws PlanItException              thrown if there is an error
  */
-    private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData, double[] networkSegmentCosts,
-            ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+    private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData, double[] networkSegmentCosts,  ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
         ODDemandIterator odDemandIter = odDemands.iterator();
 
         // loop over all available OD demands
         while (odDemandIter.hasNext()) {
-            //double odDemand = odDemandIter.next();
             double odDemand = odDemandIter.next();
             int originZoneId = odDemandIter.getCurrentOriginId();
             int destinationZoneId = odDemandIter.getCurrentDestinationId();
@@ -203,9 +201,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 
             // NETWORK LOADING - PER MODE
              for (Mode mode : modes) {
-                //double[] totalNetworkSegmentCosts = getTotalNetworkSegmentCosts(modes); //TODO  <-- change to mode specific costs instead of total costs  
                 double[] totalNetworkSegmentCosts = getNetworkSegmentCosts(mode);
-                simulationData.resetTotalNetworkSegmentFlows();
+                simulationData.resetModalNetworkSegmentFlows(mode);
                 executeAndSmoothTimePeriodAndMode(timePeriod, mode, totalNetworkSegmentCosts);
             }
              
@@ -238,7 +235,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         dualityGapFunction.increaseActualSystemTravelTime(totalModeSystemTravelTime);
         applySmoothing(currentModeData);
         // aggregate smoothed mode specific flows - for cost computation
-        ArrayOperations.addTo(simulationData.getTotalNetworkSegmentFlows(), currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
+        ArrayOperations.addTo(simulationData.getModalNetworkSegmentFlows(mode), currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
         simulationData.getModeSpecificData().put(mode, currentModeData);
     }
 
@@ -320,6 +317,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         return simulationData.getTotalNetworkSegmentFlows();
     }
 
+    @Override
+    public double[] getModalNetworkSegmentFlows(Mode mode) {
+        return simulationData.getModalNetworkSegmentFlows(mode);
+    }
+     
     /*
      * (non-Javadoc)
      * 

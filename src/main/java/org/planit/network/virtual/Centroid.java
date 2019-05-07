@@ -55,7 +55,7 @@ public class Centroid extends Vertex {
  */
 	public Centroid(@Nonnull Zone parentZone, long externalId) {
 		super();
-		this.centroidId = generateCentroidId();
+		this.centroidId = parentZone.getId();
 		this.parentZone = parentZone;
 		this.externalId = externalId;
 	}	

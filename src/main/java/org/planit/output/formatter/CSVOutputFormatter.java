@@ -6,13 +6,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.planit.cost.Cost;
-import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
@@ -86,7 +83,7 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
        }
        try {
            printer = new CSVPrinter(new FileWriter(outputFileName), CSVFormat.EXCEL);
-           printer.printRecord("Run Id", "Time Period Id", "Mode Id", "Start Node Id", "End Node Id", "Link Flow", "Capacity", "Length", "Speed", "Link Cost",  "Cost to End Node", "alpha", "beta");
+           printer.printRecord("Run Id", "Time Period Id", "Mode Id", "Start Node Id", "End Node Id", "Link Flow", "Capacity", "Length", "Speed", "Link Cost" , "Cost to End Node");
        } catch (IOException ioe) {
            throw new PlanItException(ioe);
        }
@@ -168,32 +165,22 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
  /**
   * Write the results for the current time period to the CSV file
   * 
-  * @param outputAdapter               TraditionalStaticAssignmentLinkOutputAdapter used to retrieve the results of the assignment
+  * @param outputAdapter                TraditionalStaticAssignmentLinkOutputAdapter used to retrieve the results of the assignment
   * @param modes                           Set of modes of travel
   * @param timePeriod                     the current time period
-  * @return                                       Map containing the results for each mode
   * @throws PlanItException            thrown if there is an error
   */
     private void writeResultsForCurrentTimePeriod(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
-        Function<LinkSegment, Double> alphaFunction = null;
-        Function<LinkSegment, Double>  betaFunction = null;
-        Cost<LinkSegment> physicalCost = outputAdapter.getPhysicalCost();
-        double[] totalNetworkSegmentFlows = outputAdapter.getTotalNetworkSegmentFlows();
         TransportNetwork transportNetwork = outputAdapter.getTransportNetwork();
         for (Mode mode : modes) {
             double[] totalNetworkSegmentCosts = outputAdapter.getNetworkSegmentCosts(mode);
-            if (physicalCost instanceof BPRLinkTravelTimeCost) {
-                alphaFunction = (linkSegment) -> {return ((BPRLinkTravelTimeCost) physicalCost).getAlpha(mode, linkSegment);};
-                betaFunction = (linkSegment) -> {return ((BPRLinkTravelTimeCost) physicalCost).getBeta(mode, linkSegment);};
-            }
+            double[] totalNetworkSegmentFlows = outputAdapter.getModalNetworkSegmentFlows(mode);
             writeResultsForCurrentModeAndTimePeriod(outputAdapter, 
                                                                                      mode, 
                                                                                      timePeriod,
                                                                                      totalNetworkSegmentCosts, 
                                                                                      totalNetworkSegmentFlows,
-                                                                                     transportNetwork,
-                                                                                     alphaFunction, 
-                                                                                     betaFunction);
+                                                                                     transportNetwork);
         }
     }
     
@@ -206,8 +193,6 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
   * @param totalNetworkSegmentCosts        calculated segment costs for the physical network
   * @param totalNetworkSegmentFlows        calculated flows for the network
   * @param transportNetwork                         the transport network
-  * @param alphaFunction                              lambda function to retrieve alpha value for a segment 
-  * @param betaFunction                                lambda function to retrieve beta value for a segment
   * @throws PlanItException                           thrown if there is an error
   */
     private void writeResultsForCurrentModeAndTimePeriod(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, 
@@ -215,9 +200,7 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
                                                                                                    TimePeriod timePeriod,
                                                                                                    double[] totalNetworkSegmentCosts, 
                                                                                                    double[] totalNetworkSegmentFlows,
-                                                                                                   TransportNetwork transportNetwork,
-                                                                                                   Function<LinkSegment, Double> alphaFunction,
-                                                                                                   Function<LinkSegment, Double>  betaFunction) throws PlanItException {
+                                                                                                   TransportNetwork transportNetwork) throws PlanItException {
         try {
             double totalCost = 0.0;
             Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
@@ -239,9 +222,7 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
                                                     linkSegment.getParentLink().getLength(),
                                                     linkSegment.getMaximumSpeed(mode.getId()),
                                                     cost, 
-                                                    totalCost,
-                                                    alphaFunction.apply(linkSegment),
-                                                    betaFunction.apply(linkSegment));
+                                                    totalCost);
                 }
             }
         } catch (Exception e) {

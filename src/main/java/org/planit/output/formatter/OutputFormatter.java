@@ -17,7 +17,7 @@ public interface OutputFormatter {
 
     
 /** 
- * collect the id of the formatter
+ * Collect the id of the formatter
  * 
  * @return id
  */

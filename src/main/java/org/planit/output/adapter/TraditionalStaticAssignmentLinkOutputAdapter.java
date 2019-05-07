@@ -35,18 +35,18 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
     public double[] getTotalNetworkSegmentFlows() {
          return ((TraditionalStaticAssignment) trafficAssignment).getTotalNetworkSegmentFlows();
     }
+    public double[] getModalNetworkSegmentFlows(Mode mode) {
+        return ((TraditionalStaticAssignment) trafficAssignment).getModalNetworkSegmentFlows(mode);
+    }
+    
 
  /**
-  * Return the total network segment costs calculated for this assignment
+  * Return the network segment costs for a specified mode
   * 
-  * @param modes                      Set of modes for the current assignment
-  * @return                                  array storing the calculated network segment costs
+  * @param mode                        specified mode
+  * @return                                  array storing the network segment costs for the specified mode
   * @throws PlanItException       thrown if there is an error
   */
-//    public double[] getTotalNetworkSegmentCosts(Set<Mode> modes) throws PlanItException {
-//         return ((TraditionalStaticAssignment) trafficAssignment).getTotalNetworkSegmentCosts(modes);
-//    }
-
     public double[] getNetworkSegmentCosts(Mode mode) throws PlanItException {
         return ((TraditionalStaticAssignment) trafficAssignment).getNetworkSegmentCosts(mode); 
     }

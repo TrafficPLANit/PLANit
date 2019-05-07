@@ -56,7 +56,7 @@ public class ResultDto implements Comparable<ResultDto> {
 		this.endNodeId = endNodeId;
 		this.linkFlow = linkFlow;
 		this.linkCost = linkCost;
-		this.totalCostToEndNode =  totalCostToEndNode;
+		this.totalCostToEndNode = totalCostToEndNode;
 	}
 	
 /**
