@@ -20,24 +20,24 @@ public class Centroid extends Vertex {
      */
     private static final Logger LOGGER = Logger.getLogger(Centroid.class.getName());
         
-/** 
- * Generate unique centroid id
- * 
- * @return             id of this Centroid
- */
+    /** 
+     * Generate unique centroid id
+     * 
+     * @return             id of this Centroid
+     */
 	protected static int generateCentroidId() {
 		return IdGenerator.generateId(Centroid.class);
 	}	
 	
 
-/**
- * Unique internal identifier 
- */	
+    /**
+     * Unique internal identifier 
+     */	
 	protected final long centroidId;
 
-/**
- * External identifier for this centroid
- */
+    /**
+     * External identifier for this centroid
+     */
 	protected final long externalId;
 	
 	/**
@@ -47,12 +47,12 @@ public class Centroid extends Vertex {
 			
 	// Public
 	
-/**
- * Constructor
- * 
-* @param parentZone      zone containing this centroid
-* @param externalId         external Id of link connecting to this centroid
- */
+    /**
+     * Constructor
+     * 
+    * @param parentZone      zone containing this centroid
+    * @param externalId      external Id of link connecting to this centroid
+     */
 	public Centroid(@Nonnull Zone parentZone, long externalId) {
 		super();
 		this.centroidId = generateCentroidId();
@@ -60,11 +60,11 @@ public class Centroid extends Vertex {
 		this.externalId = externalId;
 	}	
 	
-/**
- * Constructor
- * 
- * @param externalId     external Id of link connecting to this centroid
- */
+    /**
+     * Constructor
+     * 
+     * @param externalId     external Id of link connecting to this centroid
+     */
 	public Centroid(long externalId) {
 		super();
 		this.centroidId = generateCentroidId();
@@ -72,9 +72,9 @@ public class Centroid extends Vertex {
 		this.externalId = externalId;
 	}
 	
-/**
- * Constructor
- */
+    /**
+     * Constructor
+     */
 	public Centroid() {
 		super();
 		this.centroidId = generateCentroidId();

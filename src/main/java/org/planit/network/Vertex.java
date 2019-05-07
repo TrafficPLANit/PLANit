@@ -116,28 +116,31 @@ public class Vertex implements Comparable<Vertex> {
 		return IdGenerator.generateId(Vertex.class);
 	}	
 	
-/**
- * Unique internal identifier 
- */	
+    /**
+     * Unique internal identifier 
+     */	
 	protected final long id;
 	
-/**
- * generic input property storage
- */
+    /**
+     * generic input property storage
+     */
 	protected Map<String, Object> inputProperties = null;		
 		
-/**
- * External identifier for this vertex
- */
+    /**
+     * External identifier for this vertex
+     */
 	protected long externalId;
+	
 	/**
 	 * edge container
 	 */	
-	public final Edges edges = new Edges();		
+	public final Edges edges = new Edges();
+	
 	/**
 	 * exitEdgeSegmentcontainer
 	 */
 	public final EdgeSegments exitEdgeSegments = new EdgeSegments();
+	
 	/**
 	 * entryEdgeSegment container
 	 */	

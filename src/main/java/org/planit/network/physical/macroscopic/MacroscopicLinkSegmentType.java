@@ -23,7 +23,7 @@ public class MacroscopicLinkSegmentType implements Comparable<MacroscopicLinkSeg
         
 	public static final double DEFAULT_MAXIMUM_DENSITY_LANE = 180;
 	
-	//public static final double DEFAULT_CAPACITY_LANE = 1800;	
+	public static final double DEFAULT_CAPACITY_LANE = 1800;	
 			
 	// Protected
 		

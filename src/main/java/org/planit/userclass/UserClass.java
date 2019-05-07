@@ -31,14 +31,13 @@ public class UserClass {
     /**
      * Mode of travel of this user class
      */
-	private Mode mode;
+	private final Mode mode;
 	
 	/**
 	 * Traveller type of this user class
 	 */
-	private TravellerType travellerType;
+	private final TravellerType travellerType;
 	
-
     /**
      * Map to store registered user classes
      */
