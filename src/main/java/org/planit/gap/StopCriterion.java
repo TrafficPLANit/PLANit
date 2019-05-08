@@ -18,7 +18,7 @@ public class StopCriterion {
 /**
  * Default Epsilon in case it is not set by user
  */
-	public final double DEFAULT_EPSILON = 0.00;
+	public final double DEFAULT_EPSILON = 0.001;
 /**
  * Default maximum number of iterations in case it is not set by user
  */

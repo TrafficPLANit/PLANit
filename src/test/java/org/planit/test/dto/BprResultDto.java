@@ -1,4 +1,4 @@
-package org.planit.dto;
+package org.planit.test.dto;
 
 import java.util.logging.Logger;
 
@@ -27,14 +27,6 @@ public class BprResultDto extends ResultDto {
   * Link maximum speed
   */
     private double speed;
- /**
-  * Alpha value in BPR function
-  */
-    private double alpha;
- /**
-  * Beta value in BPR function
-  */
-    private double beta;
     
  /**
   * Constructor
@@ -47,17 +39,13 @@ public class BprResultDto extends ResultDto {
  * @param capacity								capacity of the link
  * @param length									length of the link
  * @param speed									travel speed of the link
- * @param alpha									    alpha value used in BPR function
- * @param beta										beta value used in BPR function
  */
 	public BprResultDto(long startNodeId, long endNodeId, double linkFlow, double linkCost, double totalCostToEndNode,
-			                             double capacity, double length, double speed, double alpha, double beta) {
+ 			                             double capacity, double length, double speed) {
 		super(startNodeId, endNodeId, linkFlow, linkCost, totalCostToEndNode);
 		this.capacity = capacity;
 		this.length = length;
 		this.speed = speed;
-		this.alpha = alpha;
-		this.beta = beta;
 	}
 
 /**
@@ -114,40 +102,4 @@ public class BprResultDto extends ResultDto {
 		this.speed = speed;
 	}
 
-/**
- * Returns the alpha value for this link
- * 
- * @return			the alpha value used in the BPR function for this link
- */
-	public double getAlpha() {
-		return alpha;
-	}
-
-/**
- * Set the alpha value for this link
- * 
- * @param alpha			the alpha value used in the BPR function for this link
- */
-	public void setAlpha(double alpha) {
-		this.alpha = alpha;
-	}
-
-/**
- * Return the beta value for this link
- * 
- * @return				the beta value used in the BPR function for this link
- */
-	public double getBeta() {
-		return beta;
-	}
-
-/**
- * Set the beta value for this link
- * 
- * @param beta			the beta value used in the BPR function for this link
- */
-	public void setBeta(double beta) {
-		this.beta = beta;
-	}
-	
 }

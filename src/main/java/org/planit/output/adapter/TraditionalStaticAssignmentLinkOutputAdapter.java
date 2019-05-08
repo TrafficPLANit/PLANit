@@ -1,8 +1,11 @@
 package org.planit.output.adapter;
 
+import java.util.Set;
 import java.util.logging.Logger;
 
+import org.planit.exceptions.PlanItException;
 import org.planit.trafficassignment.TraditionalStaticAssignment;
+import org.planit.userclass.Mode;
 
 /**
  * Adapter providing access to the data of the TraditionalStaticAssignment class relevant for link outputs
@@ -30,9 +33,24 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
  * @return        array storing the calculated network segment flows
  */
     public double[] getTotalNetworkSegmentFlows() {
-            return ((TraditionalStaticAssignment) trafficAssignment).getTotalNetworkSegmentFlows();
+         return ((TraditionalStaticAssignment) trafficAssignment).getTotalNetworkSegmentFlows();
     }
+    public double[] getModalNetworkSegmentFlows(Mode mode) {
+        return ((TraditionalStaticAssignment) trafficAssignment).getModalNetworkSegmentFlows(mode);
+    }
+    
 
+ /**
+  * Return the network segment costs for a specified mode
+  * 
+  * @param mode                        specified mode
+  * @return                                  array storing the network segment costs for the specified mode
+  * @throws PlanItException       thrown if there is an error
+  */
+    public double[] getNetworkSegmentCosts(Mode mode) throws PlanItException {
+        return ((TraditionalStaticAssignment) trafficAssignment).getNetworkSegmentCosts(mode); 
+    }
+    
 /**
  * Returns whether the current assignment has converged
  * 

@@ -40,12 +40,15 @@ public class MacroscopicLinkSegment extends LinkSegment{
 	}
 	
 /** 
+ * Return the total capacity for a specified mode
+ * 
  * Compute the total capacity by multiplying the capacity per lane and number of lanes
  * 
- * @return              linkSegmentCapacity in pcu
+ * @param  modeId    id of the specified mode
+ * @return                  linkSegmentCapacity in pcu
  */
-	public double computeCapacity() {
-		return getLinkSegmentType().getCapacityPerLane()*getNumberOfLanes();
+	public double computeCapacity(long modeId) {
+	    return getLinkSegmentType().getCapacityPerLane(modeId)*getNumberOfLanes();
 	}
 	
 /** 
@@ -57,7 +60,7 @@ public class MacroscopicLinkSegment extends LinkSegment{
  */
 	public double computeFreeFlowTravelTime(Mode mode) throws PlanItException {
 		double linkLength = getParentLink().getLength() ;
-		double maximumSpeed = getMaximumSpeed();
+		double maximumSpeed = getMaximumSpeed(mode.getId());
 		MacroscopicLinkSegmentTypeModeProperties  properties = getLinkSegmentType().getModeProperties();
 		double computedMaximumSpeed = maximumSpeed;
 		if (properties != null) {		

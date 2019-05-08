@@ -5,7 +5,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.logging.Logger;
 
-import org.planit.dto.BprResultDto;
+import org.planit.test.dto.BprResultDto;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
 

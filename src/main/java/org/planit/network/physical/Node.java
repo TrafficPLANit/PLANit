@@ -24,11 +24,6 @@ public class Node extends Vertex {
         
 	// Protected
 	
-	/**
-	 * Set of external Ids of links which connect to this node
-	 */
-	protected Set<Long> externalLinkIdSet = new HashSet<Long>();
-	
 	/** generate unique node id
 	 * @return nodeId
 	 */
@@ -58,17 +53,4 @@ public class Node extends Vertex {
 		return nodeId;
 	}
 	
-/**
- * Add external Id of a link which connects to this node
- * 
- * @param externalLinkId         external Id of link which connects to this node
- */
-	public void addExternalLinkId(Long externalLinkId) {
-		externalLinkIdSet.add(externalLinkId);
-	}
-	
-	public Set<Long> getExternalLinkIdSet() {
-		return externalLinkIdSet;
-	}
-
 }

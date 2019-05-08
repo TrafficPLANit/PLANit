@@ -1,5 +1,7 @@
 package org.planit.network.physical;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.planit.network.EdgeSegment;
@@ -31,7 +33,8 @@ public class LinkSegment extends EdgeSegment {
 	/**
 	 * Maximum link speed imposed irrespective of mode
 	 */
-	protected double maximumSpeed = DEFAULT_MAX_SPEED; 
+	//protected double maximumSpeed = DEFAULT_MAX_SPEED; 
+	protected Map<Long, Double> maximumSpeedMap;
 	
 /** 
  * Generate unique link segment id
@@ -50,6 +53,7 @@ public class LinkSegment extends EdgeSegment {
  */
 	protected LinkSegment(Link parentLink, boolean directionAB){
 		super(parentLink, directionAB);
+		maximumSpeedMap = new HashMap<Long, Double>();
 		this.linkSegmentId = generateLinkSegmentId();
 	}
 		
@@ -78,15 +82,23 @@ public class LinkSegment extends EdgeSegment {
 		this.numberOfLanes = numberOfLanes;
 	}		
 	
-	public double getMaximumSpeed() {
-		return maximumSpeed;
+	//public double getMaximumSpeed() {
+	public double getMaximumSpeed(long modeId) {
+		//return maximumSpeed;
+	    return maximumSpeedMap.get(modeId);
 	}
 
-	public void setMaximumSpeed(double maximumSpeed) {
-		this.maximumSpeed = maximumSpeed;
+	//public void setMaximumSpeed(double maximumSpeed) {
+	public void setMaximumSpeed(long modeId, double maximumSpeed) {
+		//this.maximumSpeed = maximumSpeed;
+	    maximumSpeedMap.put(modeId, maximumSpeed);
 	}
 	
-	public Link getParentLink() {
+	public void setMaximumSpeedMap(Map<Long, Double> maximumSpeedMap) {
+        this.maximumSpeedMap = maximumSpeedMap;
+    }
+
+    public Link getParentLink() {
 		return (Link)getParentEdge();
 	}
 		

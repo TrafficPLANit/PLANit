@@ -6,16 +6,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.planit.cost.physical.BPRLinkTravelTimeCost;
-import org.planit.dto.BprResultDto;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
@@ -25,7 +19,6 @@ import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
-import org.planit.utils.CsvIoUtils;
 
 /**
  * Output formatter for CSV output, i.e. this class is capable of persisting output in the CSV data type
@@ -67,24 +60,11 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
      public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration) throws PlanItException {
         try {
             OutputAdapter outputAdapter = outputTypeConfiguration.getOutputAdapter();
-            SortedMap<Mode, SortedSet<BprResultDto>> resultsForCurrentTimePeriod = null;
-            long runId = -1;
             if (outputAdapter instanceof TraditionalStaticAssignmentLinkOutputAdapter) {
                 TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter = (TraditionalStaticAssignmentLinkOutputAdapter) outputAdapter;
-                resultsForCurrentTimePeriod = saveResultsForCurrentTimePeriod(traditionalStaticAssignmentLinkOutputAdapter, modes);
-                runId = traditionalStaticAssignmentLinkOutputAdapter.getRunId();
+                writeResultsForCurrentTimePeriod(traditionalStaticAssignmentLinkOutputAdapter, modes, timePeriod);
             } else {
                 throw new PlanItException("OutputAdapter is of class " + outputAdapter.getClass().getCanonicalName() + " which has not been defined yet");
-            }
-            if (!resultsForCurrentTimePeriod.isEmpty()) {
-                for (Mode mode : modes) {
-                    Set<BprResultDto> results  = resultsForCurrentTimePeriod.get(mode);
-                    if  ((results != null) && (!results.isEmpty())) {
-                        for (BprResultDto resultDto : results) {
-                            CsvIoUtils.printCurrentRecord(printer, runId, timePeriod, mode, resultDto);
-                        }
-                    }
-                }
             }
         } catch (Exception e) {
             throw new PlanItException(e);
@@ -103,7 +83,7 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
        }
        try {
            printer = new CSVPrinter(new FileWriter(outputFileName), CSVFormat.EXCEL);
-           printer.printRecord("Run Id", "Time Period Id", "Mode Id", "Start Node Id", "End Node Id", "Link Flow", "Capacity", "Length", "Speed", "Link Cost",  "Cost to End Node", "alpha", "beta");
+           printer.printRecord("Run Id", "Time Period Id", "Mode Id", "Start Node Id", "End Node Id", "Link Flow", "Capacity", "Length", "Speed", "Link Cost" , "Cost to End Node");
        } catch (IOException ioe) {
            throw new PlanItException(ioe);
        }
@@ -185,21 +165,45 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
  /**
   * Write the results for the current time period to the CSV file
   * 
-  * @param outputAdapter                OutputAdapter used to retrieve the results of the assignment
+  * @param outputAdapter                TraditionalStaticAssignmentLinkOutputAdapter used to retrieve the results of the assignment
   * @param modes                           Set of modes of travel
-  * @return                                       Map containing the results for each mode
+  * @param timePeriod                     the current time period
   * @throws PlanItException            thrown if there is an error
   */
-    private SortedMap<Mode, SortedSet<BprResultDto>> saveResultsForCurrentTimePeriod(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, Set<Mode> modes) throws PlanItException {
-        SortedMap<Mode, SortedSet<BprResultDto>> resultsForCurrentTimePeriod = new TreeMap<Mode, SortedSet<BprResultDto>>();
-        BPRLinkTravelTimeCost bprLinkTravelTimeCost = (BPRLinkTravelTimeCost) outputAdapter.getPhysicalCost();
-        double[] totalNetworkSegmentFlows = outputAdapter.getTotalNetworkSegmentFlows();
-        double[] totalNetworkSegmentCosts = outputAdapter.getTotalNetworkSegmentCosts(modes);
+    private void writeResultsForCurrentTimePeriod(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
         TransportNetwork transportNetwork = outputAdapter.getTransportNetwork();
-        Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
         for (Mode mode : modes) {
-            SortedSet<BprResultDto> resultsForCurrentModeAndTimePeriod = new TreeSet<BprResultDto>(); // TreeSet implements SortedSet so stores results in order
+            double[] totalNetworkSegmentCosts = outputAdapter.getNetworkSegmentCosts(mode);
+            double[] totalNetworkSegmentFlows = outputAdapter.getModalNetworkSegmentFlows(mode);
+            writeResultsForCurrentModeAndTimePeriod(outputAdapter, 
+                                                                                     mode, 
+                                                                                     timePeriod,
+                                                                                     totalNetworkSegmentCosts, 
+                                                                                     totalNetworkSegmentFlows,
+                                                                                     transportNetwork);
+        }
+    }
+    
+ /**
+  * Write results for the current mode and time period to the CSV file
+  * 
+  * @param outputAdapter                              TraditionalStaticAssignmentLinkOutputAdapter
+  * @param mode                                           current mode of travel
+  * @param timePeriod                                   current time period
+  * @param totalNetworkSegmentCosts        calculated segment costs for the physical network
+  * @param totalNetworkSegmentFlows        calculated flows for the network
+  * @param transportNetwork                         the transport network
+  * @throws PlanItException                           thrown if there is an error
+  */
+    private void writeResultsForCurrentModeAndTimePeriod(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, 
+                                                                                                   Mode mode, 
+                                                                                                   TimePeriod timePeriod,
+                                                                                                   double[] totalNetworkSegmentCosts, 
+                                                                                                   double[] totalNetworkSegmentFlows,
+                                                                                                   TransportNetwork transportNetwork) throws PlanItException {
+        try {
             double totalCost = 0.0;
+            Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
             while (linkSegmentIter.hasNext()) {
                 MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
                 int id = (int) linkSegment.getId();
@@ -207,24 +211,23 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
                 if (flow > 0.0) {
                     double cost = totalNetworkSegmentCosts[id];
                     totalCost += flow * cost;
-                    BprResultDto bprResultDto = new BprResultDto(linkSegment.getUpstreamVertex().getExternalId(),
-                                                                                                    linkSegment.getDownstreamVertex().getExternalId(),
-                                                                                                    flow, 
-                                                                                                    cost, 
-                                                                                                    totalCost,
-                                                                                                    linkSegment.getLinkSegmentType().getCapacityPerLane() * linkSegment.getNumberOfLanes(),
-                                                                                                    linkSegment.getParentLink().getLength(), 
-                                                                                                    linkSegment.getMaximumSpeed(),
-                                                                                                    bprLinkTravelTimeCost.getAlpha(linkSegment), 
-                                                                                                    bprLinkTravelTimeCost.getBeta(linkSegment));
-                    resultsForCurrentModeAndTimePeriod.add(bprResultDto);
+                    long trafficAssignmentId = outputAdapter.getTrafficAssignmentId();
+                    printer.printRecord(trafficAssignmentId, 
+                                                    timePeriod.getId(), 
+                                                    mode.getId(), 
+                                                    linkSegment.getUpstreamVertex().getExternalId(),
+                                                    linkSegment.getDownstreamVertex().getExternalId(),
+                                                    flow, 
+                                                    linkSegment.getLinkSegmentType().getCapacityPerLane(mode.getId()) * linkSegment.getNumberOfLanes(),
+                                                    linkSegment.getParentLink().getLength(),
+                                                    linkSegment.getMaximumSpeed(mode.getId()),
+                                                    cost, 
+                                                    totalCost);
                 }
             }
-            if (!resultsForCurrentModeAndTimePeriod.isEmpty()) {
-                resultsForCurrentTimePeriod.put(mode, resultsForCurrentModeAndTimePeriod);
-            }
+        } catch (Exception e) {
+            throw new PlanItException(e);
         }
-        return resultsForCurrentTimePeriod;
     }
     
 }
