@@ -34,7 +34,7 @@ public abstract class ODDemand {
  * 
  * @param originZone						the origin zone for the demand
  * @param destinationZone			the destination zone for the demand
- * @param odTripFlowRate 			desired od trip flow in pcu/h
+ * @param odTripFlowRate 			desired od trip flow in PCU/h
  */
 	public abstract void set(long originZone, long destinationZone, double odTripFlowRate);
 	
@@ -43,7 +43,7 @@ public abstract class ODDemand {
  * 
  * @param originZone						the origin zone for the demand
  * @param destinationZone			the destination zone for the demand
- * @return odFlow 						retrieved od trip flow in pcu/h
+ * @return odFlow 						retrieved OD trip flow in PCU/h
  */
 	public abstract double get(long originZone, long destinationZone);
 	

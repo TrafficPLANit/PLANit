@@ -7,7 +7,7 @@ import org.ojalgo.structure.Access1D;
 import org.planit.utils.Pair;
 
 /**
- * Carry demand based on origin-destination trip matrix in pcu/h 
+ * Carry demand based on origin-destination trip matrix in PCU/h 
  * @author markr
  *
  */
@@ -120,7 +120,7 @@ public class MatrixDemand extends ODDemand {
  * 
  * @param originZone						the origin zone
  * @param destinationZone			the destination zone
- * @param 										odTripFlowRate to be set, in pcu/h
+ * @param 										odTripFlowRate to be set, in PCU/h
  */
 	public void set(long originZone, long destinationZone, double odTripFlowRate) {
 		if ((originZone == destinationZone) && (odTripFlowRate > 0.0)) {
@@ -136,18 +136,18 @@ public class MatrixDemand extends ODDemand {
  * 
  * @param originZone					the origin zone
  * @param destinationZone		the destination zone
- * @return									odTripFlowRate for this OD pair, in pcu/h
+ * @return									odTripFlowRate for this OD pair, in PCU/h
  */
 	public double get(long originZone, long destinationZone) {
 		return demandMatrixContents.get(originZone, destinationZone);
 	}
 	
 /** 
- * Fill a row of trip values in pcu.
- * If the mode of the matrix has a pcu greater than 1, the mode based trips are less than the provided pcu trips
+ * Fill a row of trip values in PCU.
+ * If the mode of the matrix has a PCU greater than 1, the mode based trips are less than the provided PCU trips
  * 
- * @param originZone                       origin zone
- * @param pcuODTripFlowRates     pcuODTripFlowRates, od trip flow rate in pcu/h
+ * @param originZone                         origin zone
+ * @param pcuODTripFlowRates      od trip flow rate in PCU/h
  */
 	public void fillRowInPCU(long originZone, Access1D<Double> pcuODTripFlowRates) {
 		demandMatrixContents.fillRow(originZone, pcuODTripFlowRates);

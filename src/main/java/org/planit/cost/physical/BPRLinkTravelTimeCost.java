@@ -110,11 +110,11 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		double flow = linkVolumeAccessee.getTotalNetworkSegmentFlows()[(int) linkSegment.getId()];
         BPRParameters parameters = bprEdgeSegmentParameters[(int) linkSegment.getId()];	
         
-		// BPR function with mode specific free flow time and general pcu based delay
+		// BPR function with mode specific free flow time and general PCU based delay
 		MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
 		double freeFlowTravelTime = macroscopicLinkSegment.computeFreeFlowTravelTime(mode);
 		long modeId = mode.getId();
-		double capacity = macroscopicLinkSegment.computeCapacity(modeId);
+		double capacity = macroscopicLinkSegment.computeCapacity();
 		double alpha = parameters.getAlpha(modeId);
 		double beta = parameters.getBeta(modeId);
 		double linkTravelTime = freeFlowTravelTime * (1.0 + alpha * Math.pow(flow/capacity, beta));   //Free Flow Travel Time * (1 + alpha*(v/c)^beta)
@@ -122,7 +122,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	}
 	
 /** 
- * BPR function is pcu based, hence we only have a single function per link segment. The BPR function does not change when moving to a different time period. 
+ * BPR function is PCU based, hence we only have a single function per link segment. The BPR function does not change when moving to a different time period. 
  * 
  * @param bprLinkSegmentParameters, should be the size of the number of link segments in the network identified by the segment id
  */
