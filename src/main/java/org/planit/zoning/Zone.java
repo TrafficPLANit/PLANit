@@ -34,15 +34,14 @@ public class Zone {
 	 */
 	protected final Centroid centroid;
 	
-/** Generate unique zone id
+/** Generate unique id for this zone
  * 
- * @return 				zone id
+ * @return 				id for this zone
  */
 	protected static int generateZoneId() {
 		return IdGenerator.generateId(Zone.class);
 	}
 		
-	
 	// Public
 	
 /**

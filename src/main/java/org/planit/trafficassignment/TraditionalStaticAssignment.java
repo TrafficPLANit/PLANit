@@ -22,6 +22,7 @@ import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.network.EdgeSegment;
 import org.planit.network.Vertex;
 import org.planit.network.physical.LinkSegment;
+import org.planit.network.physical.Node;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.ConnectoidSegment;
@@ -97,7 +98,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
   * @return                                 array of updated edge segment costs
   * @throws PlanItException      thrown if there is an error
   */
-    public double[] getNetworkSegmentCosts(Mode mode) throws PlanItException {
+    public double[] getModalNetworkSegmentCosts(Mode mode) throws PlanItException {
         double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
         Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();
         while (connectoidSegmentIter.hasNext()) {
@@ -107,7 +108,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
         while (linkSegmentIter.hasNext()) {
             LinkSegment currentSegment = linkSegmentIter.next();
-            currentSegmentCosts[(int) currentSegment.getId()] = physicalCost.calculateSegmentCost(mode, currentSegment);
+            if (currentSegment.getMaximumSpeed(mode.getId()) == 0.0) {
+                currentSegmentCosts[(int) currentSegment.getId()] = Double.POSITIVE_INFINITY;
+            } else {
+                currentSegmentCosts[(int) currentSegment.getId()] = physicalCost.calculateSegmentCost(mode, currentSegment);
+            }
         }
         return currentSegmentCosts;
     }
@@ -136,7 +141,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
  * @param shortestPathAlgorithm    shortest path algorithm to be used
  * @throws PlanItException              thrown if there is an error
  */
-    private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData, double[] networkSegmentCosts,  ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+    private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData, double[] modalNetworkSegmentCosts,  ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
         ODDemandIterator odDemandIter = odDemands.iterator();
 
         // loop over all available OD demands
@@ -151,10 +156,12 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
                 // UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
                 TransportNetwork network = getTransportNetwork();
                 if (previousOriginZoneId != originZoneId) {
+                    
                     currentOriginZone = network.zones.getZone(originZoneId - 1);
                     Centroid originCentroid = currentOriginZone.getCentroid();
+                    
                     if (originCentroid.exitEdgeSegments.isEmpty()) {
-                        throw new PlanItException("Edge segments have not been assigned to Centroid " + originCentroid.getCentroidId());
+                        throw new PlanItException("Edge segments have not been assigned to Centroid " + (originCentroid.getZoneId() + 1));
                     }
                     vertexPathCost = shortestPathAlgorithm.executeOneToAll(originCentroid);
                 }
@@ -166,16 +173,22 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
                 // OD-SHORTEST PATH LOADING
                 double shortestPathCost = 0;
                 if (currentDestinationZone == null) {
-                    throw new PlanItException( "currentDestinationZone is null for destinationZoneId = " + destinationZoneId);
+                    throw new PlanItException( "currentDestinationZone is null for destinationZoneId = " + (destinationZoneId + 1));
                 }
                 Vertex currentPathStartVertex = currentDestinationZone.getCentroid();
                 while (currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId()) {
                     int startVertexId = (int) currentPathStartVertex.getId();
                     if (vertexPathCost[startVertexId].getSecond() == null) {
-                        throw new PlanItException( "The solution could not find an Edge Segment for vertex " + startVertexId  + " which has external reference " + currentPathStartVertex.getExternalId());
+                        long vertexId;
+                        if (currentPathStartVertex instanceof Centroid) {
+                            vertexId = ((Centroid) currentPathStartVertex).getZoneId() + 1;
+                        } else {
+                            vertexId = ((Node) currentPathStartVertex).getExternalId();
+                        }
+                        throw new PlanItException( "The solution could not find an Edge Segment for vertex " + startVertexId  + " which has external reference " + vertexId);
                     }
                     EdgeSegment currentEdgeSegment = vertexPathCost[startVertexId].getSecond();
-                    double edgeSegmentCost = networkSegmentCosts[(int) currentEdgeSegment.getId()];
+                    double edgeSegmentCost = modalNetworkSegmentCosts[(int) currentEdgeSegment.getId()];
                     shortestPathCost += edgeSegmentCost;
                     currentModeData.nextNetworkSegmentFlows[(int) currentEdgeSegment.getId()] += odDemand;
                     currentPathStartVertex = currentEdgeSegment.getUpstreamVertex();
@@ -201,9 +214,9 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 
             // NETWORK LOADING - PER MODE
              for (Mode mode : modes) {
-                double[] totalNetworkSegmentCosts = getNetworkSegmentCosts(mode);
+                double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode);
                 simulationData.resetModalNetworkSegmentFlows(mode);
-                executeAndSmoothTimePeriodAndMode(timePeriod, mode, totalNetworkSegmentCosts);
+                executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalNetworkSegmentCosts);
             }
              
             dualityGapFunction.computeGap();
@@ -222,16 +235,16 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
  * @param totalNetworkSegmentCosts         the current network segment costs
  * @throws PlanItException                           thrown if there is an error
  */
-    private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] totalNetworkSegmentCosts) throws PlanItException {
+    private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] modalNetworkSegmentCosts) throws PlanItException {
         // mode specific data
         ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
         currentModeData.resetNextNetworkSegmentFlows();
         // AON based network loading
-        ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(totalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
+        ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
         ODDemand odDemands = demands.get(mode, timePeriod);
-        executeModeTimePeriod(mode, odDemands, currentModeData, totalNetworkSegmentCosts, shortestPathAlgorithm);
+        executeModeTimePeriod(mode, odDemands, currentModeData, modalNetworkSegmentCosts, shortestPathAlgorithm);
 
-        double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows, totalNetworkSegmentCosts, numberOfNetworkSegments);
+        double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows, modalNetworkSegmentCosts, numberOfNetworkSegments);
         dualityGapFunction.increaseActualSystemTravelTime(totalModeSystemTravelTime);
         applySmoothing(currentModeData);
         // aggregate smoothed mode specific flows - for cost computation

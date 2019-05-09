@@ -1,9 +1,7 @@
 package org.planit.network.virtual;
 
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
 import org.planit.network.Vertex;
-import org.planit.utils.IdGenerator;
 import org.planit.zoning.Zone;
 
 /**
@@ -20,26 +18,11 @@ public class Centroid extends Vertex {
      */
     private static final Logger LOGGER = Logger.getLogger(Centroid.class.getName());
         
-/** 
- * Generate unique centroid id
- * 
- * @return             id of this Centroid
- */
-	protected static int generateCentroidId() {
-		return IdGenerator.generateId(Centroid.class);
-	}	
-	
-
 /**
- * Unique internal identifier 
+ * Identifier of parent zone of this centroid
  */	
-	protected final long centroidId;
+	protected final long zoneId;
 
-/**
- * External identifier for this centroid
- */
-	protected final long externalId;
-	
 	/**
 	 * the zone this centroid represents
 	 */
@@ -50,47 +33,18 @@ public class Centroid extends Vertex {
 /**
  * Constructor
  * 
-* @param parentZone      zone containing this centroid
-* @param externalId         external Id of link connecting to this centroid
+ * @param zoneId     id of the parent zone of this centroid
  */
-	public Centroid(@Nonnull Zone parentZone, long externalId) {
+	public Centroid(long zoneId) {
 		super();
-		this.centroidId = parentZone.getId();
-		this.parentZone = parentZone;
-		this.externalId = externalId;
-	}	
-	
-/**
- * Constructor
- * 
- * @param externalId     external Id of link connecting to this centroid
- */
-	public Centroid(long externalId) {
-		super();
-		this.centroidId = generateCentroidId();
-		this.parentZone = null;
-		this.externalId = externalId;
-	}
-	
-/**
- * Constructor
- */
-	public Centroid() {
-		super();
-		this.centroidId = generateCentroidId();
-		this.parentZone = null;
-		this.externalId = 0;
+		this.zoneId = zoneId;
+//		this.parentZone = null;
 	}
 	
 	// Getters-Setters
 	
-/**
- * Return the id of this centroid
- * 
- * @return     id of this centroid
- */
-	public long getCentroidId() {
-		return centroidId;
+	public long getZoneId() {
+	    return zoneId;
 	}
 	
 /**
@@ -111,13 +65,4 @@ public class Centroid extends Vertex {
 		this.parentZone = parentZone;
 	}
 	
-/**
- * Return external Id of link connecting to this centroid
- * 
- * @return      external id of link connecting to this centroid
- */
-	public long getExternalId() {
-		return externalId;
-	}
-
 }

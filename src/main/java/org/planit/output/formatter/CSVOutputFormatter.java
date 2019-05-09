@@ -12,6 +12,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
+import org.planit.network.physical.Node;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.output.adapter.OutputAdapter;
@@ -165,7 +166,7 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
  /**
   * Write the results for the current time period to the CSV file
   * 
-  * @param outputAdapter                TraditionalStaticAssignmentLinkOutputAdapter used to retrieve the results of the assignment
+  * @param outputAdapter               TraditionalStaticAssignmentLinkOutputAdapter used to retrieve the results of the assignment
   * @param modes                           Set of modes of travel
   * @param timePeriod                     the current time period
   * @throws PlanItException            thrown if there is an error
@@ -173,13 +174,13 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
     private void writeResultsForCurrentTimePeriod(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
         TransportNetwork transportNetwork = outputAdapter.getTransportNetwork();
         for (Mode mode : modes) {
-            double[] totalNetworkSegmentCosts = outputAdapter.getNetworkSegmentCosts(mode);
-            double[] totalNetworkSegmentFlows = outputAdapter.getModalNetworkSegmentFlows(mode);
+            double[] modalNetworkSegmentCosts = outputAdapter.getModalNetworkSegmentCosts(mode);
+            double[] modalNetworkSegmentFlows = outputAdapter.getModalNetworkSegmentFlows(mode);
             writeResultsForCurrentModeAndTimePeriod(outputAdapter, 
                                                                                      mode, 
                                                                                      timePeriod,
-                                                                                     totalNetworkSegmentCosts, 
-                                                                                     totalNetworkSegmentFlows,
+                                                                                     modalNetworkSegmentCosts, 
+                                                                                     modalNetworkSegmentFlows,
                                                                                      transportNetwork);
         }
     }
@@ -187,7 +188,7 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
  /**
   * Write results for the current mode and time period to the CSV file
   * 
-  * @param outputAdapter                              TraditionalStaticAssignmentLinkOutputAdapter
+  * @param outputAdapter                             TraditionalStaticAssignmentLinkOutputAdapter
   * @param mode                                           current mode of travel
   * @param timePeriod                                   current time period
   * @param totalNetworkSegmentCosts        calculated segment costs for the physical network
@@ -198,27 +199,28 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
     private void writeResultsForCurrentModeAndTimePeriod(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, 
                                                                                                    Mode mode, 
                                                                                                    TimePeriod timePeriod,
-                                                                                                   double[] totalNetworkSegmentCosts, 
-                                                                                                   double[] totalNetworkSegmentFlows,
+                                                                                                   double[] modalNetworkSegmentCosts, 
+                                                                                                   double[] modalNetworkSegmentFlows,
                                                                                                    TransportNetwork transportNetwork) throws PlanItException {
         try {
             double totalCost = 0.0;
             Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
-            while (linkSegmentIter.hasNext()) {
+             while (linkSegmentIter.hasNext()) {
                 MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
+                Node startNode = (Node) linkSegment.getUpstreamVertex();
+                Node endNode = (Node) linkSegment.getDownstreamVertex();
                 int id = (int) linkSegment.getId();
-                double flow = totalNetworkSegmentFlows[id];
+                double flow = modalNetworkSegmentFlows[id];
                 if (flow > 0.0) {
-                    double cost = totalNetworkSegmentCosts[id];
+                    double cost = modalNetworkSegmentCosts[id];
                     totalCost += flow * cost;
                     long trafficAssignmentId = outputAdapter.getTrafficAssignmentId();
                     printer.printRecord(trafficAssignmentId, 
                                                     timePeriod.getId(), 
                                                     mode.getId(), 
-                                                    linkSegment.getUpstreamVertex().getExternalId(),
-                                                    linkSegment.getDownstreamVertex().getExternalId(),
+                                                    startNode.getExternalId(),
+                                                    endNode.getExternalId(),
                                                     flow, 
-                                                    //linkSegment.getLinkSegmentType().getCapacityPerLane(mode.getId()) * linkSegment.getNumberOfLanes(),
                                                     linkSegment.getLinkSegmentType().getCapacityPerLane() * linkSegment.getNumberOfLanes(),
                                                     linkSegment.getParentLink().getLength(),
                                                     linkSegment.getMaximumSpeed(mode.getId()),

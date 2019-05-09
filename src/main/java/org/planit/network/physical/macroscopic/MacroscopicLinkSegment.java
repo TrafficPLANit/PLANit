@@ -7,6 +7,8 @@ import javax.annotation.Nonnull;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.Link;
 import org.planit.network.physical.LinkSegment;
+import org.planit.network.virtual.Centroid;
+import org.planit.network.physical.Node;
 import org.planit.userclass.Mode;
 
 /** 
@@ -65,7 +67,19 @@ public class MacroscopicLinkSegment extends LinkSegment{
 		if (properties != null) {		
 			double segmentTypeMaximumSpeed = getLinkSegmentType().getModeProperties().getProperties(mode).getMaxSpeed();
 			if ((maximumSpeed == 0.0) && (segmentTypeMaximumSpeed == 0.0)) {
-				throw new PlanItException("No maximum speed defined for network link from anode reference " + getParentEdge().getVertexA().getExternalId() + " to bnode " + getParentEdge().getVertexB().getExternalId() );
+			    long startId;
+			    long endId;
+			    if (getParentEdge().getVertexA() instanceof Centroid) {
+			        startId = ((Centroid) getParentEdge().getVertexA()).getZoneId() + 1;
+			        endId = ((Node) getParentEdge().getVertexB()).getExternalId();
+			    } else if (getParentEdge().getVertexB() instanceof Centroid) {
+                    startId = ((Node) getParentEdge().getVertexA()).getExternalId();
+                    endId = ((Centroid) getParentEdge().getVertexB()).getZoneId() + 1;
+			    } else {
+                    startId = ((Node) getParentEdge().getVertexA()).getExternalId();
+                    endId = ((Node) getParentEdge().getVertexB()).getExternalId();
+			    }
+			    throw new PlanItException("No maximum speed defined for network link from anode reference " + startId + " to bnode " + endId);
 			}
 			computedMaximumSpeed = Math.min(maximumSpeed, segmentTypeMaximumSpeed);			
 		}

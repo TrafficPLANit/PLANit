@@ -71,7 +71,6 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
  * @return 									array of pairs containing, for each vertex (array index), the cost to reach the vertex and the link segment it is reached from with the shortest cost.
  * @throws PlanItException		thrown if an error occurss
  */
-//TODO - need to check this method.  It appears to work, but we have used a hack which ought not to be required.  See TODO below
 	public Pair<Double,EdgeSegment>[] executeOneToAll(@Nonnull Vertex currentOrigin) throws PlanItException{
 		boolean [] vertexVisited = new boolean[numberOfVertices];
 		this.currentOrigin = currentOrigin;
@@ -99,16 +98,19 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
 			// track all adjacent edge segments for possible improved shortest paths
 				
 			for (EdgeSegment adjacentLinkSegment :  currentNode.exitEdgeSegments) {
-				Vertex adjacentVertex = adjacentLinkSegment.getDownstreamVertex();
-				int adjacentVertexId = (int) adjacentVertex.getId();
-				Pair<Double, EdgeSegment> adjacentVertexDataPair = vertexCost[adjacentVertexId];
-				double computedCostToReachAdjacentVertex = currentCost + edgeSegmentCosts[(int) adjacentLinkSegment.getId()];
-				// Whenever the adjacent vertex can be reached in less cost than currently is the case, place it on the queue for expanding and update its cost
-	//TODO - the  (adjacentVertexId != currentOrigin.getId()) test in the following line stops the algorithm generating infinite loops, but it ought not to be required.  Check this later.
-				if ( !vertexVisited[adjacentVertexId] && (adjacentVertexId != currentOrigin.getId()) && (adjacentVertexDataPair.getFirst() > computedCostToReachAdjacentVertex) ) {
-					vertexCost[adjacentVertexId] = new Pair<Double, EdgeSegment>(computedCostToReachAdjacentVertex, adjacentLinkSegment); // update cost and path
-					openVertices.add(new Pair<Vertex,Double>(adjacentVertex,computedCostToReachAdjacentVertex)); // place on queue
-				}	
+			    double currentEdgeSegmentCost = edgeSegmentCosts[(int) adjacentLinkSegment.getId()];
+			    if (currentEdgeSegmentCost < Double.POSITIVE_INFINITY) {
+			    
+    				Vertex adjacentVertex = adjacentLinkSegment.getDownstreamVertex();
+    				int adjacentVertexId = (int) adjacentVertex.getId();
+    				Pair<Double, EdgeSegment> adjacentVertexDataPair = vertexCost[adjacentVertexId];
+    				double computedCostToReachAdjacentVertex = currentCost + currentEdgeSegmentCost;
+    				// Whenever the adjacent vertex can be reached in less cost than currently is the case, place it on the queue for expanding and update its cost
+    				if ( !vertexVisited[adjacentVertexId] && (adjacentVertexId != currentOrigin.getId()) && (adjacentVertexDataPair.getFirst() > computedCostToReachAdjacentVertex) ) {
+    					vertexCost[adjacentVertexId] = new Pair<Double, EdgeSegment>(computedCostToReachAdjacentVertex, adjacentLinkSegment); // update cost and path
+    					openVertices.add(new Pair<Vertex,Double>(adjacentVertex,computedCostToReachAdjacentVertex)); // place on queue
+    				}	
+			    }
 			}
 			
 		}

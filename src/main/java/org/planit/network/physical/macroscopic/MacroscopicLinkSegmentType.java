@@ -37,13 +37,11 @@ public class MacroscopicLinkSegmentType {
 	/**
 	 * Maximum flow, i.e. capacity in veh/h/lane
 	 */
-	//protected final Map<Long, Double> capacityPerLane;
 	protected final double capacityPerLane;
 	
 	/**
 	 * Maximum density in veh/km/lane
 	 */
-	//protected final Map<Long, Double> maximumDensityPerLane; 
 	protected final double maximumDensityPerLane; 
 	
 	/**
@@ -70,7 +68,6 @@ public class MacroscopicLinkSegmentType {
  * @param maximumDensityPerLane     maximum density per lane of this link segment type
  * @param modeProperties                     properties of this link segment type
  */
-	//public MacroscopicLinkSegmentType(@Nonnull String name, Map<Long, Double> capacityPerLane, Map<Long, Double> maximumDensityPerLane, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
 	public MacroscopicLinkSegmentType(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
 		this.id = generateMacroscopicLinkSegmentTypeId();
 		this.name = name;
@@ -92,23 +89,14 @@ public class MacroscopicLinkSegmentType {
 	public void setName(String name) {
 		this.name = name;
 	}
-/*	
-	public double getCapacityPerLane(long modeId) {
-	    return capacityPerLane.get(modeId);
-	}
-	
-	public double getMaximumDensityPerLane(long modeId) {
-	    return maximumDensityPerLane.get(modeId);
-	}
-*/
-    public double getCapacityPerLane() {
+
+	public double getCapacityPerLane() {
         return capacityPerLane;
     }
     
     public double getMaximumDensityPerLane() {
         return maximumDensityPerLane;
     }
-
 	
 	/** reference to internal mode properties
 	 * @return segmentModeProperties

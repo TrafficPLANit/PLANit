@@ -31,9 +31,8 @@ public class LinkSegment extends EdgeSegment {
 	protected int numberOfLanes = DEFAULT_NUMBER_OF_LANES;	
 	
 	/**
-	 * Maximum link speed imposed irrespective of mode
+	 * Map of maximum speeds along this link for each mode
 	 */
-	//protected double maximumSpeed = DEFAULT_MAX_SPEED; 
 	protected Map<Long, Double> maximumSpeedMap;
 	
 /** 
@@ -78,19 +77,28 @@ public class LinkSegment extends EdgeSegment {
 	public int getNumberOfLanes() {
 		return numberOfLanes;
 	}
+	
 	public void setNumberOfLanes(int numberOfLanes) {
 		this.numberOfLanes = numberOfLanes;
 	}		
 	
-	//public double getMaximumSpeed() {
+/**
+ * Return the maximum speed along this link for a specified mode
+ * 
+ * @param modeId       id of the specified mode
+ * @return                    maximum speed along this link for the specified mode
+ */
 	public double getMaximumSpeed(long modeId) {
-		//return maximumSpeed;
 	    return maximumSpeedMap.get(modeId);
 	}
 
-	//public void setMaximumSpeed(double maximumSpeed) {
+/**
+ * Set the maximum speed along this link for a specified mode
+ * 
+ * @param modeId                    id of the specified mode
+ * @param maximumSpeed     maximum speed along this link for the specified mode
+ */
 	public void setMaximumSpeed(long modeId, double maximumSpeed) {
-		//this.maximumSpeed = maximumSpeed;
 	    maximumSpeedMap.put(modeId, maximumSpeed);
 	}
 	
@@ -98,6 +106,11 @@ public class LinkSegment extends EdgeSegment {
         this.maximumSpeedMap = maximumSpeedMap;
     }
 
+/**
+ * Return the parent link of this link segment
+ * 
+ * @return          Link object which is the parent of this link segment
+ */
     public Link getParentLink() {
 		return (Link)getParentEdge();
 	}

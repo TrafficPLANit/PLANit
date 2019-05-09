@@ -1,6 +1,5 @@
 package org.planit.output.adapter;
 
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
@@ -35,6 +34,13 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
     public double[] getTotalNetworkSegmentFlows() {
          return ((TraditionalStaticAssignment) trafficAssignment).getTotalNetworkSegmentFlows();
     }
+    
+/**
+ * Returns the network segment flows for a specified mode
+ * 
+ * @param mode               specified mode
+ * @return                         array storing the network segment flows for the specified mode
+ */
     public double[] getModalNetworkSegmentFlows(Mode mode) {
         return ((TraditionalStaticAssignment) trafficAssignment).getModalNetworkSegmentFlows(mode);
     }
@@ -47,8 +53,8 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
   * @return                                  array storing the network segment costs for the specified mode
   * @throws PlanItException       thrown if there is an error
   */
-    public double[] getNetworkSegmentCosts(Mode mode) throws PlanItException {
-        return ((TraditionalStaticAssignment) trafficAssignment).getNetworkSegmentCosts(mode); 
+    public double[] getModalNetworkSegmentCosts(Mode mode) throws PlanItException {
+        return ((TraditionalStaticAssignment) trafficAssignment).getModalNetworkSegmentCosts(mode); 
     }
     
 /**

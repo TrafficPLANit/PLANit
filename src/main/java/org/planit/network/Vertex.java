@@ -108,7 +108,6 @@ public class Vertex implements Comparable<Vertex> {
  */
 	protected DirectPosition centrePointGeometry;
 			
-	
 	/** generate unique node id
 	 * @return nodeId
 	 */
@@ -126,10 +125,6 @@ public class Vertex implements Comparable<Vertex> {
  */
 	protected Map<String, Object> inputProperties = null;		
 		
-/**
- * External identifier for this vertex
- */
-	protected long externalId;
 	/**
 	 * edge container
 	 */	
@@ -165,14 +160,6 @@ public class Vertex implements Comparable<Vertex> {
 		return id;
 	}	
 
-	public long getExternalId() {
-		return externalId;
-	}
-
-	public void setExternalId(long externalId) {
-		this.externalId = externalId;
-	}
-
 /**
  * Add a property from the original input that is not part of the readily available members
  * 
@@ -180,7 +167,7 @@ public class Vertex implements Comparable<Vertex> {
  * @param value    value of the input property
  */
 	public void addInputProperty(String key, Object value) {
-		if(inputProperties == null) {
+		if (inputProperties == null) {
 			inputProperties = new HashMap<String, Object>();
 		}
 		inputProperties.put(key, value);

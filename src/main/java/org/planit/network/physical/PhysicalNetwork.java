@@ -218,7 +218,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 					return node;
 				}
 			}
-			return null;
+  		    return null;
 		}
 		
 	}	
@@ -268,8 +268,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		this.id = IdGenerator.generateId(PhysicalNetwork.class);
 		this.networkBuilder = networkBuilder;		
 	}
-	
-	
+		
 	// Getters - Setters
 	
 	/** Collect network id
@@ -278,6 +277,5 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	public long getId() {
 		return this.id;
 	}
-
 
 }
