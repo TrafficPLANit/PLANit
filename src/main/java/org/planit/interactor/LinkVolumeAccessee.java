@@ -1,5 +1,6 @@
 package org.planit.interactor;
 
+import org.planit.network.physical.LinkSegment;
 import org.planit.userclass.Mode;
 
 /**
@@ -11,11 +12,12 @@ import org.planit.userclass.Mode;
 public interface LinkVolumeAccessee extends InteractorAccessee {
     
 /**
- * Get link segment flows for all modes
+ * Get the total flow across a link over all modes
  * 
- * @return       array storing link segment flows
+ * @param linkSegment      the specified link segment
+ * @return                           the total flow across this link segment
  */
-    double[] getTotalNetworkSegmentFlows();
+    public double getTotalNetworkSegmentFlow(LinkSegment linkSegment);
     
  /**
   * Get link segment flows for a specified mode
@@ -23,7 +25,7 @@ public interface LinkVolumeAccessee extends InteractorAccessee {
   * @param mode             mode
   * @return                       link segment flows for all modes
   */
-    double[] getModalNetworkSegmentFlows(Mode mode);
+    public double[] getModalNetworkSegmentFlows(Mode mode);
     
 /**
  * Get number of link segments

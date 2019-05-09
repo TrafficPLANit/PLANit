@@ -3,7 +3,9 @@ package org.planit.data;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
+import org.planit.network.physical.LinkSegment;
 import org.planit.userclass.Mode;
 
 /**
@@ -83,19 +85,13 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   }
 
 /**
- * Calculate the total flows in the network over all modes
+ * Return the total flow through a link segment across all modes
  * 
- * @return       the total flows in the network
+ * @param linkSegment            the specified link segment
+ * @return                                 the total flow through this link segment
  */
-  public double[] getTotalNetworkSegmentFlows() {
-      double [] totalNetworkSegmentFlows = (double[]) emptySegmentArray.clone();
-      int size = totalNetworkSegmentFlows.length;
-      for (int i=0; i<size; i++) {
-          for (Mode mode : modalNetworkSegmentFlows.keySet()) {
-              totalNetworkSegmentFlows[i] += modalNetworkSegmentFlows.get(mode)[i];
-          }
-      }
-      return totalNetworkSegmentFlows;
-    }
+  public double getTotalNetworkSegmentFlow(LinkSegment linkSegment) {
+      return modalNetworkSegmentFlows.values().stream().collect((Collectors.summingDouble(flows -> flows[(int) linkSegment.getId()])));
+  }
 
 }

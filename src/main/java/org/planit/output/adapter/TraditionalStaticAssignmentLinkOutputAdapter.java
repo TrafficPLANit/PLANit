@@ -27,15 +27,6 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
     }
 
 /**
- * Returns the network segment flows calculated for this assignment
- * 
- * @return        array storing the calculated network segment flows
- */
-    public double[] getTotalNetworkSegmentFlows() {
-         return ((TraditionalStaticAssignment) trafficAssignment).getTotalNetworkSegmentFlows();
-    }
-    
-/**
  * Returns the network segment flows for a specified mode
  * 
  * @param mode               specified mode

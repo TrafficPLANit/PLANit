@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathAlgorithm;
@@ -325,9 +326,10 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
      * @see org.planit.interactor.LinkVolumeInteractor.LinkVolumeAccessee#
      * getTotalNetworkSegmentFlows()
      */
+    
     @Override
-    public double[] getTotalNetworkSegmentFlows() {
-        return simulationData.getTotalNetworkSegmentFlows();
+    public double getTotalNetworkSegmentFlow(LinkSegment linkSegment) {
+        return simulationData.getTotalNetworkSegmentFlow(linkSegment);
     }
 
     @Override
