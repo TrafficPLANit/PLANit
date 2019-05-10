@@ -37,7 +37,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
          * @return		       the zone added
          */
 		protected Zone registerZone(@Nonnull Zone zone) {
-		    return zoneMap.put(zone.getCentroid().getCentroidId(),zone);
+		    return zoneMap.put(zone.getId(),zone);
 		}
 
         /**
@@ -53,11 +53,11 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
         /** 
          * Create and register new zone to network identified via its id
          * 
-         * @param centroid			centroid of the new zone
+         * @param externalZoneId            the externalId of the zone (mandatory)
          * @return 							the new zone created
          */
-		public Zone createAndRegisterNewZone(Centroid centroid) {
-			Zone newZone = new Zone(centroid);
+		public Zone createAndRegisterNewZone(long externalZoneId) {
+			Zone newZone = new Zone(externalZoneId);
 			registerZone(newZone);
 			return newZone;
 		}			
@@ -65,7 +65,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
         /**
          * Retrieve zone by id 
          * 
-         * @param id				the id for the zone to be retrieved
+         * @param id			the id for the zone to be retrieved
          * @return zone			the zone retrieved
          */
 		public Zone getZone(long id) {

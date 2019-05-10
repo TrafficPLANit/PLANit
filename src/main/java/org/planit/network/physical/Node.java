@@ -3,8 +3,6 @@
  */
 package org.planit.network.physical;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.network.Vertex;
@@ -31,17 +29,17 @@ public class Node extends Vertex {
 		return IdGenerator.generateId(Node.class);
 	}	
 
-
-	/**
+    /**
 	 * Unique internal identifier 
 	 */	
 	protected final long nodeId;
 	
+	
 	// Public
 	
-/**
- * Node constructor
-  */
+    /**
+     * Node constructor
+      */
 	public Node() {
 		super();
 		this.nodeId = generateNodeId();
@@ -53,4 +51,14 @@ public class Node extends Vertex {
 		return nodeId;
 	}
 	
+    public long getExternalId() {
+        return getExternalId();
+    }
+
+    public void setExternalId(long externalId) {
+        setExternalId(externalId);
+    }
+    
+    
+
 }

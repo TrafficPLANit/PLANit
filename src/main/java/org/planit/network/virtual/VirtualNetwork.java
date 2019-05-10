@@ -56,10 +56,10 @@ public class VirtualNetwork {
 /** 
  * Create new connectoid to network
  * 
- * @param centroid                                 centroid at one end of the connectoid
- * @param node                                      node at other end of the connectoid
- * @param length                                    length of connectiod
- * @return connectoid                            Connectoid object created and registered
+ * @param centroid                                  centroid at one end of the connectoid
+ * @param node                                       node at other end of the connectoid
+ * @param length                                     length of connectiod
+ * @return                                               Connectoid object created and registered
  * @throws PlanItException                    thrown if there is an error
  */
 		public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length) throws PlanItException {
@@ -191,29 +191,13 @@ public class VirtualNetwork {
 		}		
 		
 /**
- * Iterator through registerded centroid
+ * Iterator through registered centroid
  * 
  * @return       iterator through registered centroids
  */
 		@Override
 		public Iterator<Centroid> iterator() {
 			return centroidMap.values().iterator();
-		}
-		
-/**
- * Find centroid by the external Id of links connected to it
- * 
- * @param externalId      the external id of connecting link
- * @return                      the retrieved centroid
- */
-//TODO - this will need to be changed when we change MetroScan input files to use the IDs of nodes rather than links in the TAZ definition
-		public Centroid findCentroidByExternalId(long externalId) {
-			for (Centroid centroid : centroidMap.values()) {
-				if (centroid.getExternalId() == externalId) {
-					return centroid;
-				}
-			}
-			return null;
 		}
 		
 /**

@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
+import org.planit.userclass.Mode;
 import org.planit.utils.IdGenerator;
 
 /** 
@@ -75,6 +76,14 @@ public class MacroscopicLinkSegmentType {
 		this.maximumDensityPerLane = maximumDensityPerLane;
 		this.modeProperties = modeProperties;
 	}
+	
+    /** Verify if mode properties are present for the passed in mode
+     * @param mode
+     * @return true if properties are present, false otherwise
+     */
+    public boolean hasModeProperties(Mode mode) {
+        return modeProperties.hasProperties(mode);
+    }	
 
 	// Getters - Setters
 	
@@ -89,23 +98,14 @@ public class MacroscopicLinkSegmentType {
 	public void setName(String name) {
 		this.name = name;
 	}
-/*	
-	public double getCapacityPerLane() {
-		return capacityPerLane;
-	}
 	
-	public double getMaximumDensityPerLane() {
-		return maximumDensityPerLane;
-	}
-*/
-    public double getCapacityPerLane() {
+	public double getCapacityPerLane() {
         return capacityPerLane;
     }
     
     public double getMaximumDensityPerLane() {
         return maximumDensityPerLane;
     }
-
 	
 	/** reference to internal mode properties
 	 * @return segmentModeProperties
@@ -113,5 +113,6 @@ public class MacroscopicLinkSegmentType {
 	public MacroscopicLinkSegmentTypeModeProperties getModeProperties(){
 		return modeProperties;
 	}
+
 
 }

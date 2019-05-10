@@ -92,8 +92,8 @@ public class TransportNetwork {
  * @throws PlanItException        thrown if there is an error
  */
 	protected void connectVerticesToEdgeSegment(EdgeSegment edgeSegment) throws PlanItException {
-		edgeSegment.getUpstreamVertex().exitEdgeSegments.addEdgeSegment(edgeSegment);
-		edgeSegment.getDownstreamVertex().entryEdgeSegments.addEdgeSegment(edgeSegment);	
+		edgeSegment.getUpstreamVertex().addExitEdgeSegment(edgeSegment);
+		edgeSegment.getDownstreamVertex().addEntryEdgeSegment(edgeSegment);	
 	}	
 	
 /** 
@@ -103,8 +103,8 @@ public class TransportNetwork {
  * @throws PlanItException      thrown if there is an error
  */
 	protected void disconnectVerticesFromEdgeSegment(EdgeSegment edgeSegment) throws PlanItException {
-		edgeSegment.getUpstreamVertex().exitEdgeSegments.removeEdgeSegment(edgeSegment);
-		edgeSegment.getDownstreamVertex().entryEdgeSegments.removeEdgeSegment(edgeSegment);	
+		edgeSegment.getUpstreamVertex().removeExitEdgeSegment(edgeSegment);
+		edgeSegment.getDownstreamVertex().removeEntryEdgeSegment(edgeSegment);	
 	}		
 	
 /** 
@@ -114,8 +114,8 @@ public class TransportNetwork {
  * @throws PlanItException    thrown if there is an error
  */
 	protected void connectVerticesToEdge(Edge edge) throws PlanItException {
-		edge.getVertexA().edges.addEdge(edge);
-		edge.getVertexB().edges.addEdge(edge);
+		edge.getVertexA().addEdge(edge);
+		edge.getVertexB().addEdge(edge);
 	}		
 	
 /** 
@@ -125,8 +125,8 @@ public class TransportNetwork {
  * @throws PlanItException   thrown if there is an error
  */
 	protected void disconnectVerticesFromEdge(Edge edge) throws PlanItException {
-		edge.getVertexA().edges.removeEdge(edge);
-		edge.getVertexB().edges.removeEdge(edge);
+		edge.getVertexA().removeEdge(edge);
+		edge.getVertexB().removeEdge(edge);
 	}		
 	
 	// Public

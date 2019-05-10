@@ -60,6 +60,14 @@ public class MacroscopicLinkSegmentTypeModeProperties{
 	public MacroscopicModeProperties getProperties(Mode mode) {
 		return this.allModeProperties.get(mode);
 	}
+	
+    /** Verify if properties are present for a given mode
+     * @param mode
+     * @return true if present, false otherwise
+     */
+    public boolean hasProperties(Mode mode) {
+        return allModeProperties.containsKey(mode);
+    }	
 
     /** 
      * Compare by content
@@ -75,4 +83,6 @@ public class MacroscopicLinkSegmentTypeModeProperties{
 		}
 		return false;
 	}
+
+
 }
