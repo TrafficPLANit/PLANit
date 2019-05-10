@@ -35,33 +35,33 @@ public class MacroscopicModeProperties {
 	 */	
 	public static final double DEFAULT_CRITICAL_SPEED = 60;		
 	
-/** 
- * Constructor 
- * 
- * @param maxSpeed         maximum speed for this mode
- * @param criticalSpeed     critical speed for this mode
- */
+    /** 
+     * Constructor 
+     * 
+     * @param maxSpeed         maximum speed for this mode
+     * @param criticalSpeed     critical speed for this mode
+     */
 	public MacroscopicModeProperties(double maxSpeed, double criticalSpeed) {
 		super();
 		this.maxSpeed = maxSpeed;
 		this.criticalSpeed = criticalSpeed;
 	}	
 	
-/** 
- * Constructor adopting default values 
- */
+    /** 
+     * Constructor adopting default values 
+     */
 	public MacroscopicModeProperties() {
 		super();
 		this.maxSpeed = DEFAULT_MAX_SPEED;
 		this.criticalSpeed = DEFAULT_CRITICAL_SPEED;
 	}		
 	
-/** 
- * Compare on all content members
- * 
- * @param obj        object to be compared to this one
- * @return             result of the comparison
- */
+    /** 
+     * Compare on all content members
+     * 
+     * @param obj        object to be compared to this one
+     * @return             result of the comparison
+     */
 	@Override
 	public boolean equals(Object obj) {
 		if(obj instanceof MacroscopicModeProperties){

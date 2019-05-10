@@ -29,27 +29,26 @@ public class MacroscopicLinkSegment extends LinkSegment{
 		
 	// Public
 		
-/** 
- * Constructor
- * 
- * @param parentLink      the parent link of this link segment
- * @param directionAB    direction of traverl
- */
+    /** 
+     * Constructor
+     * 
+     * @param parentLink      the parent link of this link segment
+     * @param directionAB    direction of travel
+     */
 	public MacroscopicLinkSegment(@Nonnull Link parentLink, boolean directionAB) {
 		super(parentLink, directionAB);
 	}
 	
-/** 
- * Return the total capacity for a specified mode
- * 
- * Compute the total capacity by multiplying the capacity per lane and number of lanes
- * 
- * @param  modeId    id of the specified mode
- * @return                  linkSegmentCapacity in pcu
- */
-	public double computeCapacity(long modeId) {
-	    return getLinkSegmentType().getCapacityPerLane(modeId)*getNumberOfLanes();
-	}
+    /** 
+     * Return the total capacity
+     * 
+     * Compute the total capacity by multiplying the capacity per lane and number of lanes
+     * 
+     * @return linkSegmentCapacity in PCU
+     */
+   public double computeTotalLinkSegmentCapacity() {
+       return getLinkSegmentType().getCapacityPerLane()*getNumberOfLanes();
+   }
 	
 /** 
  * Compute the free flow travel time by mode, i.e. when the link's maximum speed might be capped by the mode's maximum speed

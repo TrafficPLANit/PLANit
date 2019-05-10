@@ -1,7 +1,6 @@
 package org.planit.network.physical.macroscopic;
 
 
-import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
@@ -90,15 +89,24 @@ public class MacroscopicLinkSegmentType {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+/*	
 	public double getCapacityPerLane() {
 		return capacityPerLane;
 	}
-
+	
 	public double getMaximumDensityPerLane() {
 		return maximumDensityPerLane;
 	}
+*/
+    public double getCapacityPerLane() {
+        return capacityPerLane;
+    }
+    
+    public double getMaximumDensityPerLane() {
+        return maximumDensityPerLane;
+    }
 
+	
 	/** reference to internal mode properties
 	 * @return segmentModeProperties
 	 */

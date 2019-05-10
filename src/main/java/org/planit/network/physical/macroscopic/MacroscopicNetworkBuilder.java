@@ -1,6 +1,5 @@
 package org.planit.network.physical.macroscopic;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
@@ -69,8 +68,9 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
  * @param modeProperties                             the mode properties of this link
  * @return macroscopicLinkSegmentType    the created link segment type
  */
-	public MacroscopicLinkSegmentType createLinkSegmentType(@Nonnull String name, Map<Long, Double> capacity, Map<Long, Double> maximumDensity, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
-		return new MacroscopicLinkSegmentType(name, capacity, maximumDensity, modeProperties);
+	//public MacroscopicLinkSegmentType createLinkSegmentType(@Nonnull String name, Map<Long, Double> capacity, Map<Long, Double> maximumDensity, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
+	public MacroscopicLinkSegmentType createLinkSegmentType(@Nonnull String name,double capacity, double maximumDensity, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
+	    return new MacroscopicLinkSegmentType(name, capacity, maximumDensity, modeProperties);
 	}
 	
 }
