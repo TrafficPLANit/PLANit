@@ -65,4 +65,8 @@ public abstract class ODDemand {
 	public long getId() {
 		return id;
 	}	
+	
+	public abstract boolean isOrigin(long zoneId);
+	
+	public abstract boolean isDestination(long zoneId);
 }

@@ -22,7 +22,9 @@ import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
+import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
+import org.planit.userclass.Mode;
 import org.planit.utils.IdGenerator;
 import org.planit.zoning.Zoning;
 
@@ -121,10 +123,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
  * @return                                          the integrated transport network
  * @throws PlanItException               thrown if there is an error
  */
-    protected TransportNetwork integrateVirtualAndPhysicalNetworks(PhysicalNetwork physicalNetwork, Zoning zoning) throws PlanItException {
+    protected TransportNetwork integrateVirtualAndPhysicalNetworks(PhysicalNetwork physicalNetwork, Zoning zoning, Demands demands) throws PlanItException {
         transportNetwork = new TransportNetwork(physicalNetwork, zoning);
         VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();     
-        transportNetwork.integrateConnectoidsAndLinks(virtualNetwork);
+        transportNetwork.integrateConnectoidsAndLinks(virtualNetwork, demands);
         return transportNetwork;
     }   
     
@@ -216,7 +218,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
     public void execute() throws PlanItException  {
         checkForEmptyComponents();  
         verifyComponentCompatibility();
-        integrateVirtualAndPhysicalNetworks(physicalNetwork, zoning);       
+        integrateVirtualAndPhysicalNetworks(physicalNetwork, zoning, demands);       
         initialiseBeforeEquilibration();            
         executeEquilibration();
         finalizeAfterEquilibration();

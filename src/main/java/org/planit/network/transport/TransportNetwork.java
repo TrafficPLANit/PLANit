@@ -5,17 +5,23 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
+import org.planit.demand.Demands;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.Edge;
 import org.planit.network.EdgeSegment;
+import org.planit.network.Vertex;
 import org.planit.network.physical.Link;
 import org.planit.network.physical.LinkSegment;
+import org.planit.network.physical.Node;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.PhysicalNetwork.LinkSegments;
+import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.Connectoid;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.network.virtual.VirtualNetwork.ConnectoidSegments;
+import org.planit.time.TimePeriod;
+import org.planit.userclass.Mode;
 import org.planit.zoning.Zoning;
 import org.planit.zoning.Zoning.Zones;
 
@@ -211,10 +217,27 @@ public class TransportNetwork {
  * @param virtualNetwork            VirtualNetwork to be integrated into this TransportNetwork
  * @throws PlanItException        thrown if there is an error
  */
-	public void integrateConnectoidsAndLinks(VirtualNetwork virtualNetwork) throws PlanItException {
+	public void integrateConnectoidsAndLinks(VirtualNetwork virtualNetwork, Demands demands) throws PlanItException {
 		for (Connectoid connectoid: virtualNetwork.connectoids) {
-			virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
-			virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, false);
+            //virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
+            //virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, false);
+		    Centroid centroid = (Centroid) connectoid.getVertexA();
+ 		    for (TimePeriod timePeriod : demands.getRegisteredTimePeriods()) {
+		        for (Mode mode : demands.getRegisteredModesForTimePeriod(timePeriod)) {
+		            boolean isOrigin = demands.get(mode, timePeriod).isOrigin(centroid.getZoneId());
+		            if (isOrigin) {
+		                Node node = (Node) connectoid.getVertexB();
+	                    LOGGER.info("Creating a connectoid from origin zone "  + (centroid.getZoneId() +1) + " to node " + node.getExternalId());
+		                virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
+		            }
+		            boolean isDestination = demands.get(mode, timePeriod).isDestination(centroid.getZoneId());
+		            if (isDestination) {
+                        Node node = (Node) connectoid.getVertexB();
+                        LOGGER.info("Creating a connectoid from node " + node.getExternalId() + " to destination zone " + (centroid.getZoneId() +1));
+		                virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, false);
+		            }
+		        }
+		    }
 			connectVerticesToEdge(connectoid);
 		}
 		for (ConnectoidSegment connectoidSegment: virtualNetwork.connectoidSegments) {
