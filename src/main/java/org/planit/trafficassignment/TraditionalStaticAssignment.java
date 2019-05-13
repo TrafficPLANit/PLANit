@@ -144,6 +144,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
  */
     private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData, double[] modalNetworkSegmentCosts,  ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
         ODDemandIterator odDemandIter = odDemands.iterator();
+        TransportNetwork network = getTransportNetwork();
 
         // loop over all available OD demands
         while (odDemandIter.hasNext()) {
@@ -155,14 +156,14 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
                 Zone currentOriginZone = null;
                 Pair<Double, EdgeSegment>[] vertexPathCost = null;
                 // UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
-                TransportNetwork network = getTransportNetwork();
+                //TransportNetwork network = getTransportNetwork();
                 if (previousOriginZoneId != originZoneId) {
                     
                     currentOriginZone = network.zones.getZone(originZoneId - 1);
                     Centroid originCentroid = currentOriginZone.getCentroid();
                     
                     if (originCentroid.exitEdgeSegments.isEmpty()) {
-                        throw new PlanItException("Edge segments have not been assigned to Centroid " + (originCentroid.getZoneId() + 1));
+                        throw new PlanItException("Edge segments have not been assigned to Centroid for Zone " + (originCentroid.getZoneId() + 1));
                     }
                     vertexPathCost = shortestPathAlgorithm.executeOneToAll(originCentroid);
                 }
@@ -174,9 +175,10 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
                 // OD-SHORTEST PATH LOADING
                 double shortestPathCost = 0;
                 if (currentDestinationZone == null) {
-                    throw new PlanItException( "currentDestinationZone is null for destinationZoneId = " + (destinationZoneId + 1));
+                    throw new PlanItException( "No zone could be found with destination zone ID = " + destinationZoneId);
                 }
                 Vertex currentPathStartVertex = currentDestinationZone.getCentroid();
+
                 while (currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId()) {
                     int startVertexId = (int) currentPathStartVertex.getId();
                     if (vertexPathCost[startVertexId].getSecond() == null) {

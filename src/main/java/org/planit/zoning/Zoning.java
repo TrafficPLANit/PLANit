@@ -60,7 +60,14 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
 			Zone newZone = new Zone(centroid);
 			registerZone(newZone);
 			return newZone;
-		}			
+		}	
+		
+		public Zone createAndRegisterNewZone(long zoneId) {
+		    Centroid centroid = new Centroid(zoneId);
+            Zone newZone = new Zone(centroid);
+            registerZone(newZone);
+            return newZone;
+        }   
 		
 /**
  * Retrieve zone by id 

@@ -38,7 +38,6 @@ public class Centroid extends Vertex {
 	public Centroid(long zoneId) {
 		super();
 		this.zoneId = zoneId;
-//		this.parentZone = null;
 	}
 	
 	// Getters-Setters
