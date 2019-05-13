@@ -156,7 +156,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
                 Zone currentOriginZone = null;
                 Pair<Double, EdgeSegment>[] vertexPathCost = null;
                 // UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
-                //TransportNetwork network = getTransportNetwork();
                 if (previousOriginZoneId != originZoneId) {
                     
                     currentOriginZone = network.zones.getZone(originZoneId - 1);
@@ -368,7 +367,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
     }
 
 /**
- * Return the gap Function used by this Traffc Assignment
+ * Return the gap Function used by this Traffic Assignment
  * 
  * @return GapFunction used
  */

@@ -11,8 +11,8 @@ import org.planit.zoning.Zone;
  *
  */
 public class Centroid extends Vertex {
-	// Protected
-	
+    // Protected
+    
     /**
      * Logger for this class
      */
@@ -20,48 +20,48 @@ public class Centroid extends Vertex {
         
 /**
  * Identifier of parent zone of this centroid
- */	
-	protected final long zoneId;
+ */ 
+    protected final long zoneId;
 
-	/**
-	 * the zone this centroid represents
-	 */
-	protected Zone parentZone;
-			
-	// Public
-	
+    /**
+     * the zone this centroid represents
+     */
+    protected Zone parentZone;
+            
+    // Public
+    
 /**
  * Constructor
  * 
  * @param zoneId     id of the parent zone of this centroid
  */
-	public Centroid(long zoneId) {
-		super();
-		this.zoneId = zoneId;
-	}
-	
-	// Getters-Setters
-	
-	public long getZoneId() {
-	    return zoneId;
-	}
-	
+    public Centroid(long zoneId) {
+        super();
+        this.zoneId = zoneId;
+    }
+    
+    // Getters-Setters
+    
+    public long getZoneId() {
+        return zoneId;
+    }
+    
 /**
  * Return the parent zone of this centroid
  * 
  * @return        parent zone of this centroid
  */
-	public Zone getParentZone() {
-		return this.parentZone;
-	}
-	
+    public Zone getParentZone() {
+        return this.parentZone;
+    }
+    
 /**
  * Set the parent zone of this centroid
  * 
  * @param parentZone         parent zone of this centroid
  */
-	public void setParentZone(Zone parentZone) {
-		this.parentZone = parentZone;
-	}
-	
+    public void setParentZone(Zone parentZone) {
+        this.parentZone = parentZone;
+    }
+    
 }

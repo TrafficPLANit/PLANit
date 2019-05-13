@@ -13,87 +13,94 @@ import org.planit.utils.IdGenerator;
  *
  */
 public class Zone {
-	
+    
     /**
      * Logger for this class
      */
     private static final Logger LOGGER = Logger.getLogger(Zone.class.getName());
         
-	/**
-	 * Unique identifier for the zone
-	 */
-	protected final long id;
-		
-	/**
-	 * generic input property storage
-	 */
-	protected Map<String, Object> inputProperties = null;	
-	
-	/**
-	 * Centroid of the zone
-	 */
-	protected final Centroid centroid;
-	
+    /**
+     * Unique identifier for the zone
+     */
+    protected final long id;
+    
+    protected final long externalId;
+        
+    /**
+     * generic input property storage
+     */
+    protected Map<String, Object> inputProperties = null;   
+    
+    /**
+     * Centroid of the zone
+     */
+    protected final Centroid centroid;
+    
 /** Generate unique id for this zone
  * 
- * @return 				id for this zone
+ * @return              id for this zone
  */
-	protected static int generateZoneId() {
-		return IdGenerator.generateId(Zone.class);
-	}
-		
-	// Public
-	
+    protected static int generateZoneId() {
+        return IdGenerator.generateId(Zone.class);
+    }
+        
+    // Public
+    
 /**
  * Constructor
  * 
- * @param centroid			Centroid of this zone
+ * @param centroid          Centroid of this zone
  */
-	public Zone(Centroid centroid){
-	    this.id = centroid.getId();
-		centroid.setParentZone(this);
-		this.centroid = centroid;
-	}	
-	
+    public Zone(Centroid centroid,  long externalId){
+        this.id = centroid.getId();
+        centroid.setParentZone(this);
+        this.centroid = centroid;
+        this.externalId = externalId;
+    }   
+    
 /**
  * Returns the id of this zone
- * 	
- * @return 			id of this zone
+ *  
+ * @return          id of this zone
  */
-	public long getId() {
-		return this.id;
-	}
-	
+    public long getId() {
+        return this.id;
+    }
+    
 /**
  * Add a property from the original input that is not part of the readily available members
  * 
- * @param key			property key
- * @param value			property value
+ * @param key           property key
+ * @param value         property value
  */
-	public void addInputProperty(String key, Object value) {
-		if (inputProperties == null) {
-			inputProperties = new HashMap<String, Object>();
-		}
-		inputProperties.put(key, value);
-	}
-	
+    public void addInputProperty(String key, Object value) {
+        if (inputProperties == null) {
+            inputProperties = new HashMap<String, Object>();
+        }
+        inputProperties.put(key, value);
+    }
+    
 /** 
  * Get input property by its key
  * 
- * @param key			property key
- * @return 					property value
+ * @param key           property key
+ * @return                  property value
  */
-	public Object getInputProperty(String key) {
-		return inputProperties.get(key);
-	}	
-	
+    public Object getInputProperty(String key) {
+        return inputProperties.get(key);
+    }   
+    
 /**
  * Returns the centroid of this zone
  * 
- * @return				centroid of this zone
+ * @return              centroid of this zone
  */
-	public Centroid getCentroid() {
-		return centroid;
-	}
-		
+    public Centroid getCentroid() {
+        return centroid;
+    }
+    
+    public long getExternalId() {
+        return externalId;
+    }
+        
 }
