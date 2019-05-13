@@ -25,11 +25,9 @@ public class MatrixDemand extends ODDemand {
  */
 	protected class MatrixDemandIterator implements ODDemandIterator{
 		
-		private int originId = 0;
-		private int destinationId = 0;
-		private int currentOriginId = 1;
-		private int currentDestinationId = 1;
-		private int beyondEndID = numberOfTravelAnalysisZones-1;
+		private int currentOriginId = 0;
+		private int currentDestinationId = 0;
+		private int beyondEndID = numberOfTravelAnalysisZones;
 		boolean hasNext = numberOfTravelAnalysisZones>0;
 	
 /**
@@ -49,14 +47,12 @@ public class MatrixDemand extends ODDemand {
  */
 		@Override
 		public Double next() {
-			currentDestinationId = destinationId + 1;
-			currentOriginId = originId + 1;
-			double value = get(originId, destinationId);
-			if (destinationId < beyondEndID) {
-				++destinationId;
-			} else if ( originId < beyondEndID) {
-				++originId;
-				destinationId = 0;
+			double value = get(currentOriginId, currentDestinationId);
+			if (currentDestinationId < (beyondEndID-1)) {
+				++currentDestinationId;
+			} else if ( currentOriginId < (beyondEndID-1)) {
+				++currentOriginId;
+				currentDestinationId = 0;
 			} else {
 				hasNext = false;
 			}

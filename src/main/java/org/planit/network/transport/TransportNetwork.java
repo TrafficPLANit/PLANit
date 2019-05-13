@@ -171,7 +171,6 @@ public class TransportNetwork {
 	
 /** 
  * Returns the total number of link segments available in this transport network 
-
  * @return               the number of physical link segments in this network
  */
 	public int getTotalNumberOfLinkSegments() {

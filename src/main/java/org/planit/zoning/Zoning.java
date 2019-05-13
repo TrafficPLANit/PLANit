@@ -59,6 +59,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
 		public Zone createAndRegisterNewZone(long externalZoneId) {
 			Zone newZone = new Zone(externalZoneId);
 			registerZone(newZone);
+			virtualNetwork.centroids.registerCentroid(newZone.getCentroid());
 			return newZone;
 		}			
 		

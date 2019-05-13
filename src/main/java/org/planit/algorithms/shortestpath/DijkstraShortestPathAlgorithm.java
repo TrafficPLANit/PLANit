@@ -69,7 +69,7 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
      * 
      * @param currentOrigin            origin vertex of source node
      * @return 									array of pairs containing, for each vertex (array index), the cost to reach the vertex and the link segment it is reached from with the shortest cost.
-     * @throws PlanItException		thrown if an error occurss
+     * @throws PlanItException		thrown if an error occurs
      */
 	public Pair<Double,EdgeSegment>[] executeOneToAll(@Nonnull Vertex currentOrigin) throws PlanItException{
 		boolean [] vertexVisited = new boolean[numberOfVertices];
@@ -118,4 +118,3 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
 	}
 
 }
-

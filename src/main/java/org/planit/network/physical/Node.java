@@ -34,12 +34,16 @@ public class Node extends Vertex {
 	 */	
 	protected final long nodeId;
 	
+	/**
+	 * External identifier used in input files
+	 */
+	protected long externalId;
 	
 	// Public
 	
-    /**
-     * Node constructor
-      */
+/**
+ * Node constructor
+  */
 	public Node() {
 		super();
 		this.nodeId = generateNodeId();
@@ -52,13 +56,11 @@ public class Node extends Vertex {
 	}
 	
     public long getExternalId() {
-        return getExternalId();
+        return externalId;
     }
 
     public void setExternalId(long externalId) {
-        setExternalId(externalId);
+        this.externalId = externalId;
     }
-    
-    
 
 }

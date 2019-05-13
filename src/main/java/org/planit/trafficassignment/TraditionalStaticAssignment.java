@@ -141,13 +141,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
      * @param shortestPathAlgorithm    shortest path algorithm to be used
      * @throws PlanItException              thrown if there is an error
      */
-    private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData, double[] modalNetworkSegmentCosts,  ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+    private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData, double[] modalNetworkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
         ODDemandIterator odDemandIter = odDemands.iterator();
 
         // loop over all available OD demands
         while (odDemandIter.hasNext()) {
             double odDemand = odDemandIter.next();
-            int originZoneId = odDemandIter.getCurrentOriginId();
+            int originZoneId = odDemandIter.getCurrentOriginId(); 
             int destinationZoneId = odDemandIter.getCurrentDestinationId();
             int previousOriginZoneId = 0;
             if (((odDemand - DefaultValues.DEFAULT_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
@@ -155,13 +155,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
                 Pair<Double, EdgeSegment>[] vertexPathCost = null;
                 // UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
                 TransportNetwork network = getTransportNetwork();
-                if (previousOriginZoneId != originZoneId) {
-                    
-                    currentOriginZone = network.zones.getZone(originZoneId - 1);
-                    Centroid originCentroid = currentOriginZone.getCentroid();
-                    
-                    if (originCentroid.hasExitEdgeSegments()) {
-                        throw new PlanItException("Link segments have not been assigned to Centroid for zone" + originZoneId);
+                if (previousOriginZoneId != originZoneId) {                    
+                    currentOriginZone = network.zones.getZone(originZoneId);
+                    Centroid originCentroid = currentOriginZone.getCentroid();                    
+                    if (!originCentroid.hasExitEdgeSegments()) {
+                        throw new PlanItException("Link segments have not been assigned to Centroid for zone " + currentOriginZone.getExternalId());
                     }
                     vertexPathCost = shortestPathAlgorithm.executeOneToAll(originCentroid);
                 }
@@ -169,11 +167,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
                 // TODO: Costly to lookup destination zone via map whereas we know it is the
                 // next (non-zero demand) id compared to the previous)
 
-                Zone currentDestinationZone = network.zones.getZone(destinationZoneId - 1);
+                Zone currentDestinationZone = network.zones.getZone(destinationZoneId);
                 // OD-SHORTEST PATH LOADING
                 double shortestPathCost = 0;
                 if (currentDestinationZone == null) {
-                    throw new PlanItException( "currentDestinationZone is null for destinationZoneId = " + (destinationZoneId + 1));
+                    throw new PlanItException( "currentDestinationZone is null");
                 }
                 Vertex currentPathStartVertex = currentDestinationZone.getCentroid();
                 while (currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId()) {
@@ -184,7 +182,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
                         } else {
                             throw new PlanItException( "The solution could not find an Edge Segment for node with id " + ((Node) currentPathStartVertex).getExternalId());                            
                         }
-
                     }
                     EdgeSegment currentEdgeSegment = vertexPathCost[startVertexId].getSecond();
                     double edgeSegmentCost = modalNetworkSegmentCosts[(int) currentEdgeSegment.getId()];
