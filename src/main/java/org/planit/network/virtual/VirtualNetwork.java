@@ -172,29 +172,29 @@ public class VirtualNetwork {
 		}		
 	}	
 			
-    /**
-     * Internal class for all Centroid specific code
-     *
-     */
+/**
+ * Internal class for all Centroid specific code
+ *
+ */
 	public class Centroids implements Iterable<Centroid> {
 		
-        /** 
-         * Add centroid to the internal container
-         * 
-         * If centroid overrides an existing centroid, the removed centroid is returned
-         *  
-         * @param centroid          centroid to be registered
-         * @return                        registered centroid
-         */	
+/** 
+ * Add centroid to the internal container
+ * 
+ * If centroid overrides an existing centroid, the removed centroid is returned
+ *  
+ * @param centroid          centroid to be registered
+ * @return                        registered centroid
+ */	
 		public Centroid registerCentroid(@Nonnull Centroid centroid) {
 			return centroidMap.put(centroid.getId(),centroid);
 		}		
 		
-        /**
-         * Iterator through registered centroid
-         * 
-         * @return       iterator through registered centroids
-         */
+/**
+ * Iterator through registered centroid
+ * 
+ * @return       iterator through registered centroids
+ */
 		@Override
 		public Iterator<Centroid> iterator() {
 			return centroidMap.values().iterator();

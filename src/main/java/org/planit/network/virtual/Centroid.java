@@ -1,9 +1,6 @@
 package org.planit.network.virtual;
 
 import java.util.logging.Logger;
-import javax.annotation.Nonnull;
-
-import org.opengis.geometry.DirectPosition;
 import org.planit.network.Vertex;
 import org.planit.zoning.Zone;
 
@@ -19,79 +16,53 @@ public class Centroid extends Vertex {
     /**
      * Logger for this class
      */
-    private static final Logger LOGGER = Logger.getLogger(Centroid.class.getName());        
-		
+    private static final Logger LOGGER = Logger.getLogger(Centroid.class.getName());
+        
+/**
+ * Identifier of parent zone of this centroid
+ */	
+	protected final long zoneId;
+
 	/**
 	 * the zone this centroid represents
 	 */
 	protected Zone parentZone;
-	
-	/**
-	 * Location of the Centroid
-	 */
-	protected DirectPosition location = null;
 			
 	// Public
 	
-    /**
-     * Constructor
-     * 
-    * @param parentZone      zone containing this centroid
-    * @param externalId      external Id of link connecting to this centroid
-     */
-	public Centroid(@Nonnull Zone parentZone) {
+/**
+ * Constructor
+ * 
+ * @param zoneId     id of the parent zone of this centroid
+ */
+	public Centroid(long zoneId) {
 		super();
-		this.parentZone = parentZone;
-	}	
+		this.zoneId = zoneId;
+//		this.parentZone = null;
+	}
 	
-    /**
-     * Constructor
-     * 
-    * @param parentZone      zone containing this centroid
-    * @param externalId      external Id of link connecting to this centroid
-     */
-    public Centroid(@Nonnull Zone parentZone, DirectPosition location) {
-        super();
-        this.parentZone = parentZone;
-        this.location = location;
-    }   	
-	
-		
 	// Getters-Setters
 	
-    /**
-     * Return the parent zone of this centroid
-     * 
-     * @return        parent zone of this centroid
-     */
+	public long getZoneId() {
+	    return zoneId;
+	}
+	
+/**
+ * Return the parent zone of this centroid
+ * 
+ * @return        parent zone of this centroid
+ */
 	public Zone getParentZone() {
 		return this.parentZone;
 	}
 	
-	/**
-	 * When we want to obtain the internal origin/destination id that relates to the centroid collect the zone id and
-	 * not the centroid's internal id (as thi is a vertex id shared across all vertices (nodes and centroids).
-	 * @return
-	 */
-	public long getZoneId() {
-	    return getParentZone().getId();
+/**
+ * Set the parent zone of this centroid
+ * 
+ * @param parentZone         parent zone of this centroid
+ */
+	public void setParentZone(Zone parentZone) {
+		this.parentZone = parentZone;
 	}
 	
-    /**
-     * When we want to obtain the external origin/destination id that relates to the centroid collect the external zone id
-     * @return
-     */
-    public long getExternalZoneId() {
-        return getParentZone().getExternalId();
-    }	
-	
-    public DirectPosition getLocation() {
-        return location;
-    }
-
-    public void setLocation(DirectPosition location) {
-        this.location = location;
-    }	
-		
-
 }
