@@ -123,10 +123,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
  * @return                                          the integrated transport network
  * @throws PlanItException               thrown if there is an error
  */
-    protected TransportNetwork integrateVirtualAndPhysicalNetworks(PhysicalNetwork physicalNetwork, Zoning zoning, Demands demands) throws PlanItException {
+    protected TransportNetwork integrateVirtualAndPhysicalNetworks(PhysicalNetwork physicalNetwork, Zoning zoning) throws PlanItException {
         transportNetwork = new TransportNetwork(physicalNetwork, zoning);
         VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();     
-        transportNetwork.integrateConnectoidsAndLinks(virtualNetwork, demands);
+        transportNetwork.integrateConnectoidsAndLinks(virtualNetwork);
         return transportNetwork;
     }   
     
@@ -218,7 +218,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
     public void execute() throws PlanItException  {
         checkForEmptyComponents();  
         verifyComponentCompatibility();
-        integrateVirtualAndPhysicalNetworks(physicalNetwork, zoning, demands);       
+        integrateVirtualAndPhysicalNetworks(physicalNetwork, zoning);       
         initialiseBeforeEquilibration();            
         executeEquilibration();
         finalizeAfterEquilibration();

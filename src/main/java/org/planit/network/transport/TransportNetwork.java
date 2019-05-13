@@ -217,27 +217,10 @@ public class TransportNetwork {
  * @param virtualNetwork            VirtualNetwork to be integrated into this TransportNetwork
  * @throws PlanItException        thrown if there is an error
  */
-	public void integrateConnectoidsAndLinks(VirtualNetwork virtualNetwork, Demands demands) throws PlanItException {
+	public void integrateConnectoidsAndLinks(VirtualNetwork virtualNetwork) throws PlanItException {
 		for (Connectoid connectoid: virtualNetwork.connectoids) {
-            //virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
-            //virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, false);
-		    Centroid centroid = (Centroid) connectoid.getVertexA();
- 		    for (TimePeriod timePeriod : demands.getRegisteredTimePeriods()) {
-		        for (Mode mode : demands.getRegisteredModesForTimePeriod(timePeriod)) {
-		            boolean isOrigin = demands.get(mode, timePeriod).isOrigin(centroid.getZoneId());
-		            if (isOrigin) {
-		                Node node = (Node) connectoid.getVertexB();
-	                    LOGGER.info("Creating a connectoid from origin zone "  + (centroid.getZoneId() +1) + " to node " + node.getExternalId());
-		                virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
-		            }
-		            boolean isDestination = demands.get(mode, timePeriod).isDestination(centroid.getZoneId());
-		            if (isDestination) {
-                        Node node = (Node) connectoid.getVertexB();
-                        LOGGER.info("Creating a connectoid from node " + node.getExternalId() + " to destination zone " + (centroid.getZoneId() +1));
-		                virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, false);
-		            }
-		        }
-		    }
+            virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
+            virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, false);
 			connectVerticesToEdge(connectoid);
 		}
 		for (ConnectoidSegment connectoidSegment: virtualNetwork.connectoidSegments) {

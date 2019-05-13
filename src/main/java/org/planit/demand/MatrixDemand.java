@@ -163,24 +163,4 @@ public class MatrixDemand extends ODDemand {
 		return new MatrixDemandIterator();
 	}
 
-    @Override
-    public boolean isOrigin(long originId) {
-        for (int destId = 0; destId <numberOfTravelAnalysisZones; destId ++) {
-            if (demandMatrixContents.get(originId, destId) > 0.0) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    @Override
-    public boolean isDestination(long destId) {
-        for (int originId = 0; originId <numberOfTravelAnalysisZones; originId ++) {
-            if (demandMatrixContents.get(originId, destId) > 0.0) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
 }
