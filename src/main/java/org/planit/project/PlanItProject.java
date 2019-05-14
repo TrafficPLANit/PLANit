@@ -3,6 +3,7 @@ package org.planit.project;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
+import org.junit.experimental.theories.internal.Assignments;
 import org.planit.demand.Demands;
 import org.planit.event.listener.InputBuilderListener;
 import org.planit.event.management.EventManager;
@@ -34,27 +35,22 @@ public class PlanItProject {
 	/**
 	 * The physical networks registered on this project
 	 */
-	private TreeMap<Long, PhysicalNetwork> physicalNetworks;
+	private TreeMap<Long, PhysicalNetwork> physicalNetworks = new TreeMap<Long,PhysicalNetwork>();
 	
 	/**
 	 * The zoning(s) registered on this project
 	 */
-	private TreeMap<Long, Zoning> zonings;
+	private TreeMap<Long, Zoning> zonings = new TreeMap<Long,Zoning>();
 
 	/**
 	 * The demands registered on this project
 	 */
-	private TreeMap<Long, Demands> demandsMap;
-	
-	/**
-	 * The traffic assignment(s) registered on this project
-	 */
-	private TreeMap<Long, TrafficAssignment> trafficAssignments;
-	
+	private TreeMap<Long, Demands> demandsMap = new TreeMap<Long, Demands>();
+		
     /**
      * The output formatter(s) registered on this project
      */
-    private TreeMap<Long, OutputFormatter> outputFormatters;	
+    private TreeMap<Long, OutputFormatter> outputFormatters = new TreeMap<Long, OutputFormatter>();	
 	
     /**
      * The physical network used for this project
@@ -68,103 +64,122 @@ public class PlanItProject {
     /**
      * Object Factory for physical network object
      */
-	private TrafficAssignmentComponentFactory<PhysicalNetwork> physicalNetworkFactory;
+	private TrafficAssignmentComponentFactory<PhysicalNetwork> physicalNetworkFactory = new TrafficAssignmentComponentFactory<PhysicalNetwork>(PhysicalNetwork.class);
 	
     /**
      * Object factory for zoning objects
      */
-	private TrafficAssignmentComponentFactory<Zoning> zoningFactory;
+	private TrafficAssignmentComponentFactory<Zoning> zoningFactory = new TrafficAssignmentComponentFactory<Zoning>(Zoning.class);
 	
     /**
      * Object factory for demands object
      */
-	private TrafficAssignmentComponentFactory<Demands> demandsFactory;
+	private TrafficAssignmentComponentFactory<Demands> demandsFactory = new TrafficAssignmentComponentFactory<Demands>(Demands.class);
 	
     /**
      * Object factory for network loading object
      */
-	private TrafficAssignmentComponentFactory<NetworkLoading> assignmentFactory;
+	private TrafficAssignmentComponentFactory<NetworkLoading> assignmentFactory = new TrafficAssignmentComponentFactory<NetworkLoading>(NetworkLoading.class);
 	
-/**
- * Constructor which reads in the input builder listener and instantiates the object factory classes.
- * 
- * This constructor instantiates the EventManager, which must be a singleton class for the whole application.
- * 
- * At present the input builder listener must be either MetroScan or BasicCsvScan.
- * 
- * @param inputBuilderListener				InputBuilderListener used to read in data
- */
+	/**
+	 * Event manager used by all components
+	 */
+	private EventManager eventManager = new SimpleEventManager();
+	
+    /**
+     * The traffic assignment(s) registered on this project
+     */
+    protected TreeMap<Long, TrafficAssignment> trafficAssignments = new TreeMap<Long,TrafficAssignment>();
+    
+    // Private methods
+		
+    /** register the event manager on all factories
+     * @param eventManager
+     */
+    private void initialiseFactories(EventManager eventManager) {
+        physicalNetworkFactory.setEventManager(eventManager);
+        zoningFactory.setEventManager(eventManager);        
+        demandsFactory.setEventManager(eventManager);        
+        assignmentFactory.setEventManager(eventManager);
+    }
+    
+    // Protected methods
+    
+    /** Execute a particular traffic assignment
+     * @param ta
+     */
+    protected void executeTrafficAssignment(TrafficAssignment ta) {
+        try {
+            ta.execute();
+        } catch (Exception e) {
+            LOGGER.severe(e.getMessage());
+        }        
+    }    
+        
+    // Public methods
+		
+    /**
+     * Constructor which reads in the input builder listener and instantiates the object factory classes.
+     * 
+     * This constructor instantiates the EventManager, which must be a singleton class for the whole application.
+     * 
+     * At present the input builder listener must be either MetroScan or BasicCsvScan.
+     * 
+     * @param inputBuilderListener				InputBuilderListener used to read in data
+     */
 	public PlanItProject(InputBuilderListener inputBuilderListener) {
-		EventManager eventManager = new SimpleEventManager();
 		eventManager.addEventListener(inputBuilderListener);
-		
-		trafficAssignments = new TreeMap<Long,TrafficAssignment>();
-		physicalNetworks = new TreeMap<Long,PhysicalNetwork>();
-		zonings = new TreeMap<Long,Zoning>();
-		demandsMap = new TreeMap<Long, Demands>();
-		outputFormatters = new TreeMap<Long, OutputFormatter>();
-		
-		physicalNetworkFactory = new TrafficAssignmentComponentFactory<PhysicalNetwork>(PhysicalNetwork.class);		
-		physicalNetworkFactory.setEventManager(eventManager);
-		
-		zoningFactory = new TrafficAssignmentComponentFactory<Zoning>(Zoning.class);
-		zoningFactory.setEventManager(eventManager);
-		
-		demandsFactory = new TrafficAssignmentComponentFactory<Demands>(Demands.class);
-		demandsFactory.setEventManager(eventManager);
-		
-		assignmentFactory = new TrafficAssignmentComponentFactory<NetworkLoading>(NetworkLoading.class);
-		assignmentFactory.setEventManager(eventManager);	
+		initialiseFactories(eventManager);
 	}
 	
-/** 
- * Add a network to the project.  If a network with the same id already exists the earlier network is replaced and returned (otherwise null)
- * 
- * @param physicalNetworkType					name of physical network class to register
- * @return 								                        the generated physical network
- * @throws PlanItException 	                        thrown if there is an error
- */
+    /** 
+     * Add a network to the project.  If a network with the same id already exists the earlier network is replaced and returned (otherwise null)
+     * 
+     * @param physicalNetworkType					name of physical network class to register
+     * @return 								                        the generated physical network
+     * @throws PlanItException 	                        thrown if there is an error
+     */
 	public PhysicalNetwork createAndRegisterPhysicalNetwork(String physicalNetworkType) throws PlanItException {
 		physicalNetwork = physicalNetworkFactory.create(physicalNetworkType);
 		physicalNetworks.put(physicalNetwork.getId(), physicalNetwork);
 		return physicalNetwork;
 	}
 	
-/** 
- * Create and register the zoning system on the network
- * 
- * There is only one Zoning class, so no need to pass its name into this method.
- * 
- * @return 								the generated zoning object		
- * @throws PlanItException 	thrown if there is an error
- */
+    /** 
+     * Create and register the zoning system on the network
+     * 
+     * There is only one Zoning class, so no need to pass its name into this method.
+     * 
+     * @return 								the generated zoning object		
+     * @throws PlanItException 	thrown if there is an error
+     */
 	public Zoning createAndRegisterZoning() throws PlanItException {
 		zoning = zoningFactory.create(Zoning.class.getCanonicalName());
 		zonings.put(zoning.getId(), zoning);
 		return zoning;		
 	}
 	
-/** 
- * Create and register demands to the project
- * 
- * There is only one Demands class, so no need to pass its name into this method.
- * 
- * @return 								the generated demands object
- * @throws PlanItException 	thrown if there is an error
- */
+    /** 
+     * Create and register demands to the project
+     * 
+     * There is only one Demands class, so no need to pass its name into this method.
+     * 
+     * @return 								the generated demands object
+     * @throws PlanItException 	thrown if there is an error
+     */
 	public Demands createAndRegisterDemands() throws PlanItException {
 		Demands demands = demandsFactory.create(Demands.class.getCanonicalName());
 		demandsMap.put(demands.getId(), demands);
 		return demands;
 	}	
 		
-/** 
- * Create and register a deterministic traffic assignment instance of a given type
- * 
- * @param trafficAssignmentType		the class name of the traffic assignment type object to be created
- * @return							the generated traffic assignment object
- * @throws PlanItException 			thrown if there is an error
- */
+    /** 
+     * Create and register a deterministic traffic assignment instance of a given type
+     * 
+     * @param trafficAssignmentType		the class name of the traffic assignment type object to be created
+     * @return							the generated traffic assignment object
+     * @throws PlanItException 			thrown if there is an error
+     */
 	public DeterministicTrafficAssignment  createAndRegisterDeterministicAssignment(String trafficAssignmentType) throws PlanItException {
 		NetworkLoading networkLoadingAndAssignment = (NetworkLoading) assignmentFactory.create(trafficAssignmentType);
 		if(!(networkLoadingAndAssignment instanceof DeterministicTrafficAssignment)){
@@ -175,13 +190,20 @@ public class PlanItProject {
 		return trafficAssignment;
 	}
 	
-/** 
- * Create and register an output formatter instance of a given type
- * 
- * @param outputFormatterType     the class name of the output formatter type object to be created
- * @return                          the generated output formatter object
- * @throws PlanItException          thrown if there is an error
- */		
+    /** Check if assignments have already been registered
+     * @return true if registered assignments exist, false otherwise
+     */
+    public boolean hasRegisteredAssignments() {
+        return !trafficAssignments.isEmpty();
+    }	
+	
+    /** 
+     * Create and register an output formatter instance of a given type
+     * 
+     * @param outputFormatterType     the class name of the output formatter type object to be created
+     * @return                          the generated output formatter object
+     * @throws PlanItException          thrown if there is an error
+     */		
 	public OutputFormatter createAndRegisterOutputFormatter(String outputFormatterType) throws PlanItException {
        OutputFormatter outputFormatter = OutputFormatterFactory.createOutputFormatter(outputFormatterType);
         if (outputFormatter == null) {
@@ -191,71 +213,67 @@ public class PlanItProject {
         return outputFormatter;
 	}
 
- /**
-  * Retrieve a Demands object given its id
-  * 
-  * @param id		the id of the Demands object
-  * @return			the retrieved Demands object
-  */
+    /**
+     * Retrieve a Demands object given its id
+     * 
+     * @param id		the id of the Demands object
+     * @return			the retrieved Demands object
+     */
 	public Demands getDemands(long id) {
 		return demandsMap.get(id);
 	}
 	
- /**
-  * Retrieve a TrafficAssigment object given its id
-  * 
-  * @param id		the id of the TrafficAssignment object
-  * @return			the retrieved TrafficAssignment object
-  */
+   /**
+    * Retrieve a TrafficAssigment object given its id
+    * 
+    * @param id		the id of the TrafficAssignment object
+    * @return			the retrieved TrafficAssignment object
+    */
 	public TrafficAssignment getTrafficAssignment(long id) {
 		return trafficAssignments.get(id);
 	}
 	
- /**
-  * Retrieve an output formatter object given its id
-  * 
-  * @param id        the id of the output formatter object
-  * @return          the retrieved output formatter object
-  */
+    /**
+     * Retrieve an output formatter object given its id
+     * 
+     * @param id        the id of the output formatter object
+     * @return          the retrieved output formatter object
+     */
     public OutputFormatter getOutputFormatter(long id) {
         return outputFormatters.get(id);
     }	
 	
- /**
-  * Retrieve a Zoning object given its id
-  * 
-  * @param id		the id of the the Zoning object
-  * @return			the retrieved Zoning object
-  */
+    /**
+     * Retrieve a Zoning object given its id
+     * 
+     * @param id		the id of the the Zoning object
+     * @return			the retrieved Zoning object
+     */
 	public Zoning getZoning(long id) {
 		return zonings.get(id);
 	}
 	
-/**
- * Retrieve a PhysicalNetwork object given its id
- * 
- * @param id		the id of the PhysicalNetwork object
- * @return			the retrieved PhysicalNetwork object
- */
+    /**
+     * Retrieve a PhysicalNetwork object given its id
+     * 
+     * @param id		the id of the PhysicalNetwork object
+     * @return			the retrieved PhysicalNetwork object
+     */
     public PhysicalNetwork getPhysicalNetwork(long id) {
 		return physicalNetworks.get(id);
 	}
 	
-/**
- * Execute all registered traffic assignments 
- * 
- * Top-level error reporting is done in this class.  If several traffic assignments are registered and one fails, we report its error and continue with the next assignment. 
- * 
- * @throws PlanItException		thrown if there is an error
- * 
- */
+    /**
+     * Execute all registered traffic assignments 
+     * 
+     * Top-level error reporting is done in this class.  If several traffic assignments are registered and one fails, we report its error and continue with the next assignment. 
+     * 
+     * @throws PlanItException		thrown if there is an error
+     * 
+     */
 	public void executeAllTrafficAssignments() throws PlanItException {
 		trafficAssignments.forEach( (id,ta) -> {
-			try {
-			    ta.execute();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		    executeTrafficAssignment(ta);
 		});	
 	}
 	
