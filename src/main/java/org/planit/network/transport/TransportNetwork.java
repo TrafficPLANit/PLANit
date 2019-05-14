@@ -5,23 +5,17 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
-import org.planit.demand.Demands;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.Edge;
 import org.planit.network.EdgeSegment;
-import org.planit.network.Vertex;
 import org.planit.network.physical.Link;
 import org.planit.network.physical.LinkSegment;
-import org.planit.network.physical.Node;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.PhysicalNetwork.LinkSegments;
-import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.Connectoid;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.network.virtual.VirtualNetwork.ConnectoidSegments;
-import org.planit.time.TimePeriod;
-import org.planit.userclass.Mode;
 import org.planit.zoning.Zoning;
 import org.planit.zoning.Zoning.Zones;
 
@@ -82,7 +76,7 @@ public class TransportNetwork {
 	}
 
 	/**
-	 * Holds the physical road network that is being modelled
+	 * Holds the physical road network that is being modeled
 	 */
 	protected final PhysicalNetwork physicalNetwork;
 	
@@ -214,11 +208,11 @@ public class TransportNetwork {
 /**
  * Integrate physical and virtual links
  * 
- * @param virtualNetwork            VirtualNetwork to be integrated into this TransportNetwork
  * @throws PlanItException        thrown if there is an error
  */
-	public void integrateConnectoidsAndLinks(VirtualNetwork virtualNetwork) throws PlanItException {
-		for (Connectoid connectoid: virtualNetwork.connectoids) {
+	public void integrateConnectoidsAndLinks() throws PlanItException {
+	    VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
+	    for (Connectoid connectoid: virtualNetwork.connectoids) {
             virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
             virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, false);
 			connectVerticesToEdge(connectoid);

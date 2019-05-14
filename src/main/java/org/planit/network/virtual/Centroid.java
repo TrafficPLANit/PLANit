@@ -19,31 +19,32 @@ public class Centroid extends Vertex {
     private static final Logger LOGGER = Logger.getLogger(Centroid.class.getName());
         
 /**
- * Identifier of parent zone of this centroid
+ * Row/column of the demand matrix which this centroid/zone represents
  */ 
-    protected final long zoneId;
+    protected final long odPos;
 
     /**
      * the zone this centroid represents
      */
-    protected Zone parentZone;
+    protected final Zone parentZone;
             
     // Public
     
 /**
  * Constructor
  * 
- * @param zoneId     id of the parent zone of this centroid
+ * @param odPos     row/column in the OD matrix which this centroid/zone corresponds to
  */
-    public Centroid(long zoneId) {
+    public Centroid(Zone parentZone, long odPos) {
         super();
-        this.zoneId = zoneId;
+        this.parentZone = parentZone;
+        this.odPos = odPos;
     }
     
     // Getters-Setters
     
-    public long getZoneId() {
-        return zoneId;
+    public long getOdPos() {
+        return odPos;
     }
     
 /**
@@ -53,15 +54,6 @@ public class Centroid extends Vertex {
  */
     public Zone getParentZone() {
         return this.parentZone;
-    }
-    
-/**
- * Set the parent zone of this centroid
- * 
- * @param parentZone         parent zone of this centroid
- */
-    public void setParentZone(Zone parentZone) {
-        this.parentZone = parentZone;
     }
     
 }

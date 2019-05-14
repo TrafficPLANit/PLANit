@@ -6,7 +6,6 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
-import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.IdGenerator;
@@ -37,9 +36,15 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
  * @return             the zone added
  */
         protected Zone registerZone(@Nonnull Zone zone) {
-            return zoneMap.put(zone.getCentroid().getZoneId(), zone);
+            return zoneMap.put(zone.getCentroid().getOdPos(), zone);
         }
         
+ /**
+  * Returns a zone specified by its external Id
+  * 
+  * @param externalId      the external Id of the specified zone
+  * @return                      the retrieved zone object
+  */
         public Zone getZoneByExternalId(long externalId) {
             for (Zone zone : zoneMap.values()) {
                 if (zone.getExternalId() == externalId) {
@@ -62,30 +67,25 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
 /** 
  * Create and register new zone to network identified via its id
  * 
- * @param centroid          centroid of the new zone
- * @return                          the new zone created
+ * @param odPos          row/column of the OD matrix this zone/centroid corresponds to
+ * @param externalId     external Id of this zone
+ * @return                     the new zone created
  */
-        public Zone createAndRegisterNewZone(Centroid centroid, long externalId) {
-            Zone newZone = new Zone(centroid, externalId);
+        public Zone createAndRegisterNewZone(long odPos, long externalId) {
+            Zone newZone = new Zone(odPos, externalId);
             registerZone(newZone);
+            virtualNetwork.centroids.registerCentroid(newZone.getCentroid());
             return newZone;
-        }   
-        
-        public Zone createAndRegisterNewZone(long zoneId, long externalId) {
-            Centroid centroid = new Centroid(zoneId);
-            Zone newZone = new Zone(centroid, externalId);
-            registerZone(newZone);
-            return newZone;
-        }   
+        }  
         
 /**
- * Retrieve zone by id 
+ * Retrieve zone by its position in the OD matrix 
  * 
- * @param id              the id for the zone to be retrieved
+ * @param odPos       the row/column in the OD matrix for the zone to be retrieved
  * @return zone         the zone retrieved
  */
-        public Zone getZone(long id) {
-            return zoneMap.get(id);
+        public Zone getZone(long odPos) {
+            return zoneMap.get(odPos);
         }       
         
 /** Collect number of zones on the zoning
@@ -105,7 +105,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
     protected long id;
     
     /**
-     * Holds all the zones
+     * Map storing all the zones by their row/column in the OD matrix
      */
     protected Map<Long, Zone> zoneMap = new TreeMap<Long, Zone>();
 

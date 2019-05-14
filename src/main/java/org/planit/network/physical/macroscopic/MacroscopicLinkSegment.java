@@ -67,19 +67,20 @@ public class MacroscopicLinkSegment extends LinkSegment{
 		if (properties != null) {		
 			double segmentTypeMaximumSpeed = getLinkSegmentType().getModeProperties().getProperties(mode).getMaxSpeed();
 			if ((maximumSpeed == 0.0) && (segmentTypeMaximumSpeed == 0.0)) {
-			    long startId;
-			    long endId;
 			    if (getParentEdge().getVertexA() instanceof Centroid) {
-			        startId = ((Centroid) getParentEdge().getVertexA()).getZoneId() + 1;
-			        endId = ((Node) getParentEdge().getVertexB()).getExternalId();
+			        long startId = ((Centroid) getParentEdge().getVertexA()).getParentZone().getExternalId();
+			        long endId = ((Node) getParentEdge().getVertexB()).getExternalId();
+			        throw new PlanItException("No maximum speed defined for the origin connectoid from zone " + startId + " to node " + endId);
 			    } else if (getParentEdge().getVertexB() instanceof Centroid) {
-                    startId = ((Node) getParentEdge().getVertexA()).getExternalId();
-                    endId = ((Centroid) getParentEdge().getVertexB()).getZoneId() + 1;
+			        long startId = ((Node) getParentEdge().getVertexA()).getExternalId();
+			        long endId = ((Centroid) getParentEdge().getVertexB()).getParentZone().getExternalId();
+                    throw new PlanItException("No maximum speed defined for the destination connectoid from node " + startId + " to zone " + endId);
 			    } else {
-                    startId = ((Node) getParentEdge().getVertexA()).getExternalId();
-                    endId = ((Node) getParentEdge().getVertexB()).getExternalId();
+			        long startId = ((Node) getParentEdge().getVertexA()).getExternalId();
+			        long endId = ((Node) getParentEdge().getVertexB()).getExternalId();
+                    throw new PlanItException("No maximum speed defined for network link from anode reference " + startId + " to bnode " + endId);
 			    }
-			    throw new PlanItException("No maximum speed defined for network link from anode reference " + startId + " to bnode " + endId);
+			    
 			}
 			computedMaximumSpeed = Math.min(maximumSpeed, segmentTypeMaximumSpeed);			
 		}

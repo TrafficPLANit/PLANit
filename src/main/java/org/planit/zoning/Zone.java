@@ -24,6 +24,9 @@ public class Zone {
      */
     protected final long id;
     
+    /**
+     * External Id for this zone
+     */
     protected final long externalId;
         
     /**
@@ -49,14 +52,14 @@ public class Zone {
 /**
  * Constructor
  * 
- * @param centroid          Centroid of this zone
+ * @param odPos         the row/column in the OD matrix corresponding to this zone/centroid
+ * @param externalId    the external ID of this zone
  */
-    public Zone(Centroid centroid,  long externalId){
-        this.id = centroid.getId();
-        centroid.setParentZone(this);
-        this.centroid = centroid;
+    public Zone(long odPos, long externalId) {
+        id = generateZoneId();
         this.externalId = externalId;
-    }   
+        this.centroid = new Centroid(this, odPos);
+    }
     
 /**
  * Returns the id of this zone
@@ -102,5 +105,5 @@ public class Zone {
     public long getExternalId() {
         return externalId;
     }
-        
+    
 }

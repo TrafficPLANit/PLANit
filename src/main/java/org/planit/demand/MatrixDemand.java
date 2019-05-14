@@ -70,7 +70,7 @@ public class MatrixDemand extends ODDemand {
  */
 		@Override
 		public int getCurrentOriginId() {
-			return currentOriginId;
+		    return currentOriginId - 1;
 		}
 		
 /**
@@ -80,7 +80,7 @@ public class MatrixDemand extends ODDemand {
  */
 		@Override
 		public int getCurrentDestinationId() {
-			return currentDestinationId;
+		    return currentDestinationId - 1;
 		}
 		
 /**
