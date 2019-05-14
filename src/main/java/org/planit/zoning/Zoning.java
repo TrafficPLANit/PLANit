@@ -36,8 +36,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
  * @return             the zone added
  */
         protected Zone registerZone(@Nonnull Zone zone) {
-            return zoneMap.put(zone.getId(), zone);
-        }
+            return zoneMap.put(zone.getId(), zone);        }
         
  /**
   * Returns a zone specified by its external Id
