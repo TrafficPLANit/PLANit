@@ -36,7 +36,8 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
  * @return             the zone added
  */
         protected Zone registerZone(@Nonnull Zone zone) {
-            return zoneMap.put(zone.getCentroid().getOdPos(), zone);
+            //return zoneMap.put(zone.getCentroid().getOdPos(), zone);
+            return zoneMap.put(zone.getId(), zone);
         }
         
  /**
@@ -67,25 +68,24 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
 /** 
  * Create and register new zone to network identified via its id
  * 
- * @param odPos          row/column of the OD matrix this zone/centroid corresponds to
  * @param externalId     external Id of this zone
  * @return                     the new zone created
  */
-        public Zone createAndRegisterNewZone(long odPos, long externalId) {
-            Zone newZone = new Zone(odPos, externalId);
+        public Zone createAndRegisterNewZone(long externalId) {
+            Zone newZone = new Zone(externalId);
             registerZone(newZone);
             virtualNetwork.centroids.registerCentroid(newZone.getCentroid());
             return newZone;
         }  
         
 /**
- * Retrieve zone by its position in the OD matrix 
+ * Retrieve zone by its Id
  * 
- * @param odPos       the row/column in the OD matrix for the zone to be retrieved
+ * @param id              the id of the zone
  * @return zone         the zone retrieved
  */
-        public Zone getZone(long odPos) {
-            return zoneMap.get(odPos);
+        public Zone getZone(long id) {
+            return zoneMap.get(id);
         }       
         
 /** Collect number of zones on the zoning
