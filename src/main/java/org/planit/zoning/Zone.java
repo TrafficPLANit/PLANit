@@ -52,13 +52,12 @@ public class Zone {
 /**
  * Constructor
  * 
- * @param odPos         the row/column in the OD matrix corresponding to this zone/centroid
  * @param externalId    the external ID of this zone
  */
-    public Zone(long odPos, long externalId) {
+    public Zone(long externalId) {
         id = generateZoneId();
         this.externalId = externalId;
-        this.centroid = new Centroid(this, odPos);
+        this.centroid = new Centroid(this);
     }
     
 /**
