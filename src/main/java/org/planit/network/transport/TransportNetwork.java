@@ -76,7 +76,7 @@ public class TransportNetwork {
 	}
 
 	/**
-	 * Holds the physical road network that is being modelled
+	 * Holds the physical road network that is being modeled
 	 */
 	protected final PhysicalNetwork physicalNetwork;
 	
@@ -92,8 +92,8 @@ public class TransportNetwork {
  * @throws PlanItException        thrown if there is an error
  */
 	protected void connectVerticesToEdgeSegment(EdgeSegment edgeSegment) throws PlanItException {
-		edgeSegment.getUpstreamVertex().addExitEdgeSegment(edgeSegment);
-		edgeSegment.getDownstreamVertex().addEntryEdgeSegment(edgeSegment);	
+		edgeSegment.getUpstreamVertex().exitEdgeSegments.addEdgeSegment(edgeSegment);
+		edgeSegment.getDownstreamVertex().entryEdgeSegments.addEdgeSegment(edgeSegment);	
 	}	
 	
 /** 
@@ -103,8 +103,8 @@ public class TransportNetwork {
  * @throws PlanItException      thrown if there is an error
  */
 	protected void disconnectVerticesFromEdgeSegment(EdgeSegment edgeSegment) throws PlanItException {
-		edgeSegment.getUpstreamVertex().removeExitEdgeSegment(edgeSegment);
-		edgeSegment.getDownstreamVertex().removeEntryEdgeSegment(edgeSegment);	
+		edgeSegment.getUpstreamVertex().exitEdgeSegments.removeEdgeSegment(edgeSegment);
+		edgeSegment.getDownstreamVertex().entryEdgeSegments.removeEdgeSegment(edgeSegment);	
 	}		
 	
 /** 
@@ -114,8 +114,8 @@ public class TransportNetwork {
  * @throws PlanItException    thrown if there is an error
  */
 	protected void connectVerticesToEdge(Edge edge) throws PlanItException {
-		edge.getVertexA().addEdge(edge);
-		edge.getVertexB().addEdge(edge);
+		edge.getVertexA().edges.addEdge(edge);
+		edge.getVertexB().edges.addEdge(edge);
 	}		
 	
 /** 
@@ -125,8 +125,8 @@ public class TransportNetwork {
  * @throws PlanItException   thrown if there is an error
  */
 	protected void disconnectVerticesFromEdge(Edge edge) throws PlanItException {
-		edge.getVertexA().removeEdge(edge);
-		edge.getVertexB().removeEdge(edge);
+		edge.getVertexA().edges.removeEdge(edge);
+		edge.getVertexB().edges.removeEdge(edge);
 	}		
 	
 	// Public
@@ -208,13 +208,13 @@ public class TransportNetwork {
 /**
  * Integrate physical and virtual links
  * 
- * @param virtualNetwork            VirtualNetwork to be integrated into this TransportNetwork
  * @throws PlanItException        thrown if there is an error
  */
-	public void integrateConnectoidsAndLinks(VirtualNetwork virtualNetwork) throws PlanItException {
-		for (Connectoid connectoid: virtualNetwork.connectoids) {
-			virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
-			virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, false);
+	public void integrateConnectoidsAndLinks() throws PlanItException {
+	    VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
+	    for (Connectoid connectoid: virtualNetwork.connectoids) {
+            virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
+            virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, false);
 			connectVerticesToEdge(connectoid);
 		}
 		for (ConnectoidSegment connectoidSegment: virtualNetwork.connectoidSegments) {

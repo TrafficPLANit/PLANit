@@ -114,7 +114,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
 		double freeFlowTravelTime = macroscopicLinkSegment.computeFreeFlowTravelTime(mode);
 		long modeId = mode.getId();
-		double capacity = macroscopicLinkSegment.computeTotalLinkSegmentCapacity();
+		double capacity = macroscopicLinkSegment.computeCapacity();
 		double alpha = parameters.getAlpha(modeId);
 		double beta = parameters.getBeta(modeId);
 		double linkTravelTime = freeFlowTravelTime * (1.0 + alpha * Math.pow(flow/capacity, beta));   //Free Flow Travel Time * (1 + alpha*(v/c)^beta)

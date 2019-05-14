@@ -14,7 +14,6 @@ import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.ConnectoidSegment;
-import org.planit.network.virtual.VirtualNetwork;
 import org.planit.output.OutputManager;
 import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
@@ -111,23 +110,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
         }
     }
         
-/**
- * Creates the integrated TransportNetwork object
- * 
- * This method integrates the physical and virtual networks.
- * 
- * @param physicalNetwork               the physical network object
- * @param zoning                                the zoning object (contain the virtual network)
- * @return                                          the integrated transport network
- * @throws PlanItException               thrown if there is an error
- */
-    protected TransportNetwork integrateVirtualAndPhysicalNetworks(PhysicalNetwork physicalNetwork, Zoning zoning) throws PlanItException {
-        transportNetwork = new TransportNetwork(physicalNetwork, zoning);
-        VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();     
-        transportNetwork.integrateConnectoidsAndLinks(virtualNetwork);
-        return transportNetwork;
-    }   
-    
     // protected getters and setters
     
 /**
@@ -216,7 +198,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
     public void execute() throws PlanItException  {
         checkForEmptyComponents();  
         verifyComponentCompatibility();
-        integrateVirtualAndPhysicalNetworks(physicalNetwork, zoning);       
+        transportNetwork = new TransportNetwork(physicalNetwork, zoning);
+        transportNetwork.integrateConnectoidsAndLinks();
         initialiseBeforeEquilibration();            
         executeEquilibration();
         finalizeAfterEquilibration();

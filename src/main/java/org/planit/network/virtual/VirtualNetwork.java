@@ -56,9 +56,9 @@ public class VirtualNetwork {
 /** 
  * Create new connectoid to network
  * 
- * @param centroid                                  centroid at one end of the connectoid
- * @param node                                       node at other end of the connectoid
- * @param length                                     length of connectiod
+ * @param centroid                                 centroid at one end of the connectoid
+ * @param node                                      node at other end of the connectoid
+ * @param length                                    length of connectiod
  * @return                                               Connectoid object created and registered
  * @throws PlanItException                    thrown if there is an error
  */
