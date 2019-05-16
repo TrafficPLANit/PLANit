@@ -58,12 +58,10 @@ import org.planit.zoning.Zoning;
  */
 public class PLANitExample{
 	
-	
-
 	/**
- 	* Main method for the BasicCsvMain program.  Only used to start the program
+ 	* Main method running the example
  	* 
- 	* @param args				main method args
+ 	* @param args	main method args
  	*/
 	public static void main(String[] args) {
 
