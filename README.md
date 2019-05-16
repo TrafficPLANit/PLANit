@@ -4,6 +4,8 @@ This is the core module of the PLANit project. It contains all the algorithms an
 
 For more information on the natively supported XML formats we kindly refer to <https://github.sydney.edu.au/PLANit/PLANitXML>
 
+For our ongoing work on providing a Python support we kindly refer to <https://github.sydney.edu.au/PLANit/PLANitPython>
+
 ## Core components
 
 Each PLANit project consists of three core input components:
@@ -18,6 +20,18 @@ Each PLANit project can configure one or more traffic assignment scenarios which
 * which travel demand matrix or matrices to use, i.e., which time periods to model
 * which modes to consider
 * the traffic assignment configuration itself (what network loading method, what equilibration approach, etc.)
+
+## Current limitations
+
+* Currently we only support macroscopic traffic assignment approaches, meaning that the framework is optimised for aggregate flow based assignment methods
+* Currently we only implemented the well known traditinoal static capacity restrained assignment model which uses link performance functions
+
+## indicative example
+
+Below you will find an indicative example of how one would configure a project with a single traditional static traffic assignment in Java
+
+
+
 
 
 
