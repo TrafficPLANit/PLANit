@@ -197,7 +197,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
     /**
      * Initialise the traffic assignment defaults:
      * (i) activate link output
-     * @throws PlanItException 
+     * @throws PlanItException   thrown when there is an error
      */
     public void initialiseDefaults() throws PlanItException {
         // general defaults        

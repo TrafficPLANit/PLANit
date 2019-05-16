@@ -37,7 +37,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
  * Add link to the internal container
  * 
  * @param link              link to be registered in this network
- * @return                    link, in case it overrides an existing link, the removed link is returned
+ * @return                     link, in case it overrides an existing link, the removed link is returned
  */
 		protected Link registerLink(@Nonnull Link link) {
 			return linkMap.put(link.getId(),link);
@@ -57,10 +57,10 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
  * Create new link to network identified via its id, injecting link length directly
  * 
  * @param nodeA                    the first node in this link
- * @param nodeB                   the second node in this link
+ * @param nodeB                    the second node in this link
  * @param length                    the length of this link
- * @return                               the created link
- * @throws PlanItException    thrown if there is an error
+ * @return                                the created link
+ * @throws PlanItException   thrown if there is an error
  */
 		public Link registerNewLink(Node nodeA, Node nodeB, double length) throws PlanItException {
 			Link newLink = networkBuilder.createLink(nodeA, nodeB, length);
@@ -98,7 +98,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
  * Register a link segment on the network
  * 
  * @param linkSegment    the link segment to be registered
- * @return                         the registered link segment
+ * @return                           the registered link segment
  */
 		protected LinkSegment registerLinkSegment(@Nonnull LinkSegment linkSegment) {	
 			return linkSegmentMap.put(linkSegment.getId(), linkSegment);
@@ -119,7 +119,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
  * 
  * @param parentLink               the parent link of this link segment
  * @param directionAB             direction of travel
- * @return                                the created link segment
+ * @return                                  the created link segment
  * @throws PlanItException     thrown if there is an error
  */
 		public LinkSegment createDirectionalLinkSegment(@Nonnull Link parentLink, boolean directionAB) throws PlanItException {
@@ -159,10 +159,26 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 			return linkSegmentMap.size();			
 		}		
 	}	
+	
+/**
+ * Find a registered link in the network by its external Id
+ *   
+ * @param externalId       external Id of the link 
+ * @return                         the retrieved Link object
+ */
+	//TODO - This is only required because MetroScan TAZ file refers to physical links where it should refer to nodes.  Later we will correct the MetroScan input to fix this.
+	public Link findLinkByExternalId(long externalId) {
+		for (LinkSegment linkSegment : linkSegmentMap.values()) {
+			Link link = linkSegment.getParentLink();
+			if (link.getExternalId() == externalId) {
+				return link;
+			}
+		}
+		return null;
+	}
 			
 /**
  * Internal class for all Node specific code
- *
  */
 	public class Nodes implements Iterable<Node> {
 		

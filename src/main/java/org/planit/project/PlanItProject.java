@@ -92,8 +92,10 @@ public class PlanItProject {
     
     // Private methods
 		
-    /** register the event manager on all factories
-     * @param eventManager
+    /** 
+     * Register the event manager on all factories
+     * 
+     * @param eventManager           the EventManager for this project
      */
     private void initialiseFactories(EventManager eventManager) {
         physicalNetworkFactory.setEventManager(eventManager);
@@ -104,8 +106,10 @@ public class PlanItProject {
     
     // Protected methods
     
-    /** Execute a particular traffic assignment
-     * @param ta
+    /** 
+     * Execute a particular traffic assignment
+     * 
+     * @param ta   TrafficAssignment to be run
      */
     protected void executeTrafficAssignment(TrafficAssignment ta) {
         try {

@@ -128,12 +128,12 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 /**
  * Perform assignment for a given time period, mode and costs imposed on Dijkstra shortest path
  * 
- * @param mode                               the current mode
- * @param odDemands                    origin-demand store
- * @param currentModeData            data for the current mode
- * @param networkSegmentCosts   segment costs for the network
- * @param shortestPathAlgorithm    shortest path algorithm to be used
- * @throws PlanItException              thrown if there is an error
+ * @param mode                                              the current mode
+ * @param odDemands                                   origin-demand store
+ * @param currentModeData                         data for the current mode
+ * @param modalNetworkSegmentCosts     segment costs for the network
+ * @param shortestPathAlgorithm                shortest path algorithm to be used
+ * @throws PlanItException                            thrown if there is an error
  */
     private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData, double[] modalNetworkSegmentCosts,  ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
         ODDemandIterator odDemandIter = odDemands.iterator();
@@ -223,10 +223,10 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 /**
  * Execute the assignment for the current time period and mode and apply smoothing to the result
  * 
- * @param timePeriod                                    the current time period
- * @param mode                                            the current mode
- * @param totalNetworkSegmentCosts         the current network segment costs
- * @throws PlanItException                           thrown if there is an error
+ * @param timePeriod                                      the current time period
+ * @param mode                                               the current mode
+ * @param modalNetworkSegmentCosts      the current network segment costs
+ * @throws PlanItException                             thrown if there is an error
  */
     private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] modalNetworkSegmentCosts) throws PlanItException {
         // mode specific data

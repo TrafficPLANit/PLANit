@@ -1,5 +1,6 @@
 package org.planit.userclass;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -79,6 +80,10 @@ public class Mode implements Comparable<Mode> {
  */
 	public static void putById(Mode mode) {
 		modes.put(mode.getId(), mode);
+	}
+	
+	public static Collection<Mode> getAllModes() {
+		return modes.values();
 	}
 	
 	// getters-setters
