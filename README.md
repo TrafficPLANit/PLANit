@@ -30,6 +30,86 @@ Each PLANit project can configure one or more traffic assignment scenarios which
 
 Below you will find an indicative example of how one would configure a project with a single traditional static traffic assignment in Java
 
+```java
+
+import java.util.logging.Logger;
+
+import org.planit.event.listener.InputBuilderListener;
+import org.planit.exceptions.PlanItException;
+import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.physical.macroscopic.MacroscopicNetwork;
+import org.planit.output.OutputType;
+import org.planit.output.configuration.OutputConfiguration;
+import org.planit.output.formatter.OutputFormatter;
+import org.planit.cost.physical.BPRLinkTravelTimeCost;
+import org.planit.demand.Demands;
+import org.planit.project.PlanItProject;
+import org.planit.sdinteraction.smoothing.MSASmoothing;
+import org.planit.trafficassignment.DeterministicTrafficAssignment;
+import org.planit.trafficassignment.TraditionalStaticAssignment;
+import org.planit.trafficassignment.builder.CapacityRestrainedTrafficAssignmentBuilder;
+import org.planit.zoning.Zoning;
+
+/**
+ * PLANit Example
+ * 
+ * @author markr
+ *
+ */
+public class PLANitExample{
+	
+	
+
+	/**
+ 	* Main method for the BasicCsvMain program.  Only used to start the program
+ 	* 
+ 	* @param args				main method args
+ 	*/
+	public static void main(String[] args) {
+
+		try {
+			// PROJECT LEVEL -------------------------------------------------------------------------------
+			// Initialse project with default native I/O
+			PlanItProject project = new PlanItProject(new PLANitXMLInputBuilder("<my_path_to_project_dir>"));
+        		outputFormatter = project.createAndRegisterOutputFormatter(PLANitXMLOutputFormatter.class.getCanonicalName());
+		
+			// Core input components available on the project level - parse data
+			PhysicalNetwork physicalNetwork = project.createAndRegisterPhysicalNetwork(MacroscopicNetwork.class.getCanonicalName());
+			Zoning zoning = project.createAndRegisterZoning();
+			Demands demands = project.createAndRegisterDemands(); 							
+
+			// ASSIGNMENT LEVEL -------------------------------------------------------------------------------
+        		// Create on project 
+			DeterministicTrafficAssignment assignment = project.createAndRegisterDeterministicAssignment(TraditionalStaticAssignment.class.getCanonicalName());		
+			// Dedicated builder for each assignment instance --> simplify the user configuration by using it
+			CapacityRestrainedTrafficAssignmentBuilder taBuilder = (CapacityRestrainedTrafficAssignmentBuilder) assignment.getBuilder();
+ 		
+			// Choose traffic assignment inputs/outputs
+			taBuilder.registerPhysicalNetwork(physicalNetwork);								
+			taBuilder.registerZoning(zoning);
+			taBuilder.registerDemands(demands);	
+        		taBuilder.registerOutputFormatter(outputFormatter);
+
+			// Choose assignment components
+			taBuilder.createAndRegisterPhysicalTravelTimeCostFunction(BPRLinkTravelTimeCost.class.getCanonicalName());		//BPR for physical roads
+			taBuilder.createAndRegisterVirtualTravelTimeCostFunction(FixedConnectoidTravelTimeCost.class.getCanonicalName());	//Fixed cost for virtual links 		
+			taBuilder.createAndRegisterSmoothing(MSASmoothing.class.getCanonicalName());						// MSA for equilibration smoothing	
+		        
+	    		// Configure assignment components
+			assignment.getOutputConfiguration().setPersistOnlyFinalIteration(true)							// Only store final result
+        		assignment.getGapFunction().getStopCriterion().setMaxIterations(maxIterations);						// Limit number of iterations
+        		assignment.getGapFunction().getStopCriterion().setEpsilon(epsilon);							// Convergence criterium
+        
+			// Run it!
+        		project.executeAllTrafficAssignments();
+		} catch (PlanItException e) {
+			e.printStackTrace();
+		}
+		
+	}
+}
+```
+
 
 
 
