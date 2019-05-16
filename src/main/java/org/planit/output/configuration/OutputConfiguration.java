@@ -22,7 +22,7 @@ public class OutputConfiguration {
     /**
      * Default for persisting final iteration
      */
-    private final boolean PERSIST_ONLY_FINAL_ITERATION = true;
+    private static final boolean PERSIST_ONLY_FINAL_ITERATION = true;
     
     /**
      * persisting final iteration only or not
@@ -44,9 +44,9 @@ public class OutputConfiguration {
 /** 
  * Factory method to create an output configuration of a given type
  * 
- * @param outputType            the output type to register the configuration for
+ * @param outputType          the output type to register the configuration for
  * @param outputAdapter       the adapter that allows access to the data to persist for the given output type
- * @return                              outputConfiguration that has been created
+ * @return                    outputConfiguration that has been created
  */    
     public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType, OutputAdapter outputAdapter){
         OutputTypeConfiguration outputTypeConfiguration = null;

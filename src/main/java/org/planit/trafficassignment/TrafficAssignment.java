@@ -71,6 +71,12 @@ public abstract class TrafficAssignment extends NetworkLoading {
     protected Cost<ConnectoidSegment> virtualCost;
     
     /**
+     * Gap function instance containing functionality to compute the gap between equilibrium and the current state 
+     * gap
+     */
+    private GapFunction gapFunction;    
+    
+    /**
      * holds the count of segments in the transport network
      */
     protected int numberOfNetworkSegments;
@@ -90,11 +96,51 @@ public abstract class TrafficAssignment extends NetworkLoading {
      */
     protected Demands demands = null;
     
-/** 
- * Check if any components are undefined, if so throw exception
- * 
- * @throws PlanItException      thrown if any components are undefined
- */
+    /** Each traffic assignment implementation has its own unique output adapter providing access to the data that it wants or allows to be persisted.
+     *  therefore this factory method is required to be implemented by the concrete instances of a traffic assignment class
+     *  
+     * @param outputType              the type the output adapter should be suitable for
+     * @return                                output adapter instance for the specified output type
+     * @throws PlanItException     thrown if there is an error
+     */
+    protected abstract OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException;
+    
+    /**
+     * Allow assignment classes to close data resources after equilibration
+     * 
+     * @throws PlanItException      thrown if there is an error
+     */
+     protected abstract void finalizeAfterEquilibration() throws PlanItException;    
+    
+    /**
+     * Allow all derived assignment classes to initialize members and open data resources before equilibration commences
+     * 
+     * @throws PlanItException    thrown if there is an error
+     */
+    protected abstract void initialiseBeforeEquilibration() throws PlanItException;
+    
+    /** Create the gap function which is to be implemented by a derived class of TrafficAssignment
+     * @return gapFunction
+     */ 
+    protected abstract GapFunction createGapFunction();    
+    
+    // Protected methods
+        
+    /**
+     * Verify if the traffic assignment components are compatible and nonnull 
+     * 
+     * @throws PlanItException    thrown if the components are not compatible
+     */
+    //TODO - This method is currently empty.  It original version could throw PlanItIncompatibilityException.  We need to check whether we still need it and whether it should throw PlanItIncompatibilityException.
+    protected void verifyComponentCompatibility() throws PlanItException {
+        //TODO
+    }    
+    
+    /** 
+     * Check if any components are undefined, if so throw exception
+     * 
+     * @throws PlanItException      thrown if any components are undefined
+     */
     protected void checkForEmptyComponents() throws PlanItException {
         if (demands == null) {
             throw new PlanItException("Demand is null");
@@ -109,35 +155,62 @@ public abstract class TrafficAssignment extends NetworkLoading {
             throw new PlanItException("Zoning is null");
         }
     }
-        
-    // protected getters and setters
     
-/**
- * Get the TransportNetwork used in the current assignment
- * 
- * @return        TransportNetwork used in current assignment
- */
-    public TransportNetwork getTransportNetwork() {
-        return transportNetwork;
-    }
-        
-    // Public
+    // Public    
     
- /** 
-  * Constructor
-  */
+    /** 
+     * Constructor. 
+     * Note that defaults that partly depend on derived classes are assumed to be invoked by the calling method via this.initialiseDefaults()
+     */
     public TrafficAssignment() {
-        this.id = IdGenerator.generateId(TrafficAssignment.class);
-        outputManager = new OutputManager();
-        createGapFunction();
+       this.id = IdGenerator.generateId(TrafficAssignment.class);
+       outputManager = new OutputManager();
+    }    
+    
+
+    
+    // Public abstract methods
+
+    /** 
+     * Each traffic assignment class can have its own builder which reveals what components need to be registered on the traffic assignment instance in order to function properly.
+     * 
+     * @return            trafficAssignmentBuilder to use
+     */
+    public abstract TrafficAssignmentBuilder getBuilder();
+    
+    /**
+     * Run equilibration after resources initialized, including saving results
+     * 
+     * @throws PlanItException   thrown if there is an error
+     */
+    public abstract void executeEquilibration() throws PlanItException;
+    
+    /** Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults() right after construction
+     * @return gapFunction
+     */
+    public GapFunction getGapFunction() {
+        return gapFunction;
+    }        
+    
+    // Public methods    
+    
+    /**
+     * Initialise the traffic assignment defaults:
+     * (i) activate link output
+     * @throws PlanItException 
+     */
+    public void initialiseDefaults() throws PlanItException {
+        // general defaults        
+        activateOutput(OutputType.LINK);        
+        this.gapFunction = createGapFunction();
     }
     
-/** 
- * Method that allows one to activate specific output types for persistence which is passed on to the output manager
- * 
- * @param outputTypes             one or more OutputType objects to be used
- * @throws PlanItException       thrown if there is an error activating the output
- */
+    /** 
+     * Method that allows one to activate specific output types for persistence which is passed on to the output manager
+     * 
+     * @param outputTypes             one or more OutputType objects to be used
+     * @throws PlanItException       thrown if there is an error activating the output
+     */
     public void activateOutput(OutputType ...outputTypes) throws PlanItException {
         // ask the traffic assignment specific instance to create the configuration (create base implementation in this class)
         // to allow for specific implementations.
@@ -148,53 +221,13 @@ public abstract class TrafficAssignment extends NetworkLoading {
             outputManager.createAndRegisterOutputTypeConfiguration(outputType, outputAdapter);
         }
     }   
-    
-
-/** Each traffic assignment implementation has its own unique output adapter providing access to the data that it wants or allows to be persisted.
- *  therefore this factory method is required to be implemented by the concrete instances of a traffic assignment class
- *  
- * @param outputType              the type the output adapter should be suitable for
- * @return                                output adapter instance for the specified output type
- * @throws PlanItException     thrown if there is an error
- */
-    protected abstract OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException;
-    
-/**
- * Verify if the traffic assignment components are compatible and nonnull 
- * 
- * @throws PlanItException    thrown if the components are not compatible
- */
-    //TODO - This method is currently empty.  It original version could throw PlanItIncompatibilityException.  We need to check whether we still need it and whether it should throw PlanItIncompatibilityException.
-    protected void verifyComponentCompatibility() throws PlanItException {
-        //TODO
-    }
-    
-/**
- * Allow all derived assignment classes to initialize members and open data resources before equilibration commences
- * 
- * @throws PlanItException    thrown if there is an error
- */
-    protected abstract void initialiseBeforeEquilibration() throws PlanItException;    
-
-/** 
- * Each traffic assignment class can have its own builder which reveals what components need to be registered on the traffic assignment instance in order to function properly.
- * 
- * @return            trafficAssignmentBuilder to use
- */
-    public abstract TrafficAssignmentBuilder getBuilder();
-
-/**
- * Allow assignment classes to close data resources after equilibration
- * 
- * @throws PlanItException      thrown if there is an error
- */
-    protected abstract void finalizeAfterEquilibration() throws PlanItException;
-        
-/**
- * Execute assignment, including initializing resources, running equilibration and then closing resources
- * 
- * @throws PlanItException   thrown if there is an error
- */
+     
+            
+    /**
+     * Execute assignment, including initializing resources, running equilibration and then closing resources
+     * 
+     * @throws PlanItException   thrown if there is an error
+     */
     public void execute() throws PlanItException  {
         checkForEmptyComponents();  
         verifyComponentCompatibility();
@@ -208,56 +241,49 @@ public abstract class TrafficAssignment extends NetworkLoading {
         LOGGER.info("Finished execution");
     }
 
-/**
- * Run equilibration after resources initialized, including saving results
- * 
- * @throws PlanItException   thrown if there is an error
- */
-    public abstract void executeEquilibration() throws PlanItException;
-
     // Getters - Setters
 
-/** collect traffic assignment id
- * @return id
- */
+    /** collect traffic assignment id
+     * @return id
+     */
     public long getId() {
         return id;
     }
     
-/** Provide the output configuration for user access (via the output manager)
- * @return outputConfiguration for this traffic assignment
- */
+    /**
+     * Get the TransportNetwork used in the current assignment
+     * 
+     * @return        TransportNetwork used in current assignment
+     */
+    public TransportNetwork getTransportNetwork() {
+        return transportNetwork;
+    }    
+    
+    /** Provide the output configuration for user access (via the output manager)
+     * @return outputConfiguration for this traffic assignment
+     */
     public OutputConfiguration getOutputConfiguration() {
         return outputManager.getOutputConfiguration();
     }
 
-/**
- * Set the Smoothing object for the current assignment
- * 
- * @param smoothing       Smoothing object for the current assignment
- */
+    /**
+     * Set the Smoothing object for the current assignment
+     * 
+     * @param smoothing       Smoothing object for the current assignment
+     */
     public void setSmoothing(@Nonnull Smoothing smoothing) {
         this.smoothing = smoothing;
     }
 
-/**
- * Set the PhysicalNetwork for the current assignment
- * 
- * @param physicalNetwork       the PhysicalNetwork object for the current assignment
- */
+    /**
+     * Set the PhysicalNetwork for the current assignment
+     * 
+     * @param physicalNetwork       the PhysicalNetwork object for the current assignment
+     */
     public void setPhysicalNetwork(@Nonnull PhysicalNetwork physicalNetwork) {
         this.physicalNetwork = physicalNetwork;
     }
     
-/** Collect the gap function which is to be implemented by a derived class of TrafficAssignment
- * @return gapFunction
- */
-    public abstract GapFunction getGapFunction();
-    
-/** Create the gap function which is to be implemented by a derived class of TrafficAssignment
- * @return gapFunction
- */ 
-    protected abstract GapFunction createGapFunction();
 
 /**
  * Set the Demands object for the current assignment

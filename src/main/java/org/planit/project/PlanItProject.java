@@ -3,7 +3,6 @@ package org.planit.project;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import org.junit.experimental.theories.internal.Assignments;
 import org.planit.demand.Demands;
 import org.planit.event.listener.InputBuilderListener;
 import org.planit.event.management.EventManager;
@@ -186,6 +185,9 @@ public class PlanItProject {
 			throw new PlanItException("Traffic assignment type is not a valid assignment type");
 		}	
 		DeterministicTrafficAssignment trafficAssignment = (DeterministicTrafficAssignment) networkLoadingAndAssignment;
+		// now initialise it, since initialisation depends on the concrete class we cannot do this on the constructor of the superclass nor
+		// can we do it in the derived constructors as some components are the same across assignments and we want to avoid uplicate code
+		trafficAssignment.initialiseDefaults();
 		trafficAssignments.put(trafficAssignment.getId(), trafficAssignment);		
 		return trafficAssignment;
 	}

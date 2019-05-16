@@ -56,12 +56,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
     private int numberOfNetworkVertices;
 
     /**
-     * duality gap function instance containing functionality to compute the duality
-     * gap
-     */
-    private LinkBasedRelativeDualityGapFunction dualityGapFunction;
-
-    /**
      * Holds the running simulation data for the assignment
      */
     protected TraditionalStaticAssignmentSimulationData simulationData;
@@ -144,6 +138,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
     private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData, double[] modalNetworkSegmentCosts,  ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
         ODDemandIterator odDemandIter = odDemands.iterator();
         TransportNetwork network = getTransportNetwork();
+        LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction)getGapFunction());
 
         // loop over all available OD demands
         while (odDemandIter.hasNext()) {
@@ -205,6 +200,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
     private void executeTimePeriod(TimePeriod timePeriod) throws PlanItException {
         Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
         initialiseTimePeriod(modes);
+        LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction)getGapFunction());
         while (!simulationData.isConverged()) {
             dualityGapFunction.reset();
             smoothing.update(simulationData.getIterationIndex());
@@ -236,6 +232,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         // mode specific data
         ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
         currentModeData.resetNextNetworkSegmentFlows();
+        LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction)getGapFunction());
         // AON based network loading
         ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
         ODDemand odDemands = demands.get(mode, timePeriod);
@@ -351,25 +348,15 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         }
     }
 
-/**
- * Create the Gap Function used by this Traffic Assignment
- * 
- * @return GapFunction created
- */
+    /**
+     * Create the Gap Function used by this Traffic Assignment
+     * 
+     * @return GapFunction created
+     */
     protected GapFunction createGapFunction() {
-        dualityGapFunction = new LinkBasedRelativeDualityGapFunction(new StopCriterion());
-        return dualityGapFunction;
+        return new LinkBasedRelativeDualityGapFunction(new StopCriterion());
     }
 
-/**
- * Return the gap Function used by this Traffic Assignment
- * 
- * @return GapFunction used
- */
-    public GapFunction getGapFunction() {
-        return dualityGapFunction;
-    }
-    
     public SimulationData getSimulationData() {
         return simulationData;
     }
