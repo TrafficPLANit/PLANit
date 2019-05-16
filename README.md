@@ -2,7 +2,7 @@
 
 This is the core module of the PLANit project. It contains all the algorithms and computational components which can be used to construct projects, traffic assignments, etc. The PLANit project promotes the use of its native I/O formats which are XML based, however it is equally well possible to define your own input format and/or poutput format. PLANit it is completely modular and open such that you can replace, add, include, or exclude modules any way you please. 
 
-For more information on the natively supported XML formats we kindly refer to 
+For more information on the natively supported XML formats we kindly refer to <https://github.sydney.edu.au/PLANit/PLANitXML>
 
 ## Core components
 
