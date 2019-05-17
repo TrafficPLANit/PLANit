@@ -204,24 +204,18 @@ public abstract class TrafficAssignment extends NetworkLoading {
         activateOutput(OutputType.LINK);        
         this.gapFunction = createGapFunction();
     }
-    
+        
     /** 
      * Method that allows one to activate specific output types for persistence which is passed on to the output manager
      * 
      * @param outputTypes             one or more OutputType objects to be used
      * @throws PlanItException       thrown if there is an error activating the output
      */
-    public void activateOutput(OutputType ...outputTypes) throws PlanItException {
-        // ask the traffic assignment specific instance to create the configuration (create base implementation in this class)
-        // to allow for specific implementations.
-        // pass on the output configuration to the manager for storing
-        for (OutputType outputType : outputTypes) {
-            LOGGER.info("Registering Output Type " + outputType);
-            OutputAdapter outputAdapter = createOutputAdapter(outputType);
-            outputManager.createAndRegisterOutputTypeConfiguration(outputType, outputAdapter);
-        }
-    }   
-     
+    public void activateOutput(OutputType outputType) throws PlanItException {
+        LOGGER.info("Registering Output Type " + outputType);
+        OutputAdapter outputAdapter = createOutputAdapter(outputType);
+        outputManager.createAndRegisterOutputTypeConfiguration(outputType, outputAdapter);
+    }          
             
     /**
      * Execute assignment, including initializing resources, running equilibration and then closing resources
