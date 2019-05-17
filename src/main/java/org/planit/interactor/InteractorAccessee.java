@@ -3,7 +3,7 @@ package org.planit.interactor;
 /**
  * Interactor accessee
  * 
- * @author gman6028
+ * @author markr
  *
  */
 //TODO - do we still need this interface?

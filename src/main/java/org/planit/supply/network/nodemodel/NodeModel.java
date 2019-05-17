@@ -6,7 +6,7 @@ import org.planit.trafficassignment.TrafficAssignmentComponent;
 /**
  * Node model traffic component
  * 
- * @author gman6028
+ * @author markr
  *
  */
 public abstract class NodeModel extends TrafficAssignmentComponent<NodeModel> {
@@ -17,6 +17,9 @@ public abstract class NodeModel extends TrafficAssignmentComponent<NodeModel> {
     private static final Logger LOGGER = Logger.getLogger(NodeModel.class.getName());
         
 
+	/**
+	 * Base constructor
+	 */
 	public NodeModel() {
 		super();
 	}

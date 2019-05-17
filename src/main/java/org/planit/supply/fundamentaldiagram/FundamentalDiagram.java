@@ -6,18 +6,21 @@ import org.planit.trafficassignment.TrafficAssignmentComponent;
 /**
  * Fundamental diagram traffic component
  * 
- * @author gman6028
+ * @author markr
  *
  */
-public abstract class FundamentalDiagram extends TrafficAssignmentComponent<FundamentalDiagram>{
-	
+public abstract class FundamentalDiagram extends TrafficAssignmentComponent<FundamentalDiagram> {
+
     /**
      * Logger for this class
      */
     private static final Logger LOGGER = Logger.getLogger(FundamentalDiagram.class.getName());
-        
-	public FundamentalDiagram() {
-		super();
-	}
+
+    /**
+     * Base constructor
+     */
+    public FundamentalDiagram() {
+        super();
+    }
 
 }

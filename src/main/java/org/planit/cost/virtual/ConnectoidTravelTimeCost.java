@@ -15,9 +15,9 @@ public abstract class ConnectoidTravelTimeCost extends VirtualCost {
      */
     private static final Logger LOGGER = Logger.getLogger(ConnectoidTravelTimeCost.class.getName());
         
-/**
- * Constructor
- */
+    /**
+     * Constructor
+     */
 	protected ConnectoidTravelTimeCost(){
 		super();
 	}

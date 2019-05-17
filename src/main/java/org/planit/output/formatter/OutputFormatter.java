@@ -15,35 +15,42 @@ import org.planit.userclass.Mode;
  */
 public interface OutputFormatter {
 
-    
-/** 
- * Collect the id of the formatter
- * 
- * @return id
- */
+    /**
+     * Collect the id of the formatter
+     * 
+     * @return id
+     */
     public long getId();
-    
- /** 
-  * Persist the output data based on the passed in configuration and adapter (contained in the configuration)
-  * 
-  * @param timePeriod                            TimePeriod for the assignment to be saved
-  * @param modes                                   Set of modes for the assignment to be saved
-  * @param outputTypeConfiguration       OutputTypeConfiguration for the assignment to be saved
-  * @throws PlanItException                    thrown if there is an error
-  */
-    public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration) throws PlanItException; 
 
- /**
-  * Open resources to store results
-  * 
-  * @throws PlanItException       thrown if there is an error opening the resources
-  */
+    /**
+     * Persist the output data based on the passed in configuration and adapter
+     * (contained in the configuration)
+     * 
+     * @param timePeriod
+     *            TimePeriod for the assignment to be saved
+     * @param modes
+     *            Set of modes for the assignment to be saved
+     * @param outputTypeConfiguration
+     *            OutputTypeConfiguration for the assignment to be saved
+     * @throws PlanItException
+     *             thrown if there is an error
+     */
+    public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration)
+            throws PlanItException;
+
+    /**
+     * Open resources to store results
+     * 
+     * @throws PlanItException
+     *             thrown if there is an error opening the resources
+     */
     public void open() throws PlanItException;
- 
-/**
- * Close resources to store results
- * 
- * @throws PlanItException       thrown if there is an error closing the resources
- */
+
+    /**
+     * Close resources to store results
+     * 
+     * @throws PlanItException
+     *             thrown if there is an error closing the resources
+     */
     public void close() throws PlanItException;
 }

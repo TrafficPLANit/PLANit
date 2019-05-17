@@ -17,101 +17,112 @@ import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.zoning.Zoning;
 
 /**
- * All traffic assignment instances require a network, demand, and (equilibrium) smoothing procedure, all of which should be
- * registered via this generic builder. Specific traffic assignment methods might require special builders derived from this builder
+ * All traffic assignment instances require a network, demand, and (equilibrium)
+ * smoothing procedure, all of which should be registered via this generic
+ * builder. Specific traffic assignment methods might require special builders
+ * derived from this builder
  * 
  * @author markr
  *
  */
 public abstract class TrafficAssignmentBuilder implements EventHandler {
-	
+
     /**
      * Logger for this class
      */
     private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentBuilder.class.getName());
-        
-     /**
-      * The smoothing factory used in the assignment algorithm
-      */
-	protected final TrafficAssignmentComponentFactory<Smoothing> smoothingFactory;
-	
+
+    /**
+     * The smoothing factory used in the assignment algorithm
+     */
+    protected final TrafficAssignmentComponentFactory<Smoothing> smoothingFactory;
+
     /**
      * The assignment all components will be registered on
      */
-	protected final TrafficAssignment parentAssignment;
-	
-	// PUBLIC
-	
-    /** 
+    protected final TrafficAssignment parentAssignment;
+
+    // PUBLIC
+
+    /**
      * Constructor
-     *  
-     * @param parentAssignment    parent traffic assignment object for this builder
+     * 
+     * @param parentAssignment
+     *            parent traffic assignment object for this builder
      */
-	TrafficAssignmentBuilder(@Nonnull TrafficAssignment parentAssignment){
-		this.parentAssignment = parentAssignment;
-		smoothingFactory = new TrafficAssignmentComponentFactory<Smoothing>(Smoothing.class);
-	}
-	
-	// 	PUBLIC FACTORY METHODS	
-	
-    /** 
+    TrafficAssignmentBuilder(@Nonnull TrafficAssignment parentAssignment) {
+        this.parentAssignment = parentAssignment;
+        smoothingFactory = new TrafficAssignmentComponentFactory<Smoothing>(Smoothing.class);
+    }
+
+    // PUBLIC FACTORY METHODS
+
+    /**
      * Create and Register smoothing component
      * 
-     * @param smoothingType         the type of smoothing component to be created
-     * @return                                  Smoothing object created
-     * @throws PlanItException       thrown if there is an error
+     * @param smoothingType
+     *            the type of smoothing component to be created
+     * @return Smoothing object created
+     * @throws PlanItException
+     *             thrown if there is an error
      */
-	public Smoothing createAndRegisterSmoothing(String smoothingType) throws PlanItException {
-		Smoothing smoothing = smoothingFactory.create(smoothingType);
-		parentAssignment.setSmoothing(smoothing);
-		return smoothing;
-	}	
-	
-    /** 
+    public Smoothing createAndRegisterSmoothing(String smoothingType) throws PlanItException {
+        Smoothing smoothing = smoothingFactory.create(smoothingType);
+        parentAssignment.setSmoothing(smoothing);
+        return smoothing;
+    }
+
+    /**
      * Register physical network object
      * 
-     * @param network    PhysicalNetwork object be registered
+     * @param network
+     *            PhysicalNetwork object be registered
      */
-	public void registerPhysicalNetwork(PhysicalNetwork network){
-		parentAssignment.setPhysicalNetwork(network);
-	}	
-	
-    /** 
+    public void registerPhysicalNetwork(PhysicalNetwork network) {
+        parentAssignment.setPhysicalNetwork(network);
+    }
+
+    /**
      * Register demands object
      * 
-     * @param demands      Demands object to be registered
+     * @param demands
+     *            Demands object to be registered
      */
-	public void registerDemands(Demands demands){
-		parentAssignment.setDemands(demands);
-	}	
-	
+    public void registerDemands(Demands demands) {
+        parentAssignment.setDemands(demands);
+    }
+
     /**
      * Register zoning object
      * 
-     * @param zoning     Zoning object to be registered
+     * @param zoning
+     *            Zoning object to be registered
      */
-	public void registerZoning(Zoning zoning) {
-		parentAssignment.setZoning(zoning);
-	}
-	
-	/** 
-	 * Register the output formatter which dictates in which format our outputs will be persisted
-	 * 
-	 * @param outputFormatter      OutputFormatter being registered
-	 */
-	public void registerOutputFormatter(OutputFormatter outputFormatter) {
-	    parentAssignment.registerOutputFormatter(outputFormatter);
-	}	
+    public void registerZoning(Zoning zoning) {
+        parentAssignment.setZoning(zoning);
+    }
+
+    /**
+     * Register the output formatter which dictates in which format our outputs will
+     * be persisted
+     * 
+     * @param outputFormatter
+     *            OutputFormatter being registered
+     */
+    public void registerOutputFormatter(OutputFormatter outputFormatter) {
+        parentAssignment.registerOutputFormatter(outputFormatter);
+    }
 
     /**
      * Set the EventManager for this builder
      * 
      * The EventManager must be a singleton for each PlanItProject application.
      * 
-     * @param eventManager      EventManager to be used to create traffic assignment
+     * @param eventManager
+     *            EventManager to be used to create traffic assignment
      */
-	public void setEventManager(EventManager eventManager) {
-		smoothingFactory.setEventManager(eventManager);
-	}	
-	
+    public void setEventManager(EventManager eventManager) {
+        smoothingFactory.setEventManager(eventManager);
+    }
+
 }

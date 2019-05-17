@@ -7,7 +7,7 @@ import org.planit.event.listener.InteractorListener;
 /**
  * Link Travel Time cost function
  * 
- * @author gman6028
+ * @author markr
  *
  */
 public abstract class LinkTravelTimeCost extends PhysicalCost implements InteractorListener{
@@ -17,10 +17,10 @@ public abstract class LinkTravelTimeCost extends PhysicalCost implements Interac
      */
     private static final Logger LOGGER = Logger.getLogger(LinkTravelTimeCost.class.getName());
         
-/**
-  * Constructor
-  */
-	LinkTravelTimeCost() {
+    /**
+     * Constructor
+     */
+    LinkTravelTimeCost() {
 		super();
 	}
 	

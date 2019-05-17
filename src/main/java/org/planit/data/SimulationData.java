@@ -1,44 +1,45 @@
 package org.planit.data;
 
-/** 
+/**
  * General simulation data that only are available during simulation
  * 
  */
-public abstract class SimulationData { 
-    
+public abstract class SimulationData {
+
     /**
      * simulation variable
      */
-    private boolean converged = false; //general
-        
-    /** 
+    private boolean converged = false; // general
+
+    /**
      * Iteration index, tracking the iteration during execution
-     */ 
-    private int iterationIndex = 0; //general
-    
- /**
-  * Increment iteration index by one
-  */
+     */
+    private int iterationIndex = 0; // general
+
+    /**
+     * Increment iteration index by one
+     */
     public void incrementIterationIndex() {
         ++this.iterationIndex;
-    }       
-    
-    // getters - setters        
- 
-/**
- * Test whether the traffic assignment has converged
- * 
- * @return      true if the assignment has converged, false otherwise
- */
+    }
+
+    // getters - setters
+
+    /**
+     * Test whether the traffic assignment has converged
+     * 
+     * @return true if the assignment has converged, false otherwise
+     */
     public boolean isConverged() {
         return converged;
     }
 
-/**
- * Set whether the traffic assignment has converged
- * 
- * @param converged          boolean, true if assignment 
- */
+    /**
+     * Set whether the traffic assignment has converged
+     * 
+     * @param converged
+     *            boolean, true if assignment
+     */
     public void setConverged(boolean converged) {
         this.converged = converged;
     }

@@ -6,7 +6,7 @@ import org.planit.trafficassignment.TrafficAssignmentComponent;
 /**
  * Network loading traffic component
  * 
- * @author gman6028
+ * @author markr
  *
  */
 public abstract class NetworkLoading extends TrafficAssignmentComponent<NetworkLoading>   {
@@ -16,6 +16,9 @@ public abstract class NetworkLoading extends TrafficAssignmentComponent<NetworkL
      */
     private static final Logger LOGGER = Logger.getLogger(NetworkLoading.class.getName());
         
+	/**
+	 * Base cosntructor
+	 */
 	public NetworkLoading() {
 		super();
 	}

@@ -7,55 +7,59 @@ import org.planit.trafficassignment.TraditionalStaticAssignment;
 import org.planit.userclass.Mode;
 
 /**
- * Adapter providing access to the data of the TraditionalStaticAssignment class relevant for link outputs
- * without exposing the internals of the traffic assignment class itself
+ * Adapter providing access to the data of the TraditionalStaticAssignment class
+ * relevant for link outputs without exposing the internals of the traffic
+ * assignment class itself
  * 
  * @author markr
  *
  */
 public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter {
 
-    private static final Logger LOGGER = Logger.getLogger(TraditionalStaticAssignmentLinkOutputAdapter.class.getName());    
-        
-/** 
- * Constructor
- *
- * @param trafficAssignment     TraditionalStaticAssignment object which this adapter wraps
- */
+    private static final Logger LOGGER = Logger.getLogger(TraditionalStaticAssignmentLinkOutputAdapter.class.getName());
+
+    /**
+     * Constructor
+     *
+     * @param trafficAssignment
+     *            TraditionalStaticAssignment object which this adapter wraps
+     */
     public TraditionalStaticAssignmentLinkOutputAdapter(TraditionalStaticAssignment trafficAssignment) {
         super(trafficAssignment);
     }
 
-/**
- * Returns the network segment flows for a specified mode
- * 
- * @param mode               specified mode
- * @return                         array storing the network segment flows for the specified mode
- */
+    /**
+     * Returns the network segment flows for a specified mode
+     * 
+     * @param mode
+     *            specified mode
+     * @return array storing the network segment flows for the specified mode
+     */
     public double[] getModalNetworkSegmentFlows(Mode mode) {
         return ((TraditionalStaticAssignment) trafficAssignment).getModalNetworkSegmentFlows(mode);
     }
-    
 
- /**
-  * Return the network segment costs for a specified mode
-  * 
-  * @param mode                        specified mode
-  * @return                                  array storing the network segment costs for the specified mode
-  * @throws PlanItException       thrown if there is an error
-  */
+    /**
+     * Return the network segment costs for a specified mode
+     * 
+     * @param mode
+     *            specified mode
+     * @return array storing the network segment costs for the specified mode
+     * @throws PlanItException
+     *             thrown if there is an error
+     */
     public double[] getModalNetworkSegmentCosts(Mode mode) throws PlanItException {
-        return ((TraditionalStaticAssignment) trafficAssignment).getModalNetworkSegmentCosts(mode); 
+        return ((TraditionalStaticAssignment) trafficAssignment).getModalNetworkSegmentCosts(mode);
     }
-    
-/**
- * Returns whether the current assignment has converged
- * 
- * @return       true if the current assignment has converged, false otherwise
- */
+
+    /**
+     * Returns whether the current assignment has converged
+     * 
+     * @return true if the current assignment has converged, false otherwise
+     */
     @Override
     public boolean isConverged() {
         return ((TraditionalStaticAssignment) trafficAssignment).getSimulationData().isConverged();
     }
-        
+
 }

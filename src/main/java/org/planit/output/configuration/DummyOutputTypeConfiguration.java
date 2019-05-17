@@ -10,6 +10,10 @@ import org.planit.output.adapter.OutputAdapter;
  */
 public class DummyOutputTypeConfiguration extends OutputTypeConfiguration {
 
+    /** Base constructor
+     * 
+     * @param outputAdapter
+     */
     public DummyOutputTypeConfiguration(OutputAdapter outputAdapter) {
         super(outputAdapter);
      }

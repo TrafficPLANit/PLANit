@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 /**
  * Tampere node model traffic component
  * 
- * @author gman6028
+ * @author markr
  *
  */
 public class TampereNodeModel extends NodeModel {
@@ -15,6 +15,9 @@ public class TampereNodeModel extends NodeModel {
      */
     private static final Logger LOGGER = Logger.getLogger(TampereNodeModel.class.getName());
         
+	/**
+	 * Base Constructor
+	 */
 	public TampereNodeModel() {
 		super();
 	}

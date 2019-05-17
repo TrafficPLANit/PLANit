@@ -7,33 +7,44 @@ package org.planit.data;
  *
  */
 public class ModeData {
-
-/**
- * Flows derived for the previous iteration
- */
-    public double[] currentNetworkSegmentFlows  = null;
     
- /**
-  * Flows for the next iteration
-  */
-    public double[] nextNetworkSegmentFlows     = null;
-    private double[] emptySegmentArray;
-  
- /**
-  * Constructor
-  * 
-  * @param emptySegmentArray    empty array used to initialize data stores
-  */
-    public ModeData(double[] emptySegmentArray){
+    /**
+     * Empty array for quick memory based copying
+     */
+    private double[] emptySegmentArray;    
+
+    /**
+     * Flows derived for the previous iteration
+     */
+    public double[] currentNetworkSegmentFlows = null;
+
+    /**
+     * Flows for the next iteration
+     */
+    public double[] nextNetworkSegmentFlows = null;
+
+    /**
+     * Constructor
+     * 
+     * @param emptySegmentArray
+     *            empty array used to initialize data stores
+     */
+    public ModeData(double[] emptySegmentArray) {
         this.emptySegmentArray = emptySegmentArray;
         resetCurrentNetworkSegmentFlows();
-        resetNextNetworkSegmentFlows();         
+        resetNextNetworkSegmentFlows();
     }
-    
-    public void resetNextNetworkSegmentFlows(){
+
+    /**
+     * Reset the segment flows for the coming iteration
+     */
+    public void resetNextNetworkSegmentFlows() {
         nextNetworkSegmentFlows = emptySegmentArray.clone();
     }
-    
+
+    /**
+     * Reset current network segment flows
+     */
     public void resetCurrentNetworkSegmentFlows() {
         currentNetworkSegmentFlows = emptySegmentArray.clone();
     }

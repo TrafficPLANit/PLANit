@@ -9,7 +9,7 @@ import org.planit.trafficassignment.TrafficAssignmentComponent;
 /**
  * Object to handle the travel time cost of a physical link
  * 
- * @author gman6028
+ * @author markr
  *
  */
 public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCost> implements Cost<LinkSegment> {
@@ -19,9 +19,9 @@ public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCo
      */
     private static final Logger LOGGER = Logger.getLogger(PhysicalCost.class.getName());
         
-/**
-  * Constructor
-  */
+    /**
+     * Constructor
+     */
 	public PhysicalCost() {
 		super();
 	}

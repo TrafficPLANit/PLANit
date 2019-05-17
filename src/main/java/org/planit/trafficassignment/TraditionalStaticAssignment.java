@@ -40,10 +40,11 @@ import org.planit.zoning.Zone;
 /**
  * Traditional static assignment traffic component
  * 
- * @author gman6028
+ * @author markr, gman6028
  *
  */
-public class TraditionalStaticAssignment extends CapacityRestrainedAssignment implements LinkVolumeAccessee, InteractorListener {
+public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
+        implements LinkVolumeAccessee, InteractorListener {
 
     /**
      * Logger for this class
@@ -59,12 +60,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
      * Holds the running simulation data for the assignment
      */
     protected TraditionalStaticAssignmentSimulationData simulationData;
-    
- /**
-  * Initialize running simulation variables for the time period
-  * 
-  * @param modes       set of modes covered by  this assignment
-  */
+
+    /**
+     * Initialize running simulation variables for the time period
+     * 
+     * @param modes
+     *            set of modes covered by this assignment
+     */
     private void initialiseTimePeriod(Set<Mode> modes) {
         simulationData = new TraditionalStaticAssignmentSimulationData();
         simulationData.setEmptySegmentArray(new double[numberOfNetworkSegments]);
@@ -77,21 +79,23 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         }
     }
 
- /**
-  * Base Constructor
-  */
+    /**
+     * Base Constructor
+     */
     public TraditionalStaticAssignment() {
         super();
         simulationData = null;
     }
 
- /**
-  * Collect the updated edge segment costs for the given mode
-  * 
-  * @param mode                       the current mode
-  * @return                                 array of updated edge segment costs
-  * @throws PlanItException      thrown if there is an error
-  */
+    /**
+     * Collect the updated edge segment costs for the given mode
+     * 
+     * @param mode
+     *            the current mode
+     * @return array of updated edge segment costs
+     * @throws PlanItException
+     *             thrown if there is an error
+     */
     public double[] getModalNetworkSegmentCosts(Mode mode) throws PlanItException {
         double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
         Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();
@@ -105,40 +109,51 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
             if (currentSegment.getMaximumSpeed(mode.getId()) == 0.0) {
                 currentSegmentCosts[(int) currentSegment.getId()] = Double.POSITIVE_INFINITY;
             } else {
-                currentSegmentCosts[(int) currentSegment.getId()] = physicalCost.calculateSegmentCost(mode, currentSegment);
+                currentSegmentCosts[(int) currentSegment.getId()] = physicalCost.calculateSegmentCost(mode,
+                        currentSegment);
             }
         }
         return currentSegmentCosts;
     }
 
- /**
-  * Apply smoothing based on current and previous flows and the adopted smoothing
-  * method. The smoothed results are registered as the current segment flows
-  * while the current segment flows are assigned to the previous segment flows
-  * (which are discarded).
-  * 
-  * @param modeData data for the current mode
-  */
+    /**
+     * Apply smoothing based on current and previous flows and the adopted smoothing
+     * method. The smoothed results are registered as the current segment flows
+     * while the current segment flows are assigned to the previous segment flows
+     * (which are discarded).
+     * 
+     * @param modeData
+     *            data for the current mode
+     */
     private void applySmoothing(ModeData modeData) {
-        double[] smoothedSegmentFlows = smoothing.applySmoothing(modeData.currentNetworkSegmentFlows, modeData.nextNetworkSegmentFlows, numberOfNetworkSegments);
+        double[] smoothedSegmentFlows = smoothing.applySmoothing(modeData.currentNetworkSegmentFlows,
+                modeData.nextNetworkSegmentFlows, numberOfNetworkSegments);
         // update flow arrays for next iteration
         modeData.currentNetworkSegmentFlows = smoothedSegmentFlows;
     }
 
-/**
- * Perform assignment for a given time period, mode and costs imposed on Dijkstra shortest path
- * 
- * @param mode                                              the current mode
- * @param odDemands                                   origin-demand store
- * @param currentModeData                         data for the current mode
- * @param modalNetworkSegmentCosts     segment costs for the network
- * @param shortestPathAlgorithm                shortest path algorithm to be used
- * @throws PlanItException                            thrown if there is an error
- */
-    private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData, double[] modalNetworkSegmentCosts,  ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+    /**
+     * Perform assignment for a given time period, mode and costs imposed on
+     * Dijkstra shortest path
+     * 
+     * @param mode
+     *            the current mode
+     * @param odDemands
+     *            origin-demand store
+     * @param currentModeData
+     *            data for the current mode
+     * @param modalNetworkSegmentCosts
+     *            segment costs for the network
+     * @param shortestPathAlgorithm
+     *            shortest path algorithm to be used
+     * @throws PlanItException
+     *             thrown if there is an error
+     */
+    private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData,
+            double[] modalNetworkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
         ODDemandIterator odDemandIter = odDemands.iterator();
         TransportNetwork network = getTransportNetwork();
-        LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction)getGapFunction());
+        LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 
         // loop over all available OD demands
         while (odDemandIter.hasNext()) {
@@ -153,9 +168,10 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
                 if (previousOriginZoneId != originZoneId) {
                     currentOriginZone = network.zones.getZone(originZoneId);
                     Centroid originCentroid = currentOriginZone.getCentroid();
-                    
+
                     if (originCentroid.exitEdgeSegments.isEmpty()) {
-                        throw new PlanItException("Edge segments have not been assigned to Centroid for Zone " + (originCentroid.getParentZone().getExternalId()));
+                        throw new PlanItException("Edge segments have not been assigned to Centroid for Zone "
+                                + (originCentroid.getParentZone().getExternalId()));
                     }
                     vertexPathCost = shortestPathAlgorithm.executeOneToAll(originCentroid);
                 }
@@ -163,22 +179,26 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
                 // TODO: Costly to lookup destination zone via map whereas we know it is the
                 // next (non-zero demand) id compared to the previous)
                 Zone currentDestinationZone = network.zones.getZone(destinationZoneId);
-                 // OD-SHORTEST PATH LOADING
+                // OD-SHORTEST PATH LOADING
                 double shortestPathCost = 0;
                 if (currentDestinationZone == null) {
-                     throw new PlanItException( "No zone could be found with destination position in the OD Matrix of  " + destinationZoneId);
-                 }
+                    throw new PlanItException("No zone could be found with destination position in the OD Matrix of  "
+                            + destinationZoneId);
+                }
                 Vertex currentPathStartVertex = currentDestinationZone.getCentroid();
 
                 while (currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId()) {
                     int startVertexId = (int) currentPathStartVertex.getId();
                     if (vertexPathCost[startVertexId].getSecond() == null) {
-                         if (currentPathStartVertex instanceof Centroid) {
-                            throw new PlanItException("The solution could not find an Edge Segment for the connectoid for zone " + ((Centroid) currentPathStartVertex).getParentZone().getExternalId());
+                        if (currentPathStartVertex instanceof Centroid) {
+                            throw new PlanItException(
+                                    "The solution could not find an Edge Segment for the connectoid for zone "
+                                            + ((Centroid) currentPathStartVertex).getParentZone().getExternalId());
                         } else {
-                            throw new PlanItException("The solution could not find an Edge Segment for node " + ((Node) currentPathStartVertex).getExternalId());
+                            throw new PlanItException("The solution could not find an Edge Segment for node "
+                                    + ((Node) currentPathStartVertex).getExternalId());
                         }
-                     }
+                    }
                     EdgeSegment currentEdgeSegment = vertexPathCost[startVertexId].getSecond();
                     double edgeSegmentCost = modalNetworkSegmentCosts[(int) currentEdgeSegment.getId()];
                     shortestPathCost += edgeSegmentCost;
@@ -191,88 +211,102 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         }
     }
 
-/**
-  * Perform assignment for a given time period using Dijkstra's algorithm
-  * 
-  * @param timePeriod            the time period for the current assignment
-  * @throws PlanItException   thrown if there is an error
-  */
+    /**
+     * Perform assignment for a given time period using Dijkstra's algorithm
+     * 
+     * @param timePeriod
+     *            the time period for the current assignment
+     * @throws PlanItException
+     *             thrown if there is an error
+     */
     private void executeTimePeriod(TimePeriod timePeriod) throws PlanItException {
         Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
         initialiseTimePeriod(modes);
-        LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction)getGapFunction());
+        LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
         while (!simulationData.isConverged()) {
             dualityGapFunction.reset();
             smoothing.update(simulationData.getIterationIndex());
 
             // NETWORK LOADING - PER MODE
-             for (Mode mode : modes) {
+            for (Mode mode : modes) {
                 double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode);
                 simulationData.resetModalNetworkSegmentFlows(mode);
                 executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalNetworkSegmentCosts);
             }
-             
+
             dualityGapFunction.computeGap();
             simulationData.incrementIterationIndex();
-            LOGGER.fine("Iteration " + simulationData.getIterationIndex() + ": duality gap = " + dualityGapFunction.getGap());
+            LOGGER.fine("Iteration " + simulationData.getIterationIndex() + ": duality gap = "
+                    + dualityGapFunction.getGap());
             simulationData.setConverged(dualityGapFunction.hasConverged(simulationData.getIterationIndex()));
             outputManager.persistOutputData(timePeriod, modes, OutputType.LINK);
-         }
+        }
     }
-    
-/**
- * Execute the assignment for the current time period and mode and apply smoothing to the result
- * 
- * @param timePeriod                                      the current time period
- * @param mode                                               the current mode
- * @param modalNetworkSegmentCosts      the current network segment costs
- * @throws PlanItException                             thrown if there is an error
- */
-    private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] modalNetworkSegmentCosts) throws PlanItException {
+
+    /**
+     * Execute the assignment for the current time period and mode and apply
+     * smoothing to the result
+     * 
+     * @param timePeriod
+     *            the current time period
+     * @param mode
+     *            the current mode
+     * @param modalNetworkSegmentCosts
+     *            the current network segment costs
+     * @throws PlanItException
+     *             thrown if there is an error
+     */
+    private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] modalNetworkSegmentCosts)
+            throws PlanItException {
         // mode specific data
         ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
         currentModeData.resetNextNetworkSegmentFlows();
-        LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction)getGapFunction());
+        LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
         // AON based network loading
-        ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
+        ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts,
+                numberOfNetworkSegments, numberOfNetworkVertices);
         ODDemand odDemands = demands.get(mode, timePeriod);
         executeModeTimePeriod(mode, odDemands, currentModeData, modalNetworkSegmentCosts, shortestPathAlgorithm);
 
-        double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows, modalNetworkSegmentCosts, numberOfNetworkSegments);
+        double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows,
+                modalNetworkSegmentCosts, numberOfNetworkSegments);
         dualityGapFunction.increaseActualSystemTravelTime(totalModeSystemTravelTime);
         applySmoothing(currentModeData);
         // aggregate smoothed mode specific flows - for cost computation
-        ArrayOperations.addTo(simulationData.getModalNetworkSegmentFlows(mode), currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
+        ArrayOperations.addTo(simulationData.getModalNetworkSegmentFlows(mode),
+                currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
         simulationData.getModeSpecificData().put(mode, currentModeData);
     }
 
- /**
-  * Create Traditional Static Assignment output adapter that allows selective access
-  * to all data required for different output types
-  * 
-  * @param   outputType        the output type for the new output adapter
-  * @return                             the new output adapter
-  * @see org.planit.trafficassignment.TrafficAssignment#createOutputAdapter(org.planit.output.OutputType)
-  */
+    /**
+     * Create Traditional Static Assignment output adapter that allows selective
+     * access to all data required for different output types
+     * 
+     * @param outputType
+     *            the output type for the new output adapter
+     * @return the new output adapter
+     * @see org.planit.trafficassignment.TrafficAssignment#createOutputAdapter(org.planit.output.OutputType)
+     */
     @Override
     protected OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException {
         OutputAdapter outputAdapter = null;
         if (outputType.equals(OutputType.LINK)) {
             outputAdapter = new TraditionalStaticAssignmentLinkOutputAdapter(this);
-         } else {
+        } else {
             throw new PlanItException("No Output adapter exists for output type " + outputType.toString() + " on "
                     + this.getClass().getName());
         }
         return outputAdapter;
     }
 
-/**
- * Initialize members and output resources before equilibration
- * 
- * @throws PlanItException          thrown if there is an error
- * @see org.planit.trafficassignment.TrafficAssignment#initialiseBeforeEquilibration(
- * )
- */
+    /**
+     * Initialize members and output resources before equilibration
+     * 
+     * @throws PlanItException
+     *             thrown if there is an error
+     * @see org.planit.trafficassignment.TrafficAssignment#initialiseBeforeEquilibration(
+     *      )
+     */
     @Override
     protected void initialiseBeforeEquilibration() throws PlanItException {
         // initialize members that are used throughout the assignment
@@ -284,12 +318,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         }
     }
 
-/**
- * Close output resources after equilibration
- * 
- * @throws PlanItException      thrown if there is an error closing resources
- * 
- */
+    /**
+     * Close output resources after equilibration
+     * 
+     * @throws PlanItException
+     *             thrown if there is an error closing resources
+     * 
+     */
     protected void finalizeAfterEquilibration() throws PlanItException {
         List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
         for (OutputFormatter outputFormatter : outputFormatters) {
@@ -297,11 +332,12 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         }
     }
 
-/**
- * Execute equilibration over all time periods and modes
- * 
- * @throws PlanItException thrown if there is an error
- */
+    /**
+     * Execute equilibration over all time periods and modes
+     * 
+     * @throws PlanItException
+     *             thrown if there is an error
+     */
     @Override
     public void executeEquilibration() throws PlanItException {
         // perform assignment per period - per mode
@@ -309,9 +345,9 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
         LOGGER.info("There are " + timePeriods.size() + " time periods to loop through.");
         for (TimePeriod timePeriod : timePeriods) {
             LOGGER.info("Equilibrating time period " + timePeriod.toString());
-             executeTimePeriod(timePeriod);
+            executeTimePeriod(timePeriod);
         }
-     }
+    }
 
     /*
      * (non-Javadoc)
@@ -319,7 +355,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
      * @see org.planit.interactor.LinkVolumeInteractor.LinkVolumeAccessee#
      * getTotalNetworkSegmentFlows()
      */
-    
+
     @Override
     public double getTotalNetworkSegmentFlow(LinkSegment linkSegment) {
         return simulationData.getTotalNetworkSegmentFlow(linkSegment);
@@ -329,7 +365,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
     public double[] getModalNetworkSegmentFlows(Mode mode) {
         return simulationData.getModalNetworkSegmentFlows(mode);
     }
-     
+
     /*
      * (non-Javadoc)
      * 

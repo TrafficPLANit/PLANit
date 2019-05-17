@@ -6,32 +6,34 @@ import org.planit.userclass.Mode;
 /**
  * Link Volume accessee object
  * 
- * @author gman6028
+ * @author markr
  *
  */
 public interface LinkVolumeAccessee extends InteractorAccessee {
-    
-/**
- * Get the total flow across a link over all modes
- * 
- * @param linkSegment      the specified link segment
- * @return                           the total flow across this link segment
- */
+
+    /**
+     * Get the total flow across a link over all modes
+     * 
+     * @param linkSegment
+     *            the specified link segment
+     * @return the total flow across this link segment
+     */
     public double getTotalNetworkSegmentFlow(LinkSegment linkSegment);
-    
- /**
-  * Get link segment flows for a specified mode
-  * 
-  * @param mode             mode
-  * @return                       link segment flows for all modes
-  */
+
+    /**
+     * Get link segment flows for a specified mode
+     * 
+     * @param mode
+     *            mode
+     * @return link segment flows for all modes
+     */
     public double[] getModalNetworkSegmentFlows(Mode mode);
-    
-/**
- * Get number of link segments
- * 
- * @return       number of link segments
- */
+
+    /**
+     * Get number of link segments
+     * 
+     * @return number of link segments
+     */
     int getNumberOfLinkSegments();
-        
+
 }
