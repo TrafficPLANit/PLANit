@@ -30,6 +30,12 @@ public class Link extends Edge {
 	 */
 	protected final long linkId;	
 	
+    /**
+     * External Id of the physical link
+     */
+	//TODO - This is only required because MetroScan TAZ file refers to physical links where it should refer to nodes.  Later we will correct the MetroScan input to fix this.
+	protected long externalId;
+	
 	/**
 	 * Centre-line geometry of the link, including the end node positions
 	 */
@@ -75,6 +81,14 @@ public class Link extends Edge {
 	public long getLinkId() {
 		return linkId;
 	}	
+	
+	public void setExternalId(long externalId) {
+		this.externalId = externalId;
+	}
+	
+	public long getExternalId() {
+		return externalId;
+	}
 
 	public LineString getCentreLineGeometry() {
 		return centreLineGeometry;

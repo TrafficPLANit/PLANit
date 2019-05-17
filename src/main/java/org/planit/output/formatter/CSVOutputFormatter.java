@@ -189,19 +189,19 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
   * Write results for the current mode and time period to the CSV file
   * 
   * @param outputAdapter                             TraditionalStaticAssignmentLinkOutputAdapter
-  * @param mode                                           current mode of travel
-  * @param timePeriod                                   current time period
-  * @param totalNetworkSegmentCosts        calculated segment costs for the physical network
-  * @param totalNetworkSegmentFlows        calculated flows for the network
-  * @param transportNetwork                         the transport network
-  * @throws PlanItException                           thrown if there is an error
+  * @param mode                                             current mode of travel
+  * @param timePeriod                                    current time period
+  * @param modalNetworkSegmentCosts    calculated segment costs for the physical network
+  * @param modalNetworkSegmentFlows    calculated flows for the network
+  * @param transportNetwork                        the transport network
+  * @throws PlanItException                            thrown if there is an error
   */
     private void writeResultsForCurrentModeAndTimePeriod(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, 
-                                                                                                   Mode mode, 
-                                                                                                   TimePeriod timePeriod,
-                                                                                                   double[] modalNetworkSegmentCosts, 
-                                                                                                   double[] modalNetworkSegmentFlows,
-                                                                                                   TransportNetwork transportNetwork) throws PlanItException {
+                                                                                                         Mode mode, 
+                                                                                                         TimePeriod timePeriod,
+                                                                                                         double[] modalNetworkSegmentCosts, 
+                                                                                                         double[] modalNetworkSegmentFlows,
+                                                                                                         TransportNetwork transportNetwork) throws PlanItException {
         try {
             double totalCost = 0.0;
             Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
