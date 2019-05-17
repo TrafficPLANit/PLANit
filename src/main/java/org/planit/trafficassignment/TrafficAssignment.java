@@ -213,8 +213,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
      */
     public void activateOutput(OutputType outputType) throws PlanItException {
         LOGGER.info("Registering Output Type " + outputType);
-        OutputAdapter outputAdapter = createOutputAdapter(outputType);
-        outputManager.createAndRegisterOutputTypeConfiguration(outputType, outputAdapter);
+        if(!outputManager.isOutputTypeActive(outputType)) {
+            OutputAdapter outputAdapter = createOutputAdapter(outputType);
+            outputManager.createAndRegisterOutputTypeConfiguration(outputType, outputAdapter);   
+        }
     }          
             
     /**

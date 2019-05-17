@@ -41,13 +41,13 @@ public class OutputConfiguration {
         this.outputTypeConfigurations = new TreeMap<OutputType, OutputTypeConfiguration>();
     }
 
-/** 
- * Factory method to create an output configuration of a given type
- * 
- * @param outputType          the output type to register the configuration for
- * @param outputAdapter       the adapter that allows access to the data to persist for the given output type
- * @return                    outputConfiguration that has been created
- */    
+    /** 
+     * Factory method to create an output configuration of a given type
+     * 
+     * @param outputType          the output type to register the configuration for
+     * @param outputAdapter       the adapter that allows access to the data to persist for the given output type
+     * @return                    outputConfiguration that has been created
+     */    
     public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType, OutputAdapter outputAdapter){
         OutputTypeConfiguration outputTypeConfiguration = null;
         if (outputType.equals(OutputType.LINK)) {
@@ -61,22 +61,22 @@ public class OutputConfiguration {
         return outputTypeConfiguration;
     }
     
-/** 
- * Verify if output type configuration for the given output type exists
- * 
- * @param outputType                                       specified output type
- * @return outputTypeConfiguration exists       true if an output type configuration exists for the specified output type, false otherwise
- */
+    /** 
+     * Verify if output type configuration for the given output type exists
+     * 
+     * @param outputType                                       specified output type
+     * @return outputTypeConfiguration exists       true if an output type configuration exists for the specified output type, false otherwise
+     */
     public boolean containsOutputTypeConfiguration(OutputType outputType) {
         return outputTypeConfigurations.containsKey(outputType);
     }
     
-/** 
- * Collect the output type configuration for the given type
- * 
- * @param outputType         OutputType to collect the output type configuration for
- * @return                            output type configuration registered, if not registered null is returned and a warning is logged
- */
+    /** 
+     * Collect the output type configuration for the given type
+     * 
+     * @param outputType         OutputType to collect the output type configuration for
+     * @return                            output type configuration registered, if not registered null is returned and a warning is logged
+     */
     public OutputTypeConfiguration getOutputTypeConfiguration(OutputType outputType) {
         if (!containsOutputTypeConfiguration(outputType)) {
             LOGGER.severe("Requesting output type configuration for "+outputType.toString() + " which has not been registered, returning null ");
