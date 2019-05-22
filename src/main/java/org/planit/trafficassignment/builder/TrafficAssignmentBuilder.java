@@ -9,7 +9,6 @@ import org.planit.event.management.EventHandler;
 import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
-import org.planit.output.formatter.BaseOutputFormatter;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.trafficassignment.TrafficAssignment;

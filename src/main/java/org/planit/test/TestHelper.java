@@ -1,15 +1,14 @@
-package org.planit.test.utils;
+package org.planit.test;
+
+import static org.junit.Assert.fail;
 
 import java.util.Iterator;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.logging.Logger;
 
-import org.planit.test.dto.BprResultDto;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
-
-import static org.junit.Assert.fail;
 
 /**
  * Helper class used by unit tests
@@ -31,7 +30,7 @@ public class TestHelper {
   * @param resultsMapFromFile  Map storing results of a previous run which had been stored in a file
   */
 	public static void compareResultsToCsvFileContents(SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap, 
-			                                                                                  SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMapFromFile) {
+			                                                                                 SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMapFromFile) {
 		if (resultsMap.keySet().size() != resultsMapFromFile.keySet().size()) {
 			fail("Test case returned " + resultsMap.keySet().size() + " runs where the results file contains " 	+ resultsMap.keySet().size() + ".");
 			return;

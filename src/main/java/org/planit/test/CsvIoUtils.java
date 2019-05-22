@@ -1,4 +1,4 @@
-package org.planit.test.utils;
+package org.planit.test;
 
 import java.io.File;
 import java.io.FileReader;
@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
-import org.planit.test.dto.BprResultDto;
+import org.planit.test.BprResultDto;
 import org.planit.exceptions.PlanItException;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
