@@ -92,6 +92,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
      *            capacity of the link segment type
      * @param maximumDensity
      *            maximum density of the link segment type
+     * @param linkTyp
+     *            the external reference number of this link type
      * @param modeProperties
      *            mode properties of the link segment type
      * @return Pair containing the link segment type, plus boolean which is true if
@@ -99,14 +101,17 @@ public class MacroscopicNetwork extends PhysicalNetwork {
      * @throws PlanItException
      *             thrown if there is an error
      */
-    public Pair<MacroscopicLinkSegmentType, Boolean> registerNewLinkSegmentType(@Nonnull String name, double capacity,
-            double maximumDensity, MacroscopicLinkSegmentTypeModeProperties modeProperties) throws PlanItException {
+    public Pair<MacroscopicLinkSegmentType, Boolean> registerNewLinkSegmentType(@Nonnull String name, 
+    		                                                                                                                                  double capacity,
+                                                                                                                                              double maximumDensity,
+                                                                                                                                              int linkType,
+                                                                                                                                              MacroscopicLinkSegmentTypeModeProperties modeProperties) throws PlanItException {
 
         if (!(networkBuilder instanceof MacroscopicNetworkBuilder)) {
             throw new PlanItException(
                     "Macroscopic network perspective only allows macroscopic link segment types to be registered");
         }
-        MacroscopicLinkSegmentType linkSegmentType = ((MacroscopicNetworkBuilder) networkBuilder).createLinkSegmentType(name, capacity, maximumDensity, modeProperties);
+        MacroscopicLinkSegmentType linkSegmentType = ((MacroscopicNetworkBuilder) networkBuilder).createLinkSegmentType(name, capacity, maximumDensity, linkType, modeProperties);
         MacroscopicLinkSegmentType existingLinkSegmentType = findEqualMacroscopicLinkSegmentType(linkSegmentType);
         if (existingLinkSegmentType == null) {
             registerLinkSegmentType(linkSegmentType);

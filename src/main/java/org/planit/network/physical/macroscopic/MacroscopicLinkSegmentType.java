@@ -30,7 +30,12 @@ public class MacroscopicLinkSegmentType {
      */
     protected final int id;
 
-    /**
+/**
+ * External reference number of link type    
+ */
+    private int linkType;
+        
+ /**
      * name of the link segment type
      */
     protected String name;
@@ -64,21 +69,18 @@ public class MacroscopicLinkSegmentType {
     /**
      * Constructor
      * 
-     * @param name
-     *            name of this link segment type
-     * @param capacityPerLane
-     *            capacity per lane of this link segment type
-     * @param maximumDensityPerLane
-     *            maximum density per lane of this link segment type
-     * @param modeProperties
-     *            properties of this link segment type
+     * @param name                                         name of this link segment type
+     * @param capacityPerLane                        capacity per lane of this link segment type
+     * @param maximumDensityPerLane         maximum density per lane of this link segment type
+     * @param linkType                                      external reference number of the link type
+     * @param modeProperties                         properties of this link segment type
      */
-    public MacroscopicLinkSegmentType(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane,
-            MacroscopicLinkSegmentTypeModeProperties modeProperties) {
+    public MacroscopicLinkSegmentType(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane, int linkType, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
         this.id = generateMacroscopicLinkSegmentTypeId();
         this.name = name;
         this.capacityPerLane = capacityPerLane;
         this.maximumDensityPerLane = maximumDensityPerLane;
+        this.linkType = linkType;
         this.modeProperties = modeProperties;
     }
 
@@ -102,6 +104,10 @@ public class MacroscopicLinkSegmentType {
 
     public double getMaximumDensityPerLane() {
         return maximumDensityPerLane;
+    }
+    
+    public int getLinkType() {
+    	return linkType;
     }
 
     /**

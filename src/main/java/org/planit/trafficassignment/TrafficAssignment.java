@@ -231,10 +231,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
      * Method that allows one to activate specific output types for persistence
      * which is passed on to the output manager
      * 
-     * @param outputTypes
-     *            one or more OutputType objects to be used
-     * @throws PlanItException
-     *             thrown if there is an error activating the output
+     * @param outputTypes          one or more OutputType objects to be used
+     * @throws PlanItException    thrown if there is an error activating the output
      */
     public void activateOutput(OutputType outputType) throws PlanItException {
         if (!outputManager.isOutputTypeActive(outputType)) {
@@ -248,8 +246,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
      * Execute assignment, including initializing resources, running equilibration
      * and then closing resources
      * 
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException       thrown if there is an error
      */
     public void execute() throws PlanItException {
         checkForEmptyComponents();

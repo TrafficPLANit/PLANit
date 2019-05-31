@@ -1,5 +1,7 @@
 package org.planit.cost.physical;
 
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -57,6 +59,10 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
         public double getAlpha(long modeId) {
             return alpha.get(modeId);
         }
+        
+        public Map<Long, Double> getAlpha() {
+        	return alpha;
+        }
 
         /**
          * Returns beta value of the BPR model for a specified mode
@@ -68,6 +74,11 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
         public double getBeta(long modeId) {
             return beta.get(modeId);
         }
+        
+        public Map<Long, Double> getBeta() {
+        	return beta;
+        }
+
     }    
 
     /**
@@ -187,4 +198,40 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
     public double getBeta(Mode mode, LinkSegment linkSegment) {
         return bprEdgeSegmentParameters[(int) linkSegment.getId()].getBeta(mode.getId());
     }
+    
+/**
+ * Creates and returns an array of BPRParameters objects from Maps of alpha and beta values
+ * 
+ * @param iterator                                Iterator through all LinkSegment objects
+ * @param numberOfLinkSegments      number of LinkSegment object
+ * @param alphaMapMap                     Map of alpha values for each LinkSegment and Mode
+ * @param betaMapMap                       Map of beta values for each LinkSegment and Mode
+ * @return                                              array of BPRParameters objects
+ */
+    public static BPRLinkTravelTimeCost.BPRParameters[] getBPRParameters(Iterator<LinkSegment> iterator, 
+    		                                                                                                                    int numberOfLinkSegments,   
+    		                                                                                                                    Map<MacroscopicLinkSegment, Map<Long, Double>> alphaMapMap, 
+    		                                                                                                                    Map<MacroscopicLinkSegment, Map<Long, Double>> betaMapMap) {
+        BPRLinkTravelTimeCost.BPRParameters[] bprLinkSegmentParameters = new BPRLinkTravelTimeCost.BPRParameters[numberOfLinkSegments];
+        while (iterator.hasNext()) {
+        	LinkSegment linkSegment = iterator.next();
+            Map<Long, Double> alphaMap = alphaMapMap.get(linkSegment);
+            Map<Long, Double> betaMap = betaMapMap.get(linkSegment);
+            bprLinkSegmentParameters[(int) linkSegment.getId()] = new BPRLinkTravelTimeCost.BPRParameters(alphaMap, betaMap);
+        }      
+        return bprLinkSegmentParameters;
+    }
+
+    public static BPRLinkTravelTimeCost.BPRParameters[] getBPRParameters(List<LinkSegment> linkSegments, 
+																														        Map<MacroscopicLinkSegment, Map<Long, Double>> alphaMapMap, 
+																														        Map<MacroscopicLinkSegment, Map<Long, Double>> betaMapMap) {
+    	BPRLinkTravelTimeCost.BPRParameters[] bprLinkSegmentParameters = new BPRLinkTravelTimeCost.BPRParameters[linkSegments.size()];
+    	for (LinkSegment linkSegment : linkSegments) {
+            Map<Long, Double> alphaMap = alphaMapMap.get(linkSegment);
+            Map<Long, Double> betaMap = betaMapMap.get(linkSegment);
+            bprLinkSegmentParameters[(int) linkSegment.getId()] = new BPRLinkTravelTimeCost.BPRParameters(alphaMap, betaMap);
+    	}
+        return bprLinkSegmentParameters;
+    }
+    
 }
