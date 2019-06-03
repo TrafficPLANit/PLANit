@@ -338,16 +338,4 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
         return bprLinkSegmentParameters;
     }
 
-    public static BPRLinkTravelTimeCost.BPRParameters[] getBPRParameters(List<LinkSegment> linkSegments, 
-																														        Map<MacroscopicLinkSegment, Map<Long, Double>> alphaMapMap, 
-																														        Map<MacroscopicLinkSegment, Map<Long, Double>> betaMapMap) {
-    	BPRLinkTravelTimeCost.BPRParameters[] bprLinkSegmentParameters = new BPRLinkTravelTimeCost.BPRParameters[linkSegments.size()];
-    	for (LinkSegment linkSegment : linkSegments) {
-            Map<Long, Double> alphaMap = alphaMapMap.get(linkSegment);
-            Map<Long, Double> betaMap = betaMapMap.get(linkSegment);
-            bprLinkSegmentParameters[(int) linkSegment.getId()] = new BPRLinkTravelTimeCost.BPRParameters(alphaMap, betaMap);
-    	}
-        return bprLinkSegmentParameters;
-    }
-    
 }
