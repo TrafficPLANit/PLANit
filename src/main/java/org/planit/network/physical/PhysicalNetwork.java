@@ -1,6 +1,8 @@
 package org.planit.network.physical;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -118,11 +120,22 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
         /**
          * Iterator over registered link segments
          * 
-         * @return iterator over registered link segments
+         * @return Iterator over registered link segments
          */
         @Override
         public Iterator<LinkSegment> iterator() {
             return linkSegmentMap.values().iterator();
+        }
+  
+/**
+ * Returns a List of LinkSegments in the network
+ * 
+ * @return      List of registered link segments
+ * 
+ * @return
+ */
+        public List<LinkSegment> toList() {
+        	return new ArrayList<LinkSegment>(linkSegmentMap.values());
         }
 
         /**
@@ -254,8 +267,12 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * Unique id of the network
      */
     protected final long id;
+    
+    protected int noLinkSegmentTypes;
+    
+    private int noModes;
 
-    /**
+	/**
      * Network builder responsible for constructing all network related (derived)
      * instances
      */
@@ -303,5 +320,21 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     public long getId() {
         return this.id;
     }
+
+    public int getNoLinkSegmentTypes() {
+		return noLinkSegmentTypes;
+	}
+
+	public void setNoLinkSegmentTypes(int noLinkSegmentTypes) {
+		this.noLinkSegmentTypes = noLinkSegmentTypes;
+	}
+
+	public int getNoModes() {
+		return noModes;
+	}
+
+	public void setNoModes(int noModes) {
+		this.noModes = noModes;
+	}
 
 }

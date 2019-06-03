@@ -25,4 +25,5 @@ public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCo
 	public PhysicalCost() {
 		super();
 	}
+	
 }

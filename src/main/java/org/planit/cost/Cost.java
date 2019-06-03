@@ -2,6 +2,7 @@ package org.planit.cost;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.network.EdgeSegment;
+import org.planit.network.physical.PhysicalNetwork;
 import org.planit.userclass.Mode;
 
 /**

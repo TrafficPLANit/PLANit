@@ -1,5 +1,6 @@
 package org.planit.cost.physical;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import org.planit.interactor.InteractorAccessee;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.LinkSegment;
+import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.userclass.Mode;
 
@@ -106,12 +108,25 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
      * BPR parameters for all link segments
      */
     protected BPRParameters[] bprEdgeSegmentParameters = null;
+    
+    /**
+     * Map to store alpha values for each link type and mode
+     */
+    protected Map<Integer, Map<Long, Double>> alphaMapMap;
+    
+    /**
+     * Map to store beta values for each link type and mode
+     */
+    protected Map<Integer, Map<Long, Double>> betaMapMap;
 
     /**
      * Constructor
      */
     public BPRLinkTravelTimeCost() {
         super();
+    	alphaMapMap = new HashMap<Integer, Map<Long, Double>>();
+    	betaMapMap = new HashMap<Integer, Map<Long, Double>>();
+
     }
 
     /**
@@ -158,7 +173,108 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
         // object is created, the input should populate it
         this.bprEdgeSegmentParameters = bprLinkSegmentParameters;
     }
+    
+/**
+ * Set the alpha value for a given link type and mode
+ * 
+ * @param linkType       reference to the specified link type
+ * @param modeType   reference to the specified mode type
+ * @param value           alpha value
+ */
+    public void setAlpha(int linkType, int modeType, double value) {
+    	setParameter(alphaMapMap, linkType, modeType, value);
+    }
 
+/**
+ * Set the beta value for a given link type and mode
+ * 
+ * @param linkType        reference to the specified link type
+ * @param modeType    reference to the specified mode type
+ * @param value            beta value
+ */
+    public void setBeta(int linkType, int modeType, double value) {
+    	setParameter(betaMapMap, linkType, modeType, value);
+    }
+    
+/**
+ * Sets the alpha value for all link types for a specified mode type
+ * 
+ * @param noLinkSegmentTypes     number of link types
+ * @param modeType                      reference to the specified mode type
+ * @param value                              alpha value
+ */
+    public void setAlphaForAllLinkTypes(int noLinkTypes, int modeType, double value) {
+    	for (int linkType=1; linkType  <= noLinkTypes; linkType++) {
+    		setAlpha(linkType, modeType, value);
+    	}
+    }
+    
+/**
+ * Sets the beta value for all link types for a specified mode type
+ * 
+ * @param noLinkTypes    number of link types
+ * @param modeType       reference to the specified mode type
+ * @param value               beta value
+ */
+    public void setBetaForAllLinkTypes(int noLinkTypes, int modeType, double value) {
+    	for (int linkType=1; linkType <= noLinkTypes; linkType++) {
+    		setBeta(linkType, modeType, value);
+    	}
+    }
+    
+/**
+ * Stores a BPR parameter for a specified link type and mode type
+ * 
+ * @param mapMap       Map to store parameter values
+ * @param linkType         reference to specified link type
+ * @param modeType     reference to specified mode type
+ * @param value             parameter value
+ */
+    private void setParameter(Map<Integer, Map<Long, Double>> mapMap, int linkType, int modeType, double value) {
+    	if (mapMap.get(linkType) == null) {
+    		mapMap.put(linkType, new HashMap<Long, Double>());
+    	}
+    	mapMap.get(linkType).put((long) modeType, value);
+    }
+    
+/**
+ * Set a BPR parameter to have value zero for a specified link type and mode type
+ * 
+ * @param mapMap     Map to store parameter values 
+ * @param linkType      reference to specified link type
+ * @param modeType   reference to specified mode type
+ */
+    private void setZeroParameter(Map<Integer, Map<Long, Double>> mapMap, int linkType, int modeType) {
+		   if (mapMap.get(linkType).get((long) modeType) == null) {
+			   setParameter(mapMap, linkType, modeType, 0.0);
+		   }
+    }
+
+/**
+ * Update the PhysicalNetwork with the alpha and beta parameter values
+ * 
+ * Call this method after all the calls to methods to set alpha and beta values have been made
+ * 
+ * @param physicalNetwork     PhysicalNetwork to be updated
+ */
+   public void update(PhysicalNetwork physicalNetwork) {
+	   for (int linkType=1; (linkType + 1) < physicalNetwork.getNoLinkSegmentTypes(); linkType++) {
+		   for (int modeType=1; (modeType + 1) <physicalNetwork.getNoModes(); modeType++) {
+			   setZeroParameter(alphaMapMap, linkType, modeType);
+			   setZeroParameter(betaMapMap, linkType, modeType);
+		   }
+	   }
+        List<LinkSegment> linkSegments = physicalNetwork.linkSegments.toList();
+        BPRLinkTravelTimeCost.BPRParameters[] bprLinkSegmentParameters = new BPRLinkTravelTimeCost.BPRParameters[linkSegments.size()];
+	    for (LinkSegment linkSegment : linkSegments) {
+	    	MacroscopicLinkSegment macroscopiclinkSegment = (MacroscopicLinkSegment) linkSegment;
+	    	Map<Long, Double> alphaMap = alphaMapMap.get(macroscopiclinkSegment.getLinkSegmentType().getLinkType());
+	    	Map<Long, Double> betaMap = betaMapMap.get(macroscopiclinkSegment.getLinkSegmentType().getLinkType());
+	        bprLinkSegmentParameters[(int) linkSegment.getId()] = new BPRLinkTravelTimeCost.BPRParameters(alphaMap, betaMap);
+        }
+	    populate(bprLinkSegmentParameters);
+    }
+    
     /**
      * Set Accessee object for this LinkVolumeAccessor
      * 

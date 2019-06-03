@@ -92,7 +92,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
      *            capacity of the link segment type
      * @param maximumDensity
      *            maximum density of the link segment type
-     * @param linkTyp
+     * @param linkType
      *            the external reference number of this link type
      * @param modeProperties
      *            mode properties of the link segment type
