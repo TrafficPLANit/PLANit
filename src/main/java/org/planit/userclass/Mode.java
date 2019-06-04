@@ -31,13 +31,20 @@ public class Mode implements Comparable<Mode> {
      * Id value of this mode
      */
     private final long id;
+    
+    /**
+     * External Id of this mode
+     */
+    private long externalId;
 
     /**
      * Name of this mode
      */
     private final String name;
 
-    private static Map<Long, Mode> modes = new HashMap<Long, Mode>();
+    private static Map<Long, Mode> modesById = new HashMap<Long, Mode>();
+    
+    private static Map<Long, Mode> modesByExternalId = new HashMap<Long, Mode>();
 
     /**
      * Constructor
@@ -51,7 +58,7 @@ public class Mode implements Comparable<Mode> {
         this.id = IdGenerator.generateId(Mode.class);
         this.name = name;
         this.pcu = pcu;
-        modes.put(this.id, this);
+        modesById.put(this.id, this);
     }
 
     /**
@@ -64,11 +71,13 @@ public class Mode implements Comparable<Mode> {
      * @param pcu
      *            the PCU value of this mode
      */
-    public Mode(long id, String name, double pcu) {
-        this.id = id;
+    public Mode(long externalid, String name, double pcu) {
+        this.id = IdGenerator.generateId(Mode.class);
+        this.externalId = externalid;
         this.name = name;
         this.pcu = pcu;
-        modes.put(this.id, this);
+        modesById.put(this.id, this);
+        modesByExternalId.put(this.externalId, this);
     }
 
     /**
@@ -79,7 +88,17 @@ public class Mode implements Comparable<Mode> {
      * @return retrieved mode value
      */
     public static Mode getById(long id) {
-        return modes.get(id);
+        return modesById.get(id);
+    }
+    
+    /**
+     * Get mode by its external Id
+     * 
+     * @param externalId external Id of this mode
+     * @return retrieved mode value
+     */
+    public static Mode getByExternalId(long externalId) {
+    	return modesByExternalId.get(externalId);
     }
 
     /**
@@ -89,11 +108,12 @@ public class Mode implements Comparable<Mode> {
      *            mode to be registered
      */
     public static void putById(Mode mode) {
-        modes.put(mode.getId(), mode);
+    	modesById.put(mode.getId(), mode);
+    	modesByExternalId.put(mode.getExternalId(), mode);
     }
 
     public static Collection<Mode> getAllModes() {
-        return modes.values();
+        return modesById.values();
     }
 
     // getters-setters
@@ -108,6 +128,10 @@ public class Mode implements Comparable<Mode> {
 
     public long getId() {
         return id;
+    }
+    
+    public long getExternalId() {
+    	return externalId;
     }
 
     /**

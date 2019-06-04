@@ -16,107 +16,109 @@ import org.planit.utils.IdGenerator;
  */
 public class MacroscopicLinkSegmentType {
 
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentType.class.getName());
+	/**
+	 * Logger for this class
+	 */
+	private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentType.class.getName());
 
-    public static final double DEFAULT_MAXIMUM_DENSITY_LANE = 180;
+	public static final double DEFAULT_MAXIMUM_DENSITY_LANE = 180;
 
-    // Protected
+	// Protected
 
-    /**
-     * Unique segment type id
-     */
-    protected final int id;
+	/**
+	 * Unique segment type id
+	 */
+	protected final int id;
 
-/**
- * External reference number of link type    
- */
-    private int linkType;
-        
- /**
-     * name of the link segment type
-     */
-    protected String name;
+	/**
+	 * External reference number of link type
+	 */
+	private int linkTypeExternalId;
 
-    /**
-     * Maximum flow, i.e. capacity in veh/h/lane
-     */
-    protected final double capacityPerLane;
+	/**
+	 * name of the link segment type
+	 */
+	protected String name;
 
-    /**
-     * Maximum density in veh/km/lane
-     */
-    protected final double maximumDensityPerLane;
+	/**
+	 * Maximum flow, i.e. capacity in veh/h/lane
+	 */
+	protected final double capacityPerLane;
 
-    /**
-     * All mode specific properties are captured within this member
-     */
-    protected final MacroscopicLinkSegmentTypeModeProperties modeProperties;
+	/**
+	 * Maximum density in veh/km/lane
+	 */
+	protected final double maximumDensityPerLane;
 
-    /**
-     * Generate next id available
-     * 
-     * @return id of this link segment
-     */
-    protected static int generateMacroscopicLinkSegmentTypeId() {
-        return IdGenerator.generateId(MacroscopicLinkSegmentType.class);
-    }
+	/**
+	 * All mode specific properties are captured within this member
+	 */
+	protected final MacroscopicLinkSegmentTypeModeProperties modeProperties;
 
-    // Public
+	/**
+	 * Generate next id available
+	 * 
+	 * @return id of this link segment
+	 */
+	protected static int generateMacroscopicLinkSegmentTypeId() {
+		return IdGenerator.generateId(MacroscopicLinkSegmentType.class);
+	}
 
-    /**
-     * Constructor
-     * 
-     * @param name                                         name of this link segment type
-     * @param capacityPerLane                        capacity per lane of this link segment type
-     * @param maximumDensityPerLane         maximum density per lane of this link segment type
-     * @param linkType                                      external reference number of the link type
-     * @param modeProperties                         properties of this link segment type
-     */
-    public MacroscopicLinkSegmentType(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane, int linkType, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
-        this.id = generateMacroscopicLinkSegmentTypeId();
-        this.name = name;
-        this.capacityPerLane = capacityPerLane;
-        this.maximumDensityPerLane = maximumDensityPerLane;
-        this.linkType = linkType;
-        this.modeProperties = modeProperties;
-    }
+	// Public
 
-    // Getters - Setters
+	/**
+	 * Constructor
+	 * 
+	 * @param name                  name of this link segment type
+	 * @param capacityPerLane       capacity per lane of this link segment type
+	 * @param maximumDensityPerLane maximum density per lane of this link segment
+	 *                              type
+	 * @param linkTypeExternalId    external reference number of the link type
+	 * @param modeProperties        properties of this link segment type
+	 */
+	public MacroscopicLinkSegmentType(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane,
+			int linkTypeExternalId, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
+		this.id = generateMacroscopicLinkSegmentTypeId();
+		this.name = name;
+		this.capacityPerLane = capacityPerLane;
+		this.maximumDensityPerLane = maximumDensityPerLane;
+		this.linkTypeExternalId = linkTypeExternalId;
+		this.modeProperties = modeProperties;
+	}
 
-    public int getId() {
-        return id;
-    }
+	// Getters - Setters
 
-    public String getName() {
-        return name;
-    }
+	public int getId() {
+		return id;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public double getCapacityPerLane() {
-        return capacityPerLane;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public double getMaximumDensityPerLane() {
-        return maximumDensityPerLane;
-    }
-    
-    public int getLinkType() {
-    	return linkType;
-    }
+	public double getCapacityPerLane() {
+		return capacityPerLane;
+	}
 
-    /**
-     * reference to internal mode properties
-     * 
-     * @return segmentModeProperties
-     */
-    public MacroscopicLinkSegmentTypeModeProperties getModeProperties() {
-        return modeProperties;
-    }
+	public double getMaximumDensityPerLane() {
+		return maximumDensityPerLane;
+	}
+
+	public int getLinkTypeExternalId() {
+		return linkTypeExternalId;
+	}
+
+	/**
+	 * reference to internal mode properties
+	 * 
+	 * @return segmentModeProperties
+	 */
+	public MacroscopicLinkSegmentTypeModeProperties getModeProperties() {
+		return modeProperties;
+	}
 
 }

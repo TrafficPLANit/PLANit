@@ -29,16 +29,21 @@ public class MacroscopicNetwork extends PhysicalNetwork {
     private class MacroscopicLinkSegmentTypes implements Iterable<MacroscopicLinkSegmentType> {
         @Override
         public Iterator<MacroscopicLinkSegmentType> iterator() {
-            return linkSegmentTypeMap.values().iterator();
+            return linkSegmentTypeByIdMap.values().iterator();
         }
     }
 
     // Protected
 
     /**
-     * Map which stores link segment types
+     * Map which stores link segment types by generated Id
      */
-    protected Map<Integer, MacroscopicLinkSegmentType> linkSegmentTypeMap = new TreeMap<Integer, MacroscopicLinkSegmentType>();
+    protected Map<Integer, MacroscopicLinkSegmentType> linkSegmentTypeByIdMap = new TreeMap<Integer, MacroscopicLinkSegmentType>();
+    
+    /**
+     * Map which stores link segment types by their external Id
+     */
+    protected Map<Integer, MacroscopicLinkSegmentType> linkSegmentTypeByExternalIdMap = new TreeMap<Integer, MacroscopicLinkSegmentType>(); 
 
     /**
      * Register a link segment type on the network
@@ -48,7 +53,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
      * @return the registered link segment type
      */
     protected MacroscopicLinkSegmentType registerLinkSegmentType(@Nonnull MacroscopicLinkSegmentType linkSegmentType) {
-        return linkSegmentTypeMap.put(linkSegmentType.getId(), linkSegmentType);
+    	linkSegmentTypeByExternalIdMap.put(linkSegmentType.getLinkTypeExternalId(), linkSegmentType);
+        return linkSegmentTypeByIdMap.put(linkSegmentType.getId(), linkSegmentType);
     }
 
     // Public
@@ -129,6 +135,36 @@ public class MacroscopicNetwork extends PhysicalNetwork {
      */
     public MacroscopicLinkSegmentTypes macroscopiclinkSegmentTypes() {
         return new MacroscopicLinkSegmentTypes();
+    }
+    
+    /**
+     * Return the number of link segment types
+     * 
+     * @return number of link segment types
+     */
+    public int getNoSegmentTypes() {
+    	return linkSegmentTypeByIdMap.keySet().size();
+    }
+    
+    /**
+     * Return a link segment type identified by its generated id
+     * 
+     * @param id id value of the MacroscopicLinkSegmentType 
+     * @return MacroscopicLinkSegmentType object found
+     */
+    public MacroscopicLinkSegmentType findLinkSegmentTypeById(int id) {
+    	return linkSegmentTypeByIdMap.get(id);
+    }
+ 
+    /**
+     * Return a link segment type identified by its external id
+     * 
+     * @param id external id value of the MacroscopicLinkSegmentType 
+     * @return MacroscopicLinkSegmentType object found
+     */
+
+    public MacroscopicLinkSegmentType findLinkSegmentTypeByExternalId(int externalId) {
+    	return linkSegmentTypeByExternalIdMap.get(externalId);
     }
 
 }

@@ -5,6 +5,8 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 import org.planit.cost.Cost;
+import org.planit.cost.physical.BPRLinkTravelTimeCost;
+import org.planit.cost.physical.PhysicalCost;
 import org.planit.demand.Demands;
 import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
@@ -71,7 +73,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
     /**
      * The physical link cost function
      */
-    protected Cost<LinkSegment> physicalCost;
+    protected PhysicalCost physicalCost;
 
     /**
      * The virtual link cost function
@@ -252,6 +254,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
         checkForEmptyComponents();
         verifyComponentCompatibility();
         transportNetwork = new TransportNetwork(physicalNetwork, zoning);
+        //physicalCost.update(physicalNetwork);
         transportNetwork.integrateConnectoidsAndLinks();
         initialiseBeforeEquilibration();
         executeEquilibration();
@@ -350,7 +353,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
      * @throws PlanItException
      *             thrown if there is an error
      */
-    public void setPhysicalCost(Cost<LinkSegment> physicalCost) throws PlanItException {
+    //public void setPhysicalCost(Cost<LinkSegment> physicalCost) throws PlanItException {
+    public void setPhysicalCost(PhysicalCost physicalCost) throws PlanItException {
         this.physicalCost = physicalCost;
         if (this.physicalCost instanceof InteractorAccessor) {
             // accessor requires accessee --> request accessee via event --> and listen back

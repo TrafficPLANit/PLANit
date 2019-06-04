@@ -106,7 +106,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
         Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
         while (linkSegmentIter.hasNext()) {
             LinkSegment currentSegment = linkSegmentIter.next();
-            if (currentSegment.getMaximumSpeed(mode.getId()) == 0.0) {
+            //if (currentSegment.getMaximumSpeed(mode.getId()) == 0.0) {
+            if (currentSegment.getMaximumSpeed(mode.getExternalId()) == 0.0) {
                 currentSegmentCosts[(int) currentSegment.getId()] = Double.POSITIVE_INFINITY;
             } else {
                 currentSegmentCosts[(int) currentSegment.getId()] = physicalCost.calculateSegmentCost(mode,

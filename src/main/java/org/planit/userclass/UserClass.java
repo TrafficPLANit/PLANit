@@ -41,9 +41,9 @@ public class UserClass {
     private TravellerType travellerType;
 
     /**
-     * Id of mode of travel
+     * External Id of mode of travel
      */
-    private long modeId = 0;
+    private long modeExternalId = 0;
 
     /**
      * Id of this traveller type
@@ -100,17 +100,17 @@ public class UserClass {
      *            id of this user class
      * @param name
      *            name of this user class
-     * @param modeId
-     *            id of mode of travel
+     * @param modeExternalId
+     *            external id of mode of travel
      * @param travellerTypeId
      *            if of traveller type
      */
-    public UserClass(long id, String name, long modeId, long travellerTypeId) {
+    public UserClass(long id, String name, long modeExternalId, long travellerTypeId) {
         this.id = id;
         this.name = name;
-        this.modeId = modeId;
+        this.modeExternalId = modeExternalId;
         this.travellerTypeId = travellerTypeId;
-        this.mode = Mode.getById(modeId);
+        this.mode = Mode.getByExternalId(modeExternalId);
         this.travellerType = TravellerType.getById(travellerTypeId);
         userClasses.put(this.id, this);
     }
@@ -177,8 +177,8 @@ public class UserClass {
      * 
      * @return id of the mode of this user class
      */
-    public long getModeId() {
-        return modeId;
+    public long getModeExternalId() {
+        return modeExternalId;
     }
 
     /**

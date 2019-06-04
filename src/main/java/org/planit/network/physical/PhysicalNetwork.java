@@ -268,10 +268,6 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      */
     protected final long id;
     
-    protected int noLinkSegmentTypes;
-    
-    private int noModes;
-
 	/**
      * Network builder responsible for constructing all network related (derived)
      * instances
@@ -320,21 +316,4 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     public long getId() {
         return this.id;
     }
-
-    public int getNoLinkSegmentTypes() {
-		return noLinkSegmentTypes;
-	}
-
-	public void setNoLinkSegmentTypes(int noLinkSegmentTypes) {
-		this.noLinkSegmentTypes = noLinkSegmentTypes;
-	}
-
-	public int getNoModes() {
-		return noModes;
-	}
-
-	public void setNoModes(int noModes) {
-		this.noModes = noModes;
-	}
-
 }

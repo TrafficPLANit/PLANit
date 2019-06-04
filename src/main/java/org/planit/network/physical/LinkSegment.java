@@ -88,26 +88,31 @@ public class LinkSegment extends EdgeSegment {
     /**
      * Return the maximum speed along this link for a specified mode
      * 
-     * @param modeId
-     *            id of the specified mode
+     * @param modeExternalId
+     *            external id of the specified mode
      * @return maximum speed along this link for the specified mode
      */
-    public double getMaximumSpeed(long modeId) {
-        return maximumSpeedMap.get(modeId);
+    public double getMaximumSpeed(long modeExternalId) {
+        return maximumSpeedMap.get(modeExternalId);
     }
 
     /**
      * Set the maximum speed along this link for a specified mode
      * 
-     * @param modeId
-     *            id of the specified mode
+     * @param modeExternalId
+     *            external id of the specified mode
      * @param maximumSpeed
      *            maximum speed along this link for the specified mode
      */
-    public void setMaximumSpeed(long modeId, double maximumSpeed) {
-        maximumSpeedMap.put(modeId, maximumSpeed);
+    public void setMaximumSpeed(long modeExternalId, double maximumSpeed) {
+        maximumSpeedMap.put(modeExternalId, maximumSpeed);
     }
 
+    /**
+     * Set the Map maximum speed for each mode
+     * 
+     * @param maximumSpeedMap Map of speed values for each mode
+     */
     public void setMaximumSpeedMap(Map<Long, Double> maximumSpeedMap) {
         this.maximumSpeedMap = maximumSpeedMap;
     }

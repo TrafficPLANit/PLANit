@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import org.planit.cost.Cost;
 import org.planit.network.physical.LinkSegment;
+import org.planit.network.physical.PhysicalNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 
 /**
@@ -25,5 +26,7 @@ public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCo
 	public PhysicalCost() {
 		super();
 	}
+	
+	public abstract void update(PhysicalNetwork physicalNetwork);
 	
 }
