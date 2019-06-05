@@ -16,75 +16,75 @@ import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
  */
 public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(CapacityConstrainedAssignment.class.getName());
+	/**
+	 * Logger for this class
+	 */
+	private static final Logger LOGGER = Logger.getLogger(CapacityConstrainedAssignment.class.getName());
 
-    // PROTECTED
+	// PROTECTED
 
-    /**
-     * The builder for all capacity constrained traffic assignment instances
-     */
-    protected final CapacityConstrainedTrafficAssignmentBuilder capacityConstrainedBuilder;
+	/**
+	 * The builder for all capacity constrained traffic assignment instances
+	 */
+	protected final CapacityConstrainedTrafficAssignmentBuilder capacityConstrainedBuilder;
 
-    /**
-     * Fundamental diagram to use
-     */
-    protected FundamentalDiagram fundamentalDiagram = null;
+	/**
+	 * Fundamental diagram to use
+	 */
+	protected FundamentalDiagram fundamentalDiagram = null;
 
-    /**
-     * Node model to use
-     */
-    protected NodeModel nodeModel = null;
+	/**
+	 * Node model to use
+	 */
+	protected NodeModel nodeModel = null;
 
-    // PUBLIC
+	// PUBLIC
 
-    /**
-     * Constructor
-     */
-    public CapacityConstrainedAssignment() {
-        super();
-        this.capacityConstrainedBuilder = new CapacityConstrainedTrafficAssignmentBuilder(this);
-    }
+	/**
+	 * Constructor
+	 */
+	public CapacityConstrainedAssignment() {
+		super();
+		this.capacityConstrainedBuilder = new CapacityConstrainedTrafficAssignmentBuilder(this);
+	}
 
-    /**
-     * collect the CapacityConstrainedTrafficAssignmentBuilder to condigure this
-     * instance
-     * 
-     * @see org.planit.trafficassignment.TrafficAssignment#getBuilder()
-     * 
-     * @return capacityConstrainedAssignmentBuilder
-     */
-    @Override
-    public TrafficAssignmentBuilder getBuilder() {
-        capacityConstrainedBuilder.setEventManager(eventManager);
-        return capacityConstrainedBuilder;
-    }
+	/**
+	 * collect the CapacityConstrainedTrafficAssignmentBuilder to condigure this
+	 * instance
+	 * 
+	 * @see org.planit.trafficassignment.TrafficAssignment#getBuilder()
+	 * 
+	 * @return capacityConstrainedAssignmentBuilder
+	 */
+	@Override
+	public TrafficAssignmentBuilder getBuilder() {
+		capacityConstrainedBuilder.setEventManager(eventManager);
+		return capacityConstrainedBuilder;
+	}
 
-    @Override
-    public void verifyComponentCompatibility() throws PlanItException {
-        throw new PlanItException("Not yet implemented");
-    }
+	@Override
+	public void verifyComponentCompatibility() throws PlanItException {
+		throw new PlanItException("Not yet implemented");
+	}
 
-    @Override
-    public void executeEquilibration() throws PlanItException {
-        throw new PlanItException("Not yet implemented");
-    }
+	@Override
+	public void executeEquilibration() throws PlanItException {
+		throw new PlanItException("Not yet implemented");
+	}
 
-    @Override
-    public void initialiseBeforeEquilibration() {
-        // TODO Auto-generated method stub
-    }
+	@Override
+	public void initialiseBeforeEquilibration() {
+		// TODO Auto-generated method stub
+	}
 
-    // Getters - Setters
+	// Getters - Setters
 
-    public void setFundamentalDiagram(FundamentalDiagram fundamentalDiagram) {
-        this.fundamentalDiagram = fundamentalDiagram;
-    }
+	public void setFundamentalDiagram(FundamentalDiagram fundamentalDiagram) {
+		this.fundamentalDiagram = fundamentalDiagram;
+	}
 
-    public void setNodeModel(NodeModel nodeModel) {
-        this.nodeModel = nodeModel;
-    }
+	public void setNodeModel(NodeModel nodeModel) {
+		this.nodeModel = nodeModel;
+	}
 
 }

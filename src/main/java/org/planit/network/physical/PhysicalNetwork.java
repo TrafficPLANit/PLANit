@@ -9,7 +9,6 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
-import org.planit.cost.physical.PhysicalCost;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
@@ -22,7 +21,7 @@ import org.planit.utils.IdGenerator;
  * 
  * @author markr
  */
-public abstract class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork> {
+public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork> {
 
 	/**
 	 * Logger for this class
@@ -300,16 +299,5 @@ public abstract class PhysicalNetwork extends TrafficAssignmentComponent<Physica
 	public long getId() {
 		return this.id;
 	}
-
-	/**
-	 * Register the cost parameter values on the PhysicalNetwork
-	 * 
-	 * Call this method after all the calls to set the cost parameters have been
-	 * made
-	 * 
-	 * @param physicalCost PhysicalCost object containing the updated parameter
-	 *                     values
-	 */
-	public abstract void registerCostParameters(PhysicalCost physicalCost);
 
 }

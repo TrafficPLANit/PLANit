@@ -3,6 +3,7 @@ package org.planit.userclass;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import org.planit.utils.IdGenerator;
 
@@ -78,6 +79,10 @@ public class Mode implements Comparable<Mode> {
         this.pcu = pcu;
         modesById.put(this.id, this);
         modesByExternalId.put(this.externalId, this);
+    }
+    
+    public static Set<Long> getExternalIdSet() {
+    	return modesByExternalId.keySet();
     }
 
     /**

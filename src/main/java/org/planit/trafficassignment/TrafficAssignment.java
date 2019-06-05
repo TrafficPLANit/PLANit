@@ -40,11 +40,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	// Private
 
 	/**
-	 * Physical network to use
-	 */
-	private PhysicalNetwork physicalNetwork;
-
-	/**
 	 * The zoning to use
 	 */
 	private Zoning zoning;
@@ -56,6 +51,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	private GapFunction gapFunction;
 
 	// Protected
+
+	/**
+	 * Physical network to use
+	 */
+	protected PhysicalNetwork physicalNetwork;
 
 	/**
 	 * Output manager deals with all the output configurations for the registered
@@ -245,9 +245,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		checkForEmptyComponents();
 		verifyComponentCompatibility();
 		transportNetwork = new TransportNetwork(physicalNetwork, zoning);
-		// TODO - reinstate call to physicalNetwork.registerCostParameters() below after changes to reading
-		// of alpha and beta in BasicCsvScan have been made
-		//physicalNetwork.registerCostParameters(physicalCost);
 		transportNetwork.integrateConnectoidsAndLinks();
 		initialiseBeforeEquilibration();
 		executeEquilibration();

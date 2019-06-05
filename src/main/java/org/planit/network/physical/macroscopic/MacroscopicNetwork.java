@@ -1,20 +1,15 @@
 package org.planit.network.physical.macroscopic;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
-import org.planit.cost.physical.BPRLinkTravelTimeCost;
-import org.planit.cost.physical.PhysicalCost;
 import org.planit.exceptions.PlanItException;
-import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetwork;
-import org.planit.userclass.Mode;
 import org.planit.utils.Pair;
 
 /**
@@ -136,12 +131,12 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	}
 
 	/**
-	 * Return the number of link segment types
+	 * Return the Set of link segment external Ids
 	 * 
-	 * @return number of link segment types
+	 * @return Set of link segment external Ids
 	 */
-	public int getNoSegmentTypes() {
-		return linkSegmentTypeByIdMap.keySet().size();
+	public Set<Integer> getLinkSegmentExternalIdSet() {
+		return linkSegmentTypeByExternalIdMap.keySet();
 	}
 
 	/**
@@ -163,42 +158,6 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 
 	public MacroscopicLinkSegmentType findLinkSegmentTypeByExternalId(int externalId) {
 		return linkSegmentTypeByExternalIdMap.get(externalId);
-	}
-
-	/**
-	 * Register the BPR cost parameter values on the PhysicalNetwork
-	 * 
-	 * Call this method after all the calls to set the cost parameters have been
-	 * made
-	 * 
-	 * @param physicalCost PhysicalCost object containing the updated parameter
-	 *                     values
-	 */
-	@Override
-	public void registerCostParameters(PhysicalCost physicalCost) {
-		BPRLinkTravelTimeCost bprLinkTravelTimeCost = (BPRLinkTravelTimeCost) physicalCost;
-		for (int linkTypeExternalId = 1; (linkTypeExternalId + 1) < linkSegmentTypeByIdMap.keySet()
-				.size(); linkTypeExternalId++) {
-			for (int modeExternalId = 1; (modeExternalId + 1) < Mode.getAllModes().size(); modeExternalId++) {
-				bprLinkTravelTimeCost.setZeroParameter(bprLinkTravelTimeCost.getAlphaMapMap(), linkTypeExternalId,
-						modeExternalId);
-				bprLinkTravelTimeCost.setZeroParameter(bprLinkTravelTimeCost.getBetaMapMap(), linkTypeExternalId,
-						modeExternalId);
-			}
-		}
-		List<LinkSegment> linkSegments = new ArrayList<LinkSegment>(linkSegmentMap.values());
-		BPRLinkTravelTimeCost.BPRParameters[] bprLinkSegmentParameters = new BPRLinkTravelTimeCost.BPRParameters[linkSegments
-				.size()];
-		for (LinkSegment linkSegment : linkSegments) {
-			MacroscopicLinkSegment macroscopiclinkSegment = (MacroscopicLinkSegment) linkSegment;
-			Map<Long, Double> alphaMap = bprLinkTravelTimeCost.getAlphaMapMap()
-					.get(macroscopiclinkSegment.getLinkSegmentType().getLinkTypeExternalId());
-			Map<Long, Double> betaMap = bprLinkTravelTimeCost.getBetaMapMap()
-					.get(macroscopiclinkSegment.getLinkSegmentType().getLinkTypeExternalId());
-			bprLinkSegmentParameters[(int) linkSegment.getId()] = new BPRLinkTravelTimeCost.BPRParameters(alphaMap,
-					betaMap);
-		}
-		bprLinkTravelTimeCost.populate(bprLinkSegmentParameters);
 	}
 
 }
