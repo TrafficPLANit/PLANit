@@ -1,14 +1,20 @@
 package org.planit.network.physical.macroscopic;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
+import org.planit.cost.physical.BPRLinkTravelTimeCost;
+import org.planit.cost.physical.PhysicalCost;
 import org.planit.exceptions.PlanItException;
+import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.userclass.Mode;
 import org.planit.utils.Pair;
 
 /**
@@ -19,152 +25,180 @@ import org.planit.utils.Pair;
  */
 public class MacroscopicNetwork extends PhysicalNetwork {
 
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(MacroscopicNetwork.class.getName());
+	/**
+	 * Logger for this class
+	 */
+	private static final Logger LOGGER = Logger.getLogger(MacroscopicNetwork.class.getName());
 
-    // Private
+	// Private
 
-    private class MacroscopicLinkSegmentTypes implements Iterable<MacroscopicLinkSegmentType> {
-        @Override
-        public Iterator<MacroscopicLinkSegmentType> iterator() {
-            return linkSegmentTypeByIdMap.values().iterator();
-        }
-    }
+	private class MacroscopicLinkSegmentTypes implements Iterable<MacroscopicLinkSegmentType> {
+		@Override
+		public Iterator<MacroscopicLinkSegmentType> iterator() {
+			return linkSegmentTypeByIdMap.values().iterator();
+		}
+	}
 
-    // Protected
+	// Protected
 
-    /**
-     * Map which stores link segment types by generated Id
-     */
-    protected Map<Integer, MacroscopicLinkSegmentType> linkSegmentTypeByIdMap = new TreeMap<Integer, MacroscopicLinkSegmentType>();
-    
-    /**
-     * Map which stores link segment types by their external Id
-     */
-    protected Map<Integer, MacroscopicLinkSegmentType> linkSegmentTypeByExternalIdMap = new TreeMap<Integer, MacroscopicLinkSegmentType>(); 
+	/**
+	 * Map which stores link segment types by generated Id
+	 */
+	protected Map<Integer, MacroscopicLinkSegmentType> linkSegmentTypeByIdMap = new TreeMap<Integer, MacroscopicLinkSegmentType>();
 
-    /**
-     * Register a link segment type on the network
-     * 
-     * @param linkSegmentType
-     *            the MacroscopicLinkSegmentType to be registered
-     * @return the registered link segment type
-     */
-    protected MacroscopicLinkSegmentType registerLinkSegmentType(@Nonnull MacroscopicLinkSegmentType linkSegmentType) {
-    	linkSegmentTypeByExternalIdMap.put(linkSegmentType.getLinkTypeExternalId(), linkSegmentType);
-        return linkSegmentTypeByIdMap.put(linkSegmentType.getId(), linkSegmentType);
-    }
+	/**
+	 * Map which stores link segment types by their external Id
+	 */
+	protected Map<Integer, MacroscopicLinkSegmentType> linkSegmentTypeByExternalIdMap = new TreeMap<Integer, MacroscopicLinkSegmentType>();
 
-    // Public
+	/**
+	 * Register a link segment type on the network
+	 * 
+	 * @param linkSegmentType the MacroscopicLinkSegmentType to be registered
+	 * @return the registered link segment type
+	 */
+	protected MacroscopicLinkSegmentType registerLinkSegmentType(@Nonnull MacroscopicLinkSegmentType linkSegmentType) {
+		linkSegmentTypeByExternalIdMap.put(linkSegmentType.getLinkTypeExternalId(), linkSegmentType);
+		return linkSegmentTypeByIdMap.put(linkSegmentType.getId(), linkSegmentType);
+	}
 
-    /**
-     * Constructor
-     */
-    public MacroscopicNetwork() {
-        super(new MacroscopicNetworkBuilder());
-    }
+	// Public
 
-    /**
-     * If there already exists a link segment type with the same contents return it,
-     * otherwise return null
-     * 
-     * @param linkSegmentType
-     *            the new MacroscopicLinkSegmentType being tested against
-     * @return existing MacroscopicLinkSegmentType equal to the new one if one
-     *         exists, otherwise null
-     */
-    public MacroscopicLinkSegmentType findEqualMacroscopicLinkSegmentType(
-            @Nonnull MacroscopicLinkSegmentType linkSegmentType) {
-        Iterator<MacroscopicLinkSegmentType> iterator = macroscopiclinkSegmentTypes().iterator();
-        while (iterator.hasNext()) {
-            MacroscopicLinkSegmentType currentLinkSegmentType = iterator.next();
-            if (currentLinkSegmentType.equals(linkSegmentType)) {
-                return currentLinkSegmentType;
-            }
-        }
-        return null;
-    }
+	/**
+	 * Constructor
+	 */
+	public MacroscopicNetwork() {
+		super(new MacroscopicNetworkBuilder());
+	}
 
-    /**
-     * Create and register new link segment type on network. If there already exists
-     * a link segment type with the same contents the existing type is returned and
-     * no new type will be registered
-     * 
-     * @param name
-     *            name of the link segment type
-     * @param capacity
-     *            capacity of the link segment type
-     * @param maximumDensity
-     *            maximum density of the link segment type
-     * @param linkType
-     *            the external reference number of this link type
-     * @param modeProperties
-     *            mode properties of the link segment type
-     * @return Pair containing the link segment type, plus boolean which is true if
-     *         the link segment type already exists
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    public Pair<MacroscopicLinkSegmentType, Boolean> registerNewLinkSegmentType(@Nonnull String name, 
-    		                                                                                                                                  double capacity,
-                                                                                                                                              double maximumDensity,
-                                                                                                                                              int linkType,
-                                                                                                                                              MacroscopicLinkSegmentTypeModeProperties modeProperties) throws PlanItException {
+	/**
+	 * If there already exists a link segment type with the same contents return it,
+	 * otherwise return null
+	 * 
+	 * @param linkSegmentType the new MacroscopicLinkSegmentType being tested
+	 *                        against
+	 * @return existing MacroscopicLinkSegmentType equal to the new one if one
+	 *         exists, otherwise null
+	 */
+	public MacroscopicLinkSegmentType findEqualMacroscopicLinkSegmentType(
+			@Nonnull MacroscopicLinkSegmentType linkSegmentType) {
+		Iterator<MacroscopicLinkSegmentType> iterator = macroscopiclinkSegmentTypes().iterator();
+		while (iterator.hasNext()) {
+			MacroscopicLinkSegmentType currentLinkSegmentType = iterator.next();
+			if (currentLinkSegmentType.equals(linkSegmentType)) {
+				return currentLinkSegmentType;
+			}
+		}
+		return null;
+	}
 
-        if (!(networkBuilder instanceof MacroscopicNetworkBuilder)) {
-            throw new PlanItException(
-                    "Macroscopic network perspective only allows macroscopic link segment types to be registered");
-        }
-        MacroscopicLinkSegmentType linkSegmentType = ((MacroscopicNetworkBuilder) networkBuilder).createLinkSegmentType(name, capacity, maximumDensity, linkType, modeProperties);
-        MacroscopicLinkSegmentType existingLinkSegmentType = findEqualMacroscopicLinkSegmentType(linkSegmentType);
-        if (existingLinkSegmentType == null) {
-            registerLinkSegmentType(linkSegmentType);
-        } else {
-            linkSegmentType = existingLinkSegmentType;
-        }
-        return new Pair<MacroscopicLinkSegmentType, Boolean>(linkSegmentType,
-                existingLinkSegmentType == linkSegmentType);
-    }
+	/**
+	 * Create and register new link segment type on network. If there already exists
+	 * a link segment type with the same contents the existing type is returned and
+	 * no new type will be registered
+	 * 
+	 * @param name           name of the link segment type
+	 * @param capacity       capacity of the link segment type
+	 * @param maximumDensity maximum density of the link segment type
+	 * @param linkType       the external reference number of this link type
+	 * @param modeProperties mode properties of the link segment type
+	 * @return Pair containing the link segment type, plus boolean which is true if
+	 *         the link segment type already exists
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public Pair<MacroscopicLinkSegmentType, Boolean> registerNewLinkSegmentType(@Nonnull String name, double capacity,
+			double maximumDensity, int linkType, MacroscopicLinkSegmentTypeModeProperties modeProperties)
+			throws PlanItException {
 
-    /**
-     * Create iterator for macroscopiclinkSegmentTypesContainer
-     * 
-     * @return LinkSegmentTypes iterator
-     */
-    public MacroscopicLinkSegmentTypes macroscopiclinkSegmentTypes() {
-        return new MacroscopicLinkSegmentTypes();
-    }
-    
-    /**
-     * Return the number of link segment types
-     * 
-     * @return number of link segment types
-     */
-    public int getNoSegmentTypes() {
-    	return linkSegmentTypeByIdMap.keySet().size();
-    }
-    
-    /**
-     * Return a link segment type identified by its generated id
-     * 
-     * @param id id value of the MacroscopicLinkSegmentType 
-     * @return MacroscopicLinkSegmentType object found
-     */
-    public MacroscopicLinkSegmentType findLinkSegmentTypeById(int id) {
-    	return linkSegmentTypeByIdMap.get(id);
-    }
- 
-    /**
-     * Return a link segment type identified by its external id
-     * 
-     * @param id external id value of the MacroscopicLinkSegmentType 
-     * @return MacroscopicLinkSegmentType object found
-     */
+		if (!(networkBuilder instanceof MacroscopicNetworkBuilder)) {
+			throw new PlanItException(
+					"Macroscopic network perspective only allows macroscopic link segment types to be registered");
+		}
+		MacroscopicLinkSegmentType linkSegmentType = ((MacroscopicNetworkBuilder) networkBuilder)
+				.createLinkSegmentType(name, capacity, maximumDensity, linkType, modeProperties);
+		MacroscopicLinkSegmentType existingLinkSegmentType = findEqualMacroscopicLinkSegmentType(linkSegmentType);
+		if (existingLinkSegmentType == null) {
+			registerLinkSegmentType(linkSegmentType);
+		} else {
+			linkSegmentType = existingLinkSegmentType;
+		}
+		return new Pair<MacroscopicLinkSegmentType, Boolean>(linkSegmentType,
+				existingLinkSegmentType == linkSegmentType);
+	}
 
-    public MacroscopicLinkSegmentType findLinkSegmentTypeByExternalId(int externalId) {
-    	return linkSegmentTypeByExternalIdMap.get(externalId);
-    }
+	/**
+	 * Create iterator for macroscopiclinkSegmentTypesContainer
+	 * 
+	 * @return LinkSegmentTypes iterator
+	 */
+	public MacroscopicLinkSegmentTypes macroscopiclinkSegmentTypes() {
+		return new MacroscopicLinkSegmentTypes();
+	}
+
+	/**
+	 * Return the number of link segment types
+	 * 
+	 * @return number of link segment types
+	 */
+	public int getNoSegmentTypes() {
+		return linkSegmentTypeByIdMap.keySet().size();
+	}
+
+	/**
+	 * Return a link segment type identified by its generated id
+	 * 
+	 * @param id id value of the MacroscopicLinkSegmentType
+	 * @return MacroscopicLinkSegmentType object found
+	 */
+	public MacroscopicLinkSegmentType findLinkSegmentTypeById(int id) {
+		return linkSegmentTypeByIdMap.get(id);
+	}
+
+	/**
+	 * Return a link segment type identified by its external id
+	 * 
+	 * @param id external id value of the MacroscopicLinkSegmentType
+	 * @return MacroscopicLinkSegmentType object found
+	 */
+
+	public MacroscopicLinkSegmentType findLinkSegmentTypeByExternalId(int externalId) {
+		return linkSegmentTypeByExternalIdMap.get(externalId);
+	}
+
+	/**
+	 * Register the BPR cost parameter values on the PhysicalNetwork
+	 * 
+	 * Call this method after all the calls to set the cost parameters have been
+	 * made
+	 * 
+	 * @param physicalCost PhysicalCost object containing the updated parameter
+	 *                     values
+	 */
+	@Override
+	public void registerCostParameters(PhysicalCost physicalCost) {
+		BPRLinkTravelTimeCost bprLinkTravelTimeCost = (BPRLinkTravelTimeCost) physicalCost;
+		for (int linkTypeExternalId = 1; (linkTypeExternalId + 1) < linkSegmentTypeByIdMap.keySet()
+				.size(); linkTypeExternalId++) {
+			for (int modeExternalId = 1; (modeExternalId + 1) < Mode.getAllModes().size(); modeExternalId++) {
+				bprLinkTravelTimeCost.setZeroParameter(bprLinkTravelTimeCost.getAlphaMapMap(), linkTypeExternalId,
+						modeExternalId);
+				bprLinkTravelTimeCost.setZeroParameter(bprLinkTravelTimeCost.getBetaMapMap(), linkTypeExternalId,
+						modeExternalId);
+			}
+		}
+		List<LinkSegment> linkSegments = new ArrayList<LinkSegment>(linkSegmentMap.values());
+		BPRLinkTravelTimeCost.BPRParameters[] bprLinkSegmentParameters = new BPRLinkTravelTimeCost.BPRParameters[linkSegments
+				.size()];
+		for (LinkSegment linkSegment : linkSegments) {
+			MacroscopicLinkSegment macroscopiclinkSegment = (MacroscopicLinkSegment) linkSegment;
+			Map<Long, Double> alphaMap = bprLinkTravelTimeCost.getAlphaMapMap()
+					.get(macroscopiclinkSegment.getLinkSegmentType().getLinkTypeExternalId());
+			Map<Long, Double> betaMap = bprLinkTravelTimeCost.getBetaMapMap()
+					.get(macroscopiclinkSegment.getLinkSegmentType().getLinkTypeExternalId());
+			bprLinkSegmentParameters[(int) linkSegment.getId()] = new BPRLinkTravelTimeCost.BPRParameters(alphaMap,
+					betaMap);
+		}
+		bprLinkTravelTimeCost.populate(bprLinkSegmentParameters);
+	}
 
 }

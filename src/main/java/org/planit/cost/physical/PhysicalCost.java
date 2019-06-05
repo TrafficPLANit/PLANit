@@ -27,6 +27,11 @@ public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCo
 		super();
 	}
 	
-	public abstract void update(PhysicalNetwork physicalNetwork);
+	/**
+	 * Update the cost parameter values in the network
+	 * 
+	 * @param physicalNetwork the physical network
+	 */
+	//public abstract void updateCostParameters(PhysicalNetwork physicalNetwork);
 	
 }

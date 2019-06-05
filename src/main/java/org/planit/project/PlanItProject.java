@@ -123,7 +123,6 @@ public class PlanItProject {
         try {
             ta.execute();
         } catch (Exception e) {
-        	e.printStackTrace();
             LOGGER.severe(e.getMessage());
         }
     }
@@ -212,10 +211,10 @@ public class PlanItProject {
             throw new PlanItException("Traffic assignment type is not a valid assignment type");
         }
         DeterministicTrafficAssignment trafficAssignment = (DeterministicTrafficAssignment) networkLoadingAndAssignment;
-        // now initialise it, since initialisation depends on the concrete class we
+        // now initialize it, since initialization depends on the concrete class we
         // cannot do this on the constructor of the superclass nor
         // can we do it in the derived constructors as some components are the same
-        // across assignments and we want to avoid uplicate code
+        // across assignments and we want to avoid duplicate code
         trafficAssignment.initialiseDefaults();
         trafficAssignments.put(trafficAssignment.getId(), trafficAssignment);
         return trafficAssignment;

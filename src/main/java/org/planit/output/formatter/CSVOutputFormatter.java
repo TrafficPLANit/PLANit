@@ -103,11 +103,9 @@ public class CSVOutputFormatter extends BaseOutputFormatter {
                     double cost = modalNetworkSegmentCosts[id];
                     totalCost += flow * cost;
                     long trafficAssignmentId = outputAdapter.getTrafficAssignmentId();
-                    //printer.printRecord(trafficAssignmentId, timePeriod.getId(), mode.getId(),
                     printer.printRecord(trafficAssignmentId, timePeriod.getId(), mode.getExternalId(),
                             startNode.getExternalId(), endNode.getExternalId(), flow,
                             linkSegment.getLinkSegmentType().getCapacityPerLane() * linkSegment.getNumberOfLanes(),
-                            //linkSegment.getParentLink().getLength(), linkSegment.getMaximumSpeed(mode.getId()), cost,
                             linkSegment.getParentLink().getLength(), linkSegment.getMaximumSpeed(mode.getExternalId()), cost,
                             totalCost);
                 }

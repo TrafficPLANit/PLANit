@@ -44,358 +44,337 @@ import org.planit.zoning.Zone;
  *
  */
 public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
-        implements LinkVolumeAccessee, InteractorListener {
+		implements LinkVolumeAccessee, InteractorListener {
 
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(TraditionalStaticAssignment.class.getName());
+	/**
+	 * Logger for this class
+	 */
+	private static final Logger LOGGER = Logger.getLogger(TraditionalStaticAssignment.class.getName());
 
-    /**
-     * holds the count of all vertices in the transport network
-     */
-    private int numberOfNetworkVertices;
+	/**
+	 * holds the count of all vertices in the transport network
+	 */
+	private int numberOfNetworkVertices;
 
-    /**
-     * Holds the running simulation data for the assignment
-     */
-    protected TraditionalStaticAssignmentSimulationData simulationData;
+	/**
+	 * Holds the running simulation data for the assignment
+	 */
+	protected TraditionalStaticAssignmentSimulationData simulationData;
 
-    /**
-     * Initialize running simulation variables for the time period
-     * 
-     * @param modes
-     *            set of modes covered by this assignment
-     */
-    private void initialiseTimePeriod(Set<Mode> modes) {
-        simulationData = new TraditionalStaticAssignmentSimulationData();
-        simulationData.setEmptySegmentArray(new double[numberOfNetworkSegments]);
-        simulationData.setConverged(false);
-        simulationData.setIterationIndex(0);
-        simulationData.getModeSpecificData().clear();
-        for (Mode mode : modes) {
-            simulationData.resetModalNetworkSegmentFlows(mode);
-            simulationData.getModeSpecificData().put(mode, new ModeData(simulationData.getEmptySegmentArray()));
-        }
-    }
+	/**
+	 * Initialize running simulation variables for the time period
+	 * 
+	 * @param modes set of modes covered by this assignment
+	 */
+	private void initialiseTimePeriod(Set<Mode> modes) {
+		simulationData = new TraditionalStaticAssignmentSimulationData();
+		simulationData.setEmptySegmentArray(new double[numberOfNetworkSegments]);
+		simulationData.setConverged(false);
+		simulationData.setIterationIndex(0);
+		simulationData.getModeSpecificData().clear();
+		for (Mode mode : modes) {
+			simulationData.resetModalNetworkSegmentFlows(mode);
+			simulationData.getModeSpecificData().put(mode, new ModeData(simulationData.getEmptySegmentArray()));
+		}
+	}
 
-    /**
-     * Base Constructor
-     */
-    public TraditionalStaticAssignment() {
-        super();
-        simulationData = null;
-    }
+	/**
+	 * Base Constructor
+	 */
+	public TraditionalStaticAssignment() {
+		super();
+		simulationData = null;
+	}
 
-    /**
-     * Collect the updated edge segment costs for the given mode
-     * 
-     * @param mode
-     *            the current mode
-     * @return array of updated edge segment costs
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    public double[] getModalNetworkSegmentCosts(Mode mode) throws PlanItException {
-        double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
-        Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();
-        while (connectoidSegmentIter.hasNext()) {
-            ConnectoidSegment currentSegment = connectoidSegmentIter.next();
-            currentSegmentCosts[(int) currentSegment.getId()] = virtualCost.calculateSegmentCost(mode, currentSegment);
-        }
-        Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
-        while (linkSegmentIter.hasNext()) {
-            LinkSegment currentSegment = linkSegmentIter.next();
-            //if (currentSegment.getMaximumSpeed(mode.getId()) == 0.0) {
-            if (currentSegment.getMaximumSpeed(mode.getExternalId()) == 0.0) {
-                currentSegmentCosts[(int) currentSegment.getId()] = Double.POSITIVE_INFINITY;
-            } else {
-                currentSegmentCosts[(int) currentSegment.getId()] = physicalCost.calculateSegmentCost(mode,
-                        currentSegment);
-            }
-        }
-        return currentSegmentCosts;
-    }
+	/**
+	 * Collect the updated edge segment costs for the given mode
+	 * 
+	 * @param mode the current mode
+	 * @return array of updated edge segment costs
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public double[] getModalNetworkSegmentCosts(Mode mode) throws PlanItException {
+		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
+		Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();
+		while (connectoidSegmentIter.hasNext()) {
+			ConnectoidSegment currentSegment = connectoidSegmentIter.next();
+			currentSegmentCosts[(int) currentSegment.getId()] = virtualCost.calculateSegmentCost(mode, currentSegment);
+		}
+		Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
+		while (linkSegmentIter.hasNext()) {
+			LinkSegment currentSegment = linkSegmentIter.next();
+			if (currentSegment.getMaximumSpeed(mode.getExternalId()) == 0.0) {
+				currentSegmentCosts[(int) currentSegment.getId()] = Double.POSITIVE_INFINITY;
+			} else {
+				currentSegmentCosts[(int) currentSegment.getId()] = physicalCost.calculateSegmentCost(mode,
+						currentSegment);
+			}
+		}
+		return currentSegmentCosts;
+	}
 
-    /**
-     * Apply smoothing based on current and previous flows and the adopted smoothing
-     * method. The smoothed results are registered as the current segment flows
-     * while the current segment flows are assigned to the previous segment flows
-     * (which are discarded).
-     * 
-     * @param modeData
-     *            data for the current mode
-     */
-    private void applySmoothing(ModeData modeData) {
-        double[] smoothedSegmentFlows = smoothing.applySmoothing(modeData.currentNetworkSegmentFlows,
-                modeData.nextNetworkSegmentFlows, numberOfNetworkSegments);
-        // update flow arrays for next iteration
-        modeData.currentNetworkSegmentFlows = smoothedSegmentFlows;
-    }
+	/**
+	 * Apply smoothing based on current and previous flows and the adopted smoothing
+	 * method. The smoothed results are registered as the current segment flows
+	 * while the current segment flows are assigned to the previous segment flows
+	 * (which are discarded).
+	 * 
+	 * @param modeData data for the current mode
+	 */
+	private void applySmoothing(ModeData modeData) {
+		double[] smoothedSegmentFlows = smoothing.applySmoothing(modeData.currentNetworkSegmentFlows,
+				modeData.nextNetworkSegmentFlows, numberOfNetworkSegments);
+		// update flow arrays for next iteration
+		modeData.currentNetworkSegmentFlows = smoothedSegmentFlows;
+	}
 
-    /**
-     * Perform assignment for a given time period, mode and costs imposed on
-     * Dijkstra shortest path
-     * 
-     * @param mode
-     *            the current mode
-     * @param odDemands
-     *            origin-demand store
-     * @param currentModeData
-     *            data for the current mode
-     * @param modalNetworkSegmentCosts
-     *            segment costs for the network
-     * @param shortestPathAlgorithm
-     *            shortest path algorithm to be used
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData,
-            double[] modalNetworkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
-        ODDemandIterator odDemandIter = odDemands.iterator();
-        TransportNetwork network = getTransportNetwork();
-        LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
+	/**
+	 * Perform assignment for a given time period, mode and costs imposed on
+	 * Dijkstra shortest path
+	 * 
+	 * @param mode                     the current mode
+	 * @param odDemands                origin-demand store
+	 * @param currentModeData          data for the current mode
+	 * @param modalNetworkSegmentCosts segment costs for the network
+	 * @param shortestPathAlgorithm    shortest path algorithm to be used
+	 * @throws PlanItException thrown if there is an error
+	 */
+	private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData,
+			double[] modalNetworkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+		ODDemandIterator odDemandIter = odDemands.iterator();
+		TransportNetwork network = getTransportNetwork();
+		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 
-        // loop over all available OD demands
-        while (odDemandIter.hasNext()) {
-            double odDemand = odDemandIter.next();
-            int originZoneId = odDemandIter.getCurrentOriginId();
-            int destinationZoneId = odDemandIter.getCurrentDestinationId();
-            int previousOriginZoneId = -1;
-            if (((odDemand - DefaultValues.DEFAULT_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
-                Zone currentOriginZone = null;
-                Pair<Double, EdgeSegment>[] vertexPathCost = null;
-                // UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
-                if (previousOriginZoneId != originZoneId) {
-                    currentOriginZone = network.zones.getZone(originZoneId);
-                    Centroid originCentroid = currentOriginZone.getCentroid();
+		// loop over all available OD demands
+		while (odDemandIter.hasNext()) {
+			double odDemand = odDemandIter.next();
+			int originZoneId = odDemandIter.getCurrentOriginId();
+			int destinationZoneId = odDemandIter.getCurrentDestinationId();
+			int previousOriginZoneId = -1;
+			if (((odDemand - DefaultValues.DEFAULT_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
+				Zone currentOriginZone = null;
+				Pair<Double, EdgeSegment>[] vertexPathCost = null;
+				// UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
+				if (previousOriginZoneId != originZoneId) {
+					currentOriginZone = network.zones.getZone(originZoneId);
+					Centroid originCentroid = currentOriginZone.getCentroid();
 
-                    if (originCentroid.exitEdgeSegments.isEmpty()) {
-                        throw new PlanItException("Edge segments have not been assigned to Centroid for Zone "
-                                + (originCentroid.getParentZone().getExternalId()));
-                    }
-                    vertexPathCost = shortestPathAlgorithm.executeOneToAll(originCentroid);
-                }
-                // UPDATE DESTINATION ZONE
-                // TODO: Costly to lookup destination zone via map whereas we know it is the
-                // next (non-zero demand) id compared to the previous)
-                Zone currentDestinationZone = network.zones.getZone(destinationZoneId);
-                // OD-SHORTEST PATH LOADING
-                double shortestPathCost = 0;
-                if (currentDestinationZone == null) {
-                    throw new PlanItException("No zone could be found with destination position in the OD Matrix of  "
-                            + destinationZoneId);
-                }
-                Vertex currentPathStartVertex = currentDestinationZone.getCentroid();
+					if (originCentroid.exitEdgeSegments.isEmpty()) {
+						throw new PlanItException("Edge segments have not been assigned to Centroid for Zone "
+								+ (originCentroid.getParentZone().getExternalId()));
+					}
+					vertexPathCost = shortestPathAlgorithm.executeOneToAll(originCentroid);
+				}
+				// UPDATE DESTINATION ZONE
+				// TODO: Costly to lookup destination zone via map whereas we know it is the
+				// next (non-zero demand) id compared to the previous)
+				Zone currentDestinationZone = network.zones.getZone(destinationZoneId);
+				// OD-SHORTEST PATH LOADING
+				double shortestPathCost = 0;
+				if (currentDestinationZone == null) {
+					throw new PlanItException("No zone could be found with destination position in the OD Matrix of  "
+							+ destinationZoneId);
+				}
+				Vertex currentPathStartVertex = currentDestinationZone.getCentroid();
 
-                while (currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId()) {
-                    int startVertexId = (int) currentPathStartVertex.getId();
-                    if (vertexPathCost[startVertexId].getSecond() == null) {
-                        if (currentPathStartVertex instanceof Centroid) {
-                            throw new PlanItException(
-                                    "The solution could not find an Edge Segment for the connectoid for zone "
-                                            + ((Centroid) currentPathStartVertex).getParentZone().getExternalId());
-                        } else {
-                            throw new PlanItException("The solution could not find an Edge Segment for node "
-                                    + ((Node) currentPathStartVertex).getExternalId());
-                        }
-                    }
-                    EdgeSegment currentEdgeSegment = vertexPathCost[startVertexId].getSecond();
-                    double edgeSegmentCost = modalNetworkSegmentCosts[(int) currentEdgeSegment.getId()];
-                    shortestPathCost += edgeSegmentCost;
-                    currentModeData.nextNetworkSegmentFlows[(int) currentEdgeSegment.getId()] += odDemand;
-                    currentPathStartVertex = currentEdgeSegment.getUpstreamVertex();
-                }
-                dualityGapFunction.increaseConvexityBound(odDemand * shortestPathCost);
-                previousOriginZoneId = originZoneId;
-            }
-        }
-    }
+				while (currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId()) {
+					int startVertexId = (int) currentPathStartVertex.getId();
+					if (vertexPathCost[startVertexId].getSecond() == null) {
+						if (currentPathStartVertex instanceof Centroid) {
+							throw new PlanItException(
+									"The solution could not find an Edge Segment for the connectoid for zone "
+											+ ((Centroid) currentPathStartVertex).getParentZone().getExternalId());
+						} else {
+							throw new PlanItException("The solution could not find an Edge Segment for node "
+									+ ((Node) currentPathStartVertex).getExternalId());
+						}
+					}
+					EdgeSegment currentEdgeSegment = vertexPathCost[startVertexId].getSecond();
+					double edgeSegmentCost = modalNetworkSegmentCosts[(int) currentEdgeSegment.getId()];
+					shortestPathCost += edgeSegmentCost;
+					currentModeData.nextNetworkSegmentFlows[(int) currentEdgeSegment.getId()] += odDemand;
+					currentPathStartVertex = currentEdgeSegment.getUpstreamVertex();
+				}
+				dualityGapFunction.increaseConvexityBound(odDemand * shortestPathCost);
+				previousOriginZoneId = originZoneId;
+			}
+		}
+	}
 
-    /**
-     * Perform assignment for a given time period using Dijkstra's algorithm
-     * 
-     * @param timePeriod
-     *            the time period for the current assignment
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    private void executeTimePeriod(TimePeriod timePeriod) throws PlanItException {
-        Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
-        initialiseTimePeriod(modes);
-        LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
-        while (!simulationData.isConverged()) {
-            dualityGapFunction.reset();
-            smoothing.update(simulationData.getIterationIndex());
+	/**
+	 * Perform assignment for a given time period using Dijkstra's algorithm
+	 * 
+	 * @param timePeriod the time period for the current assignment
+	 * @throws PlanItException thrown if there is an error
+	 */
+	private void executeTimePeriod(TimePeriod timePeriod) throws PlanItException {
+		Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
+		initialiseTimePeriod(modes);
+		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
+		while (!simulationData.isConverged()) {
+			dualityGapFunction.reset();
+			smoothing.update(simulationData.getIterationIndex());
 
-            // NETWORK LOADING - PER MODE
-            for (Mode mode : modes) {
-                double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode);
-                simulationData.resetModalNetworkSegmentFlows(mode);
-                executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalNetworkSegmentCosts);
-            }
+			// NETWORK LOADING - PER MODE
+			for (Mode mode : modes) {
+				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode);
+				simulationData.resetModalNetworkSegmentFlows(mode);
+				executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalNetworkSegmentCosts);
+			}
 
-            dualityGapFunction.computeGap();
-            simulationData.incrementIterationIndex();
-            LOGGER.fine("Iteration " + simulationData.getIterationIndex() + ": duality gap = "
-                    + dualityGapFunction.getGap());
-            simulationData.setConverged(dualityGapFunction.hasConverged(simulationData.getIterationIndex()));
-            outputManager.persistOutputData(timePeriod, modes, OutputType.LINK);
-        }
-    }
+			dualityGapFunction.computeGap();
+			simulationData.incrementIterationIndex();
+			LOGGER.fine("Iteration " + simulationData.getIterationIndex() + ": duality gap = "
+					+ dualityGapFunction.getGap());
+			simulationData.setConverged(dualityGapFunction.hasConverged(simulationData.getIterationIndex()));
+			outputManager.persistOutputData(timePeriod, modes, OutputType.LINK);
+		}
+	}
 
-    /**
-     * Execute the assignment for the current time period and mode and apply
-     * smoothing to the result
-     * 
-     * @param timePeriod
-     *            the current time period
-     * @param mode
-     *            the current mode
-     * @param modalNetworkSegmentCosts
-     *            the current network segment costs
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] modalNetworkSegmentCosts)
-            throws PlanItException {
-        // mode specific data
-        ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
-        currentModeData.resetNextNetworkSegmentFlows();
-        LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
-        // AON based network loading
-        ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts,
-                numberOfNetworkSegments, numberOfNetworkVertices);
-        ODDemand odDemands = demands.get(mode, timePeriod);
-        executeModeTimePeriod(mode, odDemands, currentModeData, modalNetworkSegmentCosts, shortestPathAlgorithm);
+	/**
+	 * Execute the assignment for the current time period and mode and apply
+	 * smoothing to the result
+	 * 
+	 * @param timePeriod               the current time period
+	 * @param mode                     the current mode
+	 * @param modalNetworkSegmentCosts the current network segment costs
+	 * @throws PlanItException thrown if there is an error
+	 */
+	private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] modalNetworkSegmentCosts)
+			throws PlanItException {
+		// mode specific data
+		ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
+		currentModeData.resetNextNetworkSegmentFlows();
+		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
+		// AON based network loading
+		ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts,
+				numberOfNetworkSegments, numberOfNetworkVertices);
+		ODDemand odDemands = demands.get(mode, timePeriod);
+		executeModeTimePeriod(mode, odDemands, currentModeData, modalNetworkSegmentCosts, shortestPathAlgorithm);
 
-        double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows,
-                modalNetworkSegmentCosts, numberOfNetworkSegments);
-        dualityGapFunction.increaseActualSystemTravelTime(totalModeSystemTravelTime);
-        applySmoothing(currentModeData);
-        // aggregate smoothed mode specific flows - for cost computation
-        ArrayOperations.addTo(simulationData.getModalNetworkSegmentFlows(mode),
-                currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
-        simulationData.getModeSpecificData().put(mode, currentModeData);
-    }
+		double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows,
+				modalNetworkSegmentCosts, numberOfNetworkSegments);
+		dualityGapFunction.increaseActualSystemTravelTime(totalModeSystemTravelTime);
+		applySmoothing(currentModeData);
+		// aggregate smoothed mode specific flows - for cost computation
+		ArrayOperations.addTo(simulationData.getModalNetworkSegmentFlows(mode),
+				currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
+		simulationData.getModeSpecificData().put(mode, currentModeData);
+	}
 
-    /**
-     * Create Traditional Static Assignment output adapter that allows selective
-     * access to all data required for different output types
-     * 
-     * @param outputType
-     *            the output type for the new output adapter
-     * @return the new output adapter
-     * @see org.planit.trafficassignment.TrafficAssignment#createOutputAdapter(org.planit.output.OutputType)
-     */
-    @Override
-    protected OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException {
-        OutputAdapter outputAdapter = null;
-        if (outputType.equals(OutputType.LINK)) {
-            outputAdapter = new TraditionalStaticAssignmentLinkOutputAdapter(this);
-        } else {
-            throw new PlanItException("No Output adapter exists for output type " + outputType.toString() + " on "
-                    + this.getClass().getName());
-        }
-        return outputAdapter;
-    }
+	/**
+	 * Create Traditional Static Assignment output adapter that allows selective
+	 * access to all data required for different output types
+	 * 
+	 * @param outputType the output type for the new output adapter
+	 * @return the new output adapter
+	 * @see org.planit.trafficassignment.TrafficAssignment#createOutputAdapter(org.planit.output.OutputType)
+	 */
+	@Override
+	protected OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException {
+		OutputAdapter outputAdapter = null;
+		if (outputType.equals(OutputType.LINK)) {
+			outputAdapter = new TraditionalStaticAssignmentLinkOutputAdapter(this);
+		} else {
+			throw new PlanItException("No Output adapter exists for output type " + outputType.toString() + " on "
+					+ this.getClass().getName());
+		}
+		return outputAdapter;
+	}
 
-    /**
-     * Initialize members and output resources before equilibration
-     * 
-     * @throws PlanItException
-     *             thrown if there is an error
-     * @see org.planit.trafficassignment.TrafficAssignment#initialiseBeforeEquilibration(
-     *      )
-     */
-    @Override
-    protected void initialiseBeforeEquilibration() throws PlanItException {
-        // initialize members that are used throughout the assignment
-        this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
-        this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
-        List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
-        for (OutputFormatter outputFormatter : outputFormatters) {
-            outputFormatter.open();
-        }
-    }
+	/**
+	 * Initialize members and output resources before equilibration
+	 * 
+	 * @throws PlanItException thrown if there is an error
+	 * @see org.planit.trafficassignment.TrafficAssignment#initialiseBeforeEquilibration(
+	 *      )
+	 */
+	@Override
+	protected void initialiseBeforeEquilibration() throws PlanItException {
+		// initialize members that are used throughout the assignment
+		this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
+		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
+		List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
+		for (OutputFormatter outputFormatter : outputFormatters) {
+			outputFormatter.open();
+		}
+	}
 
-    /**
-     * Close output resources after equilibration
-     * 
-     * @throws PlanItException
-     *             thrown if there is an error closing resources
-     * 
-     */
-    protected void finalizeAfterEquilibration() throws PlanItException {
-        List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
-        for (OutputFormatter outputFormatter : outputFormatters) {
-            outputFormatter.close();
-        }
-    }
+	/**
+	 * Close output resources after equilibration
+	 * 
+	 * @throws PlanItException thrown if there is an error closing resources
+	 * 
+	 */
+	protected void finalizeAfterEquilibration() throws PlanItException {
+		List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
+		for (OutputFormatter outputFormatter : outputFormatters) {
+			outputFormatter.close();
+		}
+	}
 
-    /**
-     * Execute equilibration over all time periods and modes
-     * 
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    @Override
-    public void executeEquilibration() throws PlanItException {
-        // perform assignment per period - per mode
-        Set<TimePeriod> timePeriods = demands.getRegisteredTimePeriods();
-        LOGGER.info("There are " + timePeriods.size() + " time periods to loop through.");
-        for (TimePeriod timePeriod : timePeriods) {
-            LOGGER.info("Equilibrating time period " + timePeriod.toString());
-            executeTimePeriod(timePeriod);
-        }
-    }
+	/**
+	 * Execute equilibration over all time periods and modes
+	 * 
+	 * @throws PlanItException thrown if there is an error
+	 */
+	@Override
+	public void executeEquilibration() throws PlanItException {
+		// perform assignment per period - per mode
+		Set<TimePeriod> timePeriods = demands.getRegisteredTimePeriods();
+		LOGGER.info("There are " + timePeriods.size() + " time periods to loop through.");
+		for (TimePeriod timePeriod : timePeriods) {
+			LOGGER.info("Equilibrating time period " + timePeriod.toString());
+			executeTimePeriod(timePeriod);
+		}
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.planit.interactor.LinkVolumeInteractor.LinkVolumeAccessee#
-     * getTotalNetworkSegmentFlows()
-     */
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.planit.interactor.LinkVolumeInteractor.LinkVolumeAccessee#
+	 * getTotalNetworkSegmentFlows()
+	 */
 
-    @Override
-    public double getTotalNetworkSegmentFlow(LinkSegment linkSegment) {
-        return simulationData.getTotalNetworkSegmentFlow(linkSegment);
-    }
+	@Override
+	public double getTotalNetworkSegmentFlow(LinkSegment linkSegment) {
+		return simulationData.getTotalNetworkSegmentFlow(linkSegment);
+	}
 
-    @Override
-    public double[] getModalNetworkSegmentFlows(Mode mode) {
-        return simulationData.getModalNetworkSegmentFlows(mode);
-    }
+	@Override
+	public double[] getModalNetworkSegmentFlows(Mode mode) {
+		return simulationData.getModalNetworkSegmentFlows(mode);
+	}
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.planit.interactor.LinkVolumeInteractor.LinkVolumeAccessee#
-     * getNumberOfLinkSegments()
-     */
-    @Override
-    public int getNumberOfLinkSegments() {
-        return getTransportNetwork().getTotalNumberOfLinkSegments();
-    }
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.planit.interactor.LinkVolumeInteractor.LinkVolumeAccessee#
+	 * getNumberOfLinkSegments()
+	 */
+	@Override
+	public int getNumberOfLinkSegments() {
+		return getTransportNetwork().getTotalNumberOfLinkSegments();
+	}
 
-    @Override
-    public void onRequestInteractorEvent(RequestAccesseeEvent event) {
-        if (event.getSourceAccessor().getRequestedAccessee().equals(LinkVolumeAccessee.class)) {
-            event.getSourceAccessor().setAccessee(this);
-        }
-    }
+	@Override
+	public void onRequestInteractorEvent(RequestAccesseeEvent event) {
+		if (event.getSourceAccessor().getRequestedAccessee().equals(LinkVolumeAccessee.class)) {
+			event.getSourceAccessor().setAccessee(this);
+		}
+	}
 
-    /**
-     * Create the Gap Function used by this Traffic Assignment
-     * 
-     * @return GapFunction created
-     */
-    protected GapFunction createGapFunction() {
-        return new LinkBasedRelativeDualityGapFunction(new StopCriterion());
-    }
+	/**
+	 * Create the Gap Function used by this Traffic Assignment
+	 * 
+	 * @return GapFunction created
+	 */
+	protected GapFunction createGapFunction() {
+		return new LinkBasedRelativeDualityGapFunction(new StopCriterion());
+	}
 
-    public SimulationData getSimulationData() {
-        return simulationData;
-    }
+	public SimulationData getSimulationData() {
+		return simulationData;
+	}
 
 }

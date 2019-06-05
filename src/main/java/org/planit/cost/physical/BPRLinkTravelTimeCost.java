@@ -142,11 +142,8 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		// BPR function with mode specific free flow time and general PCU based delay
 		MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
 		double freeFlowTravelTime = macroscopicLinkSegment.computeFreeFlowTravelTime(mode);
-		//long modeId = mode.getId();
 		long modeExternalId = mode.getExternalId();
 		double capacity = macroscopicLinkSegment.computeCapacity();
-		//double alpha = parameters.getAlpha(modeId);
-		//double beta = parameters.getBeta(modeId);
 		double alpha = parameters.getAlpha(modeExternalId);
 		double beta = parameters.getBeta(modeExternalId);
 		double linkTravelTime = freeFlowTravelTime * (1.0 + alpha * Math.pow(flow / capacity, beta)); // Free Flow
@@ -168,6 +165,14 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		// TODO: not invoked yet, population should go via event dispatch when the
 		// object is created, the input should populate it
 		this.bprEdgeSegmentParameters = bprLinkSegmentParameters;
+	}
+
+	public Map<Integer, Map<Long, Double>> getAlphaMapMap() {
+		return alphaMapMap;
+	}
+
+	public Map<Integer, Map<Long, Double>> getBetaMapMap() {
+		return betaMapMap;
 	}
 
 	/**
@@ -241,40 +246,10 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 * @param linkTypeExternalId reference to specified link type
 	 * @param modeExternalId reference to specified mode type
 	 */
-	private void setZeroParameter(Map<Integer, Map<Long, Double>> mapMap, int linkTypeExternalId, int modeExternalId) {
+	public void setZeroParameter(Map<Integer, Map<Long, Double>> mapMap, int linkTypeExternalId, int modeExternalId) {
 		if (mapMap.get(linkTypeExternalId).get((long) modeExternalId) == null) {
 			setParameter(mapMap, linkTypeExternalId,modeExternalId, 0.0);
 		}
-	}
-
-	/**
-	 * Update the PhysicalNetwork with the alpha and beta parameter values
-	 * 
-	 * Call this method after all the calls to methods to set alpha and beta values
-	 * have been made
-	 * 
-	 * @param physicalNetwork PhysicalNetwork to be updated
-	 */
-	public void update(PhysicalNetwork physicalNetwork) {
-		for (int linkTypeExternalId = 1; (linkTypeExternalId + 1) < ((MacroscopicNetwork) physicalNetwork).getNoSegmentTypes(); linkTypeExternalId++) {
-			for (int modeExternalId = 1; (modeExternalId + 1) < Mode.getAllModes().size(); modeExternalId++) {
-				setZeroParameter(alphaMapMap, linkTypeExternalId, modeExternalId);
-				setZeroParameter(betaMapMap, linkTypeExternalId, modeExternalId);
-			}
-		}
-		List<LinkSegment> linkSegments = physicalNetwork.linkSegments.toList();
-		BPRLinkTravelTimeCost.BPRParameters[] bprLinkSegmentParameters = new BPRLinkTravelTimeCost.BPRParameters[linkSegments
-				.size()];
-		for (LinkSegment linkSegment : linkSegments) {
-			MacroscopicLinkSegment macroscopiclinkSegment = (MacroscopicLinkSegment) linkSegment;
-			Map<Long, Double> alphaMap = alphaMapMap
-					.get(macroscopiclinkSegment.getLinkSegmentType().getLinkTypeExternalId());
-			Map<Long, Double> betaMap = betaMapMap
-					.get(macroscopiclinkSegment.getLinkSegmentType().getLinkTypeExternalId());
-			bprLinkSegmentParameters[(int) linkSegment.getId()] = new BPRLinkTravelTimeCost.BPRParameters(alphaMap,
-					betaMap);
-		}
-		populate(bprLinkSegmentParameters);
 	}
 
 	/**

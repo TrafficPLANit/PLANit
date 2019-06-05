@@ -5,7 +5,6 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 import org.planit.cost.Cost;
-import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.demand.Demands;
 import org.planit.event.RequestAccesseeEvent;
@@ -36,380 +35,364 @@ import org.planit.zoning.Zoning;
  */
 public abstract class TrafficAssignment extends NetworkLoading {
 
-    private static final Logger LOGGER = Logger.getLogger(TrafficAssignment.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(TrafficAssignment.class.getName());
 
-    // Private
+	// Private
 
-    /**
-     * Physical network to use
-     */
-    private PhysicalNetwork physicalNetwork;
+	/**
+	 * Physical network to use
+	 */
+	private PhysicalNetwork physicalNetwork;
 
-    /**
-     * The zoning to use
-     */
-    private Zoning zoning;
-    
-    /**
-     * Gap function instance containing functionality to compute the gap between
-     * equilibrium and the current state gap
-     */
-    private GapFunction gapFunction;    
+	/**
+	 * The zoning to use
+	 */
+	private Zoning zoning;
 
-    // Protected
+	/**
+	 * Gap function instance containing functionality to compute the gap between
+	 * equilibrium and the current state gap
+	 */
+	private GapFunction gapFunction;
 
-    /**
-     * Output manager deals with all the output configurations for the registered
-     * traffic assignments
-     */
-    protected OutputManager outputManager;
+	// Protected
 
-    /**
-     * The transport network to use which is an adaptor around the physical network
-     * and the zoning
-     */
-    protected TransportNetwork transportNetwork = null;
+	/**
+	 * Output manager deals with all the output configurations for the registered
+	 * traffic assignments
+	 */
+	protected OutputManager outputManager;
 
-    /**
-     * The physical link cost function
-     */
-    protected PhysicalCost physicalCost;
+	/**
+	 * The transport network to use which is an adaptor around the physical network
+	 * and the zoning
+	 */
+	protected TransportNetwork transportNetwork = null;
 
-    /**
-     * The virtual link cost function
-     */
-    protected Cost<ConnectoidSegment> virtualCost;
+	/**
+	 * The physical link cost function
+	 */
+	protected PhysicalCost physicalCost;
 
-    /**
-     * holds the count of segments in the transport network
-     */
-    protected int numberOfNetworkSegments;
+	/**
+	 * The virtual link cost function
+	 */
+	protected Cost<ConnectoidSegment> virtualCost;
 
-    /**
-     * Unique id
-     */
-    protected final long id;
+	/**
+	 * holds the count of segments in the transport network
+	 */
+	protected int numberOfNetworkSegments;
 
-    /**
-     * the smoothing to use
-     */
-    protected Smoothing smoothing = null;
+	/**
+	 * Unique id
+	 */
+	protected final long id;
 
-    /**
-     * The demand to use
-     */
-    protected Demands demands = null;
+	/**
+	 * the smoothing to use
+	 */
+	protected Smoothing smoothing = null;
 
-    /**
-     * Each traffic assignment implementation has its own unique output adapter
-     * providing access to the data that it wants or allows to be persisted.
-     * therefore this factory method is required to be implemented by the concrete
-     * instances of a traffic assignment class
-     * 
-     * @param outputType
-     *            the type the output adapter should be suitable for
-     * @return output adapter instance for the specified output type
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    protected abstract OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException;
+	/**
+	 * The demand to use
+	 */
+	protected Demands demands = null;
 
-    /**
-     * Allow assignment classes to close data resources after equilibration
-     * 
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    protected abstract void finalizeAfterEquilibration() throws PlanItException;
+	/**
+	 * Each traffic assignment implementation has its own unique output adapter
+	 * providing access to the data that it wants or allows to be persisted.
+	 * therefore this factory method is required to be implemented by the concrete
+	 * instances of a traffic assignment class
+	 * 
+	 * @param outputType the type the output adapter should be suitable for
+	 * @return output adapter instance for the specified output type
+	 * @throws PlanItException thrown if there is an error
+	 */
+	protected abstract OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException;
 
-    /**
-     * Allow all derived assignment classes to initialize members and open data
-     * resources before equilibration commences
-     * 
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    protected abstract void initialiseBeforeEquilibration() throws PlanItException;
+	/**
+	 * Allow assignment classes to close data resources after equilibration
+	 * 
+	 * @throws PlanItException thrown if there is an error
+	 */
+	protected abstract void finalizeAfterEquilibration() throws PlanItException;
 
-    /**
-     * Create the gap function which is to be implemented by a derived class of
-     * TrafficAssignment
-     * 
-     * @return gapFunction
-     */
-    protected abstract GapFunction createGapFunction();
+	/**
+	 * Allow all derived assignment classes to initialize members and open data
+	 * resources before equilibration commences
+	 * 
+	 * @throws PlanItException thrown if there is an error
+	 */
+	protected abstract void initialiseBeforeEquilibration() throws PlanItException;
 
-    // Protected methods
+	/**
+	 * Create the gap function which is to be implemented by a derived class of
+	 * TrafficAssignment
+	 * 
+	 * @return gapFunction
+	 */
+	protected abstract GapFunction createGapFunction();
 
-    /**
-     * Verify if the traffic assignment components are compatible and nonnull
-     * 
-     * @throws PlanItException
-     *             thrown if the components are not compatible
-     */
-    // TODO - This method is currently empty. It original version could throw
-    // PlanItIncompatibilityException. We need to check whether we still need it and
-    // whether it should throw PlanItIncompatibilityException.
-    protected void verifyComponentCompatibility() throws PlanItException {
-        // TODO
-    }
+	// Protected methods
 
-    /**
-     * Check if any components are undefined, if so throw exception
-     * 
-     * @throws PlanItException
-     *             thrown if any components are undefined
-     */
-    protected void checkForEmptyComponents() throws PlanItException {
-        if (demands == null) {
-            throw new PlanItException("Demand is null");
-        }
-        if (physicalNetwork == null) {
-            throw new PlanItException("Network is null");
-        }
-        if (smoothing == null) {
-            throw new PlanItException("Smoothing is null");
-        }
-        if (zoning == null) {
-            throw new PlanItException("Zoning is null");
-        }
-    }
+	/**
+	 * Verify if the traffic assignment components are compatible and nonnull
+	 * 
+	 * @throws PlanItException thrown if the components are not compatible
+	 */
+	// TODO - This method is currently empty. It original version could throw
+	// PlanItIncompatibilityException. We need to check whether we still need it and
+	// whether it should throw PlanItIncompatibilityException.
+	protected void verifyComponentCompatibility() throws PlanItException {
+		// TODO
+	}
 
-    // Public
+	/**
+	 * Check if any components are undefined, if so throw exception
+	 * 
+	 * @throws PlanItException thrown if any components are undefined
+	 */
+	protected void checkForEmptyComponents() throws PlanItException {
+		if (demands == null) {
+			throw new PlanItException("Demand is null");
+		}
+		if (physicalNetwork == null) {
+			throw new PlanItException("Network is null");
+		}
+		if (smoothing == null) {
+			throw new PlanItException("Smoothing is null");
+		}
+		if (zoning == null) {
+			throw new PlanItException("Zoning is null");
+		}
+	}
 
-    /**
-     * Constructor. Note that defaults that partly depend on derived classes are
-     * assumed to be invoked by the calling method via this.initialiseDefaults()
-     */
-    public TrafficAssignment() {
-        this.id = IdGenerator.generateId(TrafficAssignment.class);
-        outputManager = new OutputManager();
-    }
+	// Public
 
-    // Public abstract methods
+	/**
+	 * Constructor. Note that defaults that partly depend on derived classes are
+	 * assumed to be invoked by the calling method via this.initialiseDefaults()
+	 */
+	public TrafficAssignment() {
+		this.id = IdGenerator.generateId(TrafficAssignment.class);
+		outputManager = new OutputManager();
+	}
 
-    /**
-     * Each traffic assignment class can have its own builder which reveals what
-     * components need to be registered on the traffic assignment instance in order
-     * to function properly.
-     * 
-     * @return trafficAssignmentBuilder to use
-     */
-    public abstract TrafficAssignmentBuilder getBuilder();
+	// Public abstract methods
 
-    /**
-     * Run equilibration after resources initialized, including saving results
-     * 
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    public abstract void executeEquilibration() throws PlanItException;
+	/**
+	 * Each traffic assignment class can have its own builder which reveals what
+	 * components need to be registered on the traffic assignment instance in order
+	 * to function properly.
+	 * 
+	 * @return trafficAssignmentBuilder to use
+	 */
+	public abstract TrafficAssignmentBuilder getBuilder();
 
-    /**
-     * Collect the gap function which is to be set by a derived class of
-     * TrafficAssignment via the initialiseDefaults() right after construction
-     * 
-     * @return gapFunction
-     */
-    public GapFunction getGapFunction() {
-        return gapFunction;
-    }
+	/**
+	 * Run equilibration after resources initialized, including saving results
+	 * 
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public abstract void executeEquilibration() throws PlanItException;
 
-    // Public methods
+	/**
+	 * Collect the gap function which is to be set by a derived class of
+	 * TrafficAssignment via the initialiseDefaults() right after construction
+	 * 
+	 * @return gapFunction
+	 */
+	public GapFunction getGapFunction() {
+		return gapFunction;
+	}
 
-    /**
-     * Initialise the traffic assignment defaults: (i) activate link output
-     * 
-     * @throws PlanItException
-     *             thrown when there is an error
-     */
-    public void initialiseDefaults() throws PlanItException {
-        // general defaults
-        activateOutput(OutputType.LINK);
-        this.gapFunction = createGapFunction();
-    }
+	// Public methods
 
-    /**
-     * Method that allows one to activate specific output types for persistence
-     * which is passed on to the output manager
-     * 
-     * @param outputTypes          one or more OutputType objects to be used
-     * @throws PlanItException    thrown if there is an error activating the output
-     */
-    public void activateOutput(OutputType outputType) throws PlanItException {
-        if (!outputManager.isOutputTypeActive(outputType)) {
-            LOGGER.info("Registering Output Type " + outputType);
-            OutputAdapter outputAdapter = createOutputAdapter(outputType);
-            outputManager.createAndRegisterOutputTypeConfiguration(outputType, outputAdapter);
-        }
-    }
+	/**
+	 * Initialise the traffic assignment defaults: (i) activate link output
+	 * 
+	 * @throws PlanItException thrown when there is an error
+	 */
+	public void initialiseDefaults() throws PlanItException {
+		// general defaults
+		activateOutput(OutputType.LINK);
+		this.gapFunction = createGapFunction();
+	}
 
-    /**
-     * Execute assignment, including initializing resources, running equilibration
-     * and then closing resources
-     * 
-     * @throws PlanItException       thrown if there is an error
-     */
-    public void execute() throws PlanItException {
-        checkForEmptyComponents();
-        verifyComponentCompatibility();
-        transportNetwork = new TransportNetwork(physicalNetwork, zoning);
-        //physicalCost.update(physicalNetwork);
-        transportNetwork.integrateConnectoidsAndLinks();
-        initialiseBeforeEquilibration();
-        executeEquilibration();
-        finalizeAfterEquilibration();
-        LOGGER.info("Finished equilibration");
-        transportNetwork.removeVirtualNetworkFromPhysicalNetwork(); // disconnect here since the physical network might
-                                                                    // be reused in a different assignment
-        LOGGER.info("Finished execution");
-    }
+	/**
+	 * Method that allows one to activate specific output types for persistence
+	 * which is passed on to the output manager
+	 * 
+	 * @param outputTypes one or more OutputType objects to be used
+	 * @throws PlanItException thrown if there is an error activating the output
+	 */
+	public void activateOutput(OutputType outputType) throws PlanItException {
+		if (!outputManager.isOutputTypeActive(outputType)) {
+			LOGGER.info("Registering Output Type " + outputType);
+			OutputAdapter outputAdapter = createOutputAdapter(outputType);
+			outputManager.createAndRegisterOutputTypeConfiguration(outputType, outputAdapter);
+		}
+	}
 
-    // Getters - Setters
+	/**
+	 * Execute assignment, including initializing resources, running equilibration
+	 * and then closing resources
+	 * 
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public void execute() throws PlanItException {
+		checkForEmptyComponents();
+		verifyComponentCompatibility();
+		transportNetwork = new TransportNetwork(physicalNetwork, zoning);
+		// TODO - reinstate call to physicalNetwork.registerCostParameters() below after changes to reading
+		// of alpha and beta in BasicCsvScan have been made
+		//physicalNetwork.registerCostParameters(physicalCost);
+		transportNetwork.integrateConnectoidsAndLinks();
+		initialiseBeforeEquilibration();
+		executeEquilibration();
+		finalizeAfterEquilibration();
+		LOGGER.info("Finished equilibration");
+		transportNetwork.removeVirtualNetworkFromPhysicalNetwork(); // disconnect here since the physical network might
+																	// be reused in a different assignment
+		LOGGER.info("Finished execution");
+	}
 
-    /**
-     * collect traffic assignment id
-     * 
-     * @return id
-     */
-    public long getId() {
-        return id;
-    }
+	// Getters - Setters
 
-    /**
-     * Get the TransportNetwork used in the current assignment
-     * 
-     * @return TransportNetwork used in current assignment
-     */
-    public TransportNetwork getTransportNetwork() {
-        return transportNetwork;
-    }
+	/**
+	 * collect traffic assignment id
+	 * 
+	 * @return id
+	 */
+	public long getId() {
+		return id;
+	}
 
-    /**
-     * Provide the output configuration for user access (via the output manager)
-     * 
-     * @return outputConfiguration for this traffic assignment
-     */
-    public OutputConfiguration getOutputConfiguration() {
-        return outputManager.getOutputConfiguration();
-    }
+	/**
+	 * Get the TransportNetwork used in the current assignment
+	 * 
+	 * @return TransportNetwork used in current assignment
+	 */
+	public TransportNetwork getTransportNetwork() {
+		return transportNetwork;
+	}
 
-    /**
-     * Set the Smoothing object for the current assignment
-     * 
-     * @param smoothing
-     *            Smoothing object for the current assignment
-     */
-    public void setSmoothing(@Nonnull Smoothing smoothing) {
-        this.smoothing = smoothing;
-    }
+	/**
+	 * Provide the output configuration for user access (via the output manager)
+	 * 
+	 * @return outputConfiguration for this traffic assignment
+	 */
+	public OutputConfiguration getOutputConfiguration() {
+		return outputManager.getOutputConfiguration();
+	}
 
-    /**
-     * Set the PhysicalNetwork for the current assignment
-     * 
-     * @param physicalNetwork
-     *            the PhysicalNetwork object for the current assignment
-     */
-    public void setPhysicalNetwork(@Nonnull PhysicalNetwork physicalNetwork) {
-        this.physicalNetwork = physicalNetwork;
-    }
+	/**
+	 * Set the Smoothing object for the current assignment
+	 * 
+	 * @param smoothing Smoothing object for the current assignment
+	 */
+	public void setSmoothing(@Nonnull Smoothing smoothing) {
+		this.smoothing = smoothing;
+	}
 
-    /**
-     * Set the Demands object for the current assignment
-     * 
-     * @param demands
-     *            the Demands object for the current assignment
-     */
-    public void setDemands(@Nonnull Demands demands) {
-        this.demands = demands;
-    }
+	/**
+	 * Set the PhysicalNetwork for the current assignment
+	 * 
+	 * @param physicalNetwork the PhysicalNetwork object for the current assignment
+	 */
+	public void setPhysicalNetwork(@Nonnull PhysicalNetwork physicalNetwork) {
+		this.physicalNetwork = physicalNetwork;
+	}
 
-    /**
-     * Set the zoning object for the current assignment
-     * 
-     * @param zoning
-     *            the Zoning object for the current assignment
-     */
-    public void setZoning(@Nonnull Zoning zoning) {
-        this.zoning = zoning;
-    }
+	/**
+	 * Set the Demands object for the current assignment
+	 * 
+	 * @param demands the Demands object for the current assignment
+	 */
+	public void setDemands(@Nonnull Demands demands) {
+		this.demands = demands;
+	}
 
-    /**
-     * Get the physical cost object for the current assignment
-     * 
-     * @return the physical cost object for the current assignment
-     */
-    public Cost<LinkSegment> getPhysicalCost() {
-        return physicalCost;
-    }
+	/**
+	 * Set the zoning object for the current assignment
+	 * 
+	 * @param zoning the Zoning object for the current assignment
+	 */
+	public void setZoning(@Nonnull Zoning zoning) {
+		this.zoning = zoning;
+	}
 
-    /**
-     * Set the physical cost where in case the cost is an interactorCccessor will
-     * trigger an event to get access to the required data via requesting an
-     * InteractorAccessee
-     * 
-     * @param physicalCost
-     *            the physical cost object for the current assignment
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    //public void setPhysicalCost(Cost<LinkSegment> physicalCost) throws PlanItException {
-    public void setPhysicalCost(PhysicalCost physicalCost) throws PlanItException {
-        this.physicalCost = physicalCost;
-        if (this.physicalCost instanceof InteractorAccessor) {
-            // accessor requires accessee --> request accessee via event --> and listen back
-            // for result
-            RequestAccesseeEvent event = new RequestAccesseeEvent((InteractorAccessor) this.physicalCost);
-            eventManager.dispatchEvent(event);
-        }
-    }
+	/**
+	 * Get the physical cost object for the current assignment
+	 * 
+	 * @return the physical cost object for the current assignment
+	 */
+	public Cost<LinkSegment> getPhysicalCost() {
+		return physicalCost;
+	}
 
-    /**
-     * Returns the virtual cost object for the current assignment
-     * 
-     * @return the virtual cost object for the current assignments
-     */
-    public Cost<ConnectoidSegment> getVirtualCost() {
-        return virtualCost;
-    }
+	/**
+	 * Set the physical cost where in case the cost is an interactorCccessor will
+	 * trigger an event to get access to the required data via requesting an
+	 * InteractorAccessee
+	 * 
+	 * @param physicalCost the physical cost object for the current assignment
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public void setPhysicalCost(PhysicalCost physicalCost) throws PlanItException {
+		this.physicalCost = physicalCost;
+		if (this.physicalCost instanceof InteractorAccessor) {
+			// accessor requires accessee --> request accessee via event --> and listen back
+			// for result
+			RequestAccesseeEvent event = new RequestAccesseeEvent((InteractorAccessor) this.physicalCost);
+			eventManager.dispatchEvent(event);
+		}
+	}
 
-    /**
-     * Set the virtual cost where in case the cost is an interactorCccessor will
-     * trigger an event to get access to the required data via requesting an
-     * InteractorAccessee
-     * 
-     * @param virtualCost
-     *            the virtual cost object to be assigned
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    public void setVirtualCost(Cost<ConnectoidSegment> virtualCost) throws PlanItException {
-        this.virtualCost = virtualCost;
-        if (this.virtualCost instanceof InteractorAccessor) {
-            // accessor requires accessee --> request accessee via event --> and listen back
-            // for result
-            RequestAccesseeEvent event = new RequestAccesseeEvent((InteractorAccessor) this.virtualCost);
-            eventManager.dispatchEvent(event);
-        }
-    }
+	/**
+	 * Returns the virtual cost object for the current assignment
+	 * 
+	 * @return the virtual cost object for the current assignments
+	 */
+	public Cost<ConnectoidSegment> getVirtualCost() {
+		return virtualCost;
+	}
 
-    /**
-     * Register the output formatter on the assignment
-     *
-     * @param outputFormatter
-     *            OutputFormatter to be registered
-     */
-    public void registerOutputFormatter(OutputFormatter outputFormatter) {
-        outputManager.registerOutputFormatter(outputFormatter);
-    }
+	/**
+	 * Set the virtual cost where in case the cost is an interactorCccessor will
+	 * trigger an event to get access to the required data via requesting an
+	 * InteractorAccessee
+	 * 
+	 * @param virtualCost the virtual cost object to be assigned
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public void setVirtualCost(Cost<ConnectoidSegment> virtualCost) throws PlanItException {
+		this.virtualCost = virtualCost;
+		if (this.virtualCost instanceof InteractorAccessor) {
+			// accessor requires accessee --> request accessee via event --> and listen back
+			// for result
+			RequestAccesseeEvent event = new RequestAccesseeEvent((InteractorAccessor) this.virtualCost);
+			eventManager.dispatchEvent(event);
+		}
+	}
 
-    /**
-     * Return the number of network segments in the current assignment
-     * 
-     * @return number of network segments
-     */
-    public int getNumberOfNetworkSegments() {
-        return numberOfNetworkSegments;
-    }
+	/**
+	 * Register the output formatter on the assignment
+	 *
+	 * @param outputFormatter OutputFormatter to be registered
+	 */
+	public void registerOutputFormatter(OutputFormatter outputFormatter) {
+		outputManager.registerOutputFormatter(outputFormatter);
+	}
+
+	/**
+	 * Return the number of network segments in the current assignment
+	 * 
+	 * @return number of network segments
+	 */
+	public int getNumberOfNetworkSegments() {
+		return numberOfNetworkSegments;
+	}
 
 }
