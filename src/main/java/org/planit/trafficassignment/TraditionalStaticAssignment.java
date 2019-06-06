@@ -294,9 +294,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		// initialize members that are used throughout the assignment
 		this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
 		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
-		// TODO - reinstate call to physicalCost.updateCostParameters() below after changes to reading
-		// of alpha and beta in BasicCsvScan have been made
-		//physicalCost.updateCostParameters(physicalNetwork);
+		physicalCost.updateCostParameters(physicalNetwork);
 		List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
 		for (OutputFormatter outputFormatter : outputFormatters) {
 			outputFormatter.open();
