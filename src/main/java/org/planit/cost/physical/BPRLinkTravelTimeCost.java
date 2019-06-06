@@ -12,7 +12,6 @@ import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
-import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.userclass.Mode;
 import org.planit.utils.Pair;
@@ -54,21 +53,21 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		/**
 		 * Returns alpha value of the BPR model for a specified mode
 		 * 
-		 * @param modeId id of the specified mode
+		 * @param modeExternalId id of the specified mode
 		 * @return alpha value of BPR model for specified mode
 		 */
-		private double getAlpha(long modeId) {
-			return alpha.get(modeId);
+		private double getAlpha(long modeExternalId) {
+			return alpha.get(modeExternalId);
 		}
 
 		/**
 		 * Returns beta value of the BPR model for a specified mode
 		 * 
-		 * @param modeId id of the specified mode
+		 * @param modeExternalId id of the specified mode
 		 * @return beta value of the BPR value for the specified mode
 		 */
-		private double getBeta(long modeId) {
-			return beta.get(modeId);
+		private double getBeta(long modeExternalId) {
+			return beta.get(modeExternalId);
 		}
 
 	}
@@ -100,16 +99,34 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	protected BPRParameters[] bprEdgeSegmentParameters = null;
 
 	/**
-	 * Map to store alpha and beta values for each link type and mode
+	 * Default alpha and beta values for all links
 	 */
-	protected Map<Integer, Map<Long, Pair<Double, Double>>> parametersMapMap;
+	protected Pair<Double, Double> defaultParameters;
+
+	/**
+	 * Map to store default alpha and beta values for each mode
+	 */
+	protected Map<Long, Pair<Double, Double>> defaultParametersPerMode;
+
+	/**
+	 * Map to store default alpha and beta values for each link type and mode
+	 */
+	protected Map<Long, Map<Long, Pair<Double, Double>>> defaultParametersPerLinkSegmentTypeAndMode;
+
+	/**
+	 * Map to store default alpha and beta values for a specific link each link/mode
+	 * combination
+	 */
+	protected Map<Long, Map<Long, Pair<Double, Double>>> parametersPerLinkAndMode;
 
 	/**
 	 * Constructor
 	 */
 	public BPRLinkTravelTimeCost() {
 		super();
-		parametersMapMap = new HashMap<Integer, Map<Long, Pair<Double, Double>>>();
+		defaultParametersPerMode = new HashMap<Long, Pair<Double, Double>>();
+		defaultParametersPerLinkSegmentTypeAndMode = new HashMap<Long, Map<Long, Pair<Double, Double>>>();
+		parametersPerLinkAndMode = new HashMap<Long, Map<Long, Pair<Double, Double>>>();
 	}
 
 	/**
@@ -154,96 +171,115 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	}
 
 	/**
-	 * Set the alpha and beta values for a given link type and mode
+	 * Set the alpha and beta values for a given link segment and mode
+	 * 
+	 * @param linkSegmentId  reference to the specified link segment
+	 * @param modeExternalId reference to the specified mode type
+	 * @param alpha          alpha value
+	 * @param beta           beta value
+	 */
+	public void setParameters(long linkSegmentId, long modeExternalId, double alpha, double beta) {
+		Pair<Double, Double> pair = new Pair<Double, Double>(alpha, beta);
+		if (parametersPerLinkAndMode.get(linkSegmentId) == null) {
+			parametersPerLinkAndMode.put(linkSegmentId, new HashMap<Long, Pair<Double, Double>>());
+		}
+		parametersPerLinkAndMode.get(linkSegmentId).put(modeExternalId, pair);
+	}
+
+	/**
+	 * Set the default alpha and beta values for a mode
+	 * 
+	 * @param modeExternalId reference to the specified mode type
+	 * @param alpha          alpha value
+	 * @param beta           beta value
+	 */
+	// public void setDefaultParametersPerMode(long modeExternalId, double alpha,
+	// double beta) {
+	public void setDefaultParameters(long modeExternalId, double alpha, double beta) {
+		defaultParametersPerMode.put(modeExternalId, new Pair<Double, Double>(alpha, beta));
+	}
+
+	/**
+	 * Set the default alpha and beta values for a given link type and mode
 	 * 
 	 * @param linkTypeExternalId reference to the specified link type
 	 * @param modeExternalId     reference to the specified mode type
 	 * @param alpha              alpha value
 	 * @param beta               beta value
 	 */
-	public void setParameters(int linkTypeExternalId, long modeExternalId, double alpha, double beta) {
+	public void setDefaultParameters(long linkTypeExternalId, long modeExternalId, double alpha, double beta) {
 		Pair<Double, Double> pair = new Pair<Double, Double>(alpha, beta);
-		setParameterPair(linkTypeExternalId, modeExternalId, pair);
+		if (defaultParametersPerLinkSegmentTypeAndMode.get(linkTypeExternalId) == null) {
+			defaultParametersPerLinkSegmentTypeAndMode.put(linkTypeExternalId,
+					new HashMap<Long, Pair<Double, Double>>());
+		}
+		defaultParametersPerLinkSegmentTypeAndMode.get(linkTypeExternalId).put(modeExternalId, pair);
 	}
 
 	/**
-	 * Set the alpha and beta values for a given link type and mode
+	 * Set the default alpha and beta values
 	 * 
-	 * @param linkSegmentType the specified link type
-	 * @param mode            the specified mode type
-	 * @param alpha           alpha value
-	 * @param beta            beta value
+	 * @param alpha alpha value
+	 * @param beta  beta value
 	 */
-	public void setParameters(MacroscopicLinkSegmentType linkSegmentType, Mode mode, double alpha, double beta) {
-		setParameters(linkSegmentType.getLinkTypeExternalId(), mode.getExternalId(), alpha, beta);
+	public void setDefaultParameters(double alpha, double beta) {
+		defaultParameters = new Pair<Double, Double>(alpha, beta);
 	}
 
 	/**
-	 * Set the alpha and beta values for all link types for a specified mode type
+	 * Register the BPR cost parameter values on the PhysicalNetwork
 	 * 
-	 * @param physicalNetwork the physical network
-	 * @param modeExternalId  external Id of the specified mode type
-	 * @param value           alpha value
-	 * @param beta            beta value
+	 * Call this method after all the calls to set the cost parameters have been
+	 * made
+	 * 
+	 * @param physicalNetwork PhysicalNetwork object containing the updated
+	 *                        parameter values
+	 * @throws PlanItException thrown if a link/mode combination exists for which no
+	 *                         cost parameters have been set
 	 */
-	public void setDefaultParameters(PhysicalNetwork physicalNetwork, long modeExternalId, double alpha, double beta) {
+	@Override
+	public void updateCostParameters(PhysicalNetwork physicalNetwork) throws PlanItException {
 		MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) physicalNetwork;
-		for (Integer linkTypeExternalId : macroscopicNetwork.getLinkSegmentExternalIdSet()) {
-			setParameters(linkTypeExternalId, modeExternalId, alpha, beta);
-		}
-	}
+		List<LinkSegment> linkSegments = macroscopicNetwork.linkSegments.toList();
+		BPRLinkTravelTimeCost.BPRParameters[] bprLinkSegmentParameters = new BPRLinkTravelTimeCost.BPRParameters[linkSegments
+				.size()];
+		for (LinkSegment linkSegment : linkSegments) {
+			MacroscopicLinkSegment macroscopiclinkSegment = (MacroscopicLinkSegment) linkSegment;
+			long linkSegmentId = macroscopiclinkSegment.getLinkSegmentId();
+			long linkTypeExternalId = macroscopiclinkSegment.getLinkSegmentType().getLinkTypeExternalId();
 
-	/**
-	 * Set the alpha and beta values for all link types for a specified mode type
-	 * 
-	 * @param physicalNetwork the physical network
-	 * @param mode            the specified mode type
-	 * @param value           alpha value
-	 * @param beta            beta value
-	 */
-	public void setDefaultParameters(PhysicalNetwork physicalNetwork, Mode mode, double alpha, double beta) {
-		setDefaultParameters(physicalNetwork, mode.getExternalId(), alpha, beta);
-	}
+			Map<Long, Double> alphaMap = new HashMap<Long, Double>();
+			Map<Long, Double> betaMap = new HashMap<Long, Double>();
 
-	/**
-	 * Set the alpha and beta values for all link types and mode types
-	 * 
-	 * @param physicalNetwork the physical network
-	 * @param alpha           alpha value
-	 * @param beta            beta value
-	 */
-	public void setDefaultParameters(PhysicalNetwork physicalNetwork, double alpha, double beta) {
-		for (Long modeExternalId : Mode.getExternalIdSet()) {
-			setDefaultParameters(physicalNetwork, modeExternalId, alpha, beta);
+			for (Long modeExternalId : Mode.getExternalIdSet()) {
+				if ((parametersPerLinkAndMode.get(linkSegmentId) != null)
+						&& (parametersPerLinkAndMode.get(linkSegmentId).get(modeExternalId) != null)) {
+					Pair<Double, Double> pair = parametersPerLinkAndMode.get(linkSegmentId).get(modeExternalId);
+					alphaMap.put(modeExternalId, pair.getFirst());
+					betaMap.put(modeExternalId, pair.getSecond());
+				} else if ((defaultParametersPerLinkSegmentTypeAndMode.get(linkTypeExternalId) != null)
+						&& (defaultParametersPerLinkSegmentTypeAndMode.get(linkTypeExternalId)
+								.get(modeExternalId) != null)) {
+					Pair<Double, Double> pair = defaultParametersPerLinkSegmentTypeAndMode.get(linkTypeExternalId)
+							.get(modeExternalId);
+					alphaMap.put(modeExternalId, pair.getFirst());
+					betaMap.put(modeExternalId, pair.getSecond());
+				} else if (defaultParametersPerMode.get(modeExternalId) != null) {
+					Pair<Double, Double> pair = defaultParametersPerMode.get(modeExternalId);
+					alphaMap.put(modeExternalId, pair.getFirst());
+					betaMap.put(modeExternalId, pair.getSecond());
+				} else if (defaultParameters != null) {
+					alphaMap.put(modeExternalId, defaultParameters.getFirst());
+					betaMap.put(modeExternalId, defaultParameters.getSecond());
+				} else {
+					throw new PlanItException("Error: No alpha and beta pair could be set for link type "
+							+ linkTypeExternalId + " and mode " + modeExternalId);
+				}
+			}
+			bprLinkSegmentParameters[(int) linkSegment.getId()] = new BPRLinkTravelTimeCost.BPRParameters(alphaMap,
+					betaMap);
 		}
-	}
-
-	/**
-	 * Stores a BPR parameters for a specified link type and mode type
-	 * 
-	 * @param linkTypeExternalId reference to specified link type
-	 * @param modeExternalId     reference to specified mode type
-	 * @param value              parameter value
-	 */
-	private void setParameterPair(int linkTypeExternalId, long modeExternalId, Pair<Double, Double> pair) {
-		if (parametersMapMap.get(linkTypeExternalId) == null) {
-			parametersMapMap.put(linkTypeExternalId, new HashMap<Long, Pair<Double, Double>>());
-		}
-		parametersMapMap.get(linkTypeExternalId).put((long) modeExternalId, pair);
-	}
-
-	/**
-	 * Set BPR parameters to have zero values for a specified link type and mode
-	 * type if the user has not already set a value
-	 * 
-	 * @param linkTypeExternalId reference to specified link type
-	 * @param modeExternalId     reference to specified mode type
-	 */
-	private void setZeroParameterPair(int linkTypeExternalId, long modeExternalId) {
-		if (parametersMapMap.get(linkTypeExternalId).get((long) modeExternalId) == null) {
-			Pair<Double, Double> zeroPair = new Pair<Double, Double>(0.0, 0.0);
-			setParameterPair(linkTypeExternalId, modeExternalId, zeroPair);
-		}
+		populate(bprLinkSegmentParameters);
 	}
 
 	/**
@@ -258,43 +294,4 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		}
 		this.linkVolumeAccessee = (LinkVolumeAccessee) accessee;
 	}
-
-	/**
-	 * Register the BPR cost parameter values on the PhysicalNetwork
-	 * 
-	 * Call this method after all the calls to set the cost parameters have been
-	 * made
-	 * 
-	 * @param physicalNetwork PhysicalNetwork object containing the updated
-	 *                        parameter values
-	 */
-	@Override
-	public void updateCostParameters(PhysicalNetwork physicalNetwork) {
-		MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) physicalNetwork;
-		for (Integer linkTypeExternalId : macroscopicNetwork.getLinkSegmentExternalIdSet()) {
-			for (int modeExternalId = 1; (modeExternalId + 1) < Mode.getAllModes().size(); modeExternalId++) {
-				setZeroParameterPair(linkTypeExternalId, modeExternalId);
-			}
-		}
-		List<LinkSegment> linkSegments = macroscopicNetwork.linkSegments.toList();
-		BPRLinkTravelTimeCost.BPRParameters[] bprLinkSegmentParameters = new BPRLinkTravelTimeCost.BPRParameters[linkSegments
-				.size()];
-		for (LinkSegment linkSegment : linkSegments) {
-			MacroscopicLinkSegment macroscopiclinkSegment = (MacroscopicLinkSegment) linkSegment;
-			Map<Long, Double> alphaMap = new HashMap<Long, Double>();
-			Map<Long, Double> betaMap = new HashMap<Long, Double>();
-			for (Long modeExternalId : Mode.getExternalIdSet()) {
-				double alpha = parametersMapMap.get(macroscopiclinkSegment.getLinkSegmentType().getLinkTypeExternalId())
-						.get(modeExternalId).getFirst();
-				double beta = parametersMapMap.get(macroscopiclinkSegment.getLinkSegmentType().getLinkTypeExternalId())
-						.get(modeExternalId).getSecond();
-				alphaMap.put(modeExternalId, alpha);
-				betaMap.put(modeExternalId, beta);
-			}
-			bprLinkSegmentParameters[(int) linkSegment.getId()] = new BPRLinkTravelTimeCost.BPRParameters(alphaMap,
-					betaMap);
-		}
-		populate(bprLinkSegmentParameters);
-	}
-
 }

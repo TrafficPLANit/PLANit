@@ -3,6 +3,7 @@ package org.planit.cost.physical;
 import java.util.logging.Logger;
 
 import org.planit.cost.Cost;
+import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
@@ -31,7 +32,8 @@ public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCo
 	 * Update the cost parameter values in the network
 	 * 
 	 * @param physicalNetwork the physical network
+	 * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
 	 */
-	public abstract void updateCostParameters(PhysicalNetwork physicalNetwork);
+	public abstract void updateCostParameters(PhysicalNetwork physicalNetwork) throws PlanItException;
 	
 }
