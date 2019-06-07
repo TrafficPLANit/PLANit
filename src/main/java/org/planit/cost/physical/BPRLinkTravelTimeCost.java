@@ -1,7 +1,7 @@
 package org.planit.cost.physical;
 
 import java.util.HashMap;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -11,6 +11,7 @@ import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.physical.PhysicalNetwork.LinkSegments;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.userclass.Mode;
@@ -157,20 +158,6 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	}
 
 	/**
-	 * BPR function is PCU based, hence we only have a single function per link
-	 * segment. The BPR function does not change when moving to a different time
-	 * period.
-	 * 
-	 * @param bprLinkSegmentParameters, should be the size of the number of link
-	 *        segments in the network identified by the segment id
-	 */
-	public void populate(BPRParameters[] bprLinkSegmentParameters) {
-		// TODO: not invoked yet, population should go via event dispatch when the
-		// object is created, the input should populate it
-		this.bprEdgeSegmentParameters = bprLinkSegmentParameters;
-	}
-
-	/**
 	 * Set the alpha and beta values for a given link segment and mode
 	 * 
 	 * @param linkSegmentId  reference to the specified link segment
@@ -240,21 +227,24 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	@Override
 	public void updateCostParameters(PhysicalNetwork physicalNetwork) throws PlanItException {
 		MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) physicalNetwork;
-		List<LinkSegment> linkSegments = macroscopicNetwork.linkSegments.toList();
-		BPRLinkTravelTimeCost.BPRParameters[] bprLinkSegmentParameters = new BPRLinkTravelTimeCost.BPRParameters[linkSegments
-				.size()];
-		for (LinkSegment linkSegment : linkSegments) {
-			MacroscopicLinkSegment macroscopiclinkSegment = (MacroscopicLinkSegment) linkSegment;
+		LinkSegments linkSegments = macroscopicNetwork.linkSegments;
+		this.bprEdgeSegmentParameters = new BPRLinkTravelTimeCost.BPRParameters[linkSegments.getNumberOfLinkSegments()];
+		Iterator<LinkSegment> linkSegmentIterator = linkSegments.iterator();
+		while(linkSegmentIterator.hasNext()) {
+		    MacroscopicLinkSegment macroscopiclinkSegment = (MacroscopicLinkSegment) linkSegmentIterator.next();
 			long linkSegmentId = macroscopiclinkSegment.getLinkSegmentId();
 			long linkTypeExternalId = macroscopiclinkSegment.getLinkSegmentType().getLinkTypeExternalId();
 
 			Map<Long, Double> alphaMap = new HashMap<Long, Double>();
 			Map<Long, Double> betaMap = new HashMap<Long, Double>();
 
-			for (Long modeExternalId : Mode.getExternalIdSet()) {
+			for (Mode mode : Mode.getAllModes()) {
+			    long modeExternalId = mode.getExternalId();
+			    //TODO: Link specific check is missing!
+			    //TODO: all of this should be done by the object not the externalId!
 				if ((parametersPerLinkAndMode.get(linkSegmentId) != null)
 						&& (parametersPerLinkAndMode.get(linkSegmentId).get(modeExternalId) != null)) {
-					Pair<Double, Double> pair = parametersPerLinkAndMode.get(linkSegmentId).get(modeExternalId);
+					Pair<Double, Double> pair = parametersPerLinkAndMode.get(linkSegmentId).get(mode.getExternalId());
 					alphaMap.put(modeExternalId, pair.getFirst());
 					betaMap.put(modeExternalId, pair.getSecond());
 				} else if ((defaultParametersPerLinkSegmentTypeAndMode.get(linkTypeExternalId) != null)
@@ -276,10 +266,9 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 							+ linkTypeExternalId + " and mode " + modeExternalId);
 				}
 			}
-			bprLinkSegmentParameters[(int) linkSegment.getId()] = new BPRLinkTravelTimeCost.BPRParameters(alphaMap,
+			bprEdgeSegmentParameters[(int) linkSegmentId] = new BPRLinkTravelTimeCost.BPRParameters(alphaMap,
 					betaMap);
 		}
-		populate(bprLinkSegmentParameters);
 	}
 
 	/**

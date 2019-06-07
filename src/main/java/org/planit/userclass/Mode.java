@@ -72,15 +72,18 @@ public class Mode implements Comparable<Mode> {
      * @param pcu
      *            the PCU value of this mode
      */
-    public Mode(long externalid, String name, double pcu) {
+    public Mode(long externalId, String name, double pcu) {
         this.id = IdGenerator.generateId(Mode.class);
-        this.externalId = externalid;
+        this.externalId = externalId;
         this.name = name;
         this.pcu = pcu;
         modesById.put(this.id, this);
         modesByExternalId.put(this.externalId, this);
     }
     
+    /** Collect the external ids across all available modes
+     * @return set of externalIds
+     */
     public static Set<Long> getExternalIdSet() {
     	return modesByExternalId.keySet();
     }
