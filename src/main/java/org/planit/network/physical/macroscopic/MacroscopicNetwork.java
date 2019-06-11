@@ -30,7 +30,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	private class MacroscopicLinkSegmentTypes implements Iterable<MacroscopicLinkSegmentType> {
 		@Override
 		public Iterator<MacroscopicLinkSegmentType> iterator() {
-			return linkSegmentTypeByIdMap.values().iterator();
+			return macroscopicLinkSegmentTypeByIdMap.values().iterator();
 		}
 	}
 
@@ -39,12 +39,12 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	/**
 	 * Map which stores link segment types by generated Id
 	 */
-	protected Map<Integer, MacroscopicLinkSegmentType> linkSegmentTypeByIdMap = new TreeMap<Integer, MacroscopicLinkSegmentType>();
+	protected Map<Integer, MacroscopicLinkSegmentType> macroscopicLinkSegmentTypeByIdMap = new TreeMap<Integer, MacroscopicLinkSegmentType>();
 
 	/**
 	 * Map which stores link segment types by their external Id
 	 */
-	protected Map<Integer, MacroscopicLinkSegmentType> linkSegmentTypeByExternalIdMap = new TreeMap<Integer, MacroscopicLinkSegmentType>();
+	protected Map<Integer, MacroscopicLinkSegmentType> macroscopicLinkSegmentTypeByExternalIdMap = new TreeMap<Integer, MacroscopicLinkSegmentType>();
 
 	/**
 	 * Register a link segment type on the network
@@ -53,8 +53,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	 * @return the registered link segment type
 	 */
 	protected MacroscopicLinkSegmentType registerLinkSegmentType(@Nonnull MacroscopicLinkSegmentType linkSegmentType) {
-		linkSegmentTypeByExternalIdMap.put(linkSegmentType.getLinkTypeExternalId(), linkSegmentType);
-		return linkSegmentTypeByIdMap.put(linkSegmentType.getId(), linkSegmentType);
+		macroscopicLinkSegmentTypeByExternalIdMap.put(linkSegmentType.getLinkTypeExternalId(), linkSegmentType);
+		return macroscopicLinkSegmentTypeByIdMap.put(linkSegmentType.getId(), linkSegmentType);
 	}
 
 	// Public
@@ -80,7 +80,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 		Iterator<MacroscopicLinkSegmentType> iterator = macroscopiclinkSegmentTypes().iterator();
 		while (iterator.hasNext()) {
 			MacroscopicLinkSegmentType currentLinkSegmentType = iterator.next();
-			if (currentLinkSegmentType.equals(linkSegmentType)) {
+			if (currentLinkSegmentType.getLinkTypeExternalId() == linkSegmentType.getLinkTypeExternalId()) {
 				return currentLinkSegmentType;
 			}
 		}
@@ -95,14 +95,14 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	 * @param name           name of the link segment type
 	 * @param capacity       capacity of the link segment type
 	 * @param maximumDensity maximum density of the link segment type
-	 * @param linkType       the external reference number of this link type
+	 * @param linkTypeExternalId       the external reference number of this link type
 	 * @param modeProperties mode properties of the link segment type
 	 * @return Pair containing the link segment type, plus boolean which is true if
 	 *         the link segment type already exists
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public Pair<MacroscopicLinkSegmentType, Boolean> registerNewLinkSegmentType(@Nonnull String name, double capacity,
-			double maximumDensity, int linkType, MacroscopicLinkSegmentTypeModeProperties modeProperties)
+			double maximumDensity, int linkTypeExternalId, MacroscopicLinkSegmentTypeModeProperties modeProperties)
 			throws PlanItException {
 
 		if (!(networkBuilder instanceof MacroscopicNetworkBuilder)) {
@@ -110,7 +110,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 					"Macroscopic network perspective only allows macroscopic link segment types to be registered");
 		}
 		MacroscopicLinkSegmentType linkSegmentType = ((MacroscopicNetworkBuilder) networkBuilder)
-				.createLinkSegmentType(name, capacity, maximumDensity, linkType, modeProperties);
+				.createLinkSegmentType(name, capacity, maximumDensity, linkTypeExternalId, modeProperties);
 		MacroscopicLinkSegmentType existingLinkSegmentType = findEqualMacroscopicLinkSegmentType(linkSegmentType);
 		if (existingLinkSegmentType == null) {
 			registerLinkSegmentType(linkSegmentType);
@@ -135,8 +135,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	 * 
 	 * @return Set of link segment external Ids
 	 */
-	public Set<Integer> getLinkSegmentExternalIdSet() {
-		return linkSegmentTypeByExternalIdMap.keySet();
+	public Set<Integer> getMacroscopicLinkSegmentExternalIdSet() {
+		return macroscopicLinkSegmentTypeByExternalIdMap.keySet();
 	}
 
 	/**
@@ -145,8 +145,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	 * @param id id value of the MacroscopicLinkSegmentType
 	 * @return MacroscopicLinkSegmentType object found
 	 */
-	public MacroscopicLinkSegmentType findLinkSegmentTypeById(int id) {
-		return linkSegmentTypeByIdMap.get(id);
+	public MacroscopicLinkSegmentType findMacroscopicLinkSegmentTypeById(int id) {
+		return macroscopicLinkSegmentTypeByIdMap.get(id);
 	}
 
 	/**
@@ -155,9 +155,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	 * @param id external id value of the MacroscopicLinkSegmentType
 	 * @return MacroscopicLinkSegmentType object found
 	 */
-
-	public MacroscopicLinkSegmentType findLinkSegmentTypeByExternalId(int externalId) {
-		return linkSegmentTypeByExternalIdMap.get(externalId);
+	public MacroscopicLinkSegmentType findMacroscopicLinkSegmentTypeByExternalId(int externalId) {
+		return macroscopicLinkSegmentTypeByExternalIdMap.get(externalId);
 	}
 
 }

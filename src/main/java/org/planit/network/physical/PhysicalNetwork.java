@@ -130,6 +130,24 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		public List<LinkSegment> toList() {
 			return new ArrayList<LinkSegment>(linkSegmentMap.values());
 		}
+		
+		/**
+		 * Find a LinkSegment by the external Ids of its start and end nodes
+		 * 
+		 * @param startExternalId reference to start node
+		 * @param endExternalId reference to end node
+		 * @return the linkSegment found, or null if no link segment can be found
+		 */
+		public LinkSegment getLinkSegmentByStartAndEndNodeExternalId(long startExternalId, long endExternalId) {
+			for (LinkSegment linkSegment : linkSegmentMap.values()) {
+				Node startNode = (Node) linkSegment.getUpstreamVertex();
+				Node endNode = (Node) linkSegment.getDownstreamVertex();
+				if  ((startNode.getExternalId() == startExternalId) && (endNode.getExternalId() == endExternalId)) {
+					return linkSegment;
+				}
+			}
+			return null;
+		}
 
 		/**
 		 * Create directional link segment
