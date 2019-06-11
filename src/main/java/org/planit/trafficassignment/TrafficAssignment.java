@@ -224,7 +224,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * Method that allows one to activate specific output types for persistence
 	 * which is passed on to the output manager
 	 * 
-	 * @param outputTypes one or more OutputType objects to be used
+	 * @param outputType OutputType object to be used
 	 * @throws PlanItException thrown if there is an error activating the output
 	 */
 	public void activateOutput(OutputType outputType) throws PlanItException {

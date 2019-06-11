@@ -33,7 +33,7 @@ public class MacroscopicLinkSegmentType {
 	/**
 	 * External reference number of link type
 	 */
-	private int linkTypeExternalId;
+	private int externalId;
 
 	/**
 	 * name of the link segment type
@@ -73,16 +73,16 @@ public class MacroscopicLinkSegmentType {
 	 * @param capacityPerLane       capacity per lane of this link segment type
 	 * @param maximumDensityPerLane maximum density per lane of this link segment
 	 *                              type
-	 * @param linkTypeExternalId    external reference number of the link type
+	 * @param externalId    external reference number of the link type
 	 * @param modeProperties        properties of this link segment type
 	 */
 	public MacroscopicLinkSegmentType(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane,
-			int linkTypeExternalId, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
+			int externalId, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
 		this.id = generateMacroscopicLinkSegmentTypeId();
 		this.name = name;
 		this.capacityPerLane = capacityPerLane;
 		this.maximumDensityPerLane = maximumDensityPerLane;
-		this.linkTypeExternalId = linkTypeExternalId;
+		this.externalId = externalId;
 		this.modeProperties = modeProperties;
 	}
 
@@ -108,8 +108,8 @@ public class MacroscopicLinkSegmentType {
 		return maximumDensityPerLane;
 	}
 
-	public int getLinkTypeExternalId() {
-		return linkTypeExternalId;
+	public int getExternalId() {
+		return externalId;
 	}
 
 	/**

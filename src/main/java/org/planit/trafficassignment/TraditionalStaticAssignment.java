@@ -294,7 +294,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		// initialize members that are used throughout the assignment
 		this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
 		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
-		physicalCost.updateCostParameters(physicalNetwork);
+		physicalCost.initialiseBeforeEquilibration(physicalNetwork);
 		List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
 		for (OutputFormatter outputFormatter : outputFormatters) {
 			outputFormatter.open();

@@ -34,6 +34,6 @@ public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCo
 	 * @param physicalNetwork the physical network
 	 * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
 	 */
-	public abstract void updateCostParameters(PhysicalNetwork physicalNetwork) throws PlanItException;
+	public abstract void initialiseBeforeEquilibration(PhysicalNetwork physicalNetwork) throws PlanItException;
 	
 }

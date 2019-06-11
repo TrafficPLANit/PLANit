@@ -120,8 +120,8 @@ public class OutputManager {
     /**
      * Verify if the given output type is already activated or not
      * 
-     * @param outputType
-     * @return true if actiev false otherwise
+     * @param outputType OutputType object to be checked
+     * @return true if active false otherwise
      */
     public boolean isOutputTypeActive(OutputType outputType) {
         return outputConfiguration.containsOutputTypeConfiguration(outputType);

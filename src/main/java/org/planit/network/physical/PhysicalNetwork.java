@@ -124,8 +124,6 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 * Returns a List of LinkSegments in the network
 		 * 
 		 * @return List of registered link segments
-		 * 
-		 * @return
 		 */
 		public List<LinkSegment> toList() {
 			return new ArrayList<LinkSegment>(linkSegmentMap.values());

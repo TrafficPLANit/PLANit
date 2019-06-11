@@ -47,15 +47,23 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		}
 
 		/**
+		 * Returns an iterator through the modes which have BPR parameters set
+		 * 
+		 * @return iterator through Mode objects which have BPR parameters set
+		 */
+		public Iterator<Mode> getModeIterator() {
+			return parametersMap.keySet().iterator();
+		}
+
+		/**
 		 * Returns alpha and beta values of the BPR model for a specified mode
 		 * 
-		 * @param modeExternalId id of the specified mode
+		 * @param mode the specified mode
 		 * @return pair containing alpha and beta values of BPR model for specified mode
 		 */
 		private Pair<Double, Double> getParametersMap(Mode mode) {
 			return parametersMap.get(mode);
 		}
-
 	}
 
 	/**
@@ -173,7 +181,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 * 
 	 * Use this setter if the alphaMap and betaMap have been set externally
 	 * 
-	 * @param bprEdgeSegmentParameters
+	 * @param bprEdgeSegmentParameters array of BPR parameters to be assigned
 	 */
 //TODO - This method is only used by MetroScan, and we plan to refactor MetroScan so that this method will not be required
 	public void setBprEdgeSegmentParameters(BPRParameters[] bprEdgeSegmentParameters) {
@@ -220,7 +228,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 *                         cost parameters have been set
 	 */
 	@Override
-	public void updateCostParameters(PhysicalNetwork physicalNetwork) throws PlanItException {
+	public void initialiseBeforeEquilibration(PhysicalNetwork physicalNetwork) throws PlanItException {
 		MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) physicalNetwork;
 		LinkSegments linkSegments = macroscopicNetwork.linkSegments;
 		this.bprEdgeSegmentParameters = new BPRLinkTravelTimeCost.BPRParameters[linkSegments.getNumberOfLinkSegments()];
