@@ -54,6 +54,26 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		public Iterator<Mode> getModeIterator() {
 			return parametersMap.keySet().iterator();
 		}
+		
+		/**
+		 * Return the alpha value for a specified mode
+		 * 
+		 * @param mode mode to be analyzed
+		 * @return alpha value for this mode
+		 */
+		public double getAlpha(Mode mode) {
+			return getParametersMap(mode).getFirst();
+		}
+		
+		/**
+		 * Return the beta value for a specified mode
+		 * 
+		 * @param mode mode to be analyzed
+		 * @return beta value for this mode
+		 */
+		public double getBeta(Mode mode) {
+			return getParametersMap(mode).getSecond();
+		}
 
 		/**
 		 * Returns alpha and beta values of the BPR model for a specified mode
