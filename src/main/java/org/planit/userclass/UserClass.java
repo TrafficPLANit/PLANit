@@ -1,6 +1,5 @@
 package org.planit.userclass;
 
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -21,9 +20,11 @@ public class UserClass {
      */
     private static final Logger LOGGER = Logger.getLogger(UserClass.class.getName());
     
-    public static final String  NAME = "Default";
-    public static final long    DEFAULT_EXTERNAL_ID = 1;   
-
+    public static final String  DEFAULT_NAME = "Default";
+    public static final int      DEFAULT_EXTERNAL_ID = 1;   
+    public static final int       DEFAULT_MODE_REF = 1;
+    public static final int       DEFAULT_TRAVELLER_TYPE = 1;
+    
     /**
      * id of this user class
      */
@@ -115,7 +116,7 @@ public class UserClass {
         this.modeExternalId = modeExternalId;
         this.travellerTypeId = travellerTypeId;
         this.mode = Mode.getByExternalId(modeExternalId);
-        this.travellerType = TravelerType.getById(travellerTypeId);
+        this.travellerType = TravelerType.getByExternalId(travellerTypeId);
         userClasses.put(this.id, this);
     }
 

@@ -22,6 +22,11 @@ public class Connectoid extends Edge {
      */
     private static final Logger LOGGER = Logger.getLogger(Connectoid.class.getName());
 
+    /**
+     * Default connectoid length
+     */
+    public static final double DEFAULT_LENGTH = 1.0;    
+    
     // Protected
 
     /**

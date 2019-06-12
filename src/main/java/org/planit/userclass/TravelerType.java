@@ -24,7 +24,7 @@ public class TravelerType {
     /**
      * Default name of a traveler type
      */
-    public static final String NAME = "Default";
+    public static final String DEFAULT_NAME = "Default";
     
     /**
      * Default value of the external id
@@ -47,7 +47,7 @@ public class TravelerType {
     private final String name;
 
     /**
-     * Map to store registered traveller types
+     * Map to store registered traveler types
      */
     private static Map<Long, TravelerType> travelerTypes = new HashMap<Long, TravelerType>();
     
@@ -55,64 +55,64 @@ public class TravelerType {
      * Constructor
      * 
      * @param id
-     *            id of this traveller type
+     *            id of this traveler type
      * @param name
-     *            name of this traveller type
+     *            name of this traveler type
      */
     public TravelerType() {
         this.id = IdGenerator.generateId(TravelerType.class);
-        this.name = NAME;
+        this.name = DEFAULT_NAME;
         this.externalId = EXTERNAL_ID;
-        travelerTypes.put(this.id, this);
+        travelerTypes.put(this.externalId, this);
     }    
 
     /**
      * Constructor
      * 
      * @param id
-     *            id of this traveller type
+     *            id of this traveler type
      * @param name
-     *            name of this traveller type
+     *            name of this traveler type
      */
     public TravelerType(long externalId, String name) {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.externalId = externalId;
         this.name = name;
-        travelerTypes.put(this.id, this);
+        travelerTypes.put(this.externalId, this);
     }
 
     /**
      * Constructor
      * 
      * @param name
-     *            name of this traveller type
+     *            name of this traveler type
      */
     public TravelerType(String name) {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.externalId = EXTERNAL_ID;
         this.name = name;        
-        travelerTypes.put(this.id, this);
+        travelerTypes.put(this.externalId, this);
     }
 
     /**
-     * Get traveller type by id
+     * Get traveler type by externalId
      * 
-     * @param id
-     *            id of this traveller type
+     * @param externalId
+     *            external id of this traveler type
      * @return retrieved TravellerType object
      */
-    public static TravelerType getById(long id) {
-        return travelerTypes.get(id);
+    public static TravelerType getByExternalId(long externalId) {
+        return travelerTypes.get(externalId);
     }
 
     /**
-     * Store traveller type by its id
+     * Store traveler type by its external id
      * 
-     * @param travellerType
-     *            TravellerType object to store
+     * @param travelerType
+     *            TravelerType object to store
      */
-    public static void putById(TravelerType travellerType) {
-        travelerTypes.put(travellerType.getId(), travellerType);
+    public static void putByExternalId(TravelerType travellerType) {
+        travelerTypes.put(travellerType.getExternalId(), travellerType);
     }
 
     public long getId() {
