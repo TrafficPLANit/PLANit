@@ -38,12 +38,11 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		protected Map<Mode, Pair<Double, Double>> parametersMap;
 
 		/**
-		 * Constructor which injects BPR model parameters
+		 * Constructor
 		 * 
-		 * @param parametersMap alpha and beta values for BPR model
 		 */
-		public BPRParameters(Map<Mode, Pair<Double, Double>> parametersMap) {
-			this.parametersMap = parametersMap;
+		public BPRParameters() {
+			this.parametersMap = new HashMap<Mode, Pair<Double, Double>>();
 		}
 
 		/**
@@ -90,6 +89,16 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 * Logger for this class
 	 */
 	private static final Logger LOGGER = Logger.getLogger(BPRLinkTravelTimeCost.class.getName());
+	
+    /**
+     * Default alpha BPR parameter if not other information is available
+     */
+    public static final double DEFAULT_ALPHA = 0.5;
+    
+    /**
+     * Default beta BPR parameter if not other information is available
+     */    
+    public static final double DEFAULT_BETA = 4.0;	
 
 	/**
 	 * Link volume accessee object for this cost function
@@ -120,27 +129,27 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	/**
 	 * Map to store default alpha and beta values for each mode
 	 */
-	protected Map<Mode, Pair<Double, Double>> defaultParametersPerMode;
+	protected BPRParameters defaultParametersPerMode;
 
 	/**
 	 * Map to store default alpha and beta values for each link type and mode
 	 */
-	protected Map<MacroscopicLinkSegmentType, Map<Mode, Pair<Double, Double>>> defaultParametersPerLinkSegmentTypeAndMode;
+	protected Map<MacroscopicLinkSegmentType, BPRParameters> defaultParametersPerLinkSegmentTypeAndMode;
 
 	/**
 	 * Map to store default alpha and beta values for a specific link/mode
 	 * combination
 	 */
-	protected Map<LinkSegment, Map<Mode, Pair<Double, Double>>> parametersPerLinkAndMode;
+	protected Map<LinkSegment, BPRParameters> parametersPerLinkAndMode;
 
 	/**
 	 * Constructor
 	 */
 	public BPRLinkTravelTimeCost() {
 		super();
-		defaultParametersPerMode = new HashMap<Mode, Pair<Double, Double>>();
-		defaultParametersPerLinkSegmentTypeAndMode = new HashMap<MacroscopicLinkSegmentType, Map<Mode, Pair<Double, Double>>>();
-		parametersPerLinkAndMode = new HashMap<LinkSegment, Map<Mode, Pair<Double, Double>>>();
+		defaultParametersPerMode = new BPRParameters();
+		defaultParametersPerLinkSegmentTypeAndMode = new HashMap<MacroscopicLinkSegmentType, BPRParameters>();
+		parametersPerLinkAndMode = new HashMap<LinkSegment, BPRParameters>();
 	}
 
 	/**

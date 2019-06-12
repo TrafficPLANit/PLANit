@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathAlgorithm;
+import org.planit.constants.Default;
 import org.planit.data.ModeData;
 import org.planit.data.SimulationData;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
@@ -33,7 +34,6 @@ import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
 import org.planit.utils.ArrayOperations;
-import org.planit.utils.DefaultValues;
 import org.planit.utils.Pair;
 import org.planit.zoning.Zone;
 
@@ -151,7 +151,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			int originZoneId = odDemandIter.getCurrentOriginId();
 			int destinationZoneId = odDemandIter.getCurrentDestinationId();
 			int previousOriginZoneId = -1;
-			if (((odDemand - DefaultValues.DEFAULT_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
+			if (((odDemand - Default.DEFAULT_FLOW_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
 				Zone currentOriginZone = null;
 				Pair<Double, EdgeSegment>[] vertexPathCost = null;
 				// UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL

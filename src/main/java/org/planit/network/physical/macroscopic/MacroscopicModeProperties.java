@@ -1,7 +1,8 @@
 package org.planit.network.physical.macroscopic;
 
 import java.util.logging.Logger;
-import org.planit.utils.DefaultValues;
+
+import org.planit.constants.Default;
 
 /**
  * Mode specific properties for the macroscopic perspective on the supply side,
@@ -74,9 +75,9 @@ public class MacroscopicModeProperties {
         if (obj instanceof MacroscopicModeProperties) {
             return super.equals(obj)
                     && Math.abs(this.getMaxSpeed()
-                            - ((MacroscopicModeProperties) obj).getMaxSpeed()) < DefaultValues.DEFAULT_EPSILON
+                            - ((MacroscopicModeProperties) obj).getMaxSpeed()) < Default.DEFAULT_SPEED_EPSILON
                     && Math.abs(this.getCriticalSpeed()
-                            - ((MacroscopicModeProperties) obj).getCriticalSpeed()) < DefaultValues.DEFAULT_EPSILON;
+                            - ((MacroscopicModeProperties) obj).getCriticalSpeed()) < Default.DEFAULT_SPEED_EPSILON;
         }
         return false;
     }

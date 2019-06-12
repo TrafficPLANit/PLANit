@@ -1,5 +1,6 @@
 package org.planit.userclass;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -19,6 +20,9 @@ public class UserClass {
      * Logger for this class
      */
     private static final Logger LOGGER = Logger.getLogger(UserClass.class.getName());
+    
+    public static final String  NAME = "Default";
+    public static final long    DEFAULT_EXTERNAL_ID = 1;   
 
     /**
      * id of this user class
@@ -38,7 +42,7 @@ public class UserClass {
     /**
      * Traveller type of this user class
      */
-    private TravellerType travellerType;
+    private TravelerType travellerType;
 
     /**
      * External Id of mode of travel
@@ -65,7 +69,7 @@ public class UserClass {
      * @param travellerType
      *            the traveller type
      */
-    public UserClass(String name, Mode mode, TravellerType travellerType) {
+    public UserClass(String name, Mode mode, TravelerType travellerType) {
         this.id = IdGenerator.generateId(UserClass.class);
         this.name = name;
         this.mode = mode;
@@ -85,7 +89,7 @@ public class UserClass {
      * @param travellerType
      *            the traveller type
      */
-    public UserClass(long id, String name, Mode mode, TravellerType travellerType) {
+    public UserClass(long id, String name, Mode mode, TravelerType travellerType) {
         this.id = id;
         this.name = name;
         this.mode = mode;
@@ -111,7 +115,7 @@ public class UserClass {
         this.modeExternalId = modeExternalId;
         this.travellerTypeId = travellerTypeId;
         this.mode = Mode.getByExternalId(modeExternalId);
-        this.travellerType = TravellerType.getById(travellerTypeId);
+        this.travellerType = TravelerType.getById(travellerTypeId);
         userClasses.put(this.id, this);
     }
 
@@ -141,7 +145,7 @@ public class UserClass {
      * 
      * @return TravellerType of this user class
      */
-    public TravellerType getTravellerType() {
+    public TravelerType getTravellerType() {
         return travellerType;
     }
 
