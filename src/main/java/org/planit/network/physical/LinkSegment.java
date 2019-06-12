@@ -93,7 +93,7 @@ public class LinkSegment extends EdgeSegment {
      * @return maximum speed along this link for the specified mode
      */
     public double getMaximumSpeed(long modeExternalId) {
-        return maximumSpeedMap.get(modeExternalId);
+         return maximumSpeedMap.get(modeExternalId);
     }
 
     /**

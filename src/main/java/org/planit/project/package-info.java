@@ -1,4 +1,5 @@
 /**
- * Top-level classes to run PlanIt assignments
+ * @author mraa2518
+ *
  */
 package org.planit.project;

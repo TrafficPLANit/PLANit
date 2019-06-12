@@ -123,6 +123,7 @@ public class PlanItProject {
         try {
             ta.execute();
         } catch (Exception e) {
+        	e.printStackTrace();
             LOGGER.severe(e.getMessage());
         }
     }

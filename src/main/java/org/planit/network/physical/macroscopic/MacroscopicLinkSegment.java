@@ -68,11 +68,10 @@ public class MacroscopicLinkSegment extends LinkSegment {
      */
     public double computeFreeFlowTravelTime(Mode mode) throws PlanItException {
         double linkLength = getParentLink().getLength();
-        //double maximumSpeed = getMaximumSpeed(mode.getId());
         double maximumSpeed = getMaximumSpeed(mode.getExternalId());
         MacroscopicLinkSegmentTypeModeProperties properties = getLinkSegmentType().getModeProperties();
         double computedMaximumSpeed = maximumSpeed;
-        if (properties != null) {
+        if ((properties != null) && (getLinkSegmentType().getModeProperties().getProperties(mode) != null)) {
             double segmentTypeMaximumSpeed = getLinkSegmentType().getModeProperties().getProperties(mode).getMaxSpeed();
             if ((maximumSpeed == 0.0) && (segmentTypeMaximumSpeed == 0.0)) {
                 if (getParentEdge().getVertexA() instanceof Centroid) {

@@ -1,7 +1,8 @@
 package org.planit.network.physical.macroscopic;
 
 import java.util.logging.Logger;
-import org.planit.utils.DefaultValues;
+
+import org.planit.constants.Default;
 
 /**
  * Mode specific properties for the macroscopic perspective on the supply side,
@@ -32,12 +33,12 @@ public class MacroscopicModeProperties {
     /**
      * Default max speed in km/h
      */
-    public static final double DEFAULT_MAX_SPEED = 80;
+    //public static final double DEFAULT_MAX_SPEED = 80;
     
     /**
      * Default critical speed, i.e. speed at capacity in km/h
      */
-    public static final double DEFAULT_CRITICAL_SPEED = 60;
+    //public static final double DEFAULT_CRITICAL_SPEED = 60;
 
     /**
      * Constructor
@@ -56,12 +57,13 @@ public class MacroscopicModeProperties {
     /**
      * Constructor adopting default values
      */
+/*
     public MacroscopicModeProperties() {
         super();
-        this.maxSpeed = DEFAULT_MAX_SPEED;
-        this.criticalSpeed = DEFAULT_CRITICAL_SPEED;
+        this.maxSpeed = Default.MAX_SPEED;
+        this.criticalSpeed = Default.CRITICAL_SPEED;
     }
-
+*/
     /**
      * Compare on all content members
      * 
@@ -74,9 +76,9 @@ public class MacroscopicModeProperties {
         if (obj instanceof MacroscopicModeProperties) {
             return super.equals(obj)
                     && Math.abs(this.getMaxSpeed()
-                            - ((MacroscopicModeProperties) obj).getMaxSpeed()) < DefaultValues.DEFAULT_EPSILON
+                            - ((MacroscopicModeProperties) obj).getMaxSpeed()) < Default.DEFAULT_EPSILON
                     && Math.abs(this.getCriticalSpeed()
-                            - ((MacroscopicModeProperties) obj).getCriticalSpeed()) < DefaultValues.DEFAULT_EPSILON;
+                            - ((MacroscopicModeProperties) obj).getCriticalSpeed()) < Default.DEFAULT_EPSILON;
         }
         return false;
     }

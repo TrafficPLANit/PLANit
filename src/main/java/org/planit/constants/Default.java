@@ -31,6 +31,11 @@ public class Default {
 	public static final double ALPHA = 0.5;
 	public static final double BETA = 4.0;
 
+	public static final double DEFAULT_EPSILON = 0.000001;
+    public static final double MAX_SPEED = 80;
+    public static final double CRITICAL_SPEED = 60;
+
+
     static {
     	COORDINATE_REFERENCE_SYSTEM = new DefaultGeographicCRS(DefaultGeographicCRS.WGS84);
     }
