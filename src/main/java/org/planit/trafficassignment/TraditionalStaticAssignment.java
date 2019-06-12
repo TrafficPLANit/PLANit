@@ -151,7 +151,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			int originZoneId = odDemandIter.getCurrentOriginId();
 			int destinationZoneId = odDemandIter.getCurrentDestinationId();
 			int previousOriginZoneId = -1;
-			if (((odDemand - Default.DEFAULT_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
+			if (((odDemand - Default.DEFAULT_FLOW_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
 				Zone currentOriginZone = null;
 				Pair<Double, EdgeSegment>[] vertexPathCost = null;
 				// UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL

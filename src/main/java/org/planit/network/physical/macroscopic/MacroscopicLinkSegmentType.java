@@ -21,7 +21,15 @@ public class MacroscopicLinkSegmentType {
 	 */
 	private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentType.class.getName());
 
+	/**
+	 * Default maximum density per lane (veh/km)
+	 */
 	public static final double DEFAULT_MAXIMUM_DENSITY_LANE = 180;
+	
+    /**
+     * Default capacity per lane (veh/h)
+     */
+    public static final double DEFAULT_CAPACITY_LANE = 1800.0f;	
 
 	// Protected
 
