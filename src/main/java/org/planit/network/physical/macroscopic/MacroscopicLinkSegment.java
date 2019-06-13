@@ -1,5 +1,7 @@
 package org.planit.network.physical.macroscopic;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
@@ -10,6 +12,7 @@ import org.planit.network.physical.LinkSegment;
 import org.planit.network.virtual.Centroid;
 import org.planit.network.physical.Node;
 import org.planit.userclass.Mode;
+import org.planit.utils.Pair;
 
 /**
  * Link segment for macroscopic transport networks.
@@ -30,6 +33,11 @@ public class MacroscopicLinkSegment extends LinkSegment {
      */
     protected MacroscopicLinkSegmentType linkSegmentType = null;
 
+    /**
+     * Map of Pair objects to store BPR alpha and beta values for this link segment for all modes
+     */
+    protected Map<Mode, Pair<Double, Double>> bprParameters;
+
     // Public
 
     /**
@@ -42,6 +50,7 @@ public class MacroscopicLinkSegment extends LinkSegment {
      */
     public MacroscopicLinkSegment(@Nonnull Link parentLink, boolean directionAB) {
         super(parentLink, directionAB);
+        bprParameters = new HashMap<Mode, Pair<Double, Double>>();
     }
 
     /**
@@ -105,6 +114,37 @@ public class MacroscopicLinkSegment extends LinkSegment {
 
     public MacroscopicLinkSegmentType getLinkSegmentType() {
         return linkSegmentType;
+    }
+
+    /**
+     * Store BPR parameters for a given mode
+     * 
+     * @param mode mode of travel
+     * @param alpha BPR alpha parameter
+     * @param beta BPR beta parameter
+     */
+    public void registerBprParameters(Mode mode, double alpha, double beta) {
+    	bprParameters.put(mode, new Pair<Double, Double>(alpha, beta));
+    }
+    
+    /**
+     * Store BPR parameters for a given mode (parameters already stored in a Pair)
+     * 
+     * @param mode mode of travel
+     * @param pair Pair containing alpha and beta BPR parameter values
+     */
+    public void registerBprParameters(Mode mode, Pair<Double, Double> pair) {
+    	bprParameters.put(mode, pair);
+    }
+    
+    /**
+     * Retrieve BPR parameters for a specified mode
+     *  
+     * @param mode mode of travel
+     * @return Pair containing BPR alpha and beta values
+     */
+    public Pair<Double, Double> getBprParameters(Mode mode) {
+    	return bprParameters.get(mode);
     }
 
 }

@@ -5,7 +5,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.planit.network.EdgeSegment;
+import org.planit.userclass.Mode;
 import org.planit.utils.IdGenerator;
+import org.planit.utils.Pair;
 
 /**
  * Link segment object representing physical links in the network and storing
@@ -44,7 +46,7 @@ public class LinkSegment extends EdgeSegment {
     protected static int generateLinkSegmentId() {
         return IdGenerator.generateId(LinkSegment.class);
     }
-
+    
     /**
      * Constructor
      * 
@@ -125,5 +127,5 @@ public class LinkSegment extends EdgeSegment {
     public Link getParentLink() {
         return (Link) getParentEdge();
     }
-
+    
 }

@@ -38,6 +38,7 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 	 * @return the travel time for this connectoid segment
 	 * @throws PlanItException thrown if there is an error
 	 */
+	@Override
 	public double calculateSegmentCost(Mode mode, ConnectoidSegment connectoidSegment) throws PlanItException {
 		return connectoidSegment.getParentEdge().getLength() / CONNECTOID_SPEED_KPH;
 	}

@@ -58,6 +58,7 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
 	 * @return the travel time for the specified connectod segment
 	 * @throws PlanItException thrown if there is an error
 	 */
+	@Override
 	public double calculateSegmentCost(Mode mode, ConnectoidSegment connectoidSegment) throws PlanItException {
 		return fixedConnectoidCosts[(int) connectoidSegment.getConnectoidSegmentId()];
 	}
