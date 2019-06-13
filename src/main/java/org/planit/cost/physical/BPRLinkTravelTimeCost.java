@@ -11,7 +11,6 @@ import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetwork;
-import org.planit.network.physical.PhysicalNetwork.LinkSegments;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
@@ -27,53 +26,63 @@ import org.planit.utils.Pair;
 public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAccessor {
 
 	/**
-	 * alpha and beta parameters used in BPR function
+	 * Inner class to store Map of alpha and beta parameters used in BPR function
+	 * for each mode
 	 */
-	// public static class BPRParameters {
+	public class BPRParameters {
 
-	/**
-	 * Alpha and Beta parameters in BPR function
-	 */
-	// protected Map<Mode, Pair<Double, Double>> parametersMap;
+		/**
+		 * Alpha and Beta parameters in BPR function
+		 */
+		private Map<Mode, Pair<Double, Double>> parametersMap;
 
-	/**
-	 * Constructor which injects BPR model parameters
-	 * 
-	 * @param parametersMap alpha and beta values for BPR model
-	 */
-	// public BPRParameters(Map<Mode, Pair<Double, Double>> parametersMap) {
-	// this.parametersMap = parametersMap;
-	// }
-	/**
-	 * Returns an iterator through the modes which have BPR parameters set
-	 * 
-	 * @return iterator through Mode objects which have BPR parameters set
-	 */
-	// public Iterator<Mode> getModeIterator() {
-	// return parametersMap.keySet().iterator();
-	// }
+		/**
+		 * Constructor
+		 */
+		public BPRParameters() {
+			parametersMap = new HashMap<Mode, Pair<Double, Double>>();
+		}
 
-	/**
-	 * Return the alpha value for a specified mode
-	 * 
-	 * @param mode mode to be analyzed
-	 * @return alpha value for this mode
-	 */
-	// public double getAlpha(Mode mode) {
-	// return parametersMap.get(mode).getFirst();
-	// }
+		/**
+		 * Store BPR parameters for a specified mode
+		 * 
+		 * @param mode  mode of travel
+		 * @param alpha BPR alpha value
+		 * @param beta  BPR beta value
+		 */
+		public void registerParameters(Mode mode, double alpha, double beta) {
+			parametersMap.put(mode, new Pair<Double, Double>(alpha, beta));
+		}
 
-	/**
-	 * Return the beta value for a specified mode
-	 * 
-	 * @param mode mode to be analyzed
-	 * @return beta value for this mode
-	 */
-	// public double getBeta(Mode mode) {
-	// return parametersMap.get(mode).getSecond();
-	// }
+		/**
+		 * Store BPR parameters for a specified mode as a Pair
+		 * 
+		 * @param mode mode of travel
+		 * @param pair Pair containing BPR alpha and beta values
+		 */
+		public void registerParameters(Mode mode, Pair<Double, Double> pair) {
+			parametersMap.put(mode, pair);
+		}
 
-	// }
+		/**
+		 * Retrieve Pair containing alpha and beta values for a specified mode
+		 * 
+		 * @param mode mode of travel
+		 * @return Pair containing BPR alpha and beta values
+		 */
+		public Pair<Double, Double> getAlphaBetaParameters(Mode mode) {
+			return parametersMap.get(mode);
+		}
+
+		/**
+		 * Returns an iterator through the modes which have BPR parameters set
+		 * 
+		 * @return iterator through Mode objects which have BPR parameters set
+		 */
+		public Iterator<Mode> getModeIterator() {
+			return parametersMap.keySet().iterator();
+		}
+	}
 
 	/**
 	 * Logger for this class
@@ -96,17 +105,6 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	protected LinkVolumeAccessee linkVolumeAccessee = null;
 
 	/**
-	 * LinkSegmentVolumes that are provided through interactor
-	 */
-	//protected double[] linkSegmentVolumes = null;
-
-	/**
-	 * Number of link segments we collect volumes and therefore costs for, obtained
-	 * via interactor
-	 */
-	//protected int numberOfLinkSegments = -1;
-
-	/**
 	 * Default alpha and beta values for all links
 	 */
 	protected Pair<Double, Double> defaultParameters;
@@ -114,20 +112,32 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	/**
 	 * Map to store default alpha and beta values for each mode
 	 */
-	protected Map<Mode, Pair<Double, Double>> defaultParametersPerMode;
+	protected BPRParameters defaultParametersPerMode;
 
 	/**
 	 * Map to store default alpha and beta values for each link type and mode
 	 */
-	protected Map<MacroscopicLinkSegmentType, Map<Mode, Pair<Double, Double>>> defaultParametersPerLinkSegmentTypeAndMode;
+	protected Map<MacroscopicLinkSegmentType, BPRParameters> defaultParametersPerLinkSegmentTypeAndMode;
+
+	/**
+	 * Map to store default alpha and beta values for a specific link segment
+	 */
+	protected Map<MacroscopicLinkSegment, BPRParameters> parametersPerLinkSegmentAndMode;
+
+	/**
+	 * Array to store BPRParameters objects for each link segment to be used in
+	 * calculateSegmentCost()
+	 */
+	protected BPRParameters[] bprParametersPerLinkSegment;
 
 	/**
 	 * Constructor
 	 */
 	public BPRLinkTravelTimeCost() {
 		super();
-		defaultParametersPerMode = new HashMap<Mode, Pair<Double, Double>>();
-		defaultParametersPerLinkSegmentTypeAndMode = new HashMap<MacroscopicLinkSegmentType, Map<Mode, Pair<Double, Double>>>();
+		parametersPerLinkSegmentAndMode = new HashMap<MacroscopicLinkSegment, BPRParameters>();
+		defaultParametersPerMode = new BPRParameters();
+		defaultParametersPerLinkSegmentTypeAndMode = new HashMap<MacroscopicLinkSegmentType, BPRParameters>();
 		defaultParameters = new Pair<Double, Double>(DEFAULT_ALPHA, DEFAULT_BETA);
 	}
 
@@ -148,9 +158,10 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
 		double freeFlowTravelTime = macroscopicLinkSegment.computeFreeFlowTravelTime(mode);
 		double capacity = macroscopicLinkSegment.computeCapacity();
-		Pair<Double, Double> bprParameters = macroscopicLinkSegment.getBprParameters(mode);
-		double alpha = bprParameters.getFirst();
-		double beta = bprParameters.getSecond();
+		int id = (int) macroscopicLinkSegment.getId();
+		Pair<Double, Double> alphaBetaParameters = bprParametersPerLinkSegment[id].getAlphaBetaParameters(mode);
+		double alpha = alphaBetaParameters.getFirst();
+		double beta = alphaBetaParameters.getSecond();
 		double linkTravelTime = freeFlowTravelTime * (1.0 + alpha * Math.pow(flow / capacity, beta)); // Free Flow
 																										// Travel Time *
 																										// (1 +
@@ -167,7 +178,10 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 * @param beta        beta value
 	 */
 	public void setParameters(MacroscopicLinkSegment linkSegment, Mode mode, double alpha, double beta) {
-		linkSegment.registerBprParameters(mode, alpha, beta);
+		if (parametersPerLinkSegmentAndMode.get(linkSegment) == null) {
+			parametersPerLinkSegmentAndMode.put(linkSegment, new BPRParameters());
+		}
+		parametersPerLinkSegmentAndMode.get(linkSegment).registerParameters(mode, alpha, beta);
 	}
 
 	/**
@@ -178,7 +192,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 * @param beta  beta value
 	 */
 	public void setDefaultParameters(Mode mode, double alpha, double beta) {
-		defaultParametersPerMode.put(mode, new Pair<Double, Double>(alpha, beta));
+		defaultParametersPerMode.registerParameters(mode, alpha, beta);
 	}
 
 	/**
@@ -191,12 +205,11 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 */
 	public void setDefaultParameters(MacroscopicLinkSegmentType macroscopicLinkSegmentType, Mode mode, double alpha,
 			double beta) {
-		Pair<Double, Double> pair = new Pair<Double, Double>(alpha, beta);
 		if (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) == null) {
-			defaultParametersPerLinkSegmentTypeAndMode.put(macroscopicLinkSegmentType,
-					new HashMap<Mode, Pair<Double, Double>>());
+			defaultParametersPerLinkSegmentTypeAndMode.put(macroscopicLinkSegmentType, new BPRParameters());
 		}
-		defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).put(mode, pair);
+		defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).registerParameters(mode, alpha,
+				beta);
 	}
 
 	/**
@@ -217,28 +230,34 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 * 
 	 * @param physicalNetwork PhysicalNetwork object containing the updated
 	 *                        parameter values
-	 * @throws PlanItException thrown if a link/mode combination exists for which no
-	 *                         cost parameters have been set
 	 */
 	@Override
-	public void initialiseBeforeEquilibration(PhysicalNetwork physicalNetwork) throws PlanItException {
+	public void initialiseBeforeEquilibration(PhysicalNetwork physicalNetwork) {
 		MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) physicalNetwork;
+		bprParametersPerLinkSegment = new BPRParameters[macroscopicNetwork.linkSegments.getNumberOfLinkSegments()];
 		Iterator<LinkSegment> linkSegmentIterator = macroscopicNetwork.linkSegments.iterator();
 		while (linkSegmentIterator.hasNext()) {
-			MacroscopicLinkSegment macroscopiclinkSegment = (MacroscopicLinkSegment) linkSegmentIterator.next();
+			MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegmentIterator.next();
+			int id = (int) macroscopicLinkSegment.getId();
+			bprParametersPerLinkSegment[id] = new BPRParameters();
+			MacroscopicLinkSegmentType macroscopicLinkSegmentType = macroscopicLinkSegment.getLinkSegmentType();
 			for (Mode mode : Mode.getAllModes()) {
-				if (macroscopiclinkSegment.getBprParameters(mode) == null) {
-					MacroscopicLinkSegmentType macroscopicLinkSegmentType = macroscopiclinkSegment.getLinkSegmentType();
-					if ((defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) != null)
-							&& (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType)
-									.get(mode) != null)) {
-						macroscopiclinkSegment.registerBprParameters(mode, defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).get(mode));
-					} else if (defaultParametersPerMode.get(mode) != null) {
-						macroscopiclinkSegment.registerBprParameters(mode, defaultParametersPerMode.get(mode));
-					} else {
-						macroscopiclinkSegment.registerBprParameters(mode, defaultParameters);
-					}
+				Pair<Double, Double> alphaBetaPair;
+				if ((parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment) != null)
+						&& (parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment)
+								.getAlphaBetaParameters(mode) != null)) {
+					alphaBetaPair = parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode);
+				} else if ((defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) != null)
+						&& (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType)
+								.getAlphaBetaParameters(mode) != null)) {
+					alphaBetaPair = defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType)
+							.getAlphaBetaParameters(mode);
+				} else if (defaultParametersPerMode.getAlphaBetaParameters(mode) != null) {
+					alphaBetaPair = defaultParametersPerMode.getAlphaBetaParameters(mode);
+				} else {
+					alphaBetaPair = defaultParameters;
 				}
+				bprParametersPerLinkSegment[id].registerParameters(mode, alphaBetaPair);
 			}
 		}
 	}
