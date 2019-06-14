@@ -33,7 +33,7 @@ public class MacroscopicModeProperties {
     /**
      * Default max speed in km/h
      */
-    public static final double DEFAULT_MAX_SPEED = 80;
+    public static final double DEFAULT_MAXIMUM_SPEED = 80;
     
     /**
      * Default critical speed, i.e. speed at capacity in km/h
@@ -59,7 +59,7 @@ public class MacroscopicModeProperties {
      */
     public MacroscopicModeProperties() {
         super();
-        this.maxSpeed = DEFAULT_MAX_SPEED;
+        this.maxSpeed = DEFAULT_MAXIMUM_SPEED;
         this.criticalSpeed = DEFAULT_CRITICAL_SPEED;
     }
 

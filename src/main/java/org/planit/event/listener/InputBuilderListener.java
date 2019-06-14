@@ -1,11 +1,8 @@
 package org.planit.event.listener;
 
-import java.util.Map;
-
 import org.planit.event.CreatedProjectComponentEvent;
 import org.planit.event.Event;
 import org.planit.exceptions.PlanItException;
-import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 
 /**
  * Listener which is invoked whenever a project component is created. To be used
