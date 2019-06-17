@@ -18,30 +18,33 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.MultiLineString;
 
 /**
- * General geotools related utils 
+ * General geotools related utils
+ * 
  * @author markr
  *
  */
 public class PlanitGeoUtils {
-	
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(PlanitGeoUtils.class.getName());
-        
-/**
- * Geodetic calculator to construct distances between points. It is assumed the network CRS is
- * geodetic in nature.
- */
+
+	/**
+	 * Logger for this class
+	 */
+	private static final Logger LOGGER = Logger.getLogger(PlanitGeoUtils.class.getName());
+
+	/**
+	 * Geodetic calculator to construct distances between points. It is assumed the
+	 * network CRS is geodetic in nature.
+	 */
 	private GeodeticCalculator geodeticDistanceCalculator;
 	private GeometryBuilder geometryBuilder;
 	private GeometryFactory geometryFactory;
 	private PositionFactory positionFactory;
-	
-/**
- * Constructor
- * @param coordinateReferenceSystem             OpenGIS CoordinateReferenceSystem object containing geometry
- */
+
+	/**
+	 * Constructor
+	 * 
+	 * @param coordinateReferenceSystem OpenGIS CoordinateReferenceSystem object
+	 *                                  containing geometry
+	 */
 	public PlanitGeoUtils(CoordinateReferenceSystem coordinateReferenceSystem) {
 		geometryBuilder = new GeometryBuilder(coordinateReferenceSystem);
 		geodeticDistanceCalculator = new GeodeticCalculator(coordinateReferenceSystem);
@@ -49,65 +52,88 @@ public class PlanitGeoUtils {
 		positionFactory = geometryBuilder.getPositionFactory();
 	}
 
-/**
- * Compute the distance in metres between two positions in a geodetic coordinate reference system
- * 
- * @param startPosition                 location of the start point
- * @param endPosition                  location of the end point
- * @return                                      distance in metres between the points
- * @throws PlanItException           thrown if there is an error
- */
+	/**
+	 * Compute the distance in metres between two positions in a geodetic coordinate
+	 * reference system
+	 * 
+	 * @param startPosition location of the start point
+	 * @param endPosition   location of the end point
+	 * @return distance in metres between the points
+	 * @throws PlanItException thrown if there is an error
+	 */
 	public double getDistanceInMetres(Position startPosition, Position endPosition) throws PlanItException {
 		// not threadsafe
 		try {
 			geodeticDistanceCalculator.setStartingPosition(startPosition);
-			geodeticDistanceCalculator.setDestinationPosition(endPosition);		
+			geodeticDistanceCalculator.setDestinationPosition(endPosition);
 			return geodeticDistanceCalculator.getOrthodromicDistance();
 		} catch (Exception ex) {
 			throw new PlanItException(ex);
 		}
 	}
 
-/**
- * Convert a JTS line string object to an OpenGis LineString instance by transferring the internal coordinates
- * 
- * @param jtsLineString               JTS line string input
- * @return LineString                  GeoTools line string output object
- * @throws PlanItException         thrown if there is an error
- */
-	public LineString convertToOpenGisLineString(com.vividsolutions.jts.geom.LineString jtsLineString) throws PlanItException {
-		Coordinate[] coordinates = jtsLineString.getCoordinates();
-		List<Position> positionList = convertToDirectPositions(coordinates);
-		return geometryFactory.createLineString(positionList);	
-	}
-	
-/** Converts a JTS MultiLineString with a single entry into an OpenGIS LineString instance
- * 
- * @param jtsMultiLineString          JTS MultiLineString input object
- * @return LineString                     GeoTools MultiLineString output object
- * @throws PlanItException           thrown if there is an error
- */
-	public LineString convertToOpenGisLineString(MultiLineString jtsMultiLineString) throws PlanItException{
-		if(((MultiLineString) jtsMultiLineString).getNumGeometries()>1){
-			throw new PlanItException("MultiLineString contains multiple LineStrings");	
-		}
-		return convertToOpenGisLineString((com.vividsolutions.jts.geom.LineString)((MultiLineString)jtsMultiLineString).getGeometryN(0));
+	/**
+	 * Create DirectPosition object from X- and Y-coordinates
+	 * 
+	 * @param xCoordinate X-coordinate
+	 * @param yCoordinate Y-coordinate
+	 * @return DirectPosition object representing the location
+	 * @throws PlanItException thrown if there is an error during processing
+	 */
+	public DirectPosition getDirectPositionFromValues(double xCoordinate, double yCoordinate) throws PlanItException {
+		Coordinate coordinate = new Coordinate(xCoordinate, yCoordinate);
+		Coordinate[] coordinates = { coordinate };
+		List<Position> positions = convertToDirectPositions(coordinates);
+		return (DirectPosition) positions.get(0);
 	}
 
-/**
- * Convert JTS coordinates to OpenGIS directPositions
- * 
- * @param coordinates              array of JTS Coordinate objects
- * @return                                  List of GeoTools Position objects
- * @throws PlanItException       thrown if there is an error
- */
-	public List<Position> convertToDirectPositions(com.vividsolutions.jts.geom.Coordinate[] coordinates) throws PlanItException {
-		List<Position> positionList = new ArrayList<Position>(coordinates.length);		
+	/**
+	 * Convert a JTS line string object to an OpenGis LineString instance by
+	 * transferring the internal coordinates
+	 * 
+	 * @param jtsLineString JTS line string input
+	 * @return LineString GeoTools line string output object
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public LineString convertToOpenGisLineString(com.vividsolutions.jts.geom.LineString jtsLineString)
+			throws PlanItException {
+		Coordinate[] coordinates = jtsLineString.getCoordinates();
+		List<Position> positionList = convertToDirectPositions(coordinates);
+		return geometryFactory.createLineString(positionList);
+	}
+
+	/**
+	 * Converts a JTS MultiLineString with a single entry into an OpenGIS LineString
+	 * instance
+	 * 
+	 * @param jtsMultiLineString JTS MultiLineString input object
+	 * @return LineString GeoTools MultiLineString output object
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public LineString convertToOpenGisLineString(MultiLineString jtsMultiLineString) throws PlanItException {
+		if (((MultiLineString) jtsMultiLineString).getNumGeometries() > 1) {
+			throw new PlanItException("MultiLineString contains multiple LineStrings");
+		}
+		return convertToOpenGisLineString(
+				(com.vividsolutions.jts.geom.LineString) ((MultiLineString) jtsMultiLineString).getGeometryN(0));
+	}
+
+	/**
+	 * Convert JTS coordinates to OpenGIS directPositions
+	 * 
+	 * @param coordinates array of JTS Coordinate objects
+	 * @return List of GeoTools Position objects
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public List<Position> convertToDirectPositions(com.vividsolutions.jts.geom.Coordinate[] coordinates)
+			throws PlanItException {
+		List<Position> positionList = new ArrayList<Position>(coordinates.length);
 		for (Coordinate coordinate : coordinates) {
-			DirectPosition newPosition = positionFactory.createDirectPosition(new double[]{coordinate.x,coordinate.y});
+			DirectPosition newPosition = positionFactory
+					.createDirectPosition(new double[] { coordinate.x, coordinate.y });
 			positionList.add(newPosition);
 		}
 		return positionList;
 	}
-	
+
 }
