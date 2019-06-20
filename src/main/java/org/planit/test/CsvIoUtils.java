@@ -37,39 +37,6 @@ public class CsvIoUtils {
 	private static final Logger LOGGER = Logger.getLogger(CsvIoUtils.class.getName());
 
 	/**
-	 * Saves the results of a complete run to a CSV file
-	 * 
-	 * @param resultsMap          Map containing the results of the run
-	 * @param resultsFileLocation location of CSV file the results are saved to
-	 * @throws PlanItException thrown if there is an error creating the CSV file
-	 */
-	public static void saveResultsToCsvFile(
-			SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap,
-			String resultsFileLocation) throws PlanItException {
-
-		File existingFile = new File(resultsFileLocation);
-		if (existingFile.exists()) {
-			existingFile.delete();
-		}
-		try (CSVPrinter printer = new CSVPrinter(new FileWriter(resultsFileLocation), CSVFormat.EXCEL)) {
-			printer.printRecord("Run Id", "Time Period Id", "Mode Id", "Start Node Id", "End Node Id", "Link Flow",
-					"Capacity", "Length", "Speed", "Link Cost", "Cost to End Node");
-			for (Long runId : resultsMap.keySet()) {
-				for (TimePeriod timePeriod : resultsMap.get(runId).keySet()) {
-					for (Mode mode : resultsMap.get(runId).get(timePeriod).keySet()) {
-						for (BprResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
-							printCurrentRecord(printer, runId, timePeriod, mode, resultDto);
-						}
-					}
-				}
-			}
-			printer.close();
-		} catch (Exception ex) {
-			throw new PlanItException(ex);
-		}
-	}
-
-	/**
 	 * Print the current record to a CSV file
 	 * 
 	 * @param printer             CSVPrinter to which record will be written

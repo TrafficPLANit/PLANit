@@ -29,13 +29,18 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     /**
      * Store the mode specific data required during assignment
      */
-    private final Map<Mode, ModeData> modeSpecificData = new TreeMap<Mode, ModeData>(); // specific to tsa
+    //private final Map<Mode, ModeData> modeSpecificData = new TreeMap<Mode, ModeData>(); // specific to tsa
+    private final Map<Mode, ModeData> modeSpecificData;
 
+    private Map<Mode, double[]> modalNetworkSegmentCostsMap;
+    
     /**
      * Constructor
      */
     public TraditionalStaticAssignmentSimulationData() {
         modalNetworkSegmentFlows = new HashMap<Mode, double[]>();
+        modeSpecificData = new TreeMap<Mode, ModeData>();
+        modalNetworkSegmentCostsMap = new HashMap<Mode, double[]>();
     }
 
     /**
@@ -104,4 +109,13 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     public void setModalNetworkSegmentFlows(Mode mode, double[] modalNetworkSegmentFlows) {
         this.modalNetworkSegmentFlows.put(mode, modalNetworkSegmentFlows);
     }
+    
+    public void saveModalNetworkSegmentCosts(Mode mode, double[] modalNetworkSegmentCosts) {
+    	modalNetworkSegmentCostsMap.put(mode, modalNetworkSegmentCosts );
+    }
+    
+    public double[] getModalNetworkSegmentCosts(Mode mode) {
+        return modalNetworkSegmentCostsMap.get(mode);
+    }
+
 }

@@ -33,6 +33,15 @@ public abstract class OutputAdapter {
     public OutputAdapter(TrafficAssignment trafficAssignment) {
         this.trafficAssignment = trafficAssignment;
     }
+    
+    /**
+     * Return the traffic assignment object being used
+     * 
+     * @return the TrafficAssignment object
+     */
+    public TrafficAssignment getTrafficAssignment() {
+    	return trafficAssignment;
+    }
 
     /**
      * Return the combined transport network for this assignment
