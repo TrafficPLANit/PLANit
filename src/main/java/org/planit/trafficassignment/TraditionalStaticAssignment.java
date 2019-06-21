@@ -220,7 +220,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode);
 				simulationData.resetModalNetworkSegmentFlows(mode);
 				executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalNetworkSegmentCosts);
-				simulationData.saveModalNetworkSegmentCosts(mode, modalNetworkSegmentCosts);			    
+				simulationData.setModalNetworkSegmentCosts(mode, modalNetworkSegmentCosts);			    
 			}
 
 			dualityGapFunction.computeGap();
@@ -347,7 +347,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	public double[] getModalNetworkSegmentFlows(Mode mode) {
 		return simulationData.getModalNetworkSegmentFlows(mode);
 	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -375,6 +375,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		return new LinkBasedRelativeDualityGapFunction(new StopCriterion());
 	}
 
+	/**
+	 * Return the simulation data for the current iteration
+	 * 
+	 * @return simulation data
+	 */
 	public SimulationData getSimulationData() {
 		return simulationData;
 	}

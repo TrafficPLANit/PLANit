@@ -29,17 +29,6 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
     }
 
     /**
-     * Returns the network segment flows for a specified mode
-     * 
-     * @param mode
-     *            specified mode
-     * @return array storing the network segment flows for the specified mode
-     */
-    public double[] getModalNetworkSegmentFlows(Mode mode) {
-        return ((TraditionalStaticAssignment) trafficAssignment).getModalNetworkSegmentFlows(mode);
-    }
-
-    /**
      * Return the network segment costs for a specified mode
      * 
      * @param mode

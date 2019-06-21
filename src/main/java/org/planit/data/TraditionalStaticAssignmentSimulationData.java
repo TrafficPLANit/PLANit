@@ -99,7 +99,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     }
 
     /**
-     * Set the flows for a specifed mode
+     * Set the flows for a specified mode
      * 
      * @param mode
      *            the specified mode
@@ -110,7 +110,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
         this.modalNetworkSegmentFlows.put(mode, modalNetworkSegmentFlows);
     }
     
-    public void saveModalNetworkSegmentCosts(Mode mode, double[] modalNetworkSegmentCosts) {
+    public void setModalNetworkSegmentCosts(Mode mode, double[] modalNetworkSegmentCosts) {
     	modalNetworkSegmentCostsMap.put(mode, modalNetworkSegmentCosts );
     }
     
