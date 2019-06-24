@@ -63,7 +63,7 @@ public class TravelerType {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.name = DEFAULT_NAME;
         this.externalId = EXTERNAL_ID;
-        travelerTypes.put(this.externalId, this);
+        travelerTypes.put(this.id, this);
     }    
 
     /**
@@ -78,7 +78,7 @@ public class TravelerType {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.externalId = externalId;
         this.name = name;
-        travelerTypes.put(this.externalId, this);
+        travelerTypes.put(this.id, this);
     }
 
     /**
@@ -91,7 +91,7 @@ public class TravelerType {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.externalId = EXTERNAL_ID;
         this.name = name;        
-        travelerTypes.put(this.externalId, this);
+         travelerTypes.put(this.id, this);
     }
 
     /**
@@ -102,7 +102,12 @@ public class TravelerType {
      * @return retrieved TravellerType object
      */
     public static TravelerType getByExternalId(long externalId) {
-        return travelerTypes.get(externalId);
+    	for (TravelerType travelerType : travelerTypes.values()) {
+    		if (travelerType.getExternalId() == externalId) {
+    			return travelerType;
+    		}
+    	}
+    	return null;
     }
 
     /**
@@ -113,6 +118,10 @@ public class TravelerType {
      */
     public static void putByExternalId(TravelerType travellerType) {
         travelerTypes.put(travellerType.getExternalId(), travellerType);
+    }
+    
+    public static void registerTravelerType(TravelerType travellerType) {
+        travelerTypes.put(travellerType.getId(), travellerType);
     }
 
     public long getId() {
