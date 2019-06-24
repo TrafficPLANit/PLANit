@@ -107,9 +107,10 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
      * 
      * @param outputFormatter
      *            OutputFormatter being registered
+     * @throws PlanItException thrown if there is an error or validation failure during setup of the output formatter
      */
-    public void registerOutputFormatter(OutputFormatter outputFormatter) {
-        parentAssignment.registerOutputFormatter(outputFormatter);
+    public void registerOutputFormatter(OutputFormatter outputFormatter) throws PlanItException {
+         parentAssignment.registerOutputFormatter(outputFormatter);
     }
 
     /**

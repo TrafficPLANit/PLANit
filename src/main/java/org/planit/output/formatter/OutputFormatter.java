@@ -50,4 +50,5 @@ public interface OutputFormatter {
 	 * @throws PlanItException thrown if there is an error closing the resources
 	 */
 	public void close() throws PlanItException;
+	
 }
