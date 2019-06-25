@@ -5,6 +5,7 @@
 
 	<groupId>org.planit</groupId>
 	<artifactId>PlanIt</artifactId>
+	<description>Description in PlanIt pom.xml</description>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
@@ -24,11 +25,11 @@
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-geometry</artifactId>
 			<version>${geotools.version}</version>
-		</dependency> 
+		</dependency>
 		<dependency>
-		    <groupId>com.google.code.findbugs</groupId>
-		    <artifactId>jsr305</artifactId>
-		    <version>3.0.2</version>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+			<version>3.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.ojalgo</groupId>
@@ -41,24 +42,35 @@
 			<version>4.13-beta-2</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.commons</groupId>
-		    <artifactId>commons-csv</artifactId>
-		    <version>1.6</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.6</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.maven</groupId>
+			<artifactId>maven-model</artifactId>
+			<version>3.6.1</version>
 		</dependency>
 	</dependencies>
 
 	<build>
-	    <plugins>
-	        <plugin>
-			    <groupId>org.apache.maven.plugins</groupId>
-			    <artifactId>maven-compiler-plugin</artifactId>
-			    <version>3.8.0</version>
-			    <configuration>
-			        <release>11</release>
-			    </configuration>	
-	        </plugin>
-	    </plugins>
-	</build>	
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<release>11</release>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 	<repositories>
 		<repository>
@@ -73,5 +85,5 @@
 			<url>http://download.osgeo.org/webdav/geotools/</url>
 		</repository>
 	</repositories>
-	
+
 </project>
