@@ -21,15 +21,12 @@ public class TravelerType {
      */
     private static final Logger LOGGER = Logger.getLogger(TravelerType.class.getName());
         
-    /**
-     * Default name of a traveler type
-     */
     public static final String DEFAULT_NAME = "Default";
-    
-    /**
-     * Default value of the external id
-     */
-    public static final long EXTERNAL_ID = -1;    
+	/**
+	 * If no user class is defined the default user class will be assumed to have a
+	 * traveler type referencing the default external traveler type id (1)
+	 */
+    public static final long DEFAULT_EXTERNAL_ID =  1;    
 
     /**
      * Unique feature id
@@ -62,7 +59,7 @@ public class TravelerType {
     public TravelerType() {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.name = DEFAULT_NAME;
-        this.externalId = EXTERNAL_ID;
+        this.externalId = DEFAULT_EXTERNAL_ID;
         travelerTypes.put(this.id, this);
     }    
 
@@ -89,7 +86,7 @@ public class TravelerType {
      */
     public TravelerType(String name) {
         this.id = IdGenerator.generateId(TravelerType.class);
-        this.externalId = EXTERNAL_ID;
+        this.externalId = DEFAULT_EXTERNAL_ID;
         this.name = name;        
          travelerTypes.put(this.id, this);
     }

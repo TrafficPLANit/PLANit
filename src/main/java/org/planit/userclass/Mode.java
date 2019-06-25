@@ -19,6 +19,12 @@ public class Mode implements Comparable<Mode> {
 	 * Logger for this class
 	 */
 	private static final Logger LOGGER = Logger.getLogger(Mode.class.getName());
+	
+	/**
+	 * If no user class is defined the default user class will be assumed to have a
+	 * mode referencing the default external mode id (1)
+	 */
+	public static final long DEFAULT_EXTERNAL_ID =  1;  
 
 	// Protected
 
@@ -53,8 +59,10 @@ public class Mode implements Comparable<Mode> {
 	 * @param name the name of this mode
 	 * @param pcu  the PCU value of this mode
 	 */
+
 	public Mode(String name, double pcu) {
 		this.id = IdGenerator.generateId(Mode.class);
+		this.externalId = DEFAULT_EXTERNAL_ID;
 		this.name = name;
 		this.pcu = pcu;
 		modesById.put(this.id, this);

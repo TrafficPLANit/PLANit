@@ -25,7 +25,7 @@ public class MSASmoothing extends Smoothing {
     }
 
     /**
-     * update stepSize to 1/iterationIndex
+     * Update stepSize to 1/iterationIndex
      * 
      * @see org.planit.sdinteraction.smoothing.Smoothing#update(int)
      */
