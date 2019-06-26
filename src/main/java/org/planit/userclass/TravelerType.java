@@ -108,15 +108,10 @@ public class TravelerType {
     }
 
     /**
-     * Store traveler type by its external id
+     * Register the current traveler type
      * 
-     * @param travelerType
-     *            TravelerType object to store
+     * @param travellerType the TravelerType object to be registered
      */
-    public static void putByExternalId(TravelerType travellerType) {
-        travelerTypes.put(travellerType.getExternalId(), travellerType);
-    }
-    
     public static void registerTravelerType(TravelerType travellerType) {
         travelerTypes.put(travellerType.getId(), travellerType);
     }
