@@ -42,6 +42,10 @@ public class OutputManager {
 		outputFormatters = new ArrayList<OutputFormatter>();
 		outputConfiguration = new OutputConfiguration();
 	}
+	
+	public void setOutputConfiguration(OutputConfiguration outputConfiguration) {
+		this.outputConfiguration = outputConfiguration;
+	}
 
 	/**
 	 * Persist the output data for a given output type pending the configuration
@@ -121,5 +125,5 @@ public class OutputManager {
 	public boolean isOutputTypeActive(OutputType outputType) {
 		return outputConfiguration.containsOutputTypeConfiguration(outputType);
 	}
-
+	
 }

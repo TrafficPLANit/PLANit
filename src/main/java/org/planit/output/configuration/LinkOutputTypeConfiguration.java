@@ -1,6 +1,8 @@
 package org.planit.output.configuration;
 
-import org.planit.output.adapter.OutputAdapter;
+import org.planit.output.Column;
+import org.planit.output.adapter.LinkOutputAdapter;
+//import org.planit.output.adapter.OutputAdapter;
 
 /**
  * The configuration for the link output type
@@ -46,8 +48,17 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
      * @param outputAdapter
      *            to access data for output persistence
      */
-    public LinkOutputTypeConfiguration(OutputAdapter outputAdapter) {
+    public LinkOutputTypeConfiguration(LinkOutputAdapter outputAdapter) {
         super(outputAdapter);
+    }
+
+    /**
+     * Add a column to be included in the output files
+     * 
+     * @param column column to be included in the output files
+     */
+    public void addColumn(Column column) {
+    	((LinkOutputAdapter) outputAdapter).addColumn(column);
     }
 
     // getters - setters
@@ -78,4 +89,13 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
         this.excludeLinkId = excludeLinkId;
     }
 
+	public void setXmlOutputDirectory(String xmlOutputDirectory) {
+		((LinkOutputAdapter) outputAdapter).setXmlOutputDirectory(xmlOutputDirectory);
+		
+	}
+
+	public void setCsvOutputDirectory(String csvOutputDirectory) {
+		((LinkOutputAdapter) outputAdapter).setCsvOutputDirectory(csvOutputDirectory);
+	}
+    
 }

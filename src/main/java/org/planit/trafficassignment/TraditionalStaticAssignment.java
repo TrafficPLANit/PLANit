@@ -30,6 +30,8 @@ import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
+import org.planit.output.configuration.OutputConfiguration;
+import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -220,7 +222,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode);
 				simulationData.resetModalNetworkSegmentFlows(mode);
 				executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalNetworkSegmentCosts);
-				simulationData.setModalNetworkSegmentCosts(mode, modalNetworkSegmentCosts);			    
+				simulationData.setModalNetworkSegmentCosts(mode, modalNetworkSegmentCosts);
 			}
 
 			dualityGapFunction.computeGap();
@@ -297,8 +299,12 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
 		physicalCost.initialiseBeforeEquilibration(physicalNetwork);
 		List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
+		OutputConfiguration outputConfiguration = outputManager.getOutputConfiguration();
 		for (OutputFormatter outputFormatter : outputFormatters) {
-			outputFormatter.open();
+			for (OutputTypeConfiguration outputTypeConfiguration : outputConfiguration
+					.getRegisteredOutputTypeConfigurations()) {
+				outputFormatter.open(outputTypeConfiguration);
+			}
 		}
 	}
 
@@ -310,8 +316,12 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 */
 	protected void finalizeAfterEquilibration() throws PlanItException {
 		List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
+		OutputConfiguration outputConfiguration = outputManager.getOutputConfiguration();
 		for (OutputFormatter outputFormatter : outputFormatters) {
-			outputFormatter.close();
+			for (OutputTypeConfiguration outputTypeConfiguration : outputConfiguration
+					.getRegisteredOutputTypeConfigurations()) {
+				outputFormatter.close(outputTypeConfiguration);
+			}
 		}
 	}
 
@@ -347,7 +357,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	public double[] getModalNetworkSegmentFlows(Mode mode) {
 		return simulationData.getModalNetworkSegmentFlows(mode);
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * 

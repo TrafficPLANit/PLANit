@@ -14,7 +14,7 @@ import org.planit.userclass.Mode;
  * @author markr
  *
  */
-public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter {
+public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdapter {
 
     private static final Logger LOGGER = Logger.getLogger(TraditionalStaticAssignmentLinkOutputAdapter.class.getName());
 
@@ -28,7 +28,7 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
         super(trafficAssignment);
     }
 
-    /**
+   /**
      * Return the network segment costs for a specified mode
      * 
      * @param mode

@@ -1,10 +1,14 @@
 package org.planit.output.configuration;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.demand.Demands;
 import org.planit.output.OutputType;
+import org.planit.output.adapter.LinkOutputAdapter;
 import org.planit.output.adapter.OutputAdapter;
 
 /**
@@ -57,7 +61,8 @@ public class OutputConfiguration {
             OutputAdapter outputAdapter) {
         OutputTypeConfiguration outputTypeConfiguration = null;
         if (outputType.equals(OutputType.LINK)) {
-            outputTypeConfiguration = new LinkOutputTypeConfiguration(outputAdapter);
+        	LinkOutputAdapter linkOutputAdapter = (LinkOutputAdapter) outputAdapter;
+            outputTypeConfiguration = new LinkOutputTypeConfiguration(linkOutputAdapter);
         } else {
             // no other dedicated output type configurations yet exist
             // TODO: create relevant type specific loggers with relevant properties to
@@ -105,5 +110,13 @@ public class OutputConfiguration {
     public boolean isPersistOnlyFinalIteration() {
         return persistOnlyFinalIteration;
     }
-
+    
+    //public Set<OutputType> getRegisteredOutputTypes() {
+   // 	return outputTypeConfigurations.keySet();
+   // }
+    
+    public List<OutputTypeConfiguration> getRegisteredOutputTypeConfigurations() {
+    	return new ArrayList<OutputTypeConfiguration>(outputTypeConfigurations.values());
+    }
+    
 }
