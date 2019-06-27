@@ -18,26 +18,14 @@ public abstract class LinkOutputAdapter extends OutputAdapter {
     private static final Logger LOGGER = Logger.getLogger(LinkOutputAdapter.class.getName());
 
     /**
+     * 
      * Columns to be included in the CSV output files
      */
 	protected List<Column> columns;
 	
-	/**
-	 * The root directory to store the XML output files
-	 */
-	protected String xmlOutputDirectory;
-
-	/**
-	 * The root directory of the CSV output files
-	 */
-	private String csvOutputDirectory;
-
-
 	public LinkOutputAdapter(TrafficAssignment trafficAssignment) {
 		super(trafficAssignment);
         columns = new ArrayList<Column>();
-		xmlOutputDirectory = null;
-		csvOutputDirectory = null;
 	}
 
 	public void addColumn(Column column) {
@@ -48,20 +36,4 @@ public abstract class LinkOutputAdapter extends OutputAdapter {
 		return columns;
 	}
 
-	public void setXmlOutputDirectory(String xmlOutputDirectory) {
-		this.xmlOutputDirectory = xmlOutputDirectory;
-	}
-
-	public void setCsvOutputDirectory(String csvOutputDirectory) {
-		this.csvOutputDirectory = csvOutputDirectory;
-	}
-
-	public String getXmlOutputDirectory() {
-		return xmlOutputDirectory;
-	}
-
-	public String getCsvOutputDirectory() {
-		return csvOutputDirectory;
-	}
-	
- }
+}

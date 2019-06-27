@@ -30,8 +30,6 @@ import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
-import org.planit.output.configuration.OutputConfiguration;
-import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -299,12 +297,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
 		physicalCost.initialiseBeforeEquilibration(physicalNetwork);
 		List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
-		OutputConfiguration outputConfiguration = outputManager.getOutputConfiguration();
 		for (OutputFormatter outputFormatter : outputFormatters) {
-			for (OutputTypeConfiguration outputTypeConfiguration : outputConfiguration
-					.getRegisteredOutputTypeConfigurations()) {
-				outputFormatter.open(outputTypeConfiguration);
-			}
+			outputFormatter.open();
 		}
 	}
 
@@ -316,12 +310,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 */
 	protected void finalizeAfterEquilibration() throws PlanItException {
 		List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
-		OutputConfiguration outputConfiguration = outputManager.getOutputConfiguration();
 		for (OutputFormatter outputFormatter : outputFormatters) {
-			for (OutputTypeConfiguration outputTypeConfiguration : outputConfiguration
-					.getRegisteredOutputTypeConfigurations()) {
-				outputFormatter.close(outputTypeConfiguration);
-			}
+			outputFormatter.close();
 		}
 	}
 

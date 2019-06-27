@@ -1,8 +1,6 @@
 package org.planit.test;
 
-import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.Reader;
 import java.util.SortedMap;
 import java.util.SortedSet;
