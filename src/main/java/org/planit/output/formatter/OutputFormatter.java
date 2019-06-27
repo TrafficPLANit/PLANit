@@ -40,14 +40,16 @@ public interface OutputFormatter {
 	/**
 	 * Open resources to store results
 	 * 
-	 * @throws PlanItException thrown if there is an error opening the resources
+	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to
+	 *                                be saved
 	 */
 	public void open() throws PlanItException;
 
 	/**
 	 * Close resources to store results
 	 * 
-	 * @throws PlanItException thrown if there is an error closing the resources
+	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to
+	 *                                be saved
 	 */
 	public void close() throws PlanItException;
 
