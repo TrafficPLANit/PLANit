@@ -1,7 +1,12 @@
 package org.planit.output.configuration;
 
+import java.lang.reflect.InvocationTargetException;
+
+import org.planit.exceptions.PlanItException;
 import org.planit.output.Column;
 import org.planit.output.adapter.LinkOutputAdapter;
+import org.planit.output.property.BaseOutputProperty;
+import org.planit.output.property.OutputProperty;
 
 /**
  * The configuration for the link output type
@@ -51,12 +56,34 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	}
 
 	/**
-	 * Add a column to be included in the output files
+	 * Add an output property to be included in the output files
 	 * 
-	 * @param column column to be included in the output files
+	 * @param propertyClassName class name of the output property to be included in the output files
 	 */
-	public void addColumn(Column column) {
-		((LinkOutputAdapter) outputAdapter).addColumn(column);
+	public void addProperty(String propertyClassName) throws PlanItException {
+		((LinkOutputAdapter) outputAdapter).addProperty(propertyClassName);
+	}
+	
+	public void addProperty(OutputProperty outputProperty) throws PlanItException {
+		((LinkOutputAdapter) outputAdapter).addProperty(outputProperty.value());
+	}
+	
+	public void removeProperty(String propertyClassName) throws PlanItException {
+		((LinkOutputAdapter) outputAdapter).removeProperty(propertyClassName);
+	}
+	
+	public boolean removeProperty(OutputProperty outputProperty) throws PlanItException {
+		return ((LinkOutputAdapter) outputAdapter).removeProperty(outputProperty.value());
+	}
+	
+	public void addAllProperties() throws PlanItException {
+		for (OutputProperty outputProperty : OutputProperty.values()) { 
+			addProperty(outputProperty); 
+		}		
+	}
+	
+	public void removeAllProperties() {
+		((LinkOutputAdapter) outputAdapter).removeAllProperties();
 	}
 
 	// getters - setters
