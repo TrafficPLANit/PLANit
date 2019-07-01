@@ -1,4 +1,4 @@
-package org.planit.output.property;
+package org.planit.output.enums;
 
 /**
  * Enumeration of possible output data types

@@ -2,6 +2,8 @@ package org.planit.output.property;
 
 import org.planit.network.physical.Node;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
+import org.planit.output.enums.Type;
+import org.planit.output.enums.Units;
 import org.planit.userclass.Mode;
 
 public final class EndNodeIdOutputProperty extends BaseOutputProperty {
@@ -12,8 +14,8 @@ public final class EndNodeIdOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public String getUnits() {
-		return "none";
+	public Units getUnits() {
+		return Units.NONE;
 	}
 
 	@Override

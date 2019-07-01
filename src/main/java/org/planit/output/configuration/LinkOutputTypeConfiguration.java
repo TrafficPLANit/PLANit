@@ -54,30 +54,64 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	/**
 	 * Add an output property to be included in the output files
 	 * 
-	 * @param propertyClassName class name of the output property to be included in the output files
+	 * @param propertyClassName class name of the output property to be included in
+	 *                          the output files
 	 */
 	public void addProperty(String propertyClassName) throws PlanItException {
 		((LinkOutputAdapter) outputAdapter).addProperty(propertyClassName);
 	}
-	
+
+	/**
+	 * Add an output property to be included in the output files
+	 * 
+	 * @param outputProperty enumeration value specifying which output property to
+	 *                       be included in the output files
+	 */
 	public void addProperty(OutputProperty outputProperty) throws PlanItException {
 		((LinkOutputAdapter) outputAdapter).addProperty(outputProperty.value());
 	}
-	
-	public void removeProperty(String propertyClassName) throws PlanItException {
-		((LinkOutputAdapter) outputAdapter).removeProperty(propertyClassName);
+
+	/**
+	 * Remove an output property from the list of properties to be included in the
+	 * output file
+	 * 
+	 * @param propertyClassName class name of the property to be removed
+	 * @return true if the property is successfully removed, false if it was not in
+	 *         the List of output properties
+	 * @throws PlanItException thrown if there is an error removing the property
+	 */
+	public boolean removeProperty(String propertyClassName) throws PlanItException {
+		return ((LinkOutputAdapter) outputAdapter).removeProperty(propertyClassName);
 	}
-	
+
+	/**
+	 * Remove an output property from the list of properties to be included in the
+	 * output file
+	 * 
+	 * @param outputProperty enumeration value specifying which output property is
+	 *                       to be removed
+	 * @return true if the property is successfully removed, false if it was not in
+	 *         the List of output properties
+	 * @throws PlanItException thrown if there is an error removing the property
+	 */
 	public boolean removeProperty(OutputProperty outputProperty) throws PlanItException {
 		return ((LinkOutputAdapter) outputAdapter).removeProperty(outputProperty.value());
 	}
-	
+
+	/**
+	 * Include all available output properties in the output files
+	 * 
+	 * @throws PlanItException thrown if there is an error setting up the output property list
+	 */
 	public void addAllProperties() throws PlanItException {
-		for (OutputProperty outputProperty : OutputProperty.values()) { 
-			addProperty(outputProperty); 
-		}		
+		for (OutputProperty outputProperty : OutputProperty.values()) {
+			addProperty(outputProperty);
+		}
 	}
-	
+
+	/**
+	 * Remove all properties from the current output list
+	 */
 	public void removeAllProperties() {
 		((LinkOutputAdapter) outputAdapter).removeAllProperties();
 	}

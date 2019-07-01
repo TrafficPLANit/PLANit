@@ -1,6 +1,8 @@
 package org.planit.output.property;
 
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
+import org.planit.output.enums.Type;
+import org.planit.output.enums.Units;
 import org.planit.userclass.Mode;
 
 /**
@@ -21,18 +23,12 @@ public abstract class BaseOutputProperty {
 	 */
 	public abstract String getName();
 
-	// TODO - Units is a String for now. Later create an <xs:simpleType
-	// name="units"> in the linkmetadata.xsd file which
-	// restricts possible values for units, and create an enumeration in this
-	// package to match it. Like the
-	// "Type" in this package matches the generated enumeration
-	// "Datatypedescription"
 	/**
 	 * Returns the units of the output property
 	 * 
 	 * @return units of the output property
 	 */
-	public abstract String getUnits();
+	public abstract Units getUnits();
 
 	/**
 	 * Returns the data type of the output property
