@@ -3,7 +3,7 @@ package org.planit.output.property;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.userclass.Mode;
 
-public class LinkIdOutputProperty extends BaseOutputProperty {
+public final class LinkIdOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {

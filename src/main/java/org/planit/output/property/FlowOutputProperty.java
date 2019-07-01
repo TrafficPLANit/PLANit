@@ -3,7 +3,7 @@ package org.planit.output.property;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.userclass.Mode;
 
-public class FlowOutputProperty extends BaseOutputProperty {
+public final class FlowOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {

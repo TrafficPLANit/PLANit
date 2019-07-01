@@ -1,7 +1,7 @@
 package org.planit.output.property;
 
 /**
- * Enumeration of possible data types
+ * Enumeration of possible output data types
  * 
  * @author gman6028
  *

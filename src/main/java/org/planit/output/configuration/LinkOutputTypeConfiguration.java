@@ -1,11 +1,7 @@
 package org.planit.output.configuration;
 
-import java.lang.reflect.InvocationTargetException;
-
 import org.planit.exceptions.PlanItException;
-import org.planit.output.Column;
 import org.planit.output.adapter.LinkOutputAdapter;
-import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 
 /**

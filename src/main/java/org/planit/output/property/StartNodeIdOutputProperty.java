@@ -4,7 +4,7 @@ import org.planit.network.physical.Node;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.userclass.Mode;
 
-public class StartNodeIdOutputProperty extends BaseOutputProperty {
+public final class StartNodeIdOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
