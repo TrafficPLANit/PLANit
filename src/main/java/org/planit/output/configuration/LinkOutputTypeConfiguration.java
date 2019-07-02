@@ -2,6 +2,7 @@ package org.planit.output.configuration;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.output.adapter.LinkOutputAdapter;
+import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 
 /**
@@ -58,7 +59,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 *                          the output files
 	 */
 	public void addProperty(String propertyClassName) throws PlanItException {
-		((LinkOutputAdapter) outputAdapter).addProperty(propertyClassName);
+		((LinkOutputAdapter) outputAdapter).addProperty(convertToBaseOutputProperty(propertyClassName));
 	}
 
 	/**
@@ -68,7 +69,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 *                       be included in the output files
 	 */
 	public void addProperty(OutputProperty outputProperty) throws PlanItException {
-		((LinkOutputAdapter) outputAdapter).addProperty(outputProperty.value());
+		((LinkOutputAdapter) outputAdapter).addProperty(convertToBaseOutputProperty(outputProperty.value()));
 	}
 
 	/**
@@ -81,7 +82,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 * @throws PlanItException thrown if there is an error removing the property
 	 */
 	public boolean removeProperty(String propertyClassName) throws PlanItException {
-		return ((LinkOutputAdapter) outputAdapter).removeProperty(propertyClassName);
+		return ((LinkOutputAdapter) outputAdapter).removeProperty(convertToBaseOutputProperty(propertyClassName));
 	}
 
 	/**
@@ -95,13 +96,14 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 * @throws PlanItException thrown if there is an error removing the property
 	 */
 	public boolean removeProperty(OutputProperty outputProperty) throws PlanItException {
-		return ((LinkOutputAdapter) outputAdapter).removeProperty(outputProperty.value());
+		return ((LinkOutputAdapter) outputAdapter).removeProperty(convertToBaseOutputProperty(outputProperty.value()));
 	}
 
 	/**
 	 * Include all available output properties in the output files
 	 * 
-	 * @throws PlanItException thrown if there is an error setting up the output property list
+	 * @throws PlanItException thrown if there is an error setting up the output
+	 *                         property list
 	 */
 	public void addAllProperties() throws PlanItException {
 		for (OutputProperty outputProperty : OutputProperty.values()) {
@@ -142,6 +144,16 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 
 	public void setExcludeLinkId(boolean excludeLinkId) {
 		this.excludeLinkId = excludeLinkId;
+	}
+
+	private BaseOutputProperty convertToBaseOutputProperty(String propertyClassName) throws PlanItException {
+		try {
+			Class<?> entityClass = Class.forName(propertyClassName);
+			BaseOutputProperty outputProperty = (BaseOutputProperty) entityClass.getDeclaredConstructor().newInstance();
+			return outputProperty;
+		} catch (Exception e) {
+			throw new PlanItException(e);
+		}
 	}
 
 }

@@ -1,11 +1,17 @@
 package org.planit.output.adapter;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
 import org.planit.exceptions.PlanItException;
+import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.Node;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
+import org.planit.network.transport.TransportNetwork;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.trafficassignment.TraditionalStaticAssignment;
 import org.planit.userclass.Mode;
@@ -96,10 +102,56 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		}
 	}
 
+	public List<Object> getDensityForAllLinkSegments(TransportNetwork transportNetwork) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getDensityPropertyValue(linkSegment);});
+	}
+
+	public List<Object> getLinkIdForAllLinkSegments(TransportNetwork transportNetwork) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getLinkIdPropertyValue(linkSegment);});
+	}
+	
+	public List<Object> getModeIdForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getModeIdPropertyValue(mode);});
+	}
+
+	public List<Object> getSpeedForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getSpeedPropertyValue(linkSegment, mode);});
+	}
+	
+	public List<Object> getFlowForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getFlowPropertyValue(linkSegment, mode);});
+	}
+
+	public List<Object> getUpstreamNodeIdForAllLinkSegments(TransportNetwork transportNetwork) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getUpstreamNodeIdPropertyValue(linkSegment);});		
+	}
+	
+	public List<Object> getLengthForAllLinkSegments(TransportNetwork transportNetwork) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getLengthPropertyValue(linkSegment);});
+	}
+	
+	public List<Object> getTravelTimeForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getTravelTimePropertyValue(linkSegment, mode);});		
+	}
+
+	public List<Object> getDowntreamNodeIdForAllLinkSegments(TransportNetwork transportNetwork) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getDownstreamNodeIdPropertyValue(linkSegment);});		
+	}
+	
+	private List<Object> getObjectForAllLinkSegments(TransportNetwork transportNetwork, Function<MacroscopicLinkSegment, Object> getValue) {
+		List<Object> values = new ArrayList<Object>();
+		Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
+		while (linkSegmentIter.hasNext()) {
+			MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
+			values.add(getValue.apply(linkSegment));
+		}
+		return values;
+	}
+
 	private Object getDensityPropertyValue(MacroscopicLinkSegment linkSegment) {
 		return linkSegment.getLinkSegmentType().getMaximumDensityPerLane();
 	}
-
+	
 	private Object getLinkIdPropertyValue(MacroscopicLinkSegment linkSegment) {
 		return linkSegment.getId();
 	}
@@ -107,23 +159,21 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 	private Object getModeIdPropertyValue(Mode mode) {
 		return mode.getExternalId();
 	}
-
+	
 	private Object getSpeedPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
 		int id = (int) linkSegment.getId();
 		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
 		double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);
 		double travelTime = modalNetworkSegmentCosts[id];
 		double length = linkSegment.getParentLink().getLength();
-		double speed = length / travelTime;
-		return speed;
+		return length / travelTime;
 	}
-
+	
 	private Object getFlowPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
 		int id = (int) linkSegment.getId();
 		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
 		double[] modalNetworkSegmentFlows = simulationData.getModalNetworkSegmentFlows(mode);
-		double flow = modalNetworkSegmentFlows[id];
-		return flow;
+		return modalNetworkSegmentFlows[id];
 	}
 
 	private Object getLengthPropertyValue(MacroscopicLinkSegment linkSegment) {
@@ -134,18 +184,17 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		Node startNode = (Node) linkSegment.getUpstreamVertex();
 		return startNode.getExternalId();
 	}
-
+	
 	private Object getDownstreamNodeIdPropertyValue(MacroscopicLinkSegment linkSegment) {
 		Node endNode = (Node) linkSegment.getDownstreamVertex();
 		return endNode.getExternalId();
 	}
-
+	
 	private Object getTravelTimePropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
 		int id = (int) linkSegment.getId();
 		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
 		double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);
-		double travelTime = modalNetworkSegmentCosts[id];
-		return travelTime;
+		return modalNetworkSegmentCosts[id];
 	}
 	
 	private TraditionalStaticAssignmentSimulationData getSimulationData() {

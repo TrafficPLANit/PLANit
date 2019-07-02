@@ -1,13 +1,10 @@
 package org.planit.output.adapter;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.output.property.BaseOutputProperty;
-import org.planit.output.property.OutputProperty;
 import org.planit.trafficassignment.TrafficAssignment;
 
 /**
@@ -30,32 +27,12 @@ public abstract class LinkOutputAdapter extends OutputAdapter {
 		outputProperties = new ArrayList<BaseOutputProperty>();
 	}
 
-	public void addProperty(OutputProperty outputProperty) throws PlanItException {
-		addProperty(outputProperty.value());
+	public void addProperty(BaseOutputProperty outputProperty) {
+		outputProperties.add(outputProperty);
 	}
 
-	public void addProperty(String propertyClassName) throws PlanItException {
-		try {
-			Class<?> entityClass = Class.forName(propertyClassName);
-			BaseOutputProperty outputProperty = (BaseOutputProperty) entityClass.getDeclaredConstructor().newInstance();
-			outputProperties.add(outputProperty);
-		} catch (Exception e) {
-			throw new PlanItException(e);
-		}
-	}
-
-	public void removeProperty(OutputProperty outputProperty) throws PlanItException {
-		removeProperty(outputProperty.value());
-	}
-
-	public boolean removeProperty(String propertyClassName) throws PlanItException {
-		try {
-			Class<?> entityClass = Class.forName(propertyClassName);
-			BaseOutputProperty outputProperty = (BaseOutputProperty) entityClass.getDeclaredConstructor().newInstance();
-			return outputProperties.remove(outputProperty);
-		} catch (Exception e) {
-			throw new PlanItException(e);
-		}
+	public boolean removeProperty(BaseOutputProperty outputProperty) {
+		return outputProperties.remove(outputProperty);
 	}
 
 	public List<BaseOutputProperty> getOutputProperties() {
@@ -65,4 +42,5 @@ public abstract class LinkOutputAdapter extends OutputAdapter {
 	public void removeAllProperties() {
 		outputProperties.clear();
 	}
+
 }
