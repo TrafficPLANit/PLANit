@@ -1,9 +1,7 @@
 package org.planit.output.property;
 
-import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
-import org.planit.userclass.Mode;
 
 /**
  * Template for output property classes which can be included in the output
@@ -36,23 +34,13 @@ public abstract class BaseOutputProperty {
 	 * @return data type of the output property
 	 */
 	public abstract Type getType();
-
+	
 	/**
-	 * Returns the value to be included in the output value for the current property
+	 * Return the value of the OutputProperty enumeration for this property
 	 * 
-	 * Most concrete implementations of this method only use one or two of the
-	 * method parameters, but the parameter list covers every value which any
-	 * implementation might need.
-	 * 
-	 * @param linkSegment the current link segment
-	 * @param mode        the current mode
-	 * @param id          the id of the current link
-	 * @param flow        the flow through the current link
-	 * @param travelTime  the calculated travel time for the current link
-	 * @return the value to be output
+	 * @return the value of the OutputProperty enumeration for this property
 	 */
-	public abstract Object getOutputValue(MacroscopicLinkSegment linkSegment, Mode mode, int id, double flow,
-			double travelTime);
+	public abstract OutputProperty getOutputProperty();
 
 	/**
 	 * Overridden equals() method

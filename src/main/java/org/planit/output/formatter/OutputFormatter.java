@@ -2,7 +2,6 @@ package org.planit.output.formatter;
 
 import java.util.Set;
 
-import org.planit.data.SimulationData;
 import org.planit.exceptions.PlanItException;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.time.TimePeriod;
@@ -31,11 +30,9 @@ public interface OutputFormatter {
 	 * @param modes                   Set of modes for the assignment to be saved
 	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to
 	 *                                be saved
-	 * @param simulationData          simulation data for the current iteration
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration,
-			SimulationData simulationData) throws PlanItException;
+	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration) throws PlanItException;
 
 	/**
 	 * Open resources to store results

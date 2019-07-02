@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.planit.data.SimulationData;
 import org.planit.exceptions.PlanItException;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.configuration.OutputConfiguration;
@@ -54,18 +53,16 @@ public class OutputManager {
 	 * @param timePeriod     the current time period whose results are being saved
 	 * @param modes          Set of modes for the current assignment
 	 * @param outputType     the current output type
-	 * @param simulationData simulation data for the current iteration
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void persistOutputData(TimePeriod timePeriod, Set<Mode> modes, OutputType outputType,
-			SimulationData simulationData) throws PlanItException {
+	public void persistOutputData(TimePeriod timePeriod, Set<Mode> modes, OutputType outputType) throws PlanItException {
 		if (outputConfiguration.containsOutputTypeConfiguration(outputType)) {
 			OutputTypeConfiguration outputTypeConfiguration = outputConfiguration
 					.getOutputTypeConfiguration(outputType);
 			OutputAdapter outputAdapter = outputTypeConfiguration.getOutputAdapter();
 			if ((outputAdapter.isConverged()) || (!outputConfiguration.isPersistOnlyFinalIteration())) {
 				for (OutputFormatter outputFormatter : outputFormatters) {
-					outputFormatter.persist(timePeriod, modes, outputTypeConfiguration, simulationData);
+					outputFormatter.persist(timePeriod, modes, outputTypeConfiguration);
 				}
 			}
 		}

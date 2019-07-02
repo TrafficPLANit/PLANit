@@ -228,7 +228,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			LOGGER.fine("Iteration " + simulationData.getIterationIndex() + ": duality gap = "
 					+ dualityGapFunction.getGap());
 			simulationData.setConverged(dualityGapFunction.hasConverged(simulationData.getIterationIndex()));
-			outputManager.persistOutputData(timePeriod, modes, OutputType.LINK, simulationData);
+			outputManager.persistOutputData(timePeriod, modes, OutputType.LINK);
 		}
 	}
 

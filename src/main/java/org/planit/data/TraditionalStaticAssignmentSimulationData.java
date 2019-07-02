@@ -29,8 +29,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     /**
      * Store the mode specific data required during assignment
      */
-    //private final Map<Mode, ModeData> modeSpecificData = new TreeMap<Mode, ModeData>(); // specific to tsa
-    private final Map<Mode, ModeData> modeSpecificData;
+    private final Map<Mode, ModeData> modeSpecificData; // specific to tsa
 
     private Map<Mode, double[]> modalNetworkSegmentCostsMap;
     

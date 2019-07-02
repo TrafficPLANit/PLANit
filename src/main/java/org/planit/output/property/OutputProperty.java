@@ -14,10 +14,10 @@ public enum OutputProperty {
 	SPEED("org.planit.output.property.SpeedOutputProperty"),
 	FLOW("org.planit.output.property.FlowOutputProperty"), 
 	LENGTH("org.planit.output.property.LengthOutputProperty"),
-	START_NODE_ID("org.planit.output.property.StartNodeIdOutputProperty"),
-	END_NODE_ID("org.planit.output.property.EndNodeIdOutputProperty"),
+	UPSTREAM_NODE_EXTERNAL_ID("org.planit.output.property.UpstreamNodeExternalIdOutputProperty"),
+	DOWNSTREAM_NODE_EXTERNAL_ID("org.planit.output.property.DownstreamNodeExternalIdOutputProperty"),
 	TRAVEL_TIME("org.planit.output.property.TravelTimeOutputProperty");
-
+	
 	private final String value;
 
 	OutputProperty(String v) {
