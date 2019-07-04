@@ -7,7 +7,7 @@ public final class SpeedOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "speed";
+		return "Speed";
 	}
 
 	@Override
@@ -23,6 +23,11 @@ public final class SpeedOutputProperty extends BaseOutputProperty {
 	@Override
 	public OutputProperty getOutputProperty() {
 		return OutputProperty. SPEED;
+	}
+
+	@Override
+	public int getColumnPosition() {
+		return 11;
 	}
 
 }

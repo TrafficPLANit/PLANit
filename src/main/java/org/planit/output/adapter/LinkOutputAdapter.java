@@ -1,7 +1,7 @@
 package org.planit.output.adapter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.planit.output.property.BaseOutputProperty;
@@ -20,11 +20,11 @@ public abstract class LinkOutputAdapter extends OutputAdapter {
 	/**
 	 * Output properties to be included in the CSV output files
 	 */
-	protected List<BaseOutputProperty> outputProperties;
+	protected SortedSet<BaseOutputProperty> outputProperties;
 
 	public LinkOutputAdapter(TrafficAssignment trafficAssignment) {
 		super(trafficAssignment);
-		outputProperties = new ArrayList<BaseOutputProperty>();
+		outputProperties = new TreeSet<BaseOutputProperty>();
 	}
 
 	public void addProperty(BaseOutputProperty outputProperty) {
@@ -35,7 +35,7 @@ public abstract class LinkOutputAdapter extends OutputAdapter {
 		return outputProperties.remove(outputProperty);
 	}
 
-	public List<BaseOutputProperty> getOutputProperties() {
+	public SortedSet<BaseOutputProperty> getOutputProperties() {
 		return outputProperties;
 	}
 

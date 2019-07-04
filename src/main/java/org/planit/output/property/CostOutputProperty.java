@@ -3,31 +3,31 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 
-public final class DownstreamNodeExternalIdOutputProperty extends BaseOutputProperty {
+public final class CostOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "Downstream Node External Id";
+		return "Travel Time";
 	}
 
 	@Override
 	public Units getUnits() {
-		return Units.NONE;
+		return Units.H;
 	}
 
 	@Override
 	public Type getType() {
-		return Type.INTEGER;
+		return Type.DOUBLE;
 	}
 
 	@Override
 	public OutputProperty getOutputProperty() {
-		return OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID;	
+		return OutputProperty.COST;
 	}
 
 	@Override
 	public int getColumnPosition() {
-		return 4;
+		return 8;
 	}
 
 }

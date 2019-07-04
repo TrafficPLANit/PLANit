@@ -3,26 +3,31 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 
-public final class TravelTimeOutputProperty extends BaseOutputProperty {
+public final class ModeExternalIdOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "travel time";
+		return "Mode External Id";
 	}
 
 	@Override
 	public Units getUnits() {
-		return Units.H;
+		return Units.NONE;
 	}
 
 	@Override
 	public Type getType() {
-		return Type.DOUBLE;
+		return Type.INTEGER;
 	}
 
 	@Override
 	public OutputProperty getOutputProperty() {
-		return OutputProperty. TRAVEL_TIME;
+		return OutputProperty.MODE_EXTERNAL_ID;
+	}
+
+	@Override
+	public int getColumnPosition() {
+		return 2;
 	}
 
 }

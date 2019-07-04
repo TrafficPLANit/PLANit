@@ -7,7 +7,7 @@ public final class UpstreamNodeExternalIdOutputProperty extends BaseOutputProper
 
 	@Override
 	public String getName() {
-		return "upstream node id";
+		return "Upstream Node External Id";
 	}
 
 	@Override
@@ -23,6 +23,11 @@ public final class UpstreamNodeExternalIdOutputProperty extends BaseOutputProper
 	@Override
 	public OutputProperty getOutputProperty() {
 		return OutputProperty.UPSTREAM_NODE_EXTERNAL_ID;
+	}
+
+	@Override
+	public int getColumnPosition() {
+		return 5;
 	}
 
 }

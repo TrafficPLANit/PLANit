@@ -3,11 +3,11 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 
-public final class LinkIdOutputProperty extends BaseOutputProperty {
+public class LinkSegmentExternalIdOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "link id";
+		return "Link Segment External Id";
 	}
 
 	@Override
@@ -22,7 +22,12 @@ public final class LinkIdOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public OutputProperty getOutputProperty() {
-		return OutputProperty.LINK_ID;
+		return OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
+	}
+
+	@Override
+	public int getColumnPosition() {
+		return 0;
 	}
 
 }

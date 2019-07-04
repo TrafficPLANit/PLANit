@@ -7,7 +7,7 @@ public final class LengthOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "length";
+		return "Length";
 	}
 
 	@Override
@@ -23,6 +23,11 @@ public final class LengthOutputProperty extends BaseOutputProperty {
 	@Override
 	public OutputProperty getOutputProperty() {
 		return OutputProperty.LENGTH;
+	}
+
+	@Override
+	public int getColumnPosition() {
+		return 6;
 	}
 
 }

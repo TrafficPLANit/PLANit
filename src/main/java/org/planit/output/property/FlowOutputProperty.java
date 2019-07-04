@@ -7,7 +7,7 @@ public final class FlowOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "flow";
+		return "Flow";
 	}
 
 	@Override
@@ -23,6 +23,11 @@ public final class FlowOutputProperty extends BaseOutputProperty {
 	@Override
 	public OutputProperty getOutputProperty() {
 		return OutputProperty. FLOW;
+	}
+
+	@Override
+	public int getColumnPosition() {
+		return 10;
 	}
 
 }

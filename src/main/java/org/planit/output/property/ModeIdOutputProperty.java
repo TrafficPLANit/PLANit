@@ -3,11 +3,11 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 
-public final class ModeIdOutputProperty extends BaseOutputProperty {
+public class ModeIdOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "mode id";
+		return "Mode Id";
 	}
 
 	@Override
@@ -23,6 +23,11 @@ public final class ModeIdOutputProperty extends BaseOutputProperty {
 	@Override
 	public OutputProperty getOutputProperty() {
 		return OutputProperty.MODE_ID;
+	}
+
+	@Override
+	public int getColumnPosition() {
+		return 3;
 	}
 
 }

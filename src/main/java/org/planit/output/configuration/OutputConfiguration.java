@@ -6,6 +6,7 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.demand.Demands;
+import org.planit.exceptions.PlanItException;
 import org.planit.output.OutputType;
 import org.planit.output.adapter.LinkOutputAdapter;
 import org.planit.output.adapter.OutputAdapter;
@@ -55,9 +56,10 @@ public class OutputConfiguration {
      *            the adapter that allows access to the data to persist for the
      *            given output type
      * @return outputConfiguration that has been created
+     * @throws PlanItException 
      */
     public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType,
-            OutputAdapter outputAdapter) {
+            OutputAdapter outputAdapter) throws PlanItException {
         OutputTypeConfiguration outputTypeConfiguration = null;
         if (outputType.equals(OutputType.LINK)) {
         	LinkOutputAdapter linkOutputAdapter = (LinkOutputAdapter) outputAdapter;

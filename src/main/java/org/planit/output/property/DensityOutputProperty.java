@@ -7,7 +7,7 @@ public final class DensityOutputProperty extends BaseOutputProperty{
 
 	@Override
 	public String getName() {
-		return "density";
+		return "Density";
 	}
 
 	@Override
@@ -23,6 +23,11 @@ public final class DensityOutputProperty extends BaseOutputProperty{
 	@Override
 	public OutputProperty getOutputProperty() {
 		return OutputProperty.DENSITY;
+	}
+
+	@Override
+	public int getColumnPosition() {
+		return 9;
 	}
 
 }

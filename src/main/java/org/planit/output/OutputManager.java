@@ -75,9 +75,10 @@ public class OutputManager {
 	 * @param outputAdapter the adapter that allows access to the data to persist
 	 *                      for the given output type
 	 * @return outputConfiguration that has been created
+	 * @throws PlanItException thrown if there is an error creating the output type configuration
 	 */
 	public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType,
-			OutputAdapter outputAdapter) {
+			OutputAdapter outputAdapter) throws PlanItException {
 		return outputConfiguration.createAndRegisterOutputTypeConfiguration(outputType, outputAdapter);
 	}
 

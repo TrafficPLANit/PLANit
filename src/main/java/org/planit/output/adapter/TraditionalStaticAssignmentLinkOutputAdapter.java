@@ -81,10 +81,14 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		switch (outputProperty.getOutputProperty()) {
 		case DENSITY:
 			return getDensityPropertyValue(linkSegment);
-		case LINK_ID:
-			return getLinkIdPropertyValue(linkSegment);
+		case LINK_SEGMENT_ID:
+			return getLinkSegmentIdPropertyValue(linkSegment);
+		case LINK_SEGMENT_EXTERNAL_ID:
+			return getLinkSegmentExternalIdPropertyValue(linkSegment);
 		case MODE_ID:
 			return getModeIdPropertyValue(mode);
+		case MODE_EXTERNAL_ID:
+			return getModeExternalIdPropertyValue(mode);
 		case SPEED:
 			return getSpeedPropertyValue(linkSegment, mode);
 		case FLOW:
@@ -95,8 +99,10 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 			return getUpstreamNodeIdPropertyValue(linkSegment);
 		case DOWNSTREAM_NODE_EXTERNAL_ID:
 			return getDownstreamNodeIdPropertyValue(linkSegment);
-		case TRAVEL_TIME:
-			return getTravelTimePropertyValue(linkSegment, mode);
+		case COST:
+			return getCostPropertyValue(linkSegment, mode);
+		case CAPACITY_PER_LANE:
+			return getCapacityPerLanePropertyValue(linkSegment);
 		default:
 			return null;
 		}
@@ -106,10 +112,18 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getDensityPropertyValue(linkSegment);});
 	}
 
-	public List<Object> getLinkIdForAllLinkSegments(TransportNetwork transportNetwork) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getLinkIdPropertyValue(linkSegment);});
+	public List<Object> getLinkSegmentIdForAllLinkSegments(TransportNetwork transportNetwork) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getLinkSegmentIdPropertyValue(linkSegment);});
 	}
 	
+	public List<Object> getLinkSegmentExternalIdForAllLinkSegments(TransportNetwork transportNetwork) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getLinkSegmentExternalIdPropertyValue(linkSegment);});
+	}
+	
+	public List<Object> getModeExternalIdForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getModeExternalIdPropertyValue(mode);});
+	}
+
 	public List<Object> getModeIdForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
 		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getModeIdPropertyValue(mode);});
 	}
@@ -130,12 +144,16 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getLengthPropertyValue(linkSegment);});
 	}
 	
-	public List<Object> getTravelTimeForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getTravelTimePropertyValue(linkSegment, mode);});		
+	public List<Object> getCostForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getCostPropertyValue(linkSegment, mode);});		
 	}
 
 	public List<Object> getDowntreamNodeIdForAllLinkSegments(TransportNetwork transportNetwork) {
 		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getDownstreamNodeIdPropertyValue(linkSegment);});		
+	}
+	
+	public List<Object> getCapacityPerLaneForAllLinkSegments(TransportNetwork transportNetwork) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getCapacityPerLanePropertyValue(linkSegment);});		
 	}
 	
 	private List<Object> getObjectForAllLinkSegments(TransportNetwork transportNetwork, Function<MacroscopicLinkSegment, Object> getValue) {
@@ -147,17 +165,29 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		}
 		return values;
 	}
+	
+	private Object getCapacityPerLanePropertyValue(MacroscopicLinkSegment linkSegment) {
+		return linkSegment.getLinkSegmentType().getCapacityPerLane();
+	}
 
 	private Object getDensityPropertyValue(MacroscopicLinkSegment linkSegment) {
 		return linkSegment.getLinkSegmentType().getMaximumDensityPerLane();
 	}
 	
-	private Object getLinkIdPropertyValue(MacroscopicLinkSegment linkSegment) {
+	private Object getLinkSegmentIdPropertyValue(MacroscopicLinkSegment linkSegment) {
 		return linkSegment.getId();
 	}
 
-	private Object getModeIdPropertyValue(Mode mode) {
+	private Object getLinkSegmentExternalIdPropertyValue(MacroscopicLinkSegment linkSegment) {
+		return linkSegment.getParentLink().getExternalId();
+	}
+
+	private Object getModeExternalIdPropertyValue(Mode mode) {
 		return mode.getExternalId();
+	}
+	
+	private Object getModeIdPropertyValue(Mode mode) {
+		return mode.getId();
 	}
 	
 	private Object getSpeedPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
@@ -190,7 +220,7 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		return endNode.getExternalId();
 	}
 	
-	private Object getTravelTimePropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
+	private Object getCostPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
 		int id = (int) linkSegment.getId();
 		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
 		double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);

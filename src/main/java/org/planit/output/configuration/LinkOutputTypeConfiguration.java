@@ -47,9 +47,16 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 * Constructor
 	 * 
 	 * @param outputAdapter to access data for output persistence
+	 * @throws PlanItException thrown if there is an error adding the default properties
 	 */
-	public LinkOutputTypeConfiguration(LinkOutputAdapter outputAdapter) {
+	public LinkOutputTypeConfiguration(LinkOutputAdapter outputAdapter) throws PlanItException {
 		super(outputAdapter);
+		//add default output properties
+		addProperty(OutputProperty.LINK_SEGMENT_ID);
+		addProperty(OutputProperty.MODE_EXTERNAL_ID);
+		addProperty(OutputProperty.FLOW);
+		addProperty(OutputProperty.SPEED);
+		addProperty(OutputProperty.COST);
 	}
 
 	/**
