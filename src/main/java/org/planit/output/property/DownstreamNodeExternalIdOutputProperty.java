@@ -7,7 +7,7 @@ public final class DownstreamNodeExternalIdOutputProperty extends BaseOutputProp
 
 	@Override
 	public String getName() {
-		return "Downstream Node External Id";
+		return "Node Downstream External Id";
 	}
 
 	@Override
@@ -26,8 +26,8 @@ public final class DownstreamNodeExternalIdOutputProperty extends BaseOutputProp
 	}
 
 	@Override
-	public int getColumnPosition() {
-		return 4;
+	public int getColumnPriority() {
+		return ID_PRIORITY;
 	}
 
 }

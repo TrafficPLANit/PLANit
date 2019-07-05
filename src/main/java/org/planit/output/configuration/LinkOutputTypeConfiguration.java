@@ -46,6 +46,8 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	/**
 	 * Constructor
 	 * 
+	 * Define the default output properties here.
+	 * 
 	 * @param outputAdapter to access data for output persistence
 	 * @throws PlanItException thrown if there is an error adding the default properties
 	 */

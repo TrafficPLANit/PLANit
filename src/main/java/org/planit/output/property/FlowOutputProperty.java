@@ -26,8 +26,8 @@ public final class FlowOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public int getColumnPosition() {
-		return 10;
+	public int getColumnPriority() {
+		return RESULT_PRORITY;
 	}
 
 }

@@ -26,8 +26,8 @@ public final class LengthOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public int getColumnPosition() {
-		return 6;
+	public int getColumnPriority() {
+		return INPUT_PRIORITY;
 	}
 
 }

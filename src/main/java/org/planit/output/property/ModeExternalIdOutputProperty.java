@@ -26,8 +26,8 @@ public final class ModeExternalIdOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public int getColumnPosition() {
-		return 2;
+	public int getColumnPriority() {
+		return ID_PRIORITY;
 	}
 
 }

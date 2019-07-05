@@ -26,8 +26,8 @@ public final class CostOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public int getColumnPosition() {
-		return 8;
+	public int getColumnPriority() {
+		return RESULT_PRORITY;
 	}
 
 }

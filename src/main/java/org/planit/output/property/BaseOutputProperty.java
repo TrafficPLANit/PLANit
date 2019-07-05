@@ -7,12 +7,16 @@ import org.planit.output.enums.Units;
  * Template for output property classes which can be included in the output
  * files.
  * 
- * All concrete output property classes must be final and override this class.
+ * All concrete output property classes must be final and extend this class.
  * 
  * @author gman6028
  *
  */
 public abstract class BaseOutputProperty implements Comparable<BaseOutputProperty> {
+	
+	protected static final int ID_PRIORITY = 0;
+	protected static final int INPUT_PRIORITY = 1;
+	protected static final int RESULT_PRORITY = 2;
 
 	/**
 	 * Returns the name of the output property
@@ -43,13 +47,14 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 	public abstract OutputProperty getOutputProperty();
 
 	/**
-	 * Sets the column position of the output property in output files
+	 * Sets the column priority of the output property in output files
 	 * 
-	 * The lower the column position value of a property, the further to the left it is placed in the output file
+	 * The lower the column priority value of a property, the further to the left it is placed in the output file
 	 * 
 	 * @return
 	 */
-	public abstract int getColumnPosition();
+	public abstract int getColumnPriority();
+	
 	/**
 	 * Overridden equals() method
 	 * 
@@ -74,7 +79,16 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 		return getUnits().hashCode() + getType().hashCode() + getName().hashCode();
 	}
 	
+	/**
+	 * compareTo method used to order the output columns when output is being written
+	 * 
+	 * @param otherProperty output property which is being compared to the current one
+	 */
 	public int compareTo(BaseOutputProperty otherProperty) {
-		return    getColumnPosition() - otherProperty.getColumnPosition();
+		int diff = getColumnPriority()  - otherProperty.getColumnPriority();
+		if (!(diff == 0)) {
+			return diff;
+		}
+		return getName().compareTo(otherProperty.getName());
 	}
 }

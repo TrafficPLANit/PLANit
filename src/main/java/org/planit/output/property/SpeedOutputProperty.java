@@ -26,8 +26,8 @@ public final class SpeedOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public int getColumnPosition() {
-		return 11;
+	public int getColumnPriority() {
+		return RESULT_PRORITY;
 	}
 
 }

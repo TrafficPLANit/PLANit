@@ -26,8 +26,8 @@ public final class DensityOutputProperty extends BaseOutputProperty{
 	}
 
 	@Override
-	public int getColumnPosition() {
-		return 9;
+	public int getColumnPriority() {
+		return RESULT_PRORITY;
 	}
 
 }
