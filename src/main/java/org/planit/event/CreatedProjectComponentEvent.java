@@ -23,6 +23,8 @@ public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T
      * Component that was created
      */
     protected final T projectComponent;
+    
+    protected Object parameter;
 
     /**
      * Constructor
@@ -32,6 +34,12 @@ public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T
      */
     public CreatedProjectComponentEvent(T projectComponent) {
         this.projectComponent = projectComponent;
+        parameter = null;
+    }
+    
+    public CreatedProjectComponentEvent(T projectComponent, Object parameter) {
+        this.projectComponent = projectComponent;
+        this.parameter = parameter;
     }
 
     /**
@@ -41,5 +49,9 @@ public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T
      */
     public T getProjectComponent() {
         return projectComponent;
+    }
+    
+    public Object getParameter() {
+    	return parameter;
     }
 }

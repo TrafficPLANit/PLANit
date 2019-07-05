@@ -165,13 +165,22 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
      * @throws PlanItException
      *             thrown if there is an error
      */
-    @SuppressWarnings("unchecked")
     public T create(String trafficAssignmentComponentClassName) throws PlanItException {
-        T newTrafficComponent = null;
+    	return create(trafficAssignmentComponentClassName, null);
+    }
+    
+    public T create(String trafficAssignmentComponentClassName, Object parameter) throws PlanItException {
+    	T newTrafficComponent = createTrafficComponent(trafficAssignmentComponentClassName);
+    	dispatchTrafficComponentEvent(newTrafficComponent, parameter);
+        return newTrafficComponent;
+    }
+    
+    @SuppressWarnings("unchecked")
+	private T createTrafficComponent(String trafficAssignmentComponentClassName) throws PlanItException {
         TreeSet<String> eligibleComponentTypes = registeredTrafficAssignmentComponents.get(componentSuperType);
         try {
             if (eligibleComponentTypes.contains(trafficAssignmentComponentClassName)) {
-                newTrafficComponent = (T) Class.forName(trafficAssignmentComponentClassName).getConstructor()
+                return (T) Class.forName(trafficAssignmentComponentClassName).getConstructor()
                         .newInstance();
             } else {
                 throw new PlanItException(
@@ -180,12 +189,14 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
         } catch (Exception ex) {
             throw new PlanItException(ex);
         }
+    }
+
+    private void dispatchTrafficComponentEvent(T newTrafficComponent, Object parameter) throws PlanItException {
         newTrafficComponent.setEventManager(eventManager);
         registerEligibleInteractorListener(newTrafficComponent);
 
-        Event event = new CreatedProjectComponentEvent<T>(newTrafficComponent);
+        Event event = new CreatedProjectComponentEvent<T>(newTrafficComponent, parameter);
         eventManager.dispatchEvent(event);
-        return newTrafficComponent;
     }
 
     /**

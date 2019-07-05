@@ -26,12 +26,12 @@ import org.planit.exceptions.PlanItException;
  * @author markr
  *
  */
-public class PlanItProject {
+public class CustomPlanItProject {
 
     /**
      * Logger for this class
      */
-    private static final Logger LOGGER = Logger.getLogger(PlanItProject.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(CustomPlanItProject.class.getName());
 
     /**
      * The physical networks registered on this project
@@ -143,7 +143,7 @@ public class PlanItProject {
      * @param inputBuilderListener
      *            InputBuilderListener used to read in data
      */
-    public PlanItProject(InputBuilderListener inputBuilderListener) {
+    public CustomPlanItProject(InputBuilderListener inputBuilderListener) {
         eventManager.addEventListener(inputBuilderListener);
         initialiseFactories(eventManager);
     }
