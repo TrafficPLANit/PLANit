@@ -106,6 +106,7 @@ public class PLANitExample{
 		
 	}
 }
+```
 
 ## Building code and running unit tests in Eclipse
 
@@ -151,7 +152,7 @@ You can change the configuration at any time as required by your code changes.  
 Whenever you click Run, the configuration dialog box closes.  Its setting on its closure will be retained for the next time it is opened.  If you use this dialog box often on several projects, do not forget to check its settings on opening are appropriate for the build you are doing.
 
 It is a matter of personal taste whether you run unit tests directly (by right-clicking on a test suite and selecting Run As/JUnit Test) or run them as part of this build process.  Running them directly will not generate Java classes from XSD files, so if you have made changes to the XSD files you must rebuild.  Running directly is fractionally quicker, but even the builds only take a few seconds so the difference is negligible.
-```
+
 
 
 
