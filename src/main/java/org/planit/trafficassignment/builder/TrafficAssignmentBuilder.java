@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
+import org.planit.cost.physical.InitialLinkSegmentCost;
 import org.planit.demand.Demands;
 import org.planit.event.management.EventHandler;
 import org.planit.event.management.EventManager;
@@ -113,6 +114,15 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
          parentAssignment.registerOutputFormatter(outputFormatter);
     }
 
+    /**
+     * Register the initial link segment cost for the current assignment
+     * 
+     * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
+     */
+    public void registerInitialLinkSegmentCost(InitialLinkSegmentCost initialLinkSegmentCost) {
+    	parentAssignment.setInitialLinkSegmentCost(initialLinkSegmentCost);
+    }
+    
     /**
      * Set the EventManager for this builder
      * 

@@ -3,6 +3,7 @@ package org.planit.project;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
+import org.planit.cost.physical.PhysicalCost;
 import org.planit.demand.Demands;
 import org.planit.event.listener.InputBuilderListener;
 import org.planit.event.management.EventManager;
@@ -36,60 +37,57 @@ public class CustomPlanItProject {
     /**
      * The physical networks registered on this project
      */
-    private TreeMap<Long, PhysicalNetwork> physicalNetworks = new TreeMap<Long, PhysicalNetwork>();
+    protected TreeMap<Long, PhysicalNetwork> physicalNetworks = new TreeMap<Long, PhysicalNetwork>();
 
     /**
      * The zoning(s) registered on this project
      */
-    private TreeMap<Long, Zoning> zonings = new TreeMap<Long, Zoning>();
+    protected TreeMap<Long, Zoning> zonings = new TreeMap<Long, Zoning>();
 
     /**
      * The demands registered on this project
      */
-    private TreeMap<Long, Demands> demandsMap = new TreeMap<Long, Demands>();
+    protected TreeMap<Long, Demands> demandsMap = new TreeMap<Long, Demands>();
 
     /**
      * The output formatter(s) registered on this project
      */
-    private TreeMap<Long, OutputFormatter> outputFormatters = new TreeMap<Long, OutputFormatter>();
+    protected TreeMap<Long, OutputFormatter> outputFormatters = new TreeMap<Long, OutputFormatter>();
 
     /**
      * The physical network used for this project
      */
-    private PhysicalNetwork physicalNetwork;
+    protected PhysicalNetwork physicalNetwork;
 
     /**
      * The zoning used for this project.
      */
-    private Zoning zoning;
+    protected Zoning zoning;
+    
     /**
      * Object Factory for physical network object
      */
-    private TrafficAssignmentComponentFactory<PhysicalNetwork> physicalNetworkFactory = new TrafficAssignmentComponentFactory<PhysicalNetwork>(
-            PhysicalNetwork.class);
+    protected TrafficAssignmentComponentFactory<PhysicalNetwork> physicalNetworkFactory;
 
     /**
      * Object factory for zoning objects
      */
-    private TrafficAssignmentComponentFactory<Zoning> zoningFactory = new TrafficAssignmentComponentFactory<Zoning>(
-            Zoning.class);
-
+    protected TrafficAssignmentComponentFactory<Zoning> zoningFactory;
+    
     /**
      * Object factory for demands object
      */
-    private TrafficAssignmentComponentFactory<Demands> demandsFactory = new TrafficAssignmentComponentFactory<Demands>(
-            Demands.class);
+    protected TrafficAssignmentComponentFactory<Demands> demandsFactory;
 
     /**
      * Object factory for network loading object
      */
-    private TrafficAssignmentComponentFactory<NetworkLoading> assignmentFactory = new TrafficAssignmentComponentFactory<NetworkLoading>(
-            NetworkLoading.class);
+    protected TrafficAssignmentComponentFactory<NetworkLoading> assignmentFactory;
 
     /**
      * Event manager used by all components
      */
-    private EventManager eventManager = new SimpleEventManager();
+    protected EventManager eventManager = new SimpleEventManager();
 
     /**
      * The traffic assignment(s) registered on this project
@@ -99,12 +97,16 @@ public class CustomPlanItProject {
     // Private methods
 
     /**
-     * Register the event manager on all factories
+     * Instantiate the factories and register the event manager on them
      * 
      * @param eventManager
      *            the EventManager for this project
      */
-    private void initialiseFactories(EventManager eventManager) {
+    protected void initialiseFactories(EventManager eventManager) {
+    	physicalNetworkFactory = new TrafficAssignmentComponentFactory<PhysicalNetwork>(PhysicalNetwork.class);
+    	zoningFactory = new TrafficAssignmentComponentFactory<Zoning>(Zoning.class);
+    	demandsFactory = new TrafficAssignmentComponentFactory<Demands>(Demands.class);
+    	assignmentFactory = new TrafficAssignmentComponentFactory<NetworkLoading>(NetworkLoading.class);
         physicalNetworkFactory.setEventManager(eventManager);
         zoningFactory.setEventManager(eventManager);
         demandsFactory.setEventManager(eventManager);

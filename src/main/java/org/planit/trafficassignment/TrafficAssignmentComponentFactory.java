@@ -7,6 +7,7 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
+import org.planit.cost.physical.InitialLinkSegmentCost;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.SpeedConnectoidTravelTimeCost;
@@ -22,6 +23,8 @@ import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.sdinteraction.smoothing.MSASmoothing;
 import org.planit.sdinteraction.smoothing.Smoothing;
+import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
+import org.planit.supply.network.nodemodel.NodeModel;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.zoning.Zoning;
 
@@ -69,6 +72,8 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
         registeredTrafficAssignmentComponents.put(PhysicalNetwork.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(PhysicalCost.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(VirtualCost.class, new TreeSet<>());
+        registeredTrafficAssignmentComponents.put(FundamentalDiagram.class, new TreeSet<>());
+        registeredTrafficAssignmentComponents.put(NodeModel.class, new TreeSet<>());
     }
 
     // Currently supported traffic assignment components
@@ -95,6 +100,8 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
             registerTrafficAssignmentComponentType(FixedConnectoidTravelTimeCost.class);
             // Speed Cost
             registerTrafficAssignmentComponentType(SpeedConnectoidTravelTimeCost.class);
+            // Initial Link Segment Cost
+            registerTrafficAssignmentComponentType(InitialLinkSegmentCost.class);
         } catch (PlanItException e) {
             e.printStackTrace();
         }
@@ -157,6 +164,9 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
      * @throws PlanItException
      *             thrown if there is an error
      */
+ //TODO - Not sure this will work for InitialLinkSegmentCost since PhysicalCost is NOT its direct superclass
+ // InitialLinkSegmentCost extends InitialPhysicalCost extends PhysicalCost
+ //We may need to make the super class check recursive so it keeps going up the hierarchy
     public static void registerTrafficAssignmentComponentType(final Class<?> trafficAssignmentComponent)
             throws PlanItException {
         Class<?> currentClass = trafficAssignmentComponent;
@@ -193,6 +203,17 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
     	return create(trafficAssignmentComponentClassName, null);
     }
     
+    /**
+     * Create traffic assignment component
+     * 
+     * @param trafficAssignmentComponentClassName
+     *            the derived class name of the traffic assignment component
+     *            (without packages)
+     * @param parameter object which contains any data required to create the component
+     * @return the created TrafficAssignmentComponent
+     * @throws PlanItException
+     *             thrown if there is an error
+     */
     public T create(String trafficAssignmentComponentClassName, Object parameter) throws PlanItException {
     	T newTrafficComponent = createTrafficComponent(trafficAssignmentComponentClassName);
     	dispatchTrafficComponentEvent(newTrafficComponent, parameter);

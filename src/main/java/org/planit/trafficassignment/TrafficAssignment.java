@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 import org.planit.cost.Cost;
+import org.planit.cost.physical.InitialLinkSegmentCost;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.demand.Demands;
 import org.planit.event.RequestAccesseeEvent;
@@ -98,6 +99,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * The demand to use
 	 */
 	protected Demands demands = null;
+	
+	/**
+	 * The initial link segment cost
+	 */
+	protected InitialLinkSegmentCost initialLinkSegmentCost;
 
 	/**
 	 * Each traffic assignment implementation has its own unique output adapter
@@ -318,6 +324,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	public void setZoning(@Nonnull Zoning zoning) {
 		this.zoning = zoning;
+	}
+
+	/**
+	 * Set the initial link segment cost
+	 * 
+	 * @param initialLinkSegmentCost
+	 */
+	public void setInitialLinkSegmentCost(InitialLinkSegmentCost initialLinkSegmentCost) {
+		this.initialLinkSegmentCost = initialLinkSegmentCost;
 	}
 
 	/**
