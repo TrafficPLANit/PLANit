@@ -3,26 +3,26 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 
-public final class CapacityPerLaneOutputProperty extends BaseOutputProperty {
+public final class DownstreamNodeLocationOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "Capacity per Lane";
+		return "Downstream Node Location";
 	}
 
 	@Override
 	public Units getUnits() {
-		return Units.VEH_KM;
+		return Units.SRS;
 	}
 
 	@Override
 	public Type getType() {
-		return Type.DOUBLE;
+		return Type.SRSNAME;
 	}
 
 	@Override
 	public OutputProperty getOutputProperty() {
-		return OutputProperty.CAPACITY_PER_LANE;
+		return OutputProperty.DOWNSTREAM_NODE_LOCATION;
 	}
 
 	@Override

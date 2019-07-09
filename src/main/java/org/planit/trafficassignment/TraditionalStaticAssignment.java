@@ -62,6 +62,14 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	protected TraditionalStaticAssignmentSimulationData simulationData;
 
 	/**
+	 * Base Constructor
+	 */
+	public TraditionalStaticAssignment() {
+		super();
+		simulationData = null;
+	}
+
+	/**
 	 * Initialize running simulation variables for the time period
 	 * 
 	 * @param modes set of modes covered by this assignment
@@ -76,41 +84,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			simulationData.resetModalNetworkSegmentFlows(mode);
 			simulationData.getModeSpecificData().put(mode, new ModeData(simulationData.getEmptySegmentArray()));
 		}
-	}
-
-	/**
-	 * Base Constructor
-	 */
-	public TraditionalStaticAssignment() {
-		super();
-		simulationData = null;
-	}
-
-	/**
-	 * Collect the updated edge segment costs for the given mode
-	 * 
-	 * @param mode the current mode
-	 * @return array of updated edge segment costs
-	 * @throws PlanItException thrown if there is an error
-	 */
-	public double[] getModalNetworkSegmentCosts(Mode mode) throws PlanItException {
-		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
-		Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();
-		while (connectoidSegmentIter.hasNext()) {
-			ConnectoidSegment currentSegment = connectoidSegmentIter.next();
-			currentSegmentCosts[(int) currentSegment.getId()] = virtualCost.calculateSegmentCost(mode, currentSegment);
-		}
-		Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
-		while (linkSegmentIter.hasNext()) {
-			LinkSegment currentSegment = linkSegmentIter.next();
-			if (currentSegment.getMaximumSpeed(mode.getExternalId()) == 0.0) {
-				currentSegmentCosts[(int) currentSegment.getId()] = Double.POSITIVE_INFINITY;
-			} else {
-				currentSegmentCosts[(int) currentSegment.getId()] = physicalCost.calculateSegmentCost(mode,
-						currentSegment);
-			}
-		}
-		return currentSegmentCosts;
 	}
 
 	/**
@@ -316,6 +289,42 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	}
 
 	/**
+	 * Create the Gap Function used by this Traffic Assignment
+	 * 
+	 * @return GapFunction created
+	 */
+	protected GapFunction createGapFunction() {
+		return new LinkBasedRelativeDualityGapFunction(new StopCriterion());
+	}
+
+	/**
+	 * Collect the updated edge segment costs for the given mode
+	 * 
+	 * @param mode the current mode
+	 * @return array of updated edge segment costs
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public double[] getModalNetworkSegmentCosts(Mode mode) throws PlanItException {
+		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
+		Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();
+		while (connectoidSegmentIter.hasNext()) {
+			ConnectoidSegment currentSegment = connectoidSegmentIter.next();
+			currentSegmentCosts[(int) currentSegment.getId()] = virtualCost.calculateSegmentCost(mode, currentSegment);
+		}
+		Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
+		while (linkSegmentIter.hasNext()) {
+			LinkSegment currentSegment = linkSegmentIter.next();
+			if (currentSegment.getMaximumSpeed(mode.getExternalId()) == 0.0) {
+				currentSegmentCosts[(int) currentSegment.getId()] = Double.POSITIVE_INFINITY;
+			} else {
+				currentSegmentCosts[(int) currentSegment.getId()] = physicalCost.calculateSegmentCost(mode,
+						currentSegment);
+			}
+		}
+		return currentSegmentCosts;
+	}
+
+	/**
 	 * Execute equilibration over all time periods and modes
 	 * 
 	 * @throws PlanItException thrown if there is an error
@@ -364,15 +373,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		if (event.getSourceAccessor().getRequestedAccessee().equals(LinkVolumeAccessee.class)) {
 			event.getSourceAccessor().setAccessee(this);
 		}
-	}
-
-	/**
-	 * Create the Gap Function used by this Traffic Assignment
-	 * 
-	 * @return GapFunction created
-	 */
-	protected GapFunction createGapFunction() {
-		return new LinkBasedRelativeDualityGapFunction(new StopCriterion());
 	}
 
 	/**

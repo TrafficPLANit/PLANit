@@ -13,7 +13,8 @@ public enum Units {
 	 VEH_H("VEH_H"),
 	 KM_H("KM_H"),
 	 H("H"),
-	 KM("KM");
+	 KM("KM"),
+	 SRS("SRS");
 	 private final String value;
 
 	 Units(String v) {

@@ -61,6 +61,16 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 		addProperty(OutputProperty.COST);
 	}
 
+	private BaseOutputProperty convertToBaseOutputProperty(String propertyClassName) throws PlanItException {
+		try {
+			Class<?> entityClass = Class.forName(propertyClassName);
+			BaseOutputProperty outputProperty = (BaseOutputProperty) entityClass.getDeclaredConstructor().newInstance();
+			return outputProperty;
+		} catch (Exception e) {
+			throw new PlanItException(e);
+		}
+	}
+
 	/**
 	 * Add an output property to be included in the output files
 	 * 
@@ -153,16 +163,6 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 
 	public void setExcludeLinkId(boolean excludeLinkId) {
 		this.excludeLinkId = excludeLinkId;
-	}
-
-	private BaseOutputProperty convertToBaseOutputProperty(String propertyClassName) throws PlanItException {
-		try {
-			Class<?> entityClass = Class.forName(propertyClassName);
-			BaseOutputProperty outputProperty = (BaseOutputProperty) entityClass.getDeclaredConstructor().newInstance();
-			return outputProperty;
-		} catch (Exception e) {
-			throw new PlanItException(e);
-		}
 	}
 
 }

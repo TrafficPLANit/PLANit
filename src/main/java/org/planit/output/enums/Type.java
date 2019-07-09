@@ -11,7 +11,8 @@ public enum Type {
 	 DOUBLE("DOUBLE"),
 	 FLOAT("FLOAT"),
 	 INTEGER("INTEGER"),
-	 BOOLEAN("BOOLEAN");
+	 BOOLEAN("BOOLEAN"),
+	 SRSNAME("SRSNAME");
 	 private final String value;
 
 	 Type(String v) {

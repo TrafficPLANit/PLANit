@@ -19,7 +19,9 @@ public enum OutputProperty {
 	UPSTREAM_NODE_EXTERNAL_ID("org.planit.output.property.UpstreamNodeExternalIdOutputProperty"),
 	DOWNSTREAM_NODE_EXTERNAL_ID("org.planit.output.property.DownstreamNodeExternalIdOutputProperty"),
 	CAPACITY_PER_LANE("org.planit.output.property.CapacityPerLaneOutputProperty"),
-	COST("org.planit.output.property.CostOutputProperty");
+	COST("org.planit.output.property.CostOutputProperty"),
+	DOWNSTREAM_NODE_LOCATION("org.planit.output.property.DownstreamNodeLocationOutputProperty"),
+	UPSTREAM_NODE_LOCATION("org.planit.output.property.UpstreamNodeLocationOutputProperty");
 	
 	private final String value;
 
