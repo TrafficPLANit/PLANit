@@ -7,7 +7,7 @@ public final class CostOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "Travel Time";
+		return "Cost";
 	}
 
 	@Override

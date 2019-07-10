@@ -112,10 +112,6 @@ public class OutputConfiguration {
         return persistOnlyFinalIteration;
     }
     
-    //public Set<OutputType> getRegisteredOutputTypes() {
-   // 	return outputTypeConfigurations.keySet();
-   // }
-    
     public List<OutputTypeConfiguration> getRegisteredOutputTypeConfigurations() {
     	return new ArrayList<OutputTypeConfiguration>(outputTypeConfigurations.values());
     }

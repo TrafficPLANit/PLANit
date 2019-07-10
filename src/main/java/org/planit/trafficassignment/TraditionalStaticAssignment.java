@@ -59,7 +59,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	/**
 	 * Holds the running simulation data for the assignment
 	 */
-	protected TraditionalStaticAssignmentSimulationData simulationData;
+	private TraditionalStaticAssignmentSimulationData simulationData;
 
 	/**
 	 * Base Constructor
@@ -190,7 +190,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 
 			// NETWORK LOADING - PER MODE
 			for (Mode mode : modes) {
-				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode);
+				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode, simulationData.getIterationIndex());
 				simulationData.resetModalNetworkSegmentFlows(mode);
 				executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalNetworkSegmentCosts);
 				simulationData.setModalNetworkSegmentCosts(mode, modalNetworkSegmentCosts);
@@ -234,6 +234,41 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		ArrayOperations.addTo(simulationData.getModalNetworkSegmentFlows(mode),
 				currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
 		simulationData.getModeSpecificData().put(mode, currentModeData);
+	}
+	
+	/**
+	 * Populate the current segment costs for connectoids
+	 * 
+	 * @param mode current mode of travel
+	 * @param currentSegmentCosts array to store the current segment costs
+	 * @throws PlanItException thrown if there is an error
+	 */
+	private void populateModalConnectoidCosts(Mode mode, double[] currentSegmentCosts) throws PlanItException {
+		Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();
+		while (connectoidSegmentIter.hasNext()) {
+			ConnectoidSegment currentSegment = connectoidSegmentIter.next();
+			currentSegmentCosts[(int) currentSegment.getId()] = virtualCost.calculateSegmentCost(mode, currentSegment);
+		}
+	}
+	
+	/**
+	 * Populate the current segment costs for links
+	 * 
+	 * @param mode current mode of travel
+	 * @param currentSegmentCosts array to store the current segment costs
+	 * @throws PlanItException thrown if there is an error
+	 */
+	private void populateModalLinkSegmentCosts(Mode mode, double[] currentSegmentCosts) throws PlanItException {
+		Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
+		while (linkSegmentIter.hasNext()) {
+			LinkSegment currentSegment = linkSegmentIter.next();
+			if (currentSegment.getMaximumSpeed(mode.getExternalId()) == 0.0) {
+				currentSegmentCosts[(int) currentSegment.getId()] = Double.POSITIVE_INFINITY;
+			} else {
+				currentSegmentCosts[(int) currentSegment.getId()] = physicalCost.calculateSegmentCost(mode,
+						currentSegment);
+			}
+		}
 	}
 
 	/**
@@ -301,26 +336,14 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * Collect the updated edge segment costs for the given mode
 	 * 
 	 * @param mode the current mode
+	 * @param iterationIndex index of the current iteration
 	 * @return array of updated edge segment costs
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public double[] getModalNetworkSegmentCosts(Mode mode) throws PlanItException {
+	public double[] getModalNetworkSegmentCosts(Mode mode, int iterationIndex) throws PlanItException {
 		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
-		Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();
-		while (connectoidSegmentIter.hasNext()) {
-			ConnectoidSegment currentSegment = connectoidSegmentIter.next();
-			currentSegmentCosts[(int) currentSegment.getId()] = virtualCost.calculateSegmentCost(mode, currentSegment);
-		}
-		Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
-		while (linkSegmentIter.hasNext()) {
-			LinkSegment currentSegment = linkSegmentIter.next();
-			if (currentSegment.getMaximumSpeed(mode.getExternalId()) == 0.0) {
-				currentSegmentCosts[(int) currentSegment.getId()] = Double.POSITIVE_INFINITY;
-			} else {
-				currentSegmentCosts[(int) currentSegment.getId()] = physicalCost.calculateSegmentCost(mode,
-						currentSegment);
-			}
-		}
+		populateModalConnectoidCosts(mode, currentSegmentCosts);
+		populateModalLinkSegmentCosts(mode, currentSegmentCosts);
 		return currentSegmentCosts;
 	}
 

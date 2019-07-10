@@ -126,17 +126,6 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 	}
 
 	/**
-	 * Return the network segment costs for a specified mode
-	 * 
-	 * @param mode specified mode
-	 * @return array storing the network segment costs for the specified mode
-	 * @throws PlanItException thrown if there is an error
-	 */
-	public double[] getModalNetworkSegmentCosts(Mode mode) throws PlanItException {
-		return ((TraditionalStaticAssignment) trafficAssignment).getModalNetworkSegmentCosts(mode);
-	}
-
-	/**
 	 * Returns whether the current assignment has converged
 	 * 
 	 * @return true if the current assignment has converged, false otherwise

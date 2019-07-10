@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 import org.planit.cost.Cost;
-import org.planit.cost.physical.InitialLinkSegmentCost;
+import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.demand.Demands;
 import org.planit.event.RequestAccesseeEvent;

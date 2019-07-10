@@ -7,7 +7,7 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
-import org.planit.cost.physical.InitialLinkSegmentCost;
+import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.SpeedConnectoidTravelTimeCost;
