@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.interactor.InteractorAccessee;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
@@ -23,7 +22,7 @@ import org.planit.utils.Pair;
  * 
  * @author markr
  */
-public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAccessor {
+public class BPRLinkTravelTimeCost extends DynamicPhysicalCost implements LinkVolumeAccessor {
 
 	/**
 	 * Inner class to store Map of alpha and beta parameters used in BPR function
@@ -142,21 +141,25 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	}
 
 	/**
-	 * Calculate the travel time for the current link for a given mode
+	 * Return the travel time for the current link for a given mode
+	 * 
+	 * If the input data are invalid, this method returns a negative value.
 	 * 
 	 * @param mode        the current Mode of travel
 	 * @param linkSegment the current link segment
 	 * @return the travel time for the current link
-	 * @throws PlanItException thrown if there is an error
 	 *
 	 */
 	@Override
-	public double calculateSegmentCost(Mode mode, LinkSegment linkSegment) throws PlanItException {
+	public double getSegmentCost(Mode mode, LinkSegment linkSegment) {
 		double flow = linkVolumeAccessee.getTotalNetworkSegmentFlow(linkSegment);
 
 		// BPR function with mode specific free flow time and general PCU based delay
 		MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
 		double freeFlowTravelTime = macroscopicLinkSegment.computeFreeFlowTravelTime(mode);
+		if (freeFlowTravelTime < 0.0) {
+			return -1.0;
+		}
 		double capacity = macroscopicLinkSegment.computeCapacity();
 		int id = (int) macroscopicLinkSegment.getId();
 		Pair<Double, Double> alphaBetaParameters = bprParametersPerLinkSegment[id].getAlphaBetaParameters(mode);
@@ -232,7 +235,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 *                        parameter values
 	 */
 	@Override
-	public void initialiseBeforeEquilibration(PhysicalNetwork physicalNetwork) {
+	public void initialiseCostsBeforeEquilibration(PhysicalNetwork physicalNetwork) {
 		MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) physicalNetwork;
 		bprParametersPerLinkSegment = new BPRParameters[macroscopicNetwork.linkSegments.getNumberOfLinkSegments()];
 		Iterator<LinkSegment> linkSegmentIterator = macroscopicNetwork.linkSegments.iterator();

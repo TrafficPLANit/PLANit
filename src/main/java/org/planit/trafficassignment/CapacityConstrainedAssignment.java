@@ -73,7 +73,7 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	}
 
 	@Override
-	public void initialiseBeforeEquilibration() {
+	public void initialiseTrafficAssignmentBeforeEquilibration() {
 		// TODO Auto-generated method stub
 	}
 

@@ -7,8 +7,9 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
+import org.planit.cost.physical.DynamicPhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.cost.physical.PhysicalCost;
+import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.SpeedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.VirtualCost;
@@ -70,7 +71,8 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
         registeredTrafficAssignmentComponents.put(Smoothing.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(Demands.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(PhysicalNetwork.class, new TreeSet<>());
-        registeredTrafficAssignmentComponents.put(PhysicalCost.class, new TreeSet<>());
+        registeredTrafficAssignmentComponents.put(DynamicPhysicalCost.class, new TreeSet<>());
+        registeredTrafficAssignmentComponents.put(InitialPhysicalCost.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(VirtualCost.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(FundamentalDiagram.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(NodeModel.class, new TreeSet<>());
@@ -164,9 +166,6 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
      * @throws PlanItException
      *             thrown if there is an error
      */
- //TODO - Not sure this will work for InitialLinkSegmentCost since PhysicalCost is NOT its direct superclass
- // InitialLinkSegmentCost extends InitialPhysicalCost extends PhysicalCost
- //We may need to make the super class check recursive so it keeps going up the hierarchy
     public static void registerTrafficAssignmentComponentType(final Class<?> trafficAssignmentComponent)
             throws PlanItException {
         Class<?> currentClass = trafficAssignmentComponent;

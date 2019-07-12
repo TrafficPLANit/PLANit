@@ -3,7 +3,6 @@ package org.planit.project;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import org.planit.cost.physical.PhysicalCost;
 import org.planit.demand.Demands;
 import org.planit.event.listener.InputBuilderListener;
 import org.planit.event.management.EventManager;

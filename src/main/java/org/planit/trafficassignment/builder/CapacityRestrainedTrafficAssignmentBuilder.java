@@ -2,6 +2,7 @@ package org.planit.trafficassignment.builder;
 
 import java.util.logging.Logger;
 
+import org.planit.cost.physical.DynamicPhysicalCost;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.event.management.EventManager;
@@ -27,7 +28,7 @@ public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmen
     /**
      * Cost factory to create physical costs to register on the generalized cost.
      */
-    protected final TrafficAssignmentComponentFactory<PhysicalCost> physicalCostFactory;
+    protected final TrafficAssignmentComponentFactory<DynamicPhysicalCost> physicalCostFactory;
 
     /**
      * Cost factory to create physical costs to register on the generalized cost.
@@ -42,7 +43,7 @@ public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmen
      */
     public CapacityRestrainedTrafficAssignmentBuilder(CapacityRestrainedAssignment capacityRestrainedAssignment) {
         super(capacityRestrainedAssignment);
-        physicalCostFactory = new TrafficAssignmentComponentFactory<PhysicalCost>(PhysicalCost.class);
+        physicalCostFactory = new TrafficAssignmentComponentFactory<DynamicPhysicalCost>(DynamicPhysicalCost.class);
         virtualCostFactory = new TrafficAssignmentComponentFactory<VirtualCost>(VirtualCost.class);
     }
 
@@ -57,7 +58,7 @@ public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmen
      */
     public PhysicalCost createAndRegisterPhysicalTravelTimeCostFunction(String physicalTraveltimeCostFunctionType)
             throws PlanItException {
-        PhysicalCost createdCost = physicalCostFactory.create(physicalTraveltimeCostFunctionType);
+        DynamicPhysicalCost createdCost = physicalCostFactory.create(physicalTraveltimeCostFunctionType);
         if (parentAssignment.getPhysicalCost() == null) {
             parentAssignment.setPhysicalCost(createdCost);
         }

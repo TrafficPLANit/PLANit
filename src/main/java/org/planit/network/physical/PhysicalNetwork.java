@@ -104,10 +104,10 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 * Register a link segment on the network
 		 * 
 		 * @param linkSegment the link segment to be registered
-		 * @return the registered link segment
 		 */
-		protected LinkSegment registerLinkSegment(@Nonnull LinkSegment linkSegment) {
-			return linkSegmentMap.put(linkSegment.getId(), linkSegment);
+		protected void registerLinkSegment(@Nonnull LinkSegment linkSegment) {
+			linkSegmentMapByExternalId.put(linkSegment.getExternalId(), linkSegment);
+			linkSegmentMap.put(linkSegment.getId(), linkSegment);
 		}
 
 		/**
@@ -184,6 +184,16 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 */
 		public LinkSegment getLinkSegment(long id) {
 			return linkSegmentMap.get(id);
+		}
+		
+		/**
+		 * Get link segment by External Id
+		 * 
+		 * @param externalId external Id of the link segment
+		 * @return retrieved link segment
+		 */
+		public LinkSegment getLinkSegmentByExternalId(long externalId) {
+			return linkSegmentMapByExternalId.get(externalId);
 		}
 
 		/**
@@ -274,11 +284,25 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 */
 	protected final PhysicalNetworkBuilder networkBuilder;
 
-	// for now use tree map to ensure non-duplicate keys until we add functionality
-	// to account for this (treemap is slower than hashmap)
-	protected Map<Long, Link> linkMap = new TreeMap<Long, Link>();
-	protected Map<Long, LinkSegment> linkSegmentMap = new TreeMap<Long, LinkSegment>();
-	protected Map<Long, Node> nodeMap = new TreeMap<Long, Node>();
+	/**
+	 * Map to store Links by their Id
+	 */
+	protected Map<Long, Link> linkMap;
+	
+	/**
+	 * Map to store link segments by their Id
+	 */
+	protected Map<Long, LinkSegment> linkSegmentMap;
+	
+	/**
+	 * Map to store link segments by their external Id
+	 */
+	protected Map<Long, LinkSegment> linkSegmentMapByExternalId;
+	
+	/**
+	 * Map to store nodes by their Id
+	 */
+	protected Map<Long, Node> nodeMap;
 
 	// PUBLIC
 
@@ -302,6 +326,12 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 */
 	public PhysicalNetwork(@Nonnull PhysicalNetworkBuilder networkBuilder) {
 		this.id = IdGenerator.generateId(PhysicalNetwork.class);
+		// for now use tree map to ensure non-duplicate keys until we add functionality
+		// to account for this (treemap is slower than hashmap)
+		linkMap = new TreeMap<Long, Link>();
+		linkSegmentMap = new TreeMap<Long, LinkSegment>();
+		linkSegmentMapByExternalId = new TreeMap<Long, LinkSegment>();
+		nodeMap = new TreeMap<Long, Node>();
 		this.networkBuilder = networkBuilder;
 	}
 

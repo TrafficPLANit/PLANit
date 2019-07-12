@@ -6,7 +6,7 @@ import javax.annotation.Nonnull;
 
 import org.planit.cost.Cost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.cost.physical.PhysicalCost;
+import org.planit.cost.physical.DynamicPhysicalCost;
 import org.planit.demand.Demands;
 import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
@@ -73,7 +73,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	/**
 	 * The physical link cost function
 	 */
-	protected PhysicalCost physicalCost;
+	protected DynamicPhysicalCost physicalCost;
 
 	/**
 	 * The virtual link cost function
@@ -130,7 +130,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * 
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected abstract void initialiseBeforeEquilibration() throws PlanItException;
+	protected abstract void initialiseTrafficAssignmentBeforeEquilibration() throws PlanItException;
 
 	/**
 	 * Create the gap function which is to be implemented by a derived class of
@@ -252,7 +252,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		verifyComponentCompatibility();
 		transportNetwork = new TransportNetwork(physicalNetwork, zoning);
 		transportNetwork.integrateConnectoidsAndLinks();
-		initialiseBeforeEquilibration();
+		initialiseTrafficAssignmentBeforeEquilibration();
 		executeEquilibration();
 		finalizeAfterEquilibration();
 		LOGGER.info("Finished equilibration");
@@ -352,7 +352,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * @param physicalCost the physical cost object for the current assignment
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void setPhysicalCost(PhysicalCost physicalCost) throws PlanItException {
+	public void setPhysicalCost(DynamicPhysicalCost physicalCost) throws PlanItException {
 		this.physicalCost = physicalCost;
 		if (this.physicalCost instanceof InteractorAccessor) {
 			// accessor requires accessee --> request accessee via event --> and listen back

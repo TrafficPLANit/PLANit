@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import org.opengis.geometry.DirectPosition;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
-import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.Node;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;

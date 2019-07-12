@@ -4,7 +4,6 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.userclass.Mode;
 
@@ -56,10 +55,9 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
 	 * @param mode              mode of travel
 	 * @param connectoidSegment the connectoid segment
 	 * @return the travel time for the specified connectod segment
-	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	public double calculateSegmentCost(Mode mode, ConnectoidSegment connectoidSegment) throws PlanItException {
+	public double getSegmentCost(Mode mode, ConnectoidSegment connectoidSegment) {
 		return fixedConnectoidCosts[(int) connectoidSegment.getConnectoidSegmentId()];
 	}
 

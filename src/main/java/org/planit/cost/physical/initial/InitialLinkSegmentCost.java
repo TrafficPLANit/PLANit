@@ -1,8 +1,6 @@
 package org.planit.cost.physical.initial;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
-import org.planit.network.physical.PhysicalNetwork;
 import org.planit.userclass.Mode;
 
 import java.util.HashMap;
@@ -26,26 +24,33 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
 		costPerModeAndLinkSegment = new HashMap<Mode, Map<LinkSegment, Double>>();
 	}
 	
-	public double calculateSegmentCost(Mode mode, LinkSegment edgeSegment) throws PlanItException {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
+	/**
+	 * Returns the initial cost for each link segment and mode
+	 * 
+	 * @param mode the current mode
+	 * @param linkSegment the current link segment
+	 * @return the cost for this link segment and mode
+	 */
 	@Override
-	public void initialiseBeforeEquilibration(PhysicalNetwork physicalNetwork) throws PlanItException {
-		// TODO Auto-generated method stub
-
+	public double getSegmentCost(Mode mode, LinkSegment linkSegment) {
+		Map<LinkSegment, Double> linkSegmentMap = costPerModeAndLinkSegment.get(mode);
+		double cost = linkSegmentMap.get(linkSegment);
+		return cost;
 	}
-	
-	public void addValue(Mode mode, LinkSegment linkSegment, double value) {
+
+	/**
+	 * Sets the initial cost for each link segment and mode
+	 * 
+	 * @param mode the current mode
+	 * @param linkSegment the current link segment
+	 * @param cost the initial cost for this link segment and mode
+	 */
+	@Override
+	public void setSegmentCost(Mode mode, LinkSegment linkSegment, double cost) {
 		if (!costPerModeAndLinkSegment.keySet().contains(mode)) {
 			costPerModeAndLinkSegment.put(mode, new HashMap<LinkSegment, Double>());
 		}
-		costPerModeAndLinkSegment.get(mode).put(linkSegment, value);
+		costPerModeAndLinkSegment.get(mode).put(linkSegment, cost);
 	}
 	
-	public double getValue(Mode mode, LinkSegment linkSegment) {
-		return costPerModeAndLinkSegment.get(mode).get(linkSegment);
-	}
-
 }

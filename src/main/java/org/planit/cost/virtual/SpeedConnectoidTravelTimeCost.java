@@ -2,7 +2,6 @@ package org.planit.cost.virtual;
 
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.userclass.Mode;
 
@@ -31,15 +30,14 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 	}
 
 	/**
-	 * Calculate the connectoid travel time using speed
+	 * Return the connectoid travel time using speed
 	 * 
 	 * @param mode              the mode of travel
 	 * @param connectoidSegment the connectoid segment
 	 * @return the travel time for this connectoid segment
-	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	public double calculateSegmentCost(Mode mode, ConnectoidSegment connectoidSegment) throws PlanItException {
+	public double getSegmentCost(Mode mode, ConnectoidSegment connectoidSegment) {
 		return connectoidSegment.getParentEdge().getLength() / CONNECTOID_SPEED_KPH;
 	}
 
