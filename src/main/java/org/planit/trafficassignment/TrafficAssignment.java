@@ -325,7 +325,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public void setZoning(@Nonnull Zoning zoning) {
 		this.zoning = zoning;
 	}
-
+	
 	/**
 	 * Set the initial link segment cost
 	 * 
@@ -345,7 +345,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	}
 
 	/**
-	 * Set the physical cost where in case the cost is an interactorCccessor will
+	 * Set the physical cost where in case the cost is an InteractorAccessor will
 	 * trigger an event to get access to the required data via requesting an
 	 * InteractorAccessee
 	 * 
@@ -372,7 +372,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	}
 
 	/**
-	 * Set the virtual cost where in case the cost is an interactorCccessor will
+	 * Set the virtual cost where in case the cost is an InteractorAccessor will
 	 * trigger an event to get access to the required data via requesting an
 	 * InteractorAccessee
 	 * 

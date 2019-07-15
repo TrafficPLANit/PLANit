@@ -10,6 +10,7 @@ import org.planit.event.management.SimpleEventManager;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;
+import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.trafficassignment.DeterministicTrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
@@ -36,22 +37,22 @@ public class CustomPlanItProject {
     /**
      * The physical networks registered on this project
      */
-    protected TreeMap<Long, PhysicalNetwork> physicalNetworks = new TreeMap<Long, PhysicalNetwork>();
+    protected TreeMap<Long, PhysicalNetwork> physicalNetworks;
 
     /**
      * The zoning(s) registered on this project
      */
-    protected TreeMap<Long, Zoning> zonings = new TreeMap<Long, Zoning>();
+    protected TreeMap<Long, Zoning> zonings;
 
     /**
      * The demands registered on this project
      */
-    protected TreeMap<Long, Demands> demandsMap = new TreeMap<Long, Demands>();
+    protected TreeMap<Long, Demands> demandsMap;
 
     /**
      * The output formatter(s) registered on this project
      */
-    protected TreeMap<Long, OutputFormatter> outputFormatters = new TreeMap<Long, OutputFormatter>();
+    protected TreeMap<Long, OutputFormatter> outputFormatters;
 
     /**
      * The physical network used for this project
@@ -83,7 +84,7 @@ public class CustomPlanItProject {
      */
     protected TrafficAssignmentComponentFactory<NetworkLoading> assignmentFactory;
 
-    /**
+   /**
      * Event manager used by all components
      */
     protected EventManager eventManager = new SimpleEventManager();
@@ -91,9 +92,9 @@ public class CustomPlanItProject {
     /**
      * The traffic assignment(s) registered on this project
      */
-    protected TreeMap<Long, TrafficAssignment> trafficAssignments = new TreeMap<Long, TrafficAssignment>();
+    protected TreeMap<Long, TrafficAssignment> trafficAssignments;
 
-    // Private methods
+    // Protected methods
 
     /**
      * Instantiate the factories and register the event manager on them
@@ -111,8 +112,6 @@ public class CustomPlanItProject {
         demandsFactory.setEventManager(eventManager);
         assignmentFactory.setEventManager(eventManager);
     }
-
-    // Protected methods
 
     /**
      * Execute a particular traffic assignment
@@ -138,14 +137,16 @@ public class CustomPlanItProject {
      * This constructor instantiates the EventManager, which must be a singleton
      * class for the whole application.
      * 
-     * At present the input builder listener must be either MetroScan or
-     * BasicCsvScan.
-     * 
      * @param inputBuilderListener
      *            InputBuilderListener used to read in data
      */
     public CustomPlanItProject(InputBuilderListener inputBuilderListener) {
         eventManager.addEventListener(inputBuilderListener);
+        trafficAssignments = new TreeMap<Long, TrafficAssignment>();
+        physicalNetworks = new TreeMap<Long, PhysicalNetwork>();
+        zonings = new TreeMap<Long, Zoning>();
+        demandsMap = new TreeMap<Long, Demands>();
+        outputFormatters = new TreeMap<Long, OutputFormatter>();
         initialiseFactories(eventManager);
     }
 

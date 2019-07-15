@@ -34,6 +34,11 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
 
     /**
      * The smoothing factory used in the assignment algorithm
+     * 
+     * NB: The smoothing factory is defined here because the same smoothing algorithm is used for all assignments.  If we later decide to use more than one smoothing
+     * algorithm and allow different traffic assignments to use different smoothing algorithms, we would need to move this property and its handler methods to 
+     * CustomPlanItProject and treat it like the factories for PhysicalNetwork, Demands and Zoning (and allow the different smoothing algorithms to be registered
+     * on the project). 
      */
     protected final TrafficAssignmentComponentFactory<Smoothing> smoothingFactory;
 
