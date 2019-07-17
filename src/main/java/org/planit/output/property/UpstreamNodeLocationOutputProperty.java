@@ -7,8 +7,7 @@ public final class UpstreamNodeLocationOutputProperty extends BaseOutputProperty
 
 	@Override
 	public String getName() {
-		// TODO Auto-generated method stub
-		return "Upstream Node Location";
+		return UPSTREAM_NODE_LOCATION;
 	}
 
 	@Override

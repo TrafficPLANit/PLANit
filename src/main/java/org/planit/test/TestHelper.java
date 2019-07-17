@@ -32,7 +32,7 @@ public class TestHelper {
 	public static void compareResultsToCsvFileContents(SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap, 
 			                                                                                 SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMapFromFile) {
 		if (resultsMap.keySet().size() != resultsMapFromFile.keySet().size()) {
-			fail("Test case returned " + resultsMap.keySet().size() + " runs where the results file contains " 	+ resultsMap.keySet().size() + ".");
+			fail("Test case returned " + resultsMap.keySet().size() + " runs where the results file contains " + resultsMap.keySet().size() + ".");
 			return;
 		}
 		for (Long runId : resultsMapFromFile.keySet()) {
@@ -50,7 +50,7 @@ public class TestHelper {
 							+ " is present in the results file but was not found in the test case results.");
 					return;
 				}
-				if (resultsMap.get(runId).get(timePeriod).keySet().size() != resultsMapFromFile.get(runId)	.get(timePeriod).keySet().size()) {
+				if (resultsMap.get(runId).get(timePeriod).keySet().size() != resultsMapFromFile.get(runId).get(timePeriod).keySet().size()) {
 					fail("Test case returned " + resultsMap.get(runId).get(timePeriod).keySet().size()
 							+ " modes for run " + runId + " and timePeriod " + timePeriod.getId()
 							+ " where the results file contains "

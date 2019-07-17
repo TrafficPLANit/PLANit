@@ -104,9 +104,19 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 * Register a link segment on the network
 		 * 
 		 * @param linkSegment the link segment to be registered
+		 * @throws PlanItException
 		 */
-		protected void registerLinkSegment(@Nonnull LinkSegment linkSegment) {
-			linkSegmentMapByExternalId.put(linkSegment.getExternalId(), linkSegment);
+		protected void registerLinkSegment(@Nonnull LinkSegment linkSegment) throws PlanItException {
+			if (linkSegmentMapByExternalId.containsKey(linkSegment.getExternalId())) {
+				throw new PlanItException("Link Segment External Id " + linkSegment.getExternalId()
+						+ " has been assigned to more than one link segment in the input file.");
+			}
+			// do not store by external Id if external Id is zero, that value means external
+			// Ids are not being used for this input method
+			long externalId = linkSegment.getExternalId();
+			if (externalId > 0) {
+				linkSegmentMapByExternalId.put(externalId, linkSegment);
+			}
 			linkSegmentMap.put(linkSegment.getId(), linkSegment);
 		}
 
@@ -128,19 +138,19 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		public List<LinkSegment> toList() {
 			return new ArrayList<LinkSegment>(linkSegmentMap.values());
 		}
-		
+
 		/**
 		 * Find a LinkSegment by the external Ids of its start and end nodes
 		 * 
 		 * @param startExternalId reference to start node
-		 * @param endExternalId reference to end node
+		 * @param endExternalId   reference to end node
 		 * @return the linkSegment found, or null if no link segment can be found
 		 */
 		public LinkSegment getLinkSegmentByStartAndEndNodeExternalId(long startExternalId, long endExternalId) {
 			for (LinkSegment linkSegment : linkSegmentMap.values()) {
 				Node startNode = (Node) linkSegment.getUpstreamVertex();
 				Node endNode = (Node) linkSegment.getDownstreamVertex();
-				if  ((startNode.getExternalId() == startExternalId) && (endNode.getExternalId() == endExternalId)) {
+				if ((startNode.getExternalId() == startExternalId) && (endNode.getExternalId() == endExternalId)) {
 					return linkSegment;
 				}
 			}
@@ -185,7 +195,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		public LinkSegment getLinkSegment(long id) {
 			return linkSegmentMap.get(id);
 		}
-		
+
 		/**
 		 * Get link segment by External Id
 		 * 
@@ -288,17 +298,17 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 * Map to store Links by their Id
 	 */
 	protected Map<Long, Link> linkMap;
-	
+
 	/**
 	 * Map to store link segments by their Id
 	 */
 	protected Map<Long, LinkSegment> linkSegmentMap;
-	
+
 	/**
 	 * Map to store link segments by their external Id
 	 */
 	protected Map<Long, LinkSegment> linkSegmentMapByExternalId;
-	
+
 	/**
 	 * Map to store nodes by their Id
 	 */

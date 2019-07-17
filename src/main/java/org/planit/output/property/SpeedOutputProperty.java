@@ -7,7 +7,7 @@ public final class SpeedOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "Speed";
+		return SPEED;
 	}
 
 	@Override

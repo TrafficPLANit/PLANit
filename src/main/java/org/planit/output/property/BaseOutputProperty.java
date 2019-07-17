@@ -17,6 +17,22 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 	protected static final int ID_PRIORITY = 0;
 	protected static final int INPUT_PRIORITY = 1;
 	protected static final int RESULT_PRORITY = 2;
+	
+	//Constants used as column headings in the output CSV files
+	public static final String MODE_EXTERNAL_ID = "Mode External Id";
+	public static final String COST = "Cost";
+	public static final String LINK_SEGMENT_ID = "Link Segment Id";
+	public static final String LINK_SEGMENT_EXTERNAL_ID = "Link Segment External Id";
+	public static final String UPSTREAM_NODE_EXTERNAL_ID = "Node Upstream External Id";
+	public static final String DOWNSTREAM_NODE_EXTERNAL_ID = "Node Downstream External Id";
+	public static final String UPSTREAM_NODE_LOCATION = "Upstream Node Location";
+	public static final String DOWNSTREAM_NODE_LOCATION = "Downstream Node Location";
+	public static final String CAPACITY_PER_LANE = "Capacity per Lane";
+	public static final String DENSITY = "Density";
+	public static final String FLOW = "Flow"; 
+	public static final String LENGTH = "Length";
+	public static final String MODE_ID = "Mode Id";
+	public static final String SPEED = "Speed";
 
 	/**
 	 * Returns the name of the output property

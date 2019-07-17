@@ -7,7 +7,7 @@ public final class DownstreamNodeLocationOutputProperty extends BaseOutputProper
 
 	@Override
 	public String getName() {
-		return "Downstream Node Location";
+		return DOWNSTREAM_NODE_LOCATION;
 	}
 
 	@Override

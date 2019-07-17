@@ -7,7 +7,7 @@ public class ModeIdOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "Mode Id";
+		return MODE_ID;
 	}
 
 	@Override

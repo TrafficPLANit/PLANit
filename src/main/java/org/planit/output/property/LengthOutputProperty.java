@@ -7,7 +7,7 @@ public final class LengthOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "Length";
+		return LENGTH;
 	}
 
 	@Override

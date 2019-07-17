@@ -7,7 +7,7 @@ public final class LinkSegmentIdOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "Link Segment Id";
+		return LINK_SEGMENT_ID;
 	}
 
 	@Override

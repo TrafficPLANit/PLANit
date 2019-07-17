@@ -7,7 +7,7 @@ public final class DensityOutputProperty extends BaseOutputProperty{
 
 	@Override
 	public String getName() {
-		return "Density";
+		return DENSITY;
 	}
 
 	@Override

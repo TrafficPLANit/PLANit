@@ -7,7 +7,7 @@ public final class CapacityPerLaneOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public String getName() {
-		return "Capacity per Lane";
+		return CAPACITY_PER_LANE;
 	}
 
 	@Override
