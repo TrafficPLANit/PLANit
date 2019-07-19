@@ -144,9 +144,10 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 * 
 		 * @param startExternalId reference to start node
 		 * @param endExternalId   reference to end node
-		 * @return the linkSegment found, or null if no link segment can be found
+		 * @return the linkSegment found
+		 * @throws PlanItException thrown if no link segment whose node externals Ids match the inputs has been registered
 		 */
-		public LinkSegment getLinkSegmentByStartAndEndNodeExternalId(long startExternalId, long endExternalId) {
+		public LinkSegment getLinkSegmentByStartAndEndNodeExternalId(long startExternalId, long endExternalId) throws PlanItException {
 			for (LinkSegment linkSegment : linkSegmentMap.values()) {
 				Node startNode = (Node) linkSegment.getUpstreamVertex();
 				Node endNode = (Node) linkSegment.getDownstreamVertex();
@@ -154,7 +155,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 					return linkSegment;
 				}
 			}
-			return null;
+			throw new PlanItException("No link segment with start node " + startExternalId + " and end node " + endExternalId + " has been registered in the network.");
 		}
 
 		/**
@@ -201,8 +202,12 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 * 
 		 * @param externalId external Id of the link segment
 		 * @return retrieved link segment
+		 * @throws PlanItException thrown if no link segment with this external Id has been registered
 		 */
-		public LinkSegment getLinkSegmentByExternalId(long externalId) {
+		public LinkSegment getLinkSegmentByExternalId(long externalId) throws PlanItException {
+			if (!linkSegmentMapByExternalId.keySet().contains(externalId) ) {
+				throw new PlanItException("Link with External Id " + externalId + " has not been registered in the network.");
+			}
 			return linkSegmentMapByExternalId.get(externalId);
 		}
 
