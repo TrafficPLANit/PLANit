@@ -53,12 +53,12 @@ public abstract class OutputAdapter {
     }
 
     /**
-     * Return the physical cost object used in this assignment
+     * Return the dynamic physical cost object used in this assignment
      * 
-     * @return physical cost object used in this assignment
+     * @return dynamic physical cost object used in this assignment
      */
-    public Cost<LinkSegment> getPhysicalCost() {
-        return trafficAssignment.getPhysicalCost();
+    public Cost<LinkSegment> getDynamicPhysicalCost() {
+        return trafficAssignment.getDynamicPhysicalCost();
     }
 
     /**

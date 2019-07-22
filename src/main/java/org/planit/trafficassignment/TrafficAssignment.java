@@ -73,7 +73,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	/**
 	 * The physical link cost function
 	 */
-	protected DynamicPhysicalCost physicalCost;
+	protected DynamicPhysicalCost dynamicPhysicalCost;
 
 	/**
 	 * The virtual link cost function
@@ -336,28 +336,28 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	}
 
 	/**
-	 * Get the physical cost object for the current assignment
+	 * Get the dynamic physical cost object for the current assignment
 	 * 
-	 * @return the physical cost object for the current assignment
+	 * @return the dynamic physical cost object for the current assignment
 	 */
-	public Cost<LinkSegment> getPhysicalCost() {
-		return physicalCost;
+	public Cost<LinkSegment> getDynamicPhysicalCost() {
+		return dynamicPhysicalCost;
 	}
 
 	/**
-	 * Set the physical cost where in case the cost is an InteractorAccessor will
+	 * Set the dynamic physical cost where in case the cost is an InteractorAccessor will
 	 * trigger an event to get access to the required data via requesting an
 	 * InteractorAccessee
 	 * 
 	 * @param physicalCost the physical cost object for the current assignment
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void setPhysicalCost(DynamicPhysicalCost physicalCost) throws PlanItException {
-		this.physicalCost = physicalCost;
-		if (this.physicalCost instanceof InteractorAccessor) {
+	public void setDynamicPhysicalCost(DynamicPhysicalCost dynamicPhysicalCost) throws PlanItException {
+		this.dynamicPhysicalCost = dynamicPhysicalCost;
+		if (this.dynamicPhysicalCost instanceof InteractorAccessor) {
 			// accessor requires accessee --> request accessee via event --> and listen back
 			// for result
-			RequestAccesseeEvent event = new RequestAccesseeEvent((InteractorAccessor) this.physicalCost);
+			RequestAccesseeEvent event = new RequestAccesseeEvent((InteractorAccessor) this.dynamicPhysicalCost);
 			eventManager.dispatchEvent(event);
 		}
 	}

@@ -48,21 +48,21 @@ public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmen
     }
 
     /**
-     * Create and Register physical link cost function to determine travel time
+     * Create and Register dynamic physical link cost function to determine travel time
      * 
      * @param physicalTraveltimeCostFunctionType
      *            the type of cost function to be created
-     * @return the cost function created
+     * @return the dynamic physical cost created
      * @throws PlanItException
      *             thrown if there is an error
      */
-    public PhysicalCost createAndRegisterPhysicalTravelTimeCostFunction(String physicalTraveltimeCostFunctionType)
+    public DynamicPhysicalCost createAndRegisterDynamicPhysicalCost(String physicalTraveltimeCostFunctionType)
             throws PlanItException {
-        DynamicPhysicalCost createdCost = physicalCostFactory.create(physicalTraveltimeCostFunctionType);
-        if (parentAssignment.getPhysicalCost() == null) {
-            parentAssignment.setPhysicalCost(createdCost);
+        DynamicPhysicalCost dynamicPhysicalCost = physicalCostFactory.create(physicalTraveltimeCostFunctionType);
+        if (parentAssignment.getDynamicPhysicalCost() == null) {
+            parentAssignment.setDynamicPhysicalCost(dynamicPhysicalCost);
         }
-        return createdCost;
+        return dynamicPhysicalCost;
     }
 
     /**
