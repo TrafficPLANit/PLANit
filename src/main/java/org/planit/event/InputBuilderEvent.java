@@ -1,7 +1,7 @@
 package org.planit.event;
 
 import org.planit.event.listener.EventListener;
-import org.planit.event.listener.InputBuilderListener;
+import org.planit.input.InputBuilderListener;
 
 /**
  * All intput builder events should derive from this interface such that the
