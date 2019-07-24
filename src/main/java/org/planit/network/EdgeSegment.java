@@ -1,6 +1,8 @@
 package org.planit.network;
 
 import java.util.logging.Logger;
+
+import org.planit.network.physical.Node;
 import org.planit.utils.IdGenerator;
 
 /**

@@ -33,11 +33,6 @@ public class Node extends Vertex {
     }
 
     /**
-     * Unique internal identifier
-     */
-    protected final long nodeId;
-
-    /**
      * External identifier used in input files
      */
     protected long externalId;
@@ -49,14 +44,9 @@ public class Node extends Vertex {
      */
     public Node() {
         super();
-        this.nodeId = generateNodeId();
     }
 
     // Getters-Setters
-
-    public long getNodeId() {
-        return nodeId;
-    }
 
     public long getExternalId() {
         return externalId;
