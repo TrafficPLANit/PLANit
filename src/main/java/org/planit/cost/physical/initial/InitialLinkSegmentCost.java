@@ -19,22 +19,22 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
 	/**
 	 * Map to store initial cost for each mode and link segment
 	 */
-	private Map<Long, double[]> costPerModeAndLinkSegment;
+	protected Map<Long, double[]> costPerModeAndLinkSegment;
 	
 	/**
 	 * Number of link segments in the network
 	 */
-	private int noLinkSegments;
+	protected int noLinkSegments;
 	
 	/**
 	 * Map to store the column index of whichever output property has been used
 	 */
-	private Map<OutputProperty, Integer> propertyColumnIndices;
+	protected Map<OutputProperty, Integer> propertyColumnIndices;
 
 	/**
 	 * Unique id of the initial link segment cost
 	 */
-	private  final long id;
+	protected final long id;
 
 	/**
 	 * Constructor
