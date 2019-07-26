@@ -46,11 +46,9 @@ public class CsvIoUtils {
 	 */
 	public static void printCurrentRecord(CSVPrinter printer, long trafficAssignmentId, TimePeriod timePeriod,
 			Mode mode, BprResultDto resultDto) throws Exception {
-		printer.printRecord(trafficAssignmentId, timePeriod.getId(),
-				// mode.getId(),
-				mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), resultDto.getLinkFlow(),
-				resultDto.getCapacity(), resultDto.getLength(), resultDto.getSpeed(), resultDto.getLinkCost(),
-				resultDto.getTotalCostToEndNode());
+		printer.printRecord(trafficAssignmentId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(),
+				resultDto.getEndNodeId(), resultDto.getLinkFlow(), resultDto.getCapacity(), resultDto.getLength(),
+				resultDto.getSpeed(), resultDto.getLinkCost(), resultDto.getTotalCostToEndNode());
 	}
 
 	/**

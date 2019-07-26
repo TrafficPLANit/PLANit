@@ -145,7 +145,7 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 	}
 
 	/**
-	 * Returns the output object corresponding to the current output property for a specified link segmen and mode
+	 * Returns the output object corresponding to the current output property for a specified link segment and mode
 	 * 
 	 * @param outputProperty current output property
 	 * @param linkSegment specified link segment

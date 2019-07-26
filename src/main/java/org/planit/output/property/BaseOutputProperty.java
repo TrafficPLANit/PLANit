@@ -1,5 +1,6 @@
 package org.planit.output.property;
 
+import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 
@@ -33,6 +34,7 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 	public static final String LENGTH = "Length";
 	public static final String MODE_ID = "Mode Id";
 	public static final String SPEED = "Speed";
+	public static final String NUMBER_OF_LANES = "Number of Lanes";
 
 	/**
 	 * Returns the name of the output property
@@ -107,4 +109,33 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 		}
 		return getName().compareTo(otherProperty.getName());
 	}
+
+	/**
+	 * Generate the appropriate BaseOutputProperty object from a specified class name
+	 * 
+	 * @param propertyClassName the class name of the specified output property
+	 * @return the BaseOutputProperty object corresponding to the specified enumeration value
+	 * @throws PlanItException thrown if there is an error creating the object
+	 */
+	public static BaseOutputProperty convertToBaseOutputProperty(String propertyClassName) throws PlanItException {
+		try {
+			Class<?> entityClass = Class.forName(propertyClassName);
+			BaseOutputProperty outputProperty = (BaseOutputProperty) entityClass.getDeclaredConstructor().newInstance();
+			return outputProperty;
+		} catch (Exception e) {
+			throw new PlanItException(e);
+		}
+	}
+	
+	/**
+	 * Generate the appropriate BaseOutputProperty object from a specified enumeration value
+	 * 
+	 * @param outputProperty the enumeration value of the specified output property
+	 * @return the BaseOutputProperty object corresponding to the specified enumeration value
+	 * @throws PlanItException thrown if there is an error creating the object
+	 */
+	public static BaseOutputProperty convertToBaseOutputProperty(OutputProperty outputProperty) throws PlanItException {
+		return convertToBaseOutputProperty(outputProperty.value());
+	}
+
 }
