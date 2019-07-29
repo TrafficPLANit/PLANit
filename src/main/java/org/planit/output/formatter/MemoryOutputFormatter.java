@@ -24,6 +24,12 @@ import org.planit.trafficassignment.TraditionalStaticAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.userclass.Mode;
 
+/**
+ * Formatter which saves the results from assignment runs in memory
+ * 
+ * @author gman6028
+ *
+ */
 public class MemoryOutputFormatter extends BaseOutputFormatter {
 
 	/**
@@ -34,6 +40,22 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	private Map<Long, Map<Long, Map<Long, Map<Long, Map<Long, Map<OutputProperty, Object>>>>>> memoryTable;
 	private MultiKeyMap multiKeyMap;
 
+/**
+ * Saves a cost value for a specified link, specified by several input parameters
+ * 
+ * @param trafficAssignmentId the id of this traffic assignment run
+ * @param timePeriodId the id of the specified time period
+ * @param modeId the id of the specified mode
+ * @param startNodeId the external Id of the start node of this link segment
+ * @param endNodeId the external Id of the end node of this link segment
+ * @param flow the flow through this link segment
+ * @param length the length of this link segment
+ * @param maximumSpeed the maximum speed parameter along this link segment
+ * @param capacityPerLane the specified capacity per lane of this link segment
+ * @param numberOfLanes the number of lanes of this link segment
+ * @param cost the computed travel cost for this link segment
+ * @throws PlanItException thrown if there is an error
+ */
 	private void saveRecord(long trafficAssignmentId, long timePeriodId, long modeId, long startNodeId, long endNodeId,
 			double flow, double length, double maximumSpeed, double capacityPerLane, int numberOfLanes, double cost)
 			throws PlanItException {
@@ -176,6 +198,18 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 		multiKeyMap = MultiKeyMap.decorate(new HashedMap());
 	}
 
+/**
+ * Retrieves a specified output for the current link segment
+ * 
+ * @param trafficAssignmentId the id of this traffic assignment run
+ * @param timePeriodId the id of the specified time period
+ * @param modeId the id of the specified mode
+ * @param startNodeId the external Id of the start node of this link segment
+ * @param endNodeId the external Id of the end node of this link segment
+ * @param outputProperty enumeration value used to specify which output is required
+ * @return the value of the specified output
+ * @throws PlanItException thrown if there is an error
+ */
 	public Object getLinkSegmentOutput(long trafficAssignmentId, long timePeriodId, long modeId, long startNodeId,
 			long endNodeId, OutputProperty outputProperty) throws PlanItException {
 		if (!memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).get(endNodeId)
