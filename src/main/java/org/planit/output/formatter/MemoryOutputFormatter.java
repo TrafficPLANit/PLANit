@@ -6,6 +6,8 @@ import java.util.Set;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections.map.HashedMap;
+import org.apache.commons.collections.map.MultiKeyMap;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
@@ -30,6 +32,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	private static final Logger LOGGER = Logger.getLogger(MemoryOutputFormatter.class.getName());
 
 	private Map<Long, Map<Long, Map<Long, Map<Long, Map<Long, Map<OutputProperty, Object>>>>>> memoryTable;
+	private MultiKeyMap multiKeyMap;
 
 	private void saveRecord(long trafficAssignmentId, long timePeriodId, long modeId, long startNodeId, long endNodeId,
 			double flow, double length, double maximumSpeed, double capacityPerLane, int numberOfLanes, double cost)
@@ -67,6 +70,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 				.put(OutputProperty.NUMBER_OF_LANES, numberOfLanes);
 		memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).get(endNodeId)
 				.put(OutputProperty.COST, cost);
+		Map<OutputProperty, Object> map = new HashMap<OutputProperty, Object>();
+		map.put(OutputProperty.LENGTH, Double.valueOf(length));
+		map.put(OutputProperty.FLOW, Double.valueOf(flow));
+		map.put(OutputProperty.SPEED, Double.valueOf(maximumSpeed));
+		map.put(OutputProperty.CAPACITY_PER_LANE, Double.valueOf(capacityPerLane));
+		map.put(OutputProperty.NUMBER_OF_LANES, Integer.valueOf(numberOfLanes));
+		map.put(OutputProperty.COST, Double.valueOf(cost));
+		multiKeyMap.put(trafficAssignmentId, timePeriodId, modeId, startNodeId, endNodeId, map);
 	}
 
 	/**
@@ -162,6 +173,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	@Override
 	public void open() throws PlanItException {
 		memoryTable = new HashMap<Long, Map<Long, Map<Long, Map<Long, Map<Long, Map<OutputProperty, Object>>>>>>();
+		multiKeyMap = MultiKeyMap.decorate(new HashedMap());
 	}
 
 	public Object getLinkSegmentOutput(long trafficAssignmentId, long timePeriodId, long modeId, long startNodeId,
@@ -172,8 +184,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 					+ BaseOutputProperty.convertToBaseOutputProperty(outputProperty)
 					+ " which has not been saved in MemoryOutputFormatter.");
 		}
-		return memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).get(endNodeId)
-				.get(outputProperty);
+		//return memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).get(endNodeId)
+		//		.get(outputProperty);
+		Map<OutputProperty, Object> map = (Map<OutputProperty, Object>) multiKeyMap.get(trafficAssignmentId, timePeriodId, modeId, startNodeId, endNodeId);
+		return map.get(outputProperty);
 	}
 
 	@Override
