@@ -28,7 +28,7 @@ public class TestHelper {
     private static final Logger LOGGER = Logger.getLogger(TestHelper.class.getName());
         
 /**
-  * Compares the contents of a results map for the current run with a results map from a previous run which had been stored in a file.  It generates a JUnit test failure if the results maps have different contents
+  * Compares the contents of a results map for the current run with a results map from a previous run which had been stored in a file.  It generates a JUnit test failure if the results maps have different contents.
   * 
   * @param resultsMap                 Map storing result of the current test run
   * @param resultsMapFromFile  Map storing results of a previous run which had been stored in a file
@@ -95,18 +95,25 @@ public class TestHelper {
 		}
 	}
 	
+/**
+ * Compares the results from an assignment run stored in a MemoryOutputFormatter object to known results stored in a Map.  It generates a JUnit test failure if the results maps have different contents.
+ * 
+ * @param memoryOutputFormatter the MemoryOuptutFormatter object which stores results from a test run
+ * @param resultsMap Map storing standard test results which have been generated previously
+ * @throws PlanItException thrown if one of the test output properties has not been saved
+ */
 	public static void compareResultsToMemoryOutputFormatter(MemoryOutputFormatter memoryOutputFormatter, 
-			                                                                                                 SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMapFromFile) throws PlanItException {
-		for (Long runId : resultsMapFromFile.keySet()) {
-			for (TimePeriod timePeriod : resultsMapFromFile.get(runId).keySet()) {
-				for (Mode mode : resultsMapFromFile.get(runId).get(timePeriod).keySet()) {
-					for (BprResultDto resultDto : resultsMapFromFile.get(runId).get(timePeriod).get(mode)) {
+			                                                                                                 SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap) throws PlanItException {
+		for (Long runId : resultsMap.keySet()) {
+			for (TimePeriod timePeriod : resultsMap.get(runId).keySet()) {
+				for (Mode mode : resultsMap.get(runId).get(timePeriod).keySet()) {
+					for (BprResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
 						double flow = (Double) memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.FLOW);
 						double length = (Double) memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.LENGTH);
 						double speed = (Double) memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.SPEED);
 						double cost = (Double) memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.COST);
 						double capacityPerLane = (Double) memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.CAPACITY_PER_LANE);
-						int numberOfLanes = (Integer)  memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.NUMBER_OF_LANES);
+						int numberOfLanes = (Integer) memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.NUMBER_OF_LANES);
 						double capacity = capacityPerLane * numberOfLanes;
 						assertEquals(flow, resultDto.getLinkFlow(), 0.00001);
 						assertEquals(length, resultDto.getLength(), 0.00001);
@@ -115,9 +122,7 @@ public class TestHelper {
 						assertEquals(cost, resultDto.getLinkCost(), 0.00001);
 					}					
 				}
-			}
-			
-		}
-		
+			}		
+		}		
 	}
 }

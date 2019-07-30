@@ -56,7 +56,7 @@ public class OutputConfiguration {
      *            the adapter that allows access to the data to persist for the
      *            given output type
      * @return outputConfiguration that has been created
-     * @throws PlanItException 
+     * @throws PlanItException thrown if there is an error
      */
     public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType,
             OutputAdapter outputAdapter) throws PlanItException {

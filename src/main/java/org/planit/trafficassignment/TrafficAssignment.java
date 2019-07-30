@@ -329,7 +329,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	/**
 	 * Set the initial link segment cost
 	 * 
-	 * @param initialLinkSegmentCost
+	 * @param initialLinkSegmentCost the initial link segment cost
 	 */
 	public void setInitialLinkSegmentCost(InitialLinkSegmentCost initialLinkSegmentCost) {
 		this.initialLinkSegmentCost = initialLinkSegmentCost;
@@ -349,7 +349,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * trigger an event to get access to the required data via requesting an
 	 * InteractorAccessee
 	 * 
-	 * @param physicalCost the physical cost object for the current assignment
+	 * @param dynamicPhysicalCost the physical cost object for the current assignment
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public void setDynamicPhysicalCost(DynamicPhysicalCost dynamicPhysicalCost) throws PlanItException {

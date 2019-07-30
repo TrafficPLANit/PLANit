@@ -327,7 +327,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * Initialize members and output resources before equilibration
 	 * 
 	 * @throws PlanItException thrown if there is an error
-	 * @see org.planit.trafficassignment.TrafficAssignment#initialiseBeforeEquilibration(
 	 *      )
 	 */
 	@Override

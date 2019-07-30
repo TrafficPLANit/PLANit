@@ -49,11 +49,12 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 * Define the default output properties here.
 	 * 
 	 * @param outputAdapter to access data for output persistence
-	 * @throws PlanItException thrown if there is an error adding the default properties
+	 * @throws PlanItException thrown if there is an error adding the default
+	 *                         properties
 	 */
 	public LinkOutputTypeConfiguration(LinkOutputAdapter outputAdapter) throws PlanItException {
 		super(outputAdapter);
-		//add default output properties
+		// add default output properties
 		addProperty(OutputProperty.LINK_SEGMENT_ID);
 		addProperty(OutputProperty.MODE_EXTERNAL_ID);
 		addProperty(OutputProperty.FLOW);
@@ -66,9 +67,11 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 * 
 	 * @param propertyClassName class name of the output property to be included in
 	 *                          the output files
+	 * @throws PlanItException thrown if there is an error
 	 */
 	public void addProperty(String propertyClassName) throws PlanItException {
-		((LinkOutputAdapter) outputAdapter).addProperty(BaseOutputProperty.convertToBaseOutputProperty(propertyClassName));
+		((LinkOutputAdapter) outputAdapter)
+				.addProperty(BaseOutputProperty.convertToBaseOutputProperty(propertyClassName));
 	}
 
 	/**
@@ -76,6 +79,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 * 
 	 * @param outputProperty enumeration value specifying which output property to
 	 *                       be included in the output files
+	 * @throws PlanItException thrown if there is an error
 	 */
 	public void addProperty(OutputProperty outputProperty) throws PlanItException {
 		((LinkOutputAdapter) outputAdapter).addProperty(BaseOutputProperty.convertToBaseOutputProperty(outputProperty));
@@ -91,7 +95,8 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 * @throws PlanItException thrown if there is an error removing the property
 	 */
 	public boolean removeProperty(String propertyClassName) throws PlanItException {
-		return ((LinkOutputAdapter) outputAdapter).removeProperty(BaseOutputProperty.convertToBaseOutputProperty(propertyClassName));
+		return ((LinkOutputAdapter) outputAdapter)
+				.removeProperty(BaseOutputProperty.convertToBaseOutputProperty(propertyClassName));
 	}
 
 	/**
@@ -105,7 +110,8 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 * @throws PlanItException thrown if there is an error removing the property
 	 */
 	public boolean removeProperty(OutputProperty outputProperty) throws PlanItException {
-		return ((LinkOutputAdapter) outputAdapter).removeProperty(BaseOutputProperty.convertToBaseOutputProperty(outputProperty));
+		return ((LinkOutputAdapter) outputAdapter)
+				.removeProperty(BaseOutputProperty.convertToBaseOutputProperty(outputProperty));
 	}
 
 	/**

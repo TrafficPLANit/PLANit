@@ -36,11 +36,15 @@ public interface OutputFormatter {
 
 	/**
 	 * Open resources to store results
+	 * 
+	 * @throws PlanItException thrown if there is an error
 	 */
 	public void open() throws PlanItException;
 
 	/**
 	 * Close resources to store results
+	 * 
+	 * @throws PlanItException thrown if there is an error
 	 */
 	public void close() throws PlanItException;
 

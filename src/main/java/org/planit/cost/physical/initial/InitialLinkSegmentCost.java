@@ -120,7 +120,7 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
 	/**
 	 * Set the number of link segments in the network
 	 * 
-	 * @param noLinkSegments
+	 * @param noLinkSegments number of link segment
 	 */
 	public void setNoLinkSegments(int noLinkSegments) {
 		this.noLinkSegments = noLinkSegments;

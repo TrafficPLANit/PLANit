@@ -104,7 +104,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 * Register a link segment on the network
 		 * 
 		 * @param linkSegment the link segment to be registered
-		 * @throws PlanItException
+		 * @throws PlanItException thrown if the current link segment external Id has already been assigned
 		 */
 		protected void registerLinkSegment(@Nonnull LinkSegment linkSegment) throws PlanItException {
 			if (linkSegmentMapByExternalId.containsKey(linkSegment.getExternalId())) {

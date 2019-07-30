@@ -38,6 +38,22 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		super(trafficAssignment);
 	}
 	
+	/**
+	 * Get the number of lanes to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the number of lanes 
+	 */
+	private Object getNumberOfLanesPropertyValue(MacroscopicLinkSegment linkSegment) {
+		return linkSegment.getNumberOfLanes();
+	}
+	
+	/**
+	 * Get the geometry location of the downstream node to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the location of the downstream node
+	 */
 	private Object getDownstreamNodeLocationPropertyValue(MacroscopicLinkSegment linkSegment) {
 		DirectPosition centrePoint = linkSegment.getDownstreamVertex().getCentrePointGeometry();
 		if (centrePoint == null) {
@@ -47,6 +63,12 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		return coordinates[0] + "-" + coordinates[1];
 	}
 	
+	/**
+	 * Get the geometry location of the upstream node to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the location of the upstream node
+	 */
 	private Object getUpstreamNodeLocationPropertyValue(MacroscopicLinkSegment linkSegment) {
 		DirectPosition centrePoint = linkSegment.getUpstreamVertex().getCentrePointGeometry();
 		if (centrePoint == null) {
@@ -56,30 +78,73 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		return coordinates[0] + "-" + coordinates[1];
 	}
 	
+	/**
+	 * Get the capacity per lane to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the capacity per lane
+	 */
 	private Object getCapacityPerLanePropertyValue(MacroscopicLinkSegment linkSegment) {
 		return linkSegment.getLinkSegmentType().getCapacityPerLane();
 	}
 
+	/**
+	 * Get the density to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the lane density
+	 */
 	private Object getDensityPropertyValue(MacroscopicLinkSegment linkSegment) {
 		return linkSegment.getLinkSegmentType().getMaximumDensityPerLane();
 	}
 	
+	/**
+	 * Get the link segment id to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the link segment id
+	 */
 	private Object getLinkSegmentIdPropertyValue(MacroscopicLinkSegment linkSegment) {
 		return linkSegment.getId();
 	}
 
+	/**
+	 * Get the link segment external Id to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the link segment external Id
+	 */
 	private Object getLinkSegmentExternalIdPropertyValue(MacroscopicLinkSegment linkSegment) {
 		return linkSegment.getParentLink().getExternalId();
 	}
 
+	/**
+	 * Get the mode external Id to be presented as an output property
+	 * 
+	 * @param mode the current mode
+	 * @return the mode external Id
+	 */
 	private Object getModeExternalIdPropertyValue(Mode mode) {
 		return mode.getExternalId();
 	}
 	
+	/**
+	 * Get the mode Id to be presented as an output property
+	 * 
+	 * @param mode the current mode
+	 * @return the mode id
+	 */
 	private Object getModeIdPropertyValue(Mode mode) {
 		return mode.getId();
 	}
 	
+	/**
+	 * Get the link speed for a specified link segment and mode to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @param mode the current mode
+	 * @return the link segment speed
+	 */
 	private Object getSpeedPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
 		int id = (int) linkSegment.getId();
 		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
@@ -89,6 +154,13 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		return length / travelTime;
 	}
 	
+	/**
+	 * Get the traffic flow for a specified link segment and mode to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @param mode the current mode
+	 * @return the traffic flow through the link segment
+	 */
 	private Object getFlowPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
 		int id = (int) linkSegment.getId();
 		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
@@ -96,20 +168,45 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		return modalNetworkSegmentFlows[id];
 	}
 
+	/**
+	 * Get the link length to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the link segment length
+	 */
 	private Object getLengthPropertyValue(MacroscopicLinkSegment linkSegment) {
 		return linkSegment.getParentLink().getLength();
 	}
 
+	/**
+	 * Get the external Id of the upstream node to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the upstream node external Id
+	 */
 	private Object getUpstreamNodeIdPropertyValue(MacroscopicLinkSegment linkSegment) {
 		Node startNode = (Node) linkSegment.getUpstreamVertex();
 		return startNode.getExternalId();
 	}
 	
+	/**
+	 * Get the external Id of the downstream node to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the downstream node external Id
+	 */
 	private Object getDownstreamNodeIdPropertyValue(MacroscopicLinkSegment linkSegment) {
 		Node endNode = (Node) linkSegment.getDownstreamVertex();
 		return endNode.getExternalId();
 	}
 	
+	/**
+	 * Get the link cost to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @param mode the current mode
+	 * @return the link segment cost
+	 */
 	private Object getCostPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
 		int id = (int) linkSegment.getId();
 		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
@@ -117,6 +214,11 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		return modalNetworkSegmentCosts[id];
 	}
 	
+	/**
+	 * Get the simulation data for the current iteration
+	 * 
+	 * @return the simulation data for the current iteration
+	 */
 	private TraditionalStaticAssignmentSimulationData getSimulationData() {
 		TraditionalStaticAssignment traditionalStaticAssignment = (TraditionalStaticAssignment) trafficAssignment;
 		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) traditionalStaticAssignment
@@ -182,6 +284,8 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 			return getDownstreamNodeLocationPropertyValue(linkSegment);
 		case UPSTREAM_NODE_LOCATION:
 			return getUpstreamNodeLocationPropertyValue(linkSegment);
+		case NUMBER_OF_LANES:
+			return getNumberOfLanesPropertyValue(linkSegment);
 		default:
 			return null;
 		}

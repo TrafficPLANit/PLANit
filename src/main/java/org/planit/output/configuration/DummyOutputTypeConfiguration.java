@@ -12,7 +12,7 @@ public class DummyOutputTypeConfiguration extends OutputTypeConfiguration {
 
     /** Base constructor
      * 
-     * @param outputAdapter
+     * @param outputAdapter the output adapter to be used
      */
     public DummyOutputTypeConfiguration(OutputAdapter outputAdapter) {
         super(outputAdapter);

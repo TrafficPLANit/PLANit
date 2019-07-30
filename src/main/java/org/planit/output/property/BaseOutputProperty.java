@@ -65,11 +65,11 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 	public abstract OutputProperty getOutputProperty();
 
 	/**
-	 * Sets the column priority of the output property in output files
+	 * Gets the column priority of the output property in output files
 	 * 
 	 * The lower the column priority value of a property, the further to the left it is placed in the output file
 	 * 
-	 * @return
+	 * @return the column priority
 	 */
 	public abstract int getColumnPriority();
 	
