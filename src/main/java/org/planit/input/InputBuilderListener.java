@@ -203,7 +203,7 @@ public abstract class InputBuilderListener implements EventListener {
 			populateFundamentalDiagram((FundamentalDiagram) projectComponent);
 		} else {
 			LOGGER.info("Event component is " + projectComponent.getClass().getCanonicalName()
-					+ " which is not handled by PlanIt.");
+					+ " which is not supported by PlanIt.");
 		}
 	}
 }
