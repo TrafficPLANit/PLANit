@@ -215,6 +215,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
      */
     public T create(String trafficAssignmentComponentClassName, Object parameter) throws PlanItException {
     	T newTrafficComponent = createTrafficComponent(trafficAssignmentComponentClassName);
+    	LOGGER.info("Created " + trafficAssignmentComponentClassName + ", dispatching creation event" );
     	dispatchTrafficComponentEvent(newTrafficComponent, parameter);
         return newTrafficComponent;
     }
