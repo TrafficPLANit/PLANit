@@ -37,7 +37,6 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 */
 	private static final Logger LOGGER = Logger.getLogger(MemoryOutputFormatter.class.getName());
 
-	//private Map<Long, Map<Long, Map<Long, Map<Long, Map<Long, Map<OutputProperty, Object>>>>>> memoryTable;
 	private MultiKeyMap multiKeyMap;
 
 /**
@@ -59,41 +58,6 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	private void saveRecord(long trafficAssignmentId, long timePeriodId, long modeId, long startNodeId, long endNodeId,
 			double flow, double length, double maximumSpeed, double capacityPerLane, int numberOfLanes, double cost)
 			throws PlanItException {
-/*
-		if (!memoryTable.containsKey(trafficAssignmentId)) {
-			memoryTable.put(trafficAssignmentId,
-					new HashMap<Long, Map<Long, Map<Long, Map<Long, Map<OutputProperty, Object>>>>>());
-		}
-		if (!memoryTable.get(trafficAssignmentId).containsKey(timePeriodId)) {
-			memoryTable.get(trafficAssignmentId).put(timePeriodId,
-					new HashMap<Long, Map<Long, Map<Long, Map<OutputProperty, Object>>>>());
-		}
-		if (!memoryTable.get(trafficAssignmentId).get(timePeriodId).containsKey(modeId)) {
-			memoryTable.get(trafficAssignmentId).get(timePeriodId).put(modeId,
-					new HashMap<Long, Map<Long, Map<OutputProperty, Object>>>());
-		}
-		if (!memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).containsKey(startNodeId)) {
-			memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).put(startNodeId,
-					new HashMap<Long, Map<OutputProperty, Object>>());
-		}
-		if (!memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId)
-				.containsKey(endNodeId)) {
-			memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).put(endNodeId,
-					new HashMap<OutputProperty, Object>());
-		}
-		memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).get(endNodeId)
-				.put(OutputProperty.FLOW, flow);
-		memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).get(endNodeId)
-				.put(OutputProperty.LENGTH, length);
-		memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).get(endNodeId)
-				.put(OutputProperty.SPEED, maximumSpeed);
-		memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).get(endNodeId)
-				.put(OutputProperty.CAPACITY_PER_LANE, capacityPerLane);
-		memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).get(endNodeId)
-				.put(OutputProperty.NUMBER_OF_LANES, numberOfLanes);
-		memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).get(endNodeId)
-				.put(OutputProperty.COST, cost);
-*/
 		Map<OutputProperty, Object> map = new HashMap<OutputProperty, Object>();
 		map.put(OutputProperty.LENGTH, Double.valueOf(length));
 		map.put(OutputProperty.FLOW, Double.valueOf(flow));
@@ -197,7 +161,6 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 
 	@Override
 	public void open() throws PlanItException {
-		//memoryTable = new HashMap<Long, Map<Long, Map<Long, Map<Long, Map<Long, Map<OutputProperty, Object>>>>>>();
 		multiKeyMap = MultiKeyMap.decorate(new HashedMap());
 	}
 
@@ -215,16 +178,6 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
  */
 	public Object getLinkSegmentOutput(long trafficAssignmentId, long timePeriodId, long modeId, long startNodeId,
 			long endNodeId, OutputProperty outputProperty) throws PlanItException {
-/*
-		if (!memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).get(endNodeId)
-				.containsKey(outputProperty)) {
-			throw new PlanItException("Trying to retrieve output property "
-					+ BaseOutputProperty.convertToBaseOutputProperty(outputProperty)
-					+ " which has not been saved in MemoryOutputFormatter.");
-		}
-*/
-		//return memoryTable.get(trafficAssignmentId).get(timePeriodId).get(modeId).get(startNodeId).get(endNodeId)
-		//		.get(outputProperty);
 		Map<OutputProperty, Object> map = (Map<OutputProperty, Object>) multiKeyMap.get(trafficAssignmentId, timePeriodId, modeId, startNodeId, endNodeId);
 		if (!map.containsKey(outputProperty)) {
 			throw new PlanItException("Trying to retrieve output property "
@@ -236,8 +189,6 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 
 	@Override
 	public void close() throws PlanItException {
-		// TODO Auto-generated method stub
-
 	}
 
 }
