@@ -7,7 +7,7 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
-import org.planit.cost.physical.DynamicPhysicalCost;
+import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
@@ -71,7 +71,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
         registeredTrafficAssignmentComponents.put(Smoothing.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(Demands.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(PhysicalNetwork.class, new TreeSet<>());
-        registeredTrafficAssignmentComponents.put(DynamicPhysicalCost.class, new TreeSet<>());
+        registeredTrafficAssignmentComponents.put(PhysicalCost.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(InitialPhysicalCost.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(VirtualCost.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(FundamentalDiagram.class, new TreeSet<>());

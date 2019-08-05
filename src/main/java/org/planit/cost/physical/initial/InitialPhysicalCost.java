@@ -1,6 +1,6 @@
 package org.planit.cost.physical.initial;
 
-import org.planit.cost.physical.PhysicalCost;
+import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.network.physical.LinkSegment;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.userclass.Mode;
@@ -11,7 +11,7 @@ import org.planit.userclass.Mode;
  * @author gman6028
  *
  */
-public abstract class InitialPhysicalCost extends TrafficAssignmentComponent<InitialPhysicalCost>  implements PhysicalCost {
+public abstract class InitialPhysicalCost extends TrafficAssignmentComponent<InitialPhysicalCost>  implements AbstractPhysicalCost {
 
     /**
      * Constructor

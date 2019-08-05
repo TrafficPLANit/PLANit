@@ -258,7 +258,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 */
 	private void populateModalLinkSegmentCosts(Mode mode, double[] currentSegmentCosts) throws PlanItException {
 		setModalLinkSegmentCosts(mode, currentSegmentCosts, (linkSegment) -> {
-			return dynamicPhysicalCost.getSegmentCost(mode, linkSegment);
+			return physicalCost.getSegmentCost(mode, linkSegment);
 		});
 	}
 
@@ -327,20 +327,20 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * Initialize members and output resources before equilibration
 	 * 
 	 * @throws PlanItException thrown if there is an error
-	 *      )
+	 *      
 	 */
 	@Override
 	protected void initialiseTrafficAssignmentBeforeEquilibration() throws PlanItException {
 		// initialize members that are used throughout the assignment
 		this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
 		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
-		dynamicPhysicalCost.initialiseCostsBeforeEquilibration(physicalNetwork);
+		physicalCost.initialiseCostsBeforeEquilibration(physicalNetwork);
 		List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
 		for (OutputFormatter outputFormatter : outputFormatters) {
 			outputFormatter.open();
 		}
 	}
-
+	
 	/**
 	 * Close output resources after equilibration
 	 * 

@@ -22,7 +22,7 @@ import org.planit.utils.Pair;
  * 
  * @author markr
  */
-public class BPRLinkTravelTimeCost extends DynamicPhysicalCost implements LinkVolumeAccessor {
+public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAccessor {
 
 	/**
 	 * Inner class to store Map of alpha and beta parameters used in BPR function

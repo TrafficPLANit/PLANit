@@ -10,7 +10,7 @@ import org.planit.event.listener.InteractorListener;
  * @author markr
  *
  */
-public abstract class LinkTravelTimeCost extends DynamicPhysicalCost implements InteractorListener{
+public abstract class LinkTravelTimeCost extends PhysicalCost implements InteractorListener{
 
     /**
      * Logger for this class

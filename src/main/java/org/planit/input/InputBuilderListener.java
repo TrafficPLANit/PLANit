@@ -2,7 +2,7 @@ package org.planit.input;
 
 import java.util.logging.Logger;
 
-import org.planit.cost.physical.DynamicPhysicalCost;
+import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.demand.Demands;
@@ -102,15 +102,15 @@ public abstract class InputBuilderListener implements EventListener {
 	}
 
 	/**
-	 * Empty event handler for population of DynamicPhysicalCost object
+	 * Empty event handler for population of PhysicalCost object
 	 * 
 	 * Override this method if actions are required on creation of the dynamic physical cost object
 	 * 
-	 * @param projectComponent dynamic physical cost object
+	 * @param projectComponent physical cost object
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected void populateDynamicPhysicalCost(DynamicPhysicalCost projectComponent) throws PlanItException {
-		LOGGER.info("Populating DynamicPhysicalCost - No actions on creation");
+	protected void populatePhysicalCost(PhysicalCost projectComponent) throws PlanItException {
+		LOGGER.info("Populating PhysicalCost - No actions on creation");
 	}
 
 	/**
@@ -189,8 +189,8 @@ public abstract class InputBuilderListener implements EventListener {
 			populateDemands((Demands) projectComponent);
 		} else if (projectComponent instanceof InitialPhysicalCost) {
 			populateInitialPhysicalCost((InitialPhysicalCost) projectComponent, event.getParameter());
-		} else if (projectComponent instanceof DynamicPhysicalCost) {
-			populateDynamicPhysicalCost((DynamicPhysicalCost) projectComponent);
+		} else if (projectComponent instanceof PhysicalCost) {
+			populatePhysicalCost((PhysicalCost) projectComponent);
 		} else if (projectComponent instanceof VirtualCost) {
 			populateVirtualCost((VirtualCost) projectComponent);
 		} else if (projectComponent instanceof Smoothing) {

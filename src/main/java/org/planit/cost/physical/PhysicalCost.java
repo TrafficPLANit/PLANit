@@ -1,16 +1,24 @@
 package org.planit.cost.physical;
 
-import org.planit.cost.Cost;
-import org.planit.network.physical.LinkSegment;
+import org.planit.exceptions.PlanItException;
+import org.planit.network.physical.PhysicalNetwork;
+import org.planit.trafficassignment.TrafficAssignmentComponent;
 
 /**
- * Interface to classify costs of physical links
+ * Class for dynamic cost functions, which calculate link segment costs for each iteration
  * 
- * Physical links can be either InitialPhysicalCosts (which are read in at the start and are constant) or DynamicPhysicalCosts (which are derived from other inputs and are recalculated after each iteration).
- * 
- * @author markr
+ * @author gman6028
  *
  */
-public interface PhysicalCost extends Cost<LinkSegment> {
+public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCost> implements AbstractPhysicalCost {
+	 
 
- }
+	/**
+	 * Initialize the cost parameter values in the network
+	 * 
+	 * @param physicalNetwork the physical network
+	 * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
+	 */
+	public abstract void initialiseCostsBeforeEquilibration(PhysicalNetwork physicalNetwork) throws PlanItException;
+
+}
