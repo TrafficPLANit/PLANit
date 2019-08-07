@@ -5,6 +5,8 @@ import org.planit.output.enums.Units;
 
 public final class DownstreamNodeLocationOutputProperty extends BaseOutputProperty {
 
+	public static final String DOWNSTREAM_NODE_LOCATION = "Downstream Node Location";
+	
 	@Override
 	public String getName() {
 		return DOWNSTREAM_NODE_LOCATION;
@@ -26,7 +28,7 @@ public final class DownstreamNodeLocationOutputProperty extends BaseOutputProper
 	}
 
 	@Override
-	public int getColumnPriority() {
+	protected int getColumnPriority() {
 		return INPUT_PRIORITY;
 	}
 

@@ -5,6 +5,8 @@ import org.planit.output.enums.Units;
 
 public final class DensityOutputProperty extends BaseOutputProperty{
 
+	public static final String DENSITY = "Density";
+	
 	@Override
 	public String getName() {
 		return DENSITY;
@@ -26,7 +28,7 @@ public final class DensityOutputProperty extends BaseOutputProperty{
 	}
 
 	@Override
-	public int getColumnPriority() {
+	protected int getColumnPriority() {
 		return RESULT_PRORITY;
 	}
 

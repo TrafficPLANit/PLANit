@@ -5,6 +5,8 @@ import org.planit.output.enums.Units;
 
 public final class ModeExternalIdOutputProperty extends BaseOutputProperty {
 
+	public static final String MODE_EXTERNAL_ID = "Mode External Id";
+	
 	@Override
 	public String getName() {
 		return MODE_EXTERNAL_ID;
@@ -26,7 +28,7 @@ public final class ModeExternalIdOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public int getColumnPriority() {
+	protected int getColumnPriority() {
 		return ID_PRIORITY;
 	}
 

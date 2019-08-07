@@ -5,6 +5,8 @@ import org.planit.output.enums.Units;
 
 public final class LengthOutputProperty extends BaseOutputProperty {
 
+	public static final String LENGTH = "Length";
+	
 	@Override
 	public String getName() {
 		return LENGTH;
@@ -26,7 +28,7 @@ public final class LengthOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public int getColumnPriority() {
+	protected int getColumnPriority() {
 		return INPUT_PRIORITY;
 	}
 

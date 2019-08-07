@@ -5,6 +5,8 @@ import org.planit.output.enums.Units;
 
 public final class SpeedOutputProperty extends BaseOutputProperty {
 
+	public static final String SPEED = "Speed";
+	
 	@Override
 	public String getName() {
 		return SPEED;
@@ -26,7 +28,7 @@ public final class SpeedOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public int getColumnPriority() {
+	protected int getColumnPriority() {
 		return RESULT_PRORITY;
 	}
 

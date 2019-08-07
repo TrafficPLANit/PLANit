@@ -5,6 +5,8 @@ import org.planit.output.enums.Units;
 
 public final class FlowOutputProperty extends BaseOutputProperty {
 
+	public static final String FLOW = "Flow"; 
+	
 	@Override
 	public String getName() {
 		return FLOW;
@@ -26,7 +28,7 @@ public final class FlowOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public int getColumnPriority() {
+	protected int getColumnPriority() {
 		return RESULT_PRORITY;
 	}
 

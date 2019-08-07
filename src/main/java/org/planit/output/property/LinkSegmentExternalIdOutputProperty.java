@@ -5,6 +5,8 @@ import org.planit.output.enums.Units;
 
 public class LinkSegmentExternalIdOutputProperty extends BaseOutputProperty {
 
+	public static final String LINK_SEGMENT_EXTERNAL_ID = "Link Segment External Id";
+	
 	@Override
 	public String getName() {
 		return LINK_SEGMENT_EXTERNAL_ID;
@@ -26,7 +28,7 @@ public class LinkSegmentExternalIdOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public int getColumnPriority() {
+	protected int getColumnPriority() {
 		return ID_PRIORITY;
 	}
 

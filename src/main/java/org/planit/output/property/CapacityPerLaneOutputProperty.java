@@ -5,6 +5,8 @@ import org.planit.output.enums.Units;
 
 public final class CapacityPerLaneOutputProperty extends BaseOutputProperty {
 
+	public static final String CAPACITY_PER_LANE = "Capacity per Lane";
+	
 	@Override
 	public String getName() {
 		return CAPACITY_PER_LANE;
@@ -26,7 +28,7 @@ public final class CapacityPerLaneOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public int getColumnPriority() {
+	protected int getColumnPriority() {
 		return INPUT_PRIORITY;
 	}
 

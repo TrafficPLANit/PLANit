@@ -5,6 +5,8 @@ import org.planit.output.enums.Units;
 
 public final class CostOutputProperty extends BaseOutputProperty {
 
+	public static final String COST = "Cost";
+	
 	@Override
 	public String getName() {
 		return COST;
@@ -26,7 +28,7 @@ public final class CostOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	public int getColumnPriority() {
+	protected int getColumnPriority() {
 		return RESULT_PRORITY;
 	}
 
