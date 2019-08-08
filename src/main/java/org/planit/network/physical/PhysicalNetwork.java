@@ -1,6 +1,7 @@
 package org.planit.network.physical;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +119,12 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 				linkSegmentMapByExternalId.put(externalId, linkSegment);
 			}
 			linkSegmentMap.put(linkSegment.getId(), linkSegment);
+			Node startNode = (Node) linkSegment.getUpstreamVertex();
+			long startNodeExternalId = startNode.getExternalId();
+			if (!linkSegmentMapByStartExternalId.containsKey(startNodeExternalId)) {
+				linkSegmentMapByStartExternalId.put(startNodeExternalId, new ArrayList<LinkSegment>());
+			}
+			linkSegmentMapByStartExternalId.get(startNodeExternalId).add(linkSegment);
 		}
 
 		/**
@@ -145,17 +152,21 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 * @param startExternalId reference to start node
 		 * @param endExternalId   reference to end node
 		 * @return the linkSegment found
-		 * @throws PlanItException thrown if no link segment whose node externals Ids match the inputs has been registered
 		 */
-		public LinkSegment getLinkSegmentByStartAndEndNodeExternalId(long startExternalId, long endExternalId) throws PlanItException {
-			for (LinkSegment linkSegment : linkSegmentMap.values()) {
-				Node startNode = (Node) linkSegment.getUpstreamVertex();
+		public LinkSegment getLinkSegmentByStartAndEndNodeExternalId(long startExternalId, long endExternalId) {
+			if (!linkSegmentMapByStartExternalId.containsKey(startExternalId)) {
+				LOGGER.severe("No link segment with start node " + startExternalId + " has been registered in the network.");
+				return null;
+			}
+			List<LinkSegment> linkSegmentsForCurrentStartNode = linkSegmentMapByStartExternalId.get(startExternalId);
+			for (LinkSegment linkSegment : linkSegmentsForCurrentStartNode) {
 				Node endNode = (Node) linkSegment.getDownstreamVertex();
-				if ((startNode.getExternalId() == startExternalId) && (endNode.getExternalId() == endExternalId)) {
+				if (endNode.getExternalId() == endExternalId) {
 					return linkSegment;
 				}
 			}
-			throw new PlanItException("No link segment with start node " + startExternalId + " and end node " + endExternalId + " has been registered in the network.");
+			LOGGER.severe("No link segment with start node " + startExternalId + " and end node " + endExternalId + " has been registered in the network.");
+			return null;
 		}
 
 		/**
@@ -202,11 +213,11 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 * 
 		 * @param externalId external Id of the link segment
 		 * @return retrieved link segment
-		 * @throws PlanItException thrown if no link segment with this external Id has been registered
 		 */
-		public LinkSegment getLinkSegmentByExternalId(long externalId) throws PlanItException {
-			if (!linkSegmentMapByExternalId.keySet().contains(externalId) ) {
-				throw new PlanItException("Link with External Id " + externalId + " has not been registered in the network.");
+		public LinkSegment getLinkSegmentByExternalId(long externalId) {
+			if (!linkSegmentMapByExternalId.containsKey(externalId) ) {
+				LOGGER.severe("Link with External Id " + externalId + " has not been registered in the network.");
+				return null;
 			}
 			return linkSegmentMapByExternalId.get(externalId);
 		}
@@ -313,6 +324,11 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 * Map to store link segments by their external Id
 	 */
 	protected Map<Long, LinkSegment> linkSegmentMapByExternalId;
+	
+	/**
+	 * Map to store all link segments for a given start node external Id
+	 */
+	protected Map<Long, List<LinkSegment>> linkSegmentMapByStartExternalId;
 
 	/**
 	 * Map to store nodes by their Id
@@ -345,7 +361,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		// to account for this (treemap is slower than hashmap)
 		linkMap = new TreeMap<Long, Link>();
 		linkSegmentMap = new TreeMap<Long, LinkSegment>();
-		linkSegmentMapByExternalId = new TreeMap<Long, LinkSegment>();
+		linkSegmentMapByExternalId = new HashMap<Long, LinkSegment>();
+		linkSegmentMapByStartExternalId = new HashMap<Long, List<LinkSegment>>();
 		nodeMap = new TreeMap<Long, Node>();
 		this.networkBuilder = networkBuilder;
 	}
