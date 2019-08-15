@@ -27,10 +27,13 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     private Map<Mode, double[]> modalNetworkSegmentFlows = null;
 
     /**
-     * Store the mode specific data required during assignment
+     * Stores the mode specific data required during assignment
      */
     private final Map<Mode, ModeData> modeSpecificData; // specific to tsa
 
+    /**
+     * Stores the array of link segment costs for each mode 
+     */
     private Map<Mode, double[]> modalNetworkSegmentCostsMap;
     
     /**

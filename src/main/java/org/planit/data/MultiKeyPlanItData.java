@@ -153,6 +153,8 @@ public class MultiKeyPlanItData {
 		case 4: return (Object[]) multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2], keyValues[3]);
 		case 5: return (Object[]) multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2], keyValues[3], keyValues[4]);
 		}
+		
+		//this line should never be reached, but required for compilation 
 		return null;
 	}
 	

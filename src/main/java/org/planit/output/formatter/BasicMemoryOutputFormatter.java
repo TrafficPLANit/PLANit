@@ -21,8 +21,6 @@ import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.TraditionalStaticAssignment;
-import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.userclass.Mode;
 
 /**
@@ -146,10 +144,7 @@ public class BasicMemoryOutputFormatter extends BaseOutputFormatter {
 			if (outputAdapter instanceof TraditionalStaticAssignmentLinkOutputAdapter) {
 				TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter = 
 						(TraditionalStaticAssignmentLinkOutputAdapter) outputAdapter;
-				TrafficAssignment trafficAssignment = traditionalStaticAssignmentLinkOutputAdapter.getTrafficAssignment();
-				//TraditionalStaticAssignment traditionalStaticAssignment = (TraditionalStaticAssignment) trafficAssignment;
 				TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = 
-				//		(TraditionalStaticAssignmentSimulationData) traditionalStaticAssignment.getSimulationData();
 						(TraditionalStaticAssignmentSimulationData) outputAdapter.getSimulationData();
 				writeResultsForCurrentTimePeriod(traditionalStaticAssignmentLinkOutputAdapter,
 						traditionalStaticAssignmentSimulationData, modes, timePeriod);

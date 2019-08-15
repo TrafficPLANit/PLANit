@@ -19,7 +19,6 @@ import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.TraditionalStaticAssignment;
 import org.planit.userclass.Mode;
 
 public class MemoryOutputFormatter extends BaseOutputFormatter {
@@ -149,12 +148,12 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	/**
 	 * Save the results for the current time period
 	 * 
-	 * @param outputType               the current output type
-	 * @param outputAdapter TraditionalStaticAssignmentLinkOutputAdapter used to
-	 *                      retrieve the results of the assignment
+	 * @param outputType     the current output type
+	 * @param outputAdapter  TraditionalStaticAssignmentLinkOutputAdapter used to
+	 *                       retrieve the results of the assignment
 	 * @param simulationData simulation data for the current iteration
-	 * @param modes         Set of modes of travel
-	 * @param timePeriod    the current time period
+	 * @param modes          Set of modes of travel
+	 * @param timePeriod     the current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
 	private void writeResultsForCurrentTimePeriod(OutputType outputType,
@@ -171,7 +170,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	}
 
 	/**
-	 * Tests whether the current output type is appropriate for the current key output types
+	 * Tests whether the current output type is appropriate for the current key
+	 * output types
 	 * 
 	 * @param outputType the current output type
 	 * @return true if the current output type is valid, false otherwise
@@ -219,11 +219,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 		OutputAdapter outputAdapter = outputTypeConfiguration.getOutputAdapter();
 		if (outputAdapter instanceof TraditionalStaticAssignmentLinkOutputAdapter) {
 			TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter = (TraditionalStaticAssignmentLinkOutputAdapter) outputAdapter;
-			//TraditionalStaticAssignment traditionalStaticAssignment = 
-			//		(TraditionalStaticAssignment) traditionalStaticAssignmentLinkOutputAdapter.getTrafficAssignment();
-			TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = 
-			//		(TraditionalStaticAssignmentSimulationData) traditionalStaticAssignment.getSimulationData();
-					(TraditionalStaticAssignmentSimulationData) outputAdapter.getSimulationData();
+			TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = (TraditionalStaticAssignmentSimulationData) outputAdapter
+					.getSimulationData();
 			writeResultsForCurrentTimePeriod(outputType, traditionalStaticAssignmentLinkOutputAdapter,
 					traditionalStaticAssignmentSimulationData, modes, timePeriod);
 		} else {
