@@ -30,7 +30,7 @@ public class StopCriterion {
      * Chosen maximum number of iterations
      */
     private int maxIterations = DEFAULT_MAX_ITERATIONS;
-
+    
     /**
      * Chosen epsilon for stop criterion
      */

@@ -42,5 +42,5 @@ public abstract class OutputTypeConfiguration {
     public OutputAdapter getOutputAdapter() {
         return outputAdapter;
     }
-
+    
 }

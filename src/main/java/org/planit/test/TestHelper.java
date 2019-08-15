@@ -8,7 +8,10 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.logging.Logger;
 
+import org.planit.data.MultiKeyPlanItData;
 import org.planit.exceptions.PlanItException;
+import org.planit.output.OutputType;
+import org.planit.output.formatter.BasicMemoryOutputFormatter;
 import org.planit.output.formatter.MemoryOutputFormatter;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
@@ -102,18 +105,18 @@ public class TestHelper {
  * @param resultsMap Map storing standard test results which have been generated previously
  * @throws PlanItException thrown if one of the test output properties has not been saved
  */
-	public static void compareResultsToMemoryOutputFormatter(MemoryOutputFormatter memoryOutputFormatter, 
+	public static void compareResultsToMemoryOutputFormatter(BasicMemoryOutputFormatter basicMemoryOutputFormatter, 
 			                                                                                                 SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap) throws PlanItException {
 		for (Long runId : resultsMap.keySet()) {
 			for (TimePeriod timePeriod : resultsMap.get(runId).keySet()) {
 				for (Mode mode : resultsMap.get(runId).get(timePeriod).keySet()) {
 					for (BprResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
-						double flow = (Double) memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.FLOW);
-						double length = (Double) memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.LENGTH);
-						double speed = (Double) memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.SPEED);
-						double cost = (Double) memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.COST);
-						double capacityPerLane = (Double) memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.CAPACITY_PER_LANE);
-						int numberOfLanes = (Integer) memoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.NUMBER_OF_LANES);
+						double flow = (Double) basicMemoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.FLOW);
+						double length = (Double) basicMemoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.LENGTH);
+						double speed = (Double) basicMemoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.SPEED);
+						double cost = (Double) basicMemoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.COST);
+						double capacityPerLane = (Double) basicMemoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.CAPACITY_PER_LANE);
+						int numberOfLanes = (Integer) basicMemoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.NUMBER_OF_LANES);
 						double capacity = capacityPerLane * numberOfLanes;
 						assertEquals(flow, resultDto.getLinkFlow(), 0.00001);
 						assertEquals(length, resultDto.getLength(), 0.00001);
@@ -125,4 +128,44 @@ public class TestHelper {
 			}		
 		}		
 	}
+	
+	public static void compareResultsToMemoryOutputFormatter(OutputType outputType, MemoryOutputFormatter memoryOutputFormatter, Integer iterationIndex,
+            SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap) throws PlanItException {
+		
+		for (Long runId : resultsMap.keySet()) {
+			for (TimePeriod timePeriod : resultsMap.get(runId).keySet()) {
+				for (Mode mode : resultsMap.get(runId).get(timePeriod).keySet()) {
+					for (BprResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
+						OutputProperty[] outputKeyProperties = memoryOutputFormatter.getOutputKeyProperties();
+						OutputProperty[] outputValueProperties = memoryOutputFormatter.getOutputValueProperties();
+						MultiKeyPlanItData multiKeyPlanItData = memoryOutputFormatter.getMultiKeyPlanItData(mode, timePeriod, iterationIndex, outputType);
+						Object[] keyValues = new Object[outputKeyProperties.length];
+						keyValues[0] = Integer.valueOf((int) resultDto.getStartNodeId());
+						keyValues[1] = Integer.valueOf((int) resultDto.getEndNodeId());
+						for (int i=0; i<outputValueProperties.length; i++) {
+							switch (outputValueProperties[i]) {
+							case FLOW: 
+								double flow = (Double) multiKeyPlanItData.getRowValue(OutputProperty.FLOW,  keyValues);
+							    assertEquals(flow, resultDto.getLinkFlow(), 0.00001);
+							    break;
+							case LENGTH: 
+								double length = (Double)multiKeyPlanItData.getRowValue(OutputProperty.LENGTH,  keyValues);
+								assertEquals(length, resultDto.getLength(), 0.00001);
+								break;
+							case SPEED:
+								double speed = (Double) multiKeyPlanItData.getRowValue(OutputProperty.SPEED,  keyValues);
+								assertEquals(speed, resultDto.getSpeed(), 0.00001);
+								break;
+							case COST:
+								double cost = (Double) multiKeyPlanItData.getRowValue(OutputProperty.COST,  keyValues);
+								assertEquals(cost, resultDto.getLinkCost(), 0.00001);
+								break;
+								}
+						}
+					}					
+				}
+			}		
+		}		
+	}
+	
 }

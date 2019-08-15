@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
 
 import org.planit.cost.Cost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
+import org.planit.data.SimulationData;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.demand.Demands;
 import org.planit.event.RequestAccesseeEvent;
@@ -406,5 +407,12 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public int getNumberOfNetworkSegments() {
 		return numberOfNetworkSegments;
 	}
+	
+	/**
+	 * Return the simulation data for the current iteration
+	 * 
+	 * @return the simulation data for the current iteration
+	 */
+	public abstract SimulationData getSimulationData();
 
 }

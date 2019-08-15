@@ -215,14 +215,32 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 	}
 	
 	/**
+	 * Returns an output object for all link segments
+	 * 
+	 * @param transportNetwork current network
+	 * @param getValue lambda function which returns the desired object for each link segment
+	 * @return List of the required output object
+	 */
+	private List<Object> getObjectForAllLinkSegments(TransportNetwork transportNetwork, Function<MacroscopicLinkSegment, Object> getValue) {
+		List<Object> values = new ArrayList<Object>();
+		Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
+		while (linkSegmentIter.hasNext()) {
+			MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
+			values.add(getValue.apply(linkSegment));
+		}
+		return values;
+	}
+	
+	/**
 	 * Get the simulation data for the current iteration
 	 * 
 	 * @return the simulation data for the current iteration
 	 */
-	private TraditionalStaticAssignmentSimulationData getSimulationData() {
+	@Override
+	public TraditionalStaticAssignmentSimulationData getSimulationData() {
 		TraditionalStaticAssignment traditionalStaticAssignment = (TraditionalStaticAssignment) trafficAssignment;
-		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) traditionalStaticAssignment
-				.getSimulationData();
+		TraditionalStaticAssignmentSimulationData simulationData = 
+				(TraditionalStaticAssignmentSimulationData) traditionalStaticAssignment.getSimulationData();
 		return simulationData;
 	}
 
@@ -346,17 +364,7 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 	public List<Object>  getUpstreamNodeLocationForAllLinkSegments(TransportNetwork transportNetwork) {
 		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getUpstreamNodeLocationPropertyValue(linkSegment);});
 	}
-	
-	private List<Object> getObjectForAllLinkSegments(TransportNetwork transportNetwork, Function<MacroscopicLinkSegment, Object> getValue) {
-		List<Object> values = new ArrayList<Object>();
-		Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
-		while (linkSegmentIter.hasNext()) {
-			MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
-			values.add(getValue.apply(linkSegment));
-		}
-		return values;
-	}
-	
+
 	/**
 	 * Returns true if there is a flow through the current specified link segment for the specified mode
 	 * 

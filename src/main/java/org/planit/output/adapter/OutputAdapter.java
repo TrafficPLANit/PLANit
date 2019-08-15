@@ -3,6 +3,7 @@ package org.planit.output.adapter;
 import java.util.logging.Logger;
 
 import org.planit.cost.Cost;
+import org.planit.data.SimulationData;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.trafficassignment.TrafficAssignment;
@@ -68,6 +69,10 @@ public abstract class OutputAdapter {
      */
     public long getTrafficAssignmentId() {
         return trafficAssignment.getId();
+    }
+    
+    public SimulationData getSimulationData() {
+    	return trafficAssignment.getSimulationData();
     }
 
     /**

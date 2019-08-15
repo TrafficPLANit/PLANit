@@ -62,7 +62,7 @@ public class OutputManager {
 			OutputAdapter outputAdapter = outputTypeConfiguration.getOutputAdapter();
 			if ((outputAdapter.isConverged()) || (!outputConfiguration.isPersistOnlyFinalIteration())) {
 				for (OutputFormatter outputFormatter : outputFormatters) {
-					outputFormatter.persist(timePeriod, modes, outputTypeConfiguration);
+					outputFormatter.persist(timePeriod, modes, outputTypeConfiguration, outputType);
 				}
 			}
 		}

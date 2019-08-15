@@ -24,7 +24,8 @@ public enum OutputProperty {
 	NUMBER_OF_LANES("org.planit.output.property.NumberOfLanesOutputProperty"),
 	COST("org.planit.output.property.CostOutputProperty"),
 	DOWNSTREAM_NODE_LOCATION("org.planit.output.property.DownstreamNodeLocationOutputProperty"),
-	UPSTREAM_NODE_LOCATION("org.planit.output.property.UpstreamNodeLocationOutputProperty");
+	UPSTREAM_NODE_LOCATION("org.planit.output.property.UpstreamNodeLocationOutputProperty"),
+	ITERATION_INDEX("org.planit.output.property.IterationIndex");
 
 	private final String value;
 
