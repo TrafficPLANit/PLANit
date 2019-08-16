@@ -134,10 +134,10 @@ public class BasicMemoryOutputFormatter extends BaseOutputFormatter {
 	 * @param timePeriod              time period for current results
 	 * @param modes                   Set of modes covered by current results
 	 * @param outputTypeConfiguration output configuration being used
-	 * @param outputType OutputType for the current persistence
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration, OutputType outputType)
+	@Override
+	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration)
 			throws PlanItException {
 		try {
 			OutputAdapter outputAdapter = outputTypeConfiguration.getOutputAdapter();

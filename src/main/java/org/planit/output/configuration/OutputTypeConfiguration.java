@@ -1,6 +1,8 @@
 package org.planit.output.configuration;
 
 import java.util.logging.Logger;
+
+import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
 
 /**
@@ -22,6 +24,11 @@ public abstract class OutputTypeConfiguration {
      * needed to the one utilizing this configuration for persistence reasons
      */
     protected final OutputAdapter outputAdapter;
+    
+    /**
+     * The output type being used with the current instance
+     */
+    protected OutputType outputType;
 
     /**
      * OutputTypeconfiguration constructor
@@ -42,5 +49,13 @@ public abstract class OutputTypeConfiguration {
     public OutputAdapter getOutputAdapter() {
         return outputAdapter;
     }
+
+	public OutputType getOutputType() {
+		return outputType;
+	}
+
+	public void setOutputType(OutputType outputType) {
+		this.outputType = outputType;
+	}
     
 }

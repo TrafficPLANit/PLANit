@@ -2,9 +2,7 @@ package org.planit.output.adapter;
 
 import java.util.logging.Logger;
 
-import org.planit.cost.Cost;
 import org.planit.data.SimulationData;
-import org.planit.network.physical.LinkSegment;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.trafficassignment.TrafficAssignment;
 
@@ -24,6 +22,18 @@ public abstract class OutputAdapter {
      * the traffic assignment this output adapter is drawing from
      */
     protected final TrafficAssignment trafficAssignment;
+    
+	/**
+	 * Return the name of a Java object class as a short string
+	 * 
+	 * @param object the Java object
+	 * @return the name of the object
+	 */
+	protected String getClassName(Object object) {
+		String name = object.getClass().getCanonicalName();
+		String[] words = name.split("\\.");
+		return words[words.length - 1];
+	}
 
     /**
      * Constructor
@@ -36,30 +46,12 @@ public abstract class OutputAdapter {
     }
     
     /**
-     * Return the traffic assignment object being used
-     * 
-     * @return the TrafficAssignment object
-     */
-    public TrafficAssignment getTrafficAssignment() {
-    	return trafficAssignment;
-    }
-
-    /**
      * Return the combined transport network for this assignment
      * 
      * @return TransportNetwork used in this assignment
      */
     public TransportNetwork getTransportNetwork() {
         return trafficAssignment.getTransportNetwork();
-    }
-
-    /**
-     * Return the dynamic physical cost object used in this assignment
-     * 
-     * @return dynamic physical cost object used in this assignment
-     */
-    public Cost<LinkSegment> getPhysicalCost() {
-        return trafficAssignment.getPhysicalCost();
     }
 
     /**
@@ -71,8 +63,40 @@ public abstract class OutputAdapter {
         return trafficAssignment.getId();
     }
     
+    /**
+     * Returns the simulation data for the current iteration
+     * 
+     * @return the simulation data for the current iteration
+     */
     public SimulationData getSimulationData() {
     	return trafficAssignment.getSimulationData();
+    }
+    
+    /**
+     * Returns the name of the assignment class being used
+     * 
+     * @return the assignment class being used
+     */
+    public String getAssignmentClassName() {
+    	return getClassName(trafficAssignment);
+    }
+    
+    /**
+     * Returns the name of the physical cost class
+     * 
+     * @return the name of the physical cost class
+     */
+    public String getPhysicalCostClassName() {
+    	return getClassName(trafficAssignment.getPhysicalCost());
+    }
+    
+    /**
+     * Return the name of the virtual cost class
+     * 
+     * @return the name of the virtual cost class
+     */
+    public String getVirtualCostClassName() {
+    	return getClassName(trafficAssignment.getVirtualCost());
     }
 
     /**

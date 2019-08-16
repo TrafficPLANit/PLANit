@@ -99,9 +99,9 @@ public class TestHelper {
 	}
 	
 /**
- * Compares the results from an assignment run stored in a MemoryOutputFormatter object to known results stored in a Map.  It generates a JUnit test failure if the results maps have different contents.
+ * Compares the results from an assignment run stored in a BasicMemoryOutputFormatter object to known results stored in a Map.  It generates a JUnit test failure if the results maps have different contents.
  * 
- * @param memoryOutputFormatter the MemoryOuptutFormatter object which stores results from a test run
+ * @param basicMemoryOutputFormatter the BasicMemoryOuptutFormatter object which stores results from a test run
  * @param resultsMap Map storing standard test results which have been generated previously
  * @throws PlanItException thrown if one of the test output properties has not been saved
  */
@@ -129,6 +129,15 @@ public class TestHelper {
 		}		
 	}
 	
+/**
+ * Compares the results from an assignment run stored in a MemoryOutputFormatter object to known results stored in a Map.  It generates a JUnit test failure if the results maps have different contents.
+ * 
+ * @param outputType the current output type
+ * @param memoryOutputFormatter the MemoryOuptutFormatter object which stores results from a test run
+ * @param iterationIndex the current iteration index
+ * @param resultsMap Map storing standard test results which have been generated previously
+ * @throws PlanItException thrown if one of the test output properties has not been saved
+ */
 	public static void compareResultsToMemoryOutputFormatter(OutputType outputType, MemoryOutputFormatter memoryOutputFormatter, Integer iterationIndex,
             SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap) throws PlanItException {
 		
@@ -136,9 +145,9 @@ public class TestHelper {
 			for (TimePeriod timePeriod : resultsMap.get(runId).keySet()) {
 				for (Mode mode : resultsMap.get(runId).get(timePeriod).keySet()) {
 					for (BprResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
-						OutputProperty[] outputKeyProperties = memoryOutputFormatter.getOutputKeyProperties();
-						OutputProperty[] outputValueProperties = memoryOutputFormatter.getOutputValueProperties();
-						MultiKeyPlanItData multiKeyPlanItData = memoryOutputFormatter.getMultiKeyPlanItData(mode, timePeriod, iterationIndex, outputType);
+						OutputProperty[] outputKeyProperties = memoryOutputFormatter.getOutputKeyProperties(outputType);
+						OutputProperty[] outputValueProperties = memoryOutputFormatter.getOutputValueProperties(outputType);
+						MultiKeyPlanItData multiKeyPlanItData = memoryOutputFormatter.getOutputData(mode, timePeriod, iterationIndex, outputType);
 						Object[] keyValues = new Object[outputKeyProperties.length];
 						keyValues[0] = Integer.valueOf((int) resultDto.getStartNodeId());
 						keyValues[1] = Integer.valueOf((int) resultDto.getEndNodeId());

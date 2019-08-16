@@ -64,6 +64,7 @@ public class OutputConfiguration {
         if (outputType.equals(OutputType.LINK)) {
         	LinkOutputAdapter linkOutputAdapter = (LinkOutputAdapter) outputAdapter;
             outputTypeConfiguration = new LinkOutputTypeConfiguration(linkOutputAdapter);
+            outputTypeConfiguration.setOutputType(outputType);
         } else {
             // no other dedicated output type configurations yet exist
             // TODO: create relevant type specific loggers with relevant properties to

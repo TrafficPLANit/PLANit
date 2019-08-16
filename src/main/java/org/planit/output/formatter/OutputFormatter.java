@@ -31,10 +31,9 @@ public interface OutputFormatter {
 	 * @param modes                   Set of modes for the assignment to be saved
 	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to
 	 *                                be saved
-	 * @param outputType OutputType for the current persistence
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration, OutputType outputType) throws PlanItException;
+	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration) throws PlanItException;
 
 	/**
 	 * Open resources to store results

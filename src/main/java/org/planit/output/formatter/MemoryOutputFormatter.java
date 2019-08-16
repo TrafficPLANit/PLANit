@@ -1,6 +1,8 @@
 package org.planit.output.formatter;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.collections.keyvalue.MultiKey;
@@ -23,79 +25,87 @@ import org.planit.userclass.Mode;
 
 public class MemoryOutputFormatter extends BaseOutputFormatter {
 
+	/**
+	 * MultiKeyMap of data stores
+	 */
 	private MultiKeyMap timePeriodModeOutputTypeMultiKeyMap;
-	private OutputProperty[] outputKeyProperties;
-	private OutputProperty[] outputValueProperties;
+
+	/**
+	 * Map of OutputProperty types of keys for each OutputType
+	 */
+	private Map<OutputType, OutputProperty[]> outputKeyProperties;
+
+	/**
+	 * Map of OutputProperty types for values for each OutputType
+	 */
+	private Map<OutputType, OutputProperty[]> outputValueProperties;
 
 	/**
 	 * Save the data for the current time period, mode, iteration and output type
 	 * 
-	 * @param timePeriodId          the id of the specified time period
-	 * @param modeId                the id of the specified mode
-	 * @param outputType            the current output type
-	 * @param multiKeyPlanItData    the data map
-	 * @param linkSegmentId         the id of the link segment
-	 * @param linkSegmentExternalId the external Id of the link segment
-	 * @param startNodeId           the external Id of the start node of this link
-	 *                              segment
-	 * @param endNodeId             the external Id of the end node of this link
-	 *                              segment
-	 * @param flow                  the flow through this link segment
-	 * @param length                the length of this link segment
-	 * @param maximumSpeed          the maximum speed parameter along this link
-	 *                              segment
-	 * @param capacityPerLane       the specified capacity per lane of this link
-	 *                              segment
-	 * @param numberOfLanes         the number of lanes of this link segment
-	 * @param cost                  the computed travel cost for this link segment
+	 * @param timePeriod               the specified time period
+	 * @param mode                     the specified mode
+	 * @param iterationIndex           the current iteration index
+	 * @param outputType               the current output type
+	 * @param multiKeyPlanItData       the data map
+	 * @param modalNetworkSegmentCosts calculated segment costs for the physical
+	 *                                 network
+	 * @param modalNetworkSegmentFlows calculated flows for the network
+	 * @param linkSegment              the current link segment
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void saveRecord(long timePeriodId, long modeId, int iterationIndex, OutputType outputType,
-			MultiKeyPlanItData multiKeyPlanItData, long linkSegmentId, long linkSegmentExternalId, long startNodeId,
-			long endNodeId, double flow, double length, double maximumSpeed, double capacityPerLane, int numberOfLanes,
-			double cost) throws PlanItException {
-		Object[] outputValues = new Object[outputValueProperties.length];
-		for (int i = 0; i < outputValueProperties.length; i++) {
-			switch (outputValueProperties[i]) {
-			case LENGTH:
-				outputValues[i] = Double.valueOf(length);
-				break;
-			case FLOW:
-				outputValues[i] = Double.valueOf(flow);
-				break;
-			case SPEED:
-				outputValues[i] = Double.valueOf(maximumSpeed);
-				break;
-			case CAPACITY_PER_LANE:
-				outputValues[i] = Double.valueOf(capacityPerLane);
-				break;
-			case NUMBER_OF_LANES:
-				outputValues[i] = Integer.valueOf(numberOfLanes);
-				break;
-			case COST:
-				outputValues[i] = Double.valueOf(cost);
-				break;
+	private void saveRecordForLinkSegment(TimePeriod timePeriod, Mode mode, int iterationIndex, OutputType outputType,
+			MultiKeyPlanItData multiKeyPlanItData, double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows,
+			MacroscopicLinkSegment linkSegment) throws PlanItException {
+		int id = (int) linkSegment.getId();
+		double flow = modalNetworkSegmentFlows[id];
+		if (flow > 0.0) {
+			double cost = modalNetworkSegmentCosts[id];
+			Node startNode = (Node) linkSegment.getUpstreamVertex();
+			Node endNode = (Node) linkSegment.getDownstreamVertex();
+			Object[] outputValues = new Object[outputValueProperties.get(outputType).length];
+			for (int i = 0; i < outputValueProperties.get(outputType).length; i++) {
+				switch (outputValueProperties.get(outputType)[i]) {
+				case LENGTH:
+					outputValues[i] = Double.valueOf(linkSegment.getParentLink().getLength());
+					break;
+				case FLOW:
+					outputValues[i] = Double.valueOf(flow);
+					break;
+				case SPEED:
+					outputValues[i] = Double.valueOf(linkSegment.getMaximumSpeed(mode.getExternalId()));
+					break;
+				case CAPACITY_PER_LANE:
+					outputValues[i] = Double.valueOf(linkSegment.getLinkSegmentType().getCapacityPerLane());
+					break;
+				case NUMBER_OF_LANES:
+					outputValues[i] = Integer.valueOf(linkSegment.getNumberOfLanes());
+					break;
+				case COST:
+					outputValues[i] = Double.valueOf(cost);
+					break;
+				}
 			}
-		}
-		Object[] keyValues = new Object[outputKeyProperties.length];
-		for (int i = 0; i < outputKeyProperties.length; i++) {
-			switch (outputKeyProperties[i]) {
-			case LINK_SEGMENT_ID:
-				keyValues[i] = Integer.valueOf((int) linkSegmentId);
-				break;
-			case LINK_SEGMENT_EXTERNAL_ID:
-				keyValues[i] = Integer.valueOf((int) linkSegmentExternalId);
-				break;
-			case DOWNSTREAM_NODE_EXTERNAL_ID:
-				keyValues[i] = Integer.valueOf((int) startNodeId);
-				break;
-			case UPSTREAM_NODE_EXTERNAL_ID:
-				keyValues[i] = Integer.valueOf((int) endNodeId);
-				break;
+			Object[] keyValues = new Object[outputKeyProperties.get(outputType).length];
+			for (int i = 0; i < outputKeyProperties.get(outputType).length; i++) {
+				switch (outputKeyProperties.get(outputType)[i]) {
+				case LINK_SEGMENT_ID:
+					keyValues[i] = Integer.valueOf((int) linkSegment.getId());
+					break;
+				case LINK_SEGMENT_EXTERNAL_ID:
+					keyValues[i] = Integer.valueOf((int) linkSegment.getExternalId());
+					break;
+				case DOWNSTREAM_NODE_EXTERNAL_ID:
+					keyValues[i] = Integer.valueOf((int) startNode.getExternalId());
+					break;
+				case UPSTREAM_NODE_EXTERNAL_ID:
+					keyValues[i] = Integer.valueOf((int) endNode.getExternalId());
+					break;
+				}
 			}
+			multiKeyPlanItData.setRowValues(outputValues, keyValues);
+			timePeriodModeOutputTypeMultiKeyMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
 		}
-		multiKeyPlanItData.setRowValues(outputValues, keyValues);
-		timePeriodModeOutputTypeMultiKeyMap.put(modeId, timePeriodId, iterationIndex, outputType, multiKeyPlanItData);
 	}
 
 	/**
@@ -116,28 +126,16 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows, TransportNetwork transportNetwork)
 			throws PlanItException {
 		MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData();
-		multiKeyPlanItData.registerOutputDataKeys(outputKeyProperties);
-		multiKeyPlanItData.registerOutputValueProperties(outputValueProperties);
+		multiKeyPlanItData.registerOutputDataKeys(outputKeyProperties.get(outputType));
+		multiKeyPlanItData.registerOutputValueProperties(outputValueProperties.get(outputType));
 		int iterationIndex = outputAdapter.getIterationIndex();
 		try {
 			if (outputType.equals(OutputType.LINK)) {
 				Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
 				while (linkSegmentIter.hasNext()) {
 					MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
-					int id = (int) linkSegment.getId();
-					double flow = modalNetworkSegmentFlows[id];
-					if (flow > 0.0) {
-						double cost = modalNetworkSegmentCosts[id];
-						Node startNode = (Node) linkSegment.getUpstreamVertex();
-						Node endNode = (Node) linkSegment.getDownstreamVertex();
-						saveRecord(timePeriod.getId(), mode.getExternalId(), iterationIndex, outputType,
-								multiKeyPlanItData, linkSegment.getId(), linkSegment.getExternalId(),
-								startNode.getExternalId(), endNode.getExternalId(), flow,
-								linkSegment.getParentLink().getLength(),
-								linkSegment.getMaximumSpeed(mode.getExternalId()),
-								linkSegment.getLinkSegmentType().getCapacityPerLane(), linkSegment.getNumberOfLanes(),
-								cost);
-					}
+					saveRecordForLinkSegment(timePeriod, mode, iterationIndex, outputType, multiKeyPlanItData,
+							modalNetworkSegmentCosts, modalNetworkSegmentFlows, linkSegment);
 				}
 			}
 		} catch (Exception e) {
@@ -181,16 +179,17 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 		case GENERAL:
 			return true;
 		case LINK:
-			if ((outputKeyProperties.length == 1) && (outputKeyProperties[0].equals(OutputProperty.LINK_SEGMENT_ID))) {
+			if ((outputKeyProperties.get(outputType).length == 1)
+					&& (outputKeyProperties.get(outputType)[0].equals(OutputProperty.LINK_SEGMENT_ID))) {
 				return true;
 			}
-			if ((outputKeyProperties.length == 1)
-					&& (outputKeyProperties[0].equals(OutputProperty.LINK_SEGMENT_EXTERNAL_ID))) {
+			if ((outputKeyProperties.get(outputType).length == 1)
+					&& (outputKeyProperties.get(outputType)[0].equals(OutputProperty.LINK_SEGMENT_EXTERNAL_ID))) {
 				return true;
 			}
-			if ((outputKeyProperties.length == 2)
-					&& (outputKeyProperties[0].equals(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID))
-					&& (outputKeyProperties[1].equals(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID))) {
+			if ((outputKeyProperties.get(outputType).length == 2)
+					&& (outputKeyProperties.get(outputType)[0].equals(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID))
+					&& (outputKeyProperties.get(outputType)[1].equals(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID))) {
 				return true;
 			}
 			return false;
@@ -203,16 +202,24 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	}
 
 	/**
+	 * Constructor
+	 */
+	public MemoryOutputFormatter() {
+		outputKeyProperties = new HashMap<OutputType, OutputProperty[]>();
+		outputValueProperties = new HashMap<OutputType, OutputProperty[]>();
+	}
+
+	/**
 	 * Save the data for the current iteration
 	 * 
 	 * @param timePeriod              the current time period
 	 * @param modes                   the Set of modes
 	 * @param outputTypeConfiguration the current output type configuration
-	 * @param outputType              the current output type
 	 */
 	@Override
-	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration,
-			OutputType outputType) throws PlanItException {
+	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration)
+			throws PlanItException {
+		OutputType outputType = outputTypeConfiguration.getOutputType();
 		if (!isOutputKeysValid(outputType)) {
 			throw new PlanItException("Invalid output keys defined for output type.");
 		}
@@ -238,10 +245,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @param outputType     value of output type key
 	 * @return data map for the specified keys
 	 */
-	public MultiKeyPlanItData getMultiKeyPlanItData(Mode mode, TimePeriod timePeriod, Integer iterationIndex,
+	public MultiKeyPlanItData getOutputData(Mode mode, TimePeriod timePeriod, Integer iterationIndex,
 			OutputType outputType) {
-		return (MultiKeyPlanItData) timePeriodModeOutputTypeMultiKeyMap.get(mode.getExternalId(), timePeriod.getId(),
-				iterationIndex, outputType);
+		return (MultiKeyPlanItData) timePeriodModeOutputTypeMultiKeyMap.get(mode, timePeriod, iterationIndex,
+				outputType);
 	}
 
 	/**
@@ -265,42 +272,46 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	}
 
 	/**
-	 * Set the output properties of the key values
+	 * Set the output properties of the key values for the current output type
 	 * 
+	 * @param outputType          the current output type
 	 * @param outputKeyProperties output properties of the keys
 	 */
-	public void setOutputKeyProperties(OutputProperty... outputKeyProperties) {
-		this.outputKeyProperties = outputKeyProperties;
+	public void setOutputKeyProperties(OutputType outputType, OutputProperty... outputKeyProperties) {
+		this.outputKeyProperties.put(outputType, outputKeyProperties);
 	}
 
 	/**
 	 * Returns the array of output properties representing the output types of the
-	 * keys
+	 * keys for the current output type
 	 * 
+	 * @param outputType the current output type
 	 * @return array of output properties of the keys
 	 */
-	public OutputProperty[] getOutputKeyProperties() {
-		return outputKeyProperties;
+	public OutputProperty[] getOutputKeyProperties(OutputType outputType) {
+		return outputKeyProperties.get(outputType);
 	}
 
 	/**
-	 * Sets the output properties of the data values
+	 * Sets the output properties of the data values for the current output type
 	 * 
+	 * @param outputType the current output type
 	 * @param outputValueProperties array containing the output property types of
 	 *                              the data values
 	 */
-	public void setOutputValueProperties(OutputProperty... outputValueProperties) {
-		this.outputValueProperties = outputValueProperties;
+	public void setOutputValueProperties(OutputType outputType, OutputProperty... outputValueProperties) {
+		this.outputValueProperties.put(outputType, outputValueProperties);
 	}
 
 	/**
 	 * Returns the array of output properties representing the output types of the
-	 * data values
+	 * data values for the current output type
 	 * 
-	 * @return array of output properties of the data values
+	 * @param outputType the current output type
+	 * @return array of output properties of the data values for the current output type
 	 */
-	public OutputProperty[] getOutputValueProperties() {
-		return outputValueProperties;
+	public OutputProperty[] getOutputValueProperties(OutputType outputType) {
+		return outputValueProperties.get(outputType);
 	}
 
 	/**
