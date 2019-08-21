@@ -28,8 +28,8 @@ public final class FlowOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	protected int getColumnPriority() {
-		return RESULT_PRORITY;
+	protected OutputPropertyPriority getColumnPriority() {
+		return OutputPropertyPriority.RESULT_PRIORITY;
 	}
 
 }

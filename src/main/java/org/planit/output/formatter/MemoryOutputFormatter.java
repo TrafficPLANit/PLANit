@@ -12,7 +12,6 @@ import org.planit.data.MultiKeyPlanItData;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
-import org.planit.network.physical.Node;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.output.OutputType;
@@ -28,7 +27,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	/**
 	 * MultiKeyMap of data stores
 	 */
-	private MultiKeyMap timePeriodModeOutputTypeMultiKeyMap;
+	private MultiKeyMap timeModeOutputTypeIterationDataMap;
 
 	/**
 	 * Map of OutputProperty types of keys for each OutputType
@@ -39,7 +38,15 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * Map of OutputProperty types for values for each OutputType
 	 */
 	private Map<OutputType, OutputProperty[]> outputValueProperties;
-
+	
+	/**
+	 * Map to store whether any data has been stored for a given output type.
+	 * 
+	 * If data have been stored for an output type, it is "locked" so its key and output properties cannot be reset
+	 */
+	private Map<OutputType, Boolean> outputTypeValuesLocked;
+	private Map<OutputType, Boolean> outputTypeKeysLocked;
+	
 	/**
 	 * Save the data for the current time period, mode, iteration and output type
 	 * 
@@ -57,54 +64,21 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	private void saveRecordForLinkSegment(TimePeriod timePeriod, Mode mode, int iterationIndex, OutputType outputType,
 			MultiKeyPlanItData multiKeyPlanItData, double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows,
 			MacroscopicLinkSegment linkSegment) throws PlanItException {
+		OutputProperty[] outputProperties = outputValueProperties.get(outputType);
+		Object[] outputValues = new Object[outputProperties.length];
+		OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
+		Object[] keyValues = new Object[outputKeys.length];
 		int id = (int) linkSegment.getId();
 		double flow = modalNetworkSegmentFlows[id];
 		if (flow > 0.0) {
 			double cost = modalNetworkSegmentCosts[id];
-			Node startNode = (Node) linkSegment.getUpstreamVertex();
-			Node endNode = (Node) linkSegment.getDownstreamVertex();
-			Object[] outputValues = new Object[outputValueProperties.get(outputType).length];
-			for (int i = 0; i < outputValueProperties.get(outputType).length; i++) {
-				switch (outputValueProperties.get(outputType)[i]) {
-				case LENGTH:
-					outputValues[i] = Double.valueOf(linkSegment.getParentLink().getLength());
-					break;
-				case FLOW:
-					outputValues[i] = Double.valueOf(flow);
-					break;
-				case SPEED:
-					outputValues[i] = Double.valueOf(linkSegment.getMaximumSpeed(mode.getExternalId()));
-					break;
-				case CAPACITY_PER_LANE:
-					outputValues[i] = Double.valueOf(linkSegment.getLinkSegmentType().getCapacityPerLane());
-					break;
-				case NUMBER_OF_LANES:
-					outputValues[i] = Integer.valueOf(linkSegment.getNumberOfLanes());
-					break;
-				case COST:
-					outputValues[i] = Double.valueOf(cost);
-					break;
-				}
+			for (int i = 0; i < outputValues.length; i++) {
+				outputValues[i] = linkSegment.getPropertyValue(outputProperties[i], mode, flow, cost);
 			}
-			Object[] keyValues = new Object[outputKeyProperties.get(outputType).length];
-			for (int i = 0; i < outputKeyProperties.get(outputType).length; i++) {
-				switch (outputKeyProperties.get(outputType)[i]) {
-				case LINK_SEGMENT_ID:
-					keyValues[i] = Integer.valueOf((int) linkSegment.getId());
-					break;
-				case LINK_SEGMENT_EXTERNAL_ID:
-					keyValues[i] = Integer.valueOf((int) linkSegment.getExternalId());
-					break;
-				case DOWNSTREAM_NODE_EXTERNAL_ID:
-					keyValues[i] = Integer.valueOf((int) startNode.getExternalId());
-					break;
-				case UPSTREAM_NODE_EXTERNAL_ID:
-					keyValues[i] = Integer.valueOf((int) endNode.getExternalId());
-					break;
-				}
+			for (int i = 0; i < outputKeys.length; i++) {
+				keyValues[i] = linkSegment.getKeyValue(outputKeys[i]);
 			}
-			multiKeyPlanItData.setRowValues(outputValues, keyValues);
-			timePeriodModeOutputTypeMultiKeyMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
+			multiKeyPlanItData.putRowValues(outputValues, keyValues);
 		}
 	}
 
@@ -125,9 +99,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, Mode mode, TimePeriod timePeriod,
 			double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows, TransportNetwork transportNetwork)
 			throws PlanItException {
-		MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData();
-		multiKeyPlanItData.registerOutputDataKeys(outputKeyProperties.get(outputType));
-		multiKeyPlanItData.registerOutputValueProperties(outputValueProperties.get(outputType));
+		MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeyProperties.get(outputType), outputValueProperties.get(outputType));
 		int iterationIndex = outputAdapter.getIterationIndex();
 		try {
 			if (outputType.equals(OutputType.LINK)) {
@@ -137,6 +109,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 					saveRecordForLinkSegment(timePeriod, mode, iterationIndex, outputType, multiKeyPlanItData,
 							modalNetworkSegmentCosts, modalNetworkSegmentFlows, linkSegment);
 				}
+				timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
 			}
 		} catch (Exception e) {
 			throw new PlanItException(e);
@@ -164,6 +137,9 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			double[] modalNetworkSegmentFlows = simulationData.getModalNetworkSegmentFlows(mode);
 			writeResultsForCurrentModeAndTimePeriod(outputType, outputAdapter, mode, timePeriod,
 					modalNetworkSegmentCosts, modalNetworkSegmentFlows, transportNetwork);
+			outputTypeValuesLocked.put(outputType, true);
+			outputTypeKeysLocked.put(outputType, true);
+			// lock config properties for this outputtype
 		}
 	}
 
@@ -207,6 +183,13 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	public MemoryOutputFormatter() {
 		outputKeyProperties = new HashMap<OutputType, OutputProperty[]>();
 		outputValueProperties = new HashMap<OutputType, OutputProperty[]>();
+		outputTypeValuesLocked = new HashMap<OutputType, Boolean>();
+		outputTypeKeysLocked = new HashMap<OutputType, Boolean>();
+		for (OutputType outputType : OutputType.values()) {
+			outputTypeValuesLocked.put(outputType, false);
+			outputTypeKeysLocked.put(outputType, false);
+		}
+		
 	}
 
 	/**
@@ -247,7 +230,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 */
 	public MultiKeyPlanItData getOutputData(Mode mode, TimePeriod timePeriod, Integer iterationIndex,
 			OutputType outputType) {
-		return (MultiKeyPlanItData) timePeriodModeOutputTypeMultiKeyMap.get(mode, timePeriod, iterationIndex,
+		return (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex,
 				outputType);
 	}
 
@@ -258,7 +241,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 */
 	@Override
 	public void open() throws PlanItException {
-		timePeriodModeOutputTypeMultiKeyMap = MultiKeyMap.decorate(new HashedMap());
+		timeModeOutputTypeIterationDataMap = MultiKeyMap.decorate(new HashedMap());
 	}
 
 	/**
@@ -276,8 +259,12 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * 
 	 * @param outputType          the current output type
 	 * @param outputKeyProperties output properties of the keys
+	 * @throws PlanItException throw if the key properties for this output type are already in use
 	 */
-	public void setOutputKeyProperties(OutputType outputType, OutputProperty... outputKeyProperties) {
+	public void setOutputKeyProperties(OutputType outputType, OutputProperty... outputKeyProperties) throws PlanItException {
+		if (outputTypeKeysLocked.get(outputType)) {
+			throw new PlanItException("A call to setOutputKeyProperties() was made after the outputType " + outputType.value() + " was locked");
+		}
 		this.outputKeyProperties.put(outputType, outputKeyProperties);
 	}
 
@@ -298,8 +285,12 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @param outputType the current output type
 	 * @param outputValueProperties array containing the output property types of
 	 *                              the data values
+	 * @throws PlanItException throw if the key properties for this output type are already in use
 	 */
-	public void setOutputValueProperties(OutputType outputType, OutputProperty... outputValueProperties) {
+	public void setOutputValueProperties(OutputType outputType, OutputProperty... outputValueProperties) throws PlanItException {
+		if (outputTypeValuesLocked.get(outputType)) {
+			throw new PlanItException("A call to setOutputKeyProperties() was made after the outputType " + outputType.value() + " was locked");
+		}
 		this.outputValueProperties.put(outputType, outputValueProperties);
 	}
 
@@ -320,7 +311,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @return the last iteration of recorded data
 	 */
 	public int getLastIteration() {
-		Set<MultiKey> keySet = (Set<MultiKey>) timePeriodModeOutputTypeMultiKeyMap.keySet();
+		Set<MultiKey> keySet = (Set<MultiKey>) timeModeOutputTypeIterationDataMap.keySet();
 		int lastIteration = 0;
 		for (MultiKey multiKey : keySet) {
 			Object[] keys = multiKey.getKeys();

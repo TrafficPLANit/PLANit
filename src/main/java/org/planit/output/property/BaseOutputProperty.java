@@ -14,11 +14,7 @@ import org.planit.output.enums.Units;
  *
  */
 public abstract class BaseOutputProperty implements Comparable<BaseOutputProperty> {
-	
-	protected static final int ID_PRIORITY = 0;
-	protected static final int INPUT_PRIORITY = 1;
-	protected static final int RESULT_PRORITY = 2;
-	
+
 	/**
 	 * Returns the name of the output property
 	 * 
@@ -54,7 +50,8 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 	 * 
 	 * @return the column priority
 	 */
-	protected abstract int getColumnPriority();
+	//protected abstract int getColumnPriority();
+	protected abstract OutputPropertyPriority getColumnPriority();
 	
 	/**
 	 * Overridden equals() method
@@ -86,11 +83,17 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 	 * @param otherProperty output property which is being compared to the current one
 	 */
 	public int compareTo(BaseOutputProperty otherProperty) {
+/*
 		int diff = getColumnPriority()  - otherProperty.getColumnPriority();
 		if (!(diff == 0)) {
 			return diff;
 		}
 		return getName().compareTo(otherProperty.getName());
+*/
+		if (getColumnPriority().equals(otherProperty.getColumnPriority())) {
+			return getName().compareTo(otherProperty.getName());
+		}
+		return getColumnPriority().value() - otherProperty.getColumnPriority().value();
 	}
 
 	/**

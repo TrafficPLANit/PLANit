@@ -7,6 +7,7 @@ import javax.annotation.Nonnull;
 import org.planit.network.physical.Link;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.virtual.Centroid;
+import org.planit.output.property.OutputProperty;
 import org.planit.network.physical.Node;
 import org.planit.userclass.Mode;
 
@@ -28,7 +29,7 @@ public class MacroscopicLinkSegment extends LinkSegment {
 	 * the link type of this link containing all macroscopic features by user class
 	 */
 	protected MacroscopicLinkSegmentType linkSegmentType = null;
-	
+
 	// Public
 
 	/**
@@ -57,7 +58,8 @@ public class MacroscopicLinkSegment extends LinkSegment {
 	 * Compute the free flow travel time by mode, i.e. when the link's maximum speed
 	 * might be capped by the mode's maximum speed
 	 * 
-	 * If the input data are invalid, this method logs the problem and returns a negative value.
+	 * If the input data are invalid, this method logs the problem and returns a
+	 * negative value.
 	 * 
 	 * @param mode mode of travel
 	 * @return freeFlowTravelTime for this mode
@@ -73,23 +75,75 @@ public class MacroscopicLinkSegment extends LinkSegment {
 				if (getParentEdge().getVertexA() instanceof Centroid) {
 					long startId = ((Centroid) getParentEdge().getVertexA()).getParentZone().getExternalId();
 					long endId = ((Node) getParentEdge().getVertexB()).getExternalId();
-					LOGGER.severe("No maximum speed defined for the origin connectoid from zone " + startId	+ " to node " + endId);
+					LOGGER.severe("No maximum speed defined for the origin connectoid from zone " + startId
+							+ " to node " + endId);
 					return -1.0;
 				} else if (getParentEdge().getVertexB() instanceof Centroid) {
 					long startId = ((Node) getParentEdge().getVertexA()).getExternalId();
 					long endId = ((Centroid) getParentEdge().getVertexB()).getParentZone().getExternalId();
-					LOGGER.severe("No maximum speed defined for the destination connectoid from node " + startId + " to zone " + endId);
+					LOGGER.severe("No maximum speed defined for the destination connectoid from node " + startId
+							+ " to zone " + endId);
 					return -1.0;
 				} else {
 					long startId = ((Node) getParentEdge().getVertexA()).getExternalId();
 					long endId = ((Node) getParentEdge().getVertexB()).getExternalId();
-					LOGGER.severe("No maximum speed defined for network link from anode reference " + startId + " to bnode " + endId);
+					LOGGER.severe("No maximum speed defined for network link from anode reference " + startId
+							+ " to bnode " + endId);
 					return -1.0;
 				}
 			}
 			computedMaximumSpeed = Math.min(maximumSpeed, segmentTypeMaximumSpeed);
 		}
 		return linkLength / computedMaximumSpeed;
+	}
+
+	/**
+	 * Return the value of a specified output property
+	 * 
+	 * @param outputValueProperty the output property type of the specified output
+	 * @param mode the current mode 
+	 * @param flow the flow through the current link segment
+	 * @param cost the cost of travel across the current link segment
+	 * @return the value of the specified output property
+	 */
+	public Object getPropertyValue(OutputProperty outputValueProperty, Mode mode, double flow, double cost) {
+		switch (outputValueProperty) {
+		case LENGTH:
+			return  Double.valueOf(getParentLink().getLength());
+		case FLOW:
+			return Double.valueOf(flow);
+		case SPEED:
+			return Double.valueOf(getMaximumSpeed(mode.getExternalId()));
+		case CAPACITY_PER_LANE:
+			return Double.valueOf(getLinkSegmentType().getCapacityPerLane());
+		case NUMBER_OF_LANES:
+			return Integer.valueOf(getNumberOfLanes());
+		case COST:
+			return Double.valueOf(cost);
+		}
+		return null;
+	}
+	
+	/**
+	 * Return the value of the output property key for a specified key type
+	 * 
+	 * @param outputKeyProperty the output property type of the required key
+	 * @return the value of the required key
+	 */
+	public Object getKeyValue(OutputProperty outputKeyProperty) {
+		Node startNode = (Node) getUpstreamVertex();
+		Node endNode = (Node) getDownstreamVertex();
+		switch(outputKeyProperty) {
+		case LINK_SEGMENT_ID:
+			return Integer.valueOf((int) id);
+		case LINK_SEGMENT_EXTERNAL_ID:
+			return Integer.valueOf((int) getExternalId());
+		case DOWNSTREAM_NODE_EXTERNAL_ID:
+			return Integer.valueOf((int) startNode.getExternalId());
+		case UPSTREAM_NODE_EXTERNAL_ID:
+			return Integer.valueOf((int) endNode.getExternalId());
+		}
+		return null;
 	}
 
 	// getters - setters

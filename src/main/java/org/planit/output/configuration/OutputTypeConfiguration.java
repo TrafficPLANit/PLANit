@@ -33,11 +33,12 @@ public abstract class OutputTypeConfiguration {
     /**
      * OutputTypeconfiguration constructor
      * 
-     * @param outputAdapter
-     *            to access data for output persistence
+     * @param outputAdapter   to access data for output persistence
+     * @param outputType        OutputType being used with this configuration
      */
-    public OutputTypeConfiguration(OutputAdapter outputAdapter) {
+    public OutputTypeConfiguration(OutputAdapter outputAdapter, OutputType outputType) {
         this.outputAdapter = outputAdapter;
+        this.outputType = outputType;
     }
 
     /**
@@ -53,9 +54,4 @@ public abstract class OutputTypeConfiguration {
 	public OutputType getOutputType() {
 		return outputType;
 	}
-
-	public void setOutputType(OutputType outputType) {
-		this.outputType = outputType;
-	}
-    
 }

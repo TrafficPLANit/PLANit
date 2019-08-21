@@ -28,8 +28,8 @@ public class ModeIdOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	protected int getColumnPriority() {
-		return ID_PRIORITY;
+	protected OutputPropertyPriority getColumnPriority() {
+		return OutputPropertyPriority.ID_PRIORITY;
 	}
 
 }

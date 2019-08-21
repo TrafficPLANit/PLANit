@@ -9,8 +9,18 @@ package org.planit.output;
  * @author markr
  */
 public enum OutputType {
-    GENERAL, 
-    LINK, 
-    SIMULATION, 
-    OD
+    GENERAL("General"), 
+    LINK("Link"), 
+    SIMULATION("Simulation"), 
+    OD("Origin-Destination");
+	
+	 private final String value;
+
+	 OutputType(String v) {
+	     value = v;
+	 }
+
+	 public String value() {
+	     return value;
+	 }
 }

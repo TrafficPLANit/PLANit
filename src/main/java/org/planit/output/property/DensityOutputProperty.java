@@ -28,8 +28,8 @@ public final class DensityOutputProperty extends BaseOutputProperty{
 	}
 
 	@Override
-	protected int getColumnPriority() {
-		return RESULT_PRORITY;
+	protected OutputPropertyPriority getColumnPriority() {
+		return OutputPropertyPriority.RESULT_PRIORITY;
 	}
 
 }

@@ -1,6 +1,7 @@
 package org.planit.output.configuration;
 
 import org.planit.exceptions.PlanItException;
+import org.planit.output.OutputType;
 import org.planit.output.adapter.LinkOutputAdapter;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
@@ -49,11 +50,12 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 * Define the default output properties here.
 	 * 
 	 * @param outputAdapter to access data for output persistence
+	 * @param outputType the OutputType to be used with this configuration
 	 * @throws PlanItException thrown if there is an error adding the default
 	 *                         properties
 	 */
-	public LinkOutputTypeConfiguration(LinkOutputAdapter outputAdapter) throws PlanItException {
-		super(outputAdapter);
+	public LinkOutputTypeConfiguration(LinkOutputAdapter outputAdapter, OutputType outputType) throws PlanItException {
+		super(outputAdapter, outputType);
 		// add default output properties
 		addProperty(OutputProperty.LINK_SEGMENT_ID);
 		addProperty(OutputProperty.MODE_EXTERNAL_ID);

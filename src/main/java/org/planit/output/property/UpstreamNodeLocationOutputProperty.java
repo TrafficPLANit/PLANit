@@ -28,8 +28,8 @@ public final class UpstreamNodeLocationOutputProperty extends BaseOutputProperty
 	}
 
 	@Override
-	protected int getColumnPriority() {
-		return INPUT_PRIORITY;
+	protected OutputPropertyPriority getColumnPriority() {
+		return OutputPropertyPriority.INPUT_PRIORITY;
 	}
 
 }
