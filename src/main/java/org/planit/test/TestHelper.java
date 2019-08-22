@@ -141,6 +141,9 @@ public class TestHelper {
 	public static void compareResultsToMemoryOutputFormatter(OutputType outputType, MemoryOutputFormatter memoryOutputFormatter, Integer iterationIndex,
             SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap) throws PlanItException {
 		
+		if (iterationIndex == null) {
+			iterationIndex = memoryOutputFormatter.getLastIteration();
+		}
 		for (Long runId : resultsMap.keySet()) {
 			for (TimePeriod timePeriod : resultsMap.get(runId).keySet()) {
 				for (Mode mode : resultsMap.get(runId).get(timePeriod).keySet()) {

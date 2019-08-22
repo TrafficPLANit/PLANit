@@ -102,24 +102,18 @@ public class MacroscopicLinkSegment extends LinkSegment {
 	 * 
 	 * @param outputValueProperty the output property type of the specified output
 	 * @param mode the current mode 
-	 * @param flow the flow through the current link segment
-	 * @param cost the cost of travel across the current link segment
 	 * @return the value of the specified output property
 	 */
-	public Object getPropertyValue(OutputProperty outputValueProperty, Mode mode, double flow, double cost) {
+	public Object getPropertyValue(OutputProperty outputValueProperty, Mode mode) {
 		switch (outputValueProperty) {
 		case LENGTH:
 			return  Double.valueOf(getParentLink().getLength());
-		case FLOW:
-			return Double.valueOf(flow);
 		case SPEED:
 			return Double.valueOf(getMaximumSpeed(mode.getExternalId()));
 		case CAPACITY_PER_LANE:
 			return Double.valueOf(getLinkSegmentType().getCapacityPerLane());
 		case NUMBER_OF_LANES:
 			return Integer.valueOf(getNumberOfLanes());
-		case COST:
-			return Double.valueOf(cost);
 		}
 		return null;
 	}

@@ -236,7 +236,7 @@ public class MultiKeyPlanItData {
 	 * @param keyValues    array storing the key values to specify a row
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void putRowValues(Object[] outputValues, Object... keyValues) throws PlanItException {
+	public void putRow(Object[] outputValues, Object... keyValues) throws PlanItException {
 		if (keyValues.length != outputKeyProperties.length) {
 			throw new PlanItException("Wrong number of keys used in call to MultiKeyPlanItData ");
 		}
@@ -278,7 +278,7 @@ public class MultiKeyPlanItData {
 	 * @param keyValues      array of key values specifying the row
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void setRowValue(OutputProperty outputProperty, Object value, Object... keyValues) throws PlanItException {
+	public void putRowValue(OutputProperty outputProperty, Object value, Object... keyValues) throws PlanItException {
 		if (keyValues.length != outputKeyProperties.length) {
 			throw new PlanItException("Wrong number of keys used in call to MultiKeyPlanItData ");
 		}
@@ -306,7 +306,7 @@ public class MultiKeyPlanItData {
 		}
 		int pos = getPositionOfOutputProperty(outputProperty);
 		outputValues[pos] = outputProperty;
-		putRowValues(outputValues, keyValues);
+		putRow(outputValues, keyValues);
 	}
 
 }

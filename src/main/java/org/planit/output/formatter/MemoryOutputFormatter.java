@@ -18,6 +18,7 @@ import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
+import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -38,15 +39,16 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * Map of OutputProperty types for values for each OutputType
 	 */
 	private Map<OutputType, OutputProperty[]> outputValueProperties;
-	
+
 	/**
 	 * Map to store whether any data has been stored for a given output type.
 	 * 
-	 * If data have been stored for an output type, it is "locked" so its key and output properties cannot be reset
+	 * If data have been stored for an output type, it is "locked" so its key and
+	 * output properties cannot be reset
 	 */
 	private Map<OutputType, Boolean> outputTypeValuesLocked;
 	private Map<OutputType, Boolean> outputTypeKeysLocked;
-	
+
 	/**
 	 * Save the data for the current time period, mode, iteration and output type
 	 * 
@@ -73,12 +75,26 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 		if (flow > 0.0) {
 			double cost = modalNetworkSegmentCosts[id];
 			for (int i = 0; i < outputValues.length; i++) {
-				outputValues[i] = linkSegment.getPropertyValue(outputProperties[i], mode, flow, cost);
+				switch (outputProperties[i]) {
+				case FLOW:
+					outputValues[i] = Double.valueOf(flow);
+					break;
+				case COST:
+					outputValues[i] = Double.valueOf(cost);
+					break;
+				default:
+					outputValues[i] = linkSegment.getPropertyValue(outputProperties[i], mode);
+				}
+				if (outputValues[i] == null) {
+					throw new PlanItException("Null value returned for output property "
+							+ BaseOutputProperty.convertToBaseOutputProperty(outputProperties[i]).getName()
+							+ " of link segment " + linkSegment.getExternalId());
+				}
 			}
 			for (int i = 0; i < outputKeys.length; i++) {
 				keyValues[i] = linkSegment.getKeyValue(outputKeys[i]);
 			}
-			multiKeyPlanItData.putRowValues(outputValues, keyValues);
+			multiKeyPlanItData.putRow(outputValues, keyValues);
 		}
 	}
 
@@ -99,7 +115,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, Mode mode, TimePeriod timePeriod,
 			double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows, TransportNetwork transportNetwork)
 			throws PlanItException {
-		MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeyProperties.get(outputType), outputValueProperties.get(outputType));
+		MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeyProperties.get(outputType),
+				outputValueProperties.get(outputType));
 		int iterationIndex = outputAdapter.getIterationIndex();
 		try {
 			if (outputType.equals(OutputType.LINK)) {
@@ -109,7 +126,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 					saveRecordForLinkSegment(timePeriod, mode, iterationIndex, outputType, multiKeyPlanItData,
 							modalNetworkSegmentCosts, modalNetworkSegmentFlows, linkSegment);
 				}
-				timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
+				timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType,
+						multiKeyPlanItData);
 			}
 		} catch (Exception e) {
 			throw new PlanItException(e);
@@ -137,10 +155,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			double[] modalNetworkSegmentFlows = simulationData.getModalNetworkSegmentFlows(mode);
 			writeResultsForCurrentModeAndTimePeriod(outputType, outputAdapter, mode, timePeriod,
 					modalNetworkSegmentCosts, modalNetworkSegmentFlows, transportNetwork);
-			outputTypeValuesLocked.put(outputType, true);
-			outputTypeKeysLocked.put(outputType, true);
-			// lock config properties for this outputtype
 		}
+		outputTypeValuesLocked.put(outputType, true);
+		outputTypeKeysLocked.put(outputType, true);
+		// lock config properties for this outputtype
 	}
 
 	/**
@@ -189,7 +207,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			outputTypeValuesLocked.put(outputType, false);
 			outputTypeKeysLocked.put(outputType, false);
 		}
-		
+
 	}
 
 	/**
@@ -259,11 +277,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * 
 	 * @param outputType          the current output type
 	 * @param outputKeyProperties output properties of the keys
-	 * @throws PlanItException throw if the key properties for this output type are already in use
+	 * @throws PlanItException throw if the key properties for this output type are
+	 *                         already in use
 	 */
-	public void setOutputKeyProperties(OutputType outputType, OutputProperty... outputKeyProperties) throws PlanItException {
+	public void setOutputKeyProperties(OutputType outputType, OutputProperty... outputKeyProperties)
+			throws PlanItException {
 		if (outputTypeKeysLocked.get(outputType)) {
-			throw new PlanItException("A call to setOutputKeyProperties() was made after the outputType " + outputType.value() + " was locked");
+			throw new PlanItException("A call to setOutputKeyProperties() was made after the outputType "
+					+ outputType.value() + " was locked");
 		}
 		this.outputKeyProperties.put(outputType, outputKeyProperties);
 	}
@@ -282,14 +303,17 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	/**
 	 * Sets the output properties of the data values for the current output type
 	 * 
-	 * @param outputType the current output type
+	 * @param outputType            the current output type
 	 * @param outputValueProperties array containing the output property types of
 	 *                              the data values
-	 * @throws PlanItException throw if the key properties for this output type are already in use
+	 * @throws PlanItException throw if the key properties for this output type are
+	 *                         already in use
 	 */
-	public void setOutputValueProperties(OutputType outputType, OutputProperty... outputValueProperties) throws PlanItException {
+	public void setOutputValueProperties(OutputType outputType, OutputProperty... outputValueProperties)
+			throws PlanItException {
 		if (outputTypeValuesLocked.get(outputType)) {
-			throw new PlanItException("A call to setOutputKeyProperties() was made after the outputType " + outputType.value() + " was locked");
+			throw new PlanItException("A call to setOutputKeyProperties() was made after the outputType "
+					+ outputType.value() + " was locked");
 		}
 		this.outputValueProperties.put(outputType, outputValueProperties);
 	}
@@ -299,7 +323,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * data values for the current output type
 	 * 
 	 * @param outputType the current output type
-	 * @return array of output properties of the data values for the current output type
+	 * @return array of output properties of the data values for the current output
+	 *         type
 	 */
 	public OutputProperty[] getOutputValueProperties(OutputType outputType) {
 		return outputValueProperties.get(outputType);
