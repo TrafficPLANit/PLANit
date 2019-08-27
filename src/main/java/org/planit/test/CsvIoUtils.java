@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
-import org.planit.test.BprResultDto;
+import org.planit.test.ResultDto;
 import org.planit.exceptions.PlanItException;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -45,7 +45,7 @@ public class CsvIoUtils {
 	 * @throws Exception thrown if the record cannot be written
 	 */
 	public static void printCurrentRecord(CSVPrinter printer, long trafficAssignmentId, TimePeriod timePeriod,
-			Mode mode, BprResultDto resultDto) throws Exception {
+			Mode mode, ResultDto resultDto) throws Exception {
 		printer.printRecord(trafficAssignmentId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(),
 				resultDto.getEndNodeId(), resultDto.getLinkFlow(), resultDto.getCapacity(), resultDto.getLength(),
 				resultDto.getSpeed(), resultDto.getLinkCost(), resultDto.getTotalCostToEndNode());
@@ -59,25 +59,25 @@ public class CsvIoUtils {
 	 * @return Map storing the run results
 	 * @throws PlanItException thrown if there is an error opening the file
 	 */
-	public static SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> createResultsMapFromCsvFile(
+	public static SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> createResultsMapFromCsvFile(
 			String resultsFileLocation) throws PlanItException {
-		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>>();
+		SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> resultsMap = new TreeMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>>();
 		try (Reader in = new FileReader(resultsFileLocation)) {
 			Iterable<CSVRecord> records = CSVFormat.DEFAULT.withHeader().parse(in);
 			for (CSVRecord record : records) {
 				long runId = Long.parseLong(record.get("Run Id"));
 				if (!resultsMap.containsKey(runId)) {
-					resultsMap.put(runId, new TreeMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>());
+					resultsMap.put(runId, new TreeMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>());
 				}
 				long timePeriodId = Long.parseLong(record.get("Time Period Id"));
 				TimePeriod timePeriod = TimePeriod.getById(timePeriodId);
 				if (!resultsMap.get(runId).containsKey(timePeriod)) {
-					resultsMap.get(runId).put(timePeriod, new TreeMap<Mode, SortedSet<BprResultDto>>());
+					resultsMap.get(runId).put(timePeriod, new TreeMap<Mode, SortedSet<ResultDto>>());
 				}
 				long modeExternalId = Long.parseLong(record.get("Mode Id"));
 				Mode mode = Mode.getByExternalId(modeExternalId);
 				if (!resultsMap.get(runId).get(timePeriod).containsKey(mode)) {
-					resultsMap.get(runId).get(timePeriod).put(mode, new TreeSet<BprResultDto>());
+					resultsMap.get(runId).get(timePeriod).put(mode, new TreeSet<ResultDto>());
 				}
 				long startNodeId = Long.parseLong(record.get("Start Node Id"));
 				long endNodeId = Long.parseLong(record.get("End Node Id"));
@@ -87,7 +87,7 @@ public class CsvIoUtils {
 				double capacity = Double.parseDouble(record.get("Capacity"));
 				double length = Double.parseDouble(record.get("Length"));
 				double speed = Double.parseDouble(record.get("Speed"));
-				BprResultDto resultDto = new BprResultDto(startNodeId, endNodeId, linkFlow, linkCost,
+				ResultDto resultDto = new ResultDto(startNodeId, endNodeId, linkFlow, linkCost,
 						totalCostToEndNode, capacity, length, speed);
 				resultsMap.get(runId).get(timePeriod).get(mode).add(resultDto);
 			}

@@ -36,8 +36,8 @@ public class TestHelper {
   * @param resultsMap                 Map storing result of the current test run
   * @param resultsMapFromFile  Map storing results of a previous run which had been stored in a file
   */
-	public static void compareResultsToCsvFileContents(SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap, 
-			                                                                                 SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMapFromFile) {
+	public static void compareResultsToCsvFileContents(SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> resultsMap, 
+			                                                                                 SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> resultsMapFromFile) {
 		if (resultsMap.keySet().size() != resultsMapFromFile.keySet().size()) {
 			fail("Test case returned " + resultsMap.keySet().size() + " runs where the results file contains " + resultsMap.keySet().size() + ".");
 			return;
@@ -77,13 +77,13 @@ public class TestHelper {
 								+ resultsMapFromFile.get(runId).get(timePeriod).get(mode).size() + ".");
 						return;
 					}
-					for (BprResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
-						SortedSet<BprResultDto> resultsSetFromFile = resultsMapFromFile.get(runId).get(timePeriod).get(mode);
+					for (ResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
+						SortedSet<ResultDto> resultsSetFromFile = resultsMapFromFile.get(runId).get(timePeriod).get(mode);
 						if (!resultsSetFromFile.contains(resultDto)) {
 							boolean passed = false;
-							Iterator<BprResultDto> iterator = resultsSetFromFile.iterator();
+							Iterator<ResultDto> iterator = resultsSetFromFile.iterator();
 							while (!passed && iterator.hasNext()) {
-								BprResultDto resultDtoFromFile = iterator.next();
+								ResultDto resultDtoFromFile = iterator.next();
 								passed = resultDto.equals(resultDtoFromFile);
 							}
 							if (!passed) {
@@ -106,11 +106,11 @@ public class TestHelper {
  * @throws PlanItException thrown if one of the test output properties has not been saved
  */
 	public static void compareResultsToMemoryOutputFormatter(BasicMemoryOutputFormatter basicMemoryOutputFormatter, 
-			                                                                                                 SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap) throws PlanItException {
+			                                                                                                 SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> resultsMap) throws PlanItException {
 		for (Long runId : resultsMap.keySet()) {
 			for (TimePeriod timePeriod : resultsMap.get(runId).keySet()) {
 				for (Mode mode : resultsMap.get(runId).get(timePeriod).keySet()) {
-					for (BprResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
+					for (ResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
 						double flow = (Double) basicMemoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.FLOW);
 						double length = (Double) basicMemoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.LENGTH);
 						double speed = (Double) basicMemoryOutputFormatter.getLinkSegmentOutput(runId, timePeriod.getId(), mode.getExternalId(), resultDto.getStartNodeId(), resultDto.getEndNodeId(), OutputProperty.SPEED);
@@ -139,7 +139,7 @@ public class TestHelper {
  * @throws PlanItException thrown if one of the test output properties has not been saved
  */
 	public static void compareResultsToMemoryOutputFormatter(OutputType outputType, MemoryOutputFormatter memoryOutputFormatter, Integer iterationIndex,
-            SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<BprResultDto>>>> resultsMap) throws PlanItException {
+            SortedMap<Long, SortedMap<TimePeriod, SortedMap<Mode, SortedSet<ResultDto>>>> resultsMap) throws PlanItException {
 		
 		if (iterationIndex == null) {
 			iterationIndex = memoryOutputFormatter.getLastIteration();
@@ -147,7 +147,7 @@ public class TestHelper {
 		for (Long runId : resultsMap.keySet()) {
 			for (TimePeriod timePeriod : resultsMap.get(runId).keySet()) {
 				for (Mode mode : resultsMap.get(runId).get(timePeriod).keySet()) {
-					for (BprResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
+					for (ResultDto resultDto : resultsMap.get(runId).get(timePeriod).get(mode)) {
 						OutputProperty[] outputKeyProperties = memoryOutputFormatter.getOutputKeyProperties(outputType);
 						OutputProperty[] outputValueProperties = memoryOutputFormatter.getOutputValueProperties(outputType);
 						MultiKeyPlanItData multiKeyPlanItData = memoryOutputFormatter.getOutputData(mode, timePeriod, iterationIndex, outputType);
@@ -161,7 +161,7 @@ public class TestHelper {
 							    assertEquals(flow, resultDto.getLinkFlow(), 0.00001);
 							    break;
 							case LENGTH: 
-								double length = (Double)multiKeyPlanItData.getRowValue(OutputProperty.LENGTH,  keyValues);
+								double length = (Double) multiKeyPlanItData.getRowValue(OutputProperty.LENGTH,  keyValues);
 								assertEquals(length, resultDto.getLength(), 0.00001);
 								break;
 							case SPEED:
@@ -171,6 +171,11 @@ public class TestHelper {
 							case COST:
 								double cost = (Double) multiKeyPlanItData.getRowValue(OutputProperty.COST,  keyValues);
 								assertEquals(cost, resultDto.getLinkCost(), 0.00001);
+								break;
+							case CAPACITY_PER_LANE:
+								double capacityPerLane = (Double) multiKeyPlanItData.getRowValue(OutputProperty.CAPACITY_PER_LANE,  keyValues);
+								int numberOfLanes = (Integer) multiKeyPlanItData.getRowValue(OutputProperty.NUMBER_OF_LANES,  keyValues);
+								assertEquals(numberOfLanes * capacityPerLane, resultDto.getCapacity(), 0.00001);
 								break;
 								}
 						}
