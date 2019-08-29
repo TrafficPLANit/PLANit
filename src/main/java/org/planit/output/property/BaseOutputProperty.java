@@ -83,13 +83,6 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 	 * @param otherProperty output property which is being compared to the current one
 	 */
 	public int compareTo(BaseOutputProperty otherProperty) {
-/*
-		int diff = getColumnPriority()  - otherProperty.getColumnPriority();
-		if (!(diff == 0)) {
-			return diff;
-		}
-		return getName().compareTo(otherProperty.getName());
-*/
 		if (getColumnPriority().equals(otherProperty.getColumnPriority())) {
 			return getName().compareTo(otherProperty.getName());
 		}
