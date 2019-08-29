@@ -184,8 +184,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 
 			// NETWORK LOADING - PER MODE
 			for (Mode mode : modes) {
-				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode,
-						simulationData.getIterationIndex());
+				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode, timePeriod,	simulationData.getIterationIndex());
 				simulationData.resetModalNetworkSegmentFlows(mode);
 				executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalNetworkSegmentCosts);
 				simulationData.setModalNetworkSegmentCosts(mode, modalNetworkSegmentCosts);
@@ -263,7 +262,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	}
 
 	/**
-	 * Initialize the link segment costs from the InitialLinkSegmentCost object.
+	 * Initialize the link segment costs from the InitialLinkSegmentCost object (for all time periods) 
 	 * 
 	 * This method is called during the first iteration of the simulation.
 	 * 
@@ -276,7 +275,22 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			return initialLinkSegmentCost.getSegmentCost(mode, linkSegment);
 		});
 	}
-
+	
+	/**
+	 * Initialize the link segment costs from the InitialLinkSegmentCost object for each current time period 
+	 * 
+	 * This method is called during the first iteration of the simulation.
+	 * 
+	 * @param mode                current mode of travel
+	 * @param timePeriod   current time period
+	 * @param currentSegmentCosts array to store the current segment costs
+	 * @throws PlanItException thrown if there is an error
+	 */
+	private void initializeModalLinkSegmentCosts(Mode mode, TimePeriod timePeriod, double[] currentSegmentCosts) throws PlanItException {
+		setModalLinkSegmentCosts(mode, currentSegmentCosts, (linkSegment) -> {
+			return  initialLinkSegmentCostByTimePeriod.get(timePeriod.getId()).getSegmentCost(mode, linkSegment);
+		});
+	}	
 	/**
 	 * Set the link segment costs
 	 * 
@@ -375,6 +389,33 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * Collect the updated edge segment costs for the given mode
 	 * 
 	 * @param mode           the current mode
+	 * @param timePeriod  the current time period
+	 * @param iterationIndex index of the current iteration
+	 * @return array of updated edge segment costs
+	 * @throws PlanItException thrown if there is an error
+	 */
+
+	public double[] getModalNetworkSegmentCosts(Mode mode, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
+		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
+		populateModalConnectoidCosts(mode, currentSegmentCosts);
+		if (iterationIndex > 0) {
+			populateModalLinkSegmentCosts(mode, currentSegmentCosts);
+		} else {
+			if (initialLinkSegmentCostByTimePeriod.containsKey(timePeriod.getId())) {
+				initializeModalLinkSegmentCosts(mode, timePeriod, currentSegmentCosts);
+			} else if (initialLinkSegmentCost != null) {
+				initializeModalLinkSegmentCosts(mode, currentSegmentCosts);
+			} else {
+				populateModalLinkSegmentCosts(mode, currentSegmentCosts);
+			}
+		}
+		return currentSegmentCosts;
+	}
+		
+	/**
+	 * Collect the updated edge segment costs for the given mode
+	 * 
+	 * @param mode           the current mode
 	 * @param iterationIndex index of the current iteration
 	 * @return array of updated edge segment costs
 	 * @throws PlanItException thrown if there is an error
@@ -389,6 +430,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		}
 		return currentSegmentCosts;
 	}
+	
 
 	/**
 	 * Execute equilibration over all time periods and modes

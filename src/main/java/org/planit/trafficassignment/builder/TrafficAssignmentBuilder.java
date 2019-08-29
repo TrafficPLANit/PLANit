@@ -12,6 +12,7 @@ import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
+import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.zoning.Zoning;
@@ -120,12 +121,22 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
     }
 
     /**
-     * Register the initial link segment cost for the current assignment
+     * Register the initial link segment cost 
      * 
      * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
      */
     public void registerInitialLinkSegmentCost(InitialLinkSegmentCost initialLinkSegmentCost) {
     	parentAssignment.setInitialLinkSegmentCost(initialLinkSegmentCost);
+    }
+    
+    /**
+     * Register the initial link segment cost for a specified time period
+     * 
+     * @param timePeriod the specified time period
+     * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
+     */
+    public void registerInitialLinkSegmentCost(TimePeriod timePeriod, InitialLinkSegmentCost initialLinkSegmentCost) {
+    	parentAssignment.setInitialLinkSegmentCost(timePeriod, initialLinkSegmentCost);
     }
     
     /**

@@ -1,5 +1,7 @@
 package org.planit.trafficassignment;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
@@ -24,6 +26,7 @@ import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
+import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.utils.IdGenerator;
 import org.planit.zoning.Zoning;
@@ -105,6 +108,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * The physical link cost function
 	 */
 	protected PhysicalCost physicalCost;
+	
+	/**
+	 * Map storing InitialLinkSegmentCost objects for each time period
+	 */
+	protected Map<Long, InitialLinkSegmentCost> initialLinkSegmentCostByTimePeriod;
 
 	/**
 	 * Each traffic assignment implementation has its own unique output adapter
@@ -184,6 +192,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public TrafficAssignment() {
 		this.id = IdGenerator.generateId(TrafficAssignment.class);
 		outputManager = new OutputManager();
+		initialLinkSegmentCostByTimePeriod = new HashMap<Long, InitialLinkSegmentCost>();
 	}
 
 	// Public abstract methods
@@ -334,6 +343,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	public void setInitialLinkSegmentCost(InitialLinkSegmentCost initialLinkSegmentCost) {
 		this.initialLinkSegmentCost = initialLinkSegmentCost;
+	}
+	
+	public void setInitialLinkSegmentCost(TimePeriod timePeriod, InitialLinkSegmentCost initialLinkSegmentCost) {
+		initialLinkSegmentCostByTimePeriod.put(timePeriod.getId(), initialLinkSegmentCost);
 	}
 
 	/**
