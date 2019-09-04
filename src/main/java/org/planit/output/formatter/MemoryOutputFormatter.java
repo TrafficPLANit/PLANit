@@ -246,6 +246,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration)
 			throws PlanItException {
 		OutputType outputType = outputTypeConfiguration.getOutputType();
+		if (!outputTypeValuesLocked.get(outputType)) {
+			OutputProperty[] outputValueProperties = outputTypeConfiguration.getOutputValueProperties();
+			setOutputValueProperties(outputType, outputValueProperties);
+		}
+		if (!outputTypeKeysLocked.get(outputType)) {
+			OutputProperty[] outputKeyProperties = outputTypeConfiguration.getOutputKeyProperties();
+			setOutputKeyProperties(outputType, outputKeyProperties);
+		}
 		if (!isOutputKeysValid(outputType)) {
 			throw new PlanItException("Invalid output keys defined for output type.");
 		}
@@ -371,18 +379,4 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 		return lastIteration;
 	}
 	
-	/**
-	 * Set the output properties of the key and values from the OutputTypeConfiguration object
-	 * 
-	 * @param outputTypeConfiguration  OutputTypeConfiguration object which has its reporting fields configured
-	 * @throws PlanItException thrown if there is an error
-	 */
-	public void setPropertiesFromOutputTypeConfiguration(OutputTypeConfiguration outputTypeConfiguration) throws PlanItException {
-		OutputType outputType = outputTypeConfiguration.getOutputType();
-		OutputProperty[] outputValueProperties = outputTypeConfiguration.getOutputValueProperties();
-		setOutputValueProperties(outputType, outputValueProperties);
-		OutputProperty[] outputKeyProperties = outputTypeConfiguration.getOutputKeyProperties();
-		setOutputKeyProperties(outputType, outputKeyProperties);
-	}
-
 }
