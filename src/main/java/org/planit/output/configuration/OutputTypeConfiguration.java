@@ -1,9 +1,11 @@
 package org.planit.output.configuration;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
+import org.planit.output.property.OutputProperty;
 
 /**
  * Configuration for a specific output type including the adapter allowing
@@ -26,7 +28,7 @@ public abstract class OutputTypeConfiguration {
     protected final OutputAdapter outputAdapter;
     
     /**
-     * The output type being used with the current instance
+     * The output type being used with the current instance - this must be set in each concrete class which extends OutputTypeConfiguration
      */
     protected OutputType outputType;
 
@@ -34,11 +36,9 @@ public abstract class OutputTypeConfiguration {
      * OutputTypeconfiguration constructor
      * 
      * @param outputAdapter   to access data for output persistence
-     * @param outputType        OutputType being used with this configuration
      */
-    public OutputTypeConfiguration(OutputAdapter outputAdapter, OutputType outputType) {
+     public OutputTypeConfiguration(OutputAdapter outputAdapter) {
         this.outputAdapter = outputAdapter;
-        this.outputType = outputType;
     }
 
     /**
@@ -54,4 +54,9 @@ public abstract class OutputTypeConfiguration {
 	public OutputType getOutputType() {
 		return outputType;
 	}
+	
+	public abstract OutputProperty [] getOutputKeyProperties();
+	
+	public abstract OutputProperty [] getOutputValueProperties();
+
 }

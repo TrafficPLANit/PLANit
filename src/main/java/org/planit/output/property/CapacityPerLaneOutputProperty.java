@@ -28,7 +28,7 @@ public final class CapacityPerLaneOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	protected OutputPropertyPriority getColumnPriority() {
+	public OutputPropertyPriority getColumnPriority() {
 		return OutputPropertyPriority.INPUT_PRIORITY;
 	}
 

@@ -12,6 +12,7 @@ import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.Node;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.transport.TransportNetwork;
+import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.trafficassignment.TraditionalStaticAssignment;
 import org.planit.userclass.Mode;
@@ -57,7 +58,7 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 	private Object getDownstreamNodeLocationPropertyValue(MacroscopicLinkSegment linkSegment) {
 		DirectPosition centrePoint = linkSegment.getDownstreamVertex().getCentrePointGeometry();
 		if (centrePoint == null) {
-			return "Not Specified";
+			return OutputFormatter.NOT_SPECIFIED;
 		}
 		double[] coordinates = linkSegment.getDownstreamVertex().getCentrePointGeometry().getCoordinate();
 		return coordinates[0] + "-" + coordinates[1];
@@ -72,7 +73,7 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 	private Object getUpstreamNodeLocationPropertyValue(MacroscopicLinkSegment linkSegment) {
 		DirectPosition centrePoint = linkSegment.getUpstreamVertex().getCentrePointGeometry();
 		if (centrePoint == null) {
-			return "Not Specified";
+			return OutputFormatter.NOT_SPECIFIED;
 		}
 		double[] coordinates = linkSegment.getUpstreamVertex().getCentrePointGeometry().getCoordinate();
 		return coordinates[0] + "-" + coordinates[1];

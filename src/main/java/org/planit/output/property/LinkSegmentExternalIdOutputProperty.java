@@ -28,7 +28,7 @@ public class LinkSegmentExternalIdOutputProperty extends BaseOutputProperty {
 	}
 
 	@Override
-	protected OutputPropertyPriority getColumnPriority() {
+	public OutputPropertyPriority getColumnPriority() {
 		return OutputPropertyPriority.ID_PRIORITY;
 	}
 

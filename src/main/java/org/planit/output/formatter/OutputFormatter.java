@@ -3,7 +3,6 @@ package org.planit.output.formatter;
 import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.output.OutputType;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -16,6 +15,11 @@ import org.planit.userclass.Mode;
  */
 public interface OutputFormatter {
 
+	/**
+	 * Constant to report that an output value has not been set
+	 */
+	public static final String NOT_SPECIFIED = "Not Specified";
+	
 	/**
 	 * Collect the id of the formatter
 	 * 

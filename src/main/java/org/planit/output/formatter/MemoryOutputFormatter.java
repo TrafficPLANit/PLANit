@@ -1,7 +1,9 @@
 package org.planit.output.formatter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -18,7 +20,6 @@ import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
-import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -41,12 +42,16 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	private Map<OutputType, OutputProperty[]> outputValueProperties;
 
 	/**
-	 * Map to store whether any data has been stored for a given output type.
+	 * Map to store whether any data values have been stored for a given output type.
 	 * 
 	 * If data have been stored for an output type, it is "locked" so its key and
 	 * output properties cannot be reset
 	 */
 	private Map<OutputType, Boolean> outputTypeValuesLocked;
+	
+	/**
+	 * Map to store which output types are already in use as keys
+	 */
 	private Map<OutputType, Boolean> outputTypeKeysLocked;
 
 	/**
@@ -86,9 +91,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 					outputValues[i] = linkSegment.getPropertyValue(outputProperties[i], mode);
 				}
 				if (outputValues[i] == null) {
-					throw new PlanItException("Null value returned for output property "
-							+ BaseOutputProperty.convertToBaseOutputProperty(outputProperties[i]).getName()
-							+ " of link segment " + linkSegment.getExternalId());
+					outputValues[i] = NOT_SPECIFIED;
 				}
 			}
 			for (int i = 0; i < outputKeys.length; i++) {
@@ -130,6 +133,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 						multiKeyPlanItData);
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PlanItException(e);
 		}
 	}
@@ -156,9 +160,9 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			writeResultsForCurrentModeAndTimePeriod(outputType, outputAdapter, mode, timePeriod,
 					modalNetworkSegmentCosts, modalNetworkSegmentFlows, transportNetwork);
 		}
+		// lock configuration properties for this output type
 		outputTypeValuesLocked.put(outputType, true);
 		outputTypeKeysLocked.put(outputType, true);
-		// lock config properties for this outputtype
 	}
 
 	/**
@@ -169,21 +173,42 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @return true if the current output type is valid, false otherwise
 	 */
 	private boolean isOutputKeysValid(OutputType outputType) {
+		
 		switch (outputType) {
 		case GENERAL:
 			return true;
 		case LINK:
-			if ((outputKeyProperties.get(outputType).length == 1)
-					&& (outputKeyProperties.get(outputType)[0].equals(OutputProperty.LINK_SEGMENT_ID))) {
+
+			List<OutputProperty> outputKeyPropertyList = new ArrayList<OutputProperty>();
+			OutputProperty [] outputKeyPropertiesArray = outputKeyProperties.get(outputType);
+			for (int i=0; i<outputKeyPropertiesArray.length; i++) {
+				OutputProperty outputKeyProperty = outputKeyPropertiesArray[i];
+				if (outputKeyProperty.equals(OutputProperty.LINK_SEGMENT_ID) ||
+					 outputKeyProperty.equals(OutputProperty.LINK_SEGMENT_EXTERNAL_ID) ||
+					 outputKeyProperty.equals(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID) || 
+					 outputKeyProperty.equals(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID)) {
+					outputKeyPropertyList.add(outputKeyProperty);
+				}
+			}
+			if (outputKeyPropertyList.contains(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID)) {
+				outputKeyPropertiesArray = new OutputProperty[2];
+				outputKeyPropertiesArray[0] = OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID;
+				outputKeyPropertiesArray[1] = OutputProperty.UPSTREAM_NODE_EXTERNAL_ID;
+				outputKeyProperties.put(outputType, outputKeyPropertiesArray);
 				return true;
 			}
-			if ((outputKeyProperties.get(outputType).length == 1)
-					&& (outputKeyProperties.get(outputType)[0].equals(OutputProperty.LINK_SEGMENT_EXTERNAL_ID))) {
+
+			if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_ID)) {
+				outputKeyPropertiesArray = new OutputProperty[1];
+				outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_ID;
+				outputKeyProperties.put(outputType, outputKeyPropertiesArray);
 				return true;
 			}
-			if ((outputKeyProperties.get(outputType).length == 2)
-					&& (outputKeyProperties.get(outputType)[0].equals(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID))
-					&& (outputKeyProperties.get(outputType)[1].equals(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID))) {
+
+			if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_EXTERNAL_ID)) {
+				outputKeyPropertiesArray = new OutputProperty[1];
+				outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
+				outputKeyProperties.put(outputType, outputKeyPropertiesArray);
 				return true;
 			}
 			return false;
@@ -344,6 +369,20 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			lastIteration = Math.max(lastIteration, iteration);
 		}
 		return lastIteration;
+	}
+	
+	/**
+	 * Set the output properties of the key and values from the OutputTypeConfiguration object
+	 * 
+	 * @param outputTypeConfiguration  OutputTypeConfiguration object which has its reporting fields configured
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public void setPropertiesFromOutputTypeConfiguration(OutputTypeConfiguration outputTypeConfiguration) throws PlanItException {
+		OutputType outputType = outputTypeConfiguration.getOutputType();
+		OutputProperty[] outputValueProperties = outputTypeConfiguration.getOutputValueProperties();
+		setOutputValueProperties(outputType, outputValueProperties);
+		OutputProperty[] outputKeyProperties = outputTypeConfiguration.getOutputKeyProperties();
+		setOutputKeyProperties(outputType, outputKeyProperties);
 	}
 
 }

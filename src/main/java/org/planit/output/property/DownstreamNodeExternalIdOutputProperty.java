@@ -28,7 +28,7 @@ public final class DownstreamNodeExternalIdOutputProperty extends BaseOutputProp
 	}
 
 	@Override
-	protected OutputPropertyPriority getColumnPriority() {
+	public OutputPropertyPriority getColumnPriority() {
 		return OutputPropertyPriority.ID_PRIORITY;
 	}
 

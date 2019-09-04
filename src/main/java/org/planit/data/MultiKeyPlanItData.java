@@ -1,5 +1,7 @@
 package org.planit.data;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections.map.HashedMap;
@@ -8,6 +10,7 @@ import org.planit.exceptions.PlanItException;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.output.enums.Type;
+import org.planit.output.formatter.OutputFormatter;
 
 public class MultiKeyPlanItData {
 
@@ -17,6 +20,7 @@ public class MultiKeyPlanItData {
 	private static final Logger LOGGER = Logger.getLogger(MultiKeyPlanItData.class.getName());
 
 	private MultiKeyMap multiKeyMap;
+	private Map<Object, Object[]> singleKeyMap;
 	private OutputProperty[] outputKeyProperties;
 	private OutputProperty[] outputValueProperties;
 	private Type[] valueTypes;
@@ -113,6 +117,7 @@ public class MultiKeyPlanItData {
 	private void init(OutputProperty[] outputKeyProperties, OutputProperty[] outputValueProperties)
 			throws PlanItException {
 		multiKeyMap = MultiKeyMap.decorate(new HashedMap());
+		singleKeyMap = new HashMap<Object, Object[]>();
 		if (outputKeyProperties.length > 5) {
 			throw new PlanItException(
 					"Attempted to register too many output property keys.  The maximum number allowed is 5.");
@@ -200,7 +205,7 @@ public class MultiKeyPlanItData {
 		}
 		switch (outputKeyProperties.length) {
 		case 1:
-			return (Object[]) multiKeyMap.get(keyValues[0]);
+			return singleKeyMap.get(keyValues[0]);
 		case 2:
 			return (Object[]) multiKeyMap.get(keyValues[0], keyValues[1]);
 		case 3:
@@ -244,7 +249,8 @@ public class MultiKeyPlanItData {
 			throw new PlanItException("Wrong number of property values used in call to MultiKeyPlanItData ");
 		}
 		for (int i = 0; i < outputValueProperties.length; i++) {
-			if (!isValueTypeCorrect(outputValues[i], valueTypes[i])) {
+			if ((!isValueTypeCorrect(outputValues[i], valueTypes[i]))
+					&& (!outputValues[i].equals(OutputFormatter.NOT_SPECIFIED))) {
 				throw new PlanItException("Property in position " + i + " in setRowValues() is of the wrong type");
 			}
 		}
@@ -253,7 +259,7 @@ public class MultiKeyPlanItData {
 		}
 		switch (outputKeyProperties.length) {
 		case 1:
-			multiKeyMap.put(keyValues[0], outputValues);
+			singleKeyMap.put(keyValues[0], outputValues);
 			break;
 		case 2:
 			multiKeyMap.put(keyValues[0], keyValues[1], outputValues);
@@ -285,7 +291,7 @@ public class MultiKeyPlanItData {
 		Object[] outputValues = null;
 		switch (outputKeyProperties.length) {
 		case 1:
-			outputValues = (Object[]) multiKeyMap.get(keyValues[0]);
+			outputValues = singleKeyMap.get(keyValues[0]);
 			break;
 		case 2:
 			outputValues = (Object[]) multiKeyMap.get(keyValues[0], keyValues[1]);

@@ -50,8 +50,7 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 	 * 
 	 * @return the column priority
 	 */
-	//protected abstract int getColumnPriority();
-	protected abstract OutputPropertyPriority getColumnPriority();
+	public abstract OutputPropertyPriority getColumnPriority();
 	
 	/**
 	 * Overridden equals() method

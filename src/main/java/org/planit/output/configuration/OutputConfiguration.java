@@ -63,12 +63,12 @@ public class OutputConfiguration {
         OutputTypeConfiguration outputTypeConfiguration = null;
         if (outputType.equals(OutputType.LINK)) {
         	LinkOutputAdapter linkOutputAdapter = (LinkOutputAdapter) outputAdapter;
-            outputTypeConfiguration = new LinkOutputTypeConfiguration(linkOutputAdapter, outputType);
+        	outputTypeConfiguration = new LinkOutputTypeConfiguration(linkOutputAdapter);
         } else {
             // no other dedicated output type configurations yet exist
             // TODO: create relevant type specific loggers with relevant properties to
             // configure
-            outputTypeConfiguration = new DummyOutputTypeConfiguration(outputAdapter, outputType);
+        	outputTypeConfiguration = new DummyOutputTypeConfiguration(outputAdapter);
         }
         outputTypeConfigurations.put(outputType, outputTypeConfiguration);
         return outputTypeConfiguration;
