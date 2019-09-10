@@ -136,6 +136,7 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
      * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
      */
     public void registerInitialLinkSegmentCost(TimePeriod timePeriod, InitialLinkSegmentCost initialLinkSegmentCost) {
+    	initialLinkSegmentCost.setTimePeriod(timePeriod);
     	parentAssignment.setInitialLinkSegmentCost(timePeriod, initialLinkSegmentCost);
     }
     

@@ -345,6 +345,12 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		this.initialLinkSegmentCost = initialLinkSegmentCost;
 	}
 	
+	/**
+	 * Set the initial link segment cost for a specified time period
+	 * 
+	 * @param timePeriod the specified time period
+	 * @param initialLinkSegmentCost the initial link segment cost
+	 */
 	public void setInitialLinkSegmentCost(TimePeriod timePeriod, InitialLinkSegmentCost initialLinkSegmentCost) {
 		initialLinkSegmentCostByTimePeriod.put(timePeriod.getId(), initialLinkSegmentCost);
 	}

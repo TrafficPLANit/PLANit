@@ -24,22 +24,50 @@ public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T
      */
     protected final T projectComponent;
     
-    protected Object parameter;
+    /**
+     * First parameter to be used by the event, if required
+     */
+    protected Object parameter1;
+
+    /**
+     * Second parameter to be used by the event, if required
+     */
+    protected Object parameter2;
+   
+    /**
+     * Constructor
+     * 
+     * @param projectComponent  project component which is created
+     */
+    public CreatedProjectComponentEvent(T projectComponent) {
+        this.projectComponent = projectComponent;
+        parameter1 = null;
+        parameter2 = null;
+    }
+    
+    /**
+     * Constructor
+     * 
+     * @param projectComponent  project component which is created
+     * @param parameter parameter to be used by the event
+     */
+    public CreatedProjectComponentEvent(T projectComponent, Object parameter) {
+        this.projectComponent = projectComponent;
+        this.parameter1 = parameter;
+        parameter2 = null;
+    }
 
     /**
      * Constructor
      * 
-     * @param projectComponent
-     *            project component which is created
+     * @param projectComponent  project component which is created
+     * @param parameter1 first parameter to be used by the event
+     * @param parameter2 second parameter to be used by the event
      */
-    public CreatedProjectComponentEvent(T projectComponent) {
+    public CreatedProjectComponentEvent(T projectComponent, Object parameter1, Object parameter2) {
         this.projectComponent = projectComponent;
-        parameter = null;
-    }
-    
-    public CreatedProjectComponentEvent(T projectComponent, Object parameter) {
-        this.projectComponent = projectComponent;
-        this.parameter = parameter;
+        this.parameter1 = parameter1;
+        this.parameter2 = parameter2;
     }
 
     /**
@@ -51,7 +79,11 @@ public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T
         return projectComponent;
     }
     
-    public Object getParameter() {
-    	return parameter;
+    public Object getParameter1() {
+    	return parameter1;
+    }
+    
+    public Object getParameter2() {
+    	return parameter2;
     }
 }

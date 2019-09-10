@@ -1,8 +1,14 @@
 package org.planit.project;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
+import org.planit.cost.physical.initial.InitialLinkSegmentCost;
+import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.demand.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.event.management.EventManager;
@@ -11,6 +17,7 @@ import org.planit.network.physical.PhysicalNetwork;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;
 import org.planit.supply.networkloading.NetworkLoading;
+import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.DeterministicTrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
@@ -92,7 +99,17 @@ public class CustomPlanItProject {
      * The traffic assignment(s) registered on this project
      */
     protected TreeMap<Long, TrafficAssignment> trafficAssignments;
+    
+    /**
+     * Object factory for physical costs
+     */
+    protected TrafficAssignmentComponentFactory<InitialPhysicalCost> initialPhysicalCostFactory;
 
+    /**
+     * Map to store all InitialLinkSegmentCost objects for each physical network
+     */
+    protected Map<PhysicalNetwork, List<InitialLinkSegmentCost>> initialLinkSegmentCosts;
+    
     // Protected methods
 
     /**
@@ -106,10 +123,13 @@ public class CustomPlanItProject {
     	zoningFactory = new TrafficAssignmentComponentFactory<Zoning>(Zoning.class);
     	demandsFactory = new TrafficAssignmentComponentFactory<Demands>(Demands.class);
     	assignmentFactory = new TrafficAssignmentComponentFactory<NetworkLoading>(NetworkLoading.class);
+		initialPhysicalCostFactory = new TrafficAssignmentComponentFactory<InitialPhysicalCost>(InitialPhysicalCost.class);
         physicalNetworkFactory.setEventManager(eventManager);
         zoningFactory.setEventManager(eventManager);
         demandsFactory.setEventManager(eventManager);
         assignmentFactory.setEventManager(eventManager);
+		initialPhysicalCostFactory.setEventManager(eventManager);
+		initialLinkSegmentCosts = new HashMap<PhysicalNetwork, List<InitialLinkSegmentCost>>();
     }
 
     /**
@@ -221,7 +241,72 @@ public class CustomPlanItProject {
         trafficAssignments.put(trafficAssignment.getId(), trafficAssignment);
         return trafficAssignment;
     }
+	
+	/**
+	 * Create and register initial link segment costs from a (single) file which we assume are available in the native xml/csv output format
+     * as provided in this project
+	 * 
+	 * @param network physical network the InitialLinkSegmentCost object will be registered for
+	 * @param fileName file containing the initial link segment cost values
+	 * @return the InitialLinkSegmentCost object
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(PhysicalNetwork network, String fileName) throws PlanItException {
+		if (!initialLinkSegmentCosts.containsKey(network)) {
+			initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
+		}
+		InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(), fileName);
+		initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
+        return initialLinkSegmentCost;
+	}
 
+	/**
+	 * Create and register initial link segment costs from a (single) file for each time period
+	 * 
+	 * @param network physical network the InitialLinkSegmentCost object will be registered for
+	 * @param fileName location of file containing the initial link segment cost values
+	 * @param timePeriod the current time period
+	 * @return the InitialLinkSegmentCost object
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(PhysicalNetwork network, String fileName, TimePeriod timePeriod) throws PlanItException {
+		if (!initialLinkSegmentCosts.containsKey(network)) {
+			initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
+		}
+		InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(), fileName, timePeriod);
+		initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
+        return initialLinkSegmentCost;
+	}
+	
+	/**
+	 * Create and register initial link segment costs from a (single) file for all time periods in Demands object 
+	 * 
+	 * @param network physical network the InitialLinkSegmentCost object will be registered for
+	 * @param fileName location of file containing the initial link segment cost values
+	 * @param demands the Demands object
+	 * @return the InitialLinkSegmentCost object
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public Map<TimePeriod, InitialLinkSegmentCost> createAndRegisterInitialLinkSegmentCost(PhysicalNetwork network, String fileName, Demands demands) throws PlanItException {
+		Map<TimePeriod, InitialLinkSegmentCost> initialCostsMap = new HashMap<TimePeriod, InitialLinkSegmentCost>();
+		for (TimePeriod timePeriod : demands.getRegisteredTimePeriods()) {
+			LOGGER.info("Registering Initial Link Segment Costs for Time Period " + timePeriod.getId());
+			InitialLinkSegmentCost initialLinkSegmentCost = createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
+			initialCostsMap.put(timePeriod, initialLinkSegmentCost);
+		}
+		return initialCostsMap;
+	}
+	
+	/**
+	 * Return the initial link segment costs for a network
+	 * 
+	 * @param network the specified physical network
+	 * @return the initial link segment costs for the specified physical network
+	 */
+	public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(PhysicalNetwork network) {
+		return initialLinkSegmentCosts.get(network);
+	}
+	
     /**
      * Check if assignments have already been registered
      * 

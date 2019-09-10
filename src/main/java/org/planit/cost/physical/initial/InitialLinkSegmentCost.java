@@ -1,6 +1,7 @@
 package org.planit.cost.physical.initial;
 
 import org.planit.network.physical.LinkSegment;
+import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
 import org.planit.utils.IdGenerator;
 
@@ -24,6 +25,13 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
 	 * Unique id of the initial link segment cost
 	 */
 	protected final long id;
+	
+	/**
+	 * The time period which this initial cost object applies to.
+	 * 
+	 * If this property is not set, this initial cost object applies to all time periods.
+	 */
+	protected TimePeriod timePeriod;
 
 	/**
 	 * Constructor
@@ -32,6 +40,10 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
 		super();
 		this.id = IdGenerator.generateId(InitialLinkSegmentCost.class);
 		costPerModeAndLinkSegment = new HashMap<Long, Map<Long, Double>>();
+	}
+	
+	public boolean isSegmentCostsSetForMode(Mode mode) {
+		return costPerModeAndLinkSegment.containsKey(mode.getId());
 	}
 
 	/**
@@ -43,7 +55,8 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
 	 */
 	@Override
 	public double getSegmentCost(Mode mode, LinkSegment linkSegment) {
-		return costPerModeAndLinkSegment.get(mode.getId()).get(linkSegment.getId());
+		Map<Long, Double> costPerLinkSegment = costPerModeAndLinkSegment.get(mode.getId());
+		return costPerLinkSegment.get(linkSegment.getId());
 	}
 	
 	/**
@@ -86,6 +99,14 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
 	 */
 	public long getId() {
 		return id;
+	}
+
+	public TimePeriod getTimePeriod() {
+		return timePeriod;
+	}
+
+	public void setTimePeriod(TimePeriod timePeriod) {
+		this.timePeriod = timePeriod;
 	}
 
 }
