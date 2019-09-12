@@ -1,5 +1,6 @@
 package org.planit.trafficassignment;
 
+import java.text.DecimalFormat;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -52,6 +53,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * Logger for this class
 	 */
 	private static final Logger LOGGER = Logger.getLogger(TraditionalStaticAssignment.class.getName());
+	
+	/**
+	 * Formatter to be used to output demand values
+	 */
+	private static DecimalFormat df5 = new DecimalFormat("#.#####");
 
 	/**
 	 * holds the count of all vertices in the transport network
@@ -113,14 +119,23 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 
 		// loop over all available OD demands
+		int previousOriginZoneId = -1;
+		Zone currentOriginZone = null;
+		Pair<Double, EdgeSegment>[] vertexPathCost = null;
 		while (odDemandIter.hasNext()) {
 			double odDemand = odDemandIter.next();
 			int originZoneId = odDemandIter.getCurrentOriginId();
 			int destinationZoneId = odDemandIter.getCurrentDestinationId();
-			int previousOriginZoneId = -1;
+			// int previousOriginZoneId = -1;
+
 			if (((odDemand - Default.DEFAULT_FLOW_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
-				Zone currentOriginZone = null;
-				Pair<Double, EdgeSegment>[] vertexPathCost = null;
+
+				LOGGER.info("Calculating flow from origin zone " + network.zones.getZone(originZoneId).getExternalId()
+						+ " to destination zone " + network.zones.getZone(destinationZoneId).getExternalId()
+						+ " which has demand of " + df5.format(odDemand));
+
+				// Zone currentOriginZone = null;
+				// Pair<Double, EdgeSegment>[] vertexPathCost = null;
 				// UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
 				if (previousOriginZoneId != originZoneId) {
 					currentOriginZone = network.zones.getZone(originZoneId);
@@ -132,6 +147,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 					}
 					vertexPathCost = shortestPathAlgorithm.executeOneToAll(originCentroid);
 				}
+
 				// UPDATE DESTINATION ZONE
 				// TODO: Costly to lookup destination zone via map whereas we know it is the
 				// next (non-zero demand) id compared to the previous)
@@ -175,6 +191,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @throws PlanItException thrown if there is an error
 	 */
 	private void executeTimePeriod(TimePeriod timePeriod) throws PlanItException {
+		LOGGER.info(
+				"Running Traditional Static Assigment over all modes for Time Period " + timePeriod.getDescription());
 		Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
 		initialiseTimePeriod(modes);
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
@@ -211,6 +229,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 */
 	private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] modalNetworkSegmentCosts)
 			throws PlanItException {
+		LOGGER.info("Running Traditional Static Assignment for Mode " + mode.getName());
 		// mode specific data
 		ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
 		currentModeData.resetNextNetworkSegmentFlows();
@@ -220,7 +239,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				numberOfNetworkSegments, numberOfNetworkVertices);
 		ODDemand odDemands = demands.get(mode, timePeriod);
 		executeModeTimePeriod(mode, odDemands, currentModeData, modalNetworkSegmentCosts, shortestPathAlgorithm);
-
 		double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows,
 				modalNetworkSegmentCosts, numberOfNetworkSegments);
 		dualityGapFunction.increaseActualSystemTravelTime(totalModeSystemTravelTime);
@@ -441,17 +459,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @param iterationIndex index of the current iteration
 	 * @return array of updated edge segment costs
 	 * @throws PlanItException thrown if there is an error
-	 */
-	/*
-	 * public double[] getModalNetworkSegmentCosts(Mode mode, int iterationIndex)
-	 * throws PlanItException { double[] currentSegmentCosts = new
-	 * double[transportNetwork.getTotalNumberOfEdgeSegments()];
-	 * populateModalConnectoidCosts(mode, currentSegmentCosts); if ((iterationIndex
-	 * == 0) && (initialLinkSegmentCost != null)) { if
-	 * (!initializeModalLinkSegmentCosts(mode, currentSegmentCosts)) {
-	 * populateModalLinkSegmentCosts(mode, currentSegmentCosts); } } else {
-	 * populateModalLinkSegmentCosts(mode, currentSegmentCosts); } return
-	 * currentSegmentCosts; }
 	 */
 	public double[] getModalNetworkSegmentCosts(Mode mode, int iterationIndex) throws PlanItException {
 		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];

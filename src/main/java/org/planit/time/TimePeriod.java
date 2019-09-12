@@ -35,6 +35,11 @@ public class TimePeriod implements Comparable<TimePeriod> {
      * Object id
      */
     private final long id;
+    
+    /**
+     * Object external Id
+     */
+    private final long externalId;
 
     /**
      * Description of this time period
@@ -42,82 +47,87 @@ public class TimePeriod implements Comparable<TimePeriod> {
     private final String description;
 
     /**
-     * Map storing registered time periods
+     * Map storing registered time periods by Id
      */
     private static Map<Long, TimePeriod> timePeriods = new HashMap<Long, TimePeriod>();
+    
+    /**
+     * Map storing registered time periods by external Id
+     */
+    private static Map<Long, TimePeriod> timePeriodsByExternalId = new HashMap<Long, TimePeriod>();
 
     /**
      * Constructor
      * 
+     * @param externalId
+     *            externalId of this time period
      * @param startTime
      *            in seconds from midnight
      * @param duration
      *            in seconds
      */
-    public TimePeriod(int startTime, int duration) {
+
+    public TimePeriod(long externalId, int startTime, int duration) {
         this.id = IdGenerator.generateId(TimePeriod.class);
         this.startTime = startTime;
         this.duration = duration;
         description = null;
         timePeriods.put(this.id, this);
+        this.externalId = externalId;
+        timePeriodsByExternalId.put(this.externalId, this);
     }
 
-    public TimePeriod(String description, int startTime, int duration) {
+    /**
+     * Constructor
+     * 
+     * @param externalId
+     *            externalId of this time period
+     * @param description
+     *            description of this time period
+     * @param startTime24hour
+     *            start time of this time period
+     * @param duration
+     *            duration of this time period
+     */
+    public TimePeriod(long externalId, String description, int startTime, int duration) {
         this.id = IdGenerator.generateId(TimePeriod.class);
+        this.externalId = externalId;
         this.startTime = startTime;
         this.duration = duration;
         this.description = description;
         timePeriods.put(this.id, this);
+        timePeriodsByExternalId.put(this.externalId, this);
     }
-
+  
     /**
      * Constructor
      * 
+     * This constructor uses duration in hours.  This is a double since fractions of an hour are possible.
+     * 
+     * @param externalId
+     *            externalId of this time period
      * @param description
      *            description of this time period
      * @param startTime24hour
      *            start time of this time period
      * @param durationHours
-     *            duration of this time period
+     *            duration of this time period in hours 
      * @throws PlanItException
      *             thrown if duration is longer than 24 hours
      */
-    public TimePeriod(String description, String startTime24hour, int durationHours) throws PlanItException {
+    public TimePeriod(long externalId, String description, String startTime24hour, double durationHours) throws PlanItException {
         this.id = IdGenerator.generateId(TimePeriod.class);
+        this.externalId = externalId;
         this.description = description;
         this.startTime = convertDurationToSeconds(startTime24hour);
         if (durationHours > 24.0) {
             throw new PlanItException("Duration more than 24 hours");
         }
-        this.duration = durationHours * 3600;
+        this.duration = (int) Math.round(durationHours * 3600.0);
         timePeriods.put(this.id, this);
+        timePeriodsByExternalId.put(this.externalId, this);
     }
-
-    /**
-     * Constructor
-     * 
-     * @param id
-     *            if of this time period
-     * @param description
-     *            description of this time period
-     * @param startTime24hour
-     *            start time of this time period
-     * @param durationHours
-     *            duration of this time period
-     * @throws PlanItException
-     *             thrown if duration is longer than 24 hours
-     */
-    public TimePeriod(long id, String description, String startTime24hour, int durationHours) throws PlanItException {
-        this.id = id;
-        this.description = description;
-        this.startTime = convertDurationToSeconds(startTime24hour);
-        if (durationHours > 24.0) {
-            throw new PlanItException("Duration more than 24 hours");
-        }
-        this.duration = durationHours * 3600;
-        timePeriods.put(this.id, this);
-    }
-
+    
     /**
      * Convert duration to seconds given start time using the 24-hour clock
      * 
@@ -157,15 +167,16 @@ public class TimePeriod implements Comparable<TimePeriod> {
     // Public static
 
     /**
-     * Store time period by its id
+     * Store time period by its id and external Id
      * 
      * @param timePeriod
      *            the time period to be stored
      */
     public static void putById(TimePeriod timePeriod) {
         timePeriods.put(timePeriod.getId(), timePeriod);
+        timePeriodsByExternalId.put(timePeriod.getExternalId(), timePeriod);
     }
-
+    
     /**
      * Retrieve time period by its id
      * 
@@ -176,31 +187,46 @@ public class TimePeriod implements Comparable<TimePeriod> {
     public static TimePeriod getById(long id) {
         return timePeriods.get(id);
     }
+    
+    /**
+     * Retrieve time period by its external id
+     * 
+     * @param externalId
+     *            the external id of the time period to be retrieved
+     * @return the TimePeriod object found
+     */
+   public static TimePeriod getByExternalId(long externalId) {
+    	return timePeriodsByExternalId.get(externalId);
+    }
 
     /**
      * Create a time period given its start time and duration in hours
      * 
+     * @param externalId
+     *            externalId of this time period
      * @param startHour
      *            the starting hour
      * @param durationHour
      *            the duration in hours
      * @return TimePeriod object generated
      */
-    public static TimePeriod createTimePeriod24h(float startHour, float durationHour) {
-        return new TimePeriod(convertHourToSeconds(startHour), convertHourToSeconds(durationHour));
+    public static TimePeriod createTimePeriod24h(long externalId, float startHour, float durationHour) {
+        return new TimePeriod(externalId, convertHourToSeconds(startHour), convertHourToSeconds(durationHour));
     }
 
     /**
      * Create a time period given its start time and duration in seconds
      * 
+     * @param externalId
+     *            externalId of this time period
      * @param startSeconds
      *            the start time in seconds
      * @param durationSeconds
      *            the duration in seconds
      * @return create TimePeriod object
      */
-    public static TimePeriod createTimePeriodSeconds(int startSeconds, int durationSeconds) {
-        return new TimePeriod(startSeconds, durationSeconds);
+    public static TimePeriod createTimePeriodSeconds(long externalId, int startSeconds, int durationSeconds) {
+        return new TimePeriod(externalId, startSeconds, durationSeconds);
     }
 
     /**
@@ -262,9 +288,18 @@ public class TimePeriod implements Comparable<TimePeriod> {
     public long getId() {
         return id;
     }
+    
+    /**
+     * Return the external id of this time period
+     * 
+     * @return external id of this TimePeriod
+     */
+   public long getExternalId() {
+    	return externalId;
+    }
 
     /**
-     * Compare this object with another TimePeriod obect
+     * Compare this object with another TimePeriod object
      * 
      * Comparison is based on start time and duration
      * 
