@@ -2,7 +2,6 @@ package org.planit.output.adapter;
 
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Logger;
 
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.trafficassignment.TrafficAssignment;
@@ -14,8 +13,6 @@ import org.planit.trafficassignment.TrafficAssignment;
  *
  */
 public abstract class LinkOutputAdapter extends OutputAdapter {
-
-	private static final Logger LOGGER = Logger.getLogger(LinkOutputAdapter.class.getName());
 
 	/**
 	 * Output properties to be included in the CSV output files

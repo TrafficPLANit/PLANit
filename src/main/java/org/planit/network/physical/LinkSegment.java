@@ -2,7 +2,6 @@ package org.planit.network.physical;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.planit.network.EdgeSegment;
 import org.planit.utils.IdGenerator;
@@ -15,11 +14,6 @@ import org.planit.utils.IdGenerator;
  *
  */
 public class LinkSegment extends EdgeSegment {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(LinkSegment.class.getName());
 
     /**
      * unique internal identifier

@@ -1,15 +1,14 @@
 package org.planit.trafficassignment;
 
 import java.text.DecimalFormat;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.logging.Logger;
 
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathAlgorithm;
-import org.planit.constants.Default;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.data.ModeData;
 import org.planit.data.SimulationData;
@@ -23,6 +22,7 @@ import org.planit.gap.GapFunction;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.gap.StopCriterion;
 import org.planit.interactor.LinkVolumeAccessee;
+import org.planit.logging.PlanItLogger;
 import org.planit.network.EdgeSegment;
 import org.planit.network.Vertex;
 import org.planit.network.physical.LinkSegment;
@@ -48,17 +48,22 @@ import org.planit.zoning.Zone;
  */
 public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		implements LinkVolumeAccessee, InteractorListener {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger LOGGER = Logger.getLogger(TraditionalStaticAssignment.class.getName());
 	
 	/**
 	 * Formatter to be used to output demand values
 	 */
 	private static DecimalFormat df5 = new DecimalFormat("#.#####");
 
+	/**
+	 * Formatter to be used to output duality gap
+	 */
+	private static DecimalFormat df6 = new DecimalFormat("#.######");
+
+	/**
+	 * Epsilon margin when comparing flow rates (veh/h)
+	 */
+	private static final double DEFAULT_FLOW_EPSILON = 0.000001;
+	
 	/**
 	 * holds the count of all vertices in the transport network
 	 */
@@ -126,16 +131,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			double odDemand = odDemandIter.next();
 			int originZoneId = odDemandIter.getCurrentOriginId();
 			int destinationZoneId = odDemandIter.getCurrentDestinationId();
-			// int previousOriginZoneId = -1;
 
-			if (((odDemand - Default.DEFAULT_FLOW_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
+			if (((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
 
-				LOGGER.info("Calculating flow from origin zone " + network.zones.getZone(originZoneId).getExternalId()
+				PlanItLogger.fine("Calculating flow from origin zone " + network.zones.getZone(originZoneId).getExternalId()
 						+ " to destination zone " + network.zones.getZone(destinationZoneId).getExternalId()
 						+ " which has demand of " + df5.format(odDemand));
 
-				// Zone currentOriginZone = null;
-				// Pair<Double, EdgeSegment>[] vertexPathCost = null;
 				// UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
 				if (previousOriginZoneId != originZoneId) {
 					currentOriginZone = network.zones.getZone(originZoneId);
@@ -191,11 +193,12 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @throws PlanItException thrown if there is an error
 	 */
 	private void executeTimePeriod(TimePeriod timePeriod) throws PlanItException {
-		LOGGER.info(
-				"Running Traditional Static Assigment over all modes for Time Period " + timePeriod.getDescription());
+		PlanItLogger.info("Running Traditional Static Assigment over all modes for Time Period " + timePeriod.getDescription());
 		Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
 		initialiseTimePeriod(modes);
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
+		Calendar startTime = Calendar.getInstance();
+		Calendar initialStartTime = startTime;
 		while (!simulationData.isConverged()) {
 			dualityGapFunction.reset();
 			smoothing.update(simulationData.getIterationIndex());
@@ -211,11 +214,15 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 
 			dualityGapFunction.computeGap();
 			simulationData.incrementIterationIndex();
-			LOGGER.fine("Iteration " + simulationData.getIterationIndex() + ": duality gap = "
-					+ dualityGapFunction.getGap());
+			Calendar currentTime = Calendar.getInstance();
+			long timeDiff = currentTime.getTimeInMillis() - startTime.getTimeInMillis();
+			PlanItLogger.info("Iteration " + simulationData.getIterationIndex() + ": Duality gap = " + df6.format(dualityGapFunction.getGap()) + ": Iteration duration " + timeDiff + " milliseconds");
+			startTime = currentTime;
 			simulationData.setConverged(dualityGapFunction.hasConverged(simulationData.getIterationIndex()));
 			outputManager.persistOutputData(timePeriod, modes, OutputType.LINK);
 		}
+		long timeDiff = startTime.getTimeInMillis() - initialStartTime.getTimeInMillis();
+		PlanItLogger.info("Assignment took " + timeDiff + " milliseconds");
 	}
 
 	/**
@@ -229,7 +236,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 */
 	private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] modalNetworkSegmentCosts)
 			throws PlanItException {
-		LOGGER.info("Running Traditional Static Assignment for Mode " + mode.getName());
+		PlanItLogger.info("Running Traditional Static Assignment for Mode " + mode.getName());
 		// mode specific data
 		ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
 		currentModeData.resetNextNetworkSegmentFlows();
@@ -480,9 +487,9 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	public void executeEquilibration() throws PlanItException {
 		// perform assignment per period - per mode
 		Set<TimePeriod> timePeriods = demands.getRegisteredTimePeriods();
-		LOGGER.info("There are " + timePeriods.size() + " time periods to loop through.");
+		PlanItLogger.info("There are " + timePeriods.size() + " time periods to loop through.");
 		for (TimePeriod timePeriod : timePeriods) {
-			LOGGER.info("Equilibrating time period " + timePeriod.toString());
+			PlanItLogger.info("Equilibrating time period " + timePeriod.toString());
 			executeTimePeriod(timePeriod);
 		}
 	}

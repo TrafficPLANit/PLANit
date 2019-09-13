@@ -1,7 +1,5 @@
 package org.planit.network.physical.macroscopic;
 
-import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
 
 import org.planit.utils.IdGenerator;
@@ -15,11 +13,6 @@ import org.planit.utils.IdGenerator;
  *
  */
 public class MacroscopicLinkSegmentType {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentType.class.getName());
 
 	/**
 	 * Default maximum density per lane (veh/km)

@@ -2,7 +2,6 @@ package org.planit.network.physical.macroscopic;
 
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 
 import org.planit.userclass.Mode;
 
@@ -10,11 +9,6 @@ import org.planit.userclass.Mode;
  * Holds mode properties for a particular link segment type
  */
 public class MacroscopicLinkSegmentTypeModeProperties {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentTypeModeProperties.class.getName());
 
     /**
      * Mode specific link segment type properties

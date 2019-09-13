@@ -1,7 +1,5 @@
 package org.planit.trafficassignment.builder;
 
-import java.util.logging.Logger;
-
 import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
@@ -18,11 +16,6 @@ import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
  *
  */
 public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignmentBuilder {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(CapacityConstrainedTrafficAssignmentBuilder.class.getName());
 
     // FACTORIES
 

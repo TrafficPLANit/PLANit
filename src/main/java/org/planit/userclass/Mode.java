@@ -4,7 +4,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 import org.planit.utils.IdGenerator;
 
 /**
@@ -14,11 +13,6 @@ import org.planit.utils.IdGenerator;
  * @author markr
  */
 public class Mode implements Comparable<Mode> {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger LOGGER = Logger.getLogger(Mode.class.getName());
 	
 	/**
 	 * If no user class is defined the default user class will be assumed to have a

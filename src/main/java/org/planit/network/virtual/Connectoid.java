@@ -1,6 +1,5 @@
 package org.planit.network.virtual;
 
-import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.Edge;
@@ -16,11 +15,6 @@ import org.planit.utils.IdGenerator;
  *
  */
 public class Connectoid extends Edge {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(Connectoid.class.getName());
 
     /**
      * Default connectoid length

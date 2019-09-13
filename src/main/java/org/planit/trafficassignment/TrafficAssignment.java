@@ -2,7 +2,6 @@ package org.planit.trafficassignment;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -15,6 +14,7 @@ import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
 import org.planit.interactor.InteractorAccessor;
+import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.transport.TransportNetwork;
@@ -39,8 +39,6 @@ import org.planit.zoning.Zoning;
  *
  */
 public abstract class TrafficAssignment extends NetworkLoading {
-
-	private static final Logger LOGGER = Logger.getLogger(TrafficAssignment.class.getName());
 
 	// Private
 
@@ -245,7 +243,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	public void activateOutput(OutputType outputType) throws PlanItException {
 		if (!outputManager.isOutputTypeActive(outputType)) {
-			LOGGER.info("Registering Output Type " + outputType);
+			PlanItLogger.info("Registering Output Type " + outputType);
 			OutputAdapter outputAdapter = createOutputAdapter(outputType);
 			outputManager.createAndRegisterOutputTypeConfiguration(outputType, outputAdapter);
 		}
@@ -265,10 +263,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		initialiseTrafficAssignmentBeforeEquilibration();
 		executeEquilibration();
 		finalizeAfterEquilibration();
-		LOGGER.info("Finished equilibration");
+		PlanItLogger.info("Finished equilibration");
 		transportNetwork.removeVirtualNetworkFromPhysicalNetwork(); // disconnect here since the physical network might
 																	// be reused in a different assignment
-		LOGGER.info("Finished execution");
+		PlanItLogger.info("Finished execution");
 	}
 
 	// Getters - Setters

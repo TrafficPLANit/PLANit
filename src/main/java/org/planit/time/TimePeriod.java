@@ -2,7 +2,6 @@ package org.planit.time;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.utils.IdGenerator;
@@ -15,11 +14,6 @@ import org.planit.utils.IdGenerator;
  *
  */
 public class TimePeriod implements Comparable<TimePeriod> {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(TimePeriod.class.getName());
 
     /**
      * startTime in seconds from midnight 00:00:00

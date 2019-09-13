@@ -1,7 +1,5 @@
 package org.planit.demand;
 
-import java.util.logging.Logger;
-
 import org.planit.utils.IdGenerator;
 
 /**
@@ -11,11 +9,6 @@ import org.planit.utils.IdGenerator;
  *
  */
 public abstract class ODDemand {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(ODDemand.class.getName());
 
     /**
      * Unique demand id

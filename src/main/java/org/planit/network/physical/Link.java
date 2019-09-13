@@ -1,7 +1,5 @@
 package org.planit.network.physical;
 
-import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
 
 import org.opengis.geometry.coordinate.LineString;
@@ -18,11 +16,6 @@ import org.planit.utils.IdGenerator;
  *
  */
 public class Link extends Edge {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(Link.class.getName());
 
     // Protected
 

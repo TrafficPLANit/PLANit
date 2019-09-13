@@ -3,7 +3,6 @@ package org.planit.algorithms.shortestpath;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
-import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -27,11 +26,6 @@ import org.planit.utils.Pair;
  *
  */
 public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(DijkstraShortestPathAlgorithm.class.getName());
 
     /**
      * Reference to current origin for which we have collected shortest paths on a

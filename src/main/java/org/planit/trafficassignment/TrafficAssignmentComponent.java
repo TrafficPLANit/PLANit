@@ -1,6 +1,5 @@
 package org.planit.trafficassignment;
 
-import java.util.logging.Logger;
 import org.planit.event.management.EventHandler;
 import org.planit.event.management.EventManager;
 
@@ -12,11 +11,6 @@ import org.planit.event.management.EventManager;
  *
  */
 public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T>> implements EventHandler {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentComponent.class.getName());
 
     /**
      * Traffic component type used to identify the component uniquely. If not

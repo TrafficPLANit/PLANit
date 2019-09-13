@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
-import java.util.logging.Logger;
 
 import org.opengis.geometry.DirectPosition;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
@@ -26,8 +25,6 @@ import org.planit.userclass.Mode;
  *
  */
 public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdapter {
-
-	private static final Logger LOGGER = Logger.getLogger(TraditionalStaticAssignmentLinkOutputAdapter.class.getName());
 
 	/**
 	 * Constructor

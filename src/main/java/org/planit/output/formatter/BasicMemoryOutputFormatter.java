@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
@@ -14,7 +13,6 @@ import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.Node;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.transport.TransportNetwork;
-import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
@@ -30,11 +28,6 @@ import org.planit.userclass.Mode;
  *
  */
 public class BasicMemoryOutputFormatter extends BaseOutputFormatter {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger LOGGER = Logger.getLogger(BasicMemoryOutputFormatter.class.getName());
 
 	private MultiKeyMap multiKeyMap;
 

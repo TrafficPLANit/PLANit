@@ -1,7 +1,5 @@
 package org.planit.output.adapter;
 
-import java.util.logging.Logger;
-
 import org.planit.data.SimulationData;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.trafficassignment.TrafficAssignment;
@@ -15,8 +13,6 @@ import org.planit.trafficassignment.TrafficAssignment;
  *
  */
 public abstract class OutputAdapter {
-
-    private static final Logger LOGGER = Logger.getLogger(OutputAdapter.class.getName());
 
     /**
      * the traffic assignment this output adapter is drawing from

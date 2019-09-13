@@ -1,9 +1,5 @@
 package org.planit.network.physical.macroscopic;
 
-import java.util.logging.Logger;
-
-import org.planit.constants.Default;
-
 /**
  * Mode specific properties for the macroscopic perspective on the supply side,
  * i.e. on a link segment of a particular type
@@ -12,11 +8,6 @@ import org.planit.constants.Default;
  *
  */
 public class MacroscopicModeProperties {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(MacroscopicModeProperties.class.getName());
 
     /**
      * Maximum speed of mode (tied to a road segment)
@@ -40,6 +31,11 @@ public class MacroscopicModeProperties {
      */
     public static final double DEFAULT_CRITICAL_SPEED = 60;
 
+    /**
+     * Epsilon margin when comparing speeds (km/h)
+     */	
+	public static final double DEFAULT_SPEED_EPSILON = 0.000001;
+	
     /**
      * Constructor
      * 
@@ -75,9 +71,9 @@ public class MacroscopicModeProperties {
         if (obj instanceof MacroscopicModeProperties) {
             return super.equals(obj)
                     && Math.abs(this.getMaxSpeed()
-                            - ((MacroscopicModeProperties) obj).getMaxSpeed()) < Default.DEFAULT_SPEED_EPSILON
+                            - ((MacroscopicModeProperties) obj).getMaxSpeed()) < DEFAULT_SPEED_EPSILON
                     && Math.abs(this.getCriticalSpeed()
-                            - ((MacroscopicModeProperties) obj).getCriticalSpeed()) < Default.DEFAULT_SPEED_EPSILON;
+                            - ((MacroscopicModeProperties) obj).getCriticalSpeed()) < DEFAULT_SPEED_EPSILON;
         }
         return false;
     }

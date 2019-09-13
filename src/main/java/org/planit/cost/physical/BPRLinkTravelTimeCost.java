@@ -3,7 +3,6 @@ package org.planit.cost.physical;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.planit.interactor.InteractorAccessee;
 import org.planit.interactor.LinkVolumeAccessee;
@@ -82,11 +81,6 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 			return parametersMap.keySet().iterator();
 		}
 	}
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger LOGGER = Logger.getLogger(BPRLinkTravelTimeCost.class.getName());
 
 	/**
 	 * Default alpha BPR parameter if not other information is available

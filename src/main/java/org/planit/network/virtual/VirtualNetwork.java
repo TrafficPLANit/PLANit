@@ -3,7 +3,6 @@ package org.planit.network.virtual;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -17,11 +16,6 @@ import org.planit.network.physical.Node;
  * @author markr
  */
 public class VirtualNetwork {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(VirtualNetwork.class.getName());
 
     // INNER CLASSES
 

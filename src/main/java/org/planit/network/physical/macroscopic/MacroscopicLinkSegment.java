@@ -1,9 +1,8 @@
 package org.planit.network.physical.macroscopic;
 
-import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
 
+import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.Link;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.virtual.Centroid;
@@ -17,11 +16,6 @@ import org.planit.userclass.Mode;
  * @author markr
  */
 public class MacroscopicLinkSegment extends LinkSegment {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegment.class.getName());
 
 	// Protected
 
@@ -75,19 +69,19 @@ public class MacroscopicLinkSegment extends LinkSegment {
 				if (getParentEdge().getVertexA() instanceof Centroid) {
 					long startId = ((Centroid) getParentEdge().getVertexA()).getParentZone().getExternalId();
 					long endId = ((Node) getParentEdge().getVertexB()).getExternalId();
-					LOGGER.severe("No maximum speed defined for the origin connectoid from zone " + startId
+					PlanItLogger.severe("No maximum speed defined for the origin connectoid from zone " + startId
 							+ " to node " + endId);
 					return -1.0;
 				} else if (getParentEdge().getVertexB() instanceof Centroid) {
 					long startId = ((Node) getParentEdge().getVertexA()).getExternalId();
 					long endId = ((Centroid) getParentEdge().getVertexB()).getParentZone().getExternalId();
-					LOGGER.severe("No maximum speed defined for the destination connectoid from node " + startId
+					PlanItLogger.severe("No maximum speed defined for the destination connectoid from node " + startId
 							+ " to zone " + endId);
 					return -1.0;
 				} else {
 					long startId = ((Node) getParentEdge().getVertexA()).getExternalId();
 					long endId = ((Node) getParentEdge().getVertexB()).getExternalId();
-					LOGGER.severe("No maximum speed defined for network link from anode reference " + startId
+					PlanItLogger.severe("No maximum speed defined for network link from anode reference " + startId
 							+ " to bnode " + endId);
 					return -1.0;
 				}

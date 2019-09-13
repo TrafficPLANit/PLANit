@@ -1,7 +1,5 @@
 package org.planit.output.formatter;
 
-import java.util.logging.Logger;
-
 import org.planit.exceptions.PlanItException;
 
 /**
@@ -11,8 +9,6 @@ import org.planit.exceptions.PlanItException;
  *
  */
 public final class OutputFormatterFactory {
-
-    private static final Logger LOGGER = Logger.getLogger(OutputFormatterFactory.class.getName());
 
     /**
      * Create an output formatter based on the passed in class name

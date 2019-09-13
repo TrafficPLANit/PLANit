@@ -1,7 +1,5 @@
 package org.planit.network.physical.macroscopic;
 
-import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
 
 import org.planit.network.physical.Node;
@@ -17,11 +15,6 @@ import org.planit.network.physical.PhysicalNetworkBuilder;
  *
  */
 public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(MacroscopicNetworkBuilder.class.getName());
 
     /**
      * Create a new node

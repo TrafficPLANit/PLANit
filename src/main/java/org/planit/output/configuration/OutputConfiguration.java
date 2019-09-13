@@ -3,10 +3,9 @@ package org.planit.output.configuration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 
-import org.planit.demand.Demands;
 import org.planit.exceptions.PlanItException;
+import org.planit.logging.PlanItLogger;
 import org.planit.output.OutputType;
 import org.planit.output.adapter.LinkOutputAdapter;
 import org.planit.output.adapter.OutputAdapter;
@@ -19,11 +18,6 @@ import org.planit.output.adapter.OutputAdapter;
  *
  */
 public class OutputConfiguration {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(Demands.class.getName());
 
     /**
      * Default for persisting final iteration
@@ -96,7 +90,7 @@ public class OutputConfiguration {
      */
     public OutputTypeConfiguration getOutputTypeConfiguration(OutputType outputType) {
         if (!containsOutputTypeConfiguration(outputType)) {
-            LOGGER.severe("Requesting output type configuration for " + outputType.toString()
+            PlanItLogger.severe("Requesting output type configuration for " + outputType.toString()
                     + " which has not been registered, returning null ");
         }
         return outputTypeConfigurations.get(outputType);

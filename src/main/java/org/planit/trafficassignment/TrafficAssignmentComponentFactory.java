@@ -4,7 +4,6 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.TreeSet;
-import java.util.logging.Logger;
 
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.physical.PhysicalCost;
@@ -20,6 +19,7 @@ import org.planit.event.management.EventHandler;
 import org.planit.event.management.EventManager;
 import org.planit.event.listener.InteractorListener;
 import org.planit.exceptions.PlanItException;
+import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.sdinteraction.smoothing.MSASmoothing;
@@ -41,11 +41,6 @@ import org.planit.zoning.Zoning;
  *            construct the eligible derived classes by class name
  */
 public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentComponent<T>> implements EventHandler {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentComponentFactory.class.getName());
 
     /**
      * instance of the super component class this factory creates subclass instances
@@ -244,7 +239,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
      */
     public T create(String trafficAssignmentComponentClassName, Object parameter) throws PlanItException {
     	T newTrafficComponent = createTrafficComponent(trafficAssignmentComponentClassName);
-    	LOGGER.info("Created " + trafficAssignmentComponentClassName + ", dispatching creation event" );
+    	PlanItLogger.info("Created " + trafficAssignmentComponentClassName + ", dispatching creation event" );
     	dispatchTrafficComponentEvent(newTrafficComponent, parameter);
         return newTrafficComponent;
     }
@@ -263,7 +258,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
      */
    public T create(String trafficAssignmentComponentClassName, Object parameter1, Object parameter2) throws PlanItException {
     	T newTrafficComponent = createTrafficComponent(trafficAssignmentComponentClassName);
-    	LOGGER.info("Created " + trafficAssignmentComponentClassName + ", dispatching creation event" );
+    	PlanItLogger.info("Created " + trafficAssignmentComponentClassName + ", dispatching creation event" );
     	dispatchTrafficComponentEvent(newTrafficComponent, parameter1, parameter2);
         return newTrafficComponent;
     }

@@ -1,7 +1,5 @@
 package org.planit.trafficassignment.builder;
 
-import java.util.logging.Logger;
-
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.event.management.EventManager;
@@ -16,11 +14,6 @@ import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
  *
  */
 public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmentBuilder {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger LOGGER = Logger.getLogger(CapacityRestrainedTrafficAssignmentBuilder.class.getName());
 
 	// FACTORIES
 

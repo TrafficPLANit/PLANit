@@ -1,7 +1,5 @@
 package org.planit.trafficassignment;
 
-import java.util.logging.Logger;
-
 import org.planit.event.listener.InteractorListener;
 import org.planit.trafficassignment.builder.CapacityRestrainedTrafficAssignmentBuilder;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
@@ -14,11 +12,6 @@ import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
  */
 public abstract class CapacityRestrainedAssignment extends DeterministicTrafficAssignment
         implements InteractorListener {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(CapacityRestrainedAssignment.class.getName());
 
     /**
      * The builder for all capacity restrained traffic assignment instances

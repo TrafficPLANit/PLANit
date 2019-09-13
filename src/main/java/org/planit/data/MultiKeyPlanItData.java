@@ -2,22 +2,17 @@ package org.planit.data;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
 import org.planit.exceptions.PlanItException;
+import org.planit.logging.PlanItLogger;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.output.enums.Type;
 import org.planit.output.formatter.OutputFormatter;
 
 public class MultiKeyPlanItData {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger LOGGER = Logger.getLogger(MultiKeyPlanItData.class.getName());
 
 	private MultiKeyMap multiKeyMap;
 	private Map<Object, Object[]> singleKeyMap;
@@ -95,12 +90,12 @@ public class MultiKeyPlanItData {
 	 */
 	private boolean isKeyValuesValid(Object... keyValues) {
 		if (keyValues.length != outputKeyProperties.length) {
-			LOGGER.severe("Incorrect number of key values in call to RevisedMemoryOutputFormatter");
+			PlanItLogger.severe("Incorrect number of key values in call to RevisedMemoryOutputFormatter");
 			return false;
 		}
 		for (int i = 0; i < outputKeyProperties.length; i++) {
 			if (!isValueTypeCorrect(keyValues[i], keyTypes[i])) {
-				LOGGER.severe("Output key in position " + (i + 1) + " is of the wrong type.");
+				PlanItLogger.severe("Output key in position " + (i + 1) + " is of the wrong type.");
 				return false;
 			}
 		}

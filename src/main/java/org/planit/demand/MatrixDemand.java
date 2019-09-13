@@ -1,7 +1,5 @@
 package org.planit.demand;
 
-import java.util.logging.Logger;
-
 import org.ojalgo.array.Array2D;
 import org.ojalgo.structure.Access1D;
 import org.planit.utils.Pair;
@@ -13,11 +11,6 @@ import org.planit.utils.Pair;
  *
  */
 public class MatrixDemand extends ODDemand {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(MatrixDemand.class.getName());
 
     /**
      * Iterator over entries masking its matrix based container

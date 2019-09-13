@@ -1,7 +1,5 @@
 package org.planit.cost.physical;
 
-import java.util.logging.Logger;
-
 import org.planit.event.listener.InteractorListener;
 
 /**
@@ -11,11 +9,6 @@ import org.planit.event.listener.InteractorListener;
  *
  */
 public abstract class LinkTravelTimeCost extends PhysicalCost implements InteractorListener{
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(LinkTravelTimeCost.class.getName());
         
     /**
      * Constructor

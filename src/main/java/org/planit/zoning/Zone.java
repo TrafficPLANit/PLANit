@@ -2,7 +2,6 @@ package org.planit.zoning;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 import org.planit.network.virtual.Centroid;
 import org.planit.utils.IdGenerator;
 
@@ -13,11 +12,6 @@ import org.planit.utils.IdGenerator;
  *
  */
 public class Zone {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(Zone.class.getName());
 
     /**
      * Unique identifier for the zone

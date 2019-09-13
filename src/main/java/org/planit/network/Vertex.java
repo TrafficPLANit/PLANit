@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Logger;
 
 import org.opengis.geometry.DirectPosition;
 import org.planit.utils.IdGenerator;
@@ -17,11 +16,6 @@ import org.planit.utils.IdGenerator;
  *
  */
 public class Vertex implements Comparable<Vertex> {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(Vertex.class.getName());
 
     /**
      * edges of this vertex

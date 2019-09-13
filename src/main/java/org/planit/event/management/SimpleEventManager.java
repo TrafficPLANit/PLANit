@@ -2,8 +2,6 @@ package org.planit.event.management;
 
 import org.planit.event.listener.EventListener;
 
-import java.util.logging.Logger;
-
 import org.planit.event.Event;
 import org.planit.exceptions.PlanItException;
 
@@ -14,11 +12,6 @@ import org.planit.exceptions.PlanItException;
  *
  */
 public class SimpleEventManager implements EventManager {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(SimpleEventManager.class.getName());
 
     /**
      * Single event dispatcher across all projects (for now)

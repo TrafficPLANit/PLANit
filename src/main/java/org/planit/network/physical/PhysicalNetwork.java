@@ -6,11 +6,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
+import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.LinkSegment;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.IdGenerator;
@@ -23,11 +23,6 @@ import org.planit.utils.IdGenerator;
  * @author markr
  */
 public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork> {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger LOGGER = Logger.getLogger(PhysicalNetwork.class.getName());
 
 	// INNER CLASSES
 
@@ -155,7 +150,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 */
 		public LinkSegment getLinkSegmentByStartAndEndNodeExternalId(long startExternalId, long endExternalId) {
 			if (!linkSegmentMapByStartExternalId.containsKey(startExternalId)) {
-				LOGGER.severe("No link segment with start node " + startExternalId + " has been registered in the network.");
+				PlanItLogger.severe("No link segment with start node " + startExternalId + " has been registered in the network.");
 				return null;
 			}
 			List<LinkSegment> linkSegmentsForCurrentStartNode = linkSegmentMapByStartExternalId.get(startExternalId);
@@ -165,7 +160,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 					return linkSegment;
 				}
 			}
-			LOGGER.severe("No link segment with start node " + startExternalId + " and end node " + endExternalId + " has been registered in the network.");
+			PlanItLogger.severe("No link segment with start node " + startExternalId + " and end node " + endExternalId + " has been registered in the network.");
 			return null;
 		}
 
@@ -216,7 +211,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 */
 		public LinkSegment getLinkSegmentByExternalId(long externalId) {
 			if (!linkSegmentMapByExternalId.containsKey(externalId) ) {
-				LOGGER.severe("Link with External Id " + externalId + " has not been registered in the network.");
+				PlanItLogger.severe("Link with External Id " + externalId + " has not been registered in the network.");
 				return null;
 			}
 			return linkSegmentMapByExternalId.get(externalId);

@@ -1,7 +1,5 @@
 package org.planit.trafficassignment.builder;
 
-import java.util.logging.Logger;
-
 import javax.annotation.Nonnull;
 
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
@@ -27,11 +25,6 @@ import org.planit.zoning.Zoning;
  *
  */
 public abstract class TrafficAssignmentBuilder implements EventHandler {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentBuilder.class.getName());
 
     /**
      * The smoothing factory used in the assignment algorithm

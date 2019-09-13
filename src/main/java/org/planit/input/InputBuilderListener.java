@@ -1,7 +1,5 @@
 package org.planit.input;
 
-import java.util.logging.Logger;
-
 import org.planit.event.CreatedProjectComponentEvent;
 import org.planit.event.Event;
 import org.planit.event.listener.EventListener;
@@ -15,11 +13,6 @@ import org.planit.exceptions.PlanItException;
  *
  */
 public abstract class InputBuilderListener implements EventListener {
-
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger LOGGER = Logger.getLogger(InputBuilderListener.class.getName());
 
 	/**
 	 * Process event and call the right onX method

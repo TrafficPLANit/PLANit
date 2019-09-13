@@ -1,8 +1,5 @@
 package org.planit.output.configuration;
 
-import java.util.List;
-import java.util.logging.Logger;
-
 import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.property.OutputProperty;
@@ -15,11 +12,6 @@ import org.planit.output.property.OutputProperty;
  *
  */
 public abstract class OutputTypeConfiguration {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(OutputTypeConfiguration.class.getName());
 
     /**
      * The output adapter for the output type which provides access the data when

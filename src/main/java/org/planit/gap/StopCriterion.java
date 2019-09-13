@@ -1,7 +1,5 @@
 package org.planit.gap;
 
-import java.util.logging.Logger;
-
 /**
  * StopCriterion class. In its base form we only provide an epsilon value.
  * However by deriving from this class additional citeria can be added
@@ -10,11 +8,6 @@ import java.util.logging.Logger;
  *
  */
 public class StopCriterion {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(StopCriterion.class.getName());
 
     /**
      * Default Epsilon in case it is not set by user

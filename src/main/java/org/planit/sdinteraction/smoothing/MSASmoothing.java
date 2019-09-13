@@ -1,7 +1,5 @@
 package org.planit.sdinteraction.smoothing;
 
-import java.util.logging.Logger;
-
 /**
  * MSA smoothing object
  * 
@@ -9,11 +7,6 @@ import java.util.logging.Logger;
  *
  */
 public class MSASmoothing extends Smoothing {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(MSASmoothing.class.getName());
 
     /**
      * Step size

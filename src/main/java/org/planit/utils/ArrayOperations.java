@@ -1,7 +1,5 @@
 package org.planit.utils;
 
-import java.util.logging.Logger;
-
 /**
  * General methods for updating arrays
  * 
@@ -9,11 +7,6 @@ import java.util.logging.Logger;
  *
  */
 public class ArrayOperations {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(ArrayOperations.class.getName());
 
     /**
      * Add the values of a second array element-wise to the first array

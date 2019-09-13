@@ -1,7 +1,5 @@
 package org.planit.output.formatter;
 
-import java.util.logging.Logger;
-
 import org.planit.output.OutputManager;
 import org.planit.utils.IdGenerator;
 
@@ -14,7 +12,6 @@ import org.planit.utils.IdGenerator;
  */
 public abstract class BaseOutputFormatter implements OutputFormatter {
 
-	private static final Logger LOGGER = Logger.getLogger(BaseOutputFormatter.class.getName());
 	/**
 	 * Unique internal id of the output writer
 	 */

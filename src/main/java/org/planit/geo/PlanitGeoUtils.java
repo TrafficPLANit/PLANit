@@ -2,10 +2,10 @@ package org.planit.geo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.geotools.geometry.GeometryBuilder;
 import org.geotools.referencing.GeodeticCalculator;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.PositionFactory;
 import org.opengis.geometry.coordinate.GeometryFactory;
@@ -24,12 +24,12 @@ import com.vividsolutions.jts.geom.MultiLineString;
  *
  */
 public class PlanitGeoUtils {
-
+	
 	/**
-	 * Logger for this class
+	 * Default Coordinate Reference System
 	 */
-	private static final Logger LOGGER = Logger.getLogger(PlanitGeoUtils.class.getName());
-
+	private static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = DefaultGeographicCRS.WGS84;
+			
 	/**
 	 * Geodetic calculator to construct distances between points. It is assumed the
 	 * network CRS is geodetic in nature.
@@ -39,6 +39,19 @@ public class PlanitGeoUtils {
 	private GeometryFactory geometryFactory;
 	private PositionFactory positionFactory;
 
+	/**
+	 * Constructor
+	 * 
+	 * Uses default coordinate reference system
+	 */
+	public PlanitGeoUtils() {
+		CoordinateReferenceSystem coordinateReferenceSystem = new DefaultGeographicCRS(DEFAULT_GEOGRAPHIC_CRS);
+		geometryBuilder = new GeometryBuilder(coordinateReferenceSystem);
+		geodeticDistanceCalculator = new GeodeticCalculator(coordinateReferenceSystem);
+		geometryFactory = geometryBuilder.getGeometryFactory();
+		positionFactory = geometryBuilder.getPositionFactory();
+	}
+	
 	/**
 	 * Constructor
 	 * 

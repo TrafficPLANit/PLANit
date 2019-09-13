@@ -3,7 +3,6 @@ package org.planit.output;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.output.adapter.OutputAdapter;
@@ -21,8 +20,6 @@ import org.planit.userclass.Mode;
  *
  */
 public class OutputManager {
-
-	private static final Logger LOGGER = Logger.getLogger(OutputManager.class.getName());
 
 	/**
 	 * The overall output configuration instance

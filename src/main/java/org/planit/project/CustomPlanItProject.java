@@ -5,12 +5,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.demand.Demands;
 import org.planit.input.InputBuilderListener;
+import org.planit.logging.PlanItLogger;
 import org.planit.event.management.EventManager;
 import org.planit.event.management.SimpleEventManager;
 import org.planit.network.physical.PhysicalNetwork;
@@ -34,11 +34,6 @@ import org.planit.exceptions.PlanItException;
  *
  */
 public class CustomPlanItProject {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(CustomPlanItProject.class.getName());
 
     /**
      * The physical networks registered on this project
@@ -143,7 +138,7 @@ public class CustomPlanItProject {
             ta.execute();
         } catch (Exception e) {
         	e.printStackTrace();
-            LOGGER.severe(e.getMessage());
+            PlanItLogger.severe(e.getMessage());
         }
     }
 
@@ -290,7 +285,7 @@ public class CustomPlanItProject {
 	public Map<TimePeriod, InitialLinkSegmentCost> createAndRegisterInitialLinkSegmentCost(PhysicalNetwork network, String fileName, Demands demands) throws PlanItException {
 		Map<TimePeriod, InitialLinkSegmentCost> initialCostsMap = new HashMap<TimePeriod, InitialLinkSegmentCost>();
 		for (TimePeriod timePeriod : demands.getRegisteredTimePeriods()) {
-			LOGGER.info("Registering Initial Link Segment Costs for Time Period " + timePeriod.getId());
+			PlanItLogger.info("Registering Initial Link Segment Costs for Time Period " + timePeriod.getId());
 			InitialLinkSegmentCost initialLinkSegmentCost = createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
 			initialCostsMap.put(timePeriod, initialLinkSegmentCost);
 		}

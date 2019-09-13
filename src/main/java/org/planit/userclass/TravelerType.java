@@ -2,7 +2,6 @@ package org.planit.userclass;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 import org.planit.utils.IdGenerator;
 
 /**
@@ -15,11 +14,6 @@ import org.planit.utils.IdGenerator;
  *
  */
 public class TravelerType {
-
-    /**
-     * Logger for this class
-     */
-    private static final Logger LOGGER = Logger.getLogger(TravelerType.class.getName());
         
     public static final String DEFAULT_NAME = "Default";
 	/**
