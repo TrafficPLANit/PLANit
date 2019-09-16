@@ -152,5 +152,12 @@ public class PlanItLogger {
 	public static void config(String msg) {
 		LOGGER.config(msg);
 	}
-
+	
+	public static void close() {
+		Handler[] handlers =  LOGGER.getHandlers();
+		for (Handler handler : handlers) {
+			handler.close();
+		}
+	}
+	
 }
