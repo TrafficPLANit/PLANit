@@ -1,6 +1,7 @@
 package org.planit.trafficassignment;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
@@ -424,6 +425,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public int getNumberOfNetworkSegments() {
 		return numberOfNetworkSegments;
 	}
+
+	/**
+	 * Returns a list of output formatters registered on this assignment
+	 * 
+	 * @return List of OutputFormatter objects registered on this assignment
+	 */
+	public List<OutputFormatter> getOutputFormatters() {
+		return outputManager.getOutputFormatters();
+	}
 	
 	/**
 	 * Return the simulation data for the current iteration
@@ -431,5 +441,5 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * @return the simulation data for the current iteration
 	 */
 	public abstract SimulationData getSimulationData();
-
+	
 }

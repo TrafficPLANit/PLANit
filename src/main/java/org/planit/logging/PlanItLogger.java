@@ -117,7 +117,7 @@ public class PlanItLogger {
 	/**
 	 * Set logging to console
 	 * 
-	 * This is set to true by default
+	 * This is set to true by default.
 	 * 
 	 * @param outputToConsole true if logging to console required, false otherwise
 	 */
