@@ -38,7 +38,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	/**
 	 * Map which stores link segment types by their external Id
 	 */
-	protected Map<Integer, MacroscopicLinkSegmentType> macroscopicLinkSegmentTypeByExternalIdMap = new TreeMap<Integer, MacroscopicLinkSegmentType>();
+	protected Map<Long, MacroscopicLinkSegmentType> macroscopicLinkSegmentTypeByExternalIdMap = new TreeMap<Long, MacroscopicLinkSegmentType>();
 
 	/**
 	 * Register a link segment type on the network
@@ -96,7 +96,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public Pair<MacroscopicLinkSegmentType, Boolean> registerNewLinkSegmentType(@Nonnull String name, double capacity,
-			double maximumDensity, int externalId, MacroscopicLinkSegmentTypeModeProperties modeProperties)
+			double maximumDensity, long externalId, MacroscopicLinkSegmentTypeModeProperties modeProperties)
 			throws PlanItException {
 
 		if (!(networkBuilder instanceof MacroscopicNetworkBuilder)) {
@@ -125,11 +125,11 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	}
 
 	/**
-	 * Return the Set of link segment external Ids
+	 * Return the Set of link segment type external Ids
 	 * 
-	 * @return Set of link segment external Ids
+	 * @return Set of link segment type external Ids
 	 */
-	public Set<Integer> getMacroscopicLinkSegmentExternalIdSet() {
+	public Set<Long> getMacroscopicLinkSegmentExternalIdSet() {
 		return macroscopicLinkSegmentTypeByExternalIdMap.keySet();
 	}
 
@@ -149,7 +149,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	 * @param externalId external id value of the MacroscopicLinkSegmentType
 	 * @return MacroscopicLinkSegmentType object found
 	 */
-	public MacroscopicLinkSegmentType findMacroscopicLinkSegmentTypeByExternalId(int externalId) {
+	public MacroscopicLinkSegmentType findMacroscopicLinkSegmentTypeByExternalId(long externalId) {
 		return macroscopicLinkSegmentTypeByExternalIdMap.get(externalId);
 	}
 

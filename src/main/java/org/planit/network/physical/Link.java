@@ -30,11 +30,6 @@ public class Link extends Edge {
     protected long externalId;
 
     /**
-     * Centre-line geometry of the link, including the end node positions
-     */
-    protected LineString centreLineGeometry = null;
-
-    /**
      * generate unique link id
      * 
      * @return linkId
@@ -90,13 +85,5 @@ public class Link extends Edge {
 
     public long getExternalId() {
         return externalId;
-    }
-
-    public LineString getCentreLineGeometry() {
-        return centreLineGeometry;
-    }
-
-    public void setCentreLineGeometry(LineString centreLineGeometry) {
-        this.centreLineGeometry = centreLineGeometry;
     }
 }

@@ -82,7 +82,7 @@ public class BasicMemoryOutputFormatter extends BaseOutputFormatter {
 				int id = (int) linkSegment.getId();
 				double flow = modalNetworkSegmentFlows[id];
 				if (flow > 0.0) {
-					double cost = modalNetworkSegmentCosts[id];
+					double cost = modalNetworkSegmentCosts[id] * getTimeUnitMultiplier();
 					long trafficAssignmentId = outputAdapter.getTrafficAssignmentId();
 					Node startNode = (Node) linkSegment.getUpstreamVertex();
 					Node endNode = (Node) linkSegment.getDownstreamVertex();

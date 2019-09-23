@@ -78,7 +78,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 		int id = (int) linkSegment.getId();
 		double flow = modalNetworkSegmentFlows[id];
 		if (flow > 0.0) {
-			double cost = modalNetworkSegmentCosts[id];
+			double cost = modalNetworkSegmentCosts[id]  * getTimeUnitMultiplier();
 			for (int i = 0; i < outputValues.length; i++) {
 				switch (outputProperties[i]) {
 				case FLOW:
