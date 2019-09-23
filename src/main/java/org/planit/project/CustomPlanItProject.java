@@ -400,5 +400,14 @@ public class CustomPlanItProject {
             executeTrafficAssignment(ta);
         });
     }
+    
+    /**
+     * Returns a set of all traffic assignments registered for this project
+     * 
+     * @return Set of registered traffic assignments
+     */
+    public List<TrafficAssignment> getAllAssignments() {
+    	return new ArrayList<TrafficAssignment>(trafficAssignments.values());
+    }
 
 }

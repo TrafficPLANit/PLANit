@@ -74,7 +74,7 @@ public class PlanitGeoUtils {
 	 * @return distance in metres between the points
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public double getDistanceInMetres(Position startPosition, Position endPosition) throws PlanItException {
+	private double getDistanceInMetres(Position startPosition, Position endPosition) throws PlanItException {
 		// not threadsafe
 		try {
 			geodeticDistanceCalculator.setStartingPosition(startPosition);
@@ -83,6 +83,19 @@ public class PlanitGeoUtils {
 		} catch (Exception ex) {
 			throw new PlanItException(ex);
 		}
+	}
+	
+	/**
+	 * Compute the distance in kilometres between two positions in a geodetic coordinate
+	 * reference system
+	 * 
+	 * @param startPosition location of the start point
+	 * @param endPosition   location of the end point
+	 * @return distance in kilometres between the points
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public double getDistanceInKilometres(Position startPosition, Position endPosition) throws PlanItException {
+		return getDistanceInMetres(startPosition, endPosition)/1000.0;
 	}
 
 	/**
