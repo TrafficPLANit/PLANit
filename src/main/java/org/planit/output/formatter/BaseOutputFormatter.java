@@ -12,7 +12,7 @@ import org.planit.utils.IdGenerator;
  */
 public abstract class BaseOutputFormatter implements OutputFormatter {
 
-	private final OutputTimeUnit DEFAULT_TIME_UNIT = OutputTimeUnit.HOURS;
+	private static final OutputTimeUnit DEFAULT_TIME_UNIT = OutputTimeUnit.HOURS;
 
 	/**
 	 * Unique internal id of the output writer
