@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
@@ -13,8 +14,7 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.data.ModeData;
 import org.planit.data.SimulationData;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
-import org.planit.demand.ODDemand;
-import org.planit.demand.ODDemandIterator;
+import org.planit.demands.ODDemand;
 import org.planit.event.RequestAccesseeEvent;
 import org.planit.event.listener.InteractorListener;
 import org.planit.exceptions.PlanItException;
@@ -30,9 +30,12 @@ import org.planit.network.physical.Node;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.ConnectoidSegment;
+import org.planit.odmatrix.ODMatrixIterator;
 import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentODOutputAdapter;
+import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -48,7 +51,7 @@ import org.planit.zoning.Zone;
  */
 public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		implements LinkVolumeAccessee, InteractorListener {
-	
+
 	/**
 	 * Formatter to be used to output demand values
 	 */
@@ -63,7 +66,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * Epsilon margin when comparing flow rates (veh/h)
 	 */
 	private static final double DEFAULT_FLOW_EPSILON = 0.000001;
-	
+
 	/**
 	 * holds the count of all vertices in the transport network
 	 */
@@ -119,7 +122,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 */
 	private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData,
 			double[] modalNetworkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
-		ODDemandIterator odDemandIter = odDemands.iterator();
+		ODMatrixIterator odDemandIter = odDemands.iterator();
 		TransportNetwork network = getTransportNetwork();
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 
@@ -134,9 +137,10 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 
 			if (((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
 
-				PlanItLogger.fine("Calculating flow from origin zone " + network.zones.getZone(originZoneId).getExternalId()
-						+ " to destination zone " + network.zones.getZone(destinationZoneId).getExternalId()
-						+ " which has demand of " + df5.format(odDemand));
+				PlanItLogger
+						.fine("Calculating flow from origin zone " + network.zones.getZone(originZoneId).getExternalId()
+								+ " to destination zone " + network.zones.getZone(destinationZoneId).getExternalId()
+								+ " which has demand of " + df5.format(odDemand));
 
 				// UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
 				if (previousOriginZoneId != originZoneId) {
@@ -181,6 +185,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 					currentPathStartVertex = currentEdgeSegment.getUpstreamVertex();
 				}
 				dualityGapFunction.increaseConvexityBound(odDemand * shortestPathCost);
+				simulationData.setSkimMatrixValue(mode, originZoneId, destinationZoneId, shortestPathCost);
 				previousOriginZoneId = originZoneId;
 			}
 		}
@@ -193,7 +198,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @throws PlanItException thrown if there is an error
 	 */
 	private void executeTimePeriod(TimePeriod timePeriod) throws PlanItException {
-		PlanItLogger.info("Running Traditional Static Assigment over all modes for Time Period " + timePeriod.getDescription());
+		PlanItLogger.info(
+				"Running Traditional Static Assigment over all modes for Time Period " + timePeriod.getDescription());
 		Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
 		initialiseTimePeriod(modes);
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
@@ -205,6 +211,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 
 			// NETWORK LOADING - PER MODE
 			for (Mode mode : modes) {
+				int numberOfTravelAnalysisZones = demands.get(mode, timePeriod).getNumberOfTravelAnalysisZones();
+				simulationData.resetSkimMatrix(mode, numberOfTravelAnalysisZones);
 				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode, timePeriod,
 						simulationData.getIterationIndex());
 				simulationData.resetModalNetworkSegmentFlows(mode);
@@ -216,10 +224,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			simulationData.incrementIterationIndex();
 			Calendar currentTime = Calendar.getInstance();
 			long timeDiff = currentTime.getTimeInMillis() - startTime.getTimeInMillis();
-			PlanItLogger.info("Iteration " + simulationData.getIterationIndex() + ": Duality gap = " + df6.format(dualityGapFunction.getGap()) + ": Iteration duration " + timeDiff + " milliseconds");
+			PlanItLogger.info("Iteration " + simulationData.getIterationIndex() + ": Duality gap = "
+					+ df6.format(dualityGapFunction.getGap()) + ": Iteration duration " + timeDiff + " milliseconds");
 			startTime = currentTime;
 			simulationData.setConverged(dualityGapFunction.hasConverged(simulationData.getIterationIndex()));
-			outputManager.persistOutputData(timePeriod, modes, OutputType.LINK);
+			outputManager.persistOutputData(timePeriod, modes, getOutputConfiguration());
 		}
 		long timeDiff = startTime.getTimeInMillis() - initialStartTime.getTimeInMillis();
 		PlanItLogger.info("Assignment took " + timeDiff + " milliseconds");
@@ -362,25 +371,28 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			}
 		}
 	}
-
+	
 	/**
-	 * Create Traditional Static Assignment output adapter that allows selective
-	 * access to all data required for different output types
+	 * Open or close output formatters
 	 * 
-	 * @param outputType the output type for the new output adapter
-	 * @return the new output adapter
-	 * @see org.planit.trafficassignment.TrafficAssignment#createOutputAdapter(org.planit.output.OutputType)
+	 * @param action lambda function to open or close a formatter
+	 * @throws PlanItException thrown if there is an error opening or closing the file
 	 */
-	@Override
-	protected OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException {
-		OutputAdapter outputAdapter = null;
-		if (outputType.equals(OutputType.LINK)) {
-			outputAdapter = new TraditionalStaticAssignmentLinkOutputAdapter(this);
-		} else {
-			throw new PlanItException("No Output adapter exists for output type " + outputType.toString() + " on "
-					+ this.getClass().getName());
+	private void openOrClose(BiFunction<OutputFormatter, OutputTypeConfiguration, PlanItException> action)
+			throws PlanItException {
+		List<OutputTypeConfiguration> outputTypeConfigurations = outputManager.getOutputConfiguration()
+				.getRegisteredOutputTypeConfigurations();
+
+		for (OutputTypeConfiguration outputTypeConfiguration : outputTypeConfigurations) {
+			//List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters(outputTypeConfiguration.getOutputType());
+			List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
+			for (OutputFormatter outputFormatter : outputFormatters) {
+				PlanItException e = action.apply(outputFormatter, outputTypeConfiguration);
+				if (e != null) {
+					throw e;
+				}
+			}
 		}
-		return outputAdapter;
 	}
 
 	/**
@@ -395,10 +407,14 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
 		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
 		physicalCost.initialiseCostsBeforeEquilibration(physicalNetwork);
-		List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
-		for (OutputFormatter outputFormatter : outputFormatters) {
-			outputFormatter.open();
-		}
+		openOrClose((outputFormatter, outputTypeConfiguration) -> {
+			try {
+				outputFormatter.open(outputTypeConfiguration, getId());
+			} catch (Exception e) {
+				return new PlanItException(e);
+			}
+			return null;
+		});
 	}
 
 	/**
@@ -407,11 +423,16 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @throws PlanItException thrown if there is an error closing resources
 	 * 
 	 */
+	@Override
 	protected void finalizeAfterEquilibration() throws PlanItException {
-		List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
-		for (OutputFormatter outputFormatter : outputFormatters) {
-			outputFormatter.close();
-		}
+		openOrClose((outputFormatter, outputTypeConfiguration) -> {
+			try {
+				outputFormatter.close(outputTypeConfiguration);
+			} catch (Exception e) {
+				return new PlanItException(e);
+			}
+			return null;
+		});
 	}
 
 	/**
@@ -429,6 +450,31 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	public TraditionalStaticAssignment() {
 		super();
 		simulationData = null;
+	}
+
+	/**
+	 * Create Traditional Static Assignment output adapter that allows selective
+	 * access to all data required for different output types
+	 * 
+	 * @param outputType the output type for the new output adapter
+	 * @return the new output adapter
+	 * @see org.planit.trafficassignment.TrafficAssignment#createOutputAdapter(org.planit.output.OutputType)
+	 */
+	@Override
+	public OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException {
+		OutputAdapter outputAdapter = null;
+		switch (outputType) {
+		case LINK:
+			outputAdapter = new TraditionalStaticAssignmentLinkOutputAdapter(this);
+			break;
+		case OD:
+			outputAdapter = new TraditionalStaticAssignmentODOutputAdapter(this);
+			break;
+		default:
+			throw new PlanItException("No Output adapter exists for output type " + outputType.toString() + " on "
+					+ this.getClass().getName());
+		}
+		return outputAdapter;
 	}
 
 	/**

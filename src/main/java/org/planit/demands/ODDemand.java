@@ -1,5 +1,6 @@
-package org.planit.demand;
+package org.planit.demands;
 
+import org.planit.odmatrix.ODMatrixIterator;
 import org.planit.utils.IdGenerator;
 
 /**
@@ -50,7 +51,7 @@ public abstract class ODDemand {
      * 
      * @return odDemandIterator
      */
-    public abstract ODDemandIterator iterator();
+    public abstract ODMatrixIterator iterator();
 
     // Getters-Setters
 
@@ -62,5 +63,6 @@ public abstract class ODDemand {
     public long getId() {
         return id;
     }
-
+    
+    public abstract int getNumberOfTravelAnalysisZones();
 }

@@ -15,7 +15,8 @@ public enum OutputProperty {
 	LINK_SEGMENT_EXTERNAL_ID("org.planit.output.property.LinkSegmentExternalIdOutputProperty"),
 	MODE_ID("org.planit.output.property.ModeIdOutputProperty"),
 	MODE_EXTERNAL_ID("org.planit.output.property.ModeExternalIdOutputProperty"),
-	SPEED("org.planit.output.property.SpeedOutputProperty"), 
+	MAXIMUM_SPEED("org.planit.output.property.MaximumSpeedOutputProperty"), 
+	CALCULATED_SPEED("org.planit.output.property.CalculatedSpeedOutputProperty"),
 	FLOW("org.planit.output.property.FlowOutputProperty"),
 	LENGTH("org.planit.output.property.LengthOutputProperty"),
 	UPSTREAM_NODE_EXTERNAL_ID("org.planit.output.property.UpstreamNodeExternalIdOutputProperty"),
@@ -25,7 +26,12 @@ public enum OutputProperty {
 	COST("org.planit.output.property.CostOutputProperty"),
 	DOWNSTREAM_NODE_LOCATION("org.planit.output.property.DownstreamNodeLocationOutputProperty"),
 	UPSTREAM_NODE_LOCATION("org.planit.output.property.UpstreamNodeLocationOutputProperty"),
-	ITERATION_INDEX("org.planit.output.property.IterationIndexOutputProperty");
+	ITERATION_INDEX("org.planit.output.property.IterationIndexOutputProperty"),
+	ORIGIN_ZONE_ID("org.planit.output.property.OriginZoneIdOutputProperty"),
+	DESTINATION_ZONE_ID("org.planit.output.property.DestinationZoneIdOutputProperty"),
+	TIME_PERIOD_ID("org.planit.output.property.TimePeriodIdOutputProperty"),
+	RUN_ID("org.planit.output.property.RunIdOutputProperty"),
+	TOTAL_COST_TO_END_NODE("org.planit.output.property.TotalCostToEndNodeOutputProperty");
 
 	private final String value;
 

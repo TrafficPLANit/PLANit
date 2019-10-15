@@ -3,7 +3,7 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 
-public class ModeIdOutputProperty extends BaseOutputProperty {
+public final class ModeIdOutputProperty extends BaseOutputProperty {
 
 	public static final String MODE_ID = "Mode Id";
 	

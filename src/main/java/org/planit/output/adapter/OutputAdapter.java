@@ -1,7 +1,11 @@
 package org.planit.output.adapter;
 
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 import org.planit.data.SimulationData;
 import org.planit.network.transport.TransportNetwork;
+import org.planit.output.property.BaseOutputProperty;
 import org.planit.trafficassignment.TrafficAssignment;
 
 /**
@@ -13,6 +17,11 @@ import org.planit.trafficassignment.TrafficAssignment;
  *
  */
 public abstract class OutputAdapter {
+
+	/**
+	 * Output properties to be included in the CSV output files
+	 */
+	protected SortedSet<BaseOutputProperty> outputProperties;
 
     /**
      * the traffic assignment this output adapter is drawing from
@@ -39,6 +48,7 @@ public abstract class OutputAdapter {
      */
     public OutputAdapter(TrafficAssignment trafficAssignment) {
         this.trafficAssignment = trafficAssignment;
+		outputProperties = new TreeSet<BaseOutputProperty>();
     }
     
     /**
@@ -95,11 +105,66 @@ public abstract class OutputAdapter {
     	return getClassName(trafficAssignment.getVirtualCost());
     }
 
-    /**
+
+	/**
+	 * Add an output property
+	 * 
+	 * @param outputProperty output property to be added
+	 */
+	public void addProperty(BaseOutputProperty outputProperty) {
+		outputProperties.add(outputProperty);
+	}
+
+	/**
+	 * Remove an output property
+	 * 
+	 * @param outputProperty the output property to be removed
+	 * @return true if the property was removed successfully
+	 */
+	public boolean removeProperty(BaseOutputProperty outputProperty) {
+		return outputProperties.remove(outputProperty);
+	}
+
+	/**
+	 * Returns the Set of output properties currently being used
+	 * 
+	 * @return Set of output properties currently being used
+	 */
+	public SortedSet<BaseOutputProperty> getOutputProperties() {
+		return outputProperties;
+	}
+
+	/**
+	 * Removes all output properties 
+	 */
+	public void removeAllProperties() {
+		outputProperties.clear();
+	}
+	
+	/**
+	 * Tests whether a specified output property is being used
+	 * 
+	 * @param baseOutputProperty the output property being tested for
+	 * @return true if the output property is in use, false otherwise
+	 */
+	public boolean containsProperty(BaseOutputProperty outputProperty) {
+		return outputProperties.contains(outputProperty);
+	}
+	
+	/**
+	 * Returns the current iteration index of the simulation
+	 * 
+	 * @return index of the current iteration
+	 */
+	public int getIterationIndex() {
+		return getSimulationData().getIterationIndex();
+	}
+
+   /**
      * Returns whether the current assignment has converged
      * 
      * @return true if the current assignment has converged, false otherwise
      */
     public abstract boolean isConverged();
-
+    
 }

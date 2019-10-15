@@ -8,12 +8,12 @@ import java.util.TreeMap;
 
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
-import org.planit.demand.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.logging.PlanItLogger;
 import org.planit.event.management.EventManager;
 import org.planit.event.management.SimpleEventManager;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.demands.Demands;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;
 import org.planit.supply.networkloading.NetworkLoading;

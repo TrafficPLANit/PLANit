@@ -3,11 +3,11 @@ package org.planit.trafficassignment.builder;
 import javax.annotation.Nonnull;
 
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.demand.Demands;
 import org.planit.event.management.EventHandler;
 import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.demands.Demands;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.time.TimePeriod;
@@ -102,15 +102,13 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
     }
 
     /**
-     * Register the output formatter which dictates in which format our outputs will
-     * be persisted
+     * Register an output formatter
      * 
-     * @param outputFormatter
-     *            OutputFormatter being registered
+     * @param outputFormatter  OutputFormatter being registered
      * @throws PlanItException thrown if there is an error or validation failure during setup of the output formatter
      */
     public void registerOutputFormatter(OutputFormatter outputFormatter) throws PlanItException {
-         parentAssignment.registerOutputFormatter(outputFormatter);
+    	parentAssignment.registerOutputFormatter(outputFormatter);
     }
 
     /**

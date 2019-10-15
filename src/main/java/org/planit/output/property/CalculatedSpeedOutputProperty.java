@@ -3,33 +3,33 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 
-public class LinkSegmentExternalIdOutputProperty extends BaseOutputProperty {
+public final class CalculatedSpeedOutputProperty extends BaseOutputProperty {
 
-	public final static String LINK_SEGMENT_EXTERNAL_ID = "Link Segment External Id";
+	public static final String CALCULATED_SPEED = "Calculated Speed";
 	
 	@Override
 	public String getName() {
-		return LINK_SEGMENT_EXTERNAL_ID;
+		return CALCULATED_SPEED;
 	}
 
 	@Override
 	public Units getUnits() {
-		return Units.NONE;
+		return Units.KM_H;
 	}
 
 	@Override
 	public Type getType() {
-		return Type.INTEGER;
+		return Type.DOUBLE;
 	}
 
 	@Override
 	public OutputProperty getOutputProperty() {
-		return OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
+		return OutputProperty.CALCULATED_SPEED;
 	}
 
 	@Override
 	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.ID_PRIORITY;
+		return OutputPropertyPriority.RESULT_PRIORITY;
 	}
 
 }

@@ -309,5 +309,4 @@ public class MultiKeyPlanItData {
 		outputValues[pos] = outputProperty;
 		putRow(outputValues, keyValues);
 	}
-
 }

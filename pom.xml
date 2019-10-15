@@ -5,8 +5,8 @@
 
 	<groupId>org.planit</groupId>
 	<artifactId>PlanIt</artifactId>
-	<description>Description in PlanIt pom.xml</description>
-	<version>0.0.1</version>
+	<description>PlanIt common code for traffic assignment</description>
+	<version>0.0.2</version>
 	<packaging>jar</packaging>
 
 	<name>PlanIt</name>

@@ -1,9 +1,7 @@
 package org.planit.output.formatter;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -13,11 +11,11 @@ import org.apache.commons.collections.map.MultiKeyMap;
 import org.planit.data.MultiKeyPlanItData;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
 import org.planit.exceptions.PlanItException;
+import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.output.OutputType;
-import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.property.OutputProperty;
@@ -32,23 +30,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	private MultiKeyMap timeModeOutputTypeIterationDataMap;
 
 	/**
-	 * Map of OutputProperty types of keys for each OutputType
-	 */
-	private Map<OutputType, OutputProperty[]> outputKeyProperties;
-
-	/**
-	 * Map of OutputProperty types for values for each OutputType
-	 */
-	private Map<OutputType, OutputProperty[]> outputValueProperties;
-
-	/**
-	 * Map to store whether any data values have been stored for a given output type.
+	 * Map to store whether any data values have been stored for a given output
+	 * type.
 	 * 
 	 * If data have been stored for an output type, it is "locked" so its key and
 	 * output properties cannot be reset
 	 */
 	private Map<OutputType, Boolean> outputTypeValuesLocked;
-	
+
 	/**
 	 * Map to store which output types are already in use as keys
 	 */
@@ -68,7 +57,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @param linkSegment              the current link segment
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void saveRecordForLinkSegment(TimePeriod timePeriod, Mode mode, int iterationIndex, OutputType outputType,
+	private void saveRecordForLinkSegment(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, TimePeriod timePeriod, Mode mode, int iterationIndex, OutputType outputType,
 			MultiKeyPlanItData multiKeyPlanItData, double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows,
 			MacroscopicLinkSegment linkSegment) throws PlanItException {
 		OutputProperty[] outputProperties = outputValueProperties.get(outputType);
@@ -78,7 +67,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 		int id = (int) linkSegment.getId();
 		double flow = modalNetworkSegmentFlows[id];
 		if (flow > 0.0) {
-			double cost = modalNetworkSegmentCosts[id]  * getTimeUnitMultiplier();
+			double cost = modalNetworkSegmentCosts[id] * getTimeUnitMultiplier();
 			for (int i = 0; i < outputValues.length; i++) {
 				switch (outputProperties[i]) {
 				case FLOW:
@@ -88,7 +77,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 					outputValues[i] = Double.valueOf(cost);
 					break;
 				default:
-					outputValues[i] = linkSegment.getPropertyValue(outputProperties[i], mode);
+					outputValues[i] = outputAdapter.getPropertyValue(outputProperties[i], linkSegment, mode, timePeriod);
 				}
 				if (outputValues[i] == null) {
 					outputValues[i] = NOT_SPECIFIED;
@@ -114,7 +103,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @param transportNetwork         the transport network
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void writeResultsForCurrentModeAndTimePeriod(OutputType outputType,
+	private void writeLinkResultsForCurrentModeAndTimePeriod(OutputType outputType,
 			TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, Mode mode, TimePeriod timePeriod,
 			double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows, TransportNetwork transportNetwork)
 			throws PlanItException {
@@ -126,7 +115,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 				Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
 				while (linkSegmentIter.hasNext()) {
 					MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
-					saveRecordForLinkSegment(timePeriod, mode, iterationIndex, outputType, multiKeyPlanItData,
+					saveRecordForLinkSegment(outputAdapter, timePeriod, mode, iterationIndex, outputType, multiKeyPlanItData,
 							modalNetworkSegmentCosts, modalNetworkSegmentFlows, linkSegment);
 				}
 				timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType,
@@ -139,25 +128,70 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	}
 
 	/**
-	 * Save the results for the current time period
+	 * Write Origin-Destination results for the time period to the CSV file
 	 * 
-	 * @param outputType     the current output type
-	 * @param outputAdapter  TraditionalStaticAssignmentLinkOutputAdapter used to
-	 *                       retrieve the results of the assignment
-	 * @param simulationData simulation data for the current iteration
-	 * @param modes          Set of modes of travel
-	 * @param timePeriod     the current time period
+	 * @param outputTypeConfiguration OutputTypeConfiguration for current
+	 *                                persistence
+	 * @param modes                   Set of modes of travel
+	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void writeResultsForCurrentTimePeriod(OutputType outputType,
-			TraditionalStaticAssignmentLinkOutputAdapter outputAdapter,
-			TraditionalStaticAssignmentSimulationData simulationData, Set<Mode> modes, TimePeriod timePeriod)
-			throws PlanItException {
+	@Override
+	protected void writeOdResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
+		PlanItLogger.info("Memory Output for OutputType OD has not been implemented yet.");
+	}
+	
+	/**
+	 * Write Simulation results for the current time period to the CSV file
+	 * 
+	 * @param outputTypeConfiguration OutputTypeConfiguration for current
+	 *                                persistence
+	 * @param modes                   Set of modes of travel
+	 * @param timePeriod              current time period
+	 * @throws PlanItException thrown if there is an error
+	 */
+	@Override
+	protected void writeSimulationResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
+		PlanItLogger.info("Memory Output for OutputType SIMULATION has not been implemented yet.");
+	}
+
+	/**
+	 * Write General results for the current time period to the CSV file
+	 * 
+	 * @param outputTypeConfiguration OutputTypeConfiguration for current
+	 *                                persistence
+	 * @param modes                   Set of current modes of travel
+	 * @param timePeriod              current time period
+	 * @throws PlanItException thrown if there is an error
+	 */
+	@Override
+	protected void writeGeneralResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
+		PlanItLogger.info("Memory Output for OutputType GENERAL has not been implemented yet.");
+	}
+
+	/**
+	 * Write link results for the current time period to the CSV file
+	 * 
+	 * @param outputTypeConfiguration OutputTypeConfiguration for current
+	 *                                persistence
+	 * @param modes                   Set of modes of travel
+	 * @param timePeriod              current time period
+	 * @throws PlanItException thrown if there is an error
+	 */
+	@Override
+	protected void writeLinkResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
+		TraditionalStaticAssignmentLinkOutputAdapter outputAdapter = (TraditionalStaticAssignmentLinkOutputAdapter) outputTypeConfiguration.getOutputAdapter();
+		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) outputAdapter.getSimulationData();
 		TransportNetwork transportNetwork = outputAdapter.getTransportNetwork();
+		OutputType outputType = outputTypeConfiguration.getOutputType();
 		for (Mode mode : modes) {
 			double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);
 			double[] modalNetworkSegmentFlows = simulationData.getModalNetworkSegmentFlows(mode);
-			writeResultsForCurrentModeAndTimePeriod(outputType, outputAdapter, mode, timePeriod,
+			writeLinkResultsForCurrentModeAndTimePeriod(outputType, outputAdapter, mode, timePeriod,
 					modalNetworkSegmentCosts, modalNetworkSegmentFlows, transportNetwork);
 		}
 		// lock configuration properties for this output type
@@ -166,66 +200,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	}
 
 	/**
-	 * Tests whether the current output type is appropriate for the current key
-	 * output types
-	 * 
-	 * @param outputType the current output type
-	 * @return true if the current output type is valid, false otherwise
-	 */
-	private boolean isOutputKeysValid(OutputType outputType) {
-		
-		switch (outputType) {
-		case GENERAL:
-			return true;
-		case LINK:
-
-			List<OutputProperty> outputKeyPropertyList = new ArrayList<OutputProperty>();
-			OutputProperty [] outputKeyPropertiesArray = outputKeyProperties.get(outputType);
-			for (int i=0; i<outputKeyPropertiesArray.length; i++) {
-				OutputProperty outputKeyProperty = outputKeyPropertiesArray[i];
-				if (outputKeyProperty.equals(OutputProperty.LINK_SEGMENT_ID) ||
-					 outputKeyProperty.equals(OutputProperty.LINK_SEGMENT_EXTERNAL_ID) ||
-					 outputKeyProperty.equals(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID) || 
-					 outputKeyProperty.equals(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID)) {
-					outputKeyPropertyList.add(outputKeyProperty);
-				}
-			}
-			if (outputKeyPropertyList.contains(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID)) {
-				outputKeyPropertiesArray = new OutputProperty[2];
-				outputKeyPropertiesArray[0] = OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID;
-				outputKeyPropertiesArray[1] = OutputProperty.UPSTREAM_NODE_EXTERNAL_ID;
-				outputKeyProperties.put(outputType, outputKeyPropertiesArray);
-				return true;
-			}
-
-			if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_ID)) {
-				outputKeyPropertiesArray = new OutputProperty[1];
-				outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_ID;
-				outputKeyProperties.put(outputType, outputKeyPropertiesArray);
-				return true;
-			}
-
-			if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_EXTERNAL_ID)) {
-				outputKeyPropertiesArray = new OutputProperty[1];
-				outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
-				outputKeyProperties.put(outputType, outputKeyPropertiesArray);
-				return true;
-			}
-			return false;
-		case SIMULATION:
-			return true;
-		case OD:
-			return true;
-		}
-		return true;
-	}
-
-	/**
 	 * Constructor
 	 */
 	public MemoryOutputFormatter() {
-		outputKeyProperties = new HashMap<OutputType, OutputProperty[]>();
-		outputValueProperties = new HashMap<OutputType, OutputProperty[]>();
+		super();
 		outputTypeValuesLocked = new HashMap<OutputType, Boolean>();
 		outputTypeKeysLocked = new HashMap<OutputType, Boolean>();
 		for (OutputType outputType : OutputType.values()) {
@@ -233,41 +211,6 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			outputTypeKeysLocked.put(outputType, false);
 		}
 
-	}
-
-	/**
-	 * Save the data for the current iteration
-	 * 
-	 * @param timePeriod              the current time period
-	 * @param modes                   the Set of modes
-	 * @param outputTypeConfiguration the current output type configuration
-	 */
-	@Override
-	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration)
-			throws PlanItException {
-		OutputType outputType = outputTypeConfiguration.getOutputType();
-		if (!outputTypeValuesLocked.get(outputType)) {
-			OutputProperty[] outputValueProperties = outputTypeConfiguration.getOutputValueProperties();
-			setOutputValueProperties(outputType, outputValueProperties);
-		}
-		if (!outputTypeKeysLocked.get(outputType)) {
-			OutputProperty[] outputKeyProperties = outputTypeConfiguration.getOutputKeyProperties();
-			setOutputKeyProperties(outputType, outputKeyProperties);
-		}
-		if (!isOutputKeysValid(outputType)) {
-			throw new PlanItException("Invalid output keys defined for output type.");
-		}
-		OutputAdapter outputAdapter = outputTypeConfiguration.getOutputAdapter();
-		if (outputAdapter instanceof TraditionalStaticAssignmentLinkOutputAdapter) {
-			TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter = (TraditionalStaticAssignmentLinkOutputAdapter) outputAdapter;
-			TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = (TraditionalStaticAssignmentSimulationData) outputAdapter
-					.getSimulationData();
-			writeResultsForCurrentTimePeriod(outputType, traditionalStaticAssignmentLinkOutputAdapter,
-					traditionalStaticAssignmentSimulationData, modes, timePeriod);
-		} else {
-			throw new PlanItException("OutputAdapter is of class " + outputAdapter.getClass().getCanonicalName()
-					+ " which has not been defined yet");
-		}
 	}
 
 	/**
@@ -288,38 +231,23 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	/**
 	 * Opens all resources used in the formatter
 	 * 
+	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to  be saved
+	 * @param runId the id of the traffic assignment to be saved
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	public void open() throws PlanItException {
+	public void open(OutputTypeConfiguration outputTypeConfiguration, long runId) throws PlanItException {
 		timeModeOutputTypeIterationDataMap = MultiKeyMap.decorate(new HashedMap());
 	}
 
 	/**
 	 * Close all resources used in this formatter
 	 * 
+	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to  be saved
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	public void close() throws PlanItException {
-		// TODO Auto-generated method stub
-	}
-
-	/**
-	 * Set the output properties of the key values for the current output type
-	 * 
-	 * @param outputType          the current output type
-	 * @param outputKeyProperties output properties of the keys
-	 * @throws PlanItException throw if the key properties for this output type are
-	 *                         already in use
-	 */
-	public void setOutputKeyProperties(OutputType outputType, OutputProperty... outputKeyProperties)
-			throws PlanItException {
-		if (outputTypeKeysLocked.get(outputType)) {
-			throw new PlanItException("A call to setOutputKeyProperties() was made after the outputType "
-					+ outputType.value() + " was locked");
-		}
-		this.outputKeyProperties.put(outputType, outputKeyProperties);
+	public void close(OutputTypeConfiguration outputTypeConfiguration) throws PlanItException {
 	}
 
 	/**
@@ -331,24 +259,6 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 */
 	public OutputProperty[] getOutputKeyProperties(OutputType outputType) {
 		return outputKeyProperties.get(outputType);
-	}
-
-	/**
-	 * Sets the output properties of the data values for the current output type
-	 * 
-	 * @param outputType            the current output type
-	 * @param outputValueProperties array containing the output property types of
-	 *                              the data values
-	 * @throws PlanItException throw if the key properties for this output type are
-	 *                         already in use
-	 */
-	public void setOutputValueProperties(OutputType outputType, OutputProperty... outputValueProperties)
-			throws PlanItException {
-		if (outputTypeValuesLocked.get(outputType)) {
-			throw new PlanItException("A call to setOutputKeyProperties() was made after the outputType "
-					+ outputType.value() + " was locked");
-		}
-		this.outputValueProperties.put(outputType, outputValueProperties);
 	}
 
 	/**
@@ -378,5 +288,18 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 		}
 		return lastIteration;
 	}
-	
+
+	/**
+	 * Flag to indicate whether an implementation can handle multiple iterations
+	 * 
+	 * If this returns false, acts as though OutputConfiguration.setPersistOnlyFinalIteration() is set to true
+	 * 
+	 * @return flag to indicate whether the OutputFormatter can handle multiple iterations
+	 */
+	@Override
+	public boolean canHandleMultipleIterations() {
+		// TODO Auto-generated method stub
+		return true;
+	}
+
 }

@@ -3,33 +3,33 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 
-public class LinkSegmentExternalIdOutputProperty extends BaseOutputProperty {
+public final class TotalCostToEndNodeOutputProperty extends BaseOutputProperty {
 
-	public final static String LINK_SEGMENT_EXTERNAL_ID = "Link Segment External Id";
-	
+	public static final String TOTAL_COST_TO_END_NODE = "Cost to End Node";
+
 	@Override
 	public String getName() {
-		return LINK_SEGMENT_EXTERNAL_ID;
+		return TOTAL_COST_TO_END_NODE;
 	}
 
 	@Override
 	public Units getUnits() {
-		return Units.NONE;
+		return Units.H;
 	}
 
 	@Override
 	public Type getType() {
-		return Type.INTEGER;
+		return Type.DOUBLE;
 	}
 
 	@Override
 	public OutputProperty getOutputProperty() {
-		return OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
+		return OutputProperty.TOTAL_COST_TO_END_NODE;
 	}
 
 	@Override
 	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.ID_PRIORITY;
+		return OutputPropertyPriority.RESULT_PRIORITY;
 	}
 
 }

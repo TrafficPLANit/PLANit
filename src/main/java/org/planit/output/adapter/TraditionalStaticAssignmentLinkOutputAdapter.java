@@ -12,7 +12,8 @@ import org.planit.network.physical.Node;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.output.formatter.OutputFormatter;
-import org.planit.output.property.BaseOutputProperty;
+import org.planit.output.property.OutputProperty;
+import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TraditionalStaticAssignment;
 import org.planit.userclass.Mode;
 
@@ -24,7 +25,7 @@ import org.planit.userclass.Mode;
  * @author markr
  *
  */
-public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdapter {
+public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter {
 
 	/**
 	 * Constructor
@@ -143,7 +144,7 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 	 * @param mode the current mode
 	 * @return the link segment speed
 	 */
-	private Object getSpeedPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
+	private Object getCalculatedSpeedPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
 		int id = (int) linkSegment.getId();
 		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
 		double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);
@@ -164,6 +165,10 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
 		double[] modalNetworkSegmentFlows = simulationData.getModalNetworkSegmentFlows(mode);
 		return modalNetworkSegmentFlows[id];
+	}
+	
+	private Object getMaximumSpeedPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
+		return linkSegment.getMaximumSpeed(mode.getExternalId());
 	}
 
 	/**
@@ -253,16 +258,6 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 	}
 	
 	/**
-	 * Returns the current iteration index of the simulation
-	 * 
-	 * @return index of the current iteration
-	 */
-	public int getIterationIndex() {
-		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
-		return simulationData.getIterationIndex();
-	}
-
-	/**
 	 * Returns the output object corresponding to the current output property for a specified link segment and mode
 	 * 
 	 * @param outputProperty current output property
@@ -270,43 +265,52 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 	 * @param mode specified mode
 	 * @return Object containing the output which is to be sent to the output 
 	 */
-	public Object getPropertyValue(BaseOutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode) {
-		switch (outputProperty.getOutputProperty()) {
+	public Object getPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode, TimePeriod timePeriod) {
+		MacroscopicLinkSegment macroscopicLinkSegment  = (MacroscopicLinkSegment) linkSegment;
+		switch (outputProperty) {
 		case DENSITY:
-			return getDensityPropertyValue(linkSegment);
+			return getDensityPropertyValue(macroscopicLinkSegment);
 		case LINK_SEGMENT_ID:
-			return getLinkSegmentIdPropertyValue(linkSegment);
+			return getLinkSegmentIdPropertyValue(macroscopicLinkSegment);
 		case LINK_SEGMENT_EXTERNAL_ID:
-			return getLinkSegmentExternalIdPropertyValue(linkSegment);
+			return getLinkSegmentExternalIdPropertyValue(macroscopicLinkSegment);
 		case MODE_ID:
 			return getModeIdPropertyValue(mode);
 		case MODE_EXTERNAL_ID:
 			return getModeExternalIdPropertyValue(mode);
-		case SPEED:
-			return getSpeedPropertyValue(linkSegment, mode);
+		case CALCULATED_SPEED:
+			return getCalculatedSpeedPropertyValue(macroscopicLinkSegment, mode);
+		case MAXIMUM_SPEED:
+			return getMaximumSpeedPropertyValue(macroscopicLinkSegment, mode);
 		case FLOW:
-			return getFlowPropertyValue(linkSegment, mode);
+			return getFlowPropertyValue(macroscopicLinkSegment, mode);
 		case LENGTH:
-			return getLengthPropertyValue(linkSegment);
+			return getLengthPropertyValue(macroscopicLinkSegment);
 		case UPSTREAM_NODE_EXTERNAL_ID:
-			return getUpstreamNodeIdPropertyValue(linkSegment);
+			return getUpstreamNodeIdPropertyValue(macroscopicLinkSegment);
 		case DOWNSTREAM_NODE_EXTERNAL_ID:
-			return getDownstreamNodeIdPropertyValue(linkSegment);
+			return getDownstreamNodeIdPropertyValue(macroscopicLinkSegment);
 		case COST:
-			return getCostPropertyValue(linkSegment, mode);
+			return getCostPropertyValue(macroscopicLinkSegment, mode);
 		case CAPACITY_PER_LANE:
-			return getCapacityPerLanePropertyValue(linkSegment);
+			return getCapacityPerLanePropertyValue(macroscopicLinkSegment);
 		case DOWNSTREAM_NODE_LOCATION:
-			return getDownstreamNodeLocationPropertyValue(linkSegment);
+			return getDownstreamNodeLocationPropertyValue(macroscopicLinkSegment);
 		case UPSTREAM_NODE_LOCATION:
-			return getUpstreamNodeLocationPropertyValue(linkSegment);
+			return getUpstreamNodeLocationPropertyValue(macroscopicLinkSegment);
 		case NUMBER_OF_LANES:
-			return getNumberOfLanesPropertyValue(linkSegment);
+			return getNumberOfLanesPropertyValue(macroscopicLinkSegment);
+		case RUN_ID:
+			return getTrafficAssignmentId();
+		case ITERATION_INDEX: 
+			return getSimulationData().getIterationIndex();
+		case TIME_PERIOD_ID:
+			return timePeriod.getId();
 		default:
 			return null;
 		}
 	}
-
+	
 	public List<Object> getDensityForAllLinkSegments(TransportNetwork transportNetwork) {
 		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getDensityPropertyValue(linkSegment);});
 	}
@@ -327,8 +331,12 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends LinkOutputAdap
 		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getModeIdPropertyValue(mode);});
 	}
 
-	public List<Object> getSpeedForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getSpeedPropertyValue(linkSegment, mode);});
+	public List<Object> getCalculatedSpeedForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getCalculatedSpeedPropertyValue(linkSegment, mode);});
+	}
+	
+	public List<Object> getMaximumSpeedForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
+		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getMaximumSpeedPropertyValue(linkSegment, mode);});
 	}
 	
 	public List<Object> getFlowForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {

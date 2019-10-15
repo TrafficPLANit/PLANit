@@ -1,5 +1,8 @@
 package org.planit.output.configuration;
 
+import java.util.Map;
+
+import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.property.OutputProperty;
 
@@ -17,7 +20,7 @@ public class DummyOutputTypeConfiguration extends OutputTypeConfiguration {
      * @param outputType the output type to be used with this configuration
      */
 	public DummyOutputTypeConfiguration(OutputAdapter outputAdapter) {
-     	super(outputAdapter);
+     	super(outputAdapter, OutputType.LINK);
      }
 
 	@Override
@@ -32,4 +35,14 @@ public class DummyOutputTypeConfiguration extends OutputTypeConfiguration {
 		return null;
 	}
 
+	@Override
+	public OutputAdapter getOutputAdapter() {
+		return outputAdapter;
+	}
+
+	@Override
+	public int findIdentificationMethod(Map<OutputType, OutputProperty[]> outputKeyProperties) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
 }

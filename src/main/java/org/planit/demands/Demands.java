@@ -1,11 +1,11 @@
-package org.planit.demand;
+package org.planit.demands;
 
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.userclass.Mode;
-import org.planit.time.TimePeriod;
 import org.planit.utils.IdGenerator;
 
 /**

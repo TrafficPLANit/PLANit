@@ -42,15 +42,27 @@ public interface OutputFormatter {
 	/**
 	 * Open resources to store results
 	 * 
+	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to  be saved
+	 * @param runId the id number of the run
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void open() throws PlanItException;
+	public void open(OutputTypeConfiguration outputTypeConfiguration, long runId) throws PlanItException;
 
 	/**
 	 * Close resources to store results
 	 * 
+	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to  be saved
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void close() throws PlanItException;
-
+	public void close(OutputTypeConfiguration outputTypeConfiguration) throws PlanItException;
+	
+	/**
+	 * Flag to indicate whether an implementation can handle multiple iterations
+	 * 
+	 * If this returns false, acts as though OutputConfiguration.setPersistOnlyFinalIteration() is set to true
+	 * 
+	 * @return flag to indicate whether the OutputFormatter can handle multiple iterations
+	 */
+	public boolean canHandleMultipleIterations();
+	
 }

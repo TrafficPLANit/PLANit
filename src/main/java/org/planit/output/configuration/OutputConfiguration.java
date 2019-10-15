@@ -7,8 +7,8 @@ import java.util.TreeMap;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.output.OutputType;
-import org.planit.output.adapter.LinkOutputAdapter;
 import org.planit.output.adapter.OutputAdapter;
+import org.planit.trafficassignment.TrafficAssignment;
 
 /**
  * Class containing the general output configuration and the type specific
@@ -44,37 +44,28 @@ public class OutputConfiguration {
     /**
      * Factory method to create an output configuration of a given type
      * 
-     * @param outputType
-     *            the output type to register the configuration for
-     * @param outputAdapter
-     *            the adapter that allows access to the data to persist for the
-     *            given output type
+     * @param outputType  the output type to register the configuration for
      * @return outputConfiguration that has been created
      * @throws PlanItException thrown if there is an error
      */
-    public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType,
-            OutputAdapter outputAdapter) throws PlanItException {
+    public void createAndRegisterOutputTypeConfiguration(OutputType outputType, TrafficAssignment trafficAssignment) throws PlanItException {
+    	OutputAdapter outputAdapter = trafficAssignment.createOutputAdapter(outputType);
         OutputTypeConfiguration outputTypeConfiguration = null;
-        if (outputType.equals(OutputType.LINK)) {
-        	LinkOutputAdapter linkOutputAdapter = (LinkOutputAdapter) outputAdapter;
-        	outputTypeConfiguration = new LinkOutputTypeConfiguration(linkOutputAdapter);
-        } else {
-            // no other dedicated output type configurations yet exist
-            // TODO: create relevant type specific loggers with relevant properties to
-            // configure
-        	outputTypeConfiguration = new DummyOutputTypeConfiguration(outputAdapter);
-        }
+        switch (outputType) {
+        case LINK: outputTypeConfiguration = new LinkOutputTypeConfiguration(outputAdapter);
+        break;
+        case OD: outputTypeConfiguration = new OriginDestinationOutputTypeConfiguration(outputAdapter);
+        break;
+        default: outputTypeConfiguration = new DummyOutputTypeConfiguration(outputAdapter);
+       }
         outputTypeConfigurations.put(outputType, outputTypeConfiguration);
-        return outputTypeConfiguration;
     }
 
     /**
      * Verify if output type configuration for the given output type exists
      * 
-     * @param outputType
-     *            specified output type
-     * @return outputTypeConfiguration exists true if an output type configuration
-     *         exists for the specified output type, false otherwise
+     * @param outputType the specified output type
+     * @return true if an output type configuration exists for the specified output type, false otherwise
      */
     public boolean containsOutputTypeConfiguration(OutputType outputType) {
         return outputTypeConfigurations.containsKey(outputType);
@@ -95,7 +86,7 @@ public class OutputConfiguration {
         }
         return outputTypeConfigurations.get(outputType);
     }
-
+    
     // getters - setters
 
     public void setPersistOnlyFinalIteration(boolean persistOnlyFinalIteration) {
@@ -108,6 +99,11 @@ public class OutputConfiguration {
     
     public List<OutputTypeConfiguration> getRegisteredOutputTypeConfigurations() {
     	return new ArrayList<OutputTypeConfiguration>(outputTypeConfigurations.values());
+    	
+    }
+    
+    public List<OutputType> getRegisteredOutputTypes() {
+    	return new ArrayList<OutputType>(outputTypeConfigurations.keySet());
     }
     
 }

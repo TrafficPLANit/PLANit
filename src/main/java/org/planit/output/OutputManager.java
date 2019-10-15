@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
+import org.planit.logging.PlanItLogger;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
+import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.userclass.Mode;
 
 /**
@@ -29,54 +31,67 @@ public class OutputManager {
 	/**
 	 * registered output formatters
 	 */
+	//protected Map<OutputType, List<OutputFormatter>> outputFormatters;
 	protected List<OutputFormatter> outputFormatters;
 
 	/**
 	 * Base constructor of Output writer
 	 */
 	public OutputManager() {
+		// outputFormatters = new ArrayList<OutputFormatter>();
+		//outputFormatters = new HashMap<OutputType, List<OutputFormatter>>();
 		outputFormatters = new ArrayList<OutputFormatter>();
+		//for (OutputType outputType : OutputType.values()) {
+			//outputFormatters.put(outputType, new ArrayList<OutputFormatter>());
+		//}
 		outputConfiguration = new OutputConfiguration();
 	}
-	
+
 	public void setOutputConfiguration(OutputConfiguration outputConfiguration) {
 		this.outputConfiguration = outputConfiguration;
 	}
 
 	/**
-	 * Persist the output data for a given output type pending the configuration
-	 * choices made
+	 * Persist the output data for all registered output types
 	 * 
-	 * @param timePeriod     the current time period whose results are being saved
-	 * @param modes          Set of modes for the current assignment
-	 * @param outputType     the current output type
+	 * @param timePeriod the current time period whose results are being saved
+	 * @param modes      Set of modes for the current assignment
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void persistOutputData(TimePeriod timePeriod, Set<Mode> modes, OutputType outputType) throws PlanItException {
-		if (outputConfiguration.containsOutputTypeConfiguration(outputType)) {
+	public void persistOutputData(TimePeriod timePeriod, Set<Mode> modes, OutputConfiguration outputConfiguration)
+			throws PlanItException {
+		for (OutputType outputType : outputConfiguration.getRegisteredOutputTypes()) {
 			OutputTypeConfiguration outputTypeConfiguration = outputConfiguration
 					.getOutputTypeConfiguration(outputType);
 			OutputAdapter outputAdapter = outputTypeConfiguration.getOutputAdapter();
-			if ((outputAdapter.isConverged()) || (!outputConfiguration.isPersistOnlyFinalIteration())) {
+			if (outputAdapter.isConverged()) {
 				for (OutputFormatter outputFormatter : outputFormatters) {
 					outputFormatter.persist(timePeriod, modes, outputTypeConfiguration);
 				}
-			}
+			} else if (!outputConfiguration.isPersistOnlyFinalIteration()) {
+				for (OutputFormatter outputFormatter : outputFormatters) {
+					if (!outputFormatter.canHandleMultipleIterations()) {
+						PlanItLogger.warning(outputFormatter.getClass().getName() + " can only persist the final iteration.");
+					} else {
+						outputFormatter.persist(timePeriod, modes, outputTypeConfiguration);
+					}
+				}
+			}			
 		}
 	}
 
 	/**
 	 * Factory method to create an output configuration of a given type
 	 * 
-	 * @param outputType    the output type to register the configuration for
-	 * @param outputAdapter the adapter that allows access to the data to persist
-	 *                      for the given output type
-	 * @return outputConfiguration that has been created
-	 * @throws PlanItException thrown if there is an error creating the output type configuration
+	 * @param outputType        the output type to register the configuration for
+	 * @param trafficAssignment the traffic assignment for which output is being
+	 *                          configured
+	 * @throws PlanItException thrown if there is an error creating the output type
+	 *                         configuration
 	 */
-	public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType,
-			OutputAdapter outputAdapter) throws PlanItException {
-		return outputConfiguration.createAndRegisterOutputTypeConfiguration(outputType, outputAdapter);
+	public void createAndRegisterOutputTypeConfiguration(OutputType outputType, TrafficAssignment trafficAssignment)
+			throws PlanItException {
+		outputConfiguration.createAndRegisterOutputTypeConfiguration(outputType, trafficAssignment);
 	}
 
 	// getters - setters
@@ -103,7 +118,7 @@ public class OutputManager {
 	}
 
 	/**
-	 * Returns the list of currently registered OutputFormatter objects
+	 * Returns the list of currently registered OutputFormatter objects for a specified output type
 	 * 
 	 * @return List of registered OutputFormatter objects
 	 */
@@ -120,5 +135,5 @@ public class OutputManager {
 	public boolean isOutputTypeActive(OutputType outputType) {
 		return outputConfiguration.containsOutputTypeConfiguration(outputType);
 	}
-	
+
 }

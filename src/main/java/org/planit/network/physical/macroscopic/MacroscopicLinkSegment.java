@@ -92,27 +92,6 @@ public class MacroscopicLinkSegment extends LinkSegment {
 	}
 
 	/**
-	 * Return the value of a specified output property
-	 * 
-	 * @param outputValueProperty the output property type of the specified output
-	 * @param mode the current mode 
-	 * @return the value of the specified output property
-	 */
-	public Object getPropertyValue(OutputProperty outputValueProperty, Mode mode) {
-		switch (outputValueProperty) {
-		case LENGTH:
-			return  Double.valueOf(getParentLink().getLength());
-		case SPEED:
-			return Double.valueOf(getMaximumSpeed(mode.getExternalId()));
-		case CAPACITY_PER_LANE:
-			return Double.valueOf(getLinkSegmentType().getCapacityPerLane());
-		case NUMBER_OF_LANES:
-			return Integer.valueOf(getNumberOfLanes());
-		}
-		return null;
-	}
-	
-	/**
 	 * Return the value of the output property key for a specified key type
 	 * 
 	 * @param outputKeyProperty the output property type of the required key

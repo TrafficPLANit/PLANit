@@ -6,6 +6,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.planit.network.physical.LinkSegment;
+import org.planit.odmatrix.skim.ODSkimMatrix;
 import org.planit.userclass.Mode;
 
 /**
@@ -36,6 +37,8 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
      */
     private Map<Mode, double[]> modalNetworkSegmentCostsMap;
     
+    private Map<Mode, ODSkimMatrix> modalSkimMatrixMap;
+    
     /**
      * Constructor
      */
@@ -43,7 +46,8 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
         modalNetworkSegmentFlows = new HashMap<Mode, double[]>();
         modeSpecificData = new TreeMap<Mode, ModeData>();
         modalNetworkSegmentCostsMap = new HashMap<Mode, double[]>();
-    }
+        modalSkimMatrixMap = new HashMap<Mode, ODSkimMatrix>();
+   }
 
     /**
      * Return an empty segment array
@@ -119,5 +123,18 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     public double[] getModalNetworkSegmentCosts(Mode mode) {
         return modalNetworkSegmentCostsMap.get(mode);
     }
+    
+    public void setSkimMatrixValue(Mode mode, int originZone, int destinationZone, double tripCost) {
+    	modalSkimMatrixMap.get(mode).setValue(originZone, destinationZone, tripCost);
+    }
 
+    public void resetSkimMatrix(Mode mode, int numberOfTravelAnalysisZones) {
+        ODSkimMatrix odSkimMatrix = new ODSkimMatrix(numberOfTravelAnalysisZones);
+        modalSkimMatrixMap.put(mode, odSkimMatrix);
+    }
+    
+    public ODSkimMatrix getODSkimMatrix(Mode mode) {
+    	return modalSkimMatrixMap.get(mode);
+    }
 }
+

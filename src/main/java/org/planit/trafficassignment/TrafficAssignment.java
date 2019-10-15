@@ -10,7 +10,6 @@ import org.planit.cost.Cost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.data.SimulationData;
 import org.planit.cost.physical.PhysicalCost;
-import org.planit.demand.Demands;
 import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
@@ -20,6 +19,7 @@ import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.ConnectoidSegment;
+import org.planit.demands.Demands;
 import org.planit.output.OutputManager;
 import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
@@ -123,7 +123,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * @return output adapter instance for the specified output type
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected abstract OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException;
+	public abstract OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException;
 
 	/**
 	 * Allow assignment classes to close data resources after equilibration
@@ -225,13 +225,12 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	// Public methods
 
 	/**
-	 * Initialise the traffic assignment defaults: (i) activate link output
+	 * Initialize the traffic assignment defaults: (i) activate link output
 	 * 
 	 * @throws PlanItException thrown when there is an error
 	 */
 	public void initialiseDefaults() throws PlanItException {
 		// general defaults
-		activateOutput(OutputType.LINK);
 		this.gapFunction = createGapFunction();
 	}
 
@@ -245,8 +244,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public void activateOutput(OutputType outputType) throws PlanItException {
 		if (!outputManager.isOutputTypeActive(outputType)) {
 			PlanItLogger.info("Registering Output Type " + outputType);
-			OutputAdapter outputAdapter = createOutputAdapter(outputType);
-			outputManager.createAndRegisterOutputTypeConfiguration(outputType, outputAdapter);
+			outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
 		}
 	}
 
