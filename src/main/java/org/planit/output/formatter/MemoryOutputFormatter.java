@@ -46,24 +46,28 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	/**
 	 * Save the data for the current time period, mode, iteration and output type
 	 * 
-     * @param traditionalStaticAssignmentLinkOutputAdapter link output adapter
-	 * @param timePeriod               the specified time period
-	 * @param mode                     the specified mode
-	 * @param iterationIndex           the current iteration index
-	 * @param outputType               the current output type
-	 * @param multiKeyPlanItData       the data map
-	 * @param modalNetworkSegmentCosts calculated segment costs for the physical
-	 *                                 network
-	 * @param modalNetworkSegmentFlows calculated flows for the network
-	 * @param linkSegment              the current link segment
+	 * @param traditionalStaticAssignmentLinkOutputAdapter link output adapter
+	 * @param timePeriod                                   the specified time period
+	 * @param mode                                         the specified mode
+	 * @param iterationIndex                               the current iteration
+	 *                                                     index
+	 * @param outputType                                   the current output type
+	 * @param multiKeyPlanItData                           the data map
+	 * @param modalNetworkSegmentCosts                     calculated segment costs
+	 *                                                     for the physical network
+	 * @param modalNetworkSegmentFlows                     calculated flows for the
+	 *                                                     network
+	 * @param linkSegment                                  the current link segment
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void saveRecordForLinkSegment(TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter, TimePeriod timePeriod, Mode mode, int iterationIndex, OutputType outputType,
-			MultiKeyPlanItData multiKeyPlanItData, double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows,
-			MacroscopicLinkSegment linkSegment) throws PlanItException {
-		OutputProperty[] outputProperties = outputValueProperties.get(outputType);
+	private void saveRecordForLinkSegment(
+			TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter,
+			TimePeriod timePeriod, Mode mode, int iterationIndex, MultiKeyPlanItData multiKeyPlanItData,
+			double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows, MacroscopicLinkSegment linkSegment)
+			throws PlanItException {
+		OutputProperty[] outputProperties = outputValueProperties.get(OutputType.LINK);
 		Object[] outputValues = new Object[outputProperties.length];
-		OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
+		OutputProperty[] outputKeys = outputKeyProperties.get(OutputType.LINK);
 		Object[] keyValues = new Object[outputKeys.length];
 		int id = (int) linkSegment.getId();
 		double flow = modalNetworkSegmentFlows[id];
@@ -78,7 +82,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 					outputValues[i] = Double.valueOf(cost);
 					break;
 				default:
-					outputValues[i] = traditionalStaticAssignmentLinkOutputAdapter.getLinkPropertyValue(outputProperties[i], linkSegment, mode, timePeriod);
+					outputValues[i] = traditionalStaticAssignmentLinkOutputAdapter
+							.getLinkPropertyValue(outputProperties[i], linkSegment, mode, timePeriod);
 				}
 				if (outputValues[i] == null) {
 					outputValues[i] = NOT_SPECIFIED;
@@ -92,9 +97,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	}
 
 	/**
-	 * Save results for the current mode and time period
+	 * Save link results for the current mode and time period
 	 * 
-	 * @param outputType               the current output type
 	 * @param outputAdapter            TraditionalStaticAssignmentLinkOutputAdapter
 	 * @param mode                     current mode of travel
 	 * @param timePeriod               current time period
@@ -104,26 +108,22 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @param transportNetwork         the transport network
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void writeLinkResultsForCurrentModeAndTimePeriod(OutputType outputType,
-			TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, Mode mode, TimePeriod timePeriod,
-			double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows, TransportNetwork transportNetwork)
-			throws PlanItException {
-		MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeyProperties.get(outputType),
-				outputValueProperties.get(outputType));
+	private void writeLinkResultsForCurrentModeAndTimePeriod(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter,
+			Mode mode, TimePeriod timePeriod, double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows,
+			TransportNetwork transportNetwork) throws PlanItException {
+		MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeyProperties.get(OutputType.LINK),
+				outputValueProperties.get(OutputType.LINK));
 		int iterationIndex = outputAdapter.getIterationIndex();
 		try {
-			if (outputType.equals(OutputType.LINK)) {
-				Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
-				while (linkSegmentIter.hasNext()) {
-					MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
-					saveRecordForLinkSegment(outputAdapter, timePeriod, mode, iterationIndex, outputType, multiKeyPlanItData,
-							modalNetworkSegmentCosts, modalNetworkSegmentFlows, linkSegment);
-				}
-				timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType,
-						multiKeyPlanItData);
+			Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
+			while (linkSegmentIter.hasNext()) {
+				MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
+				saveRecordForLinkSegment(outputAdapter, timePeriod, mode, iterationIndex, multiKeyPlanItData,
+						modalNetworkSegmentCosts, modalNetworkSegmentFlows, linkSegment);
 			}
+			timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, OutputType.LINK,
+					multiKeyPlanItData);
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new PlanItException(e);
 		}
 	}
@@ -142,7 +142,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
 		PlanItLogger.info("Memory Output for OutputType OD has not been implemented yet.");
 	}
-	
+
 	/**
 	 * Write Simulation results for the current time period to the CSV file
 	 * 
@@ -185,19 +185,20 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	@Override
 	protected void writeLinkResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
-		TraditionalStaticAssignmentLinkOutputAdapter outputAdapter = (TraditionalStaticAssignmentLinkOutputAdapter) outputTypeConfiguration.getOutputAdapter();
-		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) outputAdapter.getSimulationData();
+		TraditionalStaticAssignmentLinkOutputAdapter outputAdapter = (TraditionalStaticAssignmentLinkOutputAdapter) outputTypeConfiguration
+				.getOutputAdapter();
+		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) outputAdapter
+				.getSimulationData();
 		TransportNetwork transportNetwork = outputAdapter.getTransportNetwork();
-		OutputType outputType = outputTypeConfiguration.getOutputType();
 		for (Mode mode : modes) {
 			double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);
 			double[] modalNetworkSegmentFlows = simulationData.getModalNetworkSegmentFlows(mode);
-			writeLinkResultsForCurrentModeAndTimePeriod(outputType, outputAdapter, mode, timePeriod,
-					modalNetworkSegmentCosts, modalNetworkSegmentFlows, transportNetwork);
+			writeLinkResultsForCurrentModeAndTimePeriod(outputAdapter, mode, timePeriod, modalNetworkSegmentCosts,
+					modalNetworkSegmentFlows, transportNetwork);
 		}
 		// lock configuration properties for this output type
-		outputTypeValuesLocked.put(outputType, true);
-		outputTypeKeysLocked.put(outputType, true);
+		outputTypeValuesLocked.put(OutputType.LINK, true);
+		outputTypeKeysLocked.put(OutputType.LINK, true);
 	}
 
 	/**
@@ -232,8 +233,9 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	/**
 	 * Opens all resources used in the formatter
 	 * 
-	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to  be saved
-	 * @param runId the id of the traffic assignment to be saved
+	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to
+	 *                                be saved
+	 * @param runId                   the id of the traffic assignment to be saved
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
@@ -244,7 +246,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	/**
 	 * Close all resources used in this formatter
 	 * 
-	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to  be saved
+	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to
+	 *                                be saved
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
@@ -293,9 +296,11 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	/**
 	 * Flag to indicate whether an implementation can handle multiple iterations
 	 * 
-	 * If this returns false, acts as though OutputConfiguration.setPersistOnlyFinalIteration() is set to true
+	 * If this returns false, acts as though
+	 * OutputConfiguration.setPersistOnlyFinalIteration() is set to true
 	 * 
-	 * @return flag to indicate whether the OutputFormatter can handle multiple iterations
+	 * @return flag to indicate whether the OutputFormatter can handle multiple
+	 *         iterations
 	 */
 	@Override
 	public boolean canHandleMultipleIterations() {

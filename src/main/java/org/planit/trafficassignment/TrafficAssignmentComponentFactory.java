@@ -100,7 +100,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
             // Initial Link Segment Cost
             registerTrafficAssignmentComponentType(InitialLinkSegmentCost.class);
         } catch (PlanItException e) {
-            e.printStackTrace();
+            PlanItLogger.severe(e.getMessage());;
         }
     }
     
