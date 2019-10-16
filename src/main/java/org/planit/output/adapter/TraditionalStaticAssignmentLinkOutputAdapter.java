@@ -265,7 +265,7 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
 	 * @param mode specified mode
 	 * @return Object containing the output which is to be sent to the output 
 	 */
-	public Object getPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode, TimePeriod timePeriod) {
+	public Object getLinkPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode, TimePeriod timePeriod) {
 		MacroscopicLinkSegment macroscopicLinkSegment  = (MacroscopicLinkSegment) linkSegment;
 		switch (outputProperty) {
 		case DENSITY:

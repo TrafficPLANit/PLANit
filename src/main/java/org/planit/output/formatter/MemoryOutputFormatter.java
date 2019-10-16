@@ -46,6 +46,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	/**
 	 * Save the data for the current time period, mode, iteration and output type
 	 * 
+     * @param traditionalStaticAssignmentLinkOutputAdapter link output adapter
 	 * @param timePeriod               the specified time period
 	 * @param mode                     the specified mode
 	 * @param iterationIndex           the current iteration index
@@ -57,7 +58,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @param linkSegment              the current link segment
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void saveRecordForLinkSegment(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter, TimePeriod timePeriod, Mode mode, int iterationIndex, OutputType outputType,
+	private void saveRecordForLinkSegment(TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter, TimePeriod timePeriod, Mode mode, int iterationIndex, OutputType outputType,
 			MultiKeyPlanItData multiKeyPlanItData, double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows,
 			MacroscopicLinkSegment linkSegment) throws PlanItException {
 		OutputProperty[] outputProperties = outputValueProperties.get(outputType);
@@ -77,7 +78,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 					outputValues[i] = Double.valueOf(cost);
 					break;
 				default:
-					outputValues[i] = outputAdapter.getPropertyValue(outputProperties[i], linkSegment, mode, timePeriod);
+					outputValues[i] = traditionalStaticAssignmentLinkOutputAdapter.getLinkPropertyValue(outputProperties[i], linkSegment, mode, timePeriod);
 				}
 				if (outputValues[i] == null) {
 					outputValues[i] = NOT_SPECIFIED;
@@ -298,7 +299,6 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 */
 	@Override
 	public boolean canHandleMultipleIterations() {
-		// TODO Auto-generated method stub
 		return true;
 	}
 

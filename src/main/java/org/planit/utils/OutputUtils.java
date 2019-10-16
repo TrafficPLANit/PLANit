@@ -16,7 +16,9 @@ public class OutputUtils {
 	 */
 	public static Object formatObject(Object value) {
 
-		if (value instanceof Double) {
+		if (value == null) {
+			return "";
+		} else if (value instanceof Double) {
 			double outDouble = (double) value;
 			return String.format("%.7f", outDouble);
 		} else {

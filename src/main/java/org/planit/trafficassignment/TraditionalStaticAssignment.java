@@ -384,7 +384,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				.getRegisteredOutputTypeConfigurations();
 
 		for (OutputTypeConfiguration outputTypeConfiguration : outputTypeConfigurations) {
-			//List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters(outputTypeConfiguration.getOutputType());
 			List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
 			for (OutputFormatter outputFormatter : outputFormatters) {
 				PlanItException e = action.apply(outputFormatter, outputTypeConfiguration);
