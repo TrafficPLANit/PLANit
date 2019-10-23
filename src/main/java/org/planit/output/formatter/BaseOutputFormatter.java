@@ -11,9 +11,8 @@ import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
 import org.planit.output.OutputType;
-import org.planit.output.configuration.LinkOutputTypeConfiguration;
-import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
+import org.planit.output.enums.OutputTimeUnit;
 
 /**
  * Base class for all formatters of output data, i.e. persistence of certain
@@ -37,6 +36,20 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	protected Map<OutputType, OutputProperty[]> outputValueProperties;
 
 	/**
+	 * Map to store whether any data values have been stored for a given output
+	 * type.
+	 * 
+	 * If data have been stored for an output type, it is "locked" so its key and
+	 * output properties cannot be reset
+	 */
+	protected Map<OutputType, Boolean> outputTypeValuesLocked;
+
+	/**
+	 * Map to store which output types are already in use as keys
+	 */
+	protected Map<OutputType, Boolean> outputTypeKeysLocked;
+
+	/**
 	 * Unique internal id of the output writer
 	 */
 	protected long id;
@@ -45,115 +58,39 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * Time unit to be used in outputs
 	 */
 	protected OutputTimeUnit outputTimeUnit;
-	
+
 	/**
 	 * List of registered OutputTypes
 	 */
 	protected Set<OutputType> outputTypes;
 
 	/**
-	 * Tests whether appropriate key properties have been set to identify a link,
-	 * and update the outputKeyProperties Map if they have
+	 * Initialize the output key properties for the specified output type configuration
 	 * 
-	 * @param identificationMethod the identification method being used
-	 * @return true if the key set acceptable, false otherwise
+	 * @param outputTypeConfiguration the specified output type configuration
+	 * @throws PlanItException thrown if the output keys are invalid or the output type has not been configured yet
 	 */
-	private boolean updatePropertiesForLinkType(int identificationMethod) {
-
-		OutputProperty[] outputKeyPropertiesArray = null;
-		boolean valid = false;
-		switch (identificationMethod) {
-		case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_NODE_ID:
-			outputKeyPropertiesArray = new OutputProperty[2];
-			outputKeyPropertiesArray[0] = OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID;
-			outputKeyPropertiesArray[1] = OutputProperty.UPSTREAM_NODE_EXTERNAL_ID;
-			valid = true;
-			break;
-		case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_ID:
-			outputKeyPropertiesArray = new OutputProperty[1];
-			outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_ID;
-			valid = true;
-			break;
-		case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID:
-			outputKeyPropertiesArray = new OutputProperty[1];
-			outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
-			valid = true;
-			break;
-		}
-		if (valid) {
-			outputKeyProperties.put(OutputType.LINK, outputKeyPropertiesArray);
-		}
-		return valid;
-	}
-	
-	/**
-	 * Tests whether appropriate key properties have been set to identify an origin-destination path,
-	 * and update the outputKeyProperties Map if they have
-	 * 
-	 * @param identificationMethod the identification method being used
-	 * @return true if the key set acceptable, false otherwise
-	 */
-	private boolean updatePropertiesForOriginDestinationType(int identificationMethod) {
-		OutputProperty[] outputKeyPropertiesArray = null;
-		boolean valid = false;
-		switch (identificationMethod) {
-		case OriginDestinationOutputTypeConfiguration.ORIGIN_DESTINATION_ID:
-			outputKeyPropertiesArray = new OutputProperty[2];
-			outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_ID;
-			outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_ID;
-			valid = true;
-			break;
-		}
-		if (valid) {
-			outputKeyProperties.put(OutputType.OD, outputKeyPropertiesArray);
-		}
-		return valid;
-	}
-
-	/**
-	 * Tests whether the current output keys are valid for the current output type
-	 * configuration, and update the output key properties Map if they are
-	 * 
-	 * @param outputTypeConfiguration the current output type configuration
-	 * @return true if the current output type is valid, false otherwise
-	 */
-	protected boolean isOutputKeysValid(OutputTypeConfiguration outputTypeConfiguration) {
-		OutputType outputType = outputTypeConfiguration.getOutputType();
-		int identificationMethod = outputTypeConfiguration.findIdentificationMethod(outputKeyProperties);
-
-		switch (outputType) {
-		case GENERAL:
-			return true;
-		case LINK:
-			return updatePropertiesForLinkType(identificationMethod);
-		case SIMULATION:
-			return true;
-		case OD:
-			return updatePropertiesForOriginDestinationType(identificationMethod);
-		}
-		return false;
-	}
-
-	/**
-	 * Set the output properties of the key values for the current output type configuration
-	 * 
-	 * @param outputTypeConfiguration            the current output type configuration
-	 */
-	protected void setOutputKeyProperties(OutputTypeConfiguration outputTypeConfiguration) {
-		OutputType outputType = outputTypeConfiguration.getOutputType();
+	private void initializeKeyProperties(OutputTypeConfiguration outputTypeConfiguration) throws PlanItException {
 		OutputProperty[] outputKeyPropertyArray = outputTypeConfiguration.getOutputKeyProperties();
-		outputKeyProperties.put(outputType, outputKeyPropertyArray);
+		int identificationMethod = outputTypeConfiguration.findIdentificationMethod(outputKeyPropertyArray);
+		OutputType outputType = outputTypeConfiguration.getOutputType();
+		OutputProperty[] outputKeyPropertiesArray = outputTypeConfiguration.validateAndFilterKeyProperties(identificationMethod);
+		if (outputKeyPropertiesArray  == null ) {
+			throw new PlanItException("Key properties invalid for OutputType " + outputType.value() + " not correctly defined.");
+		}
+		outputKeyProperties.put(outputType, outputKeyPropertiesArray);
 	}
 
 	/**
-	 * Sets the output properties of the data values for the current output type configuration
+	 * Lock the output keys and values for a specified output type
 	 * 
-	 * @param outputTypeConfiguration            the current output type configuration
+	 * @param outputType the output type to be locked
+	 * 
+	 * @param outputType
 	 */
-	protected void setOutputValueProperties(OutputTypeConfiguration outputTypeConfiguration) {
-		OutputType outputType = outputTypeConfiguration.getOutputType();
-		OutputProperty[] outputValuePropertyArray = outputTypeConfiguration.getOutputValueProperties();
-		outputValueProperties.put(outputType, outputValuePropertyArray);
+	protected void lockOutputProperties(OutputType outputType) {
+		outputTypeValuesLocked.put(outputType, true);
+		outputTypeKeysLocked.put(outputType, true);
 	}
 
 	/**
@@ -165,7 +102,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected abstract void writeLinkResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+	protected abstract void writeLinkResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException;
 
 	/**
@@ -177,9 +114,9 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected abstract void writeGeneralResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+	protected abstract void writeGeneralResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException;
-	
+
 	/**
 	 * Write Origin-Destination results for the time period to the CSV file
 	 * 
@@ -189,9 +126,9 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected abstract void writeOdResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+	protected abstract void writeOdResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException;
-	
+
 	/**
 	 * Write Simulation results for the current time period to the CSV file
 	 * 
@@ -201,7 +138,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected  abstract void writeSimulationResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+	protected abstract void writeSimulationResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException;
 
 	/**
@@ -212,8 +149,14 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 		outputKeyProperties = new HashMap<OutputType, OutputProperty[]>();
 		outputValueProperties = new HashMap<OutputType, OutputProperty[]>();
 		outputTimeUnit = DEFAULT_TIME_UNIT;
+		outputTypeValuesLocked = new HashMap<OutputType, Boolean>();
+		outputTypeKeysLocked = new HashMap<OutputType, Boolean>();
+		for (OutputType outputType : OutputType.values()) {
+			outputTypeValuesLocked.put(outputType, false);
+			outputTypeKeysLocked.put(outputType, false);
+		}
 	}
-
+	
 	/**
 	 * Write data to output file
 	 * 
@@ -225,27 +168,32 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	@Override
 	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration)
 			throws PlanItException {
-		setOutputValueProperties(outputTypeConfiguration);
-		setOutputKeyProperties(outputTypeConfiguration);
-		if (!isOutputKeysValid(outputTypeConfiguration)) {
-			throw new PlanItException("Invalid output keys defined for output type.");
+		OutputType outputType = outputTypeConfiguration.getOutputType();
+		if (!outputTypeValuesLocked.get(outputType)) {
+			OutputProperty[] outputValuePropertyArray = outputTypeConfiguration.getOutputValueProperties();
+			outputValueProperties.put(outputType, outputValuePropertyArray);
 		}
-		switch (outputTypeConfiguration.getOutputType()) {
+		
+		if (!outputTypeKeysLocked.get(outputType)) {
+			initializeKeyProperties(outputTypeConfiguration);
+		}
+
+		switch (outputType) {
 		case GENERAL:
-			writeGeneralResultsForCurrentModeAndTimePeriod(outputTypeConfiguration, modes, timePeriod);
+			writeGeneralResultsForCurrentTimePeriod(outputTypeConfiguration, modes, timePeriod);
 			break;
 		case LINK:
-			writeLinkResultsForCurrentModeAndTimePeriod(outputTypeConfiguration, modes, timePeriod);
+			writeLinkResultsForCurrentTimePeriod(outputTypeConfiguration, modes, timePeriod);
 			break;
 		case OD:
-			writeOdResultsForCurrentModeAndTimePeriod(outputTypeConfiguration, modes, timePeriod);
+			writeOdResultsForCurrentTimePeriod(outputTypeConfiguration, modes, timePeriod);
 			break;
 		case SIMULATION:
-			writeSimulationResultsForCurrentModeAndTimePeriod(outputTypeConfiguration, modes, timePeriod);
+			writeSimulationResultsForCurrentTimePeriod(outputTypeConfiguration, modes, timePeriod);
 			break;
 		}
 	}
-	
+
 	// getters - setters
 
 	public long getId() {
@@ -255,7 +203,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	/**
 	 * Returns the current time units
 	 * 
-	 * @return the current time units 
+	 * @return the current time units
 	 */
 	public OutputTimeUnit getOutputTimeUnit() {
 		return outputTimeUnit;
@@ -269,7 +217,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	public void setOutputTimeUnit(OutputTimeUnit outputTimeUnit) {
 		this.outputTimeUnit = outputTimeUnit;
 	}
-	
+
 	/**
 	 * Returns the current time units as a String
 	 * 
@@ -277,23 +225,6 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 */
 	public String getOutputTimeUnitString() {
 		return outputTimeUnit.value();
-	}
-
-	/**
-	 * Returns the multiplier for the current time unit
-	 * 
-	 * @return the multiplier for the current time unit
-	 */
-	public double getTimeUnitMultiplier() {
-		switch (outputTimeUnit) {
-		case HOURS:
-			return 1.0;
-		case MINUTES:
-			return 60.0;
-		case SECONDS:
-			return 3600.0;
-		}
-		return -1.0;
 	}
 
 }

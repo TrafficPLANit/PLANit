@@ -127,13 +127,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 
 		// loop over all available OD demands
-		int previousOriginZoneId = -1;
+		long previousOriginZoneId = -1;
 		Zone currentOriginZone = null;
 		Pair<Double, EdgeSegment>[] vertexPathCost = null;
 		while (odDemandIter.hasNext()) {
 			double odDemand = odDemandIter.next();
-			int originZoneId = odDemandIter.getCurrentOriginId();
-			int destinationZoneId = odDemandIter.getCurrentDestinationId();
+			long originZoneId = odDemandIter.getCurrentOriginId();
+			long destinationZoneId = odDemandIter.getCurrentDestinationId();
 
 			if (((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
 

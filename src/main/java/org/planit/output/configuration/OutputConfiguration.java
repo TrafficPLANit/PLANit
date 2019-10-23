@@ -56,7 +56,7 @@ public class OutputConfiguration {
         break;
         case OD: outputTypeConfiguration = new OriginDestinationOutputTypeConfiguration(outputAdapter);
         break;
-        default: outputTypeConfiguration = new DummyOutputTypeConfiguration(outputAdapter);
+        default: PlanItLogger.warning(outputType.value() + " has not been defined yet.");
        }
         outputTypeConfigurations.put(outputType, outputTypeConfiguration);
     }

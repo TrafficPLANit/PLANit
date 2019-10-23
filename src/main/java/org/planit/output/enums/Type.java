@@ -11,6 +11,7 @@ public enum Type {
 	 DOUBLE("DOUBLE"),
 	 FLOAT("FLOAT"),
 	 INTEGER("INTEGER"),
+	 LONG("LONG"),
 	 BOOLEAN("BOOLEAN"),
 	 SRSNAME("SRSNAME");
 	 private final String value;

@@ -73,6 +73,8 @@ public class MultiKeyPlanItData {
 			return (key instanceof Float);
 		case INTEGER:
 			return (key instanceof Integer);
+		case LONG:
+			return  (key instanceof Long);
 		case BOOLEAN:
 			return (key instanceof Boolean);
 		case SRSNAME:

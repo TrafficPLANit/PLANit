@@ -1,9 +1,8 @@
 package org.planit.output.formatter;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.commons.collections.map.HashedMap;
@@ -15,12 +14,15 @@ import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.transport.TransportNetwork;
+import org.planit.odmatrix.ODMatrixIterator;
 import org.planit.output.OutputType;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentODOutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
+import org.planit.utils.TriConsumer;
 
 public class MemoryOutputFormatter extends BaseOutputFormatter {
 
@@ -30,117 +32,129 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	private MultiKeyMap timeModeOutputTypeIterationDataMap;
 
 	/**
-	 * Map to store whether any data values have been stored for a given output
-	 * type.
+	 * Returns an array of values (key or values)
 	 * 
-	 * If data have been stored for an output type, it is "locked" so its key and
-	 * output properties cannot be reset
+	 * @param labels              OutputProperty array to specify which values are
+	 *                            to be returns
+	 * @param getValueFromAdapter lambda function to find the output value for each
+	 *                            label
+	 * @return array of output values
 	 */
-	private Map<OutputType, Boolean> outputTypeValuesLocked;
+	private Object[] getValues(OutputProperty[] labels, Function<OutputProperty, Object> getValueFromAdapter) {
+		Object[] values = new Object[labels.length];
+		for (int i = 0; i < labels.length; i++) {
+			values[i] = getValueFromAdapter.apply(labels[i]);
+		}
+		return values;
+	}
 
 	/**
-	 * Map to store which output types are already in use as keys
-	 */
-	private Map<OutputType, Boolean> outputTypeKeysLocked;
-
-	/**
-	 * Save the data for the current time period, mode, iteration and output type
+	 * Store output and key values for current link or skim matrix
 	 * 
-	 * @param traditionalStaticAssignmentLinkOutputAdapter link output adapter
-	 * @param timePeriod                                   the specified time period
-	 * @param mode                                         the specified mode
-	 * @param iterationIndex                               the current iteration
-	 *                                                     index
-	 * @param outputType                                   the current output type
-	 * @param multiKeyPlanItData                           the data map
-	 * @param modalNetworkSegmentCosts                     calculated segment costs
-	 *                                                     for the physical network
-	 * @param modalNetworkSegmentFlows                     calculated flows for the
-	 *                                                     network
-	 * @param linkSegment                                  the current link segment
+	 * @param multiKeyPlanItData  multikey data object to store values
+	 * @param outputProperties    OutputProperty array of result types to be
+	 *                            recorded
+	 * @param outputKeys          OutputProperty array of key types to be recorded
+	 * @param getValueFromAdapter lambda function to get the required values from an
+	 *                            output adapter
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void saveRecordForLinkSegment(
-			TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter,
-			TimePeriod timePeriod, Mode mode, int iterationIndex, MultiKeyPlanItData multiKeyPlanItData,
-			double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows, MacroscopicLinkSegment linkSegment)
-			throws PlanItException {
-		OutputProperty[] outputProperties = outputValueProperties.get(OutputType.LINK);
-		Object[] outputValues = new Object[outputProperties.length];
-		OutputProperty[] outputKeys = outputKeyProperties.get(OutputType.LINK);
-		Object[] keyValues = new Object[outputKeys.length];
-		int id = (int) linkSegment.getId();
-		double flow = modalNetworkSegmentFlows[id];
-		if (flow > 0.0) {
-			double cost = modalNetworkSegmentCosts[id] * getTimeUnitMultiplier();
-			for (int i = 0; i < outputValues.length; i++) {
-				switch (outputProperties[i]) {
-				case FLOW:
-					outputValues[i] = Double.valueOf(flow);
-					break;
-				case COST:
-					outputValues[i] = Double.valueOf(cost);
-					break;
-				default:
-					outputValues[i] = traditionalStaticAssignmentLinkOutputAdapter
-							.getLinkPropertyValue(outputProperties[i], linkSegment, mode, timePeriod);
-				}
-				if (outputValues[i] == null) {
-					outputValues[i] = NOT_SPECIFIED;
-				}
-			}
-			for (int i = 0; i < outputKeys.length; i++) {
-				keyValues[i] = linkSegment.getKeyValue(outputKeys[i]);
-			}
-			multiKeyPlanItData.putRow(outputValues, keyValues);
+	private void updateOutputAndKeyValues(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties,
+			OutputProperty[] outputKeys, Function<OutputProperty, Object> getValueFromAdapter) throws PlanItException {
+		Object[] outputValues = getValues(outputProperties, getValueFromAdapter);
+		Object[] keyValues = getValues(outputKeys, getValueFromAdapter);
+		multiKeyPlanItData.putRow(outputValues, keyValues);
+	}
+
+	/**
+	 * Record output and key values for links
+	 * 
+	 * @param multiKeyPlanItData                           multikey data object to
+	 *                                                     store values
+	 * @param outputProperties                             OutputProperty array of
+	 *                                                     result types to be
+	 *                                                     recorded
+	 * @param outputKeys                                   OutputProperty array of
+	 *                                                     key types to be recorded
+	 * @param iterator                                     iterator to iterator
+	 *                                                     through link segments
+	 * @param traditionalStaticAssignmentLinkOutputAdapter output adapter to provide
+	 *                                                     methods to get the
+	 *                                                     property values
+	 * @param mode                                         the current mode
+	 * @param timePeriod                                   the current time period
+	 * @throws PlanItException thrown if there is an error
+	 */
+	private void updateOutputAndKeyValuesForLinks(MultiKeyPlanItData multiKeyPlanItData,
+			OutputProperty[] outputProperties, OutputProperty[] outputKeys, Iterator<LinkSegment> iterator,
+			TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter, Mode mode,
+			TimePeriod timePeriod) throws PlanItException {
+		MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) iterator.next();
+		if (traditionalStaticAssignmentLinkOutputAdapter.isFlowPositive(macroscopicLinkSegment, mode)) {
+			updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
+				return traditionalStaticAssignmentLinkOutputAdapter.getLinkPropertyValue(label, macroscopicLinkSegment,
+						mode, timePeriod, outputTimeUnit.getMultiplier());
+			});
 		}
 	}
 
 	/**
-	 * Save link results for the current mode and time period
+	 * Record output and key values for Origin-Destination matrix
 	 * 
-	 * @param outputAdapter            TraditionalStaticAssignmentLinkOutputAdapter
-	 * @param mode                     current mode of travel
-	 * @param timePeriod               current time period
-	 * @param modalNetworkSegmentCosts calculated segment costs for the physical
-	 *                                 network
-	 * @param modalNetworkSegmentFlows calculated flows for the network
-	 * @param transportNetwork         the transport network
+	 * @param multiKeyPlanItData                         multikey data object to
+	 *                                                   store values
+	 * @param outputProperties                           OutputProperty array of
+	 *                                                   result types to be recorded
+	 * @param outputKeys                                 OutputProperty array of key
+	 *                                                   types to be recorded
+	 * @param odMatrixIterator                           ODMatrixIterator to iterate
+	 *                                                   through Skim matrix
+	 * @param traditionalStaticAssignmentODOutputAdapter output adapter to provide
+	 *                                                   methods to get the property
+	 *                                                   values
+	 * @param mode                                       the current mode
+	 * @param timePeriod                                 the current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void writeLinkResultsForCurrentModeAndTimePeriod(TraditionalStaticAssignmentLinkOutputAdapter outputAdapter,
-			Mode mode, TimePeriod timePeriod, double[] modalNetworkSegmentCosts, double[] modalNetworkSegmentFlows,
-			TransportNetwork transportNetwork) throws PlanItException {
-		MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeyProperties.get(OutputType.LINK),
-				outputValueProperties.get(OutputType.LINK));
-		int iterationIndex = outputAdapter.getIterationIndex();
+	private void updateOutputAndKeyValuesForOD(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties,
+			OutputProperty[] outputKeys, ODMatrixIterator odMatrixIterator,
+			TraditionalStaticAssignmentODOutputAdapter traditionalStaticAssignmentODOutputAdapter, Mode mode,
+			TimePeriod timePeriod) throws PlanItException {
+		odMatrixIterator.next();
+		updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
+			return traditionalStaticAssignmentODOutputAdapter.getOdPropertyValue(label, odMatrixIterator, mode,
+					timePeriod, outputTimeUnit.getMultiplier());
+		});
+	}
+
+	/**
+	 * Store results for current mode, time period and output type
+	 * 
+	 * @param outputType               the current output type
+	 * @param iterator                 iterator through data to be recorded
+	 * @param iterationIndex           index of current iteration
+	 * @param mode                     current mode
+	 * @param timePeriod               current time period
+	 * @param updateOutputAndKeyValues lambda function to update and store output
+	 *                                 and key values
+	 * @throws PlanItException thrown if there is an error
+	 */
+	private void writeResultsForCurrentModeAndTimePeriod(OutputType outputType, Iterator iterator, int iterationIndex,
+			Mode mode, TimePeriod timePeriod,
+			TriConsumer<MultiKeyPlanItData, OutputProperty[], OutputProperty[]> updateOutputAndKeyValues)
+			throws PlanItException {
 		try {
-			Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
-			while (linkSegmentIter.hasNext()) {
-				MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
-				saveRecordForLinkSegment(outputAdapter, timePeriod, mode, iterationIndex, multiKeyPlanItData,
-						modalNetworkSegmentCosts, modalNetworkSegmentFlows, linkSegment);
+			MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeyProperties.get(outputType),
+					outputValueProperties.get(outputType));
+			OutputProperty[] outputProperties = outputValueProperties.get(outputType);
+			OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
+			while (iterator.hasNext()) {
+				updateOutputAndKeyValues.accept(multiKeyPlanItData, outputProperties, outputKeys);
 			}
-			timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, OutputType.LINK,
-					multiKeyPlanItData);
+			timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
 		} catch (Exception e) {
 			throw new PlanItException(e);
 		}
-	}
-
-	/**
-	 * Write Origin-Destination results for the time period to the CSV file
-	 * 
-	 * @param outputTypeConfiguration OutputTypeConfiguration for current
-	 *                                persistence
-	 * @param modes                   Set of modes of travel
-	 * @param timePeriod              current time period
-	 * @throws PlanItException thrown if there is an error
-	 */
-	@Override
-	protected void writeOdResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
-			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
-		PlanItLogger.info("Memory Output for OutputType OD has not been implemented yet.");
 	}
 
 	/**
@@ -153,7 +167,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	protected void writeSimulationResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+	protected void writeSimulationResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
 		PlanItLogger.info("Memory Output for OutputType SIMULATION has not been implemented yet.");
 	}
@@ -168,7 +182,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	protected void writeGeneralResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+	protected void writeGeneralResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
 		PlanItLogger.info("Memory Output for OutputType GENERAL has not been implemented yet.");
 	}
@@ -183,22 +197,56 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	protected void writeLinkResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+	protected void writeLinkResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
-		TraditionalStaticAssignmentLinkOutputAdapter outputAdapter = (TraditionalStaticAssignmentLinkOutputAdapter) outputTypeConfiguration
+		TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter = (TraditionalStaticAssignmentLinkOutputAdapter) outputTypeConfiguration
 				.getOutputAdapter();
-		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) outputAdapter
-				.getSimulationData();
-		TransportNetwork transportNetwork = outputAdapter.getTransportNetwork();
+		TransportNetwork transportNetwork = traditionalStaticAssignmentLinkOutputAdapter.getTransportNetwork();
 		for (Mode mode : modes) {
-			double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);
-			double[] modalNetworkSegmentFlows = simulationData.getModalNetworkSegmentFlows(mode);
-			writeLinkResultsForCurrentModeAndTimePeriod(outputAdapter, mode, timePeriod, modalNetworkSegmentCosts,
-					modalNetworkSegmentFlows, transportNetwork);
+			Iterator<LinkSegment> iterator = transportNetwork.linkSegments.iterator();
+			writeResultsForCurrentModeAndTimePeriod(OutputType.LINK, iterator,
+					traditionalStaticAssignmentLinkOutputAdapter.getIterationIndex(), mode, timePeriod,
+					(multiKeyPlanItData, outputProperties, outputKeys) -> {
+						updateOutputAndKeyValuesForLinks(multiKeyPlanItData, outputProperties, outputKeys, iterator,
+								traditionalStaticAssignmentLinkOutputAdapter, mode, timePeriod);
+					});
 		}
 		// lock configuration properties for this output type
-		outputTypeValuesLocked.put(OutputType.LINK, true);
-		outputTypeKeysLocked.put(OutputType.LINK, true);
+		lockOutputProperties(OutputType.LINK);
+	}
+
+	/**
+	 * Write Origin-Destination results for the time period to the CSV file
+	 * 
+	 * @param outputTypeConfiguration OutputTypeConfiguration for current
+	 *                                persistence
+	 * @param modes                   Set of modes of travel
+	 * @param timePeriod              current time period
+	 * @throws PlanItException thrown if there is an error
+	 */
+	@Override
+	protected void writeOdResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, Set<Mode> modes,
+			TimePeriod timePeriod) throws PlanItException {
+		try {
+			TraditionalStaticAssignmentODOutputAdapter traditionalStaticAssignmentODOutputAdapter = (TraditionalStaticAssignmentODOutputAdapter) outputTypeConfiguration
+					.getOutputAdapter();
+			TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = (TraditionalStaticAssignmentSimulationData) traditionalStaticAssignmentODOutputAdapter
+					.getSimulationData();
+			for (Mode mode : modes) {
+				ODMatrixIterator odMatrixIterator = traditionalStaticAssignmentSimulationData.getODSkimMatrix(mode)
+						.iterator();
+				writeResultsForCurrentModeAndTimePeriod(OutputType.OD, odMatrixIterator,
+						traditionalStaticAssignmentODOutputAdapter.getIterationIndex(), mode, timePeriod,
+						(multiKeyPlanItData, outputProperties, outputKeys) -> {
+							updateOutputAndKeyValuesForOD(multiKeyPlanItData, outputProperties, outputKeys,
+									odMatrixIterator, traditionalStaticAssignmentODOutputAdapter, mode, timePeriod);
+						});
+			}
+			// lock configuration properties for this output type
+			lockOutputProperties(OutputType.OD);
+		} catch (Exception e) {
+			throw new PlanItException(e);
+		}
 	}
 
 	/**
@@ -206,13 +254,6 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 */
 	public MemoryOutputFormatter() {
 		super();
-		outputTypeValuesLocked = new HashMap<OutputType, Boolean>();
-		outputTypeKeysLocked = new HashMap<OutputType, Boolean>();
-		for (OutputType outputType : OutputType.values()) {
-			outputTypeValuesLocked.put(outputType, false);
-			outputTypeKeysLocked.put(outputType, false);
-		}
-
 	}
 
 	/**

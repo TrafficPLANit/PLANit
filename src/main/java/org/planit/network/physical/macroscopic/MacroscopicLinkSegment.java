@@ -6,7 +6,6 @@ import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.Link;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.virtual.Centroid;
-import org.planit.output.property.OutputProperty;
 import org.planit.network.physical.Node;
 import org.planit.userclass.Mode;
 
@@ -89,28 +88,6 @@ public class MacroscopicLinkSegment extends LinkSegment {
 			computedMaximumSpeed = Math.min(maximumSpeed, segmentTypeMaximumSpeed);
 		}
 		return linkLength / computedMaximumSpeed;
-	}
-
-	/**
-	 * Return the value of the output property key for a specified key type
-	 * 
-	 * @param outputKeyProperty the output property type of the required key
-	 * @return the value of the required key
-	 */
-	public Object getKeyValue(OutputProperty outputKeyProperty) {
-		Node startNode = (Node) getUpstreamVertex();
-		Node endNode = (Node) getDownstreamVertex();
-		switch(outputKeyProperty) {
-		case LINK_SEGMENT_ID:
-			return Integer.valueOf((int) id);
-		case LINK_SEGMENT_EXTERNAL_ID:
-			return Integer.valueOf((int) getExternalId());
-		case DOWNSTREAM_NODE_EXTERNAL_ID:
-			return Integer.valueOf((int) startNode.getExternalId());
-		case UPSTREAM_NODE_EXTERNAL_ID:
-			return Integer.valueOf((int) endNode.getExternalId());
-		}
-		return null;
 	}
 
 	// getters - setters

@@ -19,7 +19,7 @@ public final class TimePeriodIdOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public Type getType() {
-		return Type.INTEGER;
+		return Type.LONG;
 	}
 
 	@Override

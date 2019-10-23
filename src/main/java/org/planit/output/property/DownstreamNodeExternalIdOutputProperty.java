@@ -5,7 +5,7 @@ import org.planit.output.enums.Units;
 
 public final class DownstreamNodeExternalIdOutputProperty extends BaseOutputProperty {
 
-	public static final String DOWNSTREAM_NODE_EXTERNAL_ID = "End Node Id";
+	public static final String DOWNSTREAM_NODE_EXTERNAL_ID = "Downstream Node External Id";
 	
 	@Override
 	public String getName() {
@@ -19,7 +19,7 @@ public final class DownstreamNodeExternalIdOutputProperty extends BaseOutputProp
 
 	@Override
 	public Type getType() {
-		return Type.INTEGER;
+		return Type.LONG;
 	}
 
 	@Override

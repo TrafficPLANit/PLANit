@@ -31,19 +31,13 @@ public class OutputManager {
 	/**
 	 * registered output formatters
 	 */
-	//protected Map<OutputType, List<OutputFormatter>> outputFormatters;
 	protected List<OutputFormatter> outputFormatters;
 
 	/**
 	 * Base constructor of Output writer
 	 */
 	public OutputManager() {
-		// outputFormatters = new ArrayList<OutputFormatter>();
-		//outputFormatters = new HashMap<OutputType, List<OutputFormatter>>();
 		outputFormatters = new ArrayList<OutputFormatter>();
-		//for (OutputType outputType : OutputType.values()) {
-			//outputFormatters.put(outputType, new ArrayList<OutputFormatter>());
-		//}
 		outputConfiguration = new OutputConfiguration();
 	}
 
@@ -61,22 +55,19 @@ public class OutputManager {
 	public void persistOutputData(TimePeriod timePeriod, Set<Mode> modes, OutputConfiguration outputConfiguration)
 			throws PlanItException {
 		for (OutputType outputType : outputConfiguration.getRegisteredOutputTypes()) {
-			OutputTypeConfiguration outputTypeConfiguration = outputConfiguration
-					.getOutputTypeConfiguration(outputType);
+			OutputTypeConfiguration outputTypeConfiguration = outputConfiguration.getOutputTypeConfiguration(outputType);
 			OutputAdapter outputAdapter = outputTypeConfiguration.getOutputAdapter();
-			if (outputAdapter.isConverged()) {
-				for (OutputFormatter outputFormatter : outputFormatters) {
+			for (OutputFormatter outputFormatter : outputFormatters) {
+				if (outputAdapter.isConverged()) {
 					outputFormatter.persist(timePeriod, modes, outputTypeConfiguration);
-				}
-			} else if (!outputConfiguration.isPersistOnlyFinalIteration()) {
-				for (OutputFormatter outputFormatter : outputFormatters) {
+				} else  if (!outputConfiguration.isPersistOnlyFinalIteration()) {
 					if (!outputFormatter.canHandleMultipleIterations()) {
 						PlanItLogger.warning(outputFormatter.getClass().getName() + " can only persist the final iteration.");
 					} else {
 						outputFormatter.persist(timePeriod, modes, outputTypeConfiguration);
 					}
 				}
-			}			
+			}
 		}
 	}
 

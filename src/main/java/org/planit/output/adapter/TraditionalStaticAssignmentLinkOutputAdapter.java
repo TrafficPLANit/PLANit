@@ -1,16 +1,10 @@
 package org.planit.output.adapter;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.function.Function;
-
 import org.opengis.geometry.DirectPosition;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.Node;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
-import org.planit.network.transport.TransportNetwork;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
@@ -187,9 +181,20 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
 	 * @param linkSegment the current link segment
 	 * @return the upstream node external Id
 	 */
-	private Object getUpstreamNodeIdPropertyValue(MacroscopicLinkSegment linkSegment) {
+	private Object getUpstreamNodeExternalIdPropertyValue(MacroscopicLinkSegment linkSegment) {
 		Node startNode = (Node) linkSegment.getUpstreamVertex();
 		return startNode.getExternalId();
+	}
+	
+	/**
+	 * Get the Id of the upstream node to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the upstream node external Id
+	 */
+	private Object getUpstreamNodeIdPropertyValue(MacroscopicLinkSegment linkSegment) {
+		Node startNode = (Node) linkSegment.getUpstreamVertex();
+		return startNode.getId();
 	}
 	
 	/**
@@ -198,9 +203,20 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
 	 * @param linkSegment the current link segment
 	 * @return the downstream node external Id
 	 */
-	private Object getDownstreamNodeIdPropertyValue(MacroscopicLinkSegment linkSegment) {
+	private Object getDownstreamNodeExternalIdPropertyValue(MacroscopicLinkSegment linkSegment) {
 		Node endNode = (Node) linkSegment.getDownstreamVertex();
 		return endNode.getExternalId();
+	}
+
+	/**
+	 * Get the Id of the downstream node to be presented as an output property
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the downstream node external Id
+	 */
+	private Object getDownstreamNodeIdPropertyValue(MacroscopicLinkSegment linkSegment) {
+		Node endNode = (Node) linkSegment.getDownstreamVertex();
+		return endNode.getId();
 	}
 	
 	/**
@@ -208,30 +224,14 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
 	 * 
 	 * @param linkSegment the current link segment
 	 * @param mode the current mode
+	 * @param timeUnitMultiplier multiplier to convert time units into hours, minutes or seconds
 	 * @return the link segment cost
 	 */
-	private Object getCostPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
+	private Object getCostPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode, double timeUnitMultiplier) {
 		int id = (int) linkSegment.getId();
 		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
 		double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);
-		return modalNetworkSegmentCosts[id];
-	}
-	
-	/**
-	 * Returns an output object for all link segments
-	 * 
-	 * @param transportNetwork current network
-	 * @param getValue lambda function which returns the desired object for each link segment
-	 * @return List of the required output object
-	 */
-	private List<Object> getObjectForAllLinkSegments(TransportNetwork transportNetwork, Function<MacroscopicLinkSegment, Object> getValue) {
-		List<Object> values = new ArrayList<Object>();
-		Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
-		while (linkSegmentIter.hasNext()) {
-			MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
-			values.add(getValue.apply(linkSegment));
-		}
-		return values;
+		return modalNetworkSegmentCosts[id] * timeUnitMultiplier;
 	}
 	
 	/**
@@ -263,9 +263,10 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
 	 * @param outputProperty current output property
 	 * @param linkSegment specified link segment
 	 * @param mode specified mode
+	 * @param timeUnitMultiplier multiplier to convert time into hours, minutes or seconds
 	 * @return Object containing the output which is to be sent to the output 
 	 */
-	public Object getLinkPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode, TimePeriod timePeriod) {
+	public Object getLinkPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) {
 		MacroscopicLinkSegment macroscopicLinkSegment  = (MacroscopicLinkSegment) linkSegment;
 		switch (outputProperty) {
 		case DENSITY:
@@ -287,11 +288,15 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
 		case LENGTH:
 			return getLengthPropertyValue(macroscopicLinkSegment);
 		case UPSTREAM_NODE_EXTERNAL_ID:
+			return getUpstreamNodeExternalIdPropertyValue(macroscopicLinkSegment);
+		case UPSTREAM_NODE_ID:
 			return getUpstreamNodeIdPropertyValue(macroscopicLinkSegment);
 		case DOWNSTREAM_NODE_EXTERNAL_ID:
+			return getDownstreamNodeExternalIdPropertyValue(macroscopicLinkSegment);
+		case DOWNSTREAM_NODE_ID:
 			return getDownstreamNodeIdPropertyValue(macroscopicLinkSegment);
 		case COST:
-			return getCostPropertyValue(macroscopicLinkSegment, mode);
+			return getCostPropertyValue(macroscopicLinkSegment, mode, timeUnitMultiplier);
 		case CAPACITY_PER_LANE:
 			return getCapacityPerLanePropertyValue(macroscopicLinkSegment);
 		case DOWNSTREAM_NODE_LOCATION:
@@ -306,69 +311,11 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
 			return getSimulationData().getIterationIndex();
 		case TIME_PERIOD_ID:
 			return timePeriod.getId();
+		case TIME_PERIOD_EXTERNAL_ID:
+			return timePeriod.getExternalId();
 		default:
-			return null;
+			return OutputFormatter.NOT_SPECIFIED;
 		}
-	}
-	
-	public List<Object> getDensityForAllLinkSegments(TransportNetwork transportNetwork) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getDensityPropertyValue(linkSegment);});
-	}
-
-	public List<Object> getLinkSegmentIdForAllLinkSegments(TransportNetwork transportNetwork) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getLinkSegmentIdPropertyValue(linkSegment);});
-	}
-	
-	public List<Object> getLinkSegmentExternalIdForAllLinkSegments(TransportNetwork transportNetwork) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getLinkSegmentExternalIdPropertyValue(linkSegment);});
-	}
-	
-	public List<Object> getModeExternalIdForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getModeExternalIdPropertyValue(mode);});
-	}
-
-	public List<Object> getModeIdForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getModeIdPropertyValue(mode);});
-	}
-
-	public List<Object> getCalculatedSpeedForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getCalculatedSpeedPropertyValue(linkSegment, mode);});
-	}
-	
-	public List<Object> getMaximumSpeedForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getMaximumSpeedPropertyValue(linkSegment, mode);});
-	}
-	
-	public List<Object> getFlowForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getFlowPropertyValue(linkSegment, mode);});
-	}
-
-	public List<Object> getUpstreamNodeIdForAllLinkSegments(TransportNetwork transportNetwork) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getUpstreamNodeIdPropertyValue(linkSegment);});		
-	}
-	
-	public List<Object> getLengthForAllLinkSegments(TransportNetwork transportNetwork) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getLengthPropertyValue(linkSegment);});
-	}
-	
-	public List<Object> getCostForAllLinkSegments(TransportNetwork transportNetwork, Mode mode) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getCostPropertyValue(linkSegment, mode);});		
-	}
-
-	public List<Object> getDowntreamNodeIdForAllLinkSegments(TransportNetwork transportNetwork) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getDownstreamNodeIdPropertyValue(linkSegment);});		
-	}
-	
-	public List<Object> getCapacityPerLaneForAllLinkSegments(TransportNetwork transportNetwork) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getCapacityPerLanePropertyValue(linkSegment);});		
-	}
-	
-	public List<Object>  getDownstreamNodeLocationForAllLinkSegments(TransportNetwork transportNetwork) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getDownstreamNodeLocationPropertyValue(linkSegment);});
-	}
-	
-	public List<Object>  getUpstreamNodeLocationForAllLinkSegments(TransportNetwork transportNetwork) {
-		return getObjectForAllLinkSegments(transportNetwork, (linkSegment) -> {return getUpstreamNodeLocationPropertyValue(linkSegment);});
 	}
 
 	/**

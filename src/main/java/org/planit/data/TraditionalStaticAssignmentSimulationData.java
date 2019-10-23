@@ -124,7 +124,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
         return modalNetworkSegmentCostsMap.get(mode);
     }
     
-    public void setSkimMatrixValue(Mode mode, int originZone, int destinationZone, double tripCost) {
+    public void setSkimMatrixValue(Mode mode, long originZone, long destinationZone, double tripCost) {
     	modalSkimMatrixMap.get(mode).setValue(originZone, destinationZone, tripCost);
     }
 

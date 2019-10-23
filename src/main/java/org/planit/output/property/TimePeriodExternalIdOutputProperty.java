@@ -3,13 +3,13 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 
-public final class LinkSegmentIdOutputProperty extends BaseOutputProperty {
+public final class TimePeriodExternalIdOutputProperty extends BaseOutputProperty {
 
-	public static final String LINK_SEGMENT_ID = "Link Segment Id";
-	
+	public static final String TIME_PERIOD_EXTERNAL_ID = "Time Period External Id";
+
 	@Override
 	public String getName() {
-		return LINK_SEGMENT_ID;
+		return TIME_PERIOD_EXTERNAL_ID;
 	}
 
 	@Override
@@ -24,7 +24,7 @@ public final class LinkSegmentIdOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public OutputProperty getOutputProperty() {
-		return OutputProperty.LINK_SEGMENT_ID;
+		return OutputProperty.TIME_PERIOD_EXTERNAL_ID;
 	}
 
 	@Override

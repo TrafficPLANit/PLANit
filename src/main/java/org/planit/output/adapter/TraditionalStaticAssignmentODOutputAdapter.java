@@ -1,7 +1,7 @@
 package org.planit.output.adapter;
 
 import org.planit.odmatrix.ODMatrixIterator;
-import org.planit.output.property.BaseOutputProperty;
+import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TraditionalStaticAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
@@ -32,15 +32,19 @@ public class TraditionalStaticAssignmentODOutputAdapter extends OutputAdapter {
 	 * @param matrixIterator the matrix iterator for the OD skim matrix
 	 * @param mode           the current mode
 	 * @param timePeriod     the current time period
+	 * @param timeUnitMultiplier multiplier to convert time into hours, minutes or seconds
 	 * @return the output value for the specified property
 	 */
-	public Object getOdPropertyValue(BaseOutputProperty outputProperty, ODMatrixIterator odMatrixIterator, Mode mode,
-			TimePeriod timePeriod) {
-		switch (outputProperty.getOutputProperty()) {
+	public Object getOdPropertyValue(OutputProperty outputProperty, ODMatrixIterator odMatrixIterator, Mode mode,	TimePeriod timePeriod, double timeUnitMultiplier) {
+		switch (outputProperty) {
 		case ORIGIN_ZONE_ID:
-			return odMatrixIterator.getCurrentOriginId() + 1;
+			return odMatrixIterator.getCurrentOriginId();
+		case ORIGIN_ZONE_EXTERNAL_ID:
+			return odMatrixIterator.getCurrentOriginExternalId();
 		case DESTINATION_ZONE_ID:
-			return odMatrixIterator.getCurrentDestinationId() + 1;
+			return odMatrixIterator.getCurrentDestinationId();
+		case DESTINATION_ZONE_EXTERNAL_ID:
+			return odMatrixIterator.getCurrentDestinationExternalId();
 		case MODE_ID:
 			return mode.getId();
 		case MODE_EXTERNAL_ID:
@@ -50,9 +54,11 @@ public class TraditionalStaticAssignmentODOutputAdapter extends OutputAdapter {
 		case ITERATION_INDEX:
 			return getSimulationData().getIterationIndex();
 		case COST:
-			return odMatrixIterator.getCurrentValue();
+			return odMatrixIterator.getCurrentValue() * timeUnitMultiplier;
 		case TIME_PERIOD_ID:
 			return timePeriod.getId();
+		case TIME_PERIOD_EXTERNAL_ID:
+			return timePeriod.getExternalId();
 		default:
 			return null;
 		}

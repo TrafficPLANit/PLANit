@@ -23,7 +23,7 @@ public class ODSkimMatrix {
                 numberOfTravelAnalysisZones);
 	}
 	
-	public void setValue(int originZone, int destinationZone, double tripCost) {
+	public void setValue(long originZone, long destinationZone, double tripCost) {
 		odSkimMatrixContents.set(originZone, destinationZone, tripCost);
 	}
 	

@@ -17,14 +17,28 @@ public interface ODMatrixIterator extends Iterator<Double> {
      * 
      * @return id of the origin of the current cell
      */
-    public abstract int getCurrentOriginId();
+    public abstract long getCurrentOriginId();
+    
+    /**
+     * Get the external id of the origin of the current cell
+     * 
+     * @return external id of the origin of the current cell
+     */
+   public abstract long getCurrentOriginExternalId();
 
     /**
      * Get the id of the destination of the current cell
      * 
      * @return id of the destination of the current cell
      */
-    public abstract int getCurrentDestinationId();
+    public abstract long getCurrentDestinationId();
+    
+    /**
+     * Get the external id of the destination of the current cell
+     * 
+     * @return external id of the destination of the current cell
+     */
+    public abstract long getCurrentDestinationExternalId();
 
     /**
      * Return the origin and destination of the current cell as a Pair
