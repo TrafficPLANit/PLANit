@@ -1,6 +1,6 @@
 package org.planit.output.adapter;
 
-import org.planit.odmatrix.ODMatrixIterator;
+import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TraditionalStaticAssignment;
@@ -38,13 +38,13 @@ public class TraditionalStaticAssignmentODOutputAdapter extends OutputAdapter {
 	public Object getOdPropertyValue(OutputProperty outputProperty, ODMatrixIterator odMatrixIterator, Mode mode,	TimePeriod timePeriod, double timeUnitMultiplier) {
 		switch (outputProperty) {
 		case ORIGIN_ZONE_ID:
-			return odMatrixIterator.getCurrentOriginId();
+			return odMatrixIterator.getCurrentOrigin().getId();
 		case ORIGIN_ZONE_EXTERNAL_ID:
-			return odMatrixIterator.getCurrentOriginExternalId();
+			return odMatrixIterator.getCurrentOrigin().getExternalId();
 		case DESTINATION_ZONE_ID:
-			return odMatrixIterator.getCurrentDestinationId();
+			return odMatrixIterator.getCurrentDestination().getId();
 		case DESTINATION_ZONE_EXTERNAL_ID:
-			return odMatrixIterator.getCurrentDestinationExternalId();
+			return odMatrixIterator.getCurrentDestination().getExternalId();
 		case MODE_ID:
 			return mode.getId();
 		case MODE_EXTERNAL_ID:

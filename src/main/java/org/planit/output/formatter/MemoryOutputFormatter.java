@@ -14,7 +14,7 @@ import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.transport.TransportNetwork;
-import org.planit.odmatrix.ODMatrixIterator;
+import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.output.OutputType;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentODOutputAdapter;
@@ -233,8 +233,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = (TraditionalStaticAssignmentSimulationData) traditionalStaticAssignmentODOutputAdapter
 					.getSimulationData();
 			for (Mode mode : modes) {
-				ODMatrixIterator odMatrixIterator = traditionalStaticAssignmentSimulationData.getODSkimMatrix(mode)
-						.iterator();
+				ODMatrixIterator odMatrixIterator = traditionalStaticAssignmentSimulationData.getODSkimMatrix(mode).iterator();
 				writeResultsForCurrentModeAndTimePeriod(OutputType.OD, odMatrixIterator,
 						traditionalStaticAssignmentODOutputAdapter.getIterationIndex(), mode, timePeriod,
 						(multiKeyPlanItData, outputProperties, outputKeys) -> {

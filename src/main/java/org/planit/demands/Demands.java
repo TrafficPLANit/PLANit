@@ -3,6 +3,7 @@ package org.planit.demands;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.userclass.Mode;
@@ -36,7 +37,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> {
     /**
      * Trip demand matrices
      */
-    protected final TreeMap<TimePeriod, TreeMap<Mode, ODDemand>> odDemands = new TreeMap<TimePeriod, TreeMap<Mode, ODDemand>>();
+    protected final TreeMap<TimePeriod, TreeMap<Mode, ODDemandMatrix>> odDemands = new TreeMap<TimePeriod, TreeMap<Mode, ODDemandMatrix>>();
 
     /**
      * Constructor
@@ -58,10 +59,10 @@ public class Demands extends TrafficAssignmentComponent<Demands> {
      * @return oldODDemand if there already existed an odDemand for the given mode
      *         and time period, the overwritten entry is returned
      */
-    public ODDemand registerODDemand(TimePeriod timePeriod, Mode mode, ODDemand odDemand) {
-        odDemands.putIfAbsent(timePeriod, new TreeMap<Mode, ODDemand>());
-        TreeMap<Mode, ODDemand> tripMatrixByMode = odDemands.get(timePeriod);
-        return tripMatrixByMode.put(mode, odDemand);
+    public ODDemandMatrix registerODDemand(TimePeriod timePeriod, Mode mode, ODDemandMatrix odDemandMatrix) {
+        odDemands.putIfAbsent(timePeriod, new TreeMap<Mode, ODDemandMatrix>());
+        TreeMap<Mode, ODDemandMatrix> tripMatrixByMode = odDemands.get(timePeriod);
+        return tripMatrixByMode.put(mode, odDemandMatrix);
     }
 
     /**
@@ -74,7 +75,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> {
      * @return ODDemand object if found, otherwise null
      */
 
-    public ODDemand get(Mode mode, TimePeriod timePeriod) {
+    public ODDemandMatrix get(Mode mode, TimePeriod timePeriod) {
         if (odDemands.containsKey(timePeriod) && odDemands.get(timePeriod).containsKey(mode)) {
             return odDemands.get(timePeriod).get(mode);
         } else {

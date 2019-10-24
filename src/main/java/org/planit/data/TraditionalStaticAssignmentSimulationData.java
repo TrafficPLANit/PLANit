@@ -6,8 +6,12 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.planit.network.physical.LinkSegment;
-import org.planit.odmatrix.skim.ODSkimMatrix;
+//import org.planit.od.odmatrix.skim.ODSkimMatrixOrig;
+import org.planit.od.odmatrix.skim.ODSkimMatrix;
+import org.planit.output.ODSkimOutputType;
 import org.planit.userclass.Mode;
+import org.planit.zoning.Zone;
+import org.planit.zoning.Zoning;
 
 /**
  * Simulation data which are specific to Traditional Static Assignment
@@ -124,12 +128,12 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
         return modalNetworkSegmentCostsMap.get(mode);
     }
     
-    public void setSkimMatrixValue(Mode mode, long originZone, long destinationZone, double tripCost) {
+    public void setSkimMatrixValue(Mode mode, Zone originZone, Zone destinationZone, double tripCost) {
     	modalSkimMatrixMap.get(mode).setValue(originZone, destinationZone, tripCost);
     }
 
-    public void resetSkimMatrix(Mode mode, int numberOfTravelAnalysisZones) {
-        ODSkimMatrix odSkimMatrix = new ODSkimMatrix(numberOfTravelAnalysisZones);
+    public void resetSkimMatrix(Mode mode, Zoning.Zones zones, ODSkimOutputType odSkimOutputType) {
+        ODSkimMatrix odSkimMatrix = new ODSkimMatrix(zones, odSkimOutputType);
         modalSkimMatrixMap.put(mode, odSkimMatrix);
     }
     

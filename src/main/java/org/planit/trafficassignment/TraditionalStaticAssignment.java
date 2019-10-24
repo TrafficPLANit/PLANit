@@ -14,7 +14,6 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.data.ModeData;
 import org.planit.data.SimulationData;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
-import org.planit.demands.ODDemand;
 import org.planit.event.RequestAccesseeEvent;
 import org.planit.event.listener.InteractorListener;
 import org.planit.exceptions.PlanItException;
@@ -30,7 +29,9 @@ import org.planit.network.physical.Node;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.ConnectoidSegment;
-import org.planit.odmatrix.ODMatrixIterator;
+import org.planit.od.odmatrix.ODMatrixIterator;
+import org.planit.od.odmatrix.demand.ODDemandMatrix;
+import org.planit.output.ODSkimOutputType;
 import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
@@ -120,20 +121,21 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @param shortestPathAlgorithm    shortest path algorithm to be used
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void executeModeTimePeriod(Mode mode, ODDemand odDemands, ModeData currentModeData,
+	private void executeModeTimePeriod(Mode mode, ODDemandMatrix odDemandMatrix, ModeData currentModeData,
 			double[] modalNetworkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
-		ODMatrixIterator odDemandIter = odDemands.iterator();
+		ODMatrixIterator odDemandMatrixIter = odDemandMatrix.iterator();
 		TransportNetwork network = getTransportNetwork();
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 
 		// loop over all available OD demands
 		long previousOriginZoneId = -1;
-		Zone currentOriginZone = null;
 		Pair<Double, EdgeSegment>[] vertexPathCost = null;
-		while (odDemandIter.hasNext()) {
-			double odDemand = odDemandIter.next();
-			long originZoneId = odDemandIter.getCurrentOriginId();
-			long destinationZoneId = odDemandIter.getCurrentDestinationId();
+		while (odDemandMatrixIter.hasNext()) {
+			double odDemand = odDemandMatrixIter.next();
+			Zone currentOriginZone = odDemandMatrixIter.getCurrentOrigin();
+			long originZoneId = currentOriginZone.getId();
+			Zone currentDestinationZone = odDemandMatrixIter.getCurrentDestination();
+			long destinationZoneId = currentDestinationZone.getId();
 
 			if (((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
 
@@ -144,7 +146,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 
 				// UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
 				if (previousOriginZoneId != originZoneId) {
-					currentOriginZone = network.zones.getZone(originZoneId);
 					Centroid originCentroid = currentOriginZone.getCentroid();
 
 					if (originCentroid.exitEdgeSegments.isEmpty()) {
@@ -157,13 +158,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				// UPDATE DESTINATION ZONE
 				// TODO: Costly to lookup destination zone via map whereas we know it is the
 				// next (non-zero demand) id compared to the previous)
-				Zone currentDestinationZone = network.zones.getZone(destinationZoneId);
 				// OD-SHORTEST PATH LOADING
 				double shortestPathCost = 0;
-				if (currentDestinationZone == null) {
-					throw new PlanItException("No zone could be found with destination position in the OD Matrix of  "
-							+ destinationZoneId);
-				}
 				Vertex currentPathStartVertex = currentDestinationZone.getCentroid();
 
 				while (currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId()) {
@@ -185,7 +181,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 					currentPathStartVertex = currentEdgeSegment.getUpstreamVertex();
 				}
 				dualityGapFunction.increaseConvexityBound(odDemand * shortestPathCost);
-				simulationData.setSkimMatrixValue(mode, originZoneId, destinationZoneId, shortestPathCost);
+				simulationData.setSkimMatrixValue(mode, currentOriginZone, currentDestinationZone, shortestPathCost);
 				previousOriginZoneId = originZoneId;
 			}
 		}
@@ -211,8 +207,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 
 			// NETWORK LOADING - PER MODE
 			for (Mode mode : modes) {
-				int numberOfTravelAnalysisZones = demands.get(mode, timePeriod).getNumberOfTravelAnalysisZones();
-				simulationData.resetSkimMatrix(mode, numberOfTravelAnalysisZones);
+				simulationData.resetSkimMatrix(mode, getTransportNetwork().zones, ODSkimOutputType.COST);
 				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode, timePeriod,
 						simulationData.getIterationIndex());
 				simulationData.resetModalNetworkSegmentFlows(mode);
@@ -253,8 +248,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		// AON based network loading
 		ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts,
 				numberOfNetworkSegments, numberOfNetworkVertices);
-		ODDemand odDemands = demands.get(mode, timePeriod);
-		executeModeTimePeriod(mode, odDemands, currentModeData, modalNetworkSegmentCosts, shortestPathAlgorithm);
+		ODDemandMatrix odDemandMatrix = demands.get(mode, timePeriod);
+		executeModeTimePeriod(mode, odDemandMatrix, currentModeData, modalNetworkSegmentCosts, shortestPathAlgorithm);
 		double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows,
 				modalNetworkSegmentCosts, numberOfNetworkSegments);
 		dualityGapFunction.increaseActualSystemTravelTime(totalModeSystemTravelTime);
