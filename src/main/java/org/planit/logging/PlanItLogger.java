@@ -1,5 +1,6 @@
 package org.planit.logging;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
@@ -28,12 +29,27 @@ public class PlanItLogger {
 	/**
 	 * Adds a file handler to the logging 
 	 * 
+	 * Create the log file if it does not already exist
+	 * 
 	 * @param logfileLocation name of the log file to be created
 	 * @param formatter Formatter object
 	 * @throws SecurityException
 	 * @throws IOException
 	 */
 	private static void addHandler(String logfileLocation, Formatter formatter) throws SecurityException, IOException {
+		File logFile = new File(logfileLocation);
+		if (!logFile.exists()) {
+			String[] locations = logfileLocation.split("\\\\");
+			String dirName = "";
+			for (int i=0; i<locations.length-1; i++) {
+				dirName += locations[i];
+			}
+			File dir = new File(dirName);
+			if (!dir.exists()) {
+				dir.mkdirs();
+			}
+			logFile.createNewFile();
+		}
 		Handler fileHandler  = new FileHandler(logfileLocation);
 		if (formatter != null) {
 			fileHandler.setFormatter(formatter);

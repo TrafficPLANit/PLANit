@@ -158,6 +158,22 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
     }
 
     /**
+     * Dispatch an event on creation of a traffic component with two parameters
+     * 
+     * @param newTrafficComponent the traffic component being created
+     * @param parameter1 first parameter object to be used by the event
+     * @param parameter2 second parameter object to be used by the event
+     * @param parameter3 third parameter object to be used by the event
+     * @throws PlanItException thrown if there is an error
+     */
+    private void dispatchTrafficComponentEvent(T newTrafficComponent, Object parameter1, Object parameter2, Object parameter3) throws PlanItException {
+        newTrafficComponent.setEventManager(eventManager);
+        registerEligibleInteractorListener(newTrafficComponent);
+        Event event = new CreatedProjectComponentEvent<T>(newTrafficComponent, parameter1, parameter2, parameter3);
+        eventManager.dispatchEvent(event);
+    }
+
+    /**
      * If the provided traffic component is an interactive listener, it will now be
      * registered as such
      * 
@@ -253,8 +269,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
      * @param parameter1 object which contains any data required to create the component
      * @param parameter2 object which contains any data required to create the component
      * @return the created TrafficAssignmentComponent
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException thrown if there is an error
      */
    public T create(String trafficAssignmentComponentClassName, Object parameter1, Object parameter2) throws PlanItException {
     	T newTrafficComponent = createTrafficComponent(trafficAssignmentComponentClassName);
@@ -264,6 +279,25 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
     }
 
    /**
+    * Create traffic assignment component
+    * 
+    * @param trafficAssignmentComponentClassName
+    *            the derived class name of the traffic assignment component
+    *            (without packages)
+    * @param parameter1 object which contains any data required to create the component
+    * @param parameter2 object which contains any data required to create the component
+    * @param parameter3 object which contains any data required to create the component
+    * @return the created TrafficAssignmentComponent
+    * @throws PlanItException thrown if there is an error
+    */
+   public T create(String trafficAssignmentComponentClassName, Object parameter1, Object parameter2, Object parameter3) throws PlanItException {
+   	  T newTrafficComponent = createTrafficComponent(trafficAssignmentComponentClassName);
+   	  PlanItLogger.info("Created " + trafficAssignmentComponentClassName + ", dispatching creation event" );
+   	  dispatchTrafficComponentEvent(newTrafficComponent, parameter1, parameter2, parameter3);
+      return newTrafficComponent;
+   }
+
+  /**
      * Set the EventManager for this factory
      * 
      * The EventManager must be a singleton for each PlanItProject application.

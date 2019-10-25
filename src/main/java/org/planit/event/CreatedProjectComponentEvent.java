@@ -28,6 +28,11 @@ public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T
     protected Object parameter2;
    
     /**
+     * Third parameter to be used by the event, if required
+     */
+    protected Object parameter3;
+   
+   /**
      * Constructor
      * 
      * @param projectComponent  project component which is created
@@ -36,6 +41,7 @@ public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T
         this.projectComponent = projectComponent;
         parameter1 = null;
         parameter2 = null;
+        parameter3 = null;
     }
     
     /**
@@ -48,7 +54,8 @@ public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T
         this.projectComponent = projectComponent;
         this.parameter1 = parameter;
         parameter2 = null;
-    }
+        parameter3 = null;
+   }
 
     /**
      * Constructor
@@ -61,9 +68,25 @@ public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T
         this.projectComponent = projectComponent;
         this.parameter1 = parameter1;
         this.parameter2 = parameter2;
+        parameter3 = null;
     }
 
     /**
+     * Constructor
+     * 
+     * @param projectComponent  project component which is created
+     * @param parameter1 first parameter to be used by the event
+     * @param parameter2 second parameter to be used by the event
+     * @param parameter3 third parameter to be used by the event
+     */
+    public CreatedProjectComponentEvent(T projectComponent, Object parameter1, Object parameter2, Object parameter3) {
+        this.projectComponent = projectComponent;
+        this.parameter1 = parameter1;
+        this.parameter2 = parameter2;
+        this.parameter3 = parameter3;
+    }
+
+   /**
      * Collect project component that was created
      * 
      * @return projectComponent
@@ -78,5 +101,9 @@ public class CreatedProjectComponentEvent<T extends TrafficAssignmentComponent<T
     
     public Object getParameter2() {
     	return parameter2;
+    }
+    
+    public Object getParameter3() {
+    	return parameter3;
     }
 }

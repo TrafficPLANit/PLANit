@@ -167,11 +167,9 @@ public class CustomPlanItProject {
      * Add a network to the project. If a network with the same id already exists
      * the earlier network is replaced and returned (otherwise null)
      * 
-     * @param physicalNetworkType
-     *            name of physical network class to register
+     * @param physicalNetworkType name of physical network class to register
      * @return the generated physical network
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException  thrown if there is an error
      */
     public PhysicalNetwork createAndRegisterPhysicalNetwork(String physicalNetworkType) throws PlanItException {
         physicalNetwork = physicalNetworkFactory.create(physicalNetworkType);
@@ -184,12 +182,16 @@ public class CustomPlanItProject {
      * 
      * There is only one Zoning class, so no need to pass its name into this method.
      * 
+     * @param physicalNetwork the physical network on which the zoning will be based
      * @return the generated zoning object
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException thrown if there is an error
      */
-    public Zoning createAndRegisterZoning() throws PlanItException {
-        zoning = zoningFactory.create(Zoning.class.getCanonicalName());
+    public Zoning createAndRegisterZoning(PhysicalNetwork physicalNetwork) throws PlanItException {
+    	if (physicalNetwork == null) {
+    		PlanItLogger.severe("The physical network must be defined before definition of zones can begin");
+    		throw new PlanItException("Tried to define zones before the physical network was defined.");
+    	}
+        zoning = zoningFactory.create(Zoning.class.getCanonicalName(), physicalNetwork);
         zonings.put(zoning.getId(), zoning);
         return zoning;
     }
@@ -200,12 +202,16 @@ public class CustomPlanItProject {
      * There is only one Demands class, so no need to pass its name into this
      * method.
      * 
+     * @param zoning Zoning object which defines the zones which will be used in the demand matrix to be created
      * @return the generated demands object
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException thrown if there is an error
      */
-    public Demands createAndRegisterDemands() throws PlanItException {
-        Demands demands = demandsFactory.create(Demands.class.getCanonicalName());
+    public Demands createAndRegisterDemands(Zoning zoning) throws PlanItException {
+    	if (zoning == null) {
+    		PlanItLogger.severe("Zones must be defined before definition of demands can begin");
+    		throw new PlanItException("Tried to define demands before zones were defined.");
+    	}
+        Demands demands = demandsFactory.create(Demands.class.getCanonicalName(), zoning);
         demandsMap.put(demands.getId(), demands);
         return demands;
     }
@@ -246,10 +252,14 @@ public class CustomPlanItProject {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(PhysicalNetwork network, String fileName) throws PlanItException {
+		if (network == null ) {
+			PlanItLogger.severe("Physical network must be read in before initial costs can be read.");
+			throw new PlanItException("Attempted to read in initial costs before the physical network was defined");
+		}
 		if (!initialLinkSegmentCosts.containsKey(network)) {
 			initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
 		}
-		InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(), fileName);
+		InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(), network, fileName);
 		initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
         return initialLinkSegmentCost;
 	}
@@ -264,10 +274,14 @@ public class CustomPlanItProject {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(PhysicalNetwork network, String fileName, TimePeriod timePeriod) throws PlanItException {
+		if (network == null ) {
+			PlanItLogger.severe("Physical network must be read in before initial costs can be read.");
+			throw new PlanItException("Attempted to read in initial costs before the physical network was defined");
+		}
 		if (!initialLinkSegmentCosts.containsKey(network)) {
 			initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
 		}
-		InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(), fileName, timePeriod);
+		InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(), network, fileName, timePeriod);
 		initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
         return initialLinkSegmentCost;
 	}
@@ -282,6 +296,10 @@ public class CustomPlanItProject {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public Map<TimePeriod, InitialLinkSegmentCost> createAndRegisterInitialLinkSegmentCost(PhysicalNetwork network, String fileName, Demands demands) throws PlanItException {
+		if (network == null ) {
+			PlanItLogger.severe("Physical network must be read in before initial costs can be read.");
+			throw new PlanItException("Attempted to read in initial costs before the physical network was defined");
+		}
 		Map<TimePeriod, InitialLinkSegmentCost> initialCostsMap = new HashMap<TimePeriod, InitialLinkSegmentCost>();
 		for (TimePeriod timePeriod : demands.getRegisteredTimePeriods()) {
 			PlanItLogger.info("Registering Initial Link Segment Costs for Time Period " + timePeriod.getId());
