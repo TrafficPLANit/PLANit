@@ -1,5 +1,6 @@
 package org.planit.time;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,7 +51,43 @@ public class TimePeriod implements Comparable<TimePeriod> {
      */
     private static Map<Long, TimePeriod> timePeriodsByExternalId = new HashMap<Long, TimePeriod>();
 
+    
     /**
+     * Convert duration to seconds given start time using the 24-hour clock
+     * 
+     * @param startTime24hour
+     *            start time in 24-hour clock format
+     * @return duration in seconds
+     * @throws PlanItException
+     *             thrown if the input time is not in the correct format
+     */
+    private int convertDurationToSeconds(String startTime24hour) throws PlanItException {
+        int startTime;
+        int startTimeHrs;
+        int startTimeMins;
+        if (startTime24hour.length() != 4) {
+            throw new PlanItException("Start time must contain exactly four digits");
+        }
+        try {
+            startTime = Integer.parseInt(startTime24hour);
+        } catch (NumberFormatException e) {
+            throw new PlanItException("Start time must contain exactly four digits");
+        }
+        if (startTime < 0) {
+            throw new PlanItException("Start time cannot be negative");
+        }
+        if (startTime > 2400) {
+            throw new PlanItException("Start time cannot be later than 2400");
+        }
+        startTimeHrs = startTime % 100;
+        startTimeMins = startTime - 24 * startTimeHrs;
+        if (startTimeMins > 59) {
+            throw new PlanItException("Last two digits of start time cannot exceed 59");
+        }
+        return (startTimeHrs * 3600) + (startTimeMins * 60);
+
+    }
+   /**
      * Constructor
      * 
      * @param externalId
@@ -121,44 +158,16 @@ public class TimePeriod implements Comparable<TimePeriod> {
         timePeriods.put(this.id, this);
         timePeriodsByExternalId.put(this.externalId, this);
     }
-    
-    /**
-     * Convert duration to seconds given start time using the 24-hour clock
-     * 
-     * @param startTime24hour
-     *            start time in 24-hour clock format
-     * @return duration in seconds
-     * @throws PlanItException
-     *             thrown if the input time is not in the correct format
-     */
-    private int convertDurationToSeconds(String startTime24hour) throws PlanItException {
-        int startTime;
-        int startTimeHrs;
-        int startTimeMins;
-        if (startTime24hour.length() != 4) {
-            throw new PlanItException("Start time must contain exactly four digits");
-        }
-        try {
-            startTime = Integer.parseInt(startTime24hour);
-        } catch (NumberFormatException e) {
-            throw new PlanItException("Start time must contain exactly four digits");
-        }
-        if (startTime < 0) {
-            throw new PlanItException("Start time cannot be negative");
-        }
-        if (startTime > 2400) {
-            throw new PlanItException("Start time cannot be later than 2400");
-        }
-        startTimeHrs = startTime % 100;
-        startTimeMins = startTime - 24 * startTimeHrs;
-        if (startTimeMins > 59) {
-            throw new PlanItException("Last two digits of start time cannot exceed 59");
-        }
-        return (startTimeHrs * 3600) + (startTimeMins * 60);
-
-    }
 
     // Public static
+    
+	/**
+	 * Reset the Maps to store created TimePeriod objects
+	 */
+   public static void reset() {
+        timePeriods = new HashMap<Long, TimePeriod>();
+        timePeriodsByExternalId = new HashMap<Long, TimePeriod>();
+    }
 
     /**
      * Store time period by its id and external Id
@@ -193,6 +202,15 @@ public class TimePeriod implements Comparable<TimePeriod> {
     	return timePeriodsByExternalId.get(externalId);
     }
 
+   /**
+    * Return a collection of all registered time period objects
+    *  
+    * @return collection of all registered time period objects
+    */
+   public static Collection<TimePeriod> getAllTimePeriods() {
+	   return timePeriods.values();
+   }
+   
     /**
      * Create a time period given its start time and duration in hours
      * 

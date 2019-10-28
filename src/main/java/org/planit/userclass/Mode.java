@@ -77,6 +77,14 @@ public class Mode implements Comparable<Mode> {
 		modesById.put(this.id, this);
 		modesByExternalId.put(this.externalId, this);
 	}
+	
+	/**
+	 * Reset the Maps to store created Mode objects
+	 */
+	public static void reset() {
+		modesById = new HashMap<Long, Mode>();
+		modesByExternalId = new HashMap<Long, Mode>();
+	}
 
 	/**
 	 * Collect the external ids across all available modes
@@ -117,6 +125,11 @@ public class Mode implements Comparable<Mode> {
 		modesByExternalId.put(mode.getExternalId(), mode);
 	}
 
+	   /**
+	    * Return a collection of all registered mode objects
+	    *  
+	    * @return collection of all registered mode objects
+	    */
 	public static Collection<Mode> getAllModes() {
 		return modesById.values();
 	}

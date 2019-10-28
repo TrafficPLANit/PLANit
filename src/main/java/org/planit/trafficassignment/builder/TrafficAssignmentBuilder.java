@@ -7,12 +7,14 @@ import org.planit.event.management.EventHandler;
 import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.demands.Demands;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
+import org.planit.userclass.Mode;
 import org.planit.zoning.Zoning;
 
 /**
@@ -82,24 +84,29 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
     }
 
     /**
-     * Register demands object
+     * Register the demands and zoning objects
      * 
-     * @param demands
-     *            Demands object to be registered
+     * @param demands Demands object to be registered
+     * @param zoning Zoning object to be registered
+     * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
      */
-    public void registerDemands(Demands demands) {
-        parentAssignment.setDemands(demands);
-    }
-
-    /**
-     * Register zoning object
-     * 
-     * @param zoning
-     *            Zoning object to be registered
-     */
-    public void registerZoning(Zoning zoning) {
+    public void registerDemandsAndZoning(Demands demands, Zoning zoning) throws PlanItException {
+    	int noZonesInZoning = zoning.zones.getNumberOfZones();
+    	for (Mode mode : Mode.getAllModes()) {
+    		for (TimePeriod timePeriod : TimePeriod.getAllTimePeriods()) {
+    			ODDemandMatrix odMatrix = demands.get(mode, timePeriod);
+    			if (odMatrix == null) {
+    				throw new PlanItException("No demands matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
+    			}
+    			int noZonesInDemands = odMatrix.getNumberOfTravelAnalysisZones();
+    			if (noZonesInZoning != noZonesInDemands) {
+    				throw new PlanItException("Zoning object has " + noZonesInZoning + " zones, this is inconsistent with Demands object which has " + noZonesInDemands + " zones for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
+    			}
+    		}
+    	}
         parentAssignment.setZoning(zoning);
-    }
+        parentAssignment.setDemands(demands);
+   }
 
     /**
      * Register an output formatter
