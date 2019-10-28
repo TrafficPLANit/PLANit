@@ -31,12 +31,12 @@ import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
-import org.planit.output.ODSkimOutputType;
-import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentODOutputAdapter;
+import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
+import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -84,7 +84,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @param modes set of modes covered by this assignment
 	 */
 	private void initialiseTimePeriod(Set<Mode> modes) {
-		simulationData = new TraditionalStaticAssignmentSimulationData();
+		OutputConfiguration outputConfiguration = outputManager.getOutputConfiguration();
+		simulationData = new TraditionalStaticAssignmentSimulationData(outputConfiguration);
 		simulationData.setEmptySegmentArray(new double[numberOfNetworkSegments]);
 		simulationData.setConverged(false);
 		simulationData.setIterationIndex(0);
@@ -207,7 +208,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 
 			// NETWORK LOADING - PER MODE
 			for (Mode mode : modes) {
-				simulationData.resetSkimMatrix(mode, getTransportNetwork().zones, ODSkimOutputType.COST);
+				simulationData.resetSkimMatrix(mode, getTransportNetwork().zones);
 				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode, timePeriod,
 						simulationData.getIterationIndex());
 				simulationData.resetModalNetworkSegmentFlows(mode);

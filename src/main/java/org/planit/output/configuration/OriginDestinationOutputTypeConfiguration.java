@@ -1,14 +1,17 @@
 package org.planit.output.configuration;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
-import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
+import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
+import org.planit.output.enums.ODSkimOutputType;
 
 /**
  * The configuration for the origin-destination output type.
@@ -28,13 +31,16 @@ import org.planit.output.property.OutputProperty;
  */
 public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfiguration {
 	
-//TODO - At present origins and destinations only use ID, which is the row and column of the OD matrix
 	public static final int ORIGIN_DESTINATION_ID = 1;
 	public static final int ORIGIN_DESTINATION_EXTERNAL_ID = 2;
 	public static final int ORIGIN_DESTINATION_NOT_IDENTIFIED = 3;
+	
+	private Set<ODSkimOutputType> activeOdSkimOutputTypes;
 
 	public OriginDestinationOutputTypeConfiguration(OutputAdapter outputAdapter) throws PlanItException {
 		super(outputAdapter, OutputType.OD);
+		activeOdSkimOutputTypes = new HashSet<ODSkimOutputType>();
+		activeOdSkimOutputTypes.add(ODSkimOutputType.COST);
 		// add default output properties
 		addProperty(OutputProperty.RUN_ID);
 		addProperty(OutputProperty.TIME_PERIOD_EXTERNAL_ID);
@@ -45,9 +51,9 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 	}
 
 	/**
-	 * Determine how a link is being identified in the output formatter
+	 * Determine how a origin-destination cell is being identified in the output formatter
 	 * 
-	 * @param outputKeyProperties Map of arrays of keys used to identify the link
+	 * @param outputKeyProperties Map of arrays of keys used to identify the origin and destination
 	 * @return the identification method
 	 */
 	@Override
@@ -104,5 +110,27 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 		}
 		return null;
 	}
+	
+	/**
+	 * Activate an ODSkimOutputType for this output type configuration
+	 * 
+	 * @param odSkimOutputType ODSkimOutputType to be activated
+	 */
+	public void activateOdSkimOutputType(ODSkimOutputType odSkimOutputType) {
+		activeOdSkimOutputTypes.add(odSkimOutputType);
+	}
+	
+	/**
+	 * Deactivate an ODSkimOutputType for this output type configuration
+	 * 
+	 * @param odSkimOutputType ODSkimOutputType to be deactivated
+	 */
+    public void deactivateOdSkimOutputType(ODSkimOutputType odSkimOutputType) {
+    	activeOdSkimOutputTypes.remove(odSkimOutputType);
+    }
+    
+    public Set<ODSkimOutputType> getActiveOdSkimOutputTypes() {
+    	return activeOdSkimOutputTypes;
+    }
 	
 }

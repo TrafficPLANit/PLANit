@@ -6,8 +6,8 @@ import java.util.TreeMap;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
-import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
+import org.planit.output.enums.OutputType;
 import org.planit.trafficassignment.TrafficAssignment;
 
 /**

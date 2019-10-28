@@ -15,10 +15,11 @@ import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.od.odmatrix.ODMatrixIterator;
-import org.planit.output.OutputType;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentODOutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
+import org.planit.output.enums.ODSkimOutputType;
+import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -130,7 +131,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	/**
 	 * Store results for current mode, time period and output type
 	 * 
-	 * @param outputType               the current output type
+	 * @param outputTypeConfiguration  the current output type configuration
 	 * @param iterator                 iterator through data to be recorded
 	 * @param iterationIndex           index of current iteration
 	 * @param mode                     current mode
@@ -139,11 +140,12 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 *                                 and key values
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void writeResultsForCurrentModeAndTimePeriod(OutputType outputType, Iterator iterator, int iterationIndex,
-			Mode mode, TimePeriod timePeriod,
+	private void writeResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+			Iterator iterator, int iterationIndex, Mode mode, TimePeriod timePeriod,
 			TriConsumer<MultiKeyPlanItData, OutputProperty[], OutputProperty[]> updateOutputAndKeyValues)
 			throws PlanItException {
 		try {
+			OutputType outputType = outputTypeConfiguration.getOutputType();
 			MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeyProperties.get(outputType),
 					outputValueProperties.get(outputType));
 			OutputProperty[] outputProperties = outputValueProperties.get(outputType);
@@ -204,15 +206,13 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 		TransportNetwork transportNetwork = traditionalStaticAssignmentLinkOutputAdapter.getTransportNetwork();
 		for (Mode mode : modes) {
 			Iterator<LinkSegment> iterator = transportNetwork.linkSegments.iterator();
-			writeResultsForCurrentModeAndTimePeriod(OutputType.LINK, iterator,
+			writeResultsForCurrentModeAndTimePeriod(outputTypeConfiguration, iterator,
 					traditionalStaticAssignmentLinkOutputAdapter.getIterationIndex(), mode, timePeriod,
 					(multiKeyPlanItData, outputProperties, outputKeys) -> {
 						updateOutputAndKeyValuesForLinks(multiKeyPlanItData, outputProperties, outputKeys, iterator,
 								traditionalStaticAssignmentLinkOutputAdapter, mode, timePeriod);
 					});
 		}
-		// lock configuration properties for this output type
-		lockOutputProperties(OutputType.LINK);
 	}
 
 	/**
@@ -232,17 +232,19 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 					.getOutputAdapter();
 			TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = (TraditionalStaticAssignmentSimulationData) traditionalStaticAssignmentODOutputAdapter
 					.getSimulationData();
-			for (Mode mode : modes) {
-				ODMatrixIterator odMatrixIterator = traditionalStaticAssignmentSimulationData.getODSkimMatrix(mode).iterator();
-				writeResultsForCurrentModeAndTimePeriod(OutputType.OD, odMatrixIterator,
-						traditionalStaticAssignmentODOutputAdapter.getIterationIndex(), mode, timePeriod,
-						(multiKeyPlanItData, outputProperties, outputKeys) -> {
-							updateOutputAndKeyValuesForOD(multiKeyPlanItData, outputProperties, outputKeys,
-									odMatrixIterator, traditionalStaticAssignmentODOutputAdapter, mode, timePeriod);
-						});
+			for (ODSkimOutputType odSkimOutputType : traditionalStaticAssignmentSimulationData
+					.getActiveSkimOutputTypes()) {
+				for (Mode mode : modes) {
+					ODMatrixIterator odMatrixIterator = traditionalStaticAssignmentSimulationData
+							.getODSkimMatrix(odSkimOutputType, mode).iterator();
+					writeResultsForCurrentModeAndTimePeriod(outputTypeConfiguration, odMatrixIterator,
+							traditionalStaticAssignmentODOutputAdapter.getIterationIndex(), mode, timePeriod,
+							(multiKeyPlanItData, outputProperties, outputKeys) -> {
+								updateOutputAndKeyValuesForOD(multiKeyPlanItData, outputProperties, outputKeys,
+										odMatrixIterator, traditionalStaticAssignmentODOutputAdapter, mode, timePeriod);
+							});
+				}
 			}
-			// lock configuration properties for this output type
-			lockOutputProperties(OutputType.OD);
 		} catch (Exception e) {
 			throw new PlanItException(e);
 		}

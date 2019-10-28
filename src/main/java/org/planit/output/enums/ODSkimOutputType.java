@@ -1,4 +1,4 @@
-package org.planit.output;
+package org.planit.output.enums;
 
 public enum ODSkimOutputType {
 	

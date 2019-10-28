@@ -4,7 +4,7 @@ import java.io.File;
 import java.nio.file.Files;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.output.OutputType;
+import org.planit.output.enums.OutputType;
 import org.planit.time.TimePeriod;
 
 /**

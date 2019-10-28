@@ -44,10 +44,20 @@ public abstract class SimulationData {
         this.converged = converged;
     }
 
+    /**
+     * Returns the current iteration index
+     * 
+     * @return the current iteration index
+     */
     public int getIterationIndex() {
         return iterationIndex;
     }
 
+    /**
+     * Set the current iteration index
+     * 
+     * @param iterationIndex the current iteration index
+     */
     public void setIterationIndex(int iterationIndex) {
         this.iterationIndex = iterationIndex;
     }

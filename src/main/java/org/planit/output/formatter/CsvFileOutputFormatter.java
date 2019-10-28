@@ -19,11 +19,12 @@ import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.output.OutputType;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentODOutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
+import org.planit.output.enums.ODSkimOutputType;
+import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -32,10 +33,10 @@ import org.planit.utils.OutputUtils;
 public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
 	/**
-	 * Map of list of  CSV output file names for each OutputType
+	 * Map of list of CSV output file names for each OutputType
 	 */
 	protected Map<OutputType, List<String>> csvFileNameMap;
-	
+
 	/**
 	 * Write output values to the OD CSV file for the current iteration
 	 * 
@@ -43,33 +44,42 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	 * @param modes         Set of modes for the current assignment
 	 * @param timePeriod    the current time period
 	 * @param csvPrinter    CSVPrinter object to record results for this iteration
-	 * @return PlanItException thrown if the CSV file cannot be created or written to
+	 * @return PlanItException thrown if the CSV file cannot be created or written
+	 *         to
 	 */
-	protected PlanItException writeOdResultsForCurrentTimePeriodToCsvPrinter(OutputTypeConfiguration outputTypeConfiguration, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
+	protected PlanItException writeOdResultsForCurrentTimePeriodToCsvPrinter(
+			OutputTypeConfiguration outputTypeConfiguration, Set<Mode> modes, TimePeriod timePeriod,
+			CSVPrinter csvPrinter) {
 		try {
-			TraditionalStaticAssignmentODOutputAdapter traditionalStaticAssignmentODOutputAdapter = (TraditionalStaticAssignmentODOutputAdapter) outputTypeConfiguration.getOutputAdapter();
+			TraditionalStaticAssignmentODOutputAdapter traditionalStaticAssignmentODOutputAdapter = (TraditionalStaticAssignmentODOutputAdapter) outputTypeConfiguration
+					.getOutputAdapter();
 			TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = (TraditionalStaticAssignmentSimulationData) traditionalStaticAssignmentODOutputAdapter
 					.getSimulationData();
-			SortedSet<BaseOutputProperty> outputProperties = traditionalStaticAssignmentODOutputAdapter.getOutputProperties();
-			for (Mode mode : modes) {
-				ODSkimMatrix odSkimMatrix = traditionalStaticAssignmentSimulationData.getODSkimMatrix(mode);
-				ODMatrixIterator odMatrixIterator = odSkimMatrix.iterator();
-				while (odMatrixIterator.hasNext()) {
-					odMatrixIterator.next();
-					List<Object> rowValues = outputProperties.stream()
-							.map(outputProperty -> traditionalStaticAssignmentODOutputAdapter.getOdPropertyValue(outputProperty.getOutputProperty(), odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier()))
-							.map(outValue -> OutputUtils.formatObject(outValue))
-							.collect(Collectors.toList());
-					csvPrinter.printRecord(rowValues);
+			SortedSet<BaseOutputProperty> outputProperties = traditionalStaticAssignmentODOutputAdapter
+					.getOutputProperties();
+			for (ODSkimOutputType odSkimOutputType : traditionalStaticAssignmentSimulationData
+					.getActiveSkimOutputTypes()) {
+				for (Mode mode : modes) {
+					ODSkimMatrix odSkimMatrix = traditionalStaticAssignmentSimulationData
+							.getODSkimMatrix(odSkimOutputType, mode);
+					ODMatrixIterator odMatrixIterator = odSkimMatrix.iterator();
+					while (odMatrixIterator.hasNext()) {
+						odMatrixIterator.next();
+						List<Object> rowValues = outputProperties.stream()
+								.map(outputProperty -> traditionalStaticAssignmentODOutputAdapter.getOdPropertyValue(
+										outputProperty.getOutputProperty(), odMatrixIterator, mode, timePeriod,
+										outputTimeUnit.getMultiplier()))
+								.map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
+						csvPrinter.printRecord(rowValues);
+					}
 				}
 			}
-			lockOutputProperties(OutputType.OD);
 		} catch (Exception e) {
 			return new PlanItException(e);
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Write output values to the Link CSV file for the current iteration
 	 * 
@@ -77,33 +87,38 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	 * @param modes         Set of modes for the current assignment
 	 * @param timePeriod    the current time period
 	 * @param csvPrinter    CSVPrinter object to record results for this iteration
-	 * @return PlanItException thrown if the CSV file cannot be created or written to
+	 * @return PlanItException thrown if the CSV file cannot be created or written
+	 *         to
 	 */
-	protected PlanItException writeLinkResultsForCurrentTimePeriodToCsvPrinter(OutputTypeConfiguration outputTypeConfiguration, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
-		TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter = (TraditionalStaticAssignmentLinkOutputAdapter) outputTypeConfiguration.getOutputAdapter();
+	protected PlanItException writeLinkResultsForCurrentTimePeriodToCsvPrinter(
+			OutputTypeConfiguration outputTypeConfiguration, Set<Mode> modes, TimePeriod timePeriod,
+			CSVPrinter csvPrinter) {
+		TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter = (TraditionalStaticAssignmentLinkOutputAdapter) outputTypeConfiguration
+				.getOutputAdapter();
 		TransportNetwork transportNetwork = traditionalStaticAssignmentLinkOutputAdapter.getTransportNetwork();
 		try {
-			SortedSet<BaseOutputProperty> outputProperties = traditionalStaticAssignmentLinkOutputAdapter.getOutputProperties();
+			SortedSet<BaseOutputProperty> outputProperties = traditionalStaticAssignmentLinkOutputAdapter
+					.getOutputProperties();
 			for (Mode mode : modes) {
 				Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
 				while (linkSegmentIter.hasNext()) {
 					MacroscopicLinkSegment linkSegment = (MacroscopicLinkSegment) linkSegmentIter.next();
 					if (traditionalStaticAssignmentLinkOutputAdapter.isFlowPositive(linkSegment, mode)) {
 						List<Object> rowValues = outputProperties.stream()
-								.map(outputProperty -> traditionalStaticAssignmentLinkOutputAdapter.getLinkPropertyValue(outputProperty.getOutputProperty(), linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier()))
-								.map(outValue -> OutputUtils.formatObject(outValue))
-								.collect(Collectors.toList());
+								.map(outputProperty -> traditionalStaticAssignmentLinkOutputAdapter
+										.getLinkPropertyValue(outputProperty.getOutputProperty(), linkSegment, mode,
+												timePeriod, outputTimeUnit.getMultiplier()))
+								.map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
 						csvPrinter.printRecord(rowValues);
 					}
 				}
 			}
-			lockOutputProperties(OutputType.LINK);
 		} catch (Exception e) {
 			return new PlanItException(e);
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Open the CSV output file and write the headers to it
 	 * 
@@ -116,13 +131,14 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	 */
 	protected CSVPrinter openCsvFileAndWriteHeaders(OutputAdapter outputAdapter, String csvFileName) throws Exception {
 		CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(csvFileName), CSVFormat.EXCEL);
-		List<String> headerValues = outputAdapter.getOutputProperties().stream().map(BaseOutputProperty::getName).collect(Collectors.toList());
+		List<String> headerValues = outputAdapter.getOutputProperties().stream().map(BaseOutputProperty::getName)
+				.collect(Collectors.toList());
 		csvPrinter.printRecord(headerValues);
 		return csvPrinter;
 	}
 
 	/**
-	 * Add a new  name of the CSV output file for a specified output type
+	 * Add a new name of the CSV output file for a specified output type
 	 * 
 	 * @param outputType     the specified output type
 	 * @param outputFileName the name of the output file to be added
@@ -133,7 +149,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 		}
 		csvFileNameMap.get(outputType).add(csvFileName);
 	}
-	
+
 	/**
 	 * Constructor
 	 */

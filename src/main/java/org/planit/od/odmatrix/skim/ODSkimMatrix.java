@@ -1,7 +1,7 @@
 package org.planit.od.odmatrix.skim;
 
 import org.planit.od.odmatrix.ODMatrix;
-import org.planit.output.ODSkimOutputType;
+import org.planit.output.enums.ODSkimOutputType;
 import org.planit.zoning.Zoning;
 
 /**

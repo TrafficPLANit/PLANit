@@ -1,8 +1,6 @@
 package org.planit.output.formatter;
 
-import java.util.List;
-
-import org.planit.output.OutputType;
+import org.planit.output.enums.OutputType;
 
 /**
  * This interfaces defines behaviours which output formatters which generate an XML output file must have.

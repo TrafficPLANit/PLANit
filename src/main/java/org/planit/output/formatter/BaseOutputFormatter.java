@@ -6,13 +6,13 @@ import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.output.OutputManager;
-import org.planit.utils.IdGenerator;
+import org.planit.output.configuration.OutputTypeConfiguration;
+import org.planit.output.enums.OutputTimeUnit;
+import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
-import org.planit.output.OutputType;
-import org.planit.output.configuration.OutputTypeConfiguration;
-import org.planit.output.enums.OutputTimeUnit;
+import org.planit.utils.IdGenerator;
 
 /**
  * Base class for all formatters of output data, i.e. persistence of certain
@@ -192,6 +192,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 			writeSimulationResultsForCurrentTimePeriod(outputTypeConfiguration, modes, timePeriod);
 			break;
 		}
+		lockOutputProperties(outputType);
 	}
 
 	// getters - setters
