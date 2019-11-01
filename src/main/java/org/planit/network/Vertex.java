@@ -1,7 +1,6 @@
 package org.planit.network;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -22,22 +21,16 @@ public class Vertex implements Comparable<Vertex> {
      * 
      * @author markr
      */
-    public class Edges implements Iterable<Edge> {
+	public class Edges {
 
         protected Set<Edge> edges = new TreeSet<Edge>();
-
-        @Override
-        public Iterator<Edge> iterator() {
-            return edges.iterator();
-        }
 
         /**
          * Add edge, do not invoke when parsing networks, this connection is
          * auto-populated before the assignment starts based on the edge and its two
          * vertices that have been registered.
          * 
-         * @param edge
-         *            Edge to be added
+         * @param edge Edge to be added
          * @return true when added, false when already present (and not added)
          */
         public boolean addEdge(Edge edge) {
@@ -47,12 +40,20 @@ public class Vertex implements Comparable<Vertex> {
         /**
          * Remove edge
          * 
-         * @param edge
-         *            Edge to be removed
+         * @param edge Edge to be removed
          * @return true when removed, false when not present (and not removed)
          */
         public boolean removeEdge(Edge edge) {
             return edges.remove(edge);
+        }
+        
+        /**
+         * Returns a Set of Edge objects
+         * 
+         * @return Set of Edge objects
+         */
+        public Set<Edge> getEdges() {
+        	return edges;
         }
     }
 
@@ -61,25 +62,19 @@ public class Vertex implements Comparable<Vertex> {
      * 
      * @author markr
      */
-    public class EdgeSegments implements Iterable<EdgeSegment> {
+	public class EdgeSegments {
 
         /**
          * Edge segments which connect to this vertex
          */
         protected Set<EdgeSegment> edgeSegments = new TreeSet<EdgeSegment>();
 
-        @Override
-        public Iterator<EdgeSegment> iterator() {
-            return edgeSegments.iterator();
-        }
-
         /**
          * Add edgeSegment, do not invoke when parsing networks, this connection is
          * auto-populated before the assignment starts based on the edge segment
          * vertices that have been registered.
          * 
-         * @param edgeSegment
-         *            EdgeSegment object to be added
+         * @param edgeSegment EdgeSegment object to be added
          * @return true when added, false when already present (and not added)
          */
         public boolean addEdgeSegment(EdgeSegment edgeSegment) {
@@ -89,8 +84,7 @@ public class Vertex implements Comparable<Vertex> {
         /**
          * Remove edgeSegment
          * 
-         * @param edgeSegment
-         *            EdgeSegment object to be removed
+         * @param edgeSegment EdgeSegment object to be removed
          * @return true when removed, false when not present (and not removed)
          */
         public boolean removeEdgeSegment(EdgeSegment edgeSegment) {
@@ -104,6 +98,15 @@ public class Vertex implements Comparable<Vertex> {
          */
         public boolean isEmpty() {
             return edgeSegments.isEmpty();
+        }
+        
+        /**
+         * Return Set of EdgeSegment objects
+         * 
+         * @return Set of EdgeSegment objects
+         */
+        public Set<EdgeSegment> getEdgeSegments() {
+        	return edgeSegments;
         }
     }
 
@@ -173,10 +176,8 @@ public class Vertex implements Comparable<Vertex> {
      * Add a property from the original input that is not part of the readily
      * available members
      * 
-     * @param key
-     *            key (name) of the input property
-     * @param value
-     *            value of the input property
+     * @param key key (name) of the input property
+     * @param value value of the input property
      */
     public void addInputProperty(String key, Object value) {
         if (inputProperties == null) {
@@ -188,8 +189,7 @@ public class Vertex implements Comparable<Vertex> {
     /**
      * Get input property by its key
      * 
-     * @param key
-     *            the key of the input property
+     * @param key the key of the input property
      * @return value the value of the input property
      */
     public Object getInputProperty(String key) {
@@ -199,8 +199,7 @@ public class Vertex implements Comparable<Vertex> {
     /**
      * Compare vertices by their id
      * 
-     * @param o
-     *            Vertex object to be compared to this one
+     * @param o Vertex object to be compared to this one
      * @return result of comparison
      * @see java.lang.Comparable#compareTo(java.lang.Object)
      */

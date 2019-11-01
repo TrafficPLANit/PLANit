@@ -1,7 +1,6 @@
 package org.planit.cost.physical;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.planit.interactor.InteractorAccessee;
@@ -72,14 +71,6 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 			return parametersMap.get(mode);
 		}
 
-		/**
-		 * Returns an iterator through the modes which have BPR parameters set
-		 * 
-		 * @return iterator through Mode objects which have BPR parameters set
-		 */
-		public Iterator<Mode> getModeIterator() {
-			return parametersMap.keySet().iterator();
-		}
 	}
 
 	/**
@@ -232,9 +223,8 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	public void initialiseCostsBeforeEquilibration(PhysicalNetwork physicalNetwork) {
 		MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) physicalNetwork;
 		bprParametersPerLinkSegment = new BPRParameters[macroscopicNetwork.linkSegments.getNumberOfLinkSegments()];
-		Iterator<LinkSegment> linkSegmentIterator = macroscopicNetwork.linkSegments.iterator();
-		while (linkSegmentIterator.hasNext()) {
-			MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegmentIterator.next();
+		for (LinkSegment linkSegment : macroscopicNetwork.linkSegments.toList()) {
+			MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
 			int id = (int) macroscopicLinkSegment.getId();
 			bprParametersPerLinkSegment[id] = new BPRParameters();
 			MacroscopicLinkSegmentType macroscopicLinkSegmentType = macroscopicLinkSegment.getLinkSegmentType();

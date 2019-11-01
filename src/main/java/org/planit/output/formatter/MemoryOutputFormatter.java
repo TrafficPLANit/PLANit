@@ -1,6 +1,5 @@
 package org.planit.output.formatter;
 
-import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -8,22 +7,22 @@ import org.apache.commons.collections.keyvalue.MultiKey;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
 import org.planit.data.MultiKeyPlanItData;
-import org.planit.data.TraditionalStaticAssignmentSimulationData;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.od.odmatrix.ODMatrixIterator;
-import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
-import org.planit.output.adapter.TraditionalStaticAssignmentODOutputAdapter;
+import org.planit.od.odmatrix.skim.ODSkimMatrix;
+import org.planit.output.adapter.OutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.ODSkimOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
-import org.planit.utils.TriConsumer;
 
 public class MemoryOutputFormatter extends BaseOutputFormatter {
 
@@ -77,8 +76,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 *                                                     recorded
 	 * @param outputKeys                                   OutputProperty array of
 	 *                                                     key types to be recorded
-	 * @param iterator                                     iterator to iterator
-	 *                                                     through link segments
+	 * @param linkSegment                                  the current link segment
 	 * @param traditionalStaticAssignmentLinkOutputAdapter output adapter to provide
 	 *                                                     methods to get the
 	 *                                                     property values
@@ -86,11 +84,11 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @param timePeriod                                   the current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void updateOutputAndKeyValuesForLinks(MultiKeyPlanItData multiKeyPlanItData,
-			OutputProperty[] outputProperties, OutputProperty[] outputKeys, Iterator<LinkSegment> iterator,
-			TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter, Mode mode,
+	private void updateOutputAndKeyValuesForLink(MultiKeyPlanItData multiKeyPlanItData,
+			OutputProperty[] outputProperties, OutputProperty[] outputKeys, LinkSegment linkSegment,
+			TraditionalStaticAssignmentLinkOutputTypeAdapter traditionalStaticAssignmentLinkOutputAdapter, Mode mode,
 			TimePeriod timePeriod) throws PlanItException {
-		MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) iterator.next();
+		MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
 		if (traditionalStaticAssignmentLinkOutputAdapter.isFlowPositive(macroscopicLinkSegment, mode)) {
 			updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
 				return traditionalStaticAssignmentLinkOutputAdapter.getLinkPropertyValue(label, macroscopicLinkSegment,
@@ -119,7 +117,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 */
 	private void updateOutputAndKeyValuesForOD(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties,
 			OutputProperty[] outputKeys, ODMatrixIterator odMatrixIterator,
-			TraditionalStaticAssignmentODOutputAdapter traditionalStaticAssignmentODOutputAdapter, Mode mode,
+			TraditionalStaticAssignmentODOutputTypeAdapter traditionalStaticAssignmentODOutputAdapter, Mode mode,
 			TimePeriod timePeriod) throws PlanItException {
 		odMatrixIterator.next();
 		updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
@@ -129,48 +127,18 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	}
 
 	/**
-	 * Store results for current mode, time period and output type
-	 * 
-	 * @param outputTypeConfiguration  the current output type configuration
-	 * @param iterator                 iterator through data to be recorded
-	 * @param iterationIndex           index of current iteration
-	 * @param mode                     current mode
-	 * @param timePeriod               current time period
-	 * @param updateOutputAndKeyValues lambda function to update and store output
-	 *                                 and key values
-	 * @throws PlanItException thrown if there is an error
-	 */
-	private void writeResultsForCurrentModeAndTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
-			Iterator iterator, int iterationIndex, Mode mode, TimePeriod timePeriod,
-			TriConsumer<MultiKeyPlanItData, OutputProperty[], OutputProperty[]> updateOutputAndKeyValues)
-			throws PlanItException {
-		try {
-			OutputType outputType = outputTypeConfiguration.getOutputType();
-			MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeyProperties.get(outputType),
-					outputValueProperties.get(outputType));
-			OutputProperty[] outputProperties = outputValueProperties.get(outputType);
-			OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
-			while (iterator.hasNext()) {
-				updateOutputAndKeyValues.accept(multiKeyPlanItData, outputProperties, outputKeys);
-			}
-			timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
-		} catch (Exception e) {
-			throw new PlanItException(e);
-		}
-	}
-
-	/**
 	 * Write Simulation results for the current time period to the CSV file
 	 * 
 	 * @param outputTypeConfiguration OutputTypeConfiguration for current
 	 *                                persistence
+	 * @param outputTypeAdapter       OutputTypeAdapter for the current persistence
 	 * @param modes                   Set of modes of travel
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
 	protected void writeSimulationResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
-			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
+			OutputTypeAdapter outputTypeAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
 		PlanItLogger.info("Memory Output for OutputType SIMULATION has not been implemented yet.");
 	}
 
@@ -179,13 +147,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * 
 	 * @param outputTypeConfiguration OutputTypeConfiguration for current
 	 *                                persistence
+	 * @param outputTypeAdapter       OutputTypeAdapter for the current persistence
 	 * @param modes                   Set of current modes of travel
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
 	protected void writeGeneralResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
-			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
+			OutputTypeAdapter outputTypeAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
 		PlanItLogger.info("Memory Output for OutputType GENERAL has not been implemented yet.");
 	}
 
@@ -194,24 +163,27 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * 
 	 * @param outputTypeConfiguration OutputTypeConfiguration for current
 	 *                                persistence
+	 * @param outputTypeAdapter       OutputTypeAdapter for the current persistence
 	 * @param modes                   Set of modes of travel
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
 	protected void writeLinkResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
-			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
-		TraditionalStaticAssignmentLinkOutputAdapter traditionalStaticAssignmentLinkOutputAdapter = (TraditionalStaticAssignmentLinkOutputAdapter) outputTypeConfiguration
-				.getOutputAdapter();
-		TransportNetwork transportNetwork = traditionalStaticAssignmentLinkOutputAdapter.getTransportNetwork();
+			OutputTypeAdapter outputTypeAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
+		OutputType outputType = outputTypeConfiguration.getOutputType();
+		OutputProperty[] outputProperties = outputValueProperties.get(outputType);
+		OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
+		TraditionalStaticAssignmentLinkOutputTypeAdapter traditionalStaticAssignmentLinkOutputTypeAdapter = (TraditionalStaticAssignmentLinkOutputTypeAdapter) outputTypeAdapter;
+		int iterationIndex = traditionalStaticAssignmentLinkOutputTypeAdapter.getIterationIndex();
+		TransportNetwork transportNetwork = traditionalStaticAssignmentLinkOutputTypeAdapter.getTransportNetwork();
 		for (Mode mode : modes) {
-			Iterator<LinkSegment> iterator = transportNetwork.linkSegments.iterator();
-			writeResultsForCurrentModeAndTimePeriod(outputTypeConfiguration, iterator,
-					traditionalStaticAssignmentLinkOutputAdapter.getIterationIndex(), mode, timePeriod,
-					(multiKeyPlanItData, outputProperties, outputKeys) -> {
-						updateOutputAndKeyValuesForLinks(multiKeyPlanItData, outputProperties, outputKeys, iterator,
-								traditionalStaticAssignmentLinkOutputAdapter, mode, timePeriod);
-					});
+			MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
+			for (LinkSegment linkSegment : transportNetwork.linkSegments.toList()) {
+				updateOutputAndKeyValuesForLink(multiKeyPlanItData, outputProperties, outputKeys, linkSegment,
+						traditionalStaticAssignmentLinkOutputTypeAdapter, mode, timePeriod);
+			}
+			timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
 		}
 	}
 
@@ -220,33 +192,28 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * 
 	 * @param outputTypeConfiguration OutputTypeConfiguration for current
 	 *                                persistence
+	 * @param outputTypeAdapter       OutputTypeAdapter for the current persistence
 	 * @param modes                   Set of modes of travel
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	protected void writeOdResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, Set<Mode> modes,
-			TimePeriod timePeriod) throws PlanItException {
-		try {
-			TraditionalStaticAssignmentODOutputAdapter traditionalStaticAssignmentODOutputAdapter = (TraditionalStaticAssignmentODOutputAdapter) outputTypeConfiguration
-					.getOutputAdapter();
-			TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = (TraditionalStaticAssignmentSimulationData) traditionalStaticAssignmentODOutputAdapter
-					.getSimulationData();
-			for (ODSkimOutputType odSkimOutputType : traditionalStaticAssignmentSimulationData
-					.getActiveSkimOutputTypes()) {
-				for (Mode mode : modes) {
-					ODMatrixIterator odMatrixIterator = traditionalStaticAssignmentSimulationData
-							.getODSkimMatrix(odSkimOutputType, mode).iterator();
-					writeResultsForCurrentModeAndTimePeriod(outputTypeConfiguration, odMatrixIterator,
-							traditionalStaticAssignmentODOutputAdapter.getIterationIndex(), mode, timePeriod,
-							(multiKeyPlanItData, outputProperties, outputKeys) -> {
-								updateOutputAndKeyValuesForOD(multiKeyPlanItData, outputProperties, outputKeys,
-										odMatrixIterator, traditionalStaticAssignmentODOutputAdapter, mode, timePeriod);
-							});
+	protected void writeOdResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+			OutputTypeAdapter outputTypeAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
+		OutputType outputType = outputTypeConfiguration.getOutputType();
+		OutputProperty[] outputProperties = outputValueProperties.get(outputType);
+		OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
+		TraditionalStaticAssignmentODOutputTypeAdapter traditionalStaticAssignmentODOutputTypeAdapter = (TraditionalStaticAssignmentODOutputTypeAdapter) outputTypeAdapter;
+		int iterationIndex = traditionalStaticAssignmentODOutputTypeAdapter.getIterationIndex();
+		for (ODSkimOutputType odSkimOutputType : traditionalStaticAssignmentODOutputTypeAdapter.getActiveSkimOutputTypes()) {
+			for (Mode mode : modes) {
+				MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
+				ODSkimMatrix odSkimMatrix = traditionalStaticAssignmentODOutputTypeAdapter.getODSkimMatrix(odSkimOutputType, mode);
+				for (ODMatrixIterator odMatrixIterator = odSkimMatrix.iterator(); odMatrixIterator.hasNext();) {
+					updateOutputAndKeyValuesForOD(multiKeyPlanItData, outputProperties, outputKeys, odMatrixIterator, traditionalStaticAssignmentODOutputTypeAdapter, mode, timePeriod);
 				}
+				timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType,	multiKeyPlanItData);
 			}
-		} catch (Exception e) {
-			throw new PlanItException(e);
 		}
 	}
 
@@ -266,10 +233,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @param outputType     value of output type key
 	 * @return data map for the specified keys
 	 */
-	public MultiKeyPlanItData getOutputData(Mode mode, TimePeriod timePeriod, Integer iterationIndex,
-			OutputType outputType) {
-		return (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex,
-				outputType);
+	public MultiKeyPlanItData getOutputData(Mode mode, TimePeriod timePeriod, Integer iterationIndex, OutputType outputType) {
+		return (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex,	outputType);
 	}
 
 	/**

@@ -43,8 +43,6 @@ public class ODMatrixIterator implements ODDataIterator<Double> {
 
     /**
      * Returns the value in the current cells and increments the current position
-     * 
-     * @return the value in the current cell
      */
 	@Override
 	public Double next() {

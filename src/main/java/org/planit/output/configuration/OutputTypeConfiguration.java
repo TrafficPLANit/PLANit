@@ -1,14 +1,16 @@
 package org.planit.output.configuration;
 
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.function.Function;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.output.property.OutputPropertyPriority;
+import org.planit.trafficassignment.TrafficAssignment;
 
 /**
  * Configuration for a specific output type including the adapter allowing
@@ -20,25 +22,39 @@ import org.planit.output.property.OutputPropertyPriority;
 public abstract class OutputTypeConfiguration {
 
     /**
-     * The output adapter for the output type which provides access the data when
-     * needed to the one utilizing this configuration for persistence reasons
-     */
-    protected final OutputAdapter outputAdapter;
-    
-    /**
      * The output type being used with the current instance - this must be set in each concrete class which extends OutputTypeConfiguration
      */
     protected OutputType outputType;
 
-   /**
-     * OutputTypeconfiguration constructor
-     * 
-     * @param outputAdapter   to access data for output persistence
-     * @param outputType  the output type being created
-     */
-    public OutputTypeConfiguration(OutputAdapter outputAdapter, OutputType outputType) {
-        this.outputAdapter = outputAdapter;
+    /**
+	 * Output properties to be included in the CSV output files
+	 */
+	protected SortedSet<BaseOutputProperty> outputProperties;
+
+	/**
+	 * Filters output properties in the OutputAdapter and outputs them as an array
+	 * 
+	 * @param test lambda function to filter which output properties should be included
+	 * @return array containing the relevant OutputProperty objects
+	 */
+	private OutputProperty[] getOutputPropertyArray(Function<BaseOutputProperty, Boolean> test) {
+		OutputProperty[] outputPropertyArray = outputProperties.stream()
+				                                                                                     .filter(baseOutputProperty -> test.apply(baseOutputProperty))
+				                                                                                     .map(BaseOutputProperty::getOutputProperty)
+				                                                                                     .toArray(OutputProperty[]::new);
+		return outputPropertyArray;
+	}
+
+/**
+ * OutputTypeconfiguration constructor
+ * 
+ * @param trafficAssignent TrafficAssignment object whose results are being reported
+ * @param outputType  the output type being created
+ * @throws PlanItException 
+ */
+ 	public OutputTypeConfiguration(TrafficAssignment trafficAssignment, OutputType outputType) throws PlanItException {
         this.outputType = outputType;
+        outputProperties = new TreeSet<BaseOutputProperty>();
     }
 
  	/**
@@ -50,7 +66,6 @@ public abstract class OutputTypeConfiguration {
 		return outputType;
 	}
 
-	
 	/**
 	 * Add an output property to be included in the output files
 	 * 
@@ -59,7 +74,7 @@ public abstract class OutputTypeConfiguration {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public void addProperty(String propertyClassName) throws PlanItException {
-		outputAdapter.addProperty(BaseOutputProperty.convertToBaseOutputProperty(propertyClassName));
+		outputProperties.add(BaseOutputProperty.convertToBaseOutputProperty(propertyClassName));
 	}
 
 	/**
@@ -70,7 +85,7 @@ public abstract class OutputTypeConfiguration {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public void addProperty(OutputProperty outputProperty) throws PlanItException {
-		outputAdapter.addProperty(BaseOutputProperty.convertToBaseOutputProperty(outputProperty));
+		outputProperties.add(BaseOutputProperty.convertToBaseOutputProperty(outputProperty));
 	}
 
 	/**
@@ -83,7 +98,7 @@ public abstract class OutputTypeConfiguration {
 	 * @throws PlanItException thrown if there is an error removing the property
 	 */
 	public boolean removeProperty(String propertyClassName) throws PlanItException {
-		return outputAdapter.removeProperty(BaseOutputProperty.convertToBaseOutputProperty(propertyClassName));
+		return outputProperties.remove(BaseOutputProperty.convertToBaseOutputProperty(propertyClassName));
 	}
 
 	/**
@@ -97,14 +112,13 @@ public abstract class OutputTypeConfiguration {
 	 * @throws PlanItException thrown if there is an error removing the property
 	 */
 	public boolean removeProperty(OutputProperty outputProperty) throws PlanItException {
-		return outputAdapter.removeProperty(BaseOutputProperty.convertToBaseOutputProperty(outputProperty));
+		return outputProperties.remove(BaseOutputProperty.convertToBaseOutputProperty(outputProperty));
 	}
 
 	/**
 	 * Include all available output properties in the output files
 	 * 
-	 * @throws PlanItException thrown if there is an error setting up the output
-	 *                         property list
+	 * @throws PlanItException thrown if there is an error setting up the output property list
 	 */
 	public void addAllProperties() throws PlanItException {
 		for (OutputProperty outputProperty : OutputProperty.values()) {
@@ -116,16 +130,7 @@ public abstract class OutputTypeConfiguration {
 	 * Remove all properties from the current output list
 	 */
 	public void removeAllProperties() {
-		outputAdapter.removeAllProperties();
-	}
-
-	/**
-	 * Returns the OutputAdapter being used for this configuration
-	 * 
-	 * @return the OutputAdapter being used
-	 */
-	public OutputAdapter getOutputAdapter() {
-		return outputAdapter;
+		outputProperties.clear();
 	}
 
 	/**
@@ -136,7 +141,7 @@ public abstract class OutputTypeConfiguration {
 	 * @return array of output key properties used in the LinkOutputAdapter
 	 */
 	public OutputProperty[] getOutputKeyProperties() {
-		return getOutputProperties(baseOutputProperty -> {
+		return getOutputPropertyArray(baseOutputProperty -> {
 			return baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY);
 		});
 	}
@@ -151,28 +156,20 @@ public abstract class OutputTypeConfiguration {
 	 * @return array of output value properties used in the LinkOutputAdapter
 	 */
 	public OutputProperty[] getOutputValueProperties() {
-		return getOutputProperties(baseOutputProperty -> {
+		return getOutputPropertyArray(baseOutputProperty -> {
 			return !baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY);
 		});
 	}
-
+	
 	/**
-	 * Filters output properties in the OutputAdapter and outputs them as an
-	 * array
+	 * Returns the current set of output properties for this output configuration
 	 * 
-	 * @param test lambda function to filter which output properties should be
-	 *             included
-	 * @return array containing the relevant OutputProperty objects
+	 * @return the current set of output properties for this output configuration
 	 */
-	public OutputProperty[] getOutputProperties(Function<BaseOutputProperty, Boolean> test) {
-		OutputProperty[] outputProperties = outputAdapter.getOutputProperties()
-				                                                                                  .stream()
-				                                                                                  .filter(baseOutputProperty -> test.apply(baseOutputProperty))
-				                                                                                  .map(BaseOutputProperty::getOutputProperty)
-				                                                                                  .toArray(OutputProperty[]::new);
+	public SortedSet<BaseOutputProperty> getOutputProperties() {
 		return outputProperties;
 	}
-	
+
 	/**
 	 * Find the identification type for a specified output type
 	 * 

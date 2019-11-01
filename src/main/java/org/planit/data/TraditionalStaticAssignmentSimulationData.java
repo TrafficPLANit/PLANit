@@ -103,15 +103,13 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
      * @return the total flow through this link segment
      */
     public double getTotalNetworkSegmentFlow(LinkSegment linkSegment) {
-        return modalNetworkSegmentFlows.values().stream()
-                .collect((Collectors.summingDouble(flows -> flows[(int) linkSegment.getId()])));
+        return modalNetworkSegmentFlows.values().stream().collect((Collectors.summingDouble(flows -> flows[(int) linkSegment.getId()])));
     }
 
     /**
      * Reset modal network segment flows by cloning empty array
      * 
-     * @param mode
-     *            the mode whose flows are to be reset
+     * @param mode the mode whose flows are to be reset
      */
     public void resetModalNetworkSegmentFlows(Mode mode) {
         setModalNetworkSegmentFlows(mode, (double[]) emptySegmentArray.clone());
@@ -197,5 +195,5 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     public Set<ODSkimOutputType> getActiveSkimOutputTypes() {
     	return modalSkimMatrixMap.keySet();
     }
+    
 }
-

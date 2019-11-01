@@ -1,6 +1,7 @@
 package org.planit.network.virtual;
 
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -23,7 +24,7 @@ public class VirtualNetwork {
      * Internal class for all Connectoid specific code
      *
      */
-    public class Connectoids implements Iterable<Connectoid> {
+ 	public class Connectoids {
 
         /**
          * Add connectoid to the internal container
@@ -31,8 +32,7 @@ public class VirtualNetwork {
          * If new connectoid overrides an existing connectoid, the removed connectoid is
          * returned
          * 
-         * @param connectoid
-         *            the connectoid to be registered
+         * @param connectoid the connectoid to be registered
          * @return connectoid added
          */
         protected Connectoid registerConnectoid(@Nonnull Connectoid connectoid) {
@@ -40,27 +40,13 @@ public class VirtualNetwork {
         }
 
         /**
-         * Iterator through registered connectoids
-         * 
-         * @return iterator through registered connectoids
-         */
-        @Override
-        public Iterator<Connectoid> iterator() {
-            return connectoidMap.values().iterator();
-        }
-
-        /**
          * Create new connectoid to network
          * 
-         * @param centroid
-         *            centroid at one end of the connectoid
-         * @param node
-         *            node at other end of the connectoid
-         * @param length
-         *            length of connectiod
+         * @param centroid centroid at one end of the connectoid
+         * @param node node at other end of the connectoid
+         * @param length length of connectiod
          * @return Connectoid object created and registered
-         * @throws PlanItException
-         *             thrown if there is an error
+         * @throws PlanItException  thrown if there is an error
          */
         public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length) throws PlanItException {
             Connectoid newConnectoid = new Connectoid(centroid, node, length);
@@ -87,6 +73,15 @@ public class VirtualNetwork {
         public int getNumberOfConnectoids() {
             return connectoidMap.size();
         }
+        
+        /**
+         * Returns a List of registered connectoids
+         * 
+         * @return a List of registered connectoids
+         */
+        public List<Connectoid> toList() {
+        	return new ArrayList<Connectoid>(connectoidMap.values());
+        }
     }
 
     /**
@@ -94,13 +89,12 @@ public class VirtualNetwork {
      * segments (physical link segments are placed in the network)
      *
      */
-    public class ConnectoidSegments implements Iterable<ConnectoidSegment> {
+    public class ConnectoidSegments {
 
         /**
          * Register a connectid segment on the zoning
          * 
-         * @param connectoidSegment
-         *            ConnectoidSegment to be registered
+         * @param connectoidSegment ConnectoidSegment to be registered
          * @return the registered connectoid segment
          */
         protected ConnectoidSegment registerConnectoidSegment(@Nonnull ConnectoidSegment connectoidSegment) {
@@ -108,25 +102,21 @@ public class VirtualNetwork {
         }
 
         /**
-         * Iterator through registered connectoids
+         * Return a List of registered ConnectoidSegment objects 
          * 
-         * @return iterator through registered connectoids
+         * @return a List of registered ConnectoidSegment objects 
          */
-        @Override
-        public Iterator<ConnectoidSegment> iterator() {
-            return connectoidSegmentMap.values().iterator();
+        public List<ConnectoidSegment> toList() {
+        	return new ArrayList<ConnectoidSegment>(connectoidSegmentMap.values());
         }
-
+        
         /**
          * Create and register connectoid segment in AB direction on virtual network
          * 
-         * @param parentConnectoid
-         *            the connectoid which will contain this connectoid segmetn
-         * @param directionAB
-         *            direction of travel
+         * @param parentConnectoid the connectoid which will contain this connectoid segmetn
+         * @param directionAB direction of travel
          * @return created connectoid segment
-         * @throws PlanItException
-         *             thrown if there is an error
+         * @throws PlanItException thrown if there is an error
          */
         public ConnectoidSegment createAndRegisterConnectoidSegment(@Nonnull Connectoid parentConnectoid,
                 boolean directionAB) throws PlanItException {
@@ -139,11 +129,9 @@ public class VirtualNetwork {
         /**
          * Create and register connectoidSegment in AB direction on virtual network
          * 
-         * @param parentConnectoid
-         *            the connectoid which will contain this connectoid segment
-         * @return created connectoid Segment
-         * @throws PlanItException
-         *             thrown if there is an error
+         * @param parentConnectoid  the connectoid which will contain this connectoid segment
+         * @return created connectoid segment
+         * @throws PlanItException thrown if there is an error
          */
         public ConnectoidSegment createAndRegisterConnectoidSegmentAB(@Nonnull Connectoid parentConnectoid)
                 throws PlanItException {
@@ -189,7 +177,7 @@ public class VirtualNetwork {
      * Internal class for all Centroid specific code
      *
      */
-    public class Centroids implements Iterable<Centroid> {
+    public class Centroids  {
 
         /**
          * Add centroid to the internal container
@@ -205,13 +193,12 @@ public class VirtualNetwork {
         }
 
         /**
-         * Iterator through registered centroid
+         * Return List of Centroids
          * 
-         * @return iterator through registered centroids
+         * @return List of Centroids
          */
-        @Override
-        public Iterator<Centroid> iterator() {
-            return centroidMap.values().iterator();
+        public List<Centroid> toList() {
+        	return new ArrayList<Centroid>(centroidMap.values());
         }
 
         /**

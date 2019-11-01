@@ -38,14 +38,12 @@ public abstract class GapFunction {
     /**
      * Verify if algorithm has converged
      * 
-     * @param iterationIndex
-     *            the index of the current iteration
+     * @param iterationIndex the index of the current iteration
      * @return true if stopping criterion has been met, false otherwise
      */
     public boolean hasConverged(int iterationIndex) {
         return stopCriterion.hasConverged(getGap(), iterationIndex);
     }
-
 
     /**
      * Return the StopCriterion object

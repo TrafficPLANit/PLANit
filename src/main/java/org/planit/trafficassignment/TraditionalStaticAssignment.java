@@ -2,7 +2,6 @@ package org.planit.trafficassignment;
 
 import java.text.DecimalFormat;
 import java.util.Calendar;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -26,17 +25,12 @@ import org.planit.network.EdgeSegment;
 import org.planit.network.Vertex;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.Node;
-import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
-import org.planit.output.adapter.OutputAdapter;
-import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputAdapter;
-import org.planit.output.adapter.TraditionalStaticAssignmentODOutputAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
-import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -87,7 +81,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		OutputConfiguration outputConfiguration = outputManager.getOutputConfiguration();
 		simulationData = new TraditionalStaticAssignmentSimulationData(outputConfiguration);
 		simulationData.setEmptySegmentArray(new double[numberOfNetworkSegments]);
-		simulationData.setConverged(false);
 		simulationData.setIterationIndex(0);
 		simulationData.getModeSpecificData().clear();
 		for (Mode mode : modes) {
@@ -124,15 +117,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 */
 	private void executeModeTimePeriod(Mode mode, ODDemandMatrix odDemandMatrix, ModeData currentModeData,
 			double[] modalNetworkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
-		ODMatrixIterator odDemandMatrixIter = odDemandMatrix.iterator();
-		TransportNetwork network = getTransportNetwork();
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 
 		// loop over all available OD demands
 		long previousOriginZoneId = -1;
 		Pair<Double, EdgeSegment>[] vertexPathCost = null;
-		while (odDemandMatrixIter.hasNext()) {
-			double odDemand = odDemandMatrixIter.next();
+		for (ODMatrixIterator odDemandMatrixIter = odDemandMatrix.iterator();odDemandMatrixIter.hasNext();) {
+		    double odDemand = odDemandMatrixIter.next();
 			Zone currentOriginZone = odDemandMatrixIter.getCurrentOrigin();
 			long originZoneId = currentOriginZone.getId();
 			Zone currentDestinationZone = odDemandMatrixIter.getCurrentDestination();
@@ -141,8 +132,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			if (((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
 
 				PlanItLogger
-						.fine("Calculating flow from origin zone " + network.zones.getZone(originZoneId).getExternalId()
-								+ " to destination zone " + network.zones.getZone(destinationZoneId).getExternalId()
+				        .fine("Calculating flow from origin zone " + currentOriginZone.getExternalId()
+				        		+ " to destination zone " + currentDestinationZone.getExternalId()
 								+ " which has demand of " + df5.format(odDemand));
 
 				// UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
@@ -150,8 +141,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 					Centroid originCentroid = currentOriginZone.getCentroid();
 
 					if (originCentroid.exitEdgeSegments.isEmpty()) {
-						throw new PlanItException("Edge segments have not been assigned to Centroid for Zone "
-								+ (originCentroid.getParentZone().getExternalId()));
+						throw new PlanItException("Edge segments have not been assigned to Centroid for Zone " 	+ (currentOriginZone.getExternalId()));
 					}
 					vertexPathCost = shortestPathAlgorithm.executeOneToAll(originCentroid);
 				}
@@ -195,22 +185,21 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @throws PlanItException thrown if there is an error
 	 */
 	private void executeTimePeriod(TimePeriod timePeriod) throws PlanItException {
-		PlanItLogger.info(
-				"Running Traditional Static Assigment over all modes for Time Period " + timePeriod.getDescription());
+		PlanItLogger.info("Running Traditional Static Assigment over all modes for Time Period " + timePeriod.getDescription());
 		Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
 		initialiseTimePeriod(modes);
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 		Calendar startTime = Calendar.getInstance();
 		Calendar initialStartTime = startTime;
-		while (!simulationData.isConverged()) {
+		boolean converged = false;
+		while (!converged) {
 			dualityGapFunction.reset();
 			smoothing.update(simulationData.getIterationIndex());
 
 			// NETWORK LOADING - PER MODE
 			for (Mode mode : modes) {
 				simulationData.resetSkimMatrix(mode, getTransportNetwork().zones);
-				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode, timePeriod,
-						simulationData.getIterationIndex());
+				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode, timePeriod,	simulationData.getIterationIndex());
 				simulationData.resetModalNetworkSegmentFlows(mode);
 				executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalNetworkSegmentCosts);
 				simulationData.setModalNetworkSegmentCosts(mode, modalNetworkSegmentCosts);
@@ -223,8 +212,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			PlanItLogger.info("Iteration " + simulationData.getIterationIndex() + ": Duality gap = "
 					+ df6.format(dualityGapFunction.getGap()) + ": Iteration duration " + timeDiff + " milliseconds");
 			startTime = currentTime;
-			simulationData.setConverged(dualityGapFunction.hasConverged(simulationData.getIterationIndex()));
-			outputManager.persistOutputData(timePeriod, modes, getOutputConfiguration());
+			converged = dualityGapFunction.hasConverged(simulationData.getIterationIndex());
+			outputManager.persistOutputData(timePeriod, modes, converged);
 		}
 		long timeDiff = startTime.getTimeInMillis() - initialStartTime.getTimeInMillis();
 		PlanItLogger.info("Assignment took " + timeDiff + " milliseconds");
@@ -269,9 +258,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @throws PlanItException thrown if there is an error
 	 */
 	private void populateModalConnectoidCosts(Mode mode, double[] currentSegmentCosts) throws PlanItException {
-		Iterator<ConnectoidSegment> connectoidSegmentIter = transportNetwork.connectoidSegments.iterator();
-		while (connectoidSegmentIter.hasNext()) {
-			ConnectoidSegment currentSegment = connectoidSegmentIter.next();
+		for (ConnectoidSegment currentSegment : transportNetwork.connectoidSegments.toList()) {
 			currentSegmentCosts[(int) currentSegment.getId()] = virtualCost.getSegmentCost(mode, currentSegment);
 		}
 	}
@@ -353,9 +340,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 */
 	private void setModalLinkSegmentCosts(Mode mode, double[] currentSegmentCosts,
 			Function<LinkSegment, Double> calculateSegmentCost) throws PlanItException {
-		Iterator<LinkSegment> linkSegmentIter = transportNetwork.linkSegments.iterator();
-		while (linkSegmentIter.hasNext()) {
-			LinkSegment linkSegment = linkSegmentIter.next();
+		for (LinkSegment linkSegment : transportNetwork.linkSegments.toList()) {
 			if (linkSegment.getMaximumSpeed(mode.getExternalId()) == 0.0) {
 				currentSegmentCosts[(int) linkSegment.getId()] = Double.POSITIVE_INFINITY;
 			} else {
@@ -374,11 +359,8 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @param action lambda function to open or close a formatter
 	 * @throws PlanItException thrown if there is an error opening or closing the file
 	 */
-	private void openOrClose(BiFunction<OutputFormatter, OutputTypeConfiguration, PlanItException> action)
-			throws PlanItException {
-		List<OutputTypeConfiguration> outputTypeConfigurations = outputManager.getOutputConfiguration()
-				.getRegisteredOutputTypeConfigurations();
-
+	private void openOrClose(BiFunction<OutputFormatter, OutputTypeConfiguration, PlanItException> action)	throws PlanItException {
+		List<OutputTypeConfiguration> outputTypeConfigurations = outputManager.getRegisteredOutputTypeConfigurations();
 		for (OutputTypeConfiguration outputTypeConfiguration : outputTypeConfigurations) {
 			List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
 			for (OutputFormatter outputFormatter : outputFormatters) {
@@ -445,31 +427,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	public TraditionalStaticAssignment() {
 		super();
 		simulationData = null;
-	}
-
-	/**
-	 * Create Traditional Static Assignment output adapter that allows selective
-	 * access to all data required for different output types
-	 * 
-	 * @param outputType the output type for the new output adapter
-	 * @return the new output adapter
-	 * @see org.planit.trafficassignment.TrafficAssignment#createOutputAdapter(org.planit.output.OutputType)
-	 */
-	@Override
-	public OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException {
-		OutputAdapter outputAdapter = null;
-		switch (outputType) {
-		case LINK:
-			outputAdapter = new TraditionalStaticAssignmentLinkOutputAdapter(this);
-			break;
-		case OD:
-			outputAdapter = new TraditionalStaticAssignmentODOutputAdapter(this);
-			break;
-		default:
-			throw new PlanItException("No Output adapter exists for output type " + outputType.toString() + " on "
-					+ this.getClass().getName());
-		}
-		return outputAdapter;
 	}
 
 	/**

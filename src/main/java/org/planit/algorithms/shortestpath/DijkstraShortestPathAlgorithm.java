@@ -111,7 +111,7 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
             // already been found and we continue with the next entry
             // track all adjacent edge segments for possible improved shortest paths
 
-            for (EdgeSegment adjacentLinkSegment : currentNode.exitEdgeSegments) {
+            for (EdgeSegment adjacentLinkSegment : currentNode.exitEdgeSegments.getEdgeSegments()) {
                 double currentEdgeSegmentCost = edgeSegmentCosts[(int) adjacentLinkSegment.getId()];
                 if (currentEdgeSegmentCost < Double.POSITIVE_INFINITY) {
                     Vertex adjacentVertex = adjacentLinkSegment.getDownstreamVertex();

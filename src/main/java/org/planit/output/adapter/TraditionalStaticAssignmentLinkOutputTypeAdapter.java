@@ -8,7 +8,7 @@ import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.TraditionalStaticAssignment;
+import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.userclass.Mode;
 
 /**
@@ -19,15 +19,14 @@ import org.planit.userclass.Mode;
  * @author markr
  *
  */
-public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter {
+public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends OutputTypeAdapter {
 
 	/**
 	 * Constructor
 	 *
-	 * @param trafficAssignment TraditionalStaticAssignment object which this
-	 *                          adapter wraps
+	 * @param trafficAssignment TrafficAssignment object which this adapter wraps
 	 */
-	public TraditionalStaticAssignmentLinkOutputAdapter(TraditionalStaticAssignment trafficAssignment) {
+	public TraditionalStaticAssignmentLinkOutputTypeAdapter(TrafficAssignment trafficAssignment) {
 		super(trafficAssignment);
 	}
 	
@@ -140,7 +139,7 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
 	 */
 	private Object getCalculatedSpeedPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
 		int id = (int) linkSegment.getId();
-		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
+		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
 		double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);
 		double travelTime = modalNetworkSegmentCosts[id];
 		double length = linkSegment.getParentLink().getLength();
@@ -156,11 +155,18 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
 	 */
 	private Object getFlowPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
 		int id = (int) linkSegment.getId();
-		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
+		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
 		double[] modalNetworkSegmentFlows = simulationData.getModalNetworkSegmentFlows(mode);
 		return modalNetworkSegmentFlows[id];
 	}
 	
+	/**
+	 * Get the maximum speed for a specified link segment and mode
+	 * 
+	 * @param linkSegment the specified link segment
+	 * @param mode the specified mode
+	 * @return the link maximum speed
+	 */
 	private Object getMaximumSpeedPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode) {
 		return linkSegment.getMaximumSpeed(mode.getExternalId());
 	}
@@ -229,32 +235,9 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
 	 */
 	private Object getCostPropertyValue(MacroscopicLinkSegment linkSegment, Mode mode, double timeUnitMultiplier) {
 		int id = (int) linkSegment.getId();
-		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
+		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
 		double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);
 		return modalNetworkSegmentCosts[id] * timeUnitMultiplier;
-	}
-	
-	/**
-	 * Get the simulation data for the current iteration
-	 * 
-	 * @return the simulation data for the current iteration
-	 */
-	@Override
-	public TraditionalStaticAssignmentSimulationData getSimulationData() {
-		TraditionalStaticAssignment traditionalStaticAssignment = (TraditionalStaticAssignment) trafficAssignment;
-		TraditionalStaticAssignmentSimulationData simulationData = 
-				(TraditionalStaticAssignmentSimulationData) traditionalStaticAssignment.getSimulationData();
-		return simulationData;
-	}
-
-	/**
-	 * Returns whether the current assignment has converged
-	 * 
-	 * @return true if the current assignment has converged, false otherwise
-	 */
-	@Override
-	public boolean isConverged() {
-		return ((TraditionalStaticAssignment) trafficAssignment).getSimulationData().isConverged();
 	}
 	
 	/**
@@ -306,9 +289,9 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
 		case NUMBER_OF_LANES:
 			return getNumberOfLanesPropertyValue(macroscopicLinkSegment);
 		case RUN_ID:
-			return getTrafficAssignmentId();
+			return trafficAssignment.getId();
 		case ITERATION_INDEX: 
-			return getSimulationData().getIterationIndex();
+			return trafficAssignment.getSimulationData().getIterationIndex();
 		case TIME_PERIOD_ID:
 			return timePeriod.getId();
 		case TIME_PERIOD_EXTERNAL_ID:
@@ -326,7 +309,7 @@ public class TraditionalStaticAssignmentLinkOutputAdapter extends OutputAdapter 
 	 * @return true is there is flow through this link segment, false if the flow is zero
 	 */
 	public boolean isFlowPositive(MacroscopicLinkSegment linkSegment, Mode mode) {
-		TraditionalStaticAssignmentSimulationData simulationData = getSimulationData();
+		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
 		return (simulationData.getModalNetworkSegmentFlows(mode)[(int) linkSegment.getId()] > 0.0);
 	}
 

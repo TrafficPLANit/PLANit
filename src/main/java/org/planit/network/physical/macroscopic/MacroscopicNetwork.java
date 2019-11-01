@@ -1,6 +1,5 @@
 package org.planit.network.physical.macroscopic;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -18,15 +17,6 @@ import org.planit.utils.Pair;
  *
  */
 public class MacroscopicNetwork extends PhysicalNetwork {
-
-	// Private
-
-	private class MacroscopicLinkSegmentTypes implements Iterable<MacroscopicLinkSegmentType> {
-		@Override
-		public Iterator<MacroscopicLinkSegmentType> iterator() {
-			return macroscopicLinkSegmentTypeByIdMap.values().iterator();
-		}
-	}
 
 	// Protected
 
@@ -64,16 +54,11 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	 * If there already exists a link segment type with the same contents return it,
 	 * otherwise return null
 	 * 
-	 * @param linkSegmentType the new MacroscopicLinkSegmentType being tested
-	 *                        against
-	 * @return existing MacroscopicLinkSegmentType equal to the new one if one
-	 *         exists, otherwise null
+	 * @param linkSegmentType the new MacroscopicLinkSegmentType being tested against
+	 * @return existing MacroscopicLinkSegmentType equal to the new one if one exists, otherwise null
 	 */
-	public MacroscopicLinkSegmentType findEqualMacroscopicLinkSegmentType(
-			@Nonnull MacroscopicLinkSegmentType linkSegmentType) {
-		Iterator<MacroscopicLinkSegmentType> iterator = macroscopiclinkSegmentTypes().iterator();
-		while (iterator.hasNext()) {
-			MacroscopicLinkSegmentType currentLinkSegmentType = iterator.next();
+	public MacroscopicLinkSegmentType findEqualMacroscopicLinkSegmentType(@Nonnull MacroscopicLinkSegmentType linkSegmentType) {
+		for (MacroscopicLinkSegmentType currentLinkSegmentType  : macroscopicLinkSegmentTypeByIdMap.values()) {
 			if (currentLinkSegmentType.getExternalId() == linkSegmentType.getExternalId()) {
 				return currentLinkSegmentType;
 			}
@@ -113,15 +98,6 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 		}
 		return new Pair<MacroscopicLinkSegmentType, Boolean>(linkSegmentType,
 				existingLinkSegmentType == linkSegmentType);
-	}
-
-	/**
-	 * Create iterator for macroscopiclinkSegmentTypesContainer
-	 * 
-	 * @return LinkSegmentTypes iterator
-	 */
-	public MacroscopicLinkSegmentTypes macroscopiclinkSegmentTypes() {
-		return new MacroscopicLinkSegmentTypes();
 	}
 
 	/**

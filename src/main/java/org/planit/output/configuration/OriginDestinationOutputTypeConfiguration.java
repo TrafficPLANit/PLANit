@@ -8,9 +8,9 @@ import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
-import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
+import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.output.enums.ODSkimOutputType;
 
 /**
@@ -37,8 +37,16 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 	
 	private Set<ODSkimOutputType> activeOdSkimOutputTypes;
 
-	public OriginDestinationOutputTypeConfiguration(OutputAdapter outputAdapter) throws PlanItException {
-		super(outputAdapter, OutputType.OD);
+	/**
+	 * Constructor
+	 * 
+	 * Define the default output properties here.
+	 * 
+	 * @param trafficAssignment TrafficAssignment object whose results are to be reported
+	 * @throws PlanItException thrown if there is an error adding the default properties
+	 */
+	public OriginDestinationOutputTypeConfiguration(TrafficAssignment trafficAssignment) throws PlanItException {
+		super(trafficAssignment, OutputType.OD);
 		activeOdSkimOutputTypes = new HashSet<ODSkimOutputType>();
 		activeOdSkimOutputTypes.add(ODSkimOutputType.COST);
 		// add default output properties
@@ -51,7 +59,7 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 	}
 
 	/**
-	 * Determine how a origin-destination cell is being identified in the output formatter
+	 * Determine how an origin-destination cell is being identified in the output formatter
 	 * 
 	 * @param outputKeyProperties Map of arrays of keys used to identify the origin and destination
 	 * @return the identification method
@@ -62,7 +70,7 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 	}
 
 	/**
-	 * Determine how a link is being identified in the output formatter
+	 * Determine how an origin-destination cell is being identified in the output formatter
 	 * 
 	 * @param outputKeyPropertiesArray array of output key property types
 	 * @return the value of the identification type determined
@@ -129,6 +137,11 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
     	activeOdSkimOutputTypes.remove(odSkimOutputType);
     }
     
+    /**
+     * Returns a set of activated OD skim output types
+     * 
+     * @return Set of activated OD skim output types
+     */
     public Set<ODSkimOutputType> getActiveOdSkimOutputTypes() {
     	return activeOdSkimOutputTypes;
     }

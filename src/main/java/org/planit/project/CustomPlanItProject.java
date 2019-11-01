@@ -110,8 +110,7 @@ public class CustomPlanItProject {
     /**
      * Instantiate the factories and register the event manager on them
      * 
-     * @param eventManager
-     *            the EventManager for this project
+     * @param eventManager the EventManager for this project
      */
     protected void initialiseFactories(EventManager eventManager) {
     	physicalNetworkFactory = new TrafficAssignmentComponentFactory<PhysicalNetwork>(PhysicalNetwork.class);
@@ -150,8 +149,7 @@ public class CustomPlanItProject {
      * This constructor instantiates the EventManager, which must be a singleton
      * class for the whole application.
      * 
-     * @param inputBuilderListener
-     *            InputBuilderListener used to read in data
+     * @param inputBuilderListener InputBuilderListener used to read in data
      */
     public CustomPlanItProject(InputBuilderListener inputBuilderListener) {
         eventManager.addEventListener(inputBuilderListener);
@@ -199,8 +197,7 @@ public class CustomPlanItProject {
     /**
      * Create and register demands to the project
      * 
-     * There is only one Demands class, so no need to pass its name into this
-     * method.
+     * There is only one Demands class, so no need to pass its name into this method.
      * 
      * @param zoning Zoning object which defines the zones which will be used in the demand matrix to be created
      * @return the generated demands object
@@ -220,11 +217,9 @@ public class CustomPlanItProject {
      * Create and register a deterministic traffic assignment instance of a given
      * type
      * 
-     * @param trafficAssignmentType
-     *            the class name of the traffic assignment type object to be created
+     * @param trafficAssignmentType the class name of the traffic assignment type object to be created
      * @return the generated traffic assignment object
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException thrown if there is an error
      */
     public DeterministicTrafficAssignment createAndRegisterDeterministicAssignment(String trafficAssignmentType)
             throws PlanItException {
@@ -334,8 +329,7 @@ public class CustomPlanItProject {
      * @param outputFormatterType
      *            the class name of the output formatter type object to be created
      * @return the generated output formatter object
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException thrown if there is an error
      */
     public OutputFormatter createAndRegisterOutputFormatter(String outputFormatterType) throws PlanItException {
         OutputFormatter outputFormatter = OutputFormatterFactory.createOutputFormatter(outputFormatterType);
@@ -349,8 +343,7 @@ public class CustomPlanItProject {
     /**
      * Retrieve a Demands object given its id
      * 
-     * @param id
-     *            the id of the Demands object
+     * @param id the id of the Demands object
      * @return the retrieved Demands object
      */
     public Demands getDemands(long id) {
@@ -360,8 +353,7 @@ public class CustomPlanItProject {
     /**
      * Retrieve a TrafficAssigment object given its id
      * 
-     * @param id
-     *            the id of the TrafficAssignment object
+     * @param id the id of the TrafficAssignment object
      * @return the retrieved TrafficAssignment object
      */
     public TrafficAssignment getTrafficAssignment(long id) {
@@ -371,8 +363,7 @@ public class CustomPlanItProject {
     /**
      * Retrieve an output formatter object given its id
      * 
-     * @param id
-     *            the id of the output formatter object
+     * @param id the id of the output formatter object
      * @return the retrieved output formatter object
      */
     public OutputFormatter getOutputFormatter(long id) {
@@ -382,8 +373,7 @@ public class CustomPlanItProject {
     /**
      * Retrieve a Zoning object given its id
      * 
-     * @param id
-     *            the id of the the Zoning object
+     * @param id the id of the the Zoning object
      * @return the retrieved Zoning object
      */
     public Zoning getZoning(long id) {
@@ -393,8 +383,7 @@ public class CustomPlanItProject {
     /**
      * Retrieve a PhysicalNetwork object given its id
      * 
-     * @param id
-     *            the id of the PhysicalNetwork object
+     * @param id the id of the PhysicalNetwork object
      * @return the retrieved PhysicalNetwork object
      */
     public PhysicalNetwork getPhysicalNetwork(long id) {
@@ -408,8 +397,7 @@ public class CustomPlanItProject {
      * assignments are registered and one fails, we report its error and continue
      * with the next assignment.
      * 
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException thrown if there is an error
      * 
      */
     public void executeAllTrafficAssignments() throws PlanItException {

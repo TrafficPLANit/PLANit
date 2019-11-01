@@ -3,6 +3,7 @@ package org.planit.output.formatter;
 import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
+import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -33,11 +34,11 @@ public interface OutputFormatter {
 	 * 
 	 * @param timePeriod              TimePeriod for the assignment to be saved
 	 * @param modes                   Set of modes for the assignment to be saved
-	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to
-	 *                                be saved
+	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to be saved
+	 * @param outputTypeAdapter OutputTypeAdapter for the assignment to be saved
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration) throws PlanItException;
+	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration, OutputTypeAdapter outputTypeAdapter) throws PlanItException;
 
 	/**
 	 * Open resources to store results

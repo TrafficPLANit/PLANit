@@ -2,7 +2,6 @@ package org.planit.network.physical;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -30,7 +29,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 * Internal class for all Link specific code
 	 *
 	 */
-	public class Links implements Iterable<Link> {
+	public class Links {
 
 		/**
 		 * Add link to the internal container
@@ -44,15 +43,14 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		}
 
 		/**
-		 * Iterator over registered links
+		 * Returns a List of Links
 		 * 
-		 * @return iterator over registered links
+		 * @return List of Links
 		 */
-		@Override
-		public Iterator<Link> iterator() {
-			return linkMap.values().iterator();
+		public List<Link> toList() {
+			return new ArrayList<Link>(linkMap.values());
 		}
-
+		
 		/**
 		 * Create new link to network identified via its id, injecting link length
 		 * directly
@@ -94,7 +92,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 * placed in the zoning)
 	 *
 	 */
-	public class LinkSegments implements Iterable<LinkSegment> {
+	public class LinkSegments {
 
 		/**
 		 * Register a link segment on the network
@@ -120,16 +118,6 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 				linkSegmentMapByStartExternalId.put(startNodeExternalId, new ArrayList<LinkSegment>());
 			}
 			linkSegmentMapByStartExternalId.get(startNodeExternalId).add(linkSegment);
-		}
-
-		/**
-		 * Iterator over registered link segments
-		 * 
-		 * @return Iterator over registered link segments
-		 */
-		@Override
-		public Iterator<LinkSegment> iterator() {
-			return linkSegmentMap.values().iterator();
 		}
 
 		/**
@@ -181,8 +169,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		/**
 		 * Register a link segment
 		 * 
-		 * @param parentLink  the parent link which specified link segment will be
-		 *                    registered on
+		 * @param parentLink  the parent link which specified link segment will be registered on
 		 * @param linkSegment link segment to be registered
 		 * @param directionAB direction of travel
 		 * @throws PlanItException thrown if there is an error
@@ -230,7 +217,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	/**
 	 * Internal class for all Node specific code
 	 */
-	public class Nodes implements Iterable<Node> {
+	public class Nodes {
 
 		/**
 		 * Add node to the internal container
@@ -244,13 +231,12 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		}
 
 		/**
-		 * Iterator through registered nodes
+		 * Returns a List of Nodes
 		 * 
-		 * @return iterator through registered nodes
-		 */
-		@Override
-		public Iterator<Node> iterator() {
-			return nodeMap.values().iterator();
+		 * @return List of Nodes
+		 */	
+		public List<Node> toList() {
+			return new ArrayList<Node>(nodeMap.values());
 		}
 
 		/**

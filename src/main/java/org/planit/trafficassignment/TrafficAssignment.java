@@ -21,7 +21,6 @@ import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.output.OutputManager;
-import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
@@ -112,18 +111,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * Map storing InitialLinkSegmentCost objects for each time period
 	 */
 	protected Map<Long, InitialLinkSegmentCost> initialLinkSegmentCostByTimePeriod;
-
-	/**
-	 * Each traffic assignment implementation has its own unique output adapter
-	 * providing access to the data that it wants or allows to be persisted.
-	 * therefore this factory method is required to be implemented by the concrete
-	 * instances of a traffic assignment class
-	 * 
-	 * @param outputType the type the output adapter should be suitable for
-	 * @return output adapter instance for the specified output type
-	 * @throws PlanItException thrown if there is an error
-	 */
-	public abstract OutputAdapter createOutputAdapter(OutputType outputType) throws PlanItException;
 
 	/**
 	 * Allow assignment classes to close data resources after equilibration
@@ -244,7 +231,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public void activateOutput(OutputType outputType) throws PlanItException {
 		if (!outputManager.isOutputTypeActive(outputType)) {
 			PlanItLogger.info("Registering Output Type " + outputType);
-			outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
+			outputManager.createAndRegisterOutputType(outputType, this);
 		}
 	}
 

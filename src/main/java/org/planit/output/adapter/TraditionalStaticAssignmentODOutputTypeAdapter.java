@@ -1,26 +1,20 @@
 package org.planit.output.adapter;
 
+import java.util.Set;
+
+import org.planit.data.TraditionalStaticAssignmentSimulationData;
 import org.planit.od.odmatrix.ODMatrixIterator;
+import org.planit.od.odmatrix.skim.ODSkimMatrix;
+import org.planit.output.enums.ODSkimOutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.TraditionalStaticAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.userclass.Mode;
 
-public class TraditionalStaticAssignmentODOutputAdapter extends OutputAdapter {
+public class TraditionalStaticAssignmentODOutputTypeAdapter extends OutputTypeAdapter {
 
-	public TraditionalStaticAssignmentODOutputAdapter(TrafficAssignment trafficAssignment) {
+	public TraditionalStaticAssignmentODOutputTypeAdapter(TrafficAssignment trafficAssignment) {
 		super(trafficAssignment);
-	}
-
-	/**
-	 * Returns whether the current assignment has converged
-	 * 
-	 * @return true if the current assignment has converged, false otherwise
-	 */
-	@Override
-	public boolean isConverged() {
-		return ((TraditionalStaticAssignment) trafficAssignment).getSimulationData().isConverged();
 	}
 
 	/**
@@ -50,9 +44,9 @@ public class TraditionalStaticAssignmentODOutputAdapter extends OutputAdapter {
 		case MODE_EXTERNAL_ID:
 			return mode.getExternalId();
 		case RUN_ID:
-			return getTrafficAssignmentId();
+			return trafficAssignment.getId();
 		case ITERATION_INDEX:
-			return getSimulationData().getIterationIndex();
+			return trafficAssignment.getSimulationData().getIterationIndex();
 		case COST:
 			return odMatrixIterator.getCurrentValue() * timeUnitMultiplier;
 		case TIME_PERIOD_ID:
@@ -64,4 +58,26 @@ public class TraditionalStaticAssignmentODOutputAdapter extends OutputAdapter {
 		}
 	}
 
+	/**
+	 * Returns a Set of OD skim output types which have been activated
+	 * 
+	 * @return Set of OD skim output types which have been activated
+	 */
+    public Set<ODSkimOutputType> getActiveSkimOutputTypes() {
+		TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
+		return traditionalStaticAssignmentSimulationData.getActiveSkimOutputTypes();
+    }
+    
+    /**
+     * Retrieve an OD skim matrix for a specified OD skim output type and mode
+     * 
+     * @param odSkimOutputType the specified OD skim output type
+     * @param mode the specified mode
+     * @return the OD skim matrix
+     */
+    public  ODSkimMatrix getODSkimMatrix(ODSkimOutputType odSkimOutputType, Mode mode) {
+		TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
+		return traditionalStaticAssignmentSimulationData.getODSkimMatrix(odSkimOutputType, mode);
+    }
+      
 }

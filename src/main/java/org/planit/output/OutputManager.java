@@ -1,12 +1,18 @@
 package org.planit.output;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
-import org.planit.output.adapter.OutputAdapter;
+import org.planit.output.adapter.OutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
+import org.planit.output.configuration.LinkOutputTypeConfiguration;
+import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.OutputType;
@@ -27,23 +33,31 @@ public class OutputManager {
 	/**
 	 * The overall output configuration instance
 	 */
-	protected OutputConfiguration outputConfiguration;
+	private OutputConfiguration outputConfiguration;
 
 	/**
-	 * registered output formatters
+	 * Registered output formatters
 	 */
-	protected List<OutputFormatter> outputFormatters;
+	private List<OutputFormatter> outputFormatters;
+	
+	/**
+	 * Map of OutputTypeAdapter objects
+	 */
+	private Map<OutputType, OutputTypeAdapter> outputTypeAdapters;
+	
+    /**
+     * output configurations per output type
+     */
+    private Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations;
 
 	/**
 	 * Base constructor of Output writer
 	 */
 	public OutputManager() {
 		outputFormatters = new ArrayList<OutputFormatter>();
-		outputConfiguration = new OutputConfiguration();
-	}
-
-	public void setOutputConfiguration(OutputConfiguration outputConfiguration) {
-		this.outputConfiguration = outputConfiguration;
+		outputConfiguration = new OutputConfiguration(this);
+		outputTypeAdapters = new HashMap<OutputType, OutputTypeAdapter>();
+		outputTypeConfigurations = new HashMap<OutputType, OutputTypeConfiguration>();
 	}
 
 	/**
@@ -51,39 +65,44 @@ public class OutputManager {
 	 * 
 	 * @param timePeriod the current time period whose results are being saved
 	 * @param modes      Set of modes for the current assignment
+	 * @param converged true if the assignment has converged
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void persistOutputData(TimePeriod timePeriod, Set<Mode> modes, OutputConfiguration outputConfiguration)
-			throws PlanItException {
-		for (OutputType outputType : outputConfiguration.getRegisteredOutputTypes()) {
-			OutputTypeConfiguration outputTypeConfiguration = outputConfiguration.getOutputTypeConfiguration(outputType);
-			OutputAdapter outputAdapter = outputTypeConfiguration.getOutputAdapter();
+	public void persistOutputData(TimePeriod timePeriod, Set<Mode> modes, boolean converged) throws PlanItException {
+		for (OutputType outputType : outputTypeConfigurations.keySet()) {
+			OutputTypeConfiguration outputTypeConfiguration = outputTypeConfigurations.get(outputType);
+			OutputTypeAdapter outputTypeAdapter = outputTypeAdapters.get(outputType);
 			for (OutputFormatter outputFormatter : outputFormatters) {
-				if (outputAdapter.isConverged()) {
-					outputFormatter.persist(timePeriod, modes, outputTypeConfiguration);
-				} else  if (!outputConfiguration.isPersistOnlyFinalIteration()) {
-					if (!outputFormatter.canHandleMultipleIterations()) {
+				if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
+					if (!(converged || outputFormatter.canHandleMultipleIterations())) {
 						PlanItLogger.warning(outputFormatter.getClass().getName() + " can only persist the final iteration.");
 					} else {
-						outputFormatter.persist(timePeriod, modes, outputTypeConfiguration);
+						outputFormatter.persist(timePeriod, modes, outputTypeConfiguration, outputTypeAdapter);
 					}
 				}
 			}
 		}
 	}
-
-	/**
-	 * Factory method to create an output configuration of a given type
-	 * 
-	 * @param outputType        the output type to register the configuration for
-	 * @param trafficAssignment the traffic assignment for which output is being
-	 *                          configured
-	 * @throws PlanItException thrown if there is an error creating the output type
-	 *                         configuration
-	 */
-	public void createAndRegisterOutputTypeConfiguration(OutputType outputType, TrafficAssignment trafficAssignment)
-			throws PlanItException {
-		outputConfiguration.createAndRegisterOutputTypeConfiguration(outputType, trafficAssignment);
+	
+    /**
+     * Factory method to create an output configuration and adapter for a given type
+     * 
+     * @param outputType  the output type to register the configuration and adapter for
+     * @return trafficAssignment the TrafficAssignment object whose results are being reported
+     * @throws PlanItException thrown if there is an error
+     */
+	public void createAndRegisterOutputType(OutputType outputType, TrafficAssignment trafficAssignment) throws PlanItException {
+        switch (outputType) {
+        case LINK: 
+        	outputTypeConfigurations.put(outputType, new LinkOutputTypeConfiguration(trafficAssignment));
+        	outputTypeAdapters.put(outputType, new TraditionalStaticAssignmentLinkOutputTypeAdapter(trafficAssignment));
+        break;
+        case OD: 
+        	outputTypeConfigurations.put(outputType, new OriginDestinationOutputTypeConfiguration(trafficAssignment));
+        	outputTypeAdapters.put(outputType, new TraditionalStaticAssignmentODOutputTypeAdapter(trafficAssignment));
+        break;
+        default: PlanItLogger.warning(outputType.value() + " has not been defined yet.");
+        }
 	}
 
 	// getters - setters
@@ -125,7 +144,38 @@ public class OutputManager {
 	 * @return true if active false otherwise
 	 */
 	public boolean isOutputTypeActive(OutputType outputType) {
-		return outputConfiguration.containsOutputTypeConfiguration(outputType);
-	}
+        return outputTypeConfigurations.containsKey(outputType);
+    }
+
+    /**
+     * Collect the output type configuration for the given type
+     * 
+     * @param outputType
+     *            OutputType to collect the output type configuration for
+     * @return output type configuration registered, if not registered null is
+     *         returned and a warning is logged
+     */
+    public OutputTypeConfiguration getOutputTypeConfiguration(OutputType outputType) {
+        return outputTypeConfigurations.get(outputType);
+    }
+    
+    /**
+     * Returns a List of registered output type configuration objects
+     * 
+     * @return a List of registered output type configuration objects
+     */
+    public List<OutputTypeConfiguration> getRegisteredOutputTypeConfigurations() {
+    	return new ArrayList<OutputTypeConfiguration>(outputTypeConfigurations.values());
+    	
+    }
+    
+    /**
+     * Returns a List of registered output types
+     * 
+     * @return a List of registered output types
+     */
+    public List<OutputType> getRegisteredOutputTypes() {
+    	return new ArrayList<OutputType>(outputTypeConfigurations.keySet());
+    }
 
 }

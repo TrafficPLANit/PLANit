@@ -1,7 +1,5 @@
 package org.planit.network.transport;
 
-import java.util.Iterator;
-
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
@@ -29,52 +27,6 @@ import org.planit.zoning.Zoning.Zones;
 public class TransportNetwork {
 
     /**
-     * Custom iterator over all registered edge segments by combining the physical
-     * and virtual edge segments
-     * 
-     * @author markr
-     *
-     */
-    public class TransportSegmentIterator implements Iterator<EdgeSegment> {
-
-        private final Iterator<LinkSegment> physicalIterator = physicalNetwork.linkSegments.iterator();
-        private final Iterator<ConnectoidSegment> virtualIterator = zoning.getVirtualNetwork().connectoidSegments
-                .iterator();
-
-        private Iterator<?> currentIterator;
-
-        TransportSegmentIterator() {
-            currentIterator = physicalIterator.hasNext() ? physicalIterator : virtualIterator;
-        }
-
-        /**
-         * Iterator through registered edge segments
-         * 
-         * @return true if there are more EdgeSegment objects to loop through, false
-         *         otherwise
-         */
-        @Override
-        public boolean hasNext() {
-            if (currentIterator.hasNext()) {
-                return true;
-            } else if (!currentIterator.equals(virtualIterator)) {
-                currentIterator = virtualIterator;
-            }
-            return currentIterator.hasNext();
-        }
-
-        /**
-         * Return next EdgeSegment object
-         * 
-         * @return next EdgeSegment object
-         */
-        @Override
-        public EdgeSegment next() {
-            return (EdgeSegment) currentIterator.next();
-        }
-    }
-
-    /**
      * Holds the physical road network that is being modeled
      */
     protected final PhysicalNetwork physicalNetwork;
@@ -89,10 +41,8 @@ public class TransportNetwork {
      * Add edge segment to the incoming or outgoing set of edge segments for the
      * related vertices
      * 
-     * @param edgeSegment
-     *            EdgeSegment to be added to upstream and downstream vertices
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @param edgeSegment EdgeSegment to be added to upstream and downstream vertices
+     * @throws PlanItException thrown if there is an error
      */
     protected void connectVerticesToEdgeSegment(EdgeSegment edgeSegment) throws PlanItException {
         edgeSegment.getUpstreamVertex().exitEdgeSegments.addEdgeSegment(edgeSegment);
@@ -103,10 +53,8 @@ public class TransportNetwork {
      * Remove edge segment from the incoming or outgoing set of edge segments for
      * the related vertices
      * 
-     * @param edgeSegment
-     *            the EdgeSegment object to be removed from the network
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @param edgeSegment the EdgeSegment object to be removed from the network
+     * @throws PlanItException thrown if there is an error
      */
     protected void disconnectVerticesFromEdgeSegment(EdgeSegment edgeSegment) throws PlanItException {
         edgeSegment.getUpstreamVertex().exitEdgeSegments.removeEdgeSegment(edgeSegment);
@@ -116,10 +64,8 @@ public class TransportNetwork {
     /**
      * Add Edge to both vertices
      * 
-     * @param edge
-     *            Edge to be added to upstream and downstream vertices
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @param edge Edge to be added to upstream and downstream vertices
+     * @throws PlanItException thrown if there is an error
      */
     protected void connectVerticesToEdge(Edge edge) throws PlanItException {
         edge.getVertexA().edges.addEdge(edge);
@@ -129,10 +75,8 @@ public class TransportNetwork {
     /**
      * Remove Edge from both vertices
      * 
-     * @param edge
-     *            Edge to be removed from upstream and downstream vertices
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @param edge Edge to be removed from upstream and downstream vertices
+     * @throws PlanItException thrown if there is an error
      */
     protected void disconnectVerticesFromEdge(Edge edge) throws PlanItException {
         edge.getVertexA().edges.removeEdge(edge);
@@ -159,10 +103,8 @@ public class TransportNetwork {
     /**
      * Constructor
      * 
-     * @param physicalNetwork
-     *            the PhysicalNetwork used to generate this TransportNetwork
-     * @param zoning
-     *            the Zoning used to generate this TransportNetwork
+     * @param physicalNetwork the PhysicalNetwork used to generate this TransportNetwork
+     * @param zoning the Zoning used to generate this TransportNetwork
      */
     public TransportNetwork(@Nonnull PhysicalNetwork physicalNetwork, @Nonnull Zoning zoning) {
         this.physicalNetwork = physicalNetwork;
@@ -212,35 +154,24 @@ public class TransportNetwork {
     }
 
     /**
-     * Returns an iterator that iterates over all edge segments both virtual and
-     * physical
-     * 
-     * @return iterator over TransportSegment objects
-     */
-    public TransportSegmentIterator getTransportSegmentIterator() {
-        return new TransportSegmentIterator();
-    }
-
-    /**
      * Integrate physical and virtual links
      * 
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException thrown if there is an error
      */
     public void integrateConnectoidsAndLinks() throws PlanItException {
         VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
-        for (Connectoid connectoid : virtualNetwork.connectoids) {
+        for (Connectoid connectoid : virtualNetwork.connectoids.toList()) {
             virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
             virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, false);
             connectVerticesToEdge(connectoid);
         }
-        for (ConnectoidSegment connectoidSegment : virtualNetwork.connectoidSegments) {
+        for (ConnectoidSegment connectoidSegment : virtualNetwork.connectoidSegments.toList()) {
             connectVerticesToEdgeSegment(connectoidSegment);
         }
-        for (Link link : physicalNetwork.links) {
+        for (Link link : physicalNetwork.links.toList()) {
             connectVerticesToEdge(link);
         }
-        for (LinkSegment linkSegment : physicalNetwork.linkSegments) {
+        for (LinkSegment linkSegment : physicalNetwork.linkSegments.toList()) {
             connectVerticesToEdgeSegment(linkSegment);
         }
     }
@@ -249,20 +180,19 @@ public class TransportNetwork {
      * Remove the edges and edge segments on the vertices of both virtual and
      * physical networks
      * 
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException thrown if there is an error
      */
     public void removeVirtualNetworkFromPhysicalNetwork() throws PlanItException {
-        for (Connectoid connectoid : zoning.getVirtualNetwork().connectoids) {
+        for (Connectoid connectoid : zoning.getVirtualNetwork().connectoids.toList()) {
             disconnectVerticesFromEdge(connectoid);
         }
-        for (ConnectoidSegment connectoidSegment : zoning.getVirtualNetwork().connectoidSegments) {
+        for (ConnectoidSegment connectoidSegment : zoning.getVirtualNetwork().connectoidSegments.toList()) {
             disconnectVerticesFromEdgeSegment(connectoidSegment);
         }
-        for (Link link : physicalNetwork.links) {
+        for (Link link : physicalNetwork.links.toList()) {
             disconnectVerticesFromEdge(link);
         }
-        for (LinkSegment linkSegment : physicalNetwork.linkSegments) {
+        for (LinkSegment linkSegment : physicalNetwork.linkSegments.toList()) {
             disconnectVerticesFromEdgeSegment(linkSegment);
         }
     }

@@ -6,9 +6,9 @@ import java.util.Map;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
-import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
+import org.planit.trafficassignment.TrafficAssignment;
 
 /**
  * The configuration for the link output type.
@@ -42,12 +42,11 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 * 
 	 * Define the default output properties here.
 	 * 
-	 * @param outputAdapter OutputAdapter to access data for output persistence
-	 * @throws PlanItException thrown if there is an error adding the default
-	 *                         properties
+	 * @param trafficAssignment TrafficAssignment object whose results are to be reported
+	 * @throws PlanItException thrown if there is an error adding the default properties
 	 */
-	public LinkOutputTypeConfiguration(OutputAdapter outputAdapter) throws PlanItException {
-		super(outputAdapter, OutputType.LINK);
+	public LinkOutputTypeConfiguration(TrafficAssignment trafficAssignment) throws PlanItException {
+		super(trafficAssignment, OutputType.LINK);
 		addProperty(OutputProperty.TIME_PERIOD_EXTERNAL_ID);
 		addProperty(OutputProperty.MODE_EXTERNAL_ID);
 		addProperty(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID);

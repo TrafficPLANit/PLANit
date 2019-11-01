@@ -6,6 +6,7 @@ import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.output.OutputManager;
+import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.OutputTimeUnit;
 import org.planit.output.enums.OutputType;
@@ -96,37 +97,37 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	/**
 	 * Write link results for the current time period to the CSV file
 	 * 
-	 * @param outputTypeConfiguration OutputTypeConfiguration for current
-	 *                                persistence
+	 * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
+	 * @param outputTypeAdapter OutputTypeAdapter for current persistence
 	 * @param modes                   Set of modes of travel
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected abstract void writeLinkResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+	protected abstract void writeLinkResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, OutputTypeAdapter outputTypeAdapter,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException;
 
 	/**
 	 * Write General results for the current time period to the CSV file
 	 * 
-	 * @param outputTypeConfiguration OutputTypeConfiguration for current
-	 *                                persistence
+	 * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
+	 * @param outputTypeAdapter OutputTypeAdapter for current persistence
 	 * @param modes                   Set of current modes of travel
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected abstract void writeGeneralResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+	protected abstract void writeGeneralResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, OutputTypeAdapter outputTypeAdapter,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException;
 
 	/**
 	 * Write Origin-Destination results for the time period to the CSV file
 	 * 
-	 * @param outputTypeConfiguration OutputTypeConfiguration for current
-	 *                                persistence
+	 * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
+	 * @param outputTypeAdapter OutputTypeAdapter for current persistence
 	 * @param modes                   Set of modes of travel
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected abstract void writeOdResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+	protected abstract void writeOdResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, OutputTypeAdapter outputTypeAdapter,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException;
 
 	/**
@@ -138,11 +139,11 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected abstract void writeSimulationResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+	protected abstract void writeSimulationResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, OutputTypeAdapter outputTypeAdapter,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException;
 
 	/**
-	 * Constructor,
+	 * Constructor
 	 */
 	public BaseOutputFormatter() {
 		this.id = IdGenerator.generateId(OutputManager.class);
@@ -163,10 +164,11 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * @param timePeriod              time period for current results
 	 * @param modes                   Set of modes covered by current results
 	 * @param outputTypeConfiguration output configuration being used
+	 * @param outputTypeAdapter output type adapter being used
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration)
+	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration, OutputTypeAdapter outputTypeAdapter)
 			throws PlanItException {
 		OutputType outputType = outputTypeConfiguration.getOutputType();
 		if (!outputTypeValuesLocked.get(outputType)) {
@@ -180,16 +182,16 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 
 		switch (outputType) {
 		case GENERAL:
-			writeGeneralResultsForCurrentTimePeriod(outputTypeConfiguration, modes, timePeriod);
+			writeGeneralResultsForCurrentTimePeriod(outputTypeConfiguration, outputTypeAdapter, modes, timePeriod);
 			break;
 		case LINK:
-			writeLinkResultsForCurrentTimePeriod(outputTypeConfiguration, modes, timePeriod);
+			writeLinkResultsForCurrentTimePeriod(outputTypeConfiguration, outputTypeAdapter, modes, timePeriod);
 			break;
 		case OD:
-			writeOdResultsForCurrentTimePeriod(outputTypeConfiguration, modes, timePeriod);
+			writeOdResultsForCurrentTimePeriod(outputTypeConfiguration, outputTypeAdapter, modes, timePeriod);
 			break;
 		case SIMULATION:
-			writeSimulationResultsForCurrentTimePeriod(outputTypeConfiguration, modes, timePeriod);
+			writeSimulationResultsForCurrentTimePeriod(outputTypeConfiguration, outputTypeAdapter, modes, timePeriod);
 			break;
 		}
 		lockOutputProperties(outputType);

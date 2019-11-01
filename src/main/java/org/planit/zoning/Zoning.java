@@ -1,6 +1,7 @@
 package org.planit.zoning;
 
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -21,7 +22,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
      * Internal class for all zone specific code
      *
      */
-    public class Zones implements Iterable<Zone> {
+	public class Zones {
 
         /**
          * Add zone to the internal container.
@@ -51,13 +52,12 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
         }
 
         /**
-         * Returns iterator through the zones
+         * Returns a List of registered Zones
          * 
-         * @return iterator through the zones
+         * @return List of registered Zone objects
          */
-        @Override
-        public Iterator<Zone> iterator() {
-            return zoneMap.values().iterator();
+        public List<Zone> toList() {
+        	return new ArrayList<Zone>(zoneMap.values());
         }
 
         /**
