@@ -1,6 +1,5 @@
 package org.planit.output.configuration;
 
-import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Function;
@@ -175,31 +174,12 @@ public abstract class OutputTypeConfiguration {
 	}
 
 	/**
-	 * Find the identification type for a specified output type
-	 * 
-	 * @param outputKeyProperties map of output key property types per output type
-	 * @param outputType the specified output type
-	 * @return the value of the identification type determined
-	 */
-	public int findIdentificationMethod(Map<OutputType, OutputProperty[]> outputKeyProperties, OutputType outputType) {
-		return findIdentificationMethod(outputKeyProperties.get(outputType));
-	}
-
-	/**
 	 * Find the identification type for this output configuration
 	 * 
-	 * @param outputKeyPropertiesArray array of output key property types
+	 * @param outputKeyProperties array of output key property types
 	 * @return the value of the identification type determined
 	 */
-	public abstract int findIdentificationMethod(OutputProperty[] outputKeyPropertiesArray);
-	
-	/**
-	 * Find the identification type for this output configuration
-	 * 
-	 * @param outputKeyProperties map of output key property types per output type
-	 * @return the value of the identification type determined
-	 */
-	public abstract int findIdentificationMethod(Map<OutputType, OutputProperty[]> outputKeyProperties);
+	//public abstract int findIdentificationMethod(OutputProperty[] outputKeyPropertiesArray);
 	
 	/**
 	 * Validate whether the specified list of keys is valid, and if it is return only the keys which will be used
@@ -207,5 +187,6 @@ public abstract class OutputTypeConfiguration {
 	 * @param identificationMethod the identification method being used
 	 * @return array of keys to be used (null if the list is not valid)
 	 */
-	public abstract OutputProperty[] validateAndFilterKeyProperties(int identificationMethod);
+	//public abstract OutputProperty[] validateAndFilterKeyProperties(int identificationMethod);
+	public abstract OutputProperty[] validateAndFilterKeyProperties(OutputProperty[] outputKeyProperties);
 }

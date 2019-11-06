@@ -33,7 +33,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends OutputType
 	 * 
 	 * @param linkSegment specified link segment
 	 * @param mode specified mode
-	 * @return true is there is flow through this link segment, false if the flow is zero
+	 * @return true if there is flow through this link segment, false if the flow is zero
 	 */
 	@Override
 	public boolean isFlowPositive(LinkSegment linkSegment, Mode mode) {

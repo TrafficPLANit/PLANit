@@ -73,9 +73,8 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 */
 	private void initializeKeyProperties(OutputTypeConfiguration outputTypeConfiguration) throws PlanItException {
 		OutputProperty[] outputKeyPropertyArray = outputTypeConfiguration.getOutputKeyProperties();
-		int identificationMethod = outputTypeConfiguration.findIdentificationMethod(outputKeyPropertyArray);
 		OutputType outputType = outputTypeConfiguration.getOutputType();
-		OutputProperty[] outputKeyPropertiesArray = outputTypeConfiguration.validateAndFilterKeyProperties(identificationMethod);
+		OutputProperty[] outputKeyPropertiesArray = outputTypeConfiguration.validateAndFilterKeyProperties(outputKeyPropertyArray);
 		if (outputKeyPropertiesArray  == null ) {
 			throw new PlanItException("Key properties invalid for OutputType " + outputType.value() + " not correctly defined.");
 		}

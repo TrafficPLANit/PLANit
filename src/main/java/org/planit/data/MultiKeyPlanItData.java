@@ -111,13 +111,11 @@ public class MultiKeyPlanItData {
 	 * @param outputValueProperties OutputProperty types of values
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void init(OutputProperty[] outputKeyProperties, OutputProperty[] outputValueProperties)
-			throws PlanItException {
+	private void init(OutputProperty[] outputKeyProperties, OutputProperty[] outputValueProperties)	throws PlanItException {
 		multiKeyMap = MultiKeyMap.decorate(new HashedMap());
 		singleKeyMap = new HashMap<Object, Object[]>();
 		if (outputKeyProperties.length > 5) {
-			throw new PlanItException(
-					"Attempted to register too many output property keys.  The maximum number allowed is 5.");
+			throw new PlanItException("Attempted to register too many output property keys.  The maximum number allowed is 5.");
 		}
 		this.outputKeyProperties = outputKeyProperties;
 		keyTypes = getTypes(outputKeyProperties);

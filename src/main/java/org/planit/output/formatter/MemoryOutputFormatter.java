@@ -176,7 +176,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
 		}
 	}
-
+	
 	/**
 	 * Write Origin-Destination results for the time period to the CSV file
 	 * 

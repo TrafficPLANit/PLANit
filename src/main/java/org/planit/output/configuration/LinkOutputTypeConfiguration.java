@@ -2,7 +2,6 @@ package org.planit.output.configuration;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
@@ -38,6 +37,26 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	public static final int LINK_SEGMENT_NOT_IDENTIFIED = 4;
 
 	/**
+	 * Determine how a link is being identified in the output formatter
+	 * 
+	 * @param outputKeyProperties array of output key property types
+	 * @return the value of the identification type determined
+	 */
+	private int findIdentificationMethod(OutputProperty [] outputKeyProperties) {
+		List<OutputProperty> outputKeyPropertyList = Arrays.asList(outputKeyProperties);
+		if (outputKeyPropertyList.contains(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID)) {
+			return LINK_SEGMENT_IDENTIFICATION_BY_NODE_ID;
+		}
+		if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_ID)) {
+			return LINK_SEGMENT_IDENTIFICATION_BY_ID;
+		}
+		if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_EXTERNAL_ID)) {
+			return LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID;
+		}
+		return LINK_SEGMENT_NOT_IDENTIFIED;
+	}	
+	
+	/**
 	 * Constructor
 	 * 
 	 * Define the default output properties here.
@@ -58,50 +77,18 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 		addProperty(OutputProperty.CALCULATED_SPEED);
 		addProperty(OutputProperty.LINK_COST);
 	}
-
-	/**
-	 * Determine how a link is being identified in the output formatter
-	 * 
-	 * @param outputKeyProperties Map of arrays of keys used to identify the link
-	 * @return the identification method
-	 */
-	@Override
-	public int findIdentificationMethod(Map<OutputType, OutputProperty[]> outputKeyProperties) {
-		return findIdentificationMethod(outputKeyProperties, OutputType.LINK);
-	}
-
-	/**
-	 * Determine how a link is being identified in the output formatter
-	 * 
-	 * @param outputKeyPropertiesArray array of output key property types
-	 * @return the value of the identification type determined
-	 */
-	@Override
-	public int findIdentificationMethod(OutputProperty [] outputKeyPropertiesArray) {
-		List<OutputProperty> outputKeyPropertyList = Arrays.asList(outputKeyPropertiesArray);
-		if (outputKeyPropertyList.contains(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID)) {
-			return LINK_SEGMENT_IDENTIFICATION_BY_NODE_ID;
-		}
-		if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_ID)) {
-			return LINK_SEGMENT_IDENTIFICATION_BY_ID;
-		}
-		if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_EXTERNAL_ID)) {
-			return LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID;
-		}
-		return LINK_SEGMENT_NOT_IDENTIFIED;
-	}	
 	
 	/**
 	 * Validate whether the specified list of keys is valid, and if it is return only the keys which will be used
 	 * 
-	 * @param identificationMethod the identification method being used
+	 * @param outputKeyProperties array of output key property types
 	 * @return array of keys to be used (null if the list is not valid)
 	 */
 	@Override
-	public OutputProperty[] validateAndFilterKeyProperties(int identificationMethod) {
+	public OutputProperty[] validateAndFilterKeyProperties(OutputProperty [] outputKeyProperties) {
 		OutputProperty[] outputKeyPropertiesArray = null;
 		boolean valid = false;
-		switch (identificationMethod) {
+		switch (findIdentificationMethod(outputKeyProperties)) {
 		case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_NODE_ID:
 			outputKeyPropertiesArray = new OutputProperty[2];
 			outputKeyPropertiesArray[0] = OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID;

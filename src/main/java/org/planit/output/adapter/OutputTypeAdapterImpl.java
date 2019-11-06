@@ -24,6 +24,7 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
     /**
      * Constructor
      * 
+     * @param outputType the OutputType this adapter corresponds to
      * @param trafficAssignment TrafficAssignment object which this adapter wraps
      */
     public OutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
@@ -40,6 +41,11 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
     	return outputType;
     }
     
+	/**
+	 * Return the TrafficAssignment used by this output adapter
+	 * 
+	 * @return the TrafficAssignment used by this output adapter
+	 */
     public TrafficAssignment getTrafficAssignment() {
     	return trafficAssignment;
     }
