@@ -13,7 +13,7 @@ import org.planit.utils.IdGenerator;
  * @author gman6028
  *
  */
-public class LinkSegment extends EdgeSegment {
+public abstract class LinkSegment extends EdgeSegment {
 
     /**
      * unique internal identifier

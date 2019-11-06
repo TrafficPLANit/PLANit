@@ -112,7 +112,11 @@ public abstract class OutputTypeConfiguration {
 	 * @throws PlanItException thrown if there is an error removing the property
 	 */
 	public boolean removeProperty(OutputProperty outputProperty) throws PlanItException {
-		return outputProperties.remove(BaseOutputProperty.convertToBaseOutputProperty(outputProperty));
+		BaseOutputProperty baseOutputProperty = BaseOutputProperty.convertToBaseOutputProperty(outputProperty);
+		if (outputProperties.contains( baseOutputProperty)) {
+			return outputProperties.remove(baseOutputProperty);
+		}
+		return true;
 	}
 
 	/**

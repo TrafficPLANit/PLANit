@@ -41,11 +41,6 @@ public class CustomPlanItProject {
     protected TreeMap<Long, PhysicalNetwork> physicalNetworks;
 
     /**
-     * The zoning(s) registered on this project
-     */
-    protected TreeMap<Long, Zoning> zonings;
-
-    /**
      * The demands registered on this project
      */
     protected TreeMap<Long, Demands> demandsMap;
@@ -136,6 +131,7 @@ public class CustomPlanItProject {
         try {
             ta.execute();
         } catch (Exception e) {
+        	e.printStackTrace();
              PlanItLogger.severe(e.getMessage());
         }
     }
@@ -155,7 +151,6 @@ public class CustomPlanItProject {
         eventManager.addEventListener(inputBuilderListener);
         trafficAssignments = new TreeMap<Long, TrafficAssignment>();
         physicalNetworks = new TreeMap<Long, PhysicalNetwork>();
-        zonings = new TreeMap<Long, Zoning>();
         demandsMap = new TreeMap<Long, Demands>();
         outputFormatters = new TreeMap<Long, OutputFormatter>();
         initialiseFactories(eventManager);
@@ -190,7 +185,6 @@ public class CustomPlanItProject {
     		throw new PlanItException("Tried to define zones before the physical network was defined.");
     	}
         zoning = zoningFactory.create(Zoning.class.getCanonicalName(), physicalNetwork);
-        zonings.put(zoning.getId(), zoning);
         return zoning;
     }
 
@@ -368,16 +362,6 @@ public class CustomPlanItProject {
      */
     public OutputFormatter getOutputFormatter(long id) {
         return outputFormatters.get(id);
-    }
-
-    /**
-     * Retrieve a Zoning object given its id
-     * 
-     * @param id the id of the the Zoning object
-     * @return the retrieved Zoning object
-     */
-    public Zoning getZoning(long id) {
-        return zonings.get(id);
     }
 
     /**

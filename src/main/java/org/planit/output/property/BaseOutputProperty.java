@@ -3,6 +3,9 @@ package org.planit.output.property;
 import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
+import org.planit.time.TimePeriod;
+import org.planit.trafficassignment.TrafficAssignment;
+import org.planit.userclass.Mode;
 
 /**
  * Template for output property classes which can be included in the output
@@ -35,7 +38,7 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 	 * @return data type of the output property
 	 */
 	public abstract Type getType();
-	
+
 	/**
 	 * Return the value of the OutputProperty enumeration for this property
 	 * 
@@ -46,12 +49,13 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 	/**
 	 * Gets the column priority of the output property in output files
 	 * 
-	 * The lower the column priority value of a property, the further to the left it is placed in the output file
+	 * The lower the column priority value of a property, the further to the left it
+	 * is placed in the output file
 	 * 
 	 * @return the column priority
 	 */
 	public abstract OutputPropertyPriority getColumnPriority();
-	
+
 	/**
 	 * Overridden equals() method
 	 * 
@@ -75,24 +79,32 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 	public int hashCode() {
 		return getUnits().hashCode() + getType().hashCode() + getName().hashCode();
 	}
-	
+
 	/**
-	 * compareTo method used to order the output columns when output is being written
+	 * compareTo method used to order the output columns when output is being
+	 * written
 	 * 
-	 * @param otherProperty output property which is being compared to the current one
+	 * @param otherProperty output property which is being compared to the current
+	 *                      one
 	 */
 	public int compareTo(BaseOutputProperty otherProperty) {
 		if (getColumnPriority().equals(otherProperty.getColumnPriority())) {
-			return getName().compareTo(otherProperty.getName());
+			if (getName().equals(otherProperty.getName())) {
+				return getOutputProperty().compareTo(otherProperty.getOutputProperty());
+			} else {
+				return getName().compareTo(otherProperty.getName());
+			}
 		}
 		return getColumnPriority().value() - otherProperty.getColumnPriority().value();
 	}
 
 	/**
-	 * Generate the appropriate BaseOutputProperty object from a specified class name
+	 * Generate the appropriate BaseOutputProperty object from a specified class
+	 * name
 	 * 
 	 * @param propertyClassName the class name of the specified output property
-	 * @return the BaseOutputProperty object corresponding to the specified enumeration value
+	 * @return the BaseOutputProperty object corresponding to the specified
+	 *         enumeration value
 	 * @throws PlanItException thrown if there is an error creating the object
 	 */
 	public static BaseOutputProperty convertToBaseOutputProperty(String propertyClassName) throws PlanItException {
@@ -104,16 +116,55 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 			throw new PlanItException(e);
 		}
 	}
-	
+
 	/**
-	 * Generate the appropriate BaseOutputProperty object from a specified enumeration value
+	 * Generate the appropriate BaseOutputProperty object from a specified
+	 * enumeration value
 	 * 
 	 * @param outputProperty the enumeration value of the specified output property
-	 * @return the BaseOutputProperty object corresponding to the specified enumeration value
+	 * @return the BaseOutputProperty object corresponding to the specified
+	 *         enumeration value
 	 * @throws PlanItException thrown if there is an error creating the object
 	 */
 	public static BaseOutputProperty convertToBaseOutputProperty(OutputProperty outputProperty) throws PlanItException {
 		return convertToBaseOutputProperty(outputProperty.value());
 	}
+
+	/**
+	 * Returns the value of a specified output property
+	 * 
+	 * Note this method returns an Exception rather than throwing one.  This allows it to be used as a lambda function.
+	 * 
+	 * @param outputProperty the specified output property
+	 * @param object LinkSegment or ODMatrixIterator object containing data which may be required
+	 * @param trafficAssignment TrafficAssignment containing data which may be required
+	 * @param mode current mode
+	 * @param timePeriod current time period
+	 * @param timeUnitMultiplier multiplier to convert time durations to hours, minutes or seconds
+	 * @return the value of the specified property
+	 */
+	public static Object getValue(OutputProperty outputProperty, Object object, TrafficAssignment trafficAssignment,
+			Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) {
+		try {
+			BaseOutputProperty baseOutputProperty = convertToBaseOutputProperty(outputProperty);
+			return baseOutputProperty.getValue(object, trafficAssignment, mode, timePeriod, timeUnitMultiplier);
+		} catch (Exception e) {
+			return e;
+		}
+	}
+
+	/**
+	 * Returns the value of the current property
+	 * 
+	 * @param object LinkSegment or ODMatrixIterator object containing data which may be required
+	 * @param trafficAssignment TrafficAssignment containing data which may be required
+	 * @param mode current mode
+	 * @param timePeriod current time period
+	 * @param timeUnitMultiplier multiplier to convert time durations to hours, minutes or seconds
+	 * @return the value of the current property
+	 * @throws PlanItException thrown if there is an error
+	 */
+	public abstract Object getValue(Object object, TrafficAssignment trafficAssignment, Mode mode,
+			TimePeriod timePeriod, double timeUnitMultiplier) throws PlanItException;
 
 }

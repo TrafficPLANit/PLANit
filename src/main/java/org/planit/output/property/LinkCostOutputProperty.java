@@ -1,5 +1,6 @@
 package org.planit.output.property;
 
+import org.planit.data.TraditionalStaticAssignmentSimulationData;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
 import org.planit.output.enums.Type;
@@ -8,37 +9,37 @@ import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.userclass.Mode;
 
-public class LinkSegmentExternalIdOutputProperty extends BaseOutputProperty {
+public final class LinkCostOutputProperty extends BaseOutputProperty {
 
-	public final static String LINK_SEGMENT_EXTERNAL_ID = "Link Segment External Id";
+	public static final String LINK_COST = "Cost";
 	
 	@Override
 	public String getName() {
-		return LINK_SEGMENT_EXTERNAL_ID;
+		return LINK_COST;
 	}
 
 	@Override
 	public Units getUnits() {
-		return Units.NONE;
+		return Units.H;
 	}
 
 	@Override
 	public Type getType() {
-		return Type.LONG;
+		return Type.DOUBLE;
 	}
 
 	@Override
 	public OutputProperty getOutputProperty() {
-		return OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
+		return OutputProperty.LINK_COST;
 	}
 
 	@Override
 	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.ID_PRIORITY;
+		return OutputPropertyPriority.RESULT_PRIORITY;
 	}
 
 	/**
-	 * Returns the external Id of the current link segment
+	 * Returns the travel cost (time) through the current link segment
 	 * 
 	 * @param object LinkSegment object containing the required data
 	 * @param trafficAssignment TrafficAssignment containing data which may be required
@@ -49,13 +50,15 @@ public class LinkSegmentExternalIdOutputProperty extends BaseOutputProperty {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	public Object getValue(Object object, TrafficAssignment trafficAssignment, Mode mode, TimePeriod timePeriod,
-			double timeUnitMultiplier) throws PlanItException {
+	public Object getValue(Object object, TrafficAssignment trafficAssignment, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) throws PlanItException {
 		if (!(object instanceof LinkSegment)) {
-			throw new PlanItException("Tried to read the link external Id for an object which is not a link segment.");
+			throw new PlanItException("Tried to calculate cost for an object which is not a link segment.");
 		}
 		LinkSegment linkSegment = (LinkSegment) object;
-		return linkSegment.getParentLink().getExternalId();
+		int id = (int) linkSegment.getId();
+		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
+		double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);
+		return modalNetworkSegmentCosts[id] * timeUnitMultiplier;
 	}
 
 }

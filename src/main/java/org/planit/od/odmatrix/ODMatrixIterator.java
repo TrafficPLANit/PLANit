@@ -5,12 +5,37 @@ import org.planit.od.ODDataIterator;
 import org.planit.zoning.Zone;
 import org.planit.zoning.Zoning;
 
+/**
+ * Iterator which runs through rows and columns of an OD matrix, making the value, row and column of each cell available
+ * 
+ * @author gman6028
+ *
+ */
 public class ODMatrixIterator implements ODDataIterator<Double> {
 
+	/**
+	 * Id of the origin zone
+	 */
 	private int originId;
+	
+	/**
+	 * Id of the destination zone
+	 */
 	private int destinationId;
+	
+	/**
+	 * Number of travel analysis zones in the OD matrix (used internally, not accessible from other classes)
+	 */
 	private int numberOfTravelAnalysisZones;
+	
+	/**
+	 * Marker used to store the current position in the OD matrix (used internally, not accessible from other classes)
+	 */
 	private int currentLocation;
+	
+	/**
+	 * Zones object to store travel analysis zones (from Zoning object)
+	 */
 	private Zoning.Zones zones;
 
 	/**

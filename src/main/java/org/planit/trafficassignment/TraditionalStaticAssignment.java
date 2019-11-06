@@ -3,6 +3,7 @@ package org.planit.trafficassignment;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -29,8 +30,14 @@ import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
+import org.planit.od.odmatrix.skim.ODSkimMatrix;
+import org.planit.output.adapter.OutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
+import org.planit.output.enums.ODSkimOutputType;
+import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -80,12 +87,13 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	private void initialiseTimePeriod(Set<Mode> modes) {
 		OutputConfiguration outputConfiguration = outputManager.getOutputConfiguration();
 		simulationData = new TraditionalStaticAssignmentSimulationData(outputConfiguration);
-		simulationData.setEmptySegmentArray(new double[numberOfNetworkSegments]);
+		//simulationData.setEmptySegmentArray(new double[numberOfNetworkSegments]);
 		simulationData.setIterationIndex(0);
 		simulationData.getModeSpecificData().clear();
 		for (Mode mode : modes) {
-			simulationData.resetModalNetworkSegmentFlows(mode);
-			simulationData.getModeSpecificData().put(mode, new ModeData(simulationData.getEmptySegmentArray()));
+			simulationData.resetModalNetworkSegmentFlows(mode, numberOfNetworkSegments);
+			//simulationData.getModeSpecificData().put(mode, new ModeData(simulationData.getEmptySegmentArray()));
+			simulationData.getModeSpecificData().put(mode, new ModeData(new double[numberOfNetworkSegments]));
 		}
 	}
 
@@ -119,6 +127,9 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			double[] modalNetworkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 
+		Map<ODSkimOutputType, ODSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
+		Set<ODSkimOutputType> activeSkimOutputTypes = simulationData.getActiveSkimOutputTypes();
+		
 		// loop over all available OD demands
 		long previousOriginZoneId = -1;
 		Pair<Double, EdgeSegment>[] vertexPathCost = null;
@@ -172,7 +183,9 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 					currentPathStartVertex = currentEdgeSegment.getUpstreamVertex();
 				}
 				dualityGapFunction.increaseConvexityBound(odDemand * shortestPathCost);
-				simulationData.setSkimMatrixValue(mode, currentOriginZone, currentDestinationZone, shortestPathCost);
+				for (ODSkimOutputType odSkimOutputType : activeSkimOutputTypes) {
+					skimMatrixMap.get(odSkimOutputType).setValue(currentOriginZone, currentDestinationZone, shortestPathCost);
+				}
 				previousOriginZoneId = originZoneId;
 			}
 		}
@@ -200,7 +213,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			for (Mode mode : modes) {
 				simulationData.resetSkimMatrix(mode, getTransportNetwork().zones);
 				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode, timePeriod,	simulationData.getIterationIndex());
-				simulationData.resetModalNetworkSegmentFlows(mode);
+				simulationData.resetModalNetworkSegmentFlows(mode, numberOfNetworkSegments);
 				executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalNetworkSegmentCosts);
 				simulationData.setModalNetworkSegmentCosts(mode, modalNetworkSegmentCosts);
 			}
@@ -245,8 +258,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		dualityGapFunction.increaseActualSystemTravelTime(totalModeSystemTravelTime);
 		applySmoothing(currentModeData);
 		// aggregate smoothed mode specific flows - for cost computation
-		ArrayOperations.addTo(simulationData.getModalNetworkSegmentFlows(mode),
-				currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
+		ArrayOperations.addTo(simulationData.getModalNetworkSegmentFlows(mode), currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
 		simulationData.getModeSpecificData().put(mode, currentModeData);
 	}
 
@@ -525,6 +537,27 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		if (event.getSourceAccessor().getRequestedAccessee().equals(LinkVolumeAccessee.class)) {
 			event.getSourceAccessor().setAccessee(this);
 		}
+	}
+	
+	/**
+	 * Create the output type adapter for the current output type
+	 * 
+	 * @param outputType the current output type
+	 * @return the output type adapter corresponding to the current traffic assignment and output type
+	 */
+	@Override
+	public OutputTypeAdapter createOutputTypeAdapter(OutputType outputType) {
+		OutputTypeAdapter outputTypeAdapter = null;
+		switch (outputType) {
+        case LINK: 
+         	outputTypeAdapter = new TraditionalStaticAssignmentLinkOutputTypeAdapter(outputType, this);
+        break;
+        case OD: 
+        	outputTypeAdapter = new TraditionalStaticAssignmentODOutputTypeAdapter(outputType, this);
+        break;
+        default: PlanItLogger.warning(outputType.value() + " has not been defined yet.");
+		}
+		return outputTypeAdapter;
 	}
 
 	/**

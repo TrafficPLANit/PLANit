@@ -21,6 +21,7 @@ import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.output.OutputManager;
+import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
@@ -142,7 +143,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * 
 	 * @throws PlanItException thrown if the components are not compatible
 	 */
-	// TODO - This method is currently empty. It original version could throw
+	// TODO - This method is currently empty. Its original version could throw
 	// PlanItIncompatibilityException. We need to check whether we still need it and
 	// whether it should throw PlanItIncompatibilityException.
 	protected void verifyComponentCompatibility() throws PlanItException {
@@ -177,7 +178,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	public TrafficAssignment() {
 		this.id = IdGenerator.generateId(TrafficAssignment.class);
-		outputManager = new OutputManager();
+		outputManager = new OutputManager(this);
 		initialLinkSegmentCostByTimePeriod = new HashMap<Long, InitialLinkSegmentCost>();
 	}
 
@@ -198,6 +199,14 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public abstract void executeEquilibration() throws PlanItException;
+	
+	/**
+	 * Create the output type adapter for the current output type
+	 * 
+	 * @param outputType the current output type
+	 * @return the output type adapter corresponding to the current traffic assignment and output type
+	 */
+	public abstract OutputTypeAdapter createOutputTypeAdapter(OutputType outputType);
 
 	/**
 	 * Collect the gap function which is to be set by a derived class of
@@ -231,7 +240,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public void activateOutput(OutputType outputType) throws PlanItException {
 		if (!outputManager.isOutputTypeActive(outputType)) {
 			PlanItLogger.info("Registering Output Type " + outputType);
-			outputManager.createAndRegisterOutputType(outputType, this);
+			outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
+			OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(outputType);
+			outputManager.registerOutputTypeAdapter(outputType, outputTypeAdapter);
 		}
 	}
 

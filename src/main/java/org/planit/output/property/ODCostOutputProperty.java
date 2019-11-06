@@ -1,46 +1,46 @@
 package org.planit.output.property;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.network.physical.LinkSegment;
+import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.userclass.Mode;
 
-public class LinkSegmentExternalIdOutputProperty extends BaseOutputProperty {
+public final class ODCostOutputProperty extends BaseOutputProperty {
 
-	public final static String LINK_SEGMENT_EXTERNAL_ID = "Link Segment External Id";
+	public static final String OD_COST = "Cost";
 	
 	@Override
 	public String getName() {
-		return LINK_SEGMENT_EXTERNAL_ID;
+		return OD_COST;
 	}
 
 	@Override
 	public Units getUnits() {
-		return Units.NONE;
+		return Units.H;
 	}
 
 	@Override
 	public Type getType() {
-		return Type.LONG;
+		return Type.DOUBLE;
 	}
 
 	@Override
 	public OutputProperty getOutputProperty() {
-		return OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
+		return OutputProperty.OD_COST;
 	}
 
 	@Override
 	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.ID_PRIORITY;
+		return OutputPropertyPriority.RESULT_PRIORITY;
 	}
 
 	/**
-	 * Returns the external Id of the current link segment
+	 * Returns the OD travel cost for the current cell in the OD skim matrix
 	 * 
-	 * @param object LinkSegment object containing the required data
+	 * @param object ODMatrixIterator object containing the required data
 	 * @param trafficAssignment TrafficAssignment containing data which may be required
 	 * @param mode current mode
 	 * @param timePeriod current time period
@@ -49,13 +49,12 @@ public class LinkSegmentExternalIdOutputProperty extends BaseOutputProperty {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	public Object getValue(Object object, TrafficAssignment trafficAssignment, Mode mode, TimePeriod timePeriod,
-			double timeUnitMultiplier) throws PlanItException {
-		if (!(object instanceof LinkSegment)) {
-			throw new PlanItException("Tried to read the link external Id for an object which is not a link segment.");
+	public Object getValue(Object object, TrafficAssignment trafficAssignment, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) throws PlanItException {
+		if (!(object instanceof ODMatrixIterator)) {
+			throw new PlanItException("Tried to read an OD cell from an object which is not an ODMatrixIterator.");
 		}
-		LinkSegment linkSegment = (LinkSegment) object;
-		return linkSegment.getParentLink().getExternalId();
+		ODMatrixIterator odMatrixIterator = (ODMatrixIterator) object;
+		return odMatrixIterator.getCurrentValue() * timeUnitMultiplier;
 	}
 
 }

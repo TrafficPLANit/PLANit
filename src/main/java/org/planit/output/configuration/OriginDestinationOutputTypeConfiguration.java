@@ -35,6 +35,9 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 	public static final int ORIGIN_DESTINATION_EXTERNAL_ID = 2;
 	public static final int ORIGIN_DESTINATION_NOT_IDENTIFIED = 3;
 	
+	/**
+	 * Stores all the active OD Skim output types
+	 */
 	private Set<ODSkimOutputType> activeOdSkimOutputTypes;
 
 	/**
@@ -55,7 +58,7 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 		addProperty(OutputProperty.MODE_EXTERNAL_ID);
 		addProperty(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID);
 		addProperty(OutputProperty.DESTINATION_ZONE_EXTERNAL_ID);
-		addProperty(OutputProperty.COST);
+		addProperty(OutputProperty.OD_COST);
 	}
 
 	/**

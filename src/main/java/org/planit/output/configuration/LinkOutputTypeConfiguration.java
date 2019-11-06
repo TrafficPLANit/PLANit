@@ -56,7 +56,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 		addProperty(OutputProperty.NUMBER_OF_LANES);
 		addProperty(OutputProperty.LENGTH);
 		addProperty(OutputProperty.CALCULATED_SPEED);
-		addProperty(OutputProperty.COST);
+		addProperty(OutputProperty.LINK_COST);
 	}
 
 	/**

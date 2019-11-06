@@ -8,9 +8,8 @@ import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
+import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.OutputTypeAdapter;
-import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapter;
-import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
 import org.planit.output.configuration.LinkOutputTypeConfiguration;
 import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
 import org.planit.output.configuration.OutputConfiguration;
@@ -41,9 +40,9 @@ public class OutputManager {
 	private List<OutputFormatter> outputFormatters;
 	
 	/**
-	 * Map of OutputTypeAdapter objects
+	 * Output Adapter object
 	 */
-	private Map<OutputType, OutputTypeAdapter> outputTypeAdapters;
+	private OutputAdapter outputAdapter;
 	
     /**
      * output configurations per output type
@@ -53,11 +52,11 @@ public class OutputManager {
 	/**
 	 * Base constructor of Output writer
 	 */
-	public OutputManager() {
+	public OutputManager(TrafficAssignment trafficAssignment) {
 		outputFormatters = new ArrayList<OutputFormatter>();
 		outputConfiguration = new OutputConfiguration(this);
-		outputTypeAdapters = new HashMap<OutputType, OutputTypeAdapter>();
 		outputTypeConfigurations = new HashMap<OutputType, OutputTypeConfiguration>();
+		outputAdapter = new OutputAdapter(trafficAssignment);
 	}
 
 	/**
@@ -71,13 +70,12 @@ public class OutputManager {
 	public void persistOutputData(TimePeriod timePeriod, Set<Mode> modes, boolean converged) throws PlanItException {
 		for (OutputType outputType : outputTypeConfigurations.keySet()) {
 			OutputTypeConfiguration outputTypeConfiguration = outputTypeConfigurations.get(outputType);
-			OutputTypeAdapter outputTypeAdapter = outputTypeAdapters.get(outputType);
 			for (OutputFormatter outputFormatter : outputFormatters) {
 				if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
 					if (!(converged || outputFormatter.canHandleMultipleIterations())) {
 						PlanItLogger.warning(outputFormatter.getClass().getName() + " can only persist the final iteration.");
 					} else {
-						outputFormatter.persist(timePeriod, modes, outputTypeConfiguration, outputTypeAdapter);
+						outputFormatter.persist(timePeriod, modes, outputTypeConfiguration, outputAdapter);
 					}
 				}
 			}
@@ -87,22 +85,30 @@ public class OutputManager {
     /**
      * Factory method to create an output configuration and adapter for a given type
      * 
-     * @param outputType  the output type to register the configuration and adapter for
+     * @param outputType  the output type to register the configuration for
      * @return trafficAssignment the TrafficAssignment object whose results are being reported
      * @throws PlanItException thrown if there is an error
      */
-	public void createAndRegisterOutputType(OutputType outputType, TrafficAssignment trafficAssignment) throws PlanItException {
+	public void createAndRegisterOutputTypeConfiguration(OutputType outputType, TrafficAssignment trafficAssignment) throws PlanItException {
         switch (outputType) {
         case LINK: 
         	outputTypeConfigurations.put(outputType, new LinkOutputTypeConfiguration(trafficAssignment));
-        	outputTypeAdapters.put(outputType, new TraditionalStaticAssignmentLinkOutputTypeAdapter(trafficAssignment));
         break;
         case OD: 
         	outputTypeConfigurations.put(outputType, new OriginDestinationOutputTypeConfiguration(trafficAssignment));
-        	outputTypeAdapters.put(outputType, new TraditionalStaticAssignmentODOutputTypeAdapter(trafficAssignment));
         break;
         default: PlanItLogger.warning(outputType.value() + " has not been defined yet.");
         }
+	}
+	
+	/**
+	 * Register the OutputTypeAdapter for a given output type
+	 * 
+     * @param outputType  the output type to register the output type adapter for
+	 * @param outputTypeAdapter the OutputTypeAdapte to be registered
+	 */
+	public void registerOutputTypeAdapter(OutputType outputType, OutputTypeAdapter outputTypeAdapter) {
+		outputAdapter.registerOutputTypeAdapter(outputType, outputTypeAdapter);
 	}
 
 	// getters - setters

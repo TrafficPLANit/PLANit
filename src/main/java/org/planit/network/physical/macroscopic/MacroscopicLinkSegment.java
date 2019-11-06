@@ -100,8 +100,4 @@ public class MacroscopicLinkSegment extends LinkSegment {
 		return linkSegmentType;
 	}
 
-	public long getExternalId() {
-		return externalId;
-	}
-
 }
