@@ -170,7 +170,17 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 */
 	private void updateSkimMatrixMap(Map<ODSkimOutputType, ODSkimMatrix> skimMatrixMap, Zone currentOriginZone, Zone currentDestinationZone, double shortestPathCost) {
 		for (ODSkimOutputType odSkimOutputType : simulationData.getActiveSkimOutputTypes()) {
-			skimMatrixMap.get(odSkimOutputType).setValue(currentOriginZone, currentDestinationZone, shortestPathCost);
+			ODSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);
+			switch (odSkimOutputType) {
+			case COST:
+				odSkimMatrix.setValue(currentOriginZone, currentDestinationZone, shortestPathCost);
+				break;
+			case NONE:
+				odSkimMatrix.setValue(currentOriginZone, currentDestinationZone, shortestPathCost);
+				break;
+			default:
+				break;			
+			}
 		}
 	}
 	

@@ -2,7 +2,6 @@ package org.planit.od.odmatrix.skim;
 
 import org.planit.od.odmatrix.ODMatrix;
 import org.planit.output.enums.ODSkimOutputType;
-import org.planit.zoning.Zone;
 import org.planit.zoning.Zoning;
 
 /**
@@ -41,33 +40,4 @@ public class ODSkimMatrix extends ODMatrix {
 		return odSkimOutputType;
 	}
 
-	/**
-	 * Sets the value for a specified origin and destination 
-	 * 
-	 * The value to be stored can be dependent on OD skim output type, hence this method
-	 * overrides the ODMatrix method.
-	 * 
-	 * @param origin specified origin
-	 * @param destination specified destination
-	 * @param value value at the specified cell
-	 */
-//TODO - At present this method is trivial because we only have NONE and COST as OD skim output types.
-//We must update this when more OD skim output types are added.
-	@Override
-	public void setValue(Zone origin, Zone destination, Double value) {
-		long originId = origin.getId();
-		long destinationId = destination.getId();
-        if (originId == destinationId) {
-            // demand or cost from any origin to itself must be zero
-            matrixContents.set(originId, destinationId, 0.0);
-        } else {
-        	switch (odSkimOutputType) {
-        	case COST: matrixContents.set(originId, destinationId, value);
-        	break;
-        	case NONE: matrixContents.set(originId, destinationId, value);
-        	break;
-        	}
-        }
-    }
-    
 }
