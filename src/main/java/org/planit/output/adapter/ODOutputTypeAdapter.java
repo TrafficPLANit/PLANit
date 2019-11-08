@@ -1,9 +1,10 @@
 package org.planit.output.adapter;
 
-import java.util.Set;
-
+import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.output.enums.ODSkimOutputType;
+import org.planit.output.property.OutputProperty;
+import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
 
 /**
@@ -14,13 +15,6 @@ import org.planit.userclass.Mode;
  */
 public interface ODOutputTypeAdapter extends OutputTypeAdapter {
 
-	/**
-	 * Returns a Set of OD skim output types which have been activated
-	 * 
-	 * @return Set of OD skim output types which have been activated
-	 */
-    public Set<ODSkimOutputType> getActiveSkimOutputTypes();
-
     /**
      * Retrieve an OD skim matrix for a specified OD skim output type and mode
      * 
@@ -29,4 +23,16 @@ public interface ODOutputTypeAdapter extends OutputTypeAdapter {
      * @return the OD skim matrix
      */
     public  ODSkimMatrix getODSkimMatrix(ODSkimOutputType odSkimOutputType, Mode mode);
+
+/**
+ * Returns the specified output property values for the current cell in the OD Matrix Iterator
+ * 
+ * @param outputProperty the specified output property
+ * @param odMatrixIterator the iterator through the current OD Matrix
+ * @param mode the current mode
+ * @param timePeriod the current time period
+ * @param timeUnitMultiplier the multiplier for time units
+ * @return the value of the specified property (or an Exception if an error has occurred)
+ */
+    public Object getODOutputPropertyValue(OutputProperty outputProperty, ODMatrixIterator odMatrixIterator, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier);
 }

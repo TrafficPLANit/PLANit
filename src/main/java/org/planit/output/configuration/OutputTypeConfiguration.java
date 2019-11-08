@@ -1,10 +1,12 @@
 package org.planit.output.configuration;
 
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Function;
 
 import org.planit.exceptions.PlanItException;
+import org.planit.output.enums.ODSkimOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
@@ -29,6 +31,16 @@ public abstract class OutputTypeConfiguration {
 	 * Output properties to be included in the CSV output files
 	 */
 	protected SortedSet<BaseOutputProperty> outputProperties;
+
+	/**
+	 * Stores all the active OD Skim output types
+	 */
+	protected Set<ODSkimOutputType> activeOdSkimOutputTypes;
+
+	/**
+	 * True if links with zero flow are to be recorded in output files, false otherwise (false is the default)
+	 */
+	protected boolean recordLinksWithZeroFlow;
 
 	/**
 	 * Filters output properties in the OutputAdapter and outputs them as an array
@@ -172,21 +184,43 @@ public abstract class OutputTypeConfiguration {
 	public SortedSet<BaseOutputProperty> getOutputProperties() {
 		return outputProperties;
 	}
-
+	
+    /**
+     * Returns a set of activated OD skim output types
+     * 
+     * @return Set of activated OD skim output types
+     * @throw PlanItException thrown if this method is called from an inappropriate output type configuration
+     */
+    public Set<ODSkimOutputType> getActiveOdSkimOutputTypes() throws PlanItException {
+    	if (activeOdSkimOutputTypes == null) {
+    		throw new PlanItException("Attempted to call getActiveOdSkimOutputTypes() from an OutputTypeConfiguration which does not use OD.");
+    	}
+    	return activeOdSkimOutputTypes;
+    }
+	
+    /**
+     * Set user flag to indicate whether links with zero flow should be recorded
+     * 
+     * @param recordLinksWithZeroFlow user flag to indicate whether links with zero flow should be recorded
+     */
+	public void setRecordLinksWithZeroFlow(boolean recordLinksWithZeroFlow) {
+		this.recordLinksWithZeroFlow = recordLinksWithZeroFlow;
+	}
+	
 	/**
-	 * Find the identification type for this output configuration
+	 * Return user flag to indicate whether links with zero flow should be recorded
 	 * 
-	 * @param outputKeyProperties array of output key property types
-	 * @return the value of the identification type determined
+	 * @return user flag to indicate whether links with zero flow should be recorded
 	 */
-	//public abstract int findIdentificationMethod(OutputProperty[] outputKeyPropertiesArray);
+	public boolean isRecordLinksWithZeroFlow() {
+		return recordLinksWithZeroFlow;
+	}
 	
 	/**
 	 * Validate whether the specified list of keys is valid, and if it is return only the keys which will be used
 	 * 
-	 * @param identificationMethod the identification method being used
+	 * @param outputKeyProperties array of output key property types
 	 * @return array of keys to be used (null if the list is not valid)
 	 */
-	//public abstract OutputProperty[] validateAndFilterKeyProperties(int identificationMethod);
 	public abstract OutputProperty[] validateAndFilterKeyProperties(OutputProperty[] outputKeyProperties);
 }

@@ -48,13 +48,13 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 		try {
 			ODOutputTypeAdapter odOutputTypeAdapter = (ODOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputTypeConfiguration.getOutputType());
 			SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
-			for (ODSkimOutputType odSkimOutputType : odOutputTypeAdapter.getActiveSkimOutputTypes()) {
+			for (ODSkimOutputType odSkimOutputType : outputTypeConfiguration.getActiveOdSkimOutputTypes()) {
 				for (Mode mode : modes) {
 					ODSkimMatrix odSkimMatrix = odOutputTypeAdapter.getODSkimMatrix(odSkimOutputType, mode);
 					for (ODMatrixIterator odMatrixIterator = odSkimMatrix.iterator(); odMatrixIterator.hasNext();) {
 						odMatrixIterator.next();
 						List<Object> rowValues = outputProperties.stream()
-								.map(outputProperty -> BaseOutputProperty.getValue(outputProperty.getOutputProperty(), odMatrixIterator, odOutputTypeAdapter.getTrafficAssignment(), mode, timePeriod, outputTimeUnit.getMultiplier()))
+								.map(outputProperty -> odOutputTypeAdapter.getODOutputPropertyValue(outputProperty.getOutputProperty(), odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier()))
 								.map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
 						csvPrinter.printRecord(rowValues);
 					}
@@ -82,9 +82,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 			SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
 			for (Mode mode : modes) {
 				for (LinkSegment linkSegment : linkOutputTypeAdapter.getLinkSegments()) {
-					if (linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
+					if (outputTypeConfiguration.isRecordLinksWithZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
 						List<Object> rowValues = outputProperties.stream()
-								.map(outputProperty -> BaseOutputProperty.getValue(outputProperty.getOutputProperty(), linkSegment, linkOutputTypeAdapter.getTrafficAssignment(), mode, timePeriod, outputTimeUnit.getMultiplier()))
+								.map(outputProperty -> linkOutputTypeAdapter.getLinkOutputPropertyValue(outputProperty.getOutputProperty(), linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier()))
 								.map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
 						csvPrinter.printRecord(rowValues);
 					}

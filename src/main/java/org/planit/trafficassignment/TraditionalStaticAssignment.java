@@ -83,16 +83,15 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * Initialize running simulation variables for the time period
 	 * 
 	 * @param modes set of modes covered by this assignment
+	 * @throws PlanItException thrown if there is an error
 	 */
-	private void initialiseTimePeriod(Set<Mode> modes) {
+	private void initialiseTimePeriod(Set<Mode> modes) throws PlanItException {
 		OutputConfiguration outputConfiguration = outputManager.getOutputConfiguration();
 		simulationData = new TraditionalStaticAssignmentSimulationData(outputConfiguration);
-		//simulationData.setEmptySegmentArray(new double[numberOfNetworkSegments]);
 		simulationData.setIterationIndex(0);
 		simulationData.getModeSpecificData().clear();
 		for (Mode mode : modes) {
 			simulationData.resetModalNetworkSegmentFlows(mode, numberOfNetworkSegments);
-			//simulationData.getModeSpecificData().put(mode, new ModeData(simulationData.getEmptySegmentArray()));
 			simulationData.getModeSpecificData().put(mode, new ModeData(new double[numberOfNetworkSegments]));
 		}
 	}
@@ -128,67 +127,96 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 
 		Map<ODSkimOutputType, ODSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
-		Set<ODSkimOutputType> activeSkimOutputTypes = simulationData.getActiveSkimOutputTypes();
 		
 		// loop over all available OD demands
-		long previousOriginZoneId = -1;
+		long previousOriginZoneId =  -1;
 		Pair<Double, EdgeSegment>[] vertexPathCost = null;
 		for (ODMatrixIterator odDemandMatrixIter = odDemandMatrix.iterator();odDemandMatrixIter.hasNext();) {
 		    double odDemand = odDemandMatrixIter.next();
 			Zone currentOriginZone = odDemandMatrixIter.getCurrentOrigin();
-			long originZoneId = currentOriginZone.getId();
 			Zone currentDestinationZone = odDemandMatrixIter.getCurrentDestination();
-			long destinationZoneId = currentDestinationZone.getId();
 
-			if (((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) && (originZoneId != destinationZoneId)) {
+			if (((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) && (currentOriginZone.getId() != currentDestinationZone.getId())) {
 
 				PlanItLogger
 				        .fine("Calculating flow from origin zone " + currentOriginZone.getExternalId()
 				        		+ " to destination zone " + currentDestinationZone.getExternalId()
 								+ " which has demand of " + df5.format(odDemand));
-
-				// UPDATE ORIGIN BASED: SHORTEST PATHS - ONE-TO-ALL
-				if (previousOriginZoneId != originZoneId) {
-					Centroid originCentroid = currentOriginZone.getCentroid();
-
-					if (originCentroid.exitEdgeSegments.isEmpty()) {
-						throw new PlanItException("Edge segments have not been assigned to Centroid for Zone " 	+ (currentOriginZone.getExternalId()));
-					}
-					vertexPathCost = shortestPathAlgorithm.executeOneToAll(originCentroid);
-				}
-
-				// UPDATE DESTINATION ZONE
-				// TODO: Costly to lookup destination zone via map whereas we know it is the
-				// next (non-zero demand) id compared to the previous)
-				// OD-SHORTEST PATH LOADING
+				vertexPathCost = updateVertexPathCostUsingShortestPathAlgorithm(previousOriginZoneId, currentOriginZone, vertexPathCost, shortestPathAlgorithm);
 				double shortestPathCost = 0;
 				Vertex currentPathStartVertex = currentDestinationZone.getCentroid();
 
 				while (currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId()) {
-					int startVertexId = (int) currentPathStartVertex.getId();
-					if (vertexPathCost[startVertexId].getSecond() == null) {
-						if (currentPathStartVertex instanceof Centroid) {
-							throw new PlanItException(
-									"The solution could not find an Edge Segment for the connectoid for zone "
-											+ ((Centroid) currentPathStartVertex).getParentZone().getExternalId());
-						} else {
-							throw new PlanItException("The solution could not find an Edge Segment for node "
-									+ ((Node) currentPathStartVertex).getExternalId());
-						}
-					}
-					EdgeSegment currentEdgeSegment = vertexPathCost[startVertexId].getSecond();
-					double edgeSegmentCost = modalNetworkSegmentCosts[(int) currentEdgeSegment.getId()];
-					shortestPathCost += edgeSegmentCost;
+					EdgeSegment currentEdgeSegment = getCurrentEdgeSegment(currentPathStartVertex, vertexPathCost);
+					shortestPathCost += modalNetworkSegmentCosts[(int) currentEdgeSegment.getId()];
 					currentModeData.nextNetworkSegmentFlows[(int) currentEdgeSegment.getId()] += odDemand;
 					currentPathStartVertex = currentEdgeSegment.getUpstreamVertex();
 				}
 				dualityGapFunction.increaseConvexityBound(odDemand * shortestPathCost);
-				for (ODSkimOutputType odSkimOutputType : activeSkimOutputTypes) {
-					skimMatrixMap.get(odSkimOutputType).setValue(currentOriginZone, currentDestinationZone, shortestPathCost);
-				}
-				previousOriginZoneId = originZoneId;
+				previousOriginZoneId = currentOriginZone.getId();
+				
+				updateSkimMatrixMap(skimMatrixMap, currentOriginZone, currentDestinationZone, shortestPathCost);
 			}
 		}
+	}
+	
+	/**
+	 * Update the OD skim matrix for all active output types 
+	 * 
+	 * @param skimMatrixMap Map of OD skim matrices for each active output type
+	 * @param currentOriginZone current origin zone
+	 * @param currentDestinationZone current destination zone
+	 * @param shortestPathCost 
+	 */
+	private void updateSkimMatrixMap(Map<ODSkimOutputType, ODSkimMatrix> skimMatrixMap, Zone currentOriginZone, Zone currentDestinationZone, double shortestPathCost) {
+		for (ODSkimOutputType odSkimOutputType : simulationData.getActiveSkimOutputTypes()) {
+			skimMatrixMap.get(odSkimOutputType).setValue(currentOriginZone, currentDestinationZone, shortestPathCost);
+		}
+	}
+	
+	/**
+	 * Update the current vertex path cost
+	 * 
+	 * @param previousOriginZoneId the Id of the previous origin zone
+	 * @param currentOriginZone the current origin zone
+	 * @param vertexPathCost Pair containing the current vertex path cost
+	 * @param shortestPathAlgorithm the shortest path algorithm to be used 
+	 * @return  the update vertex path cost
+	 * @throws PlanItException thrown if edge segments have not been assigned to a zone
+	 */
+	private Pair<Double, EdgeSegment>[] updateVertexPathCostUsingShortestPathAlgorithm(long previousOriginZoneId, Zone currentOriginZone, Pair<Double, EdgeSegment>[] vertexPathCost, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+		if (previousOriginZoneId != currentOriginZone.getId()) {
+			Centroid originCentroid = currentOriginZone.getCentroid();
+			if (originCentroid.exitEdgeSegments.isEmpty()) {
+				throw new PlanItException("Edge segments have not been assigned to Centroid for Zone " + (currentOriginZone.getExternalId()));
+			}
+			vertexPathCost = shortestPathAlgorithm.executeOneToAll(originCentroid);
+		}
+		return vertexPathCost;
+	}
+	
+	/**
+	 * Get the edge segment for the current path start vertex
+	 * 
+	 * @param currentPathStartVertex the current path start vertex
+	 * @param vertexPathCost Pair containing the array of EdgeSegment objects
+	 * @return the current edge segment
+	 * @throws PlanItException thrown if no edge segment could be found
+	 */
+	private EdgeSegment getCurrentEdgeSegment(Vertex currentPathStartVertex, Pair<Double, EdgeSegment>[] vertexPathCost) throws PlanItException {
+		int startVertexId = (int) currentPathStartVertex.getId();
+		EdgeSegment currentEdgeSegment = vertexPathCost[startVertexId].getSecond();
+		if (currentEdgeSegment == null) {
+			if (currentPathStartVertex instanceof Centroid) {
+				throw new PlanItException(
+						"The solution could not find an Edge Segment for the connectoid for zone "
+								+ ((Centroid) currentPathStartVertex).getParentZone().getExternalId());
+			} else {
+				throw new PlanItException("The solution could not find an Edge Segment for node "
+						+ ((Node) currentPathStartVertex).getExternalId());
+			}
+		}
+		return currentEdgeSegment;
 	}
 
 	/**
@@ -220,16 +248,27 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 
 			dualityGapFunction.computeGap();
 			simulationData.incrementIterationIndex();
-			Calendar currentTime = Calendar.getInstance();
-			long timeDiff = currentTime.getTimeInMillis() - startTime.getTimeInMillis();
-			PlanItLogger.info("Iteration " + simulationData.getIterationIndex() + ": Duality gap = "
-					+ df6.format(dualityGapFunction.getGap()) + ": Iteration duration " + timeDiff + " milliseconds");
-			startTime = currentTime;
+			startTime = recordTime(startTime, dualityGapFunction.getGap());
 			converged = dualityGapFunction.hasConverged(simulationData.getIterationIndex());
 			outputManager.persistOutputData(timePeriod, modes, converged);
 		}
 		long timeDiff = startTime.getTimeInMillis() - initialStartTime.getTimeInMillis();
 		PlanItLogger.info("Assignment took " + timeDiff + " milliseconds");
+	}
+	
+	/**
+	 * Record the time an iteration took
+	 * 
+	 * @param startTime the original start time of the iteration
+	 * @param dualityGap the duality gap at the end of the iteration
+	 * @return the time at the end of the iteration
+	 */
+	private Calendar recordTime(Calendar startTime, double dualityGap) {
+		Calendar currentTime = Calendar.getInstance();
+		long timeDiff = currentTime.getTimeInMillis() - startTime.getTimeInMillis();
+		PlanItLogger.info("Iteration " + simulationData.getIterationIndex() + ": Duality gap = "
+				+ df6.format(dualityGap) + ": Iteration duration " + timeDiff + " milliseconds");
+		return currentTime;
 	}
 
 	/**

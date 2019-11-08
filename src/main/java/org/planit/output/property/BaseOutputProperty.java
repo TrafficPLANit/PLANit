@@ -3,9 +3,6 @@ package org.planit.output.property;
 import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
-import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.TrafficAssignment;
-import org.planit.userclass.Mode;
 
 /**
  * Template for output property classes which can be included in the output
@@ -129,42 +126,5 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
 	public static BaseOutputProperty convertToBaseOutputProperty(OutputProperty outputProperty) throws PlanItException {
 		return convertToBaseOutputProperty(outputProperty.value());
 	}
-
-	/**
-	 * Returns the value of a specified output property
-	 * 
-	 * Note this method returns an Exception rather than throwing one.  This allows it to be used as a lambda function.
-	 * 
-	 * @param outputProperty the specified output property
-	 * @param object LinkSegment or ODMatrixIterator object containing data which may be required
-	 * @param trafficAssignment TrafficAssignment containing data which may be required
-	 * @param mode current mode
-	 * @param timePeriod current time period
-	 * @param timeUnitMultiplier multiplier to convert time durations to hours, minutes or seconds
-	 * @return the value of the specified property
-	 */
-	public static Object getValue(OutputProperty outputProperty, Object object, TrafficAssignment trafficAssignment,
-			Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) {
-		try {
-			BaseOutputProperty baseOutputProperty = convertToBaseOutputProperty(outputProperty);
-			return baseOutputProperty.getValue(object, trafficAssignment, mode, timePeriod, timeUnitMultiplier);
-		} catch (Exception e) {
-			return e;
-		}
-	}
-
-	/**
-	 * Returns the value of the current property
-	 * 
-	 * @param object LinkSegment or ODMatrixIterator object containing data which may be required
-	 * @param trafficAssignment TrafficAssignment containing data which may be required
-	 * @param mode current mode
-	 * @param timePeriod current time period
-	 * @param timeUnitMultiplier multiplier to convert time durations to hours, minutes or seconds
-	 * @return the value of the current property
-	 * @throws PlanItException thrown if there is an error
-	 */
-	public abstract Object getValue(Object object, TrafficAssignment trafficAssignment, Mode mode,
-			TimePeriod timePeriod, double timeUnitMultiplier) throws PlanItException;
 
 }

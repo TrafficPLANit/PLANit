@@ -18,7 +18,6 @@ import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.ODSkimOutputType;
 import org.planit.output.enums.OutputType;
-import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -89,13 +88,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @param linkOutputTypeAdapter  output adapter to provide methods to get the property values
 	 * @param mode                                         the current mode
 	 * @param timePeriod                                   the current time period
+	 * @param recordLinksWithZeroFlow true if links with zero flow are to be recorded
 	 * @throws PlanItException thrown if there is an error
 	 */
 	private void updateOutputAndKeyValuesForLink(MultiKeyPlanItData multiKeyPlanItData,OutputProperty[] outputProperties, OutputProperty[] outputKeys, LinkSegment linkSegment,
-			LinkOutputTypeAdapter linkOutputTypeAdapter, Mode mode, TimePeriod timePeriod) throws PlanItException {
-		if (linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
+			LinkOutputTypeAdapter linkOutputTypeAdapter, Mode mode, TimePeriod timePeriod, boolean recordLinksWithZeroFlow) throws PlanItException {
+		if (recordLinksWithZeroFlow || linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
 			updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-                return BaseOutputProperty.getValue(label, linkSegment, linkOutputTypeAdapter.getTrafficAssignment(), mode, timePeriod, outputTimeUnit.getMultiplier());
+ 				return linkOutputTypeAdapter.getLinkOutputPropertyValue(label, linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier());
 			});
 		}
 	}
@@ -117,7 +117,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 			ODOutputTypeAdapter odOutputTypeAdapter, Mode mode, TimePeriod timePeriod) throws PlanItException {
 		odMatrixIterator.next();
 		updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-			return BaseOutputProperty.getValue(label, odMatrixIterator, odOutputTypeAdapter.getTrafficAssignment(), mode,	timePeriod, outputTimeUnit.getMultiplier());
+			return odOutputTypeAdapter.getODOutputPropertyValue(label, odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier());
 		});
 	}
 
@@ -153,7 +153,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	}
 
 	/**
-	 * Write link results for the current time period to the CSV file
+	 * Write link results for the current time period to Map in memory
 	 * 
 	 * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
 	 * @param outputypeAdapter       OutputAdapter for the current persistence
@@ -171,14 +171,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 		for (Mode mode : modes) {
 			MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
 			for (LinkSegment linkSegment : linkOutputTypeAdapter.getLinkSegments()) {
-				updateOutputAndKeyValuesForLink(multiKeyPlanItData, outputProperties, outputKeys, linkSegment, linkOutputTypeAdapter, mode, timePeriod);
+				updateOutputAndKeyValuesForLink(multiKeyPlanItData, outputProperties, outputKeys, linkSegment, linkOutputTypeAdapter, mode, timePeriod, outputTypeConfiguration.isRecordLinksWithZeroFlow());
 			}
 			timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
 		}
 	}
 	
 	/**
-	 * Write Origin-Destination results for the time period to the CSV file
+	 * Write Origin-Destination results for the time period to the Map in memory
 	 * 
 	 * @param outputTypeConfiguration OutputTypeConfiguration for current
 	 *                                persistence
@@ -195,7 +195,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 		OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
 		ODOutputTypeAdapter odOutputTypeAdapter = (ODOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
 		int iterationIndex = outputAdapter.getIterationIndex();
-		for (ODSkimOutputType odSkimOutputType : odOutputTypeAdapter.getActiveSkimOutputTypes()) {
+		for (ODSkimOutputType odSkimOutputType : outputTypeConfiguration.getActiveOdSkimOutputTypes()) {
 			for (Mode mode : modes) {
 				MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
 				ODSkimMatrix odSkimMatrix = odOutputTypeAdapter.getODSkimMatrix(odSkimOutputType, mode);

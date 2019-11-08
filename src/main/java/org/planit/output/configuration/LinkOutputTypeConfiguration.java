@@ -35,7 +35,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	public static final int LINK_SEGMENT_IDENTIFICATION_BY_ID = 2;
 	public static final int LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID = 3;
 	public static final int LINK_SEGMENT_NOT_IDENTIFIED = 4;
-
+	
 	/**
 	 * Determine how a link is being identified in the output formatter
 	 * 
@@ -113,5 +113,4 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 		}
 		return null;
 	}
-	
 }

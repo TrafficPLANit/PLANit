@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
@@ -53,8 +54,9 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 	 * Constructor
 	 * 
 	 * @param outputConfiguration the OutputConfiguration
+	 * @throws PlanItException thrown if there is an error
 	 */
-	public TraditionalStaticAssignmentSimulationData(OutputConfiguration outputConfiguration) {
+	public TraditionalStaticAssignmentSimulationData(OutputConfiguration outputConfiguration) throws PlanItException {
 		modalNetworkSegmentFlows = new HashMap<Mode, double[]>();
 		modeSpecificData = new TreeMap<Mode, ModeData>();
 		modalNetworkSegmentCostsMap = new HashMap<Mode, double[]>();

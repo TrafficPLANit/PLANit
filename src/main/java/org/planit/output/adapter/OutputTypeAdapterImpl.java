@@ -41,12 +41,4 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
     	return outputType;
     }
     
-	/**
-	 * Return the TrafficAssignment used by this output adapter
-	 * 
-	 * @return the TrafficAssignment used by this output adapter
-	 */
-    public TrafficAssignment getTrafficAssignment() {
-    	return trafficAssignment;
-    }
 }

@@ -1,7 +1,6 @@
 package org.planit.output.adapter;
 
 import org.planit.output.enums.OutputType;
-import org.planit.trafficassignment.TrafficAssignment;
 
 /**
  * Top-level interface for all output type adapters
@@ -18,11 +17,4 @@ public interface OutputTypeAdapter {
      */
 	public OutputType getOutputType();
 	
-	/**
-	 * Return the TrafficAssignment used by this output adapter
-	 * 
-	 * @return the TrafficAssignment used by this output adapter
-	 */
-	public TrafficAssignment getTrafficAssignment();
-
 }

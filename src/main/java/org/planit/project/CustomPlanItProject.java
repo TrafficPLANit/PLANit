@@ -51,16 +51,6 @@ public class CustomPlanItProject {
     protected TreeMap<Long, OutputFormatter> outputFormatters;
 
     /**
-     * The physical network used for this project
-     */
-    protected PhysicalNetwork physicalNetwork;
-
-    /**
-     * The zoning used for this project.
-     */
-    protected Zoning zoning;
-    
-    /**
      * Object Factory for physical network object
      */
     protected TrafficAssignmentComponentFactory<PhysicalNetwork> physicalNetworkFactory;
@@ -156,23 +146,20 @@ public class CustomPlanItProject {
     }
 
     /**
-     * Add a network to the project. If a network with the same id already exists
-     * the earlier network is replaced and returned (otherwise null)
+     * Create and register a physical network on the project
      * 
      * @param physicalNetworkType name of physical network class to register
      * @return the generated physical network
      * @throws PlanItException  thrown if there is an error
      */
     public PhysicalNetwork createAndRegisterPhysicalNetwork(String physicalNetworkType) throws PlanItException {
-        physicalNetwork = physicalNetworkFactory.create(physicalNetworkType);
+    	PhysicalNetwork physicalNetwork = physicalNetworkFactory.create(physicalNetworkType);
         physicalNetworks.put(physicalNetwork.getId(), physicalNetwork);
         return physicalNetwork;
     }
 
     /**
      * Create and register the zoning system on the network
-     * 
-     * There is only one Zoning class, so no need to pass its name into this method.
      * 
      * @param physicalNetwork the physical network on which the zoning will be based
      * @return the generated zoning object
@@ -183,14 +170,12 @@ public class CustomPlanItProject {
     		PlanItLogger.severe("The physical network must be defined before definition of zones can begin");
     		throw new PlanItException("Tried to define zones before the physical network was defined.");
     	}
-        zoning = zoningFactory.create(Zoning.class.getCanonicalName(), physicalNetwork);
+        Zoning zoning = zoningFactory.create(Zoning.class.getCanonicalName(), physicalNetwork);
         return zoning;
     }
 
     /**
      * Create and register demands to the project
-     * 
-     * There is only one Demands class, so no need to pass its name into this method.
      * 
      * @param zoning Zoning object which defines the zones which will be used in the demand matrix to be created
      * @return the generated demands object
@@ -319,8 +304,7 @@ public class CustomPlanItProject {
     /**
      * Create and register an output formatter instance of a given type
      * 
-     * @param outputFormatterType
-     *            the class name of the output formatter type object to be created
+     * @param outputFormatterType  the class name of the output formatter type object to be created
      * @return the generated output formatter object
      * @throws PlanItException thrown if there is an error
      */
