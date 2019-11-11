@@ -120,44 +120,70 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @param currentModeData          data for the current mode
 	 * @param modalNetworkSegmentCosts segment costs for the network
 	 * @param shortestPathAlgorithm    shortest path algorithm to be used
+	 * @return array of Pairs containing the current vertex path and cost
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void executeModeTimePeriod(Mode mode, ODDemandMatrix odDemandMatrix, ModeData currentModeData,
-			double[] modalNetworkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
-		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
-
+	private void executeModeTimePeriod(Mode mode, ODDemandMatrix odDemandMatrix, ModeData currentModeData, double[] modalNetworkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+ 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 		Map<ODSkimOutputType, ODSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
 		
 		// loop over all available OD demands
 		long previousOriginZoneId =  -1;
-		Pair<Double, EdgeSegment>[] vertexPathCost = null;
-		for (ODMatrixIterator odDemandMatrixIter = odDemandMatrix.iterator();odDemandMatrixIter.hasNext();) {
+		Pair<Double, EdgeSegment>[] vertexPathAndCost = null;
+		for (ODMatrixIterator odDemandMatrixIter = odDemandMatrix.iterator(); odDemandMatrixIter.hasNext(); ) {
 		    double odDemand = odDemandMatrixIter.next();
 			Zone currentOriginZone = odDemandMatrixIter.getCurrentOrigin();
 			Zone currentDestinationZone = odDemandMatrixIter.getCurrentDestination();
-
+			
 			if (((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) && (currentOriginZone.getId() != currentDestinationZone.getId())) {
 
 				PlanItLogger
 				        .fine("Calculating flow from origin zone " + currentOriginZone.getExternalId()
 				        		+ " to destination zone " + currentDestinationZone.getExternalId()
 								+ " which has demand of " + df5.format(odDemand));
-				vertexPathCost = updateVertexPathCostUsingShortestPathAlgorithm(previousOriginZoneId, currentOriginZone, vertexPathCost, shortestPathAlgorithm);
-				double shortestPathCost = 0;
-				Vertex currentPathStartVertex = currentDestinationZone.getCentroid();
-
-				while (currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId()) {
-					EdgeSegment currentEdgeSegment = getCurrentEdgeSegment(currentPathStartVertex, vertexPathCost);
-					shortestPathCost += modalNetworkSegmentCosts[(int) currentEdgeSegment.getId()];
-					currentModeData.nextNetworkSegmentFlows[(int) currentEdgeSegment.getId()] += odDemand;
-					currentPathStartVertex = currentEdgeSegment.getUpstreamVertex();
-				}
+				vertexPathAndCost = updateVertexPathAndCostUsingShortestPathAlgorithm(previousOriginZoneId, currentOriginZone, vertexPathAndCost, shortestPathAlgorithm);
+				double shortestPathCost = getShortestPathCost(vertexPathAndCost, currentOriginZone, currentDestinationZone, modalNetworkSegmentCosts, odDemand, currentModeData);
 				dualityGapFunction.increaseConvexityBound(odDemand * shortestPathCost);
 				previousOriginZoneId = currentOriginZone.getId();
 				
-				updateSkimMatrixMap(skimMatrixMap, currentOriginZone, currentDestinationZone, shortestPathCost);
+				updateSkimMatrixMap(skimMatrixMap, currentOriginZone, currentDestinationZone, vertexPathAndCost, shortestPathCost);
 			}
 		}
+	}
+	
+	/**
+	 * Calculate the route cost for the calculated minimum cost path from a specified origin to a specified destination
+	 * 
+	 * @param vertexPathAndCost array of Pairs containing the current vertex path and cost
+	 * @param currentOriginZone current origin zone
+	 * @param currentDestinationZone current destination zone
+	 * @param modalNetworkSegmentCosts segment costs for the network
+	 * @param odDemand the demands from the specified origin to the specified destination
+	 * @param currentModeData          data for the current mode
+	 * @return the route cost for the calculated minimum cost path
+	 * @throws PlanItException thrown if there is an error
+	 */
+	private double getShortestPathCost(Pair<Double, EdgeSegment>[] vertexPathAndCost, Zone currentOriginZone, Zone currentDestinationZone, double[] modalNetworkSegmentCosts, double odDemand, ModeData currentModeData) throws PlanItException {
+		double shortestPathCost = 0;
+		EdgeSegment currentEdgeSegment = null;
+		for (Vertex currentPathStartVertex = currentDestinationZone.getCentroid(); currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId(); currentPathStartVertex = currentEdgeSegment.getUpstreamVertex()) {
+			int startVertexId = (int) currentPathStartVertex.getId();
+			currentEdgeSegment = vertexPathAndCost[startVertexId].getSecond();
+			if (currentEdgeSegment == null) {
+				if (currentPathStartVertex instanceof Centroid) {
+					throw new PlanItException(
+							"The solution could not find an Edge Segment for the connectoid for zone "
+									+ ((Centroid) currentPathStartVertex).getParentZone().getExternalId());
+				} else {
+					throw new PlanItException("The solution could not find an Edge Segment for node "
+							+ ((Node) currentPathStartVertex).getExternalId());
+				}
+			}
+			int edgeSegmentId = (int) currentEdgeSegment.getId();
+			shortestPathCost += modalNetworkSegmentCosts[edgeSegmentId];
+			currentModeData.nextNetworkSegmentFlows[edgeSegmentId] += odDemand;
+		}
+		return shortestPathCost;
 	}
 	
 	/**
@@ -166,9 +192,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @param skimMatrixMap Map of OD skim matrices for each active output type
 	 * @param currentOriginZone current origin zone
 	 * @param currentDestinationZone current destination zone
+	 * @param vertexPathAndCost array of Pairs containing the current vertex path and cost
 	 * @param shortestPathCost 
 	 */
-	private void updateSkimMatrixMap(Map<ODSkimOutputType, ODSkimMatrix> skimMatrixMap, Zone currentOriginZone, Zone currentDestinationZone, double shortestPathCost) {
+//TODO  - vertexPathAndCost not used yet, but may be required for more OD skim matrices for types we have not yet implemented e.g. length, toll etc
+	private void updateSkimMatrixMap(Map<ODSkimOutputType, ODSkimMatrix> skimMatrixMap, Zone currentOriginZone, Zone currentDestinationZone, Pair<Double, EdgeSegment>[] vertexPathAndCost, double shortestPathCost) {
 		for (ODSkimOutputType odSkimOutputType : simulationData.getActiveSkimOutputTypes()) {
 			ODSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);
 			switch (odSkimOutputType) {
@@ -189,46 +217,22 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * 
 	 * @param previousOriginZoneId the Id of the previous origin zone
 	 * @param currentOriginZone the current origin zone
-	 * @param vertexPathCost Pair containing the current vertex path cost
+	 * @param vertexPathAndCost array of Pairs containing the current vertex path and cost
 	 * @param shortestPathAlgorithm the shortest path algorithm to be used 
-	 * @return  the update vertex path cost
+	 * @return  the updated array of Pairs containing the current vertex path and cost
 	 * @throws PlanItException thrown if edge segments have not been assigned to a zone
 	 */
-	private Pair<Double, EdgeSegment>[] updateVertexPathCostUsingShortestPathAlgorithm(long previousOriginZoneId, Zone currentOriginZone, Pair<Double, EdgeSegment>[] vertexPathCost, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+	private Pair<Double, EdgeSegment>[] updateVertexPathAndCostUsingShortestPathAlgorithm(long previousOriginZoneId, Zone currentOriginZone, Pair<Double, EdgeSegment>[] vertexPathAndCost, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
 		if (previousOriginZoneId != currentOriginZone.getId()) {
 			Centroid originCentroid = currentOriginZone.getCentroid();
 			if (originCentroid.exitEdgeSegments.isEmpty()) {
 				throw new PlanItException("Edge segments have not been assigned to Centroid for Zone " + (currentOriginZone.getExternalId()));
 			}
-			vertexPathCost = shortestPathAlgorithm.executeOneToAll(originCentroid);
+			vertexPathAndCost = shortestPathAlgorithm.executeOneToAll(originCentroid);
 		}
-		return vertexPathCost;
+		return vertexPathAndCost;
 	}
 	
-	/**
-	 * Get the edge segment for the current path start vertex
-	 * 
-	 * @param currentPathStartVertex the current path start vertex
-	 * @param vertexPathCost Pair containing the array of EdgeSegment objects
-	 * @return the current edge segment
-	 * @throws PlanItException thrown if no edge segment could be found
-	 */
-	private EdgeSegment getCurrentEdgeSegment(Vertex currentPathStartVertex, Pair<Double, EdgeSegment>[] vertexPathCost) throws PlanItException {
-		int startVertexId = (int) currentPathStartVertex.getId();
-		EdgeSegment currentEdgeSegment = vertexPathCost[startVertexId].getSecond();
-		if (currentEdgeSegment == null) {
-			if (currentPathStartVertex instanceof Centroid) {
-				throw new PlanItException(
-						"The solution could not find an Edge Segment for the connectoid for zone "
-								+ ((Centroid) currentPathStartVertex).getParentZone().getExternalId());
-			} else {
-				throw new PlanItException("The solution could not find an Edge Segment for node "
-						+ ((Node) currentPathStartVertex).getExternalId());
-			}
-		}
-		return currentEdgeSegment;
-	}
-
 	/**
 	 * Perform assignment for a given time period using Dijkstra's algorithm
 	 * 
@@ -246,7 +250,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		while (!converged) {
 			dualityGapFunction.reset();
 			smoothing.update(simulationData.getIterationIndex());
-
+			
 			// NETWORK LOADING - PER MODE
 			for (Mode mode : modes) {
 				simulationData.resetSkimMatrix(mode, getTransportNetwork().zones);
@@ -288,22 +292,20 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @param timePeriod               the current time period
 	 * @param mode                     the current mode
 	 * @param modalNetworkSegmentCosts the current network segment costs
+	 * @return array of Pairs containing the current vertex path and cost
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] modalNetworkSegmentCosts)
-			throws PlanItException {
+	private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] modalNetworkSegmentCosts)	throws PlanItException {
 		PlanItLogger.info("Running Traditional Static Assignment for Mode " + mode.getName());
 		// mode specific data
 		ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
 		currentModeData.resetNextNetworkSegmentFlows();
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 		// AON based network loading
-		ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts,
-				numberOfNetworkSegments, numberOfNetworkVertices);
+		ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
 		ODDemandMatrix odDemandMatrix = demands.get(mode, timePeriod);
 		executeModeTimePeriod(mode, odDemandMatrix, currentModeData, modalNetworkSegmentCosts, shortestPathAlgorithm);
-		double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows,
-				modalNetworkSegmentCosts, numberOfNetworkSegments);
+		double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows,	modalNetworkSegmentCosts, numberOfNetworkSegments);
 		dualityGapFunction.increaseActualSystemTravelTime(totalModeSystemTravelTime);
 		applySmoothing(currentModeData);
 		// aggregate smoothed mode specific flows - for cost computation

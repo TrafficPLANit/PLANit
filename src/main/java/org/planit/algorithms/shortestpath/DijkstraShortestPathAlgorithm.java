@@ -75,9 +75,9 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
      * @return array of pairs containing, for each vertex (array index), the cost to
      *         reach the vertex and the link segment it is reached from with the
      *         shortest cost.
-     * @throws PlanItException
-     *             thrown if an error occurss
+     * @throws PlanItException  thrown if an error occurs
      */
+    @Override
     public Pair<Double, EdgeSegment>[] executeOneToAll(@Nonnull Vertex currentOrigin) throws PlanItException {
         boolean[] vertexVisited = new boolean[numberOfVertices];
         this.currentOrigin = currentOrigin;
@@ -122,11 +122,8 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
                     // the case, place it on the queue for expanding and update its cost
                     if (!vertexVisited[adjacentVertexId] && (adjacentVertexId != currentOrigin.getId())
                             && (adjacentVertexDataPair.getFirst() > computedCostToReachAdjacentVertex)) {
-                        vertexCost[adjacentVertexId] = 
-                                new Pair<Double, EdgeSegment>(computedCostToReachAdjacentVertex,adjacentLinkSegment); // update cost and path
-                        openVertices.add(new Pair<Vertex, Double>(adjacentVertex, computedCostToReachAdjacentVertex)); // place
-                                                                                                                       // on
-                                                                                                                       // queue
+                        vertexCost[adjacentVertexId] = new Pair<Double, EdgeSegment>(computedCostToReachAdjacentVertex,adjacentLinkSegment); // update cost and path
+                        openVertices.add(new Pair<Vertex, Double>(adjacentVertex, computedCostToReachAdjacentVertex)); // place on queue
                     }
                 }
             }

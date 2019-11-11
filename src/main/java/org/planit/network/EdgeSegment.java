@@ -8,10 +8,12 @@ import org.planit.utils.IdGenerator;
  * detailed geography than its parent link (which represents both directions via
  * a centreline)
  * 
+ * This class is now abstract.  It is extended by LinkSegment (physical links) and Connectoid (virtual links).
+ * 
  * @author markr
  *
  */
-public class EdgeSegment implements Comparable<EdgeSegment> {
+public abstract class EdgeSegment implements Comparable<EdgeSegment> {
 
     /**
      * unique internal identifier
