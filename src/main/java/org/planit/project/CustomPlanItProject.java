@@ -122,6 +122,7 @@ public class CustomPlanItProject {
             ta.execute();
         } catch (Exception e) {
              PlanItLogger.severe(e.getMessage());
+             e.printStackTrace();
         }
     }
 

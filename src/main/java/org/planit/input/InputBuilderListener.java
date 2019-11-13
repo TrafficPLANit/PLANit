@@ -29,6 +29,7 @@ public abstract class InputBuilderListener implements EventListener {
 				onCreateProjectComponent((CreatedProjectComponentEvent<?>) event);
 			}
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			throw new PlanItException(ex);
 		}
 	}

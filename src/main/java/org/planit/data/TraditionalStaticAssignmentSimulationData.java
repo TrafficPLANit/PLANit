@@ -1,6 +1,7 @@
 package org.planit.data;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -61,8 +62,12 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 		modeSpecificData = new TreeMap<Mode, ModeData>();
 		modalNetworkSegmentCostsMap = new HashMap<Mode, double[]>();
 		modalSkimMatrixMap = new HashMap<Mode, Map<ODSkimOutputType, ODSkimMatrix>>();
-		OriginDestinationOutputTypeConfiguration originDestinationOutputTypeConfiguration = (OriginDestinationOutputTypeConfiguration) outputConfiguration	.getOutputTypeConfiguration(OutputType.OD);
-		activeOdSkimOutputTypes = originDestinationOutputTypeConfiguration.getActiveOdSkimOutputTypes();
+		if (outputConfiguration.isOutputTypeActive(OutputType.OD)) {
+			OriginDestinationOutputTypeConfiguration originDestinationOutputTypeConfiguration = (OriginDestinationOutputTypeConfiguration) outputConfiguration	.getOutputTypeConfiguration(OutputType.OD);
+			activeOdSkimOutputTypes = originDestinationOutputTypeConfiguration.getActiveOdSkimOutputTypes();
+		} else {
+			activeOdSkimOutputTypes = new HashSet<ODSkimOutputType>();
+		}
 	}
 	
 	/**

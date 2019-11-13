@@ -79,8 +79,8 @@ public class TimePeriod implements Comparable<TimePeriod> {
         if (startTime > 2400) {
             throw new PlanItException("Start time cannot be later than 2400");
         }
-        startTimeHrs = startTime % 100;
-        startTimeMins = startTime - 24 * startTimeHrs;
+        startTimeHrs = startTime / 100;
+        startTimeMins = startTime % 100;
         if (startTimeMins > 59) {
             throw new PlanItException("Last two digits of start time cannot exceed 59");
         }
@@ -338,9 +338,8 @@ public class TimePeriod implements Comparable<TimePeriod> {
     @Override
     public String toString() {
         int endTime = startTime + duration;
-        return "start time: "
-                + String.format("%02d:%02d:%02d", startTime / 3600, (startTime / 60) % 3600, startTime % 60)
-                + " end time:" + String.format("%02d:%02d:%02d", endTime / 3600, (endTime / 60) % 3600, endTime % 60);
+        return "start time: " + String.format("%02d:%02d", startTime / 3600, (startTime % 3600) / 60)
+                 + " end time: " + String.format("%02d:%02d", endTime / 3600, (endTime % 3600 ) / 60);
     }
 
 }

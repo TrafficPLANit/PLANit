@@ -75,7 +75,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 		OutputProperty[] outputKeyPropertyArray = outputTypeConfiguration.getOutputKeyProperties();
 		OutputType outputType = outputTypeConfiguration.getOutputType();
 		OutputProperty[] outputKeyPropertiesArray = outputTypeConfiguration.validateAndFilterKeyProperties(outputKeyPropertyArray);
-		if (outputKeyPropertiesArray  == null ) {
+		if (outputKeyPropertiesArray == null ) {
 			throw new PlanItException("Key properties invalid for OutputType " + outputType.value() + " not correctly defined.");
 		}
 		outputKeyProperties.put(outputType, outputKeyPropertiesArray);
@@ -169,14 +169,24 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	@Override
 	public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter) throws PlanItException {
 		OutputType outputType = outputTypeConfiguration.getOutputType();
-		if (!outputTypeValuesLocked.get(outputType)) {
-			OutputProperty[] outputValuePropertyArray = outputTypeConfiguration.getOutputValueProperties();
+		OutputProperty[] outputValuePropertyArray = outputTypeConfiguration.getOutputValueProperties();
+		if (!outputTypeValuesLocked.get(outputType)) {			
 			outputValueProperties.put(outputType, outputValuePropertyArray);
+		} else {
+			OutputProperty[] existingOutputValuePropertyArray = outputValueProperties.get(outputType);
+			if (outputValuePropertyArray.length != existingOutputValuePropertyArray.length) {
+				throw new PlanItException("An attempt was made to change the output value properties after they had been locked.");
+			}
+			for (int i=0; i<outputValuePropertyArray.length ; i++) {
+				if (!existingOutputValuePropertyArray[i].equals(outputValuePropertyArray[i])) {
+					throw new PlanItException("An attempt was made to change the output value properties after they had been locked.");
+				}
+			}
 		}
 		
 		if (!outputTypeKeysLocked.get(outputType)) {
 			initializeKeyProperties(outputTypeConfiguration);
-		}
+		} 
 
 		switch (outputType) {
 		case GENERAL:

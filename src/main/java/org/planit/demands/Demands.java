@@ -1,7 +1,9 @@
 package org.planit.demands;
 
+import java.util.SortedSet;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.time.TimePeriod;
@@ -37,7 +39,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> {
     /**
      * Trip demand matrices
      */
-    protected final TreeMap<TimePeriod, TreeMap<Mode, ODDemandMatrix>> odDemands = new TreeMap<TimePeriod, TreeMap<Mode, ODDemandMatrix>>();
+    protected final TreeMap<Long, TreeMap<Mode, ODDemandMatrix>> odDemands = new TreeMap<Long, TreeMap<Mode, ODDemandMatrix>>();
 
     /**
      * Constructor
@@ -50,19 +52,17 @@ public class Demands extends TrafficAssignmentComponent<Demands> {
     /**
      * Register provided odDemand
      * 
-     * @param timePeriod
-     *            the time period for this origin-demand object
-     * @param mode
-     *            the mode for this origin-demand object
-     * @param odDemand
-     *            the origin-demand object to be registered
+     * @param timePeriod  the time period for this origin-demand object
+     * @param mode the mode for this origin-demand object
+     * @param odDemand  the origin-demand object to be registered
      * @return oldODDemand if there already existed an odDemand for the given mode
      *         and time period, the overwritten entry is returned
      */
     public ODDemandMatrix registerODDemand(TimePeriod timePeriod, Mode mode, ODDemandMatrix odDemandMatrix) {
-        odDemands.putIfAbsent(timePeriod, new TreeMap<Mode, ODDemandMatrix>());
-        TreeMap<Mode, ODDemandMatrix> tripMatrixByMode = odDemands.get(timePeriod);
-        return tripMatrixByMode.put(mode, odDemandMatrix);
+     	if (!odDemands.containsKey(timePeriod.getId())) {
+    		odDemands.put(timePeriod.getId(),  new TreeMap<Mode, ODDemandMatrix>());
+    	}
+    	return odDemands.get(timePeriod.getId()).put(mode, odDemandMatrix);
     }
 
     /**
@@ -76,8 +76,8 @@ public class Demands extends TrafficAssignmentComponent<Demands> {
      */
 
     public ODDemandMatrix get(Mode mode, TimePeriod timePeriod) {
-        if (odDemands.containsKey(timePeriod) && odDemands.get(timePeriod).containsKey(mode)) {
-            return odDemands.get(timePeriod).get(mode);
+        if (odDemands.containsKey(timePeriod.getId()) && odDemands.get(timePeriod.getId()).containsKey(mode)) {
+            return odDemands.get(timePeriod.getId()).get(mode);
         } else {
             return null;
         }
@@ -88,8 +88,13 @@ public class Demands extends TrafficAssignmentComponent<Demands> {
      * 
      * @return Set of registered time periods
      */
-    public Set<TimePeriod> getRegisteredTimePeriods() {
-        return odDemands.keySet();
+    public SortedSet<TimePeriod> getRegisteredTimePeriods() {
+    	Set<Long> keys = odDemands.keySet();
+    	SortedSet<TimePeriod> timePeriods = new TreeSet<TimePeriod>();
+    	for (Long id : keys) {
+    		timePeriods.add(TimePeriod.getById(id));
+    	}
+    	return timePeriods;
     }
 
     /**
@@ -100,8 +105,8 @@ public class Demands extends TrafficAssignmentComponent<Demands> {
      * @return Set of modes for this time period
      */
     public Set<Mode> getRegisteredModesForTimePeriod(TimePeriod timePeriod) {
-        if (odDemands.containsKey(timePeriod)) {
-            return odDemands.get(timePeriod).keySet();
+        if (odDemands.containsKey(timePeriod.getId())) {
+            return odDemands.get(timePeriod.getId()).keySet();
         } else {
             return null;
         }

@@ -33,16 +33,42 @@ public class OutputConfiguration {
 
     // getters - setters
 
+    /**
+     * Set whether only the final iteration will be recorded
+     * 
+     * @param persistOnlyFinalIteration true if only the final iteration will be recorded
+     */
     public void setPersistOnlyFinalIteration(boolean persistOnlyFinalIteration) {
         this.persistOnlyFinalIteration = persistOnlyFinalIteration;
     }
 
+    /**
+     * Returns whether only the final iteration will be recorded
+     * 
+     * @return true if only the final iteration will be recorded, false otherwise
+     */
     public boolean isPersistOnlyFinalIteration() {
         return persistOnlyFinalIteration;
     }
     
+    /**
+     * Retrieve the output type configuration for a specified output type
+     * 
+     * @param outputType the specified output type
+     * @return the output type configuration
+     */
     public OutputTypeConfiguration getOutputTypeConfiguration(OutputType outputType) {
     	return outputManager.getOutputTypeConfiguration(outputType);
+    }
+    
+    /**
+     * Returns whether a specified output type has been activated
+     * 
+     * @param outputType the specified output type
+     * @return true if the specified output type has been activated, false otherwise
+     */
+    public boolean isOutputTypeActive(OutputType outputType) {
+         return outputManager.isOutputTypeActive(outputType);
     }
     
 }
