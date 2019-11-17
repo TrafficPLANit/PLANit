@@ -42,7 +42,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
 		int id = (int) linkSegment.getId();
 		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment
 				.getSimulationData();
-		double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);
+		double[] modalNetworkSegmentCosts = simulationData.getModalLinkSegmentCosts(mode);
 		double travelTime = modalNetworkSegmentCosts[id];
 		double length = linkSegment.getParentLink().getLength();
 		//double travelTime = trafficAssignment.getPhysicalCost().getSegmentCost(mode, linkSegment);
@@ -159,7 +159,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
 	private double getLinkCost(LinkSegment linkSegment, Mode mode, double timeUnitMultiplier) throws PlanItException {
 		int id = (int) linkSegment.getId();
 		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
-		double[] modalNetworkSegmentCosts = simulationData.getModalNetworkSegmentCosts(mode);
+		double[] modalNetworkSegmentCosts = simulationData.getModalLinkSegmentCosts(mode);
 		return modalNetworkSegmentCosts[id] * timeUnitMultiplier;
 		//return trafficAssignment.getPhysicalCost().getSegmentCost(mode, linkSegment) * timeUnitMultiplier;
 	}

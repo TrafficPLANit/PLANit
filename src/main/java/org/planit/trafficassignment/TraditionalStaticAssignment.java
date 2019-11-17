@@ -78,7 +78,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * Holds the running simulation data for the assignment
 	 */
 	private TraditionalStaticAssignmentSimulationData simulationData;
-
+	
 	/**
 	 * Initialize running simulation variables for the time period
 	 * 
@@ -138,7 +138,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			if (((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) && (currentOriginZone.getId() != currentDestinationZone.getId())) {
 
 				PlanItLogger
-				        .fine("Calculating flow from origin zone " + currentOriginZone.getExternalId()
+				        .info("Calculating flow from origin zone " + currentOriginZone.getExternalId()
 				        		+ " to destination zone " + currentDestinationZone.getExternalId()
 								+ " which has demand of " + df5.format(odDemand));
 				vertexPathAndCost = updateVertexPathAndCostUsingShortestPathAlgorithm(previousOriginZoneId, currentOriginZone, vertexPathAndCost, shortestPathAlgorithm);
@@ -246,6 +246,10 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 		Calendar startTime = Calendar.getInstance();
 		Calendar initialStartTime = startTime;
+		for (Mode mode : modes) {
+			double[] modalLinkSegmentCosts = initializeModalLinkSegmentCosts(mode, timePeriod);
+			simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
+		}
 		boolean converged = false;
 		while (!converged) {
 			dualityGapFunction.reset();
@@ -254,16 +258,23 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			// NETWORK LOADING - PER MODE
 			for (Mode mode : modes) {
 				simulationData.resetSkimMatrix(mode, getTransportNetwork().zones);
-				double[] modalNetworkSegmentCosts = getModalNetworkSegmentCosts(mode, timePeriod,	simulationData.getIterationIndex());
+				double[] modalLinkSegmentCosts = simulationData.getModalLinkSegmentCosts(mode);
 				simulationData.resetModalNetworkSegmentFlows(mode, numberOfNetworkSegments);
-				executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalNetworkSegmentCosts);
-				simulationData.setModalNetworkSegmentCosts(mode, modalNetworkSegmentCosts);
+				//executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalLinkSegmentCosts, false);
+				executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalLinkSegmentCosts);
 			}
 
 			dualityGapFunction.computeGap();
 			simulationData.incrementIterationIndex();
 			startTime = recordTime(startTime, dualityGapFunction.getGap());
 			converged = dualityGapFunction.hasConverged(simulationData.getIterationIndex());
+			for (Mode mode : modes) {
+				double[] modalLinkSegmentCosts = recalculateModalLinkSegmentCosts(mode, timePeriod);
+				simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
+				//if (converged) {
+				//	executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalLinkSegmentCosts, true);
+				//}
+			}
 			outputManager.persistOutputData(timePeriod, modes, converged);
 		}
 		long timeDiff = startTime.getTimeInMillis() - initialStartTime.getTimeInMillis();
@@ -295,16 +306,20 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @return array of Pairs containing the current vertex path and cost
 	 * @throws PlanItException thrown if there is an error
 	 */
+	//private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] modalNetworkSegmentCosts, boolean converged)	throws PlanItException {
 	private void executeAndSmoothTimePeriodAndMode(TimePeriod timePeriod, Mode mode, double[] modalNetworkSegmentCosts)	throws PlanItException {
 		PlanItLogger.info("Running Traditional Static Assignment for Mode " + mode.getName());
 		// mode specific data
 		ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
-		currentModeData.resetNextNetworkSegmentFlows();
+		//if (!converged)
+			currentModeData.resetNextNetworkSegmentFlows();
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 		// AON based network loading
 		ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
 		ODDemandMatrix odDemandMatrix = demands.get(mode, timePeriod);
 		executeModeTimePeriod(mode, odDemandMatrix, currentModeData, modalNetworkSegmentCosts, shortestPathAlgorithm);
+		//if (converged) 
+		//	return;
 		double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows,	modalNetworkSegmentCosts, numberOfNetworkSegments);
 		dualityGapFunction.increaseActualSystemTravelTime(totalModeSystemTravelTime);
 		applySmoothing(currentModeData);
@@ -327,7 +342,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	}
 
 	/**
-	 * Store the link segment costs for links for the current iteration
+	 * Calculate and store the link segment costs for links for the current iteration
 	 * 
 	 * This method is called during the second and subsequent iterations of the
 	 * simulation.
@@ -336,15 +351,15 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @param currentSegmentCosts array to store the current segment costs
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void populateModalLinkSegmentCosts(Mode mode, double[] currentSegmentCosts) throws PlanItException {
+	private void calculateModalLinkSegmentCosts(Mode mode, double[] currentSegmentCosts) throws PlanItException {
 		setModalLinkSegmentCosts(mode, currentSegmentCosts, (linkSegment) -> {
 			return physicalCost.getSegmentCost(mode, linkSegment);
 		});
 	}
 
 	/**
-	 * Initialize the link segment costs from the InitialLinkSegmentCost object (for
-	 * all time periods)
+	 * Initialize the link segment costs from the InitialLinkSegmentCost object for
+	 * all time periods
 	 * 
 	 * This method is called during the first iteration of the simulation.
 	 * 
@@ -354,7 +369,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 *         otherwise
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private boolean initializeModalLinkSegmentCosts(Mode mode, double[] currentSegmentCosts) throws PlanItException {
+	private boolean initializeModalLinkSegmentCostsForAllTimePeriods(Mode mode, double[] currentSegmentCosts) throws PlanItException {
 		if (!initialLinkSegmentCost.isSegmentCostsSetForMode(mode)) {
 			return false;
 		}
@@ -377,7 +392,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 *         period, true otherwise
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private boolean initializeModalLinkSegmentCosts(Mode mode, TimePeriod timePeriod, double[] currentSegmentCosts)
+	private boolean initializeModalLinkSegmentCostsByTimePeriod(Mode mode, TimePeriod timePeriod, double[] currentSegmentCosts)
 			throws PlanItException {
 		InitialLinkSegmentCost initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod
 				.get(timePeriod.getId());
@@ -501,44 +516,48 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @return array of updated edge segment costs
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public double[] getModalNetworkSegmentCosts(Mode mode, TimePeriod timePeriod, int iterationIndex)
+	public double[] getModalLinkSegmentCosts(Mode mode, TimePeriod timePeriod, int iterationIndex)
 			throws PlanItException {
 		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
 		populateModalConnectoidCosts(mode, currentSegmentCosts);
 		if (iterationIndex == 0) {
 			if (initialLinkSegmentCostByTimePeriod.containsKey(timePeriod.getId())) {
-				if (initializeModalLinkSegmentCosts(mode, timePeriod, currentSegmentCosts)) {
+				if (initializeModalLinkSegmentCostsByTimePeriod(mode, timePeriod, currentSegmentCosts)) {
 					return currentSegmentCosts;
 				}
 			} else if (initialLinkSegmentCost != null) {
-				if (initializeModalLinkSegmentCosts(mode, currentSegmentCosts)) {
+				if (initializeModalLinkSegmentCostsForAllTimePeriods(mode, currentSegmentCosts)) {
 					return currentSegmentCosts;
 				}
 			}
 		}
-		populateModalLinkSegmentCosts(mode, currentSegmentCosts);
+		calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
 		return currentSegmentCosts;
 	}
-
-	/**
-	 * Collect the updated edge segment costs for the given mode
-	 * 
-	 * @param mode           the current mode
-	 * @param iterationIndex index of the current iteration
-	 * @return array of updated edge segment costs
-	 * @throws PlanItException thrown if there is an error
-	 */
-	public double[] getModalNetworkSegmentCosts(Mode mode, int iterationIndex) throws PlanItException {
+	
+	public double[] recalculateModalLinkSegmentCosts(Mode mode, TimePeriod timePeriod) throws PlanItException {
 		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
 		populateModalConnectoidCosts(mode, currentSegmentCosts);
-		if ((iterationIndex == 0) && (initialLinkSegmentCost != null)
-				&& (initializeModalLinkSegmentCosts(mode, currentSegmentCosts))) {
-			return currentSegmentCosts;
-		}
-		populateModalLinkSegmentCosts(mode, currentSegmentCosts);
+		calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
 		return currentSegmentCosts;
 	}
-
+		
+	public double[] initializeModalLinkSegmentCosts(Mode mode, TimePeriod timePeriod) throws PlanItException {
+		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
+		populateModalConnectoidCosts(mode, currentSegmentCosts);
+		if (initialLinkSegmentCostByTimePeriod.containsKey(timePeriod.getId())) {
+			if (initializeModalLinkSegmentCostsByTimePeriod(mode, timePeriod, currentSegmentCosts)) {
+				return currentSegmentCosts;
+			}
+		} else if (initialLinkSegmentCost != null) {
+			if (initializeModalLinkSegmentCostsForAllTimePeriods(mode, currentSegmentCosts)) {
+				return currentSegmentCosts;
+			}
+		}
+		calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
+		return currentSegmentCosts;
+	}
+	
 	/**
 	 * Execute equilibration over all time periods and modes
 	 * 

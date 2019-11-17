@@ -120,22 +120,22 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 	}
 
 	/**
-	 * Set the costs for a specified mode
+	 * Set the link segment costs for a specified mode
 	 * 
 	 * @param mode                     the specified mode
-	 * @param modalNetworkSegmentCosts array of costs for the specified mode
+	 * @param modalLinkSegmentCosts array of costs for the specified mode
 	 */
-	public void setModalNetworkSegmentCosts(Mode mode, double[] modalNetworkSegmentCosts) {
-		modalNetworkSegmentCostsMap.put(mode, modalNetworkSegmentCosts);
+	public void setModalLinkSegmentCosts(Mode mode, double[] modalLinkSegmentCosts) {
+		modalNetworkSegmentCostsMap.put(mode, modalLinkSegmentCosts);
 	}
 
 	/**
-	 * Retrieve the costs for a specified mode
+	 * Retrieve the link segment costs for a specified mode
 	 * 
 	 * @param mode the specified mode
 	 * @return array of costs for the specified mode
 	 */
-	public double[] getModalNetworkSegmentCosts(Mode mode) {
+	public double[] getModalLinkSegmentCosts(Mode mode) {
 		return modalNetworkSegmentCostsMap.get(mode);
 	}
 
