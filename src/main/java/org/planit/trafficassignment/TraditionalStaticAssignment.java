@@ -535,6 +535,14 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		return currentSegmentCosts;
 	}
 	
+	/**
+	 * Recalculate the modal link segment costs after each iteration
+	 * 
+	 * @param mode current mode
+	 * @param timePeriod current time period
+	 * @return array containing link costs for each link segment
+	 * @throws PlanItException
+	 */
 	public double[] recalculateModalLinkSegmentCosts(Mode mode, TimePeriod timePeriod) throws PlanItException {
 		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
 		populateModalConnectoidCosts(mode, currentSegmentCosts);
@@ -542,6 +550,16 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		return currentSegmentCosts;
 	}
 		
+	/**
+	 * Initialize the modal link segment costs before the first iteration.
+	 * 
+	 * This method uses initial link segment costs if they have been input, otherwise these are calculated from zero start values
+	 * 
+	 * @param mode current mode
+	 * @param timePeriod current time period
+	 * @return array containing link costs for each link segment
+	 * @throws PlanItException
+	 */
 	public double[] initializeModalLinkSegmentCosts(Mode mode, TimePeriod timePeriod) throws PlanItException {
 		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
 		populateModalConnectoidCosts(mode, currentSegmentCosts);
