@@ -161,7 +161,6 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
 		TraditionalStaticAssignmentSimulationData simulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
 		double[] modalNetworkSegmentCosts = simulationData.getModalLinkSegmentCosts(mode);
 		return modalNetworkSegmentCosts[id] * timeUnitMultiplier;
-		//return trafficAssignment.getPhysicalCost().getSegmentCost(mode, linkSegment) * timeUnitMultiplier;
 	}
 
 	/**

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
+import org.planit.od.odpath.ODPath;
 import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.enums.ODSkimOutputType;
@@ -45,6 +46,11 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 	 * for each iteration)
 	 */
 	private Map<Mode, Map<ODSkimOutputType, ODSkimMatrix>> modalSkimMatrixMap;
+	
+	/**
+	 * Stores the current OD Path for each mode
+	 */
+	private Map<Mode, ODPath> modalODPathMap;
 
 	/**
 	 * Set of active OD skim output types
@@ -68,6 +74,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 		} else {
 			activeOdSkimOutputTypes = new HashSet<ODSkimOutputType>();
 		}
+		modalODPathMap = new HashMap<Mode, ODPath>();
 	}
 	
 	/**
@@ -155,8 +162,9 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 			ODSkimMatrix odSkimMatrix = new ODSkimMatrix(zones, odSkimOutputType);
 			modalSkimMatrixMap.get(mode).put(odSkimOutputType, odSkimMatrix);
 		}
+		modalODPathMap.put(mode, new ODPath(zones));
 	}
-
+	
 	/**
 	 * Retrieve the skim matrix for a specified mode and skim output type
 	 * 
@@ -172,6 +180,16 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 			}
 		}
 		return null;
+	}
+	
+	/**
+	 * Retrieve the current OD path for a specified mode
+	 * 
+	 * @param mode the specified mode
+	 * @return the OD path for this mode
+	 */
+	public ODPath getODPath(Mode mode) {
+		return modalODPathMap.get(mode);
 	}
 
 	/**

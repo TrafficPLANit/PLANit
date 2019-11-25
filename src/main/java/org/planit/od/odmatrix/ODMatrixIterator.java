@@ -1,8 +1,7 @@
 package org.planit.od.odmatrix;
 
 import org.ojalgo.array.Array2D;
-import org.planit.od.ODDataIterator;
-import org.planit.zoning.Zone;
+import org.planit.od.ODDataIteratorImpl;
 import org.planit.zoning.Zoning;
 
 /**
@@ -11,32 +10,7 @@ import org.planit.zoning.Zoning;
  * @author gman6028
  *
  */
-public class ODMatrixIterator implements ODDataIterator<Double> {
-
-	/**
-	 * Id of the origin zone
-	 */
-	private int originId;
-	
-	/**
-	 * Id of the destination zone
-	 */
-	private int destinationId;
-	
-	/**
-	 * Number of travel analysis zones in the OD matrix (used internally, not accessible from other classes)
-	 */
-	private int numberOfTravelAnalysisZones;
-	
-	/**
-	 * Marker used to store the current position in the OD matrix (used internally, not accessible from other classes)
-	 */
-	private int currentLocation;
-	
-	/**
-	 * Zones object to store travel analysis zones (from Zoning object)
-	 */
-	private Zoning.Zones zones;
+public class ODMatrixIterator extends ODDataIteratorImpl<Double> {
 
 	/**
 	 * the trips of this matrix
@@ -50,51 +24,19 @@ public class ODMatrixIterator implements ODDataIterator<Double> {
    * @param zones Zones object defining the zones in the network
    */
 	public ODMatrixIterator(Array2D<Double> matrixContents, Zoning.Zones zones) {
+		super(zones);
 		this.matrixContents = matrixContents;
-		this.zones = zones;
-		this.numberOfTravelAnalysisZones = zones.getNumberOfZones();
-		currentLocation = 0;
-	}
-
-   /**
-    * Tests whether there are any more cells to iterate through
-    * 
-    * @return true if there are more cells to iterate through, false otherwise
-    */
-	@Override
-	public boolean hasNext() {
-		return currentLocation < numberOfTravelAnalysisZones * numberOfTravelAnalysisZones;
 	}
 
     /**
      * Returns the value in the current cells and increments the current position
+     * 
+     * @return the value of the next cell
      */
 	@Override
 	public Double next() {
-		originId = currentLocation / numberOfTravelAnalysisZones;
-		destinationId = currentLocation % numberOfTravelAnalysisZones;
-		currentLocation++;
+		updateCurrentLocation();
 		return matrixContents.get(originId, destinationId);
-	}
-
-	/**
-	 * Returns the origin zone object for the current cell
-	 * 
-	 * @return the origin zone object at the current cell
-	 */
-	@Override
-	public Zone getCurrentOrigin() {
-		return zones.getZone(originId);
-	}
-
-    /**
-     * Returns the destination zone object for the current cell
-     * 
-     * @return the destination zone object for the current cell
-     */
-	@Override
-	public Zone getCurrentDestination() {
-		return zones.getZone(destinationId);
 	}
 
     /**

@@ -22,7 +22,7 @@ public interface ODOutputTypeAdapter extends OutputTypeAdapter {
      * @param mode the specified mode
      * @return the OD skim matrix
      */
-    public  ODSkimMatrix getODSkimMatrix(ODSkimOutputType odSkimOutputType, Mode mode);
+    public ODSkimMatrix getODSkimMatrix(ODSkimOutputType odSkimOutputType, Mode mode);
 
 /**
  * Returns the specified output property values for the current cell in the OD Matrix Iterator

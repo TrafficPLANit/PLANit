@@ -11,13 +11,17 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.csv.QuoteMode;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
+import org.planit.od.odpath.ODPath;
+import org.planit.od.odpath.ODPathIterator;
 import org.planit.output.adapter.LinkOutputTypeAdapter;
 import org.planit.output.adapter.ODOutputTypeAdapter;
 import org.planit.output.adapter.OutputAdapter;
+import org.planit.output.adapter.ODPathOutputTypeAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.ODSkimOutputType;
 import org.planit.output.enums.OutputType;
@@ -26,6 +30,12 @@ import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
 import org.planit.utils.OutputUtils;
 
+/**
+ * Class containing common methods required by classes which write results to CSV output files
+ * 
+ * @author gman6028
+ *
+ */
 public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
 	/**
@@ -61,6 +71,38 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 				}
 			}
 		} catch (Exception e) {
+			return new PlanItException(e);
+		}
+		return null;
+	}
+	
+	/**
+	 * Write output values to the OD Path CSV file for the current iteration
+	 * 
+	 * @param outputTypeConfiguration output type configuration for the current output type
+	 * @param outputAdapter output adapter for the current output type
+	 * @param modes         Set of modes for the current assignment
+	 * @param timePeriod    the current time period
+	 * @param csvPrinter    CSVPrinter object to record results for this iteration
+	 * @return PlanItException thrown if the CSV file cannot be created or written
+	 *         to
+	 */
+	protected PlanItException writeODPathResultsForCurrentTimePeriodToCsvPrinter(OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
+		try {
+			ODPathOutputTypeAdapter odPathOutputTypeAdapter = (ODPathOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputTypeConfiguration.getOutputType());
+			SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
+			for (Mode mode : modes) {
+				ODPath odPath = odPathOutputTypeAdapter.getODPath(mode);
+				for (ODPathIterator odPathIterator = odPath.iterator(); odPathIterator.hasNext(); ) {
+					odPathIterator.next();
+					List<Object> rowValues = outputProperties.stream()
+							.map(outputProperty -> odPathOutputTypeAdapter.getODPathOutputPropertyValue(outputProperty.getOutputProperty(), odPathIterator, mode, timePeriod))
+							.map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
+					csvPrinter.printRecord(rowValues);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 			return new PlanItException(e);
 		}
 		return null;
@@ -105,7 +147,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	 * @throws Exception thrown if there is an error opening the file
 	 */
 	protected CSVPrinter openCsvFileAndWriteHeaders(OutputTypeConfiguration outputTypeConfiguration, String csvFileName) throws Exception {
-		CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(csvFileName), CSVFormat.EXCEL);
+		CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(csvFileName), CSVFormat.DEFAULT.withEscape(Character.MIN_VALUE).withQuoteMode(QuoteMode.NONE));
 		List<String> headerValues = outputTypeConfiguration.getOutputProperties().stream().map(BaseOutputProperty::getName).collect(Collectors.toList());
 		csvPrinter.printRecord(headerValues);
 		return csvPrinter;

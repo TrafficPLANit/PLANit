@@ -12,8 +12,11 @@ import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.LinkSegment;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
+import org.planit.od.odpath.ODPath;
+import org.planit.od.odpath.ODPathIterator;
 import org.planit.output.adapter.LinkOutputTypeAdapter;
 import org.planit.output.adapter.ODOutputTypeAdapter;
+import org.planit.output.adapter.ODPathOutputTypeAdapter;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.ODSkimOutputType;
@@ -121,6 +124,15 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 		});
 	}
 
+	private void updateOutputAndKeyValuesForShortestPath(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties,
+			OutputProperty[] outputKeys, ODPathIterator odPathIterator,
+			ODPathOutputTypeAdapter odPathOutputTypeAdapter, Mode mode, TimePeriod timePeriod) throws PlanItException {
+		odPathIterator.next();
+		updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
+			return odPathOutputTypeAdapter.getODPathOutputPropertyValue(label, odPathIterator, mode, timePeriod);
+		});
+	}
+	
 	/**
 	 * Write Simulation results for the current time period to the CSV file
 	 * 
@@ -188,8 +200,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	protected void writeOdResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
-			OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
+	protected void writeOdResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
 		OutputType outputType = outputTypeConfiguration.getOutputType();
 		OutputProperty[] outputProperties = outputValueProperties.get(outputType);
 		OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
@@ -204,6 +215,32 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 				}
 				timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType,	multiKeyPlanItData);
 			}
+		}
+	}
+	
+	/**
+	 * Write OD Path results for the time period to the CSV file
+	 * 
+	 * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
+	 * @param outputAdapter OutputAdapter for the current persistence
+	 * @param modes                   Set of modes of travel
+	 * @param timePeriod              current time period
+	 * @throws PlanItException thrown if there is an error
+	 */
+	@Override
+	protected void writeODPathResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
+		OutputType outputType = outputTypeConfiguration.getOutputType();
+		OutputProperty[] outputProperties = outputValueProperties.get(outputType);
+		OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
+		ODPathOutputTypeAdapter odPathOutputTypeAdapter = (ODPathOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+		int iterationIndex = outputAdapter.getIterationIndex();
+		for (Mode mode : modes) {
+			MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
+			ODPath odPath = odPathOutputTypeAdapter.getODPath(mode);
+			for (ODPathIterator odPathIterator = odPath.iterator(); odPathIterator.hasNext();) {
+				updateOutputAndKeyValuesForShortestPath(multiKeyPlanItData, outputProperties, outputKeys, odPathIterator, odPathOutputTypeAdapter, mode, timePeriod);
+			}
+			timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType,	multiKeyPlanItData);
 		}
 	}
 

@@ -18,6 +18,14 @@ import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.userclass.Mode;
 
+/**
+ *Adapter providing access to the data of the TraditionalStaticAssignment class
+ * relevant for origin-destination outputs without exposing the internals of the traffic
+ * assignment class itself 
+ * 
+ * @author gman6028
+ *
+ */
 public class TraditionalStaticAssignmentODOutputTypeAdapter extends OutputTypeAdapterImpl implements ODOutputTypeAdapter {
 
 	/**
@@ -93,7 +101,7 @@ public class TraditionalStaticAssignmentODOutputTypeAdapter extends OutputTypeAd
      * @param mode the specified mode
      * @return the OD skim matrix
      */
-    public  ODSkimMatrix getODSkimMatrix(ODSkimOutputType odSkimOutputType, Mode mode) {
+    public ODSkimMatrix getODSkimMatrix(ODSkimOutputType odSkimOutputType, Mode mode) {
 		TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
 		return traditionalStaticAssignmentSimulationData.getODSkimMatrix(odSkimOutputType, mode);
     }

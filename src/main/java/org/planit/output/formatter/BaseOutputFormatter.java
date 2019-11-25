@@ -141,6 +141,19 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	protected abstract void writeSimulationResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException;
 
+
+	/**
+	 * Write OD Path results for the time period to the CSV file
+	 * 
+	 * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
+	 * @param outputAdapter OutputAdapter for the current persistence
+	 * @param modes                   Set of modes of travel
+	 * @param timePeriod              current time period
+	 * @throws PlanItException thrown if there is an error
+	 */
+	protected abstract void writeODPathResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter,
+			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException;
+	
 	/**
 	 * Constructor
 	 */
@@ -200,6 +213,9 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 			break;
 		case SIMULATION:
 			writeSimulationResultsForCurrentTimePeriod(outputTypeConfiguration, outputAdapter, modes, timePeriod);
+			break;
+		case OD_PATH:
+			writeODPathResultsForCurrentTimePeriod(outputTypeConfiguration, outputAdapter, modes, timePeriod);
 			break;
 		}
 		lockOutputProperties(outputType);

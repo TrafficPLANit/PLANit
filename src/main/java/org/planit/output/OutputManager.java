@@ -14,6 +14,7 @@ import org.planit.output.configuration.LinkOutputTypeConfiguration;
 import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
+import org.planit.output.configuration.ODPathOutputTypeConfiguration;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
@@ -96,6 +97,9 @@ public class OutputManager {
         break;
         case OD: 
         	outputTypeConfigurations.put(outputType, new OriginDestinationOutputTypeConfiguration(trafficAssignment));
+        break;
+        case OD_PATH:
+        	outputTypeConfigurations.put(outputType, new ODPathOutputTypeConfiguration(trafficAssignment));
         break;
         default: PlanItLogger.warning(outputType.value() + " has not been defined yet.");
         }

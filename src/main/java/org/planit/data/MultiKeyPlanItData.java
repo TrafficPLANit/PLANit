@@ -79,6 +79,8 @@ public class MultiKeyPlanItData {
 			return (key instanceof Boolean);
 		case SRSNAME:
 			return (key instanceof String);
+		case STRING:
+			return (key instanceof String);
 		default:
 			return false;
 		}
@@ -244,8 +246,7 @@ public class MultiKeyPlanItData {
 			throw new PlanItException("Wrong number of property values used in call to MultiKeyPlanItData ");
 		}
 		for (int i = 0; i < outputValueProperties.length; i++) {
-			if ((!isValueTypeCorrect(outputValues[i], valueTypes[i]))
-					&& (!outputValues[i].equals(OutputFormatter.NOT_SPECIFIED))) {
+			if ((!isValueTypeCorrect(outputValues[i], valueTypes[i])) && (!outputValues[i].equals(OutputFormatter.NOT_SPECIFIED))) {
 				throw new PlanItException("Property in position " + i + " in setRowValues() is of the wrong type");
 			}
 		}

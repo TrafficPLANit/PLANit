@@ -1,7 +1,7 @@
 package org.planit.od.odmatrix;
 
 import org.ojalgo.array.Array2D;
-import org.planit.od.ODData;
+import org.planit.od.ODDataImpl;
 import org.planit.zoning.Zone;
 import org.planit.zoning.Zoning;
 
@@ -11,12 +11,7 @@ import org.planit.zoning.Zoning;
  * @author gman6028
  *
  */
-public abstract class ODMatrix implements ODData<Double> {
-
-    /**
-     * holder for zones considered in the matrix
-     */
-    protected Zoning.Zones zones;
+public abstract class ODMatrix extends ODDataImpl<Double> {
 
     /**
      * matrix of data values
@@ -29,9 +24,9 @@ public abstract class ODMatrix implements ODData<Double> {
      * @param zones holder for zones considered in the matrix
      */
     public ODMatrix(Zoning.Zones zones) {
-        this.zones = zones;
+    	super(zones);
         int numberOfTravelAnalysisZones = zones.getNumberOfZones();
-        this.matrixContents = Array2D.PRIMITIVE32.makeZero(numberOfTravelAnalysisZones,
+        matrixContents = Array2D.PRIMITIVE32.makeZero(numberOfTravelAnalysisZones,
                 numberOfTravelAnalysisZones);
     }
     
@@ -66,15 +61,6 @@ public abstract class ODMatrix implements ODData<Double> {
         return matrixContents.get(originId, destinationId);
     }
 
-	/**
-	 * Returns the number of zones contained in the object
-	 *  
-	 * @return number of zones in the object
-	 */
-    public int getNumberOfTravelAnalysisZones() {
-    	return zones.getNumberOfZones();
-    }
-    
 	/**
 	 * Returns an iterator which can iterate through all the origin-destination cells in the matrix
 	 * 

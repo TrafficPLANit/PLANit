@@ -13,6 +13,7 @@ public enum Type {
 	 INTEGER("INTEGER"),
 	 LONG("LONG"),
 	 BOOLEAN("BOOLEAN"),
+	 STRING("STRING"),
 	 SRSNAME("SRSNAME");
 	 private final String value;
 
