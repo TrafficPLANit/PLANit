@@ -42,7 +42,7 @@ public class StopCriterion {
         if (iterationIndex == maxIterations)
             return true;
         return (Math.abs(gap) < epsilon);
-    }
+   }
 
     /**
      * Return the maximum allowable number of iterations

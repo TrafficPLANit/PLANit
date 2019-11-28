@@ -171,7 +171,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
 	 * @throws PlanItException thrown if there is an error
 	 */
 	private long getLinkSegmentExternalId(LinkSegment linkSegment) throws PlanItException {
-		return linkSegment.getParentLink().getExternalId();
+		return linkSegment.getExternalId();
 	}
 
 	/**
