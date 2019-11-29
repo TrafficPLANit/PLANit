@@ -19,13 +19,13 @@ import org.planit.trafficassignment.TrafficAssignment;
  * MODE_EXTERNAL_ID 
  * ORIGIN_ZONE_EXTERNAL_ID 
  * DESTINATION_ZONE_EXTERNAL_ID 
- * OD_PATH
+ * PATH
  * 
  * 
  * @author markr
  *
  */
-public class ODPathOutputTypeConfiguration extends OutputTypeConfiguration {
+public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
 
 	public static final int ORIGIN_DESTINATION_ID = 1;
 	public static final int ORIGIN_DESTINATION_EXTERNAL_ID = 2;
@@ -56,15 +56,15 @@ public class ODPathOutputTypeConfiguration extends OutputTypeConfiguration {
 	 * @param trafficAssignment TrafficAssignment object whose results are to be reported
 	 * @throws PlanItException thrown if there is an error adding the default properties
 	 */
-	public ODPathOutputTypeConfiguration(TrafficAssignment trafficAssignment) throws PlanItException {
-		super(trafficAssignment, OutputType.OD_PATH);
+	public PathOutputTypeConfiguration(TrafficAssignment trafficAssignment) throws PlanItException {
+		super(trafficAssignment, OutputType.PATH);
 		// add default output properties
 		addProperty(OutputProperty.RUN_ID);
 		addProperty(OutputProperty.TIME_PERIOD_EXTERNAL_ID);
 		addProperty(OutputProperty.MODE_EXTERNAL_ID);
 		addProperty(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID);
 		addProperty(OutputProperty.DESTINATION_ZONE_EXTERNAL_ID);
-		addProperty(OutputProperty.OD_PATH);
+		addProperty(OutputProperty.PATH);
 	}
 	
 	/**

@@ -7,7 +7,7 @@ package org.planit.output.enums;
  * LINK: link based output 
  * SIMULATION: simulation based output such as profile information, objects created etc. 
  * OD: origin-destination based output regarding travel times and other costs
- * OD_PATH: Path from origin to destination
+ * PATH: Path from origin to destination
  * 
  * @author markr
  */
@@ -16,7 +16,7 @@ public enum OutputType {
     LINK("Link"), 
     SIMULATION("Simulation"), 
     OD("Origin-Destination"),
-    OD_PATH("OD Path");
+    PATH("Path");
 	
 	 private final String value;
 

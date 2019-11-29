@@ -77,7 +77,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	}
 	
 	/**
-	 * Write output values to the OD Path CSV file for the current iteration
+	 * Write output values to the Path CSV file for the current iteration
 	 * 
 	 * @param outputTypeConfiguration output type configuration for the current output type
 	 * @param outputAdapter output adapter for the current output type
@@ -87,7 +87,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	 * @return PlanItException thrown if the CSV file cannot be created or written
 	 *         to
 	 */
-	protected PlanItException writeODPathResultsForCurrentTimePeriodToCsvPrinter(OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
+	protected PlanItException writePathResultsForCurrentTimePeriodToCsvPrinter(OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
 		try {
 			ODPathOutputTypeAdapter odPathOutputTypeAdapter = (ODPathOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputTypeConfiguration.getOutputType());
 			SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();

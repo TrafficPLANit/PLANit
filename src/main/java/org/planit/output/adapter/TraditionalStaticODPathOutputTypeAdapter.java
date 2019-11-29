@@ -137,7 +137,7 @@ public class TraditionalStaticODPathOutputTypeAdapter extends OutputTypeAdapterI
 				return ModeExternalIdOutputProperty.getModeExternalId(mode);
 			case MODE_ID:
 				return ModeIdOutputProperty.getModeId(mode);
-			case OD_PATH:
+			case PATH:
 				return getPath(odPathIterator);
 			case ORIGIN_ZONE_EXTERNAL_ID:
 				return getOriginZoneExternalId(odPathIterator);

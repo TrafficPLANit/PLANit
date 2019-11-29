@@ -219,7 +219,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	}
 	
 	/**
-	 * Write OD Path results for the time period to the CSV file
+	 * Write Path results for the time period to the CSV file
 	 * 
 	 * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
 	 * @param outputAdapter OutputAdapter for the current persistence
@@ -228,7 +228,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	protected void writeODPathResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
+	protected void writePathResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod) throws PlanItException {
 		OutputType outputType = outputTypeConfiguration.getOutputType();
 		OutputProperty[] outputProperties = outputValueProperties.get(outputType);
 		OutputProperty[] outputKeys = outputKeyProperties.get(outputType);

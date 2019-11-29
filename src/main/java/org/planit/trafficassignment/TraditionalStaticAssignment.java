@@ -742,7 +742,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
         case OD: 
         	outputTypeAdapter = new TraditionalStaticAssignmentODOutputTypeAdapter(outputType, this);
         break;
-        case OD_PATH:
+        case PATH:
         	outputTypeAdapter = new TraditionalStaticODPathOutputTypeAdapter(outputType, this);
         break;
         default: PlanItLogger.warning(outputType.value() + " has not been defined yet.");

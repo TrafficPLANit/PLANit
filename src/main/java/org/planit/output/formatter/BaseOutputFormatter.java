@@ -151,7 +151,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * @param timePeriod              current time period
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected abstract void writeODPathResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter,
+	protected abstract void writePathResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter,
 			Set<Mode> modes, TimePeriod timePeriod) throws PlanItException;
 	
 	/**
@@ -214,8 +214,8 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 		case SIMULATION:
 			writeSimulationResultsForCurrentTimePeriod(outputTypeConfiguration, outputAdapter, modes, timePeriod);
 			break;
-		case OD_PATH:
-			writeODPathResultsForCurrentTimePeriod(outputTypeConfiguration, outputAdapter, modes, timePeriod);
+		case PATH:
+			writePathResultsForCurrentTimePeriod(outputTypeConfiguration, outputAdapter, modes, timePeriod);
 			break;
 		}
 		lockOutputProperties(outputType);

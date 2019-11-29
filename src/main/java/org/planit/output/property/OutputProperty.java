@@ -38,7 +38,7 @@ public enum OutputProperty {
 	TIME_PERIOD_EXTERNAL_ID("org.planit.output.property.TimePeriodExternalIdOutputProperty"),
 	RUN_ID("org.planit.output.property.RunIdOutputProperty"),
 	TOTAL_COST_TO_END_NODE("org.planit.output.property.TotalCostToEndNodeOutputProperty"),
-	OD_PATH("org.planit.output.property.ODPathOutputProperty");
+	PATH("org.planit.output.property.PathOutputProperty");
 
 	private final String value;
 
