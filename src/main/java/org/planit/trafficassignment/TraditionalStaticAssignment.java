@@ -32,11 +32,11 @@ import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.od.odpath.ODPath;
+import org.planit.od.odpath.ODPathMatrix;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
-import org.planit.output.adapter.TraditionalStaticODPathOutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticPathOutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.ODSkimOutputType;
@@ -128,7 +128,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 */
 	private Map<Zone, Map<Zone, Pair<Double, EdgeSegment>[]>> executeModeTimePeriod(Mode mode, ODDemandMatrix odDemandMatrix, ModeData currentModeData, double[] modalNetworkSegmentCosts, ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
  		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
-		ODPath odPath = simulationData.getODPath(mode);
+		ODPathMatrix odPathMatrix = simulationData.getODPathMatrix(mode);
 		Map<Zone, Map<Zone, Pair<Double, EdgeSegment>[]>> vertexPathMap = new HashMap<Zone, Map<Zone, Pair<Double, EdgeSegment>[]>>();
 		
 		// loop over all available OD demands
@@ -153,7 +153,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				dualityGapFunction.increaseConvexityBound(odDemand * shortestPathCost);
 				previousOriginZoneId = currentOriginZone.getId();
 				
-				updateODPath(odPath, currentOriginZone, currentDestinationZone, vertexPathAndCost);
+				updateODPath(odPathMatrix, currentOriginZone, currentDestinationZone, vertexPathAndCost);
 				vertexPathMap.get(currentOriginZone).put(currentDestinationZone, vertexPathAndCost);
 			} else {
 				vertexPathMap.get(currentOriginZone).put(currentDestinationZone, null);
@@ -309,7 +309,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
  	 * @param currentDestinationZone the current destination
 	 * @param vertexPathAndCost the vertexPathAndCost object calculated from the traffic assignment
 	 */
-	private void updateODPath(ODPath odPath, Zone currentOriginZone, Zone currentDestinationZone, Pair<Double, EdgeSegment>[] vertexPathAndCost) {
+	private void updateODPath(ODPathMatrix odPath, Zone currentOriginZone, Zone currentDestinationZone, Pair<Double, EdgeSegment>[] vertexPathAndCost) {
 		odPath.setValue(currentOriginZone, currentDestinationZone, vertexPathAndCost);
 	}
 	
@@ -743,7 +743,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
         	outputTypeAdapter = new TraditionalStaticAssignmentODOutputTypeAdapter(outputType, this);
         break;
         case PATH:
-        	outputTypeAdapter = new TraditionalStaticODPathOutputTypeAdapter(outputType, this);
+        	outputTypeAdapter = new TraditionalStaticPathOutputTypeAdapter(outputType, this);
         break;
         default: PlanItLogger.warning(outputType.value() + " has not been defined yet.");
 		}

@@ -1,20 +1,20 @@
 package org.planit.output.adapter;
 
-import org.planit.od.odpath.ODPath;
+import org.planit.od.odpath.ODPathMatrix;
 import org.planit.od.odpath.ODPathIterator;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
 
-public interface ODPathOutputTypeAdapter extends OutputTypeAdapter {
+public interface PathOutputTypeAdapter extends OutputTypeAdapter {
 
    /**
-    * Retrieve an OD path object for a specified mode
+    * Retrieve an OD path matrix object for a specified mode
     * 
     * @param mode the specified mode
     * @return the OD path object
     */
-	public ODPath getODPath(Mode mode);
+	public ODPathMatrix getODPathMatrix(Mode mode);
 	
    /**
     * Returns the specified output property values for the current cell in the ODPathIterator

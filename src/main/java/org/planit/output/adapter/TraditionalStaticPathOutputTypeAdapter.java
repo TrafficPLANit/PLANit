@@ -5,7 +5,7 @@ import java.util.List;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.Node;
-import org.planit.od.odpath.ODPath;
+import org.planit.od.odpath.ODPathMatrix;
 import org.planit.od.odpath.ODPathIterator;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
@@ -28,7 +28,7 @@ import org.planit.userclass.Mode;
  * @author gman6028
  *
  */
-public class TraditionalStaticODPathOutputTypeAdapter extends OutputTypeAdapterImpl implements ODPathOutputTypeAdapter {
+public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImpl implements PathOutputTypeAdapter {
 
 	/**
 	 * Returns the external Id of the destination zone for the current cell in the OD path matrix
@@ -98,20 +98,20 @@ public class TraditionalStaticODPathOutputTypeAdapter extends OutputTypeAdapterI
  * @param outputType the output type for the current persistence
  * @param trafficAssignment the traffic assignment used to provide the data
  */
-	public TraditionalStaticODPathOutputTypeAdapter(OutputType outputType, TrafficAssignment trafficAssignment) {
+	public TraditionalStaticPathOutputTypeAdapter(OutputType outputType, TrafficAssignment trafficAssignment) {
 		super(outputType, trafficAssignment);
 	}
 	
     /**
-     * Retrieve an OD path object for a specified mode
+     * Retrieve an OD path matrix object for a specified mode
      * 
      * @param mode the specified mode
      * @return the OD path object
      */
 	@Override
-    public ODPath getODPath(Mode mode) {
+    public ODPathMatrix getODPathMatrix(Mode mode) {
 		TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
-		return traditionalStaticAssignmentSimulationData.getODPath(mode);
+		return traditionalStaticAssignmentSimulationData.getODPathMatrix(mode);
     }
 
     /**

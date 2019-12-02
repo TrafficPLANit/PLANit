@@ -19,7 +19,7 @@ import org.planit.zoning.Zoning;
  * @author gman6028
  *
  */
-public class ODPath extends ODDataImpl<List<Node>> {
+public class ODPathMatrix extends ODDataImpl<List<Node>> {
 	
 	/**
 	 * Array storing path for each origin-destination pair
@@ -51,7 +51,7 @@ public class ODPath extends ODDataImpl<List<Node>> {
 	 * 
 	 * @param zones the zones being used
 	 */
-    public ODPath(Zoning.Zones zones) {
+    public ODPathMatrix(Zoning.Zones zones) {
         super(zones);
         int numberOfTravelAnalysisZones = zones.getNumberOfZones();
         matrixContents = new List[numberOfTravelAnalysisZones][numberOfTravelAnalysisZones];

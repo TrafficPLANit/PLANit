@@ -131,17 +131,6 @@ public abstract class OutputTypeConfiguration {
 	}
 
 	/**
-	 * Include all available output properties in the output files
-	 * 
-	 * @throws PlanItException thrown if there is an error setting up the output property list
-	 */
-	public void addAllProperties() throws PlanItException {
-		for (OutputProperty outputProperty : OutputProperty.values()) {
-			addProperty(outputProperty);
-		}
-	}
-
-	/**
 	 * Remove all properties from the current output list
 	 */
 	public void removeAllProperties() {

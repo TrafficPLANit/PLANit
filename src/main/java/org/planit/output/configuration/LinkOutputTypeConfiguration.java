@@ -14,7 +14,6 @@ import org.planit.trafficassignment.TrafficAssignment;
  * 
  * The following OutputProperty values are included by default:
  * 
- * TIME_PERIOD_EXTERNAL_ID
  * MODE_EXTERNAL_ID 
  * UPSTREAM_NODE_EXTERNAL_ID
  * DOWNSTREAM_NODE_EXTERNAL_ID
@@ -24,6 +23,18 @@ import org.planit.trafficassignment.TrafficAssignment;
  * LENGTH
  * CALCULATED_SPEED 
  * COST
+ * DENSITY
+ * LINK_SEGMENT_ID
+ * UPSTREAM_NODE_ID
+ * UPSTREAM_NODE_LOCATION
+ * DOWNSTREAM_NODE_ID
+ * DOWNSTREAM_NODE_LOCATION
+ * CAPACITY_PER_LANE
+ * LINK_COST
+ * MODE_ID
+ * MAXIMUM_SPEED
+ * TIME_PERIOD_EXTERNAL_ID
+ * TIME_PERIOD_ID
  * 
  * 
  * @author markr
@@ -66,16 +77,26 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 	 */
 	public LinkOutputTypeConfiguration(TrafficAssignment trafficAssignment) throws PlanItException {
 		super(trafficAssignment, OutputType.LINK);
-		addProperty(OutputProperty.TIME_PERIOD_EXTERNAL_ID);
+		addProperty(OutputProperty.DENSITY);
+		addProperty(OutputProperty.LINK_SEGMENT_ID);
 		addProperty(OutputProperty.MODE_EXTERNAL_ID);
 		addProperty(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID);
+		addProperty(OutputProperty.UPSTREAM_NODE_ID);
+		addProperty(OutputProperty.UPSTREAM_NODE_LOCATION);
 		addProperty(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID);
+		addProperty(OutputProperty.DOWNSTREAM_NODE_ID);
+		addProperty(OutputProperty.DOWNSTREAM_NODE_LOCATION);
 		addProperty(OutputProperty.FLOW);
 		addProperty(OutputProperty.CAPACITY_PER_LANE);
 		addProperty(OutputProperty.NUMBER_OF_LANES);
 		addProperty(OutputProperty.LENGTH);
 		addProperty(OutputProperty.CALCULATED_SPEED);
 		addProperty(OutputProperty.LINK_COST);
+		addProperty(OutputProperty.MODE_ID);
+		addProperty(OutputProperty.MODE_EXTERNAL_ID);
+		addProperty(OutputProperty.MAXIMUM_SPEED);
+		addProperty(OutputProperty.TIME_PERIOD_EXTERNAL_ID);
+		addProperty(OutputProperty.TIME_PERIOD_ID);
 	}
 	
 	/**
