@@ -5,7 +5,7 @@ import org.planit.output.enums.Units;
 
 public final class PathOutputProperty extends BaseOutputProperty {
 
-	public static final String PATH = "OD Path";
+	public static final String PATH = "Path";
 
 	@Override
 	public String getName() {

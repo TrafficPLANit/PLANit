@@ -3,6 +3,7 @@ package org.planit.output.configuration;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
@@ -33,6 +34,11 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 	public static final int ORIGIN_DESTINATION_EXTERNAL_ID = 2;
 	public static final int ORIGIN_DESTINATION_NOT_IDENTIFIED = 3;
 	
+	/**
+	 * Stores all the active OD Skim output types
+	 */
+	private Set<ODSkimOutputType> activeOdSkimOutputTypes;
+
 	/**
 	 * Determine how an origin-destination cell is being identified in the output formatter
 	 * 
@@ -121,4 +127,17 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
     	activeOdSkimOutputTypes.remove(odSkimOutputType);
     }
     
+    /**
+     * Returns a set of activated OD skim output types
+     * 
+     * @return Set of activated OD skim output types
+     * @throw PlanItException thrown if this method is called from an inappropriate output type configuration
+     */
+    public Set<ODSkimOutputType> getActiveOdSkimOutputTypes() throws PlanItException {
+    	if (activeOdSkimOutputTypes == null) {
+    		throw new PlanItException("Attempted to call getActiveOdSkimOutputTypes() from an OutputTypeConfiguration which does not use OD.");
+    	}
+    	return activeOdSkimOutputTypes;
+    }
+	
 }

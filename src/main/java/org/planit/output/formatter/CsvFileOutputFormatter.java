@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.csv.QuoteMode;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
 import org.planit.od.odmatrix.ODMatrixIterator;
@@ -22,7 +21,9 @@ import org.planit.output.adapter.LinkOutputTypeAdapter;
 import org.planit.output.adapter.ODOutputTypeAdapter;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.PathOutputTypeAdapter;
+import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
+import org.planit.output.configuration.PathOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
@@ -58,7 +59,8 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 		try {
 			ODOutputTypeAdapter odOutputTypeAdapter = (ODOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputTypeConfiguration.getOutputType());
 			SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
-			for (ODSkimOutputType odSkimOutputType : outputTypeConfiguration.getActiveOdSkimOutputTypes()) {
+			OriginDestinationOutputTypeConfiguration originDestinationOutputTypeConfiguration = (OriginDestinationOutputTypeConfiguration) outputTypeConfiguration;
+			for (ODSkimOutputType odSkimOutputType : originDestinationOutputTypeConfiguration.getActiveOdSkimOutputTypes()) {
 				for (Mode mode : modes) {
 					ODSkimMatrix odSkimMatrix = odOutputTypeAdapter.getODSkimMatrix(odSkimOutputType, mode);
 					for (ODMatrixIterator odMatrixIterator = odSkimMatrix.iterator(); odMatrixIterator.hasNext();) {
@@ -90,13 +92,14 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	protected PlanItException writePathResultsForCurrentTimePeriodToCsvPrinter(OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
 		try {
 			PathOutputTypeAdapter pathOutputTypeAdapter = (PathOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputTypeConfiguration.getOutputType());
+			PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
 			SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
 			for (Mode mode : modes) {
 				ODPathMatrix odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
 				for (ODPathIterator odPathIterator = odPathMatrix.iterator(); odPathIterator.hasNext(); ) {
 					odPathIterator.next();
 					List<Object> rowValues = outputProperties.stream()
-							.map(outputProperty -> pathOutputTypeAdapter.getODPathOutputPropertyValue(outputProperty.getOutputProperty(), odPathIterator, mode, timePeriod))
+							.map(outputProperty -> pathOutputTypeAdapter.getPathOutputPropertyValue(outputProperty.getOutputProperty(), odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathOutputType()))
 							.map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
 					csvPrinter.printRecord(rowValues);
 				}
@@ -147,7 +150,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	 * @throws Exception thrown if there is an error opening the file
 	 */
 	protected CSVPrinter openCsvFileAndWriteHeaders(OutputTypeConfiguration outputTypeConfiguration, String csvFileName) throws Exception {
-		CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(csvFileName), CSVFormat.DEFAULT.withEscape(Character.MIN_VALUE).withQuoteMode(QuoteMode.NONE));
+		CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(csvFileName), CSVFormat.DEFAULT);
 		List<String> headerValues = outputTypeConfiguration.getOutputProperties().stream().map(BaseOutputProperty::getName).collect(Collectors.toList());
 		csvPrinter.printRecord(headerValues);
 		return csvPrinter;

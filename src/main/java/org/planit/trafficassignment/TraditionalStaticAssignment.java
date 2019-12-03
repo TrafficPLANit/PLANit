@@ -39,6 +39,7 @@ import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticPathOutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
+import org.planit.output.configuration.PathOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
@@ -153,7 +154,10 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				dualityGapFunction.increaseConvexityBound(odDemand * shortestPathCost);
 				previousOriginZoneId = currentOriginZone.getId();
 				
-				updateODPath(odPathMatrix, currentOriginZone, currentDestinationZone, vertexPathAndCost);
+				if (outputManager.isOutputTypeActive(OutputType.PATH)) {
+					PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputManager.getOutputTypeConfiguration(OutputType.PATH);
+					odPathMatrix.setValue(currentOriginZone, currentDestinationZone, vertexPathAndCost, pathOutputTypeConfiguration.getPathOutputType());
+				}
 				vertexPathMap.get(currentOriginZone).put(currentDestinationZone, vertexPathAndCost);
 			} else {
 				vertexPathMap.get(currentOriginZone).put(currentDestinationZone, null);
@@ -196,34 +200,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		}
 		return shortestPathCost;
 	}
-	
-	/**
-	 * Update the OD skim matrix for all active output types 
-	 * 
-	 * @param skimMatrixMap Map of OD skim matrices for each active output type
-	 * @param currentOriginZone current origin zone
-	 * @param currentDestinationZone current destination zone
-	 * @param vertexPathAndCost array of Pairs containing the current vertex path and cost
-	 * @param shortestPathCost 
-	 */
-//TODO  - vertexPathAndCost not used yet, but may be required for more OD skim matrices for types we have not yet implemented e.g. length, toll etc
-/*
-	private void updateSkimMatrixMap(Map<ODSkimOutputType, ODSkimMatrix> skimMatrixMap, Zone currentOriginZone, Zone currentDestinationZone, Pair<Double, EdgeSegment>[] vertexPathAndCost, double shortestPathCost) {
-		for (ODSkimOutputType odSkimOutputType : simulationData.getActiveSkimOutputTypes()) {
-			ODSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);
-			switch (odSkimOutputType) {
-			case COST:
-				odSkimMatrix.setValue(currentOriginZone, currentDestinationZone, shortestPathCost);
-				break;
-			case NONE:
-				odSkimMatrix.setValue(currentOriginZone, currentDestinationZone, shortestPathCost);
-				break;
-			default:
-				break;			
-			}
-		}
-	}
-*/
 	
 	/**
 	 * Update the OD skim matrix for all active output types 
@@ -302,18 +278,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	}
 
 	/**
-	 * Update the OD path for the specified origin and destination
-	 * 
-	 * @param odPath the OD path object
-	 * @param currentOriginZone the current origin
- 	 * @param currentDestinationZone the current destination
-	 * @param vertexPathAndCost the vertexPathAndCost object calculated from the traffic assignment
-	 */
-	private void updateODPath(ODPathMatrix odPath, Zone currentOriginZone, Zone currentDestinationZone, Pair<Double, EdgeSegment>[] vertexPathAndCost) {
-		odPath.setValue(currentOriginZone, currentDestinationZone, vertexPathAndCost);
-	}
-	
-	/**
 	 * Update the current vertex path cost
 	 * 
 	 * @param previousOriginZoneId the Id of the previous origin zone
@@ -369,7 +333,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			dualityGapFunction.computeGap();
 			simulationData.incrementIterationIndex();
 			startTime = recordTime(startTime, dualityGapFunction.getGap());
-			converged = dualityGapFunction.hasConverged(simulationData.getIterationIndex());
 			for (Mode mode : modes) {
 				double[] modalLinkSegmentCosts = recalculateModalLinkSegmentCosts(mode, timePeriod);
 				simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
@@ -377,6 +340,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				Map<ODSkimOutputType, ODSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
 				updateSkimMatrixMap(skimMatrixMap, odDemandMatrix, vertexPathMapPerMode.get(mode), modalLinkSegmentCosts);
 			}		
+			converged = dualityGapFunction.hasConverged(simulationData.getIterationIndex());
 			outputManager.persistOutputData(timePeriod, modes, converged);
 		}
 		long timeDiff = startTime.getTimeInMillis() - initialStartTime.getTimeInMillis();

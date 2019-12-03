@@ -2,6 +2,7 @@ package org.planit.output.adapter;
 
 import org.planit.od.odpath.ODPathMatrix;
 import org.planit.od.odpath.ODPathIterator;
+import org.planit.output.enums.PathOutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -23,7 +24,8 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
     * @param odPathIterator the iterator through the current ODPath object
     * @param mode the current mode
     * @param timePeriod the current time period
+    * @param pathOutputType the type of objects in the path list
     * @return the value of the specified property (or an Exception if an error has occurred)
     */
-	public Object getODPathOutputPropertyValue(OutputProperty outputProperty, ODPathIterator odPathIterator, Mode mode, TimePeriod timePeriod);
+	public Object getPathOutputPropertyValue(OutputProperty outputProperty, ODPathIterator odPathIterator, Mode mode, TimePeriod timePeriod, PathOutputType pathOutputType);
 }
