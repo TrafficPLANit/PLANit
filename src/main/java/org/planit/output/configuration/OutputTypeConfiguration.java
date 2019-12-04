@@ -20,52 +20,63 @@ import org.planit.trafficassignment.TrafficAssignment;
  */
 public abstract class OutputTypeConfiguration {
 
-    /**
-     * The output type being used with the current instance - this must be set in each concrete class which extends OutputTypeConfiguration
-     */
-    protected OutputType outputType;
+	/**
+	 * The output type being used with the current instance - this must be set in
+	 * each concrete class which extends OutputTypeConfiguration
+	 */
+	protected OutputType outputType;
 
-    /**
+	/**
 	 * Output properties to be included in the CSV output files
 	 */
 	protected SortedSet<BaseOutputProperty> outputProperties;
 
 	/**
-	 * True if links with zero flow are to be recorded in output files, false otherwise (false is the default)
+	 * True if links with zero flow are to be recorded in output files, false
+	 * otherwise (false is the default)
 	 */
 	protected boolean recordLinksWithZeroFlow;
 
 	/**
 	 * Filters output properties in the OutputAdapter and outputs them as an array
 	 * 
-	 * @param test lambda function to filter which output properties should be included
+	 * @param test lambda function to filter which output properties should be
+	 *             included
 	 * @return array containing the relevant OutputProperty objects
 	 */
 	private OutputProperty[] getOutputPropertyArray(Function<BaseOutputProperty, Boolean> test) {
 		OutputProperty[] outputPropertyArray = outputProperties.stream()
-				                                                                                     .filter(baseOutputProperty -> test.apply(baseOutputProperty))
-				                                                                                     .map(BaseOutputProperty::getOutputProperty)
-				                                                                                     .toArray(OutputProperty[]::new);
+				.filter(baseOutputProperty -> test.apply(baseOutputProperty)).map(BaseOutputProperty::getOutputProperty)
+				.toArray(OutputProperty[]::new);
 		return outputPropertyArray;
 	}
 
-/**
- * OutputTypeconfiguration constructor
- * 
- * @param trafficAssignent TrafficAssignment object whose results are being reported
- * @param outputType  the output type being created
- * @throws PlanItException 
- */
- 	public OutputTypeConfiguration(TrafficAssignment trafficAssignment, OutputType outputType) throws PlanItException {
-        this.outputType = outputType;
-        outputProperties = new TreeSet<BaseOutputProperty>();
-    }
+	/**
+	 * Checks the output property type being added in valid for the current output type configuration
+	 * 
+	 * @param baseOutputProperty the output property type being added
+	 * @return true if the output property is valid, false otherwise
+	 */
+	public abstract boolean isOutputPropertyValid(BaseOutputProperty baseOutputProperty);
 
- 	/**
- 	 * Returns the OutputAdapter being used for this configuration
- 	 * 
- 	 * @return the OutputAdapter being used
- 	 */
+	/**
+	 * OutputTypeconfiguration constructor
+	 * 
+	 * @param trafficAssignent TrafficAssignment object whose results are being
+	 *                         reported
+	 * @param outputType       the output type being created
+	 * @throws PlanItException
+	 */
+	public OutputTypeConfiguration(TrafficAssignment trafficAssignment, OutputType outputType) throws PlanItException {
+		this.outputType = outputType;
+		outputProperties = new TreeSet<BaseOutputProperty>();
+	}
+
+	/**
+	 * Returns the OutputAdapter being used for this configuration
+	 * 
+	 * @return the OutputAdapter being used
+	 */
 	public OutputType getOutputType() {
 		return outputType;
 	}
@@ -78,7 +89,10 @@ public abstract class OutputTypeConfiguration {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public void addProperty(String propertyClassName) throws PlanItException {
-		outputProperties.add(BaseOutputProperty.convertToBaseOutputProperty(propertyClassName));
+		BaseOutputProperty baseOutputProperty = BaseOutputProperty.convertToBaseOutputProperty(propertyClassName);
+		if (isOutputPropertyValid(baseOutputProperty)) {
+			outputProperties.add(baseOutputProperty);
+		}
 	}
 
 	/**
@@ -89,7 +103,10 @@ public abstract class OutputTypeConfiguration {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public void addProperty(OutputProperty outputProperty) throws PlanItException {
-		outputProperties.add(BaseOutputProperty.convertToBaseOutputProperty(outputProperty));
+		BaseOutputProperty baseOutputProperty = BaseOutputProperty.convertToBaseOutputProperty(outputProperty);
+		if (isOutputPropertyValid(baseOutputProperty)) {
+			outputProperties.add(baseOutputProperty);
+		}
 	}
 
 	/**
@@ -117,7 +134,7 @@ public abstract class OutputTypeConfiguration {
 	 */
 	public boolean removeProperty(OutputProperty outputProperty) throws PlanItException {
 		BaseOutputProperty baseOutputProperty = BaseOutputProperty.convertToBaseOutputProperty(outputProperty);
-		if (outputProperties.contains( baseOutputProperty)) {
+		if (outputProperties.contains(baseOutputProperty)) {
 			return outputProperties.remove(baseOutputProperty);
 		}
 		return true;
@@ -157,7 +174,7 @@ public abstract class OutputTypeConfiguration {
 			return !baseOutputProperty.getColumnPriority().equals(OutputPropertyPriority.ID_PRIORITY);
 		});
 	}
-	
+
 	/**
 	 * Returns the current set of output properties for this output configuration
 	 * 
@@ -166,16 +183,17 @@ public abstract class OutputTypeConfiguration {
 	public SortedSet<BaseOutputProperty> getOutputProperties() {
 		return outputProperties;
 	}
-	
-    /**
-     * Set user flag to indicate whether links with zero flow should be recorded
-     * 
-     * @param recordLinksWithZeroFlow user flag to indicate whether links with zero flow should be recorded
-     */
+
+	/**
+	 * Set user flag to indicate whether links with zero flow should be recorded
+	 * 
+	 * @param recordLinksWithZeroFlow user flag to indicate whether links with zero
+	 *                                flow should be recorded
+	 */
 	public void setRecordLinksWithZeroFlow(boolean recordLinksWithZeroFlow) {
 		this.recordLinksWithZeroFlow = recordLinksWithZeroFlow;
 	}
-	
+
 	/**
 	 * Return user flag to indicate whether links with zero flow should be recorded
 	 * 
@@ -184,9 +202,10 @@ public abstract class OutputTypeConfiguration {
 	public boolean isRecordLinksWithZeroFlow() {
 		return recordLinksWithZeroFlow;
 	}
-	
+
 	/**
-	 * Validate whether the specified list of keys is valid, and if it is return only the keys which will be used
+	 * Validate whether the specified list of keys is valid, and if it is return
+	 * only the keys which will be used
 	 * 
 	 * @param outputKeyProperties array of output key property types
 	 * @return array of keys to be used (null if the list is not valid)

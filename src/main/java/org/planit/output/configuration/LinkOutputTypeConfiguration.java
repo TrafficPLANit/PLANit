@@ -6,6 +6,7 @@ import java.util.List;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.output.enums.OutputType;
+import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.trafficassignment.TrafficAssignment;
 
@@ -134,4 +135,66 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 		}
 		return null;
 	}
+	
+	/**
+	 * Checks the output property type being added in valid for the current output type configuration
+	 * 
+	 * @param baseOutputProperty the output property type being added
+	 * @return true if the output property is valid, false otherwise
+	 */
+	@Override
+	public boolean isOutputPropertyValid(BaseOutputProperty baseOutputProperty) {
+		switch (baseOutputProperty.getOutputProperty()) {
+		case CALCULATED_SPEED:
+			return true;
+		case CAPACITY_PER_LANE:
+			return true;
+		case DENSITY:
+			return true;
+		case DOWNSTREAM_NODE_EXTERNAL_ID:
+			return true;
+		case DOWNSTREAM_NODE_ID:
+			return true;
+		case DOWNSTREAM_NODE_LOCATION:
+			return true;
+		case FLOW:
+			return true;
+		case ITERATION_INDEX:
+			return true;
+		case LENGTH:
+			return true;
+		case LINK_COST:
+			return true;
+		case LINK_SEGMENT_EXTERNAL_ID:
+			return true;
+		case LINK_SEGMENT_ID:
+			return true;
+		case MAXIMUM_SPEED:
+			return true;
+		case MODE_EXTERNAL_ID:
+			return true;
+		case MODE_ID:
+			return true;
+		case NUMBER_OF_LANES:
+			return true;
+		case RUN_ID:
+			return true;
+		case TIME_PERIOD_EXTERNAL_ID:
+			return true;
+		case TIME_PERIOD_ID:
+			return true;
+		case TOTAL_COST_TO_END_NODE:
+			return true;
+		case UPSTREAM_NODE_EXTERNAL_ID:
+			return true;
+		case UPSTREAM_NODE_ID:
+			return true;
+		case UPSTREAM_NODE_LOCATION:
+			return true;
+		default:
+			PlanItLogger.warning("Tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Link output.  This will be ignored."	);	
+		}
+		return false;
+	}
+	
 }

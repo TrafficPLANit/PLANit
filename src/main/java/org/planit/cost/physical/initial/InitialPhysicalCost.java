@@ -2,7 +2,6 @@ package org.planit.cost.physical.initial;
 
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.network.physical.LinkSegment;
-import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.userclass.Mode;
 

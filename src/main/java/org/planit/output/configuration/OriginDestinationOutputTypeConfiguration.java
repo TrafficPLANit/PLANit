@@ -8,6 +8,7 @@ import java.util.Set;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.output.enums.OutputType;
+import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.output.enums.ODSkimOutputType;
@@ -139,5 +140,42 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
     	}
     	return activeOdSkimOutputTypes;
     }
-	
+
+	/**
+	 * Checks the output property type being added in valid for the current output type configuration
+	 * 
+	 * @param baseOutputProperty the output property type being added
+	 * @return true if the output property is valid, false otherwise
+	 */
+	@Override
+	public boolean isOutputPropertyValid(BaseOutputProperty baseOutputProperty) {
+		switch (baseOutputProperty.getOutputProperty()) {
+		case DESTINATION_ZONE_EXTERNAL_ID:
+			return true;
+		case DESTINATION_ZONE_ID:
+			return true;
+		case ITERATION_INDEX:
+			return true;
+		case MODE_EXTERNAL_ID:
+			return true;
+		case MODE_ID:
+			return true;
+		case OD_COST:
+			return true;
+		case ORIGIN_ZONE_EXTERNAL_ID:
+			return true;
+		case ORIGIN_ZONE_ID:
+			return true;
+		case RUN_ID:
+			return true;
+		case TIME_PERIOD_EXTERNAL_ID:
+			return true;
+		case TIME_PERIOD_ID:
+			return true;
+		default:
+			PlanItLogger.warning("Tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Origin-Destination output.  This will be ignored."	);	
+		}
+		return false;
+	}
+    
 }

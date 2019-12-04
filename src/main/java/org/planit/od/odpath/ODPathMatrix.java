@@ -1,7 +1,6 @@
 package org.planit.od.odpath;
 
 import org.planit.network.EdgeSegment;
-import org.planit.network.Vertex;
 import org.planit.od.ODDataImpl;
 import org.planit.utils.Pair;
 import org.planit.zoning.Zone;
