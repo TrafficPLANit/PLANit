@@ -39,7 +39,6 @@ import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticPathOutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
-import org.planit.output.configuration.PathOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
@@ -155,8 +154,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				previousOriginZoneId = currentOriginZone.getId();
 				
 				if (outputManager.isOutputTypeActive(OutputType.PATH)) {
-					PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputManager.getOutputTypeConfiguration(OutputType.PATH);
-					odPathMatrix.setValue(currentOriginZone, currentDestinationZone, vertexPathAndCost, pathOutputTypeConfiguration.getPathOutputType());
+					odPathMatrix.createAndSavePath(currentOriginZone, currentDestinationZone, vertexPathAndCost);
 				}
 				vertexPathMap.get(currentOriginZone).put(currentDestinationZone, vertexPathAndCost);
 			} else {

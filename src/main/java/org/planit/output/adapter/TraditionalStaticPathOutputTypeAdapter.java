@@ -78,19 +78,42 @@ public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImp
 	}
 	
 	/**
-	 * Returns the path as a String of comma-separated Id or  external Id values
+	 * Returns the path as a String of comma-separated node Id or  external Id values
 	 * 
-	 * @param path list of objects containing the path
+	 * @param path list of link segments containing the path
 	 * @param idGetter lambda function to get the required Id value
-	 * @return the path as a String of comma-separated Id or external Id values
+	 * @return the path as a String of comma-separated node Id or external Id values
 	 */
-	private String getPath(List<Object> path, ToLongFunction<Object> idGetter) {
-		StringBuilder builder = new StringBuilder("");
-		for (Object object : path) {
-			builder.append(idGetter.applyAsLong(object));
+	private String getNodePath(List<LinkSegment> path, ToLongFunction<Node> idGetter) {
+		StringBuilder builder = new StringBuilder("[");
+		LinkSegment lastLinkSegment = null;
+		for (LinkSegment linkSegment : path) {
+			Node node = (Node) linkSegment.getUpstreamVertex();
+			builder.append(idGetter.applyAsLong(node));
+			builder.append(",");
+			lastLinkSegment = linkSegment;
+		}
+		Node node = (Node) lastLinkSegment.getDownstreamVertex();
+		builder.append(idGetter.applyAsLong(node));
+		builder.append("]");
+		return new String(builder);
+	}
+	
+	/**
+	 * Returns the path as a String of comma-separated link segment Id or  external Id values
+	 * 
+	 * @param path list of link segments containing the path
+	 * @param idGetter lambda function to get the required Id value
+	 * @return the path as a String of comma-separated link segment Id or external Id values
+	 */
+	private String getLinkSegmentPath(List<LinkSegment> path, ToLongFunction<LinkSegment> idGetter) {
+		StringBuilder builder = new StringBuilder("[");
+		for (LinkSegment linkSegment : path) {
+			builder.append(idGetter.applyAsLong(linkSegment));
 			builder.append(",");
 		}
 		builder.deleteCharAt(builder.length()-1);
+		builder.append("]");
 		return new String(builder);
 	}
 	
@@ -102,17 +125,17 @@ public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImp
 	 * @return the OD path as a String of comma-separated node external Id values
 	 */
 	private String getPath(ODPathIterator odPathIterator, PathOutputType pathOutputType) {
-		List<Object> path =  odPathIterator.getCurrentValue();
+		List<LinkSegment> path = odPathIterator.getCurrentValue();
 		if (path != null) {
 			switch (pathOutputType) {
 			case LINK_SEGMENT_EXTERNAL_ID:
-			    return getPath(path, object-> {return ((LinkSegment) object).getExternalId();});
+				return getLinkSegmentPath(path, LinkSegment::getExternalId);
 			case LINK_SEGMENT_ID:
-			    return getPath(path, object-> {return ((LinkSegment) object).getId();});
+				return getLinkSegmentPath(path, LinkSegment::getId);
 			case NODE_EXTERNAL_ID:
-			    return getPath(path, object-> {return ((Node) object).getExternalId();});
+				return getNodePath(path, Node::getExternalId);
 			case NODE_ID:
-			    return getPath(path, object-> {return ((Node) object).getId();});
+				return getNodePath(path, Node::getId);
 			}
 		}
 		return "";

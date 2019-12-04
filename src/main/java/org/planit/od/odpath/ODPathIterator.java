@@ -2,6 +2,7 @@ package org.planit.od.odpath;
 
 import java.util.List;
 
+import org.planit.network.physical.LinkSegment;
 import org.planit.od.ODDataIteratorImpl;
 import org.planit.zoning.Zoning;
 
@@ -11,12 +12,12 @@ import org.planit.zoning.Zoning;
  * @author gman6028
  *
  */
-public class ODPathIterator extends ODDataIteratorImpl<List<Object>> {
+public class ODPathIterator extends ODDataIteratorImpl<List<LinkSegment>> {
 
 	/**
 	 * the path for each origin-destination cell
 	 */
-	private List<Object>[][] matrixContents;
+	private List<LinkSegment>[][] matrixContents;
 
 	/**
 	 * Constructor
@@ -24,7 +25,7 @@ public class ODPathIterator extends ODDataIteratorImpl<List<Object>> {
 	 * @param matrixContents the path for each origin-destination cell
 	 * @param zones the zones in the current zoning
 	 */
-	public ODPathIterator(List<Object>[][] matrixContents, Zoning.Zones zones) {
+	public ODPathIterator(List<LinkSegment>[][] matrixContents, Zoning.Zones zones) {
 		super(zones);
 		this.matrixContents = matrixContents;
 	}
@@ -35,7 +36,7 @@ public class ODPathIterator extends ODDataIteratorImpl<List<Object>> {
      * @return the path the current cell
      */
 	@Override
-	public List<Object> getCurrentValue() {
+	public List<LinkSegment> getCurrentValue() {
 		return matrixContents[originId][destinationId];
 	}
 
@@ -45,7 +46,7 @@ public class ODPathIterator extends ODDataIteratorImpl<List<Object>> {
      * @return the path the next cell
      */
 	@Override
-	public List<Object> next() {
+	public List<LinkSegment> next() {
 		updateCurrentLocation();
 		return matrixContents[originId][destinationId];
 	}
