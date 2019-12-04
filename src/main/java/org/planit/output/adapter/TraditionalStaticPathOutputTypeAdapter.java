@@ -1,6 +1,5 @@
 package org.planit.output.adapter;
 
-import java.util.List;
 import java.util.function.ToLongFunction;
 
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
@@ -8,6 +7,7 @@ import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.Node;
 import org.planit.od.odpath.ODPathMatrix;
+import org.planit.od.odpath.Path;
 import org.planit.od.odpath.ODPathIterator;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.PathOutputType;
@@ -80,14 +80,14 @@ public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImp
 	/**
 	 * Returns the path as a String of comma-separated node Id or  external Id values
 	 * 
-	 * @param path list of link segments containing the path
+	 * @param path Path of link segments
 	 * @param idGetter lambda function to get the required Id value
 	 * @return the path as a String of comma-separated node Id or external Id values
 	 */
-	private String getNodePath(List<LinkSegment> path, ToLongFunction<Node> idGetter) {
+	private String getNodePath(Path path, ToLongFunction<Node> idGetter) {
 		StringBuilder builder = new StringBuilder("[");
 		LinkSegment lastLinkSegment = null;
-		for (LinkSegment linkSegment : path) {
+		for (LinkSegment linkSegment : path.getPathAsList()) {
 			Node node = (Node) linkSegment.getUpstreamVertex();
 			builder.append(idGetter.applyAsLong(node));
 			builder.append(",");
@@ -102,13 +102,13 @@ public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImp
 	/**
 	 * Returns the path as a String of comma-separated link segment Id or  external Id values
 	 * 
-	 * @param path list of link segments containing the path
+	 * @param path Path of link segments
 	 * @param idGetter lambda function to get the required Id value
 	 * @return the path as a String of comma-separated link segment Id or external Id values
 	 */
-	private String getLinkSegmentPath(List<LinkSegment> path, ToLongFunction<LinkSegment> idGetter) {
+	private String getLinkSegmentPath(Path path, ToLongFunction<LinkSegment> idGetter) {
 		StringBuilder builder = new StringBuilder("[");
-		for (LinkSegment linkSegment : path) {
+		for (LinkSegment linkSegment : path.getPathAsList()) {
 			builder.append(idGetter.applyAsLong(linkSegment));
 			builder.append(",");
 		}
@@ -125,7 +125,7 @@ public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImp
 	 * @return the OD path as a String of comma-separated node external Id values
 	 */
 	private String getPath(ODPathIterator odPathIterator, PathOutputType pathOutputType) {
-		List<LinkSegment> path = odPathIterator.getCurrentValue();
+		Path path =  odPathIterator.getCurrentValue();
 		if (path != null) {
 			switch (pathOutputType) {
 			case LINK_SEGMENT_EXTERNAL_ID:
