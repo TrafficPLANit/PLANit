@@ -4,8 +4,9 @@ import org.planit.data.TraditionalStaticAssignmentSimulationData;
 import org.planit.exceptions.PlanItException;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.output.enums.ODSkimOutputType;
+import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
+import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.IterationIndexOutputProperty;
 import org.planit.output.property.ModeExternalIdOutputProperty;
@@ -101,7 +102,7 @@ public class TraditionalStaticAssignmentODOutputTypeAdapter extends OutputTypeAd
      * @param mode the specified mode
      * @return the OD skim matrix
      */
-    public ODSkimMatrix getODSkimMatrix(ODSkimOutputType odSkimOutputType, Mode mode) {
+    public ODSkimMatrix getODSkimMatrix(ODSkimSubOutputType odSkimOutputType, Mode mode) {
 		TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData = (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
 		return traditionalStaticAssignmentSimulationData.getODSkimMatrix(odSkimOutputType, mode);
     }
@@ -149,5 +150,31 @@ public class TraditionalStaticAssignmentODOutputTypeAdapter extends OutputTypeAd
 			return e;
 		}
 	}
+
+	/**
+	 * ODSkimOutputType.COST: Cost is collected through the shortest path in iteration i based on the link costs of iteration i-1, so the od cost of i-1 are only known
+	 *  once we are in iteration i, hence this information is trailing behind one iteration, and we can only store it in i. 
+	 *  Hence, we must reduce the iteration index by 1 to obtain the true iteration index that goes with this information.
+	 *  
+	 *  all other od information is based on the actual iteration index and will return i
+	 */
+    @Override
+    public int getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) throws PlanItException {
+        if(!(outputTypeEnum instanceof ODSkimSubOutputType))
+        {
+            throw new PlanItException("Incorrect outputType enum found when collecting iteration index");
+        }
+        int iterationIndex = trafficAssignment.getSimulationData().getIterationIndex();
+        switch ((ODSkimSubOutputType)outputTypeEnum) {
+        case COST:
+            // cost is collected through the shortest path in iteration i based on the link costs of iteration i-1, so the od cost is trailing behind
+            // one iteration, hence, we must reduce the iteration index by 1
+            return iterationIndex-1;
+        case NONE:
+            return iterationIndex;
+        default:
+            throw new PlanItException("Unknown ODSkimOutputType enum encountered when collecting iteration index");       
+        }
+    }
       
 }

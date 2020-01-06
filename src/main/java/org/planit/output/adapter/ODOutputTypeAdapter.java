@@ -2,7 +2,7 @@ package org.planit.output.adapter;
 
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.output.enums.ODSkimOutputType;
+import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
@@ -22,7 +22,7 @@ public interface ODOutputTypeAdapter extends OutputTypeAdapter {
      * @param mode the specified mode
      * @return the OD skim matrix
      */
-    public ODSkimMatrix getODSkimMatrix(ODSkimOutputType odSkimOutputType, Mode mode);
+    public ODSkimMatrix getODSkimMatrix(ODSkimSubOutputType odSkimOutputType, Mode mode);
 
 /**
  * Returns the specified output property values for the current cell in the OD Matrix Iterator
@@ -35,4 +35,5 @@ public interface ODOutputTypeAdapter extends OutputTypeAdapter {
  * @return the value of the specified property (or an Exception if an error has occurred)
  */
     public Object getODOutputPropertyValue(OutputProperty outputProperty, ODMatrixIterator odMatrixIterator, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier);
+
 }

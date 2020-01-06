@@ -83,15 +83,6 @@ public class OutputAdapter {
     }
 
 	/**
-	 * Returns the current iteration index of the simulation
-	 * 
-	 * @return index of the current iteration
-	 */
-	public int getIterationIndex() {
-		return trafficAssignment.getSimulationData().getIterationIndex();
-	}	
-	
-	/**
 	 * Store an output type adapters for a specified output type
 	 * 
 	 * @param outputType the specified output type

@@ -1,6 +1,8 @@
 package org.planit.output.adapter;
 
+import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.OutputType;
+import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.trafficassignment.TrafficAssignment;
 
 /**
@@ -40,5 +42,14 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
     public OutputType getOutputType() {
     	return outputType;
     }
+    
+    /**
+     * Default implementation assumes that regular iteration index is used, which in most cases it true, only when for example
+     * costs are trailing one iteration behind in case they are only revealed in the next iteration this method should be overridden
+     */
+    @Override
+    public int getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) throws PlanItException {
+        return trafficAssignment.getSimulationData().getIterationIndex();
+    }    
     
 }

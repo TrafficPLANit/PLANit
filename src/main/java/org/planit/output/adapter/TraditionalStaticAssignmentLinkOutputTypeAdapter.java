@@ -7,6 +7,7 @@ import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.Node;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.output.enums.OutputType;
+import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.IterationIndexOutputProperty;

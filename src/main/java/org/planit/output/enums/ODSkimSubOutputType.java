@@ -6,7 +6,7 @@ package org.planit.output.enums;
  * @author gman6028
  *
  */
-public enum ODSkimOutputType {
+public enum ODSkimSubOutputType implements SubOutputTypeEnum {
 	
 	NONE,
 	COST;

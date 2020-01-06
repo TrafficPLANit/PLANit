@@ -1,7 +1,7 @@
 package org.planit.od.odmatrix.skim;
 
 import org.planit.od.odmatrix.ODMatrix;
-import org.planit.output.enums.ODSkimOutputType;
+import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.zoning.Zoning;
 
 /**
@@ -18,7 +18,7 @@ public class ODSkimMatrix extends ODMatrix {
 	/**
 	 * The ODSkimOutputType for this ODSkimMatrix
 	 */
-	private final ODSkimOutputType odSkimOutputType;
+	private final ODSkimSubOutputType odSkimOutputType;
 	
 	/**
 	 * Constructor
@@ -26,7 +26,7 @@ public class ODSkimMatrix extends ODMatrix {
 	 * @param zones holding the zones in the network
 	 * @param odSkimOutputType the skim output type for this OD skim matrix
 	 */
-	public ODSkimMatrix(Zoning.Zones zones, ODSkimOutputType odSkimOutputType) {
+	public ODSkimMatrix(Zoning.Zones zones, ODSkimSubOutputType odSkimOutputType) {
 		super(zones);
 		this.odSkimOutputType = odSkimOutputType;
 	}
@@ -36,7 +36,7 @@ public class ODSkimMatrix extends ODMatrix {
 	 * 
 	 * @return the OD skim matrix type for the current OD skim matrix
 	 */
-	public ODSkimOutputType getOdSkimOutputType() {
+	public ODSkimSubOutputType getOdSkimOutputType() {
 		return odSkimOutputType;
 	}
 

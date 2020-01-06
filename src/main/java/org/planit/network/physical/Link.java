@@ -2,7 +2,6 @@ package org.planit.network.physical;
 
 import javax.annotation.Nonnull;
 
-import org.opengis.geometry.coordinate.LineString;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.Edge;
 import org.planit.utils.IdGenerator;

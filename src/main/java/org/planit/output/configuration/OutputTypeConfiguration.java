@@ -1,11 +1,14 @@
 package org.planit.output.configuration;
 
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Function;
 
 import org.planit.exceptions.PlanItException;
+import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
+import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.output.property.OutputPropertyPriority;
@@ -20,11 +23,31 @@ import org.planit.trafficassignment.TrafficAssignment;
  */
 public abstract class OutputTypeConfiguration {
 
+    /**
+     * Filters output properties in the OutputAdapter and outputs them as an array
+     * 
+     * @param test lambda function to filter which output properties should be
+     *             included
+     * @return array containing the relevant OutputProperty objects
+     */
+    private OutputProperty[] getOutputPropertyArray(Function<BaseOutputProperty, Boolean> test) {
+        OutputProperty[] outputPropertyArray = outputProperties.stream()
+                .filter(baseOutputProperty -> test.apply(baseOutputProperty)).map(BaseOutputProperty::getOutputProperty)
+                .toArray(OutputProperty[]::new);
+        return outputPropertyArray;
+    }    
+    
 	/**
 	 * The output type being used with the current instance - this must be set in
 	 * each concrete class which extends OutputTypeConfiguration
 	 */
 	protected OutputType outputType;
+	
+    /**
+     * Stores all active sub output types (if any). some output types are broken down further in sub output types
+     * which can be accounted fro via this set. Can remain empty if not used.
+     */
+    protected Set<SubOutputTypeEnum> activeSubOutputTypes;	
 
 	/**
 	 * Output properties to be included in the CSV output files
@@ -37,27 +60,25 @@ public abstract class OutputTypeConfiguration {
 	 */
 	protected boolean recordLinksWithZeroFlow;
 
-	/**
-	 * Filters output properties in the OutputAdapter and outputs them as an array
-	 * 
-	 * @param test lambda function to filter which output properties should be
-	 *             included
-	 * @return array containing the relevant OutputProperty objects
-	 */
-	private OutputProperty[] getOutputPropertyArray(Function<BaseOutputProperty, Boolean> test) {
-		OutputProperty[] outputPropertyArray = outputProperties.stream()
-				.filter(baseOutputProperty -> test.apply(baseOutputProperty)).map(BaseOutputProperty::getOutputProperty)
-				.toArray(OutputProperty[]::new);
-		return outputPropertyArray;
-	}
+	
+    /**
+     * Activate a SubOutputTypeEnum for this output type configuration
+     * 
+     * @param subOutputTypeEnum SubOutputTypeEnum to be activated
+     */
+    protected void activateSubOutputType(SubOutputTypeEnum subOutputTypeEnum) {
+        activeSubOutputTypes.add(subOutputTypeEnum);
+    }
+    
+    /**
+     * Deactivate a SubOutputTypeEnum for this output type configuration
+     * 
+     * @param subOutputTypeEnum SubOutputTypeEnum to be deactivated
+     */
+    protected void deactivateSubOutputType(SubOutputTypeEnum subOutputTypeEnum) {
+        activeSubOutputTypes.remove(subOutputTypeEnum);
+    }	
 
-	/**
-	 * Checks the output property type being added in valid for the current output type configuration
-	 * 
-	 * @param baseOutputProperty the output property type being added
-	 * @return true if the output property is valid, false otherwise
-	 */
-	public abstract boolean isOutputPropertyValid(BaseOutputProperty baseOutputProperty);
 
 	/**
 	 * OutputTypeconfiguration constructor
@@ -70,7 +91,16 @@ public abstract class OutputTypeConfiguration {
 	public OutputTypeConfiguration(TrafficAssignment trafficAssignment, OutputType outputType) throws PlanItException {
 		this.outputType = outputType;
 		outputProperties = new TreeSet<BaseOutputProperty>();
+		activeSubOutputTypes = new TreeSet<SubOutputTypeEnum>();
 	}
+	
+    /**
+     * Checks the output property type being added in valid for the current output type configuration
+     * 
+     * @param baseOutputProperty the output property type being added
+     * @return true if the output property is valid, false otherwise
+     */
+    public abstract boolean isOutputPropertyValid(BaseOutputProperty baseOutputProperty);	
 
 	/**
 	 * Returns the OutputAdapter being used for this configuration
@@ -80,7 +110,16 @@ public abstract class OutputTypeConfiguration {
 	public OutputType getOutputType() {
 		return outputType;
 	}
-
+	   
+    /**
+     * Indicates if sub output types are present or not 
+     * 
+     * @return true if present, false otherwise
+     */
+    public boolean hasActiveSubOutputTypes(){
+        return activeSubOutputTypes.isEmpty();
+    }
+    
 	/**
 	 * Add an output property to be included in the output files
 	 * 
@@ -211,4 +250,14 @@ public abstract class OutputTypeConfiguration {
 	 * @return array of keys to be used (null if the list is not valid)
 	 */
 	public abstract OutputProperty[] validateAndFilterKeyProperties(OutputProperty[] outputKeyProperties);
+	
+    /**
+     * Returns a set of activated OD skim output types
+     * 
+     * @return Set of activated sub output types (if any)
+     */
+    public Set<SubOutputTypeEnum> getActiveSubOutputTypes(){
+        return activeSubOutputTypes;
+    }	
+
 }

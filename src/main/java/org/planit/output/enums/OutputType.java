@@ -11,7 +11,7 @@ package org.planit.output.enums;
  * 
  * @author markr
  */
-public enum OutputType {
+public enum OutputType implements OutputTypeEnum {
     GENERAL("General"), 
     LINK("Link"), 
     SIMULATION("Simulation"), 

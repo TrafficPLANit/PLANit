@@ -8,10 +8,11 @@ import java.util.Set;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.output.enums.OutputType;
+import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.trafficassignment.TrafficAssignment;
-import org.planit.output.enums.ODSkimOutputType;
+import org.planit.output.enums.ODSkimSubOutputType;
 
 /**
  * The configuration for the origin-destination output type.
@@ -35,10 +36,6 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 	public static final int ORIGIN_DESTINATION_EXTERNAL_ID = 2;
 	public static final int ORIGIN_DESTINATION_NOT_IDENTIFIED = 3;
 	
-	/**
-	 * Stores all the active OD Skim output types
-	 */
-	private Set<ODSkimOutputType> activeOdSkimOutputTypes;
 
 	/**
 	 * Determine how an origin-destination cell is being identified in the output formatter
@@ -67,8 +64,7 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 	 */
 	public OriginDestinationOutputTypeConfiguration(TrafficAssignment trafficAssignment) throws PlanItException {
 		super(trafficAssignment, OutputType.OD);
-		activeOdSkimOutputTypes = new HashSet<ODSkimOutputType>();
-		activeOdSkimOutputTypes.add(ODSkimOutputType.COST);
+		// add default sub output types (OD - SKIM - COST);		activeSubOutputTypes.add(ODSkimSubOutputType.COST);
 		// add default output properties
 		addProperty(OutputProperty.RUN_ID);
 		addProperty(OutputProperty.TIME_PERIOD_EXTERNAL_ID);
@@ -115,8 +111,8 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 	 * 
 	 * @param odSkimOutputType ODSkimOutputType to be activated
 	 */
-	public void activateOdSkimOutputType(ODSkimOutputType odSkimOutputType) {
-		activeOdSkimOutputTypes.add(odSkimOutputType);
+	public void activateOdSkimOutputType(ODSkimSubOutputType odSkimOutputType) { 
+	    activateSubOutputType(odSkimOutputType);;
 	}
 	
 	/**
@@ -124,22 +120,8 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 	 * 
 	 * @param odSkimOutputType ODSkimOutputType to be deactivated
 	 */
-    public void deactivateOdSkimOutputType(ODSkimOutputType odSkimOutputType) {
-    	activeOdSkimOutputTypes.remove(odSkimOutputType);
-    }
-    
-    /**
-     * Returns a set of activated OD skim output types
-     * 
-     * @return Set of activated OD skim output types
-     * @throw PlanItException thrown if this method is called from an inappropriate output type configuration
-     */
-    public Set<ODSkimOutputType> getActiveOdSkimOutputTypes() throws PlanItException {
-    	if (activeOdSkimOutputTypes == null) {
-    		throw new PlanItException("Attempted to call getActiveOdSkimOutputTypes() from an OutputTypeConfiguration which does not use OD.");
-    	}
-    	return activeOdSkimOutputTypes;
-    }
+    public void deactivateOdSkimOutputType(ODSkimSubOutputType odSkimOutputType) {        deactivateSubOutputType(odSkimOutputType);
+    }    
 
 	/**
 	 * Checks the output property type being added in valid for the current output type configuration

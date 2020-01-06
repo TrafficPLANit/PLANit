@@ -10,7 +10,8 @@ import org.planit.od.odpath.ODPathMatrix;
 import org.planit.od.odpath.Path;
 import org.planit.od.odpath.ODPathIterator;
 import org.planit.output.enums.OutputType;
-import org.planit.output.enums.PathOutputType;
+import org.planit.output.enums.SubOutputTypeEnum;
+import org.planit.output.enums.PathIdType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.IterationIndexOutputProperty;
 import org.planit.output.property.ModeExternalIdOutputProperty;
@@ -124,7 +125,7 @@ public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImp
 	 * @param pathOutputType the type of objects being used in the path
 	 * @return the OD path as a String of comma-separated node external Id values
 	 */
-	private String getPath(ODPathIterator odPathIterator, PathOutputType pathOutputType) {
+	private String getPath(ODPathIterator odPathIterator, PathIdType pathOutputType) {
 		Path path =  odPathIterator.getCurrentValue();
 		if (path != null) {
 			switch (pathOutputType) {
@@ -174,7 +175,7 @@ public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImp
      * @return the value of the specified property (or an Exception if an error has occurred)
      */
 	@Override
-	public Object getPathOutputPropertyValue(OutputProperty outputProperty, ODPathIterator odPathIterator, Mode mode, TimePeriod timePeriod, PathOutputType pathOutputType) {
+	public Object getPathOutputPropertyValue(OutputProperty outputProperty, ODPathIterator odPathIterator, Mode mode, TimePeriod timePeriod, PathIdType pathOutputType) {
 		try {
 			switch (outputProperty) {
 			case DESTINATION_ZONE_EXTERNAL_ID:
