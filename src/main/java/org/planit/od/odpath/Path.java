@@ -32,6 +32,11 @@ public class Path {
 	 * @return the position of a specified vertex in the vertexPathAndCost array, or -1 if the vertex is not present
 	 */
 	private int getPositionOfVertex(Pair<Double, EdgeSegment>[] vertexPathAndCost, Vertex vertex) {
+	    // MARK 7-1 START WITH THIS <--- position of vertex should always be the same as its id. Make sure
+	    // this is the case and if not this is a BUG in the construction/population of the array
+	    // We shold NOT use this workaround but instead fix the bug (if it is one).
+	    //
+	    // Once identified REMOVE THIS METHOD AND COLLECT IT DIRECTLY
 		for (int i=0; i<vertexPathAndCost.length; i++) {
 			if (vertexPathAndCost[i] != null) {
 				if (vertexPathAndCost[i].getSecond() != null) {
