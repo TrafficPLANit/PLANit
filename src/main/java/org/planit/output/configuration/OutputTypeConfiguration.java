@@ -117,7 +117,7 @@ public abstract class OutputTypeConfiguration {
      * @return true if present, false otherwise
      */
     public boolean hasActiveSubOutputTypes(){
-        return activeSubOutputTypes.isEmpty();
+        return !activeSubOutputTypes.isEmpty();
     }
     
 	/**

@@ -8,4 +8,5 @@ package org.planit.output.enums;
  */
 public interface OutputTypeEnum {
 
+	public String value();
 }

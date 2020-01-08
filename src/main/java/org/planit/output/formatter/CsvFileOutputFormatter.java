@@ -44,7 +44,8 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	/**
 	 * Map of list of CSV output file names for each OutputType
 	 */
-	protected Map<OutputType, List<String>> csvFileNameMap;
+	//protected Map<OutputType, List<String>> csvFileNameMap;
+	protected Map<OutputTypeEnum, List<String>> csvFileNameMap;
 
 	/**
 	 * Write output values to the OD CSV file for the current iteration
@@ -185,17 +186,22 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	 */
 	public void addCsvFileNamePerOutputType(OutputTypeEnum currentoutputType, String csvFileName) {
         //TODO: MARK 6-1-2020
-        DOES NOT WORK YET	    
+//       DOES NOT WORK YET	    
 //		if (!csvFileNameMap.containsKey(outputType)) {
 //			csvFileNameMap.put(outputType, new ArrayList<String>());
 //		}
 //		csvFileNameMap.get(outputType).add(csvFileName);
+		if (!csvFileNameMap.containsKey(currentoutputType)) {
+			csvFileNameMap.put(currentoutputType, new ArrayList<String>());
+		}
+		csvFileNameMap.get(currentoutputType).add(csvFileName);
 	}
 
 	/**
 	 * Constructor
 	 */
 	public CsvFileOutputFormatter() {
-		csvFileNameMap = new HashMap<OutputType, List<String>>();
+		//csvFileNameMap = new HashMap<OutputType, List<String>>();
+		csvFileNameMap = new HashMap<OutputTypeEnum, List<String>>();
 	}
 }

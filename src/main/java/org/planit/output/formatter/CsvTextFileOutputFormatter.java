@@ -3,6 +3,7 @@ package org.planit.output.formatter;
 import java.util.List;
 
 import org.planit.output.enums.OutputType;
+import org.planit.output.enums.OutputTypeEnum;
 
 /**
  * This interfaces defines behaviours which output formatters which generate a CSV output file must have.
@@ -26,7 +27,8 @@ public interface CsvTextFileOutputFormatter {
 	 * @param outputType the specified output type
 	 * @param csvFileName the name of the output file to be added for the specified output type
 	 */
-	public void addCsvFileNamePerOutputType(OutputType outputType, String csvFileName);
+	//public void addCsvFileNamePerOutputType(OutputType outputType, String csvFileName);
+	public void addCsvFileNamePerOutputType(OutputTypeEnum outputType, String csvFileName);
 	
 	/**
 	 * Set the root name of the CSV output file for all output types
