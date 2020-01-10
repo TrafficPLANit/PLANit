@@ -361,17 +361,23 @@ public class CustomPlanItProject {
     /**
      * Execute all registered traffic assignments
      * 
-     * Top-level error reporting is done in this class. If several traffic
-     * assignments are registered and one fails, we report its error and continue
+     * Top-level error recording is done in this class. If several traffic
+     * assignments are registered and one fails, we record its error and continue
      * with the next assignment.
      * 
-     * @throws PlanItException thrown if there is an error
-     * 
-     */
-    public void executeAllTrafficAssignments() throws PlanItException {
-        trafficAssignments.forEach((id, ta) -> {
-            executeTrafficAssignment(ta);
-        });
+     * @return Map of ids of failed runs (key) together with their exceptions (value).  Empty if all runs succeed
+     * @throws PlanItException required for subclasses which override this method and generate an exception before the runs start
+      */
+    public Map<Long, PlanItException> executeAllTrafficAssignments() throws PlanItException {
+    	Map<Long, PlanItException> exceptionMap = new HashMap<Long, PlanItException>();
+        for (long id : trafficAssignments.keySet()) {
+        	try {
+        		trafficAssignments.get(id).execute();
+        	} catch (PlanItException pe) {
+        		exceptionMap.put(id,  pe);
+        	}
+        }
+        return exceptionMap;
     }
     
     /**

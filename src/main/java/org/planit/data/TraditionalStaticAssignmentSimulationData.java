@@ -71,7 +71,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 		modalSkimMatrixMap = new HashMap<Mode, Map<ODSkimSubOutputType, ODSkimMatrix>>();
 		if (outputConfiguration.isOutputTypeActive(OutputType.OD)) {
 			OriginDestinationOutputTypeConfiguration originDestinationOutputTypeConfiguration = (OriginDestinationOutputTypeConfiguration) outputConfiguration	.getOutputTypeConfiguration(OutputType.OD);
-			// map to correct conrete subtype, so we avoid having to type cast every time we access it
+			// map to correct concrete subtype, so we avoid having to type cast every time we access it
 			Set<SubOutputTypeEnum> topLevelSet = originDestinationOutputTypeConfiguration.getActiveSubOutputTypes();
 			// NOTE: this assumes all subtypes are of type ODSkimOutputType!
 			activeOdSkimOutputTypes = topLevelSet.stream().map( e -> (ODSkimSubOutputType) e).collect(Collectors.toSet());

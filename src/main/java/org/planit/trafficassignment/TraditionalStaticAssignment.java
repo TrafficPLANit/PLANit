@@ -120,12 +120,12 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
      * @param vertexPathCosts, costs to construct paths to all destination for this origin
      * @param odPathMatrix, matrix to store the paths in 
      */	
-    private void persistIterationPaths(Zone currentOriginZone, Pair<Double, EdgeSegment>[] vertexPathCosts, ODPathMatrix odPathMatrix) {
+    private void persistIterationPaths(Zone currentOriginZone, Zone currentDestinationZone, Pair<Double, EdgeSegment>[] vertexPathCosts, ODPathMatrix odPathMatrix) {
         // MARK 6-1-2020
         // Loop over all destinations and call something like:
         
         //TODO:
-        //odPathMatrix.createAndSavePath(currentOriginZone, currentDestinationZone, vertexPathCosts);
+        odPathMatrix.createAndSavePath(currentOriginZone, currentDestinationZone, vertexPathCosts);
     }	
 
 	/**
@@ -166,10 +166,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				// we do to many things here (path search, path storage), better to leave it exposed at this level so we know where this functionality occurs
 				// when origin is updated we conduct ONE-TO-ALL shortest path search
 		        if (previousOriginZoneId != currentOriginZone.getId()) {
-                    if (outputManager.isOutputTypeActive(OutputType.PATH)) {
-                        // STORE PATHS to all destinations when needed
-                        persistIterationPaths(currentOriginZone,vertexPathCosts,odPathMatrix);
-                    }                   
 		            
 		            Centroid originCentroid = currentOriginZone.getCentroid();
 		            if (originCentroid.exitEdgeSegments.isEmpty()) {
@@ -177,6 +173,10 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		            }
 		            // UPDATE SHORTEST PATHS
 		            vertexPathCosts = shortestPathAlgorithm.executeOneToAll(originCentroid);		            
+                }                   
+	            if (outputManager.isOutputTypeActive(OutputType.PATH)) {
+	                // STORE PATHS to all destinations when needed
+	            	persistIterationPaths(currentOriginZone, currentDestinationZone, vertexPathCosts, odPathMatrix);
 		        }		
 				
 				double odShortestPathCost = getShortestPathCost(vertexPathCosts, currentOriginZone, currentDestinationZone, modalNetworkSegmentCosts, odDemand, currentModeData);
@@ -237,13 +237,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * Update the OD skim matrix for all active output types 
 	 * 
 	 * @param skimMatrixMap Map of OD skim matrices for each active output type
-	 * @param odDemand origin-destination demand 
 	 * @param currentOriginZone
 	 * @param currentDestinationZone
 	 * @param vertexPathCosts array of costs for the specified mode
 	 */
-	private void updateSkimMatrixMap(
-        Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap, Zone currentOriginZone, Zone currentDestinationZone, double odDemand, Pair<Double, EdgeSegment>[] vertexPathCosts) {
+	private void updateSkimMatrixMap(Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap, Zone currentOriginZone, Zone currentDestinationZone, double odDemand, Pair<Double, EdgeSegment>[] vertexPathCosts) {
 		double odGeneralisedCost = -1; 
 		if (odDemand > 0.0) {
 		    // MARK 6-1-2020 -> getRouteCost is unnecessarily expensive operation, instead directly use vertexPathCosts!
