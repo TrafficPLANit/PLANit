@@ -99,7 +99,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * Write link results for the current time period to the CSV file
 	 * 
 	 * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
-	 * @param currentOtuputType, the active outputtype of the configuration we are persisting for (can be a suboutputtype)
+	 * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
 	 * @param outputTypeAdapter OutputTypeAdapter for current persistence
 	 * @param modes                   Set of modes of travel
 	 * @param timePeriod              current time period
@@ -107,13 +107,13 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	protected abstract void writeLinkResultsForCurrentTimePeriod(
-            OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOtuputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
+            OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
 
 	/**
 	 * Write General results for the current time period to the CSV file
 	 * 
      * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
-     * @param currentOtuputType, the active outputtype of the configuration we are persisting for (can be a suboutputtype)
+ 	 * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
      * @param outputTypeAdapter OutputTypeAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
@@ -121,13 +121,13 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
      * @throws PlanItException thrown if there is an error
 	 */
 	protected abstract void writeGeneralResultsForCurrentTimePeriod(
-	        OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOtuputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
+	        OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
 
 	/**
 	 * Write Origin-Destination results for the time period to the CSV file
 	 * 
      * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
-     * @param currentOtuputType, the active outputtype of the configuration we are persisting for (can be a suboutputtype)
+	 * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
      * @param outputTypeAdapter OutputTypeAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
@@ -135,13 +135,13 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
      * @throws PlanItException thrown if there is an error
 	 */
 	protected abstract void writeOdResultsForCurrentTimePeriod(
-	        OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOtuputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
+	        OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
 
 	/**
 	 * Write Simulation results for the current time period to the CSV file
 	 * 
      * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
-     * @param currentOtuputType, the active outputtype of the configuration we are persisting for (can be a suboutputtype)
+	 * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
      * @param outputTypeAdapter OutputTypeAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
@@ -149,14 +149,14 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
      * @throws PlanItException thrown if there is an error
 	 */
 	protected abstract void writeSimulationResultsForCurrentTimePeriod(
-            OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOtuputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
+            OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
 
 
 	/**
 	 * Write OD Path results for the time period to the CSV file
 	 * 
      * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
-     * @param currentOtuputType, the active outputtype of the configuration we are persisting for (can be a suboutputtype)
+ 	 * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
      * @param outputTypeAdapter OutputTypeAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
@@ -164,7 +164,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
      * @throws PlanItException thrown if there is an error
 	 */
 	protected abstract void writePathResultsForCurrentTimePeriod(
-            OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOtuputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
+            OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
 	
 	/**
 	 * Constructor
