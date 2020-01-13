@@ -10,7 +10,6 @@ import org.planit.od.odpath.ODPathMatrix;
 import org.planit.od.odpath.Path;
 import org.planit.od.odpath.ODPathIterator;
 import org.planit.output.enums.OutputType;
-import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.enums.PathIdType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.IterationIndexOutputProperty;
@@ -79,7 +78,7 @@ public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImp
 	}
 	
 	/**
-	 * Returns the path as a String of comma-separated node Id or  external Id values
+	 * Returns the path as a String of comma-separated node Id or external Id values
 	 * 
 	 * @param path Path of link segments
 	 * @param idGetter lambda function to get the required Id value
@@ -127,7 +126,7 @@ public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImp
 	 */
 	private String getPath(ODPathIterator odPathIterator, PathIdType pathOutputType) {
 		Path path =  odPathIterator.getCurrentValue();
-		if (path != null) {
+		if  (path != null) {
 			switch (pathOutputType) {
 			case LINK_SEGMENT_EXTERNAL_ID:
 				return getLinkSegmentPath(path, LinkSegment::getExternalId);
@@ -138,7 +137,7 @@ public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImp
 			case NODE_ID:
 				return getNodePath(path, Node::getId);
 			}
-		}
+		} 
 		return "";
 	}
 	

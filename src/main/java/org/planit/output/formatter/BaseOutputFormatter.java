@@ -103,7 +103,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * @param outputTypeAdapter OutputTypeAdapter for current persistence
 	 * @param modes                   Set of modes of travel
 	 * @param timePeriod              current time period
-	 * @param iterationIndex
+	 * @param iterationIndex current iteration index
 	 * @throws PlanItException thrown if there is an error
 	 */
 	protected abstract void writeLinkResultsForCurrentTimePeriod(
@@ -117,7 +117,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
      * @param outputTypeAdapter OutputTypeAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
-     * @param iterationIndex
+     * @param iterationIndex current iteration index
      * @throws PlanItException thrown if there is an error
 	 */
 	protected abstract void writeGeneralResultsForCurrentTimePeriod(
@@ -131,7 +131,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
      * @param outputTypeAdapter OutputTypeAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
-     * @param iterationIndex
+     * @param iterationIndex current iteration index
      * @throws PlanItException thrown if there is an error
 	 */
 	protected abstract void writeOdResultsForCurrentTimePeriod(
@@ -145,12 +145,11 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
      * @param outputTypeAdapter OutputTypeAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
-     * @param iterationIndex
+     * @param iterationIndex current iteration index
      * @throws PlanItException thrown if there is an error
 	 */
 	protected abstract void writeSimulationResultsForCurrentTimePeriod(
             OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException;
-
 
 	/**
 	 * Write OD Path results for the time period to the CSV file
@@ -160,7 +159,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
      * @param outputTypeAdapter OutputTypeAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
-     * @param iterationIndex
+     * @param iterationIndex current iteration index
      * @throws PlanItException thrown if there is an error
 	 */
 	protected abstract void writePathResultsForCurrentTimePeriod(
@@ -214,17 +213,17 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 		} 
 		
 		// Each output type configuration can contain multiple suboutputypes (or not). We collect the iteration reference (which might be different
-		// than the simulation iteration, and the (sub)outputtype combination before proceeding with the actual persisting
+		// from the simulation iteration, and the (sub)outputtype combination before proceeding with the actual persisting
 		Map<OutputTypeEnum,Integer> outputTypeIterationInformation = new HashMap<OutputTypeEnum, Integer>();
-        if(outputTypeConfiguration.hasActiveSubOutputTypes())
-        {   //subdivided in suboutputtypes, each having their own file and possible a different reference iteration index
+        if (outputTypeConfiguration.hasActiveSubOutputTypes()) {   
+            //subdivided in suboutputtypes, each having their own file and possible a different reference iteration index
             Set<SubOutputTypeEnum> subOutputTypes = outputTypeConfiguration.getActiveSubOutputTypes();
             for (SubOutputTypeEnum subOutputTypeEnum : subOutputTypes) {
                 int iterationIndex = outputAdapter.getOutputTypeAdapter(outputType).getIterationIndexForSubOutputType(subOutputTypeEnum);
                 outputTypeIterationInformation.put(subOutputTypeEnum, iterationIndex);                                   
             }               
-        }else
-        {   // regular approach, single outputtype with single iteration reference
+        } else {   
+        	// regular approach, single outputtype with single iteration reference
             int iterationIndex = outputAdapter.getOutputTypeAdapter(outputType).getIterationIndexForSubOutputType(null);
             outputTypeIterationInformation.put(outputType, iterationIndex);
         }

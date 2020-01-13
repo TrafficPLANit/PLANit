@@ -1,8 +1,10 @@
 package org.planit.od.odpath;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.planit.network.EdgeSegment;
 import org.planit.network.Vertex;
@@ -25,31 +27,6 @@ public class Path {
 	private List<LinkSegment> path;
 	
 	/**
-	 * Returns the position of a specified vertex in the vertexPathAndCost array, or -1 if the vertex is not present
-	 * 
-	 * @param vertexPathAndCost the vertexPathAndCost array (previously calculated by the traffic assignment)
-	 * @param vertex the specified vertex
-	 * @return the position of a specified vertex in the vertexPathAndCost array, or -1 if the vertex is not present
-	 */
-	private int getPositionOfVertex(Pair<Double, EdgeSegment>[] vertexPathAndCost, Vertex vertex) {
-	    // MARK 7-1 START WITH THIS <--- position of vertex should always be the same as its id. Make sure
-	    // this is the case and if not this is a BUG in the construction/population of the array
-	    // We shold NOT use this workaround but instead fix the bug (if it is one).
-	    //
-	    // Once identified REMOVE THIS METHOD AND COLLECT IT DIRECTLY
-		for (int i=0; i<vertexPathAndCost.length; i++) {
-			if (vertexPathAndCost[i] != null) {
-				if (vertexPathAndCost[i].getSecond() != null) {
-					if (vertexPathAndCost[i].getSecond().getDownstreamVertex().getId() == vertex.getId()) {
-						return i;
-					}
-				}
-			}
-		}
-		return -1;
-	}
-
-	/**
 	 * Create the path from a specified origin to a specified destination, using the vertexPathAndCost array as input
 	 * 
 	 * @param origin the specified origin zone
@@ -57,10 +34,14 @@ public class Path {
 	 * @param vertexPathAndCost the vertexPathAndCost array (previously calculated by the traffic assignment)
 	 */
 	private void createPath(Zone origin, Zone destination, Pair<Double, EdgeSegment>[] vertexPathAndCost) {
+		List<Pair<Double, EdgeSegment>> vertexList = Arrays.asList(vertexPathAndCost);
+		List<Long> idList = vertexList.stream().filter(pair -> pair != null)
+				                                                      .filter(pair -> pair.getSecond() != null)
+				                                                      .map(pair -> pair.getSecond().getDownstreamVertex().getId())
+				                                                      .collect(Collectors.toList());
 		Centroid destinationCentroid = destination.getCentroid();
-		int position = getPositionOfVertex(vertexPathAndCost, destinationCentroid);
-		for (Vertex vertex = destinationCentroid; position != -1; position = getPositionOfVertex(vertexPathAndCost, vertex)) {
-			EdgeSegment edgeSegment = vertexPathAndCost[position].getSecond();
+		for (Vertex vertex = destinationCentroid; idList.contains(vertex.getId());) {
+			EdgeSegment edgeSegment = vertexPathAndCost[(int) vertex.getId()].getSecond();
 			vertex = edgeSegment.getUpstreamVertex();
 			if (edgeSegment instanceof LinkSegment) {
 				LinkSegment linkSegment = (LinkSegment) edgeSegment;

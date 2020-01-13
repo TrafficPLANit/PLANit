@@ -6,7 +6,6 @@ import java.util.TreeSet;
 import java.util.function.Function;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
@@ -59,7 +58,6 @@ public abstract class OutputTypeConfiguration {
 	 * otherwise (false is the default)
 	 */
 	protected boolean recordLinksWithZeroFlow;
-
 	
     /**
      * Activate a SubOutputTypeEnum for this output type configuration
@@ -78,7 +76,6 @@ public abstract class OutputTypeConfiguration {
     protected void deactivateSubOutputType(SubOutputTypeEnum subOutputTypeEnum) {
         activeSubOutputTypes.remove(subOutputTypeEnum);
     }	
-
 
 	/**
 	 * OutputTypeconfiguration constructor
