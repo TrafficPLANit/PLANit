@@ -3,8 +3,14 @@ package org.planit.od.odpath;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.ToLongFunction;
 
 import org.planit.network.EdgeSegment;
+import org.planit.network.Vertex;
+import org.planit.network.physical.Node;
+import org.planit.network.virtual.ConnectoidSegment;
+import org.planit.output.enums.PathIdType;
 import org.planit.utils.Pair;
 import org.planit.zoning.Zone;
 
@@ -38,14 +44,102 @@ public class Path {
 	private void createPath(Zone destination, Pair<Double, EdgeSegment>[] vertexPathAndCost) {
 		int downstreamVertexId = (int) destination.getCentroid().getId();
 		EdgeSegment edgeSegment = vertexPathAndCost[downstreamVertexId].getSecond();
-		do {
+		while (edgeSegment != null) {
 			path.add(edgeSegment);
 			downstreamVertexId = (int) edgeSegment.getUpstreamVertex().getId();
 			edgeSegment = vertexPathAndCost[downstreamVertexId].getSecond();
-		} while (edgeSegment != null);
+		} 
 		Collections.reverse(path);
 	}
 	
+// Alternative version of the createPath method
+//	private void createPath(Zone destination, Pair<Double, EdgeSegment>[] vertexPathAndCost) {
+//		for (EdgeSegment edgeSegment = vertexPathAndCost[(int) destination.getCentroid().getId()].getSecond(); edgeSegment != null; edgeSegment = vertexPathAndCost[(int) edgeSegment.getUpstreamVertex().getId()].getSecond()) {
+//			path.add(edgeSegment);
+//		}
+//		Collections.reverse(path);
+//	}
+	
+	/**
+	 * Returns the path as a String of comma-separated node Id or external Id values
+	 * 
+	 * @param idGetter lambda function to get the required Id value
+	 * @return the path as a String of comma-separated node Id or external Id values
+	 */
+	private String getNodePath(ToLongFunction<Node> idGetter) {
+		StringBuilder builder = new StringBuilder("[");
+		for (EdgeSegment edgeSegment : path) {
+			Vertex vertex = edgeSegment.getUpstreamVertex();
+			if (vertex instanceof Node) {
+				Node node = (Node) vertex;
+				builder.append(idGetter.applyAsLong(node));
+				if (edgeSegment.getDownstreamVertex() instanceof Node) {
+					builder.append(",");
+				}
+			}
+		}
+		builder.append("]");
+		return new String(builder);
+	}
+
+	/**
+	 * Returns the path as a String of comma-separated edge segment Id or external Id values
+  	 * 
+	 * @param idGetter lambda function to get the required Id value
+	 * @return the path as a String of comma-separated link segment Id or external Id values
+	 */
+	private String getEdgeSegmentPath(Function<EdgeSegment, Object>idGetter) {
+		StringBuilder builder = new StringBuilder("[");
+		for (EdgeSegment edgeSegment : path) {
+			builder.append(idGetter.apply(edgeSegment));
+			builder.append(",");
+		}
+		builder.deleteCharAt(builder.length()-1);
+		builder.append("]");
+		return new String(builder);
+	}
+
+	/**
+	 * Output the path as a comma-separated list of edge segment external Id numbers
+	 * 
+	 * @return
+	 */
+	private String getEdgeSegmentPathExternalId() {
+		return getEdgeSegmentPath(edgeSegment -> {
+			if ((edgeSegment instanceof ConnectoidSegment) && !(((ConnectoidSegment) edgeSegment).hasExternalId())){
+				return "Connectoid Undefined";
+			} 
+			return edgeSegment.getExternalId();
+		});
+	}
+	
+	/**
+	 * Output the path as a comma-separated list of edge segment Id numbers
+	 * 
+	 * @return
+	 */
+	private String getEdgeSegmentPathId() {
+		return getEdgeSegmentPath(EdgeSegment::getId);
+	}
+	
+	/**
+	 * Output the path as a comma-separated list of node external Id numbers
+	 * 
+	 * @return
+	 */
+	private String getNodePathExternalId() {
+		return getNodePath(Node::getExternalId);
+	}
+	
+	/**
+	 * Output the path as a comma-separated list of node Id numbers
+	 * 
+	 * @return
+	 */
+	private String getNodePathId() {
+		return getNodePath(Node::getId);
+	}
+
 	/**
 	 * Constructor
 	 * 
@@ -56,13 +150,25 @@ public class Path {
 		path = new ArrayList<EdgeSegment>();
 		createPath(destination, vertexPathAndCost);
 	}
-
+	
 	/**
-	 * Returns the path as a List of EdgeSegment objects
+	 * Outputs this path as a String, appropriate to a specified path output type
 	 * 
-	 * @return the path as a List of EdgeSegment objects
+	 * @param pathOutputType  the specified path output type
+	 * @return String describing the path
 	 */
-	public List<EdgeSegment> getPathAsList() {
-		return path;
+	public String toString(PathIdType pathOutputType) {
+		switch (pathOutputType) {
+		case LINK_SEGMENT_EXTERNAL_ID:
+			return getEdgeSegmentPathExternalId();
+		case LINK_SEGMENT_ID:
+			return getEdgeSegmentPathId();
+		case NODE_EXTERNAL_ID:
+			return getNodePathExternalId();			
+		case NODE_ID:
+			return getNodePathId();
+		}
+		return "";
 	}
+	
 }

@@ -1,6 +1,5 @@
 package org.planit.output.property;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 import org.planit.userclass.Mode;
@@ -39,9 +38,8 @@ public final class ModeExternalIdOutputProperty extends BaseOutputProperty {
 	 * 
 	 * @param mode current mode
 	 * @return the external Id of the current mode
-	 * @throws PlanItException thrown if there is an error
 	 */
-	public static long getModeExternalId(Mode mode) throws PlanItException {
+	public static long getModeExternalId(Mode mode) {
 		return mode.getExternalId();
 	}
 

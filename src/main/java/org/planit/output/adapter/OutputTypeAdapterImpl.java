@@ -3,7 +3,16 @@ package org.planit.output.adapter;
 import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
+import org.planit.output.property.IterationIndexOutputProperty;
+import org.planit.output.property.ModeExternalIdOutputProperty;
+import org.planit.output.property.ModeIdOutputProperty;
+import org.planit.output.property.OutputProperty;
+import org.planit.output.property.RunIdOutputProperty;
+import org.planit.output.property.TimePeriodExternalIdOutputProperty;
+import org.planit.output.property.TimePeriodIdOutputProperty;
+import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
+import org.planit.userclass.Mode;
 
 /**
  * Top-level abstract class which defines the common methods required by all output type adapters
@@ -22,8 +31,38 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
      * The OutputType this OutputTypeAdapter is used for 
      */
     protected OutputType outputType;
-    
+      
     /**
+     * Returns the value of properties which are common to all output type adapters
+     * 
+    * @param outputProperty the specified output property
+     * @param mode the current mode
+     * @param timePeriod the current time period
+     * @return the value of the specified property, or null if the specified property is not common to all output adapters (or an Exception if an error has occurred)
+     */
+    protected Object getCommonPropertyValue(OutputProperty outputProperty, Mode mode, TimePeriod timePeriod) {
+		try {
+			switch (outputProperty) {
+			case MODE_EXTERNAL_ID:
+				return ModeExternalIdOutputProperty.getModeExternalId(mode);
+			case MODE_ID:
+				return ModeIdOutputProperty.getModeId(mode);
+			case RUN_ID:
+				return RunIdOutputProperty.getRunId(trafficAssignment);
+			case TIME_PERIOD_EXTERNAL_ID:
+				return TimePeriodExternalIdOutputProperty.getTimePeriodExternalId(timePeriod);
+			case TIME_PERIOD_ID:
+				return TimePeriodIdOutputProperty.getTimePeriodId(timePeriod);
+			case ITERATION_INDEX:
+				return IterationIndexOutputProperty.getIterationIndex(trafficAssignment);
+			}
+		    return null;
+		} catch (PlanItException e) {
+			return e;
+		}
+    }
+    
+   /**
      * Constructor
      * 
      * @param outputType the OutputType this adapter corresponds to
