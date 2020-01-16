@@ -36,6 +36,16 @@ public abstract class EdgeSegment implements Comparable<EdgeSegment> {
     protected final Vertex downstreamVertex;
 
     /**
+	 * The external Id for this link segment type
+	 */
+	protected long externalId;
+
+	/**
+	 * Flag to indicate whether an external Id has been set for this edge segment
+	 */
+	protected boolean externalIdSet;
+	
+   /**
      * Generate unique edge segment id
      * 
      * @return id id of this EdgeSegment
@@ -49,16 +59,15 @@ public abstract class EdgeSegment implements Comparable<EdgeSegment> {
     /**
      * Constructor
      * 
-     * @param parentEdge
-     *            parent edge of segment
-     * @param directionAB
-     *            direction of travel
+     * @param parentEdge  parent edge of segment
+     * @param directionAB  direction of travel
      */
     protected EdgeSegment(Edge parentEdge, boolean directionAB) {
         this.id = generateEdgeSegmentId();
         this.parentEdge = parentEdge;
         this.upstreamVertex = directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB();
         this.downstreamVertex = directionAB ? parentEdge.getVertexB() : parentEdge.getVertexA();
+        externalIdSet = false;
     }
     
     // Public
@@ -91,7 +100,20 @@ public abstract class EdgeSegment implements Comparable<EdgeSegment> {
         return this.parentEdge;
     }
     
-    /**
+	public void setExternalId(long externalId) {
+		this.externalId = externalId;
+		externalIdSet = true;
+	}
+	
+	public boolean hasExternalId() {
+		return externalIdSet;
+	}
+	
+	public long getExternalId() {
+		return externalId;
+	}
+
+   /**
      * compare based on edge segment id
      * 
      * @see java.lang.Comparable#compareTo(java.lang.Object)

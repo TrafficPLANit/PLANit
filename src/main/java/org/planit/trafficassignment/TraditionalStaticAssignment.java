@@ -153,6 +153,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 					vertexPathCosts = shortestPathAlgorithm.executeOneToAll(originCentroid);
 				}
 
+				// MARK 6-1-2020
 				// store path to current destination when needed
 				if (outputManager.isOutputTypeActive(OutputType.PATH)) {
 					odPathMatrix.createAndSavePath(currentOriginZone, currentDestinationZone, vertexPathCosts);
@@ -164,8 +165,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				previousOriginZoneId = currentOriginZone.getId();
 
 				// MARK 6-1-2020
-				// Here we should store the skim matrix information for travel time (generalised
-				// path cost) for i-1
+				// Here we should store the skim matrix information for travel time (generalized path cost) for i-1
 				// So when we are in the first iteration (i=1), the current vertexPathCosts
 				// array provides us the path cost information to store
 				// the row of the current origin for all destinations for i=(1-1)=0
@@ -176,9 +176,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				// NOTE: do NOT use the vertex path map to store costs! Only use it to store
 				// paths, i.e., edge segments,
 
-				updateSkimMatrixMap(skimMatrixMap, currentOriginZone, currentDestinationZone, odDemand,
-						vertexPathCosts);
-
+				updateSkimMatrixMap(skimMatrixMap, currentOriginZone, currentDestinationZone, odDemand, vertexPathCosts);
 			}
 		}
 	}

@@ -84,7 +84,7 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
         @SuppressWarnings("unchecked")
         Pair<Double, EdgeSegment>[] vertexCost = new Pair[numberOfVertices];
         Arrays.fill(vertexCost, new Pair<Double, EdgeSegment>(Double.POSITIVE_INFINITY, null));
-
+        
         // Use priority queue to identify the current cheapest cost (second element) to
         // reach each vertex (first element)
         Comparator<Pair<Vertex, Double>> pairSecondComparator = 
@@ -93,10 +93,9 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
                     return f1.compareTo(f2);
                 });
 
-        PriorityQueue<Pair<Vertex, Double>> openVertices = new PriorityQueue<Pair<Vertex, Double>>(numberOfVertices,
-                pairSecondComparator);
+        PriorityQueue<Pair<Vertex, Double>> openVertices = new PriorityQueue<Pair<Vertex, Double>>(numberOfVertices, pairSecondComparator);
         openVertices.add(new Pair<Vertex, Double>(currentOrigin, 0.0)); // cost to reach self is zero
-
+        
         // collect cheapest cost and expand the vertex if not already visited
         while (!openVertices.isEmpty()) {
             Pair<Vertex, Double> cheapestNextVertex = openVertices.poll();
@@ -105,6 +104,7 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
             if (vertexVisited[(int) currentNode.getId()]) {
                 continue;
             }
+            
             vertexVisited[(int) currentNode.getId()] = true;
 
             // vertex has not yet been processed, if it has than a cheaper path which has
@@ -127,7 +127,6 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
                     }
                 }
             }
-
         }
         return vertexCost;
     }

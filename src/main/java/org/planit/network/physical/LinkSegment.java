@@ -31,11 +31,6 @@ public abstract class LinkSegment extends EdgeSegment {
     protected Map<Long, Double> maximumSpeedMap;
 
     /**
-	 * The external Id for this link segment type
-	 */
-	protected long externalId;
-
-    /**
      * Generate unique link segment id
      * 
      * @return id of this link segment
@@ -125,12 +120,4 @@ public abstract class LinkSegment extends EdgeSegment {
         return (Link) getParentEdge();
     }
     
-	public void setExternalId(long externalId) {
-		this.externalId = externalId;
-	}
-	
-	public long getExternalId() {
-		return externalId;
-	}
-
 }

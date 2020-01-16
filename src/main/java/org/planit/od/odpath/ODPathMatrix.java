@@ -52,7 +52,7 @@ public class ODPathMatrix extends ODDataImpl<Path> {
 	 * @param vertexPathAndCost the vertexPathAndCost array (previously calculated by the traffic assignment)
 	 */
 	public void createAndSavePath(Zone origin, Zone destination, Pair<Double, EdgeSegment>[] vertexPathAndCost) {
-		Path path = new Path(origin, destination, vertexPathAndCost);
+		Path path = new Path(destination, vertexPathAndCost);
 		setValue(origin, destination, path);
 	}
 

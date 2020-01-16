@@ -1,5 +1,6 @@
 package org.planit.network.virtual;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,16 +41,17 @@ public class VirtualNetwork {
         }
 
         /**
-         * Create new connectoid to network
+         * Create new connectoid to from a specified centroid to a specified node
          * 
          * @param centroid centroid at one end of the connectoid
          * @param node node at other end of the connectoid
          * @param length length of connectiod
+         * @param externalId external Id of connectoid (null if not set in the input file)
          * @return Connectoid object created and registered
          * @throws PlanItException  thrown if there is an error
          */
-        public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length) throws PlanItException {
-            Connectoid newConnectoid = new Connectoid(centroid, node, length);
+        public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length, BigInteger externalId) throws PlanItException {
+            Connectoid newConnectoid = new Connectoid(centroid, node, length, externalId);
             registerConnectoid(newConnectoid);
             return newConnectoid;
         }
@@ -113,13 +115,13 @@ public class VirtualNetwork {
         /**
          * Create and register connectoid segment in AB direction on virtual network
          * 
-         * @param parentConnectoid the connectoid which will contain this connectoid segmetn
+         * @param parentConnectoid the connectoid which will contain this connectoid segment
+         * @param externalId the external Id of the connectoid segment (can be null, in which case the external Id was not set in the input files
          * @param directionAB direction of travel
          * @return created connectoid segment
          * @throws PlanItException thrown if there is an error
          */
-        public ConnectoidSegment createAndRegisterConnectoidSegment(@Nonnull Connectoid parentConnectoid,
-                boolean directionAB) throws PlanItException {
+        public ConnectoidSegment createAndRegisterConnectoidSegment(@Nonnull Connectoid parentConnectoid, boolean directionAB) throws PlanItException {
             ConnectoidSegment connectoidSegment = new ConnectoidSegment(parentConnectoid, directionAB);
             parentConnectoid.registerConnectoidSegment(connectoidSegment, directionAB);
             registerConnectoidSegment(connectoidSegment);
@@ -130,33 +132,30 @@ public class VirtualNetwork {
          * Create and register connectoidSegment in AB direction on virtual network
          * 
          * @param parentConnectoid  the connectoid which will contain this connectoid segment
+         * @param externalId the external Id of the connectoid segment (can be null, in which case the external Id was not set in the input files
          * @return created connectoid segment
          * @throws PlanItException thrown if there is an error
          */
-        public ConnectoidSegment createAndRegisterConnectoidSegmentAB(@Nonnull Connectoid parentConnectoid)
-                throws PlanItException {
-            return createAndRegisterConnectoidSegment(parentConnectoid, true /* abDirection */);
-        }
+        //public ConnectoidSegment createAndRegisterConnectoidSegmentAB(@Nonnull Connectoid parentConnectoid) throws PlanItException {
+        //    return createAndRegisterConnectoidSegment(parentConnectoid, true /* abDirection */);
+        //}
 
         /**
          * Create and register connectoidSegment in BA direction on zoning
          * 
-         * @param parentConnectoid
-         *            the connectoid which will contain this connectoid segment
+         * @param parentConnectoid the connectoid which will contain this connectoid segment
          * @return created connectoid Segment
          * @throws PlanItException
          *             thrown if there is an error
          */
-        public ConnectoidSegment createAndRegisterConnectoidSegmentBA(Connectoid parentConnectoid)
-                throws PlanItException {
-            return createAndRegisterConnectoidSegment(parentConnectoid, false /* baDirection */);
-        }
+        //public ConnectoidSegment createAndRegisterConnectoidSegmentBA(Connectoid parentConnectoid, BigInteger externalId) throws PlanItException {
+        //    return createAndRegisterConnectoidSegment(parentConnectoid, false /* baDirection */);
+        //}
 
         /**
          * Get connectoid segment by id
          * 
-         * @param id
-         *            the id of this connectoid segment
+         * @param id the id of this connectoid segment
          * @return retrieved ConnectoidSegment object
          */
         public ConnectoidSegment getConnectoidSegment(long id) {

@@ -1,5 +1,7 @@
 package org.planit.network.virtual;
 
+import java.math.BigInteger;
+
 import org.planit.network.EdgeSegment;
 import org.planit.utils.IdGenerator;
 
@@ -38,8 +40,18 @@ public class ConnectoidSegment extends EdgeSegment {
 
     // Public
 
+    /**
+     * Constructor
+     * 
+     * @param parentConnectoid  parent connectoid
+     * @param directionAb direction of travel
+     */
     public ConnectoidSegment(Connectoid parentConnectoid, boolean directionAb) {
         super(parentConnectoid, directionAb);
+        BigInteger externalId = parentConnectoid.getExternalId();
+        if (externalId != null) {
+        	setExternalId(externalId.longValue());
+        }
         this.connectoidSegmentId = generateConnectoidSegmentId();
     }
 

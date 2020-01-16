@@ -1,11 +1,14 @@
 package org.planit.output.adapter;
 
+import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
 import org.planit.exceptions.PlanItException;
-import org.planit.network.physical.LinkSegment;
+import org.planit.network.EdgeSegment;
+import org.planit.network.Vertex;
 import org.planit.network.physical.Node;
+import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.od.odpath.ODPathMatrix;
 import org.planit.od.odpath.Path;
 import org.planit.od.odpath.ODPathIterator;
@@ -80,36 +83,37 @@ public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImp
 	/**
 	 * Returns the path as a String of comma-separated node Id or external Id values
 	 * 
-	 * @param path Path of link segments
+	 * @param path Path of edge segments
 	 * @param idGetter lambda function to get the required Id value
 	 * @return the path as a String of comma-separated node Id or external Id values
 	 */
 	private String getNodePath(Path path, ToLongFunction<Node> idGetter) {
 		StringBuilder builder = new StringBuilder("[");
-		LinkSegment lastLinkSegment = null;
-		for (LinkSegment linkSegment : path.getPathAsList()) {
-			Node node = (Node) linkSegment.getUpstreamVertex();
-			builder.append(idGetter.applyAsLong(node));
-			builder.append(",");
-			lastLinkSegment = linkSegment;
+		for (EdgeSegment edgeSegment : path.getPathAsList()) {
+			Vertex vertex = edgeSegment.getUpstreamVertex();
+			if (vertex instanceof Node) {
+				Node node = (Node) vertex;
+				builder.append(idGetter.applyAsLong(node));
+				if (edgeSegment.getDownstreamVertex() instanceof Node) {
+					builder.append(",");
+				}
+			}
 		}
-		Node node = (Node) lastLinkSegment.getDownstreamVertex();
-		builder.append(idGetter.applyAsLong(node));
 		builder.append("]");
 		return new String(builder);
 	}
-	
+
 	/**
-	 * Returns the path as a String of comma-separated link segment Id or  external Id values
-	 * 
-	 * @param path Path of link segments
+	 * Returns the path as a String of comma-separated edge segment Id or external Id values
+  	 * 
+	 * @param path Path of edge segments
 	 * @param idGetter lambda function to get the required Id value
 	 * @return the path as a String of comma-separated link segment Id or external Id values
 	 */
-	private String getLinkSegmentPath(Path path, ToLongFunction<LinkSegment> idGetter) {
+	private String getEdgeSegmentPath(Path path, Function<EdgeSegment, Object>idGetter) {
 		StringBuilder builder = new StringBuilder("[");
-		for (LinkSegment linkSegment : path.getPathAsList()) {
-			builder.append(idGetter.applyAsLong(linkSegment));
+		for (EdgeSegment edgeSegment : path.getPathAsList()) {
+			builder.append(idGetter.apply(edgeSegment));
 			builder.append(",");
 		}
 		builder.deleteCharAt(builder.length()-1);
@@ -129,9 +133,14 @@ public class TraditionalStaticPathOutputTypeAdapter extends OutputTypeAdapterImp
 		if  (path != null) {
 			switch (pathOutputType) {
 			case LINK_SEGMENT_EXTERNAL_ID:
-				return getLinkSegmentPath(path, LinkSegment::getExternalId);
+				return getEdgeSegmentPath(path, edgeSegment -> {
+					if ((edgeSegment instanceof ConnectoidSegment) && !(((ConnectoidSegment) edgeSegment).hasExternalId())){
+						return "Undefined";
+					} 
+					return edgeSegment.getExternalId();
+				});
 			case LINK_SEGMENT_ID:
-				return getLinkSegmentPath(path, LinkSegment::getId);
+				return getEdgeSegmentPath(path, EdgeSegment::getId);
 			case NODE_EXTERNAL_ID:
 				return getNodePath(path, Node::getExternalId);
 			case NODE_ID:
