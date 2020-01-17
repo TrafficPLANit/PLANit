@@ -133,7 +133,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 			if (((odDemand - DEFAULT_FLOW_EPSILON) > 0.0)
 					&& (currentOriginZone.getId() != currentDestinationZone.getId())) {
 
-				PlanItLogger.info("Calculating flow from origin zone " + currentOriginZone.getExternalId()
+				PlanItLogger.fine("Calculating flow from origin zone " + currentOriginZone.getExternalId()
 						+ " to destination zone " + currentDestinationZone.getExternalId() + " which has demand of "
 						+ FormatUtils.format5(odDemand));
 
