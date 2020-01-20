@@ -1,14 +1,20 @@
 package org.planit.trafficassignment.builder;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.event.management.EventHandler;
 import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
+import org.planit.gap.GapFunction;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.demands.Demands;
+import org.planit.output.configuration.OutputConfiguration;
+import org.planit.output.configuration.OutputTypeConfiguration;
+import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.time.TimePeriod;
@@ -117,6 +123,15 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
     public void registerOutputFormatter(OutputFormatter outputFormatter) throws PlanItException {
     	parentAssignment.registerOutputFormatter(outputFormatter);
     }
+    
+    /**
+     * Returns a list of output formatters registered on this assignment
+     * 
+     * @return List of OutputFormatter objects registered on this assignment
+     */
+    public List<OutputFormatter> getOutputFormatters() {
+        return parentAssignment.getOutputFormatters();
+    }    
 
     /**
      * Register the initial link segment cost 
@@ -136,6 +151,17 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
     public void registerInitialLinkSegmentCost(TimePeriod timePeriod, InitialLinkSegmentCost initialLinkSegmentCost) {
     	initialLinkSegmentCost.setTimePeriod(timePeriod);
     	parentAssignment.setInitialLinkSegmentCost(timePeriod, initialLinkSegmentCost);
+    }     
+    
+    /**
+     * Method that allows one to activate specific output types for persistence on the traffic assignment instance
+     * 
+     * @param outputType OutputType object to be used
+     * @return outputTypeConfiguration the output type configuration that is now active
+     * @throws PlanItException thrown if there is an error activating the output
+     */
+    public OutputTypeConfiguration activateOutput(OutputType outputType) throws PlanItException {        
+        return parentAssignment.activateOutput(outputType);
     }
     
     /**
@@ -149,5 +175,23 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
     public void setEventManager(EventManager eventManager) {
         smoothingFactory.setEventManager(eventManager);
     }
+    
+    /**
+     * Provide the output configuration for user access
+     * 
+     * @return outputConfiguration for this traffic assignment
+     */
+    public OutputConfiguration getOutputConfiguration() {
+        return parentAssignment.getOutputConfiguration();
+    }    
+    
+    /**
+     * Collect the gap function of the trafficAssignment instance
+     * 
+     * @return gapFunction
+     */
+    public GapFunction getGapFunction() {
+        return parentAssignment.getGapFunction();
+    }     
 
 }

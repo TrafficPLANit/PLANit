@@ -21,6 +21,7 @@ import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.DeterministicTrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
+import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.zoning.Zoning;
 import org.planit.exceptions.PlanItException;
 
@@ -197,10 +198,10 @@ public class CustomPlanItProject {
      * type
      * 
      * @param trafficAssignmentType the class name of the traffic assignment type object to be created
-     * @return the generated traffic assignment object
+     * @return the traffic assignment builder object
      * @throws PlanItException thrown if there is an error
      */
-    public DeterministicTrafficAssignment createAndRegisterDeterministicAssignment(String trafficAssignmentType)
+    public TrafficAssignmentBuilder createAndRegisterDeterministicAssignment(String trafficAssignmentType)
             throws PlanItException {
         NetworkLoading networkLoadingAndAssignment = (NetworkLoading) assignmentFactory.create(trafficAssignmentType);
         if (!(networkLoadingAndAssignment instanceof DeterministicTrafficAssignment)) {
@@ -213,7 +214,10 @@ public class CustomPlanItProject {
         // across assignments and we want to avoid duplicate code
         trafficAssignment.initialiseDefaults();
         trafficAssignments.put(trafficAssignment.getId(), trafficAssignment);
-        return trafficAssignment;
+        // do not allow direct access to the traffic assignment component. Instead, provide the traffic assignment
+        // builder object which is dedicated to providing all the configuration options relevant to the end user while
+        // hiding any internals of the traffic assignment concrete class instance
+        return trafficAssignment.getBuilder();
     }
 	
 	/**
@@ -300,6 +304,15 @@ public class CustomPlanItProject {
      */
     public boolean hasRegisteredAssignments() {
         return !trafficAssignments.isEmpty();
+    }
+    
+    /**
+     * Collect the first traffic assignment that is registered (if any). Otherwise return null
+     * @return first traffic assignment that is registeredm if none return null
+     */
+    public TrafficAssignment getFirstTrafficAssignment()
+    {
+        return hasRegisteredAssignments() ? trafficAssignments.firstEntry().getValue() : null;
     }
 
     /**

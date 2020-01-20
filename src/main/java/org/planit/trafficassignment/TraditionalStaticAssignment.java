@@ -48,7 +48,8 @@ import org.planit.utils.Pair;
 import org.planit.zoning.Zone;
 
 /**
- * Traditional static assignment traffic component
+ * Traditional static assignment traffic component. 
+ * Provides configuration access via the CapacityRestrainedTrafficAssignmentBuilder it instantiates
  * 
  * @author markr, gman6028
  *
@@ -414,14 +415,12 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 */
 	private boolean initializeModalLinkSegmentCostsByTimePeriod(Mode mode, TimePeriod timePeriod,
 			double[] currentSegmentCosts) throws PlanItException {
-		InitialLinkSegmentCost initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod
-				.get(timePeriod.getId());
+		InitialLinkSegmentCost initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod.getId());
 		if (!initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
 			return false;
 		}
 		setModalLinkSegmentCosts(mode, currentSegmentCosts, (linkSegment) -> {
-			InitialLinkSegmentCost initialLinkSegmentCostLocal = initialLinkSegmentCostByTimePeriod
-					.get(timePeriod.getId());
+			InitialLinkSegmentCost initialLinkSegmentCostLocal = initialLinkSegmentCostByTimePeriod.get(timePeriod.getId());
 			return initialLinkSegmentCostLocal.getSegmentCost(mode, linkSegment);
 		});
 		return true;

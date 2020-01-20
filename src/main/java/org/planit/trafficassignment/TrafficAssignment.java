@@ -420,15 +420,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	}
 
 	/**
-	 * Return the number of network segments in the current assignment
-	 * 
-	 * @return number of network segments
-	 */
-	public int getNumberOfNetworkSegments() {
-		return numberOfNetworkSegments;
-	}
-
-	/**
 	 * Returns a list of output formatters registered on this assignment
 	 * 
 	 * @return List of OutputFormatter objects registered on this assignment
