@@ -23,6 +23,7 @@ import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.output.OutputManager;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
+import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
@@ -235,15 +236,20 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * which is passed on to the output manager
 	 * 
 	 * @param outputType OutputType object to be used
+	 * @return outputTypeConfiguration the output type configuration that is now active
 	 * @throws PlanItException thrown if there is an error activating the output
 	 */
-	public void activateOutput(OutputType outputType) throws PlanItException {
+	public OutputTypeConfiguration activateOutput(OutputType outputType) throws PlanItException {
+	    OutputTypeConfiguration theOutputTypeConfiguration = null;
 		if (!outputManager.isOutputTypeActive(outputType)) {
 			PlanItLogger.info("Registering Output Type " + outputType);
-			outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
 			OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(outputType);
 			outputManager.registerOutputTypeAdapter(outputType, outputTypeAdapter);
+	        theOutputTypeConfiguration = outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
+		}else {
+		    theOutputTypeConfiguration = outputManager.getOutputConfiguration().getOutputTypeConfiguration(outputType);
 		}
+		return theOutputTypeConfiguration;
 	}
 
 	/**

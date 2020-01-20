@@ -249,7 +249,7 @@ public abstract class OutputTypeConfiguration {
 	public abstract OutputProperty[] validateAndFilterKeyProperties(OutputProperty[] outputKeyProperties);
 	
     /**
-     * Returns a set of activated OD skim output types
+     * Returns a set of activated sub output types (if any)
      * 
      * @return Set of activated sub output types (if any)
      */

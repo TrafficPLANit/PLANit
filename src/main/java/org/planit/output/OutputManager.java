@@ -87,22 +87,28 @@ public class OutputManager {
      * Factory method to create an output configuration and adapter for a given type
      * 
      * @param outputType  the output type to register the configuration for
-     * @return trafficAssignment the TrafficAssignment object whose results are being reported
+     * @return outputTypeconfiguration the output type configuration that has been newly registered
      * @throws PlanItException thrown if there is an error
      */
-	public void createAndRegisterOutputTypeConfiguration(OutputType outputType, TrafficAssignment trafficAssignment) throws PlanItException {
+	public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType, TrafficAssignment trafficAssignment) throws PlanItException {
+	    OutputTypeConfiguration createdOutputTypeConfiguration = null;
         switch (outputType) {
         case LINK: 
-        	outputTypeConfigurations.put(outputType, new LinkOutputTypeConfiguration(trafficAssignment));
+            createdOutputTypeConfiguration = new LinkOutputTypeConfiguration(trafficAssignment);
         break;
-        case OD: 
-        	outputTypeConfigurations.put(outputType, new OriginDestinationOutputTypeConfiguration(trafficAssignment));
+        case OD:
+            createdOutputTypeConfiguration = new OriginDestinationOutputTypeConfiguration(trafficAssignment);
         break;
         case PATH:
-        	outputTypeConfigurations.put(outputType, new PathOutputTypeConfiguration(trafficAssignment));
+            createdOutputTypeConfiguration = new PathOutputTypeConfiguration(trafficAssignment);
         break;
         default: PlanItLogger.warning(outputType.value() + " has not been defined yet.");
         }
+        
+        if(createdOutputTypeConfiguration != null) {
+            outputTypeConfigurations.put(outputType, createdOutputTypeConfiguration);   
+        }
+        return createdOutputTypeConfiguration;
 	}
 	
 	/**
