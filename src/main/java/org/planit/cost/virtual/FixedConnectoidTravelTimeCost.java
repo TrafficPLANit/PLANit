@@ -2,7 +2,9 @@ package org.planit.cost.virtual;
 
 import javax.annotation.Nonnull;
 
+import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.ConnectoidSegment;
+import org.planit.network.virtual.VirtualNetwork;
 import org.planit.userclass.Mode;
 
 /**
@@ -53,5 +55,13 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
 	public double getSegmentCost(Mode mode, ConnectoidSegment connectoidSegment) {
 		return fixedConnectoidCosts[(int) connectoidSegment.getConnectoidSegmentId()];
 	}
+	
+    /**
+     * currently no specific initialisation needed
+     */
+    @Override
+    public void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException {
+        // currently no specific initialisation needed
+    }	
 
 }

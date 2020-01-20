@@ -21,7 +21,7 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
     /**
      * Event manager used to handle events
      */
-    protected EventManager eventManager;
+    protected EventManager eventManager;    
 
     /**
      * Constructor
@@ -30,7 +30,7 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
         this.trafficComponentType = this.getClass().getCanonicalName();
     }
 
-    // Public
+    // Public      
 
     public String getTrafficComponentType() {
         return trafficComponentType;
@@ -39,4 +39,6 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
     public void setEventManager(EventManager eventManager) {
         this.eventManager = eventManager;
     }
+    
+    
 }

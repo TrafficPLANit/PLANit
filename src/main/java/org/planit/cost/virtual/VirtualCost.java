@@ -2,7 +2,9 @@ package org.planit.cost.virtual;
 
 import org.planit.cost.Cost;
 import org.planit.event.RequestAccesseeEvent;
+import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.ConnectoidSegment;
+import org.planit.network.virtual.VirtualNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 
 /**
@@ -19,6 +21,14 @@ public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost
     public VirtualCost() {
         super();
     }
+    
+    /**
+     * Initialize the virtual cost component
+     * 
+     * @param VirtualNetwork the virtual network
+     * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
+     */
+    public abstract void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException;    
 
     /**
      * Indicate if cost object requires an interaction to be able to perform its

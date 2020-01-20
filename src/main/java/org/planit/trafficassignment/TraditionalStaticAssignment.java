@@ -1,10 +1,8 @@
 package org.planit.trafficassignment;
 
 import java.util.Calendar;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
@@ -36,10 +34,8 @@ import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapte
 import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticPathOutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
-import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
-import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
 import org.planit.utils.ArrayOperations;
@@ -61,11 +57,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * Epsilon margin when comparing flow rates (veh/h)
 	 */
 	private static final double DEFAULT_FLOW_EPSILON = 0.000001;
-
-	/**
-	 * holds the count of all vertices in the transport network
-	 */
-	private int numberOfNetworkVertices;
 
 	/**
 	 * Holds the running simulation data for the assignment
@@ -448,67 +439,6 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				currentSegmentCosts[(int) linkSegment.getId()] = currentSegmentCost;
 			}
 		}
-	}
-
-	/**
-	 * Open or close output formatters
-	 * 
-	 * @param action lambda function to open or close a formatter
-	 * @throws PlanItException thrown if there is an error opening or closing the
-	 *                         file
-	 */
-	private void openOrClose(BiFunction<OutputFormatter, OutputTypeConfiguration, PlanItException> action)
-			throws PlanItException {
-		List<OutputTypeConfiguration> outputTypeConfigurations = outputManager.getRegisteredOutputTypeConfigurations();
-		for (OutputTypeConfiguration outputTypeConfiguration : outputTypeConfigurations) {
-			List<OutputFormatter> outputFormatters = outputManager.getOutputFormatters();
-			for (OutputFormatter outputFormatter : outputFormatters) {
-				PlanItException e = action.apply(outputFormatter, outputTypeConfiguration);
-				if (e != null) {
-					throw e;
-				}
-			}
-		}
-	}
-
-	/**
-	 * Initialize members and output resources before equilibration
-	 * 
-	 * @throws PlanItException thrown if there is an error
-	 * 
-	 */
-	@Override
-	protected void initialiseTrafficAssignmentBeforeEquilibration() throws PlanItException {
-		// initialize members that are used throughout the assignment
-		this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
-		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
-		physicalCost.initialiseCostsBeforeEquilibration(physicalNetwork);
-		openOrClose((outputFormatter, outputTypeConfiguration) -> {
-			try {
-				outputFormatter.open(outputTypeConfiguration, getId());
-			} catch (Exception e) {
-				return new PlanItException(e);
-			}
-			return null;
-		});
-	}
-
-	/**
-	 * Close output resources after equilibration
-	 * 
-	 * @throws PlanItException thrown if there is an error closing resources
-	 * 
-	 */
-	@Override
-	protected void finalizeAfterEquilibration() throws PlanItException {
-		openOrClose((outputFormatter, outputTypeConfiguration) -> {
-			try {
-				outputFormatter.close(outputTypeConfiguration);
-			} catch (Exception e) {
-				return new PlanItException(e);
-			}
-			return null;
-		});
 	}
 
 	/**

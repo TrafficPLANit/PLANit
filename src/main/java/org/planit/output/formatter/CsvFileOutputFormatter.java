@@ -43,7 +43,6 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	/**
 	 * Map of list of CSV output file names for each OutputType
 	 */
-	//protected Map<OutputType, List<String>> csvFileNameMap;
 	protected Map<OutputTypeEnum, List<String>> csvFileNameMap;
 
 	/**

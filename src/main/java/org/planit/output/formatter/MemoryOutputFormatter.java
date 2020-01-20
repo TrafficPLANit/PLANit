@@ -1,5 +1,6 @@
 package org.planit.output.formatter;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -307,25 +308,23 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	/**
 	 * Opens all resources used in the formatter
 	 * 
-	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to
-	 *                                be saved
-	 * @param runId                   the id of the traffic assignment to be saved
+	 * @param outputTypeConfigurations OutputTypeConfigurations for the assignment that have been activated
+	 * @param runId the traffic assignments runId
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	public void open(OutputTypeConfiguration outputTypeConfiguration, long runId) throws PlanItException {
+	public void initialiseBeforeSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations, long runId) throws PlanItException {
 		timeModeOutputTypeIterationDataMap = MultiKeyMap.decorate(new HashedMap());
 	}
 
 	/**
 	 * Close all resources used in this formatter
 	 * 
-	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to
-	 *                                be saved
+	 * @param outputTypeConfigurations OutputTypeConfigurations for the assignment that have been activated
 	 * @throws PlanItException thrown if there is an error
 	 */
 	@Override
-	public void close(OutputTypeConfiguration outputTypeConfiguration) throws PlanItException {
+	public void finaliseAfterSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations) throws PlanItException {    
 	}
 
 	/**

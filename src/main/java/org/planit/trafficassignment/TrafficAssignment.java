@@ -9,6 +9,7 @@ import javax.annotation.Nonnull;
 import org.planit.cost.Cost;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
+import org.planit.cost.virtual.VirtualCost;
 import org.planit.data.SimulationData;
 import org.planit.demands.Demands;
 import org.planit.event.RequestAccesseeEvent;
@@ -75,14 +76,19 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	protected TransportNetwork transportNetwork = null;
 
 	/**
-	 * The virtual link cost function
+	 * The virtual cost function
 	 */
-	protected Cost<ConnectoidSegment> virtualCost;
+	protected VirtualCost virtualCost;
 
 	/**
-	 * holds the count of segments in the transport network
+	 * holds the count of all link segments in the transport network
 	 */
 	protected int numberOfNetworkSegments;
+	
+    /**
+     * holds the count of all vertices in the transport network
+     */
+    protected int numberOfNetworkVertices;	
 
 	/**
 	 * Unique id
@@ -115,21 +121,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	protected Map<Long, InitialLinkSegmentCost> initialLinkSegmentCostByTimePeriod;
 
 	/**
-	 * Allow assignment classes to close data resources after equilibration
-	 * 
-	 * @throws PlanItException thrown if there is an error
-	 */
-	protected abstract void finalizeAfterEquilibration() throws PlanItException;
-
-	/**
-	 * Allow all derived assignment classes to initialize members and open data
-	 * resources before equilibration commences
-	 * 
-	 * @throws PlanItException thrown if there is an error
-	 */
-	protected abstract void initialiseTrafficAssignmentBeforeEquilibration() throws PlanItException;
-
-	/**
 	 * Create the gap function which is to be implemented by a derived class of
 	 * TrafficAssignment
 	 * 
@@ -138,18 +129,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	protected abstract GapFunction createGapFunction();
 
 	// Protected methods
-
-	/**
-	 * Verify if the traffic assignment components are compatible and nonnull
-	 * 
-	 * @throws PlanItException thrown if the components are not compatible
-	 */
-	// TODO - This method is currently empty. Its original version could throw
-	// PlanItIncompatibilityException. We need to check whether we still need it and
-	// whether it should throw PlanItIncompatibilityException.
-	protected void verifyComponentCompatibility() throws PlanItException {
-		// TODO
-	}
 
 	/**
 	 * Check if any components are undefined, if so throw exception
@@ -169,6 +148,66 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		if (zoning == null) {
 			throw new PlanItException("Zoning is null");
 		}
+	}
+	
+    /**
+     * Verify if the traffic assignment components are compatible and nonnull
+     * 
+     * @throws PlanItException thrown if the components are not compatible
+     */
+    protected void verifyComponentCompatibility() throws PlanItException {
+        // TODO
+    }	
+	
+	/**
+	 * Initialise the transport network by combining the physical and virtual components
+	 * @throws PlanItException 
+	 */
+	protected void createTransportNetwork() throws PlanItException {
+        transportNetwork = new TransportNetwork(physicalNetwork, zoning);
+        transportNetwork.integrateConnectoidsAndLinks();
+        this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
+        this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();        
+	}
+	
+	/**
+	 * detach the virtual and physical transport network again
+	 * @throws PlanItException 
+	 */
+	protected void disbandTransportNetwork() throws PlanItException {
+        // Disconnect here since the physical network might be reused in a different assignment
+        transportNetwork.removeVirtualNetworkFromPhysicalNetwork();  	    
+	}
+	
+	/**
+	 * Initialise all relevant traffic assignment components before execution of the assignment commences
+	 * 
+	 * @throws PlanItException 
+	 */
+	protected void initialiseBeforeExecution() throws PlanItException{
+	    // verify validity
+        checkForEmptyComponents();
+        verifyComponentCompatibility();
+        
+        createTransportNetwork();
+
+        outputManager.initialiseBeforeSimulation(getId());
+        physicalCost.initialiseBeforeSimulation(physicalNetwork);
+        virtualCost.initialiseBeforeSimulation(zoning.getVirtualNetwork());    
+	}
+	
+	/**
+	 * Finalise all relevant traffic assignment components after execution of the assignment has ended
+	 * @throws PlanItException 
+	 */
+	protected void finalizeAfterExecution() throws PlanItException {
+	    
+	    disbandTransportNetwork();
+	    
+        // Finalise traffic assignment components including the traffic assignment itself
+        outputManager.finaliseAfterSimulation();    
+        
+	    PlanItLogger.info("Finished simulation");        
 	}
 
 	// Public
@@ -259,16 +298,13 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public void execute() throws PlanItException {
-		checkForEmptyComponents();
-		verifyComponentCompatibility();
-		transportNetwork = new TransportNetwork(physicalNetwork, zoning);
-		transportNetwork.integrateConnectoidsAndLinks();
-		initialiseTrafficAssignmentBeforeEquilibration();
+	
+		initialiseBeforeExecution();
+
 		executeEquilibration();
-		finalizeAfterEquilibration();
-		PlanItLogger.info("Finished equilibration");
-		transportNetwork.removeVirtualNetworkFromPhysicalNetwork(); // disconnect here since the physical network might
-																	// be reused in a different assignment
+		
+		finalizeAfterExecution();
+																	
 		PlanItLogger.info("Finished execution");
 	}
 
@@ -400,11 +436,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * @param virtualCost the virtual cost object to be assigned
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void setVirtualCost(Cost<ConnectoidSegment> virtualCost) throws PlanItException {
+	public void setVirtualCost(VirtualCost virtualCost) throws PlanItException {
 		this.virtualCost = virtualCost;
 		if (this.virtualCost instanceof InteractorAccessor) {
-			// accessor requires accessee --> request accessee via event --> and listen back
-			// for result
+			// accessor requires accessee --> request accessee via event --> and listen back for result
 			RequestAccesseeEvent event = new RequestAccesseeEvent((InteractorAccessor) this.virtualCost);
 			eventManager.dispatchEvent(event);
 		}

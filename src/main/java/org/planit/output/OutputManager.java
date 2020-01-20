@@ -59,6 +59,28 @@ public class OutputManager {
 		outputTypeConfigurations = new HashMap<OutputType, OutputTypeConfiguration>();
 		outputAdapter = new OutputAdapter(trafficAssignment);
 	}
+	
+	/**
+	 * Allows the output manager to initialise itself and any of its registered output formatters to prepare before the simulation starts
+	 * 
+	 *@param runId
+	 * @throws PlanItException 
+	 */
+    public void initialiseBeforeSimulation(long runId) throws PlanItException {
+        for (OutputFormatter outputFormatter : outputFormatters) {
+            outputFormatter.initialiseBeforeSimulation(outputTypeConfigurations, runId);
+        }
+    }	
+    
+    /**
+     * Allows the output manager to finalise itself and any of its registered output formatters to after the simulation ended
+     * @throws PlanItException 
+     */    
+    public void finaliseAfterSimulation() throws PlanItException {
+        for (OutputFormatter outputFormatter : outputFormatters) {
+            outputFormatter.finaliseAfterSimulation(outputTypeConfigurations);
+        }       
+    }
 
 	/**
 	 * Persist the output data for all registered output types

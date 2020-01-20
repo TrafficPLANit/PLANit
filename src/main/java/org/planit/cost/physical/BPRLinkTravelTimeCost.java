@@ -220,7 +220,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 *                        parameter values
 	 */
 	@Override
-	public void initialiseCostsBeforeEquilibration(PhysicalNetwork physicalNetwork) {
+	public void initialiseBeforeSimulation(PhysicalNetwork physicalNetwork) {
 		MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) physicalNetwork;
 		bprParametersPerLinkSegment = new BPRParameters[macroscopicNetwork.linkSegments.getNumberOfLinkSegments()];
 		for (LinkSegment linkSegment : macroscopicNetwork.linkSegments.toList()) {
@@ -230,15 +230,12 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 			MacroscopicLinkSegmentType macroscopicLinkSegmentType = macroscopicLinkSegment.getLinkSegmentType();
 			for (Mode mode : Mode.getAllModes()) {
 				Pair<Double, Double> alphaBetaPair;
-				if ((parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment) != null)
-						&& (parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment)
-								.getAlphaBetaParameters(mode) != null)) {
+				if ((parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment) != null) && 
+				    (parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode) != null)) {
 					alphaBetaPair = parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode);
-				} else if ((defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) != null)
-						&& (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType)
-								.getAlphaBetaParameters(mode) != null)) {
-					alphaBetaPair = defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType)
-							.getAlphaBetaParameters(mode);
+				} else if ((defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) != null) && 
+				            (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).getAlphaBetaParameters(mode) != null)) {
+					alphaBetaPair = defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).getAlphaBetaParameters(mode);
 				} else if (defaultParametersPerMode.getAlphaBetaParameters(mode) != null) {
 					alphaBetaPair = defaultParametersPerMode.getAlphaBetaParameters(mode);
 				} else {

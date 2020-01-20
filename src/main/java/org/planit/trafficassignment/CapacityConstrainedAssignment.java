@@ -65,11 +65,6 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 		throw new PlanItException("Not yet implemented");
 	}
 
-	@Override
-	public void initialiseTrafficAssignmentBeforeEquilibration() {
-		// TODO Auto-generated method stub
-	}
-
 	// Getters - Setters
 
 	public void setFundamentalDiagram(FundamentalDiagram fundamentalDiagram) {
