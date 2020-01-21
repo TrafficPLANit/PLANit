@@ -207,9 +207,9 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
      * @throws PlanItException
      *             thrown if there is an error
      */
-    public static void registerTrafficAssignmentComponentType(final Class<?> trafficAssignmentComponent)
+    public static void registerTrafficAssignmentComponentType(final Class<? extends TrafficAssignmentComponent<?>> trafficAssignmentComponent)
             throws PlanItException {
-        Class<?> currentClass = trafficAssignmentComponent;
+        Class<? extends TrafficAssignmentComponent<?>> currentClass = trafficAssignmentComponent;
         while (currentClass != null) {
             Type currentSuperClass = currentClass.getGenericSuperclass();
             if (currentSuperClass instanceof ParameterizedType
@@ -223,7 +223,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
                         .add(trafficAssignmentComponent.getCanonicalName());
                 return;
             } else {
-                currentClass = currentClass.getSuperclass(); // move up the hierarchy
+            	currentClass = (Class<? extends TrafficAssignmentComponent<?>>) currentClass.getSuperclass(); // move up the hierarchy
             }
         }
         throw new PlanItException("trafficAssignmentComponent not eligible for registration");

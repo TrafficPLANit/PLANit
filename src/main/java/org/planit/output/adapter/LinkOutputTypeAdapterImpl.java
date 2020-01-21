@@ -139,7 +139,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 					"Tried to read maximum speed of an object which is not a MacroscopicLinkSegment.");
 		}
 		MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
-		return macroscopicLinkSegment.getMaximumSpeed(mode.getExternalId());
+		return macroscopicLinkSegment.getMaximumSpeed(mode);
 	}
 
 	/**

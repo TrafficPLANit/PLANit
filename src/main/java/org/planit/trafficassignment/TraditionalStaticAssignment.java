@@ -429,7 +429,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	private void setModalLinkSegmentCosts(Mode mode, double[] currentSegmentCosts,
 			Function<LinkSegment, Double> calculateSegmentCost) throws PlanItException {
 		for (LinkSegment linkSegment : transportNetwork.linkSegments.toList()) {
-			if (linkSegment.getMaximumSpeed(mode.getExternalId()) == 0.0) {
+			if (linkSegment.getMaximumSpeed(mode) == 0.0) {
 				currentSegmentCosts[(int) linkSegment.getId()] = Double.POSITIVE_INFINITY;
 			} else {
 				double currentSegmentCost = calculateSegmentCost.apply(linkSegment);

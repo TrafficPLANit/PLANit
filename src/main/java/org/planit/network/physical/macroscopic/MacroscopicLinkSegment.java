@@ -59,7 +59,7 @@ public class MacroscopicLinkSegment extends LinkSegment {
 	 */
 	public double computeFreeFlowTravelTime(Mode mode) {
 		double linkLength = getParentLink().getLength();
-		double maximumSpeed = getMaximumSpeed(mode.getExternalId());
+		double maximumSpeed = getMaximumSpeed(mode);
 		MacroscopicLinkSegmentTypeModeProperties properties = getLinkSegmentType().getModeProperties();
 		double computedMaximumSpeed = maximumSpeed;
 		if ((properties != null) && (getLinkSegmentType().getModeProperties().getProperties(mode) != null)) {

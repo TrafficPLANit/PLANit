@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.planit.network.EdgeSegment;
+import org.planit.userclass.Mode;
 import org.planit.utils.IdGenerator;
 
 /**
@@ -28,7 +29,7 @@ public abstract class LinkSegment extends EdgeSegment {
     /**
      * Map of maximum speeds along this link for each mode
      */
-    protected Map<Long, Double> maximumSpeedMap;
+    protected Map<Mode, Double> maximumSpeedMap;
 
     /**
      * Generate unique link segment id
@@ -49,7 +50,7 @@ public abstract class LinkSegment extends EdgeSegment {
      */
     protected LinkSegment(Link parentLink, boolean directionAB) {
         super(parentLink, directionAB);
-        maximumSpeedMap = new HashMap<Long, Double>();
+        maximumSpeedMap = new HashMap<Mode, Double>();
         this.linkSegmentId = generateLinkSegmentId();
     }
 
@@ -82,24 +83,22 @@ public abstract class LinkSegment extends EdgeSegment {
     /**
      * Return the maximum speed along this link for a specified mode
      * 
-     * @param modeExternalId
-     *            external id of the specified mode
+     * @param mode the specified mode
      * @return maximum speed along this link for the specified mode
      */
-    public double getMaximumSpeed(long modeExternalId) {
-         return maximumSpeedMap.get(modeExternalId);
+    public double getMaximumSpeed(Mode mode) {
+    	return maximumSpeedMap.get(mode);
     }
 
     /**
      * Set the maximum speed along this link for a specified mode
      * 
-     * @param modeExternalId
-     *            external id of the specified mode
+     * @param mode the specified mode
      * @param maximumSpeed
      *            maximum speed along this link for the specified mode
      */
-    public void setMaximumSpeed(long modeExternalId, double maximumSpeed) {
-        maximumSpeedMap.put(modeExternalId, maximumSpeed);
+    public void setMaximumSpeed(Mode mode, double maximumSpeed) {
+    	maximumSpeedMap.put(mode,  maximumSpeed);
     }
 
     /**
@@ -107,8 +106,8 @@ public abstract class LinkSegment extends EdgeSegment {
      * 
      * @param maximumSpeedMap Map of speed values for each mode
      */
-    public void setMaximumSpeedMap(Map<Long, Double> maximumSpeedMap) {
-        this.maximumSpeedMap = maximumSpeedMap;
+    public void setMaximumSpeedMap(Map<Mode, Double> maximumSpeedMap) {
+    	this.maximumSpeedMap = maximumSpeedMap;
     }
 
     /**

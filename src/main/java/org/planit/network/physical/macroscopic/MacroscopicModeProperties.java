@@ -59,25 +59,6 @@ public class MacroscopicModeProperties {
         this.criticalSpeed = DEFAULT_CRITICAL_SPEED;
     }
 
-    /**
-     * Compare on all content members
-     * 
-     * @param obj
-     *            object to be compared to this one
-     * @return result of the comparison
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof MacroscopicModeProperties) {
-            return super.equals(obj)
-                    && Math.abs(this.getMaxSpeed()
-                            - ((MacroscopicModeProperties) obj).getMaxSpeed()) < DEFAULT_SPEED_EPSILON
-                    && Math.abs(this.getCriticalSpeed()
-                            - ((MacroscopicModeProperties) obj).getCriticalSpeed()) < DEFAULT_SPEED_EPSILON;
-        }
-        return false;
-    }
-
     // Getter - setters
 
     public double getMaxSpeed() {

@@ -27,7 +27,6 @@ public interface CsvTextFileOutputFormatter {
 	 * @param outputType the specified output type
 	 * @param csvFileName the name of the output file to be added for the specified output type
 	 */
-	//public void addCsvFileNamePerOutputType(OutputType outputType, String csvFileName);
 	public void addCsvFileNamePerOutputType(OutputTypeEnum outputType, String csvFileName);
 	
 	/**

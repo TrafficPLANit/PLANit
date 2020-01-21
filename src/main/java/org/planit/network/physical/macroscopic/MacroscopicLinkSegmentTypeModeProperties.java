@@ -59,20 +59,4 @@ public class MacroscopicLinkSegmentTypeModeProperties {
         return this.allModeProperties.get(mode);
     }
 
-    /**
-     * Compare by content
-     * 
-     * @param obj
-     *            object to compare against this one
-     * @return the result of the comparison
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof MacroscopicLinkSegmentTypeModeProperties) {
-            return super.equals(obj)
-                    && allModeProperties.equals(((MacroscopicLinkSegmentTypeModeProperties) obj).allModeProperties);
-        }
-        return false;
-    }
 }
