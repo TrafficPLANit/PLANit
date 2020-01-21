@@ -17,3 +17,22 @@ First Release
 * Added new OutputProperty values in enum to use external Ids
 * Moved setting of OutputKeys to loop through into OutputTypeConfiguration
 * Moved common logic for writing output into BaseOutputFormatter
+
+## 0.0.3
+
+* Refactor setting of OutputKeys and OutputProperties in BaseOutputFormatter (PLANIt JIRA Task #29)
+* Activate ODSkimOutputTypes before saving OD skim data (PLANIt JIRA Task #34)
+* Refactor OutputAdapter and OutputTypeConfiguration (PLANIt JIRA Task #35)
+* Create OD Path output type adapter and output type configuration (PLANIt JIRA Task #37)
+* Link costs were an iteration behind the flow values (PLANIt JIRA Task #38)
+* Create Path object to store OD path of LinkSegment objects (PLANIt JIRA Task #41)
+* Computation of costs is inefficient -> store costs used in iteration i as costs of i-1 (PLANIt JIRA Task #40)
+* Allow options for Path outputs (PLANIt JIRA Task #42)
+* Create ODPathMatrix object (PLANIt JIRA Task #43)
+* Opening and closing of outputformatters is a general task and not one for TraditionalStaticAssignment (PLANIt JIRA Task #51)
+* When creating a new traffic assignment, we should only gain access to the builder and not the assignment object itself (PLANIt JIRA Task #50)
+* When activating an outputtype it should return the created outputtypeconfiguration (PLANIt JIRA Task #49)
+* Common functionality in collecting outputPropertyValues from outputtypeadapters should be common (PLANIt JIRA Task #46)
+* TraditionalStaticAssignmentPathOutputTypeAdapter: Construction of Strings from paths in the wrong place (PLANIt JIRA Task #45)
+* Maximum speed on LinkSegment should be stored by Mode object (PLANIt JIRA Task #48)
+* SpeedConnectoidTravelTimeCost default should not be infinite speed (PLANIt JIRA Task #52) (now use FixedConnectoidTravelTimeCost instead)
