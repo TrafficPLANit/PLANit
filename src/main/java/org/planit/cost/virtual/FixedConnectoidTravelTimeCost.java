@@ -45,6 +45,16 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
 	}
 
 	/**
+	 * Set all the connectoid costs to zero
+	 * 
+	 * @param numberOfConnectoidSegments the number of connectoid segments
+	 */
+	public void populateToZero(int numberOfConnectoidSegments) {
+		this.fixedConnectoidCosts = new double[numberOfConnectoidSegments];
+		this.numberOfConnectoidSegments = numberOfConnectoidSegments;
+	}
+ 
+	/**
 	 * Calculates the connectoid segment cost using a fixed travel time
 	 * 
 	 * @param mode              mode of travel

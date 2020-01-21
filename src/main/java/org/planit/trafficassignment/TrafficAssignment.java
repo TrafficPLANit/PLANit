@@ -285,7 +285,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 			OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(outputType);
 			outputManager.registerOutputTypeAdapter(outputType, outputTypeAdapter);
 	        theOutputTypeConfiguration = outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
-		}else {
+		} else {
 		    theOutputTypeConfiguration = outputManager.getOutputConfiguration().getOutputTypeConfiguration(outputType);
 		}
 		return theOutputTypeConfiguration;

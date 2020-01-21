@@ -13,15 +13,20 @@ import org.planit.userclass.Mode;
  */
 public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 
-	// TODO - At present connectoid speed is infinity, which makes travel time come
-	// out as zero. Perhaps this should be configurable
-	public static final double CONNECTOID_SPEED_KPH = Double.POSITIVE_INFINITY;
+	//public static final double CONNECTOID_SPEED_KPH = Double.POSITIVE_INFINITY;
+	public static final double DEFAULT_CONNECTOID_SPEED_KPH = 25.0;
+	
+	/**
+	 * Speed used for connectoid cost calculations
+	 */
+	private double connectoidSpeed;
 
 	/**
 	 * Constructor
 	 */
 	public SpeedConnectoidTravelTimeCost() {
 		super();
+		connectoidSpeed = DEFAULT_CONNECTOID_SPEED_KPH;
 	}
 
 	/**
@@ -33,7 +38,7 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 	 */
 	@Override
 	public double getSegmentCost(Mode mode, ConnectoidSegment connectoidSegment) {
-		return connectoidSegment.getParentEdge().getLength() / CONNECTOID_SPEED_KPH;
+		return connectoidSegment.getParentEdge().getLength() / connectoidSpeed;
 	}
 
 	/**
@@ -42,6 +47,10 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
     @Override
     public void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException {
         // currently no specific initialisation needed
+    }
+    
+    public void setConnectiodSpeed(double connectoidSpeed) {
+    	this.connectoidSpeed = connectoidSpeed;
     }
 
 }
