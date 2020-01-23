@@ -277,6 +277,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 
 			dualityGapFunction.computeGap();
 			simulationData.incrementIterationIndex();
+			PlanItLogger.info("The total system travel time after iteration " + simulationData.getIterationIndex() + " for time period " +  timePeriod.getExternalId() + " is " + dualityGapFunction.getActualSystemTravelTime() + ".");
 			startTime = recordTime(startTime, dualityGapFunction.getGap());
 			for (Mode mode : modes) {
 				double[] modalLinkSegmentCosts = recalculateModalLinkSegmentCosts(mode, timePeriod);

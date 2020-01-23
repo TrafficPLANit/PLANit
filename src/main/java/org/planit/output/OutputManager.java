@@ -95,9 +95,14 @@ public class OutputManager {
 			OutputTypeConfiguration outputTypeConfiguration = outputTypeConfigurations.get(outputType);
 			for (OutputFormatter outputFormatter : outputFormatters) {
 				if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
+				/*
 					if (!(converged || outputFormatter.canHandleMultipleIterations())) {
 						PlanItLogger.warning(outputFormatter.getClass().getName() + " can only persist the final iteration.");
 					} else {
+						outputFormatter.persist(timePeriod, modes, outputTypeConfiguration, outputAdapter);
+					}
+				*/
+					if (converged || outputFormatter.canHandleMultipleIterations()) {
 						outputFormatter.persist(timePeriod, modes, outputTypeConfiguration, outputAdapter);
 					}
 				}
