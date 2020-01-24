@@ -160,7 +160,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
     }	
 	
 	/**
-	 * Initialise the transport network by combining the physical and virtual components
+	 * Initialize the transport network by combining the physical and virtual components
 	 * @throws PlanItException 
 	 */
 	protected void createTransportNetwork() throws PlanItException {
@@ -180,7 +180,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	}
 	
 	/**
-	 * Initialise all relevant traffic assignment components before execution of the assignment commences
+	 * Initialize all relevant traffic assignment components before execution of the assignment commences
 	 * 
 	 * @throws PlanItException 
 	 */
@@ -197,14 +197,14 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	}
 	
 	/**
-	 * Finalise all relevant traffic assignment components after execution of the assignment has ended
+	 * Finalize all relevant traffic assignment components after execution of the assignment has ended
 	 * @throws PlanItException 
 	 */
 	protected void finalizeAfterExecution() throws PlanItException {
 	    
 	    disbandTransportNetwork();
 	    
-        // Finalise traffic assignment components including the traffic assignment itself
+        // Finalize traffic assignment components including the traffic assignment itself
         outputManager.finaliseAfterSimulation();    
         
 	    PlanItLogger.info("Finished simulation");        

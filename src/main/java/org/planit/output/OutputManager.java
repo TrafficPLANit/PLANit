@@ -61,7 +61,7 @@ public class OutputManager {
 	}
 	
 	/**
-	 * Allows the output manager to initialise itself and any of its registered output formatters to prepare before the simulation starts
+	 * Allows the output manager to initialize itself and any of its registered output formatters to prepare before the simulation starts
 	 * 
 	 *@param runId
 	 * @throws PlanItException 

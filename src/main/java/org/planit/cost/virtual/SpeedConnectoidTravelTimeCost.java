@@ -41,12 +41,15 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 		return connectoidSegment.getParentEdge().getLength() / connectoidSpeed;
 	}
 
-	/**
-	 * currently no specific initialisation needed
-	 */
+    /**
+     * Initialize the virtual cost component
+     * 
+     * @param VirtualNetwork the virtual network
+     * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
+     */
     @Override
     public void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException {
-        // currently no specific initialisation needed
+        // currently no specific initialization needed
     }
     
     public void setConnectiodSpeed(double connectoidSpeed) {

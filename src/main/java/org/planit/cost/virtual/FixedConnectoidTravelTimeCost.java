@@ -39,7 +39,7 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
 	 * @param fixedConnectoidCosts       array of fixed connectoid costs
 	 * @param numberOfConnectoidSegments the number of connectoid segments
 	 */
-	public void populate(@Nonnull double[] fixedConnectoidCosts, int numberOfConnectoidSegments) {
+	private void populate(@Nonnull double[] fixedConnectoidCosts, int numberOfConnectoidSegments) {
 		this.fixedConnectoidCosts = fixedConnectoidCosts;
 		this.numberOfConnectoidSegments = numberOfConnectoidSegments;
 	}
@@ -49,7 +49,7 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
 	 * 
 	 * @param numberOfConnectoidSegments the number of connectoid segments
 	 */
-	public void populateToZero(int numberOfConnectoidSegments) {
+	private void populateToZero(int numberOfConnectoidSegments) {
 		this.fixedConnectoidCosts = new double[numberOfConnectoidSegments];
 		this.numberOfConnectoidSegments = numberOfConnectoidSegments;
 	}
@@ -67,11 +67,14 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
 	}
 	
     /**
-     * currently no specific initialisation needed
+     * Initialize the virtual cost component
+     * 
+     * @param VirtualNetwork the virtual network
+     * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
      */
     @Override
     public void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException {
-        // currently no specific initialisation needed
+        populateToZero(virtualNetwork.connectoidSegments.getNumberOfConnectoidSegments());
     }	
 
 }

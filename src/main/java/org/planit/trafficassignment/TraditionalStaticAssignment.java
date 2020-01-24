@@ -249,7 +249,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 */
 	private void executeTimePeriod(TimePeriod timePeriod) throws PlanItException {
 		PlanItLogger.info(
-				"Running Traditional Static Assigment over all modes for Time Period " + timePeriod.getDescription());
+				"Running Traditional Static Assignment over all modes for Time Period " + timePeriod.getDescription());
 		Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
 		initialiseTimePeriod(modes);
 		LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());

@@ -342,7 +342,7 @@ public class CustomPlanItProject {
     }
 
     /**
-     * Retrieve a TrafficAssigment object given its id
+     * Retrieve a TrafficAssignment object given its id
      * 
      * @param id the id of the TrafficAssignment object
      * @return the retrieved TrafficAssignment object
