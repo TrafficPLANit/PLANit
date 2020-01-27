@@ -13,7 +13,6 @@ import org.planit.userclass.Mode;
  */
 public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 
-	//public static final double CONNECTOID_SPEED_KPH = Double.POSITIVE_INFINITY;
 	public static final double DEFAULT_CONNECTOID_SPEED_KPH = 25.0;
 	
 	/**

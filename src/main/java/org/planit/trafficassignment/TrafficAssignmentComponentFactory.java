@@ -93,9 +93,9 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
             registerTrafficAssignmentComponentType(TraditionalStaticAssignment.class);
             // Physical Cost
             registerTrafficAssignmentComponentType(BPRLinkTravelTimeCost.class);
-            // Fixed Virtual Cost
+            // Fixed Connectoid Cost
             registerTrafficAssignmentComponentType(FixedConnectoidTravelTimeCost.class);
-            // Speed Cost
+            // Speed Connectoid Cost
             registerTrafficAssignmentComponentType(SpeedConnectoidTravelTimeCost.class);
             // Initial Link Segment Cost
             registerTrafficAssignmentComponentType(InitialLinkSegmentCost.class);

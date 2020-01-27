@@ -1,7 +1,5 @@
 package org.planit.cost.virtual;
 
-import javax.annotation.Nonnull;
-
 import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.network.virtual.VirtualNetwork;
@@ -16,14 +14,9 @@ import org.planit.userclass.Mode;
 public class FixedConnectoidTravelTimeCost extends VirtualCost {
 
 	/**
-	 * The fixed connectoid costs for the connectoid segments
+	 * Fixed connectoid cost for connectoid segments - defaults to zero
 	 */
-	double[] fixedConnectoidCosts = null;
-
-	/**
-	 * Number of segments captured by the array
-	 */
-	int numberOfConnectoidSegments = -1;
+	protected double fixedConnectoidCost = 0.0;
 
 	/**
 	 * Constructor
@@ -33,37 +26,15 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
 	}
 
 	/**
-	 * Populate the connectoid segment costs which remain fixed throughout the
-	 * simulation
-	 * 
-	 * @param fixedConnectoidCosts       array of fixed connectoid costs
-	 * @param numberOfConnectoidSegments the number of connectoid segments
-	 */
-	private void populate(@Nonnull double[] fixedConnectoidCosts, int numberOfConnectoidSegments) {
-		this.fixedConnectoidCosts = fixedConnectoidCosts;
-		this.numberOfConnectoidSegments = numberOfConnectoidSegments;
-	}
-
-	/**
-	 * Set all the connectoid costs to zero
-	 * 
-	 * @param numberOfConnectoidSegments the number of connectoid segments
-	 */
-	private void populateToZero(int numberOfConnectoidSegments) {
-		this.fixedConnectoidCosts = new double[numberOfConnectoidSegments];
-		this.numberOfConnectoidSegments = numberOfConnectoidSegments;
-	}
- 
-	/**
 	 * Calculates the connectoid segment cost using a fixed travel time
 	 * 
 	 * @param mode              mode of travel
 	 * @param connectoidSegment the connectoid segment
-	 * @return the travel time for the specified connectod segment
+	 * @return the travel time for the specified connectoid segment
 	 */
 	@Override
 	public double getSegmentCost(Mode mode, ConnectoidSegment connectoidSegment) {
-		return fixedConnectoidCosts[(int) connectoidSegment.getConnectoidSegmentId()];
+		return fixedConnectoidCost;
 	}
 	
     /**
@@ -74,7 +45,11 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
      */
     @Override
     public void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException {
-        populateToZero(virtualNetwork.connectoidSegments.getNumberOfConnectoidSegments());
+        // currently no specific initialization needed
     }	
+    
+    public void setFixedConnectoidCost(double fixedConnectoidCost) {
+    	this.fixedConnectoidCost = fixedConnectoidCost;
+    }
 
 }
