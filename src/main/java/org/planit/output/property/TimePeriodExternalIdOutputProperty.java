@@ -37,7 +37,6 @@ public final class TimePeriodExternalIdOutputProperty extends BaseOutputProperty
 	/**
 	 * Returns the current time period external Id
 	 * 
-	 * @param trafficAssignment TrafficAssignment containing data which may be required
 	 * @param timePeriod current time period
 	 * @return the current time period external Id
 	 * @throws PlanItException thrown if there is an error

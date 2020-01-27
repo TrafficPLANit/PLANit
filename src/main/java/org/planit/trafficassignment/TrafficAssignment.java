@@ -31,7 +31,7 @@ import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
 import org.planit.zoning.Zoning;
 
 /**
@@ -161,7 +161,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	
 	/**
 	 * Initialise the transport network by combining the physical and virtual components
-	 * @throws PlanItException 
+	 * @throws PlanItException thrown if there is an error
 	 */
 	protected void createTransportNetwork() throws PlanItException {
         transportNetwork = new TransportNetwork(physicalNetwork, zoning);
@@ -172,7 +172,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	
 	/**
 	 * detach the virtual and physical transport network again
-	 * @throws PlanItException 
+	 * @throws PlanItException thrown if there is an error
 	 */
 	protected void disbandTransportNetwork() throws PlanItException {
         // Disconnect here since the physical network might be reused in a different assignment
@@ -182,7 +182,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	/**
 	 * Initialise all relevant traffic assignment components before execution of the assignment commences
 	 * 
-	 * @throws PlanItException 
+	 * @throws PlanItException thrown if there is an error
 	 */
 	protected void initialiseBeforeExecution() throws PlanItException{
 	    // verify validity
@@ -198,7 +198,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	
 	/**
 	 * Finalise all relevant traffic assignment components after execution of the assignment has ended
-	 * @throws PlanItException 
+	 * @throws PlanItException thrown if there is an error
 	 */
 	protected void finalizeAfterExecution() throws PlanItException {
 	    

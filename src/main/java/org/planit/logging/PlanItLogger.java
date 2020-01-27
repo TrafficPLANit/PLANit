@@ -33,8 +33,8 @@ public class PlanItLogger {
 	 * 
 	 * @param logfileLocation name of the log file to be created
 	 * @param formatter Formatter object
-	 * @throws SecurityException
-	 * @throws IOException
+	 * @throws SecurityException thrown security exception
+	 * @throws IOException thrown io exception
 	 */
 	private static void addHandler(String logfileLocation, Formatter formatter) throws SecurityException, IOException {
 		File logFile = new File(logfileLocation);
@@ -62,8 +62,9 @@ public class PlanItLogger {
 	 * 
 	 * @param logfileLocation name of the log file to be created
 	 * @param clazz class of the application logging is being done for
-	 * @throws SecurityException
-	 * @throws IOException
+	 * @param format, the format for the logging
+	 * @throws SecurityException thrown security exception
+	 * @throws IOException thrown io exception
 	 */
 	public static void setLogging(String logfileLocation, Class clazz, String format) throws SecurityException, IOException {
 		setLoggingToConsoleOnly(clazz, format);		
@@ -76,8 +77,8 @@ public class PlanItLogger {
 	 * 
 	 * @param logfileLocation name of the log file to be created
 	 * @param clazz class of the application logging is being done for
-	 * @throws SecurityException
-	 * @throws IOException
+	 * @throws SecurityException thrown security exception
+	 * @throws IOException thrown io exception
 	 */
 	public static void setLogging(String logfileLocation, Class clazz) throws SecurityException, IOException {
 		setLogging(logfileLocation, clazz, DEFAULT_LOG_FORMAT);
@@ -88,8 +89,8 @@ public class PlanItLogger {
 	 * 
 	 * @param logfileLocation name of the log file to be created
 	 * @param clazz class of the application logging is being done for
-	 * @throws SecurityException
-	 * @throws IOException
+	 * @throws SecurityException thrown security exception
+	 * @throws IOException thrown io exception
 	 */
 	public static void setLoggingWithXmlFormatting(String logfileLocation, Class clazz) throws SecurityException, IOException {
 		LOGGER = Logger.getLogger(clazz.getName());		
@@ -122,8 +123,8 @@ public class PlanItLogger {
 	 * @param logfileLocation name of the log file to be created
 	 * @param clazz class of the application logging is being done for
 	 * @param formatter Formatter object
-	 * @throws SecurityException
-	 * @throws IOException
+	 * @throws SecurityException thrown security exception
+	 * @throws IOException thrown io exception
 	 */
 	public static void setLogging(String logfileLocation, Class clazz, Formatter formatter) throws SecurityException, IOException {
 		LOGGER = Logger.getLogger(clazz.getName());

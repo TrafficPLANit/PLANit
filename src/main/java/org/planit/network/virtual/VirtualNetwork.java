@@ -116,7 +116,6 @@ public class VirtualNetwork {
          * Create and register connectoid segment in AB direction on virtual network
          * 
          * @param parentConnectoid the connectoid which will contain this connectoid segment
-         * @param externalId the external Id of the connectoid segment (can be null, in which case the external Id was not set in the input files
          * @param directionAB direction of travel
          * @return created connectoid segment
          * @throws PlanItException thrown if there is an error

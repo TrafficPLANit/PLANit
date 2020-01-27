@@ -155,11 +155,11 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * Write Simulation results for the current time period to the CSV file
 	 * 
      * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
-     * @param currentOtuputType, the active outputtype of the configuration we are persisting for (can be a suboutputtype)
-     * @param outputTypeAdapter OutputTypeAdapter for current persistence
+     * @param currentOutputType, the active output type of the configuration we are persisting for (can be a suboutputtype)
+     * @param outputAdapter OutputAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
-     * @param iterationIndex
+     * @param iterationIndex the iterationIndex we are persisting for
      * @throws PlanItException thrown if there is an error
 	 */
 	@Override
@@ -172,11 +172,11 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * Write General results for the current time period to the CSV file
 	 * 
      * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
-     * @param currentOtuputType, the active outputtype of the configuration we are persisting for (can be a suboutputtype)
-     * @param outputTypeAdapter OutputTypeAdapter for current persistence
+     * @param currentOutputType, the active output type of the configuration we are persisting for (can be a suboutputtype)
+     * @param outputAdapter OutputAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
-     * @param iterationIndex
+     * @param iterationIndex		the iteration index we are persisting for
      * @throws PlanItException thrown if there is an error
 	 */
 	@Override
@@ -189,11 +189,11 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * Write link results for the current time period to Map in memory
 	 * 
      * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
-     * @param currentOtuputType, the active outputtype of the configuration we are persisting for (can be a suboutputtype)
-     * @param outputTypeAdapter OutputTypeAdapter for current persistence
+     * @param currentOutputType, the active output type of the configuration we are persisting for (can be a suboutputtype)
+     * @param outputAdapter OutputAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
-     * @param iterationIndex
+     * @param iterationIndex	the iteration index we are persisting for
      * @throws PlanItException thrown if there is an error
 	 */
 	@Override
@@ -220,11 +220,11 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * Write Origin-Destination results for the time period to the Map in memory
 	 * 
      * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
-     * @param currentOtuputType, the active outputtype of the configuration we are persisting for (can be a suboutputtype)
-     * @param outputTypeAdapter OutputTypeAdapter for current persistence
+     * @param currentOutputType, the active output type of the configuration we are persisting for (can be a suboutputtype)
+     * @param outputAdapter OutputAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
-     * @param iterationIndex
+     * @param iterationIndex 		  the iteration index we are persisting for
      * @throws PlanItException thrown if there is an error
 	 */
 	@Override
@@ -256,6 +256,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * Write Path results for the time period to the CSV file
 	 * 
 	 * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
+	 * @param currentOutputType the output type we are persisting for
 	 * @param outputAdapter OutputAdapter for the current persistence
 	 * @param modes                   Set of modes of travel
 	 * @param timePeriod              current time period
@@ -300,6 +301,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @param outputProperty output property to identify the column
 	 * @param keyValues values of keys to identify the row
 	 * @return data map for the specified keys
+	 * @throws PlanItException thrown if there is an error
 	 */
 	public Object getOutputDataValue(Mode mode, TimePeriod timePeriod, Integer iterationIndex, OutputType outputType, OutputProperty outputProperty,  Object[] keyValues) throws PlanItException {
 		return ((MultiKeyPlanItData)  timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType)).getRowValue(outputProperty, keyValues);

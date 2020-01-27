@@ -1,6 +1,6 @@
 package org.planit.cost;
 
-import org.planit.network.EdgeSegment;
+import org.planit.network.EdgeSegmentImpl;
 import org.planit.userclass.Mode;
 
 /**
@@ -9,7 +9,7 @@ import org.planit.userclass.Mode;
  * @author markr
  *
  */
-public interface Cost<T extends EdgeSegment> {
+public interface Cost<T extends EdgeSegmentImpl> {
 
     /**
      * Returns the cost of travel along an edge segment for a specified mode

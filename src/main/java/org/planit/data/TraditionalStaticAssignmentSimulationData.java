@@ -115,6 +115,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 	 * Reset modal network segment flows by cloning empty array
 	 * 
 	 * @param mode the mode whose flows are to be reset
+	 * @param numberOfNetworkSegments the number of network link segments
 	 */
 	public void resetModalNetworkSegmentFlows(Mode mode, int numberOfNetworkSegments) {
 		setModalNetworkSegmentFlows(mode, new double[numberOfNetworkSegments]);
@@ -154,7 +155,6 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 	 * Reset the skim matrix to all zeroes for a specified mode for all activated
 	 * skim output types
 	 * 
-	 * @param odSkimOutputType the specified Skim Output type
 	 * @param mode             the specified mode
 	 * @param zones            Zones object containing all the origin and
 	 *                         destination zones

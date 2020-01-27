@@ -49,6 +49,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	 * Write output values to the OD CSV file for the current iteration
 	 * 
 	 * @param outputTypeConfiguration output type configuration for the current output type
+	 * @param currentOutputType the output type
 	 * @param outputAdapter output adapter for the current output type
 	 * @param modes         Set of modes for the current assignment
 	 * @param timePeriod    the current time period
@@ -92,6 +93,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	 * Write output values to the Path CSV file for the current iteration
 	 * 
 	 * @param outputTypeConfiguration output type configuration for the current output type
+	 * @param currentOutputType the output type
 	 * @param outputAdapter output adapter for the current output type
 	 * @param modes         Set of modes for the current assignment
 	 * @param timePeriod    the current time period
@@ -130,6 +132,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	 * Write output values to the Link CSV file for the current iteration
 	 * 
 	 * @param outputTypeConfiguration the current output type configuration
+	 * @param currentOutputType the output type
 	 * @param outputAdapter output adapter for the current output type
 	 * @param modes         Set of modes for the current assignment
 	 * @param timePeriod    the current time period
@@ -179,16 +182,10 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	/**
 	 * Add a new name of the CSV output file for a specified output type
 	 * 
-	 * @param outputType     the specified output type
-	 * @param outputFileName the name of the output file to be added
+	 * @param currentoutputType     the specified output type
+	 * @param csvFileName the name of the output file to be added
 	 */
 	public void addCsvFileNamePerOutputType(OutputTypeEnum currentoutputType, String csvFileName) {
-        //TODO: MARK 6-1-2020
-//       DOES NOT WORK YET	    
-//		if (!csvFileNameMap.containsKey(outputType)) {
-//			csvFileNameMap.put(outputType, new ArrayList<String>());
-//		}
-//		csvFileNameMap.get(outputType).add(csvFileName);
 		if (!csvFileNameMap.containsKey(currentoutputType)) {
 			csvFileNameMap.put(currentoutputType, new ArrayList<String>());
 		}
@@ -199,7 +196,6 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	 * Constructor
 	 */
 	public CsvFileOutputFormatter() {
-		//csvFileNameMap = new HashMap<OutputType, List<String>>();
 		csvFileNameMap = new HashMap<OutputTypeEnum, List<String>>();
 	}
 }

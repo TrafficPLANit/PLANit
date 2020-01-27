@@ -45,7 +45,7 @@ public interface OutputFormatter {
     /**
      * Open resources to store results
      * 
-     * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to  be saved
+     * @param outputTypeConfigurations OutputTypeConfigurations for the assignment to  be saved
      * @param runId the id number of the run
      * @throws PlanItException thrown if there is an error
      */	
@@ -54,7 +54,7 @@ public interface OutputFormatter {
 	/**
 	 * Close resources to store results
 	 * 
-	 * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to  be saved
+	 * @param outputTypeConfigurations OutputTypeConfigurations for the assignment to  be saved
 	 * @throws PlanItException thrown if there is an error
 	 */
     public void finaliseAfterSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations)throws PlanItException;	

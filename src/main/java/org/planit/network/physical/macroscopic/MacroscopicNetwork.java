@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
-import org.planit.utils.Pair;
+import org.planit.utils.misc.Pair;
 
 /**
  * Macroscopic Network which stores link segment types

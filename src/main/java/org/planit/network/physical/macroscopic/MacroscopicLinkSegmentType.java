@@ -2,7 +2,7 @@ package org.planit.network.physical.macroscopic;
 
 import javax.annotation.Nonnull;
 
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * Each macroscopic link segment is of a particular type reflecting segment

@@ -2,8 +2,8 @@ package org.planit.network.virtual;
 
 import java.math.BigInteger;
 
-import org.planit.network.EdgeSegment;
-import org.planit.utils.IdGenerator;
+import org.planit.network.EdgeSegmentImpl;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * The link segment that connects a zone to the physical network is not a
@@ -22,7 +22,7 @@ import org.planit.utils.IdGenerator;
  * @author markr
  *
  */
-public class ConnectoidSegment extends EdgeSegment {
+public class ConnectoidSegment extends EdgeSegmentImpl {
 
     /**
      * unique internal identifier

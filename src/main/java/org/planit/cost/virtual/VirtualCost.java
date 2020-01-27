@@ -25,7 +25,7 @@ public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost
     /**
      * Initialize the virtual cost component
      * 
-     * @param VirtualNetwork the virtual network
+     * @param virtualNetwork the virtual network
      * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
      */
     public abstract void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException;    

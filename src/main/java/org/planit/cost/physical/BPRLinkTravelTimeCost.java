@@ -12,7 +12,7 @@ import org.planit.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.userclass.Mode;
-import org.planit.utils.Pair;
+import org.planit.utils.misc.Pair;
 
 /**
  * Well known BPR link performance function to compute travel time cost on link

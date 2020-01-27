@@ -6,7 +6,10 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.opengis.geometry.DirectPosition;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.Edge;
+import org.planit.utils.network.EdgeSegment;
+import org.planit.utils.network.Vertex;
 
 /**
  * Node representation connected to one or more entry and exit links
@@ -14,14 +17,14 @@ import org.planit.utils.IdGenerator;
  * @author markr
  *
  */
-public class Vertex implements Comparable<Vertex> {
+public class VertexImpl implements Vertex {
 
     /**
      * edges of this vertex
      * 
      * @author markr
      */
-	public class Edges {
+	public class EdgesImpl implements Edges {
 
         protected Set<Edge> edges = new TreeSet<Edge>();
 
@@ -33,6 +36,7 @@ public class Vertex implements Comparable<Vertex> {
          * @param edge Edge to be added
          * @return true when added, false when already present (and not added)
          */
+        @Override
         public boolean addEdge(Edge edge) {
             return edges.add(edge);
         }
@@ -43,6 +47,7 @@ public class Vertex implements Comparable<Vertex> {
          * @param edge Edge to be removed
          * @return true when removed, false when not present (and not removed)
          */
+        @Override
         public boolean removeEdge(Edge edge) {
             return edges.remove(edge);
         }
@@ -52,6 +57,7 @@ public class Vertex implements Comparable<Vertex> {
          * 
          * @return Set of Edge objects
          */
+        @Override
         public Set<Edge> getEdges() {
         	return edges;
         }
@@ -62,7 +68,7 @@ public class Vertex implements Comparable<Vertex> {
      * 
      * @author markr
      */
-	public class EdgeSegments {
+	public class EdgeSegmentsImpl implements EdgeSegments {
 
         /**
          * Edge segments which connect to this vertex
@@ -77,6 +83,7 @@ public class Vertex implements Comparable<Vertex> {
          * @param edgeSegment EdgeSegment object to be added
          * @return true when added, false when already present (and not added)
          */
+        @Override
         public boolean addEdgeSegment(EdgeSegment edgeSegment) {
             return edgeSegments.add(edgeSegment);
         }
@@ -87,6 +94,7 @@ public class Vertex implements Comparable<Vertex> {
          * @param edgeSegment EdgeSegment object to be removed
          * @return true when removed, false when not present (and not removed)
          */
+        @Override
         public boolean removeEdgeSegment(EdgeSegment edgeSegment) {
             return edgeSegments.remove(edgeSegment);
         }
@@ -96,6 +104,7 @@ public class Vertex implements Comparable<Vertex> {
          * 
          * @return true if no edge segments have been registered, false otherwise
          */
+        @Override
         public boolean isEmpty() {
             return edgeSegments.isEmpty();
         }
@@ -105,6 +114,7 @@ public class Vertex implements Comparable<Vertex> {
          * 
          * @return Set of EdgeSegment objects
          */
+        @Override
         public Set<EdgeSegment> getEdgeSegments() {
         	return edgeSegments;
         }
@@ -123,7 +133,7 @@ public class Vertex implements Comparable<Vertex> {
      * @return nodeId
      */
     protected static int generateVertexId() {
-        return IdGenerator.generateId(Vertex.class);
+        return IdGenerator.generateId(VertexImpl.class);
     }
 
     /**
@@ -137,24 +147,27 @@ public class Vertex implements Comparable<Vertex> {
     protected Map<String, Object> inputProperties = null;
     
     /**
-     * Constructor
-     */
-    protected Vertex() {
-        this.id = generateVertexId();
-    }    
-
-    /**
      * edge container
      */
-    public final Edges edges = new Edges();
+    protected final Edges edges = new EdgesImpl();
+    
     /**
      * exitEdgeSegmentcontainer
      */
-    public final EdgeSegments exitEdgeSegments = new EdgeSegments();
+    protected final EdgeSegments exitEdgeSegments = new EdgeSegmentsImpl();
+    
     /**
      * entryEdgeSegment container
      */
-    public final EdgeSegments entryEdgeSegments = new EdgeSegments();
+    protected final EdgeSegments entryEdgeSegments = new EdgeSegmentsImpl();
+    
+    /**
+     * Constructor
+     */
+    protected VertexImpl() {
+        this.id = generateVertexId();
+    }    
+
 
     // Public
 
@@ -207,5 +220,31 @@ public class Vertex implements Comparable<Vertex> {
     public int compareTo(Vertex o) {
         return Long.valueOf(id).compareTo(o.getId());
     }
+
+
+	/**
+	 * collect entry edge segments
+	 * @return entry edge segments
+	 */
+	@Override
+	public EdgeSegments getEntryEdgeSegments() {
+		return entryEdgeSegments;
+	}
+	
+	/**
+	 * collect exit edge segments
+	 * @return exit edge segments
+	 */
+	@Override
+	public EdgeSegments getExitEdgeSegments() {
+		return entryEdgeSegments;
+	}
+
+
+	@Override
+	public Edges getEdges() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

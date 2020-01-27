@@ -19,8 +19,8 @@ import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.gap.StopCriterion;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.logging.PlanItLogger;
-import org.planit.network.EdgeSegment;
-import org.planit.network.Vertex;
+import org.planit.network.EdgeSegmentImpl;
+import org.planit.network.VertexImpl;
 import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.Node;
 import org.planit.network.virtual.Centroid;
@@ -40,7 +40,7 @@ import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
 import org.planit.utils.ArrayOperations;
 import org.planit.utils.FormatUtils;
-import org.planit.utils.Pair;
+import org.planit.utils.misc.Pair;
 import org.planit.zoning.Zone;
 
 /**
@@ -116,7 +116,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		long previousOriginZoneId = -1;
 		// track the cost to reach each vertex in the network and the shortest path
 		// segment used to get there
-		Pair<Double, EdgeSegment>[] vertexPathCosts = null;
+		Pair<Double, EdgeSegmentImpl>[] vertexPathCosts = null;
 		for (ODMatrixIterator odDemandMatrixIter = odDemandMatrix.iterator(); odDemandMatrixIter.hasNext();) {
 			double odDemand = odDemandMatrixIter.next();
 			Zone currentOriginZone = odDemandMatrixIter.getCurrentOrigin();
@@ -188,12 +188,12 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @return the route cost for the calculated minimum cost path
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private double getShortestPathCost(Pair<Double, EdgeSegment>[] vertexPathAndCost, Zone currentOriginZone,
+	private double getShortestPathCost(Pair<Double, EdgeSegmentImpl>[] vertexPathAndCost, Zone currentOriginZone,
 			Zone currentDestinationZone, double[] modalNetworkSegmentCosts, double odDemand, ModeData currentModeData)
 			throws PlanItException {
 		double shortestPathCost = 0;
-		EdgeSegment currentEdgeSegment = null;
-		for (Vertex currentPathStartVertex = currentDestinationZone.getCentroid(); currentPathStartVertex
+		EdgeSegmentImpl currentEdgeSegment = null;
+		for (VertexImpl currentPathStartVertex = currentDestinationZone.getCentroid(); currentPathStartVertex
 				.getId() != currentOriginZone.getCentroid()
 						.getId(); currentPathStartVertex = currentEdgeSegment.getUpstreamVertex()) {
 			int startVertexId = (int) currentPathStartVertex.getId();
@@ -221,10 +221,11 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 *                               type
 	 * @param currentOriginZone      current origin zone
 	 * @param currentDestinationZone current destination zone
+	 * @param odDemand               the odDemand
 	 * @param vertexPathCosts        array of costs for the specified mode
 	 */
 	private void updateSkimMatrixMap(Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap, Zone currentOriginZone,
-			Zone currentDestinationZone, double odDemand, Pair<Double, EdgeSegment>[] vertexPathCosts) {
+			Zone currentDestinationZone, double odDemand, Pair<Double, EdgeSegmentImpl>[] vertexPathCosts) {
 		for (ODSkimSubOutputType odSkimOutputType : simulationData.getActiveSkimOutputTypes()) {
 			if (odSkimOutputType.equals(ODSkimSubOutputType.COST)) {
 				double odGeneralisedCost = -1;
@@ -232,7 +233,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 					// Collect cost to get to vertex from shortest path ONE-TO-ALL information
 					// directly
 					long destinationVertexId = currentDestinationZone.getCentroid().getId();
-					Pair<Double, EdgeSegment> vertexPathCost = vertexPathCosts[(int) destinationVertexId];
+					Pair<Double, EdgeSegmentImpl> vertexPathCost = vertexPathCosts[(int) destinationVertexId];
 					odGeneralisedCost = vertexPathCost.getFirst();
 				}
 				ODSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);
@@ -492,7 +493,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @param mode       current mode
 	 * @param timePeriod current time period
 	 * @return array containing link costs for each link segment
-	 * @throws PlanItException
+	 * @throws PlanItException thrown if there is an error
 	 */
 	public double[] recalculateModalLinkSegmentCosts(Mode mode, TimePeriod timePeriod) throws PlanItException {
 		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
@@ -510,7 +511,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @param mode       current mode
 	 * @param timePeriod current time period
 	 * @return array containing link costs for each link segment
-	 * @throws PlanItException
+	 * @throws PlanItException thrown if there is an error
 	 */
 	public double[] initializeModalLinkSegmentCosts(Mode mode, TimePeriod timePeriod) throws PlanItException {
 		double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];

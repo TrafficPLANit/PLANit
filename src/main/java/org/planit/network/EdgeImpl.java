@@ -6,7 +6,8 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.Edge;
 
 /**
  * Edge class connecting two vertices via some geometry. Each edge has one or
@@ -16,7 +17,7 @@ import org.planit.utils.IdGenerator;
  * @author markr
  *
  */
-public class Edge implements Comparable<Edge> {
+public class EdgeImpl implements Edge {
 
     // Protected
 
@@ -38,12 +39,12 @@ public class Edge implements Comparable<Edge> {
     /**
      * Vertex A
      */
-    protected Vertex vertexA = null;
+    protected VertexImpl vertexA = null;
     
     /**
      * Vertex B
      */
-    protected Vertex vertexB = null;
+    protected VertexImpl vertexB = null;
     
     /**
      * Length of edge
@@ -53,11 +54,11 @@ public class Edge implements Comparable<Edge> {
     /**
      * Edge segment A to B direction
      */
-    protected EdgeSegment edgeSegmentAB = null;
+    protected EdgeSegmentImpl edgeSegmentAB = null;
     /**
      * Edge segment B to A direction
      */
-    protected EdgeSegment edgeSegmentBA = null;
+    protected EdgeSegmentImpl edgeSegmentBA = null;
 
     /**
      * Generate edge id
@@ -65,7 +66,7 @@ public class Edge implements Comparable<Edge> {
      * @return id of this Edge object
      */
     protected static long generateEdgeId() {
-        return IdGenerator.generateId(Edge.class);
+        return IdGenerator.generateId(EdgeImpl.class);
     }
 
     // Public
@@ -82,7 +83,7 @@ public class Edge implements Comparable<Edge> {
      * @throws PlanItException
      *             thrown if there is an error
      */
-    protected Edge(@Nonnull Vertex vertexA, @Nonnull Vertex vertexB, double length) throws PlanItException {
+    protected EdgeImpl(@Nonnull VertexImpl vertexA, @Nonnull VertexImpl vertexB, double length) throws PlanItException {
         this.id = generateEdgeId();
         this.vertexA = vertexA;
         this.vertexB = vertexB;
@@ -103,12 +104,12 @@ public class Edge implements Comparable<Edge> {
      * @throws PlanItException
      *             thrown if there is an error
      */
-    protected EdgeSegment registerEdgeSegment(EdgeSegment edgeSegment, boolean directionAB) throws PlanItException {
+    protected EdgeSegmentImpl registerEdgeSegment(EdgeSegmentImpl edgeSegment, boolean directionAB) throws PlanItException {
         if (edgeSegment.getParentEdge().getId() != getId()) {
             throw new PlanItException(
                     "Inconsistency between link segment parent link and link it is being registered on");
         }
-        EdgeSegment currentEdgeSegment = directionAB ? edgeSegmentAB : edgeSegmentBA;
+        EdgeSegmentImpl currentEdgeSegment = directionAB ? edgeSegmentAB : edgeSegmentBA;
         if (directionAB) {
             this.edgeSegmentAB = edgeSegment;
         } else {
@@ -164,11 +165,11 @@ public class Edge implements Comparable<Edge> {
         return id;
     }
 
-    public Vertex getVertexA() {
+    public VertexImpl getVertexA() {
         return vertexA;
     }
 
-    public Vertex getVertexB() {
+    public VertexImpl getVertexB() {
         return vertexB;
     }
 
@@ -180,11 +181,11 @@ public class Edge implements Comparable<Edge> {
         this.name = name;
     }
 
-    public EdgeSegment getEdgeSegmentAB() {
+    public EdgeSegmentImpl getEdgeSegmentAB() {
         return edgeSegmentAB;
     }
 
-    public EdgeSegment getEdgeSegmentBA() {
+    public EdgeSegmentImpl getEdgeSegmentBA() {
         return edgeSegmentBA;
     }
 

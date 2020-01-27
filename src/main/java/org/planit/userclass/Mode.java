@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * A Mode is a user class feature representing a single form of transport (car,

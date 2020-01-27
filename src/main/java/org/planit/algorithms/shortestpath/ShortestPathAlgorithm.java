@@ -3,9 +3,9 @@ package org.planit.algorithms.shortestpath;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.network.EdgeSegment;
-import org.planit.network.Vertex;
-import org.planit.utils.Pair;
+import org.planit.utils.misc.Pair;
+import org.planit.utils.network.EdgeSegment;
+import org.planit.utils.network.Vertex;
 
 /**
  * An algorithm which calculates the shortest (a.k.a. lowest cost) route to all

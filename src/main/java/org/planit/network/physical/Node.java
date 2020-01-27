@@ -3,8 +3,8 @@
  */
 package org.planit.network.physical;
 
-import org.planit.network.Vertex;
-import org.planit.utils.IdGenerator;
+import org.planit.network.VertexImpl;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * Node representation connected to one or more entry and exit links
@@ -12,7 +12,7 @@ import org.planit.utils.IdGenerator;
  * @author markr
  *
  */
-public class Node extends Vertex {
+public class Node extends VertexImpl {
 
     // Protected
 

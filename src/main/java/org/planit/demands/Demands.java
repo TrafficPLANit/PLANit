@@ -9,7 +9,7 @@ import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.userclass.Mode;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * Container class for all demands registered on the project. In PlanIt we
@@ -54,7 +54,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> {
      * 
      * @param timePeriod  the time period for this origin-demand object
      * @param mode the mode for this origin-demand object
-     * @param odDemand  the origin-demand object to be registered
+     * @param odDemandMatrix  the origin-demand object to be registered
      * @return oldODDemand if there already existed an odDemand for the given mode
      *         and time period, the overwritten entry is returned
      */

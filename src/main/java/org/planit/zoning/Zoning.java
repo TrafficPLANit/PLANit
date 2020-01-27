@@ -8,7 +8,7 @@ import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * Zoning class which holds a particular zoning

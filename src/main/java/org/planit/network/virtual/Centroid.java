@@ -1,6 +1,6 @@
 package org.planit.network.virtual;
 
-import org.planit.network.Vertex;
+import org.planit.network.VertexImpl;
 import org.planit.zoning.Zone;
 
 /**
@@ -9,7 +9,7 @@ import org.planit.zoning.Zone;
  * @author gman6028
  *
  */
-public class Centroid extends Vertex {
+public class Centroid extends VertexImpl {
     
  // Protected    
 

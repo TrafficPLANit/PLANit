@@ -3,8 +3,8 @@ package org.planit.network.physical;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.network.Edge;
-import org.planit.utils.IdGenerator;
+import org.planit.network.EdgeImpl;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * Link class connecting two nodes via some geometry. Each link has one or two
@@ -14,7 +14,7 @@ import org.planit.utils.IdGenerator;
  * @author markr
  *
  */
-public class Link extends Edge {
+public class Link extends EdgeImpl {
 
     // Protected
 

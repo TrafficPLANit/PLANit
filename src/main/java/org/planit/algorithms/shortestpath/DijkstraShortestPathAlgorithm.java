@@ -7,9 +7,11 @@ import java.util.PriorityQueue;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.network.EdgeSegment;
-import org.planit.network.Vertex;
-import org.planit.utils.Pair;
+import org.planit.network.EdgeSegmentImpl;
+import org.planit.network.VertexImpl;
+import org.planit.utils.misc.Pair;
+import org.planit.utils.network.EdgeSegment;
+import org.planit.utils.network.Vertex;
 
 /**
  * Dijkstra's shortest path algorithm
@@ -111,7 +113,7 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
             // already been found and we continue with the next entry
             // track all adjacent edge segments for possible improved shortest paths
 
-            for (EdgeSegment adjacentLinkSegment : currentNode.exitEdgeSegments.getEdgeSegments()) {
+            for (EdgeSegment adjacentLinkSegment : currentNode.getExitEdgeSegments().getEdgeSegments()) {
                 double currentEdgeSegmentCost = edgeSegmentCosts[(int) adjacentLinkSegment.getId()];
                 if (currentEdgeSegmentCost < Double.POSITIVE_INFINITY) {
                     Vertex adjacentVertex = adjacentLinkSegment.getDownstreamVertex();

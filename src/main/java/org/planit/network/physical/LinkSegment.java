@@ -3,9 +3,9 @@ package org.planit.network.physical;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.planit.network.EdgeSegment;
+import org.planit.network.EdgeSegmentImpl;
 import org.planit.userclass.Mode;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * Link segment object representing physical links in the network and storing
@@ -14,7 +14,7 @@ import org.planit.utils.IdGenerator;
  * @author gman6028
  *
  */
-public abstract class LinkSegment extends EdgeSegment {
+public abstract class LinkSegment extends EdgeSegmentImpl {
 
     /**
      * unique internal identifier

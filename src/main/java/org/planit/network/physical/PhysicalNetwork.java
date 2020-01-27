@@ -12,7 +12,7 @@ import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.LinkSegment;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * Model free Network consisting of nodes and links, each of which can be

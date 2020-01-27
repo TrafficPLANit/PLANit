@@ -22,6 +22,7 @@ public abstract class FileOutputFormatter extends BaseOutputFormatter {
 	 * @param outputDirectory location output files are to be written
 	 * @param nameRoot        root name of the output files
 	 * @param nameExtension   extension of the output files
+	 * @param timePeriod the time period
 	 * @param outputType the OutputType of the output
 	 * @param runId the id of the traffic assignment run
 	 * @param iteration       current iteration
@@ -60,6 +61,7 @@ public abstract class FileOutputFormatter extends BaseOutputFormatter {
 	 * @param outputDirectory location output files are to be written
 	 * @param nameRoot        root name of the output files
 	 * @param nameExtension   extension of the output files
+	 * @param timePeriod timePeriod
 	 * @param outputType the OutputType of the output
 	 * @param runId the id of the traffic assignment run
 	 * @return the name of the output file

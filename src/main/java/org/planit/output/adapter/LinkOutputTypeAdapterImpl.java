@@ -79,7 +79,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	/**
 	 * Returns the location of the downstream node
 	 * 
-	 * @param object LinkSegment object containing the required data
+	 * @param linkSegment LinkSegment object containing the required data
 	 * @return the location of the downstream node
 	 * @throws PlanItException thrown if there is an error
 	 */

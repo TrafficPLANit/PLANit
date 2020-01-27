@@ -2,7 +2,7 @@ package org.planit.userclass;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * A user class defines a combination of one or more characteristics of users in

@@ -15,7 +15,7 @@ import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.Mode;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * Base class for all formatters of output data, i.e. persistence of certain
@@ -87,8 +87,6 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * Lock the output keys and values for a specified output type
 	 * 
 	 * @param outputType the output type to be locked
-	 * 
-	 * @param outputType
 	 */
 	protected void lockOutputProperties(OutputType outputType) {
 		outputTypeValuesLocked.put(outputType, true);
@@ -100,7 +98,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * 
 	 * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
 	 * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
-	 * @param outputTypeAdapter OutputTypeAdapter for current persistence
+	 * @param outputAdapter OutputAdapter for current persistence
 	 * @param modes                   Set of modes of travel
 	 * @param timePeriod              current time period
 	 * @param iterationIndex current iteration index
@@ -114,7 +112,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * 
      * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
  	 * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
-     * @param outputTypeAdapter OutputTypeAdapter for current persistence
+     * @param outputAdapter OutputAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
      * @param iterationIndex current iteration index
@@ -128,7 +126,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * 
      * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
 	 * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
-     * @param outputTypeAdapter OutputTypeAdapter for current persistence
+     * @param outputAdapter OutputAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
      * @param iterationIndex current iteration index
@@ -142,7 +140,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * 
      * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
 	 * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
-     * @param outputTypeAdapter OutputTypeAdapter for current persistence
+     * @param outputAdapter OutputAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
      * @param iterationIndex current iteration index
@@ -156,7 +154,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 	 * 
      * @param outputTypeConfiguration OutputTypeConfiguration for current  persistence
  	 * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
-     * @param outputTypeAdapter OutputTypeAdapter for current persistence
+     * @param outputAdapter OutputAdapter for current persistence
      * @param modes                   Set of modes of travel
      * @param timePeriod              current time period
      * @param iterationIndex current iteration index

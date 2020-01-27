@@ -80,10 +80,9 @@ public abstract class OutputTypeConfiguration {
 	/**
 	 * OutputTypeconfiguration constructor
 	 * 
-	 * @param trafficAssignent TrafficAssignment object whose results are being
-	 *                         reported
+	 * @param trafficAssignment TrafficAssignment object whose results are being reported
 	 * @param outputType       the output type being created
-	 * @throws PlanItException
+	 * @throws PlanItException thrown if there is an excpetion
 	 */
 	public OutputTypeConfiguration(TrafficAssignment trafficAssignment, OutputType outputType) throws PlanItException {
 		this.outputType = outputType;

@@ -1,6 +1,9 @@
 package org.planit.network;
 
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.Edge;
+import org.planit.utils.network.EdgeSegment;
+import org.planit.utils.network.Vertex;
 
 /**
  * EdgeSegment represents an edge in a particular (single) direction. Each edge
@@ -13,7 +16,7 @@ import org.planit.utils.IdGenerator;
  * @author markr
  *
  */
-public abstract class EdgeSegment implements Comparable<EdgeSegment> {
+public abstract class EdgeSegmentImpl implements EdgeSegment {
 
     /**
      * unique internal identifier
@@ -23,17 +26,17 @@ public abstract class EdgeSegment implements Comparable<EdgeSegment> {
     /**
      * segment's parent edge
      */
-    protected final Edge parentEdge;
+    protected final EdgeImpl parentEdge;
 
     /**
      * the upstreamVertex of the edge segment
      */
-    protected final Vertex upstreamVertex;
+    protected final VertexImpl upstreamVertex;
 
     /**
      * The downstream vertex of this edge segment
      */
-    protected final Vertex downstreamVertex;
+    protected final VertexImpl downstreamVertex;
 
     /**
 	 * The external Id for this link segment type
@@ -51,7 +54,7 @@ public abstract class EdgeSegment implements Comparable<EdgeSegment> {
      * @return id id of this EdgeSegment
      */
     protected static int generateEdgeSegmentId() {
-        return IdGenerator.generateId(EdgeSegment.class);
+        return IdGenerator.generateId(EdgeSegmentImpl.class);
     }
 
     // Public
@@ -62,7 +65,7 @@ public abstract class EdgeSegment implements Comparable<EdgeSegment> {
      * @param parentEdge  parent edge of segment
      * @param directionAB  direction of travel
      */
-    protected EdgeSegment(Edge parentEdge, boolean directionAB) {
+    protected EdgeSegmentImpl(EdgeImpl parentEdge, boolean directionAB) {
         this.id = generateEdgeSegmentId();
         this.parentEdge = parentEdge;
         this.upstreamVertex = directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB();
@@ -77,6 +80,7 @@ public abstract class EdgeSegment implements Comparable<EdgeSegment> {
      * 
      * @return upstream vertex
      */
+    @Override
     public Vertex getUpstreamVertex() {
         return upstreamVertex;
     }
@@ -86,16 +90,29 @@ public abstract class EdgeSegment implements Comparable<EdgeSegment> {
      * 
      * @return downstream vertex
      */
+    @Override
     public Vertex getDownstreamVertex() {
         return downstreamVertex;
     }
 
     // Getter - Setters
 
+    /**
+     * Unique id of the edge segment
+     * 
+     * @return id
+     */
+    @Override
     public long getId() {
         return this.id;
     }
 
+    /**
+     * parent edge of the segment
+     * 
+     * @return parentEdge
+     */
+    @Override
     public Edge getParentEdge() {
         return this.parentEdge;
     }
@@ -120,7 +137,7 @@ public abstract class EdgeSegment implements Comparable<EdgeSegment> {
      */
     @Override
     public int compareTo(EdgeSegment o) {
-        return (int) (id - o.id);
+        return (int) (id - o.getId());
     }        
 
 }

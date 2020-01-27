@@ -4,9 +4,9 @@ import java.math.BigInteger;
 
 import javax.annotation.Nonnull;
 import org.planit.exceptions.PlanItException;
-import org.planit.network.Edge;
+import org.planit.network.EdgeImpl;
 import org.planit.network.physical.Node;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * connectoid connecting a zone to the physical road network, carrying two
@@ -16,7 +16,7 @@ import org.planit.utils.IdGenerator;
  * @author markr
  *
  */
-public class Connectoid extends Edge {
+public class Connectoid extends EdgeImpl {
 
     /**
      * Default connectoid length
