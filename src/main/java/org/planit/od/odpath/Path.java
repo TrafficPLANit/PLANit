@@ -6,14 +6,12 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
-import org.planit.network.EdgeSegmentImpl;
-import org.planit.network.VertexImpl;
-import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.output.enums.PathIdType;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.network.EdgeSegment;
 import org.planit.utils.network.Vertex;
 import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.zoning.Zone;
 
 /**

@@ -1,9 +1,9 @@
 package org.planit.network.virtual;
 
-import java.math.BigInteger;
-
-import org.planit.network.EdgeSegmentImpl;
+import org.planit.graph.EdgeSegmentImpl;
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.virtual.Connectoid;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * The link segment that connects a zone to the physical network is not a
@@ -22,7 +22,7 @@ import org.planit.utils.misc.IdGenerator;
  * @author markr
  *
  */
-public class ConnectoidSegment extends EdgeSegmentImpl {
+public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements ConnectoidSegment {
 
     /**
      * unique internal identifier
@@ -46,18 +46,15 @@ public class ConnectoidSegment extends EdgeSegmentImpl {
      * @param parentConnectoid  parent connectoid
      * @param directionAb direction of travel
      */
-    public ConnectoidSegment(Connectoid parentConnectoid, boolean directionAb) {
+    public ConnectoidSegmentImpl(Connectoid parentConnectoid, boolean directionAb) {
         super(parentConnectoid, directionAb);
-        BigInteger externalId = parentConnectoid.getExternalId();
-        if (externalId != null) {
-        	setExternalId(externalId.longValue());
-        }
         this.connectoidSegmentId = generateConnectoidSegmentId();
     }
 
     // Public getters - setters
 
-    public int getConnectoidSegmentId() {
+    @Override
+	public int getConnectoidSegmentId() {
         return connectoidSegmentId;
     }
 }

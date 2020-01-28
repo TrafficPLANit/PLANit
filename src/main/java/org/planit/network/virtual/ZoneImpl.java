@@ -1,9 +1,11 @@
-package org.planit.zoning;
+package org.planit.network.virtual;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.planit.network.virtual.Centroid;
+
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.virtual.Centroid;
+import org.planit.zoning.Zone;
 
 /**
  * Represents a demand generating zone in the network.
@@ -11,7 +13,7 @@ import org.planit.utils.misc.IdGenerator;
  * @author markr
  *
  */
-public class Zone {
+public class ZoneImpl implements Zone {
 
     /**
      * Unique identifier for the zone
@@ -31,7 +33,7 @@ public class Zone {
     /**
      * Centroid of the zone
      */
-    protected final Centroid centroid;
+    protected Centroid centroid = null;
 
     /**
      * Generate unique id for this zone
@@ -49,11 +51,25 @@ public class Zone {
      * 
      * @param externalId
      *            the external ID of this zone
+     * @param centroid of the zone
      */
-    public Zone(long externalId) {
+    public ZoneImpl(long externalId, Centroid centroid) {
         id = generateZoneId();
         this.externalId = externalId;
-        this.centroid = new Centroid(this);
+        this.centroid = centroid;
+    }
+    
+    /**
+     * Constructor
+     * 
+     * @param externalId
+     *            the external ID of this zone
+     * @param centroid of the zone
+     */
+    public ZoneImpl(long externalId) {
+        id = generateZoneId();
+        this.externalId = externalId;
+        this.centroid = null;
     }
 
     /**
@@ -61,7 +77,8 @@ public class Zone {
      * 
      * @return id of this zone
      */
-    public long getId() {
+    @Override
+	public long getId() {
         return this.id;
     }
 
@@ -97,11 +114,20 @@ public class Zone {
      * 
      * @return centroid of this zone
      */
-    public Centroid getCentroid() {
+    @Override
+	public Centroid getCentroid() {
         return centroid;
     }
+    
+    /** Set the centroid of this zone
+     * @param centroid
+     */
+    public void setCentroid(Centroid centroid) {
+    	this.centroid = centroid;
+    }
 
-    public long getExternalId() {
+    @Override
+	public long getExternalId() {
         return externalId;
     }
 

@@ -1,14 +1,10 @@
 package org.planit.project;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
-
-import javax.annotation.Nonnull;
 
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
@@ -17,6 +13,7 @@ import org.planit.logging.PlanItLogger;
 import org.planit.event.management.EventManager;
 import org.planit.event.management.SimpleEventManager;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.virtual.Zoning;
 import org.planit.demands.Demands;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;
@@ -26,7 +23,6 @@ import org.planit.trafficassignment.DeterministicTrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
-import org.planit.zoning.Zoning;
 import org.planit.exceptions.PlanItException;
 
 /**

@@ -1,15 +1,16 @@
 package org.planit.network.virtual;
 
-import org.planit.network.VertexImpl;
+import org.planit.graph.VertexImpl;
+import org.planit.utils.network.virtual.Centroid;
 import org.planit.zoning.Zone;
 
 /**
- * Centroid object
+ * Centroid implementation
  * 
  * @author gman6028
  *
  */
-public class Centroid extends VertexImpl {
+public class CentroidImpl extends VertexImpl implements Centroid {
     
  // Protected    
 
@@ -26,7 +27,7 @@ public class Centroid extends VertexImpl {
      * @param parentZone
      *            the parent zone of this Centroid
      */
-    public Centroid(Zone parentZone) {
+    public CentroidImpl(Zone parentZone) {
         super();
         this.parentZone = parentZone;
     }
@@ -38,7 +39,8 @@ public class Centroid extends VertexImpl {
      * 
      * @return parent zone of this centroid
      */
-    public Zone getParentZone() {
+    @Override
+	public Zone getParentZone() {
         return this.parentZone;
     }
 

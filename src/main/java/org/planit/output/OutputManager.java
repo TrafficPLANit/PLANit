@@ -8,7 +8,6 @@ import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
-import org.planit.network.physical.ModeImpl;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.configuration.LinkOutputTypeConfiguration;

@@ -3,9 +3,9 @@ package org.planit.cost.virtual;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * Class holding fixed connectoid costs for each connectoid segment

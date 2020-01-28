@@ -1,6 +1,5 @@
 package org.planit.network.virtual;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +9,10 @@ import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.virtual.Centroid;
+import org.planit.utils.network.virtual.Connectoid;
+import org.planit.utils.network.virtual.ConnectoidSegment;
+import org.planit.zoning.Zone;
 
 /**
  * Model free virtual network which is part of the zoning and holds all the
@@ -46,12 +49,27 @@ public class VirtualNetwork {
          * @param centroid centroid at one end of the connectoid
          * @param node node at other end of the connectoid
          * @param length length of connectiod
-         * @param externalId external Id of connectoid (null if not set in the input file)
+         * @param externalId external Id of connectoid
          * @return Connectoid object created and registered
          * @throws PlanItException  thrown if there is an error
          */
-        public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length, BigInteger externalId) throws PlanItException {
-            Connectoid newConnectoid = new Connectoid(centroid, node, length, externalId);
+        public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length, long externalId) throws PlanItException {
+            Connectoid newConnectoid = new ConnectoidImpl(centroid, node, length, externalId);
+            registerConnectoid(newConnectoid);
+            return newConnectoid;
+        }
+        
+        /**
+         * Create new connectoid to from a specified centroid to a specified node
+         * 
+         * @param centroid centroid at one end of the connectoid
+         * @param node node at other end of the connectoid
+         * @param length length of connectiod
+         * @return Connectoid object created and registered
+         * @throws PlanItException  thrown if there is an error
+         */
+        public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length) throws PlanItException {
+            Connectoid newConnectoid = new ConnectoidImpl(centroid, node, length);
             registerConnectoid(newConnectoid);
             return newConnectoid;
         }
@@ -121,7 +139,7 @@ public class VirtualNetwork {
          * @throws PlanItException thrown if there is an error
          */
         public ConnectoidSegment createAndRegisterConnectoidSegment(@Nonnull Connectoid parentConnectoid, boolean directionAB) throws PlanItException {
-            ConnectoidSegment connectoidSegment = new ConnectoidSegment(parentConnectoid, directionAB);
+            ConnectoidSegment connectoidSegment = new ConnectoidSegmentImpl(parentConnectoid, directionAB);
             parentConnectoid.registerConnectoidSegment(connectoidSegment, directionAB);
             registerConnectoidSegment(connectoidSegment);
             return connectoidSegment;
@@ -165,6 +183,17 @@ public class VirtualNetwork {
         public Centroid registerCentroid(@Nonnull Centroid centroid) {
             return centroidMap.put(centroid.getId(), centroid);
         }
+        
+        /**
+         * Create new centroid
+         * 
+         * @return registered new centroid
+         */
+		public Centroid registerNewCentroid(Zone zone) {
+			Centroid newCentroid = new CentroidImpl(zone);
+			registerCentroid(newCentroid);
+			return newCentroid;
+		}
 
         /**
          * Return List of Centroids
@@ -183,6 +212,7 @@ public class VirtualNetwork {
         public int getNumberOfCentroids() {
             return centroidMap.size();
         }
+
     }
 
     // Protected

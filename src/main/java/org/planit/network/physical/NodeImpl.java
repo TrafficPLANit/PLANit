@@ -3,7 +3,7 @@
  */
 package org.planit.network.physical;
 
-import org.planit.network.VertexImpl;
+import org.planit.graph.VertexImpl;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.Node;
 

@@ -3,7 +3,7 @@ package org.planit.network.physical;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.planit.network.EdgeSegmentImpl;
+import org.planit.graph.EdgeSegmentImpl;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;

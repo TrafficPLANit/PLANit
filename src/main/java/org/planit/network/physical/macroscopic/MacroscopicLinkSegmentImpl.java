@@ -4,13 +4,13 @@ import javax.annotation.Nonnull;
 
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.LinkSegmentImpl;
-import org.planit.network.virtual.Centroid;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentTypeModeProperties;
+import org.planit.utils.network.virtual.Centroid;
 
 /**
  * Link segment for macroscopic transport networks.

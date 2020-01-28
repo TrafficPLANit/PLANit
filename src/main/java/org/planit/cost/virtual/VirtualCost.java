@@ -3,9 +3,9 @@ package org.planit.cost.virtual;
 import org.planit.cost.Cost;
 import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
-import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * Object to handle the travel time cost of a virtual link

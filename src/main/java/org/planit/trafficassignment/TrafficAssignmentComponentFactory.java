@@ -21,13 +21,13 @@ import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
+import org.planit.network.virtual.Zoning;
 import org.planit.demands.Demands;
 import org.planit.sdinteraction.smoothing.MSASmoothing;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
 import org.planit.supply.networkloading.NetworkLoading;
-import org.planit.zoning.Zoning;
 
 /**
  * Generic factory class for registered subclasses of predefined traffic

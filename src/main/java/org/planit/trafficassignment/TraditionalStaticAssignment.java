@@ -19,10 +19,6 @@ import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.gap.StopCriterion;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.logging.PlanItLogger;
-import org.planit.network.physical.LinkSegmentImpl;
-import org.planit.network.physical.ModeImpl;
-import org.planit.network.virtual.Centroid;
-import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
@@ -43,6 +39,8 @@ import org.planit.utils.network.Vertex;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.virtual.Centroid;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.zoning.Zone;
 
 /**

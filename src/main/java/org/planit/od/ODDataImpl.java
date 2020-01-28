@@ -1,6 +1,6 @@
 package org.planit.od;
 
-import org.planit.zoning.Zoning;
+import org.planit.network.virtual.Zoning;
 
 /**
  * Base class containing common methods required by all classes which implement ODData

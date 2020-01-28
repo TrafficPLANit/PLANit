@@ -1,7 +1,7 @@
 package org.planit.od.odpath;
 
+import org.planit.network.virtual.Zoning;
 import org.planit.od.ODDataIteratorImpl;
-import org.planit.zoning.Zoning;
 
 /**
  * Iterator which runs through rows and columns of a matrix of Path objects, making the Path, row and column of each cell available

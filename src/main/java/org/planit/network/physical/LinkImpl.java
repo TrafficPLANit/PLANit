@@ -3,7 +3,7 @@ package org.planit.network.physical;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.network.EdgeImpl;
+import org.planit.graph.EdgeImpl;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;

@@ -1,12 +1,13 @@
 package org.planit.network.virtual;
 
-import java.math.BigInteger;
-
 import javax.annotation.Nonnull;
 import org.planit.exceptions.PlanItException;
-import org.planit.network.EdgeImpl;
+import org.planit.graph.EdgeImpl;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.virtual.Centroid;
+import org.planit.utils.network.virtual.Connectoid;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * connectoid connecting a zone to the physical road network, carrying two
@@ -16,12 +17,8 @@ import org.planit.utils.network.physical.Node;
  * @author markr
  *
  */
-public class Connectoid extends EdgeImpl {
-
-    /**
-     * Default connectoid length
-     */
-    public static final double DEFAULT_LENGTH = 1.0;    
+public class ConnectoidImpl extends EdgeImpl implements Connectoid {
+      
     
     // Protected
 
@@ -31,9 +28,9 @@ public class Connectoid extends EdgeImpl {
     protected final long connectoidId;
 
     /**
-     * External Id of the connectoid (can be null, in which case the external Id was not set in the input file
+     * External Id of the connectoid
      */
-    protected BigInteger externalId;
+    protected long externalId = Long.MIN_VALUE;
 
     /**
      * Generate connectoid id
@@ -55,9 +52,22 @@ public class Connectoid extends EdgeImpl {
      * @param externalId externalId of the connectoid (can be null, in which case this has not be set in the input files)
      * @throws PlanItException thrown if there is an error
      */
-    public Connectoid(@Nonnull Centroid centroidA, @Nonnull Node nodeB, double length, BigInteger externalId) throws PlanItException {
+    public ConnectoidImpl(@Nonnull Centroid centroidA, @Nonnull Node nodeB, double length, long externalId) throws PlanItException {
         super(centroidA, nodeB, length);
+        this.connectoidId = generateConnectoidId();
         setExternalId(externalId);
+    }
+    
+    /**
+     * Constructor
+     * 
+     * @param centroidA  the centroid at one end of the connectoid
+     * @param nodeB the node at the other end of the connectoid
+     * @param length  length of the current connectoid
+     * @throws PlanItException thrown if there is an error
+     */
+    public ConnectoidImpl(@Nonnull Centroid centroidA, @Nonnull Node nodeB, double length) throws PlanItException {
+        super(centroidA, nodeB, length);
         this.connectoidId = generateConnectoidId();
     }
 
@@ -75,7 +85,8 @@ public class Connectoid extends EdgeImpl {
      * @throws PlanItException
      *             thrown if there is an error
      */
-    public ConnectoidSegment registerConnectoidSegment(ConnectoidSegment connectoidSegment, boolean directionAB)
+    @Override
+	public ConnectoidSegment registerConnectoidSegment(ConnectoidSegment connectoidSegment, boolean directionAB)
             throws PlanItException {
         return (ConnectoidSegment) registerEdgeSegment(connectoidSegment, directionAB);
     }
@@ -88,15 +99,18 @@ public class Connectoid extends EdgeImpl {
      * 
      * @return id of this connectoid
      */
-    public long getConnectoidId() {
+    @Override
+	public long getConnectoidId() {
         return connectoidId;
     }
 
-    public BigInteger getExternalId() {
+    @Override
+	public long getExternalId() {
 		return externalId;
 	}
 
-	public void setExternalId(BigInteger externalId) {
+	@Override
+	public void setExternalId(long externalId) {
 		this.externalId = externalId;
 	}
 }

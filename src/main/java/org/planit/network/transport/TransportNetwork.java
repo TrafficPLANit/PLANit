@@ -5,16 +5,16 @@ import javax.annotation.Nonnull;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.PhysicalNetwork.LinkSegments;
-import org.planit.network.virtual.Connectoid;
-import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.network.virtual.VirtualNetwork;
+import org.planit.network.virtual.Zoning;
 import org.planit.network.virtual.VirtualNetwork.ConnectoidSegments;
+import org.planit.network.virtual.Zoning.Zones;
 import org.planit.utils.network.Edge;
 import org.planit.utils.network.EdgeSegment;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
-import org.planit.zoning.Zoning;
-import org.planit.zoning.Zoning.Zones;
+import org.planit.utils.network.virtual.Connectoid;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * Entire transport network that is being modeled including both the physical

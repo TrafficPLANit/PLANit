@@ -1,4 +1,4 @@
-package org.planit.network;
+package org.planit.graph;
 
 import java.util.HashMap;
 import java.util.Map;

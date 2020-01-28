@@ -1,4 +1,4 @@
-package org.planit.network;
+package org.planit.graph;
 
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.Edge;

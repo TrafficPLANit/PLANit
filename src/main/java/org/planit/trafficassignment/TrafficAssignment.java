@@ -19,7 +19,7 @@ import org.planit.interactor.InteractorAccessor;
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.transport.TransportNetwork;
-import org.planit.network.virtual.ConnectoidSegment;
+import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
@@ -32,7 +32,7 @@ import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.LinkSegment;
-import org.planit.zoning.Zoning;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * Traffic assignment class which simultaneously is responsible for the loading

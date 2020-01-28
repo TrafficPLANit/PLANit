@@ -6,7 +6,6 @@ import java.util.Map;
 import org.planit.interactor.InteractorAccessee;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
-import org.planit.network.physical.LinkSegmentImpl;
 import org.planit.network.physical.ModeImpl;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;

@@ -1,11 +1,10 @@
 package org.planit.od.odpath;
 
-import org.planit.network.EdgeSegmentImpl;
+import org.planit.network.virtual.Zoning;
 import org.planit.od.ODDataImpl;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.network.EdgeSegment;
 import org.planit.zoning.Zone;
-import org.planit.zoning.Zoning;
 
 /**
  * This class stores the Path objects from each origin to each destination.

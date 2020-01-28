@@ -1,4 +1,4 @@
-package org.planit.zoning;
+package org.planit.network.virtual;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,9 +6,11 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import javax.annotation.Nonnull;
-import org.planit.network.virtual.VirtualNetwork;
+
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.virtual.Centroid;
+import org.planit.zoning.Zone;
 
 /**
  * Zoning class which holds a particular zoning
@@ -68,9 +70,10 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> {
          * @return the new zone created
          */
         public Zone createAndRegisterNewZone(long externalId) {
-            Zone newZone = new Zone(externalId);
+        	ZoneImpl newZone = new ZoneImpl(externalId);
+            Centroid centroid = virtualNetwork.centroids.registerNewCentroid(newZone);
+            newZone.setCentroid(centroid);
             registerZone(newZone);
-            virtualNetwork.centroids.registerCentroid(newZone.getCentroid());
             return newZone;
         }
 

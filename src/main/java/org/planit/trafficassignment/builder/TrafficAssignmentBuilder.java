@@ -9,8 +9,8 @@ import org.planit.event.management.EventHandler;
 import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
-import org.planit.network.physical.ModeImpl;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.demands.Demands;
 import org.planit.output.configuration.OutputConfiguration;
@@ -22,7 +22,6 @@ import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.network.physical.Mode;
-import org.planit.zoning.Zoning;
 
 /**
  * All traffic assignment instances require a network, demand, and (equilibrium)

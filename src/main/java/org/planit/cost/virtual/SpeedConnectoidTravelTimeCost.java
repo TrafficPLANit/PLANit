@@ -1,9 +1,9 @@
 package org.planit.cost.virtual;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * Class to calculate the connectoid travel time using connectoid speed
