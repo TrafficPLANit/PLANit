@@ -10,9 +10,13 @@ import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
-import org.planit.network.physical.LinkSegment;
+import org.planit.network.physical.LinkSegmentImpl;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.Link;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.physical.Node;
 
 /**
  * Model free Network consisting of nodes and links, each of which can be
@@ -275,7 +279,73 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		}
 
 	}
+	
+	/**
+	 * Internal class for all Mode specific code
+	 */
+	public class Modes {
+		/**
+		 * Add mode to the internal container
+		 * 
+		 * @param mode to be registered in this network
+		 * @return mode, in case it overrides an existing mode, the removed mode is
+		 *         returned
+		 */
+		public Mode registerMode(@Nonnull Mode mode) {
+			return modeMap.put(mode.getId(), mode);
+		}
 
+		/**
+		 * Returns a List of Modes
+		 * 
+		 * @return List of Modes
+		 */	
+		public List<Mode> toList() {
+			return new ArrayList<Mode>(modeMap.values());
+		}
+
+		/**
+		 * Create and register new mode
+		 * 
+		 * @param externalModeId 
+		 * @param name
+		 * @param pcu 
+
+		 * 
+		 * @return new mode created
+		 */
+		public Mode registerNewMode(long externalModeId, String name, double pcu) {
+			Mode newMode = networkBuilder.createMode(externalModeId, name, pcu);
+			registerMode(newMode);
+			return newMode;
+		}
+
+		/**
+		 * Return number of registered modes
+		 * 
+		 * @return number of registered modes
+		 */
+		public int getNumberOfModes() {
+			return modeMap.size();
+		}
+
+		/**
+		 * Find a mode by its external Id (not fool proof as multiple modes can have this id)
+		 * Also costly as external id is not indexed
+		 * 
+		 * @param externalId external Id of mode
+		 * @return retrieved node
+		 */
+		public Mode findModeByExternalIdentifier(long externalId) {
+			for (Mode mode : modeMap.values()) {
+				if (mode.getExternalId() == externalId) {
+					return mode;
+				}
+			}
+			return null;
+		}
+	}
+	
 	// Private
 
 	// Protected
@@ -315,6 +385,11 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 * Map to store nodes by their Id
 	 */
 	protected Map<Long, Node> nodeMap;
+	
+	/**
+	 * Map to store modes by their Id
+	 */
+	protected Map<Long, Mode> modeMap;
 
 	// PUBLIC
 
@@ -330,6 +405,10 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 * internal class instance containing all nodes specific functionality
 	 */
 	public final Nodes nodes = new Nodes();
+	/**
+	 * internal class instance containing all modes specific functionality
+	 */
+	public final Modes modes = new Modes();
 
 	/**
 	 * Network Constructor
@@ -345,6 +424,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		linkSegmentMapByExternalId = new HashMap<Long, LinkSegment>();
 		linkSegmentMapByStartExternalId = new HashMap<Long, List<LinkSegment>>();
 		nodeMap = new TreeMap<Long, Node>();
+		modeMap = new TreeMap<Long,Mode>();
 		this.networkBuilder = networkBuilder;
 	}
 

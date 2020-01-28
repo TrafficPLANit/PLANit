@@ -1,10 +1,14 @@
 package org.planit.project;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+
+import javax.annotation.Nonnull;
 
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
@@ -35,32 +39,220 @@ import org.planit.exceptions.PlanItException;
  *
  */
 public class CustomPlanItProject {
+	
+	// INNER CLASSES
 
+	/**
+	 * Internal class for registered physical networks 
+	 *
+	 */
+	public class ProjectNetworks {
+
+		/**
+		 * Returns a List of Links
+		 * 
+		 * @return List of Links
+		 */
+		public List<PhysicalNetwork> toList() {
+			return new ArrayList<PhysicalNetwork>(physicalNetworkMap.values());
+		}
+		
+		/**
+		 * Get physical network by id
+		 * 
+		 * @param id the id of the link
+		 * @return the retrieved link
+		 */
+		public PhysicalNetwork getPhysicalNetwork(long id) {
+			return physicalNetworkMap.get(id);
+		}
+
+		/**
+		 * Get the number of networks
+		 * 
+		 * @return the number of networks in the project
+		 */
+		public int getNumberOfPhysicalNetworks() {
+			return physicalNetworkMap.size();
+		}
+		
+	    /**
+	     * Check if assignments have already been registered
+	     * 
+	     * @return true if registered assignments exist, false otherwise
+	     */
+	    public boolean hasRegisteredNetworks() {
+	        return !physicalNetworkMap.isEmpty();
+	    }
+		
+	    /**
+	     * Collect the first network that is registered (if any). Otherwise return null
+	     * @return first network that is registered if none return null
+	     */
+	    public PhysicalNetwork getFirstNetwork()
+	    {
+	        return hasRegisteredNetworks() ? physicalNetworkMap.firstEntry().getValue() : null;
+	    }
+	}
+	
+	/**
+	 * Internal class for registered demands
+	 *
+	 */
+	public class ProjectDemands {
+
+		/**
+		 * Returns a List of demands
+		 * 
+		 * @return List of demands
+		 */
+		public List<Demands> toList() {
+			return new ArrayList<Demands>(demandsMap.values());
+		}
+		
+		/**
+		 * Get demands by id
+		 * 
+		 * @param id the id of the demands
+		 * @return the retrieved demands
+		 */
+		public Demands getDemands(long id) {
+			return demandsMap.get(id);
+		}
+
+		/**
+		 * Get the number of demands
+		 * 
+		 * @return the number of demands in the project
+		 */
+		public int getNumberOfDemands() {
+			return demandsMap.size();
+		}
+	}
+	
+	/**
+	 * Internal class for registered zonings
+	 *
+	 */
+	public class ProjectZonings {
+
+		/**
+		 * Returns a List of zoning
+		 * 
+		 * @return List of zoning
+		 */
+		public List<Zoning> toList() {
+			return new ArrayList<Zoning>(zoningsMap.values());
+		}
+		
+		/**
+		 * Get zoning by id
+		 * 
+		 * @param id the id of the zoning
+		 * @return the retrieved zoning
+		 */
+		public Zoning getZoning(long id) {
+			return zoningsMap.get(id);
+		}
+
+		/**
+		 * Get the number of zonings
+		 * 
+		 * @return the number of zonings in the project
+		 */
+		public int getNumberOfZonings() {
+			return zoningsMap.size();
+		}
+	}
+	
+	/**
+	 * Internal class for registered traffic assignments
+	 *
+	 */
+	public class ProjectAssignments {
+
+		/**
+		 * Returns a List of traffic assignments
+		 * 
+		 * @return List of traffic assignments
+		 */
+		public List<TrafficAssignment> toList() {
+			return new ArrayList<TrafficAssignment>(trafficAssignmentsMap.values());
+		}
+		
+		/**
+		 * Get traffic assignment by id
+		 * 
+		 * @param id the id of the traffic assignment
+		 * @return the retrieved assignment
+		 */
+		public TrafficAssignment getTrafficAssignment(long id) {
+			return trafficAssignmentsMap.get(id);
+		}
+
+		/**
+		 * Get the number of traffic assignment
+		 * 
+		 * @return the number of traffic assignment in the project
+		 */
+		public int getNumberOfTrafficAssignments() {
+			return trafficAssignmentsMap.size();
+		}
+		
+	    /**
+	     * Check if assignments have already been registered
+	     * 
+	     * @return true if registered assignments exist, false otherwise
+	     */
+	    public boolean hasRegisteredAssignments() {
+	        return !trafficAssignmentsMap.isEmpty();
+	    }
+	    
+	    /**
+	     * Collect the first traffic assignment that is registered (if any). Otherwise return null
+	     * @return first traffic assignment that is registeredm if none return null
+	     */
+	    public TrafficAssignment getFirstTrafficAssignment()
+	    {
+	        return hasRegisteredAssignments() ? trafficAssignmentsMap.firstEntry().getValue() : null;
+	    }
+	}
+	
     /**
      * The physical networks registered on this project
      */
-    protected TreeMap<Long, PhysicalNetwork> physicalNetworks;
+    protected final TreeMap<Long, PhysicalNetwork> physicalNetworkMap;
 
     /**
      * The demands registered on this project
      */
-    protected TreeMap<Long, Demands> demandsMap;
+    protected final TreeMap<Long, Demands> demandsMap;
+    
+    /**
+     * The zonings registered on this project
+     */
+    protected final TreeMap<Long, Zoning> zoningsMap;
+    
+    /**
+     * The traffic assignment(s) registered on this project
+     */
+    protected final TreeMap<Long, TrafficAssignment> trafficAssignmentsMap;
+    
+    /**
+     * Object factory for zoning objects
+     */
+    protected TrafficAssignmentComponentFactory<Zoning> zoningFactory;
 
     /**
      * The output formatter(s) registered on this project
      */
-    protected TreeMap<Long, OutputFormatter> outputFormatters;
+    protected final TreeMap<Long, OutputFormatter> outputFormatters;
 
     /**
      * Object Factory for physical network object
      */
     protected TrafficAssignmentComponentFactory<PhysicalNetwork> physicalNetworkFactory;
-
-    /**
-     * Object factory for zoning objects
-     */
-    protected TrafficAssignmentComponentFactory<Zoning> zoningFactory;
-    
+   
     /**
      * Object factory for demands object
      */
@@ -74,13 +266,8 @@ public class CustomPlanItProject {
    /**
      * Event manager used by all components
      */
-    protected EventManager eventManager = new SimpleEventManager();
+    protected final EventManager eventManager = new SimpleEventManager();
 
-    /**
-     * The traffic assignment(s) registered on this project
-     */
-    protected TreeMap<Long, TrafficAssignment> trafficAssignments;
-    
     /**
      * Object factory for physical costs
      */
@@ -89,7 +276,7 @@ public class CustomPlanItProject {
     /**
      * Map to store all InitialLinkSegmentCost objects for each physical network
      */
-    protected Map<PhysicalNetwork, List<InitialLinkSegmentCost>> initialLinkSegmentCosts;
+    protected final Map<PhysicalNetwork, List<InitialLinkSegmentCost>> initialLinkSegmentCosts = new HashMap<PhysicalNetwork, List<InitialLinkSegmentCost>>();
     
     // Protected methods
 
@@ -109,7 +296,6 @@ public class CustomPlanItProject {
         demandsFactory.setEventManager(eventManager);
         assignmentFactory.setEventManager(eventManager);
 		initialPhysicalCostFactory.setEventManager(eventManager);
-		initialLinkSegmentCosts = new HashMap<PhysicalNetwork, List<InitialLinkSegmentCost>>();
     }
 
     /**
@@ -126,6 +312,26 @@ public class CustomPlanItProject {
              e.printStackTrace();
         }
     }
+    
+    /**
+     * The registered physical networks 
+     */
+    public final ProjectNetworks physicalNetworks = new ProjectNetworks();
+    
+    /**
+     * The registered demands 
+     */
+    public final ProjectDemands demands = new ProjectDemands();
+    
+    /**
+     * The registered zonings 
+     */
+    public final ProjectZonings zonings = new ProjectZonings();
+    
+    /**
+     * The registered assignments 
+     */
+    public final ProjectAssignments trafficAssignments = new ProjectAssignments();
 
     // Public methods
 
@@ -140,9 +346,10 @@ public class CustomPlanItProject {
      */
     public CustomPlanItProject(InputBuilderListener inputBuilderListener) {
         eventManager.addEventListener(inputBuilderListener);
-        trafficAssignments = new TreeMap<Long, TrafficAssignment>();
-        physicalNetworks = new TreeMap<Long, PhysicalNetwork>();
+        trafficAssignmentsMap = new TreeMap<Long, TrafficAssignment>();
+        physicalNetworkMap = new TreeMap<Long, PhysicalNetwork>();
         demandsMap = new TreeMap<Long, Demands>();
+        zoningsMap = new TreeMap<Long, Zoning>();
         outputFormatters = new TreeMap<Long, OutputFormatter>();
         initialiseFactories(eventManager);
     }
@@ -156,7 +363,7 @@ public class CustomPlanItProject {
      */
     public PhysicalNetwork createAndRegisterPhysicalNetwork(String physicalNetworkType) throws PlanItException {
     	PhysicalNetwork physicalNetwork = physicalNetworkFactory.create(physicalNetworkType);
-        physicalNetworks.put(physicalNetwork.getId(), physicalNetwork);
+        physicalNetworkMap.put(physicalNetwork.getId(), physicalNetwork);
         return physicalNetwork;
     }
 
@@ -173,6 +380,7 @@ public class CustomPlanItProject {
     		throw new PlanItException("Tried to define zones before the physical network was defined.");
     	}
         Zoning zoning = zoningFactory.create(Zoning.class.getCanonicalName(), physicalNetwork);
+        zoningsMap.put(zoning.getId(), zoning);
         return zoning;
     }
 
@@ -213,7 +421,7 @@ public class CustomPlanItProject {
         // can we do it in the derived constructors as some components are the same
         // across assignments and we want to avoid duplicate code
         trafficAssignment.initialiseDefaults();
-        trafficAssignments.put(trafficAssignment.getId(), trafficAssignment);
+        trafficAssignmentsMap.put(trafficAssignment.getId(), trafficAssignment);
         // do not allow direct access to the traffic assignment component. Instead, provide the traffic assignment
         // builder object which is dedicated to providing all the configuration options relevant to the end user while
         // hiding any internals of the traffic assignment concrete class instance
@@ -298,24 +506,6 @@ public class CustomPlanItProject {
 	}
 	
     /**
-     * Check if assignments have already been registered
-     * 
-     * @return true if registered assignments exist, false otherwise
-     */
-    public boolean hasRegisteredAssignments() {
-        return !trafficAssignments.isEmpty();
-    }
-    
-    /**
-     * Collect the first traffic assignment that is registered (if any). Otherwise return null
-     * @return first traffic assignment that is registeredm if none return null
-     */
-    public TrafficAssignment getFirstTrafficAssignment()
-    {
-        return hasRegisteredAssignments() ? trafficAssignments.firstEntry().getValue() : null;
-    }
-
-    /**
      * Create and register an output formatter instance of a given type
      * 
      * @param outputFormatterType  the class name of the output formatter type object to be created
@@ -332,26 +522,6 @@ public class CustomPlanItProject {
     }
 
     /**
-     * Retrieve a Demands object given its id
-     * 
-     * @param id the id of the Demands object
-     * @return the retrieved Demands object
-     */
-    public Demands getDemands(long id) {
-        return demandsMap.get(id);
-    }
-
-    /**
-     * Retrieve a TrafficAssigment object given its id
-     * 
-     * @param id the id of the TrafficAssignment object
-     * @return the retrieved TrafficAssignment object
-     */
-    public TrafficAssignment getTrafficAssignment(long id) {
-        return trafficAssignments.get(id);
-    }
-
-    /**
      * Retrieve an output formatter object given its id
      * 
      * @param id the id of the output formatter object
@@ -359,16 +529,6 @@ public class CustomPlanItProject {
      */
     public OutputFormatter getOutputFormatter(long id) {
         return outputFormatters.get(id);
-    }
-
-    /**
-     * Retrieve a PhysicalNetwork object given its id
-     * 
-     * @param id the id of the PhysicalNetwork object
-     * @return the retrieved PhysicalNetwork object
-     */
-    public PhysicalNetwork getPhysicalNetwork(long id) {
-        return physicalNetworks.get(id);
     }
 
     /**
@@ -383,9 +543,9 @@ public class CustomPlanItProject {
       */
     public Map<Long, PlanItException> executeAllTrafficAssignments() throws PlanItException {
     	Map<Long, PlanItException> exceptionMap = new HashMap<Long, PlanItException>();
-        for (long id : trafficAssignments.keySet()) {
+        for (long id : trafficAssignmentsMap.keySet()) {
         	try {
-        		trafficAssignments.get(id).execute();
+        		trafficAssignmentsMap.get(id).execute();
         	} catch (PlanItException pe) {
         		exceptionMap.put(id,  pe);
         	}
@@ -399,7 +559,7 @@ public class CustomPlanItProject {
      * @return Set of registered traffic assignments
      */
     public List<TrafficAssignment> getAllAssignments() {
-    	return new ArrayList<TrafficAssignment>(trafficAssignments.values());
+    	return new ArrayList<TrafficAssignment>(trafficAssignmentsMap.values());
     }
 
 }

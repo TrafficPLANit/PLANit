@@ -10,7 +10,6 @@ import org.apache.commons.collections.map.MultiKeyMap;
 import org.planit.data.MultiKeyPlanItData;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
-import org.planit.network.physical.LinkSegment;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odpath.ODPathMatrix;
@@ -28,7 +27,8 @@ import org.planit.output.enums.PathIdType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * OutputFormatter which stores data in memory, using specified keys and output properties.

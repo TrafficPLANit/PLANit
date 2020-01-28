@@ -3,12 +3,14 @@ package org.planit.network.physical.macroscopic;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentTypeModeProperties;
+import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 
 /**
  * Holds mode properties for a particular link segment type
  */
-public class MacroscopicLinkSegmentTypeModeProperties {
+public class MacroscopicLinkSegmentTypeModePropertiesImpl implements MacroscopicLinkSegmentTypeModeProperties {
 
     /**
      * Mode specific link segment type properties
@@ -18,7 +20,7 @@ public class MacroscopicLinkSegmentTypeModeProperties {
     /**
      * Constructor
      */
-    public MacroscopicLinkSegmentTypeModeProperties() {
+    public MacroscopicLinkSegmentTypeModePropertiesImpl() {
         this.allModeProperties = new TreeMap<Mode, MacroscopicModeProperties>();
     }
 
@@ -30,7 +32,7 @@ public class MacroscopicLinkSegmentTypeModeProperties {
      * @param modeProperties
      *            properties of this mode
      */
-    public MacroscopicLinkSegmentTypeModeProperties(Mode mode, MacroscopicModeProperties modeProperties) {
+    public MacroscopicLinkSegmentTypeModePropertiesImpl(Mode mode, MacroscopicModeProperties modeProperties) {
         this.allModeProperties = new TreeMap<Mode, MacroscopicModeProperties>();
         addProperties(mode, modeProperties);
     }
@@ -44,7 +46,8 @@ public class MacroscopicLinkSegmentTypeModeProperties {
      *            properties of this link segment type
      * @return modeProperties that were overwritten (if any)
      */
-    public MacroscopicModeProperties addProperties(Mode mode, MacroscopicModeProperties modeProperties) {
+    @Override
+	public MacroscopicModeProperties addProperties(Mode mode, MacroscopicModeProperties modeProperties) {
         return this.allModeProperties.put(mode, modeProperties);
     }
 
@@ -55,7 +58,8 @@ public class MacroscopicLinkSegmentTypeModeProperties {
      *            mode
      * @return properties for specified mode
      */
-    public MacroscopicModeProperties getProperties(Mode mode) {
+    @Override
+	public MacroscopicModeProperties getProperties(Mode mode) {
         return this.allModeProperties.get(mode);
     }
 

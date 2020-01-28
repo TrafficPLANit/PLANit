@@ -17,7 +17,6 @@ import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
 import org.planit.interactor.InteractorAccessor;
 import org.planit.logging.PlanItLogger;
-import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.ConnectoidSegment;
@@ -32,6 +31,7 @@ import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.LinkSegment;
 import org.planit.zoning.Zoning;
 
 /**

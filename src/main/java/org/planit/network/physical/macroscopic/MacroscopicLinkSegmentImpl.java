@@ -3,18 +3,21 @@ package org.planit.network.physical.macroscopic;
 import javax.annotation.Nonnull;
 
 import org.planit.logging.PlanItLogger;
-import org.planit.network.physical.Link;
-import org.planit.network.physical.LinkSegment;
+import org.planit.network.physical.LinkSegmentImpl;
 import org.planit.network.virtual.Centroid;
-import org.planit.network.physical.Node;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.Link;
+import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentTypeModeProperties;
 
 /**
  * Link segment for macroscopic transport networks.
  * 
  * @author markr
  */
-public class MacroscopicLinkSegment extends LinkSegment {
+public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements MacroscopicLinkSegment {
 
 	// Protected
 
@@ -31,7 +34,7 @@ public class MacroscopicLinkSegment extends LinkSegment {
 	 * @param parentLink  the parent link of this link segment
 	 * @param directionAB direction of travel
 	 */
-	public MacroscopicLinkSegment(@Nonnull Link parentLink, boolean directionAB) {
+	public MacroscopicLinkSegmentImpl(@Nonnull Link parentLink, boolean directionAB) {
 		super(parentLink, directionAB);
 	}
 
@@ -43,6 +46,7 @@ public class MacroscopicLinkSegment extends LinkSegment {
 	 * 
 	 * @return linkSegmentCapacity in PCU
 	 */
+	@Override
 	public double computeCapacity() {
 		return getLinkSegmentType().getCapacityPerLane() * getNumberOfLanes();
 	}
@@ -57,6 +61,7 @@ public class MacroscopicLinkSegment extends LinkSegment {
 	 * @param mode mode of travel
 	 * @return freeFlowTravelTime for this mode
 	 */
+	@Override
 	public double computeFreeFlowTravelTime(Mode mode) {
 		double linkLength = getParentLink().getLength();
 		double maximumSpeed = getMaximumSpeed(mode);
@@ -92,10 +97,12 @@ public class MacroscopicLinkSegment extends LinkSegment {
 
 	// getters - setters
 
+	@Override
 	public void setLinkSegmentType(MacroscopicLinkSegmentType linkSegmentType) {
 		this.linkSegmentType = linkSegmentType;
 	}
 
+	@Override
 	public MacroscopicLinkSegmentType getLinkSegmentType() {
 		return linkSegmentType;
 	}

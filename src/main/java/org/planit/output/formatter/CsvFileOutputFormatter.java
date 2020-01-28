@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.planit.exceptions.PlanItException;
-import org.planit.network.physical.LinkSegment;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odpath.ODPathMatrix;
@@ -29,8 +28,9 @@ import org.planit.output.enums.OutputTypeEnum;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.userclass.Mode;
 import org.planit.utils.OutputUtils;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Class containing common methods required by classes which write results to CSV output files

@@ -8,7 +8,8 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.network.physical.LinkSegment;
+import org.planit.network.physical.LinkSegmentImpl;
+import org.planit.network.physical.ModeImpl;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odpath.ODPathMatrix;
 import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
@@ -16,7 +17,8 @@ import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
 import org.planit.zoning.Zoning;
 
 /**

@@ -3,6 +3,8 @@ package org.planit.network.physical.macroscopic;
 import javax.annotation.Nonnull;
 
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentTypeModeProperties;
 
 /**
  * Each macroscopic link segment is of a particular type reflecting segment
@@ -12,17 +14,9 @@ import org.planit.utils.misc.IdGenerator;
  * @author markr
  *
  */
-public class MacroscopicLinkSegmentType {
+public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentType {
 
-	/**
-	 * Default maximum density per lane (veh/km)
-	 */
-	public static final double DEFAULT_MAXIMUM_DENSITY_LANE = 180;
-	
-    /**
-     * Default capacity per lane (veh/h)
-     */
-    public static final double DEFAULT_CAPACITY_LANE = 1800.0f;	
+		
 
 	// Protected
 
@@ -77,7 +71,7 @@ public class MacroscopicLinkSegmentType {
 	 * @param externalId    external reference number of the link type
 	 * @param modeProperties        properties of this link segment type
 	 */
-	public MacroscopicLinkSegmentType(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane,
+	public MacroscopicLinkSegmentTypeImpl(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane,
 			long externalId, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
 		this.id = generateMacroscopicLinkSegmentTypeId();
 		this.name = name;
@@ -89,26 +83,32 @@ public class MacroscopicLinkSegmentType {
 
 	// Getters - Setters
 
+	@Override
 	public int getId() {
 		return id;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
+	@Override
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	@Override
 	public double getCapacityPerLane() {
 		return capacityPerLane;
 	}
 
+	@Override
 	public double getMaximumDensityPerLane() {
 		return maximumDensityPerLane;
 	}
 
+	@Override
 	public long getExternalId() {
 		return externalId;
 	}
@@ -118,6 +118,7 @@ public class MacroscopicLinkSegmentType {
 	 * 
 	 * @return segmentModeProperties
 	 */
+	@Override
 	public MacroscopicLinkSegmentTypeModeProperties getModeProperties() {
 		return modeProperties;
 	}

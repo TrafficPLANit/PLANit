@@ -12,7 +12,7 @@ import org.planit.output.property.TimePeriodExternalIdOutputProperty;
 import org.planit.output.property.TimePeriodIdOutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Top-level abstract class which defines the common methods required by all output type adapters
@@ -55,8 +55,9 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
 				return TimePeriodIdOutputProperty.getTimePeriodId(timePeriod);
 			case ITERATION_INDEX:
 				return IterationIndexOutputProperty.getIterationIndex(trafficAssignment);
+			default:
+				return null;
 			}
-		    return null;
 		} catch (PlanItException e) {
 			return e;
 		}

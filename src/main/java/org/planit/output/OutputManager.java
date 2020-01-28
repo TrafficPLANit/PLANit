@@ -8,6 +8,7 @@ import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
+import org.planit.network.physical.ModeImpl;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.configuration.LinkOutputTypeConfiguration;
@@ -19,7 +20,7 @@ import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Base class for output writers containing basic functionality regarding all

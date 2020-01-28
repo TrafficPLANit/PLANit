@@ -5,7 +5,7 @@ import javax.annotation.Nonnull;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.network.virtual.VirtualNetwork;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Class holding fixed connectoid costs for each connectoid segment

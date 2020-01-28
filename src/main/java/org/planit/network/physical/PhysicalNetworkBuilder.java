@@ -1,6 +1,10 @@
 package org.planit.network.physical;
 
 import org.planit.exceptions.PlanItException;
+import org.planit.utils.network.physical.Link;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.physical.Node;
 
 /**
  * Build network elements based on chosen network view. Implementations are
@@ -17,6 +21,17 @@ public interface PhysicalNetworkBuilder {
      * @return created node
      */
     Node createNode();
+    
+    /**
+     * Create a new mode
+     * @param pcu pcu value of the mode
+     * @param name name of the mode
+     * @param externalModeId external id of the mode
+     * @return created mode
+     */
+	default Mode createMode(long externalModeId, String name, double pcu) {
+		return new ModeImpl(externalModeId, name, pcu);
+	}
 
     /**
      * Create a new link instance
@@ -43,5 +58,7 @@ public interface PhysicalNetworkBuilder {
      * @return linkSegment the created link segment
      */
     LinkSegment createLinkSegment(Link parentLink, boolean directionAB);
+
+
 
 }

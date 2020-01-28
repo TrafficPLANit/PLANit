@@ -5,11 +5,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import org.planit.network.physical.ModeImpl;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.userclass.Mode;
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Container class for all demands registered on the project. In PlanIt we

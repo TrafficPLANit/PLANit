@@ -5,6 +5,7 @@ package org.planit.network.physical;
 
 import org.planit.network.VertexImpl;
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.Node;
 
 /**
  * Node representation connected to one or more entry and exit links
@@ -12,7 +13,7 @@ import org.planit.utils.misc.IdGenerator;
  * @author markr
  *
  */
-public class Node extends VertexImpl {
+public class NodeImpl extends VertexImpl implements Node {
 
     // Protected
 
@@ -35,17 +36,19 @@ public class Node extends VertexImpl {
     /**
      * Node constructor
      */
-    public Node() {
+    public NodeImpl() {
         super();
     }
 
     // Getters-Setters
 
-    public long getExternalId() {
+    @Override
+	public long getExternalId() {
         return externalId;
     }
 
-    public void setExternalId(long externalId) {
+    @Override
+	public void setExternalId(long externalId) {
         this.externalId = externalId;
     }
 

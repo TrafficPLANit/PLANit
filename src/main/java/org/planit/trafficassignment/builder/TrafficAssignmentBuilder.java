@@ -9,6 +9,7 @@ import org.planit.event.management.EventHandler;
 import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
+import org.planit.network.physical.ModeImpl;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.demands.Demands;
@@ -20,7 +21,7 @@ import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.Mode;
 import org.planit.zoning.Zoning;
 
 /**
@@ -80,25 +81,16 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
     }
 
     /**
-     * Register physical network object
-     * 
-     * @param network
-     *            PhysicalNetwork object be registered
-     */
-    public void registerPhysicalNetwork(PhysicalNetwork network) {
-        parentAssignment.setPhysicalNetwork(network);
-    }
-
-    /**
-     * Register the demands and zoning objects
+     * Register the demands zoning and network objects
      * 
      * @param demands Demands object to be registered
      * @param zoning Zoning object to be registered
      * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
      */
-    public void registerDemandsAndZoning(Demands demands, Zoning zoning) throws PlanItException {
+    public void registerDemandZoningAndNetwork(Demands demands, Zoning zoning, PhysicalNetwork network) throws PlanItException {
+    	parentAssignment.setPhysicalNetwork(network);
     	int noZonesInZoning = zoning.zones.getNumberOfZones();
-    	for (Mode mode : Mode.getAllModes()) {
+    	for (Mode mode : network.modes.toList()) {
     		for (TimePeriod timePeriod : TimePeriod.getAllTimePeriods()) {
     			ODDemandMatrix odMatrix = demands.get(mode, timePeriod);
     			if (odMatrix == null) {

@@ -8,7 +8,7 @@ import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.OutputType;
 import org.planit.time.TimePeriod;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Interface for persisting output data in a particular format

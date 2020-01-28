@@ -19,10 +19,8 @@ import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.gap.StopCriterion;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.logging.PlanItLogger;
-import org.planit.network.EdgeSegmentImpl;
-import org.planit.network.VertexImpl;
-import org.planit.network.physical.LinkSegment;
-import org.planit.network.physical.Node;
+import org.planit.network.physical.LinkSegmentImpl;
+import org.planit.network.physical.ModeImpl;
 import org.planit.network.virtual.Centroid;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.od.odmatrix.ODMatrixIterator;
@@ -37,10 +35,14 @@ import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.time.TimePeriod;
-import org.planit.userclass.Mode;
 import org.planit.utils.ArrayOperations;
 import org.planit.utils.FormatUtils;
 import org.planit.utils.misc.Pair;
+import org.planit.utils.network.EdgeSegment;
+import org.planit.utils.network.Vertex;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.physical.Node;
 import org.planit.zoning.Zone;
 
 /**
@@ -116,7 +118,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		long previousOriginZoneId = -1;
 		// track the cost to reach each vertex in the network and the shortest path
 		// segment used to get there
-		Pair<Double, EdgeSegmentImpl>[] vertexPathCosts = null;
+		Pair<Double, EdgeSegment>[] vertexPathCosts = null;
 		for (ODMatrixIterator odDemandMatrixIter = odDemandMatrix.iterator(); odDemandMatrixIter.hasNext();) {
 			double odDemand = odDemandMatrixIter.next();
 			Zone currentOriginZone = odDemandMatrixIter.getCurrentOrigin();
@@ -137,7 +139,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 				if (previousOriginZoneId != currentOriginZone.getId()) {
 
 					Centroid originCentroid = currentOriginZone.getCentroid();
-					if (originCentroid.exitEdgeSegments.isEmpty()) {
+					if (originCentroid.getExitEdgeSegments().isEmpty()) {
 						throw new PlanItException("Edge segments have not been assigned to Centroid for Zone "
 								+ (currentOriginZone.getExternalId()));
 					}
@@ -188,12 +190,12 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @return the route cost for the calculated minimum cost path
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private double getShortestPathCost(Pair<Double, EdgeSegmentImpl>[] vertexPathAndCost, Zone currentOriginZone,
+	private double getShortestPathCost(Pair<Double, EdgeSegment>[] vertexPathAndCost, Zone currentOriginZone,
 			Zone currentDestinationZone, double[] modalNetworkSegmentCosts, double odDemand, ModeData currentModeData)
 			throws PlanItException {
 		double shortestPathCost = 0;
-		EdgeSegmentImpl currentEdgeSegment = null;
-		for (VertexImpl currentPathStartVertex = currentDestinationZone.getCentroid(); currentPathStartVertex
+		EdgeSegment currentEdgeSegment = null;
+		for (Vertex currentPathStartVertex = currentDestinationZone.getCentroid(); currentPathStartVertex
 				.getId() != currentOriginZone.getCentroid()
 						.getId(); currentPathStartVertex = currentEdgeSegment.getUpstreamVertex()) {
 			int startVertexId = (int) currentPathStartVertex.getId();
@@ -225,7 +227,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 	 * @param vertexPathCosts        array of costs for the specified mode
 	 */
 	private void updateSkimMatrixMap(Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap, Zone currentOriginZone,
-			Zone currentDestinationZone, double odDemand, Pair<Double, EdgeSegmentImpl>[] vertexPathCosts) {
+			Zone currentDestinationZone, double odDemand, Pair<Double, EdgeSegment>[] vertexPathCosts) {
 		for (ODSkimSubOutputType odSkimOutputType : simulationData.getActiveSkimOutputTypes()) {
 			if (odSkimOutputType.equals(ODSkimSubOutputType.COST)) {
 				double odGeneralisedCost = -1;
@@ -233,7 +235,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 					// Collect cost to get to vertex from shortest path ONE-TO-ALL information
 					// directly
 					long destinationVertexId = currentDestinationZone.getCentroid().getId();
-					Pair<Double, EdgeSegmentImpl> vertexPathCost = vertexPathCosts[(int) destinationVertexId];
+					Pair<Double, EdgeSegment> vertexPathCost = vertexPathCosts[(int) destinationVertexId];
 					odGeneralisedCost = vertexPathCost.getFirst();
 				}
 				ODSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);

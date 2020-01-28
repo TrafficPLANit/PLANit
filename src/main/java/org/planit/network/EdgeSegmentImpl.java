@@ -26,17 +26,17 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
     /**
      * segment's parent edge
      */
-    protected final EdgeImpl parentEdge;
+    protected final Edge parentEdge;
 
     /**
      * the upstreamVertex of the edge segment
      */
-    protected final VertexImpl upstreamVertex;
+    protected final Vertex upstreamVertex;
 
     /**
      * The downstream vertex of this edge segment
      */
-    protected final VertexImpl downstreamVertex;
+    protected final Vertex downstreamVertex;
 
     /**
 	 * The external Id for this link segment type
@@ -54,7 +54,7 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
      * @return id id of this EdgeSegment
      */
     protected static int generateEdgeSegmentId() {
-        return IdGenerator.generateId(EdgeSegmentImpl.class);
+        return IdGenerator.generateId(EdgeSegment.class);
     }
 
     // Public
@@ -65,7 +65,7 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
      * @param parentEdge  parent edge of segment
      * @param directionAB  direction of travel
      */
-    protected EdgeSegmentImpl(EdgeImpl parentEdge, boolean directionAB) {
+    protected EdgeSegmentImpl(Edge parentEdge, boolean directionAB) {
         this.id = generateEdgeSegmentId();
         this.parentEdge = parentEdge;
         this.upstreamVertex = directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB();
@@ -117,15 +117,30 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
         return this.parentEdge;
     }
     
+    /**
+     * set external id of the instance. Note that this id need not be unique (unlike regular id)
+     * @param externalId
+     */
+    @Override
 	public void setExternalId(long externalId) {
 		this.externalId = externalId;
 		externalIdSet = true;
 	}
 	
+    /**
+     * Does the instance have an external id
+     * @return true when available, false otherwise
+     */
+    @Override
 	public boolean hasExternalId() {
 		return externalIdSet;
 	}
 	
+    /**
+     * Get external id of the instance. Note that this id need not be unique (unlike regular id)
+     * @return externalId
+     */
+    @Override
 	public long getExternalId() {
 		return externalId;
 	}

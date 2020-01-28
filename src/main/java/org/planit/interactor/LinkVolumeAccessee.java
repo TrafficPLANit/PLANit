@@ -1,7 +1,7 @@
 package org.planit.interactor;
 
-import org.planit.network.physical.LinkSegment;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Link Volume accessee object

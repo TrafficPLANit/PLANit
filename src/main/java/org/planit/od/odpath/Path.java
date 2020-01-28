@@ -8,10 +8,12 @@ import java.util.function.ToLongFunction;
 
 import org.planit.network.EdgeSegmentImpl;
 import org.planit.network.VertexImpl;
-import org.planit.network.physical.Node;
 import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.output.enums.PathIdType;
 import org.planit.utils.misc.Pair;
+import org.planit.utils.network.EdgeSegment;
+import org.planit.utils.network.Vertex;
+import org.planit.utils.network.physical.Node;
 import org.planit.zoning.Zone;
 
 /**
@@ -28,7 +30,7 @@ public class Path {
 	 * List containing the edge segments in the path
 	 */
 	
-	private List<EdgeSegmentImpl> path;
+	private List<EdgeSegment> path;
 	/**
 	 * Create the path from a specified origin to a specified destination, using the vertexPathAndCost array as input
 	 * 
@@ -41,9 +43,9 @@ public class Path {
 	 * @param destination the specified destination zone
 	 * @param vertexPathAndCost the vertexPathAndCost array (previously calculated by the traffic assignment)
 	 */
-	private void createPath(Zone destination, Pair<Double, EdgeSegmentImpl>[] vertexPathAndCost) {
+	private void createPath(Zone destination, Pair<Double, EdgeSegment>[] vertexPathAndCost) {
 		int downstreamVertexId = (int) destination.getCentroid().getId();
-		EdgeSegmentImpl edgeSegment = vertexPathAndCost[downstreamVertexId].getSecond();
+		EdgeSegment edgeSegment = vertexPathAndCost[downstreamVertexId].getSecond();
 		while (edgeSegment != null) {
 			path.add(edgeSegment);
 			downstreamVertexId = (int) edgeSegment.getUpstreamVertex().getId();
@@ -68,8 +70,8 @@ public class Path {
 	 */
 	private String getNodePath(ToLongFunction<Node> idGetter) {
 		StringBuilder builder = new StringBuilder("[");
-		for (EdgeSegmentImpl edgeSegment : path) {
-			VertexImpl vertex = edgeSegment.getUpstreamVertex();
+		for (EdgeSegment edgeSegment : path) {
+			Vertex vertex = edgeSegment.getUpstreamVertex();
 			if (vertex instanceof Node) {
 				Node node = (Node) vertex;
 				builder.append(idGetter.applyAsLong(node));
@@ -88,9 +90,9 @@ public class Path {
 	 * @param idGetter lambda function to get the required Id value
 	 * @return the path as a String of comma-separated link segment Id or external Id values
 	 */
-	private String getEdgeSegmentPath(Function<EdgeSegmentImpl, Object>idGetter) {
+	private String getEdgeSegmentPath(Function<EdgeSegment, Object>idGetter) {
 		StringBuilder builder = new StringBuilder("[");
-		for (EdgeSegmentImpl edgeSegment : path) {
+		for (EdgeSegment edgeSegment : path) {
 			builder.append(idGetter.apply(edgeSegment));
 			builder.append(",");
 		}
@@ -119,7 +121,7 @@ public class Path {
 	 * @return string of comma-separated list of edge segment Id numbers
 	 */
 	private String getEdgeSegmentPathId() {
-		return getEdgeSegmentPath(EdgeSegmentImpl::getId);
+		return getEdgeSegmentPath(EdgeSegment::getId);
 	}
 	
 	/**
@@ -146,8 +148,8 @@ public class Path {
 	 * @param destination the specified destination zone
 	 * @param vertexPathAndCost the vertexPathAndCost array (previously calculated by the traffic assignment)
 	 */
-	public Path(Zone destination, Pair<Double, EdgeSegmentImpl>[] vertexPathAndCost) {
-		path = new ArrayList<EdgeSegmentImpl>();
+	public Path(Zone destination, Pair<Double, EdgeSegment>[] vertexPathAndCost) {
+		path = new ArrayList<EdgeSegment>();
 		createPath(destination, vertexPathAndCost);
 	}
 	

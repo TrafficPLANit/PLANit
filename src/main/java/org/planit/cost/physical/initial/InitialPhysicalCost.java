@@ -1,9 +1,10 @@
 package org.planit.cost.physical.initial;
 
 import org.planit.cost.physical.AbstractPhysicalCost;
-import org.planit.network.physical.LinkSegment;
+import org.planit.network.physical.LinkSegmentImpl;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * The initial physical costs for the network

@@ -1,6 +1,6 @@
 package org.planit.cost.physical.initial;
 
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Initial Link Segment Cost for which all the link segments have the same cost value for a specified mode

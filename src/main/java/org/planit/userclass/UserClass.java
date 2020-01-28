@@ -2,7 +2,9 @@ package org.planit.userclass;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * A user class defines a combination of one or more characteristics of users in
@@ -35,19 +37,9 @@ public class UserClass {
     private Mode mode;
 
     /**
-     * Traveller type of this user class
+     * Traveler type of this user class
      */
     private TravelerType travellerType;
-
-    /**
-     * External Id of mode of travel
-     */
-    private long modeExternalId = 0;
-
-    /**
-     * Id of this traveller type
-     */
-    private long travellerTypeId = 0;
 
     /**
      * Map to store registered user classes
@@ -72,45 +64,20 @@ public class UserClass {
         userClasses.put(this.id, this);
     }
 
-    /**
-     * Constructor of user class
-     * 
-     * @param id
-     *            id of this user class
-     * @param name
-     *            the name of this user class
-     * @param mode
-     *            the mode of travel
-     * @param travellerType
-     *            the traveller type
-     */
-    public UserClass(long id, String name, Mode mode, TravelerType travellerType) {
-        this.id = id;
-        this.name = name;
-        this.mode = mode;
-        this.travellerType = travellerType;
-        userClasses.put(this.id, this);
-    }
 
     /**
      * Constructor of user class
      * 
-     * @param id
-     *            id of this user class
-     * @param name
-     *            name of this user class
-     * @param modeExternalId
-     *            external id of mode of travel
-     * @param travellerTypeId
-     *            if of traveller type
+     * @param id id of this user class
+     * @param name name of this user class
+     * @param mode the mode of travel
+     * @param travelerType the travelerType
      */
-    public UserClass(long id, String name, long modeExternalId, long travellerTypeId) {
+    public UserClass(long id, String name, Mode mode, TravelerType travelerType) {
         this.id = id;
         this.name = name;
-        this.modeExternalId = modeExternalId;
-        this.travellerTypeId = travellerTypeId;
-        this.mode = Mode.getByExternalId(modeExternalId);
-        this.travellerType = TravelerType.getByExternalId(travellerTypeId);
+        this.travellerType = travelerType;
+        this.mode = mode;
         userClasses.put(this.id, this);
     }
 
@@ -169,24 +136,6 @@ public class UserClass {
      */
     public Mode getMode() {
         return mode;
-    }
-
-    /**
-     * Return the id of the mode of this user class
-     * 
-     * @return id of the mode of this user class
-     */
-    public long getModeExternalId() {
-        return modeExternalId;
-    }
-
-    /**
-     * Return the id of the traveller type of this user class
-     * 
-     * @return id of the traveller type of this user class
-     */
-    public long getTravellerTypeId() {
-        return travellerTypeId;
     }
 
 }

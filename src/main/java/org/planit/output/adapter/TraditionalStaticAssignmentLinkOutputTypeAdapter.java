@@ -2,13 +2,14 @@ package org.planit.output.adapter;
 
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
 import org.planit.exceptions.PlanItException;
-import org.planit.network.physical.LinkSegment;
+import org.planit.network.physical.LinkSegmentImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Adapter providing access to the data of the TraditionalStaticAssignment class
@@ -135,5 +136,4 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
 			return e;
 		}
 	}
-
 }

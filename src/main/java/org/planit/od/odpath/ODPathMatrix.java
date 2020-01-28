@@ -3,6 +3,7 @@ package org.planit.od.odpath;
 import org.planit.network.EdgeSegmentImpl;
 import org.planit.od.ODDataImpl;
 import org.planit.utils.misc.Pair;
+import org.planit.utils.network.EdgeSegment;
 import org.planit.zoning.Zone;
 import org.planit.zoning.Zoning;
 
@@ -51,7 +52,7 @@ public class ODPathMatrix extends ODDataImpl<Path> {
 	 * @param destination the specified destination zone
 	 * @param vertexPathAndCost the vertexPathAndCost array (previously calculated by the traffic assignment)
 	 */
-	public void createAndSavePath(Zone origin, Zone destination, Pair<Double, EdgeSegmentImpl>[] vertexPathAndCost) {
+	public void createAndSavePath(Zone origin, Zone destination, Pair<Double, EdgeSegment>[] vertexPathAndCost) {
 		Path path = new Path(destination, vertexPathAndCost);
 		setValue(origin, destination, path);
 	}

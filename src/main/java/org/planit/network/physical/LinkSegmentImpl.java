@@ -4,8 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.planit.network.EdgeSegmentImpl;
-import org.planit.userclass.Mode;
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.Link;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Link segment object representing physical links in the network and storing
@@ -14,7 +16,7 @@ import org.planit.utils.misc.IdGenerator;
  * @author gman6028
  *
  */
-public abstract class LinkSegment extends EdgeSegmentImpl {
+public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
 
     /**
      * unique internal identifier
@@ -48,7 +50,7 @@ public abstract class LinkSegment extends EdgeSegmentImpl {
      * @param directionAB
      *            direction of travel
      */
-    protected LinkSegment(Link parentLink, boolean directionAB) {
+    protected LinkSegmentImpl(Link parentLink, boolean directionAB) {
         super(parentLink, directionAB);
         maximumSpeedMap = new HashMap<Mode, Double>();
         this.linkSegmentId = generateLinkSegmentId();
@@ -56,27 +58,22 @@ public abstract class LinkSegment extends EdgeSegmentImpl {
 
     // Public
 
-    /**
-     * Default number of lanes
-     */
-    public static final short DEFAULT_NUMBER_OF_LANES = 1;
-
-    /**
-     * Default maximum speed on a link segment
-     */
-    public static final double DEFAULT_MAX_SPEED = 130;
+    
 
     // Public getters - setters
 
-    public long getLinkSegmentId() {
+    @Override
+	public long getLinkSegmentId() {
         return linkSegmentId;
     }
 
-    public int getNumberOfLanes() {
+    @Override
+	public int getNumberOfLanes() {
         return numberOfLanes;
     }
 
-    public void setNumberOfLanes(int numberOfLanes) {
+    @Override
+	public void setNumberOfLanes(int numberOfLanes) {
         this.numberOfLanes = numberOfLanes;
     }
 
@@ -86,7 +83,8 @@ public abstract class LinkSegment extends EdgeSegmentImpl {
      * @param mode the specified mode
      * @return maximum speed along this link for the specified mode
      */
-    public double getMaximumSpeed(Mode mode) {
+    @Override
+	public double getMaximumSpeed(Mode mode) {
     	return maximumSpeedMap.get(mode);
     }
 
@@ -97,7 +95,8 @@ public abstract class LinkSegment extends EdgeSegmentImpl {
      * @param maximumSpeed
      *            maximum speed along this link for the specified mode
      */
-    public void setMaximumSpeed(Mode mode, double maximumSpeed) {
+    @Override
+	public void setMaximumSpeed(Mode mode, double maximumSpeed) {
     	maximumSpeedMap.put(mode,  maximumSpeed);
     }
 
@@ -115,7 +114,8 @@ public abstract class LinkSegment extends EdgeSegmentImpl {
      * 
      * @return Link object which is the parent of this link segment
      */
-    public Link getParentLink() {
+    @Override
+	public Link getParentLink() {
         return (Link) getParentEdge();
     }
     

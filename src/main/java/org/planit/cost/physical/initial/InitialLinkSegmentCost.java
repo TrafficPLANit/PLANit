@@ -1,9 +1,9 @@
 package org.planit.cost.physical.initial;
 
-import org.planit.network.physical.LinkSegment;
 import org.planit.time.TimePeriod;
-import org.planit.userclass.Mode;
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
 
 import java.util.HashMap;
 import java.util.Map;

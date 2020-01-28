@@ -9,7 +9,7 @@ import java.util.TreeMap;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.network.physical.Node;
+import org.planit.utils.network.physical.Node;
 
 /**
  * Model free virtual network which is part of the zoning and holds all the

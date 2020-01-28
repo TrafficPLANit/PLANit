@@ -5,7 +5,7 @@ import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Interface defining the methods required for an Origin-Destination output adapter

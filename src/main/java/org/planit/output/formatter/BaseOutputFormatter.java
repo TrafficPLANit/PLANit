@@ -14,8 +14,8 @@ import org.planit.output.enums.OutputTypeEnum;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.userclass.Mode;
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Base class for all formatters of output data, i.e. persistence of certain
@@ -251,6 +251,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
             lockOutputProperties(outputType);            
         }
 	}
+	
 
 	// getters - setters
 

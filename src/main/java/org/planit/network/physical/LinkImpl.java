@@ -5,6 +5,9 @@ import javax.annotation.Nonnull;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.EdgeImpl;
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.Link;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Node;
 
 /**
  * Link class connecting two nodes via some geometry. Each link has one or two
@@ -14,7 +17,7 @@ import org.planit.utils.misc.IdGenerator;
  * @author markr
  *
  */
-public class Link extends EdgeImpl {
+public class LinkImpl extends EdgeImpl implements Link {
 
     // Protected
 
@@ -51,7 +54,7 @@ public class Link extends EdgeImpl {
      * @throws PlanItException
      *             thrown if there is an error
      */
-    public Link(@Nonnull Node nodeA, @Nonnull Node nodeB, double length) throws PlanItException {
+    public LinkImpl(@Nonnull Node nodeA, @Nonnull Node nodeB, double length) throws PlanItException {
         super(nodeA, nodeB, length);
         this.linkId = generateLinkId();
     }
@@ -68,21 +71,25 @@ public class Link extends EdgeImpl {
      * @throws PlanItException
      *             thrown if there is an error
      */
-    public LinkSegment registerLinkSegment(LinkSegment linkSegment, boolean directionAB) throws PlanItException {
+    @Override
+	public LinkSegment registerLinkSegment(LinkSegment linkSegment, boolean directionAB) throws PlanItException {
         return (LinkSegment) registerEdgeSegment(linkSegment, directionAB);
     }
 
     // Getters-Setters
 
-    public long getLinkId() {
+    @Override
+	public long getLinkId() {
         return linkId;
     }
 
-    public void setExternalId(long externalId) {
+    @Override
+	public void setExternalId(long externalId) {
         this.externalId = externalId;
     }
 
-    public long getExternalId() {
+    @Override
+	public long getExternalId() {
         return externalId;
     }
 }

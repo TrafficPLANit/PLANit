@@ -133,7 +133,7 @@ public class VertexImpl implements Vertex {
      * @return nodeId
      */
     protected static int generateVertexId() {
-        return IdGenerator.generateId(VertexImpl.class);
+        return IdGenerator.generateId(Vertex.class);
     }
 
     /**
@@ -243,8 +243,7 @@ public class VertexImpl implements Vertex {
 
 	@Override
 	public Edges getEdges() {
-		// TODO Auto-generated method stub
-		return null;
+		return edges;
 	}
 
 }

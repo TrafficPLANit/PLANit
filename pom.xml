@@ -19,9 +19,16 @@
 		<maven.compiler.source>1.11</maven.compiler.source>
 		<maven.compiler.target>1.11</maven.compiler.target>
 		<maven.jaxb2.plugin.version>0.14.0</maven.jaxb2.plugin.version>
+		<planitutils.version>0.0.3-beta</planitutils.version>
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.planit.utils</groupId>
+			<artifactId>PLANitUtils</artifactId>
+			<version>${planitutils.version}</version>
+		</dependency>
+	
 		<dependency>
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-geometry</artifactId>

@@ -8,6 +8,8 @@ import javax.annotation.Nonnull;
 import org.planit.exceptions.PlanItException;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.Edge;
+import org.planit.utils.network.EdgeSegment;
+import org.planit.utils.network.Vertex;
 
 /**
  * Edge class connecting two vertices via some geometry. Each edge has one or
@@ -39,12 +41,12 @@ public class EdgeImpl implements Edge {
     /**
      * Vertex A
      */
-    protected VertexImpl vertexA = null;
+    protected Vertex vertexA = null;
     
     /**
      * Vertex B
      */
-    protected VertexImpl vertexB = null;
+    protected Vertex vertexB = null;
     
     /**
      * Length of edge
@@ -54,11 +56,11 @@ public class EdgeImpl implements Edge {
     /**
      * Edge segment A to B direction
      */
-    protected EdgeSegmentImpl edgeSegmentAB = null;
+    protected EdgeSegment edgeSegmentAB = null;
     /**
      * Edge segment B to A direction
      */
-    protected EdgeSegmentImpl edgeSegmentBA = null;
+    protected EdgeSegment edgeSegmentBA = null;
 
     /**
      * Generate edge id
@@ -66,7 +68,7 @@ public class EdgeImpl implements Edge {
      * @return id of this Edge object
      */
     protected static long generateEdgeId() {
-        return IdGenerator.generateId(EdgeImpl.class);
+        return IdGenerator.generateId(Edge.class);
     }
 
     // Public
@@ -83,7 +85,7 @@ public class EdgeImpl implements Edge {
      * @throws PlanItException
      *             thrown if there is an error
      */
-    protected EdgeImpl(@Nonnull VertexImpl vertexA, @Nonnull VertexImpl vertexB, double length) throws PlanItException {
+    protected EdgeImpl(@Nonnull Vertex vertexA, @Nonnull Vertex vertexB, double length) throws PlanItException {
         this.id = generateEdgeId();
         this.vertexA = vertexA;
         this.vertexB = vertexB;
@@ -104,12 +106,12 @@ public class EdgeImpl implements Edge {
      * @throws PlanItException
      *             thrown if there is an error
      */
-    protected EdgeSegmentImpl registerEdgeSegment(EdgeSegmentImpl edgeSegment, boolean directionAB) throws PlanItException {
+    protected EdgeSegment registerEdgeSegment(EdgeSegment edgeSegment, boolean directionAB) throws PlanItException {
         if (edgeSegment.getParentEdge().getId() != getId()) {
             throw new PlanItException(
                     "Inconsistency between link segment parent link and link it is being registered on");
         }
-        EdgeSegmentImpl currentEdgeSegment = directionAB ? edgeSegmentAB : edgeSegmentBA;
+        EdgeSegment currentEdgeSegment = directionAB ? edgeSegmentAB : edgeSegmentBA;
         if (directionAB) {
             this.edgeSegmentAB = edgeSegment;
         } else {
@@ -127,6 +129,7 @@ public class EdgeImpl implements Edge {
      * @param value
      *            value of input property
      */
+    @Override
     public void addInputProperty(String key, Object value) {
         if (inputProperties == null) {
             inputProperties = new HashMap<String, Object>();
@@ -141,6 +144,7 @@ public class EdgeImpl implements Edge {
      *            key of input property
      * @return value retrieved value of input property
      */
+    @Override
     public Object getInputProperty(String key) {
         return inputProperties.get(key);
     }
@@ -150,6 +154,7 @@ public class EdgeImpl implements Edge {
      * 
      * @return length of this edge
      */
+    @Override
     public double getLength() {
         return length;
     }
@@ -161,31 +166,38 @@ public class EdgeImpl implements Edge {
      * 
      * @return id of this Edge object
      */
+    @Override
     public long getId() {
         return id;
     }
 
-    public VertexImpl getVertexA() {
+    @Override
+    public Vertex getVertexA() {
         return vertexA;
     }
 
-    public VertexImpl getVertexB() {
+    @Override
+    public Vertex getVertexB() {
         return vertexB;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
 
-    public EdgeSegmentImpl getEdgeSegmentAB() {
+    @Override
+    public EdgeSegment getEdgeSegmentAB() {
         return edgeSegmentAB;
     }
 
-    public EdgeSegmentImpl getEdgeSegmentBA() {
+    @Override
+    public EdgeSegment getEdgeSegmentBA() {
         return edgeSegmentBA;
     }
 
