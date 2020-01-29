@@ -76,14 +76,10 @@ public class EdgeImpl implements Edge {
     /**
      * Constructor which injects link lengths directly
      * 
-     * @param vertexA
-     *            first vertex in the link
-     * @param vertexB
-     *            second vertex in the link
-     * @param length
-     *            length of the link
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @param vertexA first vertex in the link
+     * @param vertexB second vertex in the link
+     * @param length length of the link
+     * @throws PlanItException thrown if there is an error
      */
     protected EdgeImpl(@Nonnull Vertex vertexA, @Nonnull Vertex vertexB, double length) throws PlanItException {
         this.id = generateEdgeId();
@@ -98,13 +94,10 @@ public class EdgeImpl implements Edge {
      * If there already exists an edgeSegment for that direction it is replaced and
      * returned
      * 
-     * @param edgeSegment
-     *            EdgeSegment to be registered
-     * @param directionAB
-     *            direction of travel
+     * @param edgeSegment EdgeSegment to be registered
+     * @param directionAB direction of travel
      * @return replaced LinkSegment
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException thrown if there is an error
      */
     protected EdgeSegment registerEdgeSegment(EdgeSegment edgeSegment, boolean directionAB) throws PlanItException {
         if (edgeSegment.getParentEdge().getId() != getId()) {
@@ -121,13 +114,7 @@ public class EdgeImpl implements Edge {
     }
 
     /**
-     * Add a property from the original input that is not part of the readily
-     * available link members
-     * 
-     * @param key
-     *            key (name) of input property
-     * @param value
-     *            value of input property
+     * {@inheritDoc}
      */
     @Override
     public void addInputProperty(String key, Object value) {
@@ -138,11 +125,7 @@ public class EdgeImpl implements Edge {
     }
 
     /**
-     * Get input property by its key
-     * 
-     * @param key
-     *            key of input property
-     * @return value retrieved value of input property
+     * {@inheritDoc}
      */
     @Override
     public Object getInputProperty(String key) {
@@ -150,9 +133,7 @@ public class EdgeImpl implements Edge {
     }
 
     /**
-     * Return length of this edge
-     * 
-     * @return length of this edge
+     * {@inheritDoc}
      */
     @Override
     public double getLength() {
@@ -161,46 +142,65 @@ public class EdgeImpl implements Edge {
 
     // Getters-Setters
 
+
     /**
-     * Return id of this Edge object
-     * 
-     * @return id of this Edge object
+     * {@inheritDoc}
      */
     @Override
     public long getId() {
         return id;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Vertex getVertexA() {
         return vertexA;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Vertex getVertexB() {
         return vertexB;
     }
-
+    
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getName() {
         return name;
     }
+    
+	/** set the name of this edge
+	 * @param name the name of this edge
+	 */
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public EdgeSegment getEdgeSegmentAB() {
         return edgeSegmentAB;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public EdgeSegment getEdgeSegmentBA() {
         return edgeSegmentBA;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int compareTo(Edge o) {
         return Long.valueOf(id).compareTo(o.getId());

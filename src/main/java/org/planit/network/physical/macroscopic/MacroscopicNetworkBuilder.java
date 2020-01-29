@@ -34,19 +34,17 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
     /**
      * Create a new link, injecting link length directly
      * 
-     * @param nodeA
-     *            first node in the link
-     * @param nodeB
-     *            second node in the link
-     * @param length
-     *            length of the link
+     * @param nodeA first node in the link
+     * @param nodeB second node in the link
+     * @param length length of the link
+     * @param name the name of the link
      * @return Link object created
      * @throws PlanItException
      *             thrown if there is an error
      */
     @Override
-    public Link createLink(Node nodeA, Node nodeB, double length) throws PlanItException {
-        return new LinkImpl(nodeA, nodeB, length);
+    public Link createLink(Node nodeA, Node nodeB, double length, String name) throws PlanItException {
+        return new LinkImpl(nodeA, nodeB, length, name);
     }
 
     /**

@@ -45,16 +45,13 @@ public class LinkImpl extends EdgeImpl implements Link {
     /**
      * Constructor which injects link length directly
      * 
-     * @param nodeA
-     *            the first node in the link
-     * @param nodeB
-     *            the second node in the link
-     * @param length
-     *            the length of the link
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @param nodeA the first node in the link
+     * @param nodeB the second node in the link
+     * @param length the length of the link
+     * @param name the name of the link
+     * @throws PlanItException thrown if there is an error
      */
-    public LinkImpl(@Nonnull Node nodeA, @Nonnull Node nodeB, double length) throws PlanItException {
+    public LinkImpl(@Nonnull Node nodeA, @Nonnull Node nodeB, double length, String name) throws PlanItException {
         super(nodeA, nodeB, length);
         this.linkId = generateLinkId();
     }
@@ -92,4 +89,5 @@ public class LinkImpl extends EdgeImpl implements Link {
 	public long getExternalId() {
         return externalId;
     }
+
 }

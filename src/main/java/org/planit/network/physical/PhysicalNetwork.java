@@ -65,11 +65,12 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 * @param nodeA  the first node in this link
 		 * @param nodeB  the second node in this link
 		 * @param length the length of this link
+		 * @param name the name of the link
 		 * @return the created link
 		 * @throws PlanItException thrown if there is an error
 		 */
-		public Link registerNewLink(Node nodeA, Node nodeB, double length) throws PlanItException {
-			Link newLink = networkBuilder.createLink(nodeA, nodeB, length);
+		public Link registerNewLink(Node nodeA, Node nodeB, double length, String name) throws PlanItException {
+			Link newLink = networkBuilder.createLink(nodeA, nodeB, length, name);
 			registerLink(newLink);
 			return newLink;
 		}
