@@ -52,14 +52,6 @@ public class Path {
 		Collections.reverse(path);
 	}
 	
-// Alternative version of the createPath method
-//	private void createPath(Zone destination, Pair<Double, EdgeSegment>[] vertexPathAndCost) {
-//		for (EdgeSegment edgeSegment = vertexPathAndCost[(int) destination.getCentroid().getId()].getSecond(); edgeSegment != null; edgeSegment = vertexPathAndCost[(int) edgeSegment.getUpstreamVertex().getId()].getSecond()) {
-//			path.add(edgeSegment);
-//		}
-//		Collections.reverse(path);
-//	}
-	
 	/**
 	 * Returns the path as a String of comma-separated node Id or external Id values
 	 * 
@@ -73,11 +65,10 @@ public class Path {
 			if (vertex instanceof Node) {
 				Node node = (Node) vertex;
 				builder.append(idGetter.applyAsLong(node));
-				if (edgeSegment.getDownstreamVertex() instanceof Node) {
-					builder.append(",");
-				}
+				builder.append(",");
 			}
 		}
+		builder.deleteCharAt(builder.length()-1);
 		builder.append("]");
 		return new String(builder);
 	}

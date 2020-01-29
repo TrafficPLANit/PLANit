@@ -127,7 +127,7 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 
 				PlanItLogger.fine("Calculating flow from origin zone " + currentOriginZone.getExternalId()
 						+ " to destination zone " + currentDestinationZone.getExternalId() + " which has demand of "
-						+ FormatUtils.format5(odDemand));
+						+ FormatUtils.format5(odDemand) +  " for mode " + mode.getExternalId());
 
 				// MARK 6-1-2020
 				// extracted this from separated method (method removed);
