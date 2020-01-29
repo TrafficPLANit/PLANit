@@ -5,7 +5,7 @@ import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
 
 /**
- * Link Volume accessee object
+ * Link Volume accessee object.
  * 
  * @author markr
  *

@@ -6,6 +6,8 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
+import org.djutils.event.Event;
+import org.djutils.event.EventType;
 import org.planit.cost.Cost;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
@@ -132,6 +134,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	protected abstract GapFunction createGapFunction();
 
 	// Protected methods
+	
+	/** register all the known listeners for the passed in eventType on this producer for this event type
+	 * @param eventType
+	 */
+	protected abstract void addRegisteredEventTypeListeners(EventType eventType);
 
 	/**
 	 * Check if any components are undefined, if so throw exception
@@ -417,8 +424,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		this.physicalCost = physicalCost;
 		if (this.physicalCost instanceof InteractorAccessor) {
 			// request an accessee instance that we can use to collect the relevant information for the cost
-			fireEvent(new org.djutils.event.Event(
-					((InteractorAccessor)physicalCost).getRequestedAccesseeEventType(), this, new Object[] {this.physicalCost}));
+			EventType requestAccesseeType = ((InteractorAccessor)physicalCost).getRequestedAccesseeEventType();
+			addRegisteredEventTypeListeners(requestAccesseeType);
+			fireEvent(new Event(requestAccesseeType, this, this.physicalCost));
 		}
 	}
 
@@ -443,8 +451,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		this.virtualCost = virtualCost;
 		if (this.virtualCost instanceof InteractorAccessor) {
 			// request an accessee instance that we can use to collect the relevant information for the virtual cost
-			fireEvent(new org.djutils.event.Event(
-					((InteractorAccessor)virtualCost).getRequestedAccesseeEventType(), this, new Object[] {this.virtualCost}));
+			EventType requestAccesseeType = ((InteractorAccessor)virtualCost).getRequestedAccesseeEventType();
+			addRegisteredEventTypeListeners(requestAccesseeType);
+			fireEvent(new Event(requestAccesseeType, this, this.virtualCost));
 		}
 	}
 

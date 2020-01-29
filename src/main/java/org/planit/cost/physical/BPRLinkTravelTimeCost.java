@@ -257,8 +257,8 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	public void notify(EventInterface event) throws RemoteException {
 		if(event.getType().equals(LinkVolumeAccessee.INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE)) {
 			// when content contains the requested link volume accessee we collect and register it
-			if(event.getContent() instanceof Object[] && ((Object[])event.getContent())[0] instanceof LinkVolumeAccessee) {
-				this.linkVolumeAccessee = (LinkVolumeAccessee)((Object[])event.getContent())[0];
+			if(event.getContent() instanceof LinkVolumeAccessee) {
+				this.linkVolumeAccessee = (LinkVolumeAccessee)event.getContent();
 			}
 		}
 	}

@@ -6,8 +6,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.djutils.event.Event;
 import org.djutils.event.EventInterface;
 import org.djutils.event.EventListenerInterface;
+import org.djutils.event.EventType;
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathAlgorithm;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
@@ -52,7 +54,7 @@ import org.planit.utils.network.virtual.Zone;
  * @author markr, gman6028
  *
  */
-public class TraditionalStaticAssignment extends CapacityRestrainedAssignment implements LinkVolumeAccessee, EventListenerInterface {
+public class TraditionalStaticAssignment extends CapacityRestrainedAssignment implements LinkVolumeAccessee {
 
 	/** Generated UID */
 	private static final long serialVersionUID = -4610905345414397908L;
@@ -445,6 +447,16 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 			}
 		}
 	}
+	
+	/** {@inheritDoc} */
+	@Override
+	protected void addRegisteredEventTypeListeners(EventType eventType) {
+		// in case of traditional static assignment, the assignment provides access to the link volumes
+		// so we register ourselves as a listener for this event type
+		if( eventType.equals(LinkVolumeAccessee.INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE)) {
+			addListener(this, eventType);
+		}
+	}
 
 	/**
 	 * Create the Gap Function used by this Traffic Assignment
@@ -582,12 +594,12 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	@Override
 	public void notify(EventInterface event) throws RemoteException {
 		if(event.getType().equals(LinkVolumeAccessor.INTERACTOR_REQUEST_LINKVOLUMEACCESSEE_TYPE)) {
-			if(event.getSourceId() instanceof LinkVolumeAccessor) {
+			if( event.getContent() instanceof LinkVolumeAccessor) {
 				// source is accessor, so we provide ourselves as the accessee
-				LinkVolumeAccessor theLinkVolumeAccessor = (LinkVolumeAccessor) event.getSourceId();
+				LinkVolumeAccessor theLinkVolumeAccessor = (LinkVolumeAccessor) event.getContent();
 				addListener(theLinkVolumeAccessor, INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE);
 				// fire event where we signal that an accessee is available (us) for this request
-				fireEvent(new org.djutils.event.Event(INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE,this,this));
+				fireEvent(new Event(INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE,this, this));
 			}
 		}
 	}
@@ -626,5 +638,4 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment im
 	public SimulationData getSimulationData() {
 		return simulationData;
 	}
-
 }
