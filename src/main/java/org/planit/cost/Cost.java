@@ -1,6 +1,8 @@
 package org.planit.cost;
 
-import org.planit.utils.network.EdgeSegment;
+import java.io.Serializable;
+
+import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.network.physical.Mode;
 
 /**
@@ -9,7 +11,7 @@ import org.planit.utils.network.physical.Mode;
  * @author markr
  *
  */
-public interface Cost<T extends EdgeSegment> {
+public interface Cost<T extends EdgeSegment> extends Serializable {
 
     /**
      * Returns the cost of travel along an edge segment for a specified mode

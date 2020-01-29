@@ -1,5 +1,7 @@
 package org.planit.interactor;
 
+import org.djutils.event.EventType;
+
 /**
  * Interactor accessor
  * 
@@ -7,20 +9,11 @@ package org.planit.interactor;
  *
  */
 public interface InteractorAccessor {
-
-    /**
-     * Gets the requested accessee class
-     * 
-     * @return requested accessee class
-     */
-    Class<? extends InteractorAccessee> getRequestedAccessee();
-
-    /**
-     * Sets the accessee object
-     * 
-     * @param accessee
-     *            accessee object to be set
-     */
-    void setAccessee(InteractorAccessee accessee);
+	
+	/** each interactor that requires access from an accessee indicates what accessee is requested
+	 * via the event type
+	 * @return event type indicating that accessee is requiested
+	 */
+	EventType getRequestedAccesseeEventType();
 
 }

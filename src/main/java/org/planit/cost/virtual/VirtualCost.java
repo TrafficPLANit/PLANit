@@ -1,7 +1,6 @@
 package org.planit.cost.virtual;
 
 import org.planit.cost.Cost;
-import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
@@ -15,7 +14,10 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
  */
 public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost> implements Cost<ConnectoidSegment> {
 
-    /**
+    /** generated UID */
+	private static final long serialVersionUID = -8278650865770286434L;
+
+	/**
      * Constructor
      */
     public VirtualCost() {
@@ -30,29 +32,4 @@ public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost
      */
     public abstract void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException;    
 
-    /**
-     * Indicate if cost object requires an interaction to be able to perform its
-     * cost computation
-     * 
-     * @return true if class requires an Interactor, false otherwise
-     */
-    public boolean requiresInteractor() {
-        return false;
-    }
-
-    /**
-     * Perform interaction
-     */
-    public void performInteraction() {
-        // TODO - only to be implemented when interaction is required
-    }
-
-    /**
-     * Creates the interactor event request
-     * 
-     * @return requestedInteractorEvent, null by default
-     */
-    public RequestAccesseeEvent createInteractorRequest() {
-        return null;
-    }
 }

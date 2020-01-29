@@ -1,9 +1,10 @@
 package org.planit.cost.physical;
 
+import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.planit.interactor.InteractorAccessee;
+import org.djutils.event.EventInterface;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.ModeImpl;
@@ -22,6 +23,9 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
  * @author markr
  */
 public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAccessor {
+
+	/** generated UID */
+	private static final long serialVersionUID = -1529475107840907959L;
 
 	/**
 	 * Inner class to store Map of alpha and beta parameters used in BPR function
@@ -192,13 +196,12 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 * @param alpha                      alpha value
 	 * @param beta                       beta value
 	 */
-	public void setDefaultParameters(MacroscopicLinkSegmentType macroscopicLinkSegmentType, Mode mode, double alpha,
-			double beta) {
+	public void setDefaultParameters(
+			MacroscopicLinkSegmentType macroscopicLinkSegmentType, Mode mode, double alpha, double beta) {
 		if (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) == null) {
 			defaultParametersPerLinkSegmentTypeAndMode.put(macroscopicLinkSegmentType, new BPRParameters());
 		}
-		defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).registerParameters(mode, alpha,
-				beta);
+		defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).registerParameters(mode, alpha, beta);
 	}
 
 	/**
@@ -248,15 +251,15 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	}
 
 	/**
-	 * Set Accessee object for this LinkVolumeAccessor
-	 * 
-	 * @param accessee Accessee object for this LinkVolumeAccessor
+	 * we wait for a link volume accessee to be provided after it is requested. Here we get notified
 	 */
 	@Override
-	public void setAccessee(InteractorAccessee accessee) {
-		if (!(accessee instanceof LinkVolumeAccessee)) {
-			// TODO:
+	public void notify(EventInterface event) throws RemoteException {
+		if(event.getType().equals(LinkVolumeAccessee.INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE)) {
+			// when content contains the requested link volume accessee we collect and register it
+			if(event.getContent() instanceof Object[] && ((Object[])event.getContent())[0] instanceof LinkVolumeAccessee) {
+				this.linkVolumeAccessee = (LinkVolumeAccessee)((Object[])event.getContent())[0];
+			}
 		}
-		this.linkVolumeAccessee = (LinkVolumeAccessee) accessee;
 	}
 }

@@ -1,9 +1,9 @@
 package org.planit.graph;
 
+import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.IdGenerator;
-import org.planit.utils.network.Edge;
-import org.planit.utils.network.EdgeSegment;
-import org.planit.utils.network.Vertex;
 
 /**
  * EdgeSegment represents an edge in a particular (single) direction. Each edge

@@ -1,6 +1,7 @@
 package org.planit.trafficassignment;
 
 import org.planit.exceptions.PlanItException;
+import org.planit.input.InputBuilderListener;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
 import org.planit.trafficassignment.builder.CapacityConstrainedTrafficAssignmentBuilder;
@@ -16,10 +17,13 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 
 	// PROTECTED
 
+	/** generated UID */
+	private static final long serialVersionUID = 2568729148299613377L;
+
 	/**
 	 * The builder for all capacity constrained traffic assignment instances
 	 */
-	protected final CapacityConstrainedTrafficAssignmentBuilder capacityConstrainedBuilder;
+	protected CapacityConstrainedTrafficAssignmentBuilder capacityConstrainedBuilder;
 
 	/**
 	 * Fundamental diagram to use
@@ -38,28 +42,30 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	 */
 	public CapacityConstrainedAssignment() {
 		super();
-		this.capacityConstrainedBuilder = new CapacityConstrainedTrafficAssignmentBuilder(this);
 	}
 
 	/**
-	 * collect the CapacityConstrainedTrafficAssignmentBuilder to condigure this
-	 * instance
-	 * 
-	 * @see org.planit.trafficassignment.TrafficAssignment#getBuilder()
-	 * 
-	 * @return capacityConstrainedAssignmentBuilder
+	 * {@inheritDoc} 
 	 */
 	@Override
-	public TrafficAssignmentBuilder getBuilder() {
-		capacityConstrainedBuilder.setEventManager(eventManager);
+	public TrafficAssignmentBuilder collectBuilder(final InputBuilderListener trafficComponentCreateListener) {
+		if(capacityConstrainedBuilder==null) {
+			capacityConstrainedBuilder = new CapacityConstrainedTrafficAssignmentBuilder(this, trafficComponentCreateListener);
+		}
 		return capacityConstrainedBuilder;
 	}
 
+	/**
+	 * {@inheritDoc} 
+	 */
 	@Override
 	public void verifyComponentCompatibility() throws PlanItException {
 		throw new PlanItException("Not yet implemented");
 	}
 
+	/**
+	 * {@inheritDoc} 
+	 */
 	@Override
 	public void executeEquilibration() throws PlanItException {
 		throw new PlanItException("Not yet implemented");

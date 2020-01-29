@@ -2,7 +2,7 @@ package org.planit.network.virtual;
 
 import org.planit.graph.VertexImpl;
 import org.planit.utils.network.virtual.Centroid;
-import org.planit.zoning.Zone;
+import org.planit.utils.network.virtual.Zone;
 
 /**
  * Centroid implementation

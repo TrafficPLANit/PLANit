@@ -1,14 +1,11 @@
 package org.planit.trafficassignment.builder;
 
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.event.management.EventHandler;
-import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
+import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
@@ -32,7 +29,7 @@ import org.planit.utils.network.physical.Mode;
  * @author markr
  *
  */
-public abstract class TrafficAssignmentBuilder implements EventHandler {
+public abstract class TrafficAssignmentBuilder {
 
     /**
      * The smoothing factory used in the assignment algorithm
@@ -54,13 +51,15 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
     /**
      * Constructor
      * 
-     * @param parentAssignment
-     *            parent traffic assignment object for this builder
+     * @param parentAssignment parent traffic assignment object for this builder
+     * @param trafficComponentCreateListener listener to register on the internal traffic component factories for notification upon creation of components
      */
-    TrafficAssignmentBuilder(@Nonnull TrafficAssignment parentAssignment) {
+    TrafficAssignmentBuilder(@Nonnull TrafficAssignment parentAssignment, InputBuilderListener trafficComponentCreateListener) {
         this.parentAssignment = parentAssignment;
         smoothingFactory = new TrafficAssignmentComponentFactory<Smoothing>(Smoothing.class);
+        smoothingFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     }
+       
 
     // PUBLIC FACTORY METHODS
 
@@ -156,18 +155,6 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
     }
     
     /**
-     * Set the EventManager for this builder
-     * 
-     * The EventManager must be a singleton for each PlanItProject application.
-     * 
-     * @param eventManager
-     *            EventManager to be used to create traffic assignment
-     */
-    public void setEventManager(EventManager eventManager) {
-        smoothingFactory.setEventManager(eventManager);
-    }
-    
-    /**
      * Provide the output configuration for user access
      * 
      * @return outputConfiguration for this traffic assignment
@@ -183,6 +170,6 @@ public abstract class TrafficAssignmentBuilder implements EventHandler {
      */
     public GapFunction getGapFunction() {
         return parentAssignment.getGapFunction();
-    }     
+    }
 
 }

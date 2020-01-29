@@ -22,6 +22,9 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 
 	// Protected
 
+	/** Generated UID */
+	private static final long serialVersionUID = -6844990013871601434L;
+
 	/**
 	 * Map which stores link segment types by generated Id
 	 */

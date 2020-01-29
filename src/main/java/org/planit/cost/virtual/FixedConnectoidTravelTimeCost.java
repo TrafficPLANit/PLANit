@@ -15,6 +15,9 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
  */
 public class FixedConnectoidTravelTimeCost extends VirtualCost {
 
+	/** generate UID */
+	private static final long serialVersionUID = -7922583510610674079L;
+
 	/**
 	 * The fixed connectoid costs for the connectoid segments
 	 */

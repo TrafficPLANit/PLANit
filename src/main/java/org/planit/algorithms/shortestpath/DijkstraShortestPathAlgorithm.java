@@ -7,9 +7,9 @@ import java.util.PriorityQueue;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
+import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.Pair;
-import org.planit.utils.network.EdgeSegment;
-import org.planit.utils.network.Vertex;
 
 /**
  * Dijkstra's shortest path algorithm

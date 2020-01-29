@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.virtual.Centroid;
-import org.planit.zoning.Zone;
+import org.planit.utils.network.virtual.Zone;
 
 /**
  * Represents a demand generating zone in the network.

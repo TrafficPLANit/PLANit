@@ -13,6 +13,9 @@ import org.planit.trafficassignment.TrafficAssignmentComponent;
 public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCost> implements AbstractPhysicalCost {
 	 
 
+	/** generated UID */
+	private static final long serialVersionUID = 3657719270477537657L;
+
 	/**
 	 * Initialize the cost parameter values in the network
 	 * 

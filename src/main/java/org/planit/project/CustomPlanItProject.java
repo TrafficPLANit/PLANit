@@ -10,8 +10,6 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.input.InputBuilderListener;
 import org.planit.logging.PlanItLogger;
-import org.planit.event.management.EventManager;
-import org.planit.event.management.SimpleEventManager;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.demands.Demands;
@@ -214,6 +212,9 @@ public class CustomPlanItProject {
 	    }
 	}
 	
+	/** the listener that we register on each traffic assignment component creation event for external initialisation */
+	protected final InputBuilderListener inputBuilderListener;
+	
     /**
      * The physical networks registered on this project
      */
@@ -259,11 +260,6 @@ public class CustomPlanItProject {
      */
     protected TrafficAssignmentComponentFactory<NetworkLoading> assignmentFactory;
 
-   /**
-     * Event manager used by all components
-     */
-    protected final EventManager eventManager = new SimpleEventManager();
-
     /**
      * Object factory for physical costs
      */
@@ -279,19 +275,19 @@ public class CustomPlanItProject {
     /**
      * Instantiate the factories and register the event manager on them
      * 
-     * @param eventManager the EventManager for this project
      */
-    protected void initialiseFactories(EventManager eventManager) {
+    protected void initialiseFactories() {
     	physicalNetworkFactory = new TrafficAssignmentComponentFactory<PhysicalNetwork>(PhysicalNetwork.class);
     	zoningFactory = new TrafficAssignmentComponentFactory<Zoning>(Zoning.class);
     	demandsFactory = new TrafficAssignmentComponentFactory<Demands>(Demands.class);
     	assignmentFactory = new TrafficAssignmentComponentFactory<NetworkLoading>(NetworkLoading.class);
 		initialPhysicalCostFactory = new TrafficAssignmentComponentFactory<InitialPhysicalCost>(InitialPhysicalCost.class);
-        physicalNetworkFactory.setEventManager(eventManager);
-        zoningFactory.setEventManager(eventManager);
-        demandsFactory.setEventManager(eventManager);
-        assignmentFactory.setEventManager(eventManager);
-		initialPhysicalCostFactory.setEventManager(eventManager);
+			
+		physicalNetworkFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+		zoningFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+		demandsFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+		assignmentFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+		initialPhysicalCostFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     }
 
     /**
@@ -340,14 +336,15 @@ public class CustomPlanItProject {
      * 
      * @param inputBuilderListener InputBuilderListener used to read in data
      */
-    public CustomPlanItProject(InputBuilderListener inputBuilderListener) {
-        eventManager.addEventListener(inputBuilderListener);
+    public CustomPlanItProject(final InputBuilderListener inputBuilderListener) {
+    	this.inputBuilderListener = inputBuilderListener;
+        initialiseFactories();
+        
         trafficAssignmentsMap = new TreeMap<Long, TrafficAssignment>();
         physicalNetworkMap = new TreeMap<Long, PhysicalNetwork>();
         demandsMap = new TreeMap<Long, Demands>();
         zoningsMap = new TreeMap<Long, Zoning>();
         outputFormatters = new TreeMap<Long, OutputFormatter>();
-        initialiseFactories(eventManager);
     }
 
     /**
@@ -375,7 +372,7 @@ public class CustomPlanItProject {
     		PlanItLogger.severe("The physical network must be defined before definition of zones can begin");
     		throw new PlanItException("Tried to define zones before the physical network was defined.");
     	}
-        Zoning zoning = zoningFactory.create(Zoning.class.getCanonicalName(), physicalNetwork);
+        Zoning zoning = zoningFactory.create(Zoning.class.getCanonicalName(), new Object[] {physicalNetwork});
         zoningsMap.put(zoning.getId(), zoning);
         return zoning;
     }
@@ -392,7 +389,7 @@ public class CustomPlanItProject {
     		PlanItLogger.severe("Zones must be defined before definition of demands can begin");
     		throw new PlanItException("Tried to define demands before zones were defined.");
     	}
-        Demands demands = demandsFactory.create(Demands.class.getCanonicalName(), zoning);
+        Demands demands = demandsFactory.create(Demands.class.getCanonicalName(), new Object[] {zoning});
         demandsMap.put(demands.getId(), demands);
         return demands;
     }
@@ -412,6 +409,7 @@ public class CustomPlanItProject {
             throw new PlanItException("Traffic assignment type is not a valid assignment type");
         }
         DeterministicTrafficAssignment trafficAssignment = (DeterministicTrafficAssignment) networkLoadingAndAssignment;
+        TrafficAssignmentBuilder trafficAssignmentBuilder = trafficAssignment.collectBuilder(inputBuilderListener);
         // now initialize it, since initialization depends on the concrete class we
         // cannot do this on the constructor of the superclass nor
         // can we do it in the derived constructors as some components are the same
@@ -421,7 +419,7 @@ public class CustomPlanItProject {
         // do not allow direct access to the traffic assignment component. Instead, provide the traffic assignment
         // builder object which is dedicated to providing all the configuration options relevant to the end user while
         // hiding any internals of the traffic assignment concrete class instance
-        return trafficAssignment.getBuilder();
+        return trafficAssignmentBuilder;
     }
 	
 	/**
@@ -441,7 +439,8 @@ public class CustomPlanItProject {
 		if (!initialLinkSegmentCosts.containsKey(network)) {
 			initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
 		}
-		InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(), network, fileName);
+		InitialLinkSegmentCost initialLinkSegmentCost = 
+				(InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(), new Object[] {network, fileName});
 		initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
         return initialLinkSegmentCost;
 	}
@@ -463,7 +462,8 @@ public class CustomPlanItProject {
 		if (!initialLinkSegmentCosts.containsKey(network)) {
 			initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
 		}
-		InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(), network, fileName, timePeriod);
+		InitialLinkSegmentCost initialLinkSegmentCost = 
+				(InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(), new Object[] {network, fileName, timePeriod});
 		initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
         return initialLinkSegmentCost;
 	}

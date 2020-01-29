@@ -7,12 +7,12 @@ import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
 import org.planit.output.enums.PathIdType;
+import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.Pair;
-import org.planit.utils.network.EdgeSegment;
-import org.planit.utils.network.Vertex;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.ConnectoidSegment;
-import org.planit.zoning.Zone;
+import org.planit.utils.network.virtual.Zone;
 
 /**
  * This object creates a path of LinkSegment objects to a specified destination using the vertexPathAndCost object created by the (Dijkstra) Shortest Path Algorithm

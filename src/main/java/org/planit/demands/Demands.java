@@ -1,6 +1,7 @@
 package org.planit.demands;
 
 import java.util.SortedSet;
+import java.io.Serializable;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -27,11 +28,14 @@ import org.planit.utils.network.physical.Mode;
  * @author markr
  *
  */
-public class Demands extends TrafficAssignmentComponent<Demands> {
+public class Demands extends TrafficAssignmentComponent<Demands> implements Serializable {
 
     // Protected
 
-    /**
+    /** generated UID */
+	private static final long serialVersionUID = 144798248371260732L;
+
+	/**
      * unique identifier for this demand set
      */
     protected long id;

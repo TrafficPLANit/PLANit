@@ -11,7 +11,10 @@ package org.planit.trafficassignment;
  */
 public abstract class DeterministicTrafficAssignment extends TrafficAssignment {
 
-    /**
+    /** generated UID */
+	private static final long serialVersionUID = -7792794050563476930L;
+
+	/**
      * Base constructor
      */
     public DeterministicTrafficAssignment() {

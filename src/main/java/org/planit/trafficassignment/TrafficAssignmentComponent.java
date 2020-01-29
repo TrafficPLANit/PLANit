@@ -1,7 +1,8 @@
 package org.planit.trafficassignment;
 
-import org.planit.event.management.EventHandler;
-import org.planit.event.management.EventManager;
+import java.io.Serializable;
+
+import org.djutils.event.EventProducer;
 
 /**
  * Traffic assignment components are the main building blocks to conduct traffic
@@ -10,18 +11,17 @@ import org.planit.event.management.EventManager;
  * @author markr
  *
  */
-public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T>> implements EventHandler {
+public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T> & Serializable > extends EventProducer {
 
-    /**
+	/** generated UID */
+	private static final long serialVersionUID = -3940841069228367177L;
+
+	/**
      * Traffic component type used to identify the component uniquely. If not
      * provided to the constructor the class name is used
      */
     protected final String trafficComponentType;
 
-    /**
-     * Event manager used to handle events
-     */
-    protected EventManager eventManager;    
 
     /**
      * Constructor
@@ -36,9 +36,15 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
         return trafficComponentType;
     }
 
-    public void setEventManager(EventManager eventManager) {
-        this.eventManager = eventManager;
-    }
+   
+    /**
+     * the source id whenever this instance fires an event is simply this
+     * @return this instance as source id
+     */
+    @Override
+	public Serializable getSourceId() {
+		return this;
+	}
     
     
 }

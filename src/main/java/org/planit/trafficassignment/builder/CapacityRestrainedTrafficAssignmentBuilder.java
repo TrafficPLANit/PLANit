@@ -2,8 +2,8 @@ package org.planit.trafficassignment.builder;
 
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.virtual.VirtualCost;
-import org.planit.event.management.EventManager;
 import org.planit.exceptions.PlanItException;
+import org.planit.input.InputBuilderListener;
 import org.planit.trafficassignment.CapacityRestrainedAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 
@@ -30,13 +30,18 @@ public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmen
 	/**
 	 * Constructor
 	 * 
-	 * @param capacityRestrainedAssignment CapacityRestrainedAssignment object to be
-	 *                                     built
+	 * @param capacityRestrainedAssignment CapacityRestrainedAssignment object to build
+	 * @param trafficComponentCreateListener listener to register on the internal traffic component factories for notification upon creation of components
 	 */
-	public CapacityRestrainedTrafficAssignmentBuilder(CapacityRestrainedAssignment capacityRestrainedAssignment) {
-		super(capacityRestrainedAssignment);
+	public CapacityRestrainedTrafficAssignmentBuilder(
+			CapacityRestrainedAssignment capacityRestrainedAssignment, 
+			InputBuilderListener trafficComponentCreateListener) {
+		super(capacityRestrainedAssignment, trafficComponentCreateListener);
 		physicalCostFactory = new TrafficAssignmentComponentFactory<PhysicalCost>(PhysicalCost.class);
 		virtualCostFactory = new TrafficAssignmentComponentFactory<VirtualCost>(VirtualCost.class);
+		// register listener on factories
+		physicalCostFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+		virtualCostFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
 	}
 
 	/**
@@ -72,20 +77,4 @@ public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmen
 		}
 		return createdCost;
 	}
-
-	/**
-	 * Set the EventManager to be used by the factory objects
-	 * 
-	 * The EventManager must be a singleton for each PlanItProject
-	 * 
-	 * @param eventManager EventManager to be used to generate traffic component
-	 *                     objects
-	 */
-	@Override
-	public void setEventManager(EventManager eventManager) {
-		super.setEventManager(eventManager);
-		physicalCostFactory.setEventManager(eventManager);
-		virtualCostFactory.setEventManager(eventManager);
-	}
-
 }

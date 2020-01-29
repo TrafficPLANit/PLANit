@@ -13,6 +13,9 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
  */
 public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 
+	/** generated UID */
+	private static final long serialVersionUID = 2813935702895030693L;
+
 	//public static final double CONNECTOID_SPEED_KPH = Double.POSITIVE_INFINITY;
 	public static final double DEFAULT_CONNECTOID_SPEED_KPH = 25.0;
 	

@@ -6,10 +6,10 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.opengis.geometry.DirectPosition;
+import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.IdGenerator;
-import org.planit.utils.network.Edge;
-import org.planit.utils.network.EdgeSegment;
-import org.planit.utils.network.Vertex;
 
 /**
  * Node representation connected to one or more entry and exit links

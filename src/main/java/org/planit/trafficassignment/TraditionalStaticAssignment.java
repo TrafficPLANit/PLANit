@@ -1,23 +1,25 @@
 package org.planit.trafficassignment;
 
+import java.rmi.RemoteException;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
+import org.djutils.event.EventInterface;
+import org.djutils.event.EventListenerInterface;
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathAlgorithm;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.data.ModeData;
 import org.planit.data.SimulationData;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
-import org.planit.event.RequestAccesseeEvent;
-import org.planit.event.listener.InteractorListener;
 import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.gap.StopCriterion;
 import org.planit.interactor.LinkVolumeAccessee;
+import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.logging.PlanItLogger;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
@@ -33,15 +35,15 @@ import org.planit.output.enums.OutputType;
 import org.planit.time.TimePeriod;
 import org.planit.utils.ArrayOperations;
 import org.planit.utils.FormatUtils;
+import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.Pair;
-import org.planit.utils.network.EdgeSegment;
-import org.planit.utils.network.Vertex;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.ConnectoidSegment;
-import org.planit.zoning.Zone;
+import org.planit.utils.network.virtual.Zone;
 
 /**
  * Traditional static assignment traffic component. 
@@ -50,8 +52,10 @@ import org.planit.zoning.Zone;
  * @author markr, gman6028
  *
  */
-public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
-		implements LinkVolumeAccessee, InteractorListener {
+public class TraditionalStaticAssignment extends CapacityRestrainedAssignment implements LinkVolumeAccessee, EventListenerInterface {
+
+	/** Generated UID */
+	private static final long serialVersionUID = -4610905345414397908L;
 
 	/**
 	 * Epsilon margin when comparing flow rates (veh/h)
@@ -545,38 +549,46 @@ public class TraditionalStaticAssignment extends CapacityRestrainedAssignment
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.planit.interactor.LinkVolumeInteractor.LinkVolumeAccessee#
-	 * getTotalNetworkSegmentFlows()
+	/**
+	 * #{@inheritDoc}
 	 */
-
 	@Override
 	public double getTotalNetworkSegmentFlow(LinkSegment linkSegment) {
 		return simulationData.getTotalNetworkSegmentFlow(linkSegment);
 	}
 
+	/**
+	 * #{@inheritDoc}
+	 */
 	@Override
 	public double[] getModalNetworkSegmentFlows(Mode mode) {
 		return simulationData.getModalNetworkSegmentFlows(mode);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.planit.interactor.LinkVolumeInteractor.LinkVolumeAccessee#
-	 * getNumberOfLinkSegments()
+	/**
+	 * #{@inheritDoc}
 	 */
 	@Override
 	public int getNumberOfLinkSegments() {
 		return getTransportNetwork().getTotalNumberOfLinkSegments();
 	}
 
+	/**
+	 * deal with requests for link volume accessees since we are one. Whenever such a request
+	 * arrives, we provide ourselves as a candidate and fire a response event of type LinkVolumeAccessee.INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE
+	 * 
+	 * @param event to process
+	 */
 	@Override
-	public void onRequestInteractorEvent(RequestAccesseeEvent event) {
-		if (event.getSourceAccessor().getRequestedAccessee().equals(LinkVolumeAccessee.class)) {
-			event.getSourceAccessor().setAccessee(this);
+	public void notify(EventInterface event) throws RemoteException {
+		if(event.getType().equals(LinkVolumeAccessor.INTERACTOR_REQUEST_LINKVOLUMEACCESSEE_TYPE)) {
+			if(event.getSourceId() instanceof LinkVolumeAccessor) {
+				// source is accessor, so we provide ourselves as the accessee
+				LinkVolumeAccessor theLinkVolumeAccessor = (LinkVolumeAccessor) event.getSourceId();
+				addListener(theLinkVolumeAccessor, INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE);
+				// fire event where we signal that an accessee is available (us) for this request
+				fireEvent(new org.djutils.event.Event(INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE,this,this));
+			}
 		}
 	}
 

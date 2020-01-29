@@ -12,7 +12,7 @@ import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.Connectoid;
 import org.planit.utils.network.virtual.ConnectoidSegment;
-import org.planit.zoning.Zone;
+import org.planit.utils.network.virtual.Zone;
 
 /**
  * Model free virtual network which is part of the zoning and holds all the

@@ -1,5 +1,6 @@
 package org.planit.network.virtual;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +11,7 @@ import javax.annotation.Nonnull;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.virtual.Centroid;
-import org.planit.zoning.Zone;
+import org.planit.utils.network.virtual.Zone;
 
 /**
  * Zoning class which holds a particular zoning
@@ -18,9 +19,12 @@ import org.planit.zoning.Zone;
  * @author markr
  *
  */
-public class Zoning extends TrafficAssignmentComponent<Zoning> {
+public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serializable {
 
-    /**
+    /** generated UID */
+	private static final long serialVersionUID = -2986366471146628179L;
+
+	/**
      * Internal class for all zone specific code
      *
      */

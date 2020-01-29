@@ -1,5 +1,6 @@
 package org.planit.network.physical;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,9 +25,12 @@ import org.planit.utils.network.physical.Node;
  * 
  * @author markr
  */
-public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork> {
+public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork> implements Serializable {
 
 	// INNER CLASSES
+
+	/** generated UID */
+	private static final long serialVersionUID = -2794450367185361960L;
 
 	/**
 	 * Internal class for all Link specific code

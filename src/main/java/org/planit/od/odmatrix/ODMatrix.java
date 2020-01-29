@@ -3,7 +3,7 @@ package org.planit.od.odmatrix;
 import org.ojalgo.array.Array2D;
 import org.planit.network.virtual.Zoning;
 import org.planit.od.ODDataImpl;
-import org.planit.zoning.Zone;
+import org.planit.utils.network.virtual.Zone;
 
 /**
  * This class contains common methods for handling origin-demand matrices.

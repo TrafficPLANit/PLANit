@@ -6,10 +6,10 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
+import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.IdGenerator;
-import org.planit.utils.network.Edge;
-import org.planit.utils.network.EdgeSegment;
-import org.planit.utils.network.Vertex;
 
 /**
  * Edge class connecting two vertices via some geometry. Each edge has one or

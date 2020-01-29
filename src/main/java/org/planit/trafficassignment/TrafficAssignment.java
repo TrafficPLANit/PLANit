@@ -12,9 +12,9 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.data.SimulationData;
 import org.planit.demands.Demands;
-import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
+import org.planit.input.InputBuilderListener;
 import org.planit.interactor.InteractorAccessor;
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
@@ -44,6 +44,9 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
 public abstract class TrafficAssignment extends NetworkLoading {
 
 	// Private
+
+	/** generated UID */
+	private static final long serialVersionUID = 801775330292422910L;
 
 	/**
 	 * The zoning to use
@@ -229,9 +232,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * components need to be registered on the traffic assignment instance in order
 	 * to function properly.
 	 * 
+	 * @param trafficComponentCreateListener, the listener should be registered on all traffic component factories the traffic assignment utilises
 	 * @return trafficAssignmentBuilder to use
 	 */
-	public abstract TrafficAssignmentBuilder getBuilder();
+	public abstract TrafficAssignmentBuilder collectBuilder(final InputBuilderListener trafficComponentCreateListener);
 
 	/**
 	 * Run equilibration after resources initialized, including saving results
@@ -412,10 +416,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public void setPhysicalCost(PhysicalCost physicalCost) throws PlanItException {
 		this.physicalCost = physicalCost;
 		if (this.physicalCost instanceof InteractorAccessor) {
-			// accessor requires accessee --> request accessee via event --> and listen back
-			// for result
-			RequestAccesseeEvent event = new RequestAccesseeEvent((InteractorAccessor) this.physicalCost);
-			eventManager.dispatchEvent(event);
+			// request an accessee instance that we can use to collect the relevant information for the cost
+			fireEvent(new org.djutils.event.Event(
+					((InteractorAccessor)physicalCost).getRequestedAccesseeEventType(), this, new Object[] {this.physicalCost}));
 		}
 	}
 
@@ -439,9 +442,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public void setVirtualCost(VirtualCost virtualCost) throws PlanItException {
 		this.virtualCost = virtualCost;
 		if (this.virtualCost instanceof InteractorAccessor) {
-			// accessor requires accessee --> request accessee via event --> and listen back for result
-			RequestAccesseeEvent event = new RequestAccesseeEvent((InteractorAccessor) this.virtualCost);
-			eventManager.dispatchEvent(event);
+			// request an accessee instance that we can use to collect the relevant information for the virtual cost
+			fireEvent(new org.djutils.event.Event(
+					((InteractorAccessor)virtualCost).getRequestedAccesseeEventType(), this, new Object[] {this.virtualCost}));
 		}
 	}
 

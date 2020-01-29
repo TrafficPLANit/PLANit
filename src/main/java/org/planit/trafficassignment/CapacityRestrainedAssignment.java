@@ -1,6 +1,6 @@
 package org.planit.trafficassignment;
 
-import org.planit.event.listener.InteractorListener;
+import org.planit.input.InputBuilderListener;
 import org.planit.trafficassignment.builder.CapacityRestrainedTrafficAssignmentBuilder;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 
@@ -10,20 +10,20 @@ import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
  * @author gman6028
  *
  */
-public abstract class CapacityRestrainedAssignment extends DeterministicTrafficAssignment
-        implements InteractorListener {
+public abstract class CapacityRestrainedAssignment extends DeterministicTrafficAssignment {
 
-    /**
+    /** generated UID */
+	private static final long serialVersionUID = -2109589077398520002L;
+	/**
      * The builder for all capacity restrained traffic assignment instances
      */
-    protected final CapacityRestrainedTrafficAssignmentBuilder capacityRestrainedBuilder;
+    protected CapacityRestrainedTrafficAssignmentBuilder capacityRestrainedBuilder;
 
     /**
      * Constructor for CapacityRestrainedAssignment
      */
     public CapacityRestrainedAssignment() {
         super();
-        capacityRestrainedBuilder = new CapacityRestrainedTrafficAssignmentBuilder(this);
     }
 
     /**
@@ -32,8 +32,10 @@ public abstract class CapacityRestrainedAssignment extends DeterministicTrafficA
      * @see org.planit.trafficassignment.TrafficAssignment#getBuilder()
      */
     @Override
-    public TrafficAssignmentBuilder getBuilder() {
-        capacityRestrainedBuilder.setEventManager(eventManager);
+    public TrafficAssignmentBuilder collectBuilder(final InputBuilderListener trafficComponentCreateListener) {
+    	if(capacityRestrainedBuilder==null) {
+    		capacityRestrainedBuilder = new CapacityRestrainedTrafficAssignmentBuilder(this, trafficComponentCreateListener);
+    	}
         return capacityRestrainedBuilder;
     }
 
