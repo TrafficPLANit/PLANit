@@ -192,6 +192,8 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 			return true;
 		case UPSTREAM_NODE_LOCATION:
 			return true;
+		case VC_RATIO:
+			return true;
 		default:
 			PlanItLogger.warning("Tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Link output.  This will be ignored."	);	
 		}

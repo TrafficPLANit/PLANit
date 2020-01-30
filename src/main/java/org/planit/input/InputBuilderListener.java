@@ -13,7 +13,7 @@ import org.planit.exceptions.PlanItException;
  *
  */
 public abstract class InputBuilderListener implements EventListener {
-
+	
 	/**
 	 * Process event and call the right onX method
 	 * 
@@ -33,7 +33,7 @@ public abstract class InputBuilderListener implements EventListener {
 			throw new PlanItException(ex);
 		}
 	}
-
+	
 	/**
 	 * Whenever a project component is created this method will be invoked
 	 * 
@@ -41,4 +41,5 @@ public abstract class InputBuilderListener implements EventListener {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public abstract void onCreateProjectComponent(CreatedProjectComponentEvent<?> event) throws PlanItException;
+	
 }

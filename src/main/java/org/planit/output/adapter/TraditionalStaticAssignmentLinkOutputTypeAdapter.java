@@ -70,6 +70,23 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
 		double[] modalNetworkSegmentCosts = simulationData.getModalLinkSegmentCosts(mode);
 		return modalNetworkSegmentCosts[id] * timeUnitMultiplier;
 	}
+
+	/**
+	 * Returns the VC ratio for the link over all modes
+	 * 
+	 * @param linkSegment  LinkSegment object containing the required data
+	 * @return VC ratio for the link
+	 * @throws PlanItException thrown if there is an error
+	 */
+	private double getVCRatio(LinkSegment linkSegment) throws PlanItException {
+		double totalFlow = 0.0;
+		for (Mode mode : Mode.getAllModes()) {
+			totalFlow += getFlow(linkSegment, mode);
+		}
+		double capacityPerLane = getCapacityPerLane(linkSegment);
+		return totalFlow/(linkSegment.getNumberOfLanes() * capacityPerLane);
+	}
+	
 	/**
 	 * Constructor
 	 * 
@@ -96,7 +113,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
 				.getSimulationData();
 		return (simulationData.getModalNetworkSegmentFlows(mode)[(int) linkSegment.getId()] > 0.0);
 	}
-
+	
     /**
      * Return the value of a specified output property of a link segment
      * 
@@ -126,6 +143,8 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
 				return getFlow(linkSegment, mode);
 			case LINK_COST:
 				return getLinkCost(linkSegment, mode, timeUnitMultiplier);
+			case VC_RATIO:
+				return getVCRatio(linkSegment);
 			default:
 				return new PlanItException("Tried to find link property of "
 						+ BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()
