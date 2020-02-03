@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package org.planit.network.physical;
 
@@ -9,7 +9,7 @@ import org.planit.utils.network.physical.Node;
 
 /**
  * Node representation connected to one or more entry and exit links
- * 
+ *
  * @author markr
  *
  */
@@ -17,9 +17,12 @@ public class NodeImpl extends VertexImpl implements Node {
 
     // Protected
 
-    /**
+    /** generated UID */
+	private static final long serialVersionUID = 8237965522827691852L;
+
+	/**
      * generate unique node id
-     * 
+     *
      * @return nodeId
      */
     protected static int generateNodeId() {
@@ -48,7 +51,7 @@ public class NodeImpl extends VertexImpl implements Node {
     }
 
     @Override
-	public void setExternalId(long externalId) {
+	public void setExternalId(final long externalId) {
         this.externalId = externalId;
     }
 

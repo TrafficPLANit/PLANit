@@ -13,7 +13,7 @@ import org.planit.utils.network.physical.Node;
  * Link class connecting two nodes via some geometry. Each link has one or two
  * underlying link segments in a particular direction which may carry additional
  * information for each particular direction of the link.
- * 
+ *
  * @author markr
  *
  */
@@ -21,7 +21,10 @@ public class LinkImpl extends EdgeImpl implements Link {
 
     // Protected
 
-    /**
+    /** generated UID */
+	private static final long serialVersionUID = 2360017879557363410L;
+
+	/**
      * unique internal identifier
      */
     protected final long linkId;
@@ -33,7 +36,7 @@ public class LinkImpl extends EdgeImpl implements Link {
 
     /**
      * generate unique link id
-     * 
+     *
      * @return linkId
      */
     protected static long generateLinkId() {
@@ -44,14 +47,14 @@ public class LinkImpl extends EdgeImpl implements Link {
 
     /**
      * Constructor which injects link length directly
-     * 
+     *
      * @param nodeA the first node in the link
      * @param nodeB the second node in the link
      * @param length the length of the link
      * @param name the name of the link
      * @throws PlanItException thrown if there is an error
      */
-    public LinkImpl(@Nonnull Node nodeA, @Nonnull Node nodeB, double length, String name) throws PlanItException {
+    public LinkImpl(@Nonnull final Node nodeA, @Nonnull final Node nodeB, final double length, final String name) throws PlanItException {
         super(nodeA, nodeB, length);
         this.linkId = generateLinkId();
     }
@@ -59,7 +62,7 @@ public class LinkImpl extends EdgeImpl implements Link {
     /**
      * Register linkSegment. If there already exists a linkSegment for that
      * direction it is replaced and returned
-     * 
+     *
      * @param linkSegment
      *            the link segment to be registered
      * @param directionAB
@@ -69,7 +72,7 @@ public class LinkImpl extends EdgeImpl implements Link {
      *             thrown if there is an error
      */
     @Override
-	public LinkSegment registerLinkSegment(LinkSegment linkSegment, boolean directionAB) throws PlanItException {
+	public LinkSegment registerLinkSegment(final LinkSegment linkSegment, final boolean directionAB) throws PlanItException {
         return (LinkSegment) registerEdgeSegment(linkSegment, directionAB);
     }
 
@@ -81,7 +84,7 @@ public class LinkImpl extends EdgeImpl implements Link {
     }
 
     @Override
-	public void setExternalId(long externalId) {
+	public void setExternalId(final long externalId) {
         this.externalId = externalId;
     }
 

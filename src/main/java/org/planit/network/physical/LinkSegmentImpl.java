@@ -12,13 +12,16 @@ import org.planit.utils.network.physical.Mode;
 /**
  * Link segment object representing physical links in the network and storing
  * their properties
- * 
+ *
  * @author gman6028
  *
  */
 public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
 
-    /**
+    /**generated UID */
+	private static final long serialVersionUID = -4893553215218232006L;
+
+	/**
      * unique internal identifier
      */
     protected final long linkSegmentId;
@@ -35,22 +38,22 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
 
     /**
      * Generate unique link segment id
-     * 
+     *
      * @return id of this link segment
      */
     protected static int generateLinkSegmentId() {
         return IdGenerator.generateId(LinkSegment.class);
     }
-    
+
     /**
      * Constructor
-     * 
+     *
      * @param parentLink
      *            parent link of segment
      * @param directionAB
      *            direction of travel
      */
-    protected LinkSegmentImpl(Link parentLink, boolean directionAB) {
+    protected LinkSegmentImpl(final Link parentLink, final boolean directionAB) {
         super(parentLink, directionAB);
         maximumSpeedMap = new HashMap<Mode, Double>();
         this.linkSegmentId = generateLinkSegmentId();
@@ -58,7 +61,7 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
 
     // Public
 
-    
+
 
     // Public getters - setters
 
@@ -73,50 +76,50 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
     }
 
     @Override
-	public void setNumberOfLanes(int numberOfLanes) {
+	public void setNumberOfLanes(final int numberOfLanes) {
         this.numberOfLanes = numberOfLanes;
     }
 
     /**
      * Return the maximum speed along this link for a specified mode
-     * 
+     *
      * @param mode the specified mode
      * @return maximum speed along this link for the specified mode
      */
     @Override
-	public double getMaximumSpeed(Mode mode) {
+	public double getMaximumSpeed(final Mode mode) {
     	return maximumSpeedMap.get(mode);
     }
 
     /**
      * Set the maximum speed along this link for a specified mode
-     * 
+     *
      * @param mode the specified mode
      * @param maximumSpeed
      *            maximum speed along this link for the specified mode
      */
     @Override
-	public void setMaximumSpeed(Mode mode, double maximumSpeed) {
+	public void setMaximumSpeed(final Mode mode, final double maximumSpeed) {
     	maximumSpeedMap.put(mode,  maximumSpeed);
     }
 
     /**
      * Set the Map maximum speed for each mode
-     * 
+     *
      * @param maximumSpeedMap Map of speed values for each mode
      */
-    public void setMaximumSpeedMap(Map<Mode, Double> maximumSpeedMap) {
+    public void setMaximumSpeedMap(final Map<Mode, Double> maximumSpeedMap) {
     	this.maximumSpeedMap = maximumSpeedMap;
     }
 
     /**
      * Return the parent link of this link segment
-     * 
+     *
      * @return Link object which is the parent of this link segment
      */
     @Override
 	public Link getParentLink() {
         return (Link) getParentEdge();
     }
-    
+
 }

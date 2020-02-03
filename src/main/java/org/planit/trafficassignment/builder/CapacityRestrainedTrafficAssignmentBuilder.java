@@ -9,11 +9,11 @@ import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 
 /**
  * Builder for capacity restrained assignment methods
- * 
+ *
  * @author markr
  *
  */
-public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmentBuilder {
+public class CapacityRestrainedTrafficAssignmentBuilder extends DeterministicTrafficAssignmentBuilder {
 
 	// FACTORIES
 
@@ -29,13 +29,13 @@ public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmen
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param capacityRestrainedAssignment CapacityRestrainedAssignment object to build
 	 * @param trafficComponentCreateListener listener to register on the internal traffic component factories for notification upon creation of components
 	 */
 	public CapacityRestrainedTrafficAssignmentBuilder(
-			CapacityRestrainedAssignment capacityRestrainedAssignment, 
-			InputBuilderListener trafficComponentCreateListener) {
+			final CapacityRestrainedAssignment capacityRestrainedAssignment,
+			final InputBuilderListener trafficComponentCreateListener) {
 		super(capacityRestrainedAssignment, trafficComponentCreateListener);
 		physicalCostFactory = new TrafficAssignmentComponentFactory<PhysicalCost>(PhysicalCost.class);
 		virtualCostFactory = new TrafficAssignmentComponentFactory<VirtualCost>(VirtualCost.class);
@@ -46,15 +46,15 @@ public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmen
 
 	/**
 	 * Create and register physical link cost function to determine travel time
-	 * 
+	 *
 	 * @param physicalTraveltimeCostFunctionType the type of cost function to be
 	 *                                           created
 	 * @return the physical cost created
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public PhysicalCost createAndRegisterPhysicalCost(String physicalTraveltimeCostFunctionType)
+	public PhysicalCost createAndRegisterPhysicalCost(final String physicalTraveltimeCostFunctionType)
 			throws PlanItException {
-		PhysicalCost physicalCost = physicalCostFactory.create(physicalTraveltimeCostFunctionType);
+		final PhysicalCost physicalCost = physicalCostFactory.create(physicalTraveltimeCostFunctionType);
 		if (parentAssignment.getPhysicalCost() == null) {
 			parentAssignment.setPhysicalCost(physicalCost);
 		}
@@ -63,15 +63,15 @@ public class CapacityRestrainedTrafficAssignmentBuilder extends TrafficAssignmen
 
 	/**
 	 * Create and Register virtual link cost function to determine travel time
-	 * 
+	 *
 	 * @param virtualTraveltimeCostFunctionType the type of cost function to be
 	 *                                          created
 	 * @return the cost function created
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public VirtualCost createAndRegisterVirtualTravelTimeCostFunction(String virtualTraveltimeCostFunctionType)
+	public VirtualCost createAndRegisterVirtualTravelTimeCostFunction(final String virtualTraveltimeCostFunctionType)
 			throws PlanItException {
-		VirtualCost createdCost = virtualCostFactory.create(virtualTraveltimeCostFunctionType);
+		final VirtualCost createdCost = virtualCostFactory.create(virtualTraveltimeCostFunctionType);
 		if (parentAssignment.getVirtualCost() == null) {
 			parentAssignment.setVirtualCost(createdCost);
 		}

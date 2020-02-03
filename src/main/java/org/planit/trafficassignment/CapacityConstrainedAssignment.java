@@ -9,8 +9,8 @@ import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 
 /**
  * Capacity constrained traffic assignment component
- * 
- * @author gman6028
+ *
+ * @author markr
  *
  */
 public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
@@ -45,7 +45,7 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	}
 
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public TrafficAssignmentBuilder collectBuilder(final InputBuilderListener trafficComponentCreateListener) {
@@ -56,7 +56,7 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	}
 
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void verifyComponentCompatibility() throws PlanItException {
@@ -64,7 +64,7 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	}
 
 	/**
-	 * {@inheritDoc} 
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void executeEquilibration() throws PlanItException {
@@ -73,11 +73,17 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 
 	// Getters - Setters
 
-	public void setFundamentalDiagram(FundamentalDiagram fundamentalDiagram) {
+	/** Set the fundamental diagram
+	 * @param fundamentalDiagram the fundamental diagram
+	 */
+	public void setFundamentalDiagram(final FundamentalDiagram fundamentalDiagram) {
 		this.fundamentalDiagram = fundamentalDiagram;
 	}
 
-	public void setNodeModel(NodeModel nodeModel) {
+	/** The node model to use
+	 * @param nodeModel to use
+	 */
+	public void setNodeModel(final NodeModel nodeModel) {
 		this.nodeModel = nodeModel;
 	}
 

@@ -6,15 +6,17 @@ import org.planit.utils.network.virtual.Zone;
 
 /**
  * Centroid implementation
- * 
+ *
  * @author gman6028
  *
  */
 public class CentroidImpl extends VertexImpl implements Centroid {
-    
- // Protected    
 
-    /**
+ // Protected
+
+    /** generated UID  */
+	private static final long serialVersionUID = 1122451267627721268L;
+	/**
      * the zone this centroid represents
      */
     protected final Zone parentZone;
@@ -23,20 +25,20 @@ public class CentroidImpl extends VertexImpl implements Centroid {
 
     /**
      * Constructor
-     * 
+     *
      * @param parentZone
      *            the parent zone of this Centroid
      */
-    public CentroidImpl(Zone parentZone) {
+    public CentroidImpl(final Zone parentZone) {
         super();
         this.parentZone = parentZone;
     }
-    
+
     // Getters-Setters
 
     /**
      * Return the parent zone of this centroid
-     * 
+     *
      * @return parent zone of this centroid
      */
     @Override

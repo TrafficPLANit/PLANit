@@ -6,11 +6,11 @@ import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 
 /**
  * Capacity Restrained Deterministic Traffic Assignment
- * 
+ *
  * @author gman6028
  *
  */
-public abstract class CapacityRestrainedAssignment extends DeterministicTrafficAssignment {
+public abstract class CapacityRestrainedAssignment extends TrafficAssignment {
 
     /** generated UID */
 	private static final long serialVersionUID = -2109589077398520002L;
@@ -28,7 +28,7 @@ public abstract class CapacityRestrainedAssignment extends DeterministicTrafficA
 
     /**
      * Returns a builder for CapacityRestrainedAssignment
-     * 
+     *
      * @see org.planit.trafficassignment.TrafficAssignment#getBuilder()
      */
     @Override

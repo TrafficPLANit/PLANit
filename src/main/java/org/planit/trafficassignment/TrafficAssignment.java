@@ -424,9 +424,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		this.physicalCost = physicalCost;
 		if (this.physicalCost instanceof InteractorAccessor) {
 			// request an accessee instance that we can use to collect the relevant information for the cost
-			EventType requestAccesseeType = ((InteractorAccessor)physicalCost).getRequestedAccesseeEventType();
-			addRegisteredEventTypeListeners(requestAccesseeType);
-			fireEvent(new Event(requestAccesseeType, this, this.physicalCost));
+			EventType requestAccessee = ((InteractorAccessor)physicalCost).getRequestedAccesseeEventType();
+			addRegisteredEventTypeListeners(requestAccessee);
+			fireEvent(new Event(requestAccessee, this, this.physicalCost));
 		}
 	}
 
