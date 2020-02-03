@@ -20,7 +20,6 @@ import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
-import org.planit.trafficassignment.builder.DeterministicTrafficAssignmentBuilder;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 
 /**
@@ -402,7 +401,7 @@ public class CustomPlanItProject {
      * @return the traffic assignment builder object
      * @throws PlanItException thrown if there is an error
      */
-    public TrafficAssignmentBuilder createAndRegisterDeterministicAssignment(final String trafficAssignmentType)
+    public TrafficAssignmentBuilder createAndRegisterTrafficAssignment(final String trafficAssignmentType)
             throws PlanItException {
         final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentType);
         if (!(networkLoadingAndAssignment instanceof TrafficAssignment)) {
@@ -410,9 +409,6 @@ public class CustomPlanItProject {
         }
         final TrafficAssignment trafficAssignment = (TrafficAssignment) networkLoadingAndAssignment;
         final TrafficAssignmentBuilder trafficAssignmentBuilder = trafficAssignment.collectBuilder(inputBuilderListener);
-        if (!(trafficAssignmentBuilder instanceof DeterministicTrafficAssignmentBuilder)) {
-            throw new PlanItException("not a valid deterministic traffic assignment type");
-        }
         // now initialize it, since initialization depends on the concrete class we
         // cannot do this on the constructor of the superclass nor
         // can we do it in the derived constructors as some components are the same

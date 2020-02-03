@@ -1,11 +1,8 @@
 package org.planit.trafficassignment;
 
-import org.planit.exceptions.PlanItException;
-import org.planit.input.InputBuilderListener;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
 import org.planit.trafficassignment.builder.CapacityConstrainedTrafficAssignmentBuilder;
-import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 
 /**
  * Capacity constrained traffic assignment component
@@ -42,33 +39,6 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	 */
 	public CapacityConstrainedAssignment() {
 		super();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public TrafficAssignmentBuilder collectBuilder(final InputBuilderListener trafficComponentCreateListener) {
-		if(capacityConstrainedBuilder==null) {
-			capacityConstrainedBuilder = new CapacityConstrainedTrafficAssignmentBuilder(this, trafficComponentCreateListener);
-		}
-		return capacityConstrainedBuilder;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void verifyComponentCompatibility() throws PlanItException {
-		throw new PlanItException("Not yet implemented");
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void executeEquilibration() throws PlanItException {
-		throw new PlanItException("Not yet implemented");
 	}
 
 	// Getters - Setters

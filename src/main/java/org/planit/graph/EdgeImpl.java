@@ -15,7 +15,7 @@ import org.planit.utils.misc.IdGenerator;
  * Edge class connecting two vertices via some geometry. Each edge has one or
  * two underlying edge segments in a particular direction which may carry
  * additional information for each particular direction of the edge.
- * 
+ *
  * @author markr
  *
  */
@@ -23,31 +23,34 @@ public class EdgeImpl implements Edge {
 
     // Protected
 
-    /**
+    /**generated UID */
+	private static final long serialVersionUID = -3061186642253968991L;
+
+	/**
      * Unique internal identifier
      */
     protected final long id;
-    
+
     /**
      * Generic input property storage
      */
     protected Map<String, Object> inputProperties = null;
-    
+
     /**
      * Name of the edge
      */
     protected String name = null;
-    
+
     /**
      * Vertex A
      */
     protected Vertex vertexA = null;
-    
+
     /**
      * Vertex B
      */
     protected Vertex vertexB = null;
-    
+
     /**
      * Length of edge
      */
@@ -64,7 +67,7 @@ public class EdgeImpl implements Edge {
 
     /**
      * Generate edge id
-     * 
+     *
      * @return id of this Edge object
      */
     protected static long generateEdgeId() {
@@ -75,13 +78,13 @@ public class EdgeImpl implements Edge {
 
     /**
      * Constructor which injects link lengths directly
-     * 
+     *
      * @param vertexA first vertex in the link
      * @param vertexB second vertex in the link
      * @param length length of the link
      * @throws PlanItException thrown if there is an error
      */
-    protected EdgeImpl(@Nonnull Vertex vertexA, @Nonnull Vertex vertexB, double length) throws PlanItException {
+    protected EdgeImpl(@Nonnull final Vertex vertexA, @Nonnull final Vertex vertexB, final double length) throws PlanItException {
         this.id = generateEdgeId();
         this.vertexA = vertexA;
         this.vertexB = vertexB;
@@ -90,21 +93,21 @@ public class EdgeImpl implements Edge {
 
     /**
      * Register EdgeSegment.
-     * 
+     *
      * If there already exists an edgeSegment for that direction it is replaced and
      * returned
-     * 
+     *
      * @param edgeSegment EdgeSegment to be registered
      * @param directionAB direction of travel
      * @return replaced LinkSegment
      * @throws PlanItException thrown if there is an error
      */
-    protected EdgeSegment registerEdgeSegment(EdgeSegment edgeSegment, boolean directionAB) throws PlanItException {
+    protected EdgeSegment registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) throws PlanItException {
         if (edgeSegment.getParentEdge().getId() != getId()) {
             throw new PlanItException(
                     "Inconsistency between link segment parent link and link it is being registered on");
         }
-        EdgeSegment currentEdgeSegment = directionAB ? edgeSegmentAB : edgeSegmentBA;
+        final EdgeSegment currentEdgeSegment = directionAB ? edgeSegmentAB : edgeSegmentBA;
         if (directionAB) {
             this.edgeSegmentAB = edgeSegment;
         } else {
@@ -117,7 +120,7 @@ public class EdgeImpl implements Edge {
      * {@inheritDoc}
      */
     @Override
-    public void addInputProperty(String key, Object value) {
+    public void addInputProperty(final String key, final Object value) {
         if (inputProperties == null) {
             inputProperties = new HashMap<String, Object>();
         }
@@ -128,7 +131,7 @@ public class EdgeImpl implements Edge {
      * {@inheritDoc}
      */
     @Override
-    public Object getInputProperty(String key) {
+    public Object getInputProperty(final String key) {
         return inputProperties.get(key);
     }
 
@@ -166,7 +169,7 @@ public class EdgeImpl implements Edge {
     public Vertex getVertexB() {
         return vertexB;
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -174,11 +177,11 @@ public class EdgeImpl implements Edge {
     public String getName() {
         return name;
     }
-    
+
 	/** set the name of this edge
 	 * @param name the name of this edge
 	 */
-	public void setName(String name) {
+	public void setName(final String name) {
 		this.name = name;
 	}
 
@@ -202,7 +205,7 @@ public class EdgeImpl implements Edge {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(Edge o) {
+    public int compareTo(final Edge o) {
         return Long.valueOf(id).compareTo(o.getId());
     }
 }

@@ -3,13 +3,19 @@ package org.planit.trafficassignment.builder;
 import org.planit.input.InputBuilderListener;
 import org.planit.trafficassignment.TrafficAssignment;
 
-/** Builder specific to deterministic traffic assignment components
+/**
+ * Builder for a traditional static assignment
+ *
  * @author markr
  *
  */
-public abstract class DeterministicTrafficAssignmentBuilder extends TrafficAssignmentBuilder {
+public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder {
 
-	DeterministicTrafficAssignmentBuilder(
+	/** Constructor
+	 * @param parentAssignment
+	 * @param trafficComponentCreateListener
+	 */
+	public TraditionalStaticAssignmentBuilder(
 			final TrafficAssignment parentAssignment, final InputBuilderListener trafficComponentCreateListener) {
 		super(parentAssignment, trafficComponentCreateListener);
 	}

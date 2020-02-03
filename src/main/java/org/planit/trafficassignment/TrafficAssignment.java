@@ -39,7 +39,7 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
 /**
  * Traffic assignment class which simultaneously is responsible for the loading
  * hence it is also considered as a traffic assignment component of this type
- * 
+ *
  * @author markr
  *
  */
@@ -62,6 +62,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	private GapFunction gapFunction;
 
 	// Protected
+
+	/**
+     * The builder for all traffic assignment instances
+     */
+    protected TrafficAssignmentBuilder trafficAssignmentBuilder;
 
 	/**
 	 * Physical network to use
@@ -89,11 +94,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * holds the count of all link segments in the transport network
 	 */
 	protected int numberOfNetworkSegments;
-	
+
     /**
      * holds the count of all vertices in the transport network
      */
-    protected int numberOfNetworkVertices;	
+    protected int numberOfNetworkVertices;
 
 	/**
 	 * Unique id
@@ -109,32 +114,39 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * The demand to use
 	 */
 	protected Demands demands = null;
-	
+
 	/**
 	 * The initial link segment cost
 	 */
 	protected InitialLinkSegmentCost initialLinkSegmentCost;
 
 	/**
-	 * The physical link cost function
+	 * The physical generalised cost approach
 	 */
 	protected PhysicalCost physicalCost;
-	
+
 	/**
 	 * Map storing InitialLinkSegmentCost objects for each time period
 	 */
 	protected Map<Long, InitialLinkSegmentCost> initialLinkSegmentCostByTimePeriod;
 
+	/** create the traffic assignment builder for this traffic assignment
+	 * @param trafficComponentCreateListener listener to register on all traffic assignment components that this builder can build
+	 * @return created traffic assignment builder
+	 */
+	protected abstract TrafficAssignmentBuilder createTrafficAssignmentBuilder(
+			InputBuilderListener trafficComponentCreateListener);
+
 	/**
 	 * Create the gap function which is to be implemented by a derived class of
 	 * TrafficAssignment
-	 * 
+	 *
 	 * @return gapFunction
 	 */
 	protected abstract GapFunction createGapFunction();
 
 	// Protected methods
-	
+
 	/** register all the known listeners for the passed in eventType on this producer for this event type
 	 * @param eventType
 	 */
@@ -142,7 +154,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
 	/**
 	 * Check if any components are undefined, if so throw exception
-	 * 
+	 *
 	 * @throws PlanItException thrown if any components are undefined
 	 */
 	protected void checkForEmptyComponents() throws PlanItException {
@@ -159,16 +171,16 @@ public abstract class TrafficAssignment extends NetworkLoading {
 			throw new PlanItException("Zoning is null");
 		}
 	}
-	
+
     /**
      * Verify if the traffic assignment components are compatible and nonnull
-     * 
+     *
      * @throws PlanItException thrown if the components are not compatible
      */
     protected void verifyComponentCompatibility() throws PlanItException {
         // TODO
-    }	
-	
+    }
+
 	/**
 	 * Initialise the transport network by combining the physical and virtual components
 	 * @throws PlanItException thrown if there is an error
@@ -177,47 +189,47 @@ public abstract class TrafficAssignment extends NetworkLoading {
         transportNetwork = new TransportNetwork(physicalNetwork, zoning);
         transportNetwork.integrateConnectoidsAndLinks();
         this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
-        this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();        
+        this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
 	}
-	
+
 	/**
 	 * detach the virtual and physical transport network again
 	 * @throws PlanItException thrown if there is an error
 	 */
 	protected void disbandTransportNetwork() throws PlanItException {
         // Disconnect here since the physical network might be reused in a different assignment
-        transportNetwork.removeVirtualNetworkFromPhysicalNetwork();  	    
+        transportNetwork.removeVirtualNetworkFromPhysicalNetwork();
 	}
-	
+
 	/**
 	 * Initialise all relevant traffic assignment components before execution of the assignment commences
-	 * 
+	 *
 	 * @throws PlanItException thrown if there is an error
 	 */
 	protected void initialiseBeforeExecution() throws PlanItException{
 	    // verify validity
         checkForEmptyComponents();
         verifyComponentCompatibility();
-        
+
         createTransportNetwork();
 
         outputManager.initialiseBeforeSimulation(getId());
         physicalCost.initialiseBeforeSimulation(physicalNetwork);
-        virtualCost.initialiseBeforeSimulation(zoning.getVirtualNetwork());    
+        virtualCost.initialiseBeforeSimulation(zoning.getVirtualNetwork());
 	}
-	
+
 	/**
 	 * Finalise all relevant traffic assignment components after execution of the assignment has ended
 	 * @throws PlanItException thrown if there is an error
 	 */
 	protected void finalizeAfterExecution() throws PlanItException {
-	    
+
 	    disbandTransportNetwork();
-	    
+
         // Finalise traffic assignment components including the traffic assignment itself
-        outputManager.finaliseAfterSimulation();    
-        
-	    PlanItLogger.info("Finished simulation");        
+        outputManager.finaliseAfterSimulation();
+
+	    PlanItLogger.info("Finished simulation");
 	}
 
 	// Public
@@ -238,22 +250,27 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * Each traffic assignment class can have its own builder which reveals what
 	 * components need to be registered on the traffic assignment instance in order
 	 * to function properly.
-	 * 
+	 *
 	 * @param trafficComponentCreateListener, the listener should be registered on all traffic component factories the traffic assignment utilises
 	 * @return trafficAssignmentBuilder to use
 	 */
-	public abstract TrafficAssignmentBuilder collectBuilder(final InputBuilderListener trafficComponentCreateListener);
+	public TrafficAssignmentBuilder collectBuilder(final InputBuilderListener trafficComponentCreateListener) {
+		if(this.trafficAssignmentBuilder.equals(null)) {
+			this.trafficAssignmentBuilder = createTrafficAssignmentBuilder(trafficComponentCreateListener);
+		}
+		return this.trafficAssignmentBuilder;
+	}
 
 	/**
 	 * Run equilibration after resources initialized, including saving results
-	 * 
+	 *
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public abstract void executeEquilibration() throws PlanItException;
-	
+
 	/**
 	 * Create the output type adapter for the current output type
-	 * 
+	 *
 	 * @param outputType the current output type
 	 * @return the output type adapter corresponding to the current traffic assignment and output type
 	 */
@@ -262,7 +279,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	/**
 	 * Collect the gap function which is to be set by a derived class of
 	 * TrafficAssignment via the initialiseDefaults() right after construction
-	 * 
+	 *
 	 * @return gapFunction
 	 */
 	public GapFunction getGapFunction() {
@@ -273,7 +290,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
 	/**
 	 * Initialize the traffic assignment defaults: (i) activate link output
-	 * 
+	 *
 	 * @throws PlanItException thrown when there is an error
 	 */
 	public void initialiseDefaults() throws PlanItException {
@@ -284,16 +301,16 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	/**
 	 * Method that allows one to activate specific output types for persistence
 	 * which is passed on to the output manager
-	 * 
+	 *
 	 * @param outputType OutputType object to be used
 	 * @return outputTypeConfiguration the output type configuration that is now active
 	 * @throws PlanItException thrown if there is an error activating the output
 	 */
-	public OutputTypeConfiguration activateOutput(OutputType outputType) throws PlanItException {
+	public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
 	    OutputTypeConfiguration theOutputTypeConfiguration = null;
 		if (!outputManager.isOutputTypeActive(outputType)) {
 			PlanItLogger.info("Registering Output Type " + outputType);
-			OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(outputType);
+			final OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(outputType);
 			outputManager.registerOutputTypeAdapter(outputType, outputTypeAdapter);
 	        theOutputTypeConfiguration = outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
 		} else {
@@ -305,17 +322,17 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	/**
 	 * Execute assignment, including initializing resources, running equilibration
 	 * and then closing resources
-	 * 
+	 *
 	 * @throws PlanItException thrown if there is an error
 	 */
 	public void execute() throws PlanItException {
-	
+
 		initialiseBeforeExecution();
 
 		executeEquilibration();
-		
+
 		finalizeAfterExecution();
-																	
+
 		PlanItLogger.info("Finished execution");
 	}
 
@@ -323,7 +340,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
 	/**
 	 * collect traffic assignment id
-	 * 
+	 *
 	 * @return id
 	 */
 	public long getId() {
@@ -332,7 +349,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
 	/**
 	 * Get the TransportNetwork used in the current assignment
-	 * 
+	 *
 	 * @return TransportNetwork used in current assignment
 	 */
 	public TransportNetwork getTransportNetwork() {
@@ -341,7 +358,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
 	/**
 	 * Provide the output configuration for user access (via the output manager)
-	 * 
+	 *
 	 * @return outputConfiguration for this traffic assignment
 	 */
 	public OutputConfiguration getOutputConfiguration() {
@@ -350,62 +367,62 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
 	/**
 	 * Set the Smoothing object for the current assignment
-	 * 
+	 *
 	 * @param smoothing Smoothing object for the current assignment
 	 */
-	public void setSmoothing(@Nonnull Smoothing smoothing) {
+	public void setSmoothing(@Nonnull final Smoothing smoothing) {
 		this.smoothing = smoothing;
 	}
 
 	/**
 	 * Set the PhysicalNetwork for the current assignment
-	 * 
+	 *
 	 * @param physicalNetwork the PhysicalNetwork object for the current assignment
 	 */
-	public void setPhysicalNetwork(@Nonnull PhysicalNetwork physicalNetwork) {
+	public void setPhysicalNetwork(@Nonnull final PhysicalNetwork physicalNetwork) {
 		this.physicalNetwork = physicalNetwork;
 	}
 
 	/**
 	 * Set the Demands object for the current assignment
-	 * 
+	 *
 	 * @param demands the Demands object for the current assignment
 	 */
-	public void setDemands(@Nonnull Demands demands) {
+	public void setDemands(@Nonnull final Demands demands) {
 		this.demands = demands;
 	}
 
 	/**
 	 * Set the zoning object for the current assignment
-	 * 
+	 *
 	 * @param zoning the Zoning object for the current assignment
 	 */
-	public void setZoning(@Nonnull Zoning zoning) {
+	public void setZoning(@Nonnull final Zoning zoning) {
 		this.zoning = zoning;
 	}
-	
+
 	/**
 	 * Set the initial link segment cost
-	 * 
+	 *
 	 * @param initialLinkSegmentCost the initial link segment cost
 	 */
-	public void setInitialLinkSegmentCost(InitialLinkSegmentCost initialLinkSegmentCost) {
+	public void setInitialLinkSegmentCost(final InitialLinkSegmentCost initialLinkSegmentCost) {
 		this.initialLinkSegmentCost = initialLinkSegmentCost;
 	}
-	
+
 	/**
 	 * Set the initial link segment cost for a specified time period
-	 * 
+	 *
 	 * @param timePeriod the specified time period
 	 * @param initialLinkSegmentCost the initial link segment cost
 	 */
-	public void setInitialLinkSegmentCost(TimePeriod timePeriod, InitialLinkSegmentCost initialLinkSegmentCost) {
+	public void setInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCost initialLinkSegmentCost) {
 		initialLinkSegmentCostByTimePeriod.put(timePeriod.getId(), initialLinkSegmentCost);
 	}
 
 	/**
 	 * Get the dynamic physical cost object for the current assignment
-	 * 
+	 *
 	 * @return the physical cost object for the current assignment
 	 */
 	public Cost<LinkSegment> getPhysicalCost() {
@@ -416,15 +433,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * Set the physical cost where in case the cost is an InteractorAccessor will
 	 * trigger an event to get access to the required data via requesting an
 	 * InteractorAccessee
-	 * 
+	 *
 	 * @param physicalCost the physical cost object for the current assignment
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void setPhysicalCost(PhysicalCost physicalCost) throws PlanItException {
+	public void setPhysicalCost(final PhysicalCost physicalCost) throws PlanItException {
 		this.physicalCost = physicalCost;
 		if (this.physicalCost instanceof InteractorAccessor) {
 			// request an accessee instance that we can use to collect the relevant information for the cost
-			EventType requestAccessee = ((InteractorAccessor)physicalCost).getRequestedAccesseeEventType();
+			final EventType requestAccessee = ((InteractorAccessor)physicalCost).getRequestedAccesseeEventType();
 			addRegisteredEventTypeListeners(requestAccessee);
 			fireEvent(new Event(requestAccessee, this, this.physicalCost));
 		}
@@ -432,7 +449,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
 	/**
 	 * Returns the virtual cost object for the current assignment
-	 * 
+	 *
 	 * @return the virtual cost object for the current assignments
 	 */
 	public Cost<ConnectoidSegment> getVirtualCost() {
@@ -443,15 +460,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * Set the virtual cost where in case the cost is an InteractorAccessor will
 	 * trigger an event to get access to the required data via requesting an
 	 * InteractorAccessee
-	 * 
+	 *
 	 * @param virtualCost the virtual cost object to be assigned
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void setVirtualCost(VirtualCost virtualCost) throws PlanItException {
+	public void setVirtualCost(final VirtualCost virtualCost) throws PlanItException {
 		this.virtualCost = virtualCost;
 		if (this.virtualCost instanceof InteractorAccessor) {
 			// request an accessee instance that we can use to collect the relevant information for the virtual cost
-			EventType requestAccesseeType = ((InteractorAccessor)virtualCost).getRequestedAccesseeEventType();
+			final EventType requestAccesseeType = ((InteractorAccessor)virtualCost).getRequestedAccesseeEventType();
 			addRegisteredEventTypeListeners(requestAccesseeType);
 			fireEvent(new Event(requestAccesseeType, this, this.virtualCost));
 		}
@@ -462,24 +479,24 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 *
 	 * @param outputFormatter OutputFormatter to be registered
 	 */
-	public void registerOutputFormatter(OutputFormatter outputFormatter) {
+	public void registerOutputFormatter(final OutputFormatter outputFormatter) {
 		outputManager.registerOutputFormatter(outputFormatter);
 	}
 
 	/**
 	 * Returns a list of output formatters registered on this assignment
-	 * 
+	 *
 	 * @return List of OutputFormatter objects registered on this assignment
 	 */
 	public List<OutputFormatter> getOutputFormatters() {
 		return outputManager.getOutputFormatters();
 	}
-	
+
 	/**
 	 * Return the simulation data for the current iteration
-	 * 
+	 *
 	 * @return the simulation data for the current iteration
 	 */
 	public abstract SimulationData getSimulationData();
-	
+
 }

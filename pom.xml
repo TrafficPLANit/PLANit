@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.planit</groupId>
-	<artifactId>PlanIt</artifactId>
+	<artifactId>PLANit</artifactId>
 	<description>PlanIt common code for traffic assignment</description>
 	<version>0.0.3-beta</version>
 	<packaging>jar</packaging>
 
-	<name>PlanIt</name>
+	<name>PLANit</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
