@@ -8,20 +8,15 @@ import java.util.TreeSet;
 
 import org.djutils.event.EventProducer;
 import org.djutils.event.EventType;
-import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.physical.PhysicalCost;
-import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
-import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
-import org.planit.cost.virtual.SpeedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.demands.Demands;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
-import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.network.virtual.Zoning;
-import org.planit.sdinteraction.smoothing.MSASmoothing;
+import org.planit.route.RouteChoice;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
@@ -67,38 +62,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
         registeredTrafficAssignmentComponents.put(VirtualCost.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(FundamentalDiagram.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(NodeModel.class, new TreeSet<>());
-    }
-
-    // Currently supported traffic assignment components
-    // TODO: make this event based where we register with events rather than this
-    // static approach
-    // TODO: apply this same concept to local components such as the different types
-    // of cost within generalized cost
-
-    static {
-        try {
-            // Networks
-            registerTrafficAssignmentComponentType(MacroscopicNetwork.class);
-            // Zoning
-            registerTrafficAssignmentComponentType(Zoning.class);
-            // Smoothing
-            registerTrafficAssignmentComponentType(MSASmoothing.class);
-            // Demand
-            registerTrafficAssignmentComponentType(Demands.class);
-            // Traffic assignment/network loading
-            registerTrafficAssignmentComponentType(TraditionalStaticAssignment.class);
-            // Physical Cost
-            registerTrafficAssignmentComponentType(BPRLinkTravelTimeCost.class);
-            // Fixed Virtual Cost
-            registerTrafficAssignmentComponentType(FixedConnectoidTravelTimeCost.class);
-            // Speed Cost
-            registerTrafficAssignmentComponentType(SpeedConnectoidTravelTimeCost.class);
-            // Initial Link Segment Cost
-            registerTrafficAssignmentComponentType(InitialLinkSegmentCost.class);
-        } catch (final PlanItException e) {
-            PlanItLogger.severe(e.getMessage());
-            e.printStackTrace();
-        }
+        registeredTrafficAssignmentComponents.put(RouteChoice.class, new TreeSet<>());
     }
 
     /**

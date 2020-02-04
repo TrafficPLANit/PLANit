@@ -6,7 +6,7 @@ import org.planit.output.enums.OutputType;
 import org.planit.output.enums.PathIdType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
-import org.planit.path.Path;
+import org.planit.route.Route;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.utils.network.physical.Mode;
@@ -71,7 +71,7 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	 * @return the OD path as a String of comma-separated node external Id values
 	 */
 	protected String getPath(ODPathIterator odPathIterator, PathIdType pathOutputType) {
-		Path path =  odPathIterator.getCurrentValue();
+		Route path =  odPathIterator.getCurrentValue();
 		if (path != null) {
 			return path.toString(pathOutputType);
 		} 

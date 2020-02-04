@@ -61,6 +61,16 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 	/** Generated UID */
 	private static final long serialVersionUID = -4610905345414397908L;
 
+	// register to be eligible on PLANit
+    static {
+        try {
+            TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(TraditionalStaticAssignment.class);
+        } catch (final PlanItException e) {
+            PlanItLogger.severe(e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 	/**
 	 * Epsilon margin when comparing flow rates (veh/h)
 	 */
@@ -114,8 +124,13 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 	 * @param shortestPathAlgorithm    shortest path algorithm to be used
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void executeModeTimePeriod(final Mode mode, final ODDemandMatrix odDemandMatrix, final ModeData currentModeData,
-			final double[] modalNetworkSegmentCosts, final ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+	private void executeModeTimePeriod(
+			final Mode mode,
+			final ODDemandMatrix odDemandMatrix,
+			final ModeData currentModeData,
+			final double[] modalNetworkSegmentCosts,
+			final ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+
 		final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 		final ODPathMatrix odPathMatrix = simulationData.getODPathMatrix(mode);
 		final Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);

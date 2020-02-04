@@ -2,7 +2,8 @@ package org.planit.od.odpath;
 
 import org.planit.network.virtual.Zoning;
 import org.planit.od.ODDataImpl;
-import org.planit.path.Path;
+import org.planit.route.Route;
+import org.planit.route.RouteImpl;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.network.virtual.Zone;
@@ -13,12 +14,12 @@ import org.planit.utils.network.virtual.Zone;
  * @author gman6028
  *
  */
-public class ODPathMatrix extends ODDataImpl<Path> {
+public class ODPathMatrix extends ODDataImpl<Route> {
 
 	/**
 	 * Array storing path for each origin-destination pair
 	*/
-	private final Path[][] matrixContents;
+	private final Route[][] matrixContents;
 
 	/**
 	 * Constructor
@@ -28,7 +29,7 @@ public class ODPathMatrix extends ODDataImpl<Path> {
     public ODPathMatrix(final Zoning.Zones zones) {
         super(zones);
         final int numberOfTravelAnalysisZones = zones.getNumberOfZones();
-        matrixContents = new Path[numberOfTravelAnalysisZones][numberOfTravelAnalysisZones];
+        matrixContents = new Route[numberOfTravelAnalysisZones][numberOfTravelAnalysisZones];
     }
 
     /**
@@ -39,7 +40,7 @@ public class ODPathMatrix extends ODDataImpl<Path> {
      *  @return the path from the origin to the destination
      */
 	@Override
-	public Path getValue(final Zone origin, final Zone destination) {
+	public Route getValue(final Zone origin, final Zone destination) {
 		final int originId = (int) origin.getId();
 		final int destinationId = (int) destination.getId();
 		return matrixContents[originId][destinationId];
@@ -53,7 +54,7 @@ public class ODPathMatrix extends ODDataImpl<Path> {
 	 * @param vertexPathAndCost the vertexPathAndCost array (previously calculated by the traffic assignment)
 	 */
 	public void createAndSavePath(final Zone origin, final Zone destination, final Pair<Double, EdgeSegment>[] vertexPathAndCost) {
-		setValue(origin, destination, Path.createODPath(destination.getCentroid(), vertexPathAndCost));
+		setValue(origin, destination, RouteImpl.createODRoute(destination.getCentroid(), vertexPathAndCost));
 	}
 
 	/**
@@ -65,7 +66,7 @@ public class ODPathMatrix extends ODDataImpl<Path> {
 	 *
 	 */
 	@Override
-	public void setValue(final Zone origin, final Zone destination, final Path path) {
+	public void setValue(final Zone origin, final Zone destination, final Route path) {
 		final int originId = (int) origin.getId();
 		final int destinationId = (int) destination.getId();
         matrixContents[originId][destinationId] = path;

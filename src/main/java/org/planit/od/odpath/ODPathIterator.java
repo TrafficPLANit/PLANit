@@ -2,7 +2,7 @@ package org.planit.od.odpath;
 
 import org.planit.network.virtual.Zoning;
 import org.planit.od.ODDataIteratorImpl;
-import org.planit.path.Path;
+import org.planit.route.Route;
 
 /**
  * Iterator which runs through rows and columns of a matrix of Path objects, making the Path, row and column of each cell available
@@ -10,12 +10,12 @@ import org.planit.path.Path;
  * @author gman6028
  *
  */
-public class ODPathIterator extends ODDataIteratorImpl<Path> {
+public class ODPathIterator extends ODDataIteratorImpl<Route> {
 
 	/**
 	 * array containing the Path object for each OD cell
 	 */
-	private Path[][] matrixContents;
+	private Route[][] matrixContents;
 
 	/**
 	 * Constructor
@@ -23,7 +23,7 @@ public class ODPathIterator extends ODDataIteratorImpl<Path> {
 	 * @param matrixContents matrix of Path objects for each origin-destination cell
 	 * @param zones the zones in the current zoning
 	 */
-	public ODPathIterator(Path[][] matrixContents, Zoning.Zones zones) {
+	public ODPathIterator(Route[][] matrixContents, Zoning.Zones zones) {
 		super(zones);
 		this.matrixContents = matrixContents;
 	}
@@ -34,7 +34,7 @@ public class ODPathIterator extends ODDataIteratorImpl<Path> {
      * @return the Path in the current cell
      */
 	@Override
-	public Path getCurrentValue() {
+	public Route getCurrentValue() {
 		return matrixContents[originId][destinationId];
 	}
 
@@ -44,7 +44,7 @@ public class ODPathIterator extends ODDataIteratorImpl<Path> {
      * @return the path the next cell
      */
 	@Override
-	public Path next() {
+	public Route next() {
 		updateCurrentLocation();
 		return matrixContents[originId][destinationId];
 	}
