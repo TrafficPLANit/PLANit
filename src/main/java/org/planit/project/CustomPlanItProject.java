@@ -16,6 +16,7 @@ import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;
+import org.planit.route.ODRouteSets;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
@@ -42,9 +43,9 @@ public class CustomPlanItProject {
 	public class ProjectNetworks {
 
 		/**
-		 * Returns a List of Links
+		 * Returns a List of networks
 		 *
-		 * @return List of Links
+		 * @return List of networks
 		 */
 		public List<PhysicalNetwork> toList() {
 			return new ArrayList<PhysicalNetwork>(physicalNetworkMap.values());
@@ -53,8 +54,8 @@ public class CustomPlanItProject {
 		/**
 		 * Get physical network by id
 		 *
-		 * @param id the id of the link
-		 * @return the retrieved link
+		 * @param id the id of the network
+		 * @return the retrieved network
 		 */
 		public PhysicalNetwork getPhysicalNetwork(final long id) {
 			return physicalNetworkMap.get(id);
@@ -159,6 +160,59 @@ public class CustomPlanItProject {
 	}
 
 	/**
+	 * Internal class for registered od route sets
+	 *
+	 */
+	public class ProjectODRouteSets {
+
+		/**
+		 * Returns a List of od route sets
+		 *
+		 * @return List of od route sets
+		 */
+		public List<ODRouteSets> toList() {
+			return new ArrayList<ODRouteSets>(odRouteSetsMap.values());
+		}
+
+		/**
+		 * Get od rotue sets by id
+		 *
+		 * @param id the id of the link
+		 * @return the retrieved link
+		 */
+		public ODRouteSets getODRouteSets(final long id) {
+			return odRouteSetsMap.get(id);
+		}
+
+		/**
+		 * Get the number of od route sets
+		 *
+		 * @return the number of od route sets in the project
+		 */
+		public int getNumberOfODRouteSets() {
+			return odRouteSetsMap.size();
+		}
+
+	    /**
+	     * Check if od route sets have already been registered
+	     *
+	     * @return true if registered od rotue sets exist, false otherwise
+	     */
+	    public boolean hasRegisteredODRouteSets() {
+	        return !odRouteSetsMap.isEmpty();
+	    }
+
+	    /**
+	     * Collect the first od route set that is registered (if any). Otherwise return null
+	     * @return first od route set that is registered if none return null
+	     */
+	    public ODRouteSets getFirstODRouteSets()
+	    {
+	        return hasRegisteredODRouteSets() ? odRouteSetsMap.firstEntry().getValue() : null;
+	    }
+	}
+
+	/**
 	 * Internal class for registered traffic assignments
 	 *
 	 */
@@ -214,6 +268,8 @@ public class CustomPlanItProject {
 	/** the listener that we register on each traffic assignment component creation event for external initialisation */
 	protected final InputBuilderListener inputBuilderListener;
 
+
+
     /**
      * The physical networks registered on this project
      */
@@ -225,6 +281,11 @@ public class CustomPlanItProject {
     protected final TreeMap<Long, Demands> demandsMap;
 
     /**
+     * The od route sets registered on this project
+     */
+    protected final TreeMap<Long, ODRouteSets> odRouteSetsMap;
+
+    /**
      * The zonings registered on this project
      */
     protected final TreeMap<Long, Zoning> zoningsMap;
@@ -233,6 +294,8 @@ public class CustomPlanItProject {
      * The traffic assignment(s) registered on this project
      */
     protected final TreeMap<Long, TrafficAssignment> trafficAssignmentsMap;
+
+
 
     /**
      * Object factory for zoning objects
@@ -253,6 +316,11 @@ public class CustomPlanItProject {
      * Object factory for demands object
      */
     protected TrafficAssignmentComponentFactory<Demands> demandsFactory;
+
+    /**
+     * Object factory for od route sets object
+     */
+    protected TrafficAssignmentComponentFactory<ODRouteSets> odRouteSetsFactory;
 
     /**
      * Object factory for network loading object
@@ -298,7 +366,10 @@ public class CustomPlanItProject {
     protected void executeTrafficAssignment(final TrafficAssignment ta) {
         try {
             ta.execute();
-        } catch (final Exception e) {
+        }
+        catch (final PlanItException e) {
+            e.printStackTrace();
+       }catch (final Exception e) {
              PlanItLogger.severe(e.getMessage());
              e.printStackTrace();
         }
@@ -318,6 +389,11 @@ public class CustomPlanItProject {
      * The registered zonings
      */
     public final ProjectZonings zonings = new ProjectZonings();
+
+    /**
+     * The registered zonings
+     */
+    public final ProjectODRouteSets odRouteSets = new ProjectODRouteSets();
 
     /**
      * The registered assignments
@@ -343,6 +419,7 @@ public class CustomPlanItProject {
         physicalNetworkMap = new TreeMap<Long, PhysicalNetwork>();
         demandsMap = new TreeMap<Long, Demands>();
         zoningsMap = new TreeMap<Long, Zoning>();
+        odRouteSetsMap = new TreeMap<Long, ODRouteSets>();
         outputFormatters = new TreeMap<Long, OutputFormatter>();
     }
 
@@ -368,8 +445,7 @@ public class CustomPlanItProject {
      */
     public Zoning createAndRegisterZoning(final PhysicalNetwork physicalNetwork) throws PlanItException {
     	if (physicalNetwork == null) {
-    		PlanItLogger.severe("The physical network must be defined before definition of zones can begin");
-    		throw new PlanItException("Tried to define zones before the physical network was defined.");
+    		PlanItLogger.severeWithException("The physical network must be defined before definition of zones can begin");
     	}
         final Zoning zoning = zoningFactory.create(Zoning.class.getCanonicalName(), new Object[] {physicalNetwork});
         zoningsMap.put(zoning.getId(), zoning);
@@ -386,12 +462,29 @@ public class CustomPlanItProject {
     public Demands createAndRegisterDemands(final Zoning zoning) throws PlanItException {
     	if (zoning == null) {
     		PlanItLogger.severe("Zones must be defined before definition of demands can begin");
-    		throw new PlanItException("Tried to define demands before zones were defined.");
     	}
         final Demands demands = demandsFactory.create(Demands.class.getCanonicalName(), new Object[] {zoning});
         demandsMap.put(demands.getId(), demands);
         return demands;
     }
+
+    /** create and register the od route sets as populated by the input builder through the path source
+     * @param physicalNetwork network the routes must be comatible with
+     * @param zoning zoning to match od routes to
+     * @param odRouteSetInputPath path to collect the routes from
+     * @return od route sets that have been parsed
+     * @throws PlanItException
+     */
+    public ODRouteSets createAndRegisterODRouteSets(
+    		final PhysicalNetwork physicalNetwork, final Zoning zoning, final String odRouteSetInputPath) throws PlanItException {
+    	if (zoning == null || physicalNetwork == null) {
+    		PlanItLogger.severeWithException("Zones and network must be registered before definition of od route sets can proceed");
+    	}
+        final ODRouteSets odRouteSets = odRouteSetsFactory.create(ODRouteSets.class.getCanonicalName(), new Object[] {odRouteSetInputPath});
+        odRouteSetsMap.put(odRouteSets.getId(), odRouteSets);
+        return odRouteSets;
+    }
+
 
     /**
      * Create and register a deterministic traffic assignment instance of a given
@@ -405,7 +498,7 @@ public class CustomPlanItProject {
             throws PlanItException {
         final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentType);
         if (!(networkLoadingAndAssignment instanceof TrafficAssignment)) {
-            throw new PlanItException("not a valid traffic assignment type");
+        	PlanItLogger.severeWithException("not a valid traffic assignment type");
         }
         final TrafficAssignment trafficAssignment = (TrafficAssignment) networkLoadingAndAssignment;
         final TrafficAssignmentBuilder trafficAssignmentBuilder = trafficAssignment.collectBuilder(inputBuilderListener);
@@ -432,8 +525,7 @@ public class CustomPlanItProject {
 	 */
 	public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName) throws PlanItException {
 		if (network == null ) {
-			PlanItLogger.severe("Physical network must be read in before initial costs can be read.");
-			throw new PlanItException("Attempted to read in initial costs before the physical network was defined");
+			PlanItLogger.severeWithException("Physical network must be read in before initial costs can be read.");
 		}
 		if (!initialLinkSegmentCosts.containsKey(network)) {
 			initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
@@ -455,8 +547,7 @@ public class CustomPlanItProject {
 	 */
 	public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName, final TimePeriod timePeriod) throws PlanItException {
 		if (network == null ) {
-			PlanItLogger.severe("Physical network must be read in before initial costs can be read.");
-			throw new PlanItException("Attempted to read in initial costs before the physical network was defined");
+			PlanItLogger.severeWithException("Physical network must be read in before initial costs can be read.");
 		}
 		if (!initialLinkSegmentCosts.containsKey(network)) {
 			initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
@@ -478,8 +569,7 @@ public class CustomPlanItProject {
 	 */
 	public Map<TimePeriod, InitialLinkSegmentCost> createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName, final Demands demands) throws PlanItException {
 		if (network == null ) {
-			PlanItLogger.severe("Physical network must be read in before initial costs can be read.");
-			throw new PlanItException("Attempted to read in initial costs before the physical network was defined");
+			PlanItLogger.severeWithException("Physical network must be read in before initial costs can be read.");
 		}
 		final Map<TimePeriod, InitialLinkSegmentCost> initialCostsMap = new HashMap<TimePeriod, InitialLinkSegmentCost>();
 		for (final TimePeriod timePeriod : demands.getRegisteredTimePeriods()) {
@@ -510,7 +600,7 @@ public class CustomPlanItProject {
     public OutputFormatter createAndRegisterOutputFormatter(final String outputFormatterType) throws PlanItException {
         final OutputFormatter outputFormatter = OutputFormatterFactory.createOutputFormatter(outputFormatterType);
         if (outputFormatter == null) {
-            throw new PlanItException("Output writer of type " + outputFormatterType + " could not be created");
+        	PlanItLogger.severeWithException("Output writer of type " + outputFormatterType + " could not be created");
         }
         outputFormatters.put(outputFormatter.getId(), outputFormatter);
         return outputFormatter;

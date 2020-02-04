@@ -32,7 +32,6 @@ import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
-import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
@@ -99,11 +98,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
      * holds the count of all vertices in the transport network
      */
     protected int numberOfNetworkVertices;
-
-	/**
-	 * Unique id
-	 */
-	protected final long id;
 
 	/**
 	 * the smoothing to use
@@ -239,7 +233,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * assumed to be invoked by the calling method via this.initialiseDefaults()
 	 */
 	public TrafficAssignment() {
-		this.id = IdGenerator.generateId(TrafficAssignment.class);
+		super();
 		outputManager = new OutputManager(this);
 		initialLinkSegmentCostByTimePeriod = new HashMap<Long, InitialLinkSegmentCost>();
 	}
@@ -337,15 +331,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	}
 
 	// Getters - Setters
-
-	/**
-	 * collect traffic assignment id
-	 *
-	 * @return id
-	 */
-	public long getId() {
-		return id;
-	}
 
 	/**
 	 * Get the TransportNetwork used in the current assignment

@@ -8,7 +8,6 @@ import org.djutils.event.EventInterface;
 import org.planit.exceptions.PlanItException;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
-import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.ModeImpl;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
@@ -35,7 +34,6 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
         try {
             TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(BPRLinkTravelTimeCost.class);
         } catch (final PlanItException e) {
-            PlanItLogger.severe(e.getMessage());
             e.printStackTrace();
         }
     }

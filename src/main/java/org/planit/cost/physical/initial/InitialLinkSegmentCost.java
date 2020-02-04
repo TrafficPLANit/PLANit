@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.logging.PlanItLogger;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.misc.IdGenerator;
@@ -28,7 +27,6 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
         try {
             TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(InitialLinkSegmentCost.class);
         } catch (final PlanItException e) {
-            PlanItLogger.severe(e.getMessage());
             e.printStackTrace();
         }
     }

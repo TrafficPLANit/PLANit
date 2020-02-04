@@ -3,7 +3,6 @@ package org.planit.cost.virtual;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.logging.PlanItLogger;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.network.physical.Mode;
@@ -25,7 +24,6 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
         try {
             TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(FixedConnectoidTravelTimeCost.class);
         } catch (final PlanItException e) {
-            PlanItLogger.severe(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -33,12 +31,12 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
 	/**
 	 * The fixed connectoid costs for the connectoid segments
 	 */
-	double[] fixedConnectoidCosts = null;
+	protected double[] fixedConnectoidCosts = null;
 
 	/**
 	 * Number of segments captured by the array
 	 */
-	int numberOfConnectoidSegments = -1;
+	protected int numberOfConnectoidSegments = -1;
 
 	/**
 	 * Constructor

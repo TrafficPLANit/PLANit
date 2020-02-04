@@ -1,7 +1,6 @@
 package org.planit.cost.virtual;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.logging.PlanItLogger;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.network.physical.Mode;
@@ -26,7 +25,6 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
         try {
             TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(SpeedConnectoidTravelTimeCost.class);
         } catch (final PlanItException e) {
-            PlanItLogger.severe(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -56,14 +54,17 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 		return connectoidSegment.getParentEdge().getLength() / connectoidSpeed;
 	}
 
-	/**
-	 * currently no specific initialisation needed
-	 */
+    /**
+     * #{@inheritDoc}
+     */
     @Override
     public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException {
         // currently no specific initialisation needed
     }
 
+    /** set the connectoid speed
+     * @param connectoidSpeed the speed
+     */
     public void setConnectiodSpeed(final double connectoidSpeed) {
     	this.connectoidSpeed = connectoidSpeed;
     }

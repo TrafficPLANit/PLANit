@@ -66,7 +66,6 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
         try {
             TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(TraditionalStaticAssignment.class);
         } catch (final PlanItException e) {
-            PlanItLogger.severe(e.getMessage());
             e.printStackTrace();
         }
     }

@@ -7,7 +7,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.logging.PlanItLogger;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
@@ -43,7 +42,6 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
         try {
             TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(Demands.class);
         } catch (final PlanItException e) {
-            PlanItLogger.severe(e.getMessage());
             e.printStackTrace();
         }
     }

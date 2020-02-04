@@ -1,6 +1,6 @@
 package org.planit.trafficassignment;
 
-import org.planit.route.RouteChoice;
+import org.planit.route.choice.RouteChoice;
 
 /**
  * Dynamic traffic assignment class for any traffic assignment model that adheres to being capacity constrained

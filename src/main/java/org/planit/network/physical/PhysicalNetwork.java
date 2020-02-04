@@ -22,7 +22,7 @@ import org.planit.utils.network.physical.Node;
  * Model free Network consisting of nodes and links, each of which can be
  * iterated over. This network does not contain any transport specific
  * information, hence the qualification "model free".
- * 
+ *
  * @author markr
  */
 public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork> implements Serializable {
@@ -40,28 +40,28 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
 		/**
 		 * Add link to the internal container
-		 * 
+		 *
 		 * @param link link to be registered in this network
 		 * @return link, in case it overrides an existing link, the removed link is
 		 *         returned
 		 */
-		protected Link registerLink(@Nonnull Link link) {
+		protected Link registerLink(@Nonnull final Link link) {
 			return linkMap.put(link.getId(), link);
 		}
 
 		/**
 		 * Returns a List of Links
-		 * 
+		 *
 		 * @return List of Links
 		 */
 		public List<Link> toList() {
 			return new ArrayList<Link>(linkMap.values());
 		}
-		
+
 		/**
 		 * Create new link to network identified via its id, injecting link length
 		 * directly
-		 * 
+		 *
 		 * @param nodeA  the first node in this link
 		 * @param nodeB  the second node in this link
 		 * @param length the length of this link
@@ -69,25 +69,25 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 * @return the created link
 		 * @throws PlanItException thrown if there is an error
 		 */
-		public Link registerNewLink(Node nodeA, Node nodeB, double length, String name) throws PlanItException {
-			Link newLink = networkBuilder.createLink(nodeA, nodeB, length, name);
+		public Link registerNewLink(final Node nodeA, final Node nodeB, final double length, final String name) throws PlanItException {
+			final Link newLink = networkBuilder.createLink(nodeA, nodeB, length, name);
 			registerLink(newLink);
 			return newLink;
 		}
 
 		/**
 		 * Get link by id
-		 * 
+		 *
 		 * @param id the id of the link
 		 * @return the retrieved link
 		 */
-		public Link getLink(long id) {
+		public Link getLink(final long id) {
 			return linkMap.get(id);
 		}
 
 		/**
 		 * Get the number of links on the network
-		 * 
+		 *
 		 * @return the number of links in the network
 		 */
 		public int getNumberOfLinks() {
@@ -104,24 +104,24 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
 		/**
 		 * Register a link segment on the network
-		 * 
+		 *
 		 * @param linkSegment the link segment to be registered
 		 * @throws PlanItException thrown if the current link segment external Id has already been assigned
 		 */
-		protected void registerLinkSegment(@Nonnull LinkSegment linkSegment) throws PlanItException {
+		protected void registerLinkSegment(@Nonnull final LinkSegment linkSegment) throws PlanItException {
 			if (linkSegmentMapByExternalId.containsKey(linkSegment.getExternalId())) {
 				throw new PlanItException("Link Segment External Id " + linkSegment.getExternalId()
 						+ " has been assigned to more than one link segment in the input file.");
 			}
 			// do not store by external Id if external Id is zero, that value means external
 			// Ids are not being used for this input method
-			long externalId = linkSegment.getExternalId();
+			final long externalId = linkSegment.getExternalId();
 			if (externalId > 0) {
 				linkSegmentMapByExternalId.put(externalId, linkSegment);
 			}
 			linkSegmentMap.put(linkSegment.getId(), linkSegment);
-			Node startNode = (Node) linkSegment.getUpstreamVertex();
-			long startNodeExternalId = startNode.getExternalId();
+			final Node startNode = (Node) linkSegment.getUpstreamVertex();
+			final long startNodeExternalId = startNode.getExternalId();
 			if (!linkSegmentMapByStartExternalId.containsKey(startNodeExternalId)) {
 				linkSegmentMapByStartExternalId.put(startNodeExternalId, new ArrayList<LinkSegment>());
 			}
@@ -130,7 +130,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
 		/**
 		 * Returns a List of LinkSegments in the network
-		 * 
+		 *
 		 * @return List of registered link segments
 		 */
 		public List<LinkSegment> toList() {
@@ -139,19 +139,19 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
 		/**
 		 * Find a LinkSegment by the external Ids of its start and end nodes
-		 * 
+		 *
 		 * @param startExternalId reference to start node
 		 * @param endExternalId   reference to end node
 		 * @return the linkSegment found
 		 */
-		public LinkSegment getLinkSegmentByStartAndEndNodeExternalId(long startExternalId, long endExternalId) {
+		public LinkSegment getLinkSegmentByStartAndEndNodeExternalId(final long startExternalId, final long endExternalId) {
 			if (!linkSegmentMapByStartExternalId.containsKey(startExternalId)) {
 				PlanItLogger.severe("No link segment with start node " + startExternalId + " has been registered in the network.");
 				return null;
 			}
-			List<LinkSegment> linkSegmentsForCurrentStartNode = linkSegmentMapByStartExternalId.get(startExternalId);
-			for (LinkSegment linkSegment : linkSegmentsForCurrentStartNode) {
-				Node endNode = (Node) linkSegment.getDownstreamVertex();
+			final List<LinkSegment> linkSegmentsForCurrentStartNode = linkSegmentMapByStartExternalId.get(startExternalId);
+			for (final LinkSegment linkSegment : linkSegmentsForCurrentStartNode) {
+				final Node endNode = (Node) linkSegment.getDownstreamVertex();
 				if (endNode.getExternalId() == endExternalId) {
 					return linkSegment;
 				}
@@ -162,27 +162,27 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
 		/**
 		 * Create directional link segment
-		 * 
+		 *
 		 * @param parentLink  the parent link of this link segment
 		 * @param directionAB direction of travel
 		 * @return the created link segment
 		 * @throws PlanItException thrown if there is an error
 		 */
-		public LinkSegment createDirectionalLinkSegment(@Nonnull Link parentLink, boolean directionAB)
+		public LinkSegment createDirectionalLinkSegment(@Nonnull final Link parentLink, final boolean directionAB)
 				throws PlanItException {
-			LinkSegment linkSegment = networkBuilder.createLinkSegment(parentLink, directionAB);
+			final LinkSegment linkSegment = networkBuilder.createLinkSegment(parentLink, directionAB);
 			return linkSegment;
 		}
 
 		/**
 		 * Register a link segment
-		 * 
+		 *
 		 * @param parentLink  the parent link which specified link segment will be registered on
 		 * @param linkSegment link segment to be registered
 		 * @param directionAB direction of travel
 		 * @throws PlanItException thrown if there is an error
 		 */
-		public void registerLinkSegment(@Nonnull Link parentLink, LinkSegment linkSegment, boolean directionAB)
+		public void registerLinkSegment(@Nonnull final Link parentLink, final LinkSegment linkSegment, final boolean directionAB)
 				throws PlanItException {
 			parentLink.registerLinkSegment(linkSegment, directionAB);
 			registerLinkSegment(linkSegment);
@@ -190,21 +190,21 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
 		/**
 		 * Get link segment by id
-		 * 
+		 *
 		 * @param id id of the link segment
 		 * @return retrieved linkSegment
 		 */
-		public LinkSegment getLinkSegment(long id) {
+		public LinkSegment getLinkSegment(final long id) {
 			return linkSegmentMap.get(id);
 		}
 
 		/**
 		 * Get link segment by External Id
-		 * 
+		 *
 		 * @param externalId external Id of the link segment
 		 * @return retrieved link segment
 		 */
-		public LinkSegment getLinkSegmentByExternalId(long externalId) {
+		public LinkSegment getLinkSegmentByExternalId(final long externalId) {
 			if (!linkSegmentMapByExternalId.containsKey(externalId) ) {
 				PlanItLogger.severe("Link with External Id " + externalId + " has not been registered in the network.");
 				return null;
@@ -214,7 +214,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
 		/**
 		 * Return number of registered link segments
-		 * 
+		 *
 		 * @return number of registered link segments
 		 */
 		public int getNumberOfLinkSegments() {
@@ -229,38 +229,38 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
 		/**
 		 * Add node to the internal container
-		 * 
+		 *
 		 * @param node node to be registered in this network
 		 * @return node, in case it overrides an existing node, the removed node is
 		 *         returned
 		 */
-		public Node registerNode(@Nonnull Node node) {
+		public Node registerNode(@Nonnull final Node node) {
 			return nodeMap.put(node.getId(), node);
 		}
 
 		/**
 		 * Returns a List of Nodes
-		 * 
+		 *
 		 * @return List of Nodes
-		 */	
+		 */
 		public List<Node> toList() {
 			return new ArrayList<Node>(nodeMap.values());
 		}
 
 		/**
 		 * Create and register new node
-		 * 
+		 *
 		 * @return new node created
 		 */
 		public Node registerNewNode() {
-			Node newNode = networkBuilder.createNode();
+			final Node newNode = networkBuilder.createNode();
 			registerNode(newNode);
 			return newNode;
 		}
 
 		/**
 		 * Return number of registered nodes
-		 * 
+		 *
 		 * @return number of registered nodes
 		 */
 		public int getNumberOfNodes() {
@@ -269,12 +269,12 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
 		/**
 		 * Find a node by its external Id
-		 * 
+		 *
 		 * @param externalId external Id of node
 		 * @return retrieved node
 		 */
-		public Node findNodeByExternalIdentifier(long externalId) {
-			for (Node node : nodeMap.values()) {
+		public Node findNodeByExternalIdentifier(final long externalId) {
+			for (final Node node : nodeMap.values()) {
 				if (node.getExternalId() == externalId) {
 					return node;
 				}
@@ -283,50 +283,50 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		}
 
 	}
-	
+
 	/**
 	 * Internal class for all Mode specific code
 	 */
 	public class Modes {
 		/**
 		 * Add mode to the internal container
-		 * 
+		 *
 		 * @param mode to be registered in this network
 		 * @return mode, in case it overrides an existing mode, the removed mode is
 		 *         returned
 		 */
-		public Mode registerMode(@Nonnull Mode mode) {
+		public Mode registerMode(@Nonnull final Mode mode) {
 			return modeMap.put(mode.getId(), mode);
 		}
 
 		/**
 		 * Returns a List of Modes
-		 * 
+		 *
 		 * @return List of Modes
-		 */	
+		 */
 		public List<Mode> toList() {
 			return new ArrayList<Mode>(modeMap.values());
 		}
 
 		/**
 		 * Create and register new mode
-		 * 
-		 * @param externalModeId 
+		 *
+		 * @param externalModeId
 		 * @param name
-		 * @param pcu 
+		 * @param pcu
 
-		 * 
+		 *
 		 * @return new mode created
 		 */
-		public Mode registerNewMode(long externalModeId, String name, double pcu) {
-			Mode newMode = networkBuilder.createMode(externalModeId, name, pcu);
+		public Mode registerNewMode(final long externalModeId, final String name, final double pcu) {
+			final Mode newMode = networkBuilder.createMode(externalModeId, name, pcu);
 			registerMode(newMode);
 			return newMode;
 		}
 
 		/**
 		 * Return number of registered modes
-		 * 
+		 *
 		 * @return number of registered modes
 		 */
 		public int getNumberOfModes() {
@@ -336,12 +336,12 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		/**
 		 * Find a mode by its external Id (not fool proof as multiple modes can have this id)
 		 * Also costly as external id is not indexed
-		 * 
+		 *
 		 * @param externalId external Id of mode
 		 * @return retrieved node
 		 */
-		public Mode findModeByExternalIdentifier(long externalId) {
-			for (Mode mode : modeMap.values()) {
+		public Mode findModeByExternalIdentifier(final long externalId) {
+			for (final Mode mode : modeMap.values()) {
 				if (mode.getExternalId() == externalId) {
 					return mode;
 				}
@@ -349,7 +349,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 			return null;
 		}
 	}
-	
+
 	// Private
 
 	// Protected
@@ -379,7 +379,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 * Map to store link segments by their external Id
 	 */
 	protected Map<Long, LinkSegment> linkSegmentMapByExternalId;
-	
+
 	/**
 	 * Map to store all link segments for a given start node external Id
 	 */
@@ -389,7 +389,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 * Map to store nodes by their Id
 	 */
 	protected Map<Long, Node> nodeMap;
-	
+
 	/**
 	 * Map to store modes by their Id
 	 */
@@ -416,10 +416,10 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
 	/**
 	 * Network Constructor
-	 * 
+	 *
 	 * @param networkBuilder the builder to be used to create this network
 	 */
-	public PhysicalNetwork(@Nonnull PhysicalNetworkBuilder networkBuilder) {
+	public PhysicalNetwork(@Nonnull final PhysicalNetworkBuilder networkBuilder) {
 		this.id = IdGenerator.generateId(PhysicalNetwork.class);
 		// for now use tree map to ensure non-duplicate keys until we add functionality
 		// to account for this (treemap is slower than hashmap)
@@ -435,10 +435,9 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	// Getters - Setters
 
 	/**
-	 * Collect network id
-	 * 
-	 * @return id
+	 * #{@inheritDoc}
 	 */
+	@Override
 	public long getId() {
 		return this.id;
 	}

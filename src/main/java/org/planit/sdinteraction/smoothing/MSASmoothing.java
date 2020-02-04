@@ -1,7 +1,6 @@
 package org.planit.sdinteraction.smoothing;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.logging.PlanItLogger;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 
 /**
@@ -20,7 +19,6 @@ public class MSASmoothing extends Smoothing {
         try {
             TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(MSASmoothing.class);
         } catch (final PlanItException e) {
-            PlanItLogger.severe(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -30,6 +28,9 @@ public class MSASmoothing extends Smoothing {
      */
     protected double stepSize = 1;
 
+    /**
+     * Constructor
+     */
     public MSASmoothing() {
         super();
     }
@@ -44,23 +45,17 @@ public class MSASmoothing extends Smoothing {
         this.stepSize = 1.0 / (iterationIndex + 1);
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.planit.sdinteraction.smoothing.Smoothing#applySmoothing(double,
-     * double)
-     */
+	/**
+	 * #{@inheritDoc}
+	 */
     @Override
     public double applySmoothing(final double previousValue, final double proposedValue) {
         return (1 - stepSize) * previousValue + stepSize * proposedValue;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.planit.sdinteraction.smoothing.Smoothing#applySmoothing(double[],
-     * double[], int)
-     */
+	/**
+	 * #{@inheritDoc}
+	 */
     @Override
     public double[] applySmoothing(final double[] previousValues, final double[] proposedValues, final int numberOfValues) {
         final double[] smoothedValues = new double[numberOfValues];

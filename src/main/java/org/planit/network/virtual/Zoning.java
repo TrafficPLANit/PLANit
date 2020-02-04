@@ -9,7 +9,6 @@ import java.util.TreeMap;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.logging.PlanItLogger;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.misc.IdGenerator;
@@ -32,7 +31,6 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
         try {
             TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(Zoning.class);
         } catch (final PlanItException e) {
-            PlanItLogger.severe(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -120,12 +118,12 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
     /**
      * unique identifier for this zoning
      */
-    protected long id;
+    protected final long id;
 
     /**
      * Map storing all the zones by their row/column in the OD matrix
      */
-    protected Map<Long, Zone> zoneMap = new TreeMap<Long, Zone>();
+    protected final Map<Long, Zone> zoneMap = new TreeMap<Long, Zone>();
 
     /**
      * Virtual network holds all the virtual connections to the physical network
@@ -137,7 +135,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
     /**
      * provide access to zones of this zoning
      */
-    public Zones zones = new Zones();
+    public final Zones zones = new Zones();
 
     /**
      * Constructor
@@ -149,12 +147,11 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
 
     // Public - getters - setters
 
-    /**
-     * Get the id for this zoning
-     *
-     * @return id for this zoning
-     */
-    public long getId() {
+   /**
+    * #{@inheritDoc}
+    */
+    @Override
+	public long getId() {
         return this.id;
     }
 

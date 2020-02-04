@@ -7,7 +7,7 @@ import org.djutils.event.EventProducer;
 /**
  * Traffic assignment components are the main building blocks to conduct traffic
  * assignment on
- * 
+ *
  * @author markr
  *
  */
@@ -30,13 +30,19 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
         this.trafficComponentType = this.getClass().getCanonicalName();
     }
 
-    // Public      
+    // Public
 
     public String getTrafficComponentType() {
         return trafficComponentType;
     }
 
-   
+
+    /** All traffic components must have a unique id
+     * @return
+     */
+    public abstract long getId();
+
+
     /**
      * the source id whenever this instance fires an event is simply this
      * @return this instance as source id
@@ -45,6 +51,6 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
 	public Serializable getSourceId() {
 		return this;
 	}
-    
-    
+
+
 }

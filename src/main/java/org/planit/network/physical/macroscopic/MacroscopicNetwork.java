@@ -7,7 +7,6 @@ import java.util.TreeMap;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.misc.Pair;
@@ -32,7 +31,6 @@ public class MacroscopicNetwork extends PhysicalNetwork {
         try {
             TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(MacroscopicNetwork.class);
         } catch (final PlanItException e) {
-            PlanItLogger.severe(e.getMessage());
             e.printStackTrace();
         }
     }

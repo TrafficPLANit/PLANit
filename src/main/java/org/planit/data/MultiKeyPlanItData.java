@@ -7,10 +7,10 @@ import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
-import org.planit.output.property.BaseOutputProperty;
-import org.planit.output.property.OutputProperty;
 import org.planit.output.enums.Type;
 import org.planit.output.formatter.OutputFormatter;
+import org.planit.output.property.BaseOutputProperty;
+import org.planit.output.property.OutputProperty;
 
 public class MultiKeyPlanItData {
 
@@ -23,14 +23,14 @@ public class MultiKeyPlanItData {
 
 	/**
 	 * Get the position of a property type in the output values property array
-	 * 
+	 *
 	 * @param outputValueProperty the output value property
 	 * @return the position of the output value property in the output values
 	 *         property array
 	 * @throws PlanItException thrown if the output property type is not in the
 	 *                         output property array
 	 */
-	private int getPositionOfOutputProperty(OutputProperty outputValueProperty) throws PlanItException {
+	private int getPositionOfOutputProperty(final OutputProperty outputValueProperty) throws PlanItException {
 		for (int i = 0; i < outputValueProperties.length; i++) {
 			if (outputValueProperties[i].equals(outputValueProperty)) {
 				return i;
@@ -43,16 +43,16 @@ public class MultiKeyPlanItData {
 
 	/**
 	 * Gets an array of Types from a corresponding array of output properties
-	 * 
+	 *
 	 * @param outputProperties array of OutputProperty objects
 	 * @return array of Types
 	 * @throws PlanItException thrown if a Type cannot be derived from an
 	 *                         OuputProperty object
 	 */
-	private Type[] getTypes(OutputProperty[] outputProperties) throws PlanItException {
-		Type[] types = new Type[outputProperties.length];
+	private Type[] getTypes(final OutputProperty[] outputProperties) throws PlanItException {
+		final Type[] types = new Type[outputProperties.length];
 		for (int i = 0; i < outputProperties.length; i++) {
-			BaseOutputProperty property = BaseOutputProperty.convertToBaseOutputProperty(outputProperties[i].value());
+			final BaseOutputProperty property = BaseOutputProperty.convertToBaseOutputProperty(outputProperties[i].value());
 			types[i] = property.getType();
 		}
 		return types;
@@ -60,12 +60,12 @@ public class MultiKeyPlanItData {
 
 	/**
 	 * Validate type of a key object
-	 * 
+	 *
 	 * @param key  the key object
 	 * @param type the required type of the key object
 	 * @return true if the key is valid, false otherwise
 	 */
-	private boolean isValueTypeCorrect(Object key, Type type) {
+	private boolean isValueTypeCorrect(final Object key, final Type type) {
 		switch (type) {
 		case DOUBLE:
 			return (key instanceof Double);
@@ -88,18 +88,18 @@ public class MultiKeyPlanItData {
 
 	/**
 	 * Validate an array of key values
-	 * 
+	 *
 	 * @param keyValues array of key values
 	 * @return true if the array is valid, false otherwise
 	 */
-	private boolean isKeyValuesValid(Object... keyValues) {
+	private boolean isKeyValuesValid(final Object... keyValues) {
 		if (keyValues.length != outputKeyProperties.length) {
-			PlanItLogger.severe("Incorrect number of key values in call to RevisedMemoryOutputFormatter");
+			PlanItLogger.warning("Incorrect number of key values in call to RevisedMemoryOutputFormatter");
 			return false;
 		}
 		for (int i = 0; i < outputKeyProperties.length; i++) {
 			if (!isValueTypeCorrect(keyValues[i], keyTypes[i])) {
-				PlanItLogger.severe("Output key in position " + (i + 1) + " is of the wrong type.");
+				PlanItLogger.warning("Output key in position " + (i + 1) + " is of the wrong type.");
 				return false;
 			}
 		}
@@ -108,12 +108,12 @@ public class MultiKeyPlanItData {
 
 	/**
 	 * Sets up the instance of the class (only called by the constructors)
-	 * 
+	 *
 	 * @param outputKeyProperties   OutputProperty types of keys
 	 * @param outputValueProperties OutputProperty types of values
 	 * @throws PlanItException thrown if there is an error
 	 */
-	private void init(OutputProperty[] outputKeyProperties, OutputProperty[] outputValueProperties)	throws PlanItException {
+	private void init(final OutputProperty[] outputKeyProperties, final OutputProperty[] outputValueProperties)	throws PlanItException {
 		multiKeyMap = MultiKeyMap.decorate(new HashedMap());
 		singleKeyMap = new HashMap<Object, Object[]>();
 		if (outputKeyProperties.length > 5) {
@@ -127,41 +127,41 @@ public class MultiKeyPlanItData {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param outputKeyProperties   OutputProperty types of keys
 	 * @param outputValueProperties OutputProperty types of values
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public MultiKeyPlanItData(OutputProperty[] outputKeyProperties, OutputProperty... outputValueProperties)
+	public MultiKeyPlanItData(final OutputProperty[] outputKeyProperties, final OutputProperty... outputValueProperties)
 			throws PlanItException {
 		init(outputKeyProperties, outputValueProperties);
 	}
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param outputKeyProperty1    first output key property
 	 * @param outputValueProperties OutputProperty types of values
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public MultiKeyPlanItData(OutputProperty outputKeyProperty1, OutputProperty... outputValueProperties)
+	public MultiKeyPlanItData(final OutputProperty outputKeyProperty1, final OutputProperty... outputValueProperties)
 			throws PlanItException {
-		OutputProperty[] outputKeyProperties = new OutputProperty[1];
+		final OutputProperty[] outputKeyProperties = new OutputProperty[1];
 		outputKeyProperties[0] = outputKeyProperty1;
 		init(outputKeyProperties, outputValueProperties);
 	}
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param outputKeyProperty1    first output key property
 	 * @param outputKeyProperty2    second output key property
 	 * @param outputValueProperties OutputProperty types of values
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public MultiKeyPlanItData(OutputProperty outputKeyProperty1, OutputProperty outputKeyProperty2,
-			OutputProperty... outputValueProperties) throws PlanItException {
-		OutputProperty[] outputKeyProperties = new OutputProperty[2];
+	public MultiKeyPlanItData(final OutputProperty outputKeyProperty1, final OutputProperty outputKeyProperty2,
+			final OutputProperty... outputValueProperties) throws PlanItException {
+		final OutputProperty[] outputKeyProperties = new OutputProperty[2];
 		outputKeyProperties[0] = outputKeyProperty1;
 		outputKeyProperties[1] = outputKeyProperty2;
 		init(outputKeyProperties, outputValueProperties);
@@ -169,16 +169,16 @@ public class MultiKeyPlanItData {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param outputKeyProperty1    first output key property
 	 * @param outputKeyProperty2    second output key property
 	 * @param outputKeyProperty3    third output key property
 	 * @param outputValueProperties OutputProperty types of values
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public MultiKeyPlanItData(OutputProperty outputKeyProperty1, OutputProperty outputKeyProperty2,
-			OutputProperty outputKeyProperty3, OutputProperty... outputValueProperties) throws PlanItException {
-		OutputProperty[] outputKeyProperties = new OutputProperty[3];
+	public MultiKeyPlanItData(final OutputProperty outputKeyProperty1, final OutputProperty outputKeyProperty2,
+			final OutputProperty outputKeyProperty3, final OutputProperty... outputValueProperties) throws PlanItException {
+		final OutputProperty[] outputKeyProperties = new OutputProperty[3];
 		outputKeyProperties[0] = outputKeyProperty1;
 		outputKeyProperties[1] = outputKeyProperty2;
 		outputKeyProperties[2] = outputKeyProperty3;
@@ -188,12 +188,12 @@ public class MultiKeyPlanItData {
 	/**
 	 * Returns an array representing the row of data values defined by the specified
 	 * array of key values
-	 * 
+	 *
 	 * @param keyValues array storing the key values
 	 * @return array storing the data values
 	 * @throws PlanItException thrown if the key values array is invalid
 	 */
-	public Object[] getRowValues(Object... keyValues) throws PlanItException {
+	public Object[] getRowValues(final Object... keyValues) throws PlanItException {
 		if (keyValues.length != outputKeyProperties.length) {
 			throw new PlanItException("Call to getRowValues() has the wrong number of key values");
 		}
@@ -219,26 +219,26 @@ public class MultiKeyPlanItData {
 
 	/**
 	 * Get data value for a specified row and column
-	 * 
+	 *
 	 * @param outputProperty output property of the required column
 	 * @param keyValues      array storing the key values
 	 * @return the value of the specified cell
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public Object getRowValue(OutputProperty outputProperty, Object... keyValues) throws PlanItException {
-		Object[] rowValues = getRowValues(keyValues);
-		int pos = getPositionOfOutputProperty(outputProperty);
+	public Object getRowValue(final OutputProperty outputProperty, final Object... keyValues) throws PlanItException {
+		final Object[] rowValues = getRowValues(keyValues);
+		final int pos = getPositionOfOutputProperty(outputProperty);
 		return rowValues[pos];
 	}
 
 	/**
 	 * Puts the data values into a specified row
-	 * 
+	 *
 	 * @param outputValues array storing the data values
 	 * @param keyValues    array storing the key values to specify a row
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void putRow(Object[] outputValues, Object... keyValues) throws PlanItException {
+	public void putRow(final Object[] outputValues, final Object... keyValues) throws PlanItException {
 		if (keyValues.length != outputKeyProperties.length) {
 			throw new PlanItException("Wrong number of keys used in call to MultiKeyPlanItData ");
 		}
@@ -274,13 +274,13 @@ public class MultiKeyPlanItData {
 
 	/**
 	 * Set the data value for an individual cell
-	 * 
+	 *
 	 * @param outputProperty output property value specifying the column
 	 * @param value          data value to be inserted
 	 * @param keyValues      array of key values specifying the row
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public void putRowValue(OutputProperty outputProperty, Object value, Object... keyValues) throws PlanItException {
+	public void putRowValue(final OutputProperty outputProperty, final Object value, final Object... keyValues) throws PlanItException {
 		if (keyValues.length != outputKeyProperties.length) {
 			throw new PlanItException("Wrong number of keys used in call to MultiKeyPlanItData ");
 		}
@@ -306,7 +306,7 @@ public class MultiKeyPlanItData {
 		if (outputValues == null) {
 			outputValues = new Object[outputValueProperties.length];
 		}
-		int pos = getPositionOfOutputProperty(outputProperty);
+		final int pos = getPositionOfOutputProperty(outputProperty);
 		outputValues[pos] = outputProperty;
 		putRow(outputValues, keyValues);
 	}
