@@ -1,4 +1,4 @@
-package org.planit.od.odpath;
+package org.planit.od.odroute;
 
 import org.planit.network.virtual.Zoning;
 import org.planit.od.ODDataIteratorImpl;
@@ -10,7 +10,7 @@ import org.planit.route.Route;
  * @author gman6028
  *
  */
-public class ODPathIterator extends ODDataIteratorImpl<Route> {
+public class ODRouteIterator extends ODDataIteratorImpl<Route> {
 
 	/**
 	 * array containing the Path object for each OD cell
@@ -23,7 +23,7 @@ public class ODPathIterator extends ODDataIteratorImpl<Route> {
 	 * @param matrixContents matrix of Path objects for each origin-destination cell
 	 * @param zones the zones in the current zoning
 	 */
-	public ODPathIterator(Route[][] matrixContents, Zoning.Zones zones) {
+	public ODRouteIterator(Route[][] matrixContents, Zoning.Zones zones) {
 		super(zones);
 		this.matrixContents = matrixContents;
 	}

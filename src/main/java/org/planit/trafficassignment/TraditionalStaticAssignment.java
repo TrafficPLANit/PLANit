@@ -26,14 +26,15 @@ import org.planit.logging.PlanItLogger;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.od.odpath.ODPathMatrix;
+import org.planit.od.odroute.ODRouteMatrix;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
-import org.planit.output.adapter.TraditionalStaticPathOutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticRouteOutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
+import org.planit.route.RouteImpl;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TraditionalStaticAssignmentBuilder;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
@@ -131,7 +132,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 			final ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
 
 		final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
-		final ODPathMatrix odPathMatrix = simulationData.getODPathMatrix(mode);
+		final ODRouteMatrix odRouteMatrix = simulationData.getODPathMatrix(mode);
 		final Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
 
 		// loop over all available OD demands
@@ -167,28 +168,15 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 					vertexPathCosts = shortestPathAlgorithm.executeOneToAll(originCentroid);
 				}
 
-				// MARK 6-1-2020
-				// store path to current destination when needed
 				if (outputManager.isOutputTypeActive(OutputType.PATH)) {
-					odPathMatrix.createAndSavePath(currentOriginZone, currentDestinationZone, vertexPathCosts);
+					final RouteImpl route = RouteImpl.createODRoute(currentDestinationZone.getCentroid(), vertexPathCosts);
+					odRouteMatrix.setValue(currentOriginZone, currentDestinationZone, route);
 				}
 
 				final double odShortestPathCost = getShortestPathCost(vertexPathCosts, currentOriginZone,
 						currentDestinationZone, modalNetworkSegmentCosts, odDemand, currentModeData);
 				dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
 				previousOriginZoneId = currentOriginZone.getId();
-
-				// MARK 6-1-2020
-				// Here we should store the skim matrix information for travel time (generalized path cost) for i-1
-				// So when we are in the first iteration (i=1), the current vertexPathCosts
-				// array provides us the path cost information to store
-				// the row of the current origin for all destinations for i=(1-1)=0
-				//
-				// See how this obviates the need to store the paths (if we are not interested
-				// in paths)
-				//
-				// NOTE: do NOT use the vertex path map to store costs! Only use it to store
-				// paths, i.e., edge segments,
 
 				updateSkimMatrixMap(skimMatrixMap, currentOriginZone, currentDestinationZone, odDemand, vertexPathCosts);
 			}
@@ -621,7 +609,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 			outputTypeAdapter = new TraditionalStaticAssignmentODOutputTypeAdapter(outputType, this);
 			break;
 		case PATH:
-			outputTypeAdapter = new TraditionalStaticPathOutputTypeAdapter(outputType, this);
+			outputTypeAdapter = new TraditionalStaticRouteOutputTypeAdapter(outputType, this);
 			break;
 		default:
 			PlanItLogger.warning(outputType.value() + " has not been defined yet.");

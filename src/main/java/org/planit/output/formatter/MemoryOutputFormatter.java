@@ -12,18 +12,18 @@ import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.od.odpath.ODPathMatrix;
-import org.planit.od.odpath.ODPathIterator;
+import org.planit.od.odroute.ODRouteIterator;
+import org.planit.od.odroute.ODRouteMatrix;
 import org.planit.output.adapter.LinkOutputTypeAdapter;
 import org.planit.output.adapter.ODOutputTypeAdapter;
-import org.planit.output.adapter.PathOutputTypeAdapter;
+import org.planit.output.adapter.RouteOutputTypeAdapter;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.configuration.PathOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.OutputTypeEnum;
-import org.planit.output.enums.PathIdType;
+import org.planit.output.enums.RoutIdType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
@@ -143,11 +143,11 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	
-	private void updateOutputAndKeyValuesForPath(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys, ODPathIterator odPathIterator,
-			PathOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod, PathIdType pathIdType) throws PlanItException {
+	private void updateOutputAndKeyValuesForPath(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys, ODRouteIterator odPathIterator,
+			RouteOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod, RoutIdType pathIdType) throws PlanItException {
 		odPathIterator.next();
 		updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-			return pathOutputTypeAdapter.getPathOutputPropertyValue(label, odPathIterator, mode, timePeriod, pathIdType);
+			return pathOutputTypeAdapter.getRouteOutputPropertyValue(label, odPathIterator, mode, timePeriod, pathIdType);
 		});
 	}
 	
@@ -272,12 +272,12 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
         OutputType outputType = (OutputType)currentOutputType;	    
 		OutputProperty[] outputProperties = outputValueProperties.get(outputType);
 		OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
-		PathOutputTypeAdapter pathOutputTypeAdapter = (PathOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+		RouteOutputTypeAdapter pathOutputTypeAdapter = (RouteOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
 		PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
 		for (Mode mode : modes) {
 			MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
-			ODPathMatrix odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
-			for (ODPathIterator odPathIterator = odPathMatrix.iterator(); odPathIterator.hasNext();) {
+			ODRouteMatrix odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
+			for (ODRouteIterator odPathIterator = odPathMatrix.iterator(); odPathIterator.hasNext();) {
 				updateOutputAndKeyValuesForPath(multiKeyPlanItData, outputProperties, outputKeys, odPathIterator, pathOutputTypeAdapter, mode, timePeriod, pathOutputTypeConfiguration.getPathIdType());
 			}
 			timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType,	multiKeyPlanItData);

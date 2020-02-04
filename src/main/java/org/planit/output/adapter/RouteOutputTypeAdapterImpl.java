@@ -1,9 +1,9 @@
 package org.planit.output.adapter;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.od.odpath.ODPathIterator;
+import org.planit.od.odroute.ODRouteIterator;
 import org.planit.output.enums.OutputType;
-import org.planit.output.enums.PathIdType;
+import org.planit.output.enums.RoutIdType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.route.Route;
@@ -17,7 +17,7 @@ import org.planit.utils.network.physical.Mode;
  * @author gman6028
  *
  */
-public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements PathOutputTypeAdapter {
+public abstract class RouteOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements RouteOutputTypeAdapter {
 
 	/**
 	 * Returns the external Id of the destination zone for the current cell in the OD path matrix
@@ -26,7 +26,7 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	 * @return the external Id of the destination zone for the current cell in the OD path matrix
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected long getDestinationZoneExternalId(ODPathIterator odPathIterator) throws PlanItException {
+	protected long getDestinationZoneExternalId(ODRouteIterator odPathIterator) throws PlanItException {
 		return odPathIterator.getCurrentDestination().getExternalId();
 	}
 
@@ -37,7 +37,7 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	 * @return the Id of the destination zone for the current cell in the OD path matrix
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected long getDestinationZoneId(ODPathIterator odPathIterator) throws PlanItException {
+	protected long getDestinationZoneId(ODRouteIterator odPathIterator) throws PlanItException {
 		return odPathIterator.getCurrentDestination().getId();
 	}
 
@@ -48,7 +48,7 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	 * @return the origin zone external Id for the current cell in the OD path matrix
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected long getOriginZoneExternalId(ODPathIterator odPathIterator) throws PlanItException {
+	protected long getOriginZoneExternalId(ODRouteIterator odPathIterator) throws PlanItException {
 		return odPathIterator.getCurrentOrigin().getExternalId();
 	}
 
@@ -59,7 +59,7 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	 * @return the origin zone Id for the current cell in the OD path matrix
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected long getOriginZoneId(ODPathIterator odPathIterator) throws PlanItException {
+	protected long getOriginZoneId(ODRouteIterator odPathIterator) throws PlanItException {
 		return odPathIterator.getCurrentOrigin().getId();
 	}
 	
@@ -70,7 +70,7 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	 * @param pathOutputType the type of objects being used in the path
 	 * @return the OD path as a String of comma-separated node external Id values
 	 */
-	protected String getPath(ODPathIterator odPathIterator, PathIdType pathOutputType) {
+	protected String getRouteAsString(ODRouteIterator odPathIterator, RoutIdType pathOutputType) {
 		Route path =  odPathIterator.getCurrentValue();
 		if (path != null) {
 			return path.toString(pathOutputType);
@@ -84,7 +84,7 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	 * @param outputType the output type for the current persistence
 	 * @param trafficAssignment the traffic assignment used to provide the data
 	 */
-	public PathOutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
+	public RouteOutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
 		super(outputType, trafficAssignment);
 	}
 
@@ -92,14 +92,14 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
      * Returns the specified output property values for the current cell in the ODPathIterator
      * 
      * @param outputProperty the specified output property
-     * @param odPathIterator the iterator through the current ODPath object
+     * @param odRouteIterator the iterator through the current ODPath object
      * @param mode the current mode
      * @param timePeriod the current time period
-     * @param pathOutputType the type of objects in the path list
+     * @param routeOutputType the type of objects in the path list
      * @return the value of the specified property (or an Exception if an error has occurred)
      */
 	@Override
-	public Object getPathOutputPropertyValue(OutputProperty outputProperty, ODPathIterator odPathIterator, Mode mode, TimePeriod timePeriod, PathIdType pathOutputType) {
+	public Object getRouteOutputPropertyValue(OutputProperty outputProperty, ODRouteIterator odRouteIterator, Mode mode, TimePeriod timePeriod, RoutIdType routeOutputType) {
 		try {
 			Object obj = getCommonPropertyValue(outputProperty, mode, timePeriod);
 			if (obj != null) {
@@ -107,15 +107,15 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 			}
 			switch (outputProperty) {
 			case DESTINATION_ZONE_EXTERNAL_ID:
-				return getDestinationZoneExternalId(odPathIterator);
+				return getDestinationZoneExternalId(odRouteIterator);
 			case DESTINATION_ZONE_ID:
-				return getDestinationZoneId(odPathIterator);
+				return getDestinationZoneId(odRouteIterator);
 			case PATH:
-				return getPath(odPathIterator, pathOutputType);
+				return getRouteAsString(odRouteIterator, routeOutputType);
 			case ORIGIN_ZONE_EXTERNAL_ID:
-				return getOriginZoneExternalId(odPathIterator);
+				return getOriginZoneExternalId(odRouteIterator);
 			case ORIGIN_ZONE_ID:
-				return getOriginZoneId(odPathIterator);
+				return getOriginZoneId(odRouteIterator);
 			default:
 				return new PlanItException("Tried to find link property of " + BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName() + " which is not applicable for OD path.");		
 			}

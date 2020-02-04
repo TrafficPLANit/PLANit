@@ -1,13 +1,13 @@
 package org.planit.output.adapter;
 
-import org.planit.od.odpath.ODPathMatrix;
-import org.planit.od.odpath.ODPathIterator;
-import org.planit.output.enums.PathIdType;
+import org.planit.od.odroute.ODRouteIterator;
+import org.planit.od.odroute.ODRouteMatrix;
+import org.planit.output.enums.RoutIdType;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.utils.network.physical.Mode;
 
-public interface PathOutputTypeAdapter extends OutputTypeAdapter {
+public interface RouteOutputTypeAdapter extends OutputTypeAdapter {
 
    /**
     * Retrieve an OD path matrix object for a specified mode
@@ -15,7 +15,7 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
     * @param mode the specified mode
     * @return the OD path object
     */
-	public ODPathMatrix getODPathMatrix(Mode mode);
+	public ODRouteMatrix getODPathMatrix(Mode mode);
 	
    /**
     * Returns the specified output property values for the current cell in the ODPathIterator
@@ -27,5 +27,5 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
     * @param pathOutputType the type of objects in the path list
     * @return the value of the specified property (or an Exception if an error has occurred)
     */
-	public Object getPathOutputPropertyValue(OutputProperty outputProperty, ODPathIterator odPathIterator, Mode mode, TimePeriod timePeriod, PathIdType pathOutputType);
+	public Object getRouteOutputPropertyValue(OutputProperty outputProperty, ODRouteIterator odPathIterator, Mode mode, TimePeriod timePeriod, RoutIdType pathOutputType);
 }

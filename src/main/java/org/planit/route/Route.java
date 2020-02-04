@@ -2,7 +2,7 @@ package org.planit.route;
 
 import java.util.Iterator;
 
-import org.planit.output.enums.PathIdType;
+import org.planit.output.enums.RoutIdType;
 import org.planit.utils.graph.EdgeSegment;
 
 /** Route interface representing a route through the network on edge segment level
@@ -28,7 +28,7 @@ public interface Route {
 	 * @param pathOutputType  the specified path output type
 	 * @return String describing the path
 	 */
-	public String toString(final PathIdType pathOutputType);
+	public String toString(final RoutIdType pathOutputType);
 
 	/**
 	 * Outputs this path as a String, appropriate to a specified path output type

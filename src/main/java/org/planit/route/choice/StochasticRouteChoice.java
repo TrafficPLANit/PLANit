@@ -2,7 +2,7 @@ package org.planit.route.choice;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.input.InputBuilderListener;
-import org.planit.route.ODRouteSet;
+import org.planit.od.odroute.ODRouteMatrix;
 import org.planit.route.choice.logit.LogitChoiceModel;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 
@@ -32,7 +32,7 @@ public class StochasticRouteChoice extends RouteChoice {
 	/**
 	 * The registered od route set instance
 	 */
-	protected ODRouteSet odRouteSet = null;
+	protected ODRouteMatrix odRouteSet = null;
 
 	// register ourselves to be eligible on PLANit
     static {
@@ -64,10 +64,11 @@ public class StochasticRouteChoice extends RouteChoice {
 		return this.logitChoiceModel;
 	}
 
-	/** Register a fixed od route set to use
-	 * @param odRouteSet the fixed od route set
+	/** Register a fixed od route set to use in the form of an ODPathMatrix
+	 *
+	 * 	 * @param odRouteSet the fixed od route set in the shape of an od path matrix
 	 */
-	public void RegisterFixedODRouteSet(final ODRouteSet odRouteSet) {
+	public void RegisterODRouteMatrix(final ODRouteMatrix odRouteSet) {
 		this.odRouteSet = odRouteSet;
 	}
 

@@ -6,7 +6,7 @@ package org.planit.output.enums;
  * @author gman6028
  *
  */
-public enum PathIdType{
+public enum RoutIdType{
 
 	LINK_SEGMENT_EXTERNAL_ID,
 	LINK_SEGMENT_ID,

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
-import org.planit.output.enums.PathIdType;
+import org.planit.output.enums.RoutIdType;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.Pair;
@@ -38,7 +38,7 @@ public class RouteImpl implements Route {
 	 * @param destination the specified destination zone
 	 * @param vertexPathAndCost the vertexPathAndCost array (previously calculated by the traffic assignment)
 	 */
-	public static Route createODRoute(final Centroid destination, final Pair<Double, EdgeSegment>[] vertexPathAndCost) {
+	public static RouteImpl createODRoute(final Centroid destination, final Pair<Double, EdgeSegment>[] vertexPathAndCost) {
 		long downstreamVertexId = destination.getId();
 		EdgeSegment edgeSegment = vertexPathAndCost[(int)downstreamVertexId].getSecond();
 		final List<EdgeSegment> pathEdgeSegments = new ArrayList<EdgeSegment>();
@@ -172,7 +172,7 @@ public class RouteImpl implements Route {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String toString(final PathIdType pathOutputType) {
+	public String toString(final RoutIdType pathOutputType) {
 		switch (pathOutputType) {
 		case LINK_SEGMENT_EXTERNAL_ID:
 			return getRouteByEdgeSegmentExternalIdString();

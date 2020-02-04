@@ -14,12 +14,12 @@ import org.apache.commons.csv.CSVPrinter;
 import org.planit.exceptions.PlanItException;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.od.odpath.ODPathMatrix;
-import org.planit.od.odpath.ODPathIterator;
+import org.planit.od.odroute.ODRouteIterator;
+import org.planit.od.odroute.ODRouteMatrix;
 import org.planit.output.adapter.LinkOutputTypeAdapter;
 import org.planit.output.adapter.ODOutputTypeAdapter;
 import org.planit.output.adapter.OutputAdapter;
-import org.planit.output.adapter.PathOutputTypeAdapter;
+import org.planit.output.adapter.RouteOutputTypeAdapter;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.configuration.PathOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
@@ -108,15 +108,15 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 	            throw new PlanItException("currentOutputType not compatible with path output");
 	        }		    
 		    OutputType outputType = (OutputType)currentOutputType;
-			PathOutputTypeAdapter pathOutputTypeAdapter = (PathOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+			RouteOutputTypeAdapter pathOutputTypeAdapter = (RouteOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
 			PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
 			SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
 			for (Mode mode : modes) {
-				ODPathMatrix odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
-				for (ODPathIterator odPathIterator = odPathMatrix.iterator(); odPathIterator.hasNext(); ) {
+				ODRouteMatrix odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
+				for (ODRouteIterator odPathIterator = odPathMatrix.iterator(); odPathIterator.hasNext(); ) {
 					odPathIterator.next();
 					List<Object> rowValues = outputProperties.stream()
-							.map(outputProperty -> pathOutputTypeAdapter.getPathOutputPropertyValue(outputProperty.getOutputProperty(), odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdType()))
+							.map(outputProperty -> pathOutputTypeAdapter.getRouteOutputPropertyValue(outputProperty.getOutputProperty(), odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdType()))
 							.map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
 					csvPrinter.printRecord(rowValues);
 				}
