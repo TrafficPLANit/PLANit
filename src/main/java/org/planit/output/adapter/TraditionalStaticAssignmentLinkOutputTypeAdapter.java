@@ -71,6 +71,20 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
 		return modalNetworkSegmentCosts[id] * timeUnitMultiplier;
 	}
 
+  /**
+   * Returns the flow multiplied by travel cost (time) through the current link segment
+   * 
+   * @param linkSegment        LinkSegment object containing the required data
+   * @param mode               current mode
+   * @param timeUnitMultiplier multiplier to convert time durations to hours,
+   *                           minutes or seconds
+   * @return the travel cost (time) through the current link segment
+   * @throws PlanItException thrown if there is an error
+   */
+	private double getCostTimesFlow(LinkSegment linkSegment, Mode mode, double timeUnitMultiplier) throws PlanItException {
+	  return getLinkCost(linkSegment, mode, timeUnitMultiplier) * getFlow(linkSegment, mode);
+	}
+	
 	/**
 	 * Returns the VC ratio for the link over all modes
 	 * 
@@ -145,6 +159,8 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
 				return getLinkCost(linkSegment, mode, timeUnitMultiplier);
 			case VC_RATIO:
 				return getVCRatio(linkSegment);
+			case COST_TIMES_FLOW:
+			  return getCostTimesFlow(linkSegment, mode, timeUnitMultiplier);
 			default:
 				return new PlanItException("Tried to find link property of "
 						+ BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()
