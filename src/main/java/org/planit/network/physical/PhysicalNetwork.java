@@ -206,7 +206,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 */
 		public LinkSegment getLinkSegmentByExternalId(final long externalId) {
 			if (!linkSegmentMapByExternalId.containsKey(externalId) ) {
-				PlanItLogger.severe("Link with External Id " + externalId + " has not been registered in the network.");
+				PlanItLogger.severe("Link with External Id " + externalId + " has not been registered in the network.  Are the network supply and initial cost definitions consistent for link " + (externalId / 10) + "?");
 				return null;
 			}
 			return linkSegmentMapByExternalId.get(externalId);

@@ -63,7 +63,7 @@ public class OutputManager {
 	}
 	
 	/**
-	 * Allows the output manager to initialise itself and any of its registered output formatters to prepare before the simulation starts
+	 * Allows the output manager to initialize itself and any of its registered output formatters to prepare before the simulation starts
 	 * 
 	 *@param runId traffic assignment run id
 	 * @throws PlanItException thrown if there is an error
@@ -97,9 +97,14 @@ public class OutputManager {
 			OutputTypeConfiguration outputTypeConfiguration = outputTypeConfigurations.get(outputType);
 			for (OutputFormatter outputFormatter : outputFormatters) {
 				if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
+				/*
 					if (!(converged || outputFormatter.canHandleMultipleIterations())) {
 						PlanItLogger.warning(outputFormatter.getClass().getName() + " can only persist the final iteration.");
 					} else {
+						outputFormatter.persist(timePeriod, modes, outputTypeConfiguration, outputAdapter);
+					}
+				*/
+					if (converged || outputFormatter.canHandleMultipleIterations()) {
 						outputFormatter.persist(timePeriod, modes, outputTypeConfiguration, outputAdapter);
 					}
 				}

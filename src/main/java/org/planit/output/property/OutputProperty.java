@@ -38,7 +38,9 @@ public enum OutputProperty {
 	TIME_PERIOD_EXTERNAL_ID("org.planit.output.property.TimePeriodExternalIdOutputProperty"),
 	RUN_ID("org.planit.output.property.RunIdOutputProperty"),
 	TOTAL_COST_TO_END_NODE("org.planit.output.property.TotalCostToEndNodeOutputProperty"),
-	PATH("org.planit.output.property.PathOutputProperty");
+	PATH("org.planit.output.property.PathOutputProperty"),
+	VC_RATIO("org.planit.output.property.VCRatioOutputProperty"),
+	COST_TIMES_FLOW("org.planit.output.property.CostTimesFlowOutputProperty");
 
 	private final String value;
 

@@ -191,7 +191,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
      *             thrown if there is an error
      */
     public T create(final String trafficAssignmentComponentClassName) throws PlanItException {
-    	return create(trafficAssignmentComponentClassName, null);
+    	return create(trafficAssignmentComponentClassName, (Object[])null);
     }
 
     /**

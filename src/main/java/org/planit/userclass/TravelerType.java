@@ -55,12 +55,13 @@ public class TravelerType {
     /**
      * Constructor
      * 
-     * @param externalId external id of this traveler type
+     * @param externaId external id of this traveler type
      * @param name name of this traveler type
+     * 
      */
-    public TravelerType(long externalId, String name) {
+    public TravelerType(long externaId, String name) {
         this.id = IdGenerator.generateId(TravelerType.class);
-        this.externalId = externalId;
+        this.externalId = externaId;
         this.name = name;
         travelerTypes.put(this.id, this);
     }

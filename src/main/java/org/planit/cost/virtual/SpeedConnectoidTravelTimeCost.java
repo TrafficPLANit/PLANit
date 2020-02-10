@@ -16,7 +16,6 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 	/** generated UID */
 	private static final long serialVersionUID = 2813935702895030693L;
 
-	//public static final double CONNECTOID_SPEED_KPH = Double.POSITIVE_INFINITY;
 	public static final double DEFAULT_CONNECTOID_SPEED_KPH = 25.0;
 
 	/**
@@ -49,7 +48,7 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
      */
     @Override
     public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException {
-        // currently no specific initialisation needed
+        // currently no specific initialization needed
     }
 
     /** set the connectoid speed

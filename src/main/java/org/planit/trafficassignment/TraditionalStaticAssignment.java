@@ -144,7 +144,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
 				PlanItLogger.fine("Calculating flow from origin zone " + currentOriginZone.getExternalId()
 						+ " to destination zone " + currentDestinationZone.getExternalId() + " which has demand of "
-						+ FormatUtils.format5(odDemand));
+						+ FormatUtils.format5(odDemand) +  " for mode " + mode.getExternalId());
 
 				// MARK 6-1-2020
 				// extracted this from separated method (method removed);
@@ -254,7 +254,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 	 */
 	private void executeTimePeriod(final TimePeriod timePeriod) throws PlanItException {
 		PlanItLogger.info(
-				"Running Traditional Static Assigment over all modes for Time Period " + timePeriod.getDescription());
+				"Running Traditional Static Assignment over all modes for Time Period " + timePeriod.getDescription());
 		final Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
 		initialiseTimePeriod(modes);
 		final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
@@ -284,6 +284,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
 			dualityGapFunction.computeGap();
 			simulationData.incrementIterationIndex();
+			PlanItLogger.info("The total system travel time after iteration " + simulationData.getIterationIndex() + " for time period " +  timePeriod.getExternalId() + " is " + dualityGapFunction.getActualSystemTravelTime() + ".");
 			startTime = recordTime(startTime, dualityGapFunction.getGap());
 			for (final Mode mode : modes) {
 				final double[] modalLinkSegmentCosts = recalculateModalLinkSegmentCosts(mode, timePeriod);
@@ -602,7 +603,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 		OutputTypeAdapter outputTypeAdapter = null;
 		switch (outputType) {
 		case LINK:
-			outputTypeAdapter = new TraditionalStaticAssignmentLinkOutputTypeAdapter(outputType, this);
+			outputTypeAdapter = new TraditionalStaticAssignmentLinkOutputTypeAdapter(outputType, this, this.physicalNetwork.modes.toList());
 			break;
 		case OD:
 			outputTypeAdapter = new TraditionalStaticAssignmentODOutputTypeAdapter(outputType, this);

@@ -223,7 +223,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
     public List<LinkSegment> getLinkSegments() {
     	return trafficAssignment.getTransportNetwork().linkSegments.toList();
     }
-
+	
     /**
      * Return the value of a specified output property of a link segment
      * 

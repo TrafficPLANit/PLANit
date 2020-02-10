@@ -615,6 +615,26 @@ public class CustomPlanItProject {
     }
 
     /**
+     * Retrieve a Demands object given its id
+     *
+     * @param id the id of the Demands object
+     * @return the retrieved Demands object
+     */
+    public Demands getDemands(final long id) {
+        return demandsMap.get(id);
+    }
+
+    /**
+     * Retrieve a TrafficAssignment object given its id
+     *
+     * @param id the id of the TrafficAssignment object
+     * @return the retrieved TrafficAssignment object
+     */
+    public TrafficAssignment getTrafficAssignment(final long id) {
+        return trafficAssignments.getTrafficAssignment(id);
+    }
+
+    /**
      * Retrieve an output formatter object given its id
      *
      * @param id the id of the output formatter object

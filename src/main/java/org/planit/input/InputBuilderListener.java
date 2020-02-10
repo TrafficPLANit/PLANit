@@ -10,8 +10,9 @@ import org.djutils.event.EventListenerInterface;
  *
  */
 public abstract class InputBuilderListener implements EventListenerInterface {
-
+	
 	/** generated UID */
 	private static final long serialVersionUID = 4223028100274802893L;
-
+	
+	
 }

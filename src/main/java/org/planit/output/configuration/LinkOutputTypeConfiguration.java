@@ -80,6 +80,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 		super(trafficAssignment, OutputType.LINK);
 		addProperty(OutputProperty.DENSITY);
 		addProperty(OutputProperty.LINK_SEGMENT_ID);
+		addProperty(OutputProperty.LINK_SEGMENT_EXTERNAL_ID);
 		addProperty(OutputProperty.MODE_EXTERNAL_ID);
 		addProperty(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID);
 		addProperty(OutputProperty.UPSTREAM_NODE_ID);
@@ -191,6 +192,10 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 			return true;
 		case UPSTREAM_NODE_LOCATION:
 			return true;
+		case VC_RATIO:
+			return true;
+		case COST_TIMES_FLOW:
+		  return true;
 		default:
 			PlanItLogger.warning("Tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Link output.  This will be ignored."	);	
 		}

@@ -27,6 +27,11 @@ public class UserClass {
     private final long id;
 
     /**
+     * External Id of this user class
+     */
+    private long externalId;
+
+    /**
      * Name of this user class
      */
     private final String name;
@@ -42,7 +47,7 @@ public class UserClass {
     private final TravelerType travellerType;
 
     /**
-     * Map to store registered user classes
+     * Map to store registered user classes by Id
      */
     private static Map<Long, UserClass> userClasses = new HashMap<Long, UserClass>();
 
@@ -84,8 +89,7 @@ public class UserClass {
     /**
      * Retrieve user class by id
      *
-     * @param id
-     *            id of user class to be retrieve
+     * @param id  id of user class to be retrieve
      * @return retrieved user class
      */
     public static UserClass getById(final long id) {
@@ -93,14 +97,15 @@ public class UserClass {
     }
 
     /**
-     * Store user class by its id
+     * Retrieve user class by external id
      *
-     * @param userClass
-     *            the user class to be stored
+     * @param externalId  externalId of user class to be retrieve
+     * @return retrieved user class
      */
     public static void putById(final UserClass userClass) {
         userClasses.put(userClass.getId(), userClass);
     }
+
 
     /**
      * Get the traveller type of this user class
@@ -136,6 +141,15 @@ public class UserClass {
      */
     public Mode getMode() {
         return mode;
+    }
+
+    /**
+     * Get the external id of this user class
+     *
+     * @return external id of this user class
+     */
+    public long getExternalId() {
+    	return externalId;
     }
 
 }
