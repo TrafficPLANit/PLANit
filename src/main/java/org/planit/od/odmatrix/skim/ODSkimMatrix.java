@@ -1,8 +1,8 @@
 package org.planit.od.odmatrix.skim;
 
+import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.ODMatrix;
 import org.planit.output.enums.ODSkimSubOutputType;
-import org.planit.zoning.Zoning;
 
 /**
  * This class stores an OD Skim matrix.
@@ -12,8 +12,8 @@ import org.planit.zoning.Zoning;
  */
 public class ODSkimMatrix extends ODMatrix {
 
-//TODO - We may need to add more overloads of the setValue() method below, if different OD skim types need other
-//arguments to determine their cell value e.g. mode, route length, toll etc
+	//TODO - We may need to add more overloads of the setValue() method below, if different OD skim types need other
+	//arguments to determine their cell value e.g. mode, route length, toll etc
 	
 	/**
 	 * The ODSkimOutputType for this ODSkimMatrix

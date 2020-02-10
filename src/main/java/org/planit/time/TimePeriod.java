@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * Represents a time period within the day. Used to determine the duration and
@@ -115,7 +115,7 @@ public class TimePeriod implements Comparable<TimePeriod> {
      *            externalId of this time period
      * @param description
      *            description of this time period
-     * @param startTime24hour
+     * @param startTime
      *            start time of this time period
      * @param duration
      *            duration of this time period

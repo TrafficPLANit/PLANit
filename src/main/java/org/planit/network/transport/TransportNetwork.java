@@ -3,18 +3,18 @@ package org.planit.network.transport;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.network.Edge;
-import org.planit.network.EdgeSegment;
-import org.planit.network.physical.Link;
-import org.planit.network.physical.LinkSegment;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.PhysicalNetwork.LinkSegments;
-import org.planit.network.virtual.Connectoid;
-import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.network.virtual.VirtualNetwork;
+import org.planit.network.virtual.Zoning;
 import org.planit.network.virtual.VirtualNetwork.ConnectoidSegments;
-import org.planit.zoning.Zoning;
-import org.planit.zoning.Zoning.Zones;
+import org.planit.network.virtual.Zoning.Zones;
+import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.network.physical.Link;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.virtual.Connectoid;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * Entire transport network that is being modeled including both the physical
@@ -45,8 +45,8 @@ public class TransportNetwork {
      * @throws PlanItException thrown if there is an error
      */
     protected void connectVerticesToEdgeSegment(EdgeSegment edgeSegment) throws PlanItException {
-        edgeSegment.getUpstreamVertex().exitEdgeSegments.addEdgeSegment(edgeSegment);
-        edgeSegment.getDownstreamVertex().entryEdgeSegments.addEdgeSegment(edgeSegment);
+        edgeSegment.getUpstreamVertex().getExitEdgeSegments().addEdgeSegment(edgeSegment);
+        edgeSegment.getDownstreamVertex().getEntryEdgeSegments().addEdgeSegment(edgeSegment);
     }
 
     /**
@@ -57,8 +57,8 @@ public class TransportNetwork {
      * @throws PlanItException thrown if there is an error
      */
     protected void disconnectVerticesFromEdgeSegment(EdgeSegment edgeSegment) throws PlanItException {
-        edgeSegment.getUpstreamVertex().exitEdgeSegments.removeEdgeSegment(edgeSegment);
-        edgeSegment.getDownstreamVertex().entryEdgeSegments.removeEdgeSegment(edgeSegment);
+        edgeSegment.getUpstreamVertex().getExitEdgeSegments().removeEdgeSegment(edgeSegment);
+        edgeSegment.getDownstreamVertex().getEntryEdgeSegments().removeEdgeSegment(edgeSegment);
     }
 
     /**
@@ -68,8 +68,8 @@ public class TransportNetwork {
      * @throws PlanItException thrown if there is an error
      */
     protected void connectVerticesToEdge(Edge edge) throws PlanItException {
-        edge.getVertexA().edges.addEdge(edge);
-        edge.getVertexB().edges.addEdge(edge);
+        edge.getVertexA().getEdges().addEdge(edge);
+        edge.getVertexB().getEdges().addEdge(edge);
     }
 
     /**
@@ -79,8 +79,8 @@ public class TransportNetwork {
      * @throws PlanItException thrown if there is an error
      */
     protected void disconnectVerticesFromEdge(Edge edge) throws PlanItException {
-        edge.getVertexA().edges.removeEdge(edge);
-        edge.getVertexB().edges.removeEdge(edge);
+        edge.getVertexA().getEdges().removeEdge(edge);
+        edge.getVertexB().getEdges().removeEdge(edge);
     }
 
     // Public

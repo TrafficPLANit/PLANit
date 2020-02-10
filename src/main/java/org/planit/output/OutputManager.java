@@ -19,7 +19,7 @@ import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Base class for output writers containing basic functionality regarding all
@@ -52,6 +52,8 @@ public class OutputManager {
 
 	/**
 	 * Base constructor of Output writer
+	 * 
+	 * @param trafficAssignment the traffic assignment this output manager is managing for
 	 */
 	public OutputManager(TrafficAssignment trafficAssignment) {
 		outputFormatters = new ArrayList<OutputFormatter>();
@@ -63,8 +65,8 @@ public class OutputManager {
 	/**
 	 * Allows the output manager to initialize itself and any of its registered output formatters to prepare before the simulation starts
 	 * 
-	 *@param runId
-	 * @throws PlanItException 
+	 *@param runId traffic assignment run id
+	 * @throws PlanItException thrown if there is an error
 	 */
     public void initialiseBeforeSimulation(long runId) throws PlanItException {
         for (OutputFormatter outputFormatter : outputFormatters) {
@@ -74,7 +76,7 @@ public class OutputManager {
     
     /**
      * Allows the output manager to finalise itself and any of its registered output formatters to after the simulation ended
-     * @throws PlanItException 
+     * @throws PlanItException thrown if there is an error
      */    
     public void finaliseAfterSimulation() throws PlanItException {
         for (OutputFormatter outputFormatter : outputFormatters) {
@@ -114,6 +116,7 @@ public class OutputManager {
      * Factory method to create an output configuration and adapter for a given type
      * 
      * @param outputType  the output type to register the configuration for
+     * @param trafficAssignment traffic assignment we are creating this configuration for
      * @return outputTypeconfiguration the output type configuration that has been newly registered
      * @throws PlanItException thrown if there is an error
      */

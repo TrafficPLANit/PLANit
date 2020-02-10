@@ -1,58 +1,51 @@
 package org.planit.cost.virtual;
 
 import org.planit.cost.Cost;
-import org.planit.event.RequestAccesseeEvent;
 import org.planit.exceptions.PlanItException;
-import org.planit.network.virtual.ConnectoidSegment;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
+import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * Object to handle the travel time cost of a virtual link
- * 
+ *
  * @author markr
  *
  */
 public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost> implements Cost<ConnectoidSegment> {
 
-    /**
+    /** generated UID */
+	private static final long serialVersionUID = -8278650865770286434L;
+
+	/**
+     * unique identifier
+     */
+    protected final long id;
+
+	/**
      * Constructor
      */
     public VirtualCost() {
         super();
+		this.id = IdGenerator.generateId(VirtualCost.class);
     }
-    
+
     /**
      * Initialize the virtual cost component
-     * 
-     * @param VirtualNetwork the virtual network
+     *
+     * @param virtualNetwork the virtual network
      * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
      */
-    public abstract void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException;    
+    public abstract void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException;
+
 
     /**
-     * Indicate if cost object requires an interaction to be able to perform its
-     * cost computation
-     * 
-     * @return true if class requires an Interactor, false otherwise
+     * #{@inheritDoc}
      */
-    public boolean requiresInteractor() {
-        return false;
-    }
+	@Override
+	public long getId() {
+		return this.id;
+	}
 
-    /**
-     * Perform interaction
-     */
-    public void performInteraction() {
-        // TODO - only to be implemented when interaction is required
-    }
-
-    /**
-     * Creates the interactor event request
-     * 
-     * @return requestedInteractorEvent, null by default
-     */
-    public RequestAccesseeEvent createInteractorRequest() {
-        return null;
-    }
 }

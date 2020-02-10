@@ -8,16 +8,16 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.network.physical.LinkSegment;
+import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.od.odpath.ODPathMatrix;
+import org.planit.od.odroute.ODRouteMatrix;
 import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
-import org.planit.userclass.Mode;
-import org.planit.zoning.Zoning;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Simulation data which are specific to Traditional Static Assignment
@@ -51,7 +51,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 	/**
 	 * Stores the current OD Path for each mode
 	 */
-	private Map<Mode, ODPathMatrix> modalODPathMatrixMap;
+	private Map<Mode, ODRouteMatrix> modalODPathMatrixMap;
 
 	/**
 	 * Set of active OD skim output types
@@ -78,7 +78,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 		} else {
 			activeOdSkimOutputTypes = new HashSet<ODSkimSubOutputType>();
 		}
-		modalODPathMatrixMap = new HashMap<Mode, ODPathMatrix>();
+		modalODPathMatrixMap = new HashMap<Mode, ODRouteMatrix>();
 	}
 	
 	/**
@@ -115,6 +115,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 	 * Reset modal network segment flows by cloning empty array
 	 * 
 	 * @param mode the mode whose flows are to be reset
+	 * @param numberOfNetworkSegments the number of network link segments
 	 */
 	public void resetModalNetworkSegmentFlows(Mode mode, int numberOfNetworkSegments) {
 		setModalNetworkSegmentFlows(mode, new double[numberOfNetworkSegments]);
@@ -154,7 +155,6 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 	 * Reset the skim matrix to all zeroes for a specified mode for all activated
 	 * skim output types
 	 * 
-	 * @param odSkimOutputType the specified Skim Output type
 	 * @param mode             the specified mode
 	 * @param zones            Zones object containing all the origin and
 	 *                         destination zones
@@ -165,7 +165,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 			ODSkimMatrix odSkimMatrix = new ODSkimMatrix(zones, odSkimOutputType);
 			modalSkimMatrixMap.get(mode).put(odSkimOutputType, odSkimMatrix);
 		}
-		modalODPathMatrixMap.put(mode, new ODPathMatrix(zones));
+		modalODPathMatrixMap.put(mode, new ODRouteMatrix(zones));
 	}
 	
     /**
@@ -176,7 +176,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
      *                         destination zones
      */
     public void resetPathMatrix(Mode mode, Zoning.Zones zones) {
-        modalODPathMatrixMap.put(mode, new ODPathMatrix(zones));
+        modalODPathMatrixMap.put(mode, new ODRouteMatrix(zones));
     }	
 	
 	/**
@@ -202,7 +202,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
 	 * @param mode the specified mode
 	 * @return the OD path for this mode
 	 */
-	public ODPathMatrix getODPathMatrix(Mode mode) {
+	public ODRouteMatrix getODPathMatrix(Mode mode) {
 		return modalODPathMatrixMap.get(mode);
 	}
 

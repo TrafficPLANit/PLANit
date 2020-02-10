@@ -2,10 +2,10 @@ package org.planit.output.adapter;
 
 import java.util.List;
 
-import org.planit.network.physical.LinkSegment;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * Interface defining the methods required for a link output adapter

@@ -2,11 +2,15 @@ package org.planit.network.physical.macroscopic;
 
 import javax.annotation.Nonnull;
 
-import org.planit.network.physical.Node;
 import org.planit.exceptions.PlanItException;
-import org.planit.network.physical.Link;
-import org.planit.network.physical.LinkSegment;
+import org.planit.network.physical.LinkImpl;
+import org.planit.network.physical.NodeImpl;
 import org.planit.network.physical.PhysicalNetworkBuilder;
+import org.planit.utils.network.physical.Link;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentTypeModeProperties;
 
 /**
  * Create network entities for a macroscopic simulation model
@@ -24,25 +28,23 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
      */
     @Override
     public Node createNode() {
-        return new Node();
+        return new NodeImpl();
     }
 
     /**
      * Create a new link, injecting link length directly
      * 
-     * @param nodeA
-     *            first node in the link
-     * @param nodeB
-     *            second node in the link
-     * @param length
-     *            length of the link
+     * @param nodeA first node in the link
+     * @param nodeB second node in the link
+     * @param length length of the link
+     * @param name the name of the link
      * @return Link object created
      * @throws PlanItException
      *             thrown if there is an error
      */
     @Override
-    public Link createLink(Node nodeA, Node nodeB, double length) throws PlanItException {
-        return new Link(nodeA, nodeB, length);
+    public Link createLink(Node nodeA, Node nodeB, double length, String name) throws PlanItException {
+        return new LinkImpl(nodeA, nodeB, length, name);
     }
 
     /**
@@ -56,7 +58,7 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
      */
     @Override
     public LinkSegment createLinkSegment(Link parentLink, boolean directionAB) {
-        return new MacroscopicLinkSegment(parentLink, directionAB);
+        return new MacroscopicLinkSegmentImpl(parentLink, directionAB);
     }
 
 /**
@@ -70,7 +72,7 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
  * @return macroscopicLinkSegmentType   the created link segment type
  */
     public MacroscopicLinkSegmentType createLinkSegmentType(@Nonnull String name, double capacity,  double maximumDensity, long linkType, MacroscopicLinkSegmentTypeModeProperties modeProperties) {
-        return new MacroscopicLinkSegmentType(name, capacity, maximumDensity, linkType, modeProperties);
+        return new MacroscopicLinkSegmentTypeImpl(name, capacity, maximumDensity, linkType, modeProperties);
     }
 
 }

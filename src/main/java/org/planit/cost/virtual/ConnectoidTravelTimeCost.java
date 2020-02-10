@@ -8,7 +8,10 @@ package org.planit.cost.virtual;
  */
 public abstract class ConnectoidTravelTimeCost extends VirtualCost {
         
-    /**
+    /** generated UID */
+	private static final long serialVersionUID = -6843226655218183067L;
+
+	/**
      * Constructor
      */
 	protected ConnectoidTravelTimeCost(){

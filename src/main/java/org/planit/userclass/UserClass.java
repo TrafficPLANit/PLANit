@@ -2,129 +2,114 @@ package org.planit.userclass;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.planit.utils.IdGenerator;
+
+import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.Mode;
 
 /**
  * A user class defines a combination of one or more characteristics of users in
  * an aggregate representation of traffic which partially dictate how they
  * behave in traffic assignment.
- * 
+ *
  * @author markr
  *
  */
 public class UserClass {
-    
-    public static final String  DEFAULT_NAME = "Default";
-    public static final int      DEFAULT_EXTERNAL_ID = 1;   
-    public static final int       DEFAULT_MODE_REF = 1;
-    public static final int       DEFAULT_TRAVELLER_TYPE = 1;
-    
+
+    public static final String  	DEFAULT_NAME = "Default";
+    public static final int      	DEFAULT_EXTERNAL_ID = 1;
+    public static final int       	DEFAULT_MODE_REF = 1;
+    public static final int       	DEFAULT_TRAVELLER_TYPE = 1;
+
     /**
      * id of this user class
      */
-    private long id;
+    private final long id;
 
     /**
      * External Id of this user class
      */
     private long externalId;
-    
+
     /**
      * Name of this user class
      */
-    private String name;
+    private final String name;
 
     /**
      * Mode of travel of this user class
      */
-    private Mode mode;
+    private final Mode mode;
 
     /**
-     * Traveller type of this user class
+     * Traveler type of this user class
      */
-    private TravelerType travellerType;
-
-    /**
-     * External Id of mode of travel
-     */
-    private long modeExternalId = 0;
-
-    /**
-     * Id of this traveller type
-     */
-    private long travellerTypeId = 0;
+    private final TravelerType travellerType;
 
     /**
      * Map to store registered user classes by Id
      */
     private static Map<Long, UserClass> userClasses = new HashMap<Long, UserClass>();
-    
-    /**
-     * Map to store registered user classes by external Id
-     */
-    private static Map<Long, UserClass> userClassesByExternalId = new HashMap<Long, UserClass>();
 
     /**
      * Constructor of user class
-     * 
-     * @param externalId external id of this user class
-     * @param name the name of this user class
-     * @param mode the mode of travel
-     * @param travellerType the traveller type
+     *
+     * @param name
+     *            the name of this user class
+     * @param mode
+     *            the mode of travel
+     * @param travellerType
+     *            the traveller type
      */
-    public UserClass(long externalId, String name, Mode mode, TravelerType travellerType) {
+    public UserClass(final String name, final Mode mode, final TravelerType travellerType) {
         this.id = IdGenerator.generateId(UserClass.class);
-        this.externalId = externalId;
         this.name = name;
         this.mode = mode;
         this.travellerType = travellerType;
         userClasses.put(this.id, this);
-        userClassesByExternalId.put(this.externalId, this);
     }
+
 
     /**
      * Constructor of user class
-     * 
-     * @param externalId external id of this user class
+     *
+     * @param id id of this user class
      * @param name name of this user class
-     * @param modeExternalId external id of mode of travel
-     * @param travellerTypeId if of traveller type
+     * @param mode the mode of travel
+     * @param travelerType the travelerType
      */
-    public UserClass(long externalId, String name, long modeExternalId, long travellerTypeId) {
-        this.id = IdGenerator.generateId(UserClass.class);
-        this.externalId = externalId;
+    public UserClass(final long id, final String name, final Mode mode, final TravelerType travelerType) {
+        this.id = id;
         this.name = name;
-        this.modeExternalId = modeExternalId;
-        this.travellerTypeId = travellerTypeId;
-        this.mode = Mode.getByExternalId(modeExternalId);
-        this.travellerType = TravelerType.getByExternalId(travellerTypeId);
+        this.travellerType = travelerType;
+        this.mode = mode;
         userClasses.put(this.id, this);
-        userClassesByExternalId.put(this.externalId, this);
     }
 
     /**
      * Retrieve user class by id
-     * 
+     *
      * @param id  id of user class to be retrieve
      * @return retrieved user class
      */
-    public static UserClass getById(long id) {
+    public static UserClass getById(final long id) {
         return userClasses.get(id);
-    }
-    
-    /**
-     * Retrieve user class by external id
-     * 
-     * @param externalId  externalId of user class to be retrieve
-     * @return retrieved user class
-     */
-    public static UserClass getByExternalId(long externalId) {
-    	return userClassesByExternalId.get(externalId);
     }
 
     /**
+     * Retrieve user class by external id
+     *
+     * @param externalId  externalId of user class to be retrieve
+     * @return retrieved user class
+     */
+    public static void putById(final UserClass userClass) {
+        userClasses.put(userClass.getId(), userClass);
+    }
+
+
+    /**
      * Get the traveller type of this user class
-     * 
+     *
      * @return TravellerType of this user class
      */
     public TravelerType getTravellerType() {
@@ -133,7 +118,7 @@ public class UserClass {
 
     /**
      * Get the id of this user class
-     * 
+     *
      * @return id of this user class
      */
     public long getId() {
@@ -142,7 +127,7 @@ public class UserClass {
 
     /**
      * Get the name of this user class
-     * 
+     *
      * @return the name of this user class
      */
     public String getName() {
@@ -151,7 +136,7 @@ public class UserClass {
 
     /**
      * Return the mode of travel of this user class
-     * 
+     *
      * @return Mode of this user class
      */
     public Mode getMode() {
@@ -159,26 +144,8 @@ public class UserClass {
     }
 
     /**
-     * Return the id of the mode of this user class
-     * 
-     * @return id of the mode of this user class
-     */
-    public long getModeExternalId() {
-        return modeExternalId;
-    }
-
-    /**
-     * Return the id of the traveller type of this user class
-     * 
-     * @return id of the traveller type of this user class
-     */
-    public long getTravellerTypeId() {
-        return travellerTypeId;
-    }
-    
-    /**
      * Get the external id of this user class
-     * 
+     *
      * @return external id of this user class
      */
     public long getExternalId() {

@@ -1,6 +1,6 @@
 package org.planit.od;
 
-import org.planit.zoning.Zone;
+import org.planit.utils.network.virtual.Zone;
 
 /**
  * Interface defining methods for objects which store data related to origin and destination

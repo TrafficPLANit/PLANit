@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.planit</groupId>
-	<artifactId>PlanIt</artifactId>
+	<artifactId>PLANit</artifactId>
 	<description>PlanIt common code for traffic assignment</description>
 	<version>0.0.3-beta</version>
 	<packaging>jar</packaging>
 
-	<name>PlanIt</name>
+	<name>PLANit</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
@@ -19,9 +19,23 @@
 		<maven.compiler.source>1.11</maven.compiler.source>
 		<maven.compiler.target>1.11</maven.compiler.target>
 		<maven.jaxb2.plugin.version>0.14.0</maven.jaxb2.plugin.version>
+		<planitutils.version>0.0.3-beta</planitutils.version>
+		<djutils.version>1.04.05</djutils.version>
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.planit.utils</groupId>
+			<artifactId>PLANitUtils</artifactId>
+			<version>${planitutils.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.djutils</groupId>
+			<artifactId>djutils</artifactId>
+			<version>${djutils.version}</version>
+		</dependency>
+	
 		<dependency>
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-geometry</artifactId>
@@ -91,6 +105,12 @@
 			<id>osgeo</id>
 			<name>Open Source Geospatial Foundation Repository</name>
 			<url>http://download.osgeo.org/webdav/geotools/</url>
+		</repository>
+		
+		<repository>
+			<name>djutils Public Repository</name>
+			<id>djutils</id>
+			<url>https://djutils.org/maven</url>
 		</repository>
 	</repositories>
 

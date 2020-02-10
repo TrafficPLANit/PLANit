@@ -1,25 +1,26 @@
 package org.planit.trafficassignment;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
 import org.planit.trafficassignment.builder.CapacityConstrainedTrafficAssignmentBuilder;
-import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 
 /**
  * Capacity constrained traffic assignment component
- * 
- * @author gman6028
+ *
+ * @author markr
  *
  */
 public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 
 	// PROTECTED
 
+	/** generated UID */
+	private static final long serialVersionUID = 2568729148299613377L;
+
 	/**
 	 * The builder for all capacity constrained traffic assignment instances
 	 */
-	protected final CapacityConstrainedTrafficAssignmentBuilder capacityConstrainedBuilder;
+	protected CapacityConstrainedTrafficAssignmentBuilder capacityConstrainedBuilder;
 
 	/**
 	 * Fundamental diagram to use
@@ -38,40 +39,21 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 	 */
 	public CapacityConstrainedAssignment() {
 		super();
-		this.capacityConstrainedBuilder = new CapacityConstrainedTrafficAssignmentBuilder(this);
-	}
-
-	/**
-	 * collect the CapacityConstrainedTrafficAssignmentBuilder to condigure this
-	 * instance
-	 * 
-	 * @see org.planit.trafficassignment.TrafficAssignment#getBuilder()
-	 * 
-	 * @return capacityConstrainedAssignmentBuilder
-	 */
-	@Override
-	public TrafficAssignmentBuilder getBuilder() {
-		capacityConstrainedBuilder.setEventManager(eventManager);
-		return capacityConstrainedBuilder;
-	}
-
-	@Override
-	public void verifyComponentCompatibility() throws PlanItException {
-		throw new PlanItException("Not yet implemented");
-	}
-
-	@Override
-	public void executeEquilibration() throws PlanItException {
-		throw new PlanItException("Not yet implemented");
 	}
 
 	// Getters - Setters
 
-	public void setFundamentalDiagram(FundamentalDiagram fundamentalDiagram) {
+	/** Set the fundamental diagram
+	 * @param fundamentalDiagram the fundamental diagram
+	 */
+	public void setFundamentalDiagram(final FundamentalDiagram fundamentalDiagram) {
 		this.fundamentalDiagram = fundamentalDiagram;
 	}
 
-	public void setNodeModel(NodeModel nodeModel) {
+	/** The node model to use
+	 * @param nodeModel to use
+	 */
+	public void setNodeModel(final NodeModel nodeModel) {
 		this.nodeModel = nodeModel;
 	}
 

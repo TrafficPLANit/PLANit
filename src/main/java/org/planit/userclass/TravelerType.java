@@ -2,7 +2,7 @@ package org.planit.userclass;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.planit.utils.IdGenerator;
+import org.planit.utils.misc.IdGenerator;
 
 /**
  * Traveler type is a placeholder for all different types of traveler

@@ -1,8 +1,8 @@
 package org.planit.od.odmatrix;
 
 import org.ojalgo.array.Array2D;
+import org.planit.network.virtual.Zoning;
 import org.planit.od.ODDataIteratorImpl;
-import org.planit.zoning.Zoning;
 
 /**
  * Iterator which runs through rows and columns of an OD matrix, making the value, row and column of each cell available

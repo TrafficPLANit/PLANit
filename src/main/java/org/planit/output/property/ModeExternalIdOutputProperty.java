@@ -2,7 +2,7 @@ package org.planit.output.property;
 
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
-import org.planit.userclass.Mode;
+import org.planit.utils.network.physical.Mode;
 
 public final class ModeExternalIdOutputProperty extends BaseOutputProperty {
 

@@ -1,17 +1,21 @@
 package org.planit.interactor;
 
-import org.planit.network.physical.LinkSegment;
-import org.planit.userclass.Mode;
+import org.djutils.event.EventType;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Mode;
 
 /**
- * Link Volume accessee object
+ * Link Volume accessee object.
  * 
  * @author markr
  *
  */
 public interface LinkVolumeAccessee extends InteractorAccessee {
-
-    /**
+	
+	/** event type fired off when this accessee is identified as a suitable candidate for an accessee request */
+	public static final EventType INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE = new EventType("INTERACTOR.REQUEST.LINKVOLUMEACCESSEE.TYPE");
+	
+	 /**
      * Get the total flow across a link over all modes
      * 
      * @param linkSegment

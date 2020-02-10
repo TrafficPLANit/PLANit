@@ -7,9 +7,9 @@ import java.util.PriorityQueue;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.network.EdgeSegment;
-import org.planit.network.Vertex;
-import org.planit.utils.Pair;
+import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.Vertex;
+import org.planit.utils.misc.Pair;
 
 /**
  * Dijkstra's shortest path algorithm
@@ -59,8 +59,7 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
      * @param numberOfVertices
      *            Vertices, both nodes and centroids
      */
-    public DijkstraShortestPathAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments,
-            int numberOfVertices) {
+    public DijkstraShortestPathAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
         this.edgeSegmentCosts = edgeSegmentCosts;
         this.numberOfVertices = numberOfVertices;
         this.numberOfEdgeSegments = numberOfEdgeSegments;
@@ -88,10 +87,7 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
         // Use priority queue to identify the current cheapest cost (second element) to
         // reach each vertex (first element)
         Comparator<Pair<Vertex, Double>> pairSecondComparator = 
-                Comparator.comparing(Pair<Vertex, Double>::getSecond,
-                (f1, f2) -> {
-                    return f1.compareTo(f2);
-                });
+                Comparator.comparing(Pair<Vertex, Double>::getSecond, (f1, f2) -> { return f1.compareTo(f2);} );
 
         PriorityQueue<Pair<Vertex, Double>> openVertices = new PriorityQueue<Pair<Vertex, Double>>(numberOfVertices, pairSecondComparator);
         openVertices.add(new Pair<Vertex, Double>(currentOrigin, 0.0)); // cost to reach self is zero
@@ -111,7 +107,7 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
             // already been found and we continue with the next entry
             // track all adjacent edge segments for possible improved shortest paths
 
-            for (EdgeSegment adjacentLinkSegment : currentNode.exitEdgeSegments.getEdgeSegments()) {
+            for (EdgeSegment adjacentLinkSegment : currentNode.getExitEdgeSegments().getEdgeSegments()) {
                 double currentEdgeSegmentCost = edgeSegmentCosts[(int) adjacentLinkSegment.getId()];
                 if (currentEdgeSegmentCost < Double.POSITIVE_INFINITY) {
                     Vertex adjacentVertex = adjacentLinkSegment.getDownstreamVertex();
@@ -120,8 +116,10 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
                     double computedCostToReachAdjacentVertex = currentCost + currentEdgeSegmentCost;
                     // Whenever the adjacent vertex can be reached in less cost than currently is
                     // the case, place it on the queue for expanding and update its cost
-                    if (!vertexVisited[adjacentVertexId] && (adjacentVertexId != currentOrigin.getId())
-                            && (adjacentVertexDataPair.getFirst() > computedCostToReachAdjacentVertex)) {
+                    if (	!vertexVisited[adjacentVertexId] && 
+                    		(adjacentVertexId != currentOrigin.getId()) && 
+                            (adjacentVertexDataPair.getFirst() > computedCostToReachAdjacentVertex)) {
+                    	
                         vertexCost[adjacentVertexId] = new Pair<Double, EdgeSegment>(computedCostToReachAdjacentVertex,adjacentLinkSegment); // update cost and path
                         openVertices.add(new Pair<Vertex, Double>(adjacentVertex, computedCostToReachAdjacentVertex)); // place on queue
                     }

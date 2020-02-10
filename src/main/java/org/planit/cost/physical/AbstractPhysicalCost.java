@@ -1,7 +1,7 @@
 package org.planit.cost.physical;
 
 import org.planit.cost.Cost;
-import org.planit.network.physical.LinkSegment;
+import org.planit.utils.network.physical.LinkSegment;
 
 /**
  * Interface to classify costs of physical links

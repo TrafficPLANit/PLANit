@@ -1,7 +1,7 @@
 package org.planit.od;
 
-import org.planit.zoning.Zone;
-import org.planit.zoning.Zoning;
+import org.planit.network.virtual.Zoning;
+import org.planit.utils.network.virtual.Zone;
 
 /**
  * Base class containing common methods required by all classes which implement ODDataIterator

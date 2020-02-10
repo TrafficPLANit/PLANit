@@ -1,7 +1,10 @@
 package org.planit.trafficassignment.builder;
 
-import org.planit.event.management.EventManager;
+import org.planit.demands.Demands;
 import org.planit.exceptions.PlanItException;
+import org.planit.input.InputBuilderListener;
+import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.virtual.Zoning;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
 import org.planit.trafficassignment.CapacityConstrainedAssignment;
@@ -11,7 +14,7 @@ import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
  * When capacity constraints are in place we make a distinction between inflow
  * and outflow and we assume the difference between the two is governed by a
  * fundamental diagram.
- * 
+ *
  * @author markr
  *
  */
@@ -33,62 +36,58 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
 
     /**
      * Constructor
-     * 
-     * @param capacityConstrainedAssignment
-     *            CapacityConstrainedAssignment object to be built
+     *
+     * @param capacityConstrainedAssignment CapacityConstrainedAssignment object to be built
+     * @param trafficComponentCreateListener the listener to be registered for any traffic components being created by this class
+     * @param demands
+     * @param zoning
+     * @param physicalNetwork
+     * @throws PlanItException
      */
-    public CapacityConstrainedTrafficAssignmentBuilder(CapacityConstrainedAssignment capacityConstrainedAssignment) {
-        super(capacityConstrainedAssignment);
+    protected CapacityConstrainedTrafficAssignmentBuilder(
+    		final CapacityConstrainedAssignment capacityConstrainedAssignment,
+    		final InputBuilderListener trafficComponentCreateListener,
+    		final Demands demands,
+			final Zoning zoning,
+			final PhysicalNetwork physicalNetwork) throws PlanItException {
+        super(capacityConstrainedAssignment, trafficComponentCreateListener, demands, zoning, physicalNetwork);
         fundamentalDiagramFactory = new TrafficAssignmentComponentFactory<FundamentalDiagram>(FundamentalDiagram.class);
         nodeModelFactory = new TrafficAssignmentComponentFactory<NodeModel>(NodeModel.class);
+
+        // register the listener on create events of the factory
+        fundamentalDiagramFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+        nodeModelFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     }
 
     // FACTORY METHODS
 
     /**
      * Create and register FundamentalDiagram on assignment
-     * 
-     * @param fundamentalDiagramType
-     *            the type of Fundamental Diagram to be created
+     *
+     * @param fundamentalDiagramType the type of Fundamental Diagrams to be created
+     * @param physicalNetwork the network for which link segments the fundamental diagram parameters are to be provided
      * @return FundamentalDiagram created
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException thrown if there is an error
      */
-    public FundamentalDiagram createAndRegisterFundamentalDiagram(String fundamentalDiagramType)
-            throws PlanItException {
-        FundamentalDiagram createdFundamentalDiagram = fundamentalDiagramFactory.create(fundamentalDiagramType);
+    public FundamentalDiagram createAndRegisterFundamentalDiagram(final String fundamentalDiagramType, final PhysicalNetwork physicalNetwork) throws PlanItException {
+        final FundamentalDiagram createdFundamentalDiagram = fundamentalDiagramFactory.create(fundamentalDiagramType, physicalNetwork);
         ((CapacityConstrainedAssignment) parentAssignment).setFundamentalDiagram(createdFundamentalDiagram);
         return createdFundamentalDiagram;
     }
 
     /**
      * Create and register NodeMode on assignment
-     * 
+     *
      * @param nodeModelType
      *            the type of Node Model to be built
      * @return NodeModel created
      * @throws PlanItException
      *             thrown if there is an error
      */
-    public NodeModel createAndRegisterNodeModel(String nodeModelType) throws PlanItException {
-        NodeModel createdNodeModel = nodeModelFactory.create(nodeModelType);
+    public NodeModel createAndRegisterNodeModel(final String nodeModelType) throws PlanItException {
+        final NodeModel createdNodeModel = nodeModelFactory.create(nodeModelType);
         ((CapacityConstrainedAssignment) parentAssignment).setNodeModel(createdNodeModel);
         return createdNodeModel;
-    }
-
-    /**
-     * Set the EventManager for this builder
-     * 
-     * EventManager must be a singleton for each PlanItProject
-     * 
-     * @param eventManager
-     *            EventManager to be used to generate components
-     */
-    @Override
-    public void setEventManager(EventManager eventManager) {
-        super.setEventManager(eventManager);
-        fundamentalDiagramFactory.setEventManager(eventManager);
-        nodeModelFactory.setEventManager(eventManager);
     }
 
 }
