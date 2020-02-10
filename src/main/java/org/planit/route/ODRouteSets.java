@@ -2,11 +2,9 @@ package org.planit.route;
 
 import java.util.TreeMap;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.Zoning;
 import org.planit.od.odroute.ODRouteMatrix;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.misc.IdGenerator;
 
 /** Contains one or more origin-destination based route sets that can be used in assignment.
@@ -20,15 +18,6 @@ public class ODRouteSets extends TrafficAssignmentComponent<ODRouteSets> {
 
 	/** generated UID*/
 	private static final long serialVersionUID = -8742549499023004121L;
-
-	// register to be eligible in PLANit
-    static {
-        try {
-            TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(ODRouteSets.class);
-        } catch (final PlanItException e) {
-            e.printStackTrace();
-        }
-    }
 
 	/**
      * unique identifier

@@ -2,8 +2,6 @@ package org.planit.trafficassignment.builder;
 
 import java.util.List;
 
-import javax.annotation.Nonnull;
-
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.virtual.VirtualCost;
@@ -36,6 +34,32 @@ import org.planit.utils.network.physical.Mode;
 public abstract class TrafficAssignmentBuilder {
 
     /**
+     * Register the demands zoning and network objects
+     *
+     * @param demands Demands object to be registered
+     * @param zoning Zoning object to be registered
+     * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
+     */
+    private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final PhysicalNetwork network) throws PlanItException {
+    	parentAssignment.setPhysicalNetwork(network);
+    	final int noZonesInZoning = zoning.zones.getNumberOfZones();
+    	for (final Mode mode : network.modes.toList()) {
+    		for (final TimePeriod timePeriod : TimePeriod.getAllTimePeriods()) {
+    			final ODDemandMatrix odMatrix = demands.get(mode, timePeriod);
+    			if (odMatrix == null) {
+    				throw new PlanItException("No demands matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
+    			}
+    			final int noZonesInDemands = odMatrix.getNumberOfTravelAnalysisZones();
+    			if (noZonesInZoning != noZonesInDemands) {
+    				throw new PlanItException("Zoning object has " + noZonesInZoning + " zones, this is inconsistent with Demands object which has " + noZonesInDemands + " zones for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
+    			}
+    		}
+    	}
+        parentAssignment.setZoning(zoning);
+        parentAssignment.setDemands(demands);
+   }
+
+    /**
      * The smoothing factory used in the assignment algorithm
      *
      * NB: The smoothing factory is defined here because the same smoothing algorithm is used for all assignments.  If we later decide to use more than one smoothing
@@ -64,12 +88,22 @@ public abstract class TrafficAssignmentBuilder {
 
     /**
      * Constructor
-     *
-     * @param parentAssignment parent traffic assignment object for this builder
-     * @param trafficComponentCreateListener listener to register on the internal traffic component factories for notification upon creation of components
+     * @param parentAssignment
+     * @param trafficComponentCreateListener
+     * @param demands
+     * @param zoning
+     * @param physicalNetwork
+     * @throws PlanItException if registration of demands, zoning, or network does not work
      */
-    TrafficAssignmentBuilder(@Nonnull final TrafficAssignment parentAssignment, final InputBuilderListener trafficComponentCreateListener) {
+    TrafficAssignmentBuilder(
+    		final TrafficAssignment parentAssignment,
+    		final InputBuilderListener trafficComponentCreateListener,
+    		final Demands demands,
+			final Zoning zoning,
+			final PhysicalNetwork physicalNetwork) throws PlanItException {
         this.parentAssignment = parentAssignment;
+        registerDemandZoningAndNetwork(demands, zoning, physicalNetwork);
+
         smoothingFactory = new TrafficAssignmentComponentFactory<Smoothing>(Smoothing.class);
 		physicalCostFactory = new TrafficAssignmentComponentFactory<PhysicalCost>(PhysicalCost.class);
 		virtualCostFactory = new TrafficAssignmentComponentFactory<VirtualCost>(VirtualCost.class);
@@ -131,32 +165,6 @@ public abstract class TrafficAssignmentBuilder {
 		}
 		return createdCost;
 	}
-
-    /**
-     * Register the demands zoning and network objects
-     *
-     * @param demands Demands object to be registered
-     * @param zoning Zoning object to be registered
-     * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
-     */
-    public void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final PhysicalNetwork network) throws PlanItException {
-    	parentAssignment.setPhysicalNetwork(network);
-    	final int noZonesInZoning = zoning.zones.getNumberOfZones();
-    	for (final Mode mode : network.modes.toList()) {
-    		for (final TimePeriod timePeriod : TimePeriod.getAllTimePeriods()) {
-    			final ODDemandMatrix odMatrix = demands.get(mode, timePeriod);
-    			if (odMatrix == null) {
-    				throw new PlanItException("No demands matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
-    			}
-    			final int noZonesInDemands = odMatrix.getNumberOfTravelAnalysisZones();
-    			if (noZonesInZoning != noZonesInDemands) {
-    				throw new PlanItException("Zoning object has " + noZonesInZoning + " zones, this is inconsistent with Demands object which has " + noZonesInDemands + " zones for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
-    			}
-    		}
-    	}
-        parentAssignment.setZoning(zoning);
-        parentAssignment.setDemands(demands);
-   }
 
     /**
      * Register an output formatter

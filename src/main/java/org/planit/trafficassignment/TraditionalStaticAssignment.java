@@ -15,6 +15,7 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.data.ModeData;
 import org.planit.data.SimulationData;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
+import org.planit.demands.Demands;
 import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
@@ -23,6 +24,8 @@ import org.planit.input.InputBuilderListener;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.logging.PlanItLogger;
+import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
@@ -61,15 +64,6 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
 	/** Generated UID */
 	private static final long serialVersionUID = -4610905345414397908L;
-
-	// register to be eligible on PLANit
-    static {
-        try {
-            TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(TraditionalStaticAssignment.class);
-        } catch (final PlanItException e) {
-            e.printStackTrace();
-        }
-    }
 
 	/**
 	 * Epsilon margin when comparing flow rates (veh/h)
@@ -496,12 +490,17 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 		return currentSegmentCosts;
 	}
 
-    /**
-     * Returns the traditional static assignment specific builder
-     */
+	/**
+	 * {@inheritDoc}
+	 */
     @Override
-    public TrafficAssignmentBuilder createTrafficAssignmentBuilder(final InputBuilderListener trafficComponentCreateListener) {
-    	return new TraditionalStaticAssignmentBuilder(this, trafficComponentCreateListener);
+    protected TrafficAssignmentBuilder createTrafficAssignmentBuilder(
+    		final InputBuilderListener trafficComponentCreateListener,
+			final Demands demands,
+			final Zoning zoning,
+			final PhysicalNetwork physicalNetwork) throws PlanItException {
+    	return new TraditionalStaticAssignmentBuilder(
+    			this, trafficComponentCreateListener, demands, zoning, physicalNetwork);
     }
 
 	/** {@inheritDoc} */

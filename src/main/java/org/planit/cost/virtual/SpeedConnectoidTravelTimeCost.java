@@ -2,7 +2,6 @@ package org.planit.cost.virtual;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.VirtualNetwork;
-import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
@@ -19,15 +18,6 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 
 	//public static final double CONNECTOID_SPEED_KPH = Double.POSITIVE_INFINITY;
 	public static final double DEFAULT_CONNECTOID_SPEED_KPH = 25.0;
-
-	// register to be eligible on PLANit
-    static {
-        try {
-            TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(SpeedConnectoidTravelTimeCost.class);
-        } catch (final PlanItException e) {
-            e.printStackTrace();
-        }
-    }
 
 	/**
 	 * Speed used for connectoid cost calculations

@@ -4,7 +4,6 @@ import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.VirtualNetwork;
-import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
@@ -18,15 +17,6 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
 
 	/** generate UID */
 	private static final long serialVersionUID = -7922583510610674079L;
-
-	// register to be eligible on PLANit
-    static {
-        try {
-            TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(FixedConnectoidTravelTimeCost.class);
-        } catch (final PlanItException e) {
-            e.printStackTrace();
-        }
-    }
 
 	/**
 	 * The fixed connectoid costs for the connectoid segments

@@ -3,9 +3,7 @@ package org.planit.cost.physical.initial;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
@@ -21,15 +19,6 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
 
 	/** generated UID */
 	private static final long serialVersionUID = 2164407379859550420L;
-
-	// register to be eligible on PLANit
-    static {
-        try {
-            TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(InitialLinkSegmentCost.class);
-        } catch (final PlanItException e) {
-            e.printStackTrace();
-        }
-    }
 
 	/**
 	 * Map to store initial cost for each mode and link segment
@@ -112,6 +101,7 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
 	 *
 	 * @return id
 	 */
+	@Override
 	public long getId() {
 		return id;
 	}

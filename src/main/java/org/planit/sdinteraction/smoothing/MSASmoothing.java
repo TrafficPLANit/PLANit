@@ -1,8 +1,5 @@
 package org.planit.sdinteraction.smoothing;
 
-import org.planit.exceptions.PlanItException;
-import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
-
 /**
  * MSA smoothing object
  *
@@ -13,15 +10,6 @@ public class MSASmoothing extends Smoothing {
 
 	/** generated UID */
 	private static final long serialVersionUID = -3016251188673804117L;
-
-	// register to be eligible on PLANit
-    static {
-        try {
-            TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(MSASmoothing.class);
-        } catch (final PlanItException e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Step size

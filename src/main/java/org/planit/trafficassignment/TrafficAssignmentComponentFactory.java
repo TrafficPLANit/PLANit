@@ -8,18 +8,28 @@ import java.util.TreeSet;
 
 import org.djutils.event.EventProducer;
 import org.djutils.event.EventType;
+import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.physical.PhysicalCost;
+import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
+import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
+import org.planit.cost.virtual.SpeedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.demands.Demands;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.route.ODRouteSets;
 import org.planit.route.choice.RouteChoice;
+import org.planit.route.choice.logit.LogitChoiceModel;
+import org.planit.route.choice.logit.MultinomialLogit;
+import org.planit.sdinteraction.smoothing.MSASmoothing;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
+import org.planit.supply.fundamentaldiagram.NewellFundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
+import org.planit.supply.network.nodemodel.TampereNodeModel;
 import org.planit.supply.networkloading.NetworkLoading;
 
 /**
@@ -64,10 +74,37 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
         registeredTrafficAssignmentComponents.put(FundamentalDiagram.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(NodeModel.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(RouteChoice.class, new TreeSet<>());
+        registeredTrafficAssignmentComponents.put(LogitChoiceModel.class, new TreeSet<>());
         registeredTrafficAssignmentComponents.put(ODRouteSets.class, new TreeSet<>());
+
+        registerDefaultImplementations();
     }
 
     /**
+	 * register all implementations that are by default available as they are provided in the PlanIt core
+	 * packages
+	 */
+	private static void registerDefaultImplementations() {
+       try {
+            registerTrafficAssignmentComponentType(Zoning.class);
+            registerTrafficAssignmentComponentType(TraditionalStaticAssignment.class);
+            registerTrafficAssignmentComponentType(MSASmoothing.class);
+            registerTrafficAssignmentComponentType(Demands.class);
+            registerTrafficAssignmentComponentType(MacroscopicNetwork.class);
+            registerTrafficAssignmentComponentType(BPRLinkTravelTimeCost.class);
+            registerTrafficAssignmentComponentType(InitialLinkSegmentCost.class);
+            registerTrafficAssignmentComponentType(FixedConnectoidTravelTimeCost.class);
+            registerTrafficAssignmentComponentType(SpeedConnectoidTravelTimeCost.class);
+            registerTrafficAssignmentComponentType(NewellFundamentalDiagram.class);
+            registerTrafficAssignmentComponentType(TampereNodeModel.class);
+            registerTrafficAssignmentComponentType(MultinomialLogit.class);
+            registerTrafficAssignmentComponentType(ODRouteSets.class);
+        } catch (final PlanItException e) {
+            e.printStackTrace();
+        }
+	}
+
+	/**
      * Create a traffic component with no parameters
      *
      * @param trafficAssignmentComponentClassName the name of the traffic component to be created
@@ -130,6 +167,9 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
                 // class that we need
                 // register by collecting the component entry and placing the component
                 final TreeSet<String> treeSet = registeredTrafficAssignmentComponents.get(currentClass);
+                if(treeSet == null) {
+                	throw new PlanItException("base class of traffic assignment component not registered as eligible on PLANit");
+                }
                 treeSet.add(trafficAssignmentComponent.getCanonicalName());
                 registeredTrafficAssignmentComponents.get(currentClass).add(trafficAssignmentComponent.getCanonicalName());
                 return;
@@ -165,7 +205,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
      * @throws PlanItException
      *             thrown if there is an error
      */
-    public T create(final String trafficAssignmentComponentClassName, final Object[] eventParameters) throws PlanItException {
+    public T create(final String trafficAssignmentComponentClassName, final Object... eventParameters) throws PlanItException {
     	final T newTrafficComponent = createTrafficComponent(trafficAssignmentComponentClassName, null);
     	dispatchTrafficComponentEvent(newTrafficComponent, eventParameters);
         return newTrafficComponent;

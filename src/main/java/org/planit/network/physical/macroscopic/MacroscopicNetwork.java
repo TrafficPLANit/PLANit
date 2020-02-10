@@ -8,7 +8,6 @@ import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
-import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentTypeModeProperties;
@@ -25,15 +24,6 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 
 	/** Generated UID */
 	private static final long serialVersionUID = -6844990013871601434L;
-
-	// make this network eligible for instantiation in PLANit
-    static {
-        try {
-            TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(MacroscopicNetwork.class);
-        } catch (final PlanItException e) {
-            e.printStackTrace();
-        }
-    }
 
 	/**
 	 * Map which stores link segment types by generated Id

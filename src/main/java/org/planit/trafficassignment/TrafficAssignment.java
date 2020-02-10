@@ -126,10 +126,16 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
 	/** create the traffic assignment builder for this traffic assignment
 	 * @param trafficComponentCreateListener listener to register on all traffic assignment components that this builder can build
+	 * @param physicalNetwork the physical network this assignment works on
+	 * @param zoning the zoning this assignment works on
+	 * @param demands the demands this assignment works on
 	 * @return created traffic assignment builder
 	 */
 	protected abstract TrafficAssignmentBuilder createTrafficAssignmentBuilder(
-			InputBuilderListener trafficComponentCreateListener);
+			InputBuilderListener trafficComponentCreateListener,
+			Demands demands,
+			Zoning zoning,
+			PhysicalNetwork physicalNetwork) throws PlanItException;
 
 	/**
 	 * Create the gap function which is to be implemented by a derived class of
@@ -244,13 +250,23 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * Each traffic assignment class can have its own builder which reveals what
 	 * components need to be registered on the traffic assignment instance in order
 	 * to function properly.
+	 * @param physicalNetwork this assignment works on
+	 * @param zoning this assignment works on
+	 * @param demands this assignment works on
 	 *
 	 * @param trafficComponentCreateListener, the listener should be registered on all traffic component factories the traffic assignment utilises
 	 * @return trafficAssignmentBuilder to use
+	 * @throws PlanItException
 	 */
-	public TrafficAssignmentBuilder collectBuilder(final InputBuilderListener trafficComponentCreateListener) {
-		if(this.trafficAssignmentBuilder.equals(null)) {
-			this.trafficAssignmentBuilder = createTrafficAssignmentBuilder(trafficComponentCreateListener);
+	public TrafficAssignmentBuilder collectBuilder(
+			final InputBuilderListener trafficComponentCreateListener,
+			final Demands theDemands,
+			final Zoning theZoning,
+			final PhysicalNetwork thePhysicalNetwork) throws PlanItException {
+		if(this.trafficAssignmentBuilder == null) {
+			this.trafficAssignmentBuilder =
+					createTrafficAssignmentBuilder(
+							trafficComponentCreateListener, theDemands, theZoning, thePhysicalNetwork);
 		}
 		return this.trafficAssignmentBuilder;
 	}

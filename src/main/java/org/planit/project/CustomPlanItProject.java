@@ -344,11 +344,11 @@ public class CustomPlanItProject {
      *
      */
     protected void initialiseFactories() {
+    	initialPhysicalCostFactory = new TrafficAssignmentComponentFactory<InitialPhysicalCost>(InitialPhysicalCost.class);
     	physicalNetworkFactory = new TrafficAssignmentComponentFactory<PhysicalNetwork>(PhysicalNetwork.class);
     	zoningFactory = new TrafficAssignmentComponentFactory<Zoning>(Zoning.class);
     	demandsFactory = new TrafficAssignmentComponentFactory<Demands>(Demands.class);
     	assignmentFactory = new TrafficAssignmentComponentFactory<NetworkLoading>(NetworkLoading.class);
-		initialPhysicalCostFactory = new TrafficAssignmentComponentFactory<InitialPhysicalCost>(InitialPhysicalCost.class);
 
 		physicalNetworkFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
 		zoningFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
@@ -491,17 +491,25 @@ public class CustomPlanItProject {
      * type
      *
      * @param trafficAssignmentType the class name of the traffic assignment type object to be created
+     * @param demands the demands
+     * @param zoning the zoning
+     * @param phjysicalNetwork the physical network
      * @return the traffic assignment builder object
      * @throws PlanItException thrown if there is an error
      */
-    public TrafficAssignmentBuilder createAndRegisterTrafficAssignment(final String trafficAssignmentType)
+    public TrafficAssignmentBuilder createAndRegisterTrafficAssignment(
+    		final String trafficAssignmentType,
+    		final Demands theDemands,
+    		final Zoning theZoning,
+    		final PhysicalNetwork thePhysicalNetwork)
             throws PlanItException {
         final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentType);
         if (!(networkLoadingAndAssignment instanceof TrafficAssignment)) {
         	PlanItLogger.severeWithException("not a valid traffic assignment type");
         }
         final TrafficAssignment trafficAssignment = (TrafficAssignment) networkLoadingAndAssignment;
-        final TrafficAssignmentBuilder trafficAssignmentBuilder = trafficAssignment.collectBuilder(inputBuilderListener);
+        final TrafficAssignmentBuilder trafficAssignmentBuilder =
+        		trafficAssignment.collectBuilder(inputBuilderListener,theDemands, theZoning, thePhysicalNetwork);
         // now initialize it, since initialization depends on the concrete class we
         // cannot do this on the constructor of the superclass nor
         // can we do it in the derived constructors as some components are the same

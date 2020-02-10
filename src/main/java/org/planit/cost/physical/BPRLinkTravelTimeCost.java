@@ -5,13 +5,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.djutils.event.EventInterface;
-import org.planit.exceptions.PlanItException;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.ModeImpl;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
-import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
@@ -28,15 +26,6 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 
 	/** generated UID */
 	private static final long serialVersionUID = -1529475107840907959L;
-
-	// register to be eligible on PLANit
-    static {
-        try {
-            TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(BPRLinkTravelTimeCost.class);
-        } catch (final PlanItException e) {
-            e.printStackTrace();
-        }
-    }
 
 	/**
 	 * Inner class to store Map of alpha and beta parameters used in BPR function

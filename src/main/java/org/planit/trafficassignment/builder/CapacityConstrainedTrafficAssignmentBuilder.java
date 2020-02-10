@@ -1,7 +1,10 @@
 package org.planit.trafficassignment.builder;
 
+import org.planit.demands.Demands;
 import org.planit.exceptions.PlanItException;
 import org.planit.input.InputBuilderListener;
+import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.virtual.Zoning;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
 import org.planit.trafficassignment.CapacityConstrainedAssignment;
@@ -36,11 +39,18 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
      *
      * @param capacityConstrainedAssignment CapacityConstrainedAssignment object to be built
      * @param trafficComponentCreateListener the listener to be registered for any traffic components being created by this class
+     * @param demands
+     * @param zoning
+     * @param physicalNetwork
+     * @throws PlanItException
      */
     protected CapacityConstrainedTrafficAssignmentBuilder(
     		final CapacityConstrainedAssignment capacityConstrainedAssignment,
-    		final InputBuilderListener trafficComponentCreateListener) {
-        super(capacityConstrainedAssignment, trafficComponentCreateListener);
+    		final InputBuilderListener trafficComponentCreateListener,
+    		final Demands demands,
+			final Zoning zoning,
+			final PhysicalNetwork physicalNetwork) throws PlanItException {
+        super(capacityConstrainedAssignment, trafficComponentCreateListener, demands, zoning, physicalNetwork);
         fundamentalDiagramFactory = new TrafficAssignmentComponentFactory<FundamentalDiagram>(FundamentalDiagram.class);
         nodeModelFactory = new TrafficAssignmentComponentFactory<NodeModel>(NodeModel.class);
 
@@ -54,12 +64,13 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
     /**
      * Create and register FundamentalDiagram on assignment
      *
-     * @param fundamentalDiagramType the type of Fundamental Diagram to be created
+     * @param fundamentalDiagramType the type of Fundamental Diagrams to be created
+     * @param physicalNetwork the network for which link segments the fundamental diagram parameters are to be provided
      * @return FundamentalDiagram created
      * @throws PlanItException thrown if there is an error
      */
-    public FundamentalDiagram createAndRegisterFundamentalDiagram(final String fundamentalDiagramType) throws PlanItException {
-        final FundamentalDiagram createdFundamentalDiagram = fundamentalDiagramFactory.create(fundamentalDiagramType);
+    public FundamentalDiagram createAndRegisterFundamentalDiagram(final String fundamentalDiagramType, final PhysicalNetwork physicalNetwork) throws PlanItException {
+        final FundamentalDiagram createdFundamentalDiagram = fundamentalDiagramFactory.create(fundamentalDiagramType, physicalNetwork);
         ((CapacityConstrainedAssignment) parentAssignment).setFundamentalDiagram(createdFundamentalDiagram);
         return createdFundamentalDiagram;
     }
