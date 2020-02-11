@@ -2,7 +2,7 @@ package org.planit.output.adapter;
 
 import org.planit.od.odroute.ODRouteIterator;
 import org.planit.od.odroute.ODRouteMatrix;
-import org.planit.output.enums.RoutIdType;
+import org.planit.output.enums.RouteIdType;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.utils.network.physical.Mode;
@@ -27,5 +27,5 @@ public interface RouteOutputTypeAdapter extends OutputTypeAdapter {
     * @param pathOutputType the type of objects in the path list
     * @return the value of the specified property (or an Exception if an error has occurred)
     */
-	public Object getRouteOutputPropertyValue(OutputProperty outputProperty, ODRouteIterator odPathIterator, Mode mode, TimePeriod timePeriod, RoutIdType pathOutputType);
+	public Object getRouteOutputPropertyValue(OutputProperty outputProperty, ODRouteIterator odPathIterator, Mode mode, TimePeriod timePeriod, RouteIdType pathOutputType);
 }

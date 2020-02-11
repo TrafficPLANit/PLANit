@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
-import org.planit.output.enums.RoutIdType;
+import org.planit.output.enums.RouteIdType;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.Pair;
@@ -172,7 +172,7 @@ public class RouteImpl implements Route {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String toString(final RoutIdType pathOutputType) {
+	public String toString(final RouteIdType pathOutputType) {
 		switch (pathOutputType) {
 		case LINK_SEGMENT_EXTERNAL_ID:
 			return getRouteByEdgeSegmentExternalIdString();

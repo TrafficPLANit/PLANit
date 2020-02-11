@@ -3,7 +3,7 @@ package org.planit.output.adapter;
 import org.planit.exceptions.PlanItException;
 import org.planit.od.odroute.ODRouteIterator;
 import org.planit.output.enums.OutputType;
-import org.planit.output.enums.RoutIdType;
+import org.planit.output.enums.RouteIdType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.route.Route;
@@ -70,7 +70,7 @@ public abstract class RouteOutputTypeAdapterImpl extends OutputTypeAdapterImpl i
 	 * @param pathOutputType the type of objects being used in the path
 	 * @return the OD path as a String of comma-separated node external Id values
 	 */
-	protected String getRouteAsString(ODRouteIterator odPathIterator, RoutIdType pathOutputType) {
+	protected String getRouteAsString(ODRouteIterator odPathIterator, RouteIdType pathOutputType) {
 		Route path =  odPathIterator.getCurrentValue();
 		if (path != null) {
 			return path.toString(pathOutputType);
@@ -99,7 +99,7 @@ public abstract class RouteOutputTypeAdapterImpl extends OutputTypeAdapterImpl i
      * @return the value of the specified property (or an Exception if an error has occurred)
      */
 	@Override
-	public Object getRouteOutputPropertyValue(OutputProperty outputProperty, ODRouteIterator odRouteIterator, Mode mode, TimePeriod timePeriod, RoutIdType routeOutputType) {
+	public Object getRouteOutputPropertyValue(OutputProperty outputProperty, ODRouteIterator odRouteIterator, Mode mode, TimePeriod timePeriod, RouteIdType routeOutputType) {
 		try {
 			Object obj = getCommonPropertyValue(outputProperty, mode, timePeriod);
 			if (obj != null) {
