@@ -23,7 +23,7 @@ import org.planit.output.configuration.PathOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.OutputTypeEnum;
-import org.planit.output.enums.RoutIdType;
+import org.planit.output.enums.RouteIdType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
@@ -144,7 +144,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 */
 	
 	private void updateOutputAndKeyValuesForPath(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys, ODRouteIterator odPathIterator,
-			RouteOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod, RoutIdType pathIdType) throws PlanItException {
+			RouteOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod, RouteIdType pathIdType) throws PlanItException {
 		odPathIterator.next();
 		updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
 			return pathOutputTypeAdapter.getRouteOutputPropertyValue(label, odPathIterator, mode, timePeriod, pathIdType);
@@ -358,7 +358,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 	 * @return the last iteration of recorded data
 	 */
 	public int getLastIteration() {
-		Set<MultiKey> keySet = (Set<MultiKey>) timeModeOutputTypeIterationDataMap.keySet();
+		@SuppressWarnings("unchecked")
+        Set<MultiKey> keySet = (Set<MultiKey>) timeModeOutputTypeIterationDataMap.keySet();
 		int lastIteration = 0;
 		for (MultiKey multiKey : keySet) {
 			Object[] keys = multiKey.getKeys();
