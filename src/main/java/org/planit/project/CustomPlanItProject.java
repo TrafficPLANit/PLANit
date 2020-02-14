@@ -655,7 +655,7 @@ public class CustomPlanItProject {
      * @throws PlanItException required for subclasses which override this method and generate an exception before the runs start
       */
     public Map<Long, PlanItException> executeAllTrafficAssignments() throws PlanItException {
-    	final Map<Long, PlanItException> exceptionMap = new HashMap<Long, PlanItException>();
+    	  final Map<Long, PlanItException> exceptionMap = new HashMap<Long, PlanItException>();
         for (final long id : trafficAssignmentsMap.keySet()) {
         	try {
         		trafficAssignmentsMap.get(id).execute();

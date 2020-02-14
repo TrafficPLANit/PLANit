@@ -2,6 +2,7 @@ package org.planit.network.physical.macroscopic;
 
 import javax.annotation.Nonnull;
 
+import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.LinkSegmentImpl;
 import org.planit.utils.network.physical.Link;
@@ -9,7 +10,6 @@ import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentTypeModeProperties;
 import org.planit.utils.network.virtual.Centroid;
 
 /**
@@ -19,14 +19,18 @@ import org.planit.utils.network.virtual.Centroid;
  */
 public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements MacroscopicLinkSegment {
 
+  // Private
+  
+  /**generated UID */
+  private static final long serialVersionUID = 4574164258794764853L;
+  
 	// Protected
-
-	/**generated UID */
-	private static final long serialVersionUID = 4574164258794764853L;
-	/**
-	 * the link type of this link containing all macroscopic features by user class
-	 */
-	protected MacroscopicLinkSegmentType linkSegmentType = null;
+ 
+  /**
+   * the link type of this link containing all macroscopic features by user class
+   */
+  protected MacroscopicLinkSegmentType linkSegmentType = null;
+  
 
 	// Public
 
@@ -62,51 +66,59 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
 	 *
 	 * @param mode mode of travel
 	 * @return freeFlowTravelTime for this mode
+	 * @throws PlanItException 
 	 */
 	@Override
-	public double computeFreeFlowTravelTime(final Mode mode) {
-		final double linkLength = getParentLink().getLength();
-		final double maximumSpeed = getMaximumSpeed(mode);
-		final MacroscopicLinkSegmentTypeModeProperties properties = getLinkSegmentType().getModeProperties();
-		double computedMaximumSpeed = maximumSpeed;
-		if ((properties != null) && (getLinkSegmentType().getModeProperties().getProperties(mode) != null)) {
-			final double segmentTypeMaximumSpeed = getLinkSegmentType().getModeProperties().getProperties(mode).getMaxSpeed();
-			if ((maximumSpeed == 0.0) && (segmentTypeMaximumSpeed == 0.0)) {
-				if (getParentEdge().getVertexA() instanceof Centroid) {
-					final long startId = ((Centroid) getParentEdge().getVertexA()).getParentZone().getExternalId();
-					final long endId = ((Node) getParentEdge().getVertexB()).getExternalId();
-					PlanItLogger.severe("No maximum speed defined for the origin connectoid from zone " + startId
-							+ " to node " + endId);
-					return -1.0;
-				} else if (getParentEdge().getVertexB() instanceof Centroid) {
-					final long startId = ((Node) getParentEdge().getVertexA()).getExternalId();
-					final long endId = ((Centroid) getParentEdge().getVertexB()).getParentZone().getExternalId();
-					PlanItLogger.severe("No maximum speed defined for the destination connectoid from node " + startId
-							+ " to zone " + endId);
-					return -1.0;
-				} else {
-					final long startId = ((Node) getParentEdge().getVertexA()).getExternalId();
-					final long endId = ((Node) getParentEdge().getVertexB()).getExternalId();
-					PlanItLogger.severe("No maximum speed defined for network link from anode reference " + startId
-							+ " to bnode " + endId);
-					return -1.0;
-				}
-			}
-			computedMaximumSpeed = Math.min(maximumSpeed, segmentTypeMaximumSpeed);
+	public double computeFreeFlowTravelTime(final Mode mode) throws PlanItException {
+		if(!isModeAllowedThroughLink(mode)) {
+		  PlanItLogger.severeWithException("mode not allowed on link segment, no free flow time can be computed");
 		}
+	  
+	  final double linkLength = getParentLink().getLength();
+		final double maximumSpeed = getMaximumSpeed(mode);
+		double computedMaximumSpeed = maximumSpeed;
+	  final double segmentTypeMaximumSpeed = getLinkSegmentType().getModeProperties(mode).getMaxSpeed();
+
+		if ((maximumSpeed == 0.0) && (segmentTypeMaximumSpeed == 0.0)) {
+			if (getParentEdge().getVertexA() instanceof Centroid) {
+				final long startId = ((Centroid) getParentEdge().getVertexA()).getParentZone().getExternalId();
+				final long endId = ((Node) getParentEdge().getVertexB()).getExternalId();
+				PlanItLogger.severeWithException("No maximum speed defined for the origin connectoid from zone " + startId + " to node " + endId + " for mode " + mode.getExternalId());
+			} else if (getParentEdge().getVertexB() instanceof Centroid) {
+				final long startId = ((Node) getParentEdge().getVertexA()).getExternalId();
+				final long endId = ((Centroid) getParentEdge().getVertexB()).getParentZone().getExternalId();
+				PlanItLogger.severeWithException("No maximum speed defined for the destination connectoid from node " + startId + " to zone " + endId + " for mode " + mode.getExternalId());
+			} else {
+				final long startId = ((Node) getParentEdge().getVertexA()).getExternalId();
+				final long endId = ((Node) getParentEdge().getVertexB()).getExternalId();
+				PlanItLogger.severeWithException("No maximum speed defined for network link from anode reference " + startId + " to bnode " + endId + " for mode " + mode.getExternalId());
+			}
+		}
+		computedMaximumSpeed = Math.min(maximumSpeed, segmentTypeMaximumSpeed);
 		return linkLength / computedMaximumSpeed;
 	}
 
-	// getters - setters
+  /**
+   * Returns whether vehicles of a specified mode are allowed through this link
+   * 
+   * @param mode the specified mode
+   * @return true if vehicles of this mode can drive along this link, false otherwise
+   */
+  @Override
+  public boolean isModeAllowedThroughLink(Mode mode) {
+    return linkSegmentType.getModeProperties(mode) != null;
+  }
 
-	@Override
-	public void setLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType) {
-		this.linkSegmentType = linkSegmentType;
-	}
+  // getters - setters
 
-	@Override
-	public MacroscopicLinkSegmentType getLinkSegmentType() {
-		return linkSegmentType;
-	}
+  @Override
+  public void setLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType) {
+    this.linkSegmentType = linkSegmentType;
+  }
+
+  @Override
+  public MacroscopicLinkSegmentType getLinkSegmentType() {
+    return linkSegmentType;
+  }
 
 }

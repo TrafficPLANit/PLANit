@@ -10,8 +10,10 @@ import javax.annotation.Nonnull;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.utils.misc.Pair;
+import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentTypeModeProperties;
+import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 
 /**
  * Macroscopic Network which stores link segment types
@@ -90,8 +92,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 	 *         the link segment type already exists
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public Pair<MacroscopicLinkSegmentType, Boolean> registerNewLinkSegmentType(@Nonnull final String name, final double capacity,
-			final double maximumDensity, final long externalId, final MacroscopicLinkSegmentTypeModeProperties modeProperties)
+  public Pair<MacroscopicLinkSegmentType, Boolean> registerNewLinkSegmentType(@Nonnull final String name, final double capacity,
+      final double maximumDensity, final long externalId, final Map<Mode, MacroscopicModeProperties> modeProperties)
 			throws PlanItException {
 
 		if (!(networkBuilder instanceof MacroscopicNetworkBuilder)) {

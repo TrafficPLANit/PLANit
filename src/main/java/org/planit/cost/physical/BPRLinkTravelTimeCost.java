@@ -5,9 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.djutils.event.EventInterface;
+import org.planit.exceptions.PlanItException;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
-import org.planit.network.physical.ModeImpl;
+//import org.planit.network.physical.ModeImpl;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.misc.Pair;
@@ -138,18 +139,17 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 * @param mode        the current Mode of travel
 	 * @param linkSegment the current link segment
 	 * @return the travel time for the current link
+	 * @throws PlanItException 
 	 *
 	 */
 	@Override
-	public double getSegmentCost(final Mode mode, final LinkSegment linkSegment) {
+	public double getSegmentCost(final Mode mode, final LinkSegment linkSegment) throws PlanItException {
 		final double flow = linkVolumeAccessee.getTotalNetworkSegmentFlow(linkSegment);
 
 		// BPR function with mode specific free flow time and general PCU based delay
 		final MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
 		final double freeFlowTravelTime = macroscopicLinkSegment.computeFreeFlowTravelTime(mode);
-		if (freeFlowTravelTime < 0.0) {
-			return -1.0;
-		}
+
 		final double capacity = macroscopicLinkSegment.computeCapacity();
 		final int id = (int) macroscopicLinkSegment.getId();
 		final Pair<Double, Double> alphaBetaParameters = bprParametersPerLinkSegment[id].getAlphaBetaParameters(mode);
@@ -170,7 +170,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 * @param alpha       alpha value
 	 * @param beta        beta value
 	 */
-	public void setParameters(final MacroscopicLinkSegment linkSegment, final ModeImpl mode, final double alpha, final double beta) {
+	public void setParameters(final MacroscopicLinkSegment linkSegment, final Mode mode, final double alpha, final double beta) {
 		if (parametersPerLinkSegmentAndMode.get(linkSegment) == null) {
 			parametersPerLinkSegmentAndMode.put(linkSegment, new BPRParameters());
 		}

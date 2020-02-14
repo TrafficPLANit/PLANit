@@ -37,10 +37,17 @@
 		</dependency>
 	
 		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-geometry</artifactId>
+		    <groupId>org.geotools</groupId>
+		    <artifactId>gt-geometry</artifactId>
 			<version>${geotools.version}</version>
 		</dependency>
+		
+		<dependency>
+		    <groupId>org.geotools</groupId>
+		    <artifactId>gt-geojson</artifactId>
+			<version>${geotools.version}</version>
+		</dependency>
+
 		
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -112,6 +119,12 @@
 			<id>djutils</id>
 			<url>https://djutils.org/maven</url>
 		</repository>
+		
+		<repository>
+			<id>geosolutions-repo</id>
+			<url>http://maven.geo-solutions.it/</url>
+		</repository>
+			
 	</repositories>
 
 </project>

@@ -179,6 +179,7 @@ public class VertexImpl implements Vertex {
         return centrePointGeometry;
     }
 
+    @Override
     public void setCentrePointGeometry(final DirectPosition centrePointGeometry) {
         this.centrePointGeometry = centrePointGeometry;
     }
@@ -186,7 +187,7 @@ public class VertexImpl implements Vertex {
     // Getters-Setters
 
     @Override
-	public long getId() {
+	  public long getId() {
         return id;
     }
 

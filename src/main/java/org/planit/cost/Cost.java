@@ -2,6 +2,7 @@ package org.planit.cost;
 
 import java.io.Serializable;
 
+import org.planit.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.network.physical.Mode;
 
@@ -19,7 +20,8 @@ public interface Cost<T extends EdgeSegment> extends Serializable {
      * @param mode							the specified mode of travel
      * @param edgeSegment              the specified edge segment (which can be physical or virtual) 
      * @return  									the cost of travel along the specified segment
+     * @throws PlanItException 
      */
-	public double getSegmentCost(Mode mode, T edgeSegment);
+	public double getSegmentCost(Mode mode, T edgeSegment) throws PlanItException;
 	
 }
