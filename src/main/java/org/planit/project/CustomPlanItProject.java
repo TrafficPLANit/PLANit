@@ -461,11 +461,11 @@ public class CustomPlanItProject {
      */
     public Demands createAndRegisterDemands(final Zoning zoning) throws PlanItException {
     	if (zoning == null) {
-    		PlanItLogger.severe("Zones must be defined before definition of demands can begin");
+    		PlanItLogger.severeWithException("Zones must be defined before definition of demands can begin");
     	}
-        final Demands demands = demandsFactory.create(Demands.class.getCanonicalName(), new Object[] {zoning});
-        demandsMap.put(demands.getId(), demands);
-        return demands;
+      final Demands demands = demandsFactory.create(Demands.class.getCanonicalName(), new Object[] {zoning});
+      demandsMap.put(demands.getId(), demands);
+      return demands;
     }
 
     /** create and register the od route sets as populated by the input builder through the path source
