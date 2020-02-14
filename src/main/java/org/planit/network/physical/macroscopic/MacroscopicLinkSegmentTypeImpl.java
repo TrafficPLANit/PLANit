@@ -136,10 +136,10 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   }
 
   /**
-   * Set the mode properties for a specified mode for this link
+   * Set the map of mode properties for this link
    * 
    * @param mode the specified mode
-   * @param modeProperties the mode properties for this link
+   * @param modeProperties map of mode properties for this link
    */
   @Override
   public void setModeProperties(Map<Mode, MacroscopicModeProperties> modeProperties) {
