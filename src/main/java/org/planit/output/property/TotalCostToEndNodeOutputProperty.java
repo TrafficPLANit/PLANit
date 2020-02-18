@@ -5,11 +5,11 @@ import org.planit.output.enums.Units;
 
 public final class TotalCostToEndNodeOutputProperty extends BaseOutputProperty {
 
-	public static final String TOTAL_COST_TO_END_NODE = "Cost to End Node";
+	public static final String NAME = "Cost to End Node";
 
 	@Override
 	public String getName() {
-		return TOTAL_COST_TO_END_NODE;
+		return NAME;
 	}
 
 	@Override

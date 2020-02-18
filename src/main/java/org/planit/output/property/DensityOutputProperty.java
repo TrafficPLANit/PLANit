@@ -5,11 +5,11 @@ import org.planit.output.enums.Units;
 
 public final class DensityOutputProperty extends BaseOutputProperty{
 
-	public static final String DENSITY = "Density";
+	public static final String NAME = "Density";
 	
 	@Override
 	public String getName() {
-		return DENSITY;
+		return NAME;
 	}
 
 	@Override

@@ -11,11 +11,11 @@ import org.planit.output.enums.Units;
  */
 public final class VCRatioOutputProperty extends BaseOutputProperty {
 
-	public static final String VC_RATIO = "VC Ratio";
+	public static final String NAME = "VC Ratio";
 	
 	@Override
 	public String getName() {
-		return VC_RATIO ;
+		return NAME;
 	}
 
 	@Override

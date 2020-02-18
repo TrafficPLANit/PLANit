@@ -11,11 +11,11 @@ import org.planit.output.enums.Units;
  */
 public final class CalculatedSpeedOutputProperty extends BaseOutputProperty {
 
-	public static final String CALCULATED_SPEED = "Calculated Speed";
+	public static final String NAME = "Calculated Speed";
 	
 	@Override
 	public String getName() {
-		return CALCULATED_SPEED;
+		return NAME;
 	}
 
 	@Override

@@ -5,11 +5,11 @@ import org.planit.output.enums.Units;
 
 public final class UpstreamNodeLocationOutputProperty extends BaseOutputProperty {
 
-	public static final String UPSTREAM_NODE_LOCATION = "Upstream Node Location";
+	public static final String NAME = "Upstream Node Location";
 	
 	@Override
 	public String getName() {
-		return UPSTREAM_NODE_LOCATION;
+		return NAME;
 	}
 
 	@Override

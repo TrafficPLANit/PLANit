@@ -5,11 +5,11 @@ import org.planit.output.enums.Units;
 
 public final class OriginZoneExternalIdOutputProperty extends BaseOutputProperty {
 
-	public static final String ORIGIN_ZONE_EXTERNAL_ID = "Origin Zone External Id";
+	public static final String NAME = "Origin Zone External Id";
 
 	@Override
 	public String getName() {
-		return ORIGIN_ZONE_EXTERNAL_ID;
+		return NAME;
 	}
 
 	@Override

@@ -6,11 +6,11 @@ import org.planit.utils.network.physical.Mode;
 
 public final class ModeExternalIdOutputProperty extends BaseOutputProperty {
 
-	public static final String MODE_EXTERNAL_ID = "Mode External Id";
+	public static final String NAME = "Mode External Id";
 	
 	@Override
 	public String getName() {
-		return MODE_EXTERNAL_ID;
+		return NAME;
 	}
 
 	@Override

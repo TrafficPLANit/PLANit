@@ -5,11 +5,11 @@ import org.planit.output.enums.Units;
 
 public final class LinkCostOutputProperty extends BaseOutputProperty {
 
-	public static final String LINK_COST = "Cost";
+	public static final String NAME = "Cost";
 	
 	@Override
 	public String getName() {
-		return LINK_COST;
+		return NAME;
 	}
 
 	@Override

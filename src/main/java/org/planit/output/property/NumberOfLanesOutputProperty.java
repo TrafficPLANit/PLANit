@@ -5,11 +5,11 @@ import org.planit.output.enums.Units;
 
 public final class NumberOfLanesOutputProperty extends BaseOutputProperty {
 
-	public static final String NUMBER_OF_LANES = "Number of Lanes";
+	public static final String NAME = "Number of Lanes";
 	
 	@Override
 	public String getName() {
-		return NUMBER_OF_LANES;
+		return NAME;
 	}
 
 	@Override

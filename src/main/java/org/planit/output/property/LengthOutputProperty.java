@@ -5,11 +5,11 @@ import org.planit.output.enums.Units;
 
 public final class LengthOutputProperty extends BaseOutputProperty {
 
-	public static final String LENGTH = "Length";
+	public static final String NAME = "Length";
 	
 	@Override
 	public String getName() {
-		return LENGTH;
+		return NAME;
 	}
 
 	@Override
