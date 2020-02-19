@@ -432,7 +432,7 @@ public class CustomPlanItProject {
    * @throws PlanItException thrown if class cannot be registered
    */
   public void registerEligibleTrafficComponentClass(Class<? extends TrafficAssignmentComponent<?>> theClazz) throws PlanItException {
-      TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(theClazz);
+      TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(theClazz); 
   }  
 
   /**
