@@ -1,6 +1,5 @@
 package org.planit.network.physical.macroscopic;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -140,43 +139,4 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 		return macroscopicLinkSegmentTypeByExternalIdMap.get(externalId);
 	}
 	
-	/**
-	 * Return the BPR parameters for a specified link segment and mode
-	 * 
-   * @param linkSegment the specified link segment
-   * @param mode the specified mode
-	 * @return Pair containing the alpha and beta parameters
-	 */
-  public Pair<Double, Double> getBprParametersForLinkSegmentAndMode(MacroscopicLinkSegment macroscopicLinkSegment, Mode mode) {
-    return bprParametersForLinkSegmentAndMode.get(macroscopicLinkSegment).get(mode);
-  }
-  
-  /**
-   * Indicates whether BPR parameters have been defined for any links and modes
-   * 
-   * @return true if BPR parameters defined for any links and modes, false otherwise
-   */
-  public boolean isBprParametersDefinedForLinkSegments() {
-    return (bprParametersForLinkSegmentAndMode != null);
-  }
-
-  /**
-   * Add BPR parameters for a specified link segment and mode
-   * 
-   * @param linkSegment the specified link segment
-   * @param mode the specified mode
-   * @param alpha the BPR alpha parameter
-   * @param beta the BPR beta parameter
-   */
-  public void addBprParametersForLinkSegmentAndMode(MacroscopicLinkSegment linkSegment, Mode mode, double alpha, double beta) {
-    if (bprParametersForLinkSegmentAndMode == null) {
-      bprParametersForLinkSegmentAndMode = new HashMap<MacroscopicLinkSegment, Map<Mode, Pair<Double, Double>>>();
-    }
-    if (!bprParametersForLinkSegmentAndMode.containsKey(linkSegment)) {
-      bprParametersForLinkSegmentAndMode.put(linkSegment, new HashMap<Mode, Pair<Double, Double>>());
-    }
-    Pair<Double, Double> alphaBeta = new Pair<Double, Double>(alpha, beta);
-    bprParametersForLinkSegmentAndMode.get(linkSegment).put(mode, alphaBeta);
-  }
-
 }
