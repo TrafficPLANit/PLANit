@@ -5,11 +5,11 @@ import org.planit.output.enums.Units;
 
 public final class FlowOutputProperty extends BaseOutputProperty {
 
-	public static final String FLOW = "Flow"; 
+	public static final String NAME = "Flow"; 
 	
 	@Override
 	public String getName() {
-		return FLOW;
+		return NAME;
 	}
 
 	@Override

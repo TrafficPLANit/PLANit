@@ -7,11 +7,11 @@ import org.planit.time.TimePeriod;
 
 public final class TimePeriodIdOutputProperty extends BaseOutputProperty {
 
-	public static final String TIME_PERIOD_ID = "Time Period Id";
+	public static final String NAME = "Time Period Id";
 
 	@Override
 	public String getName() {
-		return TIME_PERIOD_ID ;
+		return NAME;
 	}
 
 	@Override

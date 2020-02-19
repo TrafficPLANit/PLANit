@@ -5,11 +5,11 @@ import org.planit.output.enums.Units;
 
 public final class LinkSegmentIdOutputProperty extends BaseOutputProperty {
 
-	public static final String LINK_SEGMENT_ID = "Link Segment Id";
+	public static final String NAME = "Link Segment Id";
 	
 	@Override
 	public String getName() {
-		return LINK_SEGMENT_ID;
+		return NAME;
 	}
 
 	@Override

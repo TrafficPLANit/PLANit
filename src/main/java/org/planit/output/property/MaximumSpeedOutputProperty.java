@@ -5,11 +5,11 @@ import org.planit.output.enums.Units;
 
 public final class MaximumSpeedOutputProperty extends BaseOutputProperty {
 
-	public static final String MAXIMUM_SPEED = "Maximum Speed";
+	public static final String NAME = "Maximum Speed";
 	
 	@Override
 	public String getName() {
-		return MAXIMUM_SPEED;
+		return NAME;
 	}
 
 	@Override

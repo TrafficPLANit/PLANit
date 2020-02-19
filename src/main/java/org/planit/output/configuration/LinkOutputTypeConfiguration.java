@@ -196,6 +196,8 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 			return true;
 		case COST_TIMES_FLOW:
 		  return true;
+		case LINK_TYPE:
+		  return true;
 		default:
 			PlanItLogger.warning("Tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Link output.  This will be ignored."	);	
 		}

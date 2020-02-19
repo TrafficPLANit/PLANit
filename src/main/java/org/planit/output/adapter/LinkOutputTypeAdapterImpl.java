@@ -40,6 +40,22 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	}
 
 	/**
+	 * Return the link segment type of the current link segment
+	 * 
+	 * @param linkSegment the current link segment
+	 * @return the link segment type
+	 * @throws PlanItException thrown if there is an error
+	 */
+	protected String getLinkType(LinkSegment linkSegment) throws PlanItException {
+    if (!(linkSegment instanceof MacroscopicLinkSegment)) {
+      throw new PlanItException(
+          "Tried to find the Link Type of an object which is not a MacroscopicLinkSegment.");
+    }
+    MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
+    return macroscopicLinkSegment.getLinkSegmentType().getName();
+	}
+	
+	/**
 	 * Returns the flow density of the current link
 	 * 
 	 * @param linkSegment LinkSegment containing data which may be required
@@ -271,6 +287,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 				return getUpstreamNodeId(linkSegment);
 			case UPSTREAM_NODE_LOCATION:
 				return getUpstreamNodeLocation(linkSegment);
+			case LINK_TYPE:
+				return getLinkType(linkSegment);
 			default:
 				return null;
 			}

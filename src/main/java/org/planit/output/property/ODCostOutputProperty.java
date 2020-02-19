@@ -5,11 +5,11 @@ import org.planit.output.enums.Units;
 
 public final class ODCostOutputProperty extends BaseOutputProperty {
 
-	public static final String OD_COST = "Cost";
+	public static final String NAME = "Cost";
 	
 	@Override
 	public String getName() {
-		return OD_COST;
+		return NAME;
 	}
 
 	@Override

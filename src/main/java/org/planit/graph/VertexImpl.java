@@ -33,12 +33,7 @@ public class VertexImpl implements Vertex {
         protected Set<Edge> edges = new TreeSet<Edge>();
 
         /**
-         * Add edge, do not invoke when parsing networks, this connection is
-         * auto-populated before the assignment starts based on the edge and its two
-         * vertices that have been registered.
-         *
-         * @param edge Edge to be added
-         * @return true when added, false when already present (and not added)
+         * #{@inheritDoc}
          */
         @Override
         public boolean addEdge(final Edge edge) {
@@ -46,10 +41,7 @@ public class VertexImpl implements Vertex {
         }
 
         /**
-         * Remove edge
-         *
-         * @param edge Edge to be removed
-         * @return true when removed, false when not present (and not removed)
+         * #{@inheritDoc}
          */
         @Override
         public boolean removeEdge(final Edge edge) {
@@ -57,9 +49,7 @@ public class VertexImpl implements Vertex {
         }
 
         /**
-         * Returns a Set of Edge objects
-         *
-         * @return Set of Edge objects
+         * #{@inheritDoc}
          */
         @Override
         public Set<Edge> getEdges() {
@@ -80,12 +70,7 @@ public class VertexImpl implements Vertex {
         protected Set<EdgeSegment> edgeSegments = new TreeSet<EdgeSegment>();
 
         /**
-         * Add edgeSegment, do not invoke when parsing networks, this connection is
-         * auto-populated before the assignment starts based on the edge segment
-         * vertices that have been registered.
-         *
-         * @param edgeSegment EdgeSegment object to be added
-         * @return true when added, false when already present (and not added)
+         * #{@inheritDoc}
          */
         @Override
         public boolean addEdgeSegment(final EdgeSegment edgeSegment) {
@@ -93,10 +78,7 @@ public class VertexImpl implements Vertex {
         }
 
         /**
-         * Remove edgeSegment
-         *
-         * @param edgeSegment EdgeSegment object to be removed
-         * @return true when removed, false when not present (and not removed)
+         * #{@inheritDoc}
          */
         @Override
         public boolean removeEdgeSegment(final EdgeSegment edgeSegment) {
@@ -104,9 +86,7 @@ public class VertexImpl implements Vertex {
         }
 
         /**
-         * Test whether no edge segments have been registered
-         *
-         * @return true if no edge segments have been registered, false otherwise
+         * #{@inheritDoc}
          */
         @Override
         public boolean isEmpty() {
@@ -114,9 +94,7 @@ public class VertexImpl implements Vertex {
         }
 
         /**
-         * Return Set of EdgeSegment objects
-         *
-         * @return Set of EdgeSegment objects
+         * #{@inheritDoc}
          */
         @Override
         public Set<EdgeSegment> getEdgeSegments() {
@@ -175,18 +153,28 @@ public class VertexImpl implements Vertex {
 
     // Public
 
+    /** Collect the geometry of the point location of this vertex
+     * @return direct position reflecting point location
+     */
     public DirectPosition getCentrePointGeometry() {
         return centrePointGeometry;
     }
 
+    /**
+     * #{@inheritDoc}
+     */
+    @Override
     public void setCentrePointGeometry(final DirectPosition centrePointGeometry) {
         this.centrePointGeometry = centrePointGeometry;
     }
 
     // Getters-Setters
 
+    /**
+     * #{@inheritDoc}
+     */
     @Override
-	public long getId() {
+	  public long getId() {
         return id;
     }
 
@@ -227,25 +215,26 @@ public class VertexImpl implements Vertex {
     }
 
 
-	/**
-	 * collect entry edge segments
-	 * @return entry edge segments
-	 */
+    /**
+     * #{@inheritDoc}
+     */
 	@Override
 	public EdgeSegments getEntryEdgeSegments() {
 		return entryEdgeSegments;
 	}
 
-	/**
-	 * collect exit edge segments
-	 * @return exit edge segments
-	 */
+  /**
+   * #{@inheritDoc}
+   */
 	@Override
 	public EdgeSegments getExitEdgeSegments() {
 		return entryEdgeSegments;
 	}
 
 
+  /**
+   * #{@inheritDoc}
+   */
 	@Override
 	public Edges getEdges() {
 		return edges;

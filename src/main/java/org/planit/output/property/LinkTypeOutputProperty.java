@@ -3,15 +3,9 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 
-/**
- * Cost times flow output property class
- * 
- * @author gman6028
- *
- */
-public final class CostTimesFlowOutputProperty extends BaseOutputProperty {
+public final class LinkTypeOutputProperty extends BaseOutputProperty {
 
-  public static final String NAME = "X_Cost x Flow";
+  public static final String NAME = "Link Type";
   
   @Override
   public String getName() {
@@ -25,17 +19,17 @@ public final class CostTimesFlowOutputProperty extends BaseOutputProperty {
 
   @Override
   public Type getType() {
-    return Type.DOUBLE;
+    return Type.STRING;
   }
 
   @Override
   public OutputProperty getOutputProperty() {
-    return OutputProperty.COST_TIMES_FLOW;
+    return OutputProperty.LINK_TYPE;
   }
 
   @Override
   public OutputPropertyPriority getColumnPriority() {
-    return OutputPropertyPriority.RESULT_PRIORITY;
+    return OutputPropertyPriority.INPUT_PRIORITY;
   }
 
 }

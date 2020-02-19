@@ -35,8 +35,8 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
      * Map of maximum speeds along this link for each mode
      */
     protected Map<Mode, Double> maximumSpeedMap;
-
-    /**
+    
+   /**
      * Generate unique link segment id
      *
      * @return id of this link segment
@@ -60,8 +60,6 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
     }
 
     // Public
-
-
 
     // Public getters - setters
 

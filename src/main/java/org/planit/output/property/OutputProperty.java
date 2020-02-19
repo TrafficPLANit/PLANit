@@ -40,7 +40,8 @@ public enum OutputProperty {
 	TOTAL_COST_TO_END_NODE("org.planit.output.property.TotalCostToEndNodeOutputProperty"),
 	PATH("org.planit.output.property.PathOutputProperty"),
 	VC_RATIO("org.planit.output.property.VCRatioOutputProperty"),
-	COST_TIMES_FLOW("org.planit.output.property.CostTimesFlowOutputProperty");
+	COST_TIMES_FLOW("org.planit.output.property.CostTimesFlowOutputProperty"),
+	LINK_TYPE("org.planit.output.property.LinkTypeOutputProperty");
 
 	private final String value;
 

@@ -7,11 +7,11 @@ import org.planit.trafficassignment.TrafficAssignment;
 
 public final class RunIdOutputProperty extends BaseOutputProperty {
 
-	public static final String RUN_ID = "Run Id";
+	public static final String NAME = "Run Id";
 
 	@Override
 	public String getName() {
-		return RUN_ID;
+		return NAME;
 	}
 
 	@Override

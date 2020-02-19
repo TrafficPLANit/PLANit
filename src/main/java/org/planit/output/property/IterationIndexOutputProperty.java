@@ -7,11 +7,11 @@ import org.planit.trafficassignment.TrafficAssignment;
 
 public final class IterationIndexOutputProperty extends BaseOutputProperty {
 
-	public static final String ITERATION_INDEX = "Iteration Index";
+	public static final String NAME = "Iteration Index";
 	
 	@Override
 	public String getName() {
-		return ITERATION_INDEX;
+		return NAME;
 	}
 
 	@Override
