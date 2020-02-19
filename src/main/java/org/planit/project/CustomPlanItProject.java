@@ -20,6 +20,7 @@ import org.planit.route.ODRouteSets;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
+import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 
@@ -421,6 +422,17 @@ public class CustomPlanItProject {
         zoningsMap = new TreeMap<Long, Zoning>();
         odRouteSetsMap = new TreeMap<Long, ODRouteSets>();
         outputFormatters = new TreeMap<Long, OutputFormatter>();
+    }
+    
+    /**
+     * Register a class that we allow to be instantiated as a concrete implementation of a traffic assignment component
+     * that can be used in PLANit
+     * 
+     * @param theClazz the class that we want to mark as eligible from an outside source
+     * @throws PlanItException thrown if class cannot be registered
+     */
+    public void registerEligibleTrafficComponentClass(Class<? extends TrafficAssignmentComponent<?>> theClazz) throws PlanItException {
+        TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(theClazz);
     }
 
     /**
