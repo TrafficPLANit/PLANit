@@ -314,8 +314,6 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		 * @param externalModeId
 		 * @param name
 		 * @param pcu
-
-		 *
 		 * @return new mode created
 		 */
 		public Mode registerNewMode(final long externalModeId, final String name, final double pcu) {

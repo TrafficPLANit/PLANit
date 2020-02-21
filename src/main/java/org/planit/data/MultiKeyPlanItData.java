@@ -3,8 +3,9 @@ package org.planit.data;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.collections.map.HashedMap;
-import org.apache.commons.collections.map.MultiKeyMap;
+import org.apache.commons.collections4.MapIterator;
+import org.apache.commons.collections4.keyvalue.MultiKey;
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.output.enums.Type;
@@ -12,35 +13,44 @@ import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 
+/**
+ * Class which holds arrays of output property values, identified by arrays of output keys
+ * 
+ * This class is a wrapper for the MultiKeyMap object which is a Map with multiple keys.  This class has
+ * input and output methods which are specific to PlanIt output properties.
+ * 
+ * @author gman6028
+ *
+ */
 public class MultiKeyPlanItData {
 
-	private MultiKeyMap multiKeyMap;
+	private MultiKeyMap<Object, Object[]> multiKeyMap;
 	private Map<Object, Object[]> singleKeyMap;
 	private OutputProperty[] outputKeyProperties;
 	private OutputProperty[] outputValueProperties;
 	private Type[] valueTypes;
 	private Type[] keyTypes;
-
-	/**
-	 * Get the position of a property type in the output values property array
-	 *
-	 * @param outputValueProperty the output value property
-	 * @return the position of the output value property in the output values
-	 *         property array
-	 * @throws PlanItException thrown if the output property type is not in the
-	 *                         output property array
-	 */
-	private int getPositionOfOutputProperty(final OutputProperty outputValueProperty) throws PlanItException {
-		for (int i = 0; i < outputValueProperties.length; i++) {
-			if (outputValueProperties[i].equals(outputValueProperty)) {
-				return i;
-			}
-		}
-		throw new PlanItException("Tried to set a property of type "
-				+ BaseOutputProperty.convertToBaseOutputProperty(outputValueProperty).getName()
-				+ " which has not been registered in MultiKeyPlanItData");
-	}
-
+  
+  /**
+   * Get the position of a property type in an output property array
+   *
+   * @param outputProperties the output property array
+   * @param outputProperty the output property
+   * @return the position of the output property in the output property array
+   * @throws PlanItException thrown if the output property type is not in the
+   *                         output property array
+   */
+  private int getPositionOfOutputProperty(final OutputProperty[] outputProperties, final OutputProperty outputProperty) throws PlanItException {
+    for (int i = 0; i < outputProperties.length; i++) {
+      if (outputProperties[i].equals(outputProperty)) {
+        return i;
+      }
+    }
+    throw new PlanItException("Tried to locate a property of type "
+          + BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()
+          + " which has not been registered in MultiKeyPlanItData");
+  }
+  
 	/**
 	 * Gets an array of Types from a corresponding array of output properties
 	 *
@@ -114,7 +124,7 @@ public class MultiKeyPlanItData {
 	 * @throws PlanItException thrown if there is an error
 	 */
 	private void init(final OutputProperty[] outputKeyProperties, final OutputProperty[] outputValueProperties)	throws PlanItException {
-		multiKeyMap = MultiKeyMap.decorate(new HashedMap());
+	  multiKeyMap = new MultiKeyMap<Object, Object[]>();
 		singleKeyMap = new HashMap<Object, Object[]>();
 		if (outputKeyProperties.length > 5) {
 			throw new PlanItException("Attempted to register too many output property keys.  The maximum number allowed is 5.");
@@ -204,13 +214,13 @@ public class MultiKeyPlanItData {
 		case 1:
 			return singleKeyMap.get(keyValues[0]);
 		case 2:
-			return (Object[]) multiKeyMap.get(keyValues[0], keyValues[1]);
+			return multiKeyMap.get(keyValues[0], keyValues[1]);
 		case 3:
-			return (Object[]) multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2]);
+			return multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2]);
 		case 4:
-			return (Object[]) multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2], keyValues[3]);
+			return multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2], keyValues[3]);
 		case 5:
-			return (Object[]) multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2], keyValues[3], keyValues[4]);
+			return multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2], keyValues[3], keyValues[4]);
 		}
 
 		// this line should never be reached, but required for compilation
@@ -227,7 +237,7 @@ public class MultiKeyPlanItData {
 	 */
 	public Object getRowValue(final OutputProperty outputProperty, final Object... keyValues) throws PlanItException {
 		final Object[] rowValues = getRowValues(keyValues);
-		final int pos = getPositionOfOutputProperty(outputProperty);
+		final int pos = getPositionOfOutputValueProperty(outputProperty);
 		return rowValues[pos];
 	}
 
@@ -290,24 +300,60 @@ public class MultiKeyPlanItData {
 			outputValues = singleKeyMap.get(keyValues[0]);
 			break;
 		case 2:
-			outputValues = (Object[]) multiKeyMap.get(keyValues[0], keyValues[1]);
+			outputValues = multiKeyMap.get(keyValues[0], keyValues[1]);
 			break;
 		case 3:
-			outputValues = (Object[]) multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2]);
+			outputValues = multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2]);
 			break;
 		case 4:
-			outputValues = (Object[]) multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2], keyValues[3]);
+			outputValues = multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2], keyValues[3]);
 			break;
 		case 5:
-			outputValues = (Object[]) multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2], keyValues[3],
+			outputValues = multiKeyMap.get(keyValues[0], keyValues[1], keyValues[2], keyValues[3],
 					keyValues[4]);
 			break;
 		}
 		if (outputValues == null) {
 			outputValues = new Object[outputValueProperties.length];
 		}
-		final int pos = getPositionOfOutputProperty(outputProperty);
-		outputValues[pos] = outputProperty;
+		final int pos = getPositionOfOutputValueProperty(outputProperty);
+		outputValues[pos] = value;
 		putRow(outputValues, keyValues);
 	}
+	
+	/**
+	 * Returns a MapIterator for the contents of this map
+	 * 
+	 * @return map iterator storing the keys and values of this map
+	 */
+	public MapIterator<MultiKey<? extends Object>, Object[]> getIterator() {
+	  return multiKeyMap.mapIterator();
+	}
+
+  /**
+   * Get the position of a property type in the output values property array
+   *
+   * @param outputValueProperty the output value property
+   * @return the position of the output value property in the output values
+   *         property array
+   * @throws PlanItException thrown if the output property type is not in the
+   *                         output values property array
+   */
+  public int getPositionOfOutputValueProperty(final OutputProperty outputValueProperty) throws PlanItException {
+    return getPositionOfOutputProperty(outputValueProperties, outputValueProperty);
+  }
+  
+  /**
+   * Get the position of a property type in the output keys property array
+   *
+   * @param outputKeyProperty the output value property
+   * @return the position of the output key property in the output keys
+   *         property array
+   * @throws PlanItException thrown if the output property type is not in the
+   *                         output keys property array
+   */
+  public int getPositionOfOutputKeyProperty(final OutputProperty outputKeyProperty) throws PlanItException {
+    return getPositionOfOutputProperty(outputKeyProperties, outputKeyProperty);
+  }
+	
 }

@@ -4,9 +4,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import org.apache.commons.collections.keyvalue.MultiKey;
-import org.apache.commons.collections.map.HashedMap;
-import org.apache.commons.collections.map.MultiKeyMap;
+import org.apache.commons.collections4.MapIterator;
+import org.apache.commons.collections4.keyvalue.MultiKey;
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.planit.data.MultiKeyPlanItData;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
@@ -41,7 +41,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * MultiKeyMap of data stores
    */
-  private MultiKeyMap timeModeOutputTypeIterationDataMap;
+  private MultiKeyMap<Object, MultiKeyPlanItData> timeModeOutputTypeIterationDataMap;
 
   /**
    * Returns an array of values (key or values)
@@ -358,8 +358,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    */
   public Object getOutputDataValue(Mode mode, TimePeriod timePeriod, Integer iterationIndex, OutputType outputType,
       OutputProperty outputProperty, Object[] keyValues) throws PlanItException {
-    return ((MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType))
-        .getRowValue(outputProperty, keyValues);
+    MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
+    return multiKeyPlanItData.getRowValue(outputProperty, keyValues);
   }
 
   /**
@@ -373,7 +373,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   @Override
   public void initialiseBeforeSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations, long runId)
       throws PlanItException {
-    timeModeOutputTypeIterationDataMap = MultiKeyMap.decorate(new HashedMap());
+    timeModeOutputTypeIterationDataMap = new MultiKeyMap<Object, MultiKeyPlanItData>();
   }
 
   /**
@@ -417,9 +417,9 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @return the last iteration of recorded data
    */
   public int getLastIteration() {
-    @SuppressWarnings("unchecked") Set<MultiKey> keySet = (Set<MultiKey>) timeModeOutputTypeIterationDataMap.keySet();
+    Set<MultiKey<? extends Object>> keySet = (Set<MultiKey<? extends Object>>) timeModeOutputTypeIterationDataMap.keySet();
     int lastIteration = 0;
-    for (MultiKey multiKey : keySet) {
+    for (MultiKey<? extends Object> multiKey : keySet) {
       Object[] keys = multiKey.getKeys();
       Integer iteration = (Integer) keys[2];
       lastIteration = Math.max(lastIteration, iteration);
@@ -439,6 +439,55 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   @Override
   public boolean canHandleMultipleIterations() {
     return true;
+  }
+
+  
+  /**
+   * Returns a MapIterator for the contents of the specified MultiKeyPlanItData map
+   * 
+   * @param mode value of mode key
+   * @param timePeriod value of time period key
+   * @param iterationIndex value of iteration index key
+   * @param outputType value of output type key
+   * @return map iterator storing the keys and values of this map
+   */
+  public MapIterator<MultiKey<? extends Object>, Object[]> getResultsIterator(Mode mode, TimePeriod timePeriod, Integer iterationIndex, OutputType outputType) {
+    MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
+    return multiKeyPlanItData.getIterator();
+  }
+  
+  /**
+   * Returns the position  of a property type in the output values property array
+   * 
+   * @param mode value of mode key
+   * @param timePeriod value of time period key
+   * @param iterationIndex value of iteration index key
+   * @param outputType value of output type key
+   * @param outputValueProperty the output value property whose position is required
+   * @return the position of the output value property
+   * @throws PlanItException thrown if the output property type is not in the
+   *                         output value property array
+   */
+  public int getPositionOfOutputValueProperty(Mode mode, TimePeriod timePeriod, Integer iterationIndex, OutputType outputType, final OutputProperty outputValueProperty) throws PlanItException {
+    MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
+    return multiKeyPlanItData.getPositionOfOutputValueProperty(outputValueProperty);
+  }
+
+  /**
+   * Returns the position  of a property type in the output key property array
+   * 
+   * @param mode value of mode key
+   * @param timePeriod value of time period key
+   * @param iterationIndex value of iteration index key
+   * @param outputType value of output type key
+   * @param outputKeyProperty the output key property whose position is required
+   * @return the position of the output key property
+   * @throws PlanItException thrown if the output property type is not in the
+   *                         output key property array
+   */
+  public int getPositionOfOutputKeyProperty(Mode mode, TimePeriod timePeriod, Integer iterationIndex, OutputType outputType, final OutputProperty outputKeyProperty) throws PlanItException {
+    MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
+    return multiKeyPlanItData.getPositionOfOutputKeyProperty(outputKeyProperty);
   }
 
 }
