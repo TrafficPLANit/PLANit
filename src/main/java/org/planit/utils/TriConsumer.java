@@ -19,7 +19,7 @@ import org.planit.exceptions.PlanItException;
 public interface TriConsumer<T, U, V> {
 
 /**
- * Performs this operation on the given argument
+ * Performs this operation on the given arguments
  * 
  * @param t first object to be processed
  * @param u second object to be processed
