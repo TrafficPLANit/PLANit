@@ -6,7 +6,7 @@
 	<groupId>org.planit</groupId>
 	<artifactId>PLANit</artifactId>
 	<description>PlanIt common code for traffic assignment</description>
-	<version>0.0.4</version>
+	<version>0.0.3</version>
 	<packaging>jar</packaging>
 
 	<name>PLANit</name>
@@ -19,7 +19,7 @@
 		<maven.compiler.source>1.11</maven.compiler.source>
 		<maven.compiler.target>1.11</maven.compiler.target>
 		<maven.jaxb2.plugin.version>0.14.0</maven.jaxb2.plugin.version>
-		<planitutils.version>0.0.4</planitutils.version>
+		<planitutils.version>0.0.3</planitutils.version>
 		<djutils.version>1.04.05</djutils.version>
 	</properties>
 
