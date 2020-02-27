@@ -1,61 +1,71 @@
 package org.planit.output.formatter;
 
-import org.apache.commons.collections4.MapIterator;
-import org.apache.commons.collections4.keyvalue.MultiKey;
+import java.util.Iterator;
+
 import org.planit.data.MultiKeyPlanItData;
+import org.planit.utils.MultiKeyPlanItDataIterator;
 
 /**
  * Iterator which loops through the keys and values stored in the MemoryOutputFormatter
  * 
- * This class uses the MapIterator and MultiKey classes to get the keys and values for the current iteration.
- * 
- * Note that this iterator has no next() method.   The two public methods getKeys() and getValues() serve the equivalent role.
+ * This class is a wrapper for MultiKeyPlanItDataIterator.
  * 
  * @author gman6028
  *
  */
-public class MemoryOutputIterator {
+public class MemoryOutputIterator implements Iterator<Object[]> {
   
-  private final MapIterator<MultiKey<? extends Object>, Object[]> mapIterator;
-  private MultiKey<? extends Object> multiKey;
+  /**
+   * Iterator through MultiKeyPlanItData
+   */
+  private MultiKeyPlanItDataIterator multiKeyPlanItDataIterator;
   
   /**
    * Constructor
    * 
-   * @param multiKeyPlanItData the MultiKeyPlanItData object storing the data, provided by the MemoryOutputFormatter
+   * @param multiKeyPlanItData the MultiKeyPlanItData object storing the data, provided by the
+   *          MemoryOutputFormatter
    */
   public MemoryOutputIterator(final MultiKeyPlanItData multiKeyPlanItData) {
-    this.mapIterator = multiKeyPlanItData.getIterator();
+    multiKeyPlanItDataIterator = multiKeyPlanItData.getIterator();
   }
-  
+
   /**
    * Returns whether the MemoryOutputFormatter has any more rows
    * 
    * @return true if the MemoryOutputFormatter has any rows, false otherwise
    */
+  @Override
   public boolean hasNext() {
-    boolean hasNext = mapIterator.hasNext();
-    if (hasNext) {
-      multiKey = mapIterator.next();
-    }
-    return hasNext;
+    return multiKeyPlanItDataIterator.hasNext();
   }
 
-/**
- * Returns an array of keys for the current iteration
- * 
- * @return array of keys for the current iteration
- */
+  /**
+   * Returns the next array of keys in the iteration
+   * 
+   * @return the next array of keys in the iteration
+   */
+  @Override
+  public Object[] next() {
+    return multiKeyPlanItDataIterator.next();
+  }
+
+  /**
+   * Returns an array of keys for the current iteration
+   * 
+   * @return array of keys for the current iteration
+   */
   public Object[] getKeys() {
-    return multiKey.getKeys();
+    return multiKeyPlanItDataIterator.getKeys();
+   }
+ 
+  /**
+   * Returns an array of values for the current iteration
+   * 
+   * @return array of values for the current iteration
+   */
+  public Object[] getValues() {
+    return multiKeyPlanItDataIterator.getValues();
   }
   
-/**
- * Returns an array of values for the current iteration
- * 
- * @return array of values for the current iteration
- */
-  public Object[] getValues() {
-    return mapIterator.getValue();
-  }
 }

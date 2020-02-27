@@ -1,10 +1,7 @@
 package org.planit.data;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.collections4.MapIterator;
-import org.apache.commons.collections4.keyvalue.MultiKey;
+import org.apache.commons.collections4.IterableMap;
+import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
@@ -12,6 +9,7 @@ import org.planit.output.enums.Type;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
+import org.planit.utils.MultiKeyPlanItDataIterator;
 
 /**
  * Class which holds arrays of output property values, identified by arrays of output keys
@@ -25,7 +23,7 @@ import org.planit.output.property.OutputProperty;
 public class MultiKeyPlanItData {
 
 	private MultiKeyMap<Object, Object[]> multiKeyMap;
-	private Map<Object, Object[]> singleKeyMap;
+	private IterableMap<Object, Object[]> singleKeyMap;
 	private OutputProperty[] outputKeyProperties;
 	private OutputProperty[] outputValueProperties;
 	private Type[] valueTypes;
@@ -125,7 +123,7 @@ public class MultiKeyPlanItData {
 	 */
 	private void init(final OutputProperty[] outputKeyProperties, final OutputProperty[] outputValueProperties)	throws PlanItException {
 	  multiKeyMap = new MultiKeyMap<Object, Object[]>();
-		singleKeyMap = new HashMap<Object, Object[]>();
+		singleKeyMap = new HashedMap<Object, Object[]>();
 		if (outputKeyProperties.length > 5) {
 			throw new PlanItException("Attempted to register too many output property keys.  The maximum number allowed is 5.");
 		}
@@ -322,14 +320,15 @@ public class MultiKeyPlanItData {
 	}
 	
 	/**
-	 * Returns a MapIterator for the contents of this map
+	 * Returns a MultiKeyPlanItDataIterator for the contents of this map
 	 * 
-	 * @return map iterator storing the keys and values of this map
+	 * @return MultiKeyPlanItDataIterator which loops through the keys and values of this map
 	 */
-	public MapIterator<MultiKey<? extends Object>, Object[]> getIterator() {
-	  return multiKeyMap.mapIterator();
+	public MultiKeyPlanItDataIterator getIterator() {
+	  boolean isSingleKey = (outputKeyProperties.length == 1);
+	  return MultiKeyPlanItDataIterator.getInstance(isSingleKey,  singleKeyMap,  multiKeyMap);
 	}
-
+	
   /**
    * Get the position of a property type in the output values property array
    *
