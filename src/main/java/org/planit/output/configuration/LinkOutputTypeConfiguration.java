@@ -2,9 +2,11 @@ package org.planit.output.configuration;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
+import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
@@ -42,6 +44,9 @@ import org.planit.trafficassignment.TrafficAssignment;
  *
  */
 public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
+  
+  /** the logger */
+  private static final Logger LOGGER = PlanItLogger.createLogger(LinkOutputTypeConfiguration.class);
 	
 	public static final int LINK_SEGMENT_IDENTIFICATION_BY_NODE_ID = 1;
 	public static final int LINK_SEGMENT_IDENTIFICATION_BY_ID = 2;
@@ -129,7 +134,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 			valid = true;
 			break;
 		default:
-			PlanItLogger.severe("Configured keys cannot identify link segments.");
+			LOGGER.severe("Configured keys cannot identify link segments.");
 		}
 		if (valid) {
 			return outputKeyPropertiesArray;
@@ -199,7 +204,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
 		case LINK_TYPE:
 		  return true;
 		default:
-			PlanItLogger.warning("Tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Link output.  This will be ignored."	);	
+			LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Link output.  This will be ignored."	);	
 		}
 		return false;
 	}

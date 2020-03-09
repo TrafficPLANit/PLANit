@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
+import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.configuration.LinkOutputTypeConfiguration;
@@ -29,6 +31,9 @@ import org.planit.utils.network.physical.Mode;
  *
  */
 public class OutputManager {
+  
+  /** the logger */
+  private static final Logger LOGGER = PlanItLogger.createLogger(MacroscopicLinkSegmentImpl.class);  
 
 	/**
 	 * The overall output configuration instance
@@ -132,7 +137,7 @@ public class OutputManager {
         case PATH:
             createdOutputTypeConfiguration = new PathOutputTypeConfiguration(trafficAssignment);
         break;
-        default: PlanItLogger.warning(outputType.value() + " has not been defined yet.");
+        default: LOGGER.warning(outputType.value() + " has not been defined yet.");
         }
         
         if(createdOutputTypeConfiguration != null) {

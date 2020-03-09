@@ -8,8 +8,6 @@ import java.util.logging.Handler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-import org.planit.exceptions.PlanItException;
-
 /**
  * This class manages the logging for PlanIt projects
  *
@@ -18,13 +16,14 @@ import org.planit.exceptions.PlanItException;
  */
 public class PlanItLogger {
 
-	/**
-	 * Logger object
-	 */
-	private static Logger LOGGER;
+
+  /**
+   * file handler to use for all loggers
+   */
+  private static Handler fileHandler;
 
 	/**
-	 *
+	 * Default logging format
 	 */
 	private static final String DEFAULT_LOG_FORMAT = "%1$tc%n%4$s: %5$s%n%n";
 
@@ -38,7 +37,7 @@ public class PlanItLogger {
 	 * @throws SecurityException thrown security exception
 	 * @throws IOException thrown io exception
 	 */
-	private static void addHandler(final String logfileLocation, final Formatter formatter) throws SecurityException, IOException {
+	private static void setHandler(final String logfileLocation, final Formatter formatter) throws SecurityException, IOException {
 		final File logFile = new File(logfileLocation);
 		if (!logFile.exists()) {
 			final String[] locations = logfileLocation.split("\\\\");
@@ -52,13 +51,12 @@ public class PlanItLogger {
 			}
 			logFile.createNewFile();
 		}
-		final Handler fileHandler  = new FileHandler(logfileLocation);
+		fileHandler  = new FileHandler(logfileLocation);
 		if (formatter != null) {
 			fileHandler.setFormatter(formatter);
 		}
-		LOGGER.addHandler(fileHandler);
 	}
-
+	
 	/**
 	 * Sets up the logger with simple text formatting and developer-specified format
 	 *
@@ -68,10 +66,9 @@ public class PlanItLogger {
 	 * @throws SecurityException thrown security exception
 	 * @throws IOException thrown io exception
 	 */
-	public static void setLogging(final String logfileLocation, final Class clazz, final String format) throws SecurityException, IOException {
-		setLoggingToConsoleOnly(clazz, format);
-		final Formatter formatter = new SimpleFormatter();
-		addHandler(logfileLocation, formatter);
+	public static void activateFileLogging(final String logfileLocation, final String format) throws SecurityException, IOException {
+		activateLoggingToConsole(format);
+		setHandler(logfileLocation, new SimpleFormatter());
 	}
 
 	/**
@@ -82,30 +79,8 @@ public class PlanItLogger {
 	 * @throws SecurityException thrown security exception
 	 * @throws IOException thrown io exception
 	 */
-	public static void setLogging(final String logfileLocation, final Class clazz) throws SecurityException, IOException {
-		setLogging(logfileLocation, clazz, DEFAULT_LOG_FORMAT);
-	}
-
-	/**
-	 * Sets up the logger with XML formatting
-	 *
-	 * @param logfileLocation name of the log file to be created
-	 * @param clazz class of the application logging is being done for
-	 * @throws SecurityException thrown security exception
-	 * @throws IOException thrown io exception
-	 */
-	public static void setLoggingWithXmlFormatting(final String logfileLocation, final Class clazz) throws SecurityException, IOException {
-		LOGGER = Logger.getLogger(clazz.getName());
-		addHandler(logfileLocation, null);
-	}
-
-	/**
-	 * Sets up logger to output to console only with default format (no log file created)
-	 *
-	 * @param clazz class of the application logging is being done for
-	 */
-	public static void setLoggingToConsoleOnly(final Class clazz) {
-		setLoggingToConsoleOnly(clazz, DEFAULT_LOG_FORMAT);
+	public static void activateFileLogging(final String logfileLocation) throws SecurityException, IOException {
+		activateFileLogging(logfileLocation, DEFAULT_LOG_FORMAT);
 	}
 
 	/**
@@ -114,9 +89,8 @@ public class PlanItLogger {
 	 * @param clazz class of the application logging is being done for
 	 * @param format format of the log lines
 	 */
-	public static void setLoggingToConsoleOnly(final Class clazz, final String format) {
+	public static void activateLoggingToConsole(final String format) {
 		System.setProperty("java.util.logging.SimpleFormatter.format", format);
-		LOGGER = Logger.getLogger(clazz.getName());
 	}
 
 	/**
@@ -128,60 +102,31 @@ public class PlanItLogger {
 	 * @throws SecurityException thrown security exception
 	 * @throws IOException thrown io exception
 	 */
-	public static void setLogging(final String logfileLocation, final Class clazz, final Formatter formatter) throws SecurityException, IOException {
-		LOGGER = Logger.getLogger(clazz.getName());
-		addHandler(logfileLocation, formatter);
+	public static void activateFileLogging(final String logfileLocation, final Formatter formatter) throws SecurityException, IOException {
+		setHandler(logfileLocation, formatter);
 	}
-
+	
 	/**
-	 * Set logging to console
-	 *
-	 * This is set to true by default.
-	 *
-	 * @param outputToConsole true if logging to console required, false otherwise
+	 * create a logger for a given class. If any handlers have been configured on the PLANitLogger, they are attached as well
+	 * @param theClass
+	 * @return theLogger
 	 */
-	public static void setOutputToConsole(final boolean outputToConsole) {
-		LOGGER.setUseParentHandlers(outputToConsole);
+	public static Logger createLogger(Class<?> theClass) {
+	  Logger theLogger = Logger.getLogger(theClass.getCanonicalName());
+	  if(fileHandler != null) {
+	    theLogger.addHandler(fileHandler);
+	  }
+	  return theLogger;
 	}
-
-	public static void info(final String msg) {
-		LOGGER.info(msg);
-	}
-
-	public static void fine(final String msg) {
-		LOGGER.fine(msg);
-	}
-
-	public static void finer(final String msg) {
-		LOGGER.finer(msg);
-	}
-
-	public static void finest(final String msg) {
-		LOGGER.finest(msg);
-	}
-
-	public static void warning(final String msg) {
-		LOGGER.warning(msg);
-	}
-
-	public static void severe(final String msg) {
-		LOGGER.severe(msg);
-	}
-
-	public static void severeWithException(final String msg) throws PlanItException {
-		LOGGER.severe(msg);
-		throw new PlanItException(msg);
-	}
-
-	public static void config(final String msg) {
-		LOGGER.config(msg);
-	}
-
+	
+	
+	/**
+	 * Close the file handler (if any)
+	 */
 	public static void close() {
-		final Handler[] handlers =  LOGGER.getHandlers();
-		for (final Handler handler : handlers) {
-			handler.close();
-		}
+	  if(fileHandler != null){
+	    fileHandler.close();
+	  }
 	}
 
 }

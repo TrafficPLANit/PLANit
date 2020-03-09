@@ -2,9 +2,11 @@ package org.planit.output.configuration;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
+import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.RouteIdType;
 import org.planit.output.property.BaseOutputProperty;
@@ -28,6 +30,9 @@ import org.planit.trafficassignment.TrafficAssignment;
  *
  */
 public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
+  
+  /** the logger */
+  private static final Logger LOGGER = PlanItLogger.createLogger(MacroscopicLinkSegmentImpl.class);
 
 	public static final int ORIGIN_DESTINATION_ID = 1;
 	public static final int ORIGIN_DESTINATION_EXTERNAL_ID = 2;
@@ -99,7 +104,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
 			valid = true;
 			break;
 		default:
-			PlanItLogger.severe("Configured keys cannot identify origin-destination cell in the skim matrix.");
+			LOGGER.severe("Configured keys cannot identify origin-destination cell in the skim matrix.");
 		}
 		if (valid) {
 			return outputKeyPropertiesArray;
@@ -158,7 +163,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
 		case TIME_PERIOD_ID:
 			return true;
 		default:
-			PlanItLogger.warning("Tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Path output.  This will be ignored."	);	
+			LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Path output.  This will be ignored."	);	
 		}
 		return false;
 	}

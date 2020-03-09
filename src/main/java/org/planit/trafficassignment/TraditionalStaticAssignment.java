@@ -4,6 +4,7 @@ import java.rmi.RemoteException;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.djutils.event.Event;
 import org.djutils.event.EventInterface;
@@ -26,6 +27,7 @@ import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
@@ -65,6 +67,9 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
   /** Generated UID */
   private static final long serialVersionUID = -4610905345414397908L;
+  
+  /** the logger */
+  private static final Logger LOGGER = PlanItLogger.createLogger(MacroscopicLinkSegmentImpl.class);  
 
   /**
    * Epsilon margin when comparing flow rates (veh/h)
@@ -144,7 +149,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       if (((odDemand - DEFAULT_FLOW_EPSILON) > 0.0)
           && (currentOriginZone.getId() != currentDestinationZone.getId())) {
 
-        PlanItLogger.fine("Calculating flow from origin zone " + currentOriginZone.getExternalId()
+        LOGGER.fine("Calculating flow from origin zone " + currentOriginZone.getExternalId()
             + " to destination zone " + currentDestinationZone.getExternalId() + " which has demand of "
             + FormatUtils.format5(odDemand) + " for mode " + mode.getExternalId());
 
@@ -257,8 +262,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    * @throws PlanItException thrown if there is an error
    */
   private void executeTimePeriod(final TimePeriod timePeriod) throws PlanItException {
-    PlanItLogger.info(
-        "Running Traditional Static Assignment over all modes for Time Period " + timePeriod.getDescription());
+    LOGGER.info("Running Traditional Static Assignment over all modes for Time Period " + timePeriod.getDescription());
     final Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
     initialiseTimePeriod(modes);
     final LinkBasedRelativeDualityGapFunction dualityGapFunction =
@@ -290,7 +294,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
       dualityGapFunction.computeGap();
       simulationData.incrementIterationIndex();
-      PlanItLogger.info("The total system travel time after iteration " + simulationData.getIterationIndex()
+      LOGGER.info("The total system travel time after iteration " + simulationData.getIterationIndex()
           + " for time period " + timePeriod.getExternalId() + " is " + dualityGapFunction.getActualSystemTravelTime()
           + ".");
       startTime = recordTime(startTime, dualityGapFunction.getGap());
@@ -302,7 +306,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       outputManager.persistOutputData(timePeriod, modes, converged);
     }
     final long timeDiff = startTime.getTimeInMillis() - initialStartTime.getTimeInMillis();
-    PlanItLogger.info("Assignment took " + timeDiff + " milliseconds");
+    LOGGER.info("Assignment took " + timeDiff + " milliseconds");
   }
 
   /**
@@ -315,7 +319,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   private Calendar recordTime(final Calendar startTime, final double dualityGap) {
     final Calendar currentTime = Calendar.getInstance();
     final long timeDiff = currentTime.getTimeInMillis() - startTime.getTimeInMillis();
-    PlanItLogger.info("Iteration " + simulationData.getIterationIndex() + ": Duality gap = "
+    LOGGER.info("Iteration " + simulationData.getIterationIndex() + ": Duality gap = "
         + FormatUtils.format6(dualityGap) + ": Iteration duration " + timeDiff + " milliseconds");
     return currentTime;
   }
@@ -332,7 +336,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   private void executeAndSmoothTimePeriodAndMode(final TimePeriod timePeriod, final Mode mode,
       final double[] modalNetworkSegmentCosts)
       throws PlanItException {
-    PlanItLogger.info("Running Traditional Static Assignment for Mode " + mode.getName());
+    LOGGER.info("Running Traditional Static Assignment for Mode " + mode.getName());
     // mode specific data
     final ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
     currentModeData.resetNextNetworkSegmentFlows();
@@ -549,9 +553,9 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   public void executeEquilibration() throws PlanItException {
     // perform assignment per period - per mode
     final Set<TimePeriod> timePeriods = demands.getRegisteredTimePeriods();
-    PlanItLogger.info("There are " + timePeriods.size() + " time periods to loop through.");
+    LOGGER.info("There are " + timePeriods.size() + " time periods to loop through.");
     for (final TimePeriod timePeriod : timePeriods) {
-      PlanItLogger.info("Equilibrating time period " + timePeriod.toString());
+      LOGGER.info("Equilibrating time period " + timePeriod.toString());
       executeTimePeriod(timePeriod);
     }
   }
@@ -622,7 +626,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
         outputTypeAdapter = new TraditionalStaticRouteOutputTypeAdapter(outputType, this);
         break;
       default:
-        PlanItLogger.warning(outputType.value() + " has not been defined yet.");
+        LOGGER.warning(outputType.value() + " has not been defined yet.");
     }
     return outputTypeAdapter;
   }

@@ -1,7 +1,10 @@
 package org.planit.network.physical.macroscopic;
 
+import java.util.logging.Logger;
+
 import javax.annotation.Nonnull;
 
+import org.planit.data.MultiKeyPlanItData;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.LinkSegmentImpl;
@@ -23,6 +26,9 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   
   /**generated UID */
   private static final long serialVersionUID = 4574164258794764853L;
+  
+  /** the logger */
+  private static final Logger LOGGER = PlanItLogger.createLogger(MacroscopicLinkSegmentImpl.class);
   
 	// Protected
  
@@ -71,7 +77,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
 	@Override
 	public double computeFreeFlowTravelTime(final Mode mode) throws PlanItException {
 		if(!isModeAllowedThroughLink(mode)) {
-		  PlanItLogger.severeWithException("mode not allowed on link segment, no free flow time can be computed");
+		  throw new PlanItException("mode not allowed on link segment, no free flow time can be computed");
 		}
 	  
 	  final double linkLength = getParentLink().getLength();
@@ -83,15 +89,15 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
 			if (getParentEdge().getVertexA() instanceof Centroid) {
 				final long startId = ((Centroid) getParentEdge().getVertexA()).getParentZone().getExternalId();
 				final long endId = ((Node) getParentEdge().getVertexB()).getExternalId();
-				PlanItLogger.severeWithException("No maximum speed defined for the origin connectoid from zone " + startId + " to node " + endId + " for mode " + mode.getExternalId());
+				throw new PlanItException("No maximum speed defined for the origin connectoid from zone " + startId + " to node " + endId + " for mode " + mode.getExternalId());
 			} else if (getParentEdge().getVertexB() instanceof Centroid) {
 				final long startId = ((Node) getParentEdge().getVertexA()).getExternalId();
 				final long endId = ((Centroid) getParentEdge().getVertexB()).getParentZone().getExternalId();
-				PlanItLogger.severeWithException("No maximum speed defined for the destination connectoid from node " + startId + " to zone " + endId + " for mode " + mode.getExternalId());
+				throw new PlanItException("No maximum speed defined for the destination connectoid from node " + startId + " to zone " + endId + " for mode " + mode.getExternalId());
 			} else {
 				final long startId = ((Node) getParentEdge().getVertexA()).getExternalId();
 				final long endId = ((Node) getParentEdge().getVertexB()).getExternalId();
-				PlanItLogger.severeWithException("No maximum speed defined for network link from anode reference " + startId + " to bnode " + endId + " for mode " + mode.getExternalId());
+				throw new PlanItException("No maximum speed defined for network link from anode reference " + startId + " to bnode " + endId + " for mode " + mode.getExternalId());
 			}
 		}
 		computedMaximumSpeed = Math.min(maximumSpeed, segmentTypeMaximumSpeed);

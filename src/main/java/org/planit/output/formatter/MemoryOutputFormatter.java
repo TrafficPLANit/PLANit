@@ -3,12 +3,14 @@ package org.planit.output.formatter;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.planit.data.MultiKeyPlanItData;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
+import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odroute.ODRouteIterator;
@@ -36,6 +38,9 @@ import org.planit.utils.network.physical.Mode;
  *
  */
 public class MemoryOutputFormatter extends BaseOutputFormatter {
+  
+  /** the logger */
+  private static final Logger LOGGER = PlanItLogger.createLogger(MacroscopicLinkSegmentImpl.class);
 
   /**
    * MultiKeyMap of data stores
@@ -176,7 +181,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   protected void writeSimulationResultsForCurrentTimePeriod(
       OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType, OutputAdapter outputAdapter,
       Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
-    PlanItLogger.info("Memory Output for OutputType SIMULATION has not been implemented yet.");
+    LOGGER.info("Memory Output for OutputType SIMULATION has not been implemented yet.");
   }
 
   /**
@@ -195,7 +200,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   protected void writeGeneralResultsForCurrentTimePeriod(
       OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType, OutputAdapter outputAdapter,
       Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
-    PlanItLogger.info("Memory Output for OutputType GENERAL has not been implemented yet.");
+    LOGGER.info("Memory Output for OutputType GENERAL has not been implemented yet.");
   }
 
   /**

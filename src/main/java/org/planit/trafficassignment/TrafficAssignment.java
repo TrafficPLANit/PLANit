@@ -3,6 +3,7 @@ package org.planit.trafficassignment;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -20,6 +21,7 @@ import org.planit.input.InputBuilderListener;
 import org.planit.interactor.InteractorAccessor;
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
@@ -48,6 +50,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
 	/** generated UID */
 	private static final long serialVersionUID = 801775330292422910L;
+	
+  /** the logger */
+  private static final Logger LOGGER = PlanItLogger.createLogger(MacroscopicLinkSegmentImpl.class);	
 
 	/**
 	 * The zoning to use
@@ -229,7 +234,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
         // Finalize traffic assignment components including the traffic assignment itself
         outputManager.finaliseAfterSimulation();
 
-	    PlanItLogger.info("Finished simulation");
+	    LOGGER.info("Finished simulation");
 	}
 
 	// Public
@@ -319,7 +324,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
 	    OutputTypeConfiguration theOutputTypeConfiguration = null;
 		if (!outputManager.isOutputTypeActive(outputType)) {
-			PlanItLogger.info("Registering Output Type " + outputType);
+			LOGGER.info("Registering Output Type " + outputType);
 			final OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(outputType);
 			outputManager.registerOutputTypeAdapter(outputType, outputTypeAdapter);
 	        theOutputTypeConfiguration = outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
@@ -343,7 +348,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
 		finalizeAfterExecution();
 
-		PlanItLogger.info("Finished execution");
+		LOGGER.info("Finished execution");
 	}
 
 	// Getters - Setters

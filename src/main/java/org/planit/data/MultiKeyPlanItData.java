@@ -1,5 +1,7 @@
 package org.planit.data;
 
+import java.util.logging.Logger;
+
 import org.apache.commons.collections4.IterableMap;
 import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -21,6 +23,8 @@ import org.planit.utils.MultiKeyPlanItDataIterator;
  *
  */
 public class MultiKeyPlanItData {
+  
+  private static final Logger LOGGER = PlanItLogger.createLogger(MultiKeyPlanItData.class); 
 
 	private MultiKeyMap<Object, Object[]> multiKeyMap;
 	private IterableMap<Object, Object[]> singleKeyMap;
@@ -102,12 +106,12 @@ public class MultiKeyPlanItData {
 	 */
 	private boolean isKeyValuesValid(final Object... keyValues) {
 		if (keyValues.length != outputKeyProperties.length) {
-			PlanItLogger.warning("Incorrect number of key values in call to RevisedMemoryOutputFormatter");
+			LOGGER.warning("Incorrect number of key values in call to RevisedMemoryOutputFormatter");
 			return false;
 		}
 		for (int i = 0; i < outputKeyProperties.length; i++) {
 			if (!isValueTypeCorrect(keyValues[i], keyTypes[i])) {
-				PlanItLogger.warning("Output key in position " + (i + 1) + " is of the wrong type.");
+				LOGGER.warning("Output key in position " + (i + 1) + " is of the wrong type.");
 				return false;
 			}
 		}

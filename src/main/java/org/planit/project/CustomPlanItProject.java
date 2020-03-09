@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
@@ -13,6 +14,7 @@ import org.planit.exceptions.PlanItException;
 import org.planit.input.InputBuilderListener;
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;
@@ -34,6 +36,9 @@ import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
  *
  */
 public class CustomPlanItProject {
+  
+  /** the logger */
+  private static final Logger LOGGER = PlanItLogger.createLogger(CustomPlanItProject.class);
 
   // INNER CLASSES
 
@@ -371,7 +376,7 @@ public class CustomPlanItProject {
     } catch (final PlanItException e) {
       e.printStackTrace();
     } catch (final Exception e) {
-      PlanItLogger.severe(e.getMessage());
+      LOGGER.severe(e.getMessage());
       e.printStackTrace();
     }
   }
@@ -412,7 +417,7 @@ public class CustomPlanItProject {
    *
    * @param inputBuilderListener InputBuilderListener used to read in data
    */
-  public CustomPlanItProject(final InputBuilderListener inputBuilderListener) {
+  public CustomPlanItProject(final InputBuilderListener inputBuilderListener) {   
     this.inputBuilderListener = inputBuilderListener;
     initialiseFactories();
 
@@ -457,7 +462,7 @@ public class CustomPlanItProject {
    */
   public Zoning createAndRegisterZoning(final PhysicalNetwork physicalNetwork) throws PlanItException {
     if (physicalNetwork == null) {
-      PlanItLogger.severeWithException("The physical network must be defined before definition of zones can begin");
+      throw new PlanItException("The physical network must be defined before definition of zones can begin");
     }
     final Zoning zoning = zoningFactory.create(Zoning.class.getCanonicalName(), new Object[] {physicalNetwork});
     zoningsMap.put(zoning.getId(), zoning);
@@ -474,7 +479,7 @@ public class CustomPlanItProject {
    */
   public Demands createAndRegisterDemands(final Zoning zoning) throws PlanItException {
     if (zoning == null) {
-      PlanItLogger.severeWithException("Zones must be defined before definition of demands can begin");
+      throw new PlanItException("Zones must be defined before definition of demands can begin");
     }
     final Demands demands = demandsFactory.create(Demands.class.getCanonicalName(), new Object[] {zoning});
     demandsMap.put(demands.getId(), demands);
@@ -494,7 +499,7 @@ public class CustomPlanItProject {
       final PhysicalNetwork physicalNetwork, final Zoning zoning, final String odRouteSetInputPath)
       throws PlanItException {
     if (zoning == null || physicalNetwork == null) {
-      PlanItLogger.severeWithException(
+      throw new PlanItException(
           "Zones and network must be registered before definition of od route sets can proceed");
     }
     final ODRouteSets odRouteSets = odRouteSetsFactory.create(ODRouteSets.class.getCanonicalName(), new Object[] {
@@ -522,7 +527,7 @@ public class CustomPlanItProject {
       throws PlanItException {
     final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentType);
     if (!(networkLoadingAndAssignment instanceof TrafficAssignment)) {
-      PlanItLogger.severeWithException("not a valid traffic assignment type");
+      throw new PlanItException("not a valid traffic assignment type");
     }
     final TrafficAssignment trafficAssignment = (TrafficAssignment) networkLoadingAndAssignment;
     final TrafficAssignmentBuilder trafficAssignmentBuilder =
@@ -554,7 +559,7 @@ public class CustomPlanItProject {
   public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network,
       final String fileName) throws PlanItException {
     if (network == null) {
-      PlanItLogger.severeWithException("Physical network must be read in before initial costs can be read.");
+      throw new PlanItException("Physical network must be read in before initial costs can be read.");
     }
     if (!initialLinkSegmentCosts.containsKey(network)) {
       initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
@@ -578,7 +583,7 @@ public class CustomPlanItProject {
   public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network,
       final String fileName, final TimePeriod timePeriod) throws PlanItException {
     if (network == null) {
-      PlanItLogger.severeWithException("Physical network must be read in before initial costs can be read.");
+      throw new PlanItException("Physical network must be read in before initial costs can be read.");
     }
     if (!initialLinkSegmentCosts.containsKey(network)) {
       initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
@@ -603,11 +608,11 @@ public class CustomPlanItProject {
   public Map<TimePeriod, InitialLinkSegmentCost> createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network,
       final String fileName, final Demands demands) throws PlanItException {
     if (network == null) {
-      PlanItLogger.severeWithException("Physical network must be read in before initial costs can be read.");
+      throw new PlanItException("Physical network must be read in before initial costs can be read.");
     }
     final Map<TimePeriod, InitialLinkSegmentCost> initialCostsMap = new HashMap<TimePeriod, InitialLinkSegmentCost>();
     for (final TimePeriod timePeriod : demands.getRegisteredTimePeriods()) {
-      PlanItLogger.info("Registering Initial Link Segment Costs for Time Period " + timePeriod.getId());
+      LOGGER.info("Registering Initial Link Segment Costs for Time Period " + timePeriod.getId());
       final InitialLinkSegmentCost initialLinkSegmentCost = createAndRegisterInitialLinkSegmentCost(network, fileName,
           timePeriod);
       initialCostsMap.put(timePeriod, initialLinkSegmentCost);
@@ -635,7 +640,7 @@ public class CustomPlanItProject {
   public OutputFormatter createAndRegisterOutputFormatter(final String outputFormatterType) throws PlanItException {
     final OutputFormatter outputFormatter = OutputFormatterFactory.createOutputFormatter(outputFormatterType);
     if (outputFormatter == null) {
-      PlanItLogger.severeWithException("Output writer of type " + outputFormatterType + " could not be created");
+      throw new PlanItException("Output writer of type " + outputFormatterType + " could not be created");
     }
     outputFormatters.put(outputFormatter.getId(), outputFormatter);
     return outputFormatter;
