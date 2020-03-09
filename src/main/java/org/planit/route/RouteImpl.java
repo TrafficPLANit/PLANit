@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.ToLongFunction;
 
 import org.planit.output.enums.RouteIdType;
 import org.planit.utils.graph.EdgeSegment;
@@ -62,13 +61,13 @@ public class RouteImpl implements Route {
 	 * @param idGetter lambda function to get the required Id value
 	 * @return the path as a String of comma-separated node Id or external Id values
 	 */
-	private String getNodeRouteString(final ToLongFunction<Node> idGetter) {
+	private String getNodeRouteString(final Function<Node, Object> idGetter) {
 		final StringBuilder builder = new StringBuilder("[");
 		for (final EdgeSegment edgeSegment : path) {
 			final Vertex vertex = edgeSegment.getUpstreamVertex();
 			if (vertex instanceof Node) {
 				final Node node = (Node) vertex;
-				builder.append(idGetter.applyAsLong(node));
+				builder.append(idGetter.apply(node));
 				if (edgeSegment.getDownstreamVertex() instanceof Node) {
 					builder.append(",");
 				}

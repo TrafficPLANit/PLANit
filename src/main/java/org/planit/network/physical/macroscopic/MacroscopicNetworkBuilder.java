@@ -70,12 +70,12 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
    * @param name the name of this link type
    * @param capacity the capacity of this link type
    * @param maximumDensity the maximum density of this link type
-   * @param linkType the external reference number of this link type
+   * @param externalId the external reference number of this link type
    * @param modeProperties the mode properties for each mode along this link
    * @return macroscopicLinkSegmentType the created link segment type
    */
   public MacroscopicLinkSegmentType createLinkSegmentType(@Nonnull String name, double capacity, double maximumDensity,
-      long linkType, Map<Mode, MacroscopicModeProperties> modeProperties) {
-    return new MacroscopicLinkSegmentTypeImpl(name, capacity, maximumDensity, linkType, modeProperties);
+      Object externalId, Map<Mode, MacroscopicModeProperties> modeProperties) {
+    return new MacroscopicLinkSegmentTypeImpl(name, capacity, maximumDensity, externalId, modeProperties);
   }
 }

@@ -39,7 +39,7 @@ public final class ModeExternalIdOutputProperty extends BaseOutputProperty {
 	 * @param mode current mode
 	 * @return the external Id of the current mode
 	 */
-	public static long getModeExternalId(Mode mode) {
+	public static Object getModeExternalId(Mode mode) {
 		return mode.getExternalId();
 	}
 

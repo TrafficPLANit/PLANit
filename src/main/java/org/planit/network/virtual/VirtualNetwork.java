@@ -53,7 +53,7 @@ public class VirtualNetwork {
          * @return Connectoid object created and registered
          * @throws PlanItException  thrown if there is an error
          */
-        public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length, long externalId) throws PlanItException {
+        public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length, Object externalId) throws PlanItException {
             Connectoid newConnectoid = new ConnectoidImpl(centroid, node, length, externalId);
             registerConnectoid(newConnectoid);
             return newConnectoid;

@@ -26,7 +26,7 @@ public abstract class RouteOutputTypeAdapterImpl extends OutputTypeAdapterImpl i
 	 * @return the external Id of the destination zone for the current cell in the OD path matrix
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected long getDestinationZoneExternalId(ODRouteIterator odPathIterator) throws PlanItException {
+	protected Object getDestinationZoneExternalId(ODRouteIterator odPathIterator) throws PlanItException {
 		return odPathIterator.getCurrentDestination().getExternalId();
 	}
 
@@ -48,7 +48,7 @@ public abstract class RouteOutputTypeAdapterImpl extends OutputTypeAdapterImpl i
 	 * @return the origin zone external Id for the current cell in the OD path matrix
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected long getOriginZoneExternalId(ODRouteIterator odPathIterator) throws PlanItException {
+	protected Object getOriginZoneExternalId(ODRouteIterator odPathIterator) throws PlanItException {
 		return odPathIterator.getCurrentOrigin().getExternalId();
 	}
 

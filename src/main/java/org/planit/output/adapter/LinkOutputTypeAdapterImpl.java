@@ -78,7 +78,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	 * @return he external Id of the downstream node
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected long getDownstreamNodeExternalId(LinkSegment linkSegment) throws PlanItException {
+	protected Object getDownstreamNodeExternalId(LinkSegment linkSegment) throws PlanItException {
 		return ((Node) linkSegment.getDownstreamVertex()).getExternalId();
 	}
 
@@ -133,7 +133,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	 * @return the external Id of the current link segment
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected long getLinkSegmentExternalId(LinkSegment linkSegment) throws PlanItException {
+	protected Object getLinkSegmentExternalId(LinkSegment linkSegment) throws PlanItException {
 		return linkSegment.getExternalId();
 	}
 
@@ -183,7 +183,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	 * @return the external Id of the upstream node
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected long getUpstreamNodeExternalId(LinkSegment linkSegment) throws PlanItException {
+	protected Object getUpstreamNodeExternalId(LinkSegment linkSegment) throws PlanItException {
 		return ((Node) linkSegment.getUpstreamVertex()).getExternalId();
 	}
 

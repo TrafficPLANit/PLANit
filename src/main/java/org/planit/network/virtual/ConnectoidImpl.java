@@ -34,7 +34,7 @@ public class ConnectoidImpl extends EdgeImpl implements Connectoid {
     /**
      * External Id of the connectoid
      */
-    protected long externalId = Long.MIN_VALUE;
+    protected Object externalId = Long.MIN_VALUE;
 
     /**
      * Generate connectoid id
@@ -56,7 +56,7 @@ public class ConnectoidImpl extends EdgeImpl implements Connectoid {
      * @param externalId externalId of the connectoid (can be null, in which case this has not be set in the input files)
      * @throws PlanItException thrown if there is an error
      */
-    public ConnectoidImpl(@Nonnull final Centroid centroidA, @Nonnull final Node nodeB, final double length, final long externalId) throws PlanItException {
+    public ConnectoidImpl(@Nonnull final Centroid centroidA, @Nonnull final Node nodeB, final double length, final Object externalId) throws PlanItException {
         super(centroidA, nodeB, length);
         this.connectoidId = generateConnectoidId();
         setExternalId(externalId);
@@ -81,10 +81,8 @@ public class ConnectoidImpl extends EdgeImpl implements Connectoid {
      * If there already exists a connectoidSegment for that direction it is replaced
      * and returned
      *
-     * @param connectoidSegment
-     *            connectoid segment to be registered
-     * @param directionAB
-     *            direction of travel
+     * @param connectoidSegment connectoid segment to be registered
+     * @param directionAB direction of travel
      * @return replaced ConnectoidSegment
      * @throws PlanItException
      *             thrown if there is an error
@@ -109,12 +107,17 @@ public class ConnectoidImpl extends EdgeImpl implements Connectoid {
     }
 
     @Override
-	public long getExternalId() {
+	public Object getExternalId() {
 		return externalId;
 	}
 
 	@Override
-	public void setExternalId(final long externalId) {
+	public void setExternalId(final Object externalId) {
 		this.externalId = externalId;
+	}
+	
+	@Override
+	public boolean hasExternalId() {
+	  return (externalId != null);
 	}
 }

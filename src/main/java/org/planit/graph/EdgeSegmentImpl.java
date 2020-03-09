@@ -18,12 +18,12 @@ import org.planit.utils.misc.IdGenerator;
  */
 public abstract class EdgeSegmentImpl implements EdgeSegment {
 
-	/**generated UID */
-	private static final long serialVersionUID = -6521489123632246969L;
+	  /**generated UID */
+	  private static final long serialVersionUID = -6521489123632246969L;
 
-	/**
-     * unique internal identifier
-     */
+	  /**
+      * unique internal identifier
+      */
     protected final long id;
 
     /**
@@ -42,16 +42,11 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
     protected final Vertex downstreamVertex;
 
     /**
-	 * The external Id for this link segment type
-	 */
-	protected long externalId;
+	  * The external Id for this link segment type
+	  */
+	 protected Object externalId;
 
-	/**
-	 * Flag to indicate whether an external Id has been set for this edge segment
-	 */
-	protected boolean externalIdSet;
-
-   /**
+    /**
      * Generate unique edge segment id
      *
      * @return id id of this EdgeSegment
@@ -73,7 +68,6 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
         this.parentEdge = parentEdge;
         this.upstreamVertex = directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB();
         this.downstreamVertex = directionAB ? parentEdge.getVertexB() : parentEdge.getVertexA();
-        externalIdSet = false;
     }
 
     // Public
@@ -125,30 +119,29 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
      * @param externalId
      */
     @Override
-	public void setExternalId(final long externalId) {
-		this.externalId = externalId;
-		externalIdSet = true;
-	}
+	  public void setExternalId(final Object externalId) {
+		  this.externalId = externalId;
+	  } 
 
     /**
      * Does the instance have an external id
      * @return true when available, false otherwise
      */
     @Override
-	public boolean hasExternalId() {
-		return externalIdSet;
-	}
+	  public boolean hasExternalId() {
+		  return (externalId != null);
+	  }
 
     /**
      * Get external id of the instance. Note that this id need not be unique (unlike regular id)
      * @return externalId
      */
     @Override
-	public long getExternalId() {
-		return externalId;
-	}
+	  public Object getExternalId() {
+		  return externalId;
+	  }
 
-   /**
+    /**
      * compare based on edge segment id
      *
      * @see java.lang.Comparable#compareTo(java.lang.Object)

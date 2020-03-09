@@ -20,8 +20,6 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  */
 public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentType {
 
-		
-
 	// Protected
 
 	/**
@@ -32,7 +30,7 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
 	/**
 	 * External reference number of link type
 	 */
-	private long externalId;
+	private Object externalId;
 
 	/**
 	 * name of the link segment type
@@ -70,11 +68,10 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
 	 * 
 	 * @param name                  name of this link segment type
 	 * @param capacityPerLane       capacity per lane of this link segment type
-	 * @param maximumDensityPerLane maximum density per lane of this link segment
-	 *                              type
+	 * @param maximumDensityPerLane maximum density per lane of this link segment  type
 	 * @param externalId    external reference number of the link type
 	 */
-	public MacroscopicLinkSegmentTypeImpl(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane,  long externalId) {
+	public MacroscopicLinkSegmentTypeImpl(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane, Object externalId) {
 		this.id = generateMacroscopicLinkSegmentTypeId();
 		this.name = name;
 		this.capacityPerLane = capacityPerLane;
@@ -83,11 +80,10 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
 		modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
 	}
 	
-	 public MacroscopicLinkSegmentTypeImpl(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane,  long externalId, Map<Mode, MacroscopicModeProperties> modeProperties) {
+	 public MacroscopicLinkSegmentTypeImpl(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane,  Object externalId, Map<Mode, MacroscopicModeProperties> modeProperties) {
 	   this(name, capacityPerLane, maximumDensityPerLane, externalId);
 	   setModeProperties(modeProperties);
 	 }
-
 
 	// Getters - Setters
 
@@ -117,8 +113,13 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
 	}
 
 	@Override
-	public long getExternalId() {
+	public Object getExternalId() {
 		return externalId;
+	}
+	
+	@Override
+	public boolean hasExternalId() {
+	  return (externalId != null);
 	}
 
   /**

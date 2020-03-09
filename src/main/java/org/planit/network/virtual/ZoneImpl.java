@@ -23,7 +23,7 @@ public class ZoneImpl implements Zone {
     /**
      * External Id for this zone
      */
-    protected final long externalId;
+    protected final Object externalId;
 
     /**
      * generic input property storage
@@ -49,11 +49,10 @@ public class ZoneImpl implements Zone {
     /**
      * Constructor
      * 
-     * @param externalId
-     *            the external ID of this zone
+     * @param externalId the external ID of this zone
      * @param centroid of the zone
      */
-    public ZoneImpl(long externalId, Centroid centroid) {
+    public ZoneImpl(Object externalId, Centroid centroid) {
         id = generateZoneId();
         this.externalId = externalId;
         this.centroid = centroid;
@@ -62,11 +61,10 @@ public class ZoneImpl implements Zone {
     /**
      * Constructor
      * 
-     * @param externalId
-     *            the external ID of this zone
+     * @param externalId the external ID of this zone
      * @param centroid of the zone
      */
-    public ZoneImpl(long externalId) {
+    public ZoneImpl(Object externalId) {
         id = generateZoneId();
         this.externalId = externalId;
         this.centroid = null;
@@ -127,8 +125,13 @@ public class ZoneImpl implements Zone {
     }
 
     @Override
-	public long getExternalId() {
+	public Object getExternalId() {
         return externalId;
+    }
+    
+    @Override
+    public boolean hasExternalId() {
+      return (externalId != null);
     }
 
 }

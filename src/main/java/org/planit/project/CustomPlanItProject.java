@@ -469,14 +469,15 @@ public class CustomPlanItProject {
    *
    * @param zoning Zoning object which defines the zones which will be used in the demand matrix to
    *          be created
+   * @param physicalNetwork the physical network which stores the modes (demands can different for each mode)
    * @return the generated demands object
    * @throws PlanItException thrown if there is an error
    */
-  public Demands createAndRegisterDemands(final Zoning zoning) throws PlanItException {
+  public Demands createAndRegisterDemands(final Zoning zoning, final PhysicalNetwork physicalNetwork) throws PlanItException {
     if (zoning == null) {
       PlanItLogger.severeWithException("Zones must be defined before definition of demands can begin");
     }
-    final Demands demands = demandsFactory.create(Demands.class.getCanonicalName(), new Object[] {zoning});
+    final Demands demands = demandsFactory.create(Demands.class.getCanonicalName(), new Object[] {zoning, physicalNetwork});
     demandsMap.put(demands.getId(), demands);
     return demands;
   }
