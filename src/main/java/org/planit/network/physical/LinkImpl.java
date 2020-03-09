@@ -22,7 +22,7 @@ public class LinkImpl extends EdgeImpl implements Link {
     // Protected
 
     /** generated UID */
-	private static final long serialVersionUID = 2360017879557363410L;
+	 private static final long serialVersionUID = 2360017879557363410L;
 
 	/**
      * unique internal identifier
@@ -32,7 +32,7 @@ public class LinkImpl extends EdgeImpl implements Link {
     /**
      * External Id of the physical link
      */
-    protected long externalId;
+    protected Object externalId;
 
     /**
      * generate unique link id
@@ -63,34 +63,36 @@ public class LinkImpl extends EdgeImpl implements Link {
      * Register linkSegment. If there already exists a linkSegment for that
      * direction it is replaced and returned
      *
-     * @param linkSegment
-     *            the link segment to be registered
-     * @param directionAB
-     *            direction of travel
+     * @param linkSegment the link segment to be registered
+     * @param directionAB direction of travel
      * @return the replaced LinkSegment
-     * @throws PlanItException
-     *             thrown if there is an error
+     * @throws PlanItException thrown if there is an error
      */
     @Override
-	public LinkSegment registerLinkSegment(final LinkSegment linkSegment, final boolean directionAB) throws PlanItException {
-        return (LinkSegment) registerEdgeSegment(linkSegment, directionAB);
+    public LinkSegment registerLinkSegment(final LinkSegment linkSegment, final boolean directionAB) throws PlanItException {
+          return (LinkSegment) registerEdgeSegment(linkSegment, directionAB);
     }
 
     // Getters-Setters
 
     @Override
-	public long getLinkId() {
-        return linkId;
+  	public long getLinkId() {
+          return linkId;
     }
 
     @Override
-	public void setExternalId(final long externalId) {
-        this.externalId = externalId;
+  	public void setExternalId(final Object externalId) {
+          this.externalId = externalId;
     }
 
     @Override
-	public long getExternalId() {
-        return externalId;
+  	public Object getExternalId() {
+          return externalId;
+    }
+    
+    @Override
+    public boolean hasExternalId() {
+      return (externalId != null);
     }
 
 }

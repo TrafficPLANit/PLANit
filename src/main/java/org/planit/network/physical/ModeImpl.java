@@ -1,7 +1,5 @@
 package org.planit.network.physical;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.Mode;
 
@@ -15,10 +13,6 @@ public class ModeImpl implements Mode {
 	
 	private final long DEFAULT_EXTERNAL_ID = 1; 
 	
-	private static Map<Long, Mode> modesById = new HashMap<Long, Mode>();
-
-	private static Map<Long, Mode> modesByExternalId = new HashMap<Long, Mode>();
-
 	// Protected
 
 	/**
@@ -35,7 +29,7 @@ public class ModeImpl implements Mode {
 	/**
 	 * External Id of this mode
 	 */
-	private long externalId;
+	private Object externalId;
 
 	/**
 	 * Name of this mode
@@ -54,7 +48,6 @@ public class ModeImpl implements Mode {
 		this.externalId = DEFAULT_EXTERNAL_ID;
 		this.name = name;
 		this.pcu = pcu;
-		modesById.put(this.id, this);
 	}
 
 	/**
@@ -64,13 +57,11 @@ public class ModeImpl implements Mode {
 	 * @param name       the name of this mode
 	 * @param pcu        the PCU value of this mode
 	 */
-	public ModeImpl(long externalId, String name, double pcu) {
+	public ModeImpl(Object externalId, String name, double pcu) {
 		this.id = IdGenerator.generateId(ModeImpl.class);
 		this.externalId = externalId;
 		this.name = name;
 		this.pcu = pcu;
-		modesById.put(this.id, this);
-		modesByExternalId.put(this.externalId, this);
 	}
 	
 	// getters-setters
@@ -91,8 +82,13 @@ public class ModeImpl implements Mode {
 	}
 
 	@Override
-	public long getExternalId() {
+	public Object getExternalId() {
 		return externalId;
+	}
+	
+	@Override
+	public boolean hasExternalId() {
+	  return (externalId != null);
 	}
 
 	/**

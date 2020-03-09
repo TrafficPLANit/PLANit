@@ -54,7 +54,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     /**
      * Trip demand matrices
      */
-    protected final TreeMap<Long, TreeMap<Mode, ODDemandMatrix>> odDemands = new TreeMap<Long, TreeMap<Mode, ODDemandMatrix>>();
+    protected final TreeMap<Long, TreeMap<Mode, ODDemandMatrix>> odDemands;
 
     /**
      * Constructor
@@ -62,6 +62,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     public Demands() {
         super();
         this.id = IdGenerator.generateId(Demands.class);
+        odDemands = new TreeMap<Long, TreeMap<Mode, ODDemandMatrix>>();
     }
 
     /**

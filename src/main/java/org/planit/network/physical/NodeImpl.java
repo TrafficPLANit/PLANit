@@ -32,7 +32,7 @@ public class NodeImpl extends VertexImpl implements Node {
     /**
      * External identifier used in input files
      */
-    protected long externalId;
+    protected Object externalId;
 
     // Public
 
@@ -46,13 +46,18 @@ public class NodeImpl extends VertexImpl implements Node {
     // Getters-Setters
 
     @Override
-	public long getExternalId() {
-        return externalId;
+    public Object getExternalId() {
+      return externalId;
     }
 
     @Override
-	public void setExternalId(final long externalId) {
-        this.externalId = externalId;
+    public void setExternalId(final Object externalId) {
+      this.externalId = externalId;
+    }
+    
+    @Override
+    public boolean hasExternalId() {
+      return (externalId != null);
     }
 
 }

@@ -4,3 +4,6 @@
 /.settings
 /.project
 /doc
+/dependency-reduced-pom.xml
+/logs
+/bin

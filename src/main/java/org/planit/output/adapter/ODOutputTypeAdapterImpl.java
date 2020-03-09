@@ -26,7 +26,7 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
 	 * @return the external Id of the destination zone for the current cell in the OD skim matrix
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected long getDestinationZoneExternalId(ODMatrixIterator odMatrixIterator) throws PlanItException {
+	protected Object getDestinationZoneExternalId(ODMatrixIterator odMatrixIterator) throws PlanItException {
 		return odMatrixIterator.getCurrentDestination().getExternalId();
 	}
 
@@ -48,7 +48,7 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
 	 * @return the origin zone external Id for the current cell in the OD skim matrix
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected long getOriginZoneExternalId(ODMatrixIterator odMatrixIterator) throws PlanItException {
+	protected Object getOriginZoneExternalId(ODMatrixIterator odMatrixIterator) throws PlanItException {
 		return odMatrixIterator.getCurrentOrigin().getExternalId();
 	}
 

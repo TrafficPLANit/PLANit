@@ -41,7 +41,7 @@ public final class TimePeriodExternalIdOutputProperty extends BaseOutputProperty
 	 * @return the current time period external Id
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public static long getTimePeriodExternalId(TimePeriod timePeriod) throws PlanItException {
+	public static Object getTimePeriodExternalId(TimePeriod timePeriod) throws PlanItException {
 		return timePeriod.getExternalId();
 	}
 

@@ -74,7 +74,7 @@ public abstract class ODDataIteratorImpl<T> implements ODDataIterator<T> {
 	 */
 	@Override
 	public Zone getCurrentOrigin() {
-		return zones.getZone(originId);
+		return zones.getZoneById(originId);
 	}
 
 	/**
@@ -84,7 +84,7 @@ public abstract class ODDataIteratorImpl<T> implements ODDataIterator<T> {
 	  */
 	@Override
 	public Zone getCurrentDestination() {
-		return zones.getZone(destinationId);
+		return zones.getZoneById(destinationId);
 	}
 
 }

@@ -205,9 +205,9 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       throws PlanItException {
     double shortestPathCost = 0;
     EdgeSegment currentEdgeSegment = null;
-    for (Vertex currentPathStartVertex = currentDestinationZone.getCentroid(); currentPathStartVertex
-        .getId() != currentOriginZone.getCentroid()
-            .getId(); currentPathStartVertex = currentEdgeSegment.getUpstreamVertex()) {
+    for (Vertex currentPathStartVertex = currentDestinationZone.getCentroid(); 
+                       currentPathStartVertex.getId() != currentOriginZone.getCentroid().getId(); 
+                       currentPathStartVertex = currentEdgeSegment.getUpstreamVertex()) {
       final int startVertexId = (int) currentPathStartVertex.getId();
       currentEdgeSegment = vertexPathAndCost[startVertexId].getSecond();
       if (currentEdgeSegment == null) {
@@ -216,7 +216,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
               + ((Centroid) currentPathStartVertex).getParentZone().getExternalId());
         } else {
           throw new PlanItException("The solution could not find an Edge Segment for node "
-              + ((Node) currentPathStartVertex).getExternalId());
+              + ((Node) currentPathStartVertex).getId());
         }
       }
       final int edgeSegmentId = (int) currentEdgeSegment.getId();
@@ -265,8 +265,8 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
     LOGGER.info("Running Traditional Static Assignment over all modes for Time Period " + timePeriod.getDescription());
     final Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
     initialiseTimePeriod(modes);
-    final LinkBasedRelativeDualityGapFunction dualityGapFunction =
-        ((LinkBasedRelativeDualityGapFunction) getGapFunction());
+    final LinkBasedRelativeDualityGapFunction 
+       dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
     Calendar startTime = Calendar.getInstance();
     final Calendar initialStartTime = startTime;
     for (final Mode mode : modes) {

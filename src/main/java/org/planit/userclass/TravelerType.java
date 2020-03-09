@@ -30,7 +30,7 @@ public class TravelerType {
     /**
      * Unique external id
      */
-    private final long externalId;    
+    private final Object externalId;    
 
     /**
      * Name of this traveler type
@@ -59,7 +59,7 @@ public class TravelerType {
      * @param name name of this traveler type
      * 
      */
-    public TravelerType(long externaId, String name) {
+    public TravelerType(Object externaId, String name) {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.externalId = externaId;
         this.name = name;
@@ -79,21 +79,6 @@ public class TravelerType {
     }
 
     /**
-     * Get traveler type by externalId
-     * 
-     * @param externalId external id of this traveler type
-     * @return retrieved TravellerType object
-     */
-    public static TravelerType getByExternalId(long externalId) {
-    	for (TravelerType travelerType : travelerTypes.values()) {
-    		if (travelerType.getExternalId() == externalId) {
-    			return travelerType;
-    		}
-    	}
-    	return null;
-    }
-
-    /**
      * Register the current traveler type
      * 
      * @param travellerType the TravelerType object to be registered
@@ -110,7 +95,11 @@ public class TravelerType {
         return name;
     }
 
-    public long getExternalId() {
+    public Object getExternalId() {
         return externalId;
+    }
+    
+    public boolean hasExternalId() {
+      return (externalId != null);
     }
 }
