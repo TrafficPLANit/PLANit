@@ -19,7 +19,6 @@ import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
 import org.planit.input.InputBuilderListener;
 import org.planit.interactor.InteractorAccessor;
-import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.network.transport.TransportNetwork;
@@ -52,7 +51,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	private static final long serialVersionUID = 801775330292422910L;
 	
   /** the logger */
-  private static final Logger LOGGER = PlanItLogger.createLogger(MacroscopicLinkSegmentImpl.class);	
+  private static final Logger LOGGER =  Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());	
 
 	/**
 	 * The zoning to use

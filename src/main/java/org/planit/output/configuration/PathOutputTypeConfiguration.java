@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.RouteIdType;
@@ -32,7 +31,7 @@ import org.planit.trafficassignment.TrafficAssignment;
 public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
   
   /** the logger */
-  private static final Logger LOGGER = PlanItLogger.createLogger(MacroscopicLinkSegmentImpl.class);
+  private static final Logger LOGGER =  Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());
 
 	public static final int ORIGIN_DESTINATION_ID = 1;
 	public static final int ORIGIN_DESTINATION_EXTERNAL_ID = 2;
