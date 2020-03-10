@@ -86,12 +86,19 @@ public class PlanItLogger {
 	/**
 	 * Set up the logger to output to the console only (no log file created)
 	 *
-	 * @param clazz class of the application logging is being done for
 	 * @param format format of the log lines
 	 */
 	public static void activateLoggingToConsole(final String format) {
 		System.setProperty("java.util.logging.SimpleFormatter.format", format);
 	}
+	
+  /**
+   * Set up the logger to output to the console only (no log file created)
+   *
+   */
+  public static void activateLoggingToConsole() {
+    System.setProperty("java.util.logging.SimpleFormatter.format", DEFAULT_LOG_FORMAT);
+  }	
 
 	/**
 	 * Sets up the logger with formatting specified by developer
