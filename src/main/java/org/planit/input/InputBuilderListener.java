@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.djutils.event.EventListenerInterface;
-import org.planit.exceptions.PlanItException;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.TravelerType;
 import org.planit.userclass.UserClass;
@@ -66,21 +65,26 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * Map which stores link segments by external Id
    */
   private Map<Object, LinkSegment> linkSegmentExternalIdToLinkSegmentMap;
-	/**
-	 * Stores an object by its external Id, after checking whether the external Id is a duplicate
-	 * 
-	 * @param <T> type of object being stored
-	 * @param externalId external Id of object being stored
-	 * @param obj object being stored
-	 * @param map Map to store the object
-	 * @param objectName name of the object class
-	 * @throws PlanItException thrown if this external Id is a duplicate
-	 */
-  private <T> void addObjectToExternalIdMap(Object externalId,  T obj, Map<Object, T> map, String objectName) throws PlanItException {
-    if (map.containsKey(externalId)) {
-      throw new PlanItException("Duplicate " + objectName + " found with external Id " + externalId.toString());
-    }
+  
+  /**
+   * Flag to determine whether duplicate external Id should be considered an error (defaults to true)
+   */
+  private boolean errorIfDuplicateExternalId;
+  
+  /**
+   * Stores an object by its external Id, after checking whether the external Id is a duplicate
+   * 
+   * @param <T> type of object being stored
+   * @param externalId external Id of object being stored
+   * @param obj object being stored
+   * @param map Map to store the object
+   * @param objectName name of the object class
+   * @return true if this entry is duplicate use of an externalId, false otherwise
+   */
+  private <T> boolean addObjectToExternalIdMap(Object externalId,  T obj, Map<Object, T> map, String objectName) {
+    boolean containsDuplicates =  map.containsKey(externalId);
     map.put(externalId, obj);
+    return containsDuplicates;
   }
   
 	/**
@@ -95,6 +99,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
     timePeriodExternalIdToTimePeriodMap = new HashMap<Object, TimePeriod>();
     zoneExternalIdToZoneMap = new HashMap<Object, Zone>();
     linkSegmentExternalIdToLinkSegmentMap = new HashMap<Object, LinkSegment>();
+    errorIfDuplicateExternalId = true;
   }
   
   /**
@@ -112,10 +117,10 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * 
    * @param externalId external Id of node
    * @param node Node to be stored
-   * @throws PlanItException thrown if this external Id is a duplicate
+   * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public void addNodeToExternalIdMap(Object externalId, Node node) throws PlanItException {
-    addObjectToExternalIdMap(externalId, node, nodeExternalIdToNodeMap, "node");
+  public boolean addNodeToExternalIdMap(Object externalId, Node node) {
+    return addObjectToExternalIdMap(externalId, node, nodeExternalIdToNodeMap, "node");
   }
   
   /**
@@ -127,18 +132,18 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public MacroscopicLinkSegmentType getLinkSegmentTypeByExternalId(Object externalId) {
     return linkSegmentTypeExternalIdToLinkSegmentTypeMap.get(externalId);
   }
-  
+ 
   /**
    * Stores a link segment type by its external Id
    * 
    * @param externalId external Id of link segment type
    * @param node link segment type to be stored
-   * @throws PlanItException thrown if this external Id is a duplicate
+   * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public void addLinkSegmentTypeToExternalIdMap(Object externalId, MacroscopicLinkSegmentType macroscopicLinkSegmentType) throws PlanItException {   
-   addObjectToExternalIdMap(externalId, macroscopicLinkSegmentType, linkSegmentTypeExternalIdToLinkSegmentTypeMap, "link segment type");
-  }
-  
+  public boolean addLinkSegmentTypeToExternalIdMap(Object externalId, MacroscopicLinkSegmentType macroscopicLinkSegmentType) {   
+    return addObjectToExternalIdMap(externalId, macroscopicLinkSegmentType, linkSegmentTypeExternalIdToLinkSegmentTypeMap, "link segment type");
+   }
+   
   /**
    * Return Mode for a specified external Id
    * 
@@ -163,10 +168,10 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * 
    * @param externalId external Id of this mode
    * @param mode mode to be stored
-   * @throws PlanItException thrown if this external Id is a duplicate
+   * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public void addModeToExternalIdMap(Object externalId, Mode mode) throws PlanItException {
-    addObjectToExternalIdMap(externalId, mode, modeExternalIdToModeMap, "mode");
+  public boolean addModeToExternalIdMap(Object externalId, Mode mode) {
+    return addObjectToExternalIdMap(externalId, mode, modeExternalIdToModeMap, "mode");
   }
 
   /**
@@ -184,10 +189,10 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * 
    * @param externalId external Id of traveler type
    * @param travelerType traveler type to be stored
-   * @throws PlanItException thrown if this external Id is a duplicate
+   * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public void addTravelerTypeToExternalIdMap(Object externalId, TravelerType travelerType) throws PlanItException {
-    addObjectToExternalIdMap(externalId, travelerType, travelerTypeExternalIdToTravelerTypeMap, "traveller type");
+  public boolean addTravelerTypeToExternalIdMap(Object externalId, TravelerType travelerType) {
+    return addObjectToExternalIdMap(externalId, travelerType, travelerTypeExternalIdToTravelerTypeMap, "traveller type");
   }
 
   /**
@@ -205,10 +210,10 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * 
    * @param externalId external Id of user class
    * @param userClass user class to be stored
-   * @throws PlanItException thrown if this external Id is a duplicate
+   * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public void addUserClassToExternalIdMap(Object externalId, UserClass userClass) throws PlanItException {
-    addObjectToExternalIdMap(externalId, userClass, userClassExternalIdToUserClassMap, "user class");
+  public boolean addUserClassToExternalIdMap(Object externalId, UserClass userClass) {
+    return addObjectToExternalIdMap(externalId, userClass, userClassExternalIdToUserClassMap, "user class");
   }
   
   /**
@@ -226,12 +231,12 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * 
    * @param externalId external Id of time period
    * @param timePeriod time period to be stored
-   * @throws PlanItException thrown if this external Id is a duplicate
+   * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public void addTimePeriodToExternalIdMap(Object externalId, TimePeriod timePeriod) throws PlanItException {
-    addObjectToExternalIdMap(externalId, timePeriod, timePeriodExternalIdToTimePeriodMap, "time period");
-  }
-  
+    public boolean addTimePeriodToExternalIdMap(Object externalId, TimePeriod timePeriod){
+      return addObjectToExternalIdMap(externalId, timePeriod, timePeriodExternalIdToTimePeriodMap, "time period");
+    }
+
   /**
    * Returns the zone for a specified external Id
    * 
@@ -247,12 +252,12 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * 
    * @param externalId external Id of zone
    * @param zone zone to be stored
-   * @throws PlanItException thrown if this external Id is a duplicate
+   * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public void addZoneToExternalIdMap(Object externalId, Zone zone) throws PlanItException {
-    addObjectToExternalIdMap(externalId, zone, zoneExternalIdToZoneMap, "zone");
+  public boolean addZoneToExternalIdMap(Object externalId, Zone zone) {
+    return addObjectToExternalIdMap(externalId, zone, zoneExternalIdToZoneMap, "zone");
   }
-
+  
   /**
    * Returns the link segment for a given external Id
    * 
@@ -268,10 +273,18 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * 
    * @param externalId external Id of link segment
    * @param linkSegment link segment to be stored
-   * @throws PlanItException thrown if this external Id is a duplicate
+   * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public void addLinkSegmentToExternalIdMap(Object externalId, LinkSegment linkSegment) throws PlanItException {
-    addObjectToExternalIdMap(externalId, linkSegment, linkSegmentExternalIdToLinkSegmentMap, "link segment");
+  public boolean addLinkSegmentToExternalIdMap(Object externalId, LinkSegment linkSegment) {
+    return addObjectToExternalIdMap(externalId, linkSegment, linkSegmentExternalIdToLinkSegmentMap, "link segment");
+  }
+
+  public boolean isErrorIfDuplicateExternalId() {
+    return errorIfDuplicateExternalId;
+  }
+
+  public void setErrorIfDuplicateExternalId(boolean errorIfDuplicateExternalId) {
+    this.errorIfDuplicateExternalId = errorIfDuplicateExternalId;
   }
   
 }

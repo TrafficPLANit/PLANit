@@ -14,7 +14,6 @@ import org.planit.exceptions.PlanItException;
 import org.planit.input.InputBuilderListener;
 import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
-import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;

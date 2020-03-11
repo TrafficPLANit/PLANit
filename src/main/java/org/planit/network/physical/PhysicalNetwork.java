@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
-import org.planit.data.MultiKeyPlanItData;
 import org.planit.exceptions.PlanItException;
 import org.planit.logging.PlanItLogger;
 import org.planit.trafficassignment.TrafficAssignmentComponent;

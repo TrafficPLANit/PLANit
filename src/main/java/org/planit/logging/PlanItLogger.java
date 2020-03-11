@@ -25,7 +25,7 @@ public class PlanItLogger {
 	/**
 	 * Default logging format
 	 */
-	private static final String DEFAULT_LOG_FORMAT = "%1$tc%n%4$s: %5$s%n%n";
+	private static final String DEFAULT_LOG_FORMAT = "%1$tc%n%3$s%n%4$s: %5$s%n%n";
 
 	/**
 	 * Adds a file handler to the logging
@@ -61,7 +61,6 @@ public class PlanItLogger {
 	 * Sets up the logger with simple text formatting and developer-specified format
 	 *
 	 * @param logfileLocation name of the log file to be created
-	 * @param clazz class of the application logging is being done for
 	 * @param format, the format for the logging
 	 * @throws SecurityException thrown security exception
 	 * @throws IOException thrown io exception
@@ -75,7 +74,6 @@ public class PlanItLogger {
 	 * Sets up the logger with simple text formatting and default format
 	 *
 	 * @param logfileLocation name of the log file to be created
-	 * @param clazz class of the application logging is being done for
 	 * @throws SecurityException thrown security exception
 	 * @throws IOException thrown io exception
 	 */
@@ -126,6 +124,12 @@ public class PlanItLogger {
 	  return theLogger;
 	}
 	
+	public static Logger createLogger(Class<?> theClass,String logfileLocation) throws SecurityException, IOException {
+	  activateFileLogging(logfileLocation);
+	  Logger theLogger = Logger.getLogger(theClass.getCanonicalName());
+	  theLogger.addHandler(fileHandler);
+    return theLogger;
+	}
 	
 	/**
 	 * Close the file handler (if any)
