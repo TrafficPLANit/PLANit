@@ -279,10 +279,20 @@ public abstract class InputBuilderListener implements EventListenerInterface {
     return addObjectToExternalIdMap(externalId, linkSegment, linkSegmentExternalIdToLinkSegmentMap, "link segment");
   }
 
+  /**
+   * Return whether input files having duplicate external Ids should be treated as an error
+   * 
+   * @return true if duplicate Ids considered an error, false otherwise
+   */
   public boolean isErrorIfDuplicateExternalId() {
     return errorIfDuplicateExternalId;
   }
 
+  /**
+   * Set whether input files having duplicate external Ids should be treated as an error
+   * 
+   * @param errorIfDuplicateExternalId true if duplicate Ids considered an error, false otherwise
+   */
   public void setErrorIfDuplicateExternalId(boolean errorIfDuplicateExternalId) {
     this.errorIfDuplicateExternalId = errorIfDuplicateExternalId;
   }
