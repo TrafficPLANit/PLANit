@@ -157,7 +157,7 @@ public abstract class TrafficAssignmentBuilder {
 	 * @return the cost function created
 	 * @throws PlanItException thrown if there is an error
 	 */
-	public VirtualCost createAndRegisterVirtualTravelTimeCostFunction(final String virtualTraveltimeCostFunctionType)
+	public VirtualCost createAndRegisterVirtualCost(final String virtualTraveltimeCostFunctionType)
 			throws PlanItException {
 		final VirtualCost createdCost = virtualCostFactory.create(virtualTraveltimeCostFunctionType);
 		if (parentAssignment.getVirtualCost() == null) {

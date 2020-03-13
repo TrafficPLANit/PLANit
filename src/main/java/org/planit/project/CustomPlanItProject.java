@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
@@ -12,7 +13,6 @@ import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.demands.Demands;
 import org.planit.exceptions.PlanItException;
 import org.planit.input.InputBuilderListener;
-import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.formatter.OutputFormatter;
@@ -37,7 +37,7 @@ import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 public class CustomPlanItProject {
   
   /** the logger */
-  private static final Logger LOGGER = PlanItLogger.createLogger(CustomPlanItProject.class);
+  private static final Logger LOGGER =  Logger.getLogger(CustomPlanItProject.class.getCanonicalName());
 
   // INNER CLASSES
 
@@ -76,9 +76,9 @@ public class CustomPlanItProject {
     }
 
     /**
-     * Check if assignments have already been registered
+     * Check if networks have already been registered
      *
-     * @return true if registered assignments exist, false otherwise
+     * @return true if registered networks exist, false otherwise
      */
     public boolean hasRegisteredNetworks() {
       return !physicalNetworkMap.isEmpty();
@@ -127,6 +127,24 @@ public class CustomPlanItProject {
     public int getNumberOfDemands() {
       return demandsMap.size();
     }
+    
+    /**
+     * Check if demands have already been registered
+     *
+     * @return true if registered demands exist, false otherwise
+     */
+    public boolean hasRegisteredDemands() {
+      return !demandsMap.isEmpty();
+    }    
+    
+    /**
+     * Collect the first demands that are registered (if any). Otherwise return null
+     * 
+     * @return first demands that are registered if none return null
+     */
+    public Demands getFirstDemands() {
+      return hasRegisteredDemands() ? demandsMap.firstEntry().getValue() : null;
+    }    
   }
 
   /**
@@ -162,6 +180,24 @@ public class CustomPlanItProject {
     public int getNumberOfZonings() {
       return zoningsMap.size();
     }
+    
+    /**
+     * Check if zonings have already been registered
+     *
+     * @return true if registered zonings exist, false otherwise
+     */
+    public boolean hasRegisteredZonings() {
+      return !zoningsMap.isEmpty();
+    }    
+    
+    /**
+     * Collect the first zonings that are registered (if any). Otherwise return null
+     * 
+     * @return first zonings that are registered if none return null
+     */
+    public Zoning getFirstZoning() {
+      return hasRegisteredZonings() ? zoningsMap.firstEntry().getValue() : null;
+    }     
   }
 
   /**
@@ -375,8 +411,7 @@ public class CustomPlanItProject {
     } catch (final PlanItException e) {
       e.printStackTrace();
     } catch (final Exception e) {
-      LOGGER.severe(e.getMessage());
-      e.printStackTrace();
+      LOGGER.log(Level.SEVERE, e.getMessage(), e);
     }
   }
 
@@ -654,16 +689,6 @@ public class CustomPlanItProject {
    */
   public Demands getDemands(final long id) {
     return demandsMap.get(id);
-  }
-
-  /**
-   * Retrieve a TrafficAssignment object given its id
-   *
-   * @param id the id of the TrafficAssignment object
-   * @return the retrieved TrafficAssignment object
-   */
-  public TrafficAssignment getTrafficAssignment(final long id) {
-    return trafficAssignments.getTrafficAssignment(id);
   }
 
   /**

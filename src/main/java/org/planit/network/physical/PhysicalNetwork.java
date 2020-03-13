@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.logging.PlanItLogger;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.Link;
@@ -34,7 +33,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	private static final long serialVersionUID = -2794450367185361960L;
 	
 	/** the logger */
-	private static final Logger LOGGER = PlanItLogger.createLogger(PhysicalNetwork.class);
+	private static final Logger LOGGER = Logger.getLogger(PhysicalNetwork.class.getCanonicalName());
 
 	/**
 	 * Internal class for all Link specific code

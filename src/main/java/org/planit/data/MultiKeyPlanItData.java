@@ -6,7 +6,6 @@ import org.apache.commons.collections4.IterableMap;
 import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.planit.exceptions.PlanItException;
-import org.planit.logging.PlanItLogger;
 import org.planit.output.enums.Type;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.BaseOutputProperty;
@@ -24,7 +23,7 @@ import org.planit.utils.MultiKeyPlanItDataIterator;
  */
 public class MultiKeyPlanItData {
   
-  private static final Logger LOGGER = PlanItLogger.createLogger(MultiKeyPlanItData.class); 
+  private static final Logger LOGGER = Logger.getLogger(MultiKeyPlanItData.class.getCanonicalName()); 
 
 	private MultiKeyMap<Object, Object[]> multiKeyMap;
 	private IterableMap<Object, Object[]> singleKeyMap;

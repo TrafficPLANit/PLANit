@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.OutputTypeAdapter;
@@ -33,7 +32,7 @@ import org.planit.utils.network.physical.Mode;
 public class OutputManager {
   
   /** the logger */
-  private static final Logger LOGGER = PlanItLogger.createLogger(MacroscopicLinkSegmentImpl.class);  
+  private static final Logger LOGGER =  Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());  
 
 	/**
 	 * The overall output configuration instance
@@ -102,13 +101,6 @@ public class OutputManager {
 			OutputTypeConfiguration outputTypeConfiguration = outputTypeConfigurations.get(outputType);
 			for (OutputFormatter outputFormatter : outputFormatters) {
 				if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
-				/*
-					if (!(converged || outputFormatter.canHandleMultipleIterations())) {
-						PlanItLogger.warning(outputFormatter.getClass().getName() + " can only persist the final iteration.");
-					} else {
-						outputFormatter.persist(timePeriod, modes, outputTypeConfiguration, outputAdapter);
-					}
-				*/
 					if (converged || outputFormatter.canHandleMultipleIterations()) {
 						outputFormatter.persist(timePeriod, modes, outputTypeConfiguration, outputAdapter);
 					}

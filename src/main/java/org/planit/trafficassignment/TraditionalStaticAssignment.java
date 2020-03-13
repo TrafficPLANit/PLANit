@@ -25,9 +25,7 @@ import org.planit.gap.StopCriterion;
 import org.planit.input.InputBuilderListener;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
-import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.PhysicalNetwork;
-import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
@@ -69,7 +67,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   private static final long serialVersionUID = -4610905345414397908L;
   
   /** the logger */
-  private static final Logger LOGGER = PlanItLogger.createLogger(MacroscopicLinkSegmentImpl.class);  
+  private static final Logger LOGGER =  Logger.getLogger(TraditionalStaticAssignment.class.getCanonicalName());  
 
   /**
    * Epsilon margin when comparing flow rates (veh/h)

@@ -5,7 +5,6 @@ import java.util.logging.Logger;
 import javax.annotation.Nonnull;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.logging.PlanItLogger;
 import org.planit.network.physical.LinkSegmentImpl;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Mode;
@@ -25,7 +24,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   private static final long serialVersionUID = 4574164258794764853L;
   
   /** the logger */
-  private static final Logger LOGGER = PlanItLogger.createLogger(MacroscopicLinkSegmentImpl.class);
+  private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());
   
 	// Protected
  
