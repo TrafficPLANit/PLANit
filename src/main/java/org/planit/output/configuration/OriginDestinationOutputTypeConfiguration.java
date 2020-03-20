@@ -113,7 +113,7 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
 	 * @param odSkimOutputType ODSkimOutputType to be activated
 	 */
 	public void activateOdSkimOutputType(ODSkimSubOutputType odSkimOutputType) { 
-	    activateSubOutputType(odSkimOutputType);;
+	    activateSubOutputType(odSkimOutputType);
 	}
 	
 	/**

@@ -4,7 +4,7 @@ import org.planit.route.choice.RouteChoice;
 
 /**
  * Dynamic traffic assignment class for any traffic assignment model that adheres to being capacity constrained
- * utilising a fundamental diagram and underlying node model
+ * utilizing a fundamental diagram and underlying node model
  *
  * @author markr
  *

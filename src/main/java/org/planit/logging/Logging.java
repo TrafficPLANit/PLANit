@@ -1,10 +1,10 @@
 package org.planit.logging;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Properties;
+import java.net.URL;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
+
+import org.planit.exceptions.PlanItException;
 
 /**
  * Utility class to close the current logger
@@ -16,7 +16,6 @@ public class Logging {
   
   public static final String LOG_FILE_SYSTEM_PROPERTY = "java.util.logging.config.file";
   public static final String DEFAULT_LOGGING_PROPERTIES_FILE_NAME = "logging.properties";
-  private static String logFileLocation;
   
   
 /**
@@ -36,9 +35,9 @@ public class Logging {
    * 
    * @param clazz  class for which the logger is being created
    * @return the logger for this class
-   * @throws IOException 
+   * @throws PlanItException thrown if the logging.properties file cannot be found
    */
-  public static Logger createLogger(Class<?> clazz) {
+  public static Logger createLogger(Class<?> clazz) throws PlanItException {
     return createLogger(clazz, DEFAULT_LOGGING_PROPERTIES_FILE_NAME, LOG_FILE_SYSTEM_PROPERTY);
   }
   
@@ -48,9 +47,9 @@ public class Logging {
    * @param clazz  class for which the logger is being created
    * @param loggingPropertiesFileName name of logging properties file
    * @return the logger for this class
-   * @throws IOException 
+   * @throws PlanItException thrown if the logging.properties file cannot be found
    */
-  public static Logger createLogger(Class<?> clazz, String loggingPropertiesFileName) {
+  public static Logger createLogger(Class<?> clazz, String loggingPropertiesFileName) throws PlanItException {
     return createLogger(clazz, loggingPropertiesFileName, LOG_FILE_SYSTEM_PROPERTY);
   }
   
@@ -63,10 +62,15 @@ public class Logging {
    * @param loggingPropertiesFileName name of logging properties file
    * @param logFileSystemProperty the system property to be used for logging
    * @return the logger for this class
-   * @throws IOException 
+   * @throws PlanItException thrown if the logging.properties file cannot be found
    */
-  public static Logger createLogger(Class<?> clazz, String loggingPropertiesFileName, String logFileSystemProperty) {
-    String path = clazz.getClassLoader().getResource(loggingPropertiesFileName).getFile();
+  public static Logger createLogger(Class<?> clazz, String loggingPropertiesFileName, String logFileSystemProperty) throws PlanItException {
+    ClassLoader classLoader = clazz.getClassLoader();
+    URL url = classLoader.getResource(loggingPropertiesFileName);
+    if (url == null) {
+      throw new PlanItException("No logging properties file could be found at location " + loggingPropertiesFileName);
+    }
+    String path = url.getFile();
     System.setProperty(logFileSystemProperty, path);
     return Logger.getLogger(clazz.getName());
   }
