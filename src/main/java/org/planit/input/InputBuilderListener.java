@@ -151,7 +151,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return mode corresponding to specified Id
    */
   public Mode getModeByExternalId(Object externalId) {
-    return modeExternalIdToModeMap.get(externalId);
+	return modeExternalIdToModeMap.get(externalId);
   }
   
   /**
