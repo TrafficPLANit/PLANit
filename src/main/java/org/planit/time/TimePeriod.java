@@ -79,7 +79,7 @@ public class TimePeriod implements Comparable<TimePeriod> {
     return (startTimeHrs * 3600) + (startTimeMins * 60);
 
   }
-
+  
   /**
    * Constructor
    * 

@@ -5,6 +5,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
@@ -32,6 +33,9 @@ import org.planit.utils.network.physical.Mode;
  */
 public class Demands extends TrafficAssignmentComponent<Demands> implements Serializable {
 
+	/** the logger */
+	private static final Logger LOGGER =  Logger.getLogger(Demands.class.getCanonicalName());
+	  
     // Protected
 
     /** generated UID */
@@ -91,7 +95,10 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @return ODDemand object if found, otherwise null
      */
 
-    public ODDemandMatrix get(final Mode mode, final TimePeriod timePeriod) {
+    public ODDemandMatrix get(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
+    	if (!odDemands.containsKey(timePeriod.getId())) {
+    		throw new PlanItException("No demands matrix for time period " + timePeriod.getId());
+    	}
         if (odDemands.containsKey(timePeriod.getId()) && odDemands.get(timePeriod.getId()).containsKey(mode)) {
             return odDemands.get(timePeriod.getId()).get(mode);
         } else {

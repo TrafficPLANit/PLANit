@@ -3,6 +3,7 @@ package org.planit.input;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.djutils.event.EventListenerInterface;
 import org.planit.time.TimePeriod;
@@ -23,6 +24,9 @@ import org.planit.utils.network.virtual.Zone;
  */
 public abstract class InputBuilderListener implements EventListenerInterface {
 	
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(InputBuilderListener.class.getCanonicalName()); 
+  
   /** generated UID */
 	private static final long serialVersionUID = 4223028100274802893L;
 	
