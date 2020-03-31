@@ -1,6 +1,8 @@
 package org.planit.demands;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -14,6 +16,8 @@ import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.Mode;
+import org.planit.userclass.TravelerType;
+import org.planit.userclass.UserClass;
 
 /**
  * Container class for all demands registered on the project. In PlanIt we
@@ -35,11 +39,21 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
 
 	/** the logger */
 	private static final Logger LOGGER =  Logger.getLogger(Demands.class.getCanonicalName());
-	  
+	
     // Protected
 
     /** generated UID */
 	private static final long serialVersionUID = 144798248371260732L;
+	
+	/**
+	 * Map of registered User Classes
+	 */
+	private Map<Long, UserClass> userClassMap;
+	
+	/**
+	 * Map of registered Traveler Types
+	 */
+	private Map<Long,TravelerType> travelerTypeMap;
 
 	// register to be eligible in PLANit
     static {
@@ -67,6 +81,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
         super();
         this.id = IdGenerator.generateId(Demands.class);
         odDemands = new TreeMap<Long, TreeMap<Mode, ODDemandMatrix>>();
+        userClassMap = new HashMap<Long, UserClass>();
     }
 
     /**
@@ -143,5 +158,43 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     public long getId() {
         return this.id;
     }
-
+    
+    /**
+     * Register UserClass
+     * 
+     * @param userClass the UserClass to be registered
+     */
+    public void registerUserClass(UserClass userClass) {
+    	userClassMap.put(userClass.getId(), userClass);
+    }
+    
+    /**
+     * Retrieve UserClass by its Id
+     * 
+     * @param id the Id of the UserClass
+     * @return the retrieved UserClass
+     */
+    public UserClass getUserClassById(long id) {
+    	return userClassMap.get(id);
+    }
+    
+    /**
+     * Register TravelerType
+     * 
+     * @param travelerType the TravelerType to be registered
+     */
+    public void registerTravelerType(TravelerType travelerType) {
+    	travelerTypeMap.put(travelerType.getId(), travelerType);
+    }
+    
+    /**
+     * Retrieve TravelerType by its Id
+     * 
+     * @param id the Id of the TravelerType
+     * @return the retrieved TravelerType
+     */
+    public TravelerType getTravelerTypeById(long id) {
+    	return travelerTypeMap.get(id);
+    }
+    
 }

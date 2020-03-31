@@ -48,12 +48,12 @@ public abstract class InputBuilderListener implements EventListenerInterface {
 	/**
 	 * Map which stores traveler type by external Id
 	 */
-	private Map<Object, TravelerType> travelerTypeExternalIdToTravelerTypeMap;
+	protected Map<Object, TravelerType> travelerTypeExternalIdToTravelerTypeMap;
 	
 	/**
 	 * Map which stores user class by external Id
 	 */
-	private Map<Object, UserClass> userClassExternalIdToUserClassMap;
+	protected Map<Object, UserClass> userClassExternalIdToUserClassMap;
  
   /**
    * Map which stores time periods by external Id
