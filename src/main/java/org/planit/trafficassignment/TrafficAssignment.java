@@ -449,6 +449,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 			final EventType requestAccessee = ((InteractorAccessor)physicalCost).getRequestedAccesseeEventType();
 			addRegisteredEventTypeListeners(requestAccessee);
 			fireEvent(new Event(requestAccessee, this, this.physicalCost));
+			if (!listeners.containsKey(requestAccessee)) {
+				throw new PlanItException("Error during setPhysicalCost");
+			}
 		}
 	}
 
@@ -476,6 +479,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 			final EventType requestAccesseeType = ((InteractorAccessor)virtualCost).getRequestedAccesseeEventType();
 			addRegisteredEventTypeListeners(requestAccesseeType);
 			fireEvent(new Event(requestAccesseeType, this, this.virtualCost));
+			if (!listeners.containsKey(requestAccesseeType)) {
+				throw new PlanItException("Error during setVirtualCost");
+			}
 		}
 	}
 

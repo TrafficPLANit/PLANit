@@ -303,6 +303,10 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		public int getNumberOfModes() {
 			return modeMap.size();
 		}
+		
+		public Mode getModeById(long id) {
+			return modeMap.get(id);
+		}
 
 	}
 

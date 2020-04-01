@@ -646,7 +646,7 @@ public class CustomPlanItProject {
       throw new PlanItException("Physical network must be read in before initial costs can be read.");
     }
     final Map<TimePeriod, InitialLinkSegmentCost> initialCostsMap = new HashMap<TimePeriod, InitialLinkSegmentCost>();
-    for (final TimePeriod timePeriod : demands.getRegisteredTimePeriods()) {
+    for (final TimePeriod timePeriod : demands.timePeriods.getRegisteredTimePeriods()) {
       LOGGER.info("Registering Initial Link Segment Costs for Time Period " + timePeriod.getId());
       final InitialLinkSegmentCost initialLinkSegmentCost = createAndRegisterInitialLinkSegmentCost(network, fileName,
           timePeriod);

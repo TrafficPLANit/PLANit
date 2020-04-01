@@ -2,6 +2,7 @@ package org.planit.trafficassignment;
 
 import java.rmi.RemoteException;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -550,7 +551,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   @Override
   public void executeEquilibration() throws PlanItException {
     // perform assignment per period - per mode
-    final Set<TimePeriod> timePeriods = demands.getRegisteredTimePeriods();
+	final Collection<TimePeriod> timePeriods = demands.timePeriods.getRegisteredTimePeriods();
     LOGGER.info("There are " + timePeriods.size() + " time periods to loop through.");
     for (final TimePeriod timePeriod : timePeriods) {
       LOGGER.info("Equilibrating time period " + timePeriod.toString());

@@ -1,9 +1,5 @@
 package org.planit.time;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.planit.exceptions.PlanItException;
 import org.planit.utils.misc.IdGenerator;
 
@@ -44,7 +40,7 @@ public class TimePeriod implements Comparable<TimePeriod> {
   /**
    * Map storing registered time periods by Id
    */
-  private static Map<Long, TimePeriod> timePeriods = new HashMap<Long, TimePeriod>();
+  //private static Map<Long, TimePeriod> timePeriods = new HashMap<Long, TimePeriod>();
 
   /**
    * Convert duration to seconds given start time using the 24-hour clock
@@ -92,7 +88,7 @@ public class TimePeriod implements Comparable<TimePeriod> {
     this.startTime = startTime;
     this.duration = duration;
     description = null;
-    timePeriods.put(this.id, this);
+    //timePeriods.put(this.id, this);
     this.externalId = externalId;
   }
 
@@ -110,7 +106,7 @@ public class TimePeriod implements Comparable<TimePeriod> {
     this.startTime = startTime;
     this.duration = duration;
     this.description = description;
-    timePeriods.put(this.id, this);
+    //timePeriods.put(this.id, this);
   }
 
   /**
@@ -135,7 +131,7 @@ public class TimePeriod implements Comparable<TimePeriod> {
       throw new PlanItException("Duration more than 24 hours");
     }
     this.duration = (int) Math.round(durationHours * 3600.0);
-    timePeriods.put(this.id, this);
+    //timePeriods.put(this.id, this);
   }
 
   // Public static
@@ -143,18 +139,18 @@ public class TimePeriod implements Comparable<TimePeriod> {
   /**
    * Reset the Maps to store created TimePeriod objects
    */
-  public static void reset() {
-    timePeriods = new HashMap<Long, TimePeriod>();
-  }
+  //public static void reset() {
+  //  timePeriods = new HashMap<Long, TimePeriod>();
+  //}
 
   /**
    * Store time period by its id and external Id
    * 
    * @param timePeriod the time period to be stored
    */
-  public static void putById(TimePeriod timePeriod) {
-    timePeriods.put(timePeriod.getId(), timePeriod);
-  }
+  //public static void putById(TimePeriod timePeriod) {
+  //  timePeriods.put(timePeriod.getId(), timePeriod);
+  //}
 
   /**
    * Retrieve time period by its id
@@ -162,18 +158,18 @@ public class TimePeriod implements Comparable<TimePeriod> {
    * @param id the id of the time period to be retrieved
    * @return the TimePeriod object found
    */
-  public static TimePeriod getById(long id) {
-    return timePeriods.get(id);
-  }
+  //public static TimePeriod getById(long id) {
+  //  return timePeriods.get(id);
+  //}
 
   /**
    * Return a collection of all registered time period objects
    * 
    * @return collection of all registered time period objects
    */
-  public static Collection<TimePeriod> getAllTimePeriods() {
-    return timePeriods.values();
-  }
+  //public static Collection<TimePeriod> getAllTimePeriods() {
+  //  return timePeriods.values();
+  //}
 
   /**
    * Create a time period given its start time and duration in hours

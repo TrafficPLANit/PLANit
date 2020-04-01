@@ -132,7 +132,11 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
      * @param parameters parameter object array to be used by the event
      * @throws PlanItException thrown if there is an exception
      */
-    private void dispatchTrafficComponentEvent(final T newTrafficComponent, final Object[] parameters) throws PlanItException {        fireEvent(new org.djutils.event.Event(TRAFFICCOMPONENT_CREATE, this, new Object[] {newTrafficComponent, parameters}));
+    private void dispatchTrafficComponentEvent(final T newTrafficComponent, final Object[] parameters) throws PlanItException {
+    	fireEvent(new org.djutils.event.Event(TRAFFICCOMPONENT_CREATE, this, new Object[] {newTrafficComponent, parameters}));
+		if (!listeners.containsKey(TRAFFICCOMPONENT_CREATE)) {
+			throw new PlanItException("Error during dispatchTrafficComponentEvent");
+		}
     }
 
     // PUBLIC

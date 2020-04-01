@@ -74,6 +74,53 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      */
     protected final TreeMap<Long, TreeMap<Mode, ODDemandMatrix>> odDemands;
 
+	protected Map<Long, TimePeriod> timePeriodMap;
+
+    /**
+     * Inner class to register and store time periods for the current demand object
+     * 
+     * @author garym
+     *
+     */
+    public class TimePeriods {
+    	
+    	/**
+    	 * Register a time period
+    	 * 
+    	 * @param timePeriod time period to be registerd
+    	 */
+    	public void registerTimePeriod(TimePeriod timePeriod) {
+    		timePeriodMap.put(timePeriod.getId(), timePeriod);
+    	}
+    	
+    	/**
+    	 * Retrieve a time period by its id
+    	 * 
+    	 * @param id id of the time period
+    	 * @return retrieved time period
+    	 */
+    	public TimePeriod getTimePeriodById(long id) {
+    		return timePeriodMap.get(id);
+    	}
+    	
+    	/**
+    	 * Returns a set of all registered time periods
+    	 * 
+    	 * @return Set of all registered time periods
+    	 */
+    	public SortedSet<TimePeriod> getRegisteredTimePeriods() {
+    		SortedSet<TimePeriod> timePeriodSet = new TreeSet<TimePeriod>(timePeriodMap.values());
+    		return timePeriodSet;
+    	}
+    	
+    }
+    
+	/**
+	 * internal class instance containing all link specific functionality
+	 */
+	public final TimePeriods timePeriods = new TimePeriods();
+
+
     /**
      * Constructor
      */
@@ -82,6 +129,8 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
         this.id = IdGenerator.generateId(Demands.class);
         odDemands = new TreeMap<Long, TreeMap<Mode, ODDemandMatrix>>();
         userClassMap = new HashMap<Long, UserClass>();
+        timePeriodMap = new HashMap<Long, TimePeriod>();
+        travelerTypeMap = new HashMap<Long,TravelerType>();
     }
 
     /**
@@ -126,6 +175,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      *
      * @return Set of registered time periods
      */
+/*
     public SortedSet<TimePeriod> getRegisteredTimePeriods() {
     	final Set<Long> keys = odDemands.keySet();
     	final SortedSet<TimePeriod> timePeriods = new TreeSet<TimePeriod>();
@@ -134,6 +184,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     	}
     	return timePeriods;
     }
+*/
 
     /**
      * Get modes registered for the given time period
@@ -195,6 +246,19 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      */
     public TravelerType getTravelerTypeById(long id) {
     	return travelerTypeMap.get(id);
+    }
+    
+    /**
+     * Retrieve TimePeriod by its Id
+     * 
+     * This method should be used by the Python PlanIt interface.  Java classes 
+     * should call demands.timePeriods.getTimePeriodById() instead
+     * 
+     * @param id the Id of the time period
+     * @return the retrieved time period 
+     */
+    public TimePeriod getTimePeriodById(long id) {
+    	return timePeriods.getTimePeriodById(id);
     }
     
 }

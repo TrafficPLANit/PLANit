@@ -44,7 +44,7 @@ public abstract class TrafficAssignmentBuilder {
     	parentAssignment.setPhysicalNetwork(network);
     	final int noZonesInZoning = zoning.zones.getNumberOfZones();
     	for (final Mode mode : network.modes.toList()) {
-    		for (final TimePeriod timePeriod : TimePeriod.getAllTimePeriods()) {
+     		for (TimePeriod timePeriod : demands.timePeriods.getRegisteredTimePeriods()) {
     			final ODDemandMatrix odMatrix = demands.get(mode, timePeriod);
     			if (odMatrix == null) {
     				throw new PlanItException("No demands matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
@@ -111,7 +111,6 @@ public abstract class TrafficAssignmentBuilder {
 		smoothingFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
 		physicalCostFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
 		virtualCostFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
-
     }
 
 
@@ -204,7 +203,7 @@ public abstract class TrafficAssignmentBuilder {
     	initialLinkSegmentCost.setTimePeriod(timePeriod);
     	parentAssignment.setInitialLinkSegmentCost(timePeriod, initialLinkSegmentCost);
     }
-
+    
     /**
      * Method that allows one to activate specific output types for persistence on the traffic assignment instance
      *
