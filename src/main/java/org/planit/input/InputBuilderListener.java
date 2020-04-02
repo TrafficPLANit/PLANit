@@ -28,32 +28,32 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   private static final Logger LOGGER = Logger.getLogger(InputBuilderListener.class.getCanonicalName()); 
   
   /** generated UID */
-	private static final long serialVersionUID = 4223028100274802893L;
+  private static final long serialVersionUID = 4223028100274802893L;
 	
   /**
    * Map which stores which external node Ids corresponding to Nodes
    */
-	private Map<Object, Node> nodeExternalIdToNodeMap;
+  private Map<Object, Node> nodeExternalIdToNodeMap;
 	
-	/**
-	 * Map which stores external link segment type Ids corresponding to link segment types
-	 */
-	private Map<Object, MacroscopicLinkSegmentType> linkSegmentTypeExternalIdToLinkSegmentTypeMap;
+  /**
+   * Map which stores external link segment type Ids corresponding to link segment types
+   */
+  private Map<Object, MacroscopicLinkSegmentType> linkSegmentTypeExternalIdToLinkSegmentTypeMap;
 	
-	/**
-	 * Map which stores Mode external Ids corresponding to Modes
-	 */
-	private Map<Object, Mode> modeExternalIdToModeMap;
+  /**
+   * Map which stores Mode external Ids corresponding to Modes
+   */
+  private Map<Object, Mode> modeExternalIdToModeMap;
 	
-	/**
-	 * Map which stores traveler type by external Id
-	 */
-	protected Map<Object, TravelerType> travelerTypeExternalIdToTravelerTypeMap;
+  /**
+   * Map which stores traveler type by external Id
+   */
+  protected Map<Object, TravelerType> travelerTypeExternalIdToTravelerTypeMap;
 	
-	/**
-	 * Map which stores user class by external Id
-	 */
-	protected Map<Object, UserClass> userClassExternalIdToUserClassMap;
+  /**
+   * Map which stores user class by external Id
+   */
+  protected Map<Object, UserClass> userClassExternalIdToUserClassMap;
  
   /**
    * Map which stores time periods by external Id
@@ -91,9 +91,9 @@ public abstract class InputBuilderListener implements EventListenerInterface {
     return containsDuplicates;
   }
   
-	/**
-	 * Constructor
-	 */
+  /**
+   * Constructor
+   */
   public InputBuilderListener() {
     nodeExternalIdToNodeMap = new HashMap<Object, Node>();
     linkSegmentTypeExternalIdToLinkSegmentTypeMap = new HashMap<Object, MacroscopicLinkSegmentType>();

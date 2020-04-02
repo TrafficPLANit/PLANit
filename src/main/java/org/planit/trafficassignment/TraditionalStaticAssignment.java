@@ -584,7 +584,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   }
 
   /**
-   * deal with requests for link volume accessees since we are one. Whenever such a request
+   * Deal with requests for link volume accessees since we are one. Whenever such a request
    * arrives, we provide ourselves as a candidate and fire a response event of type
    * LinkVolumeAccessee.INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE
    *

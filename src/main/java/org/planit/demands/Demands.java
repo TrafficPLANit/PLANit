@@ -38,7 +38,7 @@ import org.planit.userclass.UserClass;
 public class Demands extends TrafficAssignmentComponent<Demands> implements Serializable {
 
 	/** the logger */
-	private static final Logger LOGGER =  Logger.getLogger(Demands.class.getCanonicalName());
+	private static final Logger LOGGER = Logger.getLogger(Demands.class.getCanonicalName());
 	
     // Protected
 
@@ -169,22 +169,6 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
             return null;
         }
     }
-
-    /**
-     * Get the set of time periods registered
-     *
-     * @return Set of registered time periods
-     */
-/*
-    public SortedSet<TimePeriod> getRegisteredTimePeriods() {
-    	final Set<Long> keys = odDemands.keySet();
-    	final SortedSet<TimePeriod> timePeriods = new TreeSet<TimePeriod>();
-    	for (final Long id : keys) {
-    		timePeriods.add(TimePeriod.getById(id));
-    	}
-    	return timePeriods;
-    }
-*/
 
     /**
      * Get modes registered for the given time period

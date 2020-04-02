@@ -1,7 +1,5 @@
 package org.planit.userclass;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.planit.utils.misc.IdGenerator;
 
 /**
@@ -38,18 +36,13 @@ public class TravelerType {
     private final String name;
 
     /**
-     * Map to store registered traveler types
-     */
-    private static Map<Long, TravelerType> travelerTypes = new HashMap<Long, TravelerType>();
-    
-    /**
      * Constructor
      */
     public TravelerType() {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.name = DEFAULT_NAME;
         this.externalId = DEFAULT_EXTERNAL_ID;
-        travelerTypes.put(this.id, this);
+        //travelerTypes.put(this.id, this);
     }    
 
     /**
@@ -63,7 +56,7 @@ public class TravelerType {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.externalId = externaId;
         this.name = name;
-        travelerTypes.put(this.id, this);
+        //travelerTypes.put(this.id, this);
     }
 
     /**
@@ -75,16 +68,7 @@ public class TravelerType {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.externalId = DEFAULT_EXTERNAL_ID;
         this.name = name;        
-        travelerTypes.put(this.id, this);
-    }
-
-    /**
-     * Register the current traveler type
-     * 
-     * @param travellerType the TravelerType object to be registered
-     */
-    public static void registerTravelerType(TravelerType travellerType) {
-        travelerTypes.put(travellerType.getId(), travellerType);
+        //travelerTypes.put(this.id, this);
     }
 
     public long getId() {
