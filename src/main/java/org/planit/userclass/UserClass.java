@@ -14,9 +14,9 @@ import org.planit.utils.network.physical.Mode;
 public class UserClass {
 
     public static final String DEFAULT_NAME = "Default";
-    public static final int     DEFAULT_EXTERNAL_ID = 1;
-    public static final int     DEFAULT_MODE_REF = 1;
-    public static final int     DEFAULT_TRAVELLER_TYPE = 1;
+    public static final int    DEFAULT_EXTERNAL_ID = 1;
+    public static final int    DEFAULT_MODE_REF = 1;
+    public static final int    DEFAULT_TRAVELLER_TYPE = 1;
 
     /**
      * id of this user class
@@ -60,11 +60,11 @@ public class UserClass {
     }
 
     /**
-     * Get the traveller type of this user class
+     * Get the traveler type of this user class
      *
-     * @return TravellerType of this user class
+     * @return TravelerType of this user class
      */
-    public TravelerType getTravellerType() {
+    public TravelerType getTravelerType() {
         return travellerType;
     }
 

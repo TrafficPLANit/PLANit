@@ -1,5 +1,7 @@
 package org.planit.od.odmatrix;
 
+import java.util.logging.Logger;
+
 import org.ojalgo.array.Array2D;
 import org.planit.network.virtual.Zoning;
 import org.planit.od.ODDataImpl;
@@ -13,6 +15,8 @@ import org.planit.utils.network.virtual.Zone;
  */
 public abstract class ODMatrix extends ODDataImpl<Double> {
 
+	  /** the logger */
+	  private static final Logger LOGGER = Logger.getLogger(ODMatrix.class.getCanonicalName());   
     /**
      * matrix of data values
      */

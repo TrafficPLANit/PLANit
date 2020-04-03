@@ -431,7 +431,7 @@ public class CustomPlanItProject {
   public final ProjectZonings zonings = new ProjectZonings();
 
   /**
-   * The registered zonings
+   * The registered OD route sets
    */
   public final ProjectODRouteSets odRouteSets = new ProjectODRouteSets();
 

@@ -42,7 +42,6 @@ public class TravelerType {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.name = DEFAULT_NAME;
         this.externalId = DEFAULT_EXTERNAL_ID;
-        //travelerTypes.put(this.id, this);
     }    
 
     /**
@@ -56,7 +55,6 @@ public class TravelerType {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.externalId = externaId;
         this.name = name;
-        //travelerTypes.put(this.id, this);
     }
 
     /**
@@ -68,7 +66,6 @@ public class TravelerType {
         this.id = IdGenerator.generateId(TravelerType.class);
         this.externalId = DEFAULT_EXTERNAL_ID;
         this.name = name;        
-        //travelerTypes.put(this.id, this);
     }
 
     public long getId() {
