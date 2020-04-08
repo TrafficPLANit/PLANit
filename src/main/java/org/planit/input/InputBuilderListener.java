@@ -231,6 +231,25 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   }
   
   /**
+   * Returns whether a time period external Id matches set of external Ids for registered time periods
+   * 
+   * @param externalId the external time period Id being tested
+   * @return true if the external Id matches a registered time period, false otherwise
+   */
+  public boolean isTimePeriodExternalIdRegistered(Object externalId) {
+    return timePeriodExternalIdToTimePeriodMap.keySet().contains(externalId);
+  }
+  
+  /**
+   * Returns the number of registered time periods
+   * 
+   * @return the number of registered time periods
+   */
+  public int getNumberOfRegisteredTimePeriods() {
+    return timePeriodExternalIdToTimePeriodMap.keySet().size();
+  }
+  
+  /**
    * Stores a time period by its external Id
    * 
    * @param externalId external Id of time period

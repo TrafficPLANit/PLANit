@@ -47,9 +47,11 @@ public class MultiKeyPlanItData {
         return i;
       }
     }
-    throw new PlanItException("Tried to locate a property of type "
+    String errorMessage = "Tried to locate a property of type "
           + BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()
-          + " which has not been registered in MultiKeyPlanItData");
+          + " which has not been registered in MultiKeyPlanItData";
+    LOGGER.severe(errorMessage);
+    throw new PlanItException(errorMessage);
   }
   
 	/**
@@ -128,7 +130,9 @@ public class MultiKeyPlanItData {
 	  multiKeyMap = new MultiKeyMap<Object, Object[]>();
 		singleKeyMap = new HashedMap<Object, Object[]>();
 		if (outputKeyProperties.length > 5) {
-			throw new PlanItException("Attempted to register too many output property keys.  The maximum number allowed is 5.");
+			String errorMessage = "Attempted to register too many output property keys.  The maximum number allowed is 5.";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		this.outputKeyProperties = outputKeyProperties;
 		keyTypes = getTypes(outputKeyProperties);
@@ -206,10 +210,14 @@ public class MultiKeyPlanItData {
 	 */
 	public Object[] getRowValues(final Object... keyValues) throws PlanItException {
 		if (keyValues.length != outputKeyProperties.length) {
-			throw new PlanItException("Call to getRowValues() has the wrong number of key values");
+			String errorMessage = "Call to getRowValues() has the wrong number of key values";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		if (!isKeyValuesValid(keyValues)) {
-			throw new PlanItException("Call to getRowValues() with one or more keys of the wrong type");
+			String errorMessage = "Call to getRowValues() with one or more keys of the wrong type";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		switch (outputKeyProperties.length) {
 		case 1:
@@ -251,18 +259,26 @@ public class MultiKeyPlanItData {
 	 */
 	public void putRow(final Object[] outputValues, final Object... keyValues) throws PlanItException {
 		if (keyValues.length != outputKeyProperties.length) {
-			throw new PlanItException("Wrong number of keys used in call to MultiKeyPlanItData ");
+			String errorMessage = "Wrong number of keys used in call to MultiKeyPlanItData ";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		if (outputValues.length != outputValueProperties.length) {
-			throw new PlanItException("Wrong number of property values used in call to MultiKeyPlanItData ");
+			String errorMessage = "Wrong number of property values used in call to MultiKeyPlanItData ";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		for (int i = 0; i < outputValueProperties.length; i++) {
 			if ((!isValueTypeCorrect(outputValues[i], valueTypes[i])) && (!outputValues[i].equals(OutputFormatter.NOT_SPECIFIED))) {
-				throw new PlanItException("Property in position " + i + " in setRowValues() is of the wrong type");
+				String errorMessage = "Property in position " + i + " in setRowValues() is of the wrong type";
+	      LOGGER.severe(errorMessage);
+	      throw new PlanItException(errorMessage);
 			}
 		}
 		if (!isKeyValuesValid(keyValues)) {
-			throw new PlanItException("Call to setRowValues() with one or more keys of the wrong type");
+			String errorMessage = "Call to setRowValues() with one or more keys of the wrong type";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		switch (outputKeyProperties.length) {
 		case 1:
@@ -293,7 +309,9 @@ public class MultiKeyPlanItData {
 	 */
 	public void putRowValue(final OutputProperty outputProperty, final Object value, final Object... keyValues) throws PlanItException {
 		if (keyValues.length != outputKeyProperties.length) {
-			throw new PlanItException("Wrong number of keys used in call to MultiKeyPlanItData ");
+			String errorMessage = "Wrong number of keys used in call to MultiKeyPlanItData ";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		Object[] outputValues = null;
 		switch (outputKeyProperties.length) {

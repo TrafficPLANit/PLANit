@@ -2,6 +2,7 @@ package org.planit.network.physical.macroscopic;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
@@ -20,6 +21,9 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  *
  */
 public class MacroscopicNetwork extends PhysicalNetwork {
+
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(MacroscopicNetwork.class.getCanonicalName());   
 
 	// Protected
 
@@ -90,7 +94,9 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 
     boolean linkSegmentTypeAlreadyExists = true;
 		if (!(networkBuilder instanceof MacroscopicNetworkBuilder)) {
-			throw new PlanItException("Macroscopic network perspective only allows macroscopic link segment types to be registered");
+			String errorMessage = "Macroscopic network perspective only allows macroscopic link segment types to be registered";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		MacroscopicLinkSegmentType linkSegmentType =
 				((MacroscopicNetworkBuilder) networkBuilder).createLinkSegmentType(name, capacity, maximumDensity, externalId, modeProperties);

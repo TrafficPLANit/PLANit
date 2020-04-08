@@ -1,5 +1,7 @@
 package org.planit.output.property;
 
+import java.util.logging.Logger;
+
 import org.planit.exceptions.PlanItException;
 
 /**
@@ -42,6 +44,9 @@ public enum OutputProperty {
 	VC_RATIO("org.planit.output.property.VCRatioOutputProperty"),
 	COST_TIMES_FLOW("org.planit.output.property.CostTimesFlowOutputProperty"),
 	LINK_TYPE("org.planit.output.property.LinkTypeOutputProperty");
+
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(OutputProperty.class.getCanonicalName());   
 
 	private final String value;
 
@@ -90,7 +95,9 @@ public enum OutputProperty {
 					return outputProperty;
 				}
 			}
-			throw new PlanItException("The header name " + name + " is not associated with any output property.");
+			String errorMessage = "The header name " + name + " is not associated with any output property.";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		} catch (Exception e) {
 			throw new PlanItException(e);
 		}

@@ -1,6 +1,7 @@
 package org.planit.trafficassignment.builder;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
@@ -33,6 +34,9 @@ import org.planit.utils.network.physical.Mode;
  */
 public abstract class TrafficAssignmentBuilder {
 
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentBuilder.class.getCanonicalName());   
+
     /**
      * Register the demands zoning and network objects
      *
@@ -47,11 +51,15 @@ public abstract class TrafficAssignmentBuilder {
      		for (TimePeriod timePeriod : demands.timePeriods.getRegisteredTimePeriods()) {
     			final ODDemandMatrix odMatrix = demands.get(mode, timePeriod);
     			if (odMatrix == null) {
-    				throw new PlanItException("No demands matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
+    				String errorMessage = "No demands matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId();
+    	      LOGGER.severe(errorMessage);
+    	      throw new PlanItException(errorMessage);
     			}
     			final int noZonesInDemands = odMatrix.getNumberOfTravelAnalysisZones();
     			if (noZonesInZoning != noZonesInDemands) {
-    				throw new PlanItException("Zoning object has " + noZonesInZoning + " zones, this is inconsistent with Demands object which has " + noZonesInDemands + " zones for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
+    				String errorMessage = "Zoning object has " + noZonesInZoning + " zones, this is inconsistent with Demands object which has " + noZonesInDemands + " zones for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId();
+    	      LOGGER.severe(errorMessage);
+    	      throw new PlanItException(errorMessage);
     			}
     		}
     	}

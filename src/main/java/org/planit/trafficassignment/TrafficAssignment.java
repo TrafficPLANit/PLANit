@@ -163,16 +163,24 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	protected void checkForEmptyComponents() throws PlanItException {
 		if (demands == null) {
-			throw new PlanItException("Demand is null");
+			String errorMessage = "Demand is null";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		if (physicalNetwork == null) {
-			throw new PlanItException("Network is null");
+			String errorMessage = "Network is null";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		if (smoothing == null) {
-			throw new PlanItException("Smoothing is null");
+			String errorMessage = "Smoothing is null";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		if (zoning == null) {
-			throw new PlanItException("Zoning is null");
+			String errorMessage = "Zoning is null";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 	}
 
@@ -450,7 +458,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 			addRegisteredEventTypeListeners(requestAccessee);
 			fireEvent(new Event(requestAccessee, this, this.physicalCost));
 			if (!listeners.containsKey(requestAccessee)) {
-				throw new PlanItException("Error during setPhysicalCost");
+				String errorMessage = "Error during setPhysicalCost";
+	      LOGGER.severe(errorMessage);
+	      throw new PlanItException(errorMessage);
 			}
 		}
 	}
@@ -480,7 +490,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 			addRegisteredEventTypeListeners(requestAccesseeType);
 			fireEvent(new Event(requestAccesseeType, this, this.virtualCost));
 			if (!listeners.containsKey(requestAccesseeType)) {
-				throw new PlanItException("Error during setVirtualCost");
+				String errorMessage = "Error during setVirtualCost";
+	      LOGGER.severe(errorMessage);
+	      throw new PlanItException(errorMessage);
 			}
 		}
 	}

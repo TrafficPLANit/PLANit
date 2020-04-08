@@ -161,7 +161,9 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
 
     public ODDemandMatrix get(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
     	if (!odDemands.containsKey(timePeriod.getId())) {
-    		throw new PlanItException("No demands matrix for time period " + timePeriod.getId());
+    		String errorMessage = "No demands matrix for time period " + timePeriod.getId();
+        LOGGER.severe(errorMessage);
+        throw new PlanItException(errorMessage);
     	}
         if (odDemands.containsKey(timePeriod.getId()) && odDemands.get(timePeriod.getId()).containsKey(mode)) {
             return odDemands.get(timePeriod.getId()).get(mode);

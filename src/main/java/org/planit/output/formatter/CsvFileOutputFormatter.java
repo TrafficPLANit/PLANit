@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
@@ -40,6 +41,9 @@ import org.planit.utils.network.physical.Mode;
  */
 public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(CsvFileOutputFormatter.class.getCanonicalName());   
+
   /**
    * Map of list of CSV output file names for each OutputType
    */
@@ -69,7 +73,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       // verify if current suboutput type is compatible with the provided output
       if (!(currentOutputType instanceof SubOutputTypeEnum
           && ((SubOutputTypeEnum) currentOutputType) instanceof ODSkimSubOutputType)) {
-        throw new PlanItException("currentOutputType is not compatible with od results");
+        String errorMessage = "currentOutputType is not compatible with od results";
+        LOGGER.severe(errorMessage);
+        throw new PlanItException(errorMessage);
       }
       // sub-type information
       ODSkimSubOutputType currentSubOutputType = (ODSkimSubOutputType) currentOutputType;
@@ -109,7 +115,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
     try {
       if (!(currentOutputType instanceof OutputType)) {
-        throw new PlanItException("currentOutputType not compatible with path output");
+        String errorMessage = "currentOutputType not compatible with path output";
+        LOGGER.severe(errorMessage);
+        throw new PlanItException(errorMessage);
       }
       OutputType outputType = (OutputType) currentOutputType;
       RouteOutputTypeAdapter pathOutputTypeAdapter = (RouteOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(
@@ -149,7 +157,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
     try {
       if (!(currentOutputType instanceof OutputType)) {
-        throw new PlanItException("currentOutputType not compatible with link output");
+        String errorMessage = "currentOutputType not compatible with link output";
+        LOGGER.severe(errorMessage);
+        throw new PlanItException(errorMessage);
       }
       OutputType outputType = (OutputType) currentOutputType;
       LinkOutputTypeAdapter linkOutputTypeAdapter = (LinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(

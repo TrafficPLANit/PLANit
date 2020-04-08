@@ -221,7 +221,9 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     // for links we assume no sub-output types exist (yet), hence this check to make sure we can
     // cast safely
     if (!(currentOutputType instanceof OutputType) && ((OutputType) currentOutputType) == OutputType.LINK) {
-      throw new PlanItException("currentOutputTypeEnum is not compatible with outputTypeconfiguration");
+      String errorMessage = "currentOutputTypeEnum is not compatible with outputTypeconfiguration";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
     }
     OutputType outputType = (OutputType) currentOutputType;
     OutputProperty[] outputProperties = outputValueProperties.get(outputType);
@@ -269,7 +271,9 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
                                                                                       // make sure
                                                                                       // we can cast
                                                                                       // safely
-      throw new PlanItException("currentOutputTypeEnum is not compatible with outputTypeconfiguration");
+      String errorMessage = "currentOutputTypeEnum is not compatible with outputTypeconfiguration";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
     }
     // current sub output type
     ODSkimSubOutputType subOutputType = (ODSkimSubOutputType) currentOutputType;
@@ -323,7 +327,9 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
                                                                                                              // can
                                                                                                              // cast
                                                                                                              // safely
-      throw new PlanItException("currentOutputTypeEnum is not compatible with outputTypeconfiguration");
+      String errorMessage = "currentOutputTypeEnum is not compatible with outputTypeconfiguration";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
     }
     OutputType outputType = (OutputType) currentOutputType;
     OutputProperty[] outputProperties = outputValueProperties.get(outputType);

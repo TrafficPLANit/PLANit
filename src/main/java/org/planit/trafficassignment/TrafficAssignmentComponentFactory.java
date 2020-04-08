@@ -5,6 +5,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 
 import org.djutils.event.EventProducer;
 import org.djutils.event.EventType;
@@ -44,6 +45,9 @@ import org.planit.supply.networkloading.NetworkLoading;
  *            construct the eligible derived classes by class name
  */
 public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentComponent<T> & Serializable> extends EventProducer implements Serializable {
+
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentComponentFactory.class.getCanonicalName());   
 
 	/** generated UID */
 	private static final long serialVersionUID = -4507287133047792042L;
@@ -118,7 +122,9 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
             if (eligibleComponentTypes.contains(trafficAssignmentComponentClassName)) {
                 return (T) Class.forName(trafficAssignmentComponentClassName).getConstructor().newInstance(constructorParameters);
             } else {
-                throw new PlanItException("Provided Traffic Assignment Component class is not eligible for construction.");
+                String errorMessage = "Provided Traffic Assignment Component class is not eligible for construction.";
+                LOGGER.severe(errorMessage);
+                throw new PlanItException(errorMessage);
             }
         } catch (final Exception ex) {
             throw new PlanItException(ex);
@@ -134,9 +140,11 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
      */
     private void dispatchTrafficComponentEvent(final T newTrafficComponent, final Object[] parameters) throws PlanItException {
     	fireEvent(new org.djutils.event.Event(TRAFFICCOMPONENT_CREATE, this, new Object[] {newTrafficComponent, parameters}));
-		if (!listeners.containsKey(TRAFFICCOMPONENT_CREATE)) {
-			throw new PlanItException("Error during dispatchTrafficComponentEvent");
-		}
+  		if (!listeners.containsKey(TRAFFICCOMPONENT_CREATE)) {
+  			String errorMessage = "Error during dispatchTrafficComponentEvent";
+        LOGGER.severe(errorMessage);
+        throw new PlanItException(errorMessage);
+ 		}
     }
 
     // PUBLIC
@@ -172,7 +180,9 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
                 // register by collecting the component entry and placing the component
                 final TreeSet<String> treeSet = registeredTrafficAssignmentComponents.get(currentClass);
                 if(treeSet == null) {
-                	throw new PlanItException("base class of traffic assignment component not registered as eligible on PLANit");
+                	String errorMessage = "Base class of traffic assignment component not registered as eligible on PLANit";
+                  LOGGER.severe(errorMessage);
+                  throw new PlanItException(errorMessage);
                 }
                 treeSet.add(trafficAssignmentComponent.getCanonicalName());
                 registeredTrafficAssignmentComponents.get(currentClass).add(trafficAssignmentComponent.getCanonicalName());
@@ -181,7 +191,9 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
             	currentClass = (Class<? extends TrafficAssignmentComponent<?>>) currentClass.getSuperclass(); // move up the hierarchy
             }
         }
-        throw new PlanItException("trafficAssignmentComponent not eligible for registration");
+        String errorMessage = "trafficAssignmentComponent not eligible for registration";
+        LOGGER.severe(errorMessage);
+        throw new PlanItException(errorMessage);
     }
 
     /**

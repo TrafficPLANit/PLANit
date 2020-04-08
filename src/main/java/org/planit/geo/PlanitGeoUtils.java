@@ -2,6 +2,7 @@ package org.planit.geo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.geotools.geometry.GeometryBuilder;
 import org.geotools.referencing.GeodeticCalculator;
@@ -25,6 +26,9 @@ import com.vividsolutions.jts.geom.MultiLineString;
  */
 public class PlanitGeoUtils {
 	
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(PlanitGeoUtils.class.getCanonicalName());   
+
 	/**
 	 * Default Coordinate Reference System
 	 */
@@ -138,7 +142,9 @@ public class PlanitGeoUtils {
 	 */
 	public LineString convertToOpenGisLineString(MultiLineString jtsMultiLineString) throws PlanItException {
 		if (((MultiLineString) jtsMultiLineString).getNumGeometries() > 1) {
-			throw new PlanItException("MultiLineString contains multiple LineStrings");
+			String errorMessage = "MultiLineString contains multiple LineStrings";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		return convertToOpenGisLineString(
 				(com.vividsolutions.jts.geom.LineString) ((MultiLineString) jtsMultiLineString).getGeometryN(0));

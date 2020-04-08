@@ -1,5 +1,7 @@
 package org.planit.output.adapter;
 
+import java.util.logging.Logger;
+
 import org.planit.exceptions.PlanItException;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.output.enums.ODSkimSubOutputType;
@@ -18,6 +20,9 @@ import org.planit.utils.network.physical.Mode;
  *
  */
 public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements ODOutputTypeAdapter {
+
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(ODOutputTypeAdapterImpl.class.getCanonicalName());   
 
 	/**
 	 * Returns the external Id of the destination zone for the current cell in the OD skim matrix
@@ -132,7 +137,9 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
     public int getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) throws PlanItException {
         if(!(outputTypeEnum instanceof ODSkimSubOutputType))
         {
-            throw new PlanItException("Incorrect outputType enum found when collecting iteration index");
+            String errorMessage = "Incorrect outputType enum found when collecting iteration index";
+            LOGGER.severe(errorMessage);
+            throw new PlanItException(errorMessage);
         }
         int iterationIndex = trafficAssignment.getSimulationData().getIterationIndex();
         switch ((ODSkimSubOutputType)outputTypeEnum) {
@@ -143,7 +150,9 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
         case NONE:
             return iterationIndex;
         default:
-            throw new PlanItException("Unknown ODSkimOutputType enum encountered when collecting iteration index");       
+            String errorMessage = "Unknown ODSkimOutputType enum encountered when collecting iteration index";  
+            LOGGER.severe(errorMessage);
+            throw new PlanItException(errorMessage);
         }
     }
 

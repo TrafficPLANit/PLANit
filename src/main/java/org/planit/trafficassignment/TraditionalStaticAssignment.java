@@ -161,9 +161,10 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
           final Centroid originCentroid = currentOriginZone.getCentroid();
           if (originCentroid.getExitEdgeSegments().isEmpty()) {
-            throw new PlanItException("Edge segments have not been assigned to Centroid for Zone "
-                + (currentOriginZone.getExternalId()));
-          }
+            String errorMessage = "Edge segments have not been assigned to Centroid for Zone " + (currentOriginZone.getExternalId());
+            LOGGER.severe(errorMessage);
+            throw new PlanItException(errorMessage);
+         }
           // UPDATE SHORTEST PATHS
           vertexPathCosts = shortestPathAlgorithm.executeOneToAll(originCentroid);
         }
@@ -211,11 +212,15 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       currentEdgeSegment = vertexPathAndCost[startVertexId].getSecond();
       if (currentEdgeSegment == null) {
         if (currentPathStartVertex instanceof Centroid) {
-          throw new PlanItException("The solution could not find an Edge Segment for the connectoid for zone "
-              + ((Centroid) currentPathStartVertex).getParentZone().getExternalId());
+          String errorMessage = "The solution could not find an Edge Segment for the connectoid for zone "
+              + ((Centroid) currentPathStartVertex).getParentZone().getExternalId();
+          LOGGER.severe(errorMessage);
+          throw new PlanItException(errorMessage);
         } else {
-          throw new PlanItException("The solution could not find an Edge Segment for node "
-              + ((Node) currentPathStartVertex).getId());
+          String errorMessage = "The solution could not find an Edge Segment for node "
+              + ((Node) currentPathStartVertex).getId();
+          LOGGER.severe(errorMessage);
+          throw new PlanItException(errorMessage);
         }
       }
       final int edgeSegmentId = (int) currentEdgeSegment.getId();
@@ -479,7 +484,9 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       if (linkSegment.isModeAllowedThroughLink(mode)) {
         currentSegmentCost = cost.getSegmentCost(mode, linkSegment);
         if (currentSegmentCost < 0.0) {
-          throw new PlanItException("Error during calculation of link segment costs");
+          String errorMessage = "Error during calculation of link segment costs";
+          LOGGER.severe(errorMessage);
+          throw new PlanItException(errorMessage);
         }
       }
       currentSegmentCosts[(int) linkSegment.getId()] = currentSegmentCost;      

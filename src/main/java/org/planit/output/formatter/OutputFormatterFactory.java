@@ -1,5 +1,7 @@
 package org.planit.output.formatter;
 
+import java.util.logging.Logger;
+
 import org.planit.exceptions.PlanItException;
 
 /**
@@ -10,7 +12,10 @@ import org.planit.exceptions.PlanItException;
  */
 public final class OutputFormatterFactory {
 
-    /**
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(OutputFormatterFactory.class.getCanonicalName());   
+
+   /**
      * Create an output formatter based on the passed in class name
      * 
      * @param OutputFormatterCanonicalClassName
@@ -25,7 +30,9 @@ public final class OutputFormatterFactory {
         try {
             newOutputFormatter = Class.forName(OutputFormatterCanonicalClassName).getConstructor().newInstance();
             if (newOutputFormatter == null || !(newOutputFormatter instanceof OutputFormatter)) {
-                throw new PlanItException("Provided output formatter class is not eligible for instantiation");
+                String errorMessage = "Provided output formatter class is not eligible for instantiation";
+                LOGGER.severe(errorMessage);
+                throw new PlanItException(errorMessage);
             }
         } catch (Exception ex) {
             throw new PlanItException(ex);

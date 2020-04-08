@@ -3,6 +3,7 @@ package org.planit.output.formatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.output.OutputManager;
@@ -25,6 +26,9 @@ import org.planit.utils.network.physical.Mode;
  *
  */
 public abstract class BaseOutputFormatter implements OutputFormatter {
+
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(BaseOutputFormatter.class.getCanonicalName());   
 
 	private static final OutputTimeUnit DEFAULT_TIME_UNIT = OutputTimeUnit.HOURS;
 
@@ -78,7 +82,9 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 		OutputType outputType = outputTypeConfiguration.getOutputType();
 		OutputProperty[] outputKeyPropertiesArray = outputTypeConfiguration.validateAndFilterKeyProperties(outputKeyPropertyArray);
 		if (outputKeyPropertiesArray == null ) {
-			throw new PlanItException("Key properties invalid for OutputType " + outputType.value() + " not correctly defined.");
+			String errorMessage = "Key properties invalid for OutputType " + outputType.value() + " not correctly defined.";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 		outputKeyProperties.put(outputType, outputKeyPropertiesArray);
 	}
@@ -197,11 +203,15 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 		} else {
 			OutputProperty[] existingOutputValuePropertyArray = outputValueProperties.get(outputType);
 			if (outputValuePropertyArray.length != existingOutputValuePropertyArray.length) {
-				throw new PlanItException("An attempt was made to change the output value properties after they had been locked.");
+				String errorMessage = "An attempt was made to change the output value properties after they had been locked.";
+	      LOGGER.severe(errorMessage);
+	      throw new PlanItException(errorMessage);
 			}
 			for (int i=0; i<outputValuePropertyArray.length ; i++) {
 				if (!existingOutputValuePropertyArray[i].equals(outputValuePropertyArray[i])) {
-					throw new PlanItException("An attempt was made to change the output value properties after they had been locked.");
+					String errorMessage = "An attempt was made to change the output value properties after they had been locked.";
+		      LOGGER.severe(errorMessage);
+		      throw new PlanItException(errorMessage);
 				}
 			}
 		}

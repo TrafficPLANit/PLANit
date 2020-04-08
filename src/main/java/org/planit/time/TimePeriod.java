@@ -1,5 +1,7 @@
 package org.planit.time;
 
+import java.util.logging.Logger;
+
 import org.planit.exceptions.PlanItException;
 import org.planit.utils.misc.IdGenerator;
 
@@ -11,6 +13,9 @@ import org.planit.utils.misc.IdGenerator;
  *
  */
 public class TimePeriod implements Comparable<TimePeriod> {
+
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(TimePeriod.class.getCanonicalName());   
 
   /**
    * startTime in seconds from midnight 00:00:00
@@ -38,11 +43,6 @@ public class TimePeriod implements Comparable<TimePeriod> {
   private final String description;
 
   /**
-   * Map storing registered time periods by Id
-   */
-  //private static Map<Long, TimePeriod> timePeriods = new HashMap<Long, TimePeriod>();
-
-  /**
    * Convert duration to seconds given start time using the 24-hour clock
    * 
    * @param startTime24hour  start time in 24-hour clock format
@@ -54,23 +54,33 @@ public class TimePeriod implements Comparable<TimePeriod> {
     int startTimeHrs;
     int startTimeMins;
     if (startTime24hour.length() != 4) {
-      throw new PlanItException("Start time must contain exactly four digits");
-    }
+      String errorMessage = "Start time must contain exactly four digits";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
+   }
     try {
       startTime = Integer.parseInt(startTime24hour);
     } catch (NumberFormatException e) {
-      throw new PlanItException("Start time must contain exactly four digits");
+      String errorMessage = "Start time must contain exactly four digits";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
     }
     if (startTime < 0) {
-      throw new PlanItException("Start time cannot be negative");
+      String errorMessage = "Start time cannot be negative";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
     }
     if (startTime > 2400) {
-      throw new PlanItException("Start time cannot be later than 2400");
+      String errorMessage = "Start time cannot be later than 2400";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
     }
     startTimeHrs = startTime / 100;
     startTimeMins = startTime % 100;
     if (startTimeMins > 59) {
-      throw new PlanItException("Last two digits of start time cannot exceed 59");
+      String errorMessage = "Last two digits of start time cannot exceed 59";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
     }
     return (startTimeHrs * 3600) + (startTimeMins * 60);
 
@@ -128,48 +138,15 @@ public class TimePeriod implements Comparable<TimePeriod> {
     this.description = description;
     this.startTime = convertDurationToSeconds(startTime24hour);
     if (durationHours > 24.0) {
-      throw new PlanItException("Duration more than 24 hours");
+      String errorMessage = "Duration more than 24 hours";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
     }
     this.duration = (int) Math.round(durationHours * 3600.0);
     //timePeriods.put(this.id, this);
   }
 
   // Public static
-
-  /**
-   * Reset the Maps to store created TimePeriod objects
-   */
-  //public static void reset() {
-  //  timePeriods = new HashMap<Long, TimePeriod>();
-  //}
-
-  /**
-   * Store time period by its id and external Id
-   * 
-   * @param timePeriod the time period to be stored
-   */
-  //public static void putById(TimePeriod timePeriod) {
-  //  timePeriods.put(timePeriod.getId(), timePeriod);
-  //}
-
-  /**
-   * Retrieve time period by its id
-   * 
-   * @param id the id of the time period to be retrieved
-   * @return the TimePeriod object found
-   */
-  //public static TimePeriod getById(long id) {
-  //  return timePeriods.get(id);
-  //}
-
-  /**
-   * Return a collection of all registered time period objects
-   * 
-   * @return collection of all registered time period objects
-   */
-  //public static Collection<TimePeriod> getAllTimePeriods() {
-  //  return timePeriods.values();
-  //}
 
   /**
    * Create a time period given its start time and duration in hours

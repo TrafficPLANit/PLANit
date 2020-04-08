@@ -72,7 +72,9 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
 	@Override
 	public double computeFreeFlowTravelTime(final Mode mode) throws PlanItException {
 		if(!isModeAllowedThroughLink(mode)) {
-		  throw new PlanItException("mode not allowed on link segment, no free flow time can be computed");
+		  String errorMessage = "mode not allowed on link segment, no free flow time can be computed";
+      LOGGER.severe(errorMessage);
+      throw new PlanItException(errorMessage);
 		}
 	  
 	  final double linkLength = getParentLink().getLength();
