@@ -21,6 +21,8 @@
 		<maven.jaxb2.plugin.version>0.14.0</maven.jaxb2.plugin.version>
 		<planitutils.version>0.0.4-SNAPSHOT</planitutils.version>
 		<djutils.version>1.04.05</djutils.version>
+		<!-- Change the property below to match the path of your PLANitPy2J rsc directory -->
+		<py2j.resource.directory>..\..\springsource\PLANitPy2J\rsc</py2j.resource.directory>
 	</properties>
 
 	<dependencies>
@@ -29,44 +31,44 @@
 			<artifactId>PLANitUtils</artifactId>
 			<version>${planitutils.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.djutils</groupId>
 			<artifactId>djutils</artifactId>
 			<version>${djutils.version}</version>
 		</dependency>
-	
+
 		<dependency>
-		    <groupId>org.geotools</groupId>
-		    <artifactId>gt-geometry</artifactId>
-			<version>${geotools.version}</version>
-		</dependency>
-		
-		<dependency>
-		    <groupId>org.geotools</groupId>
-		    <artifactId>gt-geojson</artifactId>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-geometry</artifactId>
 			<version>${geotools.version}</version>
 		</dependency>
 
-		
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-geojson</artifactId>
+			<version>${geotools.version}</version>
+		</dependency>
+
+
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>jsr305</artifactId>
 			<version>3.0.2</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.ojalgo</groupId>
 			<artifactId>ojalgo</artifactId>
 			<version>${ojalgo.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.13-beta-2</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-csv</artifactId>
@@ -74,11 +76,11 @@
 		</dependency>
 
 		<dependency>
-		    <groupId>org.apache.commons</groupId>
-		    <artifactId>commons-collections4</artifactId>
-		    <version>4.4</version>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-collections4</artifactId>
+			<version>4.4</version>
 		</dependency>
-		
+
 	</dependencies>
 
 	<build>
@@ -98,6 +100,16 @@
 					<release>11</release>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.3.1</version>
+				<configuration>
+					<outputDirectory>${py2j.resource.directory}</outputDirectory>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 
@@ -113,18 +125,18 @@
 			<name>Open Source Geospatial Foundation Repository</name>
 			<url>http://download.osgeo.org/webdav/geotools/</url>
 		</repository>
-		
+
 		<repository>
 			<name>djutils Public Repository</name>
 			<id>djutils</id>
 			<url>https://djutils.org/maven</url>
 		</repository>
-		
+
 		<repository>
 			<id>geosolutions-repo</id>
 			<url>http://maven.geo-solutions.it/</url>
 		</repository>
-			
+
 	</repositories>
 
 </project>
