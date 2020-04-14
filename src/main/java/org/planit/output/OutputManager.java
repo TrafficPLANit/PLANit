@@ -74,7 +74,7 @@ public class OutputManager {
 	 */
     public void initialiseBeforeSimulation(long runId) throws PlanItException {
         for (OutputFormatter outputFormatter : outputFormatters) {
-            outputFormatter.initialiseBeforeSimulation(outputTypeConfigurations, runId);
+             outputFormatter.initialiseBeforeSimulation(outputTypeConfigurations, runId);
         }
     }	
     

@@ -119,7 +119,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	protected InitialLinkSegmentCost initialLinkSegmentCost;
 
 	/**
-	 * The physical generalised cost approach
+	 * The physical generalized cost approach
 	 */
 	protected PhysicalCost physicalCost;
 
@@ -222,9 +222,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	    // verify validity
         checkForEmptyComponents();
         verifyComponentCompatibility();
-
         createTransportNetwork();
-
         outputManager.initialiseBeforeSimulation(getId());
         physicalCost.initialiseBeforeSimulation(physicalNetwork);
         virtualCost.initialiseBeforeSimulation(zoning.getVirtualNetwork());
