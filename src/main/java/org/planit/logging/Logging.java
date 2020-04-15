@@ -1,6 +1,5 @@
 package org.planit.logging;
 
-import java.net.URL;
 import java.util.logging.Handler;
 import java.util.logging.Logger;
 
@@ -65,14 +64,9 @@ public class Logging {
    * @throws PlanItException thrown if the logging.properties file cannot be found
    */
   public static Logger createLogger(Class<?> clazz, String loggingPropertiesFileName, String logFileSystemProperty) throws PlanItException {
-    ClassLoader classLoader = clazz.getClassLoader();
-    URL url = classLoader.getResource(loggingPropertiesFileName);
-    if (url == null) {
-      throw new PlanItException("No logging properties file could be found at location " + loggingPropertiesFileName);
-    }
-    String path = url.getFile();
-    System.setProperty(logFileSystemProperty, path);
-    return Logger.getLogger(clazz.getName());
+      System.setProperty(logFileSystemProperty, loggingPropertiesFileName);
+      Logger logger = Logger.getLogger(clazz.getName());
+      return logger;
   }
   
 }
