@@ -2,7 +2,6 @@ package org.planit.utils;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
 
@@ -15,8 +14,6 @@ import org.planit.exceptions.PlanItException;
 public class ArgumentParser {
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(ArgumentParser.class.getCanonicalName());   
-
 	private static boolean updateMap(String splitter, String arg, Map<String, String> argsMap) {
 		if (arg.contains(splitter)) {
 			String[] parts = arg.split(splitter);
@@ -42,7 +39,6 @@ public class ArgumentParser {
     		validKey = validKey || updateMap(":", arg, argsMap);
     		if (!validKey) {
     			String errorMessage = "Argument " + arg + " cannot be parsed into a program input.";
-          LOGGER.severe(errorMessage);
           throw new PlanItException(errorMessage);
     		}
     	}
