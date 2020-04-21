@@ -1,7 +1,9 @@
 package org.planit.input;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -247,6 +249,15 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    */
   public int getNumberOfRegisteredTimePeriods() {
     return timePeriodExternalIdToTimePeriodMap.keySet().size();
+  }
+  
+  /**
+   * Returns a list of external ids of time periods
+   * 
+   * @return list of external ids of time periods
+   */
+  public List<Object> getTimePeriodExternalIds() {
+    return new ArrayList<Object>(timePeriodExternalIdToTimePeriodMap.keySet());
   }
   
   /**

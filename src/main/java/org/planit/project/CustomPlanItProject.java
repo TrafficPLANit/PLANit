@@ -299,7 +299,7 @@ public class CustomPlanItProject {
     /**
      * Collect the first traffic assignment that is registered (if any). Otherwise return null
      * 
-     * @return first traffic assignment that is registeredm if none return null
+     * @return first traffic assignment that is registered if none return null
      */
     public TrafficAssignment getFirstTrafficAssignment() {
       return hasRegisteredAssignments() ? trafficAssignmentsMap.firstEntry().getValue() : null;
@@ -308,7 +308,7 @@ public class CustomPlanItProject {
 
   /**
    * the listener that we register on each traffic assignment component creation event for external
-   * initialisation
+   * initialization
    */
   protected final InputBuilderListener inputBuilderListener;
 
