@@ -182,6 +182,18 @@ public abstract class TrafficAssignmentBuilder {
     public void registerOutputFormatter(final OutputFormatter outputFormatter) throws PlanItException {
     	parentAssignment.registerOutputFormatter(outputFormatter);
     }
+    
+    /**
+     * Remove an output formatter which has already been registered
+     * 
+     * This is used by the Python interface, which registers the PlanItIO formatter by default
+     * 
+     * @param outputFormatter the output formatter to be removed
+     * @throws PlanItException thrown if there is an error during removal of the output formatter
+     */
+    public void unregisterOutputFormatter(final OutputFormatter outputFormatter) throws PlanItException {
+      parentAssignment.unregisterOutputFormatter(outputFormatter);
+    }
 
     /**
      * Returns a list of output formatters registered on this assignment

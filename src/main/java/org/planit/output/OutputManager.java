@@ -170,6 +170,15 @@ public class OutputManager {
 	public void registerOutputFormatter(OutputFormatter outputFormatter) {
 		outputFormatters.add(outputFormatter);
 	}
+	
+	/**
+	 * Remove an output formatter which has previously been registered
+	 * 
+	 * @param outputFormatter output formatter to be removed
+	 */
+	public void unregisterOutputFormatter(OutputFormatter outputFormatter) {
+	  outputFormatters.remove(outputFormatter);
+	}
 
 	/**
 	 * Returns the list of currently registered OutputFormatter objects for a specified output type

@@ -10,11 +10,7 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
  *
  * Class holding fixed connectoid costs for each connectoid segment
  *
- *
- *
  * @author markr
- *
- *
  *
  */
 

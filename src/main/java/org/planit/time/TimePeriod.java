@@ -98,7 +98,6 @@ public class TimePeriod implements Comparable<TimePeriod> {
     this.startTime = startTime;
     this.duration = duration;
     description = null;
-    //timePeriods.put(this.id, this);
     this.externalId = externalId;
   }
 
@@ -143,7 +142,6 @@ public class TimePeriod implements Comparable<TimePeriod> {
       throw new PlanItException(errorMessage);
     }
     this.duration = (int) Math.round(durationHours * 3600.0);
-    //timePeriods.put(this.id, this);
   }
 
   // Public static

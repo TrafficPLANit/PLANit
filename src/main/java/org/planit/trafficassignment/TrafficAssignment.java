@@ -225,7 +225,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
         createTransportNetwork();
         outputManager.initialiseBeforeSimulation(getId());
         physicalCost.initialiseBeforeSimulation(physicalNetwork);
-        virtualCost.initialiseBeforeSimulation(zoning.getVirtualNetwork());
+         virtualCost.initialiseBeforeSimulation(zoning.getVirtualNetwork());
 	}
 
 	/**
@@ -502,6 +502,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	public void registerOutputFormatter(final OutputFormatter outputFormatter) {
 		outputManager.registerOutputFormatter(outputFormatter);
+	}
+	
+	/**
+	 * Unregister an output formatter
+	 * 
+	 * @param outputFormatter the output formatter to be removed
+	 */
+	public void unregisterOutputFormatter(final OutputFormatter outputFormatter) {
+	  outputManager.unregisterOutputFormatter(outputFormatter);
 	}
 
 	/**
