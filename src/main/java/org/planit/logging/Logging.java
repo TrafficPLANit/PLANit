@@ -19,7 +19,6 @@ import java.util.logging.SimpleFormatter;
  */
 public class Logging {
 
-  private static final String LOG_FILE_SYSTEM_PROPERTY = "java.util.logging.config.file";
   private static final String DEFAULT_LOGGING_PROPERTIES_FILE_NAME = "logging.properties";
   private static final String LEVEL_PROPERTY = "java.util.logging.FileHandler.level";
   private static final Level DEFAULT_LEVEL = Level.INFO;
@@ -44,20 +43,7 @@ public class Logging {
    * @throws Exception thrown if log file cannot be opened
    */
   public static Logger createLogger(Class<?> clazz) throws Exception {
-    Logger logger = createLogger(clazz, LOG_FILE_SYSTEM_PROPERTY, null);
-    return logger;
-  }
-
-  /**
-   * Create logger using default values in logging properties file plus name of output logfile
-   * 
-   * @param clazz class for which the logger is being created
-   * @param loggingFileName name of logging properties file
-   * @return the logger for this class
-   * @throws Exception thrown if log file cannot be opened
-   */
-  public static Logger createLogger(Class<?> clazz, String loggingFileName) throws Exception {
-    Logger logger = createLogger(clazz, LOG_FILE_SYSTEM_PROPERTY, loggingFileName);
+    Logger logger = createLogger(clazz, null);
     return logger;
   }
 
@@ -69,12 +55,11 @@ public class Logging {
    * 
    * @param clazz class for which the logger is being created
    * @param logFileSystemProperty the system property to be used for logging
-   * @param logPropertiesLocation location of logging.properties file in classpath
    * @param loggingFileName name of logging properties file
    * @return the logger for this class
    * @throws Exception thrown if log file cannot be opened
    */
-  public static Logger createLogger(Class<?> clazz, String logFileSystemProperty, String loggingFileName) throws Exception {
+  public static Logger createLogger(Class<?> clazz, String loggingFileName) throws Exception {
       Logger logger = Logger.getLogger("");
       ClassLoader classLoader = clazz.getClassLoader();
       if (loggingFileName != null) {

@@ -40,6 +40,16 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 *
 	 */
 	public class Links {
+	  
+    /**
+     * Map to store Links by their Id
+     */
+    private Map<Long, Link> linkMap;
+
+	  
+	  public Links() {
+	     linkMap = new TreeMap<Long, Link>();
+	  }
 
 		/**
 		 * Add link to the internal container
@@ -104,6 +114,21 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 *
 	 */
 	public class LinkSegments {
+	  
+	  /**
+	   * Map to store link segments by their Id
+	   */
+	  private Map<Long, LinkSegment> linkSegmentMap;
+
+	  /**
+	   * Map to store all link segments for a given start node Id
+	   */
+	  private Map<Long, List<LinkSegment>> linkSegmentMapByStartNodeId;
+	  	  
+	  public LinkSegments() {
+	    linkSegmentMap = new TreeMap<Long, LinkSegment>();
+	    linkSegmentMapByStartNodeId = new HashMap<Long, List<LinkSegment>>();
+	  }
 
 		/**
 		 * Register a link segment on the network
@@ -205,7 +230,15 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 */
 	public class Nodes {
 
-		/**
+	  /**
+	   * Map to store nodes by their Id
+	   */
+	  private Map<Long, Node> nodeMap;
+
+	  public Nodes () {
+	    nodeMap = new TreeMap<Long, Node>();
+	  }
+	  /**
 		 * Add node to the internal container
 		 *
 		 * @param node node to be registered in this network
@@ -261,6 +294,16 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 * Internal class for all Mode specific code
 	 */
 	public class Modes {
+	  
+	  /**
+	   * Map to store modes by their Id
+	   */
+	  private Map<Long, Mode> modeMap;
+	  
+	  public Modes() {
+	    modeMap = new TreeMap<Long,Mode>();
+	  }
+	  
 		/**
 		 * Add mode to the internal container
 		 *
@@ -307,7 +350,37 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 		public Mode getModeById(long id) {
 			return modeMap.get(id);
 		}
-
+		
+    /**
+     * Retrieve a Mode by its external Id
+     * 
+     * This method is not efficient, since it loops through all the registered time periods in order 
+     * to find the required time period.  The equivalent method in InputBuilderListener is more
+     * efficient and should be used in preference to this in Java code.
+     * 
+     *  This method is intended for use by the Python interface, which cannot access the
+     *  InputBuilderListener.
+     *  
+     *  The Python interface cannot send values as Long objects, it can only send them as
+     *  Integers.  The internal map uses Long objects as keys.  So it is necessary to 
+     *  convert Integer inputs into Longs before using them.
+     * 
+     * @param externalId the external Id of the specified mode
+     * @return the retrieved mode, or null if no mode was found
+     */
+    public Mode getModeByExternalId(Object externalId)  {
+      if (externalId instanceof Integer) {
+        int value = (Integer) externalId;
+        externalId = (long) value;
+      }
+      for (Mode mode : modeMap.values()) {
+        if (mode.getExternalId().equals(externalId)) {
+          return mode;
+        }
+      }
+      return null;
+    }
+    
 	}
 
 	// Private
@@ -324,31 +397,6 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 * instances
 	 */
 	protected final PhysicalNetworkBuilder networkBuilder;
-
-	/**
-	 * Map to store Links by their Id
-	 */
-	protected Map<Long, Link> linkMap;
-
-	/**
-	 * Map to store link segments by their Id
-	 */
-	protected Map<Long, LinkSegment> linkSegmentMap;
-
-  /**
-   * Map to store all link segments for a given start node Id
-   */
-	protected Map<Long, List<LinkSegment>> linkSegmentMapByStartNodeId;
-
-	/**
-	 * Map to store nodes by their Id
-	 */
-	protected Map<Long, Node> nodeMap;
-
-	/**
-	 * Map to store modes by their Id
-	 */
-	protected Map<Long, Mode> modeMap;
 
 	// PUBLIC
 
@@ -379,15 +427,29 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	 */
 	public PhysicalNetwork(@Nonnull final PhysicalNetworkBuilder networkBuilder) {
 		this.id = IdGenerator.generateId(PhysicalNetwork.class);
-		// for now use tree map to ensure non-duplicate keys until we add functionality
-		// to account for this (treemap is slower than hashmap)
-		linkMap = new TreeMap<Long, Link>();
-		linkSegmentMap = new TreeMap<Long, LinkSegment>();
-		linkSegmentMapByStartNodeId = new HashMap<Long, List<LinkSegment>>();
-		nodeMap = new TreeMap<Long, Node>();
-		modeMap = new TreeMap<Long,Mode>();
 		this.networkBuilder = networkBuilder;
 	}
+	
+  /**
+   * Retrieve a Mode by its external Id
+   * 
+   * This method is not efficient, since it loops through all the registered time periods in order 
+   * to find the required time period.  The equivalent method in InputBuilderListener is more
+   * efficient and should be used in preference to this in Java code.
+   * 
+   *  This method is intended for use by the Python interface, which cannot access the
+   *  InputBuilderListener.
+   *  
+   *  The Python interface cannot send values as Long objects, it can only send them as
+   *  Integers.  The internal map uses Long objects as keys.  So it is necessary to 
+   *  convert Integer inputs into Longs before using them.
+   * 
+   * @param externalId the external Id of the specified mode
+   * @return the retrieved mode, or null if no mode was found
+   */
+  public Mode getModeByExternalId(Object externalId)  {
+    return modes.getModeByExternalId( externalId) ;
+  }
 
 	// Getters - Setters
 

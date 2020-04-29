@@ -74,8 +74,6 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      */
     protected final TreeMap<Long, TreeMap<Mode, ODDemandMatrix>> odDemands;
 
-	protected Map<Long, TimePeriod> timePeriodMap;
-
     /**
      * Inner class to register and store time periods for the current demand object
      * 
@@ -83,11 +81,17 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      *
      */
     public class TimePeriods {
+      
+      private Map<Long, TimePeriod> timePeriodMap;
+      
+      public TimePeriods() {
+        this.timePeriodMap = new HashMap<Long, TimePeriod>();
+      }
     	
     	/**
     	 * Register a time period
     	 * 
-    	 * @param timePeriod time period to be registerd
+    	 * @param timePeriod time period to be registered
     	 */
     	public void registerTimePeriod(TimePeriod timePeriod) {
     		timePeriodMap.put(timePeriod.getId(), timePeriod);
@@ -110,7 +114,37 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     	 */
     	public SortedSet<TimePeriod> getRegisteredTimePeriods() {
     		SortedSet<TimePeriod> timePeriodSet = new TreeSet<TimePeriod>(timePeriodMap.values());
-    		return timePeriodSet;
+     		return timePeriodSet;
+    	}
+    	
+    	/**
+    	 * Retrieve a Time Period by its external Id
+    	 * 
+    	 * This method is not efficient, since it loops through all the registered time periods in order 
+    	 * to find the required time period.  The equivalent method in InputBuilderListener is more
+    	 * efficient and should be used in preference to this in Java code.
+    	 * 
+    	 *  This method is intended for use by the Python interface, which cannot access the
+    	 *  InputBuilderListener.
+    	 *  
+    	 *  The Python interface cannot send values as Long objects, it can only send them as
+    	 *  Integers.  The internal map uses Long objects as keys.  So it is necessary to 
+    	 *  convert Integer inputs into Longs before using them.
+    	 * 
+    	 * @param externalId the external Id of the required time period
+    	 * @return the retrieve time period (or null if no time period was found)
+    	 */
+    	public TimePeriod getTimePeriodByExternalId(Object externalId)  {
+        if (externalId instanceof Integer) {
+          int value = (Integer) externalId;
+          externalId = (long) value;
+        }
+        for (TimePeriod timePeriod : timePeriodMap.values()) {
+          if (timePeriod.getExternalId().equals(externalId)) {
+            return timePeriod;
+          }
+        }
+        return null;
     	}
     	
     }
@@ -129,10 +163,41 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
         this.id = IdGenerator.generateId(Demands.class);
         odDemands = new TreeMap<Long, TreeMap<Mode, ODDemandMatrix>>();
         userClassMap = new HashMap<Long, UserClass>();
-        timePeriodMap = new HashMap<Long, TimePeriod>();
         travelerTypeMap = new HashMap<Long,TravelerType>();
     }
+    
+    /**
+     * Retrieve a Time Period by its external Id
+     * 
+     * This method is not efficient, since it loops through all the registered time periods in order 
+     * to find the required time period.  The equivalent method in InputBuilderListener is more
+     * efficient and should be used in preference to this in Java code.
+     * 
+     *  This method is intended for use by the Python interface, which cannot access the
+     *  InputBuilderListener.
+     *  
+     *  The Python interface cannot send values as Long objects, it can only send them as
+     *  Integers.  The internal map uses Long objects as keys.  So it is necessary to 
+     *  convert Integer inputs into Longs before using them.
+     * 
+     * @param externalId the external Id of the required time period
+     * @return the retrieve time period (or null if no time period was found)
+     */
+    public TimePeriod getTimePeriodByExternalId(Object externalId) {
+      return timePeriods.getTimePeriodByExternalId(externalId);
+    }
 
+    /**
+     * Returns a set of all registered time periods
+     * 
+     * This method should only be used by the Python interface.
+     * 
+     * @return Set of all registered time periods
+     */
+    public Set<TimePeriod> getRegisteredTimePeriods() {
+      return timePeriods.getRegisteredTimePeriods();
+    }
+        
     /**
      * Register provided odDemand
      *
@@ -232,19 +297,6 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      */
     public TravelerType getTravelerTypeById(long id) {
     	return travelerTypeMap.get(id);
-    }
-    
-    /**
-     * Retrieve TimePeriod by its Id
-     * 
-     * This method should be used by the Python PlanIt interface.  Java classes 
-     * should call demands.timePeriods.getTimePeriodById() instead
-     * 
-     * @param id the Id of the time period
-     * @return the retrieved time period 
-     */
-    public TimePeriod getTimePeriodById(long id) {
-    	return timePeriods.getTimePeriodById(id);
     }
     
 }
