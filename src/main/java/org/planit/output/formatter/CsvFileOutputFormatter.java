@@ -42,7 +42,7 @@ import org.planit.utils.network.physical.Mode;
 public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(CsvFileOutputFormatter.class.getCanonicalName());   
+  private static final Logger LOGGER = Logger.getLogger(CsvFileOutputFormatter.class.getCanonicalName());
 
   /**
    * Map of list of CSV output file names for each OutputType
@@ -128,9 +128,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
         ODRouteMatrix odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
         for (ODRouteIterator odPathIterator = odPathMatrix.iterator(); odPathIterator.hasNext();) {
           odPathIterator.next();
-          List<Object> rowValues = outputProperties.stream()
-              .map(outputProperty -> pathOutputTypeAdapter.getRouteOutputPropertyValue(outputProperty
-                  .getOutputProperty(), odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdType()))
+          List<Object> rowValues = outputProperties.stream().map(outputProperty -> pathOutputTypeAdapter
+              .getRouteOutputPropertyValue(outputProperty.getOutputProperty(), odPathIterator, mode, timePeriod,
+                  pathOutputTypeConfiguration.getPathIdType()))
               .map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
           csvPrinter.printRecord(rowValues);
         }

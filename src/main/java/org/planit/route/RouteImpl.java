@@ -24,6 +24,11 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
  */
 public class RouteImpl implements Route {
 
+  /**
+   * List containing the edge segments in the path
+   */
+  protected final List<EdgeSegment> path;
+  
 	/**
 	 * Create the route from an implicit origin to a specified destination, using the vertexPathAndCost array as input
 	 * coming from a shortest path algorithm output
@@ -49,11 +54,6 @@ public class RouteImpl implements Route {
 		Collections.reverse(pathEdgeSegments);
 		return new RouteImpl(pathEdgeSegments);
 	}
-
-	/**
-	 * List containing the edge segments in the path
-	 */
-	protected final List<EdgeSegment> path;
 
 	/**
 	 * Returns the path as a String of comma-separated node Id or external Id values
@@ -139,7 +139,7 @@ public class RouteImpl implements Route {
 	 * Constructor
 	 */
 	public RouteImpl() {
-		this.path = new ArrayList<EdgeSegment>();
+		path = new ArrayList<EdgeSegment>();
 	}
 
 	/**
@@ -148,7 +148,7 @@ public class RouteImpl implements Route {
 	 * @param pathEdgeSegments the path to set (not copied)
 	 */
 	public RouteImpl(final List<EdgeSegment> pathEdgeSegments) {
-		this.path = pathEdgeSegments;
+		path = pathEdgeSegments;
 	}
 
 	/**
@@ -156,7 +156,7 @@ public class RouteImpl implements Route {
 	 */
 	@Override
 	public Boolean addEdgeSegment(final EdgeSegment edgeSegment) {
-		return this.path.add(edgeSegment);
+		return path.add(edgeSegment);
 	}
 
 	/**
@@ -164,12 +164,26 @@ public class RouteImpl implements Route {
 	 */
 	@Override
 	public Iterator<EdgeSegment> getIterator() {
-		return this.path.iterator();
+		return path.iterator();
+	}
+	
+  /**
+   * Return the route as a List of EdgeSegments
+   * 
+   * @return the path as a List of EdgeSegments
+   */
+	@Override
+  public List<EdgeSegment> getPath() {
+	  return path;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
+
+  /**
+   * Outputs this path as a String, appropriate to a specified path output type
+   *
+   * @param pathOutputType  the specified path output type
+   * @return String describing the path
+   */
 	@Override
 	public String toString(final RouteIdType pathOutputType) {
 		switch (pathOutputType) {
@@ -183,16 +197,6 @@ public class RouteImpl implements Route {
 			return getRouteByNodeIdString();
 		}
 		return "";
-	}
-
-	/**
-	 * Outputs this path as a String, appropriate to a specified path output type
-
-	 * @return String describing the path based on internal segment id
-	 */
-	@Override
-	public String toString() {
-		return getRouteByEdgeSegmentIdString();
 	}
 
 }
