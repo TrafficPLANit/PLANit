@@ -167,27 +167,6 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     }
     
     /**
-     * Retrieve a Time Period by its external Id
-     * 
-     * This method is not efficient, since it loops through all the registered time periods in order 
-     * to find the required time period.  The equivalent method in InputBuilderListener is more
-     * efficient and should be used in preference to this in Java code.
-     * 
-     *  This method is intended for use by the Python interface, which cannot access the
-     *  InputBuilderListener.
-     *  
-     *  The Python interface cannot send values as Long objects, it can only send them as
-     *  Integers.  The internal map uses Long objects as keys.  So it is necessary to 
-     *  convert Integer inputs into Longs before using them.
-     * 
-     * @param externalId the external Id of the required time period
-     * @return the retrieve time period (or null if no time period was found)
-     */
-    public TimePeriod getTimePeriodByExternalId(Object externalId) {
-      return timePeriods.getTimePeriodByExternalId(externalId);
-    }
-
-    /**
      * Returns a set of all registered time periods
      * 
      * This method should only be used by the Python interface.
@@ -196,6 +175,17 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      */
     public Set<TimePeriod> getRegisteredTimePeriods() {
       return timePeriods.getRegisteredTimePeriods();
+    }
+    
+    /**
+     * Retrieve the TimePeriods local class
+     * 
+     * This method should only be called by the Python interface
+     * 
+     * @return the TimePeriods local class
+     */
+    public TimePeriods getTimePeriods() {
+      return timePeriods;
     }
         
     /**

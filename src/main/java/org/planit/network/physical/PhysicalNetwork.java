@@ -431,24 +431,14 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	}
 	
   /**
-   * Retrieve a Mode by its external Id
+   * Return the Modes internal class
    * 
-   * This method is not efficient, since it loops through all the registered time periods in order 
-   * to find the required time period.  The equivalent method in InputBuilderListener is more
-   * efficient and should be used in preference to this in Java code.
+   * This method should only be used by the Python interface.
    * 
-   *  This method is intended for use by the Python interface, which cannot access the
-   *  InputBuilderListener.
-   *  
-   *  The Python interface cannot send values as Long objects, it can only send them as
-   *  Integers.  The internal map uses Long objects as keys.  So it is necessary to 
-   *  convert Integer inputs into Longs before using them.
-   * 
-   * @param externalId the external Id of the specified mode
-   * @return the retrieved mode, or null if no mode was found
+   * @return the Modes local class
    */
-  public Mode getModeByExternalId(Object externalId)  {
-    return modes.getModeByExternalId( externalId) ;
+  public Modes getModes() {
+    return modes;
   }
 
 	// Getters - Setters
