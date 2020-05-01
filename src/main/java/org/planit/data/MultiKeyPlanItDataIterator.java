@@ -1,4 +1,4 @@
-package org.planit.utils;
+package org.planit.data;
 
 import java.util.Iterator;
 

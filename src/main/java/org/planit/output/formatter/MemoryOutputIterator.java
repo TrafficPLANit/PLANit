@@ -3,7 +3,7 @@ package org.planit.output.formatter;
 import java.util.Iterator;
 
 import org.planit.data.MultiKeyPlanItData;
-import org.planit.utils.MultiKeyPlanItDataIterator;
+import org.planit.data.MultiKeyPlanItDataIterator;
 
 /**
  * Iterator which loops through the keys and values stored in the MemoryOutputFormatter

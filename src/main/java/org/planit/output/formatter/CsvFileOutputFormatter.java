@@ -29,7 +29,7 @@ import org.planit.output.enums.OutputTypeEnum;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.utils.OutputUtils;
+import org.planit.utils.output.OutputUtils;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
 
