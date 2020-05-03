@@ -110,7 +110,7 @@ public abstract class RouteOutputTypeAdapterImpl extends OutputTypeAdapterImpl i
 				return getDestinationZoneExternalId(odRouteIterator);
 			case DESTINATION_ZONE_ID:
 				return getDestinationZoneId(odRouteIterator);
-			case PATH:
+			case PATH_STRING:
 			    return getRouteAsString(odRouteIterator, routeOutputType);
 			case ORIGIN_ZONE_EXTERNAL_ID:
 				return getOriginZoneExternalId(odRouteIterator);

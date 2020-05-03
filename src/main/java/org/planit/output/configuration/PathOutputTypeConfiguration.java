@@ -75,7 +75,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
 		addProperty(OutputProperty.MODE_EXTERNAL_ID);
 		addProperty(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID);
 		addProperty(OutputProperty.DESTINATION_ZONE_EXTERNAL_ID);
-		addProperty(OutputProperty.PATH);
+		addProperty(OutputProperty.PATH_STRING);
 		pathIdType = RouteIdType.LINK_SEGMENT_EXTERNAL_ID;
 	}
 	
@@ -149,7 +149,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
 			return true;
 		case MODE_ID:
 			return true;
-		case PATH:
+		case PATH_STRING:
 			return true;
 		case ORIGIN_ZONE_EXTERNAL_ID:
 			return true;
