@@ -1,4 +1,4 @@
-package org.planit.utils;
+package org.planit.data;
 
 import org.apache.commons.collections4.IterableMap;
 import org.apache.commons.collections4.MapIterator;

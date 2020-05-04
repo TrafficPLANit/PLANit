@@ -257,20 +257,9 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
       OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType, OutputAdapter outputAdapter,
       Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
     if (!(currentOutputType instanceof SubOutputTypeEnum
-        && ((SubOutputTypeEnum) currentOutputType) instanceof ODSkimSubOutputType)) { // for od data
-                                                                                      // we assume
-                                                                                      // all data is
-                                                                                      // classified
-                                                                                      // into sub
-                                                                                      // output
-                                                                                      // types of
-                                                                                      // type
-                                                                                      // ODSkimSubOutputType,
-                                                                                      // hence this
-                                                                                      // check to
-                                                                                      // make sure
-                                                                                      // we can cast
-                                                                                      // safely
+        && ((SubOutputTypeEnum) currentOutputType) instanceof ODSkimSubOutputType)) { 
+   // for od data we assume all data is classified into sub output types of type ODSkimSubOutputType,
+   // hence this check to make sure we can cast safely
       String errorMessage = "currentOutputTypeEnum is not compatible with outputTypeconfiguration";
       LOGGER.severe(errorMessage);
       throw new PlanItException(errorMessage);
@@ -308,25 +297,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   protected void writePathResultsForCurrentTimePeriod(
       OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType, OutputAdapter outputAdapter,
       Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
-    if (!(currentOutputType instanceof OutputType) && ((OutputType) currentOutputType) == OutputType.PATH) { // for
-                                                                                                             // links
-                                                                                                             // we
-                                                                                                             // assume
-                                                                                                             // no
-                                                                                                             // sub-output
-                                                                                                             // types
-                                                                                                             // exist
-                                                                                                             // (yet),
-                                                                                                             // hence
-                                                                                                             // this
-                                                                                                             // check
-                                                                                                             // to
-                                                                                                             // make
-                                                                                                             // sure
-                                                                                                             // we
-                                                                                                             // can
-                                                                                                             // cast
-                                                                                                             // safely
+    if (!(currentOutputType instanceof OutputType) && ((OutputType) currentOutputType) == OutputType.PATH) { 
+      // for links we assume no sub-output types exist (yet), hence this check to make sure we can cast safely
       String errorMessage = "currentOutputTypeEnum is not compatible with outputTypeconfiguration";
       LOGGER.severe(errorMessage);
       throw new PlanItException(errorMessage);
@@ -334,8 +306,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     OutputType outputType = (OutputType) currentOutputType;
     OutputProperty[] outputProperties = outputValueProperties.get(outputType);
     OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
-    RouteOutputTypeAdapter pathOutputTypeAdapter = (RouteOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(
-        outputType);
+    RouteOutputTypeAdapter pathOutputTypeAdapter = 
+        (RouteOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
     PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
     for (Mode mode : modes) {
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);

@@ -1,23 +1,27 @@
 package org.planit.route;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.planit.output.enums.RouteIdType;
 import org.planit.utils.graph.EdgeSegment;
 
 /** Route interface representing a route through the network on edge segment level
+ * 
  * @author markr
  *
  */
 public interface Route {
 
 	/** add an edge segment to the path by appending it
+	 * 
 	 * @param edgeSegment
 	 * @return true as per Collection.add
 	 */
 	Boolean addEdgeSegment(EdgeSegment edgeSegment);
 
 	/** Iterator over the available edge segments
+	 * 
 	 * @return edgseSegmentIterator
 	 */
 	Iterator<EdgeSegment> getIterator();
@@ -29,13 +33,12 @@ public interface Route {
 	 * @return String describing the path
 	 */
 	public String toString(final RouteIdType pathOutputType);
-
+	
 	/**
-	 * Outputs this path as a String, appropriate to a specified path output type
-
-	 * @return String describing the path
+	 * Return the route as a List of EdgeSegments
+	 * 
+	 * @return the path as a List of EdgeSegments
 	 */
-	@Override
-	String toString();
+	public List<EdgeSegment> getPath();
 
 }

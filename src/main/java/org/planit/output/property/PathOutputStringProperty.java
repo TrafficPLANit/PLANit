@@ -3,7 +3,7 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 
-public final class PathOutputProperty extends BaseOutputProperty {
+public final class PathOutputStringProperty extends BaseOutputProperty {
 
 	public static final String NAME = "Path";
 
@@ -24,7 +24,7 @@ public final class PathOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public OutputProperty getOutputProperty() {
-		return OutputProperty.PATH;
+		return OutputProperty.PATH_STRING;
 	}
 
 	@Override
