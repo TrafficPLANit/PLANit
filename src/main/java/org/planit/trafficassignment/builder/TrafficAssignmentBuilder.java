@@ -234,6 +234,16 @@ public abstract class TrafficAssignmentBuilder {
     public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
         return parentAssignment.activateOutput(outputType);
     }
+    
+	/**
+	 * Verify if a given output type is active
+	 * @param outputType
+	 * @return true if active, false otherwise
+	 */
+	public boolean isOutputTypeActive(final OutputType outputType)
+	{
+		return parentAssignment.isOutputTypeActive(outputType);
+	}    
 
     /**
      * Provide the output configuration for user access

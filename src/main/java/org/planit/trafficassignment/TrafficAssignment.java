@@ -309,7 +309,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	// Public methods
 
 	/**
-	 * Initialize the traffic assignment defaults: (i) activate link output
+	 * Initialize the traffic assignment defaults:
 	 *
 	 * @throws PlanItException thrown when there is an error
 	 */
@@ -328,7 +328,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
 	    OutputTypeConfiguration theOutputTypeConfiguration = null;
-		if (!outputManager.isOutputTypeActive(outputType)) {
+		if (!isOutputTypeActive(outputType)) {
 			LOGGER.info("Registering Output Type " + outputType);
 			final OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(outputType);
 			outputManager.registerOutputTypeAdapter(outputType, outputTypeAdapter);
@@ -337,6 +337,16 @@ public abstract class TrafficAssignment extends NetworkLoading {
 		    theOutputTypeConfiguration = outputManager.getOutputConfiguration().getOutputTypeConfiguration(outputType);
 		}
 		return theOutputTypeConfiguration;
+	}
+	
+	/**
+	 * Verify if a given output type is active
+	 * @param outputType
+	 * @return true if active, false otherwise
+	 */
+	public boolean isOutputTypeActive(final OutputType outputType)
+	{
+		return outputManager.isOutputTypeActive(outputType);
 	}
 
 	/**
