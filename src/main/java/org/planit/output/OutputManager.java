@@ -139,6 +139,15 @@ public class OutputManager {
 	}
 	
 	/**
+	 * Remove the output type configuration for a specified output type
+	 * 
+	 * @param outputType the output type whose configuration is to be deregistered
+	 */
+	public void deregisterOutputTypeConfiguration(OutputType outputType) {
+	  outputTypeConfigurations.remove(outputType);
+	}
+	
+	/**
 	 * Register the OutputTypeAdapter for a given output type
 	 * 
      * @param outputType  the output type to register the output type adapter for
@@ -146,6 +155,15 @@ public class OutputManager {
 	 */
 	public void registerOutputTypeAdapter(OutputType outputType, OutputTypeAdapter outputTypeAdapter) {
 		outputAdapter.registerOutputTypeAdapter(outputType, outputTypeAdapter);
+	}
+	
+	/**
+	 * Deregister the output adapter for a specified output type
+	 * 
+	 * @param outputType the output type whose adapter is to be deregistered
+	 */
+	public void deregisterOutputTypeAdapter(OutputType outputType) {
+	  outputAdapter.deregisterOutputTypeAdapter(outputType);
 	}
 
 	// getters - setters

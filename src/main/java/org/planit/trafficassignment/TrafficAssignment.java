@@ -332,11 +332,24 @@ public abstract class TrafficAssignment extends NetworkLoading {
 			LOGGER.info("Registering Output Type " + outputType);
 			final OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(outputType);
 			outputManager.registerOutputTypeAdapter(outputType, outputTypeAdapter);
-	        theOutputTypeConfiguration = outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
+	    theOutputTypeConfiguration = outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
 		} else {
-		    theOutputTypeConfiguration = outputManager.getOutputConfiguration().getOutputTypeConfiguration(outputType);
+		  theOutputTypeConfiguration = outputManager.getOutputConfiguration().getOutputTypeConfiguration(outputType);
 		}
 		return theOutputTypeConfiguration;
+	}
+	
+	/**
+	 * Deactivate the specified output type
+	 * 
+	 * @param outputType the output type to be deactivated
+	 */
+	public void deactivateOutput(final OutputType outputType) {
+	  if (isOutputTypeActive(outputType)) {
+	    LOGGER.info("Deregistering Output Type " + outputType);
+	    outputManager.deregisterOutputTypeConfiguration(outputType);
+	    outputManager.deregisterOutputTypeAdapter(outputType);
+	  }
 	}
 	
 	/**

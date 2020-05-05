@@ -93,6 +93,15 @@ public class OutputAdapter {
 	}
 	
 	/**
+	 * Deregister an output type adapter for a specified output type
+	 * 
+	 * @param outputType the output type whose adapter is to be deregistered
+	 */
+	public void deregisterOutputTypeAdapter(OutputType outputType) {
+	  outputTypeAdapters.remove(outputType);
+	}
+	
+	/**
 	 * Retrieve an output type adapter for a specified output type
 	 * 
 	 * @param outputType the specified output type
