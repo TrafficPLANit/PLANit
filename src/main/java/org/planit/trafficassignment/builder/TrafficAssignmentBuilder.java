@@ -235,6 +235,15 @@ public abstract class TrafficAssignmentBuilder {
         return parentAssignment.activateOutput(outputType);
     }
     
+    /**
+     * Deactivate an output type
+     * 
+     * @param outputType OutputType to be deactivated
+     */
+    public void deactivateOutput(final OutputType outputType) {
+      parentAssignment.deactivateOutput(outputType);
+    }
+    
 	/**
 	 * Verify if a given output type is active
 	 * @param outputType
