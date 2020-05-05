@@ -347,7 +347,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public boolean isOutputTypeActive(final OutputType outputType)
 	{
 		return outputManager.isOutputTypeActive(outputType);
-	}
+	} 
 
 	/**
 	 * Execute assignment, including initializing resources, running equilibration

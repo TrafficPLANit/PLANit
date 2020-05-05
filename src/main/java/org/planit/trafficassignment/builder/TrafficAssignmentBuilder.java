@@ -243,7 +243,7 @@ public abstract class TrafficAssignmentBuilder {
 	public boolean isOutputTypeActive(final OutputType outputType)
 	{
 		return parentAssignment.isOutputTypeActive(outputType);
-	}    
+	}     
 
     /**
      * Provide the output configuration for user access
