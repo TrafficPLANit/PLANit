@@ -33,9 +33,9 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
   /** the logger */
   private static final Logger LOGGER =  Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());
 
-	public static final int ORIGIN_DESTINATION_ID = 1;
-	public static final int ORIGIN_DESTINATION_EXTERNAL_ID = 2;
-	public static final int ORIGIN_DESTINATION_NOT_IDENTIFIED = 3;
+	private static final int ORIGIN_DESTINATION_ID_IDENTIFICATION = 1;
+	private static final int ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION = 2;
+	private static final int ORIGIN_DESTINATION_NOT_IDENTIFIED = 3;
 	
 	/**
 	 * Enumeration to specify the type of object to be recorded in the paths
@@ -51,10 +51,10 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
 	private int findIdentificationMethod(OutputProperty [] outputKeyProperties) {
 		List<OutputProperty> outputKeyPropertyList = Arrays.asList(outputKeyProperties);
 		if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_ID)) {
-			return ORIGIN_DESTINATION_ID;
+			return ORIGIN_DESTINATION_ID_IDENTIFICATION;
 		}
 		if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_EXTERNAL_ID)) {
-			return ORIGIN_DESTINATION_EXTERNAL_ID;
+			return ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION;
 		}
 		return ORIGIN_DESTINATION_NOT_IDENTIFIED;
 	}
@@ -90,13 +90,13 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
 		OutputProperty[] outputKeyPropertiesArray = null;
 		boolean valid = false;
 		switch (findIdentificationMethod(outputKeyProperties)) {
-		case OriginDestinationOutputTypeConfiguration.ORIGIN_DESTINATION_ID:
+		case ORIGIN_DESTINATION_ID_IDENTIFICATION:
 			outputKeyPropertiesArray = new OutputProperty[2];
 			outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_ID;
 			outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_ID;
 			valid = true;
 			break;
-		case OriginDestinationOutputTypeConfiguration.ORIGIN_DESTINATION_EXTERNAL_ID:
+		case ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION:
 			outputKeyPropertiesArray = new OutputProperty[2];
 			outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_EXTERNAL_ID;
 			outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_EXTERNAL_ID;
