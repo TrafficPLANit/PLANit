@@ -287,8 +287,6 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 				return getMaximumSpeed(linkSegment, mode);
 			case NUMBER_OF_LANES:
 				return getNumberOfLanes(linkSegment);
-			case TOTAL_COST_TO_END_NODE:
-				return OutputFormatter.NOT_SPECIFIED;
 			case UPSTREAM_NODE_EXTERNAL_ID:
 				return getUpstreamNodeExternalId(linkSegment);
 			case UPSTREAM_NODE_ID:

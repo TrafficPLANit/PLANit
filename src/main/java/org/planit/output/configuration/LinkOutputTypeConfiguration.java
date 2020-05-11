@@ -188,8 +188,6 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
         return true;
       case TIME_PERIOD_ID:
         return true;
-      case TOTAL_COST_TO_END_NODE:
-        return true;
       case UPSTREAM_NODE_EXTERNAL_ID:
         return true;
       case UPSTREAM_NODE_ID:
