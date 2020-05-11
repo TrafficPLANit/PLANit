@@ -85,7 +85,6 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
     addProperty(OutputProperty.DENSITY);
     addProperty(OutputProperty.LINK_SEGMENT_ID);
     addProperty(OutputProperty.LINK_SEGMENT_EXTERNAL_ID);
-    addProperty(OutputProperty.MODE_EXTERNAL_ID);
     addProperty(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID);
     addProperty(OutputProperty.UPSTREAM_NODE_ID);
     addProperty(OutputProperty.UPSTREAM_NODE_LOCATION);
