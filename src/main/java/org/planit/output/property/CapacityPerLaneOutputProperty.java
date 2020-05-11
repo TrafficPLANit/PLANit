@@ -14,7 +14,7 @@ public final class CapacityPerLaneOutputProperty extends BaseOutputProperty {
 
 	@Override
 	public Units getUnits() {
-		return Units.VEH_KM;
+		return Units.VEH_H;
 	}
 
 	@Override
