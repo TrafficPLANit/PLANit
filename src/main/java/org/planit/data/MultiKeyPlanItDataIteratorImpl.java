@@ -63,28 +63,25 @@ public class MultiKeyPlanItDataIteratorImpl implements MultiKeyPlanItDataIterato
    */
   @Override
   public boolean hasNext() {
-    boolean hasNext = isSingleKey ? singleKeyMapIterator.hasNext() : multiKeyMapIterator.hasNext();
-    if (hasNext) {
-      if (isSingleKey) {
-        Object singleKey = singleKeyMapIterator.next();
-        keys =  new Object[] {singleKey};
-        values = singleKeyMapIterator.getValue();
-      } else {
-        MultiKey<? extends Object> multiKey = multiKeyMapIterator.next();
-        keys = multiKey.getKeys();
-        values = multiKeyMapIterator.getValue();
-      }
-    }
-    return hasNext;
+    return isSingleKey ? singleKeyMapIterator.hasNext() : multiKeyMapIterator.hasNext();
   }
 
   /**
-   * Returns the next array of keys in the iteration
+   * Advances the iteration and returns the next array of keys in the iteration
    * 
    * @return the next array of keys in the iteration
    */
   @Override
   public Object[] next() {
+    if (isSingleKey) {
+      Object singleKey = singleKeyMapIterator.next();
+      keys =  new Object[] {singleKey};
+      values = singleKeyMapIterator.getValue();
+    } else {
+      MultiKey<? extends Object> multiKey = multiKeyMapIterator.next();
+      keys = multiKey.getKeys();
+      values = multiKeyMapIterator.getValue();
+    }
     return keys;
   }
 
