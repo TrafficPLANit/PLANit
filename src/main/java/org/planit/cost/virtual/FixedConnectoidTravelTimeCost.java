@@ -1,4 +1,3 @@
-
 package org.planit.cost.virtual;
 
 import org.planit.exceptions.PlanItException;

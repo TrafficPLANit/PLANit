@@ -144,7 +144,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
   			String errorMessage = "Error during dispatchTrafficComponentEvent";
         LOGGER.severe(errorMessage);
         throw new PlanItException(errorMessage);
- 		}
+  		}
     }
 
     // PUBLIC
