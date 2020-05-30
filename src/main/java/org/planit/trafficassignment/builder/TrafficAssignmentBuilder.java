@@ -150,9 +150,7 @@ public abstract class TrafficAssignmentBuilder {
 	public PhysicalCost createAndRegisterPhysicalCost(final String physicalTraveltimeCostFunctionType)
 			throws PlanItException {
 		final PhysicalCost physicalCost = physicalCostFactory.create(physicalTraveltimeCostFunctionType);
-		if (parentAssignment.getPhysicalCost() == null) {
-			parentAssignment.setPhysicalCost(physicalCost);
-		}
+		parentAssignment.setPhysicalCost(physicalCost);
 		return physicalCost;
 	}
 
@@ -167,9 +165,7 @@ public abstract class TrafficAssignmentBuilder {
 	public VirtualCost createAndRegisterVirtualCost(final String virtualTraveltimeCostFunctionType)
 			throws PlanItException {
 		final VirtualCost createdCost = virtualCostFactory.create(virtualTraveltimeCostFunctionType);
-		if (parentAssignment.getVirtualCost() == null) {
-			parentAssignment.setVirtualCost(createdCost);
-		}
+		parentAssignment.setVirtualCost(createdCost);
 		return createdCost;
 	}
 

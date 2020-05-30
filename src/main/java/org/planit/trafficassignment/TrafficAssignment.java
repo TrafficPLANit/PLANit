@@ -49,9 +49,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
 	/** generated UID */
 	private static final long serialVersionUID = 801775330292422910L;
-	
-  /** the logger */
-  private static final Logger LOGGER =  Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());	
+
+	/** the logger */
+	private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());
 
 	/**
 	 * The zoning to use
@@ -67,9 +67,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	// Protected
 
 	/**
-     * The builder for all traffic assignment instances
-     */
-    protected TrafficAssignmentBuilder trafficAssignmentBuilder;
+	 * The builder for all traffic assignment instances
+	 */
+	protected TrafficAssignmentBuilder trafficAssignmentBuilder;
 
 	/**
 	 * Physical network to use
@@ -98,10 +98,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	protected int numberOfNetworkSegments;
 
-    /**
-     * holds the count of all vertices in the transport network
-     */
-    protected int numberOfNetworkVertices;
+	/**
+	 * holds the count of all vertices in the transport network
+	 */
+	protected int numberOfNetworkVertices;
 
 	/**
 	 * the smoothing to use
@@ -128,17 +128,20 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	protected Map<Long, InitialLinkSegmentCost> initialLinkSegmentCostByTimePeriod;
 
-	/** create the traffic assignment builder for this traffic assignment
-	 * @param trafficComponentCreateListener listener to register on all traffic assignment components that this builder can build
-	 * @param physicalNetwork the physical network this assignment works on
-	 * @param zoning the zoning this assignment works on
-	 * @param demands the demands this assignment works on
+	/**
+	 * create the traffic assignment builder for this traffic assignment
+	 * 
+	 * @param trafficComponentCreateListener listener to register on all traffic
+	 *                                       assignment components that this builder
+	 *                                       can build
+	 * @param physicalNetwork                the physical network this assignment
+	 *                                       works on
+	 * @param zoning                         the zoning this assignment works on
+	 * @param demands                        the demands this assignment works on
 	 * @return created traffic assignment builder
 	 */
 	protected abstract TrafficAssignmentBuilder createTrafficAssignmentBuilder(
-			InputBuilderListener trafficComponentCreateListener,
-			Demands demands,
-			Zoning zoning,
+			InputBuilderListener trafficComponentCreateListener, Demands demands, Zoning zoning,
 			PhysicalNetwork physicalNetwork) throws PlanItException;
 
 	/**
@@ -151,7 +154,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
 	// Protected methods
 
-	/** register all the known listeners for the passed in eventType on this producer for this event type
+	/**
+	 * register all the known listeners for the passed in eventType on this producer
+	 * for this event type
+	 * 
 	 * @param eventType
 	 */
 	protected abstract void addRegisteredEventTypeListeners(EventType eventType);
@@ -164,82 +170,90 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	protected void checkForEmptyComponents() throws PlanItException {
 		if (demands == null) {
 			String errorMessage = "Demand is null";
-      LOGGER.severe(errorMessage);
-      throw new PlanItException(errorMessage);
+			LOGGER.severe(errorMessage);
+			throw new PlanItException(errorMessage);
 		}
 		if (physicalNetwork == null) {
 			String errorMessage = "Network is null";
-      LOGGER.severe(errorMessage);
-      throw new PlanItException(errorMessage);
+			LOGGER.severe(errorMessage);
+			throw new PlanItException(errorMessage);
 		}
 		if (smoothing == null) {
 			String errorMessage = "Smoothing is null";
-      LOGGER.severe(errorMessage);
-      throw new PlanItException(errorMessage);
+			LOGGER.severe(errorMessage);
+			throw new PlanItException(errorMessage);
 		}
 		if (zoning == null) {
 			String errorMessage = "Zoning is null";
-      LOGGER.severe(errorMessage);
-      throw new PlanItException(errorMessage);
+			LOGGER.severe(errorMessage);
+			throw new PlanItException(errorMessage);
 		}
 	}
 
-    /**
-     * Verify if the traffic assignment components are compatible and nonnull
-     *
-     * @throws PlanItException thrown if the components are not compatible
-     */
-    protected void verifyComponentCompatibility() throws PlanItException {
-        // TODO
-    }
+	/**
+	 * Verify if the traffic assignment components are compatible and nonnull
+	 *
+	 * @throws PlanItException thrown if the components are not compatible
+	 */
+	protected void verifyComponentCompatibility() throws PlanItException {
+		// TODO
+	}
 
 	/**
-	 * Initialize the transport network by combining the physical and virtual components
+	 * Initialize the transport network by combining the physical and virtual
+	 * components
+	 * 
 	 * @throws PlanItException thrown if there is an error
 	 */
 	protected void createTransportNetwork() throws PlanItException {
-        transportNetwork = new TransportNetwork(physicalNetwork, zoning);
-        transportNetwork.integrateConnectoidsAndLinks();
-        this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
-        this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
+		transportNetwork = new TransportNetwork(physicalNetwork, zoning);
+		transportNetwork.integrateConnectoidsAndLinks();
+		this.numberOfNetworkSegments = getTransportNetwork().getTotalNumberOfEdgeSegments();
+		this.numberOfNetworkVertices = getTransportNetwork().getTotalNumberOfVertices();
 	}
 
 	/**
 	 * detach the virtual and physical transport network again
+	 * 
 	 * @throws PlanItException thrown if there is an error
 	 */
 	protected void disbandTransportNetwork() throws PlanItException {
-        // Disconnect here since the physical network might be reused in a different assignment
-        transportNetwork.removeVirtualNetworkFromPhysicalNetwork();
+		// Disconnect here since the physical network might be reused in a different
+		// assignment
+		transportNetwork.removeVirtualNetworkFromPhysicalNetwork();
 	}
 
 	/**
-	 * Initialize all relevant traffic assignment components before execution of the assignment commences
+	 * Initialize all relevant traffic assignment components before execution of the
+	 * assignment commences
 	 *
 	 * @throws PlanItException thrown if there is an error
 	 */
-	protected void initialiseBeforeExecution() throws PlanItException{
-	    // verify validity
-        checkForEmptyComponents();
-        verifyComponentCompatibility();
-        createTransportNetwork();
-        outputManager.initialiseBeforeSimulation(getId());
-        physicalCost.initialiseBeforeSimulation(physicalNetwork);
-         virtualCost.initialiseBeforeSimulation(zoning.getVirtualNetwork());
+	protected void initialiseBeforeExecution() throws PlanItException {
+		// verify validity
+		checkForEmptyComponents();
+		verifyComponentCompatibility();
+		createTransportNetwork();
+		outputManager.initialiseBeforeSimulation(getId());
+		physicalCost.initialiseBeforeSimulation(physicalNetwork);
+		virtualCost.initialiseBeforeSimulation(zoning.getVirtualNetwork());
 	}
 
 	/**
-	 * Finalize all relevant traffic assignment components after execution of the assignment has ended
+	 * Finalize all relevant traffic assignment components after execution of the
+	 * assignment has ended
+	 * 
 	 * @throws PlanItException thrown if there is an error
 	 */
 	protected void finalizeAfterExecution() throws PlanItException {
 
-	    disbandTransportNetwork();
+		disbandTransportNetwork();
 
-        // Finalize traffic assignment components including the traffic assignment itself
-        outputManager.finaliseAfterSimulation();
+		// Finalize traffic assignment components including the traffic assignment
+		// itself
+		outputManager.finaliseAfterSimulation();
 
-	    LOGGER.info("Finished simulation");
+		LOGGER.info("Finished simulation");
 	}
 
 	// Public
@@ -260,23 +274,23 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * Each traffic assignment class can have its own builder which reveals what
 	 * components need to be registered on the traffic assignment instance in order
 	 * to function properly.
-	 * @param physicalNetwork this assignment works on
-	 * @param zoning this assignment works on
-	 * @param demands this assignment works on
+	 * 
+	 * @param physicalNetwork                 this assignment works on
+	 * @param zoning                          this assignment works on
+	 * @param demands                         this assignment works on
 	 *
-	 * @param trafficComponentCreateListener, the listener should be registered on all traffic component factories the traffic assignment utilises
+	 * @param trafficComponentCreateListener, the listener should be registered on
+	 *                                        all traffic component factories the
+	 *                                        traffic assignment utilises
 	 * @return trafficAssignmentBuilder to use
 	 * @throws PlanItException
 	 */
-	public TrafficAssignmentBuilder collectBuilder(
-			final InputBuilderListener trafficComponentCreateListener,
-			final Demands theDemands,
-			final Zoning theZoning,
-			final PhysicalNetwork thePhysicalNetwork) throws PlanItException {
-		if(this.trafficAssignmentBuilder == null) {
-			this.trafficAssignmentBuilder =
-					createTrafficAssignmentBuilder(
-							trafficComponentCreateListener, theDemands, theZoning, thePhysicalNetwork);
+	public TrafficAssignmentBuilder collectBuilder(final InputBuilderListener trafficComponentCreateListener,
+			final Demands theDemands, final Zoning theZoning, final PhysicalNetwork thePhysicalNetwork)
+			throws PlanItException {
+		if (this.trafficAssignmentBuilder == null) {
+			this.trafficAssignmentBuilder = createTrafficAssignmentBuilder(trafficComponentCreateListener, theDemands,
+					theZoning, thePhysicalNetwork);
 		}
 		return this.trafficAssignmentBuilder;
 	}
@@ -292,7 +306,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * Create the output type adapter for the current output type
 	 *
 	 * @param outputType the current output type
-	 * @return the output type adapter corresponding to the current traffic assignment and output type
+	 * @return the output type adapter corresponding to the current traffic
+	 *         assignment and output type
 	 */
 	public abstract OutputTypeAdapter createOutputTypeAdapter(OutputType outputType);
 
@@ -323,44 +338,45 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 * which is passed on to the output manager
 	 *
 	 * @param outputType OutputType object to be used
-	 * @return outputTypeConfiguration the output type configuration that is now active
+	 * @return outputTypeConfiguration the output type configuration that is now
+	 *         active
 	 * @throws PlanItException thrown if there is an error activating the output
 	 */
 	public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
-	    OutputTypeConfiguration theOutputTypeConfiguration = null;
+		OutputTypeConfiguration theOutputTypeConfiguration = null;
 		if (!isOutputTypeActive(outputType)) {
 			LOGGER.info("Registering Output Type " + outputType);
 			final OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(outputType);
 			outputManager.registerOutputTypeAdapter(outputType, outputTypeAdapter);
-	    theOutputTypeConfiguration = outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
+			theOutputTypeConfiguration = outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
 		} else {
-		  theOutputTypeConfiguration = outputManager.getOutputConfiguration().getOutputTypeConfiguration(outputType);
+			theOutputTypeConfiguration = outputManager.getOutputConfiguration().getOutputTypeConfiguration(outputType);
 		}
 		return theOutputTypeConfiguration;
 	}
-	
+
 	/**
 	 * Deactivate the specified output type
 	 * 
 	 * @param outputType the output type to be deactivated
 	 */
 	public void deactivateOutput(final OutputType outputType) {
-	  if (isOutputTypeActive(outputType)) {
-	    LOGGER.info("Deregistering Output Type " + outputType);
-	    outputManager.deregisterOutputTypeConfiguration(outputType);
-	    outputManager.deregisterOutputTypeAdapter(outputType);
-	  }
+		if (isOutputTypeActive(outputType)) {
+			LOGGER.info("Deregistering Output Type " + outputType);
+			outputManager.deregisterOutputTypeConfiguration(outputType);
+			outputManager.deregisterOutputTypeAdapter(outputType);
+		}
 	}
-	
+
 	/**
 	 * Verify if a given output type is active
+	 * 
 	 * @param outputType
 	 * @return true if active, false otherwise
 	 */
-	public boolean isOutputTypeActive(final OutputType outputType)
-	{
+	public boolean isOutputTypeActive(final OutputType outputType) {
 		return outputManager.isOutputTypeActive(outputType);
-	} 
+	}
 
 	/**
 	 * Execute assignment, including initializing resources, running equilibration
@@ -447,10 +463,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	/**
 	 * Set the initial link segment cost for a specified time period
 	 *
-	 * @param timePeriod the specified time period
+	 * @param timePeriod             the specified time period
 	 * @param initialLinkSegmentCost the initial link segment cost
 	 */
-	public void setInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCost initialLinkSegmentCost) {
+	public void setInitialLinkSegmentCost(final TimePeriod timePeriod,
+			final InitialLinkSegmentCost initialLinkSegmentCost) {
 		initialLinkSegmentCostByTimePeriod.put(timePeriod.getId(), initialLinkSegmentCost);
 	}
 
@@ -474,14 +491,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public void setPhysicalCost(final PhysicalCost physicalCost) throws PlanItException {
 		this.physicalCost = physicalCost;
 		if (this.physicalCost instanceof InteractorAccessor) {
-			// request an accessee instance that we can use to collect the relevant information for the cost
-			final EventType requestAccessee = ((InteractorAccessor)physicalCost).getRequestedAccesseeEventType();
+			// request an accessee instance that we can use to collect the relevant
+			// information for the cost
+			final EventType requestAccessee = ((InteractorAccessor) physicalCost).getRequestedAccesseeEventType();
 			addRegisteredEventTypeListeners(requestAccessee);
 			fireEvent(new Event(requestAccessee, this, this.physicalCost));
 			if (!listeners.containsKey(requestAccessee)) {
 				String errorMessage = "Error during setPhysicalCost";
-	      LOGGER.severe(errorMessage);
-	      throw new PlanItException(errorMessage);
+				LOGGER.severe(errorMessage);
+				throw new PlanItException(errorMessage);
 			}
 		}
 	}
@@ -506,14 +524,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public void setVirtualCost(final VirtualCost virtualCost) throws PlanItException {
 		this.virtualCost = virtualCost;
 		if (this.virtualCost instanceof InteractorAccessor) {
-			// request an accessee instance that we can use to collect the relevant information for the virtual cost
-			final EventType requestAccesseeType = ((InteractorAccessor)virtualCost).getRequestedAccesseeEventType();
+			// request an accessee instance that we can use to collect the relevant
+			// information for the virtual cost
+			final EventType requestAccesseeType = ((InteractorAccessor) virtualCost).getRequestedAccesseeEventType();
 			addRegisteredEventTypeListeners(requestAccesseeType);
 			fireEvent(new Event(requestAccesseeType, this, this.virtualCost));
 			if (!listeners.containsKey(requestAccesseeType)) {
 				String errorMessage = "Error during setVirtualCost";
-	      LOGGER.severe(errorMessage);
-	      throw new PlanItException(errorMessage);
+				LOGGER.severe(errorMessage);
+				throw new PlanItException(errorMessage);
 			}
 		}
 	}
@@ -526,14 +545,14 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public void registerOutputFormatter(final OutputFormatter outputFormatter) {
 		outputManager.registerOutputFormatter(outputFormatter);
 	}
-	
+
 	/**
 	 * Unregister an output formatter
 	 * 
 	 * @param outputFormatter the output formatter to be removed
 	 */
 	public void unregisterOutputFormatter(final OutputFormatter outputFormatter) {
-	  outputManager.unregisterOutputFormatter(outputFormatter);
+		outputManager.unregisterOutputFormatter(outputFormatter);
 	}
 
 	/**

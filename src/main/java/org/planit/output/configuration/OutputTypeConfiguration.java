@@ -45,7 +45,7 @@ public abstract class OutputTypeConfiguration {
   /**
    * Stores all active sub output types (if any). some output types are broken down further in sub
    * output types
-   * which can be accounted fro via this set. Can remain empty if not used.
+   * which can be accounted for via this set. Can remain empty if not used.
    */
   protected Set<SubOutputTypeEnum> activeSubOutputTypes;
 
