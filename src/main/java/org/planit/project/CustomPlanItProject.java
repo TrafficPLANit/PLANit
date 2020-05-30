@@ -577,7 +577,7 @@ public class CustomPlanItProject {
     // cannot do this on the constructor of the superclass nor
     // can we do it in the derived constructors as some components are the same
     // across assignments and we want to avoid duplicate code
-    trafficAssignment.initialiseDefaults();
+    trafficAssignmentBuilder.initialiseDefaults();
     trafficAssignmentsMap.put(trafficAssignment.getId(), trafficAssignment);
     // do not allow direct access to the traffic assignment component. Instead, provide the traffic
     // assignment

@@ -15,6 +15,7 @@ import org.planit.algorithms.shortestpath.ShortestPathAlgorithm;
 import org.planit.cost.Cost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
+import org.planit.cost.virtual.VirtualCost;
 import org.planit.data.ModeData;
 import org.planit.data.SimulationData;
 import org.planit.data.TraditionalStaticAssignmentSimulationData;
@@ -533,16 +534,6 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   }
 
   /**
-   * Create the Gap Function used by this Traffic Assignment
-   *
-   * @return GapFunction created
-   */
-  @Override
-  protected GapFunction createGapFunction() {
-    return new LinkBasedRelativeDualityGapFunction(new StopCriterion());
-  }
-
-  /**
    * Base Constructor
    */
   public TraditionalStaticAssignment() {
@@ -646,4 +637,5 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   public SimulationData getSimulationData() {
     return simulationData;
   }
+  
 }

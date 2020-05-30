@@ -9,7 +9,6 @@ import javax.annotation.Nonnull;
 
 import org.djutils.event.Event;
 import org.djutils.event.EventType;
-import org.planit.cost.Cost;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.virtual.VirtualCost;
@@ -33,8 +32,6 @@ import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
-import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * Traffic assignment class which simultaneously is responsible for the loading
@@ -143,14 +140,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	protected abstract TrafficAssignmentBuilder createTrafficAssignmentBuilder(
 			InputBuilderListener trafficComponentCreateListener, Demands demands, Zoning zoning,
 			PhysicalNetwork physicalNetwork) throws PlanItException;
-
-	/**
-	 * Create the gap function which is to be implemented by a derived class of
-	 * TrafficAssignment
-	 *
-	 * @return gapFunction
-	 */
-	protected abstract GapFunction createGapFunction();
 
 	// Protected methods
 
@@ -311,27 +300,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 */
 	public abstract OutputTypeAdapter createOutputTypeAdapter(OutputType outputType);
 
-	/**
-	 * Collect the gap function which is to be set by a derived class of
-	 * TrafficAssignment via the initialiseDefaults() right after construction
-	 *
-	 * @return gapFunction
-	 */
-	public GapFunction getGapFunction() {
-		return gapFunction;
-	}
-
 	// Public methods
-
-	/**
-	 * Initialize the traffic assignment defaults:
-	 *
-	 * @throws PlanItException thrown when there is an error
-	 */
-	public void initialiseDefaults() throws PlanItException {
-		// general defaults
-		this.gapFunction = createGapFunction();
-	}
 
 	/**
 	 * Method that allows one to activate specific output types for persistence
@@ -423,6 +392,34 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	public void setSmoothing(@Nonnull final Smoothing smoothing) {
 		this.smoothing = smoothing;
 	}
+	
+    /**
+     * Collect the smoothing object for the current traffic assignment
+     * @return smoothing
+     */    
+    public Smoothing getSmoothing() {
+    	return this.smoothing;
+    }  	
+	
+	/**
+	 * Collect the gap function which is to be set by a derived class of
+	 * TrafficAssignment via the initialiseDefaults() right after construction
+	 *
+	 * @return gapFunction
+	 */
+	public GapFunction getGapFunction() {
+		return gapFunction;
+	}
+	
+	/**
+	 * Collect the gap function which is to be set by a derived class of
+	 * TrafficAssignment via the initialiseDefaults() right after construction
+	 *
+	 * @return gapFunction
+	 */
+	public void setGapFunction(final GapFunction gapfunction) {
+		this.gapFunction= gapfunction;
+	}	
 
 	/**
 	 * Set the PhysicalNetwork for the current assignment
@@ -476,7 +473,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 *
 	 * @return the physical cost object for the current assignment
 	 */
-	public Cost<LinkSegment> getPhysicalCost() {
+	public PhysicalCost getPhysicalCost() {
 		return physicalCost;
 	}
 
@@ -509,7 +506,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 	 *
 	 * @return the virtual cost object for the current assignments
 	 */
-	public Cost<ConnectoidSegment> getVirtualCost() {
+	public VirtualCost getVirtualCost() {
 		return virtualCost;
 	}
 

@@ -9,6 +9,8 @@ import org.planit.cost.virtual.VirtualCost;
 import org.planit.demands.Demands;
 import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
+import org.planit.gap.LinkBasedRelativeDualityGapFunction;
+import org.planit.gap.StopCriterion;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
@@ -91,6 +93,17 @@ public abstract class TrafficAssignmentBuilder {
      * The assignment all components will be registered on
      */
     protected final TrafficAssignment parentAssignment;
+    
+    
+    /**
+     * Currently, there exists only a single gap function (link based relative duality gap) that is created via 
+     * this factory method. It should be injected by each traffic assignment method until we have multiple gap 
+     * functions, in which case, it becomes an option like other components.
+     * @return 
+     */
+    protected GapFunction createGapFunction() {
+    	return new LinkBasedRelativeDualityGapFunction(new StopCriterion());
+    }
 
     // PUBLIC
 
@@ -120,6 +133,16 @@ public abstract class TrafficAssignmentBuilder {
 		physicalCostFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
 		virtualCostFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     }
+    
+	/**
+	 * Initialize the traffic assignment defaults for the activated assignment method:
+	 *
+	 * @throws PlanItException thrown when there is an error
+	 */
+	public void initialiseDefaults() throws PlanItException {
+		GapFunction theGapFunction = createGapFunction();
+		parentAssignment.setGapFunction(theGapFunction);		
+	}
 
 
     // PUBLIC FACTORY METHODS
@@ -267,5 +290,29 @@ public abstract class TrafficAssignmentBuilder {
     public GapFunction getGapFunction() {
         return parentAssignment.getGapFunction();
     }
-
+    
+    /**
+     * Collect the physical cost entity registered on the traffic assignment
+     * @return physicalCost
+     */
+    public PhysicalCost getPhysicalCost() {
+    	return parentAssignment.getPhysicalCost();
+    }
+    
+    /**
+     * Collect the virtual cost entity registered on the traffic assignment
+     * @return smoothing
+     */    
+    public VirtualCost getVirtualCost() {
+    	return parentAssignment.getVirtualCost();
+    }
+    
+    /**
+     * Collect the smoothing entity registered on the traffic assignment
+     * @return smoothing
+     */    
+    public Smoothing getSmoothing() {
+    	return parentAssignment.getSmoothing();
+    }    
+    
 }
