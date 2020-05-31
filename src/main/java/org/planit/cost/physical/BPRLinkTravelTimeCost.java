@@ -52,7 +52,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		 * @param alpha BPR alpha value
 		 * @param beta  BPR beta value
 		 */
-		public void registerParameters(final Mode mode, final double alpha, final double beta) {
+		private void registerParameters(final Mode mode, final double alpha, final double beta) {
 			parametersMap.put(mode, new Pair<Double, Double>(alpha, beta));
 		}
 
@@ -62,7 +62,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		 * @param mode mode of travel
 		 * @param pair Pair containing BPR alpha and beta values
 		 */
-		public void registerParameters(final Mode mode, final Pair<Double, Double> pair) {
+		private void registerParameters(final Mode mode, final Pair<Double, Double> pair) {
 			parametersMap.put(mode, pair);
 		}
 
@@ -75,7 +75,6 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 		public Pair<Double, Double> getAlphaBetaParameters(final Mode mode) {
 			return parametersMap.get(mode);
 		}
-
 	}
 
 	/**
@@ -195,8 +194,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
 	 * @param alpha                      alpha value
 	 * @param beta                       beta value
 	 */
-	public void setDefaultParameters(
-			final MacroscopicLinkSegmentType macroscopicLinkSegmentType, final Mode mode, final double alpha, final double beta) {
+	public void setDefaultParameters(final MacroscopicLinkSegmentType macroscopicLinkSegmentType, final Mode mode, final double alpha, final double beta) {
 		if (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) == null) {
 			defaultParametersPerLinkSegmentTypeAndMode.put(macroscopicLinkSegmentType, new BPRParameters());
 		}

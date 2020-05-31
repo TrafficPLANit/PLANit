@@ -440,6 +440,17 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   public Modes getModes() {
     return modes;
   }
+  
+  /**
+   * Return the LinkSegments internal class
+   * 
+   * This method should only be used by the Python interface.
+   * 
+   * @return the LinkSegments local class
+   */
+  public LinkSegments getLinkSegments() {
+    return linkSegments;
+  }
 
 	// Getters - Setters
 
