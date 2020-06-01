@@ -431,15 +431,24 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 	}
 	
   /**
-   * Return the Modes internal class
-   * 
-   * This method should only be used by the Python interface.
-   * 
+   * Return the Modes internal class instance. 
+   * Method available to allow Py4J to access modes since public final member approach is not supported
+   *  
    * @return the Modes local class
    */
   public Modes getModes() {
     return modes;
   }
+  
+  /**
+   * Return the LinkSegments internal class instance. 
+   * Method available to allow Py4J to access modes since public final member approach is not supported
+   *  
+   * @return the LinkSegments inner class instance
+   */
+  public LinkSegments getLinkSegments() {
+    return linkSegments;
+  }  
 
 	// Getters - Setters
 
