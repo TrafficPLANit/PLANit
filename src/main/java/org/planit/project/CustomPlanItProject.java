@@ -690,7 +690,7 @@ public class CustomPlanItProject {
       String errorMessage = "Output writer of type " + outputFormatterType + " could not be created";
       LOGGER.severe(errorMessage);
       throw new PlanItException(errorMessage);
-    }
+    } 
     outputFormatters.put(outputFormatter.getId(), outputFormatter);
     return outputFormatter;
   }
