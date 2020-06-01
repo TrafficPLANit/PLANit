@@ -140,8 +140,12 @@ public abstract class TrafficAssignmentBuilder {
 	 * @throws PlanItException thrown when there is an error
 	 */
 	public void initialiseDefaults() throws PlanItException {
+		// default gap function
 		GapFunction theGapFunction = createGapFunction();
-		parentAssignment.setGapFunction(theGapFunction);		
+		parentAssignment.setGapFunction(theGapFunction);
+		
+		// By default, activate the link outputs
+		activateOutput(OutputType.LINK);
 	}
 
 
