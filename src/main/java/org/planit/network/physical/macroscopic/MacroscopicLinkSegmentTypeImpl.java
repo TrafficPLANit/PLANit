@@ -25,7 +25,7 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
 	/**
 	 * Unique segment type id
 	 */
-	protected final int id;
+	protected final long id;
 
 	/**
 	 * External reference number of link type
@@ -88,7 +88,7 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
 	// Getters - Setters
 
 	@Override
-	public int getId() {
+	public long getId() {
 		return id;
 	}
 

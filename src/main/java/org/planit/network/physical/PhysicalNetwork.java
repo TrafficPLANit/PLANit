@@ -347,6 +347,13 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 			return modeMap.size();
 		}
 		
+		/**
+		 * Return a Mode by its id
+		 * 
+		 * @param id the id of the Mode
+		 * @return the specified mode
+		 * 
+		 */
 		public Mode getModeById(long id) {
 			return modeMap.get(id);
 		}
@@ -354,7 +361,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     /**
      * Retrieve a Mode by its external Id
      * 
-     * This method is not efficient, since it loops through all the registered time periods in order 
+     * This method is not efficient, since it loops through all the registered modes in order 
      * to find the required time period.  The equivalent method in InputBuilderListener is more
      * efficient and should be used in preference to this in Java code.
      * 
@@ -382,7 +389,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     }
     
 	}
-
+	
 	// Private
 
 	// Protected
