@@ -13,7 +13,6 @@ import org.planit.demands.Demands;
 import org.planit.exceptions.PlanItException;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
-import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.route.ODRouteSets;
 import org.planit.time.TimePeriod;
@@ -82,14 +81,8 @@ public class PlanItProjectInput {
      * 
      * @return first network that is registered if none return null
      */
-    //public PhysicalNetwork getFirstNetwork() {
-    //  return hasRegisteredNetworks() ? physicalNetworkMap.firstEntry().getValue() : null;
-    //}
-    public MacroscopicNetwork getFirstNetwork() {
-      if (!hasRegisteredNetworks()) {
-        return null;
-      }
-      return (MacroscopicNetwork) physicalNetworkMap.firstEntry().getValue();
+    public PhysicalNetwork getFirstNetwork() {
+      return hasRegisteredNetworks() ? physicalNetworkMap.firstEntry().getValue() : null;
     }
   }
 
