@@ -108,10 +108,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
    * @param externalId the external Id of the specified link segment type
    * @param convertToLong if true, the external Id is converted into a long before beginning the search
    * @return the retrieved link segment type, or null if no mode was found
-   * @throws PlanItException thrown if the external Id cannot be cast into a long
    */
-  public MacroscopicLinkSegmentType getMacroscopicLinkSegmentTypeByExternalId(Object externalId, boolean convertToLong)
-      throws PlanItException {
+  public MacroscopicLinkSegmentType getMacroscopicLinkSegmentTypeByExternalId(Object externalId, boolean convertToLong) {
     try {
       if (convertToLong) {
         long value = Long.valueOf(externalId.toString());
@@ -119,11 +117,9 @@ public class MacroscopicNetwork extends PhysicalNetwork {
       }
       return getMacroscopicLinkSegmentTypeByExternalId(externalId);
     } catch (NumberFormatException e) {
-      String errorMessage = "getMacroscopicLinkSegmentTypeByExternalId was passed a " + externalId.getClass()
-          .getCanonicalName() + " which cannot be cast into a long.";
-      LOGGER.severe(errorMessage);
-      throw new PlanItException(errorMessage);
+      //do nothing - if conversion to long is not possible, use the general method instead
     }
+    return getMacroscopicLinkSegmentTypeByExternalId(externalId);
   }
 
   /**

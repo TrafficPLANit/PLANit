@@ -372,19 +372,15 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param convertToLong if true, the external Id is converted into a long before beginning the
      *          search
      * @return the retrieved mode, or null if no mode was found
-     * @throws PlanItException thrown if the external Id cannot be cast into a long
      */
-    public Mode getModeByExternalId(Object externalId, boolean convertToLong) throws PlanItException {
+    public Mode getModeByExternalId(Object externalId, boolean convertToLong) {
       if (convertToLong) {
         try {
           long value = Long.valueOf(externalId.toString());
           return getModeByExternalId(value);
         } catch (NumberFormatException e) {
-          //String errorMessage = "getModeByExternalId was passed a " + externalId.getClass().getCanonicalName()
-          //    + " which cannot be cast into a long.";
-          //LOGGER.severe(errorMessage);
-          //throw new PlanItException(errorMessage);
-         }
+          // do nothing - if conversion to long is not possible, use general method instead
+        }
       }
       return getModeByExternalId(externalId);
     }
