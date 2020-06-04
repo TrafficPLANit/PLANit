@@ -17,6 +17,7 @@ import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 
 /**
  * Model free Network consisting of nodes and links, each of which can be
@@ -226,6 +227,49 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     public int getNumberOfLinkSegments() {
       return linkSegmentMap.size();
     }
+    
+    /**
+     * Retrieve a link segment by its external Id
+     * 
+     * This method has the option to convert the external Id parameter into a long value,
+     * to find the link segment type  when link segment type objects use long values for external ids.
+     * 
+     * @param externalId the external Id of the specified link segment
+     * @param convertToLong if true, the external Id is converted into a long before beginning the search
+     * @return the retrieved link segment, or null if no mode was found
+     */
+    public LinkSegment getLinkSegmentByExternalId(Object externalId, boolean convertToLong) {
+      try {
+        if (convertToLong) {
+          long value = Long.valueOf(externalId.toString());
+          return getLinkSegmentByExternalId(value);
+        }
+        return getLinkSegmentByExternalId(externalId);
+      } catch (NumberFormatException e) {
+        //do nothing - if conversion to long is not possible, use the general method instead
+      }
+      return getLinkSegmentByExternalId(externalId);
+    }
+
+    /**
+     * Retrieve a link segment by its external Id
+     * 
+     * This method is not efficient, since it loops through all the registered modes in order
+     * to find the required link segment. The equivalent method in InputBuilderListener is more
+     * efficient and should be used in preference to this in Java code.
+     * 
+     * @param externalId the external Id of the specified link segment type
+     * @return the retrieved link segment, or null if no link segment type was found
+     */
+    public LinkSegment getLinkSegmentByExternalId(Object externalId) {
+      for (LinkSegment linkSegment : linkSegmentMap.values()) {
+        if (linkSegment.getExternalId().equals(externalId)) {
+          return linkSegment;
+        }
+      }
+      return null;
+    }
+    
   }
 
   /**

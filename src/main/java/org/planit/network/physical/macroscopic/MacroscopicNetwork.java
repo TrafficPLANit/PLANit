@@ -126,7 +126,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
    * Retrieve a link segment type by its external Id
    * 
    * This method is not efficient, since it loops through all the registered modes in order
-   * to find the required time period. The equivalent method in InputBuilderListener is more
+   * to find the required link segment type. The equivalent method in InputBuilderListener is more
    * efficient and should be used in preference to this in Java code.
    * 
    * @param externalId the external Id of the specified link segment type
