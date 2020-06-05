@@ -38,15 +38,15 @@ public abstract class FileOutputFormatter extends BaseOutputFormatter {
 			String newFileName = null;
 			if (timePeriod == null) {
 				if (iteration == -1) {
-					newFileName = outputDirectory + "\\" + outputType.value() + "_RunId " + runId + "_" + nameRoot + nameExtension; 
+					newFileName = outputDirectory + "\\" + outputType.value() + "_RunId_" + runId + "_" + nameRoot + nameExtension; 
 				} else {
-					newFileName = outputDirectory + "\\" + outputType.value() + "_RunId " + runId +  "_" + nameRoot + "_" + iteration + nameExtension; 
+					newFileName = outputDirectory + "\\" + outputType.value() + "_RunId_" + runId +  "_" + nameRoot + "_" + iteration + nameExtension; 
 				}
 			} else {
 				if (iteration == -1) {
-					newFileName = outputDirectory + "\\" + outputType.value() + "_RunId " + runId + "_" + nameRoot + "_" + timePeriod.getDescription() + nameExtension;
+					newFileName = outputDirectory + "\\" + outputType.value() + "_RunId_" + runId + "_" + nameRoot + "_" + timePeriod.getDescription().replace(' ','_') + nameExtension;
 				} else {
-					newFileName = outputDirectory + "\\" + outputType.value() + "_RunId " + runId + "_" + nameRoot + "_" + timePeriod.getDescription() + "_" + iteration	+ nameExtension;
+					newFileName = outputDirectory + "\\" + outputType.value() + "_RunId_" + runId + "_" + nameRoot + "_" + timePeriod.getDescription().replace(' ','_') + "_" + iteration	+ nameExtension;
 				}
 			} 
 			return newFileName;
