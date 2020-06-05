@@ -2,7 +2,6 @@ package org.planit.output.formatter;
 
 import java.io.File;
 import java.nio.file.Files;
-
 import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.OutputType;
 import org.planit.time.TimePeriod;
@@ -37,13 +36,13 @@ public abstract class FileOutputFormatter extends BaseOutputFormatter {
 			}
 			String newFileName = null;
 			if (timePeriod == null) {
-				if (iteration == -1) {
+				if (iteration ==  -1) {
 					newFileName = outputDirectory + "\\" + outputType.value() + "_RunId_" + runId + "_" + nameRoot + nameExtension; 
 				} else {
 					newFileName = outputDirectory + "\\" + outputType.value() + "_RunId_" + runId +  "_" + nameRoot + "_" + iteration + nameExtension; 
 				}
 			} else {
-				if (iteration == -1) {
+				if (iteration ==  -1) {
 					newFileName = outputDirectory + "\\" + outputType.value() + "_RunId_" + runId + "_" + nameRoot + "_" + timePeriod.getDescription().replace(' ','_') + nameExtension;
 				} else {
 					newFileName = outputDirectory + "\\" + outputType.value() + "_RunId_" + runId + "_" + nameRoot + "_" + timePeriod.getDescription().replace(' ','_') + "_" + iteration	+ nameExtension;
