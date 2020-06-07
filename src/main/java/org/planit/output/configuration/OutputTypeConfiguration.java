@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.OutputType;
@@ -11,6 +12,7 @@ import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.output.property.OutputPropertyPriority;
+import org.planit.trafficassignment.TraditionalStaticAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
 
 /**
@@ -21,6 +23,14 @@ import org.planit.trafficassignment.TrafficAssignment;
  *
  */
 public abstract class OutputTypeConfiguration {
+
+  /** the logger */
+  protected static final Logger LOGGER = Logger.getLogger(OutputTypeConfiguration.class.getCanonicalName());
+
+  /**
+   * The traffic assignment object on which this output type configuration is being registered
+   */
+  protected TrafficAssignment trafficAssignment;
 
   /**
    * Filters output properties in the OutputAdapter and outputs them as an array
@@ -77,7 +87,7 @@ public abstract class OutputTypeConfiguration {
   protected void deactivateSubOutputType(SubOutputTypeEnum subOutputTypeEnum) {
     activeSubOutputTypes.remove(subOutputTypeEnum);
   }
-  
+
   /**
    * Checks the output property type being added in valid for the current output type configuration
    * 
@@ -85,7 +95,7 @@ public abstract class OutputTypeConfiguration {
    * @return true if the output property is valid, false otherwise
    */
   public abstract boolean isOutputPropertyValid(BaseOutputProperty baseOutputProperty);
-  
+
   /**
    * Validate whether the specified list of keys is valid, and if it is return
    * only the keys which will be used
@@ -93,7 +103,7 @@ public abstract class OutputTypeConfiguration {
    * @param outputKeyProperties array of output key property types
    * @return array of keys to be used (null if the list is not valid)
    */
-  public abstract OutputProperty[] validateAndFilterKeyProperties(OutputProperty[] outputKeyProperties);  
+  public abstract OutputProperty[] validateAndFilterKeyProperties(OutputProperty[] outputKeyProperties);
 
   /**
    * OutputTypeconfiguration constructor
@@ -103,6 +113,7 @@ public abstract class OutputTypeConfiguration {
    * @throws PlanItException thrown if there is an excpetion
    */
   public OutputTypeConfiguration(TrafficAssignment trafficAssignment, OutputType outputType) throws PlanItException {
+    this.trafficAssignment = trafficAssignment;
     this.outputType = outputType;
     outputProperties = new TreeSet<BaseOutputProperty>();
     activeSubOutputTypes = new TreeSet<SubOutputTypeEnum>();
@@ -129,25 +140,17 @@ public abstract class OutputTypeConfiguration {
   /**
    * Add an output property to be included in the output files
    * 
-   * @param propertyClassName class name of the output property to be included in
-   *          the output files
-   * @throws PlanItException thrown if there is an error
-   */
-  public void addProperty(String propertyClassName) throws PlanItException {
-    BaseOutputProperty baseOutputProperty = BaseOutputProperty.convertToBaseOutputProperty(propertyClassName);
-    if (isOutputPropertyValid(baseOutputProperty)) {
-      outputProperties.add(baseOutputProperty);
-    }
-  }
-
-  /**
-   * Add an output property to be included in the output files
-   * 
    * @param outputProperty enumeration value specifying which output property to
    *          be included in the output files
    * @throws PlanItException thrown if there is an error
    */
   public void addProperty(OutputProperty outputProperty) throws PlanItException {
+    if (outputProperty.equals(OutputProperty.DENSITY)) {
+      if (trafficAssignment instanceof TraditionalStaticAssignment) {
+        LOGGER.warning("Attempt made to register invalid output property DENSITY  on Traditional Static Assignment.  This will be ignored.");
+        return;
+      }
+    }
     BaseOutputProperty baseOutputProperty = BaseOutputProperty.convertToBaseOutputProperty(outputProperty);
     if (isOutputPropertyValid(baseOutputProperty)) {
       outputProperties.add(baseOutputProperty);

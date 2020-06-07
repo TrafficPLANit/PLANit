@@ -82,7 +82,6 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
    */
   public LinkOutputTypeConfiguration(TrafficAssignment trafficAssignment) throws PlanItException {
     super(trafficAssignment, OutputType.LINK);
-    addProperty(OutputProperty.DENSITY);
     addProperty(OutputProperty.LINK_SEGMENT_ID);
     addProperty(OutputProperty.LINK_SEGMENT_EXTERNAL_ID);
     addProperty(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID);

@@ -10,6 +10,7 @@ import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
+import org.planit.trafficassignment.TraditionalStaticAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
@@ -59,22 +60,6 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
     return macroscopicLinkSegment.getLinkSegmentType().getName();
 	}
 	
-	/**
-	 * Returns the flow density of the current link
-	 * 
-	 * @param linkSegment LinkSegment containing data which may be required
-	 * @return the flow density of the current link
-	 * @throws PlanItException thrown if there is an error
-	 */
-	protected double getFlowDensity(LinkSegment linkSegment) throws PlanItException {
-		if (!(linkSegment instanceof MacroscopicLinkSegment)) {
-			throw new PlanItException(
-					"Tried to density per lane across an object which is not a MacroscopicLinkSegment.");
-		}
-		MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
-		return macroscopicLinkSegment.getLinkSegmentType().getMaximumDensityPerLane();
-	}
-
 	/**
 	 * Returns the external Id of the downstream node
 	 * 
@@ -251,6 +236,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
     /**
      * Return the value of a specified output property of a link segment
      * 
+     * The DENSITY case should never be called for TraditionalStaticAssignment.
+     * 
      * @param outputProperty the specified output property
      * @param linkSegment the specified link segment
      * @param mode the current mode
@@ -261,6 +248,13 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 	@Override
 	public Object getLinkOutputPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode,
 			TimePeriod timePeriod, double timeUnitMultiplier) {
+	  if (outputProperty.equals(OutputProperty.DENSITY)) {
+	    if (trafficAssignment instanceof TraditionalStaticAssignment) {
+	      String errorMessage = "Attempt made to output property DENSITY for Traditional Static Assignment.  This is not allowed.";
+	      LOGGER.severe(errorMessage);
+	      return new PlanItException(errorMessage);
+	    }
+	  }
 		try {
 			Object obj = getCommonPropertyValue(outputProperty, mode, timePeriod);
 			if (obj != null) {
@@ -269,8 +263,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 			switch (outputProperty) {
 			case CAPACITY_PER_LANE:
 				return getCapacityPerLane(linkSegment);
-			case DENSITY:
-				return getFlowDensity(linkSegment);
+			case DENSITY: 
+			  return LinkSegment.MAX_DENSITY;
 			case DOWNSTREAM_NODE_EXTERNAL_ID:
 				return getDownstreamNodeExternalId(linkSegment);
 			case DOWNSTREAM_NODE_ID:
