@@ -71,7 +71,7 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
      */
     public OutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
     	this.outputType = outputType;
-        this.trafficAssignment = trafficAssignment;
+      this.trafficAssignment = trafficAssignment;
     }
     
     /**

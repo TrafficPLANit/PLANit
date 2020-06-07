@@ -42,15 +42,6 @@ public class MacroscopicNetwork extends PhysicalNetwork {
    */
   protected Map<MacroscopicLinkSegment, Map<Mode, Pair<Double, Double>>> bprParametersForLinkSegmentAndMode;
 
-  /**
-   * Register a link segment type on the network
-   *
-   * @param linkSegmentType the MacroscopicLinkSegmentType to be registered
-   * @return the registered link segment type
-   */
-  public MacroscopicLinkSegmentType registerLinkSegmentType(@Nonnull final MacroscopicLinkSegmentType linkSegmentType) {
-    return macroscopicLinkSegmentTypeByIdMap.put(linkSegmentType.getId(), linkSegmentType);
-  }
   // Public
 
   /**
@@ -61,7 +52,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
   }
 
   /**
-   * Create a new macroscopic link segment type on network. 
+   * Create and register new macroscopic link segment type on network. 
    *
    * @param name name of the link segment type
    * @param capacity capacity of the link segment type
@@ -71,22 +62,29 @@ public class MacroscopicNetwork extends PhysicalNetwork {
    * @return  the link segment type
    * @throws PlanItException thrown if there is an error
    */
-  public MacroscopicLinkSegmentType createNewMacroscopicLinkSegmentType(@Nonnull final String name,
-      final double capacity, final double maximumDensity, final Object linkSegmentExternalId,
-      final Map<Mode, MacroscopicModeProperties> modeProperties)
-      throws PlanItException {
+  public MacroscopicLinkSegmentType createAndRegisterNewMacroscopicLinkSegmentType(@Nonnull final String name, final double capacity, final double maximumDensity, 
+      final Object linkSegmentExternalId, final Map<Mode, MacroscopicModeProperties> modeProperties) throws PlanItException {
 
     if (!(networkBuilder instanceof MacroscopicNetworkBuilder)) {
-      String errorMessage =
-          "Macroscopic network perspective only allows macroscopic link segment types to be registered";
+      String errorMessage = "Macroscopic network perspective only allows macroscopic link segment types to be registered";
       LOGGER.severe(errorMessage);
       throw new PlanItException(errorMessage);
     }
-    MacroscopicLinkSegmentType linkSegmentType =
-        ((MacroscopicNetworkBuilder) networkBuilder).createLinkSegmentType(name, capacity, maximumDensity,
-            linkSegmentExternalId, modeProperties);
+    MacroscopicLinkSegmentType linkSegmentType = ((MacroscopicNetworkBuilder) networkBuilder).createLinkSegmentType(
+        name, capacity, maximumDensity, linkSegmentExternalId, modeProperties);
+    registerLinkSegmentType(linkSegmentType);
     return linkSegmentType;
   }
+  
+  /**
+   * Register a link segment type on the network
+   *
+   * @param linkSegmentType the MacroscopicLinkSegmentType to be registered
+   * @return the registered link segment type
+   */
+  public MacroscopicLinkSegmentType registerLinkSegmentType(@Nonnull final MacroscopicLinkSegmentType linkSegmentType) {
+    return macroscopicLinkSegmentTypeByIdMap.put(linkSegmentType.getId(), linkSegmentType);
+  }  
 
   /**
    * Return a link segment type identified by its generated id
@@ -107,10 +105,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
    * @param externalId the external Id of the specified link segment type
    * @param convertToLong if true, the external Id is converted into a long before beginning the search
    * @return the retrieved link segment type, or null if no mode was found
-   * @throws PlanItException thrown if the external Id cannot be cast into a long
    */
-  public MacroscopicLinkSegmentType getMacroscopicLinkSegmentTypeByExternalId(Object externalId, boolean convertToLong)
-      throws PlanItException {
+  public MacroscopicLinkSegmentType getMacroscopicLinkSegmentTypeByExternalId(Object externalId, boolean convertToLong) {
     try {
       if (convertToLong) {
         long value = Long.valueOf(externalId.toString());
@@ -118,18 +114,16 @@ public class MacroscopicNetwork extends PhysicalNetwork {
       }
       return getMacroscopicLinkSegmentTypeByExternalId(externalId);
     } catch (NumberFormatException e) {
-      String errorMessage = "getMacroscopicLinkSegmentTypeByExternalId was passed a " + externalId.getClass()
-          .getCanonicalName() + " which cannot be cast into a long.";
-      LOGGER.severe(errorMessage);
-      throw new PlanItException(errorMessage);
+      //do nothing - if conversion to long is not possible, use the general method instead
     }
+    return getMacroscopicLinkSegmentTypeByExternalId(externalId);
   }
 
   /**
    * Retrieve a link segment type by its external Id
    * 
    * This method is not efficient, since it loops through all the registered modes in order
-   * to find the required time period. The equivalent method in InputBuilderListener is more
+   * to find the required link segment type. The equivalent method in InputBuilderListener is more
    * efficient and should be used in preference to this in Java code.
    * 
    * @param externalId the external Id of the specified link segment type

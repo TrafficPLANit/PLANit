@@ -107,10 +107,10 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
 		return capacityPerLane;
 	}
 
-	@Override
-	public double getMaximumDensityPerLane() {
-		return maximumDensityPerLane;
-	}
+	//@Override
+	//public double getMaximumDensityPerLane() {
+	//	return maximumDensityPerLane;
+	//}
 
 	@Override
 	public Object getExternalId() {

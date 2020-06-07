@@ -6,7 +6,7 @@
 	<groupId>org.planit</groupId>
 	<artifactId>PLANit</artifactId>
 	<description>PlanIt common code for traffic assignment</description>
-	<version>0.0.4a1</version>
+	<version>0.0.4a7</version>
 	<packaging>jar</packaging>
 
 	<name>PLANit</name>
@@ -19,10 +19,10 @@
 		<maven.compiler.source>1.11</maven.compiler.source>
 		<maven.compiler.target>1.11</maven.compiler.target>
 		<maven.jaxb2.plugin.version>0.14.0</maven.jaxb2.plugin.version>
-		<planitutils.version>0.0.4a1</planitutils.version>
+		<planitutils.version>0.0.4a7</planitutils.version>
 		<djutils.version>1.04.05</djutils.version>
 		<!-- Change the property below to match the path of your PLANitPy2J rsc directory -->
-		<py2j.resource.directory>..\PLANitPy2J\rsc</py2j.resource.directory>
+		<py2j.resource.directory>..\PLANitPy2J\share\planit</py2j.resource.directory>
 	</properties>
 
 	<dependencies>

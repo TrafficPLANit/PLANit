@@ -128,19 +128,16 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @return the retrieved time period, or null if no  time period was found
      * @throws PlanItException thrown if the external Id cannot be cast into a long
      */
-    public TimePeriod getTimePeriodByExternalId(Object externalId, boolean convertToLong) throws PlanItException {
-      try {
-        if (convertToLong) {
+    public TimePeriod getTimePeriodByExternalId(Object externalId, boolean convertToLong) {
+      if (convertToLong) {
+        try {          
           long value = Long.valueOf(externalId.toString());
           return getTimePeriodByExternalId(value);
-        }
-        return getTimePeriodByExternalId(externalId);
-      } catch (NumberFormatException e) {
-        String errorMessage = "getTimePeriodByExternalId was passed a " + externalId.getClass().getCanonicalName()
-            + " which cannot be cast into a long.";
-        LOGGER.severe(errorMessage);
-        throw new PlanItException(errorMessage);
+        } catch (NumberFormatException e) {
+          //do nothing - if conversion to long is not possible, use the general method instead
+        }          
       }
+      return getTimePeriodByExternalId(externalId);
     }
 
     /**
