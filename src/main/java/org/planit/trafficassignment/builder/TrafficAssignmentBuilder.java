@@ -14,7 +14,6 @@ import org.planit.gap.StopCriterion;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
-import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.OutputType;
@@ -26,9 +25,8 @@ import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.network.physical.Mode;
 
 /**
- * All traffic assignment instances require a network, demand, and (equilibrium)
- * smoothing procedure, all of which should be registered via this generic
- * builder. Specific traffic assignment methods might require special builders
+ * All traffic assignment instances require a network, demand, and (equilibrium) smoothing procedure, all of which
+ * should be registered via this generic builder. Specific traffic assignment methods might require special builders
  * derived from this builder
  *
  * @author markr
@@ -44,29 +42,25 @@ public abstract class TrafficAssignmentBuilder {
    *
    * @param demands Demands object to be registered
    * @param zoning  Zoning object to be registered
-   * @throws PlanItException thrown if the number of zones in the Zoning and
-   *                         Demand objects is inconsistent
+   * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
    */
   private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final PhysicalNetwork network) throws PlanItException {
-    parentAssignment.setPhysicalNetwork(network);
-    final int noZonesInZoning = zoning.zones.getNumberOfZones();
-    for (final Mode mode : network.modes.toList()) {
-      for (TimePeriod timePeriod : demands.timePeriods.getRegisteredTimePeriods()) {
-        final ODDemandMatrix odMatrix = demands.get(mode, timePeriod);
-        if (odMatrix == null) {
-          String errorMessage = "No demands matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId();
-          LOGGER.severe(errorMessage);
-          throw new PlanItException(errorMessage);
-        }
-        final int noZonesInDemands = odMatrix.getNumberOfTravelAnalysisZones();
-        if (noZonesInZoning != noZonesInDemands) {
-          String errorMessage = "Zoning object has " + noZonesInZoning + " zones, this is inconsistent with Demands object which has " + noZonesInDemands + " zones for Mode "
-              + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId();
-          LOGGER.severe(errorMessage);
-          throw new PlanItException(errorMessage);
+    if (zoning == null || demands == null || network == null) {
+      throw new PlanItException("On or more parameters in registerDemandZoningAndNetwork are null");
+    }
+    if (!zoning.isCompatibleWithDemands(demands, network.modes)) {
+      throw new PlanItException(
+          "Zoning structure is incompatible with one or more of the demands, likely the number of zones does not match the number of origins and/or destinations");
+    }
+
+    for (final Mode mode : network.modes) {
+      for (TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
+        if (demands.get(mode, timePeriod) == null) {
+          LOGGER.warning("No demand matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
         }
       }
     }
+    parentAssignment.setPhysicalNetwork(network);
     parentAssignment.setZoning(zoning);
     parentAssignment.setDemands(demands);
   }
@@ -74,13 +68,11 @@ public abstract class TrafficAssignmentBuilder {
   /**
    * The smoothing factory used in the assignment algorithm
    *
-   * NB: The smoothing factory is defined here because the same smoothing
-   * algorithm is used for all assignments. If we later decide to use more than
-   * one smoothing algorithm and allow different traffic assignments to use
-   * different smoothing algorithms, we would need to move this property and its
-   * handler methods to CustomPlanItProject and treat it like the factories for
-   * PhysicalNetwork, Demands and Zoning (and allow the different smoothing
-   * algorithms to be registered on the project).
+   * NB: The smoothing factory is defined here because the same smoothing algorithm is used for all assignments. If we
+   * later decide to use more than one smoothing algorithm and allow different traffic assignments to use different
+   * smoothing algorithms, we would need to move this property and its handler methods to CustomPlanItProject and treat it
+   * like the factories for PhysicalNetwork, Demands and Zoning (and allow the different smoothing algorithms to be
+   * registered on the project).
    */
   protected final TrafficAssignmentComponentFactory<Smoothing> smoothingFactory;
 
@@ -100,10 +92,9 @@ public abstract class TrafficAssignmentBuilder {
   protected final TrafficAssignment parentAssignment;
 
   /**
-   * Currently, there exists only a single gap function (link based relative
-   * duality gap) that is created via this factory method. It should be injected
-   * by each traffic assignment method until we have multiple gap functions, in
-   * which case, it becomes an option like other components.
+   * Currently, there exists only a single gap function (link based relative duality gap) that is created via this factory
+   * method. It should be injected by each traffic assignment method until we have multiple gap functions, in which case,
+   * it becomes an option like other components.
    * 
    * @return
    */
@@ -121,8 +112,7 @@ public abstract class TrafficAssignmentBuilder {
    * @param demands
    * @param zoning
    * @param physicalNetwork
-   * @throws PlanItException if registration of demands, zoning, or network does
-   *                         not work
+   * @throws PlanItException if registration of demands, zoning, or network does not work
    */
   TrafficAssignmentBuilder(final TrafficAssignment parentAssignment, final InputBuilderListener trafficComponentCreateListener, final Demands demands, final Zoning zoning,
       final PhysicalNetwork physicalNetwork) throws PlanItException {
@@ -139,8 +129,7 @@ public abstract class TrafficAssignmentBuilder {
   }
 
   /**
-   * Initialize the traffic assignment defaults for the activated assignment
-   * method:
+   * Initialize the traffic assignment defaults for the activated assignment method:
    *
    * @throws PlanItException thrown when there is an error
    */
@@ -171,8 +160,7 @@ public abstract class TrafficAssignmentBuilder {
   /**
    * Create and register physical link cost function to determine travel time
    *
-   * @param physicalTraveltimeCostFunctionType the type of cost function to be
-   *                                           created
+   * @param physicalTraveltimeCostFunctionType the type of cost function to be created
    * @return the physical cost created
    * @throws PlanItException thrown if there is an error
    */
@@ -185,8 +173,7 @@ public abstract class TrafficAssignmentBuilder {
   /**
    * Create and Register virtual link cost function to determine travel time
    *
-   * @param virtualTraveltimeCostFunctionType the type of cost function to be
-   *                                          created
+   * @param virtualTraveltimeCostFunctionType the type of cost function to be created
    * @return the cost function created
    * @throws PlanItException thrown if there is an error
    */
@@ -200,8 +187,7 @@ public abstract class TrafficAssignmentBuilder {
    * Register an output formatter
    *
    * @param outputFormatter OutputFormatter being registered
-   * @throws PlanItException thrown if there is an error or validation failure
-   *                         during setup of the output formatter
+   * @throws PlanItException thrown if there is an error or validation failure during setup of the output formatter
    */
   public void registerOutputFormatter(final OutputFormatter outputFormatter) throws PlanItException {
     parentAssignment.registerOutputFormatter(outputFormatter);
@@ -210,12 +196,10 @@ public abstract class TrafficAssignmentBuilder {
   /**
    * Remove an output formatter which has already been registered
    * 
-   * This is used by the Python interface, which registers the PlanItIO formatter
-   * by default
+   * This is used by the Python interface, which registers the PlanItIO formatter by default
    * 
    * @param outputFormatter the output formatter to be removed
-   * @throws PlanItException thrown if there is an error during removal of the
-   *                         output formatter
+   * @throws PlanItException thrown if there is an error during removal of the output formatter
    */
   public void unregisterOutputFormatter(final OutputFormatter outputFormatter) throws PlanItException {
     parentAssignment.unregisterOutputFormatter(outputFormatter);
@@ -233,8 +217,7 @@ public abstract class TrafficAssignmentBuilder {
   /**
    * Register the initial link segment cost
    *
-   * @param initialLinkSegmentCost initial link segment cost for the current
-   *                               traffic assignment
+   * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    */
   public void registerInitialLinkSegmentCost(final InitialLinkSegmentCost initialLinkSegmentCost) {
     parentAssignment.setInitialLinkSegmentCost(initialLinkSegmentCost);
@@ -244,8 +227,7 @@ public abstract class TrafficAssignmentBuilder {
    * Register the initial link segment cost for a specified time period
    *
    * @param timePeriod             the specified time period
-   * @param initialLinkSegmentCost initial link segment cost for the current
-   *                               traffic assignment
+   * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    */
   public void registerInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCost initialLinkSegmentCost) {
     initialLinkSegmentCost.setTimePeriod(timePeriod);
@@ -253,12 +235,10 @@ public abstract class TrafficAssignmentBuilder {
   }
 
   /**
-   * Method that allows one to activate specific output types for persistence on
-   * the traffic assignment instance
+   * Method that allows one to activate specific output types for persistence on the traffic assignment instance
    *
    * @param outputType OutputType object to be used
-   * @return outputTypeConfiguration the output type configuration that is now
-   *         active
+   * @return outputTypeConfiguration the output type configuration that is now active
    * @throws PlanItException thrown if there is an error activating the output
    */
   public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {

@@ -12,79 +12,73 @@ import org.planit.utils.network.virtual.Zone;
  */
 public abstract class ODDataIteratorImpl<T> implements ODDataIterator<T> {
 
-	/**
-	 * Id of the origin zone
-	 */
-	protected int originId;
-	
-	/**
-	 * Id of the destination zone
-	 */
-	protected int destinationId;
-	
-	/**
-	 * Number of travel analysis zones in the OD matrix (used internally, not accessible from other classes)
-	 */
-	protected int numberOfTravelAnalysisZones;
-	
-	/**
-	 * Marker used to store the current position in the OD matrix (used internally, not accessible from other classes)
-	 */
-	protected int currentLocation;
-	
-	/**
-	 * Zones object to store travel analysis zones (from Zoning object)
-	 */
-	protected Zoning.Zones zones;
-	
-	/**
-	 * Increment the location cursor for the next iteration
-	 */
-	protected void updateCurrentLocation() {
-		originId = currentLocation / numberOfTravelAnalysisZones;
-		destinationId = currentLocation % numberOfTravelAnalysisZones;
-		currentLocation++;
-	}
+  /**
+   * Id of the origin zone
+   */
+  protected int originId;
 
-	/**
-	 * Constructor
-	 * 
-     * @param zones zones considered in the matrix
-	 */
-	public ODDataIteratorImpl(Zoning.Zones zones) {
-		this.zones = zones;
-		this.numberOfTravelAnalysisZones = zones.getNumberOfZones();
-		currentLocation = 0;
-	}
+  /**
+   * Id of the destination zone
+   */
+  protected int destinationId;
 
-	/**
-	 * Tests whether there are any more cells to iterate through
-	 * 
-	 * @return true if there are more cells to iterate through, false otherwise
-	 */
-	@Override
-	public boolean hasNext() {
-		return currentLocation < numberOfTravelAnalysisZones * numberOfTravelAnalysisZones;
-	}
+  /**
+   * Marker used to store the current position in the OD matrix (used internally, not accessible from other classes)
+   */
+  protected int currentLocation;
 
-	/**
-	 * Returns the origin zone object for the current cell
-	 * 
-	 * @return the origin zone object at the current cell
-	 */
-	@Override
-	public Zone getCurrentOrigin() {
-		return zones.getZoneById(originId);
-	}
+  /**
+   * Zones object to store travel analysis zones (from Zoning object)
+   */
+  protected Zoning.Zones zones;
 
-	/**
-	  * Returns the destination zone object for the current cell
-	  * 
-	  * @return the destination zone object for the current cell
-	  */
-	@Override
-	public Zone getCurrentDestination() {
-		return zones.getZoneById(destinationId);
-	}
+  /**
+   * Increment the location cursor for the next iteration
+   */
+  protected void updateCurrentLocation() {
+    originId = currentLocation / zones.getNumberOfZones();
+    destinationId = currentLocation % zones.getNumberOfZones();
+    currentLocation++;
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param zones zones considered in the matrix
+   */
+  public ODDataIteratorImpl(Zoning.Zones zones) {
+    this.zones = zones;
+    currentLocation = 0;
+  }
+
+  /**
+   * Tests whether there are any more cells to iterate through
+   * 
+   * @return true if there are more cells to iterate through, false otherwise
+   */
+  @Override
+  public boolean hasNext() {
+    return currentLocation < (zones.getNumberOfZones() * zones.getNumberOfZones());
+  }
+
+  /**
+   * Returns the origin zone object for the current cell
+   * 
+   * @return the origin zone object at the current cell
+   */
+  @Override
+  public Zone getCurrentOrigin() {
+    return zones.getZoneById(originId);
+  }
+
+  /**
+   * Returns the destination zone object for the current cell
+   * 
+   * @return the destination zone object for the current cell
+   */
+  @Override
+  public Zone getCurrentDestination() {
+    return zones.getZoneById(destinationId);
+  }
 
 }

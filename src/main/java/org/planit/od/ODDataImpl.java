@@ -11,28 +11,28 @@ import org.planit.network.virtual.Zoning;
  */
 public abstract class ODDataImpl<T> implements ODData<T> {
 
-    /**
-     * holder for zones considered in the matrix
-     */
-    protected Zoning.Zones zones;
-    
-    /**
-     * Constructor
-     * 
-     * @param zones zones considered in the matrix
-     */
-    public ODDataImpl(Zoning.Zones zones) {
-    	this.zones = zones;
-    	
-    }
+  /**
+   * holder for zones considered in the matrix
+   */
+  protected Zoning.Zones zones;
 
-	/**
-	 * Returns the number of zones contained in the object
-	 *  
-	 * @return number of zones in the object
-	 */
-    public int getNumberOfTravelAnalysisZones() {
-    	return zones.getNumberOfZones();
-    }
-    
+  /**
+   * Constructor
+   * 
+   * @param zones zones considered in the matrix
+   */
+  public ODDataImpl(Zoning.Zones zones) {
+    this.zones = zones;
+
+  }
+
+  /**
+   * Returns the number of zones contained in the object
+   * 
+   * @return number of zones in the object
+   */
+  public int getNumberOfTravelAnalysisZones() {
+    return zones.getNumberOfZones();
+  }
+
 }

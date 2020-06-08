@@ -245,7 +245,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 				.getOutputTypeAdapter(outputType);
 		for (Mode mode : modes) {
 			MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
-			for (LinkSegment linkSegment : linkOutputTypeAdapter.getLinkSegments()) {
+			for (LinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments()) {
 				updateOutputAndKeyValuesForLink(multiKeyPlanItData, outputProperties, outputKeys, linkSegment,
 						linkOutputTypeAdapter, mode, timePeriod, outputTypeConfiguration.isRecordLinksWithZeroFlow());
 			}

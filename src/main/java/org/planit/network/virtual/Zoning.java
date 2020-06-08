@@ -1,17 +1,22 @@
 package org.planit.network.virtual;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import javax.annotation.Nonnull;
 
+import org.planit.demands.Demands;
 import org.planit.exceptions.PlanItException;
+import org.planit.network.physical.PhysicalNetwork.Modes;
+import org.planit.od.odmatrix.demand.ODDemandMatrix;
+import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.Zone;
 
@@ -26,6 +31,9 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   /** generated UID */
   private static final long serialVersionUID = -2986366471146628179L;
 
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(Zoning.class.getCanonicalName());
+
   // register to be eligible in PLANit
   static {
     try {
@@ -39,7 +47,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
    * Internal class for all zone specific code
    *
    */
-  public class Zones {
+  public class Zones implements Iterable<Zone> {
 
     /**
      * Add zone to the internal container.
@@ -49,15 +57,6 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
      */
     protected Zone registerZone(@Nonnull final Zone zone) {
       return zoneMap.put(zone.getId(), zone);
-    }
-
-    /**
-     * Returns a List of registered Zones
-     *
-     * @return List of registered Zone objects
-     */
-    public List<Zone> toList() {
-      return new ArrayList<Zone>(zoneMap.values());
     }
 
     /**
@@ -85,6 +84,16 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
     }
 
     /**
+     * Collect iterator for all registered zones (non-ordered)
+     * 
+     * @return iterator
+     */
+    @Override
+    public Iterator<Zone> iterator() {
+      return zoneMap.values().iterator();
+    }
+
+    /**
      * Collect number of zones on the zoning
      *
      * @return the number of zones in this zoning
@@ -92,6 +101,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
     public int getNumberOfZones() {
       return zoneMap.size();
     }
+
   }
 
   // Protected
@@ -143,6 +153,29 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
    */
   public VirtualNetwork getVirtualNetwork() {
     return this.virtualNetwork;
+  }
+
+  /**
+   * Verify if passed in demands are compatible with the zoning structure. Compatibility is ensured when the number of
+   * zones matches the number of origins/destinations in the demands.
+   * 
+   * @param demands
+   * @return
+   */
+  public boolean isCompatibleWithDemands(@Nonnull Demands demands, @Nonnull Modes modes) {
+    final int noZonesInZoning = zones.getNumberOfZones();
+    for (final Mode mode : modes) {
+      for (TimePeriod timePeriod : demands.timePeriods) {
+        final ODDemandMatrix odMatrix = demands.get(mode, timePeriod);
+        if (odMatrix != null) {
+          if (noZonesInZoning != odMatrix.getNumberOfTravelAnalysisZones()) {
+            // inconsistent number of zones found
+            return false;
+          }
+        }
+      }
+    }
+    return true;
   }
 
 }

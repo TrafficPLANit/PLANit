@@ -500,7 +500,7 @@ public class PlanItProjectInput {
       throw new PlanItException(errorMessage);
     }
     final Map<TimePeriod, InitialLinkSegmentCost> initialCostsMap = new HashMap<TimePeriod, InitialLinkSegmentCost>();
-    for (final TimePeriod timePeriod : demands.timePeriods.getRegisteredTimePeriods()) {
+    for (final TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
       LOGGER.info("Registering Initial Link Segment Costs for Time Period " + timePeriod.getId());
       final InitialLinkSegmentCost initialLinkSegmentCost = createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
       initialCostsMap.put(timePeriod, initialLinkSegmentCost);
