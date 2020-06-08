@@ -60,6 +60,29 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
     return macroscopicLinkSegment.getLinkSegmentType().getName();
 	}
 	
+  /** 
+   * Returns the maximum density of the current link 
+   *  
+   * @param linkSegment LinkSegment containing data which may be required 
+   * @return the flow density of the current link 
+   * @throws PlanItException thrown if there is an error  
+   */ 
+  /** 
+   * Returns the flow density of the current link 
+   *  
+   * @param linkSegment LinkSegment containing data which may be required 
+   * @return the flow density of the current link 
+   * @throws PlanItException thrown if there is an error  
+   */ 
+  protected double getMaximumDensity(LinkSegment linkSegment) throws PlanItException { 
+    if (!(linkSegment instanceof MacroscopicLinkSegment)) { 
+      throw new PlanItException(  
+          "Tried to density per lane across an object which is not a MacroscopicLinkSegment."); 
+    } 
+    MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment; 
+    return macroscopicLinkSegment.getLinkSegmentType().getMaximumDensityPerLane();  
+  } 
+
 	/**
 	 * Returns the external Id of the downstream node
 	 * 
@@ -264,7 +287,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 			case CAPACITY_PER_LANE:
 				return getCapacityPerLane(linkSegment);
 			case DENSITY: 
-			  return LinkSegment.MAX_DENSITY;
+			  return null; 
 			case DOWNSTREAM_NODE_EXTERNAL_ID:
 				return getDownstreamNodeExternalId(linkSegment);
 			case DOWNSTREAM_NODE_ID:
@@ -277,6 +300,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
 				return getLinkSegmentExternalId(linkSegment);
 			case LINK_SEGMENT_ID:
 				return getLinkSegmentId(linkSegment);
+			case MAX_DENSITY:
+			  return getMaximumDensity(linkSegment); 
 			case MAXIMUM_SPEED:
 				return getMaximumSpeed(linkSegment, mode);
 			case NUMBER_OF_LANES:
