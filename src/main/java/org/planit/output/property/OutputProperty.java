@@ -17,6 +17,7 @@ public enum OutputProperty {
 	LINK_SEGMENT_EXTERNAL_ID("org.planit.output.property.LinkSegmentExternalIdOutputProperty"),
 	MODE_ID("org.planit.output.property.ModeIdOutputProperty"),
 	MODE_EXTERNAL_ID("org.planit.output.property.ModeExternalIdOutputProperty"),
+	MAX_DENSITY("org.planit.output.property.MaximumDensityOutputProperty"),
 	MAXIMUM_SPEED("org.planit.output.property.MaximumSpeedOutputProperty"), 
 	CALCULATED_SPEED("org.planit.output.property.CalculatedSpeedOutputProperty"),
 	FLOW("org.planit.output.property.FlowOutputProperty"),
