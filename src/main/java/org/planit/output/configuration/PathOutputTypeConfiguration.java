@@ -71,6 +71,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
 		super(trafficAssignment, OutputType.PATH);
 		// add default output properties
 		addProperty(OutputProperty.RUN_ID);
+		addProperty(OutputProperty.PATH_ID);
 		addProperty(OutputProperty.TIME_PERIOD_EXTERNAL_ID);
 		addProperty(OutputProperty.MODE_EXTERNAL_ID);
 		addProperty(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID);
@@ -157,6 +158,8 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
 			return true;
 		case RUN_ID:
 			return true;
+		case PATH_ID:
+		  return true;
 		case TIME_PERIOD_EXTERNAL_ID:
 			return true;
 		case TIME_PERIOD_ID:
