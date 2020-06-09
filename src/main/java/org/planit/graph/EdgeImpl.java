@@ -3,7 +3,7 @@ package org.planit.graph;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
+
 
 import org.planit.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
@@ -84,7 +84,7 @@ public class EdgeImpl implements Edge {
      * @param length length of the link
      * @throws PlanItException thrown if there is an error
      */
-    protected EdgeImpl(@Nonnull final Vertex vertexA, @Nonnull final Vertex vertexB, final double length) throws PlanItException {
+    protected EdgeImpl( final Vertex vertexA,  final Vertex vertexB, final double length) throws PlanItException {
         this.id = generateEdgeId();
         this.vertexA = vertexA;
         this.vertexB = vertexB;

@@ -1,136 +1,64 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	
+	<!-- parent pom. Make sure it is installed (discoverable), otherwise maven will fail.
+	     to install, in PLANitAll project, run mvn install on the pom.xml -->
+  <parent>
+	  <groupId>org.planit.all</groupId>
+	  <artifactId>PLANitAll</artifactId>
+	  <version>0.0.4a7</version>
+  </parent>
+
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.planit</groupId>
 	<artifactId>PLANit</artifactId>
 	<description>PlanIt common code for traffic assignment</description>
-	<version>0.0.4a7</version>
 	<packaging>jar</packaging>
 
 	<name>PLANit</name>
-	<url>http://maven.apache.org</url>
+	<url>https://github.sydney.edu.au/planit/planit</url>
 
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<geotools.version>19.2</geotools.version>
 		<ojalgo.version>46.3.0</ojalgo.version>
-		<maven.compiler.source>1.11</maven.compiler.source>
-		<maven.compiler.target>1.11</maven.compiler.target>
-		<maven.jaxb2.plugin.version>0.14.0</maven.jaxb2.plugin.version>
-		<planitutils.version>0.0.4a7</planitutils.version>
-		<djutils.version>1.04.05</djutils.version>
-		<!-- Change the property below to match the path of your PLANitPy2J rsc directory -->
-		<py2j.resource.directory>..\PLANitPy2J\share\planit</py2j.resource.directory>
 	</properties>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.planit.utils</groupId>
-			<artifactId>PLANitUtils</artifactId>
-			<version>${planitutils.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.djutils</groupId>
-			<artifactId>djutils</artifactId>
-			<version>${djutils.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-geometry</artifactId>
-			<version>${geotools.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-geojson</artifactId>
-			<version>${geotools.version}</version>
-		</dependency>
-
-
-		<dependency>
-			<groupId>com.google.code.findbugs</groupId>
-			<artifactId>jsr305</artifactId>
-			<version>3.0.2</version>
-		</dependency>
-
+	
+	  <!-- version inherited from parent -->
+	  <dependency>
+      <groupId>org.planit.utils</groupId>
+      <artifactId>PLANitUtils</artifactId>
+    </dependency>
+    
+    <!-- version inherited from parent -->
+    <dependency>
+      <groupId>org.djutils</groupId>
+      <artifactId>djutils</artifactId>
+    </dependency>    
+    	   
+    <!-- version inherited from parent --> 
 		<dependency>
 			<groupId>org.ojalgo</groupId>
 			<artifactId>ojalgo</artifactId>
-			<version>${ojalgo.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.13-beta-2</version>
-		</dependency>
-
+    <!-- version inherited from parent -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-csv</artifactId>
-			<version>1.6</version>
 		</dependency>
 
+    <!-- version inherited from parent -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
-			<version>4.4</version>
 		</dependency>
-
+				
 	</dependencies>
 
-	<build>
-		<resources>
-			<resource>
-				<directory>src/main/resources</directory>
-				<filtering>true</filtering>
-			</resource>
-		</resources>
-
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
-				<configuration>
-					<release>11</release>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.3.1</version>
-				<configuration>
-					<outputDirectory>${py2j.resource.directory}</outputDirectory>
-				</configuration>
-			</plugin>
-
-		</plugins>
-	</build>
-
 	<repositories>
-		<repository>
-			<id>maven2-repository.dev.java.net</id>
-			<name>Java.net repository</name>
-			<url>http://download.java.net/maven/2</url>
-		</repository>
-
-		<repository>
-			<id>osgeo</id>
-			<name>Open Source Geospatial Foundation Repository</name>
-			<url>http://download.osgeo.org/webdav/geotools/</url>
-		</repository>
-
-		<repository>
-			<name>djutils Public Repository</name>
-			<id>djutils</id>
-			<url>https://djutils.org/maven</url>
-		</repository>
 
 		<repository>
 			<id>geosolutions-repo</id>

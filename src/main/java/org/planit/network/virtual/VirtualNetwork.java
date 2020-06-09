@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.annotation.Nonnull;
+
 
 import org.planit.exceptions.PlanItException;
 import org.planit.utils.network.physical.Node;
@@ -37,7 +37,7 @@ public class VirtualNetwork {
      * @param connectoid the connectoid to be registered
      * @return connectoid added
      */
-    protected Connectoid registerConnectoid(@Nonnull Connectoid connectoid) {
+    protected Connectoid registerConnectoid( Connectoid connectoid) {
       return connectoidMap.put(connectoid.getId(), connectoid);
     }
 
@@ -114,7 +114,7 @@ public class VirtualNetwork {
      * @param connectoidSegment ConnectoidSegment to be registered
      * @return the registered connectoid segment
      */
-    protected ConnectoidSegment registerConnectoidSegment(@Nonnull ConnectoidSegment connectoidSegment) {
+    protected ConnectoidSegment registerConnectoidSegment( ConnectoidSegment connectoidSegment) {
       return connectoidSegmentMap.put(connectoidSegment.getId(), connectoidSegment);
     }
 
@@ -134,7 +134,7 @@ public class VirtualNetwork {
      * @return created connectoid segment
      * @throws PlanItException thrown if there is an error
      */
-    public ConnectoidSegment createAndRegisterConnectoidSegment(@Nonnull Connectoid parentConnectoid, boolean directionAB) throws PlanItException {
+    public ConnectoidSegment createAndRegisterConnectoidSegment( Connectoid parentConnectoid, boolean directionAB) throws PlanItException {
       ConnectoidSegment connectoidSegment = new ConnectoidSegmentImpl(parentConnectoid, directionAB);
       parentConnectoid.registerConnectoidSegment(connectoidSegment, directionAB);
       registerConnectoidSegment(connectoidSegment);
@@ -176,7 +176,7 @@ public class VirtualNetwork {
      * @param centroid centroid to be registered
      * @return registered centroid
      */
-    public Centroid registerCentroid(@Nonnull Centroid centroid) {
+    public Centroid registerCentroid( Centroid centroid) {
       return centroidMap.put(centroid.getId(), centroid);
     }
 

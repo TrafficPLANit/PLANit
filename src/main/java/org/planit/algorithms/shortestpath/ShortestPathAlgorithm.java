@@ -1,6 +1,6 @@
 package org.planit.algorithms.shortestpath;
 
-import javax.annotation.Nonnull;
+
 
 import org.planit.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
@@ -28,6 +28,6 @@ public interface ShortestPathAlgorithm {
      * @throws PlanItException
      *             thrown if an error occurs
      */
-    public Pair<Double, EdgeSegment>[] executeOneToAll(@Nonnull Vertex currentOrigin) throws PlanItException;
+    public Pair<Double, EdgeSegment>[] executeOneToAll( Vertex currentOrigin) throws PlanItException;
 
 }

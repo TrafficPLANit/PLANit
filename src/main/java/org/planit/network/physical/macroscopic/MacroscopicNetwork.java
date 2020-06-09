@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import javax.annotation.Nonnull;
+
 
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
@@ -62,7 +62,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
    * @return  the link segment type
    * @throws PlanItException thrown if there is an error
    */
-  public MacroscopicLinkSegmentType createAndRegisterNewMacroscopicLinkSegmentType(@Nonnull final String name, final double capacity, final double maximumDensity, 
+  public MacroscopicLinkSegmentType createAndRegisterNewMacroscopicLinkSegmentType( final String name, final double capacity, final double maximumDensity, 
       final Object linkSegmentExternalId, final Map<Mode, MacroscopicModeProperties> modeProperties) throws PlanItException {
 
     if (!(networkBuilder instanceof MacroscopicNetworkBuilder)) {
@@ -82,7 +82,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
    * @param linkSegmentType the MacroscopicLinkSegmentType to be registered
    * @return the registered link segment type
    */
-  public MacroscopicLinkSegmentType registerLinkSegmentType(@Nonnull final MacroscopicLinkSegmentType linkSegmentType) {
+  public MacroscopicLinkSegmentType registerLinkSegmentType( final MacroscopicLinkSegmentType linkSegmentType) {
     return macroscopicLinkSegmentTypeByIdMap.put(linkSegmentType.getId(), linkSegmentType);
   }  
 

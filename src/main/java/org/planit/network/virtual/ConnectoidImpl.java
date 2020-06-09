@@ -1,6 +1,6 @@
 package org.planit.network.virtual;
 
-import javax.annotation.Nonnull;
+
 
 import org.planit.exceptions.PlanItException;
 import org.planit.graph.EdgeImpl;
@@ -56,7 +56,7 @@ public class ConnectoidImpl extends EdgeImpl implements Connectoid {
      * @param externalId externalId of the connectoid (can be null, in which case this has not be set in the input files)
      * @throws PlanItException thrown if there is an error
      */
-    public ConnectoidImpl(@Nonnull final Centroid centroidA, @Nonnull final Node nodeB, final double length, final Object externalId) throws PlanItException {
+    public ConnectoidImpl( final Centroid centroidA,  final Node nodeB, final double length, final Object externalId) throws PlanItException {
         super(centroidA, nodeB, length);
         this.connectoidId = generateConnectoidId();
         setExternalId(externalId);
@@ -70,7 +70,7 @@ public class ConnectoidImpl extends EdgeImpl implements Connectoid {
      * @param length  length of the current connectoid
      * @throws PlanItException thrown if there is an error
      */
-    public ConnectoidImpl(@Nonnull final Centroid centroidA, @Nonnull final Node nodeB, final double length) throws PlanItException {
+    public ConnectoidImpl( final Centroid centroidA,  final Node nodeB, final double length) throws PlanItException {
         super(centroidA, nodeB, length);
         this.connectoidId = generateConnectoidId();
     }

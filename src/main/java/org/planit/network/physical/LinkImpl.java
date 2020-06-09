@@ -1,6 +1,6 @@
 package org.planit.network.physical;
 
-import javax.annotation.Nonnull;
+
 
 import org.planit.exceptions.PlanItException;
 import org.planit.graph.EdgeImpl;
@@ -54,7 +54,7 @@ public class LinkImpl extends EdgeImpl implements Link {
      * @param name the name of the link
      * @throws PlanItException thrown if there is an error
      */
-    public LinkImpl(@Nonnull final Node nodeA, @Nonnull final Node nodeB, final double length, final String name) throws PlanItException {
+    public LinkImpl( final Node nodeA,  final Node nodeB, final double length, final String name) throws PlanItException {
         super(nodeA, nodeB, length);
         this.linkId = generateLinkId();
     }

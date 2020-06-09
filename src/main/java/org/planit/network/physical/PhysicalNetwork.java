@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import javax.annotation.Nonnull;
+
 
 import org.planit.exceptions.PlanItException;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
@@ -56,7 +56,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param link link to be registered in this network
      * @return link, in case it overrides an existing link, the removed link is returned
      */
-    protected Link registerLink(@Nonnull final Link link) {
+    protected Link registerLink( final Link link) {
       return linkMap.put(link.getId(), link);
     }
 
@@ -131,7 +131,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param linkSegment the link segment to be registered
      * @throws PlanItException thrown if the current link segment external Id has already been assigned
      */
-    protected void registerLinkSegment(@Nonnull final LinkSegment linkSegment) throws PlanItException {
+    protected void registerLinkSegment( final LinkSegment linkSegment) throws PlanItException {
       linkSegmentMap.put(linkSegment.getId(), linkSegment);
       final Node startNode = (Node) linkSegment.getUpstreamVertex();
       if (!linkSegmentMapByStartNodeId.containsKey(startNode.getId())) {
@@ -179,7 +179,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LinkSegment createDirectionalLinkSegment(@Nonnull final Link parentLink, final boolean directionAB) throws PlanItException {
+    public LinkSegment createDirectionalLinkSegment( final Link parentLink, final boolean directionAB) throws PlanItException {
       final LinkSegment linkSegment = networkBuilder.createLinkSegment(parentLink, directionAB);
       return linkSegment;
     }
@@ -192,7 +192,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param directionAB direction of travel
      * @throws PlanItException thrown if there is an error
      */
-    public void registerLinkSegment(@Nonnull final Link parentLink, final LinkSegment linkSegment, final boolean directionAB) throws PlanItException {
+    public void registerLinkSegment( final Link parentLink, final LinkSegment linkSegment, final boolean directionAB) throws PlanItException {
       parentLink.registerLinkSegment(linkSegment, directionAB);
       registerLinkSegment(linkSegment);
     }
@@ -280,7 +280,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param node node to be registered in this network
      * @return node, in case it overrides an existing node, the removed node is returned
      */
-    public Node registerNode(@Nonnull final Node node) {
+    public Node registerNode( final Node node) {
       return nodeMap.put(node.getId(), node);
     }
 
@@ -344,7 +344,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param mode to be registered in this network
      * @return mode, in case it overrides an existing mode, the removed mode is returned
      */
-    public Mode registerMode(@Nonnull final Mode mode) {
+    public Mode registerMode( final Mode mode) {
       return modeMap.put(mode.getId(), mode);
     }
 
@@ -474,7 +474,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
    *
    * @param networkBuilder the builder to be used to create this network
    */
-  public PhysicalNetwork(@Nonnull final PhysicalNetworkBuilder networkBuilder) {
+  public PhysicalNetwork( final PhysicalNetworkBuilder networkBuilder) {
     this.id = IdGenerator.generateId(PhysicalNetwork.class);
     this.networkBuilder = networkBuilder;
   }

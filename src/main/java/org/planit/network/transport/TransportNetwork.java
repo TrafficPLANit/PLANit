@@ -1,6 +1,6 @@
 package org.planit.network.transport;
 
-import javax.annotation.Nonnull;
+
 
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
@@ -84,7 +84,7 @@ public class TransportNetwork {
    * @param physicalNetwork the PhysicalNetwork used to generate this TransportNetwork
    * @param zoning          the Zoning used to generate this TransportNetwork
    */
-  public TransportNetwork(@Nonnull PhysicalNetwork physicalNetwork, @Nonnull Zoning zoning) {
+  public TransportNetwork( PhysicalNetwork physicalNetwork,  Zoning zoning) {
     this.physicalNetwork = physicalNetwork;
     this.zoning = zoning;
   }

@@ -3,7 +3,7 @@ package org.planit.network.physical.macroscopic;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
+
 
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.Mode;
@@ -71,7 +71,7 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
 	 * @param maximumDensityPerLane maximum density per lane of this link segment  type
 	 * @param externalId    external reference number of the link type
 	 */
-	public MacroscopicLinkSegmentTypeImpl(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane, Object externalId) {
+	public MacroscopicLinkSegmentTypeImpl( String name, double capacityPerLane, double maximumDensityPerLane, Object externalId) {
 		this.id = generateMacroscopicLinkSegmentTypeId();
 		this.name = name;
 		this.capacityPerLane = capacityPerLane;
@@ -80,7 +80,7 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
 		modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
 	}
 	
-	 public MacroscopicLinkSegmentTypeImpl(@Nonnull String name, double capacityPerLane, double maximumDensityPerLane,  Object externalId, Map<Mode, MacroscopicModeProperties> modeProperties) {
+	 public MacroscopicLinkSegmentTypeImpl( String name, double capacityPerLane, double maximumDensityPerLane,  Object externalId, Map<Mode, MacroscopicModeProperties> modeProperties) {
 	   this(name, capacityPerLane, maximumDensityPerLane, externalId);
 	   setModeProperties(modeProperties);
 	 }

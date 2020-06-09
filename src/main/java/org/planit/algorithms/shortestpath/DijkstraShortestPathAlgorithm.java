@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
-import javax.annotation.Nonnull;
+
 
 import org.planit.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
@@ -77,7 +77,7 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
      * @throws PlanItException  thrown if an error occurs
      */
     @Override
-    public Pair<Double, EdgeSegment>[] executeOneToAll(@Nonnull Vertex currentOrigin) throws PlanItException {
+    public Pair<Double, EdgeSegment>[] executeOneToAll( Vertex currentOrigin) throws PlanItException {
         boolean[] vertexVisited = new boolean[numberOfVertices];
         this.currentOrigin = currentOrigin;
         @SuppressWarnings("unchecked")

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.annotation.Nonnull;
+
 
 import org.djutils.event.Event;
 import org.djutils.event.EventType;
@@ -371,7 +371,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @param smoothing Smoothing object for the current assignment
    */
-  public void setSmoothing(@Nonnull final Smoothing smoothing) {
+  public void setSmoothing( final Smoothing smoothing) {
     this.smoothing = smoothing;
   }
 
@@ -409,7 +409,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @param physicalNetwork the PhysicalNetwork object for the current assignment
    */
-  public void setPhysicalNetwork(@Nonnull final PhysicalNetwork physicalNetwork) {
+  public void setPhysicalNetwork( final PhysicalNetwork physicalNetwork) {
     this.physicalNetwork = physicalNetwork;
   }
 
@@ -418,7 +418,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @param demands the Demands object for the current assignment
    */
-  public void setDemands(@Nonnull final Demands demands) {
+  public void setDemands( final Demands demands) {
     this.demands = demands;
   }
 
@@ -427,7 +427,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @param zoning the Zoning object for the current assignment
    */
-  public void setZoning(@Nonnull final Zoning zoning) {
+  public void setZoning( final Zoning zoning) {
     this.zoning = zoning;
   }
 

@@ -6,8 +6,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import javax.annotation.Nonnull;
-
 import org.planit.demands.Demands;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork.Modes;
@@ -55,7 +53,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
      * @param zone the zone to be added to this Zoning
      * @return the zone added
      */
-    protected Zone registerZone(@Nonnull final Zone zone) {
+    protected Zone registerZone( final Zone zone) {
       return zoneMap.put(zone.getId(), zone);
     }
 
@@ -162,7 +160,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
    * @param demands
    * @return
    */
-  public boolean isCompatibleWithDemands(@Nonnull Demands demands, @Nonnull Modes modes) {
+  public boolean isCompatibleWithDemands( Demands demands,  Modes modes) {
     final int noZonesInZoning = zones.getNumberOfZones();
     for (final Mode mode : modes) {
       for (TimePeriod timePeriod : demands.timePeriods) {

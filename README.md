@@ -1,118 +1,16 @@
 # PLANit
 
-This is the core module of the PLANit project. It contains all the algorithms and computational components which can be used to construct projects, traffic assignments, etc. The PLANit project promotes the use of its native I/O formats which are XML based, however it is equally well possible to define your own input format and/or poutput format. PLANit it is completely modular and open such that you can replace, add, include, or exclude modules any way you please. 
+This is the core module of the PLANit project. It contains algorithms and traffic assignment components which can be used to construct projects, traffic assignments, etc. The PLANit project promotes the use of its native I/O format which are CSV/XML based, however it is equally well possible to define your own input format and/or output format. PLANit it is completely modular and open such that you can replace, add, include, or exclude modules any way you please. 
 
-For more information on the natively supported XML formats we kindly refer to <https://github.sydney.edu.au/PLANit/PLANitXML>
+See the manual http://pages.github.sydney.edu.au/PLANit/PLANitManual, for information on how to use the API rather than how to develop for it.
 
-For our ongoing work on providing a Python support we kindly refer to <https://github.sydney.edu.au/PLANit/PLANitPython>
+## Maven parent
 
-## Core components
+Projects need to be built from Maven before they can be run. The common maven configuration can be found in the PLANitAll project which acts as the parent for this project's pom.xml.
 
-Each PLANit project consists of three core input components:
+> Make sure you install the PLANitAll pom.xml before conducting a maven build (in Eclipse) on this project, otherwise it cannot find the references dependencies, plugins, and other resources.
 
-* a physical network, i.e., the supply side infrastructure consisting of roads and intersections (links and nodes)
-* One or more travel demands (often referred to as OD-matrices) by time-of-day and user class (mode, traveller type), which are currently implemented as the trips between travel analysis zones
-* one or more zoning structures, representing the interaction between demand and supply defining the (geospatial area of ) travel zone granularity and their point(s) of interaction with the physical network, i.e., how the demand can enter/exit the physical network via virtual connections (centroids, connectoids)
-
-Each PLANit project can configure one or more traffic assignment scenarios which can pick and choose:
-
-* which zoning structure to use
-* which travel demand matrix or matrices to use, i.e., which time periods to model
-* which modes to consider
-* the traffic assignment configuration itself (what network loading method, what equilibration approach, etc.)
-
-## Current limitations
-
-* Currently we only support macroscopic traffic assignment approaches, meaning that the framework is optimized for aggregate flow based assignment methods
-* Currently we only implemented the well known traditional static capacity restrained assignment model which uses link performance functions
-
-## Indicative example
-
-Below you will find an indicative example of how one would configure a project with a single traditional static traffic assignment in Java
-
-```java
-
-import java.util.logging.Logger;
-
-import org.planit.event.listener.InputBuilderListener;
-import org.planit.exceptions.PlanItException;
-import org.planit.network.physical.PhysicalNetwork;
-import org.planit.network.physical.macroscopic.MacroscopicNetwork;
-import org.planit.output.OutputType;
-import org.planit.output.configuration.OutputConfiguration;
-import org.planit.output.formatter.OutputFormatter;
-import org.planit.cost.physical.BPRLinkTravelTimeCost;
-import org.planit.demand.Demands;
-import org.planit.project.PlanItProject;
-import org.planit.sdinteraction.smoothing.MSASmoothing;
-import org.planit.trafficassignment.DeterministicTrafficAssignment;
-import org.planit.trafficassignment.TraditionalStaticAssignment;
-import org.planit.trafficassignment.builder.CapacityRestrainedTrafficAssignmentBuilder;
-import org.planit.zoning.Zoning;
-
-/**
- * PLANit Example
- * 
- * @author markr
- *
- */
-public class PLANitExample{
-	
-	/**
- 	* Main method running the example
- 	* 
- 	* @param args	main method args
- 	*/
-	public static void main(String[] args) {
-
-		try {
-			// PROJECT LEVEL -------------------------------------------------------------------------------
-			// Initialse project with default native I/O
-			PlanItProject project = new PlanItProject(new PLANitXMLInputBuilder("<my_path_to_project_dir>"));
-        		outputFormatter = project.createAndRegisterOutputFormatter(PLANitXMLOutputFormatter.class.getCanonicalName());
-		
-			// Core input components available on the project level - parse data
-			PhysicalNetwork physicalNetwork = project.createAndRegisterPhysicalNetwork(MacroscopicNetwork.class.getCanonicalName());
-			Zoning zoning = project.createAndRegisterZoning();
-			Demands demands = project.createAndRegisterDemands(); 							
-
-			// ASSIGNMENT LEVEL -------------------------------------------------------------------------------
-        		// Create on project 
-			DeterministicTrafficAssignment assignment = project.createAndRegisterDeterministicAssignment(TraditionalStaticAssignment.class.getCanonicalName());		
-			// Dedicated builder for each assignment instance --> simplify the user configuration by using it
-			CapacityRestrainedTrafficAssignmentBuilder taBuilder = (CapacityRestrainedTrafficAssignmentBuilder) assignment.getBuilder();
- 		
-			// Choose traffic assignment inputs/outputs
-			taBuilder.registerPhysicalNetwork(physicalNetwork);								
-			taBuilder.registerZoning(zoning);
-			taBuilder.registerDemands(demands);	
-        		taBuilder.registerOutputFormatter(outputFormatter);
-
-			// Choose assignment components
-			taBuilder.createAndRegisterPhysicalTravelTimeCostFunction(BPRLinkTravelTimeCost.class.getCanonicalName());		//BPR for physical roads
-			taBuilder.createAndRegisterVirtualTravelTimeCostFunction(FixedConnectoidTravelTimeCost.class.getCanonicalName());	//Fixed cost for virtual links 		
-			taBuilder.createAndRegisterSmoothing(MSASmoothing.class.getCanonicalName());						// MSA for equilibration smoothing	
-		        
-	    		// Configure assignment components
-			assignment.getOutputConfiguration().setPersistOnlyFinalIteration(true)							// Only store final result
-        		assignment.getGapFunction().getStopCriterion().setMaxIterations(maxIterations);						// Limit number of iterations
-        		assignment.getGapFunction().getStopCriterion().setEpsilon(epsilon);							// Convergence criterium
-        
-			// Run it!
-        		project.executeAllTrafficAssignments();
-		} catch (PlanItException e) {
-			e.printStackTrace();
-		}
-		
-	}
-}
-```
-
-## Building code and running unit tests in Eclipse
-
-Projects need to be built from Maven before they can be run.  The PLANit project should be built first since this is the core which all other projects use.  Then build whichever other project(s) you are working on (e.g. PLANitXML, MetroScan etc).
-
-The Maven builds are perform any setup actions which projects may require.  In the specific case of PLANitXML, Java code is generated from XSD classes using a Maven plugin (see the Readme.md of that project for more details).
+## Maven and Eclipse - a quick introduction
 
 The following notes explain how to run Maven builds for these projects in Eclipse.  They are aimed at readers who are not familiar with Maven.  Readers who are experienced in Maven or other IDEs are free to do their own configuration.
 
@@ -120,7 +18,7 @@ Firstly ensure that you are using a version of Eclipse which has the Maven plugi
 
 Right-click on the PLANit project in the Package Explorer and select Run As.  You will see a drop-down menu.  Often you can just click "Maven Install" and it will work, since it performs the following actions:-
 
-* Generates the Java code from the XSD files, if required;
+* Collects dependencies
 * Compiles the Java code;
 * Runs the unit tests.
 
@@ -130,7 +28,6 @@ However there may be times when you do not wish to perform all these steps at on
 
 The drop-down menu has other useful options, including:-
 
-* "Maven generate-sources", which simply creates the Java code from the XSD files;
 * "Maven clean", which removes previously-created .class files from the target directory.
 
 However the most configurable approach is to click the "Run Configurations.." and use the resulting dialog box, as follows:-
@@ -152,7 +49,6 @@ You can change the configuration at any time as required by your code changes.  
 Whenever you click Run, the configuration dialog box closes.  Its setting on its closure will be retained for the next time it is opened.  If you use this dialog box often on several projects, do not forget to check its settings on opening are appropriate for the build you are doing.
 
 It is a matter of personal taste whether you run unit tests directly (by right-clicking on a test suite and selecting Run As/JUnit Test) or run them as part of this build process.  Running them directly will not generate Java classes from XSD files, so if you have made changes to the XSD files you must rebuild.  Running directly is fractionally quicker, but the builds only take a few seconds so the difference is negligible.
-
 
 
 

@@ -2,7 +2,7 @@ package org.planit.network.physical.macroscopic;
 
 import java.util.logging.Logger;
 
-import javax.annotation.Nonnull;
+
 
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegmentImpl;
@@ -41,7 +41,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
 	 * @param parentLink  the parent link of this link segment
 	 * @param directionAB direction of travel
 	 */
-	public MacroscopicLinkSegmentImpl(@Nonnull final Link parentLink, final boolean directionAB) {
+	public MacroscopicLinkSegmentImpl( final Link parentLink, final boolean directionAB) {
 		super(parentLink, directionAB);
 	}
 
