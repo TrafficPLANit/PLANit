@@ -58,13 +58,4 @@
 				
 	</dependencies>
 
-	<repositories>
-
-		<repository>
-			<id>geosolutions-repo</id>
-			<url>http://maven.geo-solutions.it/</url>
-		</repository>
-
-	</repositories>
-
 </project>
