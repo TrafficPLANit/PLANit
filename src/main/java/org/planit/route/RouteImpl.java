@@ -9,6 +9,7 @@ import java.util.function.Function;
 import org.planit.output.enums.RouteIdType;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.Centroid;
@@ -25,9 +26,14 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
 public class RouteImpl implements Route {
 
   /**
+   *  Id of the path
+   */
+  private long id;
+  
+  /**
    * List containing the edge segments in the path
    */
-  protected final List<EdgeSegment> path;
+  private final List<EdgeSegment> path;
   
 	/**
 	 * Create the route from an implicit origin to a specified destination, using the vertexPathAndCost array as input
@@ -139,6 +145,7 @@ public class RouteImpl implements Route {
 	 * Constructor
 	 */
 	public RouteImpl() {
+	  id = IdGenerator.generateId(RouteImpl.class);
 		path = new ArrayList<EdgeSegment>();
 	}
 
@@ -148,6 +155,7 @@ public class RouteImpl implements Route {
 	 * @param pathEdgeSegments the path to set (not copied)
 	 */
 	public RouteImpl(final List<EdgeSegment> pathEdgeSegments) {
+    id = IdGenerator.generateId(RouteImpl.class);
 		path = pathEdgeSegments;
 	}
 
@@ -177,6 +185,15 @@ public class RouteImpl implements Route {
 	  return path;
 	}
 
+	/**
+	 * Return the id of this path
+	 * 
+	 * @return the id of this path
+	 */
+	@Override
+	public long getId() {
+	  return id;
+	}
 
   /**
    * Outputs this path as a String, appropriate to a specified path output type

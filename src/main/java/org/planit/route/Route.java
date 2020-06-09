@@ -40,5 +40,12 @@ public interface Route {
 	 * @return the path as a List of EdgeSegments
 	 */
 	public List<EdgeSegment> getPath();
+	
+	/**
+	 * Return the Id of this path
+	 * 
+	 * @return the Id of this path
+	 */
+	public long getId();
 
 }

@@ -79,6 +79,22 @@ public abstract class RouteOutputTypeAdapterImpl extends OutputTypeAdapterImpl i
 	}
 	
 	/**
+	 * Return the Id of the current path
+	 * 
+	 * If there is no path between the current origin and destination zones, this returns -1
+	 * 
+   * @param odPathIterator ODPathIterator object containing the required data
+	 * @return the id of the current path, or -1 if no path exists
+	 */
+	protected long getRouteId(ODRouteIterator odRouteIterator) {
+	  Route route = odRouteIterator.getCurrentValue();
+	  if (route == null) {
+	    return -1;
+	  }
+	  return odRouteIterator.getCurrentValue().getId();
+	}
+	
+	/**
 	 * Constructor
 	 * 
 	 * @param outputType the output type for the current persistence
@@ -112,6 +128,8 @@ public abstract class RouteOutputTypeAdapterImpl extends OutputTypeAdapterImpl i
 				return getDestinationZoneId(odRouteIterator);
 			case PATH_STRING:
 			    return getRouteAsString(odRouteIterator, routeOutputType);
+			case PATH_ID:
+			  return getRouteId(odRouteIterator);
 			case ORIGIN_ZONE_EXTERNAL_ID:
 				return getOriginZoneExternalId(odRouteIterator);
 			case ORIGIN_ZONE_ID:
