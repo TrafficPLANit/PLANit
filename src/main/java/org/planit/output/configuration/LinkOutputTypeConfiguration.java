@@ -173,7 +173,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
         return true;
       case LINK_SEGMENT_ID:
         return true;
-      case MAX_DENSITY:
+      case MAXIMUM_DENSITY:
         return true;
       case MAXIMUM_SPEED:
         return true;

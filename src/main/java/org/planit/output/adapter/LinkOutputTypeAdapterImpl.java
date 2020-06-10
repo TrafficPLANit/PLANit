@@ -282,7 +282,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
         return getLinkSegmentExternalId(linkSegment);
       case LINK_SEGMENT_ID:
         return getLinkSegmentId(linkSegment);
-      case MAX_DENSITY:
+      case MAXIMUM_DENSITY:
         return getMaximumDensity(linkSegment);
       case MAXIMUM_SPEED:
         return getMaximumSpeed(linkSegment, mode);
