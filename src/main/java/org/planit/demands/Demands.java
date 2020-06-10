@@ -58,6 +58,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     try {
       TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(Demands.class);
     } catch (final PlanItException e) {
+      LOGGER.severe(e.getMessage());
       e.printStackTrace();
     }
   }

@@ -37,6 +37,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
     try {
       TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(Zoning.class);
     } catch (final PlanItException e) {
+      LOGGER.severe(e.getMessage());
       e.printStackTrace();
     }
   }
@@ -53,7 +54,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
      * @param zone the zone to be added to this Zoning
      * @return the zone added
      */
-    protected Zone registerZone( final Zone zone) {
+    protected Zone registerZone(final Zone zone) {
       return zoneMap.put(zone.getId(), zone);
     }
 
@@ -160,7 +161,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
    * @param demands
    * @return
    */
-  public boolean isCompatibleWithDemands( Demands demands,  Modes modes) {
+  public boolean isCompatibleWithDemands(Demands demands, Modes modes) {
     final int noZonesInZoning = zones.getNumberOfZones();
     for (final Mode mode : modes) {
       for (TimePeriod timePeriod : demands.timePeriods) {

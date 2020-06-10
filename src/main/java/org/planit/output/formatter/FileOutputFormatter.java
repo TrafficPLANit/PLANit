@@ -2,6 +2,7 @@ package org.planit.output.formatter;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.OutputType;
@@ -15,9 +16,11 @@ import org.planit.time.TimePeriod;
  */
 public abstract class FileOutputFormatter extends BaseOutputFormatter {
 
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(FileOutputFormatter.class.getCanonicalName());
+
   /**
-   * Generates the name of an output file. All output files have no spaces in
-   * them.
+   * Generates the name of an output file. All output files have no spaces in them.
    * 
    * @param outputDirectory location output files are to be written
    * @param nameRoot        root name of the output files
@@ -58,7 +61,8 @@ public abstract class FileOutputFormatter extends BaseOutputFormatter {
       }
       return newFileName;
     } catch (Exception e) {
-      throw new PlanItException(e);
+      LOGGER.severe(e.getMessage());
+      throw new PlanItException("Error when generating output file name in FileOutputFormatter", e);
     }
   }
 

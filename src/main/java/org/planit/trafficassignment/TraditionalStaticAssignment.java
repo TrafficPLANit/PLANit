@@ -150,7 +150,6 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
           final Centroid originCentroid = currentOriginZone.getCentroid();
           if (originCentroid.getExitEdgeSegments().isEmpty()) {
             String errorMessage = "Edge segments have not been assigned to Centroid for Zone " + (currentOriginZone.getExternalId());
-            LOGGER.severe(errorMessage);
             throw new PlanItException(errorMessage);
           }
           // UPDATE SHORTEST PATHS
@@ -194,11 +193,9 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       if (currentEdgeSegment == null) {
         if (currentPathStartVertex instanceof Centroid) {
           String errorMessage = "The solution could not find an Edge Segment for the connectoid for zone " + ((Centroid) currentPathStartVertex).getParentZone().getExternalId();
-          LOGGER.severe(errorMessage);
           throw new PlanItException(errorMessage);
         } else {
           String errorMessage = "The solution could not find an Edge Segment for node " + ((Node) currentPathStartVertex).getId();
-          LOGGER.severe(errorMessage);
           throw new PlanItException(errorMessage);
         }
       }

@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-
-
 import org.djutils.event.Event;
 import org.djutils.event.EventType;
 import org.planit.cost.physical.PhysicalCost;
@@ -152,22 +150,18 @@ public abstract class TrafficAssignment extends NetworkLoading {
   protected void checkForEmptyComponents() throws PlanItException {
     if (demands == null) {
       String errorMessage = "Demand is null";
-      LOGGER.severe(errorMessage);
       throw new PlanItException(errorMessage);
     }
     if (physicalNetwork == null) {
       String errorMessage = "Network is null";
-      LOGGER.severe(errorMessage);
       throw new PlanItException(errorMessage);
     }
     if (smoothing == null) {
       String errorMessage = "Smoothing is null";
-      LOGGER.severe(errorMessage);
       throw new PlanItException(errorMessage);
     }
     if (zoning == null) {
       String errorMessage = "Zoning is null";
-      LOGGER.severe(errorMessage);
       throw new PlanItException(errorMessage);
     }
   }
@@ -371,7 +365,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @param smoothing Smoothing object for the current assignment
    */
-  public void setSmoothing( final Smoothing smoothing) {
+  public void setSmoothing(final Smoothing smoothing) {
     this.smoothing = smoothing;
   }
 
@@ -409,7 +403,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @param physicalNetwork the PhysicalNetwork object for the current assignment
    */
-  public void setPhysicalNetwork( final PhysicalNetwork physicalNetwork) {
+  public void setPhysicalNetwork(final PhysicalNetwork physicalNetwork) {
     this.physicalNetwork = physicalNetwork;
   }
 
@@ -418,7 +412,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @param demands the Demands object for the current assignment
    */
-  public void setDemands( final Demands demands) {
+  public void setDemands(final Demands demands) {
     this.demands = demands;
   }
 
@@ -427,7 +421,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @param zoning the Zoning object for the current assignment
    */
-  public void setZoning( final Zoning zoning) {
+  public void setZoning(final Zoning zoning) {
     this.zoning = zoning;
   }
 
@@ -476,7 +470,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
       fireEvent(new Event(requestAccessee, this, this.physicalCost));
       if (!listeners.containsKey(requestAccessee)) {
         String errorMessage = "Error during setPhysicalCost";
-        LOGGER.severe(errorMessage);
         throw new PlanItException(errorMessage);
       }
     }
@@ -508,7 +501,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
       fireEvent(new Event(requestAccesseeType, this, this.virtualCost));
       if (!listeners.containsKey(requestAccesseeType)) {
         String errorMessage = "Error during setVirtualCost";
-        LOGGER.severe(errorMessage);
         throw new PlanItException(errorMessage);
       }
     }

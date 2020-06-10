@@ -111,7 +111,6 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   protected Object getDownstreamNodeLocation(LinkSegment linkSegment) throws PlanItException {
     if (!(linkSegment.getDownstreamVertex() instanceof VertexImpl)) {
       String errorMessage = "Downstream node location not available";
-      LOGGER.severe(errorMessage);
       throw new PlanItException(errorMessage);
     }
     VertexImpl downstreamVertex = (VertexImpl) linkSegment.getDownstreamVertex();
@@ -205,7 +204,6 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   protected Object getUpstreamNodeLocation(LinkSegment linkSegment) throws PlanItException {
     if (!(linkSegment.getDownstreamVertex() instanceof VertexImpl)) {
       String errorMessage = "Upstream node location not available";
-      LOGGER.severe(errorMessage);
       throw new PlanItException(errorMessage);
     }
     VertexImpl upstreamVertex = (VertexImpl) linkSegment.getUpstreamVertex();

@@ -13,31 +13,30 @@ import org.planit.exceptions.PlanItException;
 public final class OutputFormatterFactory {
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(OutputFormatterFactory.class.getCanonicalName());   
+  private static final Logger LOGGER = Logger.getLogger(OutputFormatterFactory.class.getCanonicalName());
 
-   /**
-     * Create an output formatter based on the passed in class name
-     * 
-     * @param OutputFormatterCanonicalClassName
-     *            canonical class name of the desired output formatter
-     * @return created output formatter instance
-     * @throws PlanItException
-     *             thrown if there is an error
-     */
-    public static OutputFormatter createOutputFormatter(String OutputFormatterCanonicalClassName)
-            throws PlanItException {
-        Object newOutputFormatter = null;
-        try {
-            newOutputFormatter = Class.forName(OutputFormatterCanonicalClassName).getConstructor().newInstance();
-            if (newOutputFormatter == null || !(newOutputFormatter instanceof OutputFormatter)) {
-                String errorMessage = "Provided output formatter class is not eligible for instantiation";
-                LOGGER.severe(errorMessage);
-                throw new PlanItException(errorMessage);
-            }
-        } catch (Exception ex) {
-            throw new PlanItException(ex);
-        }
-        return (OutputFormatter) newOutputFormatter;
+  /**
+   * Create an output formatter based on the passed in class name
+   * 
+   * @param OutputFormatterCanonicalClassName canonical class name of the desired output formatter
+   * @return created output formatter instance
+   * @throws PlanItException thrown if there is an error
+   */
+  public static OutputFormatter createOutputFormatter(String OutputFormatterCanonicalClassName) throws PlanItException {
+    Object newOutputFormatter = null;
+    try {
+      newOutputFormatter = Class.forName(OutputFormatterCanonicalClassName).getConstructor().newInstance();
+      if (newOutputFormatter == null || !(newOutputFormatter instanceof OutputFormatter)) {
+        String errorMessage = "Provided output formatter class is not eligible for instantiation";
+        throw new PlanItException(errorMessage);
+      }
+    } catch (PlanItException e) {
+      LOGGER.severe(e.getMessage());
+      throw new PlanItException("Error when creating output formatter", e);
+    } catch (Exception e) {
+      throw new PlanItException(e);
     }
+    return (OutputFormatter) newOutputFormatter;
+  }
 
 }

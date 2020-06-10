@@ -15,27 +15,9 @@ import org.planit.trafficassignment.TrafficAssignment;
  * 
  * The following OutputProperty values are included by default:
  * 
- * MODE_EXTERNAL_ID
- * UPSTREAM_NODE_EXTERNAL_ID
- * DOWNSTREAM_NODE_EXTERNAL_ID
- * FLOW
- * CAPACITY_PER_LANE
- * NUMBER_OF_LANES
- * LENGTH
- * CALCULATED_SPEED
- * COST
- * DENSITY
- * LINK_SEGMENT_ID
- * UPSTREAM_NODE_ID
- * UPSTREAM_NODE_LOCATION
- * DOWNSTREAM_NODE_ID
- * DOWNSTREAM_NODE_LOCATION
- * CAPACITY_PER_LANE
- * LINK_COST
- * MODE_ID
- * MAXIMUM_SPEED
- * TIME_PERIOD_EXTERNAL_ID
- * TIME_PERIOD_ID
+ * MODE_EXTERNAL_ID UPSTREAM_NODE_EXTERNAL_ID DOWNSTREAM_NODE_EXTERNAL_ID FLOW CAPACITY_PER_LANE NUMBER_OF_LANES LENGTH
+ * CALCULATED_SPEED COST DENSITY LINK_SEGMENT_ID UPSTREAM_NODE_ID UPSTREAM_NODE_LOCATION DOWNSTREAM_NODE_ID
+ * DOWNSTREAM_NODE_LOCATION CAPACITY_PER_LANE LINK_COST MODE_ID MAXIMUM_SPEED TIME_PERIOD_EXTERNAL_ID TIME_PERIOD_ID
  * 
  * 
  * @author markr
@@ -59,8 +41,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
    */
   private int findIdentificationMethod(OutputProperty[] outputKeyProperties) {
     List<OutputProperty> outputKeyPropertyList = Arrays.asList(outputKeyProperties);
-    if (outputKeyPropertyList.contains(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID) && outputKeyPropertyList.contains(
-        OutputProperty.UPSTREAM_NODE_EXTERNAL_ID)) {
+    if (outputKeyPropertyList.contains(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID)) {
       return LINK_SEGMENT_IDENTIFICATION_BY_NODE_ID;
     }
     if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_ID)) {
@@ -104,8 +85,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
   }
 
   /**
-   * Validate whether the specified list of keys is valid, and if it is return only the keys which
-   * will be used
+   * Validate whether the specified list of keys is valid, and if it is return only the keys which will be used
    * 
    * @param outputKeyProperties array of output key property types
    * @return array of keys to be used (null if the list is not valid)
@@ -115,24 +95,24 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
     OutputProperty[] outputKeyPropertiesArray = null;
     boolean valid = false;
     switch (findIdentificationMethod(outputKeyProperties)) {
-      case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_NODE_ID:
-        outputKeyPropertiesArray = new OutputProperty[2];
-        outputKeyPropertiesArray[0] = OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID;
-        outputKeyPropertiesArray[1] = OutputProperty.UPSTREAM_NODE_EXTERNAL_ID;
-        valid = true;
-        break;
-      case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_ID:
-        outputKeyPropertiesArray = new OutputProperty[1];
-        outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_ID;
-        valid = true;
-        break;
-      case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID:
-        outputKeyPropertiesArray = new OutputProperty[1];
-        outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
-        valid = true;
-        break;
-      default:
-        LOGGER.severe("Configured keys cannot identify link segments.");
+    case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_NODE_ID:
+      outputKeyPropertiesArray = new OutputProperty[2];
+      outputKeyPropertiesArray[0] = OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID;
+      outputKeyPropertiesArray[1] = OutputProperty.UPSTREAM_NODE_EXTERNAL_ID;
+      valid = true;
+      break;
+    case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_ID:
+      outputKeyPropertiesArray = new OutputProperty[1];
+      outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_ID;
+      valid = true;
+      break;
+    case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID:
+      outputKeyPropertiesArray = new OutputProperty[1];
+      outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
+      valid = true;
+      break;
+    default:
+      LOGGER.warning("Configured keys cannot identify link segments.");
     }
     if (valid) {
       return outputKeyPropertiesArray;
@@ -149,61 +129,60 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
   @Override
   public boolean isOutputPropertyValid(BaseOutputProperty baseOutputProperty) {
     switch (baseOutputProperty.getOutputProperty()) {
-      case CALCULATED_SPEED:
-        return true;
-      case CAPACITY_PER_LANE:
-        return true;
-      case DENSITY:
-        return true;
-      case DOWNSTREAM_NODE_EXTERNAL_ID:
-        return true;
-      case DOWNSTREAM_NODE_ID:
-        return true;
-      case DOWNSTREAM_NODE_LOCATION:
-        return true;
-      case FLOW:
-        return true;
-      case ITERATION_INDEX:
-        return true;
-      case LENGTH:
-        return true;
-      case LINK_COST:
-        return true;
-      case LINK_SEGMENT_EXTERNAL_ID:
-        return true;
-      case LINK_SEGMENT_ID:
-        return true;
-      case MAX_DENSITY:
-        return true;
-      case MAXIMUM_SPEED:
-        return true;
-      case MODE_EXTERNAL_ID:
-        return true;
-      case MODE_ID:
-        return true;
-      case NUMBER_OF_LANES:
-        return true;
-      case RUN_ID:
-        return true;
-      case TIME_PERIOD_EXTERNAL_ID:
-        return true;
-      case TIME_PERIOD_ID:
-        return true;
-      case UPSTREAM_NODE_EXTERNAL_ID:
-        return true;
-      case UPSTREAM_NODE_ID:
-        return true;
-      case UPSTREAM_NODE_LOCATION:
-        return true;
-      case VC_RATIO:
-        return true;
-      case COST_TIMES_FLOW:
-        return true;
-      case LINK_TYPE:
-        return true;
-      default:
-        LOGGER.warning("Tried to add " + baseOutputProperty.getName()
-            + " as an ouput property, which is inappropriate for Link output.  This will be ignored.");
+    case CALCULATED_SPEED:
+      return true;
+    case CAPACITY_PER_LANE:
+      return true;
+    case DENSITY:
+      return true;
+    case DOWNSTREAM_NODE_EXTERNAL_ID:
+      return true;
+    case DOWNSTREAM_NODE_ID:
+      return true;
+    case DOWNSTREAM_NODE_LOCATION:
+      return true;
+    case FLOW:
+      return true;
+    case ITERATION_INDEX:
+      return true;
+    case LENGTH:
+      return true;
+    case LINK_COST:
+      return true;
+    case LINK_SEGMENT_EXTERNAL_ID:
+      return true;
+    case LINK_SEGMENT_ID:
+      return true;
+    case MAX_DENSITY:
+      return true;
+    case MAXIMUM_SPEED:
+      return true;
+    case MODE_EXTERNAL_ID:
+      return true;
+    case MODE_ID:
+      return true;
+    case NUMBER_OF_LANES:
+      return true;
+    case RUN_ID:
+      return true;
+    case TIME_PERIOD_EXTERNAL_ID:
+      return true;
+    case TIME_PERIOD_ID:
+      return true;
+    case UPSTREAM_NODE_EXTERNAL_ID:
+      return true;
+    case UPSTREAM_NODE_ID:
+      return true;
+    case UPSTREAM_NODE_LOCATION:
+      return true;
+    case VC_RATIO:
+      return true;
+    case COST_TIMES_FLOW:
+      return true;
+    case LINK_TYPE:
+      return true;
+    default:
+      LOGGER.warning("Tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Link output.  This will be ignored.");
     }
     return false;
   }

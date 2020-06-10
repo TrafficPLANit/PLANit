@@ -70,7 +70,6 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       // verify if current suboutput type is compatible with the provided output
       if (!(currentOutputType instanceof SubOutputTypeEnum && ((SubOutputTypeEnum) currentOutputType) instanceof ODSkimSubOutputType)) {
         String errorMessage = "currentOutputType is not compatible with od results";
-        LOGGER.severe(errorMessage);
         throw new PlanItException(errorMessage);
       }
       // sub-type information
@@ -86,8 +85,11 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
           csvPrinter.printRecord(rowValues);
         }
       }
+    } catch (PlanItException e) {
+      return e;
     } catch (Exception e) {
-      return new PlanItException(e);
+      LOGGER.severe(e.getMessage());
+      return new PlanItException("Error when writing od results for current time period in CSVOutputFileformatter", e);
     }
     return null;
   }
@@ -108,7 +110,6 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
     try {
       if (!(currentOutputType instanceof OutputType)) {
         String errorMessage = "currentOutputType not compatible with path output";
-        LOGGER.severe(errorMessage);
         throw new PlanItException(errorMessage);
       }
       OutputType outputType = (OutputType) currentOutputType;
@@ -124,8 +125,11 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
           csvPrinter.printRecord(rowValues);
         }
       }
+    } catch (PlanItException e) {
+      return e;
     } catch (Exception e) {
-      return new PlanItException(e);
+      LOGGER.severe(e.getMessage());
+      return new PlanItException("Error when writing path results for current time period in CSVOutputFileformatter", e);
     }
     return null;
   }
@@ -146,7 +150,6 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
     try {
       if (!(currentOutputType instanceof OutputType)) {
         String errorMessage = "currentOutputType not compatible with link output";
-        LOGGER.severe(errorMessage);
         throw new PlanItException(errorMessage);
       }
       OutputType outputType = (OutputType) currentOutputType;
@@ -161,8 +164,11 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
           }
         }
       }
+    } catch (PlanItException e) {
+      return e;
     } catch (Exception e) {
-      return new PlanItException(e);
+      LOGGER.severe(e.getMessage());
+      return new PlanItException("Error when writing link results for current time period in CSVOutputFileformatter", e);
     }
     return null;
   }
