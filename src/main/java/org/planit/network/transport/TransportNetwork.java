@@ -1,7 +1,5 @@
 package org.planit.network.transport;
 
-
-
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.VirtualNetwork;
@@ -14,7 +12,8 @@ import org.planit.utils.network.virtual.Connectoid;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
- * Entire transport network that is being modeled including both the physical and virtual aspects of it as well as the
+ * Entire transport network that is being modeled including both the physical and virtual aspects of
+ * it as well as the
  * zoning. It acts as a wrapper unifying the two components during the assignment stage
  * 
  * @author markr
@@ -82,15 +81,16 @@ public class TransportNetwork {
    * Constructor
    * 
    * @param physicalNetwork the PhysicalNetwork used to generate this TransportNetwork
-   * @param zoning          the Zoning used to generate this TransportNetwork
+   * @param zoning the Zoning used to generate this TransportNetwork
    */
-  public TransportNetwork( PhysicalNetwork physicalNetwork,  Zoning zoning) {
+  public TransportNetwork(PhysicalNetwork physicalNetwork, Zoning zoning) {
     this.physicalNetwork = physicalNetwork;
     this.zoning = zoning;
   }
 
   /**
-   * Returns the total number of edge segments available in this traffic assignment by combining the physical and
+   * Returns the total number of edge segments available in this traffic assignment by combining the
+   * physical and
    * non-physical link segments
    * 
    * @return total number of physical and virtual edge segments

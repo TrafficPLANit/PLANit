@@ -13,49 +13,51 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
  */
 public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 
-	/** generated UID */
-	private static final long serialVersionUID = 2813935702895030693L;
+  /** generated UID */
+  private static final long serialVersionUID = 2813935702895030693L;
 
-	public static final double DEFAULT_CONNECTOID_SPEED_KPH = 25.0;
+  public static final double DEFAULT_CONNECTOID_SPEED_KPH = 25.0;
 
-	/**
-	 * Speed used for connectoid cost calculations
-	 */
-	private double connectoidSpeed;
+  /**
+   * Speed used for connectoid cost calculations
+   */
+  private double connectoidSpeed;
 
-	/**
-	 * Constructor
-	 */
-	public SpeedConnectoidTravelTimeCost() {
-		super();
-		connectoidSpeed = DEFAULT_CONNECTOID_SPEED_KPH;
-	}
+  /**
+   * Constructor
+   */
+  public SpeedConnectoidTravelTimeCost() {
+    super();
+    connectoidSpeed = DEFAULT_CONNECTOID_SPEED_KPH;
+  }
 
-	/**
-	 * Return the connectoid travel time using speed
-	 *
-	 * @param mode              the mode of travel
-	 * @param connectoidSegment the connectoid segment
-	 * @return the travel time for this connectoid segment
-	 */
-	@Override
-	public double getSegmentCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
-		return connectoidSegment.getParentEdge().getLength() / connectoidSpeed;
-	}
+  /**
+   * Return the connectoid travel time using speed
+   *
+   * @param mode the mode of travel
+   * @param connectoidSegment the connectoid segment
+   * @return the travel time for this connectoid segment
+   */
+  @Override
+  public double getSegmentCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
+    return connectoidSegment.getParentEdge().getLength() / connectoidSpeed;
+  }
 
-    /**
-     * #{@inheritDoc}
-     */
-    @Override
-    public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException {
-        // currently no specific initialization needed
-    }
+  /**
+   * #{@inheritDoc}
+   */
+  @Override
+  public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException {
+    // currently no specific initialization needed
+  }
 
-    /** set the connectoid speed
-     * @param connectoidSpeed the speed
-     */
-    public void setConnectiodSpeed(final double connectoidSpeed) {
-    	this.connectoidSpeed = connectoidSpeed;
-    }
+  /**
+   * set the connectoid speed
+   * 
+   * @param connectoidSpeed the speed
+   */
+  public void setConnectiodSpeed(final double connectoidSpeed) {
+    this.connectoidSpeed = connectoidSpeed;
+  }
 
 }

@@ -11,30 +11,31 @@ import org.planit.utils.misc.IdGenerator;
  * @author markr
  *
  */
-public abstract class FundamentalDiagram extends TrafficAssignmentComponent<FundamentalDiagram> implements Serializable {
+public abstract class FundamentalDiagram extends TrafficAssignmentComponent<FundamentalDiagram> implements
+    Serializable {
 
-    /** generated UID */
-	private static final long serialVersionUID = 5815100111048623093L;
+  /** generated UID */
+  private static final long serialVersionUID = 5815100111048623093L;
 
-	/**
-     * unique identifier
-     */
-    protected final long id;
+  /**
+   * unique identifier
+   */
+  protected final long id;
 
-	/**
-     * Base constructor
-     */
-    public FundamentalDiagram() {
-        super();
-        this.id = IdGenerator.generateId(FundamentalDiagram.class);
-    }
+  /**
+   * Base constructor
+   */
+  public FundamentalDiagram() {
+    super();
+    this.id = IdGenerator.generateId(FundamentalDiagram.class);
+  }
 
-    /**
-     * #{@inheritDoc}
-     */
-	@Override
-	public long getId() {
-		return this.id;
-	}
+  /**
+   * #{@inheritDoc}
+   */
+  @Override
+  public long getId() {
+    return this.id;
+  }
 
 }

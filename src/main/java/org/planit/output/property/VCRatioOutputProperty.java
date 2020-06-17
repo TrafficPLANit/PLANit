@@ -11,31 +11,31 @@ import org.planit.output.enums.Units;
  */
 public final class VCRatioOutputProperty extends BaseOutputProperty {
 
-	public static final String NAME = "VC Ratio";
-	
-	@Override
-	public String getName() {
-		return NAME;
-	}
+  public static final String NAME = "VC Ratio";
 
-	@Override
-	public Units getUnits() {
-		return Units.NONE;
-	}
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
-	@Override
-	public Type getType() {
-		return Type.DOUBLE;
-	}
+  @Override
+  public Units getUnits() {
+    return Units.NONE;
+  }
 
-	@Override
-	public OutputProperty getOutputProperty() {
-		return OutputProperty.VC_RATIO;
-	}
+  @Override
+  public Type getType() {
+    return Type.DOUBLE;
+  }
 
-	@Override
-	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.RESULT_PRIORITY;
-	}
+  @Override
+  public OutputProperty getOutputProperty() {
+    return OutputProperty.VC_RATIO;
+  }
+
+  @Override
+  public OutputPropertyPriority getColumnPriority() {
+    return OutputPropertyPriority.RESULT_PRIORITY;
+  }
 
 }

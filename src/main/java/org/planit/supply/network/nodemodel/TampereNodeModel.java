@@ -8,14 +8,14 @@ package org.planit.supply.network.nodemodel;
  */
 public class TampereNodeModel extends NodeModel {
 
-	/** generated UID */
-	private static final long serialVersionUID = 624108273657030487L;
+  /** generated UID */
+  private static final long serialVersionUID = 624108273657030487L;
 
-	/**
-	 * Base Constructor
-	 */
-	public TampereNodeModel() {
-		super();
-	}
+  /**
+   * Base Constructor
+   */
+  public TampereNodeModel() {
+    super();
+  }
 
 }

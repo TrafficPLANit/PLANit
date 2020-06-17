@@ -34,15 +34,18 @@ import org.planit.supply.network.nodemodel.TampereNodeModel;
 import org.planit.supply.networkloading.NetworkLoading;
 
 /**
- * Generic factory class for registered subclasses of predefined traffic assignment components, so it does not create
+ * Generic factory class for registered subclasses of predefined traffic assignment components, so
+ * it does not create
  * instances of T but of sublcasses of T.
  *
  * @author markr
  *
- * @param <T> generic type of a type traffic assignment component for which we construct the eligible derived classes by
- *            class name
+ * @param <T> generic type of a type traffic assignment component for which we construct the
+ *          eligible derived classes by
+ *          class name
  */
-public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentComponent<T> & Serializable> extends EventProducer implements Serializable {
+public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentComponent<T> & Serializable> extends
+    EventProducer implements Serializable {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentComponentFactory.class.getCanonicalName());
@@ -82,7 +85,8 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
   }
 
   /**
-   * register all implementations that are by default available as they are provided in the PlanIt core packages
+   * register all implementations that are by default available as they are provided in the PlanIt
+   * core packages
    */
   private static void registerDefaultImplementations() {
     try {
@@ -109,15 +113,18 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
    * Create a traffic component with no parameters
    *
    * @param trafficAssignmentComponentClassName the name of the traffic component to be created
+   * @param constructorParameters parameters to pass to the constructor
    * @return the created traffic component object
    * @throws PlanItException thrown if there is an error
    */
   @SuppressWarnings("unchecked")
-  private T createTrafficComponent(final String trafficAssignmentComponentClassName, final Object[] constructorParameters) throws PlanItException {
+  private T createTrafficComponent(final String trafficAssignmentComponentClassName,
+      final Object[] constructorParameters) throws PlanItException {
     final TreeSet<String> eligibleComponentTypes = registeredTrafficAssignmentComponents.get(componentSuperType);
     try {
       if (eligibleComponentTypes.contains(trafficAssignmentComponentClassName)) {
-        return (T) Class.forName(trafficAssignmentComponentClassName).getConstructor().newInstance(constructorParameters);
+        return (T) Class.forName(trafficAssignmentComponentClassName).getConstructor().newInstance(
+            constructorParameters);
       } else {
         String errorMessage = "Provided Traffic Assignment Component class is not eligible for construction.";
         throw new PlanItException(errorMessage);
@@ -134,11 +141,13 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
    * Dispatch an event on creation of a traffic component with variable parameters
    *
    * @param newTrafficComponent the traffic component being created
-   * @param parameters          parameter object array to be used by the event
+   * @param parameters parameter object array to be used by the event
    * @throws PlanItException thrown if there is an exception
    */
-  private void dispatchTrafficComponentEvent(final T newTrafficComponent, final Object[] parameters) throws PlanItException {
-    fireEvent(new org.djutils.event.Event(TRAFFICCOMPONENT_CREATE, this, new Object[] { newTrafficComponent, parameters }));
+  private void dispatchTrafficComponentEvent(final T newTrafficComponent, final Object[] parameters)
+      throws PlanItException {
+    fireEvent(new org.djutils.event.Event(TRAFFICCOMPONENT_CREATE, this, new Object[] {
+        newTrafficComponent, parameters}));
     if (!listeners.containsKey(TRAFFICCOMPONENT_CREATE)) {
       String errorMessage = "Error during dispatchTrafficComponentEvent";
       throw new PlanItException(errorMessage);
@@ -163,11 +172,13 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
    * @throws PlanItException thrown if there is an error
    */
   @SuppressWarnings("unchecked")
-  public static void registerTrafficAssignmentComponentType(final Class<? extends TrafficAssignmentComponent<?>> trafficAssignmentComponent) throws PlanItException {
+  public static void registerTrafficAssignmentComponentType(
+      final Class<? extends TrafficAssignmentComponent<?>> trafficAssignmentComponent) throws PlanItException {
     Class<? extends TrafficAssignmentComponent<?>> currentClass = trafficAssignmentComponent;
     while (currentClass != null) {
       final Type currentSuperClass = currentClass.getGenericSuperclass();
-      if (currentSuperClass instanceof ParameterizedType && ((ParameterizedType) currentSuperClass).getRawType() == TrafficAssignmentComponent.class) {
+      if (currentSuperClass instanceof ParameterizedType && ((ParameterizedType) currentSuperClass)
+          .getRawType() == TrafficAssignmentComponent.class) {
         // superclass is a trafficAssignmentComponent class, so the current class is the
         // class that we need
         // register by collecting the component entry and placing the component
@@ -180,7 +191,10 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
         registeredTrafficAssignmentComponents.get(currentClass).add(trafficAssignmentComponent.getCanonicalName());
         return;
       } else {
-        currentClass = (Class<? extends TrafficAssignmentComponent<?>>) currentClass.getSuperclass(); // move up the hierarchy
+        currentClass = (Class<? extends TrafficAssignmentComponent<?>>) currentClass.getSuperclass(); // move
+                                                                                                      // up
+                                                                                                      // the
+                                                                                                      // hierarchy
       }
     }
     String errorMessage = "trafficAssignmentComponent not eligible for registration";
@@ -190,8 +204,9 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
   /**
    * Create traffic assignment component
    *
-   * @param trafficAssignmentComponentClassName the derived class name of the traffic assignment component (without
-   *                                            packages)
+   * @param trafficAssignmentComponentClassName the derived class name of the traffic assignment
+   *          component (without
+   *          packages)
    * @return the created TrafficAssignmentComponent
    * @throws PlanItException thrown if there is an error
    */
@@ -202,19 +217,22 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
   /**
    * Create traffic assignment component
    *
-   * @param trafficAssignmentComponentClassName the derived class name of the traffic assignment component (without
-   *                                            packages)
-   * @param eventParameters                     object array which contains any data required to create the component
+   * @param trafficAssignmentComponentClassName the derived class name of the traffic assignment
+   *          component (without
+   *          packages)
+   * @param eventParameters object array which contains any data required to create the component
    * @return the created TrafficAssignmentComponent
    * @throws PlanItException thrown if there is an error
    */
-  public T create(final String trafficAssignmentComponentClassName, final Object... eventParameters) throws PlanItException {
+  public T create(final String trafficAssignmentComponentClassName, final Object... eventParameters)
+      throws PlanItException {
     final T newTrafficComponent = createTrafficComponent(trafficAssignmentComponentClassName, null);
     dispatchTrafficComponentEvent(newTrafficComponent, eventParameters);
     return newTrafficComponent;
   }
 
-  public T createWithConstructorArguments(final String trafficAssignmentComponentClassName, final Object... constructorParameters) throws PlanItException {
+  public T createWithConstructorArguments(final String trafficAssignmentComponentClassName,
+      final Object... constructorParameters) throws PlanItException {
     final T newTrafficComponent = createTrafficComponent(trafficAssignmentComponentClassName, constructorParameters);
     dispatchTrafficComponentEvent(newTrafficComponent, constructorParameters);
     return newTrafficComponent;
@@ -223,7 +241,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
   /**
    * sourceId provides information of the source of an event fired from this class instance
    *
-   * @reutn this class instance
+   * @return this class instance
    */
   @Override
   public Serializable getSourceId() {

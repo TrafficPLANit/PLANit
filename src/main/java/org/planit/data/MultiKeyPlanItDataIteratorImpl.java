@@ -17,35 +17,37 @@ public class MultiKeyPlanItDataIteratorImpl implements MultiKeyPlanItDataIterato
    * flag to indicate whether the MultiKeyPlanItData object has one key or several
    */
   private boolean isSingleKey;
-  
+
   /**
    * Array of key values for the current row
    */
   private Object[] keys;
-  
+
   /**
    * Array of output values for the current row
    */
   private Object[] values;
-  
+
   /**
    * Map iterator used if the MultiKeyPlanItData object has several keys
    */
   private final MapIterator<MultiKey<? extends Object>, Object[]> multiKeyMapIterator;
-  
+
   /**
-   * Map iterator used if the MultiKeyPlanItData object has one key 
+   * Map iterator used if the MultiKeyPlanItData object has one key
    */
   private final MapIterator<Object, Object[]> singleKeyMapIterator;
 
-/**
- * Constructor
- * 
- * @param isSingleKey flag to indicate whether the MultiKeyPlanItData object has one key or several
- * @param singleKeyMap Map used if the MultiKeyPlanItData object has one key 
- * @param multiKeyMap Map used if the MultiKeyPlanItData object has several keys 
- */
-  public MultiKeyPlanItDataIteratorImpl(final boolean isSingleKey, final IterableMap<Object, Object[]> singleKeyMap, final MultiKeyMap<Object, Object[]> multiKeyMap) {
+  /**
+   * Constructor
+   * 
+   * @param isSingleKey flag to indicate whether the MultiKeyPlanItData object has one key or
+   *          several
+   * @param singleKeyMap Map used if the MultiKeyPlanItData object has one key
+   * @param multiKeyMap Map used if the MultiKeyPlanItData object has several keys
+   */
+  public MultiKeyPlanItDataIteratorImpl(final boolean isSingleKey, final IterableMap<Object, Object[]> singleKeyMap,
+      final MultiKeyMap<Object, Object[]> multiKeyMap) {
     this.isSingleKey = isSingleKey;
     if (isSingleKey) {
       singleKeyMapIterator = (MapIterator<Object, Object[]>) singleKeyMap.mapIterator();
@@ -55,7 +57,7 @@ public class MultiKeyPlanItDataIteratorImpl implements MultiKeyPlanItDataIterato
       multiKeyMapIterator = (MapIterator<MultiKey<? extends Object>, Object[]>) multiKeyMap.mapIterator();
     }
   }
-  
+
   /**
    * Returns whether the MultiKeyPlanItData has any more rows
    * 
@@ -75,7 +77,7 @@ public class MultiKeyPlanItDataIteratorImpl implements MultiKeyPlanItDataIterato
   public Object[] next() {
     if (isSingleKey) {
       Object singleKey = singleKeyMapIterator.next();
-      keys =  new Object[] {singleKey};
+      keys = new Object[] {singleKey};
       values = singleKeyMapIterator.getValue();
     } else {
       MultiKey<? extends Object> multiKey = multiKeyMapIterator.next();

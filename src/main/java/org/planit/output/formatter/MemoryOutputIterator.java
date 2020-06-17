@@ -14,12 +14,12 @@ import org.planit.data.MultiKeyPlanItDataIterator;
  *
  */
 public class MemoryOutputIterator implements Iterator<Object[]> {
-  
+
   /**
    * Iterator through MultiKeyPlanItData
    */
   private MultiKeyPlanItDataIterator multiKeyPlanItDataIterator;
-  
+
   /**
    * Constructor
    * 
@@ -57,8 +57,8 @@ public class MemoryOutputIterator implements Iterator<Object[]> {
    */
   public Object[] getKeys() {
     return multiKeyPlanItDataIterator.getKeys();
-   }
- 
+  }
+
   /**
    * Returns an array of values for the current iteration
    * 
@@ -67,5 +67,5 @@ public class MemoryOutputIterator implements Iterator<Object[]> {
   public Object[] getValues() {
     return multiKeyPlanItDataIterator.getValues();
   }
-  
+
 }

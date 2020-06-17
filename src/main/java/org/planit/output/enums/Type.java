@@ -8,20 +8,20 @@ package org.planit.output.enums;
  */
 public enum Type {
 
-	 DOUBLE("DOUBLE"),
-	 FLOAT("FLOAT"),
-	 INTEGER("INTEGER"),
-	 LONG("LONG"),
-	 BOOLEAN("BOOLEAN"),
-	 STRING("STRING"),
-	 SRSNAME("SRSNAME");
-	 private final String value;
+  DOUBLE("DOUBLE"),
+  FLOAT("FLOAT"),
+  INTEGER("INTEGER"),
+  LONG("LONG"),
+  BOOLEAN("BOOLEAN"),
+  STRING("STRING"),
+  SRSNAME("SRSNAME");
+  private final String value;
 
-	 Type(String v) {
-	     value = v;
-	 }
+  Type(String v) {
+    value = v;
+  }
 
-	 public String value() {
-	     return value;
-	 }
+  public String value() {
+    return value;
+  }
 }

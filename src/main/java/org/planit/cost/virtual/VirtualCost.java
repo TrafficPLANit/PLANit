@@ -15,37 +15,37 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
  */
 public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost> implements Cost<ConnectoidSegment> {
 
-    /** generated UID */
-	private static final long serialVersionUID = -8278650865770286434L;
+  /** generated UID */
+  private static final long serialVersionUID = -8278650865770286434L;
 
-	/**
-     * unique identifier
-     */
-    protected final long id;
+  /**
+   * unique identifier
+   */
+  protected final long id;
 
-	/**
-     * Constructor
-     */
-    public VirtualCost() {
-        super();
-		this.id = IdGenerator.generateId(VirtualCost.class);
-    }
+  /**
+   * Constructor
+   */
+  public VirtualCost() {
+    super();
+    this.id = IdGenerator.generateId(VirtualCost.class);
+  }
 
-    /**
-     * Initialize the virtual cost component
-     *
-     * @param virtualNetwork the virtual network
-     * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
-     */
-    public abstract void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException;
+  /**
+   * Initialize the virtual cost component
+   *
+   * @param virtualNetwork the virtual network
+   * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters
+   *           have been set
+   */
+  public abstract void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException;
 
-
-    /**
-     * #{@inheritDoc}
-     */
-	@Override
-	public long getId() {
-		return this.id;
-	}
+  /**
+   * #{@inheritDoc}
+   */
+  @Override
+  public long getId() {
+    return this.id;
+  }
 
 }

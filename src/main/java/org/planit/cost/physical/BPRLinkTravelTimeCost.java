@@ -17,7 +17,8 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 
 /**
- * Well known BPR link performance function to compute travel time cost on link segment based on flow and configuration
+ * Well known BPR link performance function to compute travel time cost on link segment based on
+ * flow and configuration
  * parameters.
  *
  * @author markr
@@ -47,9 +48,9 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
     /**
      * Store BPR parameters for a specified mode
      *
-     * @param mode  mode of travel
+     * @param mode mode of travel
      * @param alpha BPR alpha value
-     * @param beta  BPR beta value
+     * @param beta BPR beta value
      */
     private void registerParameters(final Mode mode, final double alpha, final double beta) {
       parametersMap.put(mode, new Pair<Double, Double>(alpha, beta));
@@ -132,10 +133,10 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
    *
    * If the input data are invalid, this method returns a negative value.
    *
-   * @param mode        the current Mode of travel
+   * @param mode the current Mode of travel
    * @param linkSegment the current link segment
    * @return the travel time for the current link
-   * @throws PlanItException
+   * @throws PlanItException when cost cannot be computed
    *
    */
   @Override
@@ -151,7 +152,8 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
     final Pair<Double, Double> alphaBetaParameters = bprParametersPerLinkSegment[id].getAlphaBetaParameters(mode);
     final double alpha = alphaBetaParameters.getFirst();
     final double beta = alphaBetaParameters.getSecond();
-    final double linkTravelTime = freeFlowTravelTime * (1.0 + alpha * Math.pow(flow / capacity, beta)); // Free Flow
+    final double linkTravelTime = freeFlowTravelTime * (1.0 + alpha * Math.pow(flow / capacity, beta)); // Free
+                                                                                                        // Flow
     // Travel Time *
     // (1 +
     // alpha*(v/c)^beta)
@@ -162,11 +164,12 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
    * Set the alpha and beta values for a given link segment and mode
    *
    * @param linkSegment the specified link segment
-   * @param mode        specified mode type
-   * @param alpha       alpha value
-   * @param beta        beta value
+   * @param mode specified mode type
+   * @param alpha alpha value
+   * @param beta beta value
    */
-  public void setParameters(final MacroscopicLinkSegment linkSegment, final Mode mode, final double alpha, final double beta) {
+  public void setParameters(final MacroscopicLinkSegment linkSegment, final Mode mode, final double alpha,
+      final double beta) {
     if (parametersPerLinkSegmentAndMode.get(linkSegment) == null) {
       parametersPerLinkSegmentAndMode.put(linkSegment, new BPRParameters());
     }
@@ -176,9 +179,9 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
   /**
    * Set the default alpha and beta values for a mode
    *
-   * @param mode  the specified mode type
+   * @param mode the specified mode type
    * @param alpha alpha value
-   * @param beta  beta value
+   * @param beta beta value
    */
   public void setDefaultParameters(final Mode mode, final double alpha, final double beta) {
     defaultParametersPerMode.registerParameters(mode, alpha, beta);
@@ -188,11 +191,12 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
    * Set the default alpha and beta values for a given link type and mode
    *
    * @param macroscopicLinkSegmentType the specified link type
-   * @param mode                       the specified mode type
-   * @param alpha                      alpha value
-   * @param beta                       beta value
+   * @param mode the specified mode type
+   * @param alpha alpha value
+   * @param beta beta value
    */
-  public void setDefaultParameters(final MacroscopicLinkSegmentType macroscopicLinkSegmentType, final Mode mode, final double alpha, final double beta) {
+  public void setDefaultParameters(final MacroscopicLinkSegmentType macroscopicLinkSegmentType, final Mode mode,
+      final double alpha, final double beta) {
     if (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) == null) {
       defaultParametersPerLinkSegmentTypeAndMode.put(macroscopicLinkSegmentType, new BPRParameters());
     }
@@ -203,7 +207,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
    * Set the default alpha and beta values
    *
    * @param alpha alpha value
-   * @param beta  beta value
+   * @param beta beta value
    */
   public void setDefaultParameters(final double alpha, final double beta) {
     defaultParameters = new Pair<Double, Double>(alpha, beta);
@@ -231,8 +235,10 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
             && (parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode) != null)) {
           alphaBetaPair = parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode);
         } else if ((defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) != null)
-            && (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).getAlphaBetaParameters(mode) != null)) {
-          alphaBetaPair = defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).getAlphaBetaParameters(mode);
+            && (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).getAlphaBetaParameters(
+                mode) != null)) {
+          alphaBetaPair = defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType)
+              .getAlphaBetaParameters(mode);
         } else if (defaultParametersPerMode.getAlphaBetaParameters(mode) != null) {
           alphaBetaPair = defaultParametersPerMode.getAlphaBetaParameters(mode);
         } else {

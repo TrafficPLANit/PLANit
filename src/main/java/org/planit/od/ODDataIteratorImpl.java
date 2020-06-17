@@ -23,7 +23,8 @@ public abstract class ODDataIteratorImpl<T> implements ODDataIterator<T> {
   protected int destinationId;
 
   /**
-   * Marker used to store the current position in the OD matrix (used internally, not accessible from other classes)
+   * Marker used to store the current position in the OD matrix (used internally, not accessible
+   * from other classes)
    */
   protected int currentLocation;
 

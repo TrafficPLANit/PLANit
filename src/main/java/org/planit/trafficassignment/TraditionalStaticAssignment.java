@@ -96,14 +96,17 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   }
 
   /**
-   * Apply smoothing based on current and previous flows and the adopted smoothing method. The smoothed results are
-   * registered as the current segment flows while the current segment flows are assigned to the previous segment flows
+   * Apply smoothing based on current and previous flows and the adopted smoothing method. The
+   * smoothed results are
+   * registered as the current segment flows while the current segment flows are assigned to the
+   * previous segment flows
    * (which are discarded).
    *
    * @param modeData data for the current mode
    */
   private void applySmoothing(final ModeData modeData) {
-    final double[] smoothedSegmentFlows = smoothing.applySmoothing(modeData.currentNetworkSegmentFlows, modeData.nextNetworkSegmentFlows, numberOfNetworkSegments);
+    final double[] smoothedSegmentFlows = smoothing.applySmoothing(modeData.currentNetworkSegmentFlows,
+        modeData.nextNetworkSegmentFlows, numberOfNetworkSegments);
     // update flow arrays for next iteration
     modeData.currentNetworkSegmentFlows = smoothedSegmentFlows;
   }
@@ -111,17 +114,19 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   /**
    * Perform assignment for a given time period, mode and costs imposed on Dijkstra shortest path
    *
-   * @param mode                     the current mode
-   * @param odDemandMatrix           origin-demand matrix
-   * @param currentModeData          data for the current mode
+   * @param mode the current mode
+   * @param odDemandMatrix origin-demand matrix
+   * @param currentModeData data for the current mode
    * @param modalNetworkSegmentCosts segment costs for the network
-   * @param shortestPathAlgorithm    shortest path algorithm to be used
+   * @param shortestPathAlgorithm shortest path algorithm to be used
    * @throws PlanItException thrown if there is an error
    */
-  private void executeModeTimePeriod(final Mode mode, final ODDemandMatrix odDemandMatrix, final ModeData currentModeData, final double[] modalNetworkSegmentCosts,
+  private void executeModeTimePeriod(final Mode mode, final ODDemandMatrix odDemandMatrix,
+      final ModeData currentModeData, final double[] modalNetworkSegmentCosts,
       final ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
 
-    final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
+    final LinkBasedRelativeDualityGapFunction dualityGapFunction =
+        ((LinkBasedRelativeDualityGapFunction) getGapFunction());
     final ODRouteMatrix odRouteMatrix = simulationData.getODPathMatrix(mode);
     final Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
 
@@ -137,7 +142,8 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
       if (((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) && (currentOriginZone.getId() != currentDestinationZone.getId())) {
 
-        LOGGER.fine("Calculating flow from origin zone " + currentOriginZone.getExternalId() + " to destination zone " + currentDestinationZone.getExternalId()
+        LOGGER.fine("Calculating flow from origin zone " + currentOriginZone.getExternalId() + " to destination zone "
+            + currentDestinationZone.getExternalId()
             + " which has demand of " + FormatUtils.format5(odDemand) + " for mode " + mode.getExternalId());
 
         // MARK 6-1-2020
@@ -149,7 +155,8 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
           final Centroid originCentroid = currentOriginZone.getCentroid();
           if (originCentroid.getExitEdgeSegments().isEmpty()) {
-            String errorMessage = "Edge segments have not been assigned to Centroid for Zone " + (currentOriginZone.getExternalId());
+            String errorMessage = "Edge segments have not been assigned to Centroid for Zone " + (currentOriginZone
+                .getExternalId());
             throw new PlanItException(errorMessage);
           }
           // UPDATE SHORTEST PATHS
@@ -161,7 +168,8 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
           odRouteMatrix.setValue(currentOriginZone, currentDestinationZone, route);
         }
 
-        final double odShortestPathCost = getShortestPathCost(vertexPathCosts, currentOriginZone, currentDestinationZone, modalNetworkSegmentCosts, odDemand, currentModeData);
+        final double odShortestPathCost = getShortestPathCost(vertexPathCosts, currentOriginZone,
+            currentDestinationZone, modalNetworkSegmentCosts, odDemand, currentModeData);
         dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
         previousOriginZoneId = currentOriginZone.getId();
 
@@ -171,31 +179,37 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   }
 
   /**
-   * Calculate the route cost for the calculated minimum cost path from a specified origin to a specified destination
+   * Calculate the route cost for the calculated minimum cost path from a specified origin to a
+   * specified destination
    *
-   * @param vertexPathAndCost        array of Pairs containing the current vertex path and cost
-   * @param currentOriginZone        current origin zone
-   * @param currentDestinationZone   current destination zone
+   * @param vertexPathAndCost array of Pairs containing the current vertex path and cost
+   * @param currentOriginZone current origin zone
+   * @param currentDestinationZone current destination zone
    * @param modalNetworkSegmentCosts segment costs for the network
-   * @param odDemand                 the demands from the specified origin to the specified destination
-   * @param currentModeData          data for the current mode
+   * @param odDemand the demands from the specified origin to the specified destination
+   * @param currentModeData data for the current mode
    * @return the route cost for the calculated minimum cost path
    * @throws PlanItException thrown if there is an error
    */
-  private double getShortestPathCost(final Pair<Double, EdgeSegment>[] vertexPathAndCost, final Zone currentOriginZone, final Zone currentDestinationZone,
-      final double[] modalNetworkSegmentCosts, final double odDemand, final ModeData currentModeData) throws PlanItException {
+  private double getShortestPathCost(final Pair<Double, EdgeSegment>[] vertexPathAndCost, final Zone currentOriginZone,
+      final Zone currentDestinationZone,
+      final double[] modalNetworkSegmentCosts, final double odDemand, final ModeData currentModeData)
+      throws PlanItException {
     double shortestPathCost = 0;
     EdgeSegment currentEdgeSegment = null;
-    for (Vertex currentPathStartVertex = currentDestinationZone.getCentroid(); currentPathStartVertex.getId() != currentOriginZone.getCentroid()
-        .getId(); currentPathStartVertex = currentEdgeSegment.getUpstreamVertex()) {
+    for (Vertex currentPathStartVertex = currentDestinationZone.getCentroid(); currentPathStartVertex
+        .getId() != currentOriginZone.getCentroid()
+            .getId(); currentPathStartVertex = currentEdgeSegment.getUpstreamVertex()) {
       final int startVertexId = (int) currentPathStartVertex.getId();
       currentEdgeSegment = vertexPathAndCost[startVertexId].getSecond();
       if (currentEdgeSegment == null) {
         if (currentPathStartVertex instanceof Centroid) {
-          String errorMessage = "The solution could not find an Edge Segment for the connectoid for zone " + ((Centroid) currentPathStartVertex).getParentZone().getExternalId();
+          String errorMessage = "The solution could not find an Edge Segment for the connectoid for zone "
+              + ((Centroid) currentPathStartVertex).getParentZone().getExternalId();
           throw new PlanItException(errorMessage);
         } else {
-          String errorMessage = "The solution could not find an Edge Segment for node " + ((Node) currentPathStartVertex).getId();
+          String errorMessage = "The solution could not find an Edge Segment for node "
+              + ((Node) currentPathStartVertex).getId();
           throw new PlanItException(errorMessage);
         }
       }
@@ -209,13 +223,14 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   /**
    * Update the OD skim matrix for all active output types
    *
-   * @param skimMatrixMap          Map of OD skim matrices for each active output type
-   * @param currentOriginZone      current origin zone
+   * @param skimMatrixMap Map of OD skim matrices for each active output type
+   * @param currentOriginZone current origin zone
    * @param currentDestinationZone current destination zone
-   * @param odDemand               the odDemand
-   * @param vertexPathCosts        array of costs for the specified mode
+   * @param odDemand the odDemand
+   * @param vertexPathCosts array of costs for the specified mode
    */
-  private void updateSkimMatrixMap(final Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone,
+  private void updateSkimMatrixMap(final Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap,
+      final Zone currentOriginZone, final Zone currentDestinationZone,
       final double odDemand, final Pair<Double, EdgeSegment>[] vertexPathCosts) {
     for (final ODSkimSubOutputType odSkimOutputType : simulationData.getActiveSkimOutputTypes()) {
       if (odSkimOutputType.equals(ODSkimSubOutputType.COST)) {
@@ -243,7 +258,8 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
     LOGGER.info("Running Traditional Static Assignment over all modes for Time Period " + timePeriod.getDescription());
     final Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
     initialiseTimePeriod(modes);
-    final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
+    final LinkBasedRelativeDualityGapFunction dualityGapFunction =
+        ((LinkBasedRelativeDualityGapFunction) getGapFunction());
     Calendar startTime = Calendar.getInstance();
     final Calendar initialStartTime = startTime;
     for (final Mode mode : modes) {
@@ -271,7 +287,8 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
       dualityGapFunction.computeGap();
       simulationData.incrementIterationIndex();
-      LOGGER.info("The total system travel time after iteration " + simulationData.getIterationIndex() + " for time period " + timePeriod.getExternalId() + " is "
+      LOGGER.info("The total system travel time after iteration " + simulationData.getIterationIndex()
+          + " for time period " + timePeriod.getExternalId() + " is "
           + dualityGapFunction.getActualSystemTravelTime() + ".");
       startTime = recordTime(startTime, dualityGapFunction.getGap());
       for (final Mode mode : modes) {
@@ -288,54 +305,61 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   /**
    * Record the time an iteration took
    *
-   * @param startTime  the original start time of the iteration
+   * @param startTime the original start time of the iteration
    * @param dualityGap the duality gap at the end of the iteration
    * @return the time at the end of the iteration
    */
   private Calendar recordTime(final Calendar startTime, final double dualityGap) {
     final Calendar currentTime = Calendar.getInstance();
     final long timeDiff = currentTime.getTimeInMillis() - startTime.getTimeInMillis();
-    LOGGER.info("Iteration " + simulationData.getIterationIndex() + ": Duality gap = " + FormatUtils.format6(dualityGap) + ": Iteration duration " + timeDiff + " milliseconds");
+    LOGGER.info("Iteration " + simulationData.getIterationIndex() + ": Duality gap = " + FormatUtils.format6(dualityGap)
+        + ": Iteration duration " + timeDiff + " milliseconds");
     return currentTime;
   }
 
   /**
    * Execute the assignment for the current time period and mode and apply smoothing to the result
    *
-   * @param timePeriod               the current time period
-   * @param mode                     the current mode
+   * @param timePeriod the current time period
+   * @param mode the current mode
    * @param modalNetworkSegmentCosts the current network segment costs
    * @throws PlanItException thrown if there is an error
    */
-  private void executeAndSmoothTimePeriodAndMode(final TimePeriod timePeriod, final Mode mode, final double[] modalNetworkSegmentCosts) throws PlanItException {
+  private void executeAndSmoothTimePeriodAndMode(final TimePeriod timePeriod, final Mode mode,
+      final double[] modalNetworkSegmentCosts) throws PlanItException {
     LOGGER.info("Running Traditional Static Assignment for Mode " + mode.getName());
     // mode specific data
     final ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
     currentModeData.resetNextNetworkSegmentFlows();
-    final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
+    final LinkBasedRelativeDualityGapFunction dualityGapFunction =
+        ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 
     // AON based network loading
-    final ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
+    final ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts,
+        numberOfNetworkSegments, numberOfNetworkVertices);
     final ODDemandMatrix odDemandMatrix = demands.get(mode, timePeriod);
     executeModeTimePeriod(mode, odDemandMatrix, currentModeData, modalNetworkSegmentCosts, shortestPathAlgorithm);
 
-    final double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows, modalNetworkSegmentCosts, numberOfNetworkSegments);
+    final double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows,
+        modalNetworkSegmentCosts, numberOfNetworkSegments);
     dualityGapFunction.increaseActualSystemTravelTime(totalModeSystemTravelTime);
     applySmoothing(currentModeData);
 
     // aggregate smoothed mode specific flows - for cost computation
-    ArrayOperations.addTo(simulationData.getModalNetworkSegmentFlows(mode), currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
+    ArrayOperations.addTo(simulationData.getModalNetworkSegmentFlows(mode), currentModeData.currentNetworkSegmentFlows,
+        numberOfNetworkSegments);
     simulationData.getModeSpecificData().put(mode, currentModeData);
   }
 
   /**
    * Populate the current segment costs for connectoids
    *
-   * @param mode                current mode of travel
+   * @param mode current mode of travel
    * @param currentSegmentCosts array to store the current segment costs
    * @throws PlanItException thrown if there is an error
    */
-  private void populateModalConnectoidCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
+  private void populateModalConnectoidCosts(final Mode mode, final double[] currentSegmentCosts)
+      throws PlanItException {
     for (final ConnectoidSegment currentSegment : transportNetwork.getVirtualNetwork().connectoidSegments) {
       currentSegmentCosts[(int) currentSegment.getId()] = virtualCost.getSegmentCost(mode, currentSegment);
     }
@@ -346,11 +370,12 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    *
    * This method is called during the second and subsequent iterations of the simulation.
    *
-   * @param mode                current mode of travel
+   * @param mode current mode of travel
    * @param currentSegmentCosts array to store the current segment costs
    * @throws PlanItException thrown if there is an error
    */
-  private void calculateModalLinkSegmentCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
+  private void calculateModalLinkSegmentCosts(final Mode mode, final double[] currentSegmentCosts)
+      throws PlanItException {
     setModalLinkSegmentCosts(mode, currentSegmentCosts, physicalCost);
   }
 
@@ -359,12 +384,13 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    *
    * This method is called during the first iteration of the simulation.
    *
-   * @param mode                current mode of travel
+   * @param mode current mode of travel
    * @param currentSegmentCosts array to store the current segment costs
    * @return false if the initial costs cannot be set for this mode, true otherwise
    * @throws PlanItException thrown if there is an error
    */
-  private boolean initializeModalLinkSegmentCostsForAllTimePeriods(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
+  private boolean initializeModalLinkSegmentCostsForAllTimePeriods(final Mode mode, final double[] currentSegmentCosts)
+      throws PlanItException {
     if (!initialLinkSegmentCost.isSegmentCostsSetForMode(mode)) {
       return false;
     }
@@ -373,18 +399,21 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   }
 
   /**
-   * Initialize the link segment costs from the InitialLinkSegmentCost object for each current time period
+   * Initialize the link segment costs from the InitialLinkSegmentCost object for each current time
+   * period
    *
    * This method is called during the first iteration of the simulation.
    *
-   * @param mode                current mode of travel
-   * @param timePeriod          current time period
+   * @param mode current mode of travel
+   * @param timePeriod current time period
    * @param currentSegmentCosts array to store the current segment costs
    * @return false if the initial costs cannot be set for this mode and time period, true otherwise
    * @throws PlanItException thrown if there is an error
    */
-  private boolean initializeModalLinkSegmentCostsByTimePeriod(final Mode mode, final TimePeriod timePeriod, final double[] currentSegmentCosts) throws PlanItException {
-    final InitialLinkSegmentCost initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod.getId());
+  private boolean initializeModalLinkSegmentCostsByTimePeriod(final Mode mode, final TimePeriod timePeriod,
+      final double[] currentSegmentCosts) throws PlanItException {
+    final InitialLinkSegmentCost initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod
+        .getId());
     if (!initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
       return false;
     }
@@ -396,15 +425,17 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   /**
    * Initialize the modal link segment costs before the first iteration.
    *
-   * This method uses initial link segment costs if they have been input, otherwise these are calculated from zero start
+   * This method uses initial link segment costs if they have been input, otherwise these are
+   * calculated from zero start
    * values
    *
-   * @param mode       current mode
+   * @param mode current mode
    * @param timePeriod current time period
    * @return array containing link costs for each link segment
    * @throws PlanItException thrown if there is an error
    */
-  private double[] initializeModalLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
+  private double[] initializeModalLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod)
+      throws PlanItException {
     final double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
     populateModalConnectoidCosts(mode, currentSegmentCosts);
     if (initialLinkSegmentCostByTimePeriod.containsKey(timePeriod.getId())) {
@@ -425,12 +456,13 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    * 
    * Cost set to POSITIVE_INFINITY for any mode which is forbidden along a link segment
    *
-   * @param mode                current mode of travel
+   * @param mode current mode of travel
    * @param currentSegmentCosts array to store the current segment costs
-   * @param cost                Cost object used to calculate the cost
+   * @param cost Cost object used to calculate the cost
    * @throws PlanItException thrown if there is an error
    */
-  private void setModalLinkSegmentCosts(final Mode mode, final double[] currentSegmentCosts, Cost<LinkSegment> cost) throws PlanItException {
+  private void setModalLinkSegmentCosts(final Mode mode, final double[] currentSegmentCosts, Cost<LinkSegment> cost)
+      throws PlanItException {
     for (final LinkSegment linkSegment : transportNetwork.getPhysicalNetwork().linkSegments) {
       double currentSegmentCost = Double.POSITIVE_INFINITY;
       if (linkSegment.isModeAllowedThroughLink(mode)) {
@@ -448,12 +480,13 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   /**
    * Recalculate the modal link segment costs after each iteration
    *
-   * @param mode       current mode
+   * @param mode current mode
    * @param timePeriod current time period
    * @return array containing link costs for each link segment
    * @throws PlanItException thrown if there is an error
    */
-  private double[] recalculateModalLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
+  private double[] recalculateModalLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod)
+      throws PlanItException {
     final double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
     populateModalConnectoidCosts(mode, currentSegmentCosts);
     calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
@@ -464,9 +497,11 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    * {@inheritDoc}
    */
   @Override
-  protected TrafficAssignmentBuilder createTrafficAssignmentBuilder(final InputBuilderListener trafficComponentCreateListener, final Demands demands, final Zoning zoning,
+  protected TrafficAssignmentBuilder createTrafficAssignmentBuilder(
+      final InputBuilderListener trafficComponentCreateListener, final Demands demands, final Zoning zoning,
       final PhysicalNetwork physicalNetwork) throws PlanItException {
-    return new TraditionalStaticAssignmentBuilder(this, trafficComponentCreateListener, demands, zoning, physicalNetwork);
+    return new TraditionalStaticAssignmentBuilder(this, trafficComponentCreateListener, demands, zoning,
+        physicalNetwork);
   }
 
   /** {@inheritDoc} */
@@ -528,8 +563,10 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   }
 
   /**
-   * Deal with requests for link volume accessees since we are one. Whenever such a request arrives, we provide ourselves
-   * as a candidate and fire a response event of type LinkVolumeAccessee.INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE
+   * Deal with requests for link volume accessees since we are one. Whenever such a request arrives,
+   * we provide ourselves
+   * as a candidate and fire a response event of type
+   * LinkVolumeAccessee.INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE
    *
    * @param event to process
    */
@@ -556,17 +593,17 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   public OutputTypeAdapter createOutputTypeAdapter(final OutputType outputType) {
     OutputTypeAdapter outputTypeAdapter = null;
     switch (outputType) {
-    case LINK:
-      outputTypeAdapter = new TraditionalStaticAssignmentLinkOutputTypeAdapter(outputType, this);
-      break;
-    case OD:
-      outputTypeAdapter = new TraditionalStaticAssignmentODOutputTypeAdapter(outputType, this);
-      break;
-    case PATH:
-      outputTypeAdapter = new TraditionalStaticRouteOutputTypeAdapter(outputType, this);
-      break;
-    default:
-      LOGGER.warning(outputType.value() + " has not been defined yet.");
+      case LINK:
+        outputTypeAdapter = new TraditionalStaticAssignmentLinkOutputTypeAdapter(outputType, this);
+        break;
+      case OD:
+        outputTypeAdapter = new TraditionalStaticAssignmentODOutputTypeAdapter(outputType, this);
+        break;
+      case PATH:
+        outputTypeAdapter = new TraditionalStaticRouteOutputTypeAdapter(outputType, this);
+        break;
+      default:
+        LOGGER.warning(outputType.value() + " has not been defined yet.");
     }
     return outputTypeAdapter;
   }

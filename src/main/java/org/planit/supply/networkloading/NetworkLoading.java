@@ -11,30 +11,30 @@ import org.planit.utils.misc.IdGenerator;
  * @author markr
  *
  */
-public abstract class NetworkLoading extends TrafficAssignmentComponent<NetworkLoading> implements Serializable   {
+public abstract class NetworkLoading extends TrafficAssignmentComponent<NetworkLoading> implements Serializable {
 
-	/** generated UID */
-	private static final long serialVersionUID = 6213911562665516698L;
+  /** generated UID */
+  private static final long serialVersionUID = 6213911562665516698L;
 
-	/**
-	 * Unique id
-	 */
-	protected final long id;
+  /**
+   * Unique id
+   */
+  protected final long id;
 
-	/**
-	 * Base contructor
-	 */
-	public NetworkLoading() {
-		super();
-		this.id = IdGenerator.generateId(NetworkLoading.class);
-	}
+  /**
+   * Base contructor
+   */
+  public NetworkLoading() {
+    super();
+    this.id = IdGenerator.generateId(NetworkLoading.class);
+  }
 
-	/**
-	 * #{@inheritDoc}
-	 */
-	@Override
-	public long getId() {
-		return id;
-	}
+  /**
+   * #{@inheritDoc}
+   */
+  @Override
+  public long getId() {
+    return id;
+  }
 
 }

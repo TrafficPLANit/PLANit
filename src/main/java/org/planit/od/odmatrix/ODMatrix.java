@@ -35,9 +35,9 @@ public abstract class ODMatrix extends ODDataImpl<Double> {
   /**
    * Sets the value for a specified origin and destination
    * 
-   * @param origin      specified origin
+   * @param origin specified origin
    * @param destination specified destination
-   * @param value       value at the specified cell
+   * @param value value at the specified cell
    */
   public void setValue(Zone origin, Zone destination, Double value) {
     long originId = origin.getId();
@@ -53,7 +53,7 @@ public abstract class ODMatrix extends ODDataImpl<Double> {
   /**
    * Returns the value for a specified origin and destination
    * 
-   * @param origin      specified origin
+   * @param origin specified origin
    * @param destination specified destination
    * @return value at the specified cell
    */

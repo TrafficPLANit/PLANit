@@ -15,25 +15,26 @@ import org.planit.utils.network.physical.Mode;
  */
 public interface ODOutputTypeAdapter extends OutputTypeAdapter {
 
-    /**
-     * Retrieve an OD skim matrix for a specified OD skim output type and mode
-     * 
-     * @param odSkimOutputType the specified OD skim output type
-     * @param mode the specified mode
-     * @return the OD skim matrix
-     */
-    public ODSkimMatrix getODSkimMatrix(ODSkimSubOutputType odSkimOutputType, Mode mode);
+  /**
+   * Retrieve an OD skim matrix for a specified OD skim output type and mode
+   * 
+   * @param odSkimOutputType the specified OD skim output type
+   * @param mode the specified mode
+   * @return the OD skim matrix
+   */
+  public ODSkimMatrix getODSkimMatrix(ODSkimSubOutputType odSkimOutputType, Mode mode);
 
-/**
- * Returns the specified output property values for the current cell in the OD Matrix Iterator
- * 
- * @param outputProperty the specified output property
- * @param odMatrixIterator the iterator through the current OD Matrix
- * @param mode the current mode
- * @param timePeriod the current time period
- * @param timeUnitMultiplier the multiplier for time units
- * @return the value of the specified property (or an Exception if an error has occurred)
- */
-    public Object getODOutputPropertyValue(OutputProperty outputProperty, ODMatrixIterator odMatrixIterator, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier);
+  /**
+   * Returns the specified output property values for the current cell in the OD Matrix Iterator
+   * 
+   * @param outputProperty the specified output property
+   * @param odMatrixIterator the iterator through the current OD Matrix
+   * @param mode the current mode
+   * @param timePeriod the current time period
+   * @param timeUnitMultiplier the multiplier for time units
+   * @return the value of the specified property (or an Exception if an error has occurred)
+   */
+  public Object getODOutputPropertyValue(OutputProperty outputProperty, ODMatrixIterator odMatrixIterator, Mode mode,
+      TimePeriod timePeriod, double timeUnitMultiplier);
 
 }

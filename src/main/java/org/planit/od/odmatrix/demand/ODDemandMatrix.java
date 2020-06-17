@@ -11,13 +11,13 @@ import org.planit.od.odmatrix.ODMatrix;
  */
 public class ODDemandMatrix extends ODMatrix {
 
-	/**
-	 * Constructor
-	 * 
-	 * @param zones holds the zones defined in the network
-	 */
-	public ODDemandMatrix(Zoning.Zones zones) {
-		super(zones);
-	}
+  /**
+   * Constructor
+   * 
+   * @param zones holds the zones defined in the network
+   */
+  public ODDemandMatrix(Zoning.Zones zones) {
+    super(zones);
+  }
 
 }

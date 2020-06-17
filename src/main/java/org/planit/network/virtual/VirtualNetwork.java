@@ -4,8 +4,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-
-
 import org.planit.exceptions.PlanItException;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.Centroid;
@@ -14,7 +12,8 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.network.virtual.Zone;
 
 /**
- * Model free virtual network which is part of the zoning and holds all the virtual infrastructure connecting the zones
+ * Model free virtual network which is part of the zoning and holds all the virtual infrastructure
+ * connecting the zones
  * to the physical road network.
  * 
  * @author markr
@@ -37,21 +36,22 @@ public class VirtualNetwork {
      * @param connectoid the connectoid to be registered
      * @return connectoid added
      */
-    protected Connectoid registerConnectoid( Connectoid connectoid) {
+    protected Connectoid registerConnectoid(Connectoid connectoid) {
       return connectoidMap.put(connectoid.getId(), connectoid);
     }
 
     /**
      * Create new connectoid to from a specified centroid to a specified node
      * 
-     * @param centroid   centroid at one end of the connectoid
-     * @param node       node at other end of the connectoid
-     * @param length     length of connectiod
+     * @param centroid centroid at one end of the connectoid
+     * @param node node at other end of the connectoid
+     * @param length length of connectiod
      * @param externalId external Id of connectoid
      * @return Connectoid object created and registered
      * @throws PlanItException thrown if there is an error
      */
-    public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length, Object externalId) throws PlanItException {
+    public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length, Object externalId)
+        throws PlanItException {
       Connectoid newConnectoid = new ConnectoidImpl(centroid, node, length, externalId);
       registerConnectoid(newConnectoid);
       return newConnectoid;
@@ -61,8 +61,8 @@ public class VirtualNetwork {
      * Create new connectoid to from a specified centroid to a specified node
      * 
      * @param centroid centroid at one end of the connectoid
-     * @param node     node at other end of the connectoid
-     * @param length   length of connectiod
+     * @param node node at other end of the connectoid
+     * @param length length of connectiod
      * @return Connectoid object created and registered
      * @throws PlanItException thrown if there is an error
      */
@@ -102,7 +102,8 @@ public class VirtualNetwork {
   }
 
   /**
-   * Internal class for non-physical LinkSegment specific code, i.e. connectoid segments (physical link segments are
+   * Internal class for non-physical LinkSegment specific code, i.e. connectoid segments (physical
+   * link segments are
    * placed in the network)
    *
    */
@@ -114,7 +115,7 @@ public class VirtualNetwork {
      * @param connectoidSegment ConnectoidSegment to be registered
      * @return the registered connectoid segment
      */
-    protected ConnectoidSegment registerConnectoidSegment( ConnectoidSegment connectoidSegment) {
+    protected ConnectoidSegment registerConnectoidSegment(ConnectoidSegment connectoidSegment) {
       return connectoidSegmentMap.put(connectoidSegment.getId(), connectoidSegment);
     }
 
@@ -130,11 +131,12 @@ public class VirtualNetwork {
      * Create and register connectoid segment in AB direction on virtual network
      * 
      * @param parentConnectoid the connectoid which will contain this connectoid segment
-     * @param directionAB      direction of travel
+     * @param directionAB direction of travel
      * @return created connectoid segment
      * @throws PlanItException thrown if there is an error
      */
-    public ConnectoidSegment createAndRegisterConnectoidSegment( Connectoid parentConnectoid, boolean directionAB) throws PlanItException {
+    public ConnectoidSegment createAndRegisterConnectoidSegment(Connectoid parentConnectoid, boolean directionAB)
+        throws PlanItException {
       ConnectoidSegment connectoidSegment = new ConnectoidSegmentImpl(parentConnectoid, directionAB);
       parentConnectoid.registerConnectoidSegment(connectoidSegment, directionAB);
       registerConnectoidSegment(connectoidSegment);
@@ -176,13 +178,14 @@ public class VirtualNetwork {
      * @param centroid centroid to be registered
      * @return registered centroid
      */
-    public Centroid registerCentroid( Centroid centroid) {
+    public Centroid registerCentroid(Centroid centroid) {
       return centroidMap.put(centroid.getId(), centroid);
     }
 
     /**
      * Create new centroid
      * 
+     * @param zone zone on which the centroid is registered
      * @return registered new centroid
      */
     public Centroid registerNewCentroid(Zone zone) {

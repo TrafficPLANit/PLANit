@@ -2,8 +2,6 @@ package org.planit.network.physical.macroscopic;
 
 import java.util.Map;
 
-
-
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkImpl;
 import org.planit.network.physical.NodeImpl;
@@ -74,7 +72,7 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
    * @param modeProperties the mode properties for each mode along this link
    * @return macroscopicLinkSegmentType the created link segment type
    */
-  public MacroscopicLinkSegmentType createLinkSegmentType( String name, double capacity, double maximumDensity,
+  public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity,
       Object externalId, Map<Mode, MacroscopicModeProperties> modeProperties) {
     return new MacroscopicLinkSegmentTypeImpl(name, capacity, maximumDensity, externalId, modeProperties);
   }

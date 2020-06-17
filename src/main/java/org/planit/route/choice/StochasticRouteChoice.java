@@ -9,8 +9,10 @@ import org.planit.route.choice.logit.LogitChoiceModel;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 
 /**
- * Stochastic route choice component. Stochasticity is reflected by the fact that the route choice is applied by means
- * of a logit model, to be configured here. Also, due to being stochastic the route can/must be provided beforehand.
+ * Stochastic route choice component. Stochasticity is reflected by the fact that the route choice
+ * is applied by means
+ * of a logit model, to be configured here. Also, due to being stochastic the route can/must be
+ * provided beforehand.
  * This is also configured via this class
  *
  * @author markr
@@ -52,20 +54,22 @@ public class StochasticRouteChoice extends RouteChoice {
   /**
    * Constructor
    *
-   * @param trafficComponentCreateListener
+   * @param trafficComponentCreateListener the listener
    */
   public StochasticRouteChoice(final InputBuilderListener trafficComponentCreateListener) {
     super(trafficComponentCreateListener);
     logitChoiceModelFactory = new TrafficAssignmentComponentFactory<LogitChoiceModel>(LogitChoiceModel.class);
 
     // register for creation events
-    logitChoiceModelFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    logitChoiceModelFactory.addListener(trafficComponentCreateListener,
+        TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
   }
 
   /**
    * create and register the logit model of choice
    * 
    * @param canonicalName name of the class to be instantiated
+   * @return the logit choice model that is registered
    * @throws PlanItException thrown if error
    */
   public LogitChoiceModel createAndRegisterLogitModel(final String canonicalName) throws PlanItException {
@@ -76,7 +80,7 @@ public class StochasticRouteChoice extends RouteChoice {
   /**
    * Register a fixed od route set to use in the form of an ODPathMatrix
    *
-   * * @param odRouteSet the fixed od route set in the shape of an od path matrix
+   * @param odRouteSet the fixed od route set in the shape of an od path matrix
    */
   public void RegisterODRouteMatrix(final ODRouteMatrix odRouteSet) {
     this.odRouteSet = odRouteSet;

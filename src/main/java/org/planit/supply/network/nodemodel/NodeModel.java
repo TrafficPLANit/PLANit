@@ -11,31 +11,30 @@ import org.planit.utils.misc.IdGenerator;
  * @author markr
  *
  */
-public abstract class NodeModel extends TrafficAssignmentComponent<NodeModel>implements Serializable {
+public abstract class NodeModel extends TrafficAssignmentComponent<NodeModel> implements Serializable {
 
-	/** generated UID */
-	private static final long serialVersionUID = -6966680588075724261L;
+  /** generated UID */
+  private static final long serialVersionUID = -6966680588075724261L;
 
+  /**
+   * unique identifier
+   */
+  protected final long id;
 
-	/**
-     * unique identifier
-     */
-    protected final long id;
+  /**
+   * Base constructor
+   */
+  public NodeModel() {
+    super();
+    this.id = IdGenerator.generateId(NodeModel.class);
+  }
 
-	/**
-	 * Base constructor
-	 */
-	public NodeModel() {
-		super();
-		this.id = IdGenerator.generateId(NodeModel.class);
-	}
-
-    /**
-     * #{@inheritDoc}
-     */
-	@Override
-	public long getId() {
-		return this.id;
-	}
+  /**
+   * #{@inheritDoc}
+   */
+  @Override
+  public long getId() {
+    return this.id;
+  }
 
 }

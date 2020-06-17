@@ -30,7 +30,8 @@ import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 /**
  * The top-level class which hosts a single project.
  *
- * A project can consist of multiple networks, demands and traffic assignments all based on a single configuration (user
+ * A project can consist of multiple networks, demands and traffic assignments all based on a single
+ * configuration (user
  * classes, modes etc.)
  *
  * @author markr
@@ -95,13 +96,15 @@ public class CustomPlanItProject {
   }
 
   /**
-   * The input container holding all traffic assignment input components and related functionality with respect to project
+   * The input container holding all traffic assignment input components and related functionality
+   * with respect to project
    * management
    */
   protected final PlanItProjectInput inputs;
 
   /**
-   * the listener that we register on each traffic assignment component creation event for external initialization
+   * the listener that we register on each traffic assignment component creation event for external
+   * initialization
    */
   protected final InputBuilderListener inputBuilderListener;
 
@@ -173,9 +176,11 @@ public class CustomPlanItProject {
   // Public methods
 
   /**
-   * Constructor which reads in the input builder listener and instantiates the object factory classes.
+   * Constructor which reads in the input builder listener and instantiates the object factory
+   * classes.
    *
-   * This constructor instantiates the EventManager, which must be a singleton class for the whole application.
+   * This constructor instantiates the EventManager, which must be a singleton class for the whole
+   * application.
    *
    * @param inputBuilderListener InputBuilderListener used to read in data
    */
@@ -196,13 +201,15 @@ public class CustomPlanItProject {
   }
 
   /**
-   * Register a class that we allow to be instantiated as a concrete implementation of a traffic assignment component that
+   * Register a class that we allow to be instantiated as a concrete implementation of a traffic
+   * assignment component that
    * can be used in PLANit
    * 
    * @param theClazz the class that we want to mark as eligible from an outside source
    * @throws PlanItException thrown if class cannot be registered
    */
-  public void registerEligibleTrafficComponentClass(Class<? extends TrafficAssignmentComponent<?>> theClazz) throws PlanItException {
+  public void registerEligibleTrafficComponentClass(Class<? extends TrafficAssignmentComponent<?>> theClazz)
+      throws PlanItException {
     TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(theClazz);
   }
 
@@ -231,25 +238,29 @@ public class CustomPlanItProject {
   /**
    * Create and register demands to the project
    *
-   * @param zoning          Zoning object which defines the zones which will be used in the demand matrix to be created
-   * @param physicalNetwork the physical network which stores the modes (demands can different for each mode)
+   * @param zoning Zoning object which defines the zones which will be used in the demand matrix to
+   *          be created
+   * @param physicalNetwork the physical network which stores the modes (demands can different for
+   *          each mode)
    * @return the generated demands object
    * @throws PlanItException thrown if there is an error
    */
-  public Demands createAndRegisterDemands(final Zoning zoning, final PhysicalNetwork physicalNetwork) throws PlanItException {
+  public Demands createAndRegisterDemands(final Zoning zoning, final PhysicalNetwork physicalNetwork)
+      throws PlanItException {
     return inputs.createAndRegisterDemands(zoning, physicalNetwork);
   }
 
   /**
    * Create and register the OD route sets as populated by the input builder through the path source
    * 
-   * @param physicalNetwork     network the routes must be compatible with
-   * @param zoning              zoning to match od routes to
+   * @param physicalNetwork network the routes must be compatible with
+   * @param zoning zoning to match od routes to
    * @param odRouteSetInputPath path to collect the routes from
    * @return od route sets that have been parsed
-   * @throws PlanItException
+   * @throws PlanItException thrown if there is an error
    */
-  public ODRouteSets createAndRegisterODRouteSets(final PhysicalNetwork physicalNetwork, final Zoning zoning, final String odRouteSetInputPath) throws PlanItException {
+  public ODRouteSets createAndRegisterODRouteSets(final PhysicalNetwork physicalNetwork, final Zoning zoning,
+      final String odRouteSetInputPath) throws PlanItException {
     return inputs.createAndRegisterODRouteSets(physicalNetwork, zoning, odRouteSetInputPath);
   }
 
@@ -257,21 +268,25 @@ public class CustomPlanItProject {
    * Create and register a deterministic traffic assignment instance of a given type
    *
    * @param trafficAssignmentType the class name of the traffic assignment type object to be created
-   * @param demands               the demands
-   * @param zoning                the zoning
-   * @param phjysicalNetwork      the physical network
+   * @param theDemands the demands
+   * @param theZoning the zoning
+   * @param thePhysicalNetwork the physical network
    * @return the traffic assignment builder object
    * @throws PlanItException thrown if there is an error
    */
-  public TrafficAssignmentBuilder createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands, final Zoning theZoning,
+  public TrafficAssignmentBuilder createAndRegisterTrafficAssignment(
+      final String trafficAssignmentType,
+      final Demands theDemands, final Zoning theZoning,
       final PhysicalNetwork thePhysicalNetwork) throws PlanItException {
+
     final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentType);
     if (!(networkLoadingAndAssignment instanceof TrafficAssignment)) {
       String errorMessage = "not a valid traffic assignment type";
       throw new PlanItException(errorMessage);
     }
     final TrafficAssignment trafficAssignment = (TrafficAssignment) networkLoadingAndAssignment;
-    final TrafficAssignmentBuilder trafficAssignmentBuilder = trafficAssignment.collectBuilder(inputBuilderListener, theDemands, theZoning, thePhysicalNetwork);
+    final TrafficAssignmentBuilder trafficAssignmentBuilder = trafficAssignment.collectBuilder(inputBuilderListener,
+        theDemands, theZoning, thePhysicalNetwork);
     // now initialize it, since initialization depends on the concrete class we
     // cannot do this on the constructor of the superclass nor
     // can we do it in the derived constructors as some components are the same
@@ -286,41 +301,46 @@ public class CustomPlanItProject {
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file which we assume are available in the native
+   * Create and register initial link segment costs from a (single) file which we assume are
+   * available in the native
    * xml/csv output format as provided in this project
    *
-   * @param network  physical network the InitialLinkSegmentCost object will be registered for
+   * @param network physical network the InitialLinkSegmentCost object will be registered for
    * @param fileName file containing the initial link segment cost values
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName) throws PlanItException {
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network,
+      final String fileName) throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName);
   }
 
   /**
    * Create and register initial link segment costs from a (single) file for each time period
    *
-   * @param network    physical network the InitialLinkSegmentCost object will be registered for
-   * @param fileName   location of file containing the initial link segment cost values
+   * @param network physical network the InitialLinkSegmentCost object will be registered for
+   * @param fileName location of file containing the initial link segment cost values
    * @param timePeriod the current time period
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName, final TimePeriod timePeriod) throws PlanItException {
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network,
+      final String fileName, final TimePeriod timePeriod) throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file for all time periods in Demands object
+   * Create and register initial link segment costs from a (single) file for all time periods in
+   * Demands object
    *
-   * @param network  physical network the InitialLinkSegmentCost object will be registered for
+   * @param network physical network the InitialLinkSegmentCost object will be registered for
    * @param fileName location of file containing the initial link segment cost values
-   * @param demands  the Demands object
+   * @param demands the Demands object
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public Map<TimePeriod, InitialLinkSegmentCost> createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName, final Demands demands)
+  public Map<TimePeriod, InitialLinkSegmentCost> createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network,
+      final String fileName, final Demands demands)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, demands);
   }
@@ -365,12 +385,15 @@ public class CustomPlanItProject {
   /**
    * Execute all registered traffic assignments
    *
-   * Top-level error recording is done in this class. If several traffic assignments are registered and one fails, we
+   * Top-level error recording is done in this class. If several traffic assignments are registered
+   * and one fails, we
    * record its error and continue with the next assignment.
    *
-   * @return Map of ids of failed runs (key) together with their exceptions (value). Empty if all runs succeed
-   * @throws PlanItException required for subclasses which override this method and generate an exception before the runs
-   *                         start
+   * @return Map of ids of failed runs (key) together with their exceptions (value). Empty if all
+   *         runs succeed
+   * @throws PlanItException required for subclasses which override this method and generate an
+   *           exception before the runs
+   *           start
    */
   public Map<Long, PlanItException> executeAllTrafficAssignments() throws PlanItException {
     final Map<Long, PlanItException> exceptionMap = new HashMap<Long, PlanItException>();

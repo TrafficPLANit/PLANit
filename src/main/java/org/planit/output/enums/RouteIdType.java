@@ -6,11 +6,11 @@ package org.planit.output.enums;
  * @author gman6028
  *
  */
-public enum RouteIdType{
+public enum RouteIdType {
 
-	LINK_SEGMENT_EXTERNAL_ID,
-	LINK_SEGMENT_ID,
-	NODE_EXTERNAL_ID,
-	NODE_ID;
+  LINK_SEGMENT_EXTERNAL_ID,
+  LINK_SEGMENT_ID,
+  NODE_EXTERNAL_ID,
+  NODE_ID;
 
 }

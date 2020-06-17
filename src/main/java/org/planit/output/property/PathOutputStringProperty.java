@@ -5,31 +5,31 @@ import org.planit.output.enums.Units;
 
 public final class PathOutputStringProperty extends BaseOutputProperty {
 
-	public static final String NAME = "Path";
+  public static final String NAME = "Path";
 
-	@Override
-	public String getName() {
-		return NAME;
-	}
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
-	@Override
-	public Units getUnits() {
-		return Units.NONE;
-	}
+  @Override
+  public Units getUnits() {
+    return Units.NONE;
+  }
 
-	@Override
-	public Type getType() {
-		return Type.STRING;
-	}
+  @Override
+  public Type getType() {
+    return Type.STRING;
+  }
 
-	@Override
-	public OutputProperty getOutputProperty() {
-		return OutputProperty.PATH_STRING;
-	}
+  @Override
+  public OutputProperty getOutputProperty() {
+    return OutputProperty.PATH_STRING;
+  }
 
-	@Override
-	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.RESULT_PRIORITY;
-	}
+  @Override
+  public OutputPropertyPriority getColumnPriority() {
+    return OutputPropertyPriority.RESULT_PRIORITY;
+  }
 
 }

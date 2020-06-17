@@ -50,7 +50,8 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
   /**
    * Gets the column priority of the output property in output files
    * 
-   * The lower the column priority value of a property, the further to the left it is placed in the output file
+   * The lower the column priority value of a property, the further to the left it is placed in the
+   * output file
    * 
    * @return the column priority
    */
@@ -59,7 +60,8 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
   /**
    * Overridden equals() method
    * 
-   * This method is needed to allow output properties to be removed from the output list if required.
+   * This method is needed to allow output properties to be removed from the output list if
+   * required.
    * 
    * @param otherProperty output property to be compared to this one
    * 
@@ -71,7 +73,8 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
   /**
    * Overridden hashCode() method
    * 
-   * This method is needed to allow output properties to be removed from the output list if required.
+   * This method is needed to allow output properties to be removed from the output list if
+   * required.
    * 
    */
   public int hashCode() {

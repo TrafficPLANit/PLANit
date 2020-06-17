@@ -24,40 +24,40 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
  */
 public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements ConnectoidSegment {
 
-    /** generated UID */
-	private static final long serialVersionUID = 6462304338451088764L;
+  /** generated UID */
+  private static final long serialVersionUID = 6462304338451088764L;
 
-	/**
-     * unique internal identifier
-     */
-    protected final int connectoidSegmentId;
+  /**
+   * unique internal identifier
+   */
+  protected final int connectoidSegmentId;
 
-    /**
-     * generate unique connectoid segment id
-     *
-     * @return linkSegmentId
-     */
-    protected static int generateConnectoidSegmentId() {
-        return IdGenerator.generateId(ConnectoidSegment.class);
-    }
+  /**
+   * generate unique connectoid segment id
+   *
+   * @return linkSegmentId
+   */
+  protected static int generateConnectoidSegmentId() {
+    return IdGenerator.generateId(ConnectoidSegment.class);
+  }
 
-    // Public
+  // Public
 
-    /**
-     * Constructor
-     *
-     * @param parentConnectoid  parent connectoid
-     * @param directionAb direction of travel
-     */
-    public ConnectoidSegmentImpl(final Connectoid parentConnectoid, final boolean directionAb) {
-        super(parentConnectoid, directionAb);
-        this.connectoidSegmentId = generateConnectoidSegmentId();
-    }
+  /**
+   * Constructor
+   *
+   * @param parentConnectoid parent connectoid
+   * @param directionAb direction of travel
+   */
+  public ConnectoidSegmentImpl(final Connectoid parentConnectoid, final boolean directionAb) {
+    super(parentConnectoid, directionAb);
+    this.connectoidSegmentId = generateConnectoidSegmentId();
+  }
 
-    // Public getters - setters
+  // Public getters - setters
 
-    @Override
-	public int getConnectoidSegmentId() {
-        return connectoidSegmentId;
-    }
+  @Override
+  public int getConnectoidSegmentId() {
+    return connectoidSegmentId;
+  }
 }

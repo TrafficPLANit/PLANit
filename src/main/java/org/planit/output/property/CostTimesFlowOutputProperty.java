@@ -12,7 +12,7 @@ import org.planit.output.enums.Units;
 public final class CostTimesFlowOutputProperty extends BaseOutputProperty {
 
   public static final String NAME = "X_Cost x Flow";
-  
+
   @Override
   public String getName() {
     return NAME;
