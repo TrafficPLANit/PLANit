@@ -65,10 +65,10 @@ public abstract class OutputTypeConfiguration {
   protected SortedSet<BaseOutputProperty> outputProperties;
 
   /**
-   * True if links with zero flow are to be recorded in output files, false
+   * True if links and paths with zero flow are to be recorded in output files, false
    * otherwise (false is the default)
    */
-  protected boolean recordLinksWithZeroFlow;
+  protected boolean recordZeroFlow;
 
   /**
    * Activate a SubOutputTypeEnum for this output type configuration
@@ -115,6 +115,7 @@ public abstract class OutputTypeConfiguration {
   public OutputTypeConfiguration(TrafficAssignment trafficAssignment, OutputType outputType) throws PlanItException {
     this.trafficAssignment = trafficAssignment;
     this.outputType = outputType;
+    recordZeroFlow = false;
     outputProperties = new TreeSet<BaseOutputProperty>();
     activeSubOutputTypes = new TreeSet<SubOutputTypeEnum>();
   }
@@ -233,22 +234,22 @@ public abstract class OutputTypeConfiguration {
   }
 
   /**
-   * Set user flag to indicate whether links with zero flow should be recorded
+   * Set user flag to indicate whether outputs with zero flow should be recorded
    * 
-   * @param recordLinksWithZeroFlow user flag to indicate whether links with zero
+   * @param recordZeroFlow user flag to indicate whether links with zero
    *          flow should be recorded
    */
-  public void setRecordLinksWithZeroFlow(boolean recordLinksWithZeroFlow) {
-    this.recordLinksWithZeroFlow = recordLinksWithZeroFlow;
+  public void setRecordZeroFlow(boolean recordZeroFlow) {
+    this.recordZeroFlow = recordZeroFlow;
   }
 
   /**
-   * Return user flag to indicate whether links with zero flow should be recorded
+   * Return user flag to indicate whether outputs with zero flow should be recorded
    * 
-   * @return user flag to indicate whether links with zero flow should be recorded
+   * @return user flag to indicate whether outputs with zero flow should be recorded
    */
-  public boolean isRecordLinksWithZeroFlow() {
-    return recordLinksWithZeroFlow;
+  public boolean isRecordZeroFlow() {
+    return recordZeroFlow;
   }
 
   /**
