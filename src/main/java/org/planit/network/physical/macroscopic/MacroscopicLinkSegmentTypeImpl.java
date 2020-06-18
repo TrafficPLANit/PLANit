@@ -3,8 +3,6 @@ package org.planit.network.physical.macroscopic;
 import java.util.HashMap;
 import java.util.Map;
 
-
-
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
@@ -20,107 +18,109 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  */
 public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentType {
 
-	// Protected
+  // Protected
 
-	/**
-	 * Unique segment type id
-	 */
-	protected final long id;
+  /**
+   * Unique segment type id
+   */
+  protected final long id;
 
-	/**
-	 * External reference number of link type
-	 */
-	private Object externalId;
+  /**
+   * External reference number of link type
+   */
+  private Object externalId;
 
-	/**
-	 * name of the link segment type
-	 */
-	protected String name;
+  /**
+   * name of the link segment type
+   */
+  protected String name;
 
-	/**
-	 * Maximum flow, i.e. capacity in veh/h/lane
-	 */
-	protected final double capacityPerLane;
+  /**
+   * Maximum flow, i.e. capacity in veh/h/lane
+   */
+  protected final double capacityPerLane;
 
-	/**
-	 * Maximum density in veh/km/lane
-	 */
-	protected final double maximumDensityPerLane;
+  /**
+   * Maximum density in veh/km/lane
+   */
+  protected final double maximumDensityPerLane;
 
-	/**
-	 * Map of mode properties for each mode for this link segment
-	 */
-	protected Map<Mode, MacroscopicModeProperties> modeProperties;
+  /**
+   * Map of mode properties for each mode for this link segment
+   */
+  protected Map<Mode, MacroscopicModeProperties> modeProperties;
 
-	/**
-	 * Generate next id available
-	 * 
-	 * @return id of this link segment
-	 */
-	protected static int generateMacroscopicLinkSegmentTypeId() {
-		return IdGenerator.generateId(MacroscopicLinkSegmentType.class);
-	}
+  /**
+   * Generate next id available
+   * 
+   * @return id of this link segment
+   */
+  protected static int generateMacroscopicLinkSegmentTypeId() {
+    return IdGenerator.generateId(MacroscopicLinkSegmentType.class);
+  }
 
-	// Public
+  // Public
 
-	/**
-	 * Constructor
-	 * 
-	 * @param name                  name of this link segment type
-	 * @param capacityPerLane       capacity per lane of this link segment type
-	 * @param maximumDensityPerLane maximum density per lane of this link segment  type
-	 * @param externalId    external reference number of the link type
-	 */
-	public MacroscopicLinkSegmentTypeImpl( String name, double capacityPerLane, double maximumDensityPerLane, Object externalId) {
-		this.id = generateMacroscopicLinkSegmentTypeId();
-		this.name = name;
-		this.capacityPerLane = capacityPerLane;
-		this.maximumDensityPerLane = maximumDensityPerLane;
-		this.externalId = externalId;
-		modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
-	}
-	
-	 public MacroscopicLinkSegmentTypeImpl( String name, double capacityPerLane, double maximumDensityPerLane,  Object externalId, Map<Mode, MacroscopicModeProperties> modeProperties) {
-	   this(name, capacityPerLane, maximumDensityPerLane, externalId);
-	   setModeProperties(modeProperties);
-	 }
+  /**
+   * Constructor
+   * 
+   * @param name name of this link segment type
+   * @param capacityPerLane capacity per lane of this link segment type
+   * @param maximumDensityPerLane maximum density per lane of this link segment type
+   * @param externalId external reference number of the link type
+   */
+  public MacroscopicLinkSegmentTypeImpl(String name, double capacityPerLane, double maximumDensityPerLane,
+      Object externalId) {
+    this.id = generateMacroscopicLinkSegmentTypeId();
+    this.name = name;
+    this.capacityPerLane = capacityPerLane;
+    this.maximumDensityPerLane = maximumDensityPerLane;
+    this.externalId = externalId;
+    modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
+  }
 
-	// Getters - Setters
+  public MacroscopicLinkSegmentTypeImpl(String name, double capacityPerLane, double maximumDensityPerLane,
+      Object externalId, Map<Mode, MacroscopicModeProperties> modeProperties) {
+    this(name, capacityPerLane, maximumDensityPerLane, externalId);
+    setModeProperties(modeProperties);
+  }
 
-	@Override
-	public long getId() {
-		return id;
-	}
+  // Getters - Setters
 
-	@Override
-	public String getName() {
-		return name;
-	}
+  @Override
+  public long getId() {
+    return id;
+  }
 
-	@Override
-	public void setName(String name) {
-		this.name = name;
-	}
+  @Override
+  public String getName() {
+    return name;
+  }
 
-	@Override
-	public double getCapacityPerLane() {
-		return capacityPerLane;
-	}
+  @Override
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	@Override
-	public double getMaximumDensityPerLane() {
-		return maximumDensityPerLane;
-	}
+  @Override
+  public double getCapacityPerLane() {
+    return capacityPerLane;
+  }
 
-	@Override
-	public Object getExternalId() {
-		return externalId;
-	}
-	
-	@Override
-	public boolean hasExternalId() {
-	  return (externalId != null);
-	}
+  @Override
+  public double getMaximumDensityPerLane() {
+    return maximumDensityPerLane;
+  }
+
+  @Override
+  public Object getExternalId() {
+    return externalId;
+  }
+
+  @Override
+  public boolean hasExternalId() {
+    return (externalId != null);
+  }
 
   /**
    * Returns the mode properties for a specified mode along this link
@@ -139,12 +139,11 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   /**
    * Set the map of mode properties for this link
    * 
-   * @param mode the specified mode
    * @param modeProperties map of mode properties for this link
    */
   @Override
   public void setModeProperties(Map<Mode, MacroscopicModeProperties> modeProperties) {
-    this.modeProperties = modeProperties;  
+    this.modeProperties = modeProperties;
   }
 
 }

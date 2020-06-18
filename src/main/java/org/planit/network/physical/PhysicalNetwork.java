@@ -18,7 +18,8 @@ import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.Node;
 
 /**
- * Model free Network consisting of nodes and links, each of which can be iterated over. This network does not contain
+ * Model free Network consisting of nodes and links, each of which can be iterated over. This
+ * network does not contain
  * any transport specific information, hence the qualification "model free".
  *
  * @author markr
@@ -69,14 +70,15 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     /**
      * Create new link to network identified via its id, injecting link length directly
      *
-     * @param nodeA  the first node in this link
-     * @param nodeB  the second node in this link
+     * @param nodeA the first node in this link
+     * @param nodeB the second node in this link
      * @param length the length of this link
-     * @param name   the name of the link
+     * @param name the name of the link
      * @return the created link
      * @throws PlanItException thrown if there is an error
      */
-    public Link registerNewLink(final Node nodeA, final Node nodeB, final double length, final String name) throws PlanItException {
+    public Link registerNewLink(final Node nodeA, final Node nodeB, final double length, final String name)
+        throws PlanItException {
       final Link newLink = networkBuilder.createLink(nodeA, nodeB, length, name);
       registerLink(newLink);
       return newLink;
@@ -103,7 +105,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   }
 
   /**
-   * Internal class for LinkSegment specific code (non-physical link segments are placed in the zoning)
+   * Internal class for LinkSegment specific code (non-physical link segments are placed in the
+   * zoning)
    *
    */
   public class LinkSegments implements Iterable<LinkSegment> {
@@ -127,7 +130,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * Register a link segment on the network
      *
      * @param linkSegment the link segment to be registered
-     * @throws PlanItException thrown if the current link segment external Id has already been assigned
+     * @throws PlanItException thrown if the current link segment external Id has already been
+     *           assigned
      */
     protected void registerLinkSegment(final LinkSegment linkSegment) throws PlanItException {
       linkSegmentMap.put(linkSegment.getId(), linkSegment);
@@ -149,8 +153,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     /**
      * Find a LinkSegment by the external Ids of its start and end nodes
      *
-     * @param startExternalId reference to start node
-     * @param endExternalId   reference to end node
+     * @param startId reference to start node
+     * @param endId reference to end node
      * @return the linkSegment found
      */
     public LinkSegment getLinkSegmentByStartAndEndNodeId(final long startId, final long endId) {
@@ -165,19 +169,21 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
           return linkSegment;
         }
       }
-      LOGGER.warning("No link segment with start node " + startId + " and end node " + endId + " has been registered in the network.");
+      LOGGER.warning("No link segment with start node " + startId + " and end node " + endId
+          + " has been registered in the network.");
       return null;
     }
 
     /**
      * Create directional link segment
      *
-     * @param parentLink  the parent link of this link segment
+     * @param parentLink the parent link of this link segment
      * @param directionAB direction of travel
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LinkSegment createDirectionalLinkSegment(final Link parentLink, final boolean directionAB) throws PlanItException {
+    public LinkSegment createDirectionalLinkSegment(final Link parentLink, final boolean directionAB)
+        throws PlanItException {
       final LinkSegment linkSegment = networkBuilder.createLinkSegment(parentLink, directionAB);
       return linkSegment;
     }
@@ -185,12 +191,13 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     /**
      * Register a link segment
      *
-     * @param parentLink  the parent link which specified link segment will be registered on
+     * @param parentLink the parent link which specified link segment will be registered on
      * @param linkSegment link segment to be registered
      * @param directionAB direction of travel
      * @throws PlanItException thrown if there is an error
      */
-    public void registerLinkSegment(final Link parentLink, final LinkSegment linkSegment, final boolean directionAB) throws PlanItException {
+    public void registerLinkSegment(final Link parentLink, final LinkSegment linkSegment, final boolean directionAB)
+        throws PlanItException {
       parentLink.registerLinkSegment(linkSegment, directionAB);
       registerLinkSegment(linkSegment);
     }
@@ -217,11 +224,13 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     /**
      * Retrieve a link segment by its external Id
      * 
-     * This method has the option to convert the external Id parameter into a long value, to find the link segment type when
+     * This method has the option to convert the external Id parameter into a long value, to find
+     * the link segment type when
      * link segment type objects use long values for external ids.
      * 
-     * @param externalId    the external Id of the specified link segment
-     * @param convertToLong if true, the external Id is converted into a long before beginning the search
+     * @param externalId the external Id of the specified link segment
+     * @param convertToLong if true, the external Id is converted into a long before beginning the
+     *          search
      * @return the retrieved link segment, or null if no mode was found
      */
     public LinkSegment getLinkSegmentByExternalId(Object externalId, boolean convertToLong) {
@@ -240,8 +249,10 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     /**
      * Retrieve a link segment by its external Id
      * 
-     * This method is not efficient, since it loops through all the registered modes in order to find the required link
-     * segment. The equivalent method in InputBuilderListener is more efficient and should be used in preference to this in
+     * This method is not efficient, since it loops through all the registered modes in order to
+     * find the required link
+     * segment. The equivalent method in InputBuilderListener is more efficient and should be used
+     * in preference to this in
      * Java code.
      * 
      * @param externalId the external Id of the specified link segment type
@@ -357,9 +368,9 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     /**
      * Create and register new mode
      *
-     * @param externalModeId
-     * @param name
-     * @param pcu
+     * @param externalModeId the external mode id for the mode
+     * @param name of the mode
+     * @param pcu value for the mode
      * @return new mode created
      */
     public Mode registerNewMode(final long externalModeId, final String name, final double pcu) {
@@ -391,11 +402,13 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     /**
      * Retrieve a Mode by its external Id
      * 
-     * This method has the option to convert the external Id parameter into a long value, to find the mode when mode objects
+     * This method has the option to convert the external Id parameter into a long value, to find
+     * the mode when mode objects
      * use long values for external ids.
      * 
-     * @param externalId    the external Id of the specified mode
-     * @param convertToLong if true, the external Id is converted into a long before beginning the search
+     * @param externalId the external Id of the specified mode
+     * @param convertToLong if true, the external Id is converted into a long before beginning the
+     *          search
      * @return the retrieved mode, or null if no mode was found
      */
     public Mode getModeByExternalId(Object externalId, boolean convertToLong) {
@@ -413,8 +426,10 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     /**
      * Retrieve a Mode by its external Id
      * 
-     * This method is not efficient, since it loops through all the registered modes in order to find the required time
-     * period. The equivalent method in InputBuilderListener is more efficient and should be used in preference to this in
+     * This method is not efficient, since it loops through all the registered modes in order to
+     * find the required time
+     * period. The equivalent method in InputBuilderListener is more efficient and should be used in
+     * preference to this in
      * Java code.
      * 
      * @param externalId the external Id of the specified mode
@@ -478,7 +493,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   }
 
   /**
-   * Return the Modes internal class instance. Method available to allow Py4J to access modes since public final member
+   * Return the Modes internal class instance. Method available to allow Py4J to access modes since
+   * public final member
    * approach is not supported
    * 
    * @return the Modes local class
@@ -488,7 +504,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   }
 
   /**
-   * Return the LinkSegments internal class instance. Method available to allow Py4J to access modes since public final
+   * Return the LinkSegments internal class instance. Method available to allow Py4J to access modes
+   * since public final
    * member approach is not supported
    * 
    * @return the LinkSegments inner class instance

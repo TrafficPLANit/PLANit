@@ -6,7 +6,7 @@ import org.planit.output.enums.Units;
 public final class MaximumDensityOutputProperty extends BaseOutputProperty {
 
   public static final String NAME = "Maximum Density";
-   
+
   @Override
   public String getName() {
     return NAME;

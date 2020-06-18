@@ -36,7 +36,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   /**
    * Constructor
    *
-   * @param parentLink  the parent link of this link segment
+   * @param parentLink the parent link of this link segment
    * @param directionAB direction of travel
    */
   public MacroscopicLinkSegmentImpl(final Link parentLink, final boolean directionAB) {
@@ -56,14 +56,15 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   }
 
   /**
-   * Compute the free flow travel time by mode, i.e. when the link's maximum speed might be capped by the mode's maximum
+   * Compute the free flow travel time by mode, i.e. when the link's maximum speed might be capped
+   * by the mode's maximum
    * speed
    *
    * If the input data are invalid, this method logs the problem and returns a negative value.
    *
    * @param mode mode of travel
    * @return freeFlowTravelTime for this mode
-   * @throws PlanItException
+   * @throws PlanItException when mode is not allowed on the link
    */
   @Override
   public double computeFreeFlowTravelTime(final Mode mode) throws PlanItException {

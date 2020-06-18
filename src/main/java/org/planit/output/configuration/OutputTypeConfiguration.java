@@ -148,7 +148,8 @@ public abstract class OutputTypeConfiguration {
   public void addProperty(OutputProperty outputProperty) throws PlanItException {
     if (outputProperty.equals(OutputProperty.DENSITY)) {
       if (trafficAssignment instanceof TraditionalStaticAssignment) {
-        LOGGER.warning("Attempt made to register invalid output property DENSITY  on Traditional Static Assignment.  This will be ignored.");
+        LOGGER.warning(
+            "Attempt made to register invalid output property DENSITY  on Traditional Static Assignment.  This will be ignored.");
         return;
       }
     }

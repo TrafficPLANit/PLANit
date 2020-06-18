@@ -5,31 +5,31 @@ import org.planit.output.enums.Units;
 
 public final class LengthOutputProperty extends BaseOutputProperty {
 
-	public static final String NAME = "Length";
-	
-	@Override
-	public String getName() {
-		return NAME;
-	}
+  public static final String NAME = "Length";
 
-	@Override
-	public Units getUnits() {
-		return Units.KM;
-	}
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
-	@Override
-	public Type getType() {
-		return Type.DOUBLE;
-	}
+  @Override
+  public Units getUnits() {
+    return Units.KM;
+  }
 
-	@Override
-	public OutputProperty getOutputProperty() {
-		return OutputProperty.LENGTH;
-	}
+  @Override
+  public Type getType() {
+    return Type.DOUBLE;
+  }
 
-	@Override
-	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.INPUT_PRIORITY;
-	}
+  @Override
+  public OutputProperty getOutputProperty() {
+    return OutputProperty.LENGTH;
+  }
+
+  @Override
+  public OutputPropertyPriority getColumnPriority() {
+    return OutputPropertyPriority.INPUT_PRIORITY;
+  }
 
 }

@@ -5,31 +5,31 @@ import org.planit.output.enums.Units;
 
 public class LinkSegmentExternalIdOutputProperty extends BaseOutputProperty {
 
-	public final static String NAME = "Link Segment External Id";
-	
-	@Override
-	public String getName() {
-		return NAME;
-	}
+  public final static String NAME = "Link Segment External Id";
 
-	@Override
-	public Units getUnits() {
-		return Units.NONE;
-	}
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
-	@Override
-	public Type getType() {
-		return Type.LONG;
-	}
+  @Override
+  public Units getUnits() {
+    return Units.NONE;
+  }
 
-	@Override
-	public OutputProperty getOutputProperty() {
-		return OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
-	}
+  @Override
+  public Type getType() {
+    return Type.LONG;
+  }
 
-	@Override
-	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.ID_PRIORITY;
-	}
+  @Override
+  public OutputProperty getOutputProperty() {
+    return OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
+  }
+
+  @Override
+  public OutputPropertyPriority getColumnPriority() {
+    return OutputPropertyPriority.ID_PRIORITY;
+  }
 
 }

@@ -7,46 +7,46 @@ package org.planit.data;
  *
  */
 public class ModeData {
-    
-    /**
-     * Empty array for quick memory based copying
-     */
-    private double[] emptySegmentArray;    
 
-    /**
-     * Flows derived for the previous iteration
-     */
-    public double[] currentNetworkSegmentFlows = null;
+  /**
+   * Empty array for quick memory based copying
+   */
+  private double[] emptySegmentArray;
 
-    /**
-     * Flows for the next iteration
-     */
-    public double[] nextNetworkSegmentFlows = null;
+  /**
+   * Flows derived for the previous iteration
+   */
+  public double[] currentNetworkSegmentFlows = null;
 
-    /**
-     * Constructor
-     * 
-     * @param emptySegmentArray
-     *            empty array used to initialize data stores
-     */
-    public ModeData(double[] emptySegmentArray) {
-        this.emptySegmentArray = emptySegmentArray;
-        resetCurrentNetworkSegmentFlows();
-        resetNextNetworkSegmentFlows();
-    }
+  /**
+   * Flows for the next iteration
+   */
+  public double[] nextNetworkSegmentFlows = null;
 
-    /**
-     * Reset the segment flows for the coming iteration
-     */
-    public void resetNextNetworkSegmentFlows() {
-        nextNetworkSegmentFlows = emptySegmentArray.clone();
-    }
+  /**
+   * Constructor
+   * 
+   * @param emptySegmentArray
+   *          empty array used to initialize data stores
+   */
+  public ModeData(double[] emptySegmentArray) {
+    this.emptySegmentArray = emptySegmentArray;
+    resetCurrentNetworkSegmentFlows();
+    resetNextNetworkSegmentFlows();
+  }
 
-    /**
-     * Reset current network segment flows
-     */
-    public void resetCurrentNetworkSegmentFlows() {
-        currentNetworkSegmentFlows = emptySegmentArray.clone();
-    }
+  /**
+   * Reset the segment flows for the coming iteration
+   */
+  public void resetNextNetworkSegmentFlows() {
+    nextNetworkSegmentFlows = emptySegmentArray.clone();
+  }
+
+  /**
+   * Reset current network segment flows
+   */
+  public void resetCurrentNetworkSegmentFlows() {
+    currentNetworkSegmentFlows = emptySegmentArray.clone();
+  }
 
 }

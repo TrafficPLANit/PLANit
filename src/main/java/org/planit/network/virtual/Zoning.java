@@ -155,11 +155,13 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   }
 
   /**
-   * Verify if passed in demands are compatible with the zoning structure. Compatibility is ensured when the number of
+   * Verify if passed in demands are compatible with the zoning structure. Compatibility is ensured
+   * when the number of
    * zones matches the number of origins/destinations in the demands.
    * 
-   * @param demands
-   * @return
+   * @param demands to verify against
+   * @param modes to check
+   * @return true when compatible, false otherwise
    */
   public boolean isCompatibleWithDemands(Demands demands, Modes modes) {
     final int noZonesInZoning = zones.getNumberOfZones();

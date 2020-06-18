@@ -7,42 +7,42 @@ import org.planit.trafficassignment.TrafficAssignment;
 
 public final class RunIdOutputProperty extends BaseOutputProperty {
 
-	public static final String NAME = "Run Id";
+  public static final String NAME = "Run Id";
 
-	@Override
-	public String getName() {
-		return NAME;
-	}
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
-	@Override
-	public Units getUnits() {
-		return Units.NONE;
-	}
+  @Override
+  public Units getUnits() {
+    return Units.NONE;
+  }
 
-	@Override
-	public Type getType() {
-		return Type.LONG;
-	}
+  @Override
+  public Type getType() {
+    return Type.LONG;
+  }
 
-	@Override
-	public OutputProperty getOutputProperty() {
-		return OutputProperty.RUN_ID;
-	}
+  @Override
+  public OutputProperty getOutputProperty() {
+    return OutputProperty.RUN_ID;
+  }
 
-	@Override
-	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.ID_PRIORITY;
-	}
+  @Override
+  public OutputPropertyPriority getColumnPriority() {
+    return OutputPropertyPriority.ID_PRIORITY;
+  }
 
-	/**
-	 * Returns the current run id
-	 * 
-	 * @param trafficAssignment TrafficAssignment containing data which may be required
-	 * @return the current run id
-	 * @throws PlanItException thrown if there is an error
-	 */
-	public static long getRunId(TrafficAssignment trafficAssignment) throws PlanItException {
-		return trafficAssignment.getId();
-	}
+  /**
+   * Returns the current run id
+   * 
+   * @param trafficAssignment TrafficAssignment containing data which may be required
+   * @return the current run id
+   * @throws PlanItException thrown if there is an error
+   */
+  public static long getRunId(TrafficAssignment trafficAssignment) throws PlanItException {
+    return trafficAssignment.getId();
+  }
 
 }

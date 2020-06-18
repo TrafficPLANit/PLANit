@@ -6,36 +6,36 @@ package org.planit.data;
  */
 public abstract class SimulationData {
 
-    /**
-     * Iteration index, tracking the iteration during execution
-     */
-    private int iterationIndex = 0; // general
-    
-    /**
-     * Increment iteration index by one
-     */
-    public void incrementIterationIndex() {
-        iterationIndex++;
-    }
+  /**
+   * Iteration index, tracking the iteration during execution
+   */
+  private int iterationIndex = 0; // general
 
-    // getters - setters
+  /**
+   * Increment iteration index by one
+   */
+  public void incrementIterationIndex() {
+    iterationIndex++;
+  }
 
-    /**
-     * Returns the current iteration index
-     * 
-     * @return the current iteration index
-     */
-    public int getIterationIndex() {
-        return iterationIndex;
-    }
+  // getters - setters
 
-    /**
-     * Set the current iteration index
-     * 
-     * @param iterationIndex the current iteration index
-     */
-    public void setIterationIndex(int iterationIndex) {
-        this.iterationIndex = iterationIndex;
-    }
+  /**
+   * Returns the current iteration index
+   * 
+   * @return the current iteration index
+   */
+  public int getIterationIndex() {
+    return iterationIndex;
+  }
+
+  /**
+   * Set the current iteration index
+   * 
+   * @param iterationIndex the current iteration index
+   */
+  public void setIterationIndex(int iterationIndex) {
+    this.iterationIndex = iterationIndex;
+  }
 
 }

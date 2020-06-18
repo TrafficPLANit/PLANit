@@ -10,95 +10,95 @@ import org.planit.utils.network.physical.Mode;
  * @author markr
  */
 public class ModeImpl implements Mode {
-	
-	private final long DEFAULT_EXTERNAL_ID = 1; 
-	
-	// Protected
 
-	/**
-	 * Each mode has a passenger car unit number indicating how many standard
-	 * passenger cars a single unit of this mode represents
-	 */
-	private final double pcu;
+  private final long DEFAULT_EXTERNAL_ID = 1;
 
-	/**
-	 * Id value of this mode
-	 */
-	private final long id;
+  // Protected
 
-	/**
-	 * External Id of this mode
-	 */
-	private Object externalId;
+  /**
+   * Each mode has a passenger car unit number indicating how many standard
+   * passenger cars a single unit of this mode represents
+   */
+  private final double pcu;
 
-	/**
-	 * Name of this mode
-	 */
-	private final String name;
+  /**
+   * Id value of this mode
+   */
+  private final long id;
 
-	/**
-	 * Constructor
-	 * 
-	 * @param name the name of this mode
-	 * @param pcu  the PCU value of this mode
-	 */
+  /**
+   * External Id of this mode
+   */
+  private Object externalId;
 
-	public ModeImpl(String name, double pcu) {
-		this.id = IdGenerator.generateId(Mode.class);
-		this.externalId = DEFAULT_EXTERNAL_ID;
-		this.name = name;
-		this.pcu = pcu;
-	}
+  /**
+   * Name of this mode
+   */
+  private final String name;
 
-	/**
-	 * Constructor
-	 * 
-	 * @param externalId the externalId of this mode
-	 * @param name       the name of this mode
-	 * @param pcu        the PCU value of this mode
-	 */
-	public ModeImpl(Object externalId, String name, double pcu) {
-		this.id = IdGenerator.generateId(ModeImpl.class);
-		this.externalId = externalId;
-		this.name = name;
-		this.pcu = pcu;
-	}
-	
-	// getters-setters
+  /**
+   * Constructor
+   * 
+   * @param name the name of this mode
+   * @param pcu the PCU value of this mode
+   */
 
-	@Override
-	public double getPcu() {
-		return pcu;
-	}
+  public ModeImpl(String name, double pcu) {
+    this.id = IdGenerator.generateId(Mode.class);
+    this.externalId = DEFAULT_EXTERNAL_ID;
+    this.name = name;
+    this.pcu = pcu;
+  }
 
-	@Override
-	public String getName() {
-		return name;
-	}
+  /**
+   * Constructor
+   * 
+   * @param externalId the externalId of this mode
+   * @param name the name of this mode
+   * @param pcu the PCU value of this mode
+   */
+  public ModeImpl(Object externalId, String name, double pcu) {
+    this.id = IdGenerator.generateId(ModeImpl.class);
+    this.externalId = externalId;
+    this.name = name;
+    this.pcu = pcu;
+  }
 
-	@Override
-	public long getId() {
-		return id;
-	}
+  // getters-setters
 
-	@Override
-	public Object getExternalId() {
-		return externalId;
-	}
-	
-	@Override
-	public boolean hasExternalId() {
-	  return (externalId != null);
-	}
+  @Override
+  public double getPcu() {
+    return pcu;
+  }
 
-	/**
-	 * Compare based on id
-	 * 
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
-	@Override
-	public int compareTo(Mode o) {
-		return (int) (this.getId() - o.getId());
-	}
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  public Object getExternalId() {
+    return externalId;
+  }
+
+  @Override
+  public boolean hasExternalId() {
+    return (externalId != null);
+  }
+
+  /**
+   * Compare based on id
+   * 
+   * @see java.lang.Comparable#compareTo(java.lang.Object)
+   */
+  @Override
+  public int compareTo(Mode o) {
+    return (int) (this.getId() - o.getId());
+  }
 
 }

@@ -12,38 +12,38 @@ import org.planit.utils.network.virtual.Zone;
  */
 public class CentroidImpl extends VertexImpl implements Centroid {
 
- // Protected
+  // Protected
 
-    /** generated UID  */
-	private static final long serialVersionUID = 1122451267627721268L;
-	/**
-     * the zone this centroid represents
-     */
-    protected final Zone parentZone;
+  /** generated UID */
+  private static final long serialVersionUID = 1122451267627721268L;
+  /**
+   * the zone this centroid represents
+   */
+  protected final Zone parentZone;
 
-    // Public
+  // Public
 
-    /**
-     * Constructor
-     *
-     * @param parentZone
-     *            the parent zone of this Centroid
-     */
-    public CentroidImpl(final Zone parentZone) {
-        super();
-        this.parentZone = parentZone;
-    }
+  /**
+   * Constructor
+   *
+   * @param parentZone
+   *          the parent zone of this Centroid
+   */
+  public CentroidImpl(final Zone parentZone) {
+    super();
+    this.parentZone = parentZone;
+  }
 
-    // Getters-Setters
+  // Getters-Setters
 
-    /**
-     * Return the parent zone of this centroid
-     *
-     * @return parent zone of this centroid
-     */
-    @Override
-	public Zone getParentZone() {
-        return this.parentZone;
-    }
+  /**
+   * Return the parent zone of this centroid
+   *
+   * @return parent zone of this centroid
+   */
+  @Override
+  public Zone getParentZone() {
+    return this.parentZone;
+  }
 
 }

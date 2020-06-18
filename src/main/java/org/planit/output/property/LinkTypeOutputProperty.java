@@ -6,7 +6,7 @@ import org.planit.output.enums.Units;
 public final class LinkTypeOutputProperty extends BaseOutputProperty {
 
   public static final String NAME = "Link Type";
-  
+
   @Override
   public String getName() {
     return NAME;

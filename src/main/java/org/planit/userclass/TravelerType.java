@@ -12,75 +12,75 @@ import org.planit.utils.misc.IdGenerator;
  *
  */
 public class TravelerType {
-        
-    public static final String DEFAULT_NAME = "Default";
-	/**
-	 * If no user class is defined the default user class will be assumed to have a
-	 * traveler type referencing the default external traveler type id (1)
-	 */
-    public static final long DEFAULT_EXTERNAL_ID =  1;    
 
-    /**
-     * Unique feature id
-     */
-    private final long id;
-    
-    /**
-     * Unique external id
-     */
-    private final Object externalId;    
+  public static final String DEFAULT_NAME = "Default";
+  /**
+   * If no user class is defined the default user class will be assumed to have a
+   * traveler type referencing the default external traveler type id (1)
+   */
+  public static final long DEFAULT_EXTERNAL_ID = 1;
 
-    /**
-     * Name of this traveler type
-     */
-    private final String name;
+  /**
+   * Unique feature id
+   */
+  private final long id;
 
-    /**
-     * Constructor
-     */
-    public TravelerType() {
-        this.id = IdGenerator.generateId(TravelerType.class);
-        this.name = DEFAULT_NAME;
-        this.externalId = DEFAULT_EXTERNAL_ID;
-    }    
+  /**
+   * Unique external id
+   */
+  private final Object externalId;
 
-    /**
-     * Constructor
-     * 
-     * @param externaId external id of this traveler type
-     * @param name name of this traveler type
-     * 
-     */
-    public TravelerType(Object externaId, String name) {
-        this.id = IdGenerator.generateId(TravelerType.class);
-        this.externalId = externaId;
-        this.name = name;
-    }
+  /**
+   * Name of this traveler type
+   */
+  private final String name;
 
-    /**
-     * Constructor
-     * 
-     * @param name  name of this traveler type
-     */
-    public TravelerType(String name) {
-        this.id = IdGenerator.generateId(TravelerType.class);
-        this.externalId = DEFAULT_EXTERNAL_ID;
-        this.name = name;        
-    }
+  /**
+   * Constructor
+   */
+  public TravelerType() {
+    this.id = IdGenerator.generateId(TravelerType.class);
+    this.name = DEFAULT_NAME;
+    this.externalId = DEFAULT_EXTERNAL_ID;
+  }
 
-    public long getId() {
-        return id;
-    }
+  /**
+   * Constructor
+   * 
+   * @param externaId external id of this traveler type
+   * @param name name of this traveler type
+   * 
+   */
+  public TravelerType(Object externaId, String name) {
+    this.id = IdGenerator.generateId(TravelerType.class);
+    this.externalId = externaId;
+    this.name = name;
+  }
 
-    public String getName() {
-        return name;
-    }
+  /**
+   * Constructor
+   * 
+   * @param name name of this traveler type
+   */
+  public TravelerType(String name) {
+    this.id = IdGenerator.generateId(TravelerType.class);
+    this.externalId = DEFAULT_EXTERNAL_ID;
+    this.name = name;
+  }
 
-    public Object getExternalId() {
-        return externalId;
-    }
-    
-    public boolean hasExternalId() {
-      return (externalId != null);
-    }
+  public long getId() {
+    return id;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public Object getExternalId() {
+    return externalId;
+  }
+
+  public boolean hasExternalId() {
+    return (externalId != null);
+  }
 }

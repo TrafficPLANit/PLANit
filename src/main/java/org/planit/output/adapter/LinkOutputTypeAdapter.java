@@ -15,10 +15,11 @@ import org.planit.utils.network.physical.Mode;
 public interface LinkOutputTypeAdapter extends OutputTypeAdapter {
 
   /**
-   * Returns true if there is a flow through the current specified link segment for the specified mode
+   * Returns true if there is a flow through the current specified link segment for the specified
+   * mode
    * 
    * @param linkSegment specified link segment
-   * @param mode        specified mode
+   * @param mode specified mode
    * @return true is there is flow through this link segment, false if the flow is zero
    */
   public boolean isFlowPositive(LinkSegment linkSegment, Mode mode);
@@ -33,12 +34,13 @@ public interface LinkOutputTypeAdapter extends OutputTypeAdapter {
   /**
    * Return the value of a specified output property of a link segment
    * 
-   * @param outputProperty     the specified output property
-   * @param linkSegment        the specified link segment
-   * @param mode               the current mode
-   * @param timePeriod         the current time period
+   * @param outputProperty the specified output property
+   * @param linkSegment the specified link segment
+   * @param mode the current mode
+   * @param timePeriod the current time period
    * @param timeUnitMultiplier the multiplier for time units
    * @return the value of the specified output property (or an Exception if an error occurs)
    */
-  public Object getLinkOutputPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier);
+  public Object getLinkOutputPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode,
+      TimePeriod timePeriod, double timeUnitMultiplier);
 }

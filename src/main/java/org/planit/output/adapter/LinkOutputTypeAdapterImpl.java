@@ -36,7 +36,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    */
   protected double getCapacityPerLane(LinkSegment linkSegment) throws PlanItException {
     if (!(linkSegment instanceof MacroscopicLinkSegment)) {
-      throw new PlanItException("Tried to calculate capacity per link across an object which is not a MacroscopicLinkSegment.");
+      throw new PlanItException(
+          "Tried to calculate capacity per link across an object which is not a MacroscopicLinkSegment.");
     }
     MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
     return macroscopicLinkSegment.getLinkSegmentType().getCapacityPerLane();
@@ -160,7 +161,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * Returns the maximum speed through the current link segment
    * 
    * @param linkSegment MacroscopicLinkSegment object containing the required data
-   * @param mode        current mode
+   * @param mode current mode
    * @return the maximum speed through the current link segment
    * @throws PlanItException thrown if there is an error
    */
@@ -230,9 +231,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   /**
    * Constructor
    * 
-   * @param outputType        the OutputType this adapter corresponds to
+   * @param outputType the OutputType this adapter corresponds to
    * @param trafficAssignment TrafficAssignment object which this adapter wraps
-   * @param network           the network the assignment operates on
    */
   public LinkOutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
     super(outputType, trafficAssignment);
@@ -251,51 +251,52 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * 
    * The DENSITY case should never be called for TraditionalStaticAssignment.
    * 
-   * @param outputProperty     the specified output property
-   * @param linkSegment        the specified link segment
-   * @param mode               the current mode
-   * @param timePeriod         the current time period
+   * @param outputProperty the specified output property
+   * @param linkSegment the specified link segment
+   * @param mode the current mode
+   * @param timePeriod the current time period
    * @param timeUnitMultiplier the multiplier for time units
    * @return the value of the specified output property (or an Exception if an error occurs)
    */
   @Override
-  public Object getLinkOutputPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) {
+  public Object getLinkOutputPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode,
+      TimePeriod timePeriod, double timeUnitMultiplier) {
     try {
       Object obj = getCommonPropertyValue(outputProperty, mode, timePeriod);
       if (obj != null) {
         return obj;
       }
       switch (outputProperty) {
-      case CAPACITY_PER_LANE:
-        return getCapacityPerLane(linkSegment);
-      case DOWNSTREAM_NODE_EXTERNAL_ID:
-        return getDownstreamNodeExternalId(linkSegment);
-      case DOWNSTREAM_NODE_ID:
-        return getDownstreamNodeId(linkSegment);
-      case DOWNSTREAM_NODE_LOCATION:
-        return getDownstreamNodeLocation(linkSegment);
-      case LENGTH:
-        return getLength(linkSegment);
-      case LINK_SEGMENT_EXTERNAL_ID:
-        return getLinkSegmentExternalId(linkSegment);
-      case LINK_SEGMENT_ID:
-        return getLinkSegmentId(linkSegment);
-      case MAXIMUM_DENSITY:
-        return getMaximumDensity(linkSegment);
-      case MAXIMUM_SPEED:
-        return getMaximumSpeed(linkSegment, mode);
-      case NUMBER_OF_LANES:
-        return getNumberOfLanes(linkSegment);
-      case UPSTREAM_NODE_EXTERNAL_ID:
-        return getUpstreamNodeExternalId(linkSegment);
-      case UPSTREAM_NODE_ID:
-        return getUpstreamNodeId(linkSegment);
-      case UPSTREAM_NODE_LOCATION:
-        return getUpstreamNodeLocation(linkSegment);
-      case LINK_TYPE:
-        return getLinkType(linkSegment);
-      default:
-        return null;
+        case CAPACITY_PER_LANE:
+          return getCapacityPerLane(linkSegment);
+        case DOWNSTREAM_NODE_EXTERNAL_ID:
+          return getDownstreamNodeExternalId(linkSegment);
+        case DOWNSTREAM_NODE_ID:
+          return getDownstreamNodeId(linkSegment);
+        case DOWNSTREAM_NODE_LOCATION:
+          return getDownstreamNodeLocation(linkSegment);
+        case LENGTH:
+          return getLength(linkSegment);
+        case LINK_SEGMENT_EXTERNAL_ID:
+          return getLinkSegmentExternalId(linkSegment);
+        case LINK_SEGMENT_ID:
+          return getLinkSegmentId(linkSegment);
+        case MAXIMUM_DENSITY:
+          return getMaximumDensity(linkSegment);
+        case MAXIMUM_SPEED:
+          return getMaximumSpeed(linkSegment, mode);
+        case NUMBER_OF_LANES:
+          return getNumberOfLanes(linkSegment);
+        case UPSTREAM_NODE_EXTERNAL_ID:
+          return getUpstreamNodeExternalId(linkSegment);
+        case UPSTREAM_NODE_ID:
+          return getUpstreamNodeId(linkSegment);
+        case UPSTREAM_NODE_LOCATION:
+          return getUpstreamNodeLocation(linkSegment);
+        case LINK_TYPE:
+          return getLinkType(linkSegment);
+        default:
+          return null;
       }
     } catch (PlanItException e) {
       return e;

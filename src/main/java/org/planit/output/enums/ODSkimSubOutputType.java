@@ -7,17 +7,17 @@ package org.planit.output.enums;
  *
  */
 public enum ODSkimSubOutputType implements SubOutputTypeEnum {
-	
-	NONE("None"),
-	COST("Cost");
 
-	 private final String value;
+  NONE("None"),
+  COST("Cost");
 
-	 ODSkimSubOutputType(String v) {
-	     value = v;
-	 }
+  private final String value;
 
-	 public String value() {
-	     return value;
-	 }
+  ODSkimSubOutputType(String v) {
+    value = v;
+  }
+
+  public String value() {
+    return value;
+  }
 }

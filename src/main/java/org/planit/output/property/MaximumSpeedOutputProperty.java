@@ -5,31 +5,31 @@ import org.planit.output.enums.Units;
 
 public final class MaximumSpeedOutputProperty extends BaseOutputProperty {
 
-	public static final String NAME = "Maximum Speed";
-	
-	@Override
-	public String getName() {
-		return NAME;
-	}
+  public static final String NAME = "Maximum Speed";
 
-	@Override
-	public Units getUnits() {
-		return Units.KM_H;
-	}
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
-	@Override
-	public Type getType() {
-		return Type.DOUBLE;
-	}
+  @Override
+  public Units getUnits() {
+    return Units.KM_H;
+  }
 
-	@Override
-	public OutputProperty getOutputProperty() {
-		return OutputProperty.MAXIMUM_SPEED;
-	}
+  @Override
+  public Type getType() {
+    return Type.DOUBLE;
+  }
 
-	@Override
-	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.INPUT_PRIORITY;
-	}
+  @Override
+  public OutputProperty getOutputProperty() {
+    return OutputProperty.MAXIMUM_SPEED;
+  }
+
+  @Override
+  public OutputPropertyPriority getColumnPriority() {
+    return OutputPropertyPriority.INPUT_PRIORITY;
+  }
 
 }

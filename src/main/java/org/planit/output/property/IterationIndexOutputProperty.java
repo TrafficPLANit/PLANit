@@ -7,42 +7,42 @@ import org.planit.trafficassignment.TrafficAssignment;
 
 public final class IterationIndexOutputProperty extends BaseOutputProperty {
 
-	public static final String NAME = "Iteration Index";
-	
-	@Override
-	public String getName() {
-		return NAME;
-	}
+  public static final String NAME = "Iteration Index";
 
-	@Override
-	public Units getUnits() {
-		return Units.NONE;
-	}
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
-	@Override
-	public Type getType() {
-		return Type.INTEGER;
-	}
+  @Override
+  public Units getUnits() {
+    return Units.NONE;
+  }
 
-	@Override
-	public OutputProperty getOutputProperty() {
-		return OutputProperty.ITERATION_INDEX;
-	}
+  @Override
+  public Type getType() {
+    return Type.INTEGER;
+  }
 
-	@Override
-	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.ID_PRIORITY;
-	}
+  @Override
+  public OutputProperty getOutputProperty() {
+    return OutputProperty.ITERATION_INDEX;
+  }
 
-	/**
-	 * Returns the current iteration index
-	 * 
-	 * @param trafficAssignment TrafficAssignment containing data which may be required
-	 * @return the current iteration index
-	 * @throws PlanItException thrown if there is an error
-	 */
-	public static int getIterationIndex(TrafficAssignment trafficAssignment) throws PlanItException {
-		return trafficAssignment.getSimulationData().getIterationIndex();
-	}
+  @Override
+  public OutputPropertyPriority getColumnPriority() {
+    return OutputPropertyPriority.ID_PRIORITY;
+  }
+
+  /**
+   * Returns the current iteration index
+   * 
+   * @param trafficAssignment TrafficAssignment containing data which may be required
+   * @return the current iteration index
+   * @throws PlanItException thrown if there is an error
+   */
+  public static int getIterationIndex(TrafficAssignment trafficAssignment) throws PlanItException {
+    return trafficAssignment.getSimulationData().getIterationIndex();
+  }
 
 }

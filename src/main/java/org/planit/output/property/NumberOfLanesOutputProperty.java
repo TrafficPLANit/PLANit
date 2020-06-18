@@ -5,31 +5,31 @@ import org.planit.output.enums.Units;
 
 public final class NumberOfLanesOutputProperty extends BaseOutputProperty {
 
-	public static final String NAME = "Number of Lanes";
-	
-	@Override
-	public String getName() {
-		return NAME;
-	}
+  public static final String NAME = "Number of Lanes";
 
-	@Override
-	public Units getUnits() {
-		return Units.NONE;
-	}
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
-	@Override
-	public Type getType() {
-		return Type.INTEGER;
-	}
+  @Override
+  public Units getUnits() {
+    return Units.NONE;
+  }
 
-	@Override
-	public OutputProperty getOutputProperty() {
-		return OutputProperty.NUMBER_OF_LANES;
-	}
+  @Override
+  public Type getType() {
+    return Type.INTEGER;
+  }
 
-	@Override
-	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.INPUT_PRIORITY;
-	}
+  @Override
+  public OutputProperty getOutputProperty() {
+    return OutputProperty.NUMBER_OF_LANES;
+  }
+
+  @Override
+  public OutputPropertyPriority getColumnPriority() {
+    return OutputPropertyPriority.INPUT_PRIORITY;
+  }
 
 }

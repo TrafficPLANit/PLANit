@@ -6,7 +6,8 @@ import org.planit.exceptions.PlanItException;
 import org.planit.utils.misc.IdGenerator;
 
 /**
- * Represents a time period within the day. Used to determine the duration and start time of trips for example We
+ * Represents a time period within the day. Used to determine the duration and start time of trips
+ * for example We
  * internally adopt seconds as the unit
  * 
  * @author markr
@@ -85,8 +86,8 @@ public class TimePeriod implements Comparable<TimePeriod> {
    * Constructor
    * 
    * @param externalId externalId of this time period
-   * @param startTime  start time in seconds from midnight
-   * @param duration   duration in seconds
+   * @param startTime start time in seconds from midnight
+   * @param duration duration in seconds
    */
   public TimePeriod(Object externalId, int startTime, int duration) {
     this.id = IdGenerator.generateId(TimePeriod.class);
@@ -99,10 +100,10 @@ public class TimePeriod implements Comparable<TimePeriod> {
   /**
    * Constructor
    * 
-   * @param externalId  externalId of this time period
+   * @param externalId externalId of this time period
    * @param description description of this time period
-   * @param startTime   start time of this time period
-   * @param duration    duration of this time period
+   * @param startTime start time of this time period
+   * @param duration duration of this time period
    */
   public TimePeriod(Object externalId, String description, int startTime, int duration) {
     this.id = IdGenerator.generateId(TimePeriod.class);
@@ -116,15 +117,17 @@ public class TimePeriod implements Comparable<TimePeriod> {
   /**
    * Constructor
    * 
-   * This constructor uses duration in hours. This is a double since fractions of an hour are possible.
+   * This constructor uses duration in hours. This is a double since fractions of an hour are
+   * possible.
    * 
-   * @param externalId      externalId of this time period
-   * @param description     description of this time period
+   * @param externalId externalId of this time period
+   * @param description description of this time period
    * @param startTime24hour start time of this time period
-   * @param durationHours   duration of this time period in hours
+   * @param durationHours duration of this time period in hours
    * @throws PlanItException thrown if duration is longer than 24 hours
    */
-  public TimePeriod(Object externalId, String description, String startTime24hour, double durationHours) throws PlanItException {
+  public TimePeriod(Object externalId, String description, String startTime24hour, double durationHours)
+      throws PlanItException {
     this.id = IdGenerator.generateId(TimePeriod.class);
     this.externalId = externalId;
     this.description = description;
@@ -141,8 +144,8 @@ public class TimePeriod implements Comparable<TimePeriod> {
   /**
    * Create a time period given its start time and duration in hours
    * 
-   * @param externalId   externalId of this time period
-   * @param startHour    the starting hour
+   * @param externalId externalId of this time period
+   * @param startHour the starting hour
    * @param durationHour the duration in hours
    * @return TimePeriod object generated
    */
@@ -153,8 +156,8 @@ public class TimePeriod implements Comparable<TimePeriod> {
   /**
    * Create a time period given its start time and duration in seconds
    * 
-   * @param externalId      externalId of this time period
-   * @param startSeconds    the start time in seconds
+   * @param externalId externalId of this time period
+   * @param startSeconds the start time in seconds
    * @param durationSeconds the duration in seconds
    * @return create TimePeriod object
    */

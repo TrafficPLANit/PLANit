@@ -6,41 +6,41 @@ import org.planit.utils.network.physical.Mode;
 
 public final class ModeExternalIdOutputProperty extends BaseOutputProperty {
 
-	public static final String NAME = "Mode External Id";
-	
-	@Override
-	public String getName() {
-		return NAME;
-	}
+  public static final String NAME = "Mode External Id";
 
-	@Override
-	public Units getUnits() {
-		return Units.NONE;
-	}
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
-	@Override
-	public Type getType() {
-		return Type.LONG;
-	}
+  @Override
+  public Units getUnits() {
+    return Units.NONE;
+  }
 
-	@Override
-	public OutputProperty getOutputProperty() {
-		return OutputProperty.MODE_EXTERNAL_ID;
-	}
+  @Override
+  public Type getType() {
+    return Type.LONG;
+  }
 
-	@Override
-	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.ID_PRIORITY;
-	}
+  @Override
+  public OutputProperty getOutputProperty() {
+    return OutputProperty.MODE_EXTERNAL_ID;
+  }
 
-	/**
-	 * Returns the external Id of the current mode
-	 * 
-	 * @param mode current mode
-	 * @return the external Id of the current mode
-	 */
-	public static Object getModeExternalId(Mode mode) {
-		return mode.getExternalId();
-	}
+  @Override
+  public OutputPropertyPriority getColumnPriority() {
+    return OutputPropertyPriority.ID_PRIORITY;
+  }
+
+  /**
+   * Returns the external Id of the current mode
+   * 
+   * @param mode current mode
+   * @return the external Id of the current mode
+   */
+  public static Object getModeExternalId(Mode mode) {
+    return mode.getExternalId();
+  }
 
 }

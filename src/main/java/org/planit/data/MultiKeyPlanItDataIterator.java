@@ -12,7 +12,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
  *
  */
 public interface MultiKeyPlanItDataIterator extends Iterator<Object[]> {
-  
+
   /**
    * Returns whether the MultiKeyPlanItData has any more rows
    * 
@@ -20,7 +20,7 @@ public interface MultiKeyPlanItDataIterator extends Iterator<Object[]> {
    */
   @Override
   boolean hasNext();
-  
+
   /**
    * Returns the next array of keys in the iteration
    * 
@@ -28,31 +28,33 @@ public interface MultiKeyPlanItDataIterator extends Iterator<Object[]> {
    */
   @Override
   Object[] next();
-  
+
   /**
    * Returns an array of keys for the current iteration
    * 
    * @return array of keys for the current iteration
    */
   Object[] getKeys();
-  
+
   /**
    * Returns an array of values for the current iteration
    * 
    * @return array of values for the current iteration
    */
   Object[] getValues();
-  
+
   /**
    * Returns an instance of a class which implements this interface
    * 
-   * @param isSingleKey flag to indicate whether the MultiKeyPlanItData object has one key or several
-   * @param singleKeyMap Map used if the MultiKeyPlanItData object has one key 
-   * @param multiKeyMap Map used if the MultiKeyPlanItData object has several keys 
+   * @param isSingleKey flag to indicate whether the MultiKeyPlanItData object has one key or
+   *          several
+   * @param singleKeyMap Map used if the MultiKeyPlanItData object has one key
+   * @param multiKeyMap Map used if the MultiKeyPlanItData object has several keys
    * @return a class which implements this interface
    */
-  public static MultiKeyPlanItDataIterator getInstance(final boolean isSingleKey, final IterableMap<Object, Object[]> singleKeyMap, final MultiKeyMap<Object, Object[]> multiKeyMap) {
-    return new MultiKeyPlanItDataIteratorImpl(isSingleKey,  singleKeyMap,  multiKeyMap);
+  public static MultiKeyPlanItDataIterator getInstance(final boolean isSingleKey,
+      final IterableMap<Object, Object[]> singleKeyMap, final MultiKeyMap<Object, Object[]> multiKeyMap) {
+    return new MultiKeyPlanItDataIteratorImpl(isSingleKey, singleKeyMap, multiKeyMap);
   }
 
 }

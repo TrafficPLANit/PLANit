@@ -11,51 +11,51 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  */
 public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties {
 
-    /**
-     * Maximum speed of mode (tied to a road segment)
-     */
-    protected final double maxSpeed;
-    
-    /**
-     * Maximum speed of mode (tied to a road segment)
-     */
-    protected final double criticalSpeed;
+  /**
+   * Maximum speed of mode (tied to a road segment)
+   */
+  protected final double maxSpeed;
 
-    // Public
+  /**
+   * Maximum speed of mode (tied to a road segment)
+   */
+  protected final double criticalSpeed;
 
-    /**
-     * Constructor
-     * 
-     * @param maxSpeed
-     *            maximum speed for this mode
-     * @param criticalSpeed
-     *            critical speed for this mode
-     */
-    public MacroscopicModePropertiesImpl(double maxSpeed, double criticalSpeed) {
-        super();
-        this.maxSpeed = maxSpeed;
-        this.criticalSpeed = criticalSpeed;
-    }
+  // Public
 
-    /**
-     * Constructor adopting default values
-     */
-    public MacroscopicModePropertiesImpl() {
-        super();
-        this.maxSpeed = DEFAULT_MAXIMUM_SPEED;
-        this.criticalSpeed = DEFAULT_CRITICAL_SPEED;
-    }
+  /**
+   * Constructor
+   * 
+   * @param maxSpeed
+   *          maximum speed for this mode
+   * @param criticalSpeed
+   *          critical speed for this mode
+   */
+  public MacroscopicModePropertiesImpl(double maxSpeed, double criticalSpeed) {
+    super();
+    this.maxSpeed = maxSpeed;
+    this.criticalSpeed = criticalSpeed;
+  }
 
-    // Getter - setters
+  /**
+   * Constructor adopting default values
+   */
+  public MacroscopicModePropertiesImpl() {
+    super();
+    this.maxSpeed = DEFAULT_MAXIMUM_SPEED;
+    this.criticalSpeed = DEFAULT_CRITICAL_SPEED;
+  }
 
-    @Override
-	public double getMaxSpeed() {
-        return maxSpeed;
-    }
+  // Getter - setters
 
-    @Override
-	public double getCriticalSpeed() {
-        return criticalSpeed;
-    }
+  @Override
+  public double getMaxSpeed() {
+    return maxSpeed;
+  }
+
+  @Override
+  public double getCriticalSpeed() {
+    return criticalSpeed;
+  }
 
 }

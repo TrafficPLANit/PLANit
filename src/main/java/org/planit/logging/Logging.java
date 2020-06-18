@@ -54,38 +54,37 @@ public class Logging {
    * never be changed from its default.
    * 
    * @param clazz class for which the logger is being created
-   * @param logFileSystemProperty the system property to be used for logging
    * @param loggingFileName name of logging properties file
    * @return the logger for this class
    * @throws Exception thrown if log file cannot be opened
    */
   public static Logger createLogger(Class<?> clazz, String loggingFileName) throws Exception {
-      Logger logger = Logger.getLogger("");
-      ClassLoader classLoader = clazz.getClassLoader();
-      if (loggingFileName != null) {
-        Handler handler = new FileHandler(loggingFileName);
-        Formatter formatter = new SimpleFormatter();
-        handler.setFormatter(formatter);
-        Properties p = new Properties();
-        URL url = ClassLoader.getSystemResource(DEFAULT_LOGGING_PROPERTIES_FILE_NAME);
-        if (url != null) {
-            p.load(url.openStream());
-        }
-        Level level = null;
-        if (p.containsKey(LEVEL_PROPERTY)) {
-            level = Level.parse(p.getProperty(LEVEL_PROPERTY));
-        } else {
-            level = DEFAULT_LEVEL;
-        }
-        handler.setLevel(level);
-        logger.addHandler(handler);
-      } else {    
-        InputStream in = classLoader.getResourceAsStream(DEFAULT_LOGGING_PROPERTIES_FILE_NAME);
-        LogManager logManager = LogManager.getLogManager();
-        logManager.readConfiguration(in);
-        logManager.addLogger(logger);
+    Logger logger = Logger.getLogger("");
+    ClassLoader classLoader = clazz.getClassLoader();
+    if (loggingFileName != null) {
+      Handler handler = new FileHandler(loggingFileName);
+      Formatter formatter = new SimpleFormatter();
+      handler.setFormatter(formatter);
+      Properties p = new Properties();
+      URL url = ClassLoader.getSystemResource(DEFAULT_LOGGING_PROPERTIES_FILE_NAME);
+      if (url != null) {
+        p.load(url.openStream());
       }
-    
+      Level level = null;
+      if (p.containsKey(LEVEL_PROPERTY)) {
+        level = Level.parse(p.getProperty(LEVEL_PROPERTY));
+      } else {
+        level = DEFAULT_LEVEL;
+      }
+      handler.setLevel(level);
+      logger.addHandler(handler);
+    } else {
+      InputStream in = classLoader.getResourceAsStream(DEFAULT_LOGGING_PROPERTIES_FILE_NAME);
+      LogManager logManager = LogManager.getLogManager();
+      logManager.readConfiguration(in);
+      logManager.addLogger(logger);
+    }
+
     return logger;
   }
 

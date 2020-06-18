@@ -12,49 +12,53 @@ import org.planit.trafficassignment.builder.CapacityConstrainedTrafficAssignment
  */
 public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 
-	// PROTECTED
+  // PROTECTED
 
-	/** generated UID */
-	private static final long serialVersionUID = 2568729148299613377L;
+  /** generated UID */
+  private static final long serialVersionUID = 2568729148299613377L;
 
-	/**
-	 * The builder for all capacity constrained traffic assignment instances
-	 */
-	protected CapacityConstrainedTrafficAssignmentBuilder capacityConstrainedBuilder;
+  /**
+   * The builder for all capacity constrained traffic assignment instances
+   */
+  protected CapacityConstrainedTrafficAssignmentBuilder capacityConstrainedBuilder;
 
-	/**
-	 * Fundamental diagram to use
-	 */
-	protected FundamentalDiagram fundamentalDiagram = null;
+  /**
+   * Fundamental diagram to use
+   */
+  protected FundamentalDiagram fundamentalDiagram = null;
 
-	/**
-	 * Node model to use
-	 */
-	protected NodeModel nodeModel = null;
+  /**
+   * Node model to use
+   */
+  protected NodeModel nodeModel = null;
 
-	// PUBLIC
+  // PUBLIC
 
-	/**
-	 * Constructor
-	 */
-	public CapacityConstrainedAssignment() {
-		super();
-	}
+  /**
+   * Constructor
+   */
+  public CapacityConstrainedAssignment() {
+    super();
+  }
 
-	// Getters - Setters
+  // Getters - Setters
 
-	/** Set the fundamental diagram
-	 * @param fundamentalDiagram the fundamental diagram
-	 */
-	public void setFundamentalDiagram(final FundamentalDiagram fundamentalDiagram) {
-		this.fundamentalDiagram = fundamentalDiagram;
-	}
+  /**
+   * Set the fundamental diagram
+   * 
+   * @param fundamentalDiagram the fundamental diagram
+   */
+  public void setFundamentalDiagram(final FundamentalDiagram fundamentalDiagram) {
+    this.fundamentalDiagram = fundamentalDiagram;
+  }
 
-	/** The node model to use
-	 * @param nodeModel to use
-	 */
-	public void setNodeModel(final NodeModel nodeModel) {
-		this.nodeModel = nodeModel;
-	}
+  /**
+   * The node model to use
+   * 
+   * @param nodeModel to use
+   */
+  public void setNodeModel(final NodeModel nodeModel) {
+    this.nodeModel = nodeModel;
+  }
 
 }

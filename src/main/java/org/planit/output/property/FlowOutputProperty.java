@@ -5,31 +5,31 @@ import org.planit.output.enums.Units;
 
 public final class FlowOutputProperty extends BaseOutputProperty {
 
-	public static final String NAME = "Flow"; 
-	
-	@Override
-	public String getName() {
-		return NAME;
-	}
+  public static final String NAME = "Flow";
 
-	@Override
-	public Units getUnits() {
-		return Units.VEH_H;
-	}
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
-	@Override
-	public Type getType() {
-		return Type.DOUBLE;
-	}
+  @Override
+  public Units getUnits() {
+    return Units.VEH_H;
+  }
 
-	@Override
-	public OutputProperty getOutputProperty() {
-		return OutputProperty. FLOW;
-	}
+  @Override
+  public Type getType() {
+    return Type.DOUBLE;
+  }
 
-	@Override
-	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.RESULT_PRIORITY;
-	}
+  @Override
+  public OutputProperty getOutputProperty() {
+    return OutputProperty.FLOW;
+  }
+
+  @Override
+  public OutputPropertyPriority getColumnPriority() {
+    return OutputPropertyPriority.RESULT_PRIORITY;
+  }
 
 }

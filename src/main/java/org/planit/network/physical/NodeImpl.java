@@ -15,49 +15,49 @@ import org.planit.utils.network.physical.Node;
  */
 public class NodeImpl extends VertexImpl implements Node {
 
-    // Protected
+  // Protected
 
-    /** generated UID */
-	private static final long serialVersionUID = 8237965522827691852L;
+  /** generated UID */
+  private static final long serialVersionUID = 8237965522827691852L;
 
-	/**
-     * generate unique node id
-     *
-     * @return nodeId
-     */
-    protected static int generateNodeId() {
-        return IdGenerator.generateId(Node.class);
-    }
+  /**
+   * generate unique node id
+   *
+   * @return nodeId
+   */
+  protected static int generateNodeId() {
+    return IdGenerator.generateId(Node.class);
+  }
 
-    /**
-     * External identifier used in input files
-     */
-    protected Object externalId;
+  /**
+   * External identifier used in input files
+   */
+  protected Object externalId;
 
-    // Public
+  // Public
 
-    /**
-     * Node constructor
-     */
-    public NodeImpl() {
-        super();
-    }
+  /**
+   * Node constructor
+   */
+  public NodeImpl() {
+    super();
+  }
 
-    // Getters-Setters
+  // Getters-Setters
 
-    @Override
-    public Object getExternalId() {
-      return externalId;
-    }
+  @Override
+  public Object getExternalId() {
+    return externalId;
+  }
 
-    @Override
-    public void setExternalId(final Object externalId) {
-      this.externalId = externalId;
-    }
-    
-    @Override
-    public boolean hasExternalId() {
-      return (externalId != null);
-    }
+  @Override
+  public void setExternalId(final Object externalId) {
+    this.externalId = externalId;
+  }
+
+  @Override
+  public boolean hasExternalId() {
+    return (externalId != null);
+  }
 
 }

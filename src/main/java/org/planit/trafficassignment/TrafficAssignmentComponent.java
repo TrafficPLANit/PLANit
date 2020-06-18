@@ -11,46 +11,46 @@ import org.djutils.event.EventProducer;
  * @author markr
  *
  */
-public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T> & Serializable > extends EventProducer {
+public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T> & Serializable> extends
+    EventProducer {
 
-	/** generated UID */
-	private static final long serialVersionUID = -3940841069228367177L;
+  /** generated UID */
+  private static final long serialVersionUID = -3940841069228367177L;
 
-	/**
-     * Traffic component type used to identify the component uniquely. If not
-     * provided to the constructor the class name is used
-     */
-    protected final String trafficComponentType;
+  /**
+   * Traffic component type used to identify the component uniquely. If not
+   * provided to the constructor the class name is used
+   */
+  protected final String trafficComponentType;
 
+  /**
+   * Constructor
+   */
+  protected TrafficAssignmentComponent() {
+    this.trafficComponentType = this.getClass().getCanonicalName();
+  }
 
-    /**
-     * Constructor
-     */
-    protected TrafficAssignmentComponent() {
-        this.trafficComponentType = this.getClass().getCanonicalName();
-    }
+  // Public
 
-    // Public
+  public String getTrafficComponentType() {
+    return trafficComponentType;
+  }
 
-    public String getTrafficComponentType() {
-        return trafficComponentType;
-    }
+  /**
+   * All traffic components must have a unique id
+   * 
+   * @return id of traffic assignment component
+   */
+  public abstract long getId();
 
-
-    /** All traffic components must have a unique id
-     * @return
-     */
-    public abstract long getId();
-
-
-    /**
-     * the source id whenever this instance fires an event is simply this
-     * @return this instance as source id
-     */
-    @Override
-	public Serializable getSourceId() {
-		return this;
-	}
-
+  /**
+   * the source id whenever this instance fires an event is simply this
+   * 
+   * @return this instance as source id
+   */
+  @Override
+  public Serializable getSourceId() {
+    return this;
+  }
 
 }

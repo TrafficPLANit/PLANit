@@ -5,31 +5,31 @@ import org.planit.output.enums.Units;
 
 public final class DownstreamNodeIdOutputProperty extends BaseOutputProperty {
 
-	public static final String NAME = "Downstream Node Id";
-	
-	@Override
-	public String getName() {
-		return NAME;
-	}
+  public static final String NAME = "Downstream Node Id";
 
-	@Override
-	public Units getUnits() {
-		return Units.NONE;
-	}
+  @Override
+  public String getName() {
+    return NAME;
+  }
 
-	@Override
-	public Type getType() {
-		return Type.LONG;
-	}
+  @Override
+  public Units getUnits() {
+    return Units.NONE;
+  }
 
-	@Override
-	public OutputProperty getOutputProperty() {
-		return OutputProperty.DOWNSTREAM_NODE_ID;	
-	}
+  @Override
+  public Type getType() {
+    return Type.LONG;
+  }
 
-	@Override
-	public OutputPropertyPriority getColumnPriority() {
-		return OutputPropertyPriority.ID_PRIORITY;
-	}
+  @Override
+  public OutputProperty getOutputProperty() {
+    return OutputProperty.DOWNSTREAM_NODE_ID;
+  }
+
+  @Override
+  public OutputPropertyPriority getColumnPriority() {
+    return OutputPropertyPriority.ID_PRIORITY;
+  }
 
 }

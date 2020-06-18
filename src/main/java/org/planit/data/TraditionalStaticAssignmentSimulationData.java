@@ -43,7 +43,8 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   private Map<Mode, double[]> modalNetworkSegmentCostsMap;
 
   /**
-   * Stores a skim matrix for each mode and skim output type(updated cell by cell for each iteration)
+   * Stores a skim matrix for each mode and skim output type(updated cell by cell for each
+   * iteration)
    */
   private Map<Mode, Map<ODSkimSubOutputType, ODSkimMatrix>> modalSkimMatrixMap;
 
@@ -69,8 +70,9 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     modalNetworkSegmentCostsMap = new HashMap<Mode, double[]>();
     modalSkimMatrixMap = new HashMap<Mode, Map<ODSkimSubOutputType, ODSkimMatrix>>();
     if (outputConfiguration.isOutputTypeActive(OutputType.OD)) {
-      OriginDestinationOutputTypeConfiguration originDestinationOutputTypeConfiguration = (OriginDestinationOutputTypeConfiguration) outputConfiguration
-          .getOutputTypeConfiguration(OutputType.OD);
+      OriginDestinationOutputTypeConfiguration originDestinationOutputTypeConfiguration =
+          (OriginDestinationOutputTypeConfiguration) outputConfiguration
+              .getOutputTypeConfiguration(OutputType.OD);
       // map to correct concrete subtype, so we avoid having to type cast every time we access it
       Set<SubOutputTypeEnum> topLevelSet = originDestinationOutputTypeConfiguration.getActiveSubOutputTypes();
       // NOTE: this assumes all subtypes are of type ODSkimOutputType!
@@ -107,13 +109,14 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @return the total flow through this link segment
    */
   public double getTotalNetworkSegmentFlow(LinkSegment linkSegment) {
-    return modalNetworkSegmentFlows.values().stream().collect((Collectors.summingDouble(flows -> flows[(int) linkSegment.getId()])));
+    return modalNetworkSegmentFlows.values().stream().collect((Collectors.summingDouble(flows -> flows[(int) linkSegment
+        .getId()])));
   }
 
   /**
    * Reset modal network segment flows by cloning empty array
    * 
-   * @param mode                    the mode whose flows are to be reset
+   * @param mode the mode whose flows are to be reset
    * @param numberOfNetworkSegments the number of network link segments
    */
   public void resetModalNetworkSegmentFlows(Mode mode, int numberOfNetworkSegments) {
@@ -123,7 +126,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   /**
    * Set the flows for a specified mode
    * 
-   * @param mode                     the specified mode
+   * @param mode the specified mode
    * @param modalNetworkSegmentFlows array of flows for the specified mode
    */
   public void setModalNetworkSegmentFlows(Mode mode, double[] modalNetworkSegmentFlows) {
@@ -133,7 +136,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   /**
    * Set the link segment costs for a specified mode
    * 
-   * @param mode                  the specified mode
+   * @param mode the specified mode
    * @param modalLinkSegmentCosts array of costs for the specified mode
    */
   public void setModalLinkSegmentCosts(Mode mode, double[] modalLinkSegmentCosts) {
@@ -153,7 +156,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   /**
    * Reset the skim matrix to all zeroes for a specified mode for all activated skim output types
    * 
-   * @param mode  the specified mode
+   * @param mode the specified mode
    * @param zones Zones object containing all the origin and destination zones
    */
   public void resetSkimMatrix(Mode mode, Zoning.Zones zones) {
@@ -168,7 +171,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   /**
    * Reset the path matrix to empty for a specified mode for all activated
    * 
-   * @param mode  the specified mode
+   * @param mode the specified mode
    * @param zones Zones object containing all the origin and destination zones
    */
   public void resetPathMatrix(Mode mode, Zoning.Zones zones) {
@@ -179,7 +182,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * Retrieve the skim matrix for a specified mode and skim output type
    * 
    * @param odSkimOutputType the specified Skim Output type
-   * @param mode             the specified mode
+   * @param mode the specified mode
    * @return the skim matrix for the specified mode
    */
   public ODSkimMatrix getODSkimMatrix(ODSkimSubOutputType odSkimOutputType, Mode mode) {

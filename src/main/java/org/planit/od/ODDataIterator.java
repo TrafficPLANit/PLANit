@@ -11,26 +11,26 @@ import org.planit.utils.network.virtual.Zone;
  *
  * @param <T> the type of data stored for each origin-destination cell
  */
-public interface ODDataIterator<T> extends Iterator<T>{
+public interface ODDataIterator<T> extends Iterator<T> {
 
-	/**
-	 * Returns the origin zone object for the current cell
-	 * 
-	 * @return the origin zone object at the current cell
-	 */
-    public Zone getCurrentOrigin();
-    
-    /**
-     * Returns the destination zone object for the current cell
-     * 
-     * @return the destination zone object for the current cell
-     */
-    public Zone getCurrentDestination();
-    
-    /**
-     * Returns the value at the current cell
-     * 
-     * @return the value at the current cell
-     */
-    public T getCurrentValue();
+  /**
+   * Returns the origin zone object for the current cell
+   * 
+   * @return the origin zone object at the current cell
+   */
+  public Zone getCurrentOrigin();
+
+  /**
+   * Returns the destination zone object for the current cell
+   * 
+   * @return the destination zone object for the current cell
+   */
+  public Zone getCurrentDestination();
+
+  /**
+   * Returns the value at the current cell
+   * 
+   * @return the value at the current cell
+   */
+  public T getCurrentValue();
 }

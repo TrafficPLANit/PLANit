@@ -140,7 +140,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @param multiKeyPlanItData multikey data object to store values
    * @param outputProperties OutputProperty array of result types to be recorded
    * @param outputKeys OutputProperty array of key types to be recorded
-   * @param odPathIterator ODPathIterator to iterate through matrix of paths
+   * @param odRouteIterator ODRouteIterator to iterate through matrix of paths
    * @param pathOutputTypeAdapter PathOutputTypeAdapter to provide methods to get the property
    *          values
    * @param mode the current mode
@@ -151,11 +151,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 
   private void updateOutputAndKeyValuesForPath(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties,
       OutputProperty[] outputKeys,
-      ODRouteIterator odPathIterator, RouteOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod,
+      ODRouteIterator odRouteIterator, RouteOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod,
       RouteIdType pathIdType) throws PlanItException {
-    odPathIterator.next();
     updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-      return pathOutputTypeAdapter.getRouteOutputPropertyValue(label, odPathIterator, mode, timePeriod, pathIdType);
+      return pathOutputTypeAdapter.getRouteOutputPropertyValue(label, odRouteIterator, mode, timePeriod, pathIdType);
     });
   }
 

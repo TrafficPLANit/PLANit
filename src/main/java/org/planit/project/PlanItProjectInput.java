@@ -19,7 +19,8 @@ import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 
 /**
- * Class that holds all the input traffic components for a PLANit project. The PLANit project holds an instance of this
+ * Class that holds all the input traffic components for a PLANit project. The PLANit project holds
+ * an instance of this
  * class and delegates all calls relating to inputs to this class.
  * 
  * @author markr
@@ -247,7 +248,7 @@ public class PlanItProjectInput {
   /**
    * Initialise the input traffic assignment component factories
    * 
-   * @param inputBuilderListener
+   * @param inputBuilderListener the input builder to parse inputs with
    */
   private void initialiseFactories(InputBuilderListener inputBuilderListener) {
     initialPhysicalCostFactory = new TrafficAssignmentComponentFactory<InitialPhysicalCost>(InitialPhysicalCost.class);
@@ -258,7 +259,8 @@ public class PlanItProjectInput {
     physicalNetworkFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     zoningFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     demandsFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
-    initialPhysicalCostFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    initialPhysicalCostFactory.addListener(inputBuilderListener,
+        TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
   }
 
   // CONTAINERS
@@ -286,7 +288,8 @@ public class PlanItProjectInput {
   /**
    * Map to store all InitialLinkSegmentCost objects for each physical network
    */
-  protected final Map<PhysicalNetwork, List<InitialLinkSegmentCost>> initialLinkSegmentCosts = new HashMap<PhysicalNetwork, List<InitialLinkSegmentCost>>();
+  protected final Map<PhysicalNetwork, List<InitialLinkSegmentCost>> initialLinkSegmentCosts =
+      new HashMap<PhysicalNetwork, List<InitialLinkSegmentCost>>();
 
   // FACTORIES
   /**
@@ -339,7 +342,7 @@ public class PlanItProjectInput {
   /**
    * Constructor
    * 
-   * @param inputBuilderListener
+   * @param inputBuilderListener the input builder to parse inputs
    */
   public PlanItProjectInput(InputBuilderListener inputBuilderListener) {
     physicalNetworkMap = new TreeMap<Long, PhysicalNetwork>();
@@ -375,7 +378,7 @@ public class PlanItProjectInput {
       String errorMessage = "The physical network must be defined before definition of zones can begin";
       throw new PlanItException(errorMessage);
     }
-    final Zoning zoning = zoningFactory.create(Zoning.class.getCanonicalName(), new Object[] { physicalNetwork });
+    final Zoning zoning = zoningFactory.create(Zoning.class.getCanonicalName(), new Object[] {physicalNetwork});
     zoningsMap.put(zoning.getId(), zoning);
     return zoning;
   }
@@ -383,12 +386,15 @@ public class PlanItProjectInput {
   /**
    * Create and register demands to the project inputs
    *
-   * @param zoning          Zoning object which defines the zones which will be used in the demand matrix to be created
-   * @param physicalNetwork the physical network which stores the modes (demands can different for each mode)
+   * @param zoning Zoning object which defines the zones which will be used in the demand matrix to
+   *          be created
+   * @param physicalNetwork the physical network which stores the modes (demands can different for
+   *          each mode)
    * @return the generated demands object
    * @throws PlanItException thrown if there is an error
    */
-  public Demands createAndRegisterDemands(final Zoning zoning, final PhysicalNetwork physicalNetwork) throws PlanItException {
+  public Demands createAndRegisterDemands(final Zoning zoning, final PhysicalNetwork physicalNetwork)
+      throws PlanItException {
     if (zoning == null) {
       String errorMessage = "Zones must be defined before definition of demands can begin";
       throw new PlanItException(errorMessage);
@@ -397,7 +403,8 @@ public class PlanItProjectInput {
       String errorMessage = "Physical network must be defined before definition of demands can begin";
       throw new PlanItException(errorMessage);
     }
-    final Demands demands = demandsFactory.create(Demands.class.getCanonicalName(), new Object[] { zoning, physicalNetwork });
+    final Demands demands = demandsFactory.create(Demands.class.getCanonicalName(), new Object[] {
+        zoning, physicalNetwork});
     demandsMap.put(demands.getId(), demands);
     return demands;
   }
@@ -405,31 +412,35 @@ public class PlanItProjectInput {
   /**
    * Create and register the OD route sets on the project input
    * 
-   * @param physicalNetwork     network the routes must be compatible with
-   * @param zoning              zoning to match od routes to
+   * @param physicalNetwork network the routes must be compatible with
+   * @param zoning zoning to match od routes to
    * @param odRouteSetInputPath path to collect the routes from
    * @return od route sets that have been parsed
-   * @throws PlanItException
+   * @throws PlanItException thrown if there is an error
    */
-  public ODRouteSets createAndRegisterODRouteSets(final PhysicalNetwork physicalNetwork, final Zoning zoning, final String odRouteSetInputPath) throws PlanItException {
+  public ODRouteSets createAndRegisterODRouteSets(final PhysicalNetwork physicalNetwork, final Zoning zoning,
+      final String odRouteSetInputPath) throws PlanItException {
     if (zoning == null || physicalNetwork == null) {
       throw new PlanItException("Zones and network must be registered before definition of od route sets can proceed");
     }
-    final ODRouteSets odRouteSets = odRouteSetsFactory.create(ODRouteSets.class.getCanonicalName(), new Object[] { odRouteSetInputPath });
+    final ODRouteSets odRouteSets = odRouteSetsFactory.create(ODRouteSets.class.getCanonicalName(), new Object[] {
+        odRouteSetInputPath});
     odRouteSetsMap.put(odRouteSets.getId(), odRouteSets);
     return odRouteSets;
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file which we assume are available in the native
+   * Create and register initial link segment costs from a (single) file which we assume are
+   * available in the native
    * xml/csv output format as provided in this project
    *
-   * @param network  physical network the InitialLinkSegmentCost object will be registered for
+   * @param network physical network the InitialLinkSegmentCost object will be registered for
    * @param fileName file containing the initial link segment cost values
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName) throws PlanItException {
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network,
+      final String fileName) throws PlanItException {
     if (network == null) {
       String errorMessage = "Physical network must be read in before initial costs can be read.";
       throw new PlanItException(errorMessage);
@@ -437,8 +448,9 @@ public class PlanItProjectInput {
     if (!initialLinkSegmentCosts.containsKey(network)) {
       initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
     }
-    final InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(),
-        new Object[] { network, fileName });
+    final InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(
+        InitialLinkSegmentCost.class.getCanonicalName(),
+        new Object[] {network, fileName});
     initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
     return initialLinkSegmentCost;
   }
@@ -446,13 +458,14 @@ public class PlanItProjectInput {
   /**
    * Create and register initial link segment costs from a (single) file for each time period
    *
-   * @param network    physical network the InitialLinkSegmentCost object will be registered for
-   * @param fileName   location of file containing the initial link segment cost values
+   * @param network physical network the InitialLinkSegmentCost object will be registered for
+   * @param fileName location of file containing the initial link segment cost values
    * @param timePeriod the current time period
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName, final TimePeriod timePeriod) throws PlanItException {
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network,
+      final String fileName, final TimePeriod timePeriod) throws PlanItException {
     if (network == null) {
       String errorMessage = "Physical network must be read in before initial costs can be read.";
       throw new PlanItException(errorMessage);
@@ -460,22 +473,25 @@ public class PlanItProjectInput {
     if (!initialLinkSegmentCosts.containsKey(network)) {
       initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
     }
-    final InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(),
-        new Object[] { network, fileName, timePeriod });
+    final InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(
+        InitialLinkSegmentCost.class.getCanonicalName(),
+        new Object[] {network, fileName, timePeriod});
     initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
     return initialLinkSegmentCost;
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file for all time periods in Demands object
+   * Create and register initial link segment costs from a (single) file for all time periods in
+   * Demands object
    *
-   * @param network  physical network the InitialLinkSegmentCost object will be registered for
+   * @param network physical network the InitialLinkSegmentCost object will be registered for
    * @param fileName location of file containing the initial link segment cost values
-   * @param demands  the Demands object
+   * @param demands the Demands object
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public Map<TimePeriod, InitialLinkSegmentCost> createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName, final Demands demands)
+  public Map<TimePeriod, InitialLinkSegmentCost> createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network,
+      final String fileName, final Demands demands)
       throws PlanItException {
     if (network == null) {
       String errorMessage = "Physical network must be read in before initial costs can be read.";
@@ -484,7 +500,8 @@ public class PlanItProjectInput {
     final Map<TimePeriod, InitialLinkSegmentCost> initialCostsMap = new HashMap<TimePeriod, InitialLinkSegmentCost>();
     for (final TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
       LOGGER.info("Registering Initial Link Segment Costs for Time Period " + timePeriod.getId());
-      final InitialLinkSegmentCost initialLinkSegmentCost = createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
+      final InitialLinkSegmentCost initialLinkSegmentCost = createAndRegisterInitialLinkSegmentCost(network, fileName,
+          timePeriod);
       initialCostsMap.put(timePeriod, initialLinkSegmentCost);
     }
     return initialCostsMap;

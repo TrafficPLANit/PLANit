@@ -32,7 +32,8 @@ import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 
 /**
- * Traffic assignment class which simultaneously is responsible for the loading hence it is also considered as a traffic
+ * Traffic assignment class which simultaneously is responsible for the loading hence it is also
+ * considered as a traffic
  * assignment component of this type
  *
  * @author markr
@@ -54,7 +55,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
   private Zoning zoning;
 
   /**
-   * Gap function instance containing functionality to compute the gap between equilibrium and the current state gap
+   * Gap function instance containing functionality to compute the gap between equilibrium and the
+   * current state gap
    */
   private GapFunction gapFunction;
 
@@ -123,22 +125,25 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * create the traffic assignment builder for this traffic assignment
    * 
-   * @param trafficComponentCreateListener listener to register on all traffic assignment components that this builder can
-   *                                       build
-   * @param physicalNetwork                the physical network this assignment works on
-   * @param zoning                         the zoning this assignment works on
-   * @param demands                        the demands this assignment works on
+   * @param trafficComponentCreateListener listener to register on all traffic assignment components
+   *          that this builder can build
+   * @param demands the demands this assignment works on
+   * @param zoning the zoning this assignment works on
+   * @param physicalNetwork the physical network this assignment works on
    * @return created traffic assignment builder
+   * @throws PlanItException thrown if there is an error
    */
-  protected abstract TrafficAssignmentBuilder createTrafficAssignmentBuilder(InputBuilderListener trafficComponentCreateListener, Demands demands, Zoning zoning,
+  protected abstract TrafficAssignmentBuilder createTrafficAssignmentBuilder(
+      InputBuilderListener trafficComponentCreateListener, Demands demands, Zoning zoning,
       PhysicalNetwork physicalNetwork) throws PlanItException;
 
   // Protected methods
 
   /**
-   * register all the known listeners for the passed in eventType on this producer for this event type
+   * register all the known listeners for the passed in eventType on this producer for this event
+   * type
    * 
-   * @param eventType
+   * @param eventType the event type to register
    */
   protected abstract void addRegisteredEventTypeListeners(EventType eventType);
 
@@ -199,7 +204,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Initialize all relevant traffic assignment components before execution of the assignment commences
+   * Initialize all relevant traffic assignment components before execution of the assignment
+   * commences
    *
    * @throws PlanItException thrown if there is an error
    */
@@ -232,7 +238,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
   // Public
 
   /**
-   * Constructor. Note that defaults that partly depend on derived classes are assumed to be invoked by the calling method
+   * Constructor. Note that defaults that partly depend on derived classes are assumed to be invoked
+   * by the calling method
    * via this.initialiseDefaults()
    */
   public TrafficAssignment() {
@@ -244,22 +251,24 @@ public abstract class TrafficAssignment extends NetworkLoading {
   // Public abstract methods
 
   /**
-   * Each traffic assignment class can have its own builder which reveals what components need to be registered on the
+   * Each traffic assignment class can have its own builder which reveals what components need to be
+   * registered on the
    * traffic assignment instance in order to function properly.
-   * 
-   * @param physicalNetwork                 this assignment works on
-   * @param zoning                          this assignment works on
-   * @param demands                         this assignment works on
    *
-   * @param trafficComponentCreateListener, the listener should be registered on all traffic component factories the
-   *                                        traffic assignment utilises
+   * @param trafficComponentCreateListener, the listener should be registered on all traffic
+   *          component factories the traffic assignment utilises
+   * @param theDemands this assignment works on
+   * @param theZoning this assignment works on
+   * @param thePhysicalNetwork this assignment works on
    * @return trafficAssignmentBuilder to use
-   * @throws PlanItException
+   * @throws PlanItException thrown if there is an error
    */
-  public TrafficAssignmentBuilder collectBuilder(final InputBuilderListener trafficComponentCreateListener, final Demands theDemands, final Zoning theZoning,
+  public TrafficAssignmentBuilder collectBuilder(final InputBuilderListener trafficComponentCreateListener,
+      final Demands theDemands, final Zoning theZoning,
       final PhysicalNetwork thePhysicalNetwork) throws PlanItException {
     if (this.trafficAssignmentBuilder == null) {
-      this.trafficAssignmentBuilder = createTrafficAssignmentBuilder(trafficComponentCreateListener, theDemands, theZoning, thePhysicalNetwork);
+      this.trafficAssignmentBuilder = createTrafficAssignmentBuilder(trafficComponentCreateListener, theDemands,
+          theZoning, thePhysicalNetwork);
     }
     return this.trafficAssignmentBuilder;
   }
@@ -282,7 +291,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
   // Public methods
 
   /**
-   * Method that allows one to activate specific output types for persistence which is passed on to the output manager
+   * Method that allows one to activate specific output types for persistence which is passed on to
+   * the output manager
    *
    * @param outputType OutputType object to be used
    * @return outputTypeConfiguration the output type configuration that is now active
@@ -317,7 +327,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * Verify if a given output type is active
    * 
-   * @param outputType
+   * @param outputType the output type to check if active
    * @return true if active, false otherwise
    */
   public boolean isOutputTypeActive(final OutputType outputType) {
@@ -325,7 +335,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Execute assignment, including initializing resources, running equilibration and then closing resources
+   * Execute assignment, including initializing resources, running equilibration and then closing
+   * resources
    *
    * @throws PlanItException thrown if there is an error
    */
@@ -379,7 +390,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults()
+   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the
+   * initialiseDefaults()
    * right after construction
    *
    * @return gapFunction
@@ -389,10 +401,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults()
+   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the
+   * initialiseDefaults()
    * right after construction
    *
-   * @return gapFunction
+   * @param gapfunction the gap function to set
    */
   public void setGapFunction(final GapFunction gapfunction) {
     this.gapFunction = gapfunction;
@@ -437,10 +450,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * Set the initial link segment cost for a specified time period
    *
-   * @param timePeriod             the specified time period
+   * @param timePeriod the specified time period
    * @param initialLinkSegmentCost the initial link segment cost
    */
-  public void setInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCost initialLinkSegmentCost) {
+  public void setInitialLinkSegmentCost(final TimePeriod timePeriod,
+      final InitialLinkSegmentCost initialLinkSegmentCost) {
     initialLinkSegmentCostByTimePeriod.put(timePeriod.getId(), initialLinkSegmentCost);
   }
 
@@ -454,7 +468,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Set the physical cost where in case the cost is an InteractorAccessor will trigger an event to get access to the
+   * Set the physical cost where in case the cost is an InteractorAccessor will trigger an event to
+   * get access to the
    * required data via requesting an InteractorAccessee
    *
    * @param physicalCost the physical cost object for the current assignment
@@ -485,7 +500,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Set the virtual cost where in case the cost is an InteractorAccessor will trigger an event to get access to the
+   * Set the virtual cost where in case the cost is an InteractorAccessor will trigger an event to
+   * get access to the
    * required data via requesting an InteractorAccessee
    *
    * @param virtualCost the virtual cost object to be assigned
@@ -512,7 +528,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param outputFormatter OutputFormatter to be registered
    */
   public void registerOutputFormatter(final OutputFormatter outputFormatter) {
-    LOGGER.info(" [run id: " + this.getId() + "] Registering outputFormatter " + outputFormatter.getClass().getSimpleName());
+    LOGGER.info(" [run id: " + this.getId() + "] Registering outputFormatter " + outputFormatter.getClass()
+        .getSimpleName());
     outputManager.registerOutputFormatter(outputFormatter);
   }
 

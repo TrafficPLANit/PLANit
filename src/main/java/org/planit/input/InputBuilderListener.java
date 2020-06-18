@@ -18,65 +18,67 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.virtual.Zone;
 
 /**
- * Listener which is automatically registered to the creation of any traffic assignment component for
+ * Listener which is automatically registered to the creation of any traffic assignment component
+ * for
  * which it gets notified. @see #TrafficicAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE
  * 
  * @author markr
  *
  */
 public abstract class InputBuilderListener implements EventListenerInterface {
-	
+
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(InputBuilderListener.class.getCanonicalName()); 
-  
+  private static final Logger LOGGER = Logger.getLogger(InputBuilderListener.class.getCanonicalName());
+
   /** generated UID */
   private static final long serialVersionUID = 4223028100274802893L;
-	
+
   /**
    * Map which stores which external node Ids corresponding to Nodes
    */
   private Map<Object, Node> nodeExternalIdToNodeMap;
-	
+
   /**
    * Map which stores external link segment type Ids corresponding to link segment types
    */
   private Map<Object, MacroscopicLinkSegmentType> linkSegmentTypeExternalIdToLinkSegmentTypeMap;
-	
+
   /**
    * Map which stores Mode external Ids corresponding to Modes
    */
   private Map<Object, Mode> modeExternalIdToModeMap;
-	
+
   /**
    * Map which stores traveler type by external Id
    */
   protected Map<Object, TravelerType> travelerTypeExternalIdToTravelerTypeMap;
-	
+
   /**
    * Map which stores user class by external Id
    */
   protected Map<Object, UserClass> userClassExternalIdToUserClassMap;
- 
+
   /**
    * Map which stores time periods by external Id
    */
   private Map<Object, TimePeriod> timePeriodExternalIdToTimePeriodMap;
-  
+
   /**
    * Map which stores zones by external Id
    */
   private Map<Object, Zone> zoneExternalIdToZoneMap;
-  
+
   /**
    * Map which stores link segments by external Id
    */
   private Map<Object, LinkSegment> linkSegmentExternalIdToLinkSegmentMap;
-  
+
   /**
-   * Flag to determine whether duplicate external Id should be considered an error (defaults to true)
+   * Flag to determine whether duplicate external Id should be considered an error (defaults to
+   * true)
    */
   private boolean errorIfDuplicateExternalId;
-  
+
   /**
    * Stores an object by its external Id, after checking whether the external Id is a duplicate
    * 
@@ -87,12 +89,12 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @param objectName name of the object class
    * @return true if this entry is duplicate use of an externalId, false otherwise
    */
-  private <T> boolean addObjectToExternalIdMap(Object externalId,  T obj, Map<Object, T> map, String objectName) {
-    boolean containsDuplicates =  map.containsKey(externalId);
+  private <T> boolean addObjectToExternalIdMap(Object externalId, T obj, Map<Object, T> map, String objectName) {
+    boolean containsDuplicates = map.containsKey(externalId);
     map.put(externalId, obj);
     return containsDuplicates;
   }
-  
+
   /**
    * Constructor
    */
@@ -107,7 +109,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
     linkSegmentExternalIdToLinkSegmentMap = new HashMap<Object, LinkSegment>();
     errorIfDuplicateExternalId = true;
   }
-  
+
   /**
    * Return a node for a specified external Id
    * 
@@ -117,7 +119,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public Node getNodeByExternalId(Object externalId) {
     return nodeExternalIdToNodeMap.get(externalId);
   }
-  
+
   /**
    * Stores a node by its external Id
    * 
@@ -128,7 +130,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public boolean addNodeToExternalIdMap(Object externalId, Node node) {
     return addObjectToExternalIdMap(externalId, node, nodeExternalIdToNodeMap, "node");
   }
-  
+
   /**
    * Return the link segment type for a specified external Id
    * 
@@ -138,18 +140,20 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public MacroscopicLinkSegmentType getLinkSegmentTypeByExternalId(Object externalId) {
     return linkSegmentTypeExternalIdToLinkSegmentTypeMap.get(externalId);
   }
- 
+
   /**
    * Stores a link segment type by its external Id
    * 
    * @param externalId external Id of link segment type
-   * @param node link segment type to be stored
+   * @param macroscopicLinkSegmentType to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public boolean addLinkSegmentTypeToExternalIdMap(Object externalId, MacroscopicLinkSegmentType macroscopicLinkSegmentType) {   
-    return addObjectToExternalIdMap(externalId, macroscopicLinkSegmentType, linkSegmentTypeExternalIdToLinkSegmentTypeMap, "link segment type");
-   }
-   
+  public boolean addLinkSegmentTypeToExternalIdMap(Object externalId,
+      MacroscopicLinkSegmentType macroscopicLinkSegmentType) {
+    return addObjectToExternalIdMap(externalId, macroscopicLinkSegmentType,
+        linkSegmentTypeExternalIdToLinkSegmentTypeMap, "link segment type");
+  }
+
   /**
    * Return Mode for a specified external Id
    * 
@@ -157,18 +161,18 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return mode corresponding to specified Id
    */
   public Mode getModeByExternalId(Object externalId) {
-	return modeExternalIdToModeMap.get(externalId);
+    return modeExternalIdToModeMap.get(externalId);
   }
-  
+
   /**
    * Return all the registered modes
-   *  
+   * 
    * @return collection of registered modes
    */
   public Collection<Mode> getAllModes() {
     return modeExternalIdToModeMap.values();
   }
-  
+
   /**
    * Stores a mode by its external Id
    * 
@@ -189,7 +193,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public TravelerType getTravelerTypeByExternalId(Object externalId) {
     return travelerTypeExternalIdToTravelerTypeMap.get(externalId);
   }
-  
+
   /**
    * Stores a traveler type by its external Id
    * 
@@ -198,7 +202,8 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return true if this use of externalId is a duplicate, false otherwise
    */
   public boolean addTravelerTypeToExternalIdMap(Object externalId, TravelerType travelerType) {
-    return addObjectToExternalIdMap(externalId, travelerType, travelerTypeExternalIdToTravelerTypeMap, "traveller type");
+    return addObjectToExternalIdMap(externalId, travelerType, travelerTypeExternalIdToTravelerTypeMap,
+        "traveller type");
   }
 
   /**
@@ -210,7 +215,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public UserClass getUserClassByExternalId(Object externalId) {
     return userClassExternalIdToUserClassMap.get(externalId);
   }
-  
+
   /**
    * Stores a user class by its external Id
    * 
@@ -221,7 +226,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public boolean addUserClassToExternalIdMap(Object externalId, UserClass userClass) {
     return addObjectToExternalIdMap(externalId, userClass, userClassExternalIdToUserClassMap, "user class");
   }
-  
+
   /**
    * Return the time period for a specified external Id
    * 
@@ -231,9 +236,10 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public TimePeriod getTimePeriodByExternalId(Object externalId) {
     return timePeriodExternalIdToTimePeriodMap.get(externalId);
   }
-  
+
   /**
-   * Returns whether a time period external Id matches set of external Ids for registered time periods
+   * Returns whether a time period external Id matches set of external Ids for registered time
+   * periods
    * 
    * @param externalId the external time period Id being tested
    * @return true if the external Id matches a registered time period, false otherwise
@@ -241,7 +247,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public boolean isTimePeriodExternalIdRegistered(Object externalId) {
     return timePeriodExternalIdToTimePeriodMap.keySet().contains(externalId);
   }
-  
+
   /**
    * Returns the number of registered time periods
    * 
@@ -250,7 +256,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public int getNumberOfRegisteredTimePeriods() {
     return timePeriodExternalIdToTimePeriodMap.keySet().size();
   }
-  
+
   /**
    * Returns a list of external ids of time periods
    * 
@@ -259,7 +265,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public List<Object> getTimePeriodExternalIds() {
     return new ArrayList<Object>(timePeriodExternalIdToTimePeriodMap.keySet());
   }
-  
+
   /**
    * Stores a time period by its external Id
    * 
@@ -267,20 +273,20 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @param timePeriod time period to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
-    public boolean addTimePeriodToExternalIdMap(Object externalId, TimePeriod timePeriod){
-      return addObjectToExternalIdMap(externalId, timePeriod, timePeriodExternalIdToTimePeriodMap, "time period");
-    }
+  public boolean addTimePeriodToExternalIdMap(Object externalId, TimePeriod timePeriod) {
+    return addObjectToExternalIdMap(externalId, timePeriod, timePeriodExternalIdToTimePeriodMap, "time period");
+  }
 
   /**
    * Returns the zone for a specified external Id
    * 
-   * @param externalId the external Id 
+   * @param externalId the external Id
    * @return the zone corresponding to this external Id
    */
   public Zone getZoneByExternalId(Object externalId) {
     return zoneExternalIdToZoneMap.get(externalId);
   }
-  
+
   /**
    * Stores a zone by its external Id
    * 
@@ -291,7 +297,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public boolean addZoneToExternalIdMap(Object externalId, Zone zone) {
     return addObjectToExternalIdMap(externalId, zone, zoneExternalIdToZoneMap, "zone");
   }
-  
+
   /**
    * Returns the link segment for a given external Id
    * 
@@ -301,7 +307,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public LinkSegment getLinkSegmentByExternalId(Object externalId) {
     return linkSegmentExternalIdToLinkSegmentMap.get(externalId);
   }
-  
+
   /**
    * Stores a link segment by its external Id
    * 
@@ -330,5 +336,5 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public void setErrorIfDuplicateExternalId(boolean errorIfDuplicateExternalId) {
     this.errorIfDuplicateExternalId = errorIfDuplicateExternalId;
   }
-  
+
 }

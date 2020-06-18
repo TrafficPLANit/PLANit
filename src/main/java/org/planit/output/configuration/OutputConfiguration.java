@@ -21,11 +21,11 @@ public class OutputConfiguration {
    * The output manager
    */
   private OutputManager outputManager;
-  
+
   /**
    * persisting final iteration only or not
    */
-  protected boolean persistOnlyFinalIteration = PERSIST_ONLY_FINAL_ITERATION;  
+  protected boolean persistOnlyFinalIteration = PERSIST_ONLY_FINAL_ITERATION;
 
   /**
    * Base constructor
