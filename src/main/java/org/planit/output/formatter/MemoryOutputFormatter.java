@@ -129,8 +129,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
       ODMatrixIterator odMatrixIterator, ODOutputTypeAdapter odOutputTypeAdapter, Mode mode, TimePeriod timePeriod)
       throws PlanItException {
     updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-      return odOutputTypeAdapter.getODOutputPropertyValue(label, odMatrixIterator, mode, timePeriod, outputTimeUnit
-          .getMultiplier());
+      return odOutputTypeAdapter.getODOutputPropertyValue(label, odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier());
     });
   }
 
