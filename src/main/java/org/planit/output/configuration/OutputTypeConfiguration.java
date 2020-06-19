@@ -110,12 +110,12 @@ public abstract class OutputTypeConfiguration {
    * 
    * @param trafficAssignment TrafficAssignment object whose results are being reported
    * @param outputType the output type being created
-   * @throws PlanItException thrown if there is an excpetion
+   * @throws PlanItException thrown if there is an exception
    */
   public OutputTypeConfiguration(TrafficAssignment trafficAssignment, OutputType outputType) throws PlanItException {
     this.trafficAssignment = trafficAssignment;
     this.outputType = outputType;
-    recordZeroFlow = false;
+    this.recordZeroFlow = false;
     outputProperties = new TreeSet<BaseOutputProperty>();
     activeSubOutputTypes = new TreeSet<SubOutputTypeEnum>();
   }

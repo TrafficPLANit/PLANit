@@ -26,7 +26,7 @@ public class OutputConfiguration {
    * persisting final iteration only or not
    */
   protected boolean persistOnlyFinalIteration = PERSIST_ONLY_FINAL_ITERATION;
-
+  
   /**
    * Base constructor
    * 
@@ -74,6 +74,15 @@ public class OutputConfiguration {
    */
   public boolean isOutputTypeActive(OutputType outputType) {
     return outputManager.isOutputTypeActive(outputType);
+  }
+
+  /**
+   * Set whether links and paths with zero flow should be record
+   * 
+   * @param recordZeroFlow if true links and paths with zero flow are recorded
+   */
+  public void setRecordZeroFlow(boolean recordZeroFlow) {
+    outputManager.setRecordZeroFlow(recordZeroFlow);
   }
 
 }

@@ -189,6 +189,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
     } catch (PlanItException e) {
       return e;
     } catch (Exception e) {
+      e.printStackTrace();
       LOGGER.severe(e.getMessage());
       return new PlanItException("Error when writing link results for current time period in CSVOutputFileformatter",
           e);

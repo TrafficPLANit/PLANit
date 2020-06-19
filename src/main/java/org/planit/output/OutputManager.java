@@ -55,6 +55,11 @@ public class OutputManager {
   private Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations;
 
   /**
+   * If true, record paths with zero demand
+   */
+  private boolean recordZeroFlow;
+
+  /**
    * Base constructor of Output writer
    * 
    * @param trafficAssignment the traffic assignment this output manager is managing for
@@ -64,6 +69,7 @@ public class OutputManager {
     outputConfiguration = new OutputConfiguration(this);
     outputTypeConfigurations = new HashMap<OutputType, OutputTypeConfiguration>();
     outputAdapter = new OutputAdapter(trafficAssignment);
+    recordZeroFlow = false;
   }
 
   /**
@@ -137,6 +143,7 @@ public class OutputManager {
         LOGGER.warning(outputType.value() + " has not been defined yet.");
     }
 
+    createdOutputTypeConfiguration.setRecordZeroFlow(recordZeroFlow);
     if (createdOutputTypeConfiguration != null) {
       outputTypeConfigurations.put(outputType, createdOutputTypeConfiguration);
     }
@@ -251,6 +258,27 @@ public class OutputManager {
    */
   public List<OutputType> getRegisteredOutputTypes() {
     return new ArrayList<OutputType>(outputTypeConfigurations.keySet());
+  }
+
+  /**
+   * Returns whether links and paths with zero flow should be record
+   * 
+   * @return if true, links and paths with zero flow are recorded
+   */
+  public boolean isRecordZeroFlow() {
+    return recordZeroFlow;
+  }
+
+  /**
+   * Sets whether links and paths with zero flow should be recorded
+   * 
+   * @param recordZeroFlow if true links and paths with zero flow are recorded
+   */
+  public void setRecordZeroFlow(boolean recordZeroFlow) {
+    this.recordZeroFlow = recordZeroFlow;
+    for (OutputTypeConfiguration outputTypeConfiguration : outputTypeConfigurations.values()) {
+      outputTypeConfiguration.setRecordZeroFlow(recordZeroFlow);
+    }
   }
 
 }
