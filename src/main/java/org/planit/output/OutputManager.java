@@ -23,8 +23,7 @@ import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.utils.network.physical.Mode;
 
 /**
- * Base class for output writers containing basic functionality regarding all
- * things output
+ * Base class for output writers containing basic functionality regarding all things output
  * 
  * @author markr
  *
@@ -55,26 +54,20 @@ public class OutputManager {
   private Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations;
 
   /**
-   * If true, record paths with zero demand
-   */
-  private boolean recordZeroFlow;
-
-  /**
    * Base constructor of Output writer
    * 
    * @param trafficAssignment the traffic assignment this output manager is managing for
    */
   public OutputManager(TrafficAssignment trafficAssignment) {
     outputFormatters = new ArrayList<OutputFormatter>();
-    outputConfiguration = new OutputConfiguration(this);
+    outputConfiguration = new OutputConfiguration();
     outputTypeConfigurations = new HashMap<OutputType, OutputTypeConfiguration>();
     outputAdapter = new OutputAdapter(trafficAssignment);
-    recordZeroFlow = false;
   }
 
   /**
-   * Allows the output manager to initialize itself and any of its registered output formatters to
-   * prepare before the simulation starts
+   * Allows the output manager to initialize itself and any of its registered output formatters to prepare before the
+   * simulation starts
    * 
    * @param runId traffic assignment run id
    * @throws PlanItException thrown if there is an error
@@ -86,8 +79,8 @@ public class OutputManager {
   }
 
   /**
-   * Allows the output manager to finalise itself and any of its registered output formatters to
-   * after the simulation ended
+   * Allows the output manager to finalise itself and any of its registered output formatters to after the simulation
+   * ended
    * 
    * @throws PlanItException thrown if there is an error
    */
@@ -101,8 +94,8 @@ public class OutputManager {
    * Persist the output data for all registered output types
    * 
    * @param timePeriod the current time period whose results are being saved
-   * @param modes Set of modes for the current assignment
-   * @param converged true if the assignment has converged
+   * @param modes      Set of modes for the current assignment
+   * @param converged  true if the assignment has converged
    * @throws PlanItException thrown if there is an error
    */
   public void persistOutputData(TimePeriod timePeriod, Set<Mode> modes, boolean converged) throws PlanItException {
@@ -121,29 +114,27 @@ public class OutputManager {
   /**
    * Factory method to create an output configuration and adapter for a given type
    * 
-   * @param outputType the output type to register the configuration for
+   * @param outputType        the output type to register the configuration for
    * @param trafficAssignment traffic assignment we are creating this configuration for
    * @return outputTypeconfiguration the output type configuration that has been newly registered
    * @throws PlanItException thrown if there is an error
    */
-  public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType,
-      TrafficAssignment trafficAssignment) throws PlanItException {
+  public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType, TrafficAssignment trafficAssignment) throws PlanItException {
     OutputTypeConfiguration createdOutputTypeConfiguration = null;
     switch (outputType) {
-      case LINK:
-        createdOutputTypeConfiguration = new LinkOutputTypeConfiguration(trafficAssignment);
-        break;
-      case OD:
-        createdOutputTypeConfiguration = new OriginDestinationOutputTypeConfiguration(trafficAssignment);
-        break;
-      case PATH:
-        createdOutputTypeConfiguration = new PathOutputTypeConfiguration(trafficAssignment);
-        break;
-      default:
-        LOGGER.warning(outputType.value() + " has not been defined yet.");
+    case LINK:
+      createdOutputTypeConfiguration = new LinkOutputTypeConfiguration(trafficAssignment);
+      break;
+    case OD:
+      createdOutputTypeConfiguration = new OriginDestinationOutputTypeConfiguration(trafficAssignment);
+      break;
+    case PATH:
+      createdOutputTypeConfiguration = new PathOutputTypeConfiguration(trafficAssignment);
+      break;
+    default:
+      LOGGER.warning(outputType.value() + " has not been defined yet.");
     }
 
-    createdOutputTypeConfiguration.setRecordZeroFlow(recordZeroFlow);
     if (createdOutputTypeConfiguration != null) {
       outputTypeConfigurations.put(outputType, createdOutputTypeConfiguration);
     }
@@ -162,7 +153,7 @@ public class OutputManager {
   /**
    * Register the OutputTypeAdapter for a given output type
    * 
-   * @param outputType the output type to register the output type adapter for
+   * @param outputType        the output type to register the output type adapter for
    * @param outputTypeAdapter the OutputTypeAdapte to be registered
    */
   public void registerOutputTypeAdapter(OutputType outputType, OutputTypeAdapter outputTypeAdapter) {
@@ -192,8 +183,7 @@ public class OutputManager {
   /**
    * Register the output formatter on the output manager.
    * 
-   * Whenever something is persisted it will be delegated to the registered
-   * formatters
+   * Whenever something is persisted it will be delegated to the registered formatters
    * 
    * @param outputFormatter OutputFormatter to be registered
    */
@@ -232,10 +222,8 @@ public class OutputManager {
   /**
    * Collect the output type configuration for the given type
    * 
-   * @param outputType
-   *          OutputType to collect the output type configuration for
-   * @return output type configuration registered, if not registered null is
-   *         returned and a warning is logged
+   * @param outputType OutputType to collect the output type configuration for
+   * @return output type configuration registered, if not registered null is returned and a warning is logged
    */
   public OutputTypeConfiguration getOutputTypeConfiguration(OutputType outputType) {
     return outputTypeConfigurations.get(outputType);
@@ -258,27 +246,6 @@ public class OutputManager {
    */
   public List<OutputType> getRegisteredOutputTypes() {
     return new ArrayList<OutputType>(outputTypeConfigurations.keySet());
-  }
-
-  /**
-   * Returns whether links and paths with zero flow should be record
-   * 
-   * @return if true, links and paths with zero flow are recorded
-   */
-  public boolean isRecordZeroFlow() {
-    return recordZeroFlow;
-  }
-
-  /**
-   * Sets whether links and paths with zero flow should be recorded
-   * 
-   * @param recordZeroFlow if true links and paths with zero flow are recorded
-   */
-  public void setRecordZeroFlow(boolean recordZeroFlow) {
-    this.recordZeroFlow = recordZeroFlow;
-    for (OutputTypeConfiguration outputTypeConfiguration : outputTypeConfigurations.values()) {
-      outputTypeConfiguration.setRecordZeroFlow(recordZeroFlow);
-    }
   }
 
 }

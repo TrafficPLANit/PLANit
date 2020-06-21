@@ -1,11 +1,7 @@
 package org.planit.output.configuration;
 
-import org.planit.output.OutputManager;
-import org.planit.output.enums.OutputType;
-
 /**
- * Class containing the general output configuration and the type specific
- * configurations for some traffic assignment
+ * Class containing the general output configuration and the type specific configurations for some traffic assignment
  * 
  * @author markr
  *
@@ -18,22 +14,26 @@ public class OutputConfiguration {
   private static final boolean PERSIST_ONLY_FINAL_ITERATION = true;
 
   /**
-   * The output manager
+   * Default for persisting zero flows
    */
-  private OutputManager outputManager;
+  private static final boolean PERSIST_ZERO_FLOW = false;
 
   /**
    * persisting final iteration only or not
    */
   protected boolean persistOnlyFinalIteration = PERSIST_ONLY_FINAL_ITERATION;
-  
+
+  /**
+   * persisting zero flows or not
+   */
+  protected boolean persistZeroFlow = PERSIST_ZERO_FLOW;
+
   /**
    * Base constructor
    * 
    * @param outputManager the manager for this configuration
    */
-  public OutputConfiguration(OutputManager outputManager) {
-    this.outputManager = outputManager;
+  public OutputConfiguration() {
   }
 
   // getters - setters
@@ -57,32 +57,16 @@ public class OutputConfiguration {
   }
 
   /**
-   * Retrieve the output type configuration for a specified output type
-   * 
-   * @param outputType the specified output type
-   * @return the output type configuration
-   */
-  public OutputTypeConfiguration getOutputTypeConfiguration(OutputType outputType) {
-    return outputManager.getOutputTypeConfiguration(outputType);
-  }
-
-  /**
-   * Returns whether a specified output type has been activated
-   * 
-   * @param outputType the specified output type
-   * @return true if the specified output type has been activated, false otherwise
-   */
-  public boolean isOutputTypeActive(OutputType outputType) {
-    return outputManager.isOutputTypeActive(outputType);
-  }
-
-  /**
    * Set whether links and paths with zero flow should be record
    * 
-   * @param recordZeroFlow if true links and paths with zero flow are recorded
+   * @param persistZeroFlow if true links and paths with zero flow are recorded
    */
-  public void setRecordZeroFlow(boolean recordZeroFlow) {
-    outputManager.setRecordZeroFlow(recordZeroFlow);
+  public void setPersistZeroFlow(boolean persistZeroFlow) {
+    this.persistZeroFlow = persistZeroFlow;
+  }
+
+  public boolean isPersistZeroFlow() {
+    return persistZeroFlow;
   }
 
 }

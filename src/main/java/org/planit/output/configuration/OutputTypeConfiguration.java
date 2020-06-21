@@ -16,8 +16,7 @@ import org.planit.trafficassignment.TraditionalStaticAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
 
 /**
- * Configuration for a specific output type including the adapter allowing
- * access to the underlying raw data
+ * Configuration for a specific output type including the adapter allowing access to the underlying raw data
  * 
  * @author markr
  *
@@ -35,27 +34,24 @@ public abstract class OutputTypeConfiguration {
   /**
    * Filters output properties in the OutputAdapter and outputs them as an array
    * 
-   * @param test lambda function to filter which output properties should be
-   *          included
+   * @param test lambda function to filter which output properties should be included
    * @return array containing the relevant OutputProperty objects
    */
   private OutputProperty[] getOutputPropertyArray(Function<BaseOutputProperty, Boolean> test) {
-    OutputProperty[] outputPropertyArray = outputProperties.stream()
-        .filter(baseOutputProperty -> test.apply(baseOutputProperty)).map(BaseOutputProperty::getOutputProperty)
+    OutputProperty[] outputPropertyArray = outputProperties.stream().filter(baseOutputProperty -> test.apply(baseOutputProperty)).map(BaseOutputProperty::getOutputProperty)
         .toArray(OutputProperty[]::new);
     return outputPropertyArray;
   }
 
   /**
-   * The output type being used with the current instance - this must be set in
-   * each concrete class which extends OutputTypeConfiguration
+   * The output type being used with the current instance - this must be set in each concrete class which extends
+   * OutputTypeConfiguration
    */
   protected OutputType outputType;
 
   /**
-   * Stores all active sub output types (if any). some output types are broken down further in sub
-   * output types
-   * which can be accounted for via this set. Can remain empty if not used.
+   * Stores all active sub output types (if any). some output types are broken down further in sub output types which can
+   * be accounted for via this set. Can remain empty if not used.
    */
   protected Set<SubOutputTypeEnum> activeSubOutputTypes;
 
@@ -63,12 +59,6 @@ public abstract class OutputTypeConfiguration {
    * Output properties to be included in the CSV output files
    */
   protected SortedSet<BaseOutputProperty> outputProperties;
-
-  /**
-   * True if links and paths with zero flow are to be recorded in output files, false
-   * otherwise (false is the default)
-   */
-  protected boolean recordZeroFlow;
 
   /**
    * Activate a SubOutputTypeEnum for this output type configuration
@@ -97,8 +87,7 @@ public abstract class OutputTypeConfiguration {
   public abstract boolean isOutputPropertyValid(BaseOutputProperty baseOutputProperty);
 
   /**
-   * Validate whether the specified list of keys is valid, and if it is return
-   * only the keys which will be used
+   * Validate whether the specified list of keys is valid, and if it is return only the keys which will be used
    * 
    * @param outputKeyProperties array of output key property types
    * @return array of keys to be used (null if the list is not valid)
@@ -109,13 +98,12 @@ public abstract class OutputTypeConfiguration {
    * OutputTypeconfiguration constructor
    * 
    * @param trafficAssignment TrafficAssignment object whose results are being reported
-   * @param outputType the output type being created
+   * @param outputType        the output type being created
    * @throws PlanItException thrown if there is an exception
    */
   public OutputTypeConfiguration(TrafficAssignment trafficAssignment, OutputType outputType) throws PlanItException {
     this.trafficAssignment = trafficAssignment;
     this.outputType = outputType;
-    this.recordZeroFlow = false;
     outputProperties = new TreeSet<BaseOutputProperty>();
     activeSubOutputTypes = new TreeSet<SubOutputTypeEnum>();
   }
@@ -141,15 +129,13 @@ public abstract class OutputTypeConfiguration {
   /**
    * Add an output property to be included in the output files
    * 
-   * @param outputProperty enumeration value specifying which output property to
-   *          be included in the output files
+   * @param outputProperty enumeration value specifying which output property to be included in the output files
    * @throws PlanItException thrown if there is an error
    */
   public void addProperty(OutputProperty outputProperty) throws PlanItException {
     if (outputProperty.equals(OutputProperty.DENSITY)) {
       if (trafficAssignment instanceof TraditionalStaticAssignment) {
-        LOGGER.warning(
-            "Attempt made to register invalid output property DENSITY  on Traditional Static Assignment.  This will be ignored.");
+        LOGGER.warning("Attempt made to register invalid output property DENSITY  on Traditional Static Assignment.  This will be ignored.");
         return;
       }
     }
@@ -160,12 +146,10 @@ public abstract class OutputTypeConfiguration {
   }
 
   /**
-   * Remove an output property from the list of properties to be included in the
-   * output file
+   * Remove an output property from the list of properties to be included in the output file
    * 
    * @param propertyClassName class name of the property to be removed
-   * @return true if the property is successfully removed, false if it was not in
-   *         the List of output properties
+   * @return true if the property is successfully removed, false if it was not in the List of output properties
    * @throws PlanItException thrown if there is an error removing the property
    */
   public boolean removeProperty(String propertyClassName) throws PlanItException {
@@ -173,13 +157,10 @@ public abstract class OutputTypeConfiguration {
   }
 
   /**
-   * Remove an output property from the list of properties to be included in the
-   * output file
+   * Remove an output property from the list of properties to be included in the output file
    * 
-   * @param outputProperty enumeration value specifying which output property is
-   *          to be removed
-   * @return true if the property is successfully removed, false if it was not in
-   *         the List of output properties
+   * @param outputProperty enumeration value specifying which output property is to be removed
+   * @return true if the property is successfully removed, false if it was not in the List of output properties
    * @throws PlanItException thrown if there is an error removing the property
    */
   public boolean removeProperty(OutputProperty outputProperty) throws PlanItException {
@@ -211,11 +192,9 @@ public abstract class OutputTypeConfiguration {
   }
 
   /**
-   * Returns an array of output properties for values used in
-   * MemoryOutputFormatter
+   * Returns an array of output properties for values used in MemoryOutputFormatter
    * 
-   * The output array can only contain output properties which are not of
-   * ID_PRIORITY
+   * The output array can only contain output properties which are not of ID_PRIORITY
    * 
    * @return array of output value properties used in the LinkOutputAdapter
    */
@@ -232,25 +211,6 @@ public abstract class OutputTypeConfiguration {
    */
   public SortedSet<BaseOutputProperty> getOutputProperties() {
     return outputProperties;
-  }
-
-  /**
-   * Set user flag to indicate whether outputs with zero flow should be recorded
-   * 
-   * @param recordZeroFlow user flag to indicate whether links with zero
-   *          flow should be recorded
-   */
-  public void setRecordZeroFlow(boolean recordZeroFlow) {
-    this.recordZeroFlow = recordZeroFlow;
-  }
-
-  /**
-   * Return user flag to indicate whether outputs with zero flow should be recorded
-   * 
-   * @return user flag to indicate whether outputs with zero flow should be recorded
-   */
-  public boolean isRecordZeroFlow() {
-    return recordZeroFlow;
   }
 
   /**
