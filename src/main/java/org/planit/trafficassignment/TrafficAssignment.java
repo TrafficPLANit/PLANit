@@ -533,7 +533,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   public List<OutputFormatter> getOutputFormatters() {
     return outputManager.getOutputFormatters();
   }
-
+  
   /**
    * Return the simulation data for the current iteration
    *

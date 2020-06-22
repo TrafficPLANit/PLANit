@@ -5,6 +5,7 @@ import java.util.Set;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.output.adapter.OutputAdapter;
+import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.OutputType;
 import org.planit.time.TimePeriod;
@@ -36,11 +37,12 @@ public interface OutputFormatter {
    * 
    * @param timePeriod TimePeriod for the assignment to be saved
    * @param modes Set of modes for the assignment to be saved
+   * @param outputConfiguration output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to be saved
    * @param outputAdapter OutputAdapter for the assignment to be saved
    * @throws PlanItException thrown if there is an error
    */
-  public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputTypeConfiguration outputTypeConfiguration,
+  public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
       OutputAdapter outputAdapter) throws PlanItException;
 
   /**

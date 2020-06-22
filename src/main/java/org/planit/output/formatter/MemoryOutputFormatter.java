@@ -18,6 +18,7 @@ import org.planit.output.adapter.LinkOutputTypeAdapter;
 import org.planit.output.adapter.ODOutputTypeAdapter;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.RouteOutputTypeAdapter;
+import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.configuration.PathOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
@@ -160,10 +161,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Write Simulation results for the current time period to the CSV file
    * 
+   * @param ouputConfiguration output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
    * @param currentOutputType, the active output type of the configuration we are persisting for
-   *          (can be a
-   *          suboutputtype)
+   *          (can be a suboutputtype)
    * @param outputAdapter OutputAdapter for current persistence
    * @param modes Set of modes of travel
    * @param timePeriod current time period
@@ -171,7 +172,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  protected void writeSimulationResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+  protected void writeSimulationResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
       OutputTypeEnum currentOutputType, OutputAdapter outputAdapter,
       Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
     LOGGER.info("Memory Output for OutputType SIMULATION has not been implemented yet.");
@@ -180,10 +181,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Write General results for the current time period to the CSV file
    * 
+   * @param ouputConfiguration output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
    * @param currentOutputType, the active output type of the configuration we are persisting for
-   *          (can be a
-   *          suboutputtype)
+   *          (can be a suboutputtype)
    * @param outputAdapter OutputAdapter for current persistence
    * @param modes Set of modes of travel
    * @param timePeriod current time period
@@ -191,7 +192,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  protected void writeGeneralResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+  protected void writeGeneralResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
       OutputTypeEnum currentOutputType, OutputAdapter outputAdapter,
       Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
     LOGGER.info("Memory Output for OutputType GENERAL has not been implemented yet.");
@@ -200,10 +201,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Write link results for the current time period to Map in memory
    * 
+   * @param outputConfiguration  outputConfiguration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
    * @param currentOutputType, the active output type of the configuration we are persisting for
-   *          (can be a
-   *          suboutputtype)
+   *          (can be a suboutputtype)
    * @param outputAdapter OutputAdapter for current persistence
    * @param modes Set of modes of travel
    * @param timePeriod current time period
@@ -211,7 +212,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  protected void writeLinkResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+  protected void writeLinkResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
       OutputTypeEnum currentOutputType, OutputAdapter outputAdapter,
       Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
     // for links we assume no sub-output types exist (yet), hence this check to make sure we can
@@ -228,7 +229,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     for (Mode mode : modes) {
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
       for (LinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments()) {
-        if (outputTypeConfiguration.isPersistZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment,
+        if (outputConfiguration.isPersistZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment,
             mode)) {
           updateOutputAndKeyValuesForLink(multiKeyPlanItData, outputProperties, outputKeys, linkSegment,
               linkOutputTypeAdapter, mode, timePeriod);
@@ -242,10 +243,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Write Origin-Destination results for the time period to the Map in memory
    * 
+   * @param outputConfiguration  outputConfiguration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
    * @param currentOutputType, the active output type of the configuration we are persisting for
-   *          (can be a
-   *          suboutputtype)
+   *          (can be a  suboutputtype)
    * @param outputAdapter OutputAdapter for current persistence
    * @param modes Set of modes of travel
    * @param timePeriod current time period
@@ -253,7 +254,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  protected void writeOdResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+  protected void writeOdResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
       OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes,
       TimePeriod timePeriod, int iterationIndex) throws PlanItException {
     if (!(currentOutputType instanceof SubOutputTypeEnum
@@ -276,7 +277,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
       ODSkimMatrix odSkimMatrix = odOutputTypeAdapter.getODSkimMatrix(subOutputType, mode);
       for (ODMatrixIterator odMatrixIterator = odSkimMatrix.iterator(); odMatrixIterator.hasNext();) {
         odMatrixIterator.next();
-        if (outputTypeConfiguration.isPersistZeroFlow() || ((Double) odOutputTypeAdapter.getODOutputPropertyValue(
+        if (outputConfiguration.isPersistZeroFlow() || ((Double) odOutputTypeAdapter.getODOutputPropertyValue(
             OutputProperty.OD_COST, odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier())) > 0.0) {
           updateOutputAndKeyValuesForOD(multiKeyPlanItData, outputProperties, outputKeys, odMatrixIterator,
               odOutputTypeAdapter, mode, timePeriod);
@@ -289,6 +290,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Write Path results for the time period to the CSV file
    * 
+   * @param outputConfiguration  outputConfiguration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
    * @param currentOutputType the output type we are persisting for
    * @param outputAdapter OutputAdapter for the current persistence
@@ -297,7 +299,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  protected void writePathResultsForCurrentTimePeriod(OutputTypeConfiguration outputTypeConfiguration,
+  protected void writePathResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
       OutputTypeEnum currentOutputType, OutputAdapter outputAdapter,
       Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
     if (!(currentOutputType instanceof OutputType) && ((OutputType) currentOutputType) == OutputType.PATH) {
@@ -317,7 +319,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
       ODRouteMatrix odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
       for (ODRouteIterator odRouteIterator = odPathMatrix.iterator(); odRouteIterator.hasNext();) {
         odRouteIterator.next();
-        if (outputTypeConfiguration.isPersistZeroFlow() || (odRouteIterator.getCurrentValue() != null)) {
+        if (outputConfiguration.isPersistZeroFlow() || (odRouteIterator.getCurrentValue() != null)) {
           updateOutputAndKeyValuesForPath(multiKeyPlanItData, outputProperties, outputKeys, odRouteIterator,
               pathOutputTypeAdapter, mode, timePeriod,
               pathOutputTypeConfiguration.getPathIdType());

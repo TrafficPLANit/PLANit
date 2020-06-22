@@ -104,7 +104,7 @@ public class OutputManager {
       for (OutputFormatter outputFormatter : outputFormatters) {
         if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
           if (converged || outputFormatter.canHandleMultipleIterations()) {
-            outputFormatter.persist(timePeriod, modes, outputTypeConfiguration, outputAdapter);
+            outputFormatter.persist(timePeriod, modes, outputConfiguration, outputTypeConfiguration, outputAdapter);
           }
         }
       }
@@ -247,5 +247,5 @@ public class OutputManager {
   public List<OutputType> getRegisteredOutputTypes() {
     return new ArrayList<OutputType>(outputTypeConfigurations.keySet());
   }
-
+  
 }

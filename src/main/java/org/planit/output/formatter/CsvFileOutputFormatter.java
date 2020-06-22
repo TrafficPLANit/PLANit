@@ -21,6 +21,7 @@ import org.planit.output.adapter.LinkOutputTypeAdapter;
 import org.planit.output.adapter.ODOutputTypeAdapter;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.RouteOutputTypeAdapter;
+import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.configuration.PathOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
@@ -53,6 +54,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   /**
    * Write output values to the OD CSV file for the current iteration
    * 
+   * @param outputConfiguration output configuration
    * @param outputTypeConfiguration output type configuration for the current output type
    * @param currentOutputType       the output type
    * @param outputAdapter           output adapter for the current output type
@@ -61,7 +63,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param csvPrinter              CSVPrinter object to record results for this iteration
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
-  protected PlanItException writeOdResultsForCurrentTimePeriodToCsvPrinter(OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
+  protected PlanItException writeOdResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
       OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
     try {
       // main type information
@@ -81,7 +83,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
         ODSkimMatrix odSkimMatrix = odOutputTypeAdapter.getODSkimMatrix(currentSubOutputType, mode);
         for (ODMatrixIterator odMatrixIterator = odSkimMatrix.iterator(); odMatrixIterator.hasNext();) {
           odMatrixIterator.next();
-          if (outputTypeConfiguration.isPersistZeroFlow()
+          if (outputConfiguration.isPersistZeroFlow()
               || ((Double) odOutputTypeAdapter.getODOutputPropertyValue(OutputProperty.OD_COST, odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier())) > 0.0) {
             List<Object> rowValues = outputProperties.stream().map(outputProperty -> odOutputTypeAdapter.getODOutputPropertyValue(outputProperty.getOutputProperty(),
                 odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier())).map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
@@ -101,6 +103,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   /**
    * Write output values to the Path CSV file for the current iteration
    * 
+   * @param outputConfiguration output configuration
    * @param outputTypeConfiguration output type configuration for the current output type
    * @param currentOutputType       the output type
    * @param outputAdapter           output adapter for the current output type
@@ -109,7 +112,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param csvPrinter              CSVPrinter object to record results for this iteration
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
-  protected PlanItException writePathResultsForCurrentTimePeriodToCsvPrinter(OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
+  protected PlanItException writePathResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
       OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
     try {
       if (!(currentOutputType instanceof OutputType)) {
@@ -124,7 +127,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
         ODRouteMatrix odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
         for (ODRouteIterator odRouteIterator = odPathMatrix.iterator(); odRouteIterator.hasNext();) {
           odRouteIterator.next();
-          if (outputTypeConfiguration.isPersistZeroFlow() || (odRouteIterator.getCurrentValue() != null)) {
+          if (outputConfiguration.isPersistZeroFlow() || (odRouteIterator.getCurrentValue() != null)) {
             List<Object> rowValues = outputProperties.stream().map(outputProperty -> pathOutputTypeAdapter.getRouteOutputPropertyValue(outputProperty.getOutputProperty(),
                 odRouteIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdType())).map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
             csvPrinter.printRecord(rowValues);
@@ -143,6 +146,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   /**
    * Write output values to the Link CSV file for the current iteration
    * 
+   * @param outputConfiguration output configuration
    * @param outputTypeConfiguration the current output type configuration
    * @param currentOutputType       the output type
    * @param outputAdapter           output adapter for the current output type
@@ -152,7 +156,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param recordZeroFlow          if true record links or paths with zero cost, otherwise ignore them
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
-  protected PlanItException writeLinkResultsForCurrentTimePeriodToCsvPrinter(OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
+  protected PlanItException writeLinkResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
       OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
     try {
       if (!(currentOutputType instanceof OutputType)) {
@@ -164,7 +168,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
       for (Mode mode : modes) {
         for (LinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments()) {
-          if (outputTypeConfiguration.isPersistZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
+          if (outputConfiguration.isPersistZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
             List<Object> rowValues = outputProperties.stream().map(outputProperty -> linkOutputTypeAdapter.getLinkOutputPropertyValue(outputProperty.getOutputProperty(),
                 linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier())).map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
             csvPrinter.printRecord(rowValues);
