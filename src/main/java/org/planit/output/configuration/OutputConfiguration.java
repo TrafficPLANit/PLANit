@@ -65,6 +65,11 @@ public class OutputConfiguration {
     this.persistZeroFlow = persistZeroFlow;
   }
 
+  /**
+   * Verify if we are persisting zero flow or not
+   * 
+   * @return true when persisting zero flows, false otherwise
+   */
   public boolean isPersistZeroFlow() {
     return persistZeroFlow;
   }
