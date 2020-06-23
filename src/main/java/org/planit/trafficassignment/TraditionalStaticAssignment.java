@@ -127,7 +127,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
     long previousOriginZoneId = -1;
     // track the cost to reach each vertex in the network and the shortest path
     // segment used to get there
-    Pair<Double, EdgeSegment>[] vertexPathCosts = null;
+    Pair<Double, EdgeSegment>[] vertexPathAndCosts = null;
     for (final ODMatrixIterator odDemandMatrixIter = odDemandMatrix.iterator(); odDemandMatrixIter.hasNext();) {
       final double odDemand = odDemandMatrixIter.next();
       final Zone currentOriginZone = odDemandMatrixIter.getCurrentOrigin();
@@ -152,22 +152,31 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
               throw new PlanItException(errorMessage);
             }
             // UPDATE SHORTEST PATHS
-            vertexPathCosts = shortestPathAlgorithm.executeOneToAll(originCentroid);
+            vertexPathAndCosts = shortestPathAlgorithm.executeOneToAll(originCentroid);
           }
 
           if (outputManager.isOutputTypeActive(OutputType.PATH)) {
-            final RouteImpl route = RouteImpl.createODRoute(currentDestinationZone.getCentroid(), vertexPathCosts);
+            final RouteImpl route = RouteImpl.createODRoute(currentDestinationZone.getCentroid(), vertexPathAndCosts);
             odRouteMatrix.setValue(currentOriginZone, currentDestinationZone, route);
           }
 
           double odShortestPathCost = 0.0;
           if ((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) {
-            odShortestPathCost = getShortestPathCost(vertexPathCosts, currentOriginZone, currentDestinationZone, modalNetworkSegmentCosts, odDemand, currentModeData);
+            try {
+              odShortestPathCost = getShortestPathCost(vertexPathAndCosts, currentOriginZone, currentDestinationZone, modalNetworkSegmentCosts, odDemand, currentModeData);
+              dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
+            } catch (PlanItException pe) {
+              LOGGER.warning(pe.getMessage());
+              final int destinationVertexId = (int) currentDestinationZone.getCentroid().getId();
+              final Pair<Double, EdgeSegment> vertexPathCost = vertexPathAndCosts[destinationVertexId];
+              EdgeSegment destinationEdgeSegment = vertexPathAndCosts[destinationVertexId].getSecond();
+              vertexPathAndCosts[destinationVertexId] = new Pair<Double, EdgeSegment>(Double.POSITIVE_INFINITY, destinationEdgeSegment);
+              LOGGER.info("IMPOSSIBLE PATH:  The path from origin zone " + currentOriginZone.getExternalId() + " to destination zone " + currentDestinationZone.getExternalId() + " has infinite cost for mode " +  mode.getName()  + ".");
+            }
           }
-          dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
           previousOriginZoneId = currentOriginZone.getId();
 
-          updateSkimMatrixMap(skimMatrixMap, currentOriginZone, currentDestinationZone, odDemand, vertexPathCosts);
+          updateSkimMatrixMap(skimMatrixMap, currentOriginZone, currentDestinationZone, odDemand, vertexPathAndCosts);
         }
       }
     }
@@ -197,7 +206,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
         if (currentPathStartVertex instanceof Centroid) {
           String errorMessage = "The solution could not find an Edge Segment for the connectoid for zone " + ((Centroid) currentPathStartVertex).getParentZone().getExternalId();
           throw new PlanItException(errorMessage);
-        } else {
+         } else {
           String errorMessage = "The solution could not find an Edge Segment for node " + ((Node) currentPathStartVertex).getId();
           throw new PlanItException(errorMessage);
         }
@@ -216,23 +225,18 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    * @param currentOriginZone      current origin zone
    * @param currentDestinationZone current destination zone
    * @param odDemand               the odDemand
-   * @param vertexPathCosts        array of costs for the specified mode
+   * @param vertexPathAndCosts        array of costs for the specified mode
    */
   private void updateSkimMatrixMap(final Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone,
-      final double odDemand, final Pair<Double, EdgeSegment>[] vertexPathCosts) {
+      final double odDemand, final Pair<Double, EdgeSegment>[] vertexPathAndCosts) {
     for (final ODSkimSubOutputType odSkimOutputType : simulationData.getActiveSkimOutputTypes()) {
       if (odSkimOutputType.equals(ODSkimSubOutputType.COST)) {
-        // double odGeneralisedCost = -1;
-
-        // if (odDemand > 0.0) {
 
         // Collect cost to get to vertex from shortest path ONE-TO-ALL information
         // directly
         final long destinationVertexId = currentDestinationZone.getCentroid().getId();
-        final Pair<Double, EdgeSegment> vertexPathCost = vertexPathCosts[(int) destinationVertexId];
+        final Pair<Double, EdgeSegment> vertexPathCost = vertexPathAndCosts[(int) destinationVertexId];
         double odGeneralisedCost = vertexPathCost.getFirst();
-
-        // }
 
         final ODSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);
         odSkimMatrix.setValue(currentOriginZone, currentDestinationZone, odGeneralisedCost);
