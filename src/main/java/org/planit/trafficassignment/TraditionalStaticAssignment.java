@@ -167,10 +167,6 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
               dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
             } catch (PlanItException pe) {
               LOGGER.warning(pe.getMessage());
-              final int destinationVertexId = (int) currentDestinationZone.getCentroid().getId();
-              final Pair<Double, EdgeSegment> vertexPathCost = vertexPathAndCosts[destinationVertexId];
-              EdgeSegment destinationEdgeSegment = vertexPathAndCosts[destinationVertexId].getSecond();
-              vertexPathAndCosts[destinationVertexId] = new Pair<Double, EdgeSegment>(Double.POSITIVE_INFINITY, destinationEdgeSegment);
               LOGGER.info("IMPOSSIBLE PATH:  The path from origin zone " + currentOriginZone.getExternalId() + " to destination zone " + currentDestinationZone.getExternalId() + " has infinite cost for mode " +  mode.getName()  + ".");
             }
           }
