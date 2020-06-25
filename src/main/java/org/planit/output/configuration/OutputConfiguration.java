@@ -30,8 +30,6 @@ public class OutputConfiguration {
 
   /**
    * Base constructor
-   * 
-   * @param outputManager the manager for this configuration
    */
   public OutputConfiguration() {
   }

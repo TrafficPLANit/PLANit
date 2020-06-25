@@ -103,7 +103,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   /**
    * Write link results for the current time period to the CSV file
    * 
-   * @param outputConfiguraton output configuration
+   * @param outputConfiguration output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
    * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can
    *          be a  SubOutputTypeEnum or an OutputType)
@@ -120,7 +120,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   /**
    * Write General results for the current time period to the CSV file
    * 
-   * @param outputConfiguraton output configuration
+   * @param outputConfiguration output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
    * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can
    *          be a SubOutputTypeEnum or an OutputType)
@@ -137,7 +137,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   /**
    * Write Origin-Destination results for the time period to the CSV file
    * 
-   * @param outputConfiguraton output configuration
+   * @param outputConfiguration output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
    * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can
    *          be a  SubOutputTypeEnum or an OutputType)
@@ -154,7 +154,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   /**
    * Write Simulation results for the current time period to the CSV file
    * 
-   * @param outputConfiguraton output configuration
+   * @param outputConfiguration output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
    * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can
    *          be a  SubOutputTypeEnum or an OutputType)
@@ -171,7 +171,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   /**
    * Write OD Path results for the time period to the CSV file
    * 
-   * @param outputConfiguraton output configuration
+   * @param outputConfiguration output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
    * @param currentOutputType active OutputTypeEnum of the configuration we are persisting for (can
    *          be a  SubOutputTypeEnum or an OutputType)

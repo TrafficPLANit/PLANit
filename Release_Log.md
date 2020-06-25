@@ -38,3 +38,19 @@ First Release
 * SpeedConnectoidTravelTimeCost default should not be infinite speed (PLANit JIRA Task #52) (now use FixedConnectoidTravelTimeCost instead)
 * Iterator functionality required for MemoryOutputFormatter (PLANit JIRA Task#55)
 * BPR parameters parsed in TNTP should not be stored on network in core (PLANit JIRA Task #62)
+
+## 0.0.4
+
+* Logger created for each class as private static member (PLANit JIRA Task #63)
+* Logger configuration revised (PLANit JIRA Task #59)
+* External Ids refactored and treated differently when parsing (PLANit JIRA Task #54)
+* Time periods and user classes now registered on a traffic assignment component (PLANit JIRA Task #61)
+* Iterator implementation on memory outputformatter refactored (PLANit JIRA Task #8)
+* Added output property PathId which should be added by default (PLANit JIRA Task #66)
+* Simplified collection of the position of output key and value properties on memoryoutputformatter (PLANit JIRA Task #77)
+* Check if needed and if so update all project readme.MDs based on new features available (PLANit JIRA Task #47)
+* Removed toList() methodson inner classes of main inputs. Made them iterable instead (PLANit JIRA Task #83)
+* Created Maximum Density input property and Density output property (PLANit JIRA Task #80)
+* Created documentation for integration tests (PLANit JIRA Task #69)
+* Python can call time period, mode and link segment type by external Id (PLANit JIRA Task #81)
+* Added defaults for traditional static assignment components upon creation of the assignment (PLANit JIRA Task #79)

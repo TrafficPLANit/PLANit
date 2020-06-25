@@ -161,7 +161,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Write Simulation results for the current time period to the CSV file
    * 
-   * @param ouputConfiguration output configuration
+   * @param outputConfiguration output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
    * @param currentOutputType, the active output type of the configuration we are persisting for
    *          (can be a suboutputtype)
@@ -181,7 +181,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Write General results for the current time period to the CSV file
    * 
-   * @param ouputConfiguration output configuration
+   * @param outputConfiguration output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
    * @param currentOutputType, the active output type of the configuration we are persisting for
    *          (can be a suboutputtype)

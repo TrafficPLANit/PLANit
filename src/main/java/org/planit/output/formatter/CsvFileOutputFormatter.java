@@ -153,7 +153,6 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param modes                   Set of modes for the current assignment
    * @param timePeriod              the current time period
    * @param csvPrinter              CSVPrinter object to record results for this iteration
-   * @param recordZeroFlow          if true record links or paths with zero cost, otherwise ignore them
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
   protected PlanItException writeLinkResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
