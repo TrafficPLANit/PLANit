@@ -73,5 +73,12 @@ public interface OutputFormatter {
    * @return flag to indicate whether the OutputFormatter can handle multiple iterations
    */
   public boolean canHandleMultipleIterations();
+  
+  /**
+   * Set the location of the initial costs file
+   * 
+   * @param initialCostsLocation the location of the initial costs file
+   */
+  public void setInitialCostsLocation(String initialCostsLocation);
 
 }

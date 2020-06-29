@@ -70,6 +70,11 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * List of registered OutputTypes
    */
   protected Set<OutputType> outputTypes;
+  
+  /**
+   * The location of the initial costs files
+   */
+  protected String initialCostsLocation;
 
   /**
    * Initialize the output key properties for the specified output type configuration
@@ -320,6 +325,16 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    */
   public String getOutputTimeUnitString() {
     return outputTimeUnit.value();
+  }
+
+  /**
+   * Set the location of the initial costs file
+   * 
+   * @param initialCostsLocation the location of the initial costs file  
+   */
+  @Override
+  public void setInitialCostsLocation(String initialCostsLocation) {
+    this.initialCostsLocation = initialCostsLocation;
   }
 
 }

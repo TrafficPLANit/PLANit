@@ -122,6 +122,11 @@ public class CustomPlanItProject {
    * Object factory for network loading object
    */
   protected TrafficAssignmentComponentFactory<NetworkLoading> assignmentFactory;
+  
+  /**
+   * Location of initial costs file
+   */
+  protected String initialCostsLocation;
 
   // Protected methods
 
@@ -193,7 +198,7 @@ public class CustomPlanItProject {
     this.demands = inputs.demands;
     this.zonings = inputs.zonings;
     this.odRouteSets = inputs.odRouteSets;
-
+    this.initialCostsLocation = null;
     trafficAssignmentsMap = new TreeMap<Long, TrafficAssignment>();
     outputFormatters = new TreeMap<Long, OutputFormatter>();
 
@@ -312,6 +317,7 @@ public class CustomPlanItProject {
    */
   public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network,
       final String fileName) throws PlanItException {
+    initialCostsLocation = fileName;
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName);
   }
 
@@ -326,6 +332,7 @@ public class CustomPlanItProject {
    */
   public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network,
       final String fileName, final TimePeriod timePeriod) throws PlanItException {
+    initialCostsLocation = fileName;
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
   }
 
@@ -342,6 +349,7 @@ public class CustomPlanItProject {
   public Map<TimePeriod, InitialLinkSegmentCost> createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network,
       final String fileName, final Demands demands)
       throws PlanItException {
+    initialCostsLocation = fileName;
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, demands);
   }
 
@@ -358,6 +366,7 @@ public class CustomPlanItProject {
       String errorMessage = "Output writer of type " + outputFormatterType + " could not be created";
       throw new PlanItException(errorMessage);
     }
+    outputFormatter.setInitialCostsLocation(initialCostsLocation);
     outputFormatters.put(outputFormatter.getId(), outputFormatter);
     return outputFormatter;
   }
@@ -414,6 +423,15 @@ public class CustomPlanItProject {
    */
   public List<TrafficAssignment> getAllAssignments() {
     return new ArrayList<TrafficAssignment>(trafficAssignmentsMap.values());
+  }
+
+  /**
+   * Return the location of the initial costs file
+   * 
+   * @return the location of the initial costs files
+   */
+  public String getInitialCostsLocation() {
+    return initialCostsLocation;
   }
 
 }

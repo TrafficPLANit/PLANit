@@ -82,7 +82,34 @@ public class OutputAdapter {
   public String getVirtualCostClassName() {
     return getClassName(trafficAssignment.getVirtualCost());
   }
+  
+  /**
+   * Return the name of the smoothing class
+   *  
+   * @return the name of the smoothing class
+   */
+  public String getSmoothingClassName() {
+    return getClassName(trafficAssignment.getSmoothing());
+  }
+  
+  /**
+   * Return the name of the gap function class
+   * 
+   * @return the name of the gap function class
+   */
+  public String getGapFunctionClassName() {
+    return getClassName(trafficAssignment.getGapFunction());
+  }
 
+  /**
+   * Return the name of the stopping criterion class
+   * 
+   * @return the name of the stopping criterion class
+   */
+  public String getStopCriterionClassName() {
+    return getClassName(trafficAssignment.getGapFunction().getStopCriterion());
+  }
+  
   /**
    * Store an output type adapters for a specified output type
    * 
