@@ -1,6 +1,7 @@
 package org.planit.graph;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -10,6 +11,7 @@ import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.network.physical.Link;
 
 /**
  * Node representation connected to one or more entry and exit links
@@ -96,8 +98,16 @@ public class VertexImpl implements Vertex {
      * #{@inheritDoc}
      */
     @Override
-    public Set<EdgeSegment> getEdgeSegments() {
-      return edgeSegments;
+    public int getNumberOfEdges() {
+      return edgeSegments.size();
+    }
+
+    /**
+     * Iterator over available edge segments
+     */
+    @Override
+    public Iterator<EdgeSegment> iterator() {
+      return edgeSegments.iterator();
     }
   }
 

@@ -20,10 +20,6 @@
 	<name>PLANit</name>
 	<url>https://github.sydney.edu.au/planit/planit</url>
 
-	<properties>
-		<ojalgo.version>46.3.0</ojalgo.version>
-	</properties>
-
 	<dependencies>
 	
 	  <!-- version inherited from parent -->

@@ -44,7 +44,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   }
 
   /**
-   * Return the total capacity for a specified mode
+   * Return the total capacity
    *
    * Compute the total capacity by multiplying the capacity per lane and number of lanes
    *

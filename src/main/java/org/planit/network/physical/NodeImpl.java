@@ -59,5 +59,7 @@ public class NodeImpl extends VertexImpl implements Node {
   public boolean hasExternalId() {
     return (externalId != null);
   }
+  
+
 
 }
