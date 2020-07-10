@@ -1,7 +1,6 @@
 package org.planit.project;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -46,16 +45,20 @@ public class CustomPlanItProject {
    * Internal class for registered traffic assignments
    *
    */
-  public class ProjectAssignments {
-
+  public class ProjectAssignments implements Iterable<TrafficAssignment> {
+    
     /**
-     * Returns a List of traffic assignments
-     *
-     * @return List of traffic assignments
+     * The traffic assignment(s) registered on this project
      */
-    public List<TrafficAssignment> toList() {
-      return new ArrayList<TrafficAssignment>(trafficAssignmentsMap.values());
-    }
+    protected final TreeMap<Long, TrafficAssignment> trafficAssignmentsMap = new TreeMap<Long, TrafficAssignment>();
+    
+    /**
+     * add traffic assignment 
+     * @param trafficAssignment to add
+     */
+    protected void addTrafficAssignment(TrafficAssignment trafficAssignment) {
+      trafficAssignmentsMap.put(trafficAssignment.getId(), trafficAssignment);      
+    }    
 
     /**
      * Get traffic assignment by id
@@ -93,6 +96,15 @@ public class CustomPlanItProject {
     public TrafficAssignment getFirstTrafficAssignment() {
       return hasRegisteredAssignments() ? trafficAssignmentsMap.firstEntry().getValue() : null;
     }
+
+    /**
+     * iterable over registered traffic assignments
+     */
+    @Override
+    public Iterator<TrafficAssignment> iterator() {
+      return trafficAssignmentsMap.values().iterator();
+    }
+
   }
 
   /**
@@ -107,11 +119,6 @@ public class CustomPlanItProject {
    * initialization
    */
   protected final InputBuilderListener inputBuilderListener;
-
-  /**
-   * The traffic assignment(s) registered on this project
-   */
-  protected final TreeMap<Long, TrafficAssignment> trafficAssignmentsMap;
 
   /**
    * The output formatter(s) registered on this project
@@ -193,7 +200,6 @@ public class CustomPlanItProject {
     this.demands = inputs.demands;
     this.zonings = inputs.zonings;
     this.odRouteSets = inputs.odRouteSets;
-    trafficAssignmentsMap = new TreeMap<Long, TrafficAssignment>();
     outputFormatters = new TreeMap<Long, OutputFormatter>();
 
     initialiseFactories();
@@ -291,7 +297,7 @@ public class CustomPlanItProject {
     // can we do it in the derived constructors as some components are the same
     // across assignments and we want to avoid duplicate code
     trafficAssignmentBuilder.initialiseDefaults();
-    trafficAssignmentsMap.put(trafficAssignment.getId(), trafficAssignment);
+    trafficAssignments.addTrafficAssignment(trafficAssignment);
     // do not allow direct access to the traffic assignment component. Instead,
     // provide the traffic assignment builder object which is dedicated to providing
     // all the configuration options relevant to the end user while hiding any
@@ -388,29 +394,18 @@ public class CustomPlanItProject {
    * and one fails, we
    * record its error and continue with the next assignment.
    *
-   * @return Map of ids of failed runs (key) together with their exceptions (value). Empty if all
-   *         runs succeed
    * @throws PlanItException required for subclasses which override this method and generate an
    *           exception before the runs
    *           start
    */
   public void executeAllTrafficAssignments() throws PlanItException {
-    for (final long id : trafficAssignmentsMap.keySet()) {
+    for (TrafficAssignment ta : trafficAssignments) {
       try {
-        trafficAssignmentsMap.get(id).execute();
+        ta.execute();
       } catch (final PlanItException pe) {
         LOGGER.severe(pe.getMessage());
       }
     }
-  }
-
-  /**
-   * Returns a set of all traffic assignments registered for this project
-   *
-   * @return Set of registered traffic assignments
-   */
-  public List<TrafficAssignment> getAllAssignments() {
-    return new ArrayList<TrafficAssignment>(trafficAssignmentsMap.values());
   }
 
 }

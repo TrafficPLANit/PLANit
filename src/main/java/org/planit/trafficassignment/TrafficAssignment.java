@@ -231,6 +231,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   // Public
+  
+  // short code to choose traditional static assignment as assignment type
+  public static String TRADITIONAL_STATIC_ASSIGNMENT = TraditionalStaticAssignment.class.getCanonicalName();
 
   /**
    * Constructor. Note that defaults that partly depend on derived classes are assumed to be invoked by the calling method
