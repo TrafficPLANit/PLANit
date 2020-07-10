@@ -394,16 +394,14 @@ public class CustomPlanItProject {
    *           exception before the runs
    *           start
    */
-  public Map<Long, PlanItException> executeAllTrafficAssignments() throws PlanItException {
-    final Map<Long, PlanItException> exceptionMap = new HashMap<Long, PlanItException>();
+  public void executeAllTrafficAssignments() throws PlanItException {
     for (final long id : trafficAssignmentsMap.keySet()) {
       try {
         trafficAssignmentsMap.get(id).execute();
       } catch (final PlanItException pe) {
-        exceptionMap.put(id, pe);
+        LOGGER.severe(pe.getMessage());
       }
     }
-    return exceptionMap;
   }
 
   /**
