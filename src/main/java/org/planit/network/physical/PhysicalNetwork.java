@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
+import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.Link;
@@ -461,6 +462,9 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   protected final PhysicalNetworkBuilder networkBuilder;
 
   // PUBLIC
+  
+  // shorthand for the macroscopic network canonical class name 
+  public static final String MACROSCOPICNETWORK = MacroscopicNetwork.class.getCanonicalName();  
 
   /**
    * internal class instance containing all link specific functionality

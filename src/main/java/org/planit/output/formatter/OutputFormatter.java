@@ -23,6 +23,12 @@ public interface OutputFormatter {
    * Constant to report that an output value has not been set
    */
   public static final String NOT_SPECIFIED = "Not Specified";
+  
+  /**
+   * Default output formatter supported by PLANit from PLANitIO repository
+   */
+  public static final String PLANIT_OUTPUT_FORMATTER = "org.planit.io.output.formatter.PlanItOutputFormatter";
+  public static final String MEMORY_OUTPUT_FORMATTER = MemoryOutputFormatter.class.getCanonicalName();
 
   /**
    * Collect the id of the formatter
