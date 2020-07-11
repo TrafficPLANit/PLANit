@@ -54,7 +54,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   /**
    * Write output values to the OD CSV file for the current iteration
    * 
-   * @param outputConfiguration output configuration
+   * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration output type configuration for the current output type
    * @param currentOutputType       the output type
    * @param outputAdapter           output adapter for the current output type
@@ -63,18 +63,17 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param csvPrinter              CSVPrinter object to record results for this iteration
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
-  protected PlanItException writeOdResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
-      OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
+  protected PlanItException writeOdResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
+      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
     try {
       // main type information
       ODOutputTypeAdapter odOutputTypeAdapter = (ODOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputTypeConfiguration.getOutputType());
       SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
 
       // verify if current suboutput type is compatible with the provided output
-      if (!(currentOutputType instanceof SubOutputTypeEnum && ((SubOutputTypeEnum) currentOutputType) instanceof ODSkimSubOutputType)) {
-        String errorMessage = "currentOutputType is not compatible with od results";
-        throw new PlanItException(errorMessage);
-      }
+      PlanItException.throwIf(!(currentOutputType instanceof SubOutputTypeEnum && ((SubOutputTypeEnum) currentOutputType) instanceof ODSkimSubOutputType),
+          "currentOutputType is not compatible with od results");
+
       // sub-type information
       ODSkimSubOutputType currentSubOutputType = (ODSkimSubOutputType) currentOutputType;
 
@@ -103,7 +102,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   /**
    * Write output values to the Path CSV file for the current iteration
    * 
-   * @param outputConfiguration output configuration
+   * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration output type configuration for the current output type
    * @param currentOutputType       the output type
    * @param outputAdapter           output adapter for the current output type
@@ -112,13 +111,11 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param csvPrinter              CSVPrinter object to record results for this iteration
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
-  protected PlanItException writePathResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
-      OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
+  protected PlanItException writePathResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
+      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
     try {
-      if (!(currentOutputType instanceof OutputType)) {
-        String errorMessage = "currentOutputType not compatible with path output";
-        throw new PlanItException(errorMessage);
-      }
+      PlanItException.throwIf(!(currentOutputType instanceof OutputType), "currentOutputType not compatible with path output");
+
       OutputType outputType = (OutputType) currentOutputType;
       RouteOutputTypeAdapter pathOutputTypeAdapter = (RouteOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
       PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
@@ -146,7 +143,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   /**
    * Write output values to the Link CSV file for the current iteration
    * 
-   * @param outputConfiguration output configuration
+   * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration the current output type configuration
    * @param currentOutputType       the output type
    * @param outputAdapter           output adapter for the current output type
@@ -155,8 +152,8 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param csvPrinter              CSVPrinter object to record results for this iteration
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
-  protected PlanItException writeLinkResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
-      OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
+  protected PlanItException writeLinkResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
+      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
     try {
       if (!(currentOutputType instanceof OutputType)) {
         String errorMessage = "currentOutputType not compatible with link output";

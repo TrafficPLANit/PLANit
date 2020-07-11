@@ -200,10 +200,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if there is an error
    */
   protected Object getUpstreamNodeLocation(LinkSegment linkSegment) throws PlanItException {
-    if (!(linkSegment.getDownstreamVertex() instanceof VertexImpl)) {
-      String errorMessage = "Upstream node location not available";
-      throw new PlanItException(errorMessage);
-    }
+    PlanItException.throwIf(!(linkSegment.getDownstreamVertex() instanceof VertexImpl), "Upstream node location not available");
+
     VertexImpl upstreamVertex = (VertexImpl) linkSegment.getUpstreamVertex();
     DirectPosition centrePoint = upstreamVertex.getCentrePointGeometry();
     if (centrePoint == null) {

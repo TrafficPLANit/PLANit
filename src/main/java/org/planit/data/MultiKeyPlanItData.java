@@ -277,10 +277,8 @@ public class MultiKeyPlanItData {
    * @throws PlanItException thrown if there is an error
    */
   public void putRowValue(final OutputProperty outputProperty, final Object value, final Object... keyValues) throws PlanItException {
-    if (keyValues.length != outputKeyProperties.length) {
-      String errorMessage = "Wrong number of keys used in call to MultiKeyPlanItData ";
-      throw new PlanItException(errorMessage);
-    }
+    PlanItException.throwIf(keyValues.length != outputKeyProperties.length, "Wrong number of keys used in call to MultiKeyPlanItData");
+
     Object[] outputValues = null;
     switch (outputKeyProperties.length) {
     case 1:
