@@ -10,9 +10,8 @@ import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.IdGenerator;
 
 /**
- * Edge class connecting two vertices via some geometry. Each edge has one or
- * two underlying edge segments in a particular direction which may carry
- * additional information for each particular direction of the edge.
+ * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a
+ * particular direction which may carry additional information for each particular direction of the edge.
  *
  * @author markr
  *
@@ -79,7 +78,7 @@ public class EdgeImpl implements Edge {
    *
    * @param vertexA first vertex in the link
    * @param vertexB second vertex in the link
-   * @param length length of the link
+   * @param length  length of the link
    * @throws PlanItException thrown if there is an error
    */
   protected EdgeImpl(final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException {
@@ -92,20 +91,16 @@ public class EdgeImpl implements Edge {
   /**
    * Register EdgeSegment.
    *
-   * If there already exists an edgeSegment for that direction it is replaced and
-   * returned
+   * If there already exists an edgeSegment for that direction it is replaced and returned
    *
    * @param edgeSegment EdgeSegment to be registered
    * @param directionAB direction of travel
    * @return replaced LinkSegment
    * @throws PlanItException thrown if there is an error
    */
-  protected EdgeSegment registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB)
-      throws PlanItException {
-    if (edgeSegment.getParentEdge().getId() != getId()) {
-      throw new PlanItException(
-          "Inconsistency between link segment parent link and link it is being registered on");
-    }
+  protected EdgeSegment registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) throws PlanItException {
+    PlanItException.throwIf(edgeSegment.getParentEdge().getId() != getId(), "Inconsistency between link segment parent link and link it is being registered on");
+
     final EdgeSegment currentEdgeSegment = directionAB ? edgeSegmentAB : edgeSegmentBA;
     if (directionAB) {
       this.edgeSegmentAB = edgeSegment;

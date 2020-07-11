@@ -35,8 +35,7 @@ public class PlanitGeoUtils {
   private static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = DefaultGeographicCRS.WGS84;
 
   /**
-   * Geodetic calculator to construct distances between points. It is assumed the network CRS is
-   * geodetic in nature.
+   * Geodetic calculator to construct distances between points. It is assumed the network CRS is geodetic in nature.
    */
   private GeodeticCalculator geodeticDistanceCalculator;
   private GeometryBuilder geometryBuilder;
@@ -72,7 +71,7 @@ public class PlanitGeoUtils {
    * Compute the distance in metres between two positions in a geodetic coordinate reference system
    * 
    * @param startPosition location of the start point
-   * @param endPosition location of the end point
+   * @param endPosition   location of the end point
    * @return distance in metres between the points
    * @throws PlanItException thrown if there is an error
    */
@@ -89,11 +88,10 @@ public class PlanitGeoUtils {
   }
 
   /**
-   * Compute the distance in kilometres between two positions in a geodetic coordinate reference
-   * system
+   * Compute the distance in kilometres between two positions in a geodetic coordinate reference system
    * 
    * @param startPosition location of the start point
-   * @param endPosition location of the end point
+   * @param endPosition   location of the end point
    * @return distance in kilometres between the points
    * @throws PlanItException thrown if there is an error
    */
@@ -111,21 +109,19 @@ public class PlanitGeoUtils {
    */
   public DirectPosition getDirectPositionFromValues(double xCoordinate, double yCoordinate) throws PlanItException {
     Coordinate coordinate = new Coordinate(xCoordinate, yCoordinate);
-    Coordinate[] coordinates = {coordinate};
+    Coordinate[] coordinates = { coordinate };
     List<Position> positions = convertToDirectPositions(coordinates);
     return (DirectPosition) positions.get(0);
   }
 
   /**
-   * Convert a JTS line string object to an OpenGis LineString instance by transferring the internal
-   * coordinates
+   * Convert a JTS line string object to an OpenGis LineString instance by transferring the internal coordinates
    * 
    * @param jtsLineString JTS line string input
    * @return LineString GeoTools line string output object
    * @throws PlanItException thrown if there is an error
    */
-  public LineString convertToOpenGisLineString(com.vividsolutions.jts.geom.LineString jtsLineString)
-      throws PlanItException {
+  public LineString convertToOpenGisLineString(com.vividsolutions.jts.geom.LineString jtsLineString) throws PlanItException {
     Coordinate[] coordinates = jtsLineString.getCoordinates();
     List<Position> positionList = convertToDirectPositions(coordinates);
     return geometryFactory.createLineString(positionList);
@@ -139,12 +135,9 @@ public class PlanitGeoUtils {
    * @throws PlanItException thrown if there is an error
    */
   public LineString convertToOpenGisLineString(MultiLineString jtsMultiLineString) throws PlanItException {
-    if (((MultiLineString) jtsMultiLineString).getNumGeometries() > 1) {
-      String errorMessage = "MultiLineString contains multiple LineStrings";
-      throw new PlanItException(errorMessage);
-    }
-    return convertToOpenGisLineString((com.vividsolutions.jts.geom.LineString) ((MultiLineString) jtsMultiLineString)
-        .getGeometryN(0));
+    PlanItException.throwIf(((MultiLineString) jtsMultiLineString).getNumGeometries() > 1, "MultiLineString contains multiple LineStrings");
+
+    return convertToOpenGisLineString((com.vividsolutions.jts.geom.LineString) ((MultiLineString) jtsMultiLineString).getGeometryN(0));
   }
 
   /**
@@ -154,11 +147,10 @@ public class PlanitGeoUtils {
    * @return List of GeoTools Position objects
    * @throws PlanItException thrown if there is an error
    */
-  public List<Position> convertToDirectPositions(com.vividsolutions.jts.geom.Coordinate[] coordinates)
-      throws PlanItException {
+  public List<Position> convertToDirectPositions(com.vividsolutions.jts.geom.Coordinate[] coordinates) throws PlanItException {
     List<Position> positionList = new ArrayList<Position>(coordinates.length);
     for (Coordinate coordinate : coordinates) {
-      DirectPosition newPosition = positionFactory.createDirectPosition(new double[] {coordinate.x, coordinate.y});
+      DirectPosition newPosition = positionFactory.createDirectPosition(new double[] { coordinate.x, coordinate.y });
       positionList.add(newPosition);
     }
     return positionList;

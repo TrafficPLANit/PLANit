@@ -36,7 +36,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   /**
    * Constructor
    *
-   * @param parentLink the parent link of this link segment
+   * @param parentLink  the parent link of this link segment
    * @param directionAB direction of travel
    */
   public MacroscopicLinkSegmentImpl(final Link parentLink, final boolean directionAB) {
@@ -56,8 +56,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   }
 
   /**
-   * Compute the free flow travel time by mode, i.e. when the link's maximum speed might be capped
-   * by the mode's maximum
+   * Compute the free flow travel time by mode, i.e. when the link's maximum speed might be capped by the mode's maximum
    * speed
    *
    * If the input data are invalid, this method logs the problem and returns a negative value.
@@ -68,10 +67,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    */
   @Override
   public double computeFreeFlowTravelTime(final Mode mode) throws PlanItException {
-    if (!isModeAllowedThroughLink(mode)) {
-      String errorMessage = "mode not allowed on link segment, no free flow time can be computed";
-      throw new PlanItException(errorMessage);
-    }
+    PlanItException.throwIf(!isModeAllowedThroughLink(mode), "mode not allowed on link segment, no free flow time can be computed");
 
     final double linkLength = getParentLink().getLength();
     final double maximumSpeed = getMaximumSpeed(mode);

@@ -25,6 +25,7 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements LinkOutputTypeAdapter {
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(LinkOutputTypeAdapterImpl.class.getCanonicalName());
 
   /**
@@ -35,10 +36,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if there is an error
    */
   protected double getCapacityPerLane(LinkSegment linkSegment) throws PlanItException {
-    if (!(linkSegment instanceof MacroscopicLinkSegment)) {
-      throw new PlanItException(
-          "Tried to calculate capacity per link across an object which is not a MacroscopicLinkSegment.");
-    }
+    PlanItException.throwIf(!(linkSegment instanceof MacroscopicLinkSegment), "Tried to calculate capacity per link across an object which is not a MacroscopicLinkSegment");
+
     MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
     return macroscopicLinkSegment.getLinkSegmentType().getCapacityPerLane();
   }
@@ -51,9 +50,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if there is an error
    */
   protected String getLinkType(LinkSegment linkSegment) throws PlanItException {
-    if (!(linkSegment instanceof MacroscopicLinkSegment)) {
-      throw new PlanItException("Tried to find the Link Type of an object which is not a MacroscopicLinkSegment.");
-    }
+    PlanItException.throwIf(!(linkSegment instanceof MacroscopicLinkSegment), "Tried to find the Link Type of an object which is not a MacroscopicLinkSegment");
+
     MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
     return macroscopicLinkSegment.getLinkSegmentType().getName();
   }
@@ -73,9 +71,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if there is an error
    */
   protected double getMaximumDensity(LinkSegment linkSegment) throws PlanItException {
-    if (!(linkSegment instanceof MacroscopicLinkSegment)) {
-      throw new PlanItException("Tried to density per lane across an object which is not a MacroscopicLinkSegment.");
-    }
+    PlanItException.throwIf(!(linkSegment instanceof MacroscopicLinkSegment), "Tried to density per lane across an object which is not a MacroscopicLinkSegment");
+
     MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
     return macroscopicLinkSegment.getLinkSegmentType().getMaximumDensityPerLane();
   }
@@ -110,10 +107,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if the location could not be retrieved
    */
   protected Object getDownstreamNodeLocation(LinkSegment linkSegment) throws PlanItException {
-    if (!(linkSegment.getDownstreamVertex() instanceof VertexImpl)) {
-      String errorMessage = "Downstream node location not available";
-      throw new PlanItException(errorMessage);
-    }
+    PlanItException.throwIf(!(linkSegment.getDownstreamVertex() instanceof VertexImpl), "Downstream node location not available");
+
     VertexImpl downstreamVertex = (VertexImpl) linkSegment.getDownstreamVertex();
     DirectPosition centrePoint = downstreamVertex.getCentrePointGeometry();
     if (centrePoint == null) {
@@ -161,14 +156,13 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * Returns the maximum speed through the current link segment
    * 
    * @param linkSegment MacroscopicLinkSegment object containing the required data
-   * @param mode current mode
+   * @param mode        current mode
    * @return the maximum speed through the current link segment
    * @throws PlanItException thrown if there is an error
    */
   protected double getMaximumSpeed(LinkSegment linkSegment, Mode mode) throws PlanItException {
-    if (!(linkSegment instanceof MacroscopicLinkSegment)) {
-      throw new PlanItException("Tried to read maximum speed of an object which is not a MacroscopicLinkSegment.");
-    }
+    PlanItException.throwIf(!(linkSegment instanceof MacroscopicLinkSegment), "Tried to read maximum speed of an object which is not a MacroscopicLinkSegment");
+
     MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
     if (!macroscopicLinkSegment.isModeAllowedThroughLink(mode)) {
       return 0.0;
@@ -234,7 +228,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   /**
    * Constructor
    * 
-   * @param outputType the OutputType this adapter corresponds to
+   * @param outputType        the OutputType this adapter corresponds to
    * @param trafficAssignment TrafficAssignment object which this adapter wraps
    */
   public LinkOutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
@@ -254,52 +248,51 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * 
    * The DENSITY case should never be called for TraditionalStaticAssignment.
    * 
-   * @param outputProperty the specified output property
-   * @param linkSegment the specified link segment
-   * @param mode the current mode
-   * @param timePeriod the current time period
+   * @param outputProperty     the specified output property
+   * @param linkSegment        the specified link segment
+   * @param mode               the current mode
+   * @param timePeriod         the current time period
    * @param timeUnitMultiplier the multiplier for time units
    * @return the value of the specified output property (or an Exception if an error occurs)
    */
   @Override
-  public Object getLinkOutputPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode,
-      TimePeriod timePeriod, double timeUnitMultiplier) {
+  public Object getLinkOutputPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) {
     try {
       Object obj = getCommonPropertyValue(outputProperty, mode, timePeriod);
       if (obj != null) {
         return obj;
       }
       switch (outputProperty) {
-        case CAPACITY_PER_LANE:
-          return getCapacityPerLane(linkSegment);
-        case DOWNSTREAM_NODE_EXTERNAL_ID:
-          return getDownstreamNodeExternalId(linkSegment);
-        case DOWNSTREAM_NODE_ID:
-          return getDownstreamNodeId(linkSegment);
-        case DOWNSTREAM_NODE_LOCATION:
-          return getDownstreamNodeLocation(linkSegment);
-        case LENGTH:
-          return getLength(linkSegment);
-        case LINK_SEGMENT_EXTERNAL_ID:
-          return getLinkSegmentExternalId(linkSegment);
-        case LINK_SEGMENT_ID:
-          return getLinkSegmentId(linkSegment);
-        case MAXIMUM_DENSITY:
-          return getMaximumDensity(linkSegment);
-        case MAXIMUM_SPEED:
-          return getMaximumSpeed(linkSegment, mode);
-        case NUMBER_OF_LANES:
-          return getNumberOfLanes(linkSegment);
-        case UPSTREAM_NODE_EXTERNAL_ID:
-          return getUpstreamNodeExternalId(linkSegment);
-        case UPSTREAM_NODE_ID:
-          return getUpstreamNodeId(linkSegment);
-        case UPSTREAM_NODE_LOCATION:
-          return getUpstreamNodeLocation(linkSegment);
-        case LINK_TYPE:
-          return getLinkType(linkSegment);
-        default:
-          return null;
+      case CAPACITY_PER_LANE:
+        return getCapacityPerLane(linkSegment);
+      case DOWNSTREAM_NODE_EXTERNAL_ID:
+        return getDownstreamNodeExternalId(linkSegment);
+      case DOWNSTREAM_NODE_ID:
+        return getDownstreamNodeId(linkSegment);
+      case DOWNSTREAM_NODE_LOCATION:
+        return getDownstreamNodeLocation(linkSegment);
+      case LENGTH:
+        return getLength(linkSegment);
+      case LINK_SEGMENT_EXTERNAL_ID:
+        return getLinkSegmentExternalId(linkSegment);
+      case LINK_SEGMENT_ID:
+        return getLinkSegmentId(linkSegment);
+      case MAXIMUM_DENSITY:
+        return getMaximumDensity(linkSegment);
+      case MAXIMUM_SPEED:
+        return getMaximumSpeed(linkSegment, mode);
+      case NUMBER_OF_LANES:
+        return getNumberOfLanes(linkSegment);
+      case UPSTREAM_NODE_EXTERNAL_ID:
+        return getUpstreamNodeExternalId(linkSegment);
+      case UPSTREAM_NODE_ID:
+        return getUpstreamNodeId(linkSegment);
+      case UPSTREAM_NODE_LOCATION:
+        return getUpstreamNodeLocation(linkSegment);
+      case LINK_TYPE:
+        return getLinkType(linkSegment);
+      default:
+        return null;
       }
     } catch (PlanItException e) {
       return e;

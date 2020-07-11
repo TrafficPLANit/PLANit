@@ -11,7 +11,6 @@ import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.IdGenerator;
-import org.planit.utils.network.physical.Link;
 
 /**
  * Node representation connected to one or more entry and exit links
@@ -189,10 +188,9 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * Add a property from the original input that is not part of the readily
-   * available members
+   * Add a property from the original input that is not part of the readily available members
    *
-   * @param key key (name) of the input property
+   * @param key   key (name) of the input property
    * @param value value of the input property
    */
   public void addInputProperty(final String key, final Object value) {
