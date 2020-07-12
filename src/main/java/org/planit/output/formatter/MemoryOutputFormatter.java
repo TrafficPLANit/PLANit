@@ -55,13 +55,12 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Returns an array of values (key or values)
    * 
-   * @param labels OutputProperty array to specify which values are to be returns
+   * @param labels              OutputProperty array to specify which values are to be returns
    * @param getValueFromAdapter lambda function to find the output value for each label
    * @return array of output values
    * @throws PlanItException thrown if there is an error
    */
-  private Object[] getValues(OutputProperty[] labels, Function<OutputProperty, Object> getValueFromAdapter)
-      throws PlanItException {
+  private Object[] getValues(OutputProperty[] labels, Function<OutputProperty, Object> getValueFromAdapter) throws PlanItException {
     Object[] values = new Object[labels.length];
     for (int i = 0; i < labels.length; i++) {
       values[i] = getValueFromAdapter.apply(labels[i]);
@@ -75,14 +74,13 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Store output and key values for current link or skim matrix
    * 
-   * @param multiKeyPlanItData multikey data object to store values
-   * @param outputProperties OutputProperty array of result types to be recorded
-   * @param outputKeys OutputProperty array of key types to be recorded
+   * @param multiKeyPlanItData  multikey data object to store values
+   * @param outputProperties    OutputProperty array of result types to be recorded
+   * @param outputKeys          OutputProperty array of key types to be recorded
    * @param getValueFromAdapter lambda function to get the required values from an output adapter
    * @throws PlanItException thrown if there is an error
    */
-  private void updateOutputAndKeyValues(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties,
-      OutputProperty[] outputKeys,
+  private void updateOutputAndKeyValues(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys,
       Function<OutputProperty, Object> getValueFromAdapter) throws PlanItException {
     Object[] outputValues = getValues(outputProperties, getValueFromAdapter);
     Object[] keyValues = getValues(outputKeys, getValueFromAdapter);
@@ -92,23 +90,20 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Record output and key values for links
    * 
-   * @param multiKeyPlanItData multikey data object to store values
-   * @param outputProperties OutputProperty array of result types to be recorded
-   * @param outputKeys OutputProperty array of key types to be recorded
-   * @param linkSegment the current link segment
+   * @param multiKeyPlanItData    multikey data object to store values
+   * @param outputProperties      OutputProperty array of result types to be recorded
+   * @param outputKeys            OutputProperty array of key types to be recorded
+   * @param linkSegment           the current link segment
    * @param linkOutputTypeAdapter output adapter to provide methods to get the property values
-   * @param mode the current mode
-   * @param timePeriod the current time period
-    * @throws PlanItException thrown if there is an error
+   * @param mode                  the current mode
+   * @param timePeriod            the current time period
+   * @throws PlanItException thrown if there is an error
    */
-  private void updateOutputAndKeyValuesForLink(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties,
-      OutputProperty[] outputKeys, LinkSegment linkSegment,
-      LinkOutputTypeAdapter linkOutputTypeAdapter, Mode mode, TimePeriod timePeriod)
-      throws PlanItException {
+  private void updateOutputAndKeyValuesForLink(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys, LinkSegment linkSegment,
+      LinkOutputTypeAdapter linkOutputTypeAdapter, Mode mode, TimePeriod timePeriod) throws PlanItException {
     if (linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
       updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-        return linkOutputTypeAdapter.getLinkOutputPropertyValue(label, linkSegment, mode, timePeriod, outputTimeUnit
-            .getMultiplier());
+        return linkOutputTypeAdapter.getLinkOutputPropertyValue(label, linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier());
       });
     }
   }
@@ -116,19 +111,17 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Update output and key values for Origin-Destination matrix
    * 
-   * @param multiKeyPlanItData multikey data object to store values
-   * @param outputProperties OutputProperty array of result types to be recorded
-   * @param outputKeys OutputProperty array of key types to be recorded
-   * @param odMatrixIterator ODMatrixIterator to iterate through Skim matrix
+   * @param multiKeyPlanItData  multikey data object to store values
+   * @param outputProperties    OutputProperty array of result types to be recorded
+   * @param outputKeys          OutputProperty array of key types to be recorded
+   * @param odMatrixIterator    ODMatrixIterator to iterate through Skim matrix
    * @param odOutputTypeAdapter output adapter to provide methods to get the property values
-   * @param mode the current mode
-   * @param timePeriod the current time period
+   * @param mode                the current mode
+   * @param timePeriod          the current time period
    * @throws PlanItException thrown if there is an error
    */
-  private void updateOutputAndKeyValuesForOD(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties,
-      OutputProperty[] outputKeys,
-      ODMatrixIterator odMatrixIterator, ODOutputTypeAdapter odOutputTypeAdapter, Mode mode, TimePeriod timePeriod)
-      throws PlanItException {
+  private void updateOutputAndKeyValuesForOD(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys,
+      ODMatrixIterator odMatrixIterator, ODOutputTypeAdapter odOutputTypeAdapter, Mode mode, TimePeriod timePeriod) throws PlanItException {
     updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
       return odOutputTypeAdapter.getODOutputPropertyValue(label, odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier());
     });
@@ -137,22 +130,19 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Update output and key values for Path matrix
    * 
-   * @param multiKeyPlanItData multikey data object to store values
-   * @param outputProperties OutputProperty array of result types to be recorded
-   * @param outputKeys OutputProperty array of key types to be recorded
-   * @param odRouteIterator ODRouteIterator to iterate through matrix of paths
-   * @param pathOutputTypeAdapter PathOutputTypeAdapter to provide methods to get the property
-   *          values
-   * @param mode the current mode
-   * @param timePeriod the current time period
-   * @param pathIdType the type of output being stored in the path list
+   * @param multiKeyPlanItData    multikey data object to store values
+   * @param outputProperties      OutputProperty array of result types to be recorded
+   * @param outputKeys            OutputProperty array of key types to be recorded
+   * @param odRouteIterator       ODRouteIterator to iterate through matrix of paths
+   * @param pathOutputTypeAdapter PathOutputTypeAdapter to provide methods to get the property values
+   * @param mode                  the current mode
+   * @param timePeriod            the current time period
+   * @param pathIdType            the type of output being stored in the path list
    * @throws PlanItException thrown if there is an error
    */
 
-  private void updateOutputAndKeyValuesForPath(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties,
-      OutputProperty[] outputKeys,
-      ODRouteIterator odRouteIterator, RouteOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod,
-      RouteIdType pathIdType) throws PlanItException {
+  private void updateOutputAndKeyValuesForPath(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys,
+      ODRouteIterator odRouteIterator, RouteOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod, RouteIdType pathIdType) throws PlanItException {
     updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
       return pathOutputTypeAdapter.getRouteOutputPropertyValue(label, odRouteIterator, mode, timePeriod, pathIdType);
     });
@@ -161,78 +151,71 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Write Simulation results for the current time period to the CSV file
    * 
-   * @param outputConfiguration output configuration
+   * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType, the active output type of the configuration we are persisting for
-   *          (can be a suboutputtype)
-   * @param outputAdapter OutputAdapter for current persistence
-   * @param modes Set of modes of travel
-   * @param timePeriod current time period
-   * @param iterationIndex the iterationIndex we are persisting for
+   * @param currentOutputType,      the active output type of the configuration we are persisting for (can be a
+   *                                suboutputtype)
+   * @param outputAdapter           OutputAdapter for current persistence
+   * @param modes                   Set of modes of travel
+   * @param timePeriod              current time period
+   * @param iterationIndex          the iterationIndex we are persisting for
    * @throws PlanItException thrown if there is an error
    */
   @Override
   protected void writeSimulationResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter,
-      Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
+      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
     LOGGER.info("Memory Output for OutputType SIMULATION has not been implemented yet.");
   }
 
   /**
    * Write General results for the current time period to the CSV file
    * 
-   * @param outputConfiguration output configuration
+   * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType, the active output type of the configuration we are persisting for
-   *          (can be a suboutputtype)
-   * @param outputAdapter OutputAdapter for current persistence
-   * @param modes Set of modes of travel
-   * @param timePeriod current time period
-   * @param iterationIndex the iteration index we are persisting for
+   * @param currentOutputType,      the active output type of the configuration we are persisting for (can be a
+   *                                suboutputtype)
+   * @param outputAdapter           OutputAdapter for current persistence
+   * @param modes                   Set of modes of travel
+   * @param timePeriod              current time period
+   * @param iterationIndex          the iteration index we are persisting for
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  protected void writeGeneralResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter,
-      Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
+  protected void writeGeneralResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
+      OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
     LOGGER.info("Memory Output for OutputType GENERAL has not been implemented yet.");
   }
 
   /**
    * Write link results for the current time period to Map in memory
    * 
-   * @param outputConfiguration  outputConfiguration
+   * @param outputConfiguration     outputConfiguration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType, the active output type of the configuration we are persisting for
-   *          (can be a suboutputtype)
-   * @param outputAdapter OutputAdapter for current persistence
-   * @param modes Set of modes of travel
-   * @param timePeriod current time period
-   * @param iterationIndex the iteration index we are persisting for
+   * @param currentOutputType,      the active output type of the configuration we are persisting for (can be a
+   *                                suboutputtype)
+   * @param outputAdapter           OutputAdapter for current persistence
+   * @param modes                   Set of modes of travel
+   * @param timePeriod              current time period
+   * @param iterationIndex          the iteration index we are persisting for
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  protected void writeLinkResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter,
-      Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
+  protected void writeLinkResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
+      OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
     // for links we assume no sub-output types exist (yet), hence this check to make sure we can
     // cast safely
-    if (!(currentOutputType instanceof OutputType) && ((OutputType) currentOutputType) == OutputType.LINK) {
-      String errorMessage = "currentOutputTypeEnum is not compatible with outputTypeconfiguration";
-      throw new PlanItException(errorMessage);
-    }
+    PlanItException.throwIf(!(currentOutputType instanceof OutputType) && ((OutputType) currentOutputType) == OutputType.LINK,
+        "currentOutputTypeEnum is not compatible with outputTypeconfiguration");
+
     OutputType outputType = (OutputType) currentOutputType;
     OutputProperty[] outputProperties = outputValueProperties.get(outputType);
     OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
-    LinkOutputTypeAdapter linkOutputTypeAdapter = (LinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(
-        outputType);
+    LinkOutputTypeAdapter linkOutputTypeAdapter = (LinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
     for (Mode mode : modes) {
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
       for (LinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments()) {
-        if (outputConfiguration.isPersistZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment,
-            mode)) {
-          updateOutputAndKeyValuesForLink(multiKeyPlanItData, outputProperties, outputKeys, linkSegment,
-              linkOutputTypeAdapter, mode, timePeriod);
+        if (outputConfiguration.isPersistZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
+          updateOutputAndKeyValuesForLink(multiKeyPlanItData, outputProperties, outputKeys, linkSegment, linkOutputTypeAdapter, mode, timePeriod);
         }
 
       }
@@ -243,27 +226,25 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Write Origin-Destination results for the time period to the Map in memory
    * 
-   * @param outputConfiguration  outputConfiguration
+   * @param outputConfiguration     outputConfiguration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType, the active output type of the configuration we are persisting for
-   *          (can be a  suboutputtype)
-   * @param outputAdapter OutputAdapter for current persistence
-   * @param modes Set of modes of travel
-   * @param timePeriod current time period
-   * @param iterationIndex the iteration index we are persisting for
+   * @param currentOutputType,      the active output type of the configuration we are persisting for (can be a
+   *                                suboutputtype)
+   * @param outputAdapter           OutputAdapter for current persistence
+   * @param modes                   Set of modes of travel
+   * @param timePeriod              current time period
+   * @param iterationIndex          the iteration index we are persisting for
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  protected void writeOdResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes,
-      TimePeriod timePeriod, int iterationIndex) throws PlanItException {
-    if (!(currentOutputType instanceof SubOutputTypeEnum
-        && ((SubOutputTypeEnum) currentOutputType) instanceof ODSkimSubOutputType)) {
-      // for od data we assume all data is classified into sub output types of type
-      // ODSkimSubOutputType, hence this check to make sure we can cast safely
-      String errorMessage = "currentOutputTypeEnum is not compatible with outputTypeconfiguration";
-      throw new PlanItException(errorMessage);
-    }
+  protected void writeOdResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
+      OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
+
+    // for od data we assume all data is classified into sub output types of type
+    // ODSkimSubOutputType, hence this check to make sure we can cast safely
+    PlanItException.throwIf(!(currentOutputType instanceof SubOutputTypeEnum && ((SubOutputTypeEnum) currentOutputType) instanceof ODSkimSubOutputType),
+        "currentOutputTypeEnum is not compatible with outputTypeconfiguration");
+
     // current sub output type
     ODSkimSubOutputType subOutputType = (ODSkimSubOutputType) currentOutputType;
     // top level output type
@@ -277,10 +258,9 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
       ODSkimMatrix odSkimMatrix = odOutputTypeAdapter.getODSkimMatrix(subOutputType, mode);
       for (ODMatrixIterator odMatrixIterator = odSkimMatrix.iterator(); odMatrixIterator.hasNext();) {
         odMatrixIterator.next();
-        if (outputConfiguration.isPersistZeroFlow() || ((Double) odOutputTypeAdapter.getODOutputPropertyValue(
-            OutputProperty.OD_COST, odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier())) > 0.0) {
-          updateOutputAndKeyValuesForOD(multiKeyPlanItData, outputProperties, outputKeys, odMatrixIterator,
-              odOutputTypeAdapter, mode, timePeriod);
+        if (outputConfiguration.isPersistZeroFlow()
+            || ((Double) odOutputTypeAdapter.getODOutputPropertyValue(OutputProperty.OD_COST, odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier())) > 0.0) {
+          updateOutputAndKeyValuesForOD(multiKeyPlanItData, outputProperties, outputKeys, odMatrixIterator, odOutputTypeAdapter, mode, timePeriod);
         }
       }
       timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
@@ -290,29 +270,27 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Write Path results for the time period to the CSV file
    * 
-   * @param outputConfiguration  outputConfiguration
+   * @param outputConfiguration     outputConfiguration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType the output type we are persisting for
-   * @param outputAdapter OutputAdapter for the current persistence
-   * @param modes Set of modes of travel
-   * @param timePeriod current time period
+   * @param currentOutputType       the output type we are persisting for
+   * @param outputAdapter           OutputAdapter for the current persistence
+   * @param modes                   Set of modes of travel
+   * @param timePeriod              current time period
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  protected void writePathResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputTypeEnum currentOutputType, OutputAdapter outputAdapter,
-      Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
-    if (!(currentOutputType instanceof OutputType) && ((OutputType) currentOutputType) == OutputType.PATH) {
-      // for links we assume no sub-output types exist (yet), hence this check to make sure we can
-      // cast safely
-      String errorMessage = "currentOutputTypeEnum is not compatible with outputTypeconfiguration";
-      throw new PlanItException(errorMessage);
-    }
+  protected void writePathResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
+      OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
+
+    // for links we assume no sub-output types exist (yet), hence this check to make sure we can
+    // cast safely
+    PlanItException.throwIf(!(currentOutputType instanceof OutputType) && ((OutputType) currentOutputType) == OutputType.PATH,
+        "currentOutputTypeEnum is not compatible with outputTypeconfiguration");
+
     OutputType outputType = (OutputType) currentOutputType;
     OutputProperty[] outputProperties = outputValueProperties.get(outputType);
     OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
-    RouteOutputTypeAdapter pathOutputTypeAdapter = (RouteOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(
-        outputType);
+    RouteOutputTypeAdapter pathOutputTypeAdapter = (RouteOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
     PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
     for (Mode mode : modes) {
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
@@ -320,8 +298,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
       for (ODRouteIterator odRouteIterator = odPathMatrix.iterator(); odRouteIterator.hasNext();) {
         odRouteIterator.next();
         if (outputConfiguration.isPersistZeroFlow() || (odRouteIterator.getCurrentValue() != null)) {
-          updateOutputAndKeyValuesForPath(multiKeyPlanItData, outputProperties, outputKeys, odRouteIterator,
-              pathOutputTypeAdapter, mode, timePeriod,
+          updateOutputAndKeyValuesForPath(multiKeyPlanItData, outputProperties, outputKeys, odRouteIterator, pathOutputTypeAdapter, mode, timePeriod,
               pathOutputTypeConfiguration.getPathIdType());
         }
       }
@@ -339,52 +316,45 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Get a specified data value
    * 
-   * @param mode value of mode key
-   * @param timePeriod value of time period key
+   * @param mode           value of mode key
+   * @param timePeriod     value of time period key
    * @param iterationIndex value of iteration index key
-   * @param outputType value of output type key
+   * @param outputType     value of output type key
    * @param outputProperty output property to identify the column
-   * @param keyValues values of keys to identify the row
+   * @param keyValues      values of keys to identify the row
    * @return data map for the specified keys
    * @throws PlanItException thrown if there is an error
    */
-  public Object getOutputDataValue(Mode mode, TimePeriod timePeriod, Integer iterationIndex, OutputType outputType,
-      OutputProperty outputProperty, Object[] keyValues)
+  public Object getOutputDataValue(Mode mode, TimePeriod timePeriod, Integer iterationIndex, OutputType outputType, OutputProperty outputProperty, Object[] keyValues)
       throws PlanItException {
-    MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode,
-        timePeriod, iterationIndex, outputType);
+    MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
     return multiKeyPlanItData.getRowValue(outputProperty, keyValues);
   }
 
   /**
    * Opens all resources used in the formatter
    * 
-   * @param outputTypeConfigurations OutputTypeConfigurations for the assignment that have been
-   *          activated
-   * @param runId the traffic assignments runId
+   * @param outputTypeConfigurations OutputTypeConfigurations for the assignment that have been activated
+   * @param runId                    the traffic assignments runId
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  public void initialiseBeforeSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations, long runId)
-      throws PlanItException {
+  public void initialiseBeforeSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations, long runId) throws PlanItException {
     timeModeOutputTypeIterationDataMap = new MultiKeyMap<Object, MultiKeyPlanItData>();
   }
 
   /**
    * Close all resources used in this formatter
    * 
-   * @param outputTypeConfigurations OutputTypeConfigurations for the assignment that have been
-   *          activated
+   * @param outputTypeConfigurations OutputTypeConfigurations for the assignment that have been activated
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  public void finaliseAfterSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations)
-      throws PlanItException {
+  public void finaliseAfterSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations) throws PlanItException {
   }
 
   /**
-   * Returns the array of output properties representing the output types of the keys for the
-   * current output type
+   * Returns the array of output properties representing the output types of the keys for the current output type
    * 
    * @param outputType the current output type
    * @return array of output properties of the keys
@@ -394,8 +364,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   }
 
   /**
-   * Returns the array of output properties representing the output types of the data values for the
-   * current output type
+   * Returns the array of output properties representing the output types of the data values for the current output type
    * 
    * @param outputType the current output type
    * @return array of output properties of the data values for the current output type
@@ -411,8 +380,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    */
   public int getLastIteration() {
 
-    Set<MultiKey<? extends Object>> keySet = (Set<MultiKey<? extends Object>>) timeModeOutputTypeIterationDataMap
-        .keySet();
+    Set<MultiKey<? extends Object>> keySet = (Set<MultiKey<? extends Object>>) timeModeOutputTypeIterationDataMap.keySet();
     int lastIteration = 0;
     for (MultiKey<? extends Object> multiKey : keySet) {
       Object[] keys = multiKey.getKeys();
@@ -425,8 +393,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Flag to indicate whether an implementation can handle multiple iterations
    * 
-   * If this returns false, acts as though OutputConfiguration.setPersistOnlyFinalIteration() is set
-   * to true
+   * If this returns false, acts as though OutputConfiguration.setPersistOnlyFinalIteration() is set to true
    * 
    * @return flag to indicate whether the OutputFormatter can handle multiple iterations
    */
@@ -438,16 +405,14 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Returns a MemoryOutputIterator for the contents of the specified MultiKeyPlanItData map
    * 
-   * @param mode value of mode key
-   * @param timePeriod value of time period key
+   * @param mode           value of mode key
+   * @param timePeriod     value of time period key
    * @param iterationIndex value of iteration index key
-   * @param outputType value of output type key
+   * @param outputType     value of output type key
    * @return map iterator storing the keys and values of this map
    */
-  public MemoryOutputIterator getIterator(final Mode mode, final TimePeriod timePeriod, final Integer iterationIndex,
-      final OutputType outputType) {
-    MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode,
-        timePeriod, iterationIndex, outputType);
+  public MemoryOutputIterator getIterator(final Mode mode, final TimePeriod timePeriod, final Integer iterationIndex, final OutputType outputType) {
+    MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
     MemoryOutputIterator memoryOutputIterator = new MemoryOutputIterator(multiKeyPlanItData);
     return memoryOutputIterator;
   }
@@ -455,52 +420,43 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Returns the position of a property type in the output values property array
    * 
-   * @param outputType value of output type key
+   * @param outputType          value of output type key
    * @param outputValueProperty the output value property whose position is required
    * @return the position of the output value property
-   * @throws PlanItException thrown if the output property type is not in the output value property
-   *           array
+   * @throws PlanItException thrown if the output property type is not in the output value property array
    */
-  public int getPositionOfOutputValueProperty(final OutputType outputType, final OutputProperty outputValueProperty)
-      throws PlanItException {
-    Set<MultiKey<? extends Object>> keySet = (Set<MultiKey<? extends Object>>) timeModeOutputTypeIterationDataMap
-        .keySet();
+  public int getPositionOfOutputValueProperty(final OutputType outputType, final OutputProperty outputValueProperty) throws PlanItException {
+    Set<MultiKey<? extends Object>> keySet = (Set<MultiKey<? extends Object>>) timeModeOutputTypeIterationDataMap.keySet();
     for (MultiKey<? extends Object> multiKey : keySet) {
       Object[] keys = multiKey.getKeys();
       Mode mode1 = (Mode) keys[0];
       TimePeriod timePeriod1 = (TimePeriod) keys[1];
       Integer iterationIndex1 = (Integer) keys[2];
-      MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode1,
-          timePeriod1, iterationIndex1, outputType);
+      MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode1, timePeriod1, iterationIndex1, outputType);
       OutputType outputType1 = (OutputType) keys[3];
       if (outputType1.equals(outputType)) {
         return multiKeyPlanItData.getPositionOfOutputValueProperty(outputValueProperty);
       }
     }
-    throw new PlanItException("Value property " + outputType.name()
-        + " could not be found in the MemoryOutputFormatter");
+    throw new PlanItException("Value property " + outputType.name() + " could not be found in the MemoryOutputFormatter");
   }
 
   /**
    * Returns the position of a property type in the output key property array
    * 
-   * @param outputType value of output type key
+   * @param outputType        value of output type key
    * @param outputKeyProperty the output key property whose position is required
    * @return the position of the output key property
-   * @throws PlanItException thrown if the output property type is not in the output key property
-   *           array
+   * @throws PlanItException thrown if the output property type is not in the output key property array
    */
-  public int getPositionOfOutputKeyProperty(final OutputType outputType, final OutputProperty outputKeyProperty)
-      throws PlanItException {
-    Set<MultiKey<? extends Object>> keySet = (Set<MultiKey<? extends Object>>) timeModeOutputTypeIterationDataMap
-        .keySet();
+  public int getPositionOfOutputKeyProperty(final OutputType outputType, final OutputProperty outputKeyProperty) throws PlanItException {
+    Set<MultiKey<? extends Object>> keySet = (Set<MultiKey<? extends Object>>) timeModeOutputTypeIterationDataMap.keySet();
     for (MultiKey<? extends Object> multiKey : keySet) {
       Object[] keys = multiKey.getKeys();
       Mode mode1 = (Mode) keys[0];
       TimePeriod timePeriod1 = (TimePeriod) keys[1];
       Integer iterationIndex1 = (Integer) keys[2];
-      MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode1,
-          timePeriod1, iterationIndex1, outputType);
+      MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode1, timePeriod1, iterationIndex1, outputType);
       OutputType outputType1 = (OutputType) keys[3];
       if (outputType1.equals(outputType)) {
         return multiKeyPlanItData.getPositionOfOutputKeyProperty(outputKeyProperty);

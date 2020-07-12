@@ -155,10 +155,8 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   protected PlanItException writeLinkResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
       OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
     try {
-      if (!(currentOutputType instanceof OutputType)) {
-        String errorMessage = "currentOutputType not compatible with link output";
-        throw new PlanItException(errorMessage);
-      }
+      PlanItException.throwIf(!(currentOutputType instanceof OutputType), "currentOutputType not compatible with link output");
+
       OutputType outputType = (OutputType) currentOutputType;
       LinkOutputTypeAdapter linkOutputTypeAdapter = (LinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
       SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
@@ -174,7 +172,6 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
     } catch (PlanItException e) {
       return e;
     } catch (Exception e) {
-      e.printStackTrace();
       LOGGER.severe(e.getMessage());
       return new PlanItException("Error when writing link results for current time period in CSVOutputFileformatter", e);
     }

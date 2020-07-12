@@ -147,10 +147,9 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
           if (previousOriginZoneId != currentOriginZone.getId()) {
 
             final Centroid originCentroid = currentOriginZone.getCentroid();
-            if (originCentroid.getExitEdgeSegments().isEmpty()) {
-              String errorMessage = "Edge segments have not been assigned to Centroid for Zone " + (currentOriginZone.getExternalId());
-              throw new PlanItException(errorMessage);
-            }
+            PlanItException.throwIf(originCentroid.getExitEdgeSegments().isEmpty(),
+                "Edge segments have not been assigned to Centroid for Zone " + (currentOriginZone.getExternalId()));
+
             // UPDATE SHORTEST PATHS
             vertexPathAndCosts = shortestPathAlgorithm.executeOneToAll(originCentroid);
           }
@@ -167,7 +166,8 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
               dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
             } catch (PlanItException pe) {
               LOGGER.warning(pe.getMessage());
-              LOGGER.info("IMPOSSIBLE PATH:  The path from origin zone " + currentOriginZone.getExternalId() + " to destination zone " + currentDestinationZone.getExternalId() + " has infinite cost for mode " +  mode.getName()  + ".");
+              LOGGER.info("IMPOSSIBLE PATH:  The path from origin zone " + currentOriginZone.getExternalId() + " to destination zone " + currentDestinationZone.getExternalId()
+                  + " has infinite cost for mode " + mode.getName() + ".");
             }
           }
           previousOriginZoneId = currentOriginZone.getId();
@@ -199,13 +199,9 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       final int startVertexId = (int) currentPathStartVertex.getId();
       currentEdgeSegment = vertexPathAndCost[startVertexId].getSecond();
       if (currentEdgeSegment == null) {
-        if (currentPathStartVertex instanceof Centroid) {
-          String errorMessage = "The solution could not find an Edge Segment for the connectoid for zone " + ((Centroid) currentPathStartVertex).getParentZone().getExternalId();
-          throw new PlanItException(errorMessage);
-         } else {
-          String errorMessage = "The solution could not find an Edge Segment for node " + ((Node) currentPathStartVertex).getId();
-          throw new PlanItException(errorMessage);
-        }
+        PlanItException.throwIf(currentPathStartVertex instanceof Centroid,
+            "The solution could not find an Edge Segment for the connectoid for zone " + ((Centroid) currentPathStartVertex).getParentZone().getExternalId());
+        throw new PlanItException("The solution could not find an Edge Segment for node " + ((Node) currentPathStartVertex).getId());
       }
       final int edgeSegmentId = (int) currentEdgeSegment.getId();
       shortestPathCost += modalNetworkSegmentCosts[edgeSegmentId];
@@ -221,7 +217,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    * @param currentOriginZone      current origin zone
    * @param currentDestinationZone current destination zone
    * @param odDemand               the odDemand
-   * @param vertexPathAndCosts        array of costs for the specified mode
+   * @param vertexPathAndCosts     array of costs for the specified mode
    */
   private void updateSkimMatrixMap(final Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone,
       final double odDemand, final Pair<Double, EdgeSegment>[] vertexPathAndCosts) {
@@ -443,9 +439,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       if (linkSegment.isModeAllowedThroughLink(mode)) {
         currentSegmentCost = cost.getSegmentCost(mode, linkSegment);
         if (currentSegmentCost < 0.0) {
-          String errorMessage = "Error during calculation of link segment costs";
-          LOGGER.severe(errorMessage);
-          throw new PlanItException(errorMessage);
+          throw new PlanItException("Error during calculation of link segment costs");
         }
       }
       currentSegmentCosts[(int) linkSegment.getId()] = currentSegmentCost;

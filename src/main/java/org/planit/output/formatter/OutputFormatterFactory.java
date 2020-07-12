@@ -26,13 +26,7 @@ public final class OutputFormatterFactory {
     Object newOutputFormatter = null;
     try {
       newOutputFormatter = Class.forName(OutputFormatterCanonicalClassName).getConstructor().newInstance();
-      if (newOutputFormatter == null || !(newOutputFormatter instanceof OutputFormatter)) {
-        String errorMessage = "Provided output formatter class is not eligible for instantiation";
-        throw new PlanItException(errorMessage);
-      }
-    } catch (PlanItException e) {
-      LOGGER.severe(e.getMessage());
-      throw new PlanItException("Error when creating output formatter", e);
+      PlanItException.throwIf(newOutputFormatter == null || !(newOutputFormatter instanceof OutputFormatter), "Provided output formatter class is not eligible for instantiation");
     } catch (Exception e) {
       throw new PlanItException(e);
     }

@@ -149,22 +149,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @throws PlanItException thrown if any components are undefined
    */
   protected void checkForEmptyComponents() throws PlanItException {
-    if (demands == null) {
-      String errorMessage = "Demand is null";
-      throw new PlanItException(errorMessage);
-    }
-    if (physicalNetwork == null) {
-      String errorMessage = "Network is null";
-      throw new PlanItException(errorMessage);
-    }
-    if (smoothing == null) {
-      String errorMessage = "Smoothing is null";
-      throw new PlanItException(errorMessage);
-    }
-    if (zoning == null) {
-      String errorMessage = "Zoning is null";
-      throw new PlanItException(errorMessage);
-    }
+    PlanItException.throwIf(demands == null, "Demand is null");
+    PlanItException.throwIf(physicalNetwork == null, "Network is null");
+    PlanItException.throwIf(smoothing == null, "Smoothing is null");
+    PlanItException.throwIf(zoning == null, "Zoning is null");
   }
 
   /**
@@ -231,7 +219,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   // Public
-  
+
   // short code to choose traditional static assignment as assignment type
   public static String TRADITIONAL_STATIC_ASSIGNMENT = TraditionalStaticAssignment.class.getCanonicalName();
 
@@ -471,10 +459,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
       final EventType requestAccessee = ((InteractorAccessor) physicalCost).getRequestedAccesseeEventType();
       addRegisteredEventTypeListeners(requestAccessee);
       fireEvent(new Event(requestAccessee, this, this.physicalCost));
-      if (!listeners.containsKey(requestAccessee)) {
-        String errorMessage = "Error during setPhysicalCost";
-        throw new PlanItException(errorMessage);
-      }
+      PlanItException.throwIf(!listeners.containsKey(requestAccessee), "Error during setPhysicalCost");
     }
   }
 
@@ -536,7 +521,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   public List<OutputFormatter> getOutputFormatters() {
     return outputManager.getOutputFormatters();
   }
-  
+
   /**
    * Return the simulation data for the current iteration
    *
