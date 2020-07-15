@@ -173,9 +173,6 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
         return;
       } else {
         currentClass = (Class<? extends TrafficAssignmentComponent<?>>) currentClass.getSuperclass(); // move
-                                                                                                      // up
-                                                                                                      // the
-                                                                                                      // hierarchy
       }
     }
     throw new PlanItException("trafficAssignmentComponent not eligible for registration");

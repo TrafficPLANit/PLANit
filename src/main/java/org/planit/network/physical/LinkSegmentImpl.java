@@ -10,8 +10,7 @@ import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
 
 /**
- * Link segment object representing physical links in the network and storing
- * their properties
+ * Link segment object representing physical links in the network and storing their properties
  *
  * @author gman6028
  *
@@ -48,10 +47,8 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
   /**
    * Constructor
    *
-   * @param parentLink
-   *          parent link of segment
-   * @param directionAB
-   *          direction of travel
+   * @param parentLink  parent link of segment
+   * @param directionAB direction of travel
    */
   protected LinkSegmentImpl(final Link parentLink, final boolean directionAB) {
     super(parentLink, directionAB);
@@ -92,22 +89,12 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
   /**
    * Set the maximum speed along this link for a specified mode
    *
-   * @param mode the specified mode
-   * @param maximumSpeed
-   *          maximum speed along this link for the specified mode
+   * @param mode         the specified mode
+   * @param maximumSpeed maximum speed along this link for the specified mode
    */
   @Override
   public void setMaximumSpeed(final Mode mode, final double maximumSpeed) {
     maximumSpeedMap.put(mode, maximumSpeed);
-  }
-
-  /**
-   * Set the Map maximum speed for each mode
-   *
-   * @param maximumSpeedMap Map of speed values for each mode
-   */
-  public void setMaximumSpeedMap(final Map<Mode, Double> maximumSpeedMap) {
-    this.maximumSpeedMap = maximumSpeedMap;
   }
 
   /**
