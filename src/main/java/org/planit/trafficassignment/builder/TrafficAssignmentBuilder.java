@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
+import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.demands.Demands;
 import org.planit.exceptions.PlanItException;
@@ -213,7 +214,8 @@ public abstract class TrafficAssignmentBuilder {
   }
 
   /**
-   * Register the initial link segment cost
+   * Register the initial link segment cost without relating it to a particular period, meaning that it is applied to all
+   * time periods that do not have a specified initial link segment costs registered for them
    *
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    */
@@ -222,13 +224,24 @@ public abstract class TrafficAssignmentBuilder {
   }
 
   /**
+   * Register the initial link segment cost for the time period embedded in it
+   *
+   * @param initialLinkSegmentCostPeriod initial link segment cost for the current traffic assignment
+   * @throws PlanItException thrown if time period in initial costs is null
+   */
+  public void registerInitialLinkSegmentCost(final InitialLinkSegmentCostPeriod initialLinkSegmentCost) throws PlanItException {
+    registerInitialLinkSegmentCost(initialLinkSegmentCost.getTimePeriod(), initialLinkSegmentCost);
+  }
+
+  /**
    * Register the initial link segment cost for a specified time period
    *
    * @param timePeriod             the specified time period
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
+   * @throws PlanItException thrown if time period is null
    */
-  public void registerInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCost initialLinkSegmentCost) {
-    initialLinkSegmentCost.setTimePeriod(timePeriod);
+  public void registerInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCost initialLinkSegmentCost) throws PlanItException {
+    PlanItException.throwIf(timePeriod == null, "time period null when registering initial link segment costs");
     parentAssignment.setInitialLinkSegmentCost(timePeriod, initialLinkSegmentCost);
   }
 

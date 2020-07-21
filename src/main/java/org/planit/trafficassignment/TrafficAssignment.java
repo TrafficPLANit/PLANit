@@ -118,7 +118,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * Map storing InitialLinkSegmentCost objects for each time period
    */
-  protected Map<Long, InitialLinkSegmentCost> initialLinkSegmentCostByTimePeriod;
+  protected Map<TimePeriod, InitialLinkSegmentCost> initialLinkSegmentCostByTimePeriod;
 
   /**
    * create the traffic assignment builder for this traffic assignment
@@ -230,7 +230,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   public TrafficAssignment() {
     super();
     outputManager = new OutputManager(this);
-    initialLinkSegmentCostByTimePeriod = new HashMap<Long, InitialLinkSegmentCost>();
+    initialLinkSegmentCostByTimePeriod = new HashMap<TimePeriod, InitialLinkSegmentCost>();
   }
 
   // Public abstract methods
@@ -417,7 +417,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Set the initial link segment cost
+   * Set the initial link segment cost unrelated to any particular time period, i.e., used for all time periods that do
+   * not have designated initial costs specified for them
    *
    * @param initialLinkSegmentCost the initial link segment cost
    */
@@ -426,13 +427,14 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Set the initial link segment cost for a specified time period
+   * Set the initial link segment cost for a specified time period, otherwise revert to the general initial link segment
+   * cost (if any)
    *
    * @param timePeriod             the specified time period
    * @param initialLinkSegmentCost the initial link segment cost
    */
   public void setInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCost initialLinkSegmentCost) {
-    initialLinkSegmentCostByTimePeriod.put(timePeriod.getId(), initialLinkSegmentCost);
+    initialLinkSegmentCostByTimePeriod.put(timePeriod, initialLinkSegmentCost);
   }
 
   /**

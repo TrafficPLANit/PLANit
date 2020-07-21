@@ -3,13 +3,12 @@ package org.planit.cost.physical.initial;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.planit.time.TimePeriod;
 import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
 
 /**
- * Initial Link Segment Costs
+ * Initial Link Segment Costs stored by mode
  *
  * @author gman6028
  *
@@ -30,13 +29,6 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   protected final long id;
 
   /**
-   * The time period which this initial cost object applies to.
-   *
-   * If this property is not set, this initial cost object applies to all time periods.
-   */
-  protected TimePeriod timePeriod;
-
-  /**
    * Constructor
    */
   public InitialLinkSegmentCost() {
@@ -45,6 +37,12 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
     costPerModeAndLinkSegment = new HashMap<Long, Map<Long, Double>>();
   }
 
+  /**
+   * Are link segment costs available for the given mode
+   * 
+   * @param mode
+   * @return true when available, false otherwise
+   */
   public boolean isSegmentCostsSetForMode(final Mode mode) {
     return costPerModeAndLinkSegment.containsKey(mode.getId());
   }
@@ -52,7 +50,7 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   /**
    * Returns the initial cost for each link segment and mode
    *
-   * @param mode the current mode
+   * @param mode        the current mode
    * @param linkSegment the current link segment
    * @return the cost for this link segment and mode
    */
@@ -65,9 +63,9 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   /**
    * Sets the initial cost for each link segment and mode
    *
-   * @param mode the current mode
+   * @param mode        the current mode
    * @param linkSegment the current link segment
-   * @param cost the initial cost for this link segment and mode
+   * @param cost        the initial cost for this link segment and mode
    */
   @Override
   public void setSegmentCost(final Mode mode, final LinkSegment linkSegment, final double cost) {
@@ -81,11 +79,11 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   /**
    * Sets the initial cost for each link segment and mode
    *
-   * @param mode the current mode
+   * @param mode          the current mode
    * @param linkSegmentId the id of the current link segment
-   * @param cost the initial cost for this link segment and mode
+   * @param cost          the initial cost for this link segment and mode
    *
-   *          At present this method is only used in unit tests.
+   *                      At present this method is only used in unit tests.
    */
   public void setSegmentCost(final Mode mode, final long linkSegmentId, final double cost) {
 
@@ -103,14 +101,6 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   @Override
   public long getId() {
     return id;
-  }
-
-  public TimePeriod getTimePeriod() {
-    return timePeriod;
-  }
-
-  public void setTimePeriod(final TimePeriod timePeriod) {
-    this.timePeriod = timePeriod;
   }
 
 }

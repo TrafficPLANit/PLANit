@@ -53,8 +53,7 @@ import org.planit.utils.network.virtual.Zone;
 import org.planit.utils.output.FormatUtils;
 
 /**
- * Traditional static assignment traffic component. Provides configuration access via the
- * CapacityRestrainedTrafficAssignmentBuilder it instantiates
+ * Traditional static assignment traffic component. Provides configuration access via the CapacityRestrainedTrafficAssignmentBuilder it instantiates
  *
  * @author markr, gman6028
  *
@@ -94,9 +93,8 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   }
 
   /**
-   * Apply smoothing based on current and previous flows and the adopted smoothing method. The smoothed results are
-   * registered as the current segment flows while the current segment flows are assigned to the previous segment flows
-   * (which are discarded).
+   * Apply smoothing based on current and previous flows and the adopted smoothing method. The smoothed results are registered as the current segment flows while the current
+   * segment flows are assigned to the previous segment flows (which are discarded).
    *
    * @param modeData data for the current mode
    */
@@ -387,11 +385,11 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    * @throws PlanItException thrown if there is an error
    */
   private boolean initializeModalLinkSegmentCostsByTimePeriod(final Mode mode, final TimePeriod timePeriod, final double[] currentSegmentCosts) throws PlanItException {
-    final InitialLinkSegmentCost initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod.getId());
+    final InitialLinkSegmentCost initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod);
     if (!initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
       return false;
     }
-    InitialPhysicalCost initialTimePeriodCost = initialLinkSegmentCostByTimePeriod.get(timePeriod.getId());
+    InitialPhysicalCost initialTimePeriodCost = initialLinkSegmentCostByTimePeriod.get(timePeriod);
     setModalLinkSegmentCosts(mode, currentSegmentCosts, initialTimePeriodCost);
     return true;
   }
@@ -399,8 +397,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   /**
    * Initialize the modal link segment costs before the first iteration.
    *
-   * This method uses initial link segment costs if they have been input, otherwise these are calculated from zero start
-   * values
+   * This method uses initial link segment costs if they have been input, otherwise these are calculated from zero start values
    *
    * @param mode       current mode
    * @param timePeriod current time period
@@ -410,7 +407,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   private double[] initializeModalLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
     final double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
     populateModalConnectoidCosts(mode, currentSegmentCosts);
-    if (initialLinkSegmentCostByTimePeriod.containsKey(timePeriod.getId())) {
+    if (initialLinkSegmentCostByTimePeriod.containsKey(timePeriod)) {
       if (initializeModalLinkSegmentCostsByTimePeriod(mode, timePeriod, currentSegmentCosts)) {
         return currentSegmentCosts;
       }
@@ -529,8 +526,8 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   }
 
   /**
-   * Deal with requests for link volume accessees since we are one. Whenever such a request arrives, we provide ourselves
-   * as a candidate and fire a response event of type LinkVolumeAccessee.INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE
+   * Deal with requests for link volume accessees since we are one. Whenever such a request arrives, we provide ourselves as a candidate and fire a response event of type
+   * LinkVolumeAccessee.INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE
    *
    * @param event to process
    */

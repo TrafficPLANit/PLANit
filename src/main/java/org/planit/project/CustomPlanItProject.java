@@ -2,11 +2,11 @@ package org.planit.project;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
+import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.demands.Demands;
 import org.planit.exceptions.PlanItException;
 import org.planit.input.InputBuilderListener;
@@ -304,15 +304,16 @@ public class CustomPlanItProject {
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file for each time period
+   * Create and register initial link segment costs from a (single) file and register it to the provided time period
    *
    * @param network    physical network the InitialLinkSegmentCost object will be registered for
    * @param fileName   location of file containing the initial link segment cost values
-   * @param timePeriod the current time period
-   * @return the InitialLinkSegmentCost object
+   * @param timePeriod to register the initial cost on
+   * @return the InitialLinkSegmentCostPeriod object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName, final TimePeriod timePeriod) throws PlanItException {
+  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName, final TimePeriod timePeriod)
+      throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
   }
 
@@ -321,11 +322,11 @@ public class CustomPlanItProject {
    *
    * @param network  physical network the InitialLinkSegmentCost object will be registered for
    * @param fileName location of file containing the initial link segment cost values
-   * @param demands  the Demands object
-   * @return the InitialLinkSegmentCost object
+   * @param demands  the Demands object to extract all eligible time periods from
+   * @return the InitialLinkSegmentCostPeriod objects
    * @throws PlanItException thrown if there is an error
    */
-  public Map<TimePeriod, InitialLinkSegmentCost> createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName, final Demands demands)
+  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork network, final String fileName, final Demands demands)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, demands);
   }

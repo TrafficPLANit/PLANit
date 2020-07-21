@@ -12,6 +12,7 @@ import org.djutils.event.EventType;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
+import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.SpeedConnectoidTravelTimeCost;
@@ -93,6 +94,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
       registerTrafficAssignmentComponentType(MacroscopicNetwork.class);
       registerTrafficAssignmentComponentType(BPRLinkTravelTimeCost.class);
       registerTrafficAssignmentComponentType(InitialLinkSegmentCost.class);
+      registerTrafficAssignmentComponentType(InitialLinkSegmentCostPeriod.class);
       registerTrafficAssignmentComponentType(FixedConnectoidTravelTimeCost.class);
       registerTrafficAssignmentComponentType(SpeedConnectoidTravelTimeCost.class);
       registerTrafficAssignmentComponentType(NewellFundamentalDiagram.class);
