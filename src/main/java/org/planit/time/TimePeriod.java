@@ -6,8 +6,7 @@ import org.planit.exceptions.PlanItException;
 import org.planit.utils.misc.IdGenerator;
 
 /**
- * Represents a time period within the day. Used to determine the duration and start time of trips for example We
- * internally adopt seconds as the unit
+ * Represents a time period within the day. Used to determine the duration and start time of trips for example We internally adopt seconds as the unit
  * 
  * @author markr
  *

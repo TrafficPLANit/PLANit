@@ -21,20 +21,12 @@ import org.planit.utils.misc.IdGenerator;
 import org.planit.utils.network.physical.Mode;
 
 /**
- * Container class for all demands registered on the project. In PlanIt we assume that all traffic
- * flows between an
- * origin and destination. Hence all demand for a given time period and mode is provided between an
- * origin and
- * destination via ODDemand.
+ * Container class for all demands registered on the project. In PlanIt we assume that all traffic flows between an origin and destination. Hence all demand for a given time period
+ * and mode is provided between an origin and destination via ODDemand.
  *
- * Further, unlike other components, we let anyone register ODDemand compatible instances on this
- * class to provide
- * maximum flexibility in the underlying container since depending on the od data different
- * containers might be
- * preferred for optimizing memory usage. Also not all ODDemand instances on the same Demands
- * instance might utilize the
- * same data structure, hence the need to avoid a general approach across all entries within a
- * Demands instance
+ * Further, unlike other components, we let anyone register ODDemand compatible instances on this class to provide maximum flexibility in the underlying container since depending
+ * on the od data different containers might be preferred for optimizing memory usage. Also not all ODDemand instances on the same Demands instance might utilize the same data
+ * structure, hence the need to avoid a general approach across all entries within a Demands instance
  *
  * @author markr
  *
@@ -116,8 +108,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     }
 
     /**
-     * Returns a set of all registered time periods sorted by the start time, i.e., the way th time
-     * period is comparable
+     * Returns a set of all registered time periods sorted by the start time, i.e., the way th time period is comparable
      * 
      * @return Set of all registered time periods
      */
@@ -139,13 +130,10 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     /**
      * Retrieve a TimePeriod by its external Id
      * 
-     * This method has the option to convert the external Id parameter into a long value, to find
-     * the time period when time
-     * period objects use long values for external ids.
+     * This method has the option to convert the external Id parameter into a long value, to find the time period when time period objects use long values for external ids.
      * 
-     * @param externalId the external Id of the specified time period
-     * @param convertToLong if true, the external Id is converted into a long before beginning the
-     *          search
+     * @param externalId    the external Id of the specified time period
+     * @param convertToLong if true, the external Id is converted into a long before beginning the search
      * @return the retrieved time period, or null if no time period was found
      */
     public TimePeriod getTimePeriodByExternalId(Object externalId, boolean convertToLong) {
@@ -163,11 +151,8 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     /**
      * Retrieve a TimePeriod by its external Id
      * 
-     * This method is not efficient, since it loops through all the registered time periods in order
-     * to find the required
-     * time period. The equivalent method in InputBuilderListener is more efficient and should be
-     * used in preference to this
-     * in Java code.
+     * This method is not efficient, since it loops through all the registered time periods in order to find the required time period. The equivalent method in InputBuilderListener
+     * is more efficient and should be used in preference to this in Java code.
      * 
      * @param externalId the external Id of the specified time period
      * @return the retrieved time period, or null if no time period was found
@@ -224,15 +209,12 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
   /**
    * Register provided odDemand
    *
-   * @param timePeriod the time period for this origin-demand object
-   * @param mode the mode for this origin-demand object
+   * @param timePeriod     the time period for this origin-demand object
+   * @param mode           the mode for this origin-demand object
    * @param odDemandMatrix the origin-demand object to be registered
-   * @return oldODDemand if there already existed an odDemand for the given mode and time period,
-   *         the overwritten entry is
-   *         returned
+   * @return oldODDemand if there already existed an odDemand for the given mode and time period, the overwritten entry is returned
    */
-  public ODDemandMatrix registerODDemand(final TimePeriod timePeriod, final Mode mode,
-      final ODDemandMatrix odDemandMatrix) {
+  public ODDemandMatrix registerODDemand(final TimePeriod timePeriod, final Mode mode, final ODDemandMatrix odDemandMatrix) {
     if (!odDemands.containsKey(timePeriod.getId())) {
       odDemands.put(timePeriod.getId(), new TreeMap<Mode, ODDemandMatrix>());
     }
@@ -242,7 +224,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
   /**
    * Get an ODDemand by mode and time period
    *
-   * @param mode the mode for which the ODDemand object is required
+   * @param mode       the mode for which the ODDemand object is required
    * @param timePeriod the time period for which the ODDemand object is required
    * @return ODDemand object if found, otherwise null
    */
