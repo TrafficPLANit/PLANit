@@ -26,17 +26,22 @@ public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost
   /**
    * Constructor
    */
-  public VirtualCost() {
+  protected VirtualCost() {
     super();
     this.id = IdGenerator.generateId(VirtualCost.class);
   }
+
+  /** short hand for configuring fixed virtual cost instance */
+  public static final String FIXED = FixedConnectoidTravelTimeCost.class.getCanonicalName();
+
+  /** short hand for configuring speed based virtual cost instance */
+  public static final String SPEED = SpeedConnectoidTravelTimeCost.class.getCanonicalName();
 
   /**
    * Initialize the virtual cost component
    *
    * @param virtualNetwork the virtual network
-   * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters
-   *           have been set
+   * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
    */
   public abstract void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException;
 
