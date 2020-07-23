@@ -17,8 +17,12 @@ import org.planit.trafficassignment.TrafficAssignment;
  * 
  * The following OutputProperty values are included by default:
  * 
- * RUN_ID TIME_PERIOD_EXTERNAL_ID MODE_EXTERNAL_ID ORIGIN_ZONE_EXTERNAL_ID
- * DESTINATION_ZONE_EXTERNAL_ID COST
+ * <li>RUN_ID</li>
+ * <li>TIME_PERIOD_EXTERNAL_ID</li>
+ * <li>MODE_EXTERNAL_ID</li>
+ * <li>ORIGIN_ZONE_EXTERNAL_ID<li>
+ * <li>DESTINATION_ZONE_EXTERNAL_ID</li>
+ * <li>OD_COST</li>
  * 
  * 
  * @author markr

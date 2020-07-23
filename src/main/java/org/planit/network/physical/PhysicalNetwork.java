@@ -399,6 +399,13 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     public Mode getModeById(long id) {
       return modeMap.get(id);
     }
+    
+    /** Collect the first registered mode
+     * @return first registered mode if any
+     */
+    public Mode getFirs() {
+      return getModeById(0);
+    }
 
     /**
      * Retrieve a Mode by its external Id

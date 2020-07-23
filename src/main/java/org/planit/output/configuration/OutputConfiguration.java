@@ -37,7 +37,7 @@ public class OutputConfiguration {
   // getters - setters
 
   /**
-   * Set whether only the final iteration will be recorded
+   * Set whether only the final iteration will be recorded (default is true)
    * 
    * @param persistOnlyFinalIteration true if only the final iteration will be recorded
    */
@@ -46,7 +46,7 @@ public class OutputConfiguration {
   }
 
   /**
-   * Returns whether only the final iteration will be recorded
+   * Returns whether only the final iteration will be recorded (default is true)
    * 
    * @return true if only the final iteration will be recorded, false otherwise
    */
@@ -55,7 +55,7 @@ public class OutputConfiguration {
   }
 
   /**
-   * Set whether links and paths with zero flow should be record
+   * Set whether links and paths with zero flow should be record (default is false)
    * 
    * @param persistZeroFlow if true links and paths with zero flow are recorded
    */
@@ -64,7 +64,7 @@ public class OutputConfiguration {
   }
 
   /**
-   * Verify if we are persisting zero flow or not
+   * Verify if we are persisting zero flow or not (default is false)
    * 
    * @return true when persisting zero flows, false otherwise
    */

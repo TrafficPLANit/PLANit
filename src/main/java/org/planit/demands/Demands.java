@@ -84,6 +84,9 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      */
     private Map<Long, TimePeriod> timePeriodMap;
 
+    /**
+     * Constructor
+     */
     public TimePeriods() {
       this.timePeriodMap = new HashMap<Long, TimePeriod>();
     }
@@ -105,6 +108,13 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      */
     public TimePeriod getTimePeriodById(long id) {
       return timePeriodMap.get(id);
+    }
+    
+    /** Collect the first registered time period. This is not necessarily the earliest time period.
+     * @return first registered time period
+     */
+    public TimePeriod getFirst() {
+      return getTimePeriodById(0);
     }
 
     /**
