@@ -73,6 +73,9 @@ public abstract class Configurator<T> {
   }
   
   
+  /**
+   * Contructor
+   */
   protected Configurator() {
     this.delayedMethodCalls =  new HashMap<String,Object[]>();
   }
