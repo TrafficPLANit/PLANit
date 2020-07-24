@@ -36,10 +36,11 @@ public class ConnectoidImpl extends EdgeImpl implements Connectoid {
   /**
    * Generate connectoid id
    *
-   * @return id of connectoid
+   *@param parent for id generation
+   *@return id of connectoid
    */
-  protected static int generateConnectoidId() {
-    return IdGenerator.generateId(Connectoid.class);
+  protected static int generateConnectoidId(Object parent) {
+    return IdGenerator.generateId(parent, Connectoid.class);
   }
 
   // Public
@@ -47,31 +48,33 @@ public class ConnectoidImpl extends EdgeImpl implements Connectoid {
   /**
    * Constructor
    *
-   * @param centroidA the centroid at one end of the connectoid
-   * @param nodeB the node at the other end of the connectoid
-   * @param length length of the current connectoid
-   * @param externalId externalId of the connectoid (can be null, in which case this has not be set
+   *@param parent for id generation
+   *@param centroidA the centroid at one end of the connectoid
+   *@param nodeB the node at the other end of the connectoid
+   *@param length length of the current connectoid
+   *@param externalId externalId of the connectoid (can be null, in which case this has not be set
    *          in the input files)
-   * @throws PlanItException thrown if there is an error
+   *@throws PlanItException thrown if there is an error
    */
-  public ConnectoidImpl(final Centroid centroidA, final Node nodeB, final double length, final Object externalId)
+  public ConnectoidImpl(Object parent, final Centroid centroidA, final Node nodeB, final double length, final Object externalId)
       throws PlanItException {
-    super(centroidA, nodeB, length);
-    this.connectoidId = generateConnectoidId();
+    super(parent, centroidA, nodeB, length);
+    this.connectoidId = generateConnectoidId(parent);
     setExternalId(externalId);
   }
 
   /**
    * Constructor
    *
+   * @param parent for id generation
    * @param centroidA the centroid at one end of the connectoid
    * @param nodeB the node at the other end of the connectoid
    * @param length length of the current connectoid
    * @throws PlanItException thrown if there is an error
    */
-  public ConnectoidImpl(final Centroid centroidA, final Node nodeB, final double length) throws PlanItException {
-    super(centroidA, nodeB, length);
-    this.connectoidId = generateConnectoidId();
+  public ConnectoidImpl(Object parent, final Centroid centroidA, final Node nodeB, final double length) throws PlanItException {
+    super(parent, centroidA, nodeB, length);
+    this.connectoidId = generateConnectoidId(parent);
   }
 
   /**

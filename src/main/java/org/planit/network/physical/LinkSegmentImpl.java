@@ -37,23 +37,25 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
 
   /**
    * Generate unique link segment id
-   *
+   * 
+   * @param parent of this link segment
    * @return id of this link segment
    */
-  protected static int generateLinkSegmentId() {
-    return IdGenerator.generateId(LinkSegment.class);
+  protected static int generateLinkSegmentId(final Object parent) {
+    return IdGenerator.generateId(parent, LinkSegment.class);
   }
 
   /**
    * Constructor
    *
+   * @param parent of this link segment
    * @param parentLink  parent link of segment
    * @param directionAB direction of travel
    */
-  protected LinkSegmentImpl(final Link parentLink, final boolean directionAB) {
-    super(parentLink, directionAB);
+  protected LinkSegmentImpl(final Object parent, final Link parentLink, final boolean directionAB) {
+    super(parent, parentLink, directionAB);
     maximumSpeedMap = new HashMap<Mode, Double>();
-    this.linkSegmentId = generateLinkSegmentId();
+    this.linkSegmentId = generateLinkSegmentId(parent);
   }
 
   // Public

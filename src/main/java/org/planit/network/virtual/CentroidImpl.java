@@ -26,11 +26,12 @@ public class CentroidImpl extends VertexImpl implements Centroid {
   /**
    * Constructor
    *
-   * @param parentZone
+   *@param parent for id generation
+   *@param parentZone
    *          the parent zone of this Centroid
    */
-  public CentroidImpl(final Zone parentZone) {
-    super();
+  public CentroidImpl(Object parent, final Zone parentZone) {
+    super(parent);
     this.parentZone = parentZone;
   }
 

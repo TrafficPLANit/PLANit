@@ -35,10 +35,11 @@ public class LinkImpl extends EdgeImpl implements Link {
   /**
    * generate unique link id
    *
+   *@param parent parent
    * @return linkId
    */
-  protected static long generateLinkId() {
-    return IdGenerator.generateId(Link.class);
+  protected static long generateLinkId(Object parent) {
+    return IdGenerator.generateId(parent, Link.class);
   }
 
   // Public
@@ -52,9 +53,9 @@ public class LinkImpl extends EdgeImpl implements Link {
    * @param name the name of the link
    * @throws PlanItException thrown if there is an error
    */
-  public LinkImpl(final Node nodeA, final Node nodeB, final double length, final String name) throws PlanItException {
-    super(nodeA, nodeB, length);
-    this.linkId = generateLinkId();
+  public LinkImpl(Object parent, final Node nodeA, final Node nodeB, final double length, final String name) throws PlanItException {
+    super(parent, nodeA, nodeB, length);
+    this.linkId = generateLinkId(parent);
   }
 
   /**

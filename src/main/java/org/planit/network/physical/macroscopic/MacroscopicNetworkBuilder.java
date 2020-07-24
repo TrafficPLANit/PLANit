@@ -20,7 +20,12 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  *
  */
 public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
-
+  
+  /**
+   * The parent to uniquely tie each id to for newly created objects
+   */
+  Object parent;
+  
   /**
    * Create a new node
    * 
@@ -29,7 +34,7 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
    */
   @Override
   public Node createNode() {
-    return new NodeImpl();
+    return new NodeImpl(parent);
   }
 
   /**
@@ -45,7 +50,7 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
    */
   @Override
   public Link createLink(Node nodeA, Node nodeB, double length, String name) throws PlanItException {
-    return new LinkImpl(nodeA, nodeB, length, name);
+    return new LinkImpl(parent, nodeA, nodeB, length, name);
   }
 
   /**
@@ -59,7 +64,7 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
    */
   @Override
   public LinkSegment createLinkSegment(Link parentLink, boolean directionAB) {
-    return new MacroscopicLinkSegmentImpl(parentLink, directionAB);
+    return new MacroscopicLinkSegmentImpl(parent, parentLink, directionAB);
   }
 
   /**
@@ -74,6 +79,14 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
    */
   public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity,
       Object externalId, Map<Mode, MacroscopicModeProperties> modeProperties) {
-    return new MacroscopicLinkSegmentTypeImpl(name, capacity, maximumDensity, externalId, modeProperties);
+    return new MacroscopicLinkSegmentTypeImpl(parent, name, capacity, maximumDensity, externalId, modeProperties);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setParent(Object parent) {
+    this.parent = parent;
   }
 }

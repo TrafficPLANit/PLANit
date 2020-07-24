@@ -53,10 +53,11 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   /**
    * Generate next id available
    * 
+   * @param parent parent
    * @return id of this link segment
    */
-  protected static int generateMacroscopicLinkSegmentTypeId() {
-    return IdGenerator.generateId(MacroscopicLinkSegmentType.class);
+  protected static int generateMacroscopicLinkSegmentTypeId(Object parent) {
+    return IdGenerator.generateId(parent, MacroscopicLinkSegmentType.class);
   }
 
   // Public
@@ -64,14 +65,15 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   /**
    * Constructor
    * 
+   * @param parent for id generation
    * @param name name of this link segment type
    * @param capacityPerLane capacity per lane of this link segment type
    * @param maximumDensityPerLane maximum density per lane of this link segment type
    * @param externalId external reference number of the link type
    */
-  public MacroscopicLinkSegmentTypeImpl(String name, double capacityPerLane, double maximumDensityPerLane,
+  public MacroscopicLinkSegmentTypeImpl(Object parent, String name, double capacityPerLane, double maximumDensityPerLane,
       Object externalId) {
-    this.id = generateMacroscopicLinkSegmentTypeId();
+    this.id = generateMacroscopicLinkSegmentTypeId(parent);
     this.name = name;
     this.capacityPerLane = capacityPerLane;
     this.maximumDensityPerLane = maximumDensityPerLane;
@@ -79,9 +81,18 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
     modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
   }
 
-  public MacroscopicLinkSegmentTypeImpl(String name, double capacityPerLane, double maximumDensityPerLane,
+
+  /**
+   * @param parent for id generation
+   * @param name name of this link segment type
+   * @param capacityPerLane capacity per lane of this link segment type
+   * @param maximumDensityPerLane maximum density per lane of this link segment type
+   * @param externalId external reference number of the link type
+   * @param modeProperties mode properties
+   */
+  public MacroscopicLinkSegmentTypeImpl(Object parent, String name, double capacityPerLane, double maximumDensityPerLane,
       Object externalId, Map<Mode, MacroscopicModeProperties> modeProperties) {
-    this(name, capacityPerLane, maximumDensityPerLane, externalId);
+    this(parent, name, capacityPerLane, maximumDensityPerLane, externalId);
     setModeProperties(modeProperties);
   }
 

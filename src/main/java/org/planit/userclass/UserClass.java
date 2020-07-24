@@ -46,13 +46,14 @@ public class UserClass {
   /**
    * Constructor of user class
    *
+   * @param parent for id generation
    * @param externalId id of this user class
    * @param name name of this user class
    * @param mode the mode of travel
    * @param travelerType the travelerType
    */
-  public UserClass(final Object externalId, final String name, final Mode mode, final TravelerType travelerType) {
-    this.id = IdGenerator.generateId(UserClass.class);
+  public UserClass(final Object parent, final Object externalId, final String name, final Mode mode, final TravelerType travelerType) {
+    this.id = IdGenerator.generateId(parent, UserClass.class);
     this.externalId = externalId;
     this.name = name;
     this.travellerType = travelerType;

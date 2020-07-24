@@ -150,9 +150,11 @@ public class RouteImpl implements Route {
 
   /**
    * Constructor
+   * 
+   * @param parent for id generation
    */
-  public RouteImpl() {
-    id = IdGenerator.generateId(RouteImpl.class);
+  public RouteImpl(final Object parent) {
+    id = IdGenerator.generateId(parent, RouteImpl.class);
     path = new ArrayList<EdgeSegment>();
   }
 
@@ -161,8 +163,8 @@ public class RouteImpl implements Route {
    * 
    * @param pathEdgeSegments the path to set (not copied)
    */
-  public RouteImpl(final List<EdgeSegment> pathEdgeSegments) {
-    id = IdGenerator.generateId(RouteImpl.class);
+  public RouteImpl(final Object parent, final List<EdgeSegment> pathEdgeSegments) {
+    id = IdGenerator.generateId(parent, RouteImpl.class);
     path = pathEdgeSegments;
   }
 

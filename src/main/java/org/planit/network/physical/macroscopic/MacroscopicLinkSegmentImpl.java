@@ -36,11 +36,12 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   /**
    * Constructor
    *
-   * @param parentLink  the parent link of this link segment
-   * @param directionAB direction of travel
+   *@param parent parent object for id generation
+   *@param parentLink  the parent link of this link segment
+   *@param directionAB direction of travel
    */
-  public MacroscopicLinkSegmentImpl(final Link parentLink, final boolean directionAB) {
-    super(parentLink, directionAB);
+  public MacroscopicLinkSegmentImpl(Object parent, final Link parentLink, final boolean directionAB) {
+    super(parent, parentLink, directionAB);
   }
 
   /**

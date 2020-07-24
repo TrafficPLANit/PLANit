@@ -13,9 +13,11 @@ public class TampereNodeModel extends NodeModel {
 
   /**
    * Base Constructor
+   * 
+   * @param parent for id generation
    */
-  public TampereNodeModel() {
-    super();
+  public TampereNodeModel(Object parent) {
+    super(parent);
   }
 
 }

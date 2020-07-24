@@ -35,10 +35,11 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
   /**
    * generate unique connectoid segment id
    *
+   * @param parent for id generation
    * @return linkSegmentId
    */
-  protected static int generateConnectoidSegmentId() {
-    return IdGenerator.generateId(ConnectoidSegment.class);
+  protected static int generateConnectoidSegmentId(Object parent) {
+    return IdGenerator.generateId(parent, ConnectoidSegment.class);
   }
 
   // Public
@@ -49,9 +50,9 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
    * @param parentConnectoid parent connectoid
    * @param directionAb direction of travel
    */
-  public ConnectoidSegmentImpl(final Connectoid parentConnectoid, final boolean directionAb) {
-    super(parentConnectoid, directionAb);
-    this.connectoidSegmentId = generateConnectoidSegmentId();
+  public ConnectoidSegmentImpl(Object parent, final Connectoid parentConnectoid, final boolean directionAb) {
+    super(parent, parentConnectoid, directionAb);
+    this.connectoidSegmentId = generateConnectoidSegmentId(parent);
   }
 
   // Public getters - setters

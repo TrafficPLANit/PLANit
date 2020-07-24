@@ -23,10 +23,12 @@ public abstract class NodeModel extends TrafficAssignmentComponent<NodeModel> im
 
   /**
    * Base constructor
+   * 
+   * @param parent for id generation
    */
-  public NodeModel() {
+  public NodeModel(Object parent) {
     super();
-    this.id = IdGenerator.generateId(NodeModel.class);
+    this.id = IdGenerator.generateId(parent, NodeModel.class);
   }
 
   /**

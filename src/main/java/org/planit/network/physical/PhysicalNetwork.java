@@ -501,6 +501,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   public PhysicalNetwork(final PhysicalNetworkBuilder networkBuilder) {
     this.id = IdGenerator.generateId(PhysicalNetwork.class);
     this.networkBuilder = networkBuilder;
+    this.networkBuilder.setParent(this);
   }
 
   /**

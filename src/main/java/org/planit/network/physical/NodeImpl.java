@@ -23,10 +23,11 @@ public class NodeImpl extends VertexImpl implements Node {
   /**
    * generate unique node id
    *
+   *@param parent the parent
    * @return nodeId
    */
-  protected static int generateNodeId() {
-    return IdGenerator.generateId(Node.class);
+  protected static int generateNodeId(Object parent) {
+    return IdGenerator.generateId(parent, Node.class);
   }
 
   /**
@@ -38,9 +39,11 @@ public class NodeImpl extends VertexImpl implements Node {
 
   /**
    * Node constructor
+   * 
+   * @param parent the parent
    */
-  public NodeImpl() {
-    super();
+  public NodeImpl(Object parent) {
+    super(parent);
   }
 
   // Getters-Setters

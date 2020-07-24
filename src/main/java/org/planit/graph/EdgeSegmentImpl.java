@@ -52,8 +52,8 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
    *
    * @return id id of this EdgeSegment
    */
-  protected static int generateEdgeSegmentId() {
-    return IdGenerator.generateId(EdgeSegment.class);
+  protected static int generateEdgeSegmentId(Object parent) {
+    return IdGenerator.generateId(parent, EdgeSegment.class);
   }
 
   // Public
@@ -64,8 +64,8 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
    * @param parentEdge parent edge of segment
    * @param directionAB direction of travel
    */
-  protected EdgeSegmentImpl(final Edge parentEdge, final boolean directionAB) {
-    this.id = generateEdgeSegmentId();
+  protected EdgeSegmentImpl(final Object parent, final Edge parentEdge, final boolean directionAB) {
+    this.id = generateEdgeSegmentId(parent);
     this.parentEdge = parentEdge;
     this.upstreamVertex = directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB();
     this.downstreamVertex = directionAB ? parentEdge.getVertexB() : parentEdge.getVertexA();

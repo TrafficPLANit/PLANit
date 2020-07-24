@@ -65,10 +65,11 @@ public class EdgeImpl implements Edge {
   /**
    * Generate edge id
    *
+   * @param parent parent container for edge 
    * @return id of this Edge object
    */
-  protected static long generateEdgeId() {
-    return IdGenerator.generateId(Edge.class);
+  protected static long generateEdgeId(Object parent) {
+    return IdGenerator.generateId(parent, Edge.class);
   }
 
   // Public
@@ -81,8 +82,8 @@ public class EdgeImpl implements Edge {
    * @param length  length of the link
    * @throws PlanItException thrown if there is an error
    */
-  protected EdgeImpl(final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException {
-    this.id = generateEdgeId();
+  protected EdgeImpl(final Object parent, final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException {
+    this.id = generateEdgeId(parent);
     this.vertexA = vertexA;
     this.vertexB = vertexB;
     this.length = length;

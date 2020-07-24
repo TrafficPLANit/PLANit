@@ -37,9 +37,11 @@ public class TravelerType {
 
   /**
    * Constructor
+   * 
+   * @param parent for id generation
    */
-  public TravelerType() {
-    this.id = IdGenerator.generateId(TravelerType.class);
+  public TravelerType(Object parent) {
+    this.id = IdGenerator.generateId(parent, TravelerType.class);
     this.name = DEFAULT_NAME;
     this.externalId = DEFAULT_EXTERNAL_ID;
   }
@@ -47,12 +49,13 @@ public class TravelerType {
   /**
    * Constructor
    * 
+   * @param parent for id generation
    * @param externaId external id of this traveler type
    * @param name name of this traveler type
    * 
    */
-  public TravelerType(Object externaId, String name) {
-    this.id = IdGenerator.generateId(TravelerType.class);
+  public TravelerType(Object parent, Object externaId, String name) {
+    this.id = IdGenerator.generateId(parent, TravelerType.class);
     this.externalId = externaId;
     this.name = name;
   }
@@ -60,10 +63,11 @@ public class TravelerType {
   /**
    * Constructor
    * 
+   * @param parent for id generation
    * @param name name of this traveler type
    */
-  public TravelerType(String name) {
-    this.id = IdGenerator.generateId(TravelerType.class);
+  public TravelerType(Object parent, String name) {
+    this.id = IdGenerator.generateId(parent, TravelerType.class);
     this.externalId = DEFAULT_EXTERNAL_ID;
     this.name = name;
   }

@@ -52,7 +52,7 @@ public class VirtualNetwork {
      */
     public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length, Object externalId)
         throws PlanItException {
-      Connectoid newConnectoid = new ConnectoidImpl(centroid, node, length, externalId);
+      Connectoid newConnectoid = new ConnectoidImpl(this, centroid, node, length, externalId);
       registerConnectoid(newConnectoid);
       return newConnectoid;
     }
@@ -67,7 +67,7 @@ public class VirtualNetwork {
      * @throws PlanItException thrown if there is an error
      */
     public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length) throws PlanItException {
-      Connectoid newConnectoid = new ConnectoidImpl(centroid, node, length);
+      Connectoid newConnectoid = new ConnectoidImpl(this, centroid, node, length);
       registerConnectoid(newConnectoid);
       return newConnectoid;
     }
@@ -137,7 +137,7 @@ public class VirtualNetwork {
      */
     public ConnectoidSegment createAndRegisterConnectoidSegment(Connectoid parentConnectoid, boolean directionAB)
         throws PlanItException {
-      ConnectoidSegment connectoidSegment = new ConnectoidSegmentImpl(parentConnectoid, directionAB);
+      ConnectoidSegment connectoidSegment = new ConnectoidSegmentImpl(this, parentConnectoid, directionAB);
       parentConnectoid.registerConnectoidSegment(connectoidSegment, directionAB);
       registerConnectoidSegment(connectoidSegment);
       return connectoidSegment;
@@ -189,7 +189,7 @@ public class VirtualNetwork {
      * @return registered new centroid
      */
     public Centroid registerNewCentroid(Zone zone) {
-      Centroid newCentroid = new CentroidImpl(zone);
+      Centroid newCentroid = new CentroidImpl(this, zone);
       registerCentroid(newCentroid);
       return newCentroid;
     }

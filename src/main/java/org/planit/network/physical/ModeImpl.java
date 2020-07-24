@@ -39,12 +39,13 @@ public class ModeImpl implements Mode {
   /**
    * Constructor
    * 
+   * @param parent of this mode
    * @param name the name of this mode
    * @param pcu the PCU value of this mode
    */
 
-  public ModeImpl(String name, double pcu) {
-    this.id = IdGenerator.generateId(Mode.class);
+  public ModeImpl(Object parent, String name, double pcu) {
+    this.id = IdGenerator.generateId(parent, Mode.class);
     this.externalId = DEFAULT_EXTERNAL_ID;
     this.name = name;
     this.pcu = pcu;
@@ -53,12 +54,13 @@ public class ModeImpl implements Mode {
   /**
    * Constructor
    * 
+   * @param parent of this mode 
    * @param externalId the externalId of this mode
    * @param name the name of this mode
    * @param pcu the PCU value of this mode
    */
-  public ModeImpl(Object externalId, String name, double pcu) {
-    this.id = IdGenerator.generateId(ModeImpl.class);
+  public ModeImpl(Object parent, Object externalId, String name, double pcu) {
+    this.id = IdGenerator.generateId(parent, ModeImpl.class);
     this.externalId = externalId;
     this.name = name;
     this.pcu = pcu;

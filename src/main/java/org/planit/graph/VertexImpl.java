@@ -120,10 +120,11 @@ public class VertexImpl implements Vertex {
   /**
    * generate unique node id
    *
+   * @param parent for identifying which parent instance it is registered on 
    * @return nodeId
    */
-  protected static int generateVertexId() {
-    return IdGenerator.generateId(Vertex.class);
+  protected static int generateVertexId(Object parent) {
+    return IdGenerator.generateId(parent, Vertex.class);
   }
 
   /**
@@ -154,8 +155,11 @@ public class VertexImpl implements Vertex {
   /**
    * Constructor
    */
-  protected VertexImpl() {
-    this.id = generateVertexId();
+  /**
+   * @param parent parent object required for correct id generation
+   */
+  protected VertexImpl(Object parent) {
+    this.id = generateVertexId(parent);
   }
 
   // Public

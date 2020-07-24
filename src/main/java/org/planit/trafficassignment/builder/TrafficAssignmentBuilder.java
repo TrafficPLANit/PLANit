@@ -47,10 +47,12 @@ public abstract class TrafficAssignmentBuilder {
    * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
    */
   private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final PhysicalNetwork network) throws PlanItException {
-
-    PlanItException.throwIf(zoning == null || demands == null || network == null, "On or more parameters in registerDemandZoningAndNetwork are null");
-    PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, network.modes),
-        "Zoning structure is incompatible with one or more of the demands, likely the number of zones does not match the number of origins and/or destinations");
+    if(zoning == null || demands == null || network == null) {
+      PlanItException.throwIf(zoning == null, "zoning in registerDemandZoningAndNetwork is null");
+      PlanItException.throwIf(demands == null, "demands in registerDemandZoningAndNetwork is null");
+      PlanItException.throwIf(network == null, "network in registerDemandZoningAndNetwork is null");
+    }
+    PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, network.modes),"Zoning structure is incompatible with one or more of the demands, likely the number of zones does not match the number of origins and/or destinations");
 
     for (final Mode mode : network.modes) {
       for (TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {

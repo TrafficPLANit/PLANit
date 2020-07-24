@@ -38,9 +38,10 @@ public class ZoneImpl implements Zone {
   /**
    * Generate unique id for this zone
    * 
+   * @param parent parent
    * @return id for this zone
    */
-  protected static int generateZoneId() {
+  protected static int generateZoneId(Object parent) {
     return IdGenerator.generateId(Zone.class);
   }
 
@@ -49,11 +50,12 @@ public class ZoneImpl implements Zone {
   /**
    * Constructor
    * 
+   * @param parent for id generation
    * @param externalId the external ID of this zone
    * @param centroid of the zone
    */
-  public ZoneImpl(Object externalId, Centroid centroid) {
-    id = generateZoneId();
+  public ZoneImpl(Object parent, Object externalId, Centroid centroid) {
+    id = generateZoneId(parent);
     this.externalId = externalId;
     this.centroid = centroid;
   }
@@ -61,10 +63,11 @@ public class ZoneImpl implements Zone {
   /**
    * Constructor
    * 
+   * @param parent for id generation
    * @param externalId the external ID of this zone
    */
-  public ZoneImpl(Object externalId) {
-    id = generateZoneId();
+  public ZoneImpl(Object parent, Object externalId) {
+    id = generateZoneId(parent);
     this.externalId = externalId;
     this.centroid = null;
   }

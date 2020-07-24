@@ -20,7 +20,7 @@ public interface PhysicalNetworkBuilder {
    * 
    * @return created node
    */
-  Node createNode();
+  public Node createNode();
 
   /**
    * Create a new mode
@@ -30,7 +30,7 @@ public interface PhysicalNetworkBuilder {
    * @param externalModeId external id of the mode
    * @return created mode
    */
-  default Mode createMode(long externalModeId, String name, double pcu) {
+  public default Mode createMode(long externalModeId, String name, double pcu) {
     return new ModeImpl(externalModeId, name, pcu);
   }
 
@@ -44,7 +44,7 @@ public interface PhysicalNetworkBuilder {
    * @return created link
    * @throws PlanItException thrown if there is an error
    */
-  Link createLink(Node nodeA, Node nodeB, double length, String name) throws PlanItException;
+  public Link createLink(Node nodeA, Node nodeB, double length, String name) throws PlanItException;
 
   /**
    * Create a new physical link segment instance
@@ -53,6 +53,12 @@ public interface PhysicalNetworkBuilder {
    * @param directionAB direction of travel
    * @return linkSegment the created link segment
    */
-  LinkSegment createLinkSegment(Link parentLink, boolean directionAB);
+  public LinkSegment createLinkSegment(Link parentLink, boolean directionAB);
+
+  
+  /** Each builder needs a parent to allow all underlying factory methods to generated ids uniquely tied to this parent
+   * @param parent
+   */
+  public void setParent(Object parent);
 
 }

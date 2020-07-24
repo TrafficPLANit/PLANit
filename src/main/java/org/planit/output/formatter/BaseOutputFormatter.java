@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.output.OutputManager;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
@@ -183,7 +182,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * Constructor
    */
   public BaseOutputFormatter() {
-    this.id = IdGenerator.generateId(OutputManager.class);
+    this.id = IdGenerator.generateId(BaseOutputFormatter.class);
     outputKeyProperties = new HashMap<OutputType, OutputProperty[]>();
     outputValueProperties = new HashMap<OutputType, OutputProperty[]>();
     outputTimeUnit = DEFAULT_TIME_UNIT;
