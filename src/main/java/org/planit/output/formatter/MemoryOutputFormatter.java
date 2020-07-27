@@ -28,6 +28,7 @@ import org.planit.output.enums.RouteIdType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
 
@@ -153,8 +154,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType,      the active output type of the configuration we are persisting for (can be a
-   *                                suboutputtype)
+   * @param currentOutputType,      the active output type of the configuration we are persisting for (can be a suboutputtype)
    * @param outputAdapter           OutputAdapter for current persistence
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
@@ -172,8 +172,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType,      the active output type of the configuration we are persisting for (can be a
-   *                                suboutputtype)
+   * @param currentOutputType,      the active output type of the configuration we are persisting for (can be a suboutputtype)
    * @param outputAdapter           OutputAdapter for current persistence
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
@@ -191,8 +190,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * 
    * @param outputConfiguration     outputConfiguration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType,      the active output type of the configuration we are persisting for (can be a
-   *                                suboutputtype)
+   * @param currentOutputType,      the active output type of the configuration we are persisting for (can be a suboutputtype)
    * @param outputAdapter           OutputAdapter for current persistence
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
@@ -228,8 +226,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * 
    * @param outputConfiguration     outputConfiguration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType,      the active output type of the configuration we are persisting for (can be a
-   *                                suboutputtype)
+   * @param currentOutputType,      the active output type of the configuration we are persisting for (can be a suboutputtype)
    * @param outputAdapter           OutputAdapter for current persistence
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
@@ -308,9 +305,11 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 
   /**
    * Constructor
+   * 
+   * @param groupId, contiguous id generation within this group for instances of this class
    */
-  public MemoryOutputFormatter() {
-    super();
+  public MemoryOutputFormatter(IdGroupingToken groupId) {
+    super(groupId);
   }
 
   /**

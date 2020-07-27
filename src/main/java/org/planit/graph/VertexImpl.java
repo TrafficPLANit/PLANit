@@ -10,7 +10,8 @@ import org.opengis.geometry.DirectPosition;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Node representation connected to one or more entry and exit links
@@ -120,11 +121,11 @@ public class VertexImpl implements Vertex {
   /**
    * generate unique node id
    *
-   * @param parent for identifying which parent instance it is registered on 
+   * @param groupId, contiguous id generation within this group for instances of this class
    * @return nodeId
    */
-  protected static int generateVertexId(Object parent) {
-    return IdGenerator.generateId(parent, Vertex.class);
+  protected static int generateVertexId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, Vertex.class);
   }
 
   /**
@@ -154,12 +155,11 @@ public class VertexImpl implements Vertex {
 
   /**
    * Constructor
+   * 
+   * @param groupId, contiguous id generation within this group for instances of this class
    */
-  /**
-   * @param parent parent object required for correct id generation
-   */
-  protected VertexImpl(Object parent) {
-    this.id = generateVertexId(parent);
+  protected VertexImpl(final IdGroupingToken groupId) {
+    this.id = generateVertexId(groupId);
   }
 
   // Public

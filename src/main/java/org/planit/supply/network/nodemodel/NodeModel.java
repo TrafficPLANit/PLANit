@@ -3,7 +3,7 @@ package org.planit.supply.network.nodemodel;
 import java.io.Serializable;
 
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Node model traffic component
@@ -17,26 +17,12 @@ public abstract class NodeModel extends TrafficAssignmentComponent<NodeModel> im
   private static final long serialVersionUID = -6966680588075724261L;
 
   /**
-   * unique identifier
-   */
-  protected final long id;
-
-  /**
    * Base constructor
    * 
-   * @param parent for id generation
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public NodeModel(Object parent) {
-    super();
-    this.id = IdGenerator.generateId(parent, NodeModel.class);
-  }
-
-  /**
-   * #{@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return this.id;
+  public NodeModel(final IdGroupingToken groupId) {
+    super(groupId, NodeModel.class);
   }
 
 }

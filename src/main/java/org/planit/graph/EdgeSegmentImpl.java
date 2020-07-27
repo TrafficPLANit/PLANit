@@ -3,16 +3,14 @@ package org.planit.graph;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
- * EdgeSegment represents an edge in a particular (single) direction. Each edge
- * has either one or two edge segments where each edge segment may have a more
- * detailed geography than its parent link (which represents both directions via
- * a centreline)
+ * EdgeSegment represents an edge in a particular (single) direction. Each edge has either one or two edge segments where each edge segment may have a more detailed geography than
+ * its parent link (which represents both directions via a centreline)
  *
- * This class is now abstract. It is extended by LinkSegment (physical links) and Connectoid
- * (virtual links).
+ * This class is now abstract. It is extended by LinkSegment (physical links) and Connectoid (virtual links).
  *
  * @author markr
  *
@@ -50,10 +48,11 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
   /**
    * Generate unique edge segment id
    *
+   * @param groupId contiguous id generation within this group for instances of this class
    * @return id id of this EdgeSegment
    */
-  protected static int generateEdgeSegmentId(Object parent) {
-    return IdGenerator.generateId(parent, EdgeSegment.class);
+  protected static int generateEdgeSegmentId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, EdgeSegment.class);
   }
 
   // Public
@@ -61,11 +60,12 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
   /**
    * Constructor
    *
-   * @param parentEdge parent edge of segment
+   * @param groupId     contiguous id generation within this group for instances of this class
+   * @param parentEdge  parent edge of segment
    * @param directionAB direction of travel
    */
-  protected EdgeSegmentImpl(final Object parent, final Edge parentEdge, final boolean directionAB) {
-    this.id = generateEdgeSegmentId(parent);
+  protected EdgeSegmentImpl(final IdGroupingToken groupId, final Edge parentEdge, final boolean directionAB) {
+    this.id = generateEdgeSegmentId(groupId);
     this.parentEdge = parentEdge;
     this.upstreamVertex = directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB();
     this.downstreamVertex = directionAB ? parentEdge.getVertexB() : parentEdge.getVertexA();

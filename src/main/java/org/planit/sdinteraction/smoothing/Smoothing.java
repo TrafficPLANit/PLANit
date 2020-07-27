@@ -3,7 +3,7 @@ package org.planit.sdinteraction.smoothing;
 import java.io.Serializable;
 
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Smoothing class to smooth data, such as path flows or other types of flows or traffic data between iterations
@@ -16,28 +16,16 @@ public abstract class Smoothing extends TrafficAssignmentComponent<Smoothing> im
   /** generated UID */
   private static final long serialVersionUID = -3124652824035047922L;
 
-  /**
-   * unique identifier
-   */
-  protected final long id;
-
   /** short hand for configuring smoothing with MSA instance */
   public static final String MSA = MSASmoothing.class.getCanonicalName();
 
   /**
    * Base constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public Smoothing() {
-    super();
-    this.id = IdGenerator.generateId(Smoothing.class);
-  }
-
-  /**
-   * #{@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return this.id;
+  public Smoothing(final IdGroupingToken groupId) {
+    super(groupId, Smoothing.class);
   }
 
   /**

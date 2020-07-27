@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
 
@@ -13,25 +14,26 @@ import org.planit.utils.network.physical.Mode;
  * @author gman6028
  *
  */
-public abstract class InitialPhysicalCost extends TrafficAssignmentComponent<InitialPhysicalCost> implements
-    AbstractPhysicalCost, Serializable {
+public abstract class InitialPhysicalCost extends TrafficAssignmentComponent<InitialPhysicalCost> implements AbstractPhysicalCost, Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = -7894043964147010621L;
 
   /**
    * Constructor
+   * 
+   * @param groupId, contiguous id generation within this group for instances of this class
    */
-  public InitialPhysicalCost() {
-    super();
+  public InitialPhysicalCost(IdGroupingToken groupId) {
+    super(groupId, InitialPhysicalCost.class);
   }
 
   /**
    * Set the initial cost for a specified mode and link segment
    * 
-   * @param mode the current mode
+   * @param mode        the current mode
    * @param linkSegment the current link segment
-   * @param cost the initial cost for this mode and link segment
+   * @param cost        the initial cost for this mode and link segment
    */
   public abstract void setSegmentCost(Mode mode, LinkSegment linkSegment, double cost);
 

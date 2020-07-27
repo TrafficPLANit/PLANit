@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkSegmentImpl;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
@@ -22,6 +23,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   private static final long serialVersionUID = 4574164258794764853L;
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());
 
   // Protected
@@ -36,12 +38,12 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   /**
    * Constructor
    *
-   *@param parent parent object for id generation
-   *@param parentLink  the parent link of this link segment
-   *@param directionAB direction of travel
+   * @param groupId     contiguous id generation within this group for instances of this class
+   * @param parentLink  the parent link of this link segment
+   * @param directionAB direction of travel
    */
-  public MacroscopicLinkSegmentImpl(Object parent, final Link parentLink, final boolean directionAB) {
-    super(parent, parentLink, directionAB);
+  public MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) {
+    super(groupId, parentLink, directionAB);
   }
 
   /**
@@ -57,8 +59,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   }
 
   /**
-   * Compute the free flow travel time by mode, i.e. when the link's maximum speed might be capped by the mode's maximum
-   * speed
+   * Compute the free flow travel time by mode, i.e. when the link's maximum speed might be capped by the mode's maximum speed
    *
    * If the input data are invalid, this method logs the problem and returns a negative value.
    *

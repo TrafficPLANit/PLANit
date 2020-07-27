@@ -7,13 +7,11 @@ import org.planit.input.InputBuilderListener;
 import org.planit.od.odroute.ODRouteMatrix;
 import org.planit.route.choice.logit.LogitChoiceModel;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
- * Stochastic route choice component. Stochasticity is reflected by the fact that the route choice
- * is applied by means
- * of a logit model, to be configured here. Also, due to being stochastic the route can/must be
- * provided beforehand.
- * This is also configured via this class
+ * Stochastic route choice component. Stochasticity is reflected by the fact that the route choice is applied by means of a logit model, to be configured here. Also, due to being
+ * stochastic the route can/must be provided beforehand. This is also configured via this class
  *
  * @author markr
  *
@@ -24,6 +22,7 @@ public class StochasticRouteChoice extends RouteChoice {
   private static final long serialVersionUID = 6617920674217225019L;
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StochasticRouteChoice.class.getCanonicalName());
 
   /**
@@ -41,28 +40,16 @@ public class StochasticRouteChoice extends RouteChoice {
    */
   protected ODRouteMatrix odRouteSet = null;
 
-  // register ourselves to be eligible on PLANit
-  static {
-    try {
-      TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(StochasticRouteChoice.class);
-    } catch (final PlanItException e) {
-      LOGGER.severe(e.getMessage());
-      e.printStackTrace();
-    }
-  }
-
   /**
    * Constructor
-   *
-   * @param trafficComponentCreateListener the listener
+   * 
+   * @param groupId                        contiguous id generation within this group for instances of this class
+   * @param trafficComponentCreateListener thelistener to fire notify of create events when we create a logit choice model
    */
-  public StochasticRouteChoice(final InputBuilderListener trafficComponentCreateListener) {
-    super(trafficComponentCreateListener);
+  public StochasticRouteChoice(final IdGroupingToken groupId, final InputBuilderListener trafficComponentCreateListener) {
+    super(groupId);
     logitChoiceModelFactory = new TrafficAssignmentComponentFactory<LogitChoiceModel>(LogitChoiceModel.class);
-
-    // register for creation events
-    logitChoiceModelFactory.addListener(trafficComponentCreateListener,
-        TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    logitChoiceModelFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
   }
 
   /**

@@ -3,6 +3,7 @@ package org.planit.trafficassignment;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
 import org.planit.trafficassignment.builder.CapacityConstrainedTrafficAssignmentBuilder;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Capacity constrained traffic assignment component
@@ -36,9 +37,11 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 
   /**
    * Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public CapacityConstrainedAssignment() {
-    super();
+  protected CapacityConstrainedAssignment(IdGroupingToken groupId) {
+    super(groupId);
   }
 
   // Getters - Setters

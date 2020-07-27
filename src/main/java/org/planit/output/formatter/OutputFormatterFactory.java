@@ -3,6 +3,7 @@ package org.planit.output.formatter;
 import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Factory to create output writers of any compatible type
@@ -13,6 +14,7 @@ import org.planit.exceptions.PlanItException;
 public final class OutputFormatterFactory {
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(OutputFormatterFactory.class.getCanonicalName());
 
   /**
@@ -25,7 +27,7 @@ public final class OutputFormatterFactory {
   public static OutputFormatter createOutputFormatter(String OutputFormatterCanonicalClassName) throws PlanItException {
     Object newOutputFormatter = null;
     try {
-      newOutputFormatter = Class.forName(OutputFormatterCanonicalClassName).getConstructor().newInstance();
+      newOutputFormatter = Class.forName(OutputFormatterCanonicalClassName).getConstructor().newInstance(IdGroupingToken.collectGlobalToken());
       PlanItException.throwIf(newOutputFormatter == null || !(newOutputFormatter instanceof OutputFormatter), "Provided output formatter class is not eligible for instantiation");
     } catch (Exception e) {
       throw new PlanItException(e);

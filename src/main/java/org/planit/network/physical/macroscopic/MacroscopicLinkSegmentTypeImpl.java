@@ -3,15 +3,15 @@ package org.planit.network.physical.macroscopic;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 
 /**
- * Each macroscopic link segment is of a particular type reflecting segment
- * specific properties. On top of the segment specific properties each segment
- * can have user class specific properties as well.
+ * Each macroscopic link segment is of a particular type reflecting segment specific properties. On top of the segment specific properties each segment can have user class specific
+ * properties as well.
  * 
  * @author markr
  *
@@ -53,11 +53,11 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   /**
    * Generate next id available
    * 
-   * @param parent parent
+   * @param groupId contiguous id generation within this group for instances of this class
    * @return id of this link segment
    */
-  protected static int generateMacroscopicLinkSegmentTypeId(Object parent) {
-    return IdGenerator.generateId(parent, MacroscopicLinkSegmentType.class);
+  protected static int generateMacroscopicLinkSegmentTypeId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, MacroscopicLinkSegmentType.class);
   }
 
   // Public
@@ -65,15 +65,15 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   /**
    * Constructor
    * 
-   * @param parent for id generation
-   * @param name name of this link segment type
-   * @param capacityPerLane capacity per lane of this link segment type
+   * @param groupId               contiguous id generation within this group for instances of this class
+   * @param name                  name of this link segment type
+   * @param capacityPerLane       capacity per lane of this link segment type
    * @param maximumDensityPerLane maximum density per lane of this link segment type
-   * @param externalId external reference number of the link type
+   * @param externalId            external reference number of the link type
    */
-  public MacroscopicLinkSegmentTypeImpl(Object parent, String name, double capacityPerLane, double maximumDensityPerLane,
-      Object externalId) {
-    this.id = generateMacroscopicLinkSegmentTypeId(parent);
+  public MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane,
+      final Object externalId) {
+    this.id = generateMacroscopicLinkSegmentTypeId(groupId);
     this.name = name;
     this.capacityPerLane = capacityPerLane;
     this.maximumDensityPerLane = maximumDensityPerLane;
@@ -81,18 +81,17 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
     modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
   }
 
-
   /**
-   * @param parent for id generation
-   * @param name name of this link segment type
-   * @param capacityPerLane capacity per lane of this link segment type
+   * @param groupId               contiguous id generation within this group for instances of this class
+   * @param name                  name of this link segment type
+   * @param capacityPerLane       capacity per lane of this link segment type
    * @param maximumDensityPerLane maximum density per lane of this link segment type
-   * @param externalId external reference number of the link type
-   * @param modeProperties mode properties
+   * @param externalId            external reference number of the link type
+   * @param modeProperties        mode properties
    */
-  public MacroscopicLinkSegmentTypeImpl(Object parent, String name, double capacityPerLane, double maximumDensityPerLane,
-      Object externalId, Map<Mode, MacroscopicModeProperties> modeProperties) {
-    this(parent, name, capacityPerLane, maximumDensityPerLane, externalId);
+  public MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane, final Object externalId,
+      Map<Mode, MacroscopicModeProperties> modeProperties) {
+    this(groupId, name, capacityPerLane, maximumDensityPerLane, externalId);
     setModeProperties(modeProperties);
   }
 

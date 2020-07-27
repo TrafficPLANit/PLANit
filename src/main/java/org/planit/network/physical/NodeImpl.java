@@ -4,7 +4,8 @@
 package org.planit.network.physical;
 
 import org.planit.graph.VertexImpl;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
 
 /**
@@ -21,13 +22,18 @@ public class NodeImpl extends VertexImpl implements Node {
   private static final long serialVersionUID = 8237965522827691852L;
 
   /**
+   * Unique node identifier
+   */
+  protected final long nodeId;
+
+  /**
    * generate unique node id
    *
-   *@param parent the parent
+   * @param groupId contiguous id generation within this group for instances of this class
    * @return nodeId
    */
-  protected static int generateNodeId(Object parent) {
-    return IdGenerator.generateId(parent, Node.class);
+  protected static int generateNodeId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, Node.class);
   }
 
   /**
@@ -40,29 +46,45 @@ public class NodeImpl extends VertexImpl implements Node {
   /**
    * Node constructor
    * 
-   * @param parent the parent
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public NodeImpl(Object parent) {
-    super(parent);
+  public NodeImpl(final IdGroupingToken groupId) {
+    super(groupId);
+    this.nodeId = generateNodeId(groupId);
   }
 
   // Getters-Setters
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Object getExternalId() {
     return externalId;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void setExternalId(final Object externalId) {
     this.externalId = externalId;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean hasExternalId() {
     return (externalId != null);
   }
-  
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long getNodeId() {
+    return nodeId;
+  }
 
 }

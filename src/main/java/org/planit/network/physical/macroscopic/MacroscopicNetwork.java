@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
@@ -21,6 +22,7 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 public class MacroscopicNetwork extends PhysicalNetwork {
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(MacroscopicNetwork.class.getCanonicalName());
 
   // Protected
@@ -34,8 +36,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
   protected Map<Long, MacroscopicLinkSegmentType> macroscopicLinkSegmentTypeByIdMap = new TreeMap<Long, MacroscopicLinkSegmentType>();
 
   /**
-   * Map containing the BPR parameters for link segment and mode, if these are specified in the network file (null if
-   * default values are being used)
+   * Map containing the BPR parameters for link segment and mode, if these are specified in the network file (null if default values are being used)
    */
   protected Map<MacroscopicLinkSegment, Map<Mode, Pair<Double, Double>>> bprParametersForLinkSegmentAndMode;
 
@@ -43,9 +44,11 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 
   /**
    * Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public MacroscopicNetwork() {
-    super(new MacroscopicNetworkBuilder());
+  public MacroscopicNetwork(final IdGroupingToken groupId) {
+    super(groupId, new MacroscopicNetworkBuilder());
   }
 
   /**
@@ -64,8 +67,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
 
     PlanItException.throwIf(!(networkBuilder instanceof MacroscopicNetworkBuilder), "Macroscopic network perspective only allows macroscopic link segment types to be registered");
 
-    MacroscopicLinkSegmentType linkSegmentType = 
-        ((MacroscopicNetworkBuilder) networkBuilder).createLinkSegmentType(name, capacity, maximumDensity, linkSegmentExternalId,modeProperties);
+    MacroscopicLinkSegmentType linkSegmentType = ((MacroscopicNetworkBuilder) networkBuilder).createLinkSegmentType(name, capacity, maximumDensity, linkSegmentExternalId,
+        modeProperties);
     registerLinkSegmentType(linkSegmentType);
     return linkSegmentType;
   }
@@ -93,8 +96,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
   /**
    * Retrieve a link segment type by its external Id
    * 
-   * This method has the option to convert the external Id parameter into a long value, to find the link segment type when
-   * link segment type objects use long values for external ids.
+   * This method has the option to convert the external Id parameter into a long value, to find the link segment type when link segment type objects use long values for external
+   * ids.
    * 
    * @param externalId    the external Id of the specified link segment type
    * @param convertToLong if true, the external Id is converted into a long before beginning the search
@@ -116,9 +119,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
   /**
    * Retrieve a link segment type by its external Id
    * 
-   * This method is not efficient, since it loops through all the registered modes in order to find the required link
-   * segment type. The equivalent method in InputBuilderListener is more efficient and should be used in preference to
-   * this in Java code.
+   * This method is not efficient, since it loops through all the registered modes in order to find the required link segment type. The equivalent method in InputBuilderListener is
+   * more efficient and should be used in preference to this in Java code.
    * 
    * @param externalId the external Id of the specified link segment type
    * @return the retrieved link segment type, or null if no link segment type was found

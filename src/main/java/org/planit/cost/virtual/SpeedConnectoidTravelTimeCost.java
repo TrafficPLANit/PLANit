@@ -2,6 +2,7 @@ package org.planit.cost.virtual;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.VirtualNetwork;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
@@ -25,16 +26,18 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
 
   /**
    * Constructor
+   * 
+   * @param groupId, contiguous id generation within this group for instances of this class
    */
-  public SpeedConnectoidTravelTimeCost() {
-    super();
+  public SpeedConnectoidTravelTimeCost(IdGroupingToken groupId) {
+    super(groupId);
     connectoidSpeed = DEFAULT_CONNECTOID_SPEED_KPH;
   }
 
   /**
    * Return the connectoid travel time using speed
    *
-   * @param mode the mode of travel
+   * @param mode              the mode of travel
    * @param connectoidSegment the connectoid segment
    * @return the travel time for this connectoid segment
    */

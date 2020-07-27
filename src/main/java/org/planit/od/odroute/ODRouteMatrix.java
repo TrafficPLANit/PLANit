@@ -1,9 +1,10 @@
 package org.planit.od.odroute;
 
-import org.planit.network.virtual.Zoning;
+import org.planit.network.virtual.Zoning.Zones;
 import org.planit.od.ODDataImpl;
 import org.planit.route.Route;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.virtual.Zone;
 
 /**
@@ -27,11 +28,12 @@ public class ODRouteMatrix extends ODDataImpl<Route> {
   /**
    * Constructor
    *
-   * @param zones the zones being used
+   * @param groupId contiguous id generation within this group for instances of this class
+   * @param zones   the zones being used
    */
-  public ODRouteMatrix(final Zoning.Zones zones) {
+  public ODRouteMatrix(final IdGroupingToken groupId, final Zones zones) {
     super(zones);
-    this.id = IdGenerator.generateId(ODRouteMatrix.class);
+    this.id = IdGenerator.generateId(groupId, ODRouteMatrix.class);
     final int numberOfTravelAnalysisZones = zones.getNumberOfZones();
     matrixContents = new Route[numberOfTravelAnalysisZones][numberOfTravelAnalysisZones];
   }
@@ -39,7 +41,7 @@ public class ODRouteMatrix extends ODDataImpl<Route> {
   /**
    * Returns the path for a specified origin and destination
    *
-   * @param origin the specified origin zone
+   * @param origin      the specified origin zone
    * @param destination the specified destination zone
    * @return the path from the origin to the destination
    */
@@ -53,9 +55,9 @@ public class ODRouteMatrix extends ODDataImpl<Route> {
   /**
    * Set the path from a specified origin to a specified destination
    *
-   * @param origin the specified origin zone
+   * @param origin      the specified origin zone
    * @param destination the specified destination zone
-   * @param path the Path object from the origin to the destination
+   * @param path        the Path object from the origin to the destination
    *
    */
   @Override

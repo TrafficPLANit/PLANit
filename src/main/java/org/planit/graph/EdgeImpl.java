@@ -7,11 +7,12 @@ import org.planit.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
- * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a
- * particular direction which may carry additional information for each particular direction of the edge.
+ * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry additional information for each
+ * particular direction of the edge.
  *
  * @author markr
  *
@@ -65,11 +66,11 @@ public class EdgeImpl implements Edge {
   /**
    * Generate edge id
    *
-   * @param parent parent container for edge 
+   * @param groupId, contiguous id generation within this group for instances of this class
    * @return id of this Edge object
    */
-  protected static long generateEdgeId(Object parent) {
-    return IdGenerator.generateId(parent, Edge.class);
+  protected static long generateEdgeId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, Edge.class);
   }
 
   // Public
@@ -77,13 +78,14 @@ public class EdgeImpl implements Edge {
   /**
    * Constructor which injects link lengths directly
    *
-   * @param vertexA first vertex in the link
-   * @param vertexB second vertex in the link
-   * @param length  length of the link
+   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param vertexA  first vertex in the link
+   * @param vertexB  second vertex in the link
+   * @param length   length of the link
    * @throws PlanItException thrown if there is an error
    */
-  protected EdgeImpl(final Object parent, final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException {
-    this.id = generateEdgeId(parent);
+  protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException {
+    this.id = generateEdgeId(groupId);
     this.vertexA = vertexA;
     this.vertexB = vertexB;
     this.length = length;

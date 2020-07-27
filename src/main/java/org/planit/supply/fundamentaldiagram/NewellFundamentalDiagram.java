@@ -1,5 +1,7 @@
 package org.planit.supply.fundamentaldiagram;
 
+import org.planit.utils.id.IdGroupingToken;
+
 /**
  * Newell fundamental diagram traffic component
  *
@@ -12,10 +14,12 @@ public class NewellFundamentalDiagram extends FundamentalDiagram {
   private static final long serialVersionUID = -3166623064510413929L;
 
   /**
-   * Base constructor
+   * Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public NewellFundamentalDiagram() {
-    super();
+  public NewellFundamentalDiagram(final IdGroupingToken groupId) {
+    super(groupId);
   }
 
 }

@@ -12,16 +12,13 @@ import org.planit.trafficassignment.DynamicTrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 
 /**
- * A dynamic traffic assignment builder is assumed to only support capacity constrained traffic
- * assignment
- * instances. It is used to build the traffic assignment instance with the proper configuration
- * settings
+ * A dynamic traffic assignment builder is assumed to only support capacity constrained traffic assignment instances. It is used to build the traffic assignment instance with the
+ * proper configuration settings
  *
  * @author markr
  *
  */
-public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficAssignmentBuilder implements
-    RouteChoiceBuilder {
+public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficAssignmentBuilder implements RouteChoiceBuilder {
 
   // needed to allow route choice to register inputbuilder listener on its traffic components
   private final InputBuilderListener trafficComponentCreateListener;
@@ -32,20 +29,15 @@ public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficA
   /**
    * Constructor
    *
-   * @param assignment the dynamic assignment
-   * @param trafficComponentCreateListener the listener for further traffic components that are
-   *          created by the builder
-   * @param demands the demands
-   * @param zoning the zoning
-   * @param physicalNetwork the physical network
+   * @param assignment                     the dynamic assignment
+   * @param trafficComponentCreateListener the listener for further traffic components that are created by the builder
+   * @param demands                        the demands
+   * @param zoning                         the zoning
+   * @param physicalNetwork                the physical network
    * @throws PlanItException thrown if there is an exception
    */
-  public DynamicTrafficAssignmentBuilder(
-      final DynamicTrafficAssignment assignment,
-      final InputBuilderListener trafficComponentCreateListener,
-      final Demands demands,
-      final Zoning zoning,
-      final PhysicalNetwork physicalNetwork) throws PlanItException {
+  public DynamicTrafficAssignmentBuilder(final DynamicTrafficAssignment assignment, final InputBuilderListener trafficComponentCreateListener, final Demands demands,
+      final Zoning zoning, final PhysicalNetwork physicalNetwork) throws PlanItException {
     super(assignment, trafficComponentCreateListener, demands, zoning, physicalNetwork);
     this.trafficComponentCreateListener = trafficComponentCreateListener;
     routeChoiceFactory = new TrafficAssignmentComponentFactory<RouteChoice>(RouteChoice.class);
@@ -56,8 +48,7 @@ public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficA
    */
   @Override
   public RouteChoice createAndRegisterRouteChoice(final String routeChoiceType) throws PlanItException {
-    final RouteChoice routeChoice =
-        routeChoiceFactory.createWithConstructorArguments(routeChoiceType, trafficComponentCreateListener);
+    final RouteChoice routeChoice = routeChoiceFactory.create(routeChoiceType);
     ((DynamicTrafficAssignment) parentAssignment).setRouteChoice(routeChoice);
     return routeChoice;
   }
@@ -67,11 +58,9 @@ public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficA
   /**
    * Create and Register smoothing component
    *
-   * @param smoothingType
-   *          the type of smoothing component to be created
+   * @param smoothingType the type of smoothing component to be created
    * @return Smoothing object created
-   * @throws PlanItException
-   *           thrown if there is an error
+   * @throws PlanItException thrown if there is an error
    */
   @Override
   public Smoothing createAndRegisterSmoothing(final String smoothingType) throws PlanItException {

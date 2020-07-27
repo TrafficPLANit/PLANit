@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.planit.graph.EdgeSegmentImpl;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
@@ -12,7 +13,7 @@ import org.planit.utils.network.physical.Mode;
 /**
  * Link segment object representing physical links in the network and storing their properties
  *
- * @author gman6028
+ * @author gman6028, markr
  *
  */
 public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
@@ -38,24 +39,24 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
   /**
    * Generate unique link segment id
    * 
-   * @param parent of this link segment
+   * @param groupId, contiguous id generation within this group for instances of this class
    * @return id of this link segment
    */
-  protected static int generateLinkSegmentId(final Object parent) {
-    return IdGenerator.generateId(parent, LinkSegment.class);
+  protected static int generateLinkSegmentId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, LinkSegment.class);
   }
 
   /**
    * Constructor
    *
-   * @param parent of this link segment
+   * @param groupId,    contiguous id generation within this group for instances of this class
    * @param parentLink  parent link of segment
    * @param directionAB direction of travel
    */
-  protected LinkSegmentImpl(final Object parent, final Link parentLink, final boolean directionAB) {
-    super(parent, parentLink, directionAB);
+  protected LinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) {
+    super(groupId, parentLink, directionAB);
     maximumSpeedMap = new HashMap<Mode, Double>();
-    this.linkSegmentId = generateLinkSegmentId(parent);
+    this.linkSegmentId = generateLinkSegmentId(groupId);
   }
 
   // Public

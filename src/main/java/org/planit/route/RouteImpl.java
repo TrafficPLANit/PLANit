@@ -1,7 +1,6 @@
 package org.planit.route;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
@@ -9,18 +8,15 @@ import java.util.function.Function;
 import org.planit.output.enums.RouteIdType;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.misc.IdGenerator;
-import org.planit.utils.misc.Pair;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
-import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
- * This object creates a route of LinkSegment objects to a specified destination using the
- * vertexPathAndCost object created by the (Dijkstra) Shortest Path Algorithm
+ * This object creates a route of LinkSegment objects to a specified destination using the vertexPathAndCost object created by the (Dijkstra) Shortest Path Algorithm
  *
- * The path creation makes use of the fact that the origin pair will have a null EdgeSegment, so
- * there is no need to specify the origin.
+ * The path creation makes use of the fact that the origin pair will have a null EdgeSegment, so there is no need to specify the origin.
  *
  * @author gman6028
  *
@@ -36,37 +32,6 @@ public class RouteImpl implements Route {
    * List containing the edge segments in the path
    */
   private final List<EdgeSegment> path;
-
-  /**
-   * Create the route from an implicit origin to a specified destination, using the
-   * vertexPathAndCost array as input
-   * coming from a shortest path algorithm output
-   *
-   * This method makes use of the fact that the origin pair in the vertexPathAndCost array has a
-   * null EdgeSegment.
-   * It searches through vertexPathAndCost from the destination centroid until it finds a null
-   * EdgeSegment, which must
-   * represent the origin centroid. This is quicker than doing an instanceof test to determine
-   * whether the upstream vertex is a physical node.
-   *
-   * @param destination the specified destination zone
-   * @param vertexPathAndCost the vertexPathAndCost array (previously calculated by the traffic
-   *          assignment)
-   * @return the route that is created
-   */
-  public static RouteImpl createODRoute(final Centroid destination,
-      final Pair<Double, EdgeSegment>[] vertexPathAndCost) {
-    long downstreamVertexId = destination.getId();
-    EdgeSegment edgeSegment = vertexPathAndCost[(int) downstreamVertexId].getSecond();
-    final List<EdgeSegment> pathEdgeSegments = new ArrayList<EdgeSegment>();
-    while (edgeSegment != null) {
-      pathEdgeSegments.add(edgeSegment);
-      downstreamVertexId = edgeSegment.getUpstreamVertex().getId();
-      edgeSegment = vertexPathAndCost[(int) downstreamVertexId].getSecond();
-    }
-    Collections.reverse(pathEdgeSegments);
-    return new RouteImpl(pathEdgeSegments);
-  }
 
   /**
    * Returns the path as a String of comma-separated node Id or external Id values
@@ -151,20 +116,21 @@ public class RouteImpl implements Route {
   /**
    * Constructor
    * 
-   * @param parent for id generation
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public RouteImpl(final Object parent) {
-    id = IdGenerator.generateId(parent, RouteImpl.class);
+  protected RouteImpl(final IdGroupingToken groupId) {
+    id = IdGenerator.generateId(groupId, Route.class);
     path = new ArrayList<EdgeSegment>();
   }
 
   /**
    * Constructor
    * 
+   * @param groupId          contiguous id generation within this group for instances of this class
    * @param pathEdgeSegments the path to set (not copied)
    */
-  public RouteImpl(final Object parent, final List<EdgeSegment> pathEdgeSegments) {
-    id = IdGenerator.generateId(parent, RouteImpl.class);
+  protected RouteImpl(final IdGroupingToken groupId, final List<EdgeSegment> pathEdgeSegments) {
+    id = IdGenerator.generateId(groupId, Route.class);
     path = pathEdgeSegments;
   }
 
@@ -213,14 +179,14 @@ public class RouteImpl implements Route {
   @Override
   public String toString(final RouteIdType pathOutputType) {
     switch (pathOutputType) {
-      case LINK_SEGMENT_EXTERNAL_ID:
-        return getRouteByEdgeSegmentExternalIdString();
-      case LINK_SEGMENT_ID:
-        return getRouteByEdgeSegmentIdString();
-      case NODE_EXTERNAL_ID:
-        return getRouteByNodeExternalIdString();
-      case NODE_ID:
-        return getRouteByNodeIdString();
+    case LINK_SEGMENT_EXTERNAL_ID:
+      return getRouteByEdgeSegmentExternalIdString();
+    case LINK_SEGMENT_ID:
+      return getRouteByEdgeSegmentIdString();
+    case NODE_EXTERNAL_ID:
+      return getRouteByNodeExternalIdString();
+    case NODE_ID:
+      return getRouteByNodeIdString();
     }
     return "";
   }

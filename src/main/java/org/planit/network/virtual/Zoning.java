@@ -7,13 +7,12 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.demands.Demands;
-import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork.Modes;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.Zone;
@@ -30,17 +29,8 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   private static final long serialVersionUID = -2986366471146628179L;
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(Zoning.class.getCanonicalName());
-
-  // register to be eligible in PLANit
-  static {
-    try {
-      TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(Zoning.class);
-    } catch (final PlanItException e) {
-      LOGGER.severe(e.getMessage());
-      e.printStackTrace();
-    }
-  }
 
   /**
    * Internal class for all zone specific code
@@ -65,7 +55,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
      * @return the new zone created
      */
     public Zone createAndRegisterNewZone(final Object externalId) {
-      final ZoneImpl newZone = new ZoneImpl(this, externalId);
+      final ZoneImpl newZone = new ZoneImpl(groupId, externalId);
       final Centroid centroid = virtualNetwork.centroids.registerNewCentroid(newZone);
       newZone.setCentroid(centroid);
       registerZone(newZone);
@@ -118,7 +108,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   /**
    * Virtual network holds all the virtual connections to the physical network
    */
-  protected final VirtualNetwork virtualNetwork = new VirtualNetwork();
+  protected final VirtualNetwork virtualNetwork;
 
   // Public
 
@@ -129,10 +119,13 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
 
   /**
    * Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public Zoning() {
-    super();
-    this.id = IdGenerator.generateId(Zoning.class);
+  public Zoning(IdGroupingToken groupId) {
+    super(groupId, Zoning.class);
+    this.id = IdGenerator.generateId(groupId, Zoning.class);
+    virtualNetwork = new VirtualNetwork(this.groupId);
   }
 
   // Public - getters - setters
@@ -155,12 +148,11 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   }
 
   /**
-   * Verify if passed in demands are compatible with the zoning structure. Compatibility is ensured
-   * when the number of
-   * zones matches the number of origins/destinations in the demands.
+   * Verify if passed in demands are compatible with the zoning structure. Compatibility is ensured when the number of zones matches the number of origins/destinations in the
+   * demands.
    * 
    * @param demands to verify against
-   * @param modes to check
+   * @param modes   to check
    * @return true when compatible, false otherwise
    */
   public boolean isCompatibleWithDemands(Demands demands, Modes modes) {

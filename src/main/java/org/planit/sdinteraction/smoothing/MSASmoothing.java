@@ -1,5 +1,7 @@
 package org.planit.sdinteraction.smoothing;
 
+import org.planit.utils.id.IdGroupingToken;
+
 /**
  * MSA smoothing object
  *
@@ -18,9 +20,11 @@ public class MSASmoothing extends Smoothing {
 
   /**
    * Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public MSASmoothing() {
-    super();
+  public MSASmoothing(IdGroupingToken groupId) {
+    super(groupId);
   }
 
   /**
@@ -45,8 +49,7 @@ public class MSASmoothing extends Smoothing {
    * #{@inheritDoc}
    */
   @Override
-  public double[] applySmoothing(final double[] previousValues, final double[] proposedValues,
-      final int numberOfValues) {
+  public double[] applySmoothing(final double[] previousValues, final double[] proposedValues, final int numberOfValues) {
     final double[] smoothedValues = new double[numberOfValues];
     for (int i = 0; i < numberOfValues; ++i) {
       smoothedValues[i] = (1 - stepSize) * previousValues[i] + stepSize * proposedValues[i];

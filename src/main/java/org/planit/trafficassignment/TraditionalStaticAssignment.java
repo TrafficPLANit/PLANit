@@ -36,13 +36,14 @@ import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticRouteOutputTypeAdapter;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
-import org.planit.route.RouteImpl;
+import org.planit.route.Route;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TraditionalStaticAssignmentBuilder;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.utils.arrays.ArrayOperations;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
@@ -83,7 +84,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    * @throws PlanItException thrown if there is an error
    */
   private void initialiseTimePeriod(final Set<Mode> modes) throws PlanItException {
-    simulationData = new TraditionalStaticAssignmentSimulationData(outputManager);
+    simulationData = new TraditionalStaticAssignmentSimulationData(groupId, outputManager);
     simulationData.setIterationIndex(0);
     simulationData.getModeSpecificData().clear();
     for (final Mode mode : modes) {
@@ -153,7 +154,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
           }
 
           if (outputManager.isOutputTypeActive(OutputType.PATH)) {
-            final RouteImpl route = RouteImpl.createODRoute(currentDestinationZone.getCentroid(), vertexPathAndCosts);
+            final Route route = Route.createRoute(groupId, currentDestinationZone.getCentroid(), vertexPathAndCosts);
             odRouteMatrix.setValue(currentOriginZone, currentDestinationZone, route);
           }
 
@@ -479,9 +480,11 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
   /**
    * Base Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public TraditionalStaticAssignment() {
-    super();
+  public TraditionalStaticAssignment(IdGroupingToken groupId) {
+    super(groupId);
     simulationData = null;
   }
 

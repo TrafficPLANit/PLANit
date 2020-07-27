@@ -14,10 +14,9 @@ import org.planit.exceptions.PlanItException;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.userclass.TravelerType;
 import org.planit.userclass.UserClass;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Mode;
 
 /**
@@ -34,6 +33,7 @@ import org.planit.utils.network.physical.Mode;
 public class Demands extends TrafficAssignmentComponent<Demands> implements Serializable {
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(Demands.class.getCanonicalName());
 
   // Protected
@@ -42,34 +42,242 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
   private static final long serialVersionUID = 144798248371260732L;
 
   /**
-   * Map of registered User Classes
-   */
-  private Map<Long, UserClass> userClassMap;
-
-  /**
-   * Map of registered Traveler Types
-   */
-  private Map<Long, TravelerType> travelerTypeMap;
-
-  // register to be eligible in PLANit
-  static {
-    try {
-      TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(Demands.class);
-    } catch (final PlanItException e) {
-      LOGGER.severe(e.getMessage());
-      e.printStackTrace();
-    }
-  }
-
-  /**
-   * unique identifier for this demand set
-   */
-  protected long id;
-
-  /**
    * Trip demand matrices
    */
   protected final TreeMap<Long, TreeMap<Mode, ODDemandMatrix>> odDemands;
+
+  /**
+   * Inner class to register and store traveler types for the current demand object
+   * 
+   * @author markr
+   *
+   */
+  public class TravelerTypes implements Iterable<TravelerType> {
+
+    /**
+     * traveler types are stored in an ordered fashion using a hash map
+     */
+    private final Map<Long, TravelerType> travelerTypeMap;
+
+    /**
+     * Register a traveler type
+     * 
+     * @param travelerType traveler type to be registered
+     */
+    protected void registerTravelerType(TravelerType travelerType) {
+      travelerTypeMap.put(travelerType.getId(), travelerType);
+    }
+
+    /**
+     * Constructor
+     */
+    public TravelerTypes() {
+      this.travelerTypeMap = new HashMap<Long, TravelerType>();
+    }
+
+    /**
+     * Factory method to create and register a new travel type on the demands
+     * 
+     * @param externalId
+     * @param name
+     * @return new traveler type created
+     */
+    public TravelerType createAndRegisterNewTravelerType(long externalId, String name) {
+      TravelerType newTravelerType = new TravelerType(groupId, externalId, name);
+      registerTravelerType(newTravelerType);
+      return newTravelerType;
+    }
+
+    /**
+     * Retrieve a traveler type by its id
+     * 
+     * @param id id of the traveler type
+     * @return retrieved traveler type, if not present null is returned
+     */
+    public TravelerType getTravelerTypeById(final long id) {
+      return travelerTypeMap.get(id);
+    }
+
+    /**
+     * Collect the first registered traveler type.
+     * 
+     * @return first registered traveler type
+     */
+    public TravelerType getFirst() {
+      return getTravelerTypeById(0);
+    }
+
+    /**
+     * Iterator for traveler types (non-sorted)
+     * 
+     * @return iterator
+     */
+    @Override
+    public Iterator<TravelerType> iterator() {
+      return travelerTypeMap.values().iterator();
+    }
+
+    /**
+     * Retrieve a TravelerType by its external Id
+     * 
+     * This method has the option to convert the external Id parameter into a long value, to find the traveler type when using long values for external ids.
+     * 
+     * @param externalId    the external Id of the specified traveler type
+     * @param convertToLong if true, the external Id is converted into a long before beginning the search
+     * @return the retrieved traveler type, or null if no user class was found
+     */
+    public TravelerType getTravelerTypeByExternalId(Object externalId, boolean convertToLong) {
+      if (convertToLong) {
+        try {
+          long value = Long.valueOf(externalId.toString());
+          return getTravelerTypeByExternalId(value);
+        } catch (NumberFormatException e) {
+          // do nothing - if conversion to long is not possible, use the general method instead
+        }
+      }
+      return getTravelerTypeByExternalId(externalId);
+    }
+
+    /**
+     * Retrieve a TravelerType by its external Id
+     * 
+     * This method is not efficient, since it loops through all the registered traveler type in order to find the required entry.
+     * 
+     * @param externalId the external Id of the specified traveler type
+     * @return the retrieved traveler type, or null if no traveler type was found
+     */
+    public TravelerType getTravelerTypeByExternalId(Object externalId) {
+      for (TravelerType travelerType : travelerTypes) {
+        if (travelerType.getExternalId().equals(externalId)) {
+          return travelerType;
+        }
+      }
+      return null;
+    }
+
+    /**
+     * Collect the number of registered traveler types
+     * 
+     * @return number of registered traveler types
+     */
+    public int getNumberOfTravelerTypes() {
+      return travelerTypeMap.size();
+    }
+
+  }
+
+  /**
+   * Inner class to register and store user classes for the current demand object
+   * 
+   * @author markr
+   *
+   */
+  public class UserClasses implements Iterable<UserClass> {
+
+    /**
+     * user classes are stored in an ordered fashion using a hash map
+     */
+    private final Map<Long, UserClass> userClassMap;
+
+    /**
+     * Register a user class
+     * 
+     * @param userClass user class to be registered
+     */
+    protected void registerUserClass(UserClass userClass) {
+      userClassMap.put(userClass.getId(), userClass);
+    }
+
+    /**
+     * Constructor
+     */
+    public UserClasses() {
+      this.userClassMap = new HashMap<Long, UserClass>();
+    }
+
+    /**
+     * Factory method to create and register a new user class on the demands
+     * 
+     * @param externalId    the external id for this user class
+     * @param name          the name for this user class
+     * @param mode          the mode for this user class
+     * @param travellerType the travel type for this user class
+     * @return new traveler type created
+     */
+    public UserClass createAndRegisterNewUserClass(long externalId, String name, Mode mode, TravelerType travellerType) {
+      UserClass newUserClass = new UserClass(groupId, externalId, name, mode, travellerType);
+      registerUserClass(newUserClass);
+      return newUserClass;
+    }
+
+    /**
+     * Retrieve a user class by its id
+     * 
+     * @param id id of the user class
+     * @return retrieved user class
+     */
+    public UserClass getUserClassById(final long id) {
+      return userClassMap.get(id);
+    }
+
+    /**
+     * Collect the first registered user class.
+     * 
+     * @return first registered user class
+     */
+    public UserClass getFirst() {
+      return getUserClassById(0);
+    }
+
+    /**
+     * Iterator for user classes (non-sorted)
+     * 
+     * @return iterator
+     */
+    @Override
+    public Iterator<UserClass> iterator() {
+      return userClassMap.values().iterator();
+    }
+
+    /**
+     * Retrieve a UserClass by its external Id
+     * 
+     * This method has the option to convert the external Id parameter into a long value, to find the user class when using long values for external ids.
+     * 
+     * @param externalId    the external Id of the specified user class
+     * @param convertToLong if true, the external Id is converted into a long before beginning the search
+     * @return the retrieved user class, or null if no user class was found
+     */
+    public UserClass getUserClassByExternalId(Object externalId, boolean convertToLong) {
+      if (convertToLong) {
+        try {
+          long value = Long.valueOf(externalId.toString());
+          return getUserClassByExternalId(value);
+        } catch (NumberFormatException e) {
+          // do nothing - if conversion to long is not possible, use the general method instead
+        }
+      }
+      return getUserClassByExternalId(externalId);
+    }
+
+    /**
+     * Retrieve a UserClass by its external Id
+     * 
+     * This method is not efficient, since it loops through all the registered user classes in order to find the required entry.
+     * 
+     * @param externalId the external Id of the specified user class
+     * @return the retrieved user class, or null if no user class was found
+     */
+    public UserClass getUserClassByExternalId(Object externalId) {
+      for (UserClass userClass : userClasses) {
+        if (userClass.getExternalId().equals(externalId)) {
+          return userClass;
+        }
+      }
+      return null;
+    }
+
+  }
 
   /**
    * Inner class to register and store time periods for the current demand object
@@ -80,9 +288,18 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
   public class TimePeriods implements Iterable<TimePeriod> {
 
     /**
-     * time periods are stored in an ordered fashion using a tree map
+     * time periods are stored using a hashmap
      */
-    private Map<Long, TimePeriod> timePeriodMap;
+    private final Map<Long, TimePeriod> timePeriodMap;
+
+    /**
+     * Register a time period
+     * 
+     * @param timePeriod time period to be registered
+     */
+    protected void registerTimePeriod(final TimePeriod timePeriod) {
+      timePeriodMap.put(timePeriod.getId(), timePeriod);
+    }
 
     /**
      * Constructor
@@ -92,12 +309,19 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     }
 
     /**
-     * Register a time period
+     * Factory method to create and register a new time period on the demands
      * 
-     * @param timePeriod time period to be registered
+     * @param externalId       the external id for this time period
+     * @param description      the description for this time period
+     * @param startTimeSeconds the start time in seconds since midnight (00:00)
+     * @param durationSeconds  the duration in seconds since start time
+     * @return new time period created
+     * @throws PlanItException thrown if start time and/or duration are invalid
      */
-    public void registerTimePeriod(TimePeriod timePeriod) {
-      timePeriodMap.put(timePeriod.getId(), timePeriod);
+    public TimePeriod createAndRegisterNewTimePeriod(long externalId, String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
+      TimePeriod newTimePeriod = new TimePeriod(groupId, externalId, description, startTimeSeconds, durationSeconds);
+      registerTimePeriod(newTimePeriod);
+      return newTimePeriod;
     }
 
     /**
@@ -106,11 +330,13 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @param id id of the time period
      * @return retrieved time period
      */
-    public TimePeriod getTimePeriodById(long id) {
+    public TimePeriod getTimePeriodById(final long id) {
       return timePeriodMap.get(id);
     }
-    
-    /** Collect the first registered time period. This is not necessarily the earliest time period.
+
+    /**
+     * Collect the first registered time period. This is not necessarily the earliest time period.
+     * 
      * @return first registered time period
      */
     public TimePeriod getFirst() {
@@ -146,7 +372,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @param convertToLong if true, the external Id is converted into a long before beginning the search
      * @return the retrieved time period, or null if no time period was found
      */
-    public TimePeriod getTimePeriodByExternalId(Object externalId, boolean convertToLong) {
+    public TimePeriod getTimePeriodByExternalId(final Object externalId, final boolean convertToLong) {
       if (convertToLong) {
         try {
           long value = Long.valueOf(externalId.toString());
@@ -161,13 +387,12 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     /**
      * Retrieve a TimePeriod by its external Id
      * 
-     * This method is not efficient, since it loops through all the registered time periods in order to find the required time period. The equivalent method in InputBuilderListener
-     * is more efficient and should be used in preference to this in Java code.
+     * This method is not efficient, since it loops through all the registered time periods in order to find the required time period.
      * 
      * @param externalId the external Id of the specified time period
      * @return the retrieved time period, or null if no time period was found
      */
-    public TimePeriod getTimePeriodByExternalId(Object externalId) {
+    public TimePeriod getTimePeriodByExternalId(final Object externalId) {
       for (TimePeriod timePeriod : timePeriods) {
         if (timePeriod.getExternalId().equals(externalId)) {
           return timePeriod;
@@ -179,30 +404,28 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
   }
 
   /**
-   * internal class instance containing all link specific functionality
+   * internal class instance containing all time periods on this demand instance
    */
   public final TimePeriods timePeriods = new TimePeriods();
 
   /**
-   * Constructor
+   * internal class instance containing all user classes on this demand instance
    */
-  public Demands() {
-    super();
-    this.id = IdGenerator.generateId(Demands.class);
-    odDemands = new TreeMap<Long, TreeMap<Mode, ODDemandMatrix>>();
-    userClassMap = new HashMap<Long, UserClass>();
-    travelerTypeMap = new HashMap<Long, TravelerType>();
-  }
+  public final UserClasses userClasses = new UserClasses();
 
   /**
-   * Returns a set of all registered time periods
-   * 
-   * This method should only be used by the Python interface.
-   * 
-   * @return Set of all registered time periods
+   * internal class instance containing all traveler types on this demand instance
    */
-  public Set<TimePeriod> getRegisteredTimePeriods() {
-    return timePeriods.asSortedSetByStartTime();
+  public final TravelerTypes travelerTypes = new TravelerTypes();
+
+  /**
+   * Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
+   */
+  public Demands(IdGroupingToken groupId) {
+    super(groupId, Demands.class);
+    odDemands = new TreeMap<Long, TreeMap<Mode, ODDemandMatrix>>();
   }
 
   /**
@@ -214,6 +437,28 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
    */
   public TimePeriods getTimePeriods() {
     return timePeriods;
+  }
+
+  /**
+   * Retrieve the UserClasses local class
+   * 
+   * This method should only be called by the Python interface
+   * 
+   * @return the user classes
+   */
+  public UserClasses getUserClasses() {
+    return userClasses;
+  }
+
+  /**
+   * Retrieve the TravelerTypes local class
+   * 
+   * This method should only be called by the Python interface
+   * 
+   * @return the traveler types
+   */
+  public TravelerTypes getTravelerTypes() {
+    return travelerTypes;
   }
 
   /**
@@ -259,53 +504,6 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     } else {
       return null;
     }
-  }
-
-  /**
-   * Return the id of this demand object
-   *
-   * @return id of this demand object
-   */
-  public long getId() {
-    return this.id;
-  }
-
-  /**
-   * Register UserClass
-   * 
-   * @param userClass the UserClass to be registered
-   */
-  public void registerUserClass(UserClass userClass) {
-    userClassMap.put(userClass.getId(), userClass);
-  }
-
-  /**
-   * Retrieve UserClass by its Id
-   * 
-   * @param id the Id of the UserClass
-   * @return the retrieved UserClass
-   */
-  public UserClass getUserClassById(long id) {
-    return userClassMap.get(id);
-  }
-
-  /**
-   * Register TravelerType
-   * 
-   * @param travelerType the TravelerType to be registered
-   */
-  public void registerTravelerType(TravelerType travelerType) {
-    travelerTypeMap.put(travelerType.getId(), travelerType);
-  }
-
-  /**
-   * Retrieve TravelerType by its Id
-   * 
-   * @param id the Id of the TravelerType
-   * @return the retrieved TravelerType
-   */
-  public TravelerType getTravelerTypeById(long id) {
-    return travelerTypeMap.get(id);
   }
 
 }

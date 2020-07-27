@@ -2,6 +2,7 @@ package org.planit.cost.virtual;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.VirtualNetwork;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
@@ -27,9 +28,10 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
    *
    * Constructor
    *
+   * @param groupId, contiguous id generation within this group for instances of this class
    */
-  public FixedConnectoidTravelTimeCost() {
-    super();
+  public FixedConnectoidTravelTimeCost(IdGroupingToken groupId) {
+    super(groupId);
   }
 
   /**
@@ -37,7 +39,7 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
    * Calculates the connectoid segment cost using a fixed travel time
    *
    *
-   * @param mode mode of travel
+   * @param mode              mode of travel
    * @param connectoidSegment the connectoid segment
    * @return the travel time for the specified connectoid segment
    */
@@ -52,8 +54,7 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
    *
    *
    * @param virtualNetwork the virtual network
-   * @throws PlanItException thrown if a link/mode combination exists for which no
-   *           cost parameters have been set
+   * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
    */
   @Override
   public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException {

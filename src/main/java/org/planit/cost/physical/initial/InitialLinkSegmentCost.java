@@ -3,7 +3,7 @@ package org.planit.cost.physical.initial;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
 
@@ -24,16 +24,12 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   protected Map<Long, Map<Long, Double>> costPerModeAndLinkSegment;
 
   /**
-   * Unique id of the initial link segment cost
-   */
-  protected final long id;
-
-  /**
    * Constructor
+   * 
+   * @param groupId, contiguous id generation within this group for instances of this class
    */
-  public InitialLinkSegmentCost() {
-    super();
-    this.id = IdGenerator.generateId(InitialLinkSegmentCost.class);
+  public InitialLinkSegmentCost(IdGroupingToken groupId) {
+    super(groupId);
     costPerModeAndLinkSegment = new HashMap<Long, Map<Long, Double>>();
   }
 

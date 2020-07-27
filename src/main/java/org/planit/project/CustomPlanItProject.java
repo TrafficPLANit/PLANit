@@ -25,12 +25,12 @@ import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * The top-level class which hosts a single project.
  *
- * A project can consist of multiple networks, demands and traffic assignments all based on a single configuration (user
- * classes, modes etc.)
+ * A project can consist of multiple networks, demands and traffic assignments all based on a single configuration (user classes, modes etc.)
  *
  * @author markr
  *
@@ -108,8 +108,7 @@ public class CustomPlanItProject {
   }
 
   /**
-   * The input container holding all traffic assignment input components and related functionality with respect to project
-   * management
+   * The input container holding all traffic assignment input components and related functionality with respect to project management
    */
   protected final PlanItProjectInput inputs;
 
@@ -191,19 +190,18 @@ public class CustomPlanItProject {
     this.inputBuilderListener = inputBuilderListener;
 
     // connect inputs
-    this.inputs = new PlanItProjectInput(inputBuilderListener);
+    this.inputs = new PlanItProjectInput(IdGroupingToken.collectGlobalToken(), inputBuilderListener);
     this.physicalNetworks = inputs.physicalNetworks;
     this.demands = inputs.demands;
     this.zonings = inputs.zonings;
     this.odRouteSets = inputs.odRouteSets;
-    outputFormatters = new TreeMap<Long, OutputFormatter>();
+    this.outputFormatters = new TreeMap<Long, OutputFormatter>();
 
     initialiseFactories();
   }
 
   /**
-   * Register a class that we allow to be instantiated as a concrete implementation of a traffic assignment component that
-   * can be used in PLANit
+   * Register a class that we allow to be instantiated as a concrete implementation of a traffic assignment component that can be used in PLANit
    * 
    * @param theClazz the class that we want to mark as eligible from an outside source
    * @throws PlanItException thrown if class cannot be registered
@@ -291,8 +289,7 @@ public class CustomPlanItProject {
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file which we assume are available in the native
-   * xml/csv output format as provided in this project
+   * Create and register initial link segment costs from a (single) file which we assume are available in the native xml/csv output format as provided in this project
    *
    * @param network  physical network the InitialLinkSegmentCost object will be registered for
    * @param fileName file containing the initial link segment cost values
@@ -369,11 +366,9 @@ public class CustomPlanItProject {
   /**
    * Execute all registered traffic assignments
    *
-   * Top-level error recording is done in this class. If several traffic assignments are registered and one fails, we
-   * record its error and continue with the next assignment.
+   * Top-level error recording is done in this class. If several traffic assignments are registered and one fails, we record its error and continue with the next assignment.
    *
-   * @throws PlanItException required for subclasses which override this method and generate an exception before the runs
-   *                         start
+   * @throws PlanItException required for subclasses which override this method and generate an exception before the runs start
    */
   public void executeAllTrafficAssignments() throws PlanItException {
     for (TrafficAssignment ta : trafficAssignments) {

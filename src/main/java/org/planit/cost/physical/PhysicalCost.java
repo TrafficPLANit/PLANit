@@ -3,7 +3,7 @@ package org.planit.cost.physical;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Class for dynamic cost functions, which calculate link segment costs for each iteration
@@ -17,13 +17,10 @@ public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCo
   private static final long serialVersionUID = 3657719270477537657L;
 
   /**
-   * unique identifier for this demand set
+   * @param groupId, contiguous id generation within this group for instances of this class
    */
-  protected final long id;
-
-  protected PhysicalCost() {
-    super();
-    this.id = IdGenerator.generateId(PhysicalCost.class);
+  protected PhysicalCost(IdGroupingToken groupId) {
+    super(groupId, PhysicalCost.class);
   }
 
   /** short hand for configuring physical cost with BPR function instance */
@@ -36,13 +33,5 @@ public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCo
    * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
    */
   public abstract void initialiseBeforeSimulation(PhysicalNetwork physicalNetwork) throws PlanItException;
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return this.id;
-  }
 
 }

@@ -22,6 +22,7 @@ import org.planit.utils.network.physical.Mode;
 public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements ODOutputTypeAdapter {
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ODOutputTypeAdapterImpl.class.getCanonicalName());
 
   /**
@@ -128,10 +129,9 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
   }
 
   /**
-   * ODSkimOutputType.COST: Cost is collected through the shortest path in iteration i based on the link costs of
-   * iteration i-1, so the od cost of i-1 are only known once we are in iteration i, hence this information is trailing
-   * behind one iteration, and we can only store it in i. Hence, we must reduce the iteration index by 1 to obtain the
-   * true iteration index that goes with this information.
+   * ODSkimOutputType.COST: Cost is collected through the shortest path in iteration i based on the link costs of iteration i-1, so the od cost of i-1 are only known once we are in
+   * iteration i, hence this information is trailing behind one iteration, and we can only store it in i. Hence, we must reduce the iteration index by 1 to obtain the true
+   * iteration index that goes with this information.
    * 
    * all other od information is based on the actual iteration index and will return i
    */

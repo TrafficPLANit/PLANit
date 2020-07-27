@@ -31,6 +31,7 @@ import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.output.OutputUtils;
@@ -49,7 +50,17 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
   /**
    * Map of list of CSV output file names for each OutputType
    */
-  protected Map<OutputTypeEnum, List<String>> csvFileNameMap;
+  protected final Map<OutputTypeEnum, List<String>> csvFileNameMap;
+
+  /**
+   * Constructor
+   * 
+   * @param groupId, contiguous id generation within this group for instances of this class
+   */
+  protected CsvFileOutputFormatter(IdGroupingToken groupId) {
+    super(groupId);
+    this.csvFileNameMap = new HashMap<OutputTypeEnum, List<String>>();
+  }
 
   /**
    * Write output values to the OD CSV file for the current iteration
@@ -206,10 +217,4 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
     csvFileNameMap.get(currentoutputType).add(csvFileName);
   }
 
-  /**
-   * Constructor
-   */
-  public CsvFileOutputFormatter() {
-    csvFileNameMap = new HashMap<OutputTypeEnum, List<String>>();
-  }
 }

@@ -1,12 +1,11 @@
 package org.planit.userclass;
 
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
- * Traveler type is a placeholder for all different types of traveler
- * characteristics that affect the user class in the route choice component of
- * traffic assignment. Together with the mode this largely defines each user
- * class TODO: Not used yet in UserClass class
+ * Traveler type is a placeholder for all different types of traveler characteristics that affect the user class in the route choice component of traffic assignment. Together with
+ * the mode this largely defines each user class TODO: Not used yet in UserClass class
  * 
  * @author markr
  *
@@ -15,8 +14,7 @@ public class TravelerType {
 
   public static final String DEFAULT_NAME = "Default";
   /**
-   * If no user class is defined the default user class will be assumed to have a
-   * traveler type referencing the default external traveler type id (1)
+   * If no user class is defined the default user class will be assumed to have a traveler type referencing the default external traveler type id (1)
    */
   public static final long DEFAULT_EXTERNAL_ID = 1;
 
@@ -38,10 +36,10 @@ public class TravelerType {
   /**
    * Constructor
    * 
-   * @param parent for id generation
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public TravelerType(Object parent) {
-    this.id = IdGenerator.generateId(parent, TravelerType.class);
+  public TravelerType(final IdGroupingToken groupId) {
+    this.id = IdGenerator.generateId(groupId, TravelerType.class);
     this.name = DEFAULT_NAME;
     this.externalId = DEFAULT_EXTERNAL_ID;
   }
@@ -49,13 +47,13 @@ public class TravelerType {
   /**
    * Constructor
    * 
-   * @param parent for id generation
+   * @param groupId   contiguous id generation within this group for instances of this class
    * @param externaId external id of this traveler type
-   * @param name name of this traveler type
+   * @param name      name of this traveler type
    * 
    */
-  public TravelerType(Object parent, Object externaId, String name) {
-    this.id = IdGenerator.generateId(parent, TravelerType.class);
+  public TravelerType(final IdGroupingToken groupId, final Object externaId, final String name) {
+    this.id = IdGenerator.generateId(groupId, TravelerType.class);
     this.externalId = externaId;
     this.name = name;
   }
@@ -63,11 +61,11 @@ public class TravelerType {
   /**
    * Constructor
    * 
-   * @param parent for id generation
-   * @param name name of this traveler type
+   * @param groupId contiguous id generation within this group for instances of this class
+   * @param name    name of this traveler type
    */
-  public TravelerType(Object parent, String name) {
-    this.id = IdGenerator.generateId(parent, TravelerType.class);
+  public TravelerType(final IdGroupingToken groupId, final String name) {
+    this.id = IdGenerator.generateId(groupId, TravelerType.class);
     this.externalId = DEFAULT_EXTERNAL_ID;
     this.name = name;
   }

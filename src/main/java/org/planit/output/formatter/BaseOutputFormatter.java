@@ -15,7 +15,8 @@ import org.planit.output.enums.OutputTypeEnum;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Mode;
 
 /**
@@ -27,8 +28,12 @@ import org.planit.utils.network.physical.Mode;
 public abstract class BaseOutputFormatter implements OutputFormatter {
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(BaseOutputFormatter.class.getCanonicalName());
 
+  /**
+   * default time unit used
+   */
   private static final OutputTimeUnit DEFAULT_TIME_UNIT = OutputTimeUnit.HOURS;
 
   /**
@@ -103,8 +108,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType       active OutputTypeEnum of the configuration we are persisting for (can be a
-   *                                SubOutputTypeEnum or an OutputType)
+   * @param currentOutputType       active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
    * @param outputAdapter           OutputAdapter for current persistence
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
@@ -119,8 +123,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType       active OutputTypeEnum of the configuration we are persisting for (can be a
-   *                                SubOutputTypeEnum or an OutputType)
+   * @param currentOutputType       active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
    * @param outputAdapter           OutputAdapter for current persistence
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
@@ -135,8 +138,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType       active OutputTypeEnum of the configuration we are persisting for (can be a
-   *                                SubOutputTypeEnum or an OutputType)
+   * @param currentOutputType       active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
    * @param outputAdapter           OutputAdapter for current persistence
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
@@ -151,8 +153,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType       active OutputTypeEnum of the configuration we are persisting for (can be a
-   *                                SubOutputTypeEnum or an OutputType)
+   * @param currentOutputType       active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
    * @param outputAdapter           OutputAdapter for current persistence
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
@@ -167,8 +168,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
    * 
    * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for current persistence
-   * @param currentOutputType       active OutputTypeEnum of the configuration we are persisting for (can be a
-   *                                SubOutputTypeEnum or an OutputType)
+   * @param currentOutputType       active OutputTypeEnum of the configuration we are persisting for (can be a SubOutputTypeEnum or an OutputType)
    * @param outputAdapter           OutputAdapter for current persistence
    * @param modes                   Set of modes of travel
    * @param timePeriod              current time period
@@ -180,17 +180,19 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 
   /**
    * Constructor
+   * 
+   * @param groupId, contiguous id generation within this group for instances of this class
    */
-  public BaseOutputFormatter() {
-    this.id = IdGenerator.generateId(BaseOutputFormatter.class);
-    outputKeyProperties = new HashMap<OutputType, OutputProperty[]>();
-    outputValueProperties = new HashMap<OutputType, OutputProperty[]>();
-    outputTimeUnit = DEFAULT_TIME_UNIT;
-    outputTypeValuesLocked = new HashMap<OutputType, Boolean>();
-    outputTypeKeysLocked = new HashMap<OutputType, Boolean>();
+  public BaseOutputFormatter(IdGroupingToken groupId) {
+    this.id = IdGenerator.generateId(groupId, BaseOutputFormatter.class);
+    this.outputKeyProperties = new HashMap<OutputType, OutputProperty[]>();
+    this.outputValueProperties = new HashMap<OutputType, OutputProperty[]>();
+    this.outputTimeUnit = DEFAULT_TIME_UNIT;
+    this.outputTypeValuesLocked = new HashMap<OutputType, Boolean>();
+    this.outputTypeKeysLocked = new HashMap<OutputType, Boolean>();
     for (OutputType outputType : OutputType.values()) {
-      outputTypeValuesLocked.put(outputType, false);
-      outputTypeKeysLocked.put(outputType, false);
+      this.outputTypeValuesLocked.put(outputType, false);
+      this.outputTypeKeysLocked.put(outputType, false);
     }
   }
 

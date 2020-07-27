@@ -18,9 +18,8 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.virtual.Zone;
 
 /**
- * Listener which is automatically registered to the creation of any traffic assignment component
- * for
- * which it gets notified. @see #TrafficicAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE
+ * Listener which is automatically registered to the creation of any traffic assignment component for which it gets notified. @see
+ * #TrafficicAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE
  * 
  * @author markr
  *
@@ -28,6 +27,7 @@ import org.planit.utils.network.virtual.Zone;
 public abstract class InputBuilderListener implements EventListenerInterface {
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(InputBuilderListener.class.getCanonicalName());
 
   /** generated UID */
@@ -74,18 +74,17 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   private Map<Object, LinkSegment> linkSegmentExternalIdToLinkSegmentMap;
 
   /**
-   * Flag to determine whether duplicate external Id should be considered an error (defaults to
-   * true)
+   * Flag to determine whether duplicate external Id should be considered an error (defaults to true)
    */
   private boolean errorIfDuplicateExternalId;
 
   /**
    * Stores an object by its external Id, after checking whether the external Id is a duplicate
    * 
-   * @param <T> type of object being stored
+   * @param <T>        type of object being stored
    * @param externalId external Id of object being stored
-   * @param obj object being stored
-   * @param map Map to store the object
+   * @param obj        object being stored
+   * @param map        Map to store the object
    * @param objectName name of the object class
    * @return true if this entry is duplicate use of an externalId, false otherwise
    */
@@ -124,7 +123,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * Stores a node by its external Id
    * 
    * @param externalId external Id of node
-   * @param node Node to be stored
+   * @param node       Node to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
   public boolean addNodeToExternalIdMap(Object externalId, Node node) {
@@ -144,14 +143,12 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   /**
    * Stores a link segment type by its external Id
    * 
-   * @param externalId external Id of link segment type
+   * @param externalId                 external Id of link segment type
    * @param macroscopicLinkSegmentType to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public boolean addLinkSegmentTypeToExternalIdMap(Object externalId,
-      MacroscopicLinkSegmentType macroscopicLinkSegmentType) {
-    return addObjectToExternalIdMap(externalId, macroscopicLinkSegmentType,
-        linkSegmentTypeExternalIdToLinkSegmentTypeMap, "link segment type");
+  public boolean addLinkSegmentTypeToExternalIdMap(Object externalId, MacroscopicLinkSegmentType macroscopicLinkSegmentType) {
+    return addObjectToExternalIdMap(externalId, macroscopicLinkSegmentType, linkSegmentTypeExternalIdToLinkSegmentTypeMap, "link segment type");
   }
 
   /**
@@ -177,7 +174,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * Stores a mode by its external Id
    * 
    * @param externalId external Id of this mode
-   * @param mode mode to be stored
+   * @param mode       mode to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
   public boolean addModeToExternalIdMap(Object externalId, Mode mode) {
@@ -197,13 +194,12 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   /**
    * Stores a traveler type by its external Id
    * 
-   * @param externalId external Id of traveler type
+   * @param externalId   external Id of traveler type
    * @param travelerType traveler type to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
   public boolean addTravelerTypeToExternalIdMap(Object externalId, TravelerType travelerType) {
-    return addObjectToExternalIdMap(externalId, travelerType, travelerTypeExternalIdToTravelerTypeMap,
-        "traveller type");
+    return addObjectToExternalIdMap(externalId, travelerType, travelerTypeExternalIdToTravelerTypeMap, "traveller type");
   }
 
   /**
@@ -220,7 +216,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * Stores a user class by its external Id
    * 
    * @param externalId external Id of user class
-   * @param userClass user class to be stored
+   * @param userClass  user class to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
   public boolean addUserClassToExternalIdMap(Object externalId, UserClass userClass) {
@@ -238,8 +234,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   }
 
   /**
-   * Returns whether a time period external Id matches set of external Ids for registered time
-   * periods
+   * Returns whether a time period external Id matches set of external Ids for registered time periods
    * 
    * @param externalId the external time period Id being tested
    * @return true if the external Id matches a registered time period, false otherwise
@@ -291,7 +286,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * Stores a zone by its external Id
    * 
    * @param externalId external Id of zone
-   * @param zone zone to be stored
+   * @param zone       zone to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
   public boolean addZoneToExternalIdMap(Object externalId, Zone zone) {
@@ -311,7 +306,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   /**
    * Stores a link segment by its external Id
    * 
-   * @param externalId external Id of link segment
+   * @param externalId  external Id of link segment
    * @param linkSegment link segment to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */

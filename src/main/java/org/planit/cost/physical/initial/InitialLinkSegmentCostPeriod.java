@@ -1,6 +1,7 @@
 package org.planit.cost.physical.initial;
 
 import org.planit.time.TimePeriod;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Identical to InitialLinkSegmentCost except that it is directly attached to a particular time period.
@@ -21,9 +22,11 @@ public class InitialLinkSegmentCostPeriod extends InitialLinkSegmentCost {
 
   /**
    * Constructor
+   * 
+   * @param groupId, contiguous id generation within this group for instances of this class
    */
-  public InitialLinkSegmentCostPeriod() {
-    super();
+  public InitialLinkSegmentCostPeriod(IdGroupingToken groupId) {
+    super(groupId);
   }
 
   // Getters Setters

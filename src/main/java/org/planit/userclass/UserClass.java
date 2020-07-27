@@ -1,12 +1,12 @@
 package org.planit.userclass;
 
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Mode;
 
 /**
- * A user class defines a combination of one or more characteristics of users in
- * an aggregate representation of traffic which partially dictate how they
- * behave in traffic assignment.
+ * A user class defines a combination of one or more characteristics of users in an aggregate representation of traffic which partially dictate how they behave in traffic
+ * assignment.
  *
  * @author markr
  *
@@ -46,14 +46,14 @@ public class UserClass {
   /**
    * Constructor of user class
    *
-   * @param parent for id generation
-   * @param externalId id of this user class
-   * @param name name of this user class
-   * @param mode the mode of travel
+   * @param groupId      contiguous id generation within this group for instances of this class
+   * @param externalId   id of this user class
+   * @param name         name of this user class
+   * @param mode         the mode of travel
    * @param travelerType the travelerType
    */
-  public UserClass(final Object parent, final Object externalId, final String name, final Mode mode, final TravelerType travelerType) {
-    this.id = IdGenerator.generateId(parent, UserClass.class);
+  public UserClass(final IdGroupingToken groupId, final Object externalId, final String name, final Mode mode, final TravelerType travelerType) {
+    this.id = IdGenerator.generateId(groupId, UserClass.class);
     this.externalId = externalId;
     this.name = name;
     this.travellerType = travelerType;

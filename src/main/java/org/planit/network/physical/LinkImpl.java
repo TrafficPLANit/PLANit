@@ -2,15 +2,15 @@ package org.planit.network.physical;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.graph.EdgeImpl;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
 
 /**
- * Link class connecting two nodes via some geometry. Each link has one or two
- * underlying link segments in a particular direction which may carry additional
- * information for each particular direction of the link.
+ * Link class connecting two nodes via some geometry. Each link has one or two underlying link segments in a particular direction which may carry additional information for each
+ * particular direction of the link.
  *
  * @author markr
  *
@@ -35,11 +35,11 @@ public class LinkImpl extends EdgeImpl implements Link {
   /**
    * generate unique link id
    *
-   *@param parent parent
+   * @param groupId, contiguous id generation within this group for instances of this class
    * @return linkId
    */
-  protected static long generateLinkId(Object parent) {
-    return IdGenerator.generateId(parent, Link.class);
+  protected static long generateLinkId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, Link.class);
   }
 
   // Public
@@ -47,20 +47,20 @@ public class LinkImpl extends EdgeImpl implements Link {
   /**
    * Constructor which injects link length directly
    *
-   * @param nodeA the first node in the link
-   * @param nodeB the second node in the link
-   * @param length the length of the link
-   * @param name the name of the link
+   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param nodeA    the first node in the link
+   * @param nodeB    the second node in the link
+   * @param length   the length of the link
+   * @param name     the name of the link
    * @throws PlanItException thrown if there is an error
    */
-  public LinkImpl(Object parent, final Node nodeA, final Node nodeB, final double length, final String name) throws PlanItException {
-    super(parent, nodeA, nodeB, length);
-    this.linkId = generateLinkId(parent);
+  public LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length, final String name) throws PlanItException {
+    super(groupId, nodeA, nodeB, length);
+    this.linkId = generateLinkId(groupId);
   }
 
   /**
-   * Register linkSegment. If there already exists a linkSegment for that
-   * direction it is replaced and returned
+   * Register linkSegment. If there already exists a linkSegment for that direction it is replaced and returned
    *
    * @param linkSegment the link segment to be registered
    * @param directionAB direction of travel
@@ -68,8 +68,7 @@ public class LinkImpl extends EdgeImpl implements Link {
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  public LinkSegment registerLinkSegment(final LinkSegment linkSegment, final boolean directionAB)
-      throws PlanItException {
+  public LinkSegment registerLinkSegment(final LinkSegment linkSegment, final boolean directionAB) throws PlanItException {
     return (LinkSegment) registerEdgeSegment(linkSegment, directionAB);
   }
 

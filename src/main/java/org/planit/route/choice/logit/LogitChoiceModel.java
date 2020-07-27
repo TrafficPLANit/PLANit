@@ -1,12 +1,10 @@
 package org.planit.route.choice.logit;
 
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
- * The logit choice model base class. Different logit choice models lead to different behaviour
- * regarding
- * choices.
+ * The logit choice model base class. Different logit choice models lead to different behaviour regarding choices.
  *
  * @author markr
  *
@@ -17,24 +15,12 @@ public abstract class LogitChoiceModel extends TrafficAssignmentComponent<LogitC
   private static final long serialVersionUID = -4578323513280128464L;
 
   /**
-   * unique identifier
-   */
-  protected final long id;
-
-  /**
    * Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  protected LogitChoiceModel() {
-    super();
-    this.id = IdGenerator.generateId(LogitChoiceModel.class);
-  }
-
-  /**
-   * #{@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return this.id;
+  protected LogitChoiceModel(IdGroupingToken groupId) {
+    super(groupId, LogitChoiceModel.class);
   }
 
 }

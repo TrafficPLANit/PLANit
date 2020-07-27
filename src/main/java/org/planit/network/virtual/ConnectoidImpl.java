@@ -2,16 +2,16 @@ package org.planit.network.virtual;
 
 import org.planit.exceptions.PlanItException;
 import org.planit.graph.EdgeImpl;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.Connectoid;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
- * connectoid connecting a zone to the physical road network, carrying two
- * connectoid segments in one or two directions which may carry additional
- * information for each particular direction of the connectoid.
+ * connectoid connecting a zone to the physical road network, carrying two connectoid segments in one or two directions which may carry additional information for each particular
+ * direction of the connectoid.
  *
  * @author markr
  *
@@ -36,11 +36,11 @@ public class ConnectoidImpl extends EdgeImpl implements Connectoid {
   /**
    * Generate connectoid id
    *
-   *@param parent for id generation
-   *@return id of connectoid
+   * @param groupId contiguous id generation within this group for instances of this class
+   * @return id of connectoid
    */
-  protected static int generateConnectoidId(Object parent) {
-    return IdGenerator.generateId(parent, Connectoid.class);
+  protected static int generateConnectoidId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, Connectoid.class);
   }
 
   // Public
@@ -48,51 +48,45 @@ public class ConnectoidImpl extends EdgeImpl implements Connectoid {
   /**
    * Constructor
    *
-   *@param parent for id generation
-   *@param centroidA the centroid at one end of the connectoid
-   *@param nodeB the node at the other end of the connectoid
-   *@param length length of the current connectoid
-   *@param externalId externalId of the connectoid (can be null, in which case this has not be set
-   *          in the input files)
-   *@throws PlanItException thrown if there is an error
+   * @param groupId    contiguous id generation within this group for instances of this class
+   * @param centroidA  the centroid at one end of the connectoid
+   * @param nodeB      the node at the other end of the connectoid
+   * @param length     length of the current connectoid
+   * @param externalId externalId of the connectoid (can be null, in which case this has not be set in the input files)
+   * @throws PlanItException thrown if there is an error
    */
-  public ConnectoidImpl(Object parent, final Centroid centroidA, final Node nodeB, final double length, final Object externalId)
-      throws PlanItException {
-    super(parent, centroidA, nodeB, length);
-    this.connectoidId = generateConnectoidId(parent);
+  public ConnectoidImpl(final IdGroupingToken groupId, final Centroid centroidA, final Node nodeB, final double length, final Object externalId) throws PlanItException {
+    super(groupId, centroidA, nodeB, length);
+    this.connectoidId = generateConnectoidId(groupId);
     setExternalId(externalId);
   }
 
   /**
    * Constructor
    *
-   * @param parent for id generation
+   * @param groupId   contiguous id generation within this group for instances of this class
    * @param centroidA the centroid at one end of the connectoid
-   * @param nodeB the node at the other end of the connectoid
-   * @param length length of the current connectoid
+   * @param nodeB     the node at the other end of the connectoid
+   * @param length    length of the current connectoid
    * @throws PlanItException thrown if there is an error
    */
-  public ConnectoidImpl(Object parent, final Centroid centroidA, final Node nodeB, final double length) throws PlanItException {
-    super(parent, centroidA, nodeB, length);
-    this.connectoidId = generateConnectoidId(parent);
+  public ConnectoidImpl(final IdGroupingToken groupId, final Centroid centroidA, final Node nodeB, final double length) throws PlanItException {
+    super(groupId, centroidA, nodeB, length);
+    this.connectoidId = generateConnectoidId(groupId);
   }
 
   /**
    * Register connectoidSegment.
    *
-   * If there already exists a connectoidSegment for that direction it is replaced
-   * and returned
+   * If there already exists a connectoidSegment for that direction it is replaced and returned
    *
    * @param connectoidSegment connectoid segment to be registered
-   * @param directionAB direction of travel
+   * @param directionAB       direction of travel
    * @return replaced ConnectoidSegment
-   * @throws PlanItException
-   *           thrown if there is an error
+   * @throws PlanItException thrown if there is an error
    */
   @Override
-  public ConnectoidSegment registerConnectoidSegment(final ConnectoidSegment connectoidSegment,
-      final boolean directionAB)
-      throws PlanItException {
+  public ConnectoidSegment registerConnectoidSegment(final ConnectoidSegment connectoidSegment, final boolean directionAB) throws PlanItException {
     return (ConnectoidSegment) registerEdgeSegment(connectoidSegment, directionAB);
   }
 

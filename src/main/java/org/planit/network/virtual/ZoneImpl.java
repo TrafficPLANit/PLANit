@@ -3,7 +3,8 @@ package org.planit.network.virtual;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.Zone;
 
@@ -38,11 +39,11 @@ public class ZoneImpl implements Zone {
   /**
    * Generate unique id for this zone
    * 
-   * @param parent parent
+   * @param groupId contiguous id generation within this group for instances of this class
    * @return id for this zone
    */
-  protected static int generateZoneId(Object parent) {
-    return IdGenerator.generateId(Zone.class);
+  protected static int generateZoneId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, Zone.class);
   }
 
   // Public
@@ -50,12 +51,12 @@ public class ZoneImpl implements Zone {
   /**
    * Constructor
    * 
-   * @param parent for id generation
+   * @param groupId    contiguous id generation within this group for instances of this class
    * @param externalId the external ID of this zone
-   * @param centroid of the zone
+   * @param centroid   of the zone
    */
-  public ZoneImpl(Object parent, Object externalId, Centroid centroid) {
-    id = generateZoneId(parent);
+  public ZoneImpl(final IdGroupingToken groupId, final Object externalId, final Centroid centroid) {
+    id = generateZoneId(groupId);
     this.externalId = externalId;
     this.centroid = centroid;
   }
@@ -63,11 +64,11 @@ public class ZoneImpl implements Zone {
   /**
    * Constructor
    * 
-   * @param parent for id generation
+   * @param groupId    contiguous id generation within this group for instances of this class
    * @param externalId the external ID of this zone
    */
-  public ZoneImpl(Object parent, Object externalId) {
-    id = generateZoneId(parent);
+  public ZoneImpl(final IdGroupingToken groupId, final Object externalId) {
+    id = generateZoneId(groupId);
     this.externalId = externalId;
     this.centroid = null;
   }
@@ -83,13 +84,10 @@ public class ZoneImpl implements Zone {
   }
 
   /**
-   * Add a property from the original input that is not part of the readily
-   * available members
+   * Add a property from the original input that is not part of the readily available members
    * 
-   * @param key
-   *          property key
-   * @param value
-   *          property value
+   * @param key   property key
+   * @param value property value
    */
   public void addInputProperty(String key, Object value) {
     if (inputProperties == null) {
@@ -101,8 +99,7 @@ public class ZoneImpl implements Zone {
   /**
    * Get input property by its key
    * 
-   * @param key
-   *          property key
+   * @param key property key
    * @return property value
    */
   public Object getInputProperty(String key) {

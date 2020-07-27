@@ -1,5 +1,7 @@
 package org.planit.supply.network.nodemodel;
 
+import org.planit.utils.id.IdGroupingToken;
+
 /**
  * Tampere node model traffic component
  *
@@ -14,10 +16,10 @@ public class TampereNodeModel extends NodeModel {
   /**
    * Base Constructor
    * 
-   * @param parent for id generation
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public TampereNodeModel(Object parent) {
-    super(parent);
+  public TampereNodeModel(final IdGroupingToken groupId) {
+    super(groupId);
   }
 
 }

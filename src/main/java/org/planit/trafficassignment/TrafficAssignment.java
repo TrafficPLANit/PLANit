@@ -30,6 +30,7 @@ import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Traffic assignment class which simultaneously is responsible for the loading hence it is also considered as a traffic assignment component of this type
@@ -223,9 +224,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
   /**
    * Constructor. Note that defaults that partly depend on derived classes are assumed to be invoked by the calling method via this.initialiseDefaults()
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  public TrafficAssignment() {
-    super();
+  public TrafficAssignment(IdGroupingToken groupId) {
+    super(groupId);
     outputManager = new OutputManager(this);
     initialLinkSegmentCostByTimePeriod = new HashMap<TimePeriod, InitialLinkSegmentCost>();
   }

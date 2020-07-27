@@ -1,5 +1,7 @@
 package org.planit.route.choice.logit;
 
+import org.planit.utils.id.IdGroupingToken;
+
 /**
  * MNL choice model implementation
  *
@@ -13,9 +15,11 @@ public class MultinomialLogit extends LogitChoiceModel {
 
   /**
    * Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  protected MultinomialLogit() {
-    super();
+  protected MultinomialLogit(final IdGroupingToken groupId) {
+    super(groupId);
   }
 
 }

@@ -3,31 +3,48 @@ package org.planit.trafficassignment;
 import java.io.Serializable;
 
 import org.djutils.event.EventProducer;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
- * Traffic assignment components are the main building blocks to conduct traffic
- * assignment on
+ * Traffic assignment components are the main building blocks to conduct traffic assignment on
  *
  * @author markr
  *
  */
-public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T> & Serializable> extends
-    EventProducer {
+public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T> & Serializable> extends EventProducer {
 
   /** generated UID */
   private static final long serialVersionUID = -3940841069228367177L;
 
   /**
-   * Traffic component type used to identify the component uniquely. If not
-   * provided to the constructor the class name is used
+   * unique identifier for this traffic component
+   */
+  protected final long id;
+
+  /**
+   * id generation using this token will be contiguous and unique for each instance of some class per class
+   */
+  protected IdGroupingToken groupId;
+
+  /**
+   * Traffic component type used to identify the component uniquely. If not provided to the constructor the class name is used
    */
   protected final String trafficComponentType;
 
   /**
    * Constructor
+   * 
+   * @param groupId,   contiguous id generation within this group for instances of this class
+   * @param classType, the class type this instance belongs to and we are generating an id for
    */
-  protected TrafficAssignmentComponent() {
+  protected TrafficAssignmentComponent(IdGroupingToken groupId, Class<?> classType) {
+    // actual instance class
     this.trafficComponentType = this.getClass().getCanonicalName();
+    // the groupId would generally be the token of the project or the assignment as it owns the components
+    // the class type would be the super class of the all instances for which we want contiguous ids
+    this.groupId = groupId;
+    this.id = IdGenerator.generateId(groupId, classType);
   }
 
   // Public
@@ -41,7 +58,9 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
    * 
    * @return id of traffic assignment component
    */
-  public abstract long getId();
+  public long getId() {
+    return id;
+  }
 
   /**
    * the source id whenever this instance fires an event is simply this

@@ -3,7 +3,8 @@ package org.planit.time;
 import java.util.logging.Logger;
 
 import org.planit.exceptions.PlanItException;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Represents a time period within the day. Used to determine the duration and start time of trips for example We internally adopt seconds as the unit
@@ -19,12 +20,12 @@ public class TimePeriod implements Comparable<TimePeriod> {
   /**
    * startTime in seconds from midnight 00:00:00
    */
-  private final int startTime;
+  private final long startTimeSeconds;
 
   /**
    * Duration in seconds
    */
-  private final int duration;
+  private final long durationSeconds;
 
   /**
    * Object id
@@ -42,20 +43,59 @@ public class TimePeriod implements Comparable<TimePeriod> {
   private final String description;
 
   /**
+   * Constructor
+   * 
+   * @param groupId          contiguous id generation within this group for instances of this class
+   * @param externalId       externalId of this time period
+   * @param startTimeSeconds start time in seconds from midnight
+   * @param durationSeconds  duration in seconds
+   * @throws PlanItException
+   */
+  public TimePeriod(IdGroupingToken groupId, Object externalId, long startTimeSeconds, long durationSeconds) throws PlanItException {
+    PlanItException.throwIf(durationSeconds > (24.0 * 3600), "Duration more than 24 hours");
+    PlanItException.throwIf(startTimeSeconds > (24.0 * 3600), "Start time later than 24 hours");
+    this.id = IdGenerator.generateId(groupId, TimePeriod.class);
+    this.startTimeSeconds = startTimeSeconds;
+    this.durationSeconds = durationSeconds;
+    this.description = null;
+    this.externalId = externalId;
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param groupId        contiguous id generation within this group for instances of this class
+   * @param externalId     externalId of this time period
+   * @param description    description of this time period
+   * @param startTime      start time of this time period
+   * @param duratioSeconds duration of this time period
+   * @throws PlanItException
+   */
+  public TimePeriod(IdGroupingToken groupId, Object externalId, String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
+    PlanItException.throwIf(durationSeconds > (24.0 * 3600), "Duration more than 24 hours");
+    PlanItException.throwIf(startTimeSeconds > (24.0 * 3600), "Start time later than 24 hours");
+    this.id = IdGenerator.generateId(groupId, TimePeriod.class);
+    this.externalId = externalId;
+    this.startTimeSeconds = startTimeSeconds;
+    this.durationSeconds = durationSeconds;
+    this.description = description;
+  }
+
+  /**
    * Convert duration to seconds given start time using the 24-hour clock
    * 
-   * @param startTime24hour start time in 24-hour clock format (four digits exactly)
+   * @param fourDigitHour start time in 24-hour clock format (four digits exactly)
    * @return duration in seconds
    * @throws PlanItException thrown if the input time is not in the correct format
    */
-  private int convertDurationToSeconds(String startTime24hour) throws PlanItException {
-    int startTime;
-    int startTimeHrs;
-    int startTimeMins;
-    PlanItException.throwIf(startTime24hour.length() != 4, "Start time must contain exactly four digits");
+  public static long convertHoursToSeconds(String fourDigitHour) throws PlanItException {
+    long startTime;
+    long startTimeHrs;
+    long startTimeMins;
+    PlanItException.throwIf(fourDigitHour.length() != 4, "Start time must contain exactly four digits");
 
     try {
-      startTime = Integer.parseInt(startTime24hour);
+      startTime = Integer.parseInt(fourDigitHour);
     } catch (NumberFormatException e) {
       LOGGER.severe(e.getMessage());
       throw new PlanItException("Start time must contain exactly four digits", e);
@@ -72,96 +112,12 @@ public class TimePeriod implements Comparable<TimePeriod> {
   }
 
   /**
-   * Constructor
-   * 
-   * @param parent for id generation
-   * @param externalId externalId of this time period
-   * @param startTime  start time in seconds from midnight
-   * @param duration   duration in seconds
-   */
-  public TimePeriod(Object parent, Object externalId, int startTime, int duration) {
-    this.id = IdGenerator.generateId(parent, TimePeriod.class);
-    this.startTime = startTime;
-    this.duration = duration;
-    description = null;
-    this.externalId = externalId;
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param parent for id generation
-   * @param externalId  externalId of this time period
-   * @param description description of this time period
-   * @param startTime   start time of this time period
-   * @param duration    duration of this time period
-   */
-  public TimePeriod(Object parent, Object externalId, String description, int startTime, int duration) {
-    this.id = IdGenerator.generateId(parent, TimePeriod.class);
-    this.externalId = externalId;
-    this.startTime = startTime;
-    this.duration = duration;
-    this.description = description;
-    // timePeriods.put(this.id, this);
-  }
-
-  /**
-   * Constructor
-   * 
-   * This constructor uses duration in hours. This is a double since fractions of an hour are possible.
-   * 
-   * @param parent for id generation
-   * @param externalId      externalId of this time period
-   * @param description     description of this time period
-   * @param startTime24hour start time of this time period
-   * @param durationHours   duration of this time period in hours
-   * @throws PlanItException thrown if duration is longer than 24 hours
-   */
-  public TimePeriod(Object parent, Object externalId, String description, String startTime24hour, double durationHours) throws PlanItException {
-    this.id = IdGenerator.generateId(parent, TimePeriod.class);
-    this.externalId = externalId;
-    this.description = description;
-    this.startTime = convertDurationToSeconds(startTime24hour);
-
-    PlanItException.throwIf(durationHours > 24.0, "Duration more than 24 hours");
-    this.duration = (int) Math.round(durationHours * 3600.0);
-  }
-
-  // Public static
-
-  /**
-   * Create a time period given its start time and duration in hours
-   * 
-   * @param parent for id generation
-   * @param externalId   externalId of this time period
-   * @param startHour    the starting hour
-   * @param durationHour the duration in hours
-   * @return TimePeriod object generated
-   */
-  public static TimePeriod createTimePeriod24h(Object parent, Object externalId, float startHour, float durationHour) {
-    return new TimePeriod(parent, externalId, convertHourToSeconds(startHour), convertHourToSeconds(durationHour));
-  }
-
-  /**
-   * Create a time period given its start time and duration in seconds
-   *
-   * @param parent for id generation 
-   * @param externalId      externalId of this time period
-   * @param startSeconds    the start time in seconds
-   * @param durationSeconds the duration in seconds
-   * @return create TimePeriod object
-   */
-  public static TimePeriod createTimePeriodSeconds(Object parent, Object externalId, int startSeconds, int durationSeconds) {
-    return new TimePeriod(parent, externalId, startSeconds, durationSeconds);
-  }
-
-  /**
-   * Convert hours in 24h format from midnight to seconds
+   * Convert hours to (whole) seconds
    * 
    * @param hoursFromMidnight the hours from midnight
    * @return secondsFromMidnight the seconds from midnight
    */
-  public static int convertHourToSeconds(float hoursFromMidnight) {
+  public static long convertHoursToSeconds(double hoursFromMidnight) {
     return (Math.round(hoursFromMidnight * 3600));
   }
 
@@ -182,8 +138,8 @@ public class TimePeriod implements Comparable<TimePeriod> {
    * 
    * @return start time
    */
-  public int getStartTime() {
-    return startTime;
+  public long getStartTimeSeconds() {
+    return startTimeSeconds;
   }
 
   /**
@@ -191,8 +147,8 @@ public class TimePeriod implements Comparable<TimePeriod> {
    * 
    * @return duration
    */
-  public int getDuration() {
-    return duration;
+  public long getDurationSeconds() {
+    return durationSeconds;
   }
 
   /**
@@ -242,11 +198,11 @@ public class TimePeriod implements Comparable<TimePeriod> {
    */
   @Override
   public int compareTo(TimePeriod o) {
-    int startTimeDiff = getStartTime() - ((TimePeriod) o).getStartTime();
+    long startTimeDiff = getStartTimeSeconds() - ((TimePeriod) o).getStartTimeSeconds();
     if (startTimeDiff != 0) {
-      return startTimeDiff;
+      return (int) startTimeDiff;
     } else {
-      return getDuration() - ((TimePeriod) o).getDuration();
+      return (int) (getDurationSeconds() - ((TimePeriod) o).getDurationSeconds());
     }
   }
 
@@ -257,8 +213,8 @@ public class TimePeriod implements Comparable<TimePeriod> {
    */
   @Override
   public String toString() {
-    int endTime = startTime + duration;
-    return "start time: " + String.format("%02d:%02d", startTime / 3600, (startTime % 3600) / 60) + " end time: "
+    long endTime = startTimeSeconds + durationSeconds;
+    return "start time: " + String.format("%02d:%02d", startTimeSeconds / 3600, (startTimeSeconds % 3600) / 60) + " end time: "
         + String.format("%02d:%02d", endTime / 3600, (endTime % 3600) / 60);
   }
 

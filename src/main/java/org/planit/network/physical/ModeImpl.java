@@ -1,11 +1,11 @@
 package org.planit.network.physical;
 
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Mode;
 
 /**
- * A Mode is a user class feature representing a single form of transport (car,
- * truck etc.).
+ * A Mode is a user class feature representing a single form of transport (car, truck etc.).
  * 
  * @author markr
  */
@@ -16,8 +16,7 @@ public class ModeImpl implements Mode {
   // Protected
 
   /**
-   * Each mode has a passenger car unit number indicating how many standard
-   * passenger cars a single unit of this mode represents
+   * Each mode has a passenger car unit number indicating how many standard passenger cars a single unit of this mode represents
    */
   private final double pcu;
 
@@ -39,13 +38,13 @@ public class ModeImpl implements Mode {
   /**
    * Constructor
    * 
-   * @param parent of this mode
-   * @param name the name of this mode
-   * @param pcu the PCU value of this mode
+   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param name     the name of this mode
+   * @param pcu      the PCU value of this mode
    */
 
-  public ModeImpl(Object parent, String name, double pcu) {
-    this.id = IdGenerator.generateId(parent, Mode.class);
+  public ModeImpl(final IdGroupingToken groupId, final String name, final double pcu) {
+    this.id = IdGenerator.generateId(groupId, Mode.class);
     this.externalId = DEFAULT_EXTERNAL_ID;
     this.name = name;
     this.pcu = pcu;
@@ -54,13 +53,13 @@ public class ModeImpl implements Mode {
   /**
    * Constructor
    * 
-   * @param parent of this mode 
+   * @param groupId,   contiguous id generation within this group for instances of this class
    * @param externalId the externalId of this mode
-   * @param name the name of this mode
-   * @param pcu the PCU value of this mode
+   * @param name       the name of this mode
+   * @param pcu        the PCU value of this mode
    */
-  public ModeImpl(Object parent, Object externalId, String name, double pcu) {
-    this.id = IdGenerator.generateId(parent, ModeImpl.class);
+  public ModeImpl(final IdGroupingToken groupId, final Object externalId, final String name, final double pcu) {
+    this.id = IdGenerator.generateId(groupId, ModeImpl.class);
     this.externalId = externalId;
     this.name = name;
     this.pcu = pcu;

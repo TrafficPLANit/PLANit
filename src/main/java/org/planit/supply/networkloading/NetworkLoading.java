@@ -3,7 +3,7 @@ package org.planit.supply.networkloading;
 import java.io.Serializable;
 
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Network loading traffic component
@@ -17,24 +17,12 @@ public abstract class NetworkLoading extends TrafficAssignmentComponent<NetworkL
   private static final long serialVersionUID = 6213911562665516698L;
 
   /**
-   * Unique id
+   * Base constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  protected final long id;
-
-  /**
-   * Base contructor
-   */
-  public NetworkLoading() {
-    super();
-    this.id = IdGenerator.generateId(NetworkLoading.class);
-  }
-
-  /**
-   * #{@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return id;
+  public NetworkLoading(IdGroupingToken groupId) {
+    super(groupId, NetworkLoading.class);
   }
 
 }

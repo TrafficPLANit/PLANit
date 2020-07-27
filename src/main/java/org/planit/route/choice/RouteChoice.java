@@ -1,16 +1,12 @@
 package org.planit.route.choice;
 
-import org.planit.input.InputBuilderListener;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
- * The route choice traffic assignment component responsible for the
- * configuration of the route choice methodology and the routes associated
- * with this procedure.
+ * The route choice traffic assignment component responsible for the configuration of the route choice methodology and the routes associated with this procedure.
  *
- * All derived classes must adhere to this protected constructors signature as the
- * factory expects a traffic component create listener only
+ * All derived classes must adhere to this protected constructors signature as the factory expects a traffic component create listener only
  *
  * @author markr
  *
@@ -21,26 +17,12 @@ public class RouteChoice extends TrafficAssignmentComponent<RouteChoice> {
   private static final long serialVersionUID = 6220514783786893944L;
 
   /**
-   * unique identifier
-   */
-  protected final long id;
-
-  /**
    * Constructor
    * 
-   * @param trafficComponentCreateListener the listener
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  protected RouteChoice(final InputBuilderListener trafficComponentCreateListener) {
-    super();
-    this.id = IdGenerator.generateId(RouteChoice.class);
-  }
-
-  /**
-   * #{@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return this.id;
+  protected RouteChoice(IdGroupingToken groupId) {
+    super(groupId, RouteChoice.class);
   }
 
 }

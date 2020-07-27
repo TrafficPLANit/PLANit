@@ -3,7 +3,7 @@ package org.planit.supply.fundamentaldiagram;
 import java.io.Serializable;
 
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Fundamental diagram traffic component
@@ -11,31 +11,16 @@ import org.planit.utils.misc.IdGenerator;
  * @author markr
  *
  */
-public abstract class FundamentalDiagram extends TrafficAssignmentComponent<FundamentalDiagram> implements
-    Serializable {
+public abstract class FundamentalDiagram extends TrafficAssignmentComponent<FundamentalDiagram> implements Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = 5815100111048623093L;
 
   /**
-   * unique identifier
-   */
-  protected final long id;
-
-  /**
    * Base constructor
    */
-  public FundamentalDiagram() {
-    super();
-    this.id = IdGenerator.generateId(FundamentalDiagram.class);
-  }
-
-  /**
-   * #{@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return this.id;
+  public FundamentalDiagram(final IdGroupingToken groupId) {
+    super(groupId, FundamentalDiagram.class);
   }
 
 }

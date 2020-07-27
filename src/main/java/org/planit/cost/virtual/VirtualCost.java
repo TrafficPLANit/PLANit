@@ -4,7 +4,7 @@ import org.planit.cost.Cost;
 import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.utils.misc.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
@@ -19,16 +19,12 @@ public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost
   private static final long serialVersionUID = -8278650865770286434L;
 
   /**
-   * unique identifier
-   */
-  protected final long id;
-
-  /**
    * Constructor
+   * 
+   * @param groupId, contiguous id generation within this group for instances of this class
    */
-  protected VirtualCost() {
-    super();
-    this.id = IdGenerator.generateId(VirtualCost.class);
+  protected VirtualCost(IdGroupingToken groupId) {
+    super(groupId, VirtualCost.class);
   }
 
   /** short hand for configuring fixed virtual cost instance */
@@ -44,13 +40,5 @@ public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost
    * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
    */
   public abstract void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException;
-
-  /**
-   * #{@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return this.id;
-  }
 
 }

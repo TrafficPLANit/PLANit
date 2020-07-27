@@ -16,6 +16,7 @@ import org.planit.utils.network.virtual.Zone;
 public abstract class ODMatrix extends ODDataImpl<Double> {
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ODMatrix.class.getCanonicalName());
   /**
    * matrix of data values
@@ -35,9 +36,9 @@ public abstract class ODMatrix extends ODDataImpl<Double> {
   /**
    * Sets the value for a specified origin and destination
    * 
-   * @param origin specified origin
+   * @param origin      specified origin
    * @param destination specified destination
-   * @param value value at the specified cell
+   * @param value       value at the specified cell
    */
   public void setValue(Zone origin, Zone destination, Double value) {
     long originId = origin.getId();
@@ -53,7 +54,7 @@ public abstract class ODMatrix extends ODDataImpl<Double> {
   /**
    * Returns the value for a specified origin and destination
    * 
-   * @param origin specified origin
+   * @param origin      specified origin
    * @param destination specified destination
    * @return value at the specified cell
    */
