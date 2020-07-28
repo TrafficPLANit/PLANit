@@ -23,7 +23,7 @@ public interface OutputFormatter {
    * Constant to report that an output value has not been set
    */
   public static final String NOT_SPECIFIED = "Not Specified";
-  
+
   /**
    * Default output formatter supported by PLANit from PLANitIO repository
    */
@@ -38,46 +38,43 @@ public interface OutputFormatter {
   public long getId();
 
   /**
-   * Persist the output data based on the passed in configuration and adapter
-   * (contained in the configuration)
+   * Persist the output data based on the passed in configuration and adapter (contained in the configuration)
    * 
-   * @param timePeriod TimePeriod for the assignment to be saved
-   * @param modes Set of modes for the assignment to be saved
-   * @param outputConfiguration output configuration
+   * @param timePeriod              TimePeriod for the assignment to be saved
+   * @param modes                   Set of modes for the assignment to be saved
+   * @param outputConfiguration     output configuration
    * @param outputTypeConfiguration OutputTypeConfiguration for the assignment to be saved
-   * @param outputAdapter OutputAdapter for the assignment to be saved
+   * @param outputAdapter           OutputAdapter for the assignment to be saved
    * @throws PlanItException thrown if there is an error
    */
-  public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
-      OutputAdapter outputAdapter) throws PlanItException;
+  public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter)
+      throws PlanItException;
 
   /**
    * Open resources to store results
    * 
    * @param outputTypeConfigurations OutputTypeConfigurations for the assignment to be saved
-   * @param runId the id number of the run
+   * @param runId                    the id number of the run
    * @throws PlanItException thrown if there is an error
    */
-  public void initialiseBeforeSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations, long runId)
-      throws PlanItException;
+  public void initialiseBeforeSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations, long runId) throws PlanItException;
 
   /**
    * Close resources to store results
    * 
    * @param outputTypeConfigurations OutputTypeConfigurations for the assignment to be saved
+   * @param outputAdapter            the outputAdapter
    * @throws PlanItException thrown if there is an error
    */
-  public void finaliseAfterSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations)
-      throws PlanItException;
+  public void finaliseAfterSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations, OutputAdapter outputAdapter) throws PlanItException;
 
   /**
    * Flag to indicate whether an implementation can handle multiple iterations
    * 
-   * If this returns false, acts as though OutputConfiguration.setPersistOnlyFinalIteration() is set
-   * to true
+   * If this returns false, acts as though OutputConfiguration.setPersistOnlyFinalIteration() is set to true
    * 
    * @return flag to indicate whether the OutputFormatter can handle multiple iterations
    */
   public boolean canHandleMultipleIterations();
-  
+
 }

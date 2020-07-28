@@ -66,8 +66,7 @@ public class OutputManager {
   }
 
   /**
-   * Allows the output manager to initialize itself and any of its registered output formatters to prepare before the
-   * simulation starts
+   * Allows the output manager to initialize itself and any of its registered output formatters to prepare before the simulation starts
    * 
    * @param runId traffic assignment run id
    * @throws PlanItException thrown if there is an error
@@ -79,14 +78,13 @@ public class OutputManager {
   }
 
   /**
-   * Allows the output manager to finalise itself and any of its registered output formatters to after the simulation
-   * ended
+   * Allows the output manager to finalise itself and any of its registered output formatters to after the simulation ended
    * 
    * @throws PlanItException thrown if there is an error
    */
   public void finaliseAfterSimulation() throws PlanItException {
     for (OutputFormatter outputFormatter : outputFormatters) {
-      outputFormatter.finaliseAfterSimulation(outputTypeConfigurations);
+      outputFormatter.finaliseAfterSimulation(outputTypeConfigurations, outputAdapter);
     }
   }
 
@@ -247,5 +245,5 @@ public class OutputManager {
   public List<OutputType> getRegisteredOutputTypes() {
     return new ArrayList<OutputType>(outputTypeConfigurations.keySet());
   }
-  
+
 }

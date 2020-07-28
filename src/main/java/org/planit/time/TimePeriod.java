@@ -214,8 +214,8 @@ public class TimePeriod implements Comparable<TimePeriod> {
   @Override
   public String toString() {
     long endTime = startTimeSeconds + durationSeconds;
-    return "start time: " + String.format("%02d:%02d", startTimeSeconds / 3600, (startTimeSeconds % 3600) / 60) + " end time: "
-        + String.format("%02d:%02d", endTime / 3600, (endTime % 3600) / 60);
+    return String.format("start time: %02d:%02d ", startTimeSeconds / 3600, (startTimeSeconds % 3600) / 60)
+        + String.format("- end time: %02d:%02d", endTime / 3600, (endTime % 3600) / 60);
   }
 
 }

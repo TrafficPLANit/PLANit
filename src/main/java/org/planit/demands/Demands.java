@@ -429,39 +429,6 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
   }
 
   /**
-   * Retrieve the TimePeriods local class
-   * 
-   * This method should only be called by the Python interface
-   * 
-   * @return the TimePeriods local class
-   */
-  public TimePeriods getTimePeriods() {
-    return timePeriods;
-  }
-
-  /**
-   * Retrieve the UserClasses local class
-   * 
-   * This method should only be called by the Python interface
-   * 
-   * @return the user classes
-   */
-  public UserClasses getUserClasses() {
-    return userClasses;
-  }
-
-  /**
-   * Retrieve the TravelerTypes local class
-   * 
-   * This method should only be called by the Python interface
-   * 
-   * @return the traveler types
-   */
-  public TravelerTypes getTravelerTypes() {
-    return travelerTypes;
-  }
-
-  /**
    * Register provided odDemand
    *
    * @param timePeriod     the time period for this origin-demand object

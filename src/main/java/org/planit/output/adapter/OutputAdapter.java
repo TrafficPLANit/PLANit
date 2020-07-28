@@ -52,7 +52,7 @@ public class OutputAdapter {
    * 
    * @return id of this assignment run
    */
-  public long getTrafficAssignmentId() {
+  public long getRunId() {
     return trafficAssignment.getId();
   }
 

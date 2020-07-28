@@ -5,6 +5,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.djutils.event.Event;
@@ -44,6 +45,7 @@ import org.planit.utils.arrays.ArrayOperations;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
@@ -51,7 +53,6 @@ import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.network.virtual.Zone;
-import org.planit.utils.output.FormatUtils;
 
 /**
  * Traditional static assignment traffic component. Provides configuration access via the CapacityRestrainedTrafficAssignmentBuilder it instantiates
@@ -135,8 +136,10 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       if (currentOriginZone.getId() != currentDestinationZone.getId()) {
         if (outputManager.getOutputConfiguration().isPersistZeroFlow() || ((odDemand - DEFAULT_FLOW_EPSILON) > 0.0)) {
 
-          LOGGER.fine("Calculating flow from origin zone " + currentOriginZone.getExternalId() + " to destination zone " + currentDestinationZone.getExternalId()
-              + " which has demand of " + FormatUtils.format5(odDemand) + " for mode " + mode.getExternalId());
+          if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine(LoggingUtils.createRunIdPrefix(getId()) + String.format("(O,D)=(%d,%d) --> demand (pcu/h): %f (mode: %d)", currentOriginZone.getExternalId(),
+                currentDestinationZone.getExternalId(), odDemand, mode.getExternalId()));
+          }
 
           // MARK 6-1-2020
           // extracted this from separated method (method removed);
@@ -147,7 +150,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
             final Centroid originCentroid = currentOriginZone.getCentroid();
             PlanItException.throwIf(originCentroid.getExitEdgeSegments().isEmpty(),
-                "Edge segments have not been assigned to Centroid for Zone " + (currentOriginZone.getExternalId()));
+                String.format("edge segments have not been assigned to Centroid for Zone %d", currentOriginZone.getExternalId()));
 
             // UPDATE SHORTEST PATHS
             vertexPathAndCosts = shortestPathAlgorithm.executeOneToAll(originCentroid);
@@ -164,10 +167,10 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
             try {
               odShortestPathCost = getShortestPathCost(vertexPathAndCosts, currentOriginZone, currentDestinationZone, modalNetworkSegmentCosts, odDemand, currentModeData);
               dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
-            } catch (PlanItException pe) {
-              LOGGER.warning(pe.getMessage());
-              LOGGER.info("IMPOSSIBLE PATH:  The path from origin zone " + currentOriginZone.getExternalId() + " to destination zone " + currentDestinationZone.getExternalId()
-                  + " has infinite cost for mode " + mode.getName() + ".");
+            } catch (PlanItException e) {
+              LOGGER.warning(e.getMessage());
+              LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "impossible path from origin zone " + currentOriginZone.getExternalId() + " to destination zone "
+                  + currentDestinationZone.getExternalId() + " (mode " + mode.getExternalId() + ")");
             }
           }
           previousOriginZoneId = currentOriginZone.getId();
@@ -246,7 +249,6 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    * @throws PlanItException thrown if there is an error
    */
   private void executeTimePeriod(final TimePeriod timePeriod) throws PlanItException {
-    LOGGER.info("Running Traditional Static Assignment over all modes for Time Period " + timePeriod.getDescription());
     final Set<Mode> modes = demands.getRegisteredModesForTimePeriod(timePeriod);
     initialiseTimePeriod(modes);
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
@@ -277,8 +279,8 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
       dualityGapFunction.computeGap();
       simulationData.incrementIterationIndex();
-      LOGGER.info("The total system travel time after iteration " + simulationData.getIterationIndex() + " for time period " + timePeriod.getExternalId() + " is "
-          + dualityGapFunction.getActualSystemTravelTime() + ".");
+      LOGGER.info(LoggingUtils.createRunIdPrefix(getId())
+          + String.format("iteration %d: Network travel time: %f", simulationData.getIterationIndex(), dualityGapFunction.getActualSystemTravelTime()));
       startTime = recordTime(startTime, dualityGapFunction.getGap());
       for (final Mode mode : modes) {
         final double[] modalLinkSegmentCosts = recalculateModalLinkSegmentCosts(mode, timePeriod);
@@ -287,8 +289,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       converged = dualityGapFunction.hasConverged(simulationData.getIterationIndex());
       outputManager.persistOutputData(timePeriod, modes, converged);
     }
-    final long timeDiff = startTime.getTimeInMillis() - initialStartTime.getTimeInMillis();
-    LOGGER.info("Assignment took " + timeDiff + " milliseconds");
+    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
   }
 
   /**
@@ -300,8 +301,8 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    */
   private Calendar recordTime(final Calendar startTime, final double dualityGap) {
     final Calendar currentTime = Calendar.getInstance();
-    final long timeDiff = currentTime.getTimeInMillis() - startTime.getTimeInMillis();
-    LOGGER.info("Iteration " + simulationData.getIterationIndex() + ": Duality gap = " + FormatUtils.format6(dualityGap) + ": Iteration duration " + timeDiff + " milliseconds");
+    LOGGER.info(LoggingUtils.createRunIdPrefix(getId())
+        + String.format("iteration %d: duality gap: %.6f (%d ms)", simulationData.getIterationIndex(), dualityGap, currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
     return currentTime;
   }
 
@@ -314,7 +315,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    * @throws PlanItException thrown if there is an error
    */
   private void executeAndSmoothTimePeriodAndMode(final TimePeriod timePeriod, final Mode mode, final double[] modalNetworkSegmentCosts) throws PlanItException {
-    LOGGER.info("Running Traditional Static Assignment for Mode " + mode.getName());
+    LOGGER.fine(LoggingUtils.createRunIdPrefix(getId()) + String.format("[mode %d (id:%d)]", mode.getExternalId(), mode.getId()));
     // mode specific data
     final ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
     currentModeData.resetNextNetworkSegmentFlows();
@@ -501,9 +502,10 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   public void executeEquilibration() throws PlanItException {
     // perform assignment per period - per mode
     final Collection<TimePeriod> timePeriods = demands.timePeriods.asSortedSetByStartTime();
-    LOGGER.info("There are " + timePeriods.size() + " time periods to loop through.");
+    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "total time periods: " + timePeriods.size());
     for (final TimePeriod timePeriod : timePeriods) {
-      LOGGER.info("Equilibrating time period " + timePeriod.toString());
+      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "[time period :" + timePeriod.getExternalId() + " (id: " + timePeriod.getId() + ")]");
+      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + timePeriod.toString());
       executeTimePeriod(timePeriod);
     }
   }
@@ -571,7 +573,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       outputTypeAdapter = new TraditionalStaticRouteOutputTypeAdapter(outputType, this);
       break;
     default:
-      LOGGER.warning(outputType.value() + " has not been defined yet.");
+      LOGGER.warning(LoggingUtils.createRunIdPrefix(getId()) + outputType.value() + " has not been defined yet.");
     }
     return outputTypeAdapter;
   }

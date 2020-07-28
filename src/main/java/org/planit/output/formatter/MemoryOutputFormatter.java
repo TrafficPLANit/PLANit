@@ -346,10 +346,12 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * Close all resources used in this formatter
    * 
    * @param outputTypeConfigurations OutputTypeConfigurations for the assignment that have been activated
+   * @param outputAdapter            the outputAdapter
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  public void finaliseAfterSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations) throws PlanItException {
+  public void finaliseAfterSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations, OutputAdapter outputAdapter) throws PlanItException {
+    // do nothing
   }
 
   /**

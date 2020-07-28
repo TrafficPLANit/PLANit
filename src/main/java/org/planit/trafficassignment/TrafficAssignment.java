@@ -31,6 +31,7 @@ import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.misc.LoggingUtils;
 
 /**
  * Traffic assignment class which simultaneously is responsible for the loading hence it is also considered as a traffic assignment component of this type
@@ -210,11 +211,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
     disbandTransportNetwork();
 
-    // Finalize traffic assignment components including the traffic assignment
-    // itself
     outputManager.finaliseAfterSimulation();
-
-    LOGGER.info("Finished simulation");
   }
 
   // Public
@@ -280,7 +277,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
   public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
     OutputTypeConfiguration theOutputTypeConfiguration = null;
     if (!isOutputTypeActive(outputType)) {
-      LOGGER.info("Registering Output Type " + outputType);
       final OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(outputType);
       outputManager.registerOutputTypeAdapter(outputType, outputTypeAdapter);
       theOutputTypeConfiguration = outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
@@ -297,7 +293,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   public void deactivateOutput(final OutputType outputType) {
     if (isOutputTypeActive(outputType)) {
-      LOGGER.info("Deregistering Output Type " + outputType);
       outputManager.deregisterOutputTypeConfiguration(outputType);
       outputManager.deregisterOutputTypeAdapter(outputType);
     }
@@ -320,13 +315,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   public void execute() throws PlanItException {
 
+    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "------- START -------");
+
     initialiseBeforeExecution();
 
     executeEquilibration();
 
     finalizeAfterExecution();
 
-    LOGGER.info("Finished execution");
+    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "------- FINISH ------");
   }
 
   // Getters - Setters
@@ -494,7 +491,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param outputFormatter OutputFormatter to be registered
    */
   public void registerOutputFormatter(final OutputFormatter outputFormatter) {
-    LOGGER.info(" [run id: " + this.getId() + "] Registering outputFormatter " + outputFormatter.getClass().getSimpleName());
     outputManager.registerOutputFormatter(outputFormatter);
   }
 

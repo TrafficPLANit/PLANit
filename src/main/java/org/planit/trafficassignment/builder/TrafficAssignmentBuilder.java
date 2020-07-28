@@ -23,6 +23,7 @@ import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
+import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.network.physical.Mode;
 
 /**
@@ -36,6 +37,16 @@ public abstract class TrafficAssignmentBuilder {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentBuilder.class.getCanonicalName());
+
+  /**
+   * log registering an item on this traffic assignment
+   * 
+   * @param item     to (un)register
+   * @param register when true it signals activate, otherwise deactive
+   */
+  private void logRegisteredComponent(Object item, boolean register) {
+    LOGGER.info(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + LoggingUtils.activateItemByClassName(item, register));
+  }
 
   /**
    * Register the demands zoning and network objects
@@ -62,8 +73,11 @@ public abstract class TrafficAssignmentBuilder {
       }
     }
     parentAssignment.setPhysicalNetwork(network);
+    logRegisteredComponent(network, true);
     parentAssignment.setZoning(zoning);
+    logRegisteredComponent(zoning, true);
     parentAssignment.setDemands(demands);
+    logRegisteredComponent(demands, true);
   }
 
   /**
@@ -135,6 +149,7 @@ public abstract class TrafficAssignmentBuilder {
     // default gap function
     GapFunction theGapFunction = createGapFunction();
     parentAssignment.setGapFunction(theGapFunction);
+    logRegisteredComponent(theGapFunction, true);
 
     // By default, activate the link outputs
     activateOutput(OutputType.LINK);
@@ -152,6 +167,7 @@ public abstract class TrafficAssignmentBuilder {
   public Smoothing createAndRegisterSmoothing(final String smoothingType) throws PlanItException {
     final Smoothing smoothing = smoothingFactory.create(smoothingType, new Object[] { parentAssignment.getIdGroupingtoken() });
     parentAssignment.setSmoothing(smoothing);
+    logRegisteredComponent(smoothing, true);
     return smoothing;
   }
 
@@ -165,6 +181,7 @@ public abstract class TrafficAssignmentBuilder {
   public PhysicalCost createAndRegisterPhysicalCost(final String physicalTraveltimeCostFunctionType) throws PlanItException {
     final PhysicalCost physicalCost = physicalCostFactory.create(physicalTraveltimeCostFunctionType, new Object[] { parentAssignment.getIdGroupingtoken() });
     parentAssignment.setPhysicalCost(physicalCost);
+    logRegisteredComponent(physicalCost, true);
     return physicalCost;
   }
 
@@ -178,6 +195,7 @@ public abstract class TrafficAssignmentBuilder {
   public VirtualCost createAndRegisterVirtualCost(final String virtualTraveltimeCostFunctionType) throws PlanItException {
     final VirtualCost createdCost = virtualCostFactory.create(virtualTraveltimeCostFunctionType, new Object[] { parentAssignment.getIdGroupingtoken() });
     parentAssignment.setVirtualCost(createdCost);
+    logRegisteredComponent(createdCost, true);
     return createdCost;
   }
 
@@ -189,6 +207,7 @@ public abstract class TrafficAssignmentBuilder {
    */
   public void registerOutputFormatter(final OutputFormatter outputFormatter) throws PlanItException {
     parentAssignment.registerOutputFormatter(outputFormatter);
+    logRegisteredComponent(outputFormatter, true);
   }
 
   /**
@@ -201,6 +220,7 @@ public abstract class TrafficAssignmentBuilder {
    */
   public void unregisterOutputFormatter(final OutputFormatter outputFormatter) throws PlanItException {
     parentAssignment.unregisterOutputFormatter(outputFormatter);
+    logRegisteredComponent(outputFormatter, false);
   }
 
   /**
@@ -252,6 +272,7 @@ public abstract class TrafficAssignmentBuilder {
    * @throws PlanItException thrown if there is an error activating the output
    */
   public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
+    LOGGER.info(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + "activated OutputType." + outputType);
     return parentAssignment.activateOutput(outputType);
   }
 
@@ -261,6 +282,7 @@ public abstract class TrafficAssignmentBuilder {
    * @param outputType OutputType to be deactivated
    */
   public void deactivateOutput(final OutputType outputType) {
+    LOGGER.info(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + "deactivated OutputType." + outputType);
     parentAssignment.deactivateOutput(outputType);
   }
 
