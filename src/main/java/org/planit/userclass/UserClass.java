@@ -13,10 +13,15 @@ import org.planit.utils.network.physical.Mode;
  */
 public class UserClass {
 
+  /**
+   * default name
+   */
   public static final String DEFAULT_NAME = "Default";
-  public static final int DEFAULT_EXTERNAL_ID = 1;
-  public static final int DEFAULT_MODE_REF = 1;
-  public static final int DEFAULT_TRAVELLER_TYPE = 1;
+
+  /**
+   * Default external id
+   */
+  public static final long DEFAULT_EXTERNAL_ID = 1;
 
   /**
    * id of this user class

@@ -13,6 +13,7 @@ import org.planit.utils.id.IdGroupingToken;
 public class TravelerType {
 
   public static final String DEFAULT_NAME = "Default";
+
   /**
    * If no user class is defined the default user class will be assumed to have a traveler type referencing the default external traveler type id (1)
    */

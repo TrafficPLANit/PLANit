@@ -27,6 +27,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
+//@formatter:off
 public class PlanItProjectInput {
 
   /** the logger */
@@ -365,7 +366,8 @@ public class PlanItProjectInput {
    * @throws PlanItException thrown if there is an error
    */
   public PhysicalNetwork createAndRegisterPhysicalNetwork(final String physicalNetworkType) throws PlanItException {
-    final PhysicalNetwork physicalNetwork = physicalNetworkFactory.create(physicalNetworkType, projectGroupId);
+    final PhysicalNetwork physicalNetwork = 
+        physicalNetworkFactory.create(physicalNetworkType, new Object[] { projectGroupId });
     physicalNetworkMap.put(physicalNetwork.getId(), physicalNetwork);
     return physicalNetwork;
   }
@@ -380,7 +382,12 @@ public class PlanItProjectInput {
   public Zoning createAndRegisterZoning(final PhysicalNetwork physicalNetwork) throws PlanItException {
     PlanItException.throwIf(physicalNetwork == null, "The physical network must be defined before definition of zones can begin");
 
-    final Zoning zoning = zoningFactory.create(Zoning.class.getCanonicalName(), projectGroupId, new Object[] { physicalNetwork });
+    final Zoning zoning = 
+        zoningFactory.create(
+            Zoning.class.getCanonicalName(), 
+            new Object[] { projectGroupId, physicalNetwork.getNetworkIdGroupingToken() }, 
+            physicalNetwork);
+
     zoningsMap.put(zoning.getId(), zoning);
     return zoning;
   }
@@ -397,7 +404,13 @@ public class PlanItProjectInput {
     PlanItException.throwIf(zoning == null, "Zones must be defined before definition of demands can begin");
     PlanItException.throwIf(physicalNetwork == null, "Physical network must be defined before definition of demands can begin");
 
-    final Demands demands = demandsFactory.create(Demands.class.getCanonicalName(), projectGroupId, new Object[] { zoning, physicalNetwork });
+    final Demands demands = 
+        demandsFactory.create(
+            Demands.class.getCanonicalName(), 
+            new Object[] { projectGroupId }, 
+            zoning, 
+            physicalNetwork);
+
     demandsMap.put(demands.getId(), demands);
     return demands;
   }
@@ -415,7 +428,12 @@ public class PlanItProjectInput {
     PlanItException.throwIf(zoning == null, "Zones must be defined before definition of od route sets can proceed");
     PlanItException.throwIf(physicalNetwork == null, "Physical network must be defined before of od route sets can proceed");
 
-    final ODRouteSets odRouteSets = odRouteSetsFactory.create(ODRouteSets.class.getCanonicalName(), projectGroupId, new Object[] { odRouteSetInputPath });
+    final ODRouteSets odRouteSets = 
+        odRouteSetsFactory.create(
+            ODRouteSets.class.getCanonicalName(), 
+            new Object[] { projectGroupId }, 
+            odRouteSetInputPath);
+
     odRouteSetsMap.put(odRouteSets.getId(), odRouteSets);
     return odRouteSets;
   }
@@ -434,8 +452,13 @@ public class PlanItProjectInput {
     if (!initialLinkSegmentCosts.containsKey(network)) {
       initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
     }
-    final InitialLinkSegmentCost initialLinkSegmentCost = (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(),
-        projectGroupId, new Object[] { network, fileName });
+
+    final InitialLinkSegmentCost initialLinkSegmentCost = 
+        (InitialLinkSegmentCost) initialPhysicalCostFactory.create(
+            InitialLinkSegmentCost.class.getCanonicalName(),
+            new Object[] { projectGroupId }, 
+            network, fileName);
+
     initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
     return initialLinkSegmentCost;
   }
@@ -457,8 +480,14 @@ public class PlanItProjectInput {
       initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
     }
 
-    final InitialPhysicalCost initialLinkSegmentCostPeriod = (InitialLinkSegmentCostPeriod) initialPhysicalCostFactory.create(InitialLinkSegmentCostPeriod.class.getCanonicalName(),
-        projectGroupId, new Object[] { network, fileName, timePeriod });
+    final InitialPhysicalCost initialLinkSegmentCostPeriod = 
+        (InitialLinkSegmentCostPeriod) initialPhysicalCostFactory.create(
+            InitialLinkSegmentCostPeriod.class.getCanonicalName(),
+            new Object[] { projectGroupId }, 
+            network, 
+            fileName, 
+            timePeriod);
+
     // explicitly register time period on the instance, since it is more specific than the regular initial cost without this information
     ((InitialLinkSegmentCostPeriod) initialLinkSegmentCostPeriod).setTimePeriod(timePeriod);
 
@@ -498,5 +527,5 @@ public class PlanItProjectInput {
   public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final PhysicalNetwork network) {
     return initialLinkSegmentCosts.get(network);
   }
-
 }
+//@formatter:on

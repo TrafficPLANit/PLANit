@@ -86,4 +86,12 @@ public class MacroscopicNetworkBuilder implements PhysicalNetworkBuilder {
   public void setIdGroupingToken(IdGroupingToken groupId) {
     this.groupId = groupId;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public IdGroupingToken getIdGroupingToken() {
+    return this.groupId;
+  }
 }

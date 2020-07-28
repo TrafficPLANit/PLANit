@@ -11,7 +11,6 @@ import org.planit.network.physical.PhysicalNetwork.Modes;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
-import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.virtual.Centroid;
@@ -96,11 +95,6 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   // Protected
 
   /**
-   * unique identifier for this zoning
-   */
-  protected final long id;
-
-  /**
    * Map storing all the zones by their row/column in the OD matrix
    */
   protected final Map<Long, Zone> zoneMap = new TreeMap<Long, Zone>();
@@ -120,23 +114,19 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   /**
    * Constructor
    * 
-   * @param groupId contiguous id generation within this group for instances of this class
+   * The second id generation token should be the token used by the physical network to create physical network entities such as links, nodes, etc. The virtual network should
+   * register connectoids, centroids, etc. with ids compatible under this same network. For example, a centroid is a vertex, like a node, so the vertex ids should be contiguous and
+   * unique throughout the combination of the virtual and physical network. Hence, they should use the same network id token
+   * 
+   * @param groupId        contiguous id generation within this group for instances of this class
+   * @param networkGroupId contiguous id generation for all instances created by the virtual network
    */
-  public Zoning(IdGroupingToken groupId) {
+  public Zoning(IdGroupingToken groupId, IdGroupingToken networkGroupId) {
     super(groupId, Zoning.class);
-    this.id = IdGenerator.generateId(groupId, Zoning.class);
-    virtualNetwork = new VirtualNetwork(this.groupId);
+    virtualNetwork = new VirtualNetwork(networkGroupId);
   }
 
   // Public - getters - setters
-
-  /**
-   * #{@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return this.id;
-  }
 
   /**
    * Get the virtual network for this zoning

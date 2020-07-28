@@ -60,7 +60,7 @@ public class StochasticRouteChoice extends RouteChoice {
    * @throws PlanItException thrown if error
    */
   public LogitChoiceModel createAndRegisterLogitModel(final String canonicalName) throws PlanItException {
-    this.logitChoiceModel = logitChoiceModelFactory.create(canonicalName);
+    this.logitChoiceModel = logitChoiceModelFactory.create(canonicalName, new Object[] { groupId });
     return this.logitChoiceModel;
   }
 

@@ -60,4 +60,11 @@ public interface PhysicalNetworkBuilder {
    */
   public void setIdGroupingToken(IdGroupingToken groupId);
 
+  /**
+   * Collect the id grouping token used by this builder
+   * 
+   * @return idGroupingToken the id grouping token used by this builder
+   */
+  public IdGroupingToken getIdGroupingToken();
+
 }

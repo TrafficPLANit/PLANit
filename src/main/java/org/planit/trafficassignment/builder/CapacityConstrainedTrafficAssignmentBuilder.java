@@ -11,9 +11,7 @@ import org.planit.trafficassignment.CapacityConstrainedAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 
 /**
- * When capacity constraints are in place we make a distinction between inflow
- * and outflow and we assume the difference between the two is governed by a
- * fundamental diagram.
+ * When capacity constraints are in place we make a distinction between inflow and outflow and we assume the difference between the two is governed by a fundamental diagram.
  *
  * @author markr
  *
@@ -23,43 +21,34 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
   // FACTORIES
 
   /**
-   * fundamental diagram factory to create fundamental diagrams used to populate
-   * the link model
+   * fundamental diagram factory to create fundamental diagrams used to populate the link model
    */
   protected final TrafficAssignmentComponentFactory<FundamentalDiagram> fundamentalDiagramFactory;
 
   /**
-   * fundamental diagram factory to create fundamental diagrams used to populate
-   * the link model
+   * fundamental diagram factory to create fundamental diagrams used to populate the link model
    */
   protected final TrafficAssignmentComponentFactory<NodeModel> nodeModelFactory;
 
   /**
    * Constructor
    *
-   * @param capacityConstrainedAssignment CapacityConstrainedAssignment object to be built
-   * @param trafficComponentCreateListener the listener to be registered for any traffic components
-   *          being created by this class
-   * @param demands the demands
-   * @param zoning the zoning
-   * @param physicalNetwork the physical network
+   * @param capacityConstrainedAssignment  CapacityConstrainedAssignment object to be built
+   * @param trafficComponentCreateListener the listener to be registered for any traffic components being created by this class
+   * @param demands                        the demands
+   * @param zoning                         the zoning
+   * @param physicalNetwork                the physical network
    * @throws PlanItException thrown if there is an error
    */
-  protected CapacityConstrainedTrafficAssignmentBuilder(
-      final CapacityConstrainedAssignment capacityConstrainedAssignment,
-      final InputBuilderListener trafficComponentCreateListener,
-      final Demands demands,
-      final Zoning zoning,
-      final PhysicalNetwork physicalNetwork) throws PlanItException {
+  protected CapacityConstrainedTrafficAssignmentBuilder(final CapacityConstrainedAssignment capacityConstrainedAssignment,
+      final InputBuilderListener trafficComponentCreateListener, final Demands demands, final Zoning zoning, final PhysicalNetwork physicalNetwork) throws PlanItException {
     super(capacityConstrainedAssignment, trafficComponentCreateListener, demands, zoning, physicalNetwork);
     fundamentalDiagramFactory = new TrafficAssignmentComponentFactory<FundamentalDiagram>(FundamentalDiagram.class);
     nodeModelFactory = new TrafficAssignmentComponentFactory<NodeModel>(NodeModel.class);
 
     // register the listener on create events of the factory
-    fundamentalDiagramFactory.addListener(trafficComponentCreateListener,
-        TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
-    nodeModelFactory.addListener(trafficComponentCreateListener,
-        TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    fundamentalDiagramFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    nodeModelFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
   }
 
   // FACTORY METHODS
@@ -68,14 +57,12 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
    * Create and register FundamentalDiagram on assignment
    *
    * @param fundamentalDiagramType the type of Fundamental Diagrams to be created
-   * @param physicalNetwork the network for which link segments the fundamental diagram parameters
-   *          are to be provided
+   * @param physicalNetwork        the network for which link segments the fundamental diagram parameters are to be provided
    * @return FundamentalDiagram created
    * @throws PlanItException thrown if there is an error
    */
-  public FundamentalDiagram createAndRegisterFundamentalDiagram(final String fundamentalDiagramType,
-      final PhysicalNetwork physicalNetwork) throws PlanItException {
-    final FundamentalDiagram createdFundamentalDiagram = fundamentalDiagramFactory.create(fundamentalDiagramType,
+  public FundamentalDiagram createAndRegisterFundamentalDiagram(final String fundamentalDiagramType, final PhysicalNetwork physicalNetwork) throws PlanItException {
+    final FundamentalDiagram createdFundamentalDiagram = fundamentalDiagramFactory.create(fundamentalDiagramType, new Object[] { parentAssignment.getIdGroupingtoken() },
         physicalNetwork);
     ((CapacityConstrainedAssignment) parentAssignment).setFundamentalDiagram(createdFundamentalDiagram);
     return createdFundamentalDiagram;
@@ -84,14 +71,12 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
   /**
    * Create and register NodeMode on assignment
    *
-   * @param nodeModelType
-   *          the type of Node Model to be built
+   * @param nodeModelType the type of Node Model to be built
    * @return NodeModel created
-   * @throws PlanItException
-   *           thrown if there is an error
+   * @throws PlanItException thrown if there is an error
    */
   public NodeModel createAndRegisterNodeModel(final String nodeModelType) throws PlanItException {
-    final NodeModel createdNodeModel = nodeModelFactory.create(nodeModelType);
+    final NodeModel createdNodeModel = nodeModelFactory.create(nodeModelType, new Object[] { parentAssignment.getIdGroupingtoken() });
     ((CapacityConstrainedAssignment) parentAssignment).setNodeModel(createdNodeModel);
     return createdNodeModel;
   }

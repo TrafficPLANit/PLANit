@@ -25,6 +25,7 @@ import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
+import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -108,6 +109,17 @@ public class CustomPlanItProject {
   }
 
   /**
+   * unique identifier for this project across all projects in the JVM
+   */
+  protected final long id;
+
+  /**
+   * id generation using this token will be contiguous and unique for all instances created with this token. This token is related to the current instance of this class, i.e., the
+   * project
+   */
+  protected IdGroupingToken projectToken;
+
+  /**
    * The input container holding all traffic assignment input components and related functionality with respect to project management
    */
   protected final PlanItProjectInput inputs;
@@ -187,10 +199,13 @@ public class CustomPlanItProject {
    * @param inputBuilderListener InputBuilderListener used to read in data
    */
   public CustomPlanItProject(final InputBuilderListener inputBuilderListener) {
+    this.id = IdGenerator.generateId(IdGroupingToken.collectGlobalToken(), CustomPlanItProject.class);
+    this.projectToken = IdGenerator.createIdGroupingToken(this, this.id);
+
     this.inputBuilderListener = inputBuilderListener;
 
     // connect inputs
-    this.inputs = new PlanItProjectInput(IdGroupingToken.collectGlobalToken(), inputBuilderListener);
+    this.inputs = new PlanItProjectInput(projectToken, inputBuilderListener);
     this.physicalNetworks = inputs.physicalNetworks;
     this.demands = inputs.demands;
     this.zonings = inputs.zonings;
@@ -270,7 +285,7 @@ public class CustomPlanItProject {
   public TrafficAssignmentBuilder createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands, final Zoning theZoning,
       final PhysicalNetwork thePhysicalNetwork) throws PlanItException {
 
-    final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentType);
+    final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentType, new Object[] { projectToken });
     PlanItException.throwIf(!(networkLoadingAndAssignment instanceof TrafficAssignment), "not a valid traffic assignment type");
 
     final TrafficAssignment trafficAssignment = (TrafficAssignment) networkLoadingAndAssignment;

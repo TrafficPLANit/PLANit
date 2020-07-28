@@ -21,6 +21,7 @@ import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficAssignmentBuilder implements RouteChoiceBuilder {
 
   // needed to allow route choice to register inputbuilder listener on its traffic components
+  @SuppressWarnings("unused")
   private final InputBuilderListener trafficComponentCreateListener;
 
   /** the route choice factory */
@@ -48,7 +49,7 @@ public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficA
    */
   @Override
   public RouteChoice createAndRegisterRouteChoice(final String routeChoiceType) throws PlanItException {
-    final RouteChoice routeChoice = routeChoiceFactory.create(routeChoiceType);
+    final RouteChoice routeChoice = routeChoiceFactory.create(routeChoiceType, new Object[] { parentAssignment.getIdGroupingtoken() });
     ((DynamicTrafficAssignment) parentAssignment).setRouteChoice(routeChoice);
     return routeChoice;
   }
@@ -64,7 +65,7 @@ public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficA
    */
   @Override
   public Smoothing createAndRegisterSmoothing(final String smoothingType) throws PlanItException {
-    final Smoothing smoothing = smoothingFactory.create(smoothingType);
+    final Smoothing smoothing = smoothingFactory.create(smoothingType, new Object[] { parentAssignment.getIdGroupingtoken() });
     parentAssignment.setSmoothing(smoothing);
     return smoothing;
   }

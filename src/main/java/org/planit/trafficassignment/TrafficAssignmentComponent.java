@@ -23,7 +23,7 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
   protected final long id;
 
   /**
-   * id generation using this token will be contiguous and unique for each instance of some class per class
+   * id generation using this token will be contiguous and unique for each instance of this class
    */
   protected IdGroupingToken groupId;
 
@@ -60,6 +60,15 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
    */
   public long getId() {
     return id;
+  }
+
+  /**
+   * Collect the id grouping token used to generate ids for entities of this class.
+   * 
+   * @return id grouping token
+   */
+  public IdGroupingToken getIdGroupingtoken() {
+    return groupId;
   }
 
   /**

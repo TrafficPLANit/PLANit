@@ -514,4 +514,14 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
     return linkSegments;
   }
 
+  /**
+   * Collect the id grouping token used for all entities registered on the network, i.e., this network's specific identifier for generating ids unique and contiguous within this
+   * network and this network only
+   * 
+   * @return
+   */
+  public IdGroupingToken getNetworkIdGroupingToken() {
+    return this.networkBuilder.getIdGroupingToken();
+  }
+
 }

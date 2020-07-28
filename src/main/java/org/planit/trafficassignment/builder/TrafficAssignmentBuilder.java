@@ -26,9 +26,8 @@ import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.network.physical.Mode;
 
 /**
- * All traffic assignment instances require a network, demand, and (equilibrium) smoothing procedure, all of which
- * should be registered via this generic builder. Specific traffic assignment methods might require special builders
- * derived from this builder
+ * All traffic assignment instances require a network, demand, and (equilibrium) smoothing procedure, all of which should be registered via this generic builder. Specific traffic
+ * assignment methods might require special builders derived from this builder
  *
  * @author markr
  *
@@ -47,12 +46,13 @@ public abstract class TrafficAssignmentBuilder {
    * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
    */
   private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final PhysicalNetwork network) throws PlanItException {
-    if(zoning == null || demands == null || network == null) {
+    if (zoning == null || demands == null || network == null) {
       PlanItException.throwIf(zoning == null, "zoning in registerDemandZoningAndNetwork is null");
       PlanItException.throwIf(demands == null, "demands in registerDemandZoningAndNetwork is null");
       PlanItException.throwIf(network == null, "network in registerDemandZoningAndNetwork is null");
     }
-    PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, network.modes),"Zoning structure is incompatible with one or more of the demands, likely the number of zones does not match the number of origins and/or destinations");
+    PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, network.modes),
+        "Zoning structure is incompatible with one or more of the demands, likely the number of zones does not match the number of origins and/or destinations");
 
     for (final Mode mode : network.modes) {
       for (TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
@@ -69,11 +69,9 @@ public abstract class TrafficAssignmentBuilder {
   /**
    * The smoothing factory used in the assignment algorithm
    *
-   * NB: The smoothing factory is defined here because the same smoothing algorithm is used for all assignments. If we
-   * later decide to use more than one smoothing algorithm and allow different traffic assignments to use different
-   * smoothing algorithms, we would need to move this property and its handler methods to CustomPlanItProject and treat it
-   * like the factories for PhysicalNetwork, Demands and Zoning (and allow the different smoothing algorithms to be
-   * registered on the project).
+   * NB: The smoothing factory is defined here because the same smoothing algorithm is used for all assignments. If we later decide to use more than one smoothing algorithm and
+   * allow different traffic assignments to use different smoothing algorithms, we would need to move this property and its handler methods to CustomPlanItProject and treat it like
+   * the factories for PhysicalNetwork, Demands and Zoning (and allow the different smoothing algorithms to be registered on the project).
    */
   protected final TrafficAssignmentComponentFactory<Smoothing> smoothingFactory;
 
@@ -93,9 +91,8 @@ public abstract class TrafficAssignmentBuilder {
   protected final TrafficAssignment parentAssignment;
 
   /**
-   * Currently, there exists only a single gap function (link based relative duality gap) that is created via this factory
-   * method. It should be injected by each traffic assignment method until we have multiple gap functions, in which case,
-   * it becomes an option like other components.
+   * Currently, there exists only a single gap function (link based relative duality gap) that is created via this factory method. It should be injected by each traffic assignment
+   * method until we have multiple gap functions, in which case, it becomes an option like other components.
    * 
    * @return the created gap function
    */
@@ -153,7 +150,7 @@ public abstract class TrafficAssignmentBuilder {
    * @throws PlanItException thrown if there is an error
    */
   public Smoothing createAndRegisterSmoothing(final String smoothingType) throws PlanItException {
-    final Smoothing smoothing = smoothingFactory.create(smoothingType);
+    final Smoothing smoothing = smoothingFactory.create(smoothingType, new Object[] { parentAssignment.getIdGroupingtoken() });
     parentAssignment.setSmoothing(smoothing);
     return smoothing;
   }
@@ -166,7 +163,7 @@ public abstract class TrafficAssignmentBuilder {
    * @throws PlanItException thrown if there is an error
    */
   public PhysicalCost createAndRegisterPhysicalCost(final String physicalTraveltimeCostFunctionType) throws PlanItException {
-    final PhysicalCost physicalCost = physicalCostFactory.create(physicalTraveltimeCostFunctionType);
+    final PhysicalCost physicalCost = physicalCostFactory.create(physicalTraveltimeCostFunctionType, new Object[] { parentAssignment.getIdGroupingtoken() });
     parentAssignment.setPhysicalCost(physicalCost);
     return physicalCost;
   }
@@ -179,7 +176,7 @@ public abstract class TrafficAssignmentBuilder {
    * @throws PlanItException thrown if there is an error
    */
   public VirtualCost createAndRegisterVirtualCost(final String virtualTraveltimeCostFunctionType) throws PlanItException {
-    final VirtualCost createdCost = virtualCostFactory.create(virtualTraveltimeCostFunctionType);
+    final VirtualCost createdCost = virtualCostFactory.create(virtualTraveltimeCostFunctionType, new Object[] { parentAssignment.getIdGroupingtoken() });
     parentAssignment.setVirtualCost(createdCost);
     return createdCost;
   }
@@ -216,8 +213,8 @@ public abstract class TrafficAssignmentBuilder {
   }
 
   /**
-   * Register the initial link segment cost without relating it to a particular period, meaning that it is applied to all
-   * time periods that do not have a specified initial link segment costs registered for them
+   * Register the initial link segment cost without relating it to a particular period, meaning that it is applied to all time periods that do not have a specified initial link
+   * segment costs registered for them
    *
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    */

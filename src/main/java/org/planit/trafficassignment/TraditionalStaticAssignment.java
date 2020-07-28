@@ -153,6 +153,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
             vertexPathAndCosts = shortestPathAlgorithm.executeOneToAll(originCentroid);
           }
 
+          // TODO: we are now creating a route separate from finding shortest path. This makes no sense as it is very costly when switched on
           if (outputManager.isOutputTypeActive(OutputType.PATH)) {
             final Route route = Route.createRoute(groupId, currentDestinationZone.getCentroid(), vertexPathAndCosts);
             odRouteMatrix.setValue(currentOriginZone, currentDestinationZone, route);
@@ -195,6 +196,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
     EdgeSegment currentEdgeSegment = null;
     for (Vertex currentPathStartVertex = currentDestinationZone.getCentroid(); currentPathStartVertex.getId() != currentOriginZone.getCentroid()
         .getId(); currentPathStartVertex = currentEdgeSegment.getUpstreamVertex()) {
+
       final int startVertexId = (int) currentPathStartVertex.getId();
       currentEdgeSegment = vertexPathAndCost[startVertexId].getSecond();
       if (currentEdgeSegment == null) {
@@ -204,6 +206,8 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       }
       final int edgeSegmentId = (int) currentEdgeSegment.getId();
       shortestPathCost += modalNetworkSegmentCosts[edgeSegmentId];
+
+      // TODO: this should not be part of the shortest path cost
       currentModeData.nextNetworkSegmentFlows[edgeSegmentId] += odDemand;
     }
     return shortestPathCost;
