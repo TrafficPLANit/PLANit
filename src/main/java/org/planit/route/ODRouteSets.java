@@ -32,6 +32,13 @@ public class ODRouteSets extends TrafficAssignmentComponent<ODRouteSets> {
   public ODRouteSets(IdGroupingToken groupId) {
     super(groupId, ODRouteSets.class);
   }
+  
+  /** Collect the number of registered od route sets
+   * @return number of od route sets
+   */
+  public int getNumberOfOdRouteSets() {
+    return odRouteMatrices.size();
+  }  
 
   /**
    * Create an empty od route matrix and register it on this od route sets
@@ -71,13 +78,4 @@ public class ODRouteSets extends TrafficAssignmentComponent<ODRouteSets> {
   public ODRouteMatrix getFirstODRouteMatrix() {
     return hasRegisteredOdMatrices() ? odRouteMatrices.firstEntry().getValue() : null;
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return this.id;
-  }
-
 }

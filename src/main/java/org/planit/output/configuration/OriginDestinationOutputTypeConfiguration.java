@@ -105,7 +105,7 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
         valid = true;
         break;
       default:
-        LOGGER.warning("Configured keys cannot identify origin-destination cell in the skim matrix.");
+        LOGGER.warning("configured keys cannot identify origin-destination cell in the skim matrix");
     }
     if (valid) {
       return outputKeyPropertiesArray;
@@ -163,8 +163,7 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
       case TIME_PERIOD_ID:
         return true;
       default:
-        LOGGER.warning("Tried to add " + baseOutputProperty.getName()
-            + " as an ouput property, which is inappropriate for Origin-Destination output.  This will be ignored.");
+        LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Origin-Destination output. This will be ignored");
     }
     return false;
   }

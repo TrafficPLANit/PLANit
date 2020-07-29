@@ -19,6 +19,7 @@ import org.planit.route.ODRouteSets;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.misc.LoggingUtils;
 
 /**
  * Class that holds all the input traffic components for a PLANit project. The PLANit project holds an instance of this class and delegates all calls relating to inputs to this
@@ -32,9 +33,6 @@ public class PlanItProjectInput {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(PlanItProjectInput.class.getCanonicalName());
-
-  /** the token for generating ids uniquely and contiguously within this projects context */
-  private final IdGroupingToken projectGroupId;
 
   // INNER CLASSES
 
@@ -249,6 +247,12 @@ public class PlanItProjectInput {
       return hasRegisteredODRouteSets() ? odRouteSetsMap.firstEntry().getValue() : null;
     }
   }
+  
+  /** the token for generating ids uniquely and contiguously within this projects context */
+  private final IdGroupingToken projectGroupId;
+  
+  /** project id reference */
+  private final long projectId;
 
   /**
    * Initialise the input traffic assignment component factories
@@ -347,7 +351,8 @@ public class PlanItProjectInput {
    * 
    * @param inputBuilderListener the input builder to parse inputs
    */
-  public PlanItProjectInput(IdGroupingToken projectGroupId, InputBuilderListener inputBuilderListener) {
+  public PlanItProjectInput(long projectId, IdGroupingToken projectGroupId, InputBuilderListener inputBuilderListener) {
+    this.projectId = projectId;
     this.physicalNetworkMap = new TreeMap<Long, PhysicalNetwork>();
     this.demandsMap = new TreeMap<Long, Demands>();
     this.zoningsMap = new TreeMap<Long, Zoning>();
@@ -366,8 +371,16 @@ public class PlanItProjectInput {
    * @throws PlanItException thrown if there is an error
    */
   public PhysicalNetwork createAndRegisterPhysicalNetwork(final String physicalNetworkType) throws PlanItException {
+    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating network");
     final PhysicalNetwork physicalNetwork = 
         physicalNetworkFactory.create(physicalNetworkType, new Object[] { projectGroupId });
+    
+    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createNetworkPrefix(physicalNetwork.getId());
+    LOGGER.info(String.format("%s#links: %d", prefix, physicalNetwork.links.getNumberOfLinks()));
+    LOGGER.info(String.format("%s#link segments: %d", prefix, physicalNetwork.linkSegments.getNumberOfLinkSegments()));    
+    LOGGER.info(String.format("%s#nodes: %d", prefix, physicalNetwork.nodes.getNumberOfNodes()));
+    LOGGER.info(String.format("%s#modes: %d", prefix, physicalNetwork.modes.getNumberOfModes()));
+    
     physicalNetworkMap.put(physicalNetwork.getId(), physicalNetwork);
     return physicalNetwork;
   }
@@ -382,11 +395,18 @@ public class PlanItProjectInput {
   public Zoning createAndRegisterZoning(final PhysicalNetwork physicalNetwork) throws PlanItException {
     PlanItException.throwIf(physicalNetwork == null, "The physical network must be defined before definition of zones can begin");
 
+    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating zoning");
     final Zoning zoning = 
         zoningFactory.create(
             Zoning.class.getCanonicalName(), 
             new Object[] { projectGroupId, physicalNetwork.getNetworkIdGroupingToken() }, 
             physicalNetwork);
+    
+    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createZoningPrefix(zoning.getId());
+    LOGGER.info(String.format("%s#zones: %d", prefix, zoning.zones.getNumberOfZones()));
+    LOGGER.info(String.format("%s#centroids: %d", prefix, zoning.getVirtualNetwork().centroids.getNumberOfCentroids()));
+    LOGGER.info(String.format("%s#connectoids: %d", prefix, zoning.getVirtualNetwork().connectoids.getNumberOfConnectoids()));
+    LOGGER.info(String.format("%s#connectoid segments: %d", prefix, zoning.getVirtualNetwork().connectoidSegments.getNumberOfConnectoidSegments()));
 
     zoningsMap.put(zoning.getId(), zoning);
     return zoning;
@@ -404,12 +424,18 @@ public class PlanItProjectInput {
     PlanItException.throwIf(zoning == null, "Zones must be defined before definition of demands can begin");
     PlanItException.throwIf(physicalNetwork == null, "Physical network must be defined before definition of demands can begin");
 
+    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating demands");
     final Demands demands = 
         demandsFactory.create(
             Demands.class.getCanonicalName(), 
             new Object[] { projectGroupId }, 
             zoning, 
-            physicalNetwork);
+            physicalNetwork);  
+    
+    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createDemandsPrefix(demands.getId());
+    LOGGER.info(String.format("%s#time periods: %d", prefix, demands.timePeriods.getNumberOfTimePeriods()));
+    LOGGER.info(String.format("%s#traveler types: %d", prefix, demands.travelerTypes.getNumberOfTravelerTypes()));    
+    LOGGER.info(String.format("%s#user classes: %d", prefix, demands.userClasses.getNumberOfUserClasses()));
 
     demandsMap.put(demands.getId(), demands);
     return demands;
@@ -428,11 +454,15 @@ public class PlanItProjectInput {
     PlanItException.throwIf(zoning == null, "Zones must be defined before definition of od route sets can proceed");
     PlanItException.throwIf(physicalNetwork == null, "Physical network must be defined before of od route sets can proceed");
 
+    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating od route sets");
     final ODRouteSets odRouteSets = 
         odRouteSetsFactory.create(
             ODRouteSets.class.getCanonicalName(), 
             new Object[] { projectGroupId }, 
             odRouteSetInputPath);
+    
+    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createOdRouteSetsPrefix(odRouteSets.getId());
+    LOGGER.info(String.format("%s#od route sets: %d", prefix, odRouteSets.getNumberOfOdRouteSets()));
 
     odRouteSetsMap.put(odRouteSets.getId(), odRouteSets);
     return odRouteSets;
@@ -453,6 +483,7 @@ public class PlanItProjectInput {
       initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
     }
 
+    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating initial link segment costs");    
     final InitialLinkSegmentCost initialLinkSegmentCost = 
         (InitialLinkSegmentCost) initialPhysicalCostFactory.create(
             InitialLinkSegmentCost.class.getCanonicalName(),
@@ -480,6 +511,11 @@ public class PlanItProjectInput {
       initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
     }
 
+    LOGGER.info(
+        LoggingUtils.createProjectPrefix(this.projectId)+
+        LoggingUtils.createTimePeriodPrefix(timePeriod.getExternalId(), timePeriod.getId())+
+        "populating initial link segment costs");
+    
     final InitialPhysicalCost initialLinkSegmentCostPeriod = 
         (InitialLinkSegmentCostPeriod) initialPhysicalCostFactory.create(
             InitialLinkSegmentCostPeriod.class.getCanonicalName(),
@@ -511,7 +547,6 @@ public class PlanItProjectInput {
 
     final List<InitialLinkSegmentCostPeriod> initialCostsList = new ArrayList<InitialLinkSegmentCostPeriod>();
     for (final TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
-      LOGGER.info("Registering Initial Link Segment Costs for Time Period " + timePeriod.getId());
       final InitialLinkSegmentCostPeriod initialLinkSegmentCostPeriod = createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
       initialCostsList.add(initialLinkSegmentCostPeriod);
     }

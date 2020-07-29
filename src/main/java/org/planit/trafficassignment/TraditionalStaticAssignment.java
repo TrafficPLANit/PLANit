@@ -77,6 +77,13 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    * Holds the running simulation data for the assignment
    */
   private TraditionalStaticAssignmentSimulationData simulationData;
+  
+  /** create the logging prefix for logging statements during equilibration
+   * @return prefix
+   */
+  protected String createLoggingPrefix() {    
+    return super.createLoggingPrefix(simulationData.getIterationIndex()); 
+  }
 
   /**
    * Initialize running simulation variables for the time period
@@ -169,7 +176,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
               dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
             } catch (PlanItException e) {
               LOGGER.warning(e.getMessage());
-              LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "impossible path from origin zone " + currentOriginZone.getExternalId() + " to destination zone "
+              LOGGER.info(createLoggingPrefix() + "impossible path from origin zone " + currentOriginZone.getExternalId() + " to destination zone "
                   + currentDestinationZone.getExternalId() + " (mode " + mode.getExternalId() + ")");
             }
           }
@@ -279,8 +286,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
 
       dualityGapFunction.computeGap();
       simulationData.incrementIterationIndex();
-      LOGGER.info(LoggingUtils.createRunIdPrefix(getId())
-          + String.format("iteration %d: Network travel time: %f", simulationData.getIterationIndex(), dualityGapFunction.getActualSystemTravelTime()));
+      LOGGER.info(createLoggingPrefix() + String.format("Network travel time: %f", dualityGapFunction.getActualSystemTravelTime()));
       startTime = recordTime(startTime, dualityGapFunction.getGap());
       for (final Mode mode : modes) {
         final double[] modalLinkSegmentCosts = recalculateModalLinkSegmentCosts(mode, timePeriod);
@@ -301,8 +307,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    */
   private Calendar recordTime(final Calendar startTime, final double dualityGap) {
     final Calendar currentTime = Calendar.getInstance();
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId())
-        + String.format("iteration %d: duality gap: %.6f (%d ms)", simulationData.getIterationIndex(), dualityGap, currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
+    LOGGER.info(createLoggingPrefix() + String.format("duality gap: %.6f (%d ms)", dualityGap, currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
     return currentTime;
   }
 
@@ -504,8 +509,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
     final Collection<TimePeriod> timePeriods = demands.timePeriods.asSortedSetByStartTime();
     LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "total time periods: " + timePeriods.size());
     for (final TimePeriod timePeriod : timePeriods) {
-      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "[time period :" + timePeriod.getExternalId() + " (id: " + timePeriod.getId() + ")]");
-      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + timePeriod.toString());
+      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) +  LoggingUtils.createTimePeriodPrefix(timePeriod.getExternalId(),timePeriod.getId()) + timePeriod.toString());
       executeTimePeriod(timePeriod);
     }
   }

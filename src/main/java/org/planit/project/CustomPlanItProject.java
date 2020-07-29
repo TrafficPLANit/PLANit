@@ -27,6 +27,7 @@ import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.misc.LoggingUtils;
 
 /**
  * The top-level class which hosts a single project.
@@ -201,11 +202,12 @@ public class CustomPlanItProject {
   public CustomPlanItProject(final InputBuilderListener inputBuilderListener) {
     this.id = IdGenerator.generateId(IdGroupingToken.collectGlobalToken(), CustomPlanItProject.class);
     this.projectToken = IdGenerator.createIdGroupingToken(this, this.id);
-
+    
     this.inputBuilderListener = inputBuilderListener;
+    LOGGER.info(LoggingUtils.createProjectPrefix(this.id)+ LoggingUtils.activateItemByClassName(inputBuilderListener,true));    
 
     // connect inputs
-    this.inputs = new PlanItProjectInput(projectToken, inputBuilderListener);
+    this.inputs = new PlanItProjectInput(this.id, projectToken, inputBuilderListener);
     this.physicalNetworks = inputs.physicalNetworks;
     this.demands = inputs.demands;
     this.zonings = inputs.zonings;
@@ -285,10 +287,13 @@ public class CustomPlanItProject {
   public TrafficAssignmentBuilder createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands, final Zoning theZoning,
       final PhysicalNetwork thePhysicalNetwork) throws PlanItException {
 
-    final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentType, new Object[] { projectToken });
+    final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentType, new Object[] { projectToken });  
     PlanItException.throwIf(!(networkLoadingAndAssignment instanceof TrafficAssignment), "not a valid traffic assignment type");
 
     final TrafficAssignment trafficAssignment = (TrafficAssignment) networkLoadingAndAssignment;
+    LOGGER.info(LoggingUtils.createProjectPrefix(this.id)+LoggingUtils.activateItemByClassName(trafficAssignment, true));
+    LOGGER.info(LoggingUtils.createProjectPrefix(this.id)+LoggingUtils.createRunIdPrefix(trafficAssignment.getId())+"assignment registered");
+    
     final TrafficAssignmentBuilder trafficAssignmentBuilder = trafficAssignment.collectBuilder(inputBuilderListener, theDemands, theZoning, thePhysicalNetwork);
     // now initialize it, since initialization depends on the concrete class we
     // cannot do this on the constructor of the superclass nor

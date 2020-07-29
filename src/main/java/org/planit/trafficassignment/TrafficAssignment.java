@@ -142,6 +142,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param eventType the event type to register
    */
   protected abstract void addRegisteredEventTypeListeners(EventType eventType);
+  
+  /** create the logging prefix for logging statements during equilibration
+   * 
+   * @param iterationIndex
+   * @return prefix
+   */
+  protected String createLoggingPrefix(int iterationIndex) {
+    return LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createIterationPrefix(iterationIndex); 
+  }  
 
   /**
    * Check if any components are undefined, if so throw exception
@@ -315,7 +324,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   public void execute() throws PlanItException {
 
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "------- START -------");
+    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("----------------- %s -----------------", this.getClass().getSimpleName()));
 
     initialiseBeforeExecution();
 
@@ -323,7 +332,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
     finalizeAfterExecution();
 
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "------- FINISH ------");
+    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("----------------- %s ----------------", this.getClass().getSimpleName()));
   }
 
   // Getters - Setters

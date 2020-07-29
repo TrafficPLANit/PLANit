@@ -68,7 +68,7 @@ public abstract class TrafficAssignmentBuilder {
     for (final Mode mode : network.modes) {
       for (TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
         if (demands.get(mode, timePeriod) == null) {
-          LOGGER.warning("No demand matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
+          LOGGER.warning(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + "no demand matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
         }
       }
     }
@@ -272,7 +272,7 @@ public abstract class TrafficAssignmentBuilder {
    * @throws PlanItException thrown if there is an error activating the output
    */
   public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
-    LOGGER.info(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + "activated OutputType." + outputType);
+    LOGGER.info(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + "activated: OutputType." + outputType);
     return parentAssignment.activateOutput(outputType);
   }
 
@@ -282,7 +282,7 @@ public abstract class TrafficAssignmentBuilder {
    * @param outputType OutputType to be deactivated
    */
   public void deactivateOutput(final OutputType outputType) {
-    LOGGER.info(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + "deactivated OutputType." + outputType);
+    LOGGER.info(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + "deactivated: OutputType." + outputType);
     parentAssignment.deactivateOutput(outputType);
   }
 

@@ -209,6 +209,13 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
       registerUserClass(newUserClass);
       return newUserClass;
     }
+    
+    /** Collect the number of registered user classes
+     * @return number of user classes
+     */
+    public int getNumberOfUserClasses() {
+      return userClassMap.size();
+    }    
 
     /**
      * Retrieve a user class by its id
@@ -333,6 +340,13 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     public TimePeriod getTimePeriodById(final long id) {
       return timePeriodMap.get(id);
     }
+    
+    /** Collect the number of registered time periods
+     * @return numver of time periods
+     */
+    public int getNumberOfTimePeriods() {
+      return timePeriodMap.size();
+    }    
 
     /**
      * Collect the first registered time period. This is not necessarily the earliest time period.

@@ -117,7 +117,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
         valid = true;
         break;
       default:
-        LOGGER.warning("Configured keys cannot identify link segments.");
+        LOGGER.warning("configured keys cannot identify link segments");
     }
     if (valid) {
       return outputKeyPropertiesArray;
@@ -187,8 +187,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
       case LINK_TYPE:
         return true;
       default:
-        LOGGER.warning("Tried to add " + baseOutputProperty.getName()
-            + " as an ouput property, which is inappropriate for Link output.  This will be ignored.");
+        LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Link output.  This will be ignored");
     }
     return false;
   }

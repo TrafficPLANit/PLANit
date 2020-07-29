@@ -14,6 +14,7 @@ import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
@@ -163,7 +164,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      */
     public LinkSegment getLinkSegmentByStartAndEndNodeId(final long startId, final long endId) {
       if (!linkSegmentMapByStartNodeId.containsKey(startId)) {
-        LOGGER.warning("No link segment with start node " + startId + " has been registered in the network.");
+        LOGGER.warning(LoggingUtils.createNetworkPrefix(getId())+String.format("no link segment with start node %d has been registered in the network",startId));
         return null;
       }
       final List<LinkSegment> linkSegmentsForCurrentStartNode = linkSegmentMapByStartNodeId.get(startId);
@@ -173,7 +174,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
           return linkSegment;
         }
       }
-      LOGGER.warning("No link segment with start node " + startId + " and end node " + endId + " has been registered in the network.");
+      LOGGER.warning(LoggingUtils.createNetworkPrefix(getId())+String.format("no link segment with start node %d and end node %d has been registered in the network",startId, endId));
       return null;
     }
 
@@ -496,23 +497,6 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
   // Getters - Setters
 
-  /**
-   * Return the Modes internal class instance. Method available to allow Py4J to access modes since public final member approach is not supported
-   * 
-   * @return the Modes local class
-   */
-  public Modes getModes() {
-    return modes;
-  }
-
-  /**
-   * Return the LinkSegments internal class instance. Method available to allow Py4J to access modes since public final member approach is not supported
-   * 
-   * @return the LinkSegments inner class instance
-   */
-  public LinkSegments getLinkSegments() {
-    return linkSegments;
-  }
 
   /**
    * Collect the id grouping token used for all entities registered on the network, i.e., this network's specific identifier for generating ids unique and contiguous within this

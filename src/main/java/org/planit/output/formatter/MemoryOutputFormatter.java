@@ -164,7 +164,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   @Override
   protected void writeSimulationResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
       OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
-    LOGGER.info("Memory Output for OutputType SIMULATION has not been implemented yet.");
+    LOGGER.warning("memory Output for OutputType SIMULATION has not been implemented yet");
   }
 
   /**
@@ -182,7 +182,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   @Override
   protected void writeGeneralResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
       OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
-    LOGGER.info("Memory Output for OutputType GENERAL has not been implemented yet.");
+    LOGGER.warning("memory Output for OutputType GENERAL has not been implemented yet");
   }
 
   /**

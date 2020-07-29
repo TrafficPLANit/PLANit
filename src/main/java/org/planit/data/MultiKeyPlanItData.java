@@ -101,12 +101,12 @@ public class MultiKeyPlanItData {
    */
   private boolean isKeyValuesValid(final Object... keyValues) {
     if (keyValues.length != outputKeyProperties.length) {
-      LOGGER.warning("Incorrect number of key values in call to RevisedMemoryOutputFormatter");
+      LOGGER.warning("incorrect number of key values in call to RevisedMemoryOutputFormatter");
       return false;
     }
     for (int i = 0; i < outputKeyProperties.length; i++) {
       if (!isValueTypeCorrect(keyValues[i], keyTypes[i])) {
-        LOGGER.warning("Output key in position " + (i + 1) + " is of the wrong type.");
+        LOGGER.warning("output key in position " + (i + 1) + " is of the wrong type.");
         return false;
       }
     }
