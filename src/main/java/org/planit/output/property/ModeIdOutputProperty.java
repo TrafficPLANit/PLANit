@@ -1,8 +1,8 @@
 package org.planit.output.property;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.network.physical.Mode;
 
 public final class ModeIdOutputProperty extends BaseOutputProperty {

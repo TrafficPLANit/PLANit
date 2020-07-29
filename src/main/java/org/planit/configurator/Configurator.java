@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
+import org.planit.utils.exceptions.PlanItException;
 
 /**
  * 

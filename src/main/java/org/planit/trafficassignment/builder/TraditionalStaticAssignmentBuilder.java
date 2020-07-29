@@ -3,12 +3,12 @@ package org.planit.trafficassignment.builder;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.demands.Demands;
-import org.planit.exceptions.PlanItException;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.sdinteraction.smoothing.MSASmoothing;
 import org.planit.trafficassignment.TrafficAssignment;
+import org.planit.utils.exceptions.PlanItException;
 
 /**
  * Builder for a traditional static assignment. It injects the following defaults into the underlying assignment instance:

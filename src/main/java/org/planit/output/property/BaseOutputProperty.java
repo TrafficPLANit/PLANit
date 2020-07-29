@@ -2,9 +2,9 @@ package org.planit.output.property;
 
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
+import org.planit.utils.exceptions.PlanItException;
 
 /**
  * Template for output property classes which can be included in the output files.

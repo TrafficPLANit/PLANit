@@ -2,11 +2,11 @@ package org.planit.route.choice;
 
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.input.InputBuilderListener;
 import org.planit.od.odroute.ODRouteMatrix;
 import org.planit.route.choice.logit.LogitChoiceModel;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 
 /**

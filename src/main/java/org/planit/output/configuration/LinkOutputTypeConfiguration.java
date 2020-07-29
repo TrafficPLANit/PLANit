@@ -4,11 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.trafficassignment.TrafficAssignment;
+import org.planit.utils.exceptions.PlanItException;
 
 /**
  * The configuration for the link output type.

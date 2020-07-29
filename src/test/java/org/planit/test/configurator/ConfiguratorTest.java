@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.planit.configurator.Configurator;
-import org.planit.exceptions.PlanItException;
+import org.planit.utils.exceptions.PlanItException;
 
 /**
  * Test the Tampere node model based on the example in Tampere et al. (2011)

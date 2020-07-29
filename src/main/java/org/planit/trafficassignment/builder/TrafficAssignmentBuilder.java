@@ -8,7 +8,6 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.demands.Demands;
-import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.gap.StopCriterion;
@@ -23,6 +22,7 @@ import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.network.physical.Mode;
 

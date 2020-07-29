@@ -2,11 +2,11 @@ package org.planit.network.physical.macroscopic;
 
 import java.util.Map;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.LinkImpl;
 import org.planit.network.physical.ModeImpl;
 import org.planit.network.physical.NodeImpl;
 import org.planit.network.physical.PhysicalNetworkBuilder;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;

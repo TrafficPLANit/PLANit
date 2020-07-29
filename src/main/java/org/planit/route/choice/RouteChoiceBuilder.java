@@ -1,6 +1,6 @@
 package org.planit.route.choice;
 
-import org.planit.exceptions.PlanItException;
+import org.planit.utils.exceptions.PlanItException;
 
 /**
  * The type of Route choice is sometimes but not always a choice for any given traffic assignment

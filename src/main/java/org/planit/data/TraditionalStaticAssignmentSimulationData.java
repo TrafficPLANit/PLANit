@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odroute.ODRouteMatrix;
@@ -16,6 +15,7 @@ import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;

@@ -18,11 +18,9 @@ import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.SpeedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.demands.Demands;
-import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.network.virtual.Zoning;
-import org.planit.reflection.ReflectionUtils;
 import org.planit.route.ODRouteSets;
 import org.planit.route.choice.RouteChoice;
 import org.planit.route.choice.logit.LogitChoiceModel;
@@ -34,6 +32,8 @@ import org.planit.supply.fundamentaldiagram.NewellFundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
 import org.planit.supply.network.nodemodel.TampereNodeModel;
 import org.planit.supply.networkloading.NetworkLoading;
+import org.planit.utils.exceptions.PlanItException;
+import org.planit.utilsreflection.ReflectionUtils;
 
 /**
  * Generic factory class for registered subclasses of predefined traffic assignment components, so it does not create instances of T but of sublcasses of T.

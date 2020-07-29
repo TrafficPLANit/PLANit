@@ -1,6 +1,6 @@
 package org.planit.network.physical;
 
-import org.planit.exceptions.PlanItException;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;

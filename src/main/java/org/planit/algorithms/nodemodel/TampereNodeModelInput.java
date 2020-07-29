@@ -3,8 +3,8 @@ package org.planit.algorithms.nodemodel;
 import org.ojalgo.array.Array1D;
 import org.ojalgo.array.Array2D;
 import org.ojalgo.function.aggregator.Aggregator;
-import org.planit.exceptions.PlanItException;
-import org.planit.math.Precision;
+import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.math.Precision;
 
 /**
  * Inner class that allows the user to set all inputs for the TampereNodeModel, it takes fixed inputs and supplements it with the information

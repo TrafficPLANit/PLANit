@@ -2,7 +2,7 @@ package org.planit.time;
 
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 

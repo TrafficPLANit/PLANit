@@ -3,7 +3,7 @@ package org.planit.algorithms.nodemodel;
 import java.util.ArrayList;
 
 import org.ojalgo.array.Array1D;
-import org.planit.exceptions.PlanItException;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex.EdgeSegments;
 import org.planit.utils.network.physical.Node;

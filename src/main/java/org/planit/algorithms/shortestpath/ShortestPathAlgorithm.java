@@ -1,6 +1,6 @@
 package org.planit.algorithms.shortestpath;
 
-import org.planit.exceptions.PlanItException;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.Pair;

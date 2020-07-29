@@ -6,9 +6,9 @@ import org.ojalgo.array.Array1D;
 import org.ojalgo.array.Array2D;
 import org.ojalgo.function.PrimitiveFunction;
 import org.ojalgo.function.aggregator.Aggregator;
-import org.planit.exceptions.PlanItException;
-import org.planit.math.Precision;
-import org.planit.math.function.NullaryDoubleSupplier;
+import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.function.NullaryDoubleSupplier;
+import org.planit.utils.math.Precision;
 import org.planit.utils.misc.Pair;
 
 /**

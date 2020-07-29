@@ -1,9 +1,9 @@
 package org.planit.output.property;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
 import org.planit.time.TimePeriod;
+import org.planit.utils.exceptions.PlanItException;
 
 public final class TimePeriodExternalIdOutputProperty extends BaseOutputProperty {
 

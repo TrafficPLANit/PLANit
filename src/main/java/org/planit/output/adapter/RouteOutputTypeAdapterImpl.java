@@ -1,6 +1,5 @@
 package org.planit.output.adapter;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.od.odroute.ODRouteIterator;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.RouteIdType;
@@ -9,6 +8,7 @@ import org.planit.output.property.OutputProperty;
 import org.planit.route.Route;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.network.physical.Mode;
 
 /**

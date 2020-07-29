@@ -6,7 +6,6 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
@@ -14,6 +13,7 @@ import org.planit.output.property.OutputProperty;
 import org.planit.output.property.OutputPropertyPriority;
 import org.planit.trafficassignment.TraditionalStaticAssignment;
 import org.planit.trafficassignment.TrafficAssignment;
+import org.planit.utils.exceptions.PlanItException;
 
 /**
  * Configuration for a specific output type including the adapter allowing access to the underlying raw data

@@ -1,8 +1,8 @@
 package org.planit.output.adapter;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
+import org.planit.utils.exceptions.PlanItException;
 
 /**
  * Top-level interface for all output type adapters

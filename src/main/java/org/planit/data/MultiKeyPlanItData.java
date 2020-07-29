@@ -5,11 +5,11 @@ import java.util.logging.Logger;
 import org.apache.commons.collections4.IterableMap;
 import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.planit.exceptions.PlanItException;
 import org.planit.output.enums.Type;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
+import org.planit.utils.exceptions.PlanItException;
 
 /**
  * Class which holds arrays of output property values, identified by arrays of output keys

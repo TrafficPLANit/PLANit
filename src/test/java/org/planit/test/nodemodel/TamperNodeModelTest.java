@@ -10,8 +10,8 @@ import org.ojalgo.array.Array2D;
 import org.planit.algorithms.nodemodel.TampereNodeModel;
 import org.planit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.planit.algorithms.nodemodel.TampereNodeModelInput;
-import org.planit.exceptions.PlanItException;
-import org.planit.math.Precision;
+import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.math.Precision;
 
 /**
  * Test the Tampere node model based on the example in Tampere et al. (2011)

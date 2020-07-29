@@ -2,7 +2,6 @@ package org.planit.output.adapter;
 
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
@@ -11,6 +10,7 @@ import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.network.physical.Mode;
 
 /**

@@ -1,7 +1,6 @@
 package org.planit.trafficassignment.builder;
 
 import org.planit.demands.Demands;
-import org.planit.exceptions.PlanItException;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
@@ -9,6 +8,7 @@ import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
 import org.planit.trafficassignment.CapacityConstrainedAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
+import org.planit.utils.exceptions.PlanItException;
 
 /**
  * When capacity constraints are in place we make a distinction between inflow and outflow and we assume the difference between the two is governed by a fundamental diagram.

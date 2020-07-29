@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
@@ -15,6 +14,7 @@ import org.planit.output.enums.OutputTypeEnum;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Mode;

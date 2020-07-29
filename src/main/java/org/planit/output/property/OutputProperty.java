@@ -2,7 +2,7 @@ package org.planit.output.property;
 
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
+import org.planit.utils.exceptions.PlanItException;
 
 /**
  * Enumeration of possible output properties

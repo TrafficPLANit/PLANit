@@ -1,7 +1,7 @@
 package org.planit.network.virtual;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.graph.EdgeImpl;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;

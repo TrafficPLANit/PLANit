@@ -1,9 +1,9 @@
 package org.planit.network.transport;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.network.virtual.Zoning;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.network.physical.Link;

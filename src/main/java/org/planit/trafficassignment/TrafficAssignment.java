@@ -12,7 +12,6 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.data.SimulationData;
 import org.planit.demands.Demands;
-import org.planit.exceptions.PlanItException;
 import org.planit.gap.GapFunction;
 import org.planit.input.InputBuilderListener;
 import org.planit.interactor.InteractorAccessor;
@@ -30,6 +29,7 @@ import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
 

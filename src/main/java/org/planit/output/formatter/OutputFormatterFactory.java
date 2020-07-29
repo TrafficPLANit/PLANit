@@ -2,9 +2,9 @@ package org.planit.output.formatter;
 
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
-import org.planit.reflection.ReflectionUtils;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utilsreflection.ReflectionUtils;
 
 /**
  * Factory to create output writers of any compatible type

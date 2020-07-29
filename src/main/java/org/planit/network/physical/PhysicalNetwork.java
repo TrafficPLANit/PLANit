@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import org.planit.exceptions.PlanItException;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.trafficassignment.TrafficAssignmentComponent;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
