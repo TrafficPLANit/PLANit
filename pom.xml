@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	
-	<!-- parent pom. Make sure it is installed (discoverable), otherwise maven will fail.
-	     to install, in PLANitAll project, run mvn install on the pom.xml -->
-  <parent>
-	  <groupId>org.planit.all</groupId>
-	  <artifactId>PLANitAll</artifactId>
-	  <version>0.0.5a2</version>
-  </parent>
+
+	<!-- parent pom. Make sure it is installed (discoverable), otherwise maven 
+		will fail. to install, in PLANitAll project, run mvn install on the pom.xml -->
+	<parent>
+		<groupId>org.planit.all</groupId>
+		<artifactId>PLANitAll</artifactId>
+		<version>0.0.5a2</version>
+	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
 
@@ -19,50 +19,57 @@
 
 	<name>PLANit</name>
 	<url>https://github.com/TrafficPLANit/planit</url>
-	
+
 	<!-- license based on the one published on the website -->
-    <licenses>
-      <license>
-        <name>PLANit license based on modified BSD</name>
-        <url>${planit.website.url}/docs/licenses/LICENSE.txt</url>
-        <distribution>repo</distribution>
-        <comments>A slightly modified version of a modified BSD license</comments>
-      </license>
-    </licenses>	
+	<licenses>
+		<license>
+			<name>PLANit license based on modified BSD</name>
+			<url>${planit.website.url}/docs/licenses/LICENSE.txt</url>
+			<distribution>repo</distribution>
+			<comments>A slightly modified version of a modified BSD license</comments>
+		</license>
+	</licenses>
 
 	<dependencies>
-	
-	  <!-- version inherited from parent -->
-	  <dependency>
-      <groupId>org.planit.utils</groupId>
-      <artifactId>PLANitUtils</artifactId>
-    </dependency>
-    
-    <!-- version inherited from parent -->
-    <dependency>
-      <groupId>org.djutils</groupId>
-      <artifactId>djutils</artifactId>
-    </dependency>    
-    	   
-    <!-- version inherited from parent --> 
+
+		<!-- version inherited from parent -->
+		<dependency>
+			<groupId>org.planit.utils</groupId>
+			<artifactId>PLANitUtils</artifactId>
+		</dependency>
+
+		<!-- version inherited from parent -->
+		<dependency>
+			<groupId>org.djutils</groupId>
+			<artifactId>djutils</artifactId>
+		</dependency>
+
+		<!-- version inherited from parent -->
 		<dependency>
 			<groupId>org.ojalgo</groupId>
 			<artifactId>ojalgo</artifactId>
 		</dependency>
 
-    <!-- version inherited from parent -->
+		<!-- version inherited from parent -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-csv</artifactId>
 		</dependency>
 
-    <!-- version inherited from parent -->
+		<!-- version inherited from parent -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-collections4</artifactId>
-		</dependency>		
-				
+		</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<!-- only used locally for testing so not an actual dependency for using the API -->
+			<optional>true</optional>
+		</dependency>
+
 	</dependencies>
-					
+
 
 </project>
