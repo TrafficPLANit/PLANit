@@ -78,8 +78,8 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     /**
      * Factory method to create and register a new travel type on the demands
      * 
-     * @param externalId
-     * @param name
+     * @param externalId the external id
+     * @param name       the name of the travel type
      * @return new traveler type created
      */
     public TravelerType createAndRegisterNewTravelerType(long externalId, String name) {
@@ -209,13 +209,15 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
       registerUserClass(newUserClass);
       return newUserClass;
     }
-    
-    /** Collect the number of registered user classes
+
+    /**
+     * Collect the number of registered user classes
+     * 
      * @return number of user classes
      */
     public int getNumberOfUserClasses() {
       return userClassMap.size();
-    }    
+    }
 
     /**
      * Retrieve a user class by its id
@@ -340,13 +342,15 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     public TimePeriod getTimePeriodById(final long id) {
       return timePeriodMap.get(id);
     }
-    
-    /** Collect the number of registered time periods
+
+    /**
+     * Collect the number of registered time periods
+     * 
      * @return numver of time periods
      */
     public int getNumberOfTimePeriods() {
       return timePeriodMap.size();
-    }    
+    }
 
     /**
      * Collect the first registered time period. This is not necessarily the earliest time period.

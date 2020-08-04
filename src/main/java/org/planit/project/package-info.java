@@ -1,5 +1,4 @@
 /**
- * @author mraa2518
- *
+ * PLANit project classes
  */
 package org.planit.project;

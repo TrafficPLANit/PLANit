@@ -36,7 +36,7 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   /**
    * Are link segment costs available for the given mode
    * 
-   * @param mode
+   * @param mode the mode
    * @return true when available, false otherwise
    */
   public boolean isSegmentCostsSetForMode(final Mode mode) {

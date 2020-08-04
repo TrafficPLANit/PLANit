@@ -68,7 +68,8 @@ public abstract class TrafficAssignmentBuilder {
     for (final Mode mode : network.modes) {
       for (TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
         if (demands.get(mode, timePeriod) == null) {
-          LOGGER.warning(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + "no demand matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
+          LOGGER.warning(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + "no demand matrix defined for Mode " + mode.getExternalId() + " and Time Period "
+              + timePeriod.getExternalId());
         }
       }
     }
@@ -245,7 +246,7 @@ public abstract class TrafficAssignmentBuilder {
   /**
    * Register the initial link segment cost for the time period embedded in it
    *
-   * @param initialLinkSegmentCostPeriod initial link segment cost for the current traffic assignment
+   * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    * @throws PlanItException thrown if time period in initial costs is null
    */
   public void registerInitialLinkSegmentCost(final InitialLinkSegmentCostPeriod initialLinkSegmentCost) throws PlanItException {

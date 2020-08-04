@@ -13,11 +13,13 @@ import org.planit.utils.exceptions.PlanItException;
 /**
  * Builder for a traditional static assignment. It injects the following defaults into the underlying assignment instance:
  * 
+ * <ul>
  * <li>Link based relative duality gap function</li>
  * <li>MSA smoothing</li>
  * <li>BPR function for physical cost</li>
  * <li>Fixed cost for virtual cost</li>
  * <li>Default StopCriterion implementation</li>
+ * </ul>
  *
  * @author markr
  *

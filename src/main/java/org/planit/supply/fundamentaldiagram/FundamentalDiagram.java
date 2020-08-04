@@ -18,6 +18,8 @@ public abstract class FundamentalDiagram extends TrafficAssignmentComponent<Fund
 
   /**
    * Base constructor
+   * 
+   * @param groupId token
    */
   public FundamentalDiagram(final IdGroupingToken groupId) {
     super(groupId, FundamentalDiagram.class);

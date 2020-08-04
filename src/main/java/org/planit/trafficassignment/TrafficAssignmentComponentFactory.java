@@ -33,7 +33,7 @@ import org.planit.supply.network.nodemodel.NodeModel;
 import org.planit.supply.network.nodemodel.TampereNodeModel;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utilsreflection.ReflectionUtils;
+import org.planit.utils.reflection.ReflectionUtils;
 
 /**
  * Generic factory class for registered subclasses of predefined traffic assignment components, so it does not create instances of T but of sublcasses of T.

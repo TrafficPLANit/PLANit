@@ -349,6 +349,8 @@ public class PlanItProjectInput {
   /**
    * Constructor
    * 
+   * @param projectId the projectId
+   * @param projectGroupId the id generator token
    * @param inputBuilderListener the input builder to parse inputs
    */
   public PlanItProjectInput(long projectId, IdGroupingToken projectGroupId, InputBuilderListener inputBuilderListener) {

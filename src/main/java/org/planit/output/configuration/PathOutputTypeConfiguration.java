@@ -17,6 +17,7 @@ import org.planit.utils.exceptions.PlanItException;
  * 
  * The following OutputProperty values are included by default:
  * 
+ * <ul>
  * <li>RUN_ID</li>
  * <li>PATH_ID</li>
  * <li>TIME_PERIOD_EXTERNAL_ID</li>
@@ -24,6 +25,7 @@ import org.planit.utils.exceptions.PlanItException;
  * <li>ORIGIN_ZONE_EXTERNAL_ID</li>
  * <li>DESTINATION_ZONE_EXTERNAL_ID</li>
  * <li>PATH_STRING</li>
+ * </ul>
  * 
  * 
  * @author markr
@@ -51,12 +53,10 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    */
   private int findIdentificationMethod(OutputProperty[] outputKeyProperties) {
     List<OutputProperty> outputKeyPropertyList = Arrays.asList(outputKeyProperties);
-    if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_ID) && outputKeyPropertyList.contains(
-        OutputProperty.DESTINATION_ZONE_ID)) {
+    if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_ID)) {
       return ORIGIN_DESTINATION_ID_IDENTIFICATION;
     }
-    if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID) && outputKeyPropertyList.contains(
-        OutputProperty.DESTINATION_ZONE_EXTERNAL_ID)) {
+    if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_EXTERNAL_ID)) {
       return ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION;
     }
     return ORIGIN_DESTINATION_NOT_IDENTIFIED;
@@ -84,8 +84,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
   }
 
   /**
-   * Validate whether the specified list of keys is valid, and if it is return only the keys which
-   * will be used
+   * Validate whether the specified list of keys is valid, and if it is return only the keys which will be used
    * 
    * @param outputKeyProperties array of output key property types
    * @return array of keys to be used (null if the list is not valid)
@@ -95,20 +94,20 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     OutputProperty[] outputKeyPropertiesArray = null;
     boolean valid = false;
     switch (findIdentificationMethod(outputKeyProperties)) {
-      case ORIGIN_DESTINATION_ID_IDENTIFICATION:
-        outputKeyPropertiesArray = new OutputProperty[2];
-        outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_ID;
-        outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_ID;
-        valid = true;
-        break;
-      case ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION:
-        outputKeyPropertiesArray = new OutputProperty[2];
-        outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_EXTERNAL_ID;
-        outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_EXTERNAL_ID;
-        valid = true;
-        break;
-      default:
-        LOGGER.warning("configured keys cannot identify origin-destination cell in the skim matrix");
+    case ORIGIN_DESTINATION_ID_IDENTIFICATION:
+      outputKeyPropertiesArray = new OutputProperty[2];
+      outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_ID;
+      outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_ID;
+      valid = true;
+      break;
+    case ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION:
+      outputKeyPropertiesArray = new OutputProperty[2];
+      outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_EXTERNAL_ID;
+      outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_EXTERNAL_ID;
+      valid = true;
+      break;
+    default:
+      LOGGER.warning("configured keys cannot identify origin-destination cell in the skim matrix");
     }
     if (valid) {
       return outputKeyPropertiesArray;
@@ -145,32 +144,32 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
   public boolean isOutputPropertyValid(BaseOutputProperty baseOutputProperty) {
     switch (baseOutputProperty.getOutputProperty()) {
 
-      case DESTINATION_ZONE_EXTERNAL_ID:
-        return true;
-      case DESTINATION_ZONE_ID:
-        return true;
-      case ITERATION_INDEX:
-        return true;
-      case MODE_EXTERNAL_ID:
-        return true;
-      case MODE_ID:
-        return true;
-      case PATH_STRING:
-        return true;
-      case ORIGIN_ZONE_EXTERNAL_ID:
-        return true;
-      case ORIGIN_ZONE_ID:
-        return true;
-      case RUN_ID:
-        return true;
-      case PATH_ID:
-        return true;
-      case TIME_PERIOD_EXTERNAL_ID:
-        return true;
-      case TIME_PERIOD_ID:
-        return true;
-      default:
-        LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Path output.  This will be ignored");
+    case DESTINATION_ZONE_EXTERNAL_ID:
+      return true;
+    case DESTINATION_ZONE_ID:
+      return true;
+    case ITERATION_INDEX:
+      return true;
+    case MODE_EXTERNAL_ID:
+      return true;
+    case MODE_ID:
+      return true;
+    case PATH_STRING:
+      return true;
+    case ORIGIN_ZONE_EXTERNAL_ID:
+      return true;
+    case ORIGIN_ZONE_ID:
+      return true;
+    case RUN_ID:
+      return true;
+    case PATH_ID:
+      return true;
+    case TIME_PERIOD_EXTERNAL_ID:
+      return true;
+    case TIME_PERIOD_ID:
+      return true;
+    default:
+      LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Path output.  This will be ignored");
     }
     return false;
   }

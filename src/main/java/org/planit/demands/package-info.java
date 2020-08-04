@@ -1,8 +1,4 @@
 /**
- * Classes which manage passenger demands
- */
-/**
- * @author gman6028
- *
+ * Classes which manage traveler demands
  */
 package org.planit.demands;

@@ -12,18 +12,17 @@ import org.planit.utils.math.Precision;
 import org.planit.utils.misc.Pair;
 
 /**
- * General First order node model implementation as proposed by Tampere et al. (2011). Here we utilise the algorithm
- * description as presented in Bliemer et al. (2014).
+ * General First order node model implementation as proposed by Tampere et al. (2011). Here we utilise the algorithm description as presented in Bliemer et al. (2014).
  * 
  * Each run of this node model requires two inputs, the mapping of the network to the local node and the
  * 
  * Paper References:
- * <li>Tampère, C. M. J., Corthout, R., Cattrysse, D., & Immers, L. H. (2011). A generic class of first order node
- * models for dynamic macroscopic simulation of traffic flows. Transportation Research Part B: Methodological, 45(1),
- * 289–309. https://doi.org/10.1016/j.trb.2010.06.004</li>
- * <li>Bliemer, M. C. J., Raadsen, M. P. H., Smits, E.-S., Zhou, B., & Bell, M. G. H. (2014). Quasi-dynamic traffic
- * assignment with residual point queues incorporating a first order node model. Transportation Research Part B:
- * Methodological, 68, 363–384. https://doi.org/10.1016/j.trb.2014.07.001</li>
+ * <ul>
+ * <li>Tampère, C. M. J., Corthout, R., Cattrysse, D., &amp; Immers, L. H. (2011). A generic class of first order node models for dynamic macroscopic simulation of traffic flows.
+ * Transportation Research Part B: Methodological, 45(1), 289–309. https://doi.org/10.1016/j.trb.2010.06.004</li>
+ * <li>Bliemer, M. C. J., Raadsen, M. P. H., Smits, E.-S., Zhou, B., &amp; Bell, M. G. H. (2014). Quasi-dynamic traffic assignment with residual point queues incorporating a first
+ * order node model. Transportation Research Part B: Methodological, 68, 363–384. https://doi.org/10.1016/j.trb.2014.07.001</li>
+ * </ul>
  * 
  * @author markr
  */
@@ -39,8 +38,7 @@ public class TampereNodeModel extends NodeModel {
   protected Array2D<Double> scaledRemainingTurnSendingFlows;
 
   /**
-   * track which in-link segments are processed X_topbar. Note this is the inverse since it tracks processed rather than
-   * unprocessed link segments
+   * track which in-link segments are processed X_topbar. Note this is the inverse since it tracks processed rather than unprocessed link segments
    */
   protected boolean[] processedInLinkSegments;
 
@@ -70,8 +68,7 @@ public class TampereNodeModel extends NodeModel {
   /**
    * Find most restricted unprocessed outgoing link segment based on the scaled sending flows
    * 
-   * @return pair<factor,outlinkSegmentIndex> carrying the restriction factor for the most restricted out link segment
-   *         index
+   * @return a pair of the restriction factor and outlinkSegmentIndex for the most restricted out link segment
    */
   protected Pair<Double, Integer> findMostRestrictingOutLinkSegmentIndex() {
     double foundRestrictionFactor = Double.POSITIVE_INFINITY;
@@ -96,9 +93,8 @@ public class TampereNodeModel extends NodeModel {
   }
 
   /**
-   * Based on the outlink segment, we determine which in links are demand constrained (if any). If there is one ore more,
-   * those are removed from the remaining unprocessed links and there sending flow is accepted as is. If not, then they
-   * are marked as capacity constrained and their sending flow must be reduced.
+   * Based on the outlink segment, we determine which in links are demand constrained (if any). If there is one ore more, those are removed from the remaining unprocessed links and
+   * there sending flow is accepted as is. If not, then they are marked as capacity constrained and their sending flow must be reduced.
    * 
    * @param mostRestrictingOutLinkSegmentData out-link segment restriction factor and index
    */
@@ -110,8 +106,7 @@ public class TampereNodeModel extends NodeModel {
   }
 
   /**
-   * @param mostRestrictingOutLinkSegmentData with <beta_b, b> with the former representing the outgoing link segment
-   *                                          restriction factor, and the latter the index of b
+   * @param mostRestrictingOutLinkSegmentData with {@code <beta_b, b>} with the former representing the outgoing link segment restriction factor, and the latter the index of b
    * @return true if demand constrained in link(s) is/are found, false otherwise
    */
   protected boolean updateDemandConstrainedInLinkSegments(Pair<Double, Integer> mostRestrictingOutLinkSegmentData) {
@@ -144,8 +139,7 @@ public class TampereNodeModel extends NodeModel {
   }
 
   /**
-   * Based on the most restricting out-link segment, determine the flow acceptance factor for all unprocessed in-link with
-   * non-zero (remaining) flows towards this out-link segment
+   * Based on the most restricting out-link segment, determine the flow acceptance factor for all unprocessed in-link with non-zero (remaining) flows towards this out-link segment
    * 
    * @param mostRestrictingOutLinkSegmentData out-link segment restriction factor and index
    */
@@ -174,11 +168,9 @@ public class TampereNodeModel extends NodeModel {
   }
 
   /**
-   * Remove all turn sending flows from provided in-link from remaining receiving flows (whichever out-link they go to)
-   * for a demand constrained in link
+   * Remove all turn sending flows from provided in-link from remaining receiving flows (whichever out-link they go to) for a demand constrained in link
    * 
-   * R_b' = R_b'-t_ab' for all out links b' t_ab' = 0 (to ensure the turn flows are not accidentally reused when updating
-   * lambda in next iteration)
+   * R_b' = R_b'-t_ab' for all out links b' t_ab' = 0 (to ensure the turn flows are not accidentally reused when updating lambda in next iteration)
    * 
    * @param inLinkSegmentIndex the inLink to base the reduction on
    */
@@ -187,11 +179,9 @@ public class TampereNodeModel extends NodeModel {
   }
 
   /**
-   * Remove all accepted turn sending flows (by scaling with flow acceptance factor) from provided in-link from remaining
-   * receiving flows (whichever out-link they go to)
+   * Remove all accepted turn sending flows (by scaling with flow acceptance factor) from provided in-link from remaining receiving flows (whichever out-link they go to)
    * 
-   * R_b' = R_b'-alpha_a*t_ab' for all out links b' t_ab' = 0 (to ensure the turn flows are not accidentally reused when
-   * updating lambda in next iteration)
+   * R_b' = R_b'-alpha_a*t_ab' for all out links b' t_ab' = 0 (to ensure the turn flows are not accidentally reused when updating lambda in next iteration)
    * 
    * @param inLinkSegmentIndex   the inLink to base the reduction on
    * @param flowAcceptanceFactor to scale the sending flows to accepted flow
@@ -210,7 +200,7 @@ public class TampereNodeModel extends NodeModel {
   /**
    * Verify if in-link segment has been processed already or not
    * 
-   * @param inLinkSegmentIndex
+   * @param inLinkSegmentIndex the in link segment index
    * @return true if processed, false otherwise
    */
   protected boolean isInLinkSegmentProcessed(int inLinkSegmentIndex) {

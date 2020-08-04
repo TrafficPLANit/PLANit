@@ -49,7 +49,7 @@ public class TimePeriod implements Comparable<TimePeriod> {
    * @param externalId       externalId of this time period
    * @param startTimeSeconds start time in seconds from midnight
    * @param durationSeconds  duration in seconds
-   * @throws PlanItException
+   * @throws PlanItException thrown if error
    */
   public TimePeriod(IdGroupingToken groupId, Object externalId, long startTimeSeconds, long durationSeconds) throws PlanItException {
     PlanItException.throwIf(durationSeconds > (24.0 * 3600), "Duration more than 24 hours");
@@ -64,12 +64,12 @@ public class TimePeriod implements Comparable<TimePeriod> {
   /**
    * Constructor
    * 
-   * @param groupId        contiguous id generation within this group for instances of this class
-   * @param externalId     externalId of this time period
-   * @param description    description of this time period
-   * @param startTime      start time of this time period
-   * @param duratioSeconds duration of this time period
-   * @throws PlanItException
+   * @param groupId          contiguous id generation within this group for instances of this class
+   * @param externalId       externalId of this time period
+   * @param description      description of this time period
+   * @param startTimeSeconds start time of this time period
+   * @param durationSeconds  duration of this time period
+   * @throws PlanItException thrown if error
    */
   public TimePeriod(IdGroupingToken groupId, Object externalId, String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
     PlanItException.throwIf(durationSeconds > (24.0 * 3600), "Duration more than 24 hours");

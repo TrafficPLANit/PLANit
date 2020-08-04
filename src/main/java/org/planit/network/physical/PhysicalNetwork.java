@@ -164,7 +164,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      */
     public LinkSegment getLinkSegmentByStartAndEndNodeId(final long startId, final long endId) {
       if (!linkSegmentMapByStartNodeId.containsKey(startId)) {
-        LOGGER.warning(LoggingUtils.createNetworkPrefix(getId())+String.format("no link segment with start node %d has been registered in the network",startId));
+        LOGGER.warning(LoggingUtils.createNetworkPrefix(getId()) + String.format("no link segment with start node %d has been registered in the network", startId));
         return null;
       }
       final List<LinkSegment> linkSegmentsForCurrentStartNode = linkSegmentMapByStartNodeId.get(startId);
@@ -174,7 +174,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
           return linkSegment;
         }
       }
-      LOGGER.warning(LoggingUtils.createNetworkPrefix(getId())+String.format("no link segment with start node %d and end node %d has been registered in the network",startId, endId));
+      LOGGER.warning(
+          LoggingUtils.createNetworkPrefix(getId()) + String.format("no link segment with start node %d and end node %d has been registered in the network", startId, endId));
       return null;
     }
 
@@ -497,12 +498,11 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
   // Getters - Setters
 
-
   /**
    * Collect the id grouping token used for all entities registered on the network, i.e., this network's specific identifier for generating ids unique and contiguous within this
    * network and this network only
    * 
-   * @return
+   * @return the network id grouping token
    */
   public IdGroupingToken getNetworkIdGroupingToken() {
     return this.networkBuilder.getIdGroupingToken();

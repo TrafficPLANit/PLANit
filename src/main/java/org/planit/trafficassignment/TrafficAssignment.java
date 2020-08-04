@@ -142,15 +142,16 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param eventType the event type to register
    */
   protected abstract void addRegisteredEventTypeListeners(EventType eventType);
-  
-  /** create the logging prefix for logging statements during equilibration
+
+  /**
+   * create the logging prefix for logging statements during equilibration
    * 
-   * @param iterationIndex
-   * @return prefix
+   * @param iterationIndex the iteration
+   * @return prefix for logging of traffic assignment messages
    */
   protected String createLoggingPrefix(int iterationIndex) {
-    return LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createIterationPrefix(iterationIndex); 
-  }  
+    return LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createIterationPrefix(iterationIndex);
+  }
 
   /**
    * Check if any components are undefined, if so throw exception

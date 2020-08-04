@@ -10,25 +10,24 @@ import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 
 /**
- * Inner class that holds the mapping of the inputs to/from the underlying physical network (if any). Currently we
- * support the PLANit network format for this mapping, or one provides the fixed input separate from a particular
- * network format
+ * Inner class that holds the mapping of the inputs to/from the underlying physical network (if any). Currently we support the PLANit network format for this mapping, or one
+ * provides the fixed input separate from a particular network format
  * 
  * By default we:
+ * <ul>
  * <li>map incoming link segments in order of appearance to index a=0,...,|A^in|-1</li>
- * <li>map outgoing link segments in order of appearance to index b=0,...,|B^out|-1/li>
+ * <li>map outgoing link segments in order of appearance to index b=0,...,|B^out|-1</li>
  * <li>extract incoming link capacities C_a</li>
  * <li>extract receiving flow capacities such that R_b=C_b</li>
+ * </ul>
  * 
- * Note that in case the receiving flows are not fixed at the outgoing link's capacity this can be omitted and provided
- * as a separate input via the TampereNodeModelInput
+ * Note that in case the receiving flows are not fixed at the outgoing link's capacity this can be omitted and provided as a separate input via the TampereNodeModelInput
  * 
  */
 public class TampereNodeModelFixedInput {
 
   /**
-   * Map link segments to local data mapping structure in order of appearance, i.e., first incoming link segment is placed
-   * in index 0, second in index 1 etc.
+   * Map link segments to local data mapping structure in order of appearance, i.e., first incoming link segment is placed in index 0, second in index 1 etc.
    * 
    * @param linkSegments, to map to
    * @param edgeSegments  to map from
@@ -61,8 +60,7 @@ public class TampereNodeModelFixedInput {
   }
 
   /**
-   * Map incoming link segments to node model compatible index in order of appearance, i.e., first incoming link segment
-   * is placed in index 0, second in index 1 etc.
+   * Map incoming link segments to node model compatible index in order of appearance, i.e., first incoming link segment is placed in index 0, second in index 1 etc.
    * 
    * @param incomingEdgeSegments to map
    * @throws PlanItException
@@ -73,8 +71,7 @@ public class TampereNodeModelFixedInput {
   }
 
   /**
-   * Map outgoingEdgeSegments link segments to node model compatible index in order of appearance, i.e., first incoming
-   * link segment is placed in index 0, second in index 1 etc.
+   * Map outgoingEdgeSegments link segments to node model compatible index in order of appearance, i.e., first incoming link segment is placed in index 0, second in index 1 etc.
    * 
    * @param outgoingEdgeSegments to map
    * @throws PlanItException
@@ -94,10 +91,9 @@ public class TampereNodeModelFixedInput {
   }
 
   /**
-   * Extract the available outgoing link receiving flows by setting them to capacity. It is assumed the incoming link
-   * segments are available. Note that assignment methods that support storage constraints, i.e., spillback do not always
-   * have receiving flows equal to capacity. In that case receiving flows are not fixed and should not be initialised here
-   * but instead by provided on-the-fly for each tampere node model update
+   * Extract the available outgoing link receiving flows by setting them to capacity. It is assumed the incoming link segments are available. Note that assignment methods that
+   * support storage constraints, i.e., spillback do not always have receiving flows equal to capacity. In that case receiving flows are not fixed and should not be initialised
+   * here but instead by provided on-the-fly for each tampere node model update
    * 
    * @param initialiseReceivingFlowsAtCapacity
    * @throws PlanItException thrown if error
@@ -121,15 +117,12 @@ public class TampereNodeModelFixedInput {
   protected Array1D<Double> outgoingLinkSegmentReceivingFlows;
 
   /**
-   * Constructor. The TampereNodeModelFixedInput class is meant to be created once for each node where the node model is
-   * applied more than once. All fixed inputs conditioned on the network infrastructure are stored here and therefore can
-   * be reused with every update of the node model throughout a simulation.
+   * Constructor. The TampereNodeModelFixedInput class is meant to be created once for each node where the node model is applied more than once. All fixed inputs conditioned on the
+   * network infrastructure are stored here and therefore can be reused with every update of the node model throughout a simulation.
    * 
    * 
    * @param node                               to use for extracting static inputs
-   * @param initialiseReceivingFlowsAtCapacity indicate to initialise receiving flows at capacity (true), or not
-   *                                           initialise them at all
-   * @param initialiseReceivingFlowsAtCapacity
+   * @param initialiseReceivingFlowsAtCapacity indicate to initialise receiving flows at capacity (true), or not initialise them at all
    * @throws PlanItException thrown when error occurs
    */
   public TampereNodeModelFixedInput(Node node, boolean initialiseReceivingFlowsAtCapacity) throws PlanItException {
