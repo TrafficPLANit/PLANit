@@ -10,12 +10,12 @@ import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.Pair;
 
 /**
- * Dijkstra's shortest path algorithm
+ * A* shortest path algorithm
  * 
- * Dijkstra's shortest path is a one-to-all implementation of the shortest path
+ * A* shortest path is a one-to-one implementation of the shortest path
  * algorithm based on the generalized costs on each link segment (edge). The
  * costs should be provided upon instantiation and are reused whenever a
- * One-To-All execution conditional on the chosen source node is performed.
+ * One-To-One execution conditional on the chosen source node is performed.
  * 
  * In its current form, it assumes a macroscopic network and macroscopic link
  * segments to operate on
@@ -23,7 +23,7 @@ import org.planit.utils.misc.Pair;
  * @author markr
  *
  */
-public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
+public class AStarShortestPathAlgorithm implements ShortestPathAlgorithm {
 
   /**
    * Reference to current origin for which we have collected shortest paths on a
@@ -57,7 +57,7 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
    * @param numberOfVertices
    *          Vertices, both nodes and centroids
    */
-  public DijkstraShortestPathAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments,
+  public AStarShortestPathAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments,
       int numberOfVertices) {
     this.edgeSegmentCosts = edgeSegmentCosts;
     this.numberOfVertices = numberOfVertices;
