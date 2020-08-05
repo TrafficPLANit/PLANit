@@ -23,7 +23,7 @@ import org.planit.utils.misc.Pair;
  * @author markr
  *
  */
-public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
+public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgorithm {
 
   /**
    * Reference to current origin for which we have collected shortest paths on a
@@ -50,12 +50,9 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
    * Constructor for an edge cost based Dijkstra algorithm for finding shortest
    * paths.
    * 
-   * @param edgeSegmentCosts
-   *          Edge segment costs
-   * @param numberOfEdgeSegments
-   *          Edge segments, both physical and connectoid
-   * @param numberOfVertices
-   *          Vertices, both nodes and centroids
+   * @param edgeSegmentCosts Edge segment costs
+   * @param numberOfEdgeSegments Edge segments, both physical and connectoid
+   * @param numberOfVertices Vertices, both nodes and centroids
    */
   public DijkstraShortestPathAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments,
       int numberOfVertices) {
@@ -68,8 +65,7 @@ public class DijkstraShortestPathAlgorithm implements ShortestPathAlgorithm {
    * Construct shortest paths from source node to all other nodes in the network
    * based on directed LinkSegment edges
    * 
-   * @param currentOrigin
-   *          origin vertex of source node
+   * @param currentOrigin origin vertex of source node
    * @return array of pairs containing, for each vertex (array index), the cost to
    *         reach the vertex and the link segment it is reached from with the
    *         shortest cost.

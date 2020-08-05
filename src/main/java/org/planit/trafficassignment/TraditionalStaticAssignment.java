@@ -12,7 +12,7 @@ import org.djutils.event.Event;
 import org.djutils.event.EventInterface;
 import org.djutils.event.EventType;
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
-import org.planit.algorithms.shortestpath.ShortestPathAlgorithm;
+import org.planit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
 import org.planit.cost.Cost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
@@ -124,7 +124,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    * @throws PlanItException thrown if there is an error
    */
   private void executeModeTimePeriod(final Mode mode, final ODDemandMatrix odDemandMatrix, final ModeData currentModeData, final double[] modalNetworkSegmentCosts,
-      final ShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
+      final OneToAllShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
 
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
     final ODRouteMatrix odRouteMatrix = simulationData.getODPathMatrix(mode);
@@ -327,7 +327,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 
     // AON based network loading
-    final ShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
+    final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
     final ODDemandMatrix odDemandMatrix = demands.get(mode, timePeriod);
     executeModeTimePeriod(mode, odDemandMatrix, currentModeData, modalNetworkSegmentCosts, shortestPathAlgorithm);
 

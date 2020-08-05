@@ -36,11 +36,6 @@ public class NodeImpl extends VertexImpl implements Node {
     return IdGenerator.generateId(groupId, Node.class);
   }
 
-  /**
-   * External identifier used in input files
-   */
-  protected Object externalId;
-
   // Public
 
   /**
@@ -54,30 +49,6 @@ public class NodeImpl extends VertexImpl implements Node {
   }
 
   // Getters-Setters
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Object getExternalId() {
-    return externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setExternalId(final Object externalId) {
-    this.externalId = externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasExternalId() {
-    return (externalId != null);
-  }
 
   /**
    * {@inheritDoc}

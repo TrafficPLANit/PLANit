@@ -132,6 +132,11 @@ public class VertexImpl implements Vertex {
    * Unique internal identifier
    */
   protected final long id;
+  
+  /**
+   * External identifier used in input files
+   */
+  protected Object externalId;  
 
   /**
    * generic input property storage
@@ -190,6 +195,30 @@ public class VertexImpl implements Vertex {
   public long getId() {
     return id;
   }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Object getExternalId() {
+    return externalId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setExternalId(final Object externalId) {
+    this.externalId = externalId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean hasExternalId() {
+    return (externalId != null);
+  }  
 
   /**
    * Add a property from the original input that is not part of the readily available members
