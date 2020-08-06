@@ -3,6 +3,7 @@ package org.planit.algorithms.shortestpath;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
+import java.util.function.Function;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.geo.PlanitGeoUtils;
@@ -52,7 +53,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
    * conversion multiplier to convert distance (km) to cost
    */
   protected final double heuristicDistanceMultiplier;
-  
+    
   /** 
    * Comparator to sort based on the second elements minimum value (ascending order) 
    */
@@ -75,17 +76,19 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     this.numberOfVertices = numberOfVertices;
     this.numberOfEdgeSegments = edgeSegmentCosts.length;
     this.crs = crs;
-    this.heuristicDistanceMultiplier = heuristicDistanceMultiplier;
+    this.heuristicDistanceMultiplier = heuristicDistanceMultiplier;    
   }
   
   /**
    * Constructor for an edge cost based A* algorithm for finding shortest paths. In absence of any information regarding the coordinate reference system
-   * this constructor can only be used in conjunction with executing the algorithm by providing the heuristic cost to each destination explicitly.
+   * this approach assumes the vertices have location information but this is cartesian in nature and can be converted to a heuristic cost by utilising the provided
+   * heuristicDistanceMultiplier. In this case the multiplier must acocunt for both the conversion to kms for the coordinates as well as the conversion to cost units (likely in hour)
    * 
    * @param edgeSegmentCosts Edge segment costs
-   * @param heuristicCosts array of lower bound costs from each vertex in the network (by index in array) to the destination (heuristic)
+   * @param numberOfVertices number of vertices in the network
+   * @param heuristicDistanceMultiplier multiplier for coordinates where each unit change in coordinate equates to unit*heuristicDistanceMultiplier cost change
    */
-  public AStarShortestPathAlgorithm(final double[] edgeSegmentCosts,  int numberOfVertices) {
+  public AStarShortestPathAlgorithm(final double[] edgeSegmentCosts,  int numberOfVertices, double heuristicDistanceMultiplier) {
     this.edgeSegmentCosts = edgeSegmentCosts;
     this.numberOfVertices = numberOfVertices;
     this.numberOfEdgeSegments = edgeSegmentCosts.length;
@@ -94,22 +97,6 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     this.crs = null;
   }  
   
-  /**
-   * 
-   * Construct shortest paths from source node to destination node in the network
-   * based on directed LinkSegment edges. Heuristic lower bound cost from each vertex to destination is explicitly provided
-   * 
-   * @param origin vertex of source node
-   * @param destination vertex of sink node
-   * @param heuristicCosts for A* to add direction to the search 
-   * @return the cost and path as a pair
-   * @throws PlanItException thrown if path cannot be created
-   */
-  public Pair<Double, Path> executeOneToOne(Vertex origin, Vertex destination, final double[] heuristicCosts) throws PlanItException {
-    return null;  
-    
-  }
-
   /**
    * {@inheritDoc}
    * 
@@ -179,8 +166,9 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
           
           // first visit, compute heuristic on the fly (once)
           if(adjacentMeasuredCost == Double.POSITIVE_INFINITY) {
-            vertexHeuristicCost[adjacentVertexId] = 
-                geoUtils.getDistanceInKilometres(adjacentVertex.getCentrePointGeometry(), destination.getCentrePointGeometry())*heuristicDistanceMultiplier;
+            vertexHeuristicCost[adjacentVertexId] = this.crs != null ?
+                geoUtils.getDistanceInKilometres(adjacentVertex.getCentrePointGeometry(), destination.getCentrePointGeometry())*heuristicDistanceMultiplier : 
+                -1; // TODO <-- compute differently
           }
           
           // when tentative cost is more attractive, update path
