@@ -1,8 +1,8 @@
 package org.planit.path;
 
-import java.util.ArrayList;
+import java.util.Deque;
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedList;
 import java.util.function.Function;
 
 import org.planit.output.enums.PathOutputIdentificationType;
@@ -29,9 +29,10 @@ public class PathImpl implements Path {
   private long id;
 
   /**
-   * List containing the edge segments in the path
+   * deque containing the edge segments in the path (we use a deque for easy insertion at both ends which is generally preferable when cosntructing paths
+   * based on shortest path algorithms. Access is less of an issue as we only allow one to iterate
    */
-  private final List<EdgeSegment> path;
+  private final Deque<EdgeSegment> path;
 
   /**
    * Returns the path as a String of comma-separated node Id or external Id values
@@ -118,9 +119,9 @@ public class PathImpl implements Path {
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  protected PathImpl(final IdGroupingToken groupId) {
+  public PathImpl(final IdGroupingToken groupId) {
     id = IdGenerator.generateId(groupId, Path.class);
-    path = new ArrayList<EdgeSegment>();
+    path = new LinkedList<EdgeSegment>();
   }
 
   /**
@@ -129,7 +130,7 @@ public class PathImpl implements Path {
    * @param groupId          contiguous id generation within this group for instances of this class
    * @param pathEdgeSegments the path to set (not copied)
    */
-  protected PathImpl(final IdGroupingToken groupId, final List<EdgeSegment> pathEdgeSegments) {
+  public PathImpl(final IdGroupingToken groupId, final Deque<EdgeSegment> pathEdgeSegments) {
     id = IdGenerator.generateId(groupId, Path.class);
     path = pathEdgeSegments;
   }
@@ -148,16 +149,6 @@ public class PathImpl implements Path {
   @Override
   public Iterator<EdgeSegment> getIterator() {
     return path.iterator();
-  }
-
-  /**
-   * Return the path as a List of EdgeSegments
-   * 
-   * @return the path as a List of EdgeSegments
-   */
-  @Override
-  public List<EdgeSegment> getPath() {
-    return path;
   }
 
   /**

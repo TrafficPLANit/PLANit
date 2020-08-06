@@ -6,6 +6,7 @@ import java.util.PriorityQueue;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.geo.PlanitGeoUtils;
+import org.planit.path.Path;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
@@ -59,7 +60,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
       Comparator.comparing(Pair<Vertex, Double>::getSecond, (f1, f2) -> {
         return f1.compareTo(f2);
       });
-
+  
   /**
    * Constructor for an edge cost based A* algorithm for finding shortest paths.
    * 
@@ -101,11 +102,10 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
    * @param origin vertex of source node
    * @param destination vertex of sink node
    * @param heuristicCosts for A* to add direction to the search 
-   * @return array of pairs containing, for each vertex (array index), the cost to reach the vertex and the link segment it is reached from with the
-   *         shortest cost.
-   * @throws PlanItException thrown if an error occurs
+   * @return the cost and path as a pair
+   * @throws PlanItException thrown if path cannot be created
    */
-  public Pair<Double, EdgeSegment>[] executeOneToOne(Vertex origin, Vertex destination, final double[] heuristicCosts) throws PlanItException {
+  public Pair<Double, Path> executeOneToOne(Vertex origin, Vertex destination, final double[] heuristicCosts) throws PlanItException {
     return null;  
     
   }
@@ -117,7 +117,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
    * Can only be used when instance was created by providing ${code CRS} and ${codeheuristicDistanceMultiplier} in constructor
    */
   @Override
-  public Pair<Double, EdgeSegment>[] executeOneToOne(Vertex origin, Vertex destination) throws PlanItException {
+  public ShortestPathResult executeOneToOne(Vertex origin, Vertex destination) throws PlanItException {
     PlanItException.throwIf(crs==null, "Unknown coordinate reference system, unable to construct heuristic component for A* shortest path");    
     PlanitGeoUtils geoUtils = new PlanitGeoUtils(crs);
     
@@ -128,7 +128,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     double[] vertexHeuristicCost = new double[numberOfVertices];
     Arrays.fill(vertexHeuristicCost, Double.POSITIVE_INFINITY);
     // precedingVertex for each vertex (used to reconstruct path)
-    int[] precedingVertex = new int[numberOfVertices];
+    EdgeSegment[] incomingEdgeSegment = new EdgeSegment[numberOfVertices];
     // closed set used to filter out old entries in immutable priority queue (so we do not have to remove them)
     boolean[] closedVertex = new boolean[numberOfVertices];
     Arrays.fill(closedVertex, Boolean.FALSE);
@@ -139,15 +139,15 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     openVertices.add(new Pair<Vertex, Double>(origin, 0.0));
     vertexMeasuredCost[(int)origin.getId()] = 0.0;
     vertexHeuristicCost[(int)origin.getId()] = geoUtils.getDistanceInKilometres(origin.getCentrePointGeometry(), destination.getCentrePointGeometry());
-    precedingVertex[(int)origin.getId()] = -1;
+    incomingEdgeSegment[(int)origin.getId()] = null;
     
     Vertex currentVertex =null;
     while(!openVertices.isEmpty()) {
       Pair<Vertex, Double> cheapestNextVertex = openVertices.poll();
       currentVertex = cheapestNextVertex.getFirst();      
-      int vertexId = (int)origin.getId();
+      int vertexId = (int)currentVertex.getId();
       // reached destination with lowest cost possible
-      if(currentVertex.getId() == destination.getId()) {
+      if(vertexId == destination.getId()) {
         break;
       }
       
@@ -164,8 +164,8 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
       double costToVertex = cheapestNextVertex.getSecond();
       
       // for all exiting edges
-      for (EdgeSegment adjacentLinkSegment : currentVertex.getExitEdgeSegments()) {
-        int adjacentVertexId = (int) adjacentLinkSegment.getDownstreamVertex().getId();
+      for (EdgeSegment adjacentEdgeSegment : currentVertex.getExitEdgeSegments()) {
+        int adjacentVertexId = (int) adjacentEdgeSegment.getDownstreamVertex().getId();
         
         // edge cost
         double exitEdgeCost = edgeSegmentCosts[adjacentVertexId];
@@ -174,7 +174,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
           //updated actual cost to adjacent node
           double tentativeCost = costToVertex+exitEdgeCost;
           
-          Vertex adjacentVertex = adjacentLinkSegment.getDownstreamVertex();
+          Vertex adjacentVertex = adjacentEdgeSegment.getDownstreamVertex();
           double adjacentMeasuredCost = vertexMeasuredCost[adjacentVertexId];
           
           // first visit, compute heuristic on the fly (once)
@@ -185,7 +185,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
           
           // when tentative cost is more attractive, update path
           if ( adjacentMeasuredCost > tentativeCost) {
-            precedingVertex[adjacentVertexId]     = vertexId;
+            incomingEdgeSegment[adjacentVertexId] = adjacentEdgeSegment;
             vertexMeasuredCost[adjacentVertexId]  = tentativeCost;
             
             // prioritise exploring the new vertex based on f-score (measured + heuristic)
@@ -200,6 +200,8 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
         String.format("destination %s (id:%d) unreachable from origin %d (id:%d)",
             destination.getExternalId(), destination.getId(), origin.getExternalId(), origin.getId()));
     
-    return null;
+    return new ShortestPathResult(vertexMeasuredCost, incomingEdgeSegment);
   }
+
+
 }

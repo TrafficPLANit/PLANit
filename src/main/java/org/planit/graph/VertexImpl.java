@@ -268,7 +268,7 @@ public class VertexImpl implements Vertex {
    */
   @Override
   public EdgeSegments getExitEdgeSegments() {
-    return entryEdgeSegments;
+    return exitEdgeSegments;
   }
 
   /**

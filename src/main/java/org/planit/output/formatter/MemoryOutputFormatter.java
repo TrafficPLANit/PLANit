@@ -296,7 +296,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
         odPathIterator.next();
         if (outputConfiguration.isPersistZeroFlow() || (odPathIterator.getCurrentValue() != null)) {
           updateOutputAndKeyValuesForPath(multiKeyPlanItData, outputProperties, outputKeys, odPathIterator, pathOutputTypeAdapter, mode, timePeriod,
-              pathOutputTypeConfiguration.getPathIdType());
+              pathOutputTypeConfiguration.getPathIdentificationType());
         }
       }
       timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);

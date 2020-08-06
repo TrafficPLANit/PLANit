@@ -137,7 +137,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
           odPathIterator.next();
           if (outputConfiguration.isPersistZeroFlow() || (odPathIterator.getCurrentValue() != null)) {
             List<Object> rowValues = outputProperties.stream().map(outputProperty -> pathOutputTypeAdapter.getPathOutputPropertyValue(outputProperty.getOutputProperty(),
-                odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdType())).map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
+                odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType())).map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
             csvPrinter.printRecord(rowValues);
           }
         }

@@ -121,7 +121,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    * @param pathIdType the path output type
    * @throws PlanItException thrown if there is an error
    */
-  public void setPathIdType(PathOutputIdentificationType pathIdType) throws PlanItException {
+  public void setPathIdentificationType(PathOutputIdentificationType pathIdType) throws PlanItException {
     this.pathIdType = pathIdType;
   }
 
@@ -130,7 +130,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    * 
    * @return the path id type
    */
-  public PathOutputIdentificationType getPathIdType() {
+  public PathOutputIdentificationType getPathIdentificationType() {
     return pathIdType;
   }
 
