@@ -1,4 +1,4 @@
-package org.planit.route.choice.logit;
+package org.planit.path.choice.logit;
 
 import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.id.IdGroupingToken;

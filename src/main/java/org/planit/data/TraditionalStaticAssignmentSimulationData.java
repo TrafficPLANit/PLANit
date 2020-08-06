@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.od.odroute.ODRouteMatrix;
+import org.planit.od.odpath.ODPathMatrix;
 import org.planit.output.OutputManager;
 import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
@@ -56,7 +56,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   /**
    * Stores the current OD Path for each mode
    */
-  private Map<Mode, ODRouteMatrix> modalODPathMatrixMap;
+  private Map<Mode, ODPathMatrix> modalODPathMatrixMap;
 
   /**
    * Set of active OD skim output types
@@ -86,7 +86,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     } else {
       this.activeOdSkimOutputTypes = new HashSet<ODSkimSubOutputType>();
     }
-    this.modalODPathMatrixMap = new HashMap<Mode, ODRouteMatrix>();
+    this.modalODPathMatrixMap = new HashMap<Mode, ODPathMatrix>();
   }
 
   /**
@@ -179,7 +179,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param zones Zones object containing all the origin and destination zones
    */
   public void resetPathMatrix(Mode mode, Zoning.Zones zones) {
-    modalODPathMatrixMap.put(mode, new ODRouteMatrix(groupId, zones));
+    modalODPathMatrixMap.put(mode, new ODPathMatrix(groupId, zones));
   }
 
   /**
@@ -205,7 +205,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param mode the specified mode
    * @return the OD path for this mode
    */
-  public ODRouteMatrix getODPathMatrix(Mode mode) {
+  public ODPathMatrix getODPathMatrix(Mode mode) {
     return modalODPathMatrixMap.get(mode);
   }
 

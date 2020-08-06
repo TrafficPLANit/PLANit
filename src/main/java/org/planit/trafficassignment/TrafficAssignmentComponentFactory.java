@@ -21,10 +21,10 @@ import org.planit.demands.Demands;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.network.virtual.Zoning;
-import org.planit.route.ODRouteSets;
-import org.planit.route.choice.RouteChoice;
-import org.planit.route.choice.logit.LogitChoiceModel;
-import org.planit.route.choice.logit.MultinomialLogit;
+import org.planit.path.ODPathSets;
+import org.planit.path.choice.PathChoice;
+import org.planit.path.choice.logit.LogitChoiceModel;
+import org.planit.path.choice.logit.MultinomialLogit;
 import org.planit.sdinteraction.smoothing.MSASmoothing;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
@@ -74,9 +74,9 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
     registeredTrafficAssignmentComponents.put(VirtualCost.class, new TreeSet<>());
     registeredTrafficAssignmentComponents.put(FundamentalDiagram.class, new TreeSet<>());
     registeredTrafficAssignmentComponents.put(NodeModel.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(RouteChoice.class, new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(PathChoice.class, new TreeSet<>());
     registeredTrafficAssignmentComponents.put(LogitChoiceModel.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(ODRouteSets.class, new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(ODPathSets.class, new TreeSet<>());
 
     registerDefaultImplementations();
   }
@@ -99,7 +99,7 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
       registerTrafficAssignmentComponentType(NewellFundamentalDiagram.class);
       registerTrafficAssignmentComponentType(TampereNodeModel.class);
       registerTrafficAssignmentComponentType(MultinomialLogit.class);
-      registerTrafficAssignmentComponentType(ODRouteSets.class);
+      registerTrafficAssignmentComponentType(ODPathSets.class);
     } catch (final PlanItException e) {
       LOGGER.severe(e.getMessage());
       e.printStackTrace();

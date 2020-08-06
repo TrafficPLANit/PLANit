@@ -14,7 +14,7 @@ import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
-import org.planit.route.ODRouteSets;
+import org.planit.path.ODPathSets;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.exceptions.PlanItException;
@@ -196,18 +196,18 @@ public class PlanItProjectInput {
   }
 
   /**
-   * Internal class for registered od route sets
+   * Internal class for registered od path sets
    *
    */
-  public class ProjectODRouteSets {
+  public class ProjectODPathSets {
 
     /**
-     * Returns a List of od route sets
+     * Returns a List of od path sets
      *
-     * @return List of od route sets
+     * @return List of od path sets
      */
-    public List<ODRouteSets> toList() {
-      return new ArrayList<ODRouteSets>(odRouteSetsMap.values());
+    public List<ODPathSets> toList() {
+      return new ArrayList<ODPathSets>(odPathSetsMap.values());
     }
 
     /**
@@ -216,35 +216,35 @@ public class PlanItProjectInput {
      * @param id the id of the link
      * @return the retrieved link
      */
-    public ODRouteSets getODRouteSets(final long id) {
-      return odRouteSetsMap.get(id);
+    public ODPathSets getODPathSets(final long id) {
+      return odPathSetsMap.get(id);
     }
 
     /**
-     * Get the number of od route sets
+     * Get the number of od path sets
      *
-     * @return the number of od route sets in the project
+     * @return the number of od path sets in the project
      */
-    public int getNumberOfODRouteSets() {
-      return odRouteSetsMap.size();
+    public int getNumberOfOdPathSets() {
+      return odPathSetsMap.size();
     }
 
     /**
-     * Check if od route sets have already been registered
+     * Check if od path sets have already been registered
      *
      * @return true if registered od rotue sets exist, false otherwise
      */
-    public boolean hasRegisteredODRouteSets() {
-      return !odRouteSetsMap.isEmpty();
+    public boolean hasRegisteredOdPathSets() {
+      return !odPathSetsMap.isEmpty();
     }
 
     /**
-     * Collect the first od route set that is registered (if any). Otherwise return null
+     * Collect the first od path set that is registered (if any). Otherwise return null
      * 
-     * @return first od route set that is registered if none return null
+     * @return first od path set that is registered if none return null
      */
-    public ODRouteSets getFirstODRouteSets() {
-      return hasRegisteredODRouteSets() ? odRouteSetsMap.firstEntry().getValue() : null;
+    public ODPathSets getFirstOdPathSets() {
+      return hasRegisteredOdPathSets() ? odPathSetsMap.firstEntry().getValue() : null;
     }
   }
   
@@ -284,9 +284,9 @@ public class PlanItProjectInput {
   protected final TreeMap<Long, Demands> demandsMap;
 
   /**
-   * The od route sets registered on this project
+   * The od path sets registered on this project
    */
-  protected final TreeMap<Long, ODRouteSets> odRouteSetsMap;
+  protected final TreeMap<Long, ODPathSets> odPathSetsMap;
 
   /**
    * The zonings registered on this project
@@ -315,9 +315,9 @@ public class PlanItProjectInput {
   protected TrafficAssignmentComponentFactory<Zoning> zoningFactory;
 
   /**
-   * Object factory for od route sets object
+   * Object factory for od path sets object
    */
-  protected TrafficAssignmentComponentFactory<ODRouteSets> odRouteSetsFactory;
+  protected TrafficAssignmentComponentFactory<ODPathSets> odPathSetsFactory;
 
   /**
    * Object factory for physical costs
@@ -342,9 +342,9 @@ public class PlanItProjectInput {
   public final ProjectZonings zonings = new ProjectZonings();
 
   /**
-   * The registered OD route sets
+   * The registered OD path sets
    */
-  public final ProjectODRouteSets odRouteSets = new ProjectODRouteSets();
+  public final ProjectODPathSets odPathSets = new ProjectODPathSets();
 
   /**
    * Constructor
@@ -358,7 +358,7 @@ public class PlanItProjectInput {
     this.physicalNetworkMap = new TreeMap<Long, PhysicalNetwork>();
     this.demandsMap = new TreeMap<Long, Demands>();
     this.zoningsMap = new TreeMap<Long, Zoning>();
-    this.odRouteSetsMap = new TreeMap<Long, ODRouteSets>();
+    this.odPathSetsMap = new TreeMap<Long, ODPathSets>();
 
     this.projectGroupId = projectGroupId;
 
@@ -444,30 +444,30 @@ public class PlanItProjectInput {
   }
 
   /**
-   * Create and register the OD route sets on the project input
+   * Create and register the OD path sets on the project input
    * 
-   * @param physicalNetwork     network the routes must be compatible with
-   * @param zoning              zoning to match od routes to
-   * @param odRouteSetInputPath path to collect the routes from
-   * @return od route sets that have been parsed
+   * @param physicalNetwork     network the paths must be compatible with
+   * @param zoning              zoning to match od paths to
+   * @param odPathSetInputPath path to collect the paths from
+   * @return od path sets that have been parsed
    * @throws PlanItException thrown if there is an error
    */
-  public ODRouteSets createAndRegisterODRouteSets(final PhysicalNetwork physicalNetwork, final Zoning zoning, final String odRouteSetInputPath) throws PlanItException {
-    PlanItException.throwIf(zoning == null, "Zones must be defined before definition of od route sets can proceed");
-    PlanItException.throwIf(physicalNetwork == null, "Physical network must be defined before of od route sets can proceed");
+  public ODPathSets createAndRegisterOdPathSets(final PhysicalNetwork physicalNetwork, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
+    PlanItException.throwIf(zoning == null, "Zones must be defined before definition of od path sets can proceed");
+    PlanItException.throwIf(physicalNetwork == null, "Physical network must be defined before of od path sets can proceed");
 
-    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating od route sets");
-    final ODRouteSets odRouteSets = 
-        odRouteSetsFactory.create(
-            ODRouteSets.class.getCanonicalName(), 
+    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating od path sets");
+    final ODPathSets odPathSets = 
+        odPathSetsFactory.create(
+            ODPathSets.class.getCanonicalName(), 
             new Object[] { projectGroupId }, 
-            odRouteSetInputPath);
+            odPathSetInputPath);
     
-    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createOdRouteSetsPrefix(odRouteSets.getId());
-    LOGGER.info(String.format("%s#od route sets: %d", prefix, odRouteSets.getNumberOfOdRouteSets()));
+    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createOdPathSetsPrefix(odPathSets.getId());
+    LOGGER.info(String.format("%s#od path sets: %d", prefix, odPathSets.getNumberOfOdPathSets()));
 
-    odRouteSetsMap.put(odRouteSets.getId(), odRouteSets);
-    return odRouteSets;
+    odPathSetsMap.put(odPathSets.getId(), odPathSets);
+    return odPathSets;
   }
 
   /**

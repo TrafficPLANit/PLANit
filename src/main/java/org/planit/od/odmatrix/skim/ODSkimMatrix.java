@@ -14,7 +14,7 @@ public class ODSkimMatrix extends ODMatrix {
 
   // TODO - We may need to add more overloads of the setValue() method below, if different OD skim
   // types need other
-  // arguments to determine their cell value e.g. mode, route length, toll etc
+  // arguments to determine their cell value e.g. mode, path length, toll etc
 
   /**
    * The ODSkimOutputType for this ODSkimMatrix

@@ -51,6 +51,14 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
    * conversion multiplier to convert distance (km) to cost
    */
   protected final double heuristicDistanceMultiplier;
+  
+  /** 
+   * Comparator to sort based on the second elements minimum value (ascending order) 
+   */
+  protected static final Comparator<Pair<Vertex, Double>> pairSecondComparator =
+      Comparator.comparing(Pair<Vertex, Double>::getSecond, (f1, f2) -> {
+        return f1.compareTo(f2);
+      });
 
   /**
    * Constructor for an edge cost based A* algorithm for finding shortest paths.
@@ -125,13 +133,6 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     boolean[] closedVertex = new boolean[numberOfVertices];
     Arrays.fill(closedVertex, Boolean.FALSE);
 
-    // Use priority queue to identify the current cheapest cost (second element) to
-    // reach each vertex (first element)
-    Comparator<Pair<Vertex, Double>> pairSecondComparator =
-        Comparator.comparing(Pair<Vertex, Double>::getSecond, (f1, f2) -> {
-          return f1.compareTo(f2);
-        });
-
     PriorityQueue<Pair<Vertex, Double>> openVertices = new PriorityQueue<Pair<Vertex, Double>>(numberOfVertices, pairSecondComparator);       
     
     // initialise for origin
@@ -139,10 +140,11 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     vertexMeasuredCost[(int)origin.getId()] = 0.0;
     vertexHeuristicCost[(int)origin.getId()] = geoUtils.getDistanceInKilometres(origin.getCentrePointGeometry(), destination.getCentrePointGeometry());
     precedingVertex[(int)origin.getId()] = -1;
- 
-    Pair<Vertex, Double> cheapestNextVertex = openVertices.poll();
-    Vertex currentVertex = cheapestNextVertex.getFirst();    
-    do {
+    
+    Vertex currentVertex =null;
+    while(!openVertices.isEmpty()) {
+      Pair<Vertex, Double> cheapestNextVertex = openVertices.poll();
+      currentVertex = cheapestNextVertex.getFirst();      
       int vertexId = (int)origin.getId();
       // reached destination with lowest cost possible
       if(currentVertex.getId() == destination.getId()) {
@@ -177,7 +179,8 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
           
           // first visit, compute heuristic on the fly (once)
           if(adjacentMeasuredCost == Double.POSITIVE_INFINITY) {
-            vertexHeuristicCost[adjacentVertexId] = geoUtils.getDistanceInKilometres(adjacentVertex.getCentrePointGeometry(), destination.getCentrePointGeometry());
+            vertexHeuristicCost[adjacentVertexId] = 
+                geoUtils.getDistanceInKilometres(adjacentVertex.getCentrePointGeometry(), destination.getCentrePointGeometry())*heuristicDistanceMultiplier;
           }
           
           // when tentative cost is more attractive, update path
@@ -185,21 +188,18 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
             precedingVertex[adjacentVertexId]     = vertexId;
             vertexMeasuredCost[adjacentVertexId]  = tentativeCost;
             
-            // also known as f-score
+            // prioritise exploring the new vertex based on f-score (measured + heuristic)
             double priorityCost                   = tentativeCost + vertexHeuristicCost[adjacentVertexId];            
             openVertices.add(new Pair<Vertex, Double>(adjacentVertex, priorityCost)); // place on queue
           }
-        }
-        
-        cheapestNextVertex = openVertices.poll();
-        if(cheapestNextVertex==null) {
-          throw new PlanItException(
-              String.format("destination %s (id:%d) unreachable from origin %d (id:%d)",
-                  destination.getExternalId(), destination.getId(), origin.getExternalId(), origin.getId()));
-        }
-        currentVertex = cheapestNextVertex.getFirst();            
+        }            
       }
-    }while(!openVertices.isEmpty());
+    }
+    
+    PlanItException.throwIf(currentVertex.getId() != destination.getId(),
+        String.format("destination %s (id:%d) unreachable from origin %d (id:%d)",
+            destination.getExternalId(), destination.getId(), origin.getExternalId(), origin.getId()));
+    
     return null;
   }
 }

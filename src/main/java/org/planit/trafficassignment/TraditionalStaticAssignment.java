@@ -29,14 +29,14 @@ import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.od.odroute.ODRouteMatrix;
+import org.planit.od.odpath.ODPathMatrix;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
-import org.planit.output.adapter.TraditionalStaticRouteOutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticPathOutputTypeAdapter;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
-import org.planit.route.Route;
+import org.planit.path.Path;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TraditionalStaticAssignmentBuilder;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
@@ -127,7 +127,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       final OneToAllShortestPathAlgorithm shortestPathAlgorithm) throws PlanItException {
 
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
-    final ODRouteMatrix odRouteMatrix = simulationData.getODPathMatrix(mode);
+    final ODPathMatrix odpathMatrix = simulationData.getODPathMatrix(mode);
     final Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
 
     // loop over all available OD demands
@@ -163,10 +163,10 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
             vertexPathAndCosts = shortestPathAlgorithm.executeOneToAll(originCentroid);
           }
 
-          // TODO: we are now creating a route separate from finding shortest path. This makes no sense as it is very costly when switched on
+          // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
           if (outputManager.isOutputTypeActive(OutputType.PATH)) {
-            final Route route = Route.createRoute(groupId, currentDestinationZone.getCentroid(), vertexPathAndCosts);
-            odRouteMatrix.setValue(currentOriginZone, currentDestinationZone, route);
+            final Path path = Path.createPath(groupId, currentDestinationZone.getCentroid(), vertexPathAndCosts);
+            odpathMatrix.setValue(currentOriginZone, currentDestinationZone, path);
           }
 
           double odShortestPathCost = 0.0;
@@ -189,7 +189,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
   }
 
   /**
-   * Calculate the route cost for the calculated minimum cost path from a specified origin to a specified destination
+   * Calculate the path cost for the calculated minimum cost path from a specified origin to a specified destination
    *
    * @param vertexPathAndCost        array of Pairs containing the current vertex path and cost
    * @param currentOriginZone        current origin zone
@@ -197,7 +197,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
    * @param modalNetworkSegmentCosts segment costs for the network
    * @param odDemand                 the demands from the specified origin to the specified destination
    * @param currentModeData          data for the current mode
-   * @return the route cost for the calculated minimum cost path
+   * @return the path cost for the calculated minimum cost path
    * @throws PlanItException thrown if there is an error
    */
   private double getShortestPathCost(final Pair<Double, EdgeSegment>[] vertexPathAndCost, final Zone currentOriginZone, final Zone currentDestinationZone,
@@ -574,7 +574,7 @@ public class TraditionalStaticAssignment extends TrafficAssignment implements Li
       outputTypeAdapter = new TraditionalStaticAssignmentODOutputTypeAdapter(outputType, this);
       break;
     case PATH:
-      outputTypeAdapter = new TraditionalStaticRouteOutputTypeAdapter(outputType, this);
+      outputTypeAdapter = new TraditionalStaticPathOutputTypeAdapter(outputType, this);
       break;
     default:
       LOGGER.warning(LoggingUtils.createRunIdPrefix(getId()) + outputType.value() + " has not been defined yet.");

@@ -6,7 +6,7 @@ import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.Pair;
 
 /**
- * An algorithm which calculates the shortest (a.k.a. lowest cost) route to all
+ * An algorithm which calculates the shortest (a.k.a. lowest cost) path to all
  * vertices from a given origin vertex
  * 
  * @author markr

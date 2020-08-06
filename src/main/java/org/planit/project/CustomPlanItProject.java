@@ -13,11 +13,11 @@ import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;
+import org.planit.path.ODPathSets;
 import org.planit.project.PlanItProjectInput.ProjectDemands;
 import org.planit.project.PlanItProjectInput.ProjectNetworks;
-import org.planit.project.PlanItProjectInput.ProjectODRouteSets;
+import org.planit.project.PlanItProjectInput.ProjectODPathSets;
 import org.planit.project.PlanItProjectInput.ProjectZonings;
-import org.planit.route.ODRouteSets;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.TrafficAssignment;
@@ -181,9 +181,9 @@ public class CustomPlanItProject {
   public final ProjectZonings zonings;
 
   /**
-   * The registered OD route sets
+   * The registered OD path sets
    */
-  public final ProjectODRouteSets odRouteSets;
+  public final ProjectODPathSets odPathSets;
 
   /**
    * The registered assignments
@@ -211,7 +211,7 @@ public class CustomPlanItProject {
     this.physicalNetworks = inputs.physicalNetworks;
     this.demands = inputs.demands;
     this.zonings = inputs.zonings;
-    this.odRouteSets = inputs.odRouteSets;
+    this.odPathSets = inputs.odPathSets;
     this.outputFormatters = new TreeMap<Long, OutputFormatter>();
 
     initialiseFactories();
@@ -262,16 +262,16 @@ public class CustomPlanItProject {
   }
 
   /**
-   * Create and register the OD route sets as populated by the input builder through the path source
+   * Create and register the OD path sets as populated by the input builder through the path source
    * 
-   * @param physicalNetwork     network the routes must be compatible with
-   * @param zoning              zoning to match od routes to
-   * @param odRouteSetInputPath path to collect the routes from
-   * @return od route sets that have been parsed
+   * @param physicalNetwork     network the paths must be compatible with
+   * @param zoning              zoning to match od paths to
+   * @param odPathSetInputPath path to collect the paths from
+   * @return od path sets that have been parsed
    * @throws PlanItException thrown if there is an error
    */
-  public ODRouteSets createAndRegisterODRouteSets(final PhysicalNetwork physicalNetwork, final Zoning zoning, final String odRouteSetInputPath) throws PlanItException {
-    return inputs.createAndRegisterODRouteSets(physicalNetwork, zoning, odRouteSetInputPath);
+  public ODPathSets createAndRegisterOdPathSets(final PhysicalNetwork physicalNetwork, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
+    return inputs.createAndRegisterOdPathSets(physicalNetwork, zoning, odPathSetInputPath);
   }
 
   /**

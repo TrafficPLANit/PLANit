@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.output.enums.OutputType;
-import org.planit.output.enums.RouteIdType;
+import org.planit.output.enums.PathOutputIdentificationType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.trafficassignment.TrafficAssignment;
@@ -43,7 +43,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
   /**
    * Enumeration to specify the type of object to be recorded in the paths
    */
-  private RouteIdType pathIdType;
+  private PathOutputIdentificationType pathIdType;
 
   /**
    * Determine how an origin-destination cell is being identified in the output formatter
@@ -80,7 +80,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     addProperty(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID);
     addProperty(OutputProperty.DESTINATION_ZONE_EXTERNAL_ID);
     addProperty(OutputProperty.PATH_STRING);
-    pathIdType = RouteIdType.LINK_SEGMENT_EXTERNAL_ID;
+    pathIdType = PathOutputIdentificationType.LINK_SEGMENT_EXTERNAL_ID;
   }
 
   /**
@@ -121,7 +121,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    * @param pathIdType the path output type
    * @throws PlanItException thrown if there is an error
    */
-  public void setPathIdType(RouteIdType pathIdType) throws PlanItException {
+  public void setPathIdType(PathOutputIdentificationType pathIdType) throws PlanItException {
     this.pathIdType = pathIdType;
   }
 
@@ -130,7 +130,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    * 
    * @return the path id type
    */
-  public RouteIdType getPathIdType() {
+  public PathOutputIdentificationType getPathIdType() {
     return pathIdType;
   }
 

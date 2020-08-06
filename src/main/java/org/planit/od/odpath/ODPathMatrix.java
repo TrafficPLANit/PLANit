@@ -1,24 +1,24 @@
-package org.planit.od.odroute;
+package org.planit.od.odpath;
 
 import org.planit.network.virtual.Zoning.Zones;
 import org.planit.od.ODDataImpl;
-import org.planit.route.Route;
+import org.planit.path.Path;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.virtual.Zone;
 
 /**
- * This class stores the route objects from each origin to each destination.
+ * This class stores the path objects from each origin to each destination.
  *
  * @author gman6028
  *
  */
-public class ODRouteMatrix extends ODDataImpl<Route> {
+public class ODPathMatrix extends ODDataImpl<Path> {
 
   /**
    * Array storing path for each origin-destination pair
    */
-  private final Route[][] matrixContents;
+  private final Path[][] matrixContents;
 
   /**
    * Unique identifier
@@ -31,11 +31,11 @@ public class ODRouteMatrix extends ODDataImpl<Route> {
    * @param groupId contiguous id generation within this group for instances of this class
    * @param zones   the zones being used
    */
-  public ODRouteMatrix(final IdGroupingToken groupId, final Zones zones) {
+  public ODPathMatrix(final IdGroupingToken groupId, final Zones zones) {
     super(zones);
-    this.id = IdGenerator.generateId(groupId, ODRouteMatrix.class);
+    this.id = IdGenerator.generateId(groupId, ODPathMatrix.class);
     final int numberOfTravelAnalysisZones = zones.getNumberOfZones();
-    matrixContents = new Route[numberOfTravelAnalysisZones][numberOfTravelAnalysisZones];
+    matrixContents = new Path[numberOfTravelAnalysisZones][numberOfTravelAnalysisZones];
   }
 
   /**
@@ -46,7 +46,7 @@ public class ODRouteMatrix extends ODDataImpl<Route> {
    * @return the path from the origin to the destination
    */
   @Override
-  public Route getValue(final Zone origin, final Zone destination) {
+  public Path getValue(final Zone origin, final Zone destination) {
     final int originId = (int) origin.getId();
     final int destinationId = (int) destination.getId();
     return matrixContents[originId][destinationId];
@@ -61,7 +61,7 @@ public class ODRouteMatrix extends ODDataImpl<Route> {
    *
    */
   @Override
-  public void setValue(final Zone origin, final Zone destination, final Route path) {
+  public void setValue(final Zone origin, final Zone destination, final Path path) {
     final int originId = (int) origin.getId();
     final int destinationId = (int) destination.getId();
     matrixContents[originId][destinationId] = path;
@@ -73,14 +73,14 @@ public class ODRouteMatrix extends ODDataImpl<Route> {
    * @return iterator through all the origin-destination cells
    */
   @Override
-  public ODRouteIterator iterator() {
-    return new ODRouteIterator(matrixContents, zones);
+  public ODPathIterator iterator() {
+    return new ODPathIterator(matrixContents, zones);
   }
 
   // getters - setters
 
   /**
-   * @return unique identifier of this route od route matrix instance
+   * @return unique identifier of this  od pathmatrix instance
    */
   public long getId() {
     return this.id;

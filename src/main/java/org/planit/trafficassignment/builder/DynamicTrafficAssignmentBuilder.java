@@ -4,8 +4,8 @@ import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
-import org.planit.route.choice.RouteChoice;
-import org.planit.route.choice.RouteChoiceBuilder;
+import org.planit.path.choice.PathChoice;
+import org.planit.path.choice.PathChoiceBuilder;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.trafficassignment.DynamicTrafficAssignment;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
@@ -18,14 +18,14 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficAssignmentBuilder implements RouteChoiceBuilder {
+public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficAssignmentBuilder implements PathChoiceBuilder {
 
-  // needed to allow route choice to register inputbuilder listener on its traffic components
+  // needed to allow path choice to register inputbuilder listener on its traffic components
   @SuppressWarnings("unused")
   private final InputBuilderListener trafficComponentCreateListener;
 
-  /** the route choice factory */
-  final protected TrafficAssignmentComponentFactory<RouteChoice> routeChoiceFactory;
+  /** the path choice factory */
+  final protected TrafficAssignmentComponentFactory<PathChoice> pathChoiceFactory;
 
   /**
    * Constructor
@@ -41,17 +41,17 @@ public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficA
       final Zoning zoning, final PhysicalNetwork physicalNetwork) throws PlanItException {
     super(assignment, trafficComponentCreateListener, demands, zoning, physicalNetwork);
     this.trafficComponentCreateListener = trafficComponentCreateListener;
-    routeChoiceFactory = new TrafficAssignmentComponentFactory<RouteChoice>(RouteChoice.class);
+    pathChoiceFactory = new TrafficAssignmentComponentFactory<PathChoice>(PathChoice.class);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public RouteChoice createAndRegisterRouteChoice(final String routeChoiceType) throws PlanItException {
-    final RouteChoice routeChoice = routeChoiceFactory.create(routeChoiceType, new Object[] { parentAssignment.getIdGroupingtoken() });
-    ((DynamicTrafficAssignment) parentAssignment).setRouteChoice(routeChoice);
-    return routeChoice;
+  public PathChoice createAndRegisterPathChoice(final String pathChoiceType) throws PlanItException {
+    final PathChoice pathChoice = pathChoiceFactory.create(pathChoiceType, new Object[] { parentAssignment.getIdGroupingtoken() });
+    ((DynamicTrafficAssignment) parentAssignment).setPathChoice(pathChoice);
+    return pathChoice;
   }
 
   // PUBLIC FACTORY METHODS

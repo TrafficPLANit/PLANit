@@ -1,11 +1,11 @@
-package org.planit.route;
+package org.planit.path;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Function;
 
-import org.planit.output.enums.RouteIdType;
+import org.planit.output.enums.PathOutputIdentificationType;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
@@ -14,14 +14,14 @@ import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
- * This object creates a route of LinkSegment objects to a specified destination using the vertexPathAndCost object created by the (Dijkstra) Shortest Path Algorithm
+ * This object creates a path of LinkSegment objects to a specified destination using the vertexPathAndCost object created by the (Dijkstra) Shortest Path Algorithm
  *
  * The path creation makes use of the fact that the origin pair will have a null EdgeSegment, so there is no need to specify the origin.
  *
  * @author gman6028
  *
  */
-public class RouteImpl implements Route {
+public class PathImpl implements Path {
 
   /**
    * Id of the path
@@ -39,7 +39,7 @@ public class RouteImpl implements Route {
    * @param idGetter lambda function to get the required Id value
    * @return the path as a String of comma-separated node Id or external Id values
    */
-  private String getNodeRouteString(final Function<Node, Object> idGetter) {
+  private String getNodePathString(final Function<Node, Object> idGetter) {
     final StringBuilder builder = new StringBuilder("[");
     for (final EdgeSegment edgeSegment : path) {
       final Vertex vertex = edgeSegment.getUpstreamVertex();
@@ -61,7 +61,7 @@ public class RouteImpl implements Route {
    * @param idGetter lambda function to get the required Id value
    * @return the path as a String of comma-separated link segment Id or external Id values
    */
-  private String getEdgeSegmentRouteString(final Function<EdgeSegment, Object> idGetter) {
+  private String getEdgeSegmentPathString(final Function<EdgeSegment, Object> idGetter) {
     final StringBuilder builder = new StringBuilder("[");
     for (final EdgeSegment edgeSegment : path) {
       builder.append(idGetter.apply(edgeSegment));
@@ -77,8 +77,8 @@ public class RouteImpl implements Route {
    *
    * @return string of comma-separated list of edge segment external Id numbers
    */
-  private String getRouteByEdgeSegmentExternalIdString() {
-    return getEdgeSegmentRouteString(edgeSegment -> {
+  private String getPathByEdgeSegmentExternalIdString() {
+    return getEdgeSegmentPathString(edgeSegment -> {
       if ((edgeSegment instanceof ConnectoidSegment) && !(((ConnectoidSegment) edgeSegment).hasExternalId())) {
         return "Connectoid Undefined";
       }
@@ -91,8 +91,8 @@ public class RouteImpl implements Route {
    *
    * @return string of comma-separated list of edge segment Id numbers
    */
-  private String getRouteByEdgeSegmentIdString() {
-    return getEdgeSegmentRouteString(EdgeSegment::getId);
+  private String getPathByEdgeSegmentIdString() {
+    return getEdgeSegmentPathString(EdgeSegment::getId);
   }
 
   /**
@@ -100,8 +100,8 @@ public class RouteImpl implements Route {
    *
    * @return string of comma-separated list of node external Id numbers
    */
-  private String getRouteByNodeExternalIdString() {
-    return getNodeRouteString(Node::getExternalId);
+  private String getPathByNodeExternalIdString() {
+    return getNodePathString(Node::getExternalId);
   }
 
   /**
@@ -109,8 +109,8 @@ public class RouteImpl implements Route {
    *
    * @return string of comma-separated list of node Id numbers
    */
-  private String getRouteByNodeIdString() {
-    return getNodeRouteString(Node::getId);
+  private String getPathByNodeIdString() {
+    return getNodePathString(Node::getId);
   }
 
   /**
@@ -118,8 +118,8 @@ public class RouteImpl implements Route {
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  protected RouteImpl(final IdGroupingToken groupId) {
-    id = IdGenerator.generateId(groupId, Route.class);
+  protected PathImpl(final IdGroupingToken groupId) {
+    id = IdGenerator.generateId(groupId, Path.class);
     path = new ArrayList<EdgeSegment>();
   }
 
@@ -129,8 +129,8 @@ public class RouteImpl implements Route {
    * @param groupId          contiguous id generation within this group for instances of this class
    * @param pathEdgeSegments the path to set (not copied)
    */
-  protected RouteImpl(final IdGroupingToken groupId, final List<EdgeSegment> pathEdgeSegments) {
-    id = IdGenerator.generateId(groupId, Route.class);
+  protected PathImpl(final IdGroupingToken groupId, final List<EdgeSegment> pathEdgeSegments) {
+    id = IdGenerator.generateId(groupId, Path.class);
     path = pathEdgeSegments;
   }
 
@@ -151,7 +151,7 @@ public class RouteImpl implements Route {
   }
 
   /**
-   * Return the route as a List of EdgeSegments
+   * Return the path as a List of EdgeSegments
    * 
    * @return the path as a List of EdgeSegments
    */
@@ -177,16 +177,16 @@ public class RouteImpl implements Route {
    * @return String describing the path
    */
   @Override
-  public String toString(final RouteIdType pathOutputType) {
+  public String toString(final PathOutputIdentificationType pathOutputType) {
     switch (pathOutputType) {
     case LINK_SEGMENT_EXTERNAL_ID:
-      return getRouteByEdgeSegmentExternalIdString();
+      return getPathByEdgeSegmentExternalIdString();
     case LINK_SEGMENT_ID:
-      return getRouteByEdgeSegmentIdString();
+      return getPathByEdgeSegmentIdString();
     case NODE_EXTERNAL_ID:
-      return getRouteByNodeExternalIdString();
+      return getPathByNodeExternalIdString();
     case NODE_ID:
-      return getRouteByNodeIdString();
+      return getPathByNodeIdString();
     }
     return "";
   }

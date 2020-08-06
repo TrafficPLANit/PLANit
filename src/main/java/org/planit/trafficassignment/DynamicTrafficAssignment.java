@@ -1,6 +1,6 @@
 package org.planit.trafficassignment;
 
-import org.planit.route.choice.RouteChoice;
+import org.planit.path.choice.PathChoice;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -14,8 +14,8 @@ public abstract class DynamicTrafficAssignment extends CapacityConstrainedAssign
   /** generated UID */
   private static final long serialVersionUID = 5518351010500386771L;
 
-  /** the route choice methodology adopted */
-  protected RouteChoice routeChoice;
+  /** the path choice methodology adopted */
+  protected PathChoice pathChoice;
 
   /**
    * Constructor
@@ -29,12 +29,12 @@ public abstract class DynamicTrafficAssignment extends CapacityConstrainedAssign
   // getters - setters
 
   /**
-   * set the route choice methodology as to be adopted by this traffic assignment
+   * set the path choice methodology as to be adopted by this traffic assignment
    * 
-   * @param routeChoice route choce to set
+   * @param pathChoice path choice to set
    */
-  public void setRouteChoice(final RouteChoice routeChoice) {
-    this.routeChoice = routeChoice;
+  public void setPathChoice(final PathChoice pathChoice) {
+    this.pathChoice = pathChoice;
   }
 
 }

@@ -1,29 +1,29 @@
-package org.planit.route.choice;
+package org.planit.path.choice;
 
 import java.util.logging.Logger;
 
 import org.planit.input.InputBuilderListener;
-import org.planit.od.odroute.ODRouteMatrix;
-import org.planit.route.choice.logit.LogitChoiceModel;
+import org.planit.od.odpath.ODPathMatrix;
+import org.planit.path.choice.logit.LogitChoiceModel;
 import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
- * Stochastic route choice component. Stochasticity is reflected by the fact that the route choice is applied by means of a logit model, to be configured here. Also, due to being
- * stochastic the route can/must be provided beforehand. This is also configured via this class
+ * Stochastic path choice component. Stochasticity is reflected by the fact that the path choice is applied by means of a logit model, to be configured here. Also, due to being
+ * stochastic the path can/must be provided beforehand. This is also configured via this class
  *
  * @author markr
  *
  */
-public class StochasticRouteChoice extends RouteChoice {
+public class StochasticPathChoice extends PathChoice {
 
   /** generated UID */
   private static final long serialVersionUID = 6617920674217225019L;
 
   /** the logger */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(StochasticRouteChoice.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(StochasticPathChoice.class.getCanonicalName());
 
   /**
    * logit choice model factory to create logit models to direct the probabilities of choosing paths
@@ -36,9 +36,9 @@ public class StochasticRouteChoice extends RouteChoice {
   protected LogitChoiceModel logitChoiceModel = null;
 
   /**
-   * The registered od route set instance
+   * The registered od path set instance
    */
-  protected ODRouteMatrix odRouteSet = null;
+  protected ODPathMatrix odPathSet = null;
 
   /**
    * Constructor
@@ -46,7 +46,7 @@ public class StochasticRouteChoice extends RouteChoice {
    * @param groupId                        contiguous id generation within this group for instances of this class
    * @param trafficComponentCreateListener thelistener to fire notify of create events when we create a logit choice model
    */
-  public StochasticRouteChoice(final IdGroupingToken groupId, final InputBuilderListener trafficComponentCreateListener) {
+  public StochasticPathChoice(final IdGroupingToken groupId, final InputBuilderListener trafficComponentCreateListener) {
     super(groupId);
     logitChoiceModelFactory = new TrafficAssignmentComponentFactory<LogitChoiceModel>(LogitChoiceModel.class);
     logitChoiceModelFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
@@ -65,12 +65,12 @@ public class StochasticRouteChoice extends RouteChoice {
   }
 
   /**
-   * Register a fixed od route set to use in the form of an ODPathMatrix
+   * Register a fixed od path set to use in the form of an ODPathMatrix
    *
-   * @param odRouteSet the fixed od route set in the shape of an od path matrix
+   * @param odPathSet the fixed od path set in the shape of an od path matrix
    */
-  public void RegisterODRouteMatrix(final ODRouteMatrix odRouteSet) {
-    this.odRouteSet = odRouteSet;
+  public void RegisterOdPathMatrix(final ODPathMatrix odPathSet) {
+    this.odPathSet = odPathSet;
   }
 
 }

@@ -1,12 +1,12 @@
 package org.planit.output.enums;
 
 /**
- * Enumeration of possible Id types used to identify a Route
+ * Enumeration of possible Id types used to identify a Path
  * 
  * @author gman6028
  *
  */
-public enum RouteIdType {
+public enum PathOutputIdentificationType {
 
   LINK_SEGMENT_EXTERNAL_ID,
   LINK_SEGMENT_ID,

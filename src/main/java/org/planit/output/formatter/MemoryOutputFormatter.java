@@ -11,19 +11,19 @@ import org.planit.data.MultiKeyPlanItData;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.od.odroute.ODRouteIterator;
-import org.planit.od.odroute.ODRouteMatrix;
+import org.planit.od.odpath.ODPathIterator;
+import org.planit.od.odpath.ODPathMatrix;
 import org.planit.output.adapter.LinkOutputTypeAdapter;
 import org.planit.output.adapter.ODOutputTypeAdapter;
 import org.planit.output.adapter.OutputAdapter;
-import org.planit.output.adapter.RouteOutputTypeAdapter;
+import org.planit.output.adapter.PathOutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.configuration.PathOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.OutputTypeEnum;
-import org.planit.output.enums.RouteIdType;
+import org.planit.output.enums.PathOutputIdentificationType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
@@ -134,7 +134,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @param multiKeyPlanItData    multikey data object to store values
    * @param outputProperties      OutputProperty array of result types to be recorded
    * @param outputKeys            OutputProperty array of key types to be recorded
-   * @param odRouteIterator       ODRouteIterator to iterate through matrix of paths
+   * @param odPathIterator        ODPathIterator to iterate through matrix of paths
    * @param pathOutputTypeAdapter PathOutputTypeAdapter to provide methods to get the property values
    * @param mode                  the current mode
    * @param timePeriod            the current time period
@@ -143,9 +143,9 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    */
 
   private void updateOutputAndKeyValuesForPath(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys,
-      ODRouteIterator odRouteIterator, RouteOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod, RouteIdType pathIdType) throws PlanItException {
+      ODPathIterator odPathIterator, PathOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod, PathOutputIdentificationType pathIdType) throws PlanItException {
     updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-      return pathOutputTypeAdapter.getRouteOutputPropertyValue(label, odRouteIterator, mode, timePeriod, pathIdType);
+      return pathOutputTypeAdapter.getPathOutputPropertyValue(label, odPathIterator, mode, timePeriod, pathIdType);
     });
   }
 
@@ -287,15 +287,15 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     OutputType outputType = (OutputType) currentOutputType;
     OutputProperty[] outputProperties = outputValueProperties.get(outputType);
     OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
-    RouteOutputTypeAdapter pathOutputTypeAdapter = (RouteOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+    PathOutputTypeAdapter pathOutputTypeAdapter = (PathOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
     PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
     for (Mode mode : modes) {
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
-      ODRouteMatrix odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
-      for (ODRouteIterator odRouteIterator = odPathMatrix.iterator(); odRouteIterator.hasNext();) {
-        odRouteIterator.next();
-        if (outputConfiguration.isPersistZeroFlow() || (odRouteIterator.getCurrentValue() != null)) {
-          updateOutputAndKeyValuesForPath(multiKeyPlanItData, outputProperties, outputKeys, odRouteIterator, pathOutputTypeAdapter, mode, timePeriod,
+      ODPathMatrix odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
+      for (ODPathIterator odPathIterator = odPathMatrix.iterator(); odPathIterator.hasNext();) {
+        odPathIterator.next();
+        if (outputConfiguration.isPersistZeroFlow() || (odPathIterator.getCurrentValue() != null)) {
+          updateOutputAndKeyValuesForPath(multiKeyPlanItData, outputProperties, outputKeys, odPathIterator, pathOutputTypeAdapter, mode, timePeriod,
               pathOutputTypeConfiguration.getPathIdType());
         }
       }
