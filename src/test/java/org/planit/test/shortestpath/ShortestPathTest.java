@@ -37,7 +37,7 @@ public class ShortestPathTest {
   private MacroscopicNetwork network;
   private Zoning zoning;
   
-  double[] measuredCosts;
+  double[] linkSegmentCosts;
   
   private Centroid centroidA;
   private Centroid centroidB;
@@ -68,16 +68,17 @@ public class ShortestPathTest {
     //           .------.------C------.------.
     //           |      |      |      |      |
     // lnk(25) 23|     12    47|    32|    20|
-    //           |      |      |      |      |
+    //smt(50,51) |      |      |      |      |
     //           |  7   |  5   |  10  |  30  |       
     //           .------.------.------.------.     row 1
     //           |      |      |      |      |
     // lnk(20) 33|    31|     8|    12|    5 |
-    //           |      |      |      |      |
+    //smt(40,41) |      |      |      |      |
     //           |  10  |  12  |  40  |   10 |    
     //           A------.------.------.------.     row 0
     //NODE      (0)   (1)    (2)    (3)    (4)
     //LINK         (0)    (1)    (2)    (3)
+    //LINKSgmnt   (0,1)  (2,3)   (4,5)  (6,7)
     
     try {
       // local CRS in meters
@@ -157,7 +158,7 @@ public class ShortestPathTest {
       transportNetwork.integrateConnectoidsAndLinks();
           
       // costs
-      measuredCosts = new double[]
+      linkSegmentCosts = new double[]
             /* horizontal segment costs */
           { 10,10, 12,12, 40,40, 10,10,
             7,7,   5,5,   10,10, 30,30,
@@ -185,13 +186,16 @@ public class ShortestPathTest {
   }
 //@formatter:on
 
+  /**
+   * Test Dijsktra based on above network
+   */
   @Test
   public void dijkstraTest() {
     try {
       
       DijkstraShortestPathAlgorithm dijkstra = 
           new DijkstraShortestPathAlgorithm(
-              measuredCosts, transportNetwork.getTotalNumberOfEdgeSegments(), transportNetwork.getTotalNumberOfVertices());
+              linkSegmentCosts, transportNetwork.getTotalNumberOfEdgeSegments(), transportNetwork.getTotalNumberOfVertices());
       
       ShortestPathResult result = dijkstra.executeOneToAll(centroidA);
       
@@ -225,6 +229,9 @@ public class ShortestPathTest {
     }
   }
   
+  /**
+   * Test A* with same routes and network
+   */
   @Test
   public void aStarTest() {
     try {
@@ -232,7 +239,7 @@ public class ShortestPathTest {
       // each link is 1 km long. Yet smallest cost for a link is 3 in the network, so the minimum cost multiplier per km is 3
       double multiplier = 3;
       
-      AStarShortestPathAlgorithm aStar = new AStarShortestPathAlgorithm(measuredCosts,transportNetwork.getTotalNumberOfVertices(),crs, multiplier);
+      AStarShortestPathAlgorithm aStar = new AStarShortestPathAlgorithm(linkSegmentCosts,transportNetwork.getTotalNumberOfVertices(),crs, multiplier);
       
       ShortestPathResult result = aStar.executeOneToOne(centroidA, network.nodes.getNodeById(1));
       double costAto1 = result.getCostToReach(network.nodes.getNodeById(1));
