@@ -3,11 +3,8 @@ package org.planit.algorithms.shortestpath;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
-import java.util.function.Function;
-
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.geo.PlanitGeoUtils;
-import org.planit.path.Path;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
@@ -78,35 +75,20 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     this.crs = crs;
     this.heuristicDistanceMultiplier = heuristicDistanceMultiplier;    
   }
-  
-  /**
-   * Constructor for an edge cost based A* algorithm for finding shortest paths. In absence of any information regarding the coordinate reference system
-   * this approach assumes the vertices have location information but this is cartesian in nature and can be converted to a heuristic cost by utilising the provided
-   * heuristicDistanceMultiplier. In this case the multiplier must acocunt for both the conversion to kms for the coordinates as well as the conversion to cost units (likely in hour)
-   * 
-   * @param edgeSegmentCosts Edge segment costs
-   * @param numberOfVertices number of vertices in the network
-   * @param heuristicDistanceMultiplier multiplier for coordinates where each unit change in coordinate equates to unit*heuristicDistanceMultiplier cost change
-   */
-  public AStarShortestPathAlgorithm(final double[] edgeSegmentCosts,  int numberOfVertices, double heuristicDistanceMultiplier) {
-    this.edgeSegmentCosts = edgeSegmentCosts;
-    this.numberOfVertices = numberOfVertices;
-    this.numberOfEdgeSegments = edgeSegmentCosts.length;
-    // unknowns
-    this.heuristicDistanceMultiplier = -1;
-    this.crs = null;
-  }  
-  
+    
   /**
    * {@inheritDoc}
    * 
    * We create the heuristic costs on-the-fly based on the coordinates of the vertex and computing the as-the-crow-flies lower bound cost.
-   * Can only be used when instance was created by providing ${code CRS} and ${codeheuristicDistanceMultiplier} in constructor
+   * Can only be used when instance was created by providing ${code CRS} and ${codeheuristicDistanceMultiplier} in constructor. Also, all network entities should
+   * hold geo positions otherwise the execution will fail with a nullpointer.
    */
   @Override
-  public ShortestPathResult executeOneToOne(Vertex origin, Vertex destination) throws PlanItException {
-    PlanItException.throwIf(crs==null, "Unknown coordinate reference system, unable to construct heuristic component for A* shortest path");    
+  public ShortestPathResult executeOneToOne(Vertex origin, Vertex destination) throws PlanItException {   
     PlanitGeoUtils geoUtils = new PlanitGeoUtils(crs);
+    if(origin.getCentrePointGeometry()==null || destination.getCentrePointGeometry()==null) {
+      throw new PlanItException("aStar shortest path must compute distances between vertices on-the-fly. One or more vertices do not have location information available making this impossible");
+    }
     
     // g-score (actual measured cost to destination)
     double[] vertexMeasuredCost = new double[numberOfVertices];    
@@ -125,7 +107,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     // initialise for origin
     openVertices.add(new Pair<Vertex, Double>(origin, 0.0));
     vertexMeasuredCost[(int)origin.getId()] = 0.0;
-    vertexHeuristicCost[(int)origin.getId()] = geoUtils.getDistanceInKilometres(origin.getCentrePointGeometry(), destination.getCentrePointGeometry());
+    vertexHeuristicCost[(int)origin.getId()] = geoUtils.getDistanceInKilometres(origin.getCentrePointGeometry(), destination.getCentrePointGeometry())*heuristicDistanceMultiplier;
     incomingEdgeSegment[(int)origin.getId()] = null;
     
     Vertex currentVertex =null;
@@ -148,14 +130,14 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
         //    to create the same effect with as little as possible computational overhead
       
       // cost to here
-      double costToVertex = cheapestNextVertex.getSecond();
+      double costToVertex = vertexMeasuredCost[vertexId];
       
       // for all exiting edges
       for (EdgeSegment adjacentEdgeSegment : currentVertex.getExitEdgeSegments()) {
         int adjacentVertexId = (int) adjacentEdgeSegment.getDownstreamVertex().getId();
         
         // edge cost
-        double exitEdgeCost = edgeSegmentCosts[adjacentVertexId];
+        double exitEdgeCost = edgeSegmentCosts[(int)adjacentEdgeSegment.getId()];
         if (exitEdgeCost < Double.POSITIVE_INFINITY) {
           
           //updated actual cost to adjacent node
@@ -166,9 +148,8 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
           
           // first visit, compute heuristic on the fly (once)
           if(adjacentMeasuredCost == Double.POSITIVE_INFINITY) {
-            vertexHeuristicCost[adjacentVertexId] = this.crs != null ?
-                geoUtils.getDistanceInKilometres(adjacentVertex.getCentrePointGeometry(), destination.getCentrePointGeometry())*heuristicDistanceMultiplier : 
-                -1; // TODO <-- compute differently
+            vertexHeuristicCost[adjacentVertexId] = 
+                geoUtils.getDistanceInKilometres(adjacentVertex.getCentrePointGeometry(), destination.getCentrePointGeometry())*heuristicDistanceMultiplier;
           }
           
           // when tentative cost is more attractive, update path

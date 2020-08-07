@@ -312,6 +312,19 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
       registerNode(newNode);
       return newNode;
     }
+    
+    /**
+     * Create and register new node
+     *
+     * @param externalId the externalId of the node
+     * @return new node created
+     */
+    public Node registerNewNode(Object externalId) {
+      final Node newNode = networkBuilder.createNode();
+      newNode.setExternalId(externalId);
+      registerNode(newNode);
+      return newNode;
+    }    
 
     /**
      * Return number of registered nodes

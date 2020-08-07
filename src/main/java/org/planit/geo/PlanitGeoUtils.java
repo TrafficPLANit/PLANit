@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import org.geotools.geometry.GeometryBuilder;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.PositionFactory;
 import org.opengis.geometry.coordinate.GeometryFactory;
@@ -19,7 +20,8 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.MultiLineString;
 
 /**
- * General geotools related utils
+ * General geotools related utils. Uses geodetic distance when possible. In case the CRS is not based on an ellipsoid (2d plane) it will simply compute
+ * the distance between coorindates using Pythagoras with the unit distance in meters, consistent with the {@code CartesianAuthorityFactory.GENERIC_2D}
  * 
  * @author markr
  *
@@ -33,6 +35,8 @@ public class PlanitGeoUtils {
    * Default Coordinate Reference System
    */
   private static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = DefaultGeographicCRS.WGS84;
+  
+  private static final CoordinateReferenceSystem CARTESIANCRS = CartesianAuthorityFactory.GENERIC_2D;
 
   /**
    * Geodetic calculator to construct distances between points. It is assumed the network CRS is geodetic in nature.
@@ -62,13 +66,17 @@ public class PlanitGeoUtils {
    */
   public PlanitGeoUtils(CoordinateReferenceSystem coordinateReferenceSystem) {
     geometryBuilder = new GeometryBuilder(coordinateReferenceSystem);
-    geodeticDistanceCalculator = new GeodeticCalculator(coordinateReferenceSystem);
     geometryFactory = geometryBuilder.getGeometryFactory();
     positionFactory = geometryBuilder.getPositionFactory();
+    
+    // geodetic only works on ellipsoids
+    if(!coordinateReferenceSystem.equals(CARTESIANCRS)) {
+      geodeticDistanceCalculator = new GeodeticCalculator(coordinateReferenceSystem); 
+    }    
   }
 
   /**
-   * Compute the distance in metres between two positions in a geodetic coordinate reference system
+   * Compute the distance in metres between two positions assuming the positions are provided in the same crs as registered on this class instance
    * 
    * @param startPosition location of the start point
    * @param endPosition   location of the end point
@@ -78,9 +86,18 @@ public class PlanitGeoUtils {
   private double getDistanceInMetres(Position startPosition, Position endPosition) throws PlanItException {
     // not threadsafe
     try {
-      geodeticDistanceCalculator.setStartingPosition(startPosition);
-      geodeticDistanceCalculator.setDestinationPosition(endPosition);
-      return geodeticDistanceCalculator.getOrthodromicDistance();
+      if(geodeticDistanceCalculator != null) {
+        // ellipsoid crs
+        geodeticDistanceCalculator.setStartingPosition(startPosition);
+        geodeticDistanceCalculator.setDestinationPosition(endPosition);
+        return geodeticDistanceCalculator.getOrthodromicDistance();
+      }else {
+        // cartesian in meters
+        double deltaCoordinate0 = startPosition.getDirectPosition().getOrdinate(0)-endPosition.getDirectPosition().getOrdinate(0);
+        double deltaCoordinate1 = startPosition.getDirectPosition().getOrdinate(1)-endPosition.getDirectPosition().getOrdinate(1);
+        double distanceInMeters = Math.sqrt( Math.pow(deltaCoordinate0,2)+ Math.pow(deltaCoordinate1,2));
+        return distanceInMeters;
+      }
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
       throw new PlanItException("Error when computing distance in meters between two Positions in GeoUtils", e);
@@ -88,7 +105,7 @@ public class PlanitGeoUtils {
   }
 
   /**
-   * Compute the distance in kilometres between two positions in a geodetic coordinate reference system
+   * Compute the distance in kilometres between two positions assuming the positions are provided in the same crs as registered on this class instance
    * 
    * @param startPosition location of the start point
    * @param endPosition   location of the end point

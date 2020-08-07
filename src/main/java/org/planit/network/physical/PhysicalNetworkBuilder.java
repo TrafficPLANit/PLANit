@@ -20,7 +20,7 @@ public interface PhysicalNetworkBuilder {
    * 
    * @return created node
    */
-  public Node createNode();
+  public Node createNode(); 
 
   /**
    * Create a new mode
