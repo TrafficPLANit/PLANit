@@ -1,15 +1,13 @@
 package org.planit.output.adapter;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.assignment.traditionalstatic.TraditionalStaticAssignmentSimulationData;
+import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.od.odpath.ODPathMatrix;
 import org.planit.output.enums.OutputType;
 import org.planit.utils.network.physical.Mode;
 
 /**
- * Adapter providing access to the data of the TraditionalStaticAssignment class
- * relevant for OD path outputs without exposing the internals of the traffic
- * assignment class itself
+ * Adapter providing access to the data of the TraditionalStaticAssignment class relevant for OD path outputs without exposing the internals of the traffic assignment class itself
  * 
  * @author gman6028
  *
@@ -19,7 +17,7 @@ public class TraditionalStaticPathOutputTypeAdapter extends PathOutputTypeAdapte
   /**
    * Constructor
    * 
-   * @param outputType the output type for the current persistence
+   * @param outputType        the output type for the current persistence
    * @param trafficAssignment the traffic assignment used to provide the data
    */
   public TraditionalStaticPathOutputTypeAdapter(OutputType outputType, TrafficAssignment trafficAssignment) {
@@ -34,9 +32,7 @@ public class TraditionalStaticPathOutputTypeAdapter extends PathOutputTypeAdapte
    */
   @Override
   public ODPathMatrix getODPathMatrix(Mode mode) {
-    TraditionalStaticAssignmentSimulationData traditionalStaticAssignmentSimulationData =
-        (TraditionalStaticAssignmentSimulationData) trafficAssignment.getSimulationData();
-    return traditionalStaticAssignmentSimulationData.getODPathMatrix(mode);
+    return ((TraditionalStaticAssignment) trafficAssignment).getIterationData().getODPathMatrix(mode);
   }
 
 }

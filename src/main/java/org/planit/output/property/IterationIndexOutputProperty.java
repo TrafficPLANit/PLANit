@@ -42,7 +42,7 @@ public final class IterationIndexOutputProperty extends BaseOutputProperty {
    * @throws PlanItException thrown if there is an error
    */
   public static int getIterationIndex(TrafficAssignment trafficAssignment) throws PlanItException {
-    return trafficAssignment.getSimulationData().getIterationIndex();
+    return trafficAssignment.getIterationIndex();
   }
 
 }
