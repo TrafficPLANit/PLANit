@@ -1,4 +1,4 @@
-package org.planit.trafficassignment;
+package org.planit.assignment;
 
 import java.io.Serializable;
 

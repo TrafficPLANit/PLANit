@@ -2,8 +2,8 @@ package org.planit.cost.physical.initial;
 
 import java.io.Serializable;
 
+import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.cost.physical.AbstractPhysicalCost;
-import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;

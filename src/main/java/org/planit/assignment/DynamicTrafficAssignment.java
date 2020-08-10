@@ -1,4 +1,4 @@
-package org.planit.trafficassignment;
+package org.planit.assignment;
 
 import org.planit.path.choice.PathChoice;
 import org.planit.utils.id.IdGroupingToken;

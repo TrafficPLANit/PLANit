@@ -1,10 +1,10 @@
 package org.planit.output.adapter;
 
-import org.planit.data.TraditionalStaticAssignmentSimulationData;
+import org.planit.assignment.TrafficAssignment;
+import org.planit.assignment.traditionalstatic.TraditionalStaticAssignmentSimulationData;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
-import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.utils.network.physical.Mode;
 
 /**

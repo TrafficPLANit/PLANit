@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.planit.assignment.TrafficAssignment;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.OutputTypeAdapter;
@@ -18,7 +19,6 @@ import org.planit.output.configuration.PathOutputTypeConfiguration;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.network.physical.Mode;
 

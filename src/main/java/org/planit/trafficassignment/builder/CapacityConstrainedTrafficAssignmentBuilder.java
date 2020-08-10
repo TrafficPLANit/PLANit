@@ -1,13 +1,13 @@
 package org.planit.trafficassignment.builder;
 
+import org.planit.assignment.CapacityConstrainedAssignment;
+import org.planit.assignment.TrafficAssignmentComponentFactory;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
-import org.planit.trafficassignment.CapacityConstrainedAssignment;
-import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.exceptions.PlanItException;
 
 /**

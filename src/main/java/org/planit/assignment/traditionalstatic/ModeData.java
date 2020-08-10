@@ -1,4 +1,4 @@
-package org.planit.data;
+package org.planit.assignment.traditionalstatic;
 
 /**
  * Object to store the flows for each mode during the assignment iterations

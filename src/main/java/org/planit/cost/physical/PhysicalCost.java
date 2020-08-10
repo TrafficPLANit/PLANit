@@ -1,7 +1,7 @@
 package org.planit.cost.physical;
 
+import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.network.physical.PhysicalNetwork;
-import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 

@@ -4,10 +4,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.planit.assignment.TrafficAssignment;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
-import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.utils.exceptions.PlanItException;
 
 /**

@@ -1,4 +1,4 @@
-package org.planit.trafficassignment;
+package org.planit.assignment;
 
 import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import org.djutils.event.EventProducer;
 import org.djutils.event.EventType;
+import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;

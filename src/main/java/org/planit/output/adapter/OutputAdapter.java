@@ -3,8 +3,8 @@ package org.planit.output.adapter;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.planit.assignment.TrafficAssignment;
 import org.planit.output.enums.OutputType;
-import org.planit.trafficassignment.TrafficAssignment;
 
 /**
  * Output Adapter which stores output type adapters for each Output Manager and defines top-level

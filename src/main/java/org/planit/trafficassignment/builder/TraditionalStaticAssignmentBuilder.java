@@ -1,5 +1,6 @@
 package org.planit.trafficassignment.builder;
 
+import org.planit.assignment.TrafficAssignment;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.demands.Demands;
@@ -7,7 +8,6 @@ import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.sdinteraction.smoothing.MSASmoothing;
-import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.utils.exceptions.PlanItException;
 
 /**

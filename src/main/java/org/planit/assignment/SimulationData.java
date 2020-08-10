@@ -1,4 +1,4 @@
-package org.planit.data;
+package org.planit.assignment;
 
 /**
  * General simulation data that only are available during simulation

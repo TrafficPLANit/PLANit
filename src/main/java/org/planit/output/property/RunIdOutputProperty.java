@@ -1,8 +1,8 @@
 package org.planit.output.property;
 
+import org.planit.assignment.TrafficAssignment;
 import org.planit.output.enums.Type;
 import org.planit.output.enums.Units;
-import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.utils.exceptions.PlanItException;
 
 public final class RunIdOutputProperty extends BaseOutputProperty {

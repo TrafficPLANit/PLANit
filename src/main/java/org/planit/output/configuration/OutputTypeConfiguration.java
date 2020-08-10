@@ -6,13 +6,13 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
+import org.planit.assignment.TrafficAssignment;
+import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.output.property.OutputPropertyPriority;
-import org.planit.trafficassignment.TraditionalStaticAssignment;
-import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.utils.exceptions.PlanItException;
 
 /**

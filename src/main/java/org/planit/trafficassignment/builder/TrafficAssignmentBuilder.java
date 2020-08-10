@@ -3,6 +3,8 @@ package org.planit.trafficassignment.builder;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.planit.assignment.TrafficAssignment;
+import org.planit.assignment.TrafficAssignmentComponentFactory;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
@@ -20,8 +22,6 @@ import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.TrafficAssignment;
-import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.network.physical.Mode;

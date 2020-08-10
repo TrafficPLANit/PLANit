@@ -1,5 +1,7 @@
 package org.planit.trafficassignment.builder;
 
+import org.planit.assignment.DynamicTrafficAssignment;
+import org.planit.assignment.TrafficAssignmentComponentFactory;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
@@ -7,8 +9,6 @@ import org.planit.network.virtual.Zoning;
 import org.planit.path.choice.PathChoice;
 import org.planit.path.choice.PathChoiceBuilder;
 import org.planit.sdinteraction.smoothing.Smoothing;
-import org.planit.trafficassignment.DynamicTrafficAssignment;
-import org.planit.trafficassignment.TrafficAssignmentComponentFactory;
 import org.planit.utils.exceptions.PlanItException;
 
 /**

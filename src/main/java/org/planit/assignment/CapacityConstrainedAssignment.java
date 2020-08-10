@@ -1,4 +1,4 @@
-package org.planit.trafficassignment;
+package org.planit.assignment;
 
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;

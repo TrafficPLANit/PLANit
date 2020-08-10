@@ -1,10 +1,8 @@
 package org.planit.gap;
 
 /**
- * Gap function based on the work of Bovy and Jansen (1983) who take the
- * different between the current system travel time and the system travel time
- * if all flow were to be assigned to the shortest paths, divided by the system
- * travel time
+ * Gap function based on the work of Bovy and Jansen (1983) who take the different between the current system travel time and the system travel time if all flow were to be assigned
+ * to the shortest paths, divided by the system travel time
  * 
  * @author markr
  *
@@ -14,23 +12,21 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
   /**
    * Constructor
    * 
-   * @param stopCriterion
-   *          StopCriterion object being used
+   * @param stopCriterion StopCriterion object being used
    */
   public LinkBasedRelativeDualityGapFunction(StopCriterion stopCriterion) {
     super(stopCriterion);
   }
 
   /**
-   * Current system travel time as it stands
+   * Current system cost as it stands
    */
-  protected double actualSystemTravelTime = 0;
+  protected double measuredNetworkCost = 0;
 
   /**
-   * Represents the total travel time if all flow were to be diverted to the
-   * shortest paths for all origin-destination pairs
+   * Represents the total cost if all flow were to be diverted to the shortest paths for all origin-destination pairs
    */
-  protected double minimumSystemTravelTime = 0;
+  protected double minimumNetworkCost = 0;
 
   /**
    * Gap
@@ -43,7 +39,7 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    * @return the gap for the current iteration
    */
   public double computeGap() {
-    gap = (actualSystemTravelTime - minimumSystemTravelTime) / actualSystemTravelTime;
+    gap = (measuredNetworkCost - minimumNetworkCost) / measuredNetworkCost;
     return gap;
   }
 
@@ -52,36 +48,34 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    * 
    * @return the actual system travel time
    */
-  public double getActualSystemTravelTime() {
-    return actualSystemTravelTime;
+  public double getMeasuredNetworkCost() {
+    return measuredNetworkCost;
   }
 
   /**
-   * Increase system travel time, i.e. compute it exogenously
+   * Increase system cost, i.e. compute it exogenously
    * 
-   * @param increaseValue
-   *          increase in actualSystemTravelTime for this iteration
+   * @param increaseValue increase in actualSystemTravelTime for this iteration
    */
-  public void increaseActualSystemTravelTime(double increaseValue) {
-    actualSystemTravelTime += increaseValue;
+  public void increaseMeasuredNetworkCost(double increaseValue) {
+    measuredNetworkCost += increaseValue;
   }
 
   /**
-   * Increase convexity bound travel time, i.e. compute it exogenously
+   * Increase convexity bound cost, i.e. compute it exogenously
    * 
-   * @param increaseMinimumSystemTravelTime
-   *          the increase in minimum system travel time
+   * @param increaseMinimumSystemCost the increase in minimum system cost
    */
-  public void increaseConvexityBound(double increaseMinimumSystemTravelTime) {
-    minimumSystemTravelTime += increaseMinimumSystemTravelTime;
+  public void increaseConvexityBound(double increaseMinimumSystemCost) {
+    minimumNetworkCost += increaseMinimumSystemCost;
   }
 
   /**
    * Reset system travel time and convexity bound to zero
    */
   public void reset() {
-    this.actualSystemTravelTime = 0;
-    this.minimumSystemTravelTime = 0;
+    this.measuredNetworkCost = 0;
+    this.minimumNetworkCost = 0;
   }
 
   /**

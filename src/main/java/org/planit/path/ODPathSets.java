@@ -2,9 +2,9 @@ package org.planit.path;
 
 import java.util.TreeMap;
 
+import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.network.virtual.Zoning;
 import org.planit.od.odpath.ODPathMatrix;
-import org.planit.trafficassignment.TrafficAssignmentComponent;
 import org.planit.utils.id.IdGroupingToken;
 
 /**

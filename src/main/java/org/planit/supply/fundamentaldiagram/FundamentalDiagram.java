@@ -2,7 +2,7 @@ package org.planit.supply.fundamentaldiagram;
 
 import java.io.Serializable;
 
-import org.planit.trafficassignment.TrafficAssignmentComponent;
+import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.utils.id.IdGroupingToken;
 
 /**

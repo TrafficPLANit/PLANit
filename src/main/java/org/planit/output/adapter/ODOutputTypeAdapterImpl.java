@@ -2,6 +2,7 @@ package org.planit.output.adapter;
 
 import java.util.logging.Logger;
 
+import org.planit.assignment.TrafficAssignment;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
@@ -9,7 +10,6 @@ import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.TrafficAssignment;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.network.physical.Mode;
 
@@ -139,7 +139,7 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
   public int getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) throws PlanItException {
     PlanItException.throwIf(!(outputTypeEnum instanceof ODSkimSubOutputType), "Incorrect outputType enum found when collecting iteration index");
 
-    int iterationIndex = trafficAssignment.getSimulationData().getIterationIndex();
+    int iterationIndex = trafficAssignment.getIterationIndex();
     switch ((ODSkimSubOutputType) outputTypeEnum) {
     case COST:
       // cost is collected through the shortest path in iteration i based on the link costs of
