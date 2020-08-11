@@ -41,11 +41,6 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   private static final Logger LOGGER = Logger.getLogger(PhysicalNetwork.class.getCanonicalName());
 
   /**
-   * The graph containing the nodes, links, and link segments (or derived implementations)
-   */
-  private final GraphImpl<? extends Node, ? extends Link, ? extends LinkSegment> graph;
-
-  /**
    * Internal class for all Link specific code
    *
    */
@@ -457,9 +452,12 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
 
   }
 
-  // Private
-
   // Protected
+
+  /**
+   * The graph containing the nodes, links, and link segments (or derived implementations)
+   */
+  protected final GraphImpl<? extends Node, ? extends Link, ? extends LinkSegment> graph;
 
   /**
    * Network builder responsible for constructing all network related (derived) instances
