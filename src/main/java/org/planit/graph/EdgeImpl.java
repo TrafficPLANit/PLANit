@@ -92,17 +92,11 @@ public class EdgeImpl implements Edge {
   }
 
   /**
-   * Register EdgeSegment.
-   *
-   * If there already exists an edgeSegment for that direction it is replaced and returned
-   *
-   * @param edgeSegment EdgeSegment to be registered
-   * @param directionAB direction of travel
-   * @return replaced LinkSegment
-   * @throws PlanItException thrown if there is an error
+   * {@inheritDoc}
    */
-  protected EdgeSegment registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) throws PlanItException {
-    PlanItException.throwIf(edgeSegment.getParentEdge().getId() != getId(), "Inconsistency between link segment parent link and link it is being registered on");
+  @Override
+  public EdgeSegment registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) throws PlanItException {
+    PlanItException.throwIf(edgeSegment.getParentEdge().getId() != getId(), "inconsistency between link segment parent link and link it is being registered on");
 
     final EdgeSegment currentEdgeSegment = directionAB ? edgeSegmentAB : edgeSegmentBA;
     if (directionAB) {

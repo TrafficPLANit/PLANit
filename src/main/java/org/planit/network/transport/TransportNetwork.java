@@ -6,15 +6,12 @@ import org.planit.network.virtual.Zoning;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.network.physical.Link;
-import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.virtual.Connectoid;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
- * Entire transport network that is being modeled including both the physical and virtual aspects of
- * it as well as the
- * zoning. It acts as a wrapper unifying the two components during the assignment stage
+ * Entire transport network that is being modeled including both the physical and virtual aspects of it as well as the zoning. It acts as a wrapper unifying the two components
+ * during the assignment stage
  * 
  * @author markr
  *
@@ -81,7 +78,7 @@ public class TransportNetwork {
    * Constructor
    * 
    * @param physicalNetwork the PhysicalNetwork used to generate this TransportNetwork
-   * @param zoning the Zoning used to generate this TransportNetwork
+   * @param zoning          the Zoning used to generate this TransportNetwork
    */
   public TransportNetwork(PhysicalNetwork physicalNetwork, Zoning zoning) {
     this.physicalNetwork = physicalNetwork;
@@ -89,9 +86,7 @@ public class TransportNetwork {
   }
 
   /**
-   * Returns the total number of edge segments available in this traffic assignment by combining the
-   * physical and
-   * non-physical link segments
+   * Returns the total number of edge segments available in this traffic assignment by combining the physical and non-physical link segments
    * 
    * @return total number of physical and virtual edge segments
    */
@@ -141,10 +136,10 @@ public class TransportNetwork {
     for (ConnectoidSegment connectoidSegment : virtualNetwork.connectoidSegments) {
       connectVerticesToEdgeSegment(connectoidSegment);
     }
-    for (Link link : physicalNetwork.links) {
-      connectVerticesToEdge(link);
+    for (Edge edge : physicalNetwork.links) {
+      connectVerticesToEdge(edge);
     }
-    for (LinkSegment linkSegment : physicalNetwork.linkSegments) {
+    for (EdgeSegment linkSegment : physicalNetwork.linkSegments) {
       connectVerticesToEdgeSegment(linkSegment);
     }
   }
@@ -161,10 +156,10 @@ public class TransportNetwork {
     for (ConnectoidSegment connectoidSegment : zoning.getVirtualNetwork().connectoidSegments) {
       disconnectVerticesFromEdgeSegment(connectoidSegment);
     }
-    for (Link link : physicalNetwork.links) {
+    for (Edge link : physicalNetwork.links) {
       disconnectVerticesFromEdge(link);
     }
-    for (LinkSegment linkSegment : physicalNetwork.linkSegments) {
+    for (EdgeSegment linkSegment : physicalNetwork.linkSegments) {
       disconnectVerticesFromEdgeSegment(linkSegment);
     }
   }

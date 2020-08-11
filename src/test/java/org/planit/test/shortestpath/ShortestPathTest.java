@@ -30,20 +30,20 @@ import org.planit.utils.network.virtual.Zone;
  *
  */
 public class ShortestPathTest {
-  
+
   private static final CoordinateReferenceSystem crs = CartesianAuthorityFactory.GENERIC_2D;
-  
+
   private TransportNetwork transportNetwork;
   private MacroscopicNetwork network;
   private Zoning zoning;
-  
+
   double[] linkSegmentCosts;
-  
+
   private Centroid centroidA;
   private Centroid centroidB;
   private Centroid centroidC;
   private Centroid centroidD;
-  private Centroid centroidE; 
+  private Centroid centroidE;
 
   //@formatter:off
   @Before
@@ -100,11 +100,11 @@ public class ShortestPathTest {
           Node nodeA = network.nodes.getNodeById(linkRowIndex*(gridSize+1) + linkColIndex-1);
           Node nodeB = network.nodes.getNodeById(linkRowIndex*(gridSize+1) + linkColIndex);
           // all links are 1 km in length          
-          Link link = network.links.registerNewLink(nodeA, nodeB, 1, "");
+          Link link = network.links.registerNewLink(nodeA, nodeB, 1);
           nodeA.getEdges().addEdge(link);
           nodeB.getEdges().addEdge(link);
-          LinkSegment linkSegmentAb = network.linkSegments.createDirectionalLinkSegment(link, true);
-          LinkSegment linkSegmentBa = network.linkSegments.createDirectionalLinkSegment(link, false);
+          LinkSegment linkSegmentAb = network.linkSegments.createLinkSegment(link, true);
+          LinkSegment linkSegmentBa = network.linkSegments.createLinkSegment(link, false);
           nodeB.getEntryEdgeSegments().addEdgeSegment(linkSegmentAb);
           nodeB.getExitEdgeSegments().addEdgeSegment(linkSegmentBa);
           nodeA.getExitEdgeSegments().addEdgeSegment(linkSegmentAb);
@@ -118,11 +118,11 @@ public class ShortestPathTest {
           // all links are 1 km in length
           Node nodeA = network.nodes.getNodeById((linkRowIndex-1)*(gridSize+1)+linkColIndex);
           Node nodeB = network.nodes.getNodeById(linkRowIndex*(gridSize+1)+linkColIndex);
-          Link link = network.links.registerNewLink(nodeA, nodeB, 1, "");
+          Link link = network.links.registerNewLink(nodeA, nodeB, 1);
           nodeA.getEdges().addEdge(link);
           nodeB.getEdges().addEdge(link);
-          LinkSegment linkSegmentAb = network.linkSegments.createDirectionalLinkSegment(link, true);
-          LinkSegment linkSegmentBa = network.linkSegments.createDirectionalLinkSegment(link, false);
+          LinkSegment linkSegmentAb = network.linkSegments.createLinkSegment(link, true);
+          LinkSegment linkSegmentBa = network.linkSegments.createLinkSegment(link, false);
           nodeB.getExitEdgeSegments().addEdgeSegment(linkSegmentBa);
           nodeB.getEntryEdgeSegments().addEdgeSegment(linkSegmentAb);
           nodeA.getExitEdgeSegments().addEdgeSegment(linkSegmentAb);
@@ -192,90 +192,89 @@ public class ShortestPathTest {
   @Test
   public void dijkstraTest() {
     try {
-      
-      DijkstraShortestPathAlgorithm dijkstra = 
-          new DijkstraShortestPathAlgorithm(
-              linkSegmentCosts, transportNetwork.getTotalNumberOfEdgeSegments(), transportNetwork.getTotalNumberOfVertices());
-      
+
+      DijkstraShortestPathAlgorithm dijkstra = new DijkstraShortestPathAlgorithm(linkSegmentCosts, transportNetwork.getTotalNumberOfEdgeSegments(),
+          transportNetwork.getTotalNumberOfVertices());
+
       ShortestPathResult result = dijkstra.executeOneToAll(centroidA);
-      
+
       double costAto1 = result.getCostToReach(network.nodes.getNodeById(1));
-      assertEquals(costAto1,10,Precision.EPSILON_6);
-      
+      assertEquals(costAto1, 10, Precision.EPSILON_6);
+
       double costAto2 = result.getCostToReach(network.nodes.getNodeById(2));
-      assertEquals(costAto2,22,Precision.EPSILON_6);
-      
+      assertEquals(costAto2, 22, Precision.EPSILON_6);
+
       double costAto3 = result.getCostToReach(network.nodes.getNodeById(3));
-      assertEquals(costAto3,52,Precision.EPSILON_6);            
-      
+      assertEquals(costAto3, 52, Precision.EPSILON_6);
+
       double costAto4 = result.getCostToReach(network.nodes.getNodeById(4));
-      assertEquals(costAto4,62,Precision.EPSILON_6);      
-      
+      assertEquals(costAto4, 62, Precision.EPSILON_6);
+
       double costAto5 = result.getCostToReach(network.nodes.getNodeById(5));
-      assertEquals(costAto5,33,Precision.EPSILON_6);       
-      
+      assertEquals(costAto5, 33, Precision.EPSILON_6);
+
       double costAto6 = result.getCostToReach(network.nodes.getNodeById(6));
-      assertEquals(costAto6,35,Precision.EPSILON_6);      
-      
+      assertEquals(costAto6, 35, Precision.EPSILON_6);
+
       double aToCCost = result.getCostToReach(centroidC);
-      assertEquals(aToCCost,77.0,Precision.EPSILON_6);
-      
+      assertEquals(aToCCost, 77.0, Precision.EPSILON_6);
+
       double aToBCost = result.getCostToReach(centroidB);
-      assertEquals(aToBCost,85.0,Precision.EPSILON_6);      
+      assertEquals(aToBCost, 85.0, Precision.EPSILON_6);
 
     } catch (Exception e) {
       e.printStackTrace();
       fail("Error when testing Dijsktra shortest path");
     }
   }
-  
+
   /**
    * Test A* with same routes and network
    */
   @Test
   public void aStarTest() {
     try {
-      
+
       // each link is 1 km long. Yet smallest cost for a link is 3 in the network, so the minimum cost multiplier per km is 3
       double multiplier = 3;
-      
-      AStarShortestPathAlgorithm aStar = new AStarShortestPathAlgorithm(linkSegmentCosts,transportNetwork.getTotalNumberOfVertices(),crs, multiplier);
-      
+
+      AStarShortestPathAlgorithm aStar = new AStarShortestPathAlgorithm(linkSegmentCosts, transportNetwork.getTotalNumberOfVertices(), crs, multiplier);
+
       ShortestPathResult result = aStar.executeOneToOne(centroidA, network.nodes.getNodeById(1));
       double costAto1 = result.getCostToReach(network.nodes.getNodeById(1));
-      assertEquals(costAto1,10,Precision.EPSILON_6);
-      
+      assertEquals(costAto1, 10, Precision.EPSILON_6);
+
       result = aStar.executeOneToOne(centroidA, network.nodes.getNodeById(2));
       double costAto2 = result.getCostToReach(network.nodes.getNodeById(2));
-      assertEquals(costAto2,22,Precision.EPSILON_6);
-      
+      assertEquals(costAto2, 22, Precision.EPSILON_6);
+
       result = aStar.executeOneToOne(centroidA, network.nodes.getNodeById(3));
       double costAto3 = result.getCostToReach(network.nodes.getNodeById(3));
-      assertEquals(costAto3,52,Precision.EPSILON_6);            
-      
+      assertEquals(costAto3, 52, Precision.EPSILON_6);
+
       result = aStar.executeOneToOne(centroidA, network.nodes.getNodeById(4));
       double costAto4 = result.getCostToReach(network.nodes.getNodeById(4));
-      assertEquals(costAto4,62,Precision.EPSILON_6);      
-      
+      assertEquals(costAto4, 62, Precision.EPSILON_6);
+
       result = aStar.executeOneToOne(centroidA, network.nodes.getNodeById(5));
       double costAto5 = result.getCostToReach(network.nodes.getNodeById(5));
-      assertEquals(costAto5,33,Precision.EPSILON_6);       
-      
+      assertEquals(costAto5, 33, Precision.EPSILON_6);
+
       result = aStar.executeOneToOne(centroidA, network.nodes.getNodeById(6));
       double costAto6 = result.getCostToReach(network.nodes.getNodeById(6));
-      assertEquals(costAto6,35,Precision.EPSILON_6);      
-      
+      assertEquals(costAto6, 35, Precision.EPSILON_6);
+
       result = aStar.executeOneToOne(centroidA, centroidC);
       double aToCCost = result.getCostToReach(centroidC);
-      assertEquals(aToCCost,77.0,Precision.EPSILON_6);
-      
+      assertEquals(aToCCost, 77.0, Precision.EPSILON_6);
+
       result = aStar.executeOneToOne(centroidA, centroidB);
       double aToBCost = result.getCostToReach(centroidB);
-      assertEquals(aToBCost,85.0,Precision.EPSILON_6);      
+      assertEquals(aToBCost, 85.0, Precision.EPSILON_6);
 
     } catch (Exception e) {
       e.printStackTrace();
       fail("Error when testing aStar shortest path");
     }
-  }  
+  }
 }

@@ -91,7 +91,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void initialiseTimePeriod(TimePeriod timePeriod, final Set<Mode> modes) throws PlanItException {
-    simulationData = new TraditionalStaticAssignmentSimulationData(groupId, outputManager);
+    simulationData = new TraditionalStaticAssignmentSimulationData(groupId, getOutputManager());
     simulationData.setIterationIndex(0);
     simulationData.getModeSpecificData().clear();
     for (final Mode mode : modes) {
@@ -144,7 +144,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       final Zone currentDestinationZone = odDemandMatrixIter.getCurrentDestination();
 
       if (currentOriginZone.getId() != currentDestinationZone.getId()) {
-        if (outputManager.getOutputConfiguration().isPersistZeroFlow() || ((odDemand - DEFAULT_FLOW_EPSILON) > 0.0)) {
+        if (getOutputManager().getOutputConfiguration().isPersistZeroFlow() || ((odDemand - DEFAULT_FLOW_EPSILON) > 0.0)) {
 
           if (LOGGER.isLoggable(Level.FINE)) {
             LOGGER.fine(LoggingUtils.createRunIdPrefix(getId()) + String.format("(O,D)=(%d,%d) --> demand (pcu/h): %f (mode: %d)", currentOriginZone.getExternalId(),
@@ -167,7 +167,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
           }
 
           // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
-          if (outputManager.isOutputTypeActive(OutputType.PATH)) {
+          if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
             final Path path = shortestPathResult.createPath(groupId, currentOriginZone.getCentroid(), currentDestinationZone.getCentroid());
             odpathMatrix.setValue(currentOriginZone, currentDestinationZone, path);
           }
@@ -262,24 +262,24 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   /**
    * Execute the assignment for the current time period and mode and apply smoothing to the result
    *
-   * @param timePeriod               the current time period
-   * @param mode                     the current mode
-   * @param modalNetworkSegmentCosts the current network segment costs
+   * @param timePeriod the current time period
+   * @param mode       the current mode
    * @throws PlanItException thrown if there is an error
    */
-  private void executeAndSmoothTimePeriodAndMode(final TimePeriod timePeriod, final Mode mode, final double[] modalNetworkSegmentCosts) throws PlanItException {
+  private void executeAndSmoothTimePeriodAndMode(final TimePeriod timePeriod, final Mode mode) throws PlanItException {
     LOGGER.fine(LoggingUtils.createRunIdPrefix(getId()) + String.format("[mode %d (id:%d)]", mode.getExternalId(), mode.getId()));
     // mode specific data
+    final double[] modalLinkSegmentCosts = simulationData.getModalLinkSegmentCosts(mode);
     final ModeData currentModeData = simulationData.getModeSpecificData().get(mode);
     currentModeData.resetNextNetworkSegmentFlows();
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
 
     // AON based network loading
-    final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
+    final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalLinkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
     final ODDemandMatrix odDemandMatrix = demands.get(mode, timePeriod);
-    executeModeTimePeriod(mode, odDemandMatrix, currentModeData, modalNetworkSegmentCosts, shortestPathAlgorithm);
+    executeModeTimePeriod(mode, odDemandMatrix, currentModeData, modalLinkSegmentCosts, shortestPathAlgorithm);
 
-    final double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows, modalNetworkSegmentCosts, numberOfNetworkSegments);
+    final double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows, modalLinkSegmentCosts, numberOfNetworkSegments);
     dualityGapFunction.increaseMeasuredNetworkCost(totalModeSystemTravelTime);
     applySmoothing(currentModeData);
 
@@ -390,10 +390,10 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void setModalLinkSegmentCosts(final Mode mode, final double[] currentSegmentCosts, Cost<LinkSegment> cost) throws PlanItException {
-    for (final LinkSegment linkSegment : transportNetwork.getPhysicalNetwork().linkSegments) {
+    for (final EdgeSegment linkSegment : transportNetwork.getPhysicalNetwork().linkSegments) {
       double currentSegmentCost = Double.POSITIVE_INFINITY;
-      if (linkSegment.isModeAllowedThroughLink(mode)) {
-        currentSegmentCost = cost.getSegmentCost(mode, linkSegment);
+      if (((LinkSegment) linkSegment).isModeAllowedThroughLink(mode)) {
+        currentSegmentCost = cost.getSegmentCost(mode, (LinkSegment) linkSegment);
         if (currentSegmentCost < 0.0) {
           throw new PlanItException("Error during calculation of link segment costs");
         }
@@ -445,8 +445,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
         simulationData.resetPathMatrix(mode, getTransportNetwork().getZoning().zones);
         simulationData.resetModalNetworkSegmentFlows(mode, numberOfNetworkSegments);
 
-        final double[] modalLinkSegmentCosts = simulationData.getModalLinkSegmentCosts(mode);
-        executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalLinkSegmentCosts);
+        executeAndSmoothTimePeriodAndMode(timePeriod, mode);
       }
 
       dualityGapFunction.computeGap();
@@ -457,7 +456,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
         simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
       }
       converged = dualityGapFunction.hasConverged(simulationData.getIterationIndex());
-      outputManager.persistOutputData(timePeriod, modes, converged);
+      getOutputManager().persistOutputData(timePeriod, modes, converged);
     }
   }
 

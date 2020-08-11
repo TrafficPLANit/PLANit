@@ -10,6 +10,7 @@ import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.network.physical.LinkSegment;
@@ -223,7 +224,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
   public void initialiseBeforeSimulation(final PhysicalNetwork physicalNetwork) {
     final MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) physicalNetwork;
     bprParametersPerLinkSegment = new BPRParameters[macroscopicNetwork.linkSegments.getNumberOfLinkSegments()];
-    for (final LinkSegment linkSegment : macroscopicNetwork.linkSegments) {
+    for (final EdgeSegment linkSegment : macroscopicNetwork.linkSegments) {
       final MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
       final int id = (int) macroscopicLinkSegment.getId();
       bprParametersPerLinkSegment[id] = new BPRParameters();

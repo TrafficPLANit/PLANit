@@ -54,7 +54,7 @@ public class LinkImpl extends EdgeImpl implements Link {
    * @param name     the name of the link
    * @throws PlanItException thrown if there is an error
    */
-  public LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length, final String name) throws PlanItException {
+  public LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length) throws PlanItException {
     super(groupId, nodeA, nodeB, length);
     this.linkId = generateLinkId(groupId);
   }

@@ -59,6 +59,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   private GapFunction gapFunction;
 
+  /**
+   * Output manager deals with all the output configurations for the registered traffic assignments
+   */
+  private OutputManager outputManager;
+
   // Protected
 
   /**
@@ -70,11 +75,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * Physical network to use
    */
   protected PhysicalNetwork physicalNetwork;
-
-  /**
-   * Output manager deals with all the output configurations for the registered traffic assignments
-   */
-  protected OutputManager outputManager;
 
   /**
    * The transport network to use which is an adaptor around the physical network and the zoning
@@ -222,6 +222,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
     disbandTransportNetwork();
 
     outputManager.finaliseAfterSimulation();
+  }
+
+  /**
+   * Collect the output manager
+   * 
+   * @return output manager for this assignment
+   */
+  protected OutputManager getOutputManager() {
+    return outputManager;
   }
 
   // Public

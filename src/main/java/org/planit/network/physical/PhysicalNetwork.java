@@ -10,9 +10,12 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.graph.Graph;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.id.IdGenerator;
+import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.network.physical.Link;
@@ -37,39 +40,22 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   private static final Logger LOGGER = Logger.getLogger(PhysicalNetwork.class.getCanonicalName());
 
   /**
+   * The graph containing the edges and vertices
+   */
+  private final Graph graph;
+
+  /**
    * Internal class for all Link specific code
    *
    */
-  public class Links implements Iterable<Link> {
-
-    /**
-     * Map to store Links by their Id
-     */
-    private Map<Long, Link> linkMap;
-
-    /**
-     * Add link to the internal container
-     *
-     * @param link link to be registered in this network
-     * @return link, in case it overrides an existing link, the removed link is returned
-     */
-    protected Link registerLink(final Link link) {
-      return linkMap.put(link.getId(), link);
-    }
-
-    /**
-     * Constructor
-     */
-    public Links() {
-      linkMap = new TreeMap<Long, Link>();
-    }
+  public class Links implements Iterable<Edge> {
 
     /**
      * Iterator over available links
      */
     @Override
-    public Iterator<Link> iterator() {
-      return linkMap.values().iterator();
+    public Iterator<Edge> iterator() {
+      return graph.edges.iterator();
     }
 
     /**
@@ -78,13 +64,11 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param nodeA  the first node in this link
      * @param nodeB  the second node in this link
      * @param length the length of this link
-     * @param name   the name of the link
      * @return the created link
      * @throws PlanItException thrown if there is an error
      */
-    public Link registerNewLink(final Node nodeA, final Node nodeB, final double length, final String name) throws PlanItException {
-      final Link newLink = networkBuilder.createLink(nodeA, nodeB, length, name);
-      registerLink(newLink);
+    public Link registerNewLink(final Node nodeA, final Node nodeB, final double length) throws PlanItException {
+      final Link newLink = (Link) graph.edges.registerNewEdge(nodeA, nodeB, length);
       return newLink;
     }
 
@@ -95,7 +79,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return the retrieved link
      */
     public Link getLink(final long id) {
-      return linkMap.get(id);
+      return (Link) graph.edges.getEdge(id);
     }
 
     /**
@@ -104,7 +88,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return the number of links in the network
      */
     public int getNumberOfLinks() {
-      return linkMap.size();
+      return graph.edges.getNumberOfEdges();
     }
   }
 
@@ -112,12 +96,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
    * Internal class for LinkSegment specific code (non-physical link segments are placed in the zoning)
    *
    */
-  public class LinkSegments implements Iterable<LinkSegment> {
-
-    /**
-     * Map to store link segments by their Id
-     */
-    private Map<Long, LinkSegment> linkSegmentMap;
+  public class LinkSegments implements Iterable<EdgeSegment> {
 
     /**
      * Map to store all link segments for a given start node Id
@@ -131,7 +110,6 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @throws PlanItException thrown if the current link segment external Id has already been assigned
      */
     protected void registerLinkSegment(final LinkSegment linkSegment) throws PlanItException {
-      linkSegmentMap.put(linkSegment.getId(), linkSegment);
       final Node startNode = (Node) linkSegment.getUpstreamVertex();
       if (!linkSegmentMapByStartNodeId.containsKey(startNode.getId())) {
         linkSegmentMapByStartNodeId.put(startNode.getId(), new ArrayList<LinkSegment>());
@@ -143,7 +121,6 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * Constructor
      */
     public LinkSegments() {
-      linkSegmentMap = new TreeMap<Long, LinkSegment>();
       linkSegmentMapByStartNodeId = new HashMap<Long, List<LinkSegment>>();
     }
 
@@ -151,8 +128,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * Iterator over available nodes
      */
     @Override
-    public Iterator<LinkSegment> iterator() {
-      return linkSegmentMap.values().iterator();
+    public Iterator<EdgeSegment> iterator() {
+      return graph.edgeSegments.iterator();
     }
 
     /**
@@ -187,9 +164,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LinkSegment createDirectionalLinkSegment(final Link parentLink, final boolean directionAB) throws PlanItException {
-      final LinkSegment linkSegment = networkBuilder.createLinkSegment(parentLink, directionAB);
-      return linkSegment;
+    public LinkSegment createLinkSegment(final Link parentLink, final boolean directionAB) throws PlanItException {
+      return (LinkSegment) graph.edgeSegments.createEdgeSegment(parentLink, directionAB);
     }
 
     /**
@@ -201,7 +177,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @throws PlanItException thrown if there is an error
      */
     public void registerLinkSegment(final Link parentLink, final LinkSegment linkSegment, final boolean directionAB) throws PlanItException {
-      parentLink.registerLinkSegment(linkSegment, directionAB);
+      graph.edgeSegments.registerEdgeSegment(parentLink, linkSegment, directionAB);
       registerLinkSegment(linkSegment);
     }
 
@@ -212,7 +188,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return retrieved linkSegment
      */
     public LinkSegment getLinkSegment(final long id) {
-      return linkSegmentMap.get(id);
+      return (LinkSegment) graph.edgeSegments.getEdgeSegment(id);
     }
 
     /**
@@ -221,7 +197,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return number of registered link segments
      */
     public int getNumberOfLinkSegments() {
-      return linkSegmentMap.size();
+      return graph.edgeSegments.getNumberOfEdgeSegments();
     }
 
     /**
@@ -257,9 +233,9 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return the retrieved link segment, or null if no link segment type was found
      */
     public LinkSegment getLinkSegmentByExternalId(Object externalId) {
-      for (LinkSegment linkSegment : linkSegmentMap.values()) {
+      for (EdgeSegment linkSegment : graph.edgeSegments) {
         if (linkSegment.getExternalId().equals(externalId)) {
-          return linkSegment;
+          return (LinkSegment) linkSegment;
         }
       }
       return null;
@@ -270,36 +246,14 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   /**
    * Internal class for all Node specific code
    */
-  public class Nodes implements Iterable<Node> {
-
-    /**
-     * Map to store nodes by their Id
-     */
-    private Map<Long, Node> nodeMap;
-
-    /**
-     * Add node to the internal container
-     *
-     * @param node node to be registered in this network
-     * @return node, in case it overrides an existing node, the removed node is returned
-     */
-    protected Node registerNode(final Node node) {
-      return nodeMap.put(node.getId(), node);
-    }
-
-    /**
-     * Constructor
-     */
-    public Nodes() {
-      nodeMap = new TreeMap<Long, Node>();
-    }
+  public class Nodes implements Iterable<Vertex> {
 
     /**
      * Iterator over available nodes
      */
     @Override
-    public Iterator<Node> iterator() {
-      return nodeMap.values().iterator();
+    public Iterator<Vertex> iterator() {
+      return graph.vertices.iterator();
     }
 
     /**
@@ -308,11 +262,10 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return new node created
      */
     public Node registerNewNode() {
-      final Node newNode = networkBuilder.createNode();
-      registerNode(newNode);
+      final Node newNode = (Node) graph.vertices.registerNewNode();
       return newNode;
     }
-    
+
     /**
      * Create and register new node
      *
@@ -320,11 +273,9 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return new node created
      */
     public Node registerNewNode(Object externalId) {
-      final Node newNode = networkBuilder.createNode();
-      newNode.setExternalId(externalId);
-      registerNode(newNode);
+      final Node newNode = (Node) graph.vertices.registerNewVertex(externalId);
       return newNode;
-    }    
+    }
 
     /**
      * Return number of registered nodes
@@ -332,7 +283,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return number of registered nodes
      */
     public int getNumberOfNodes() {
-      return nodeMap.size();
+      return graph.vertices.getNumberOfVertices();
     }
 
     /**
@@ -342,7 +293,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return retrieved node
      */
     public Node getNodeById(final long id) {
-      return nodeMap.get(id);
+      return (Node) graph.vertices.getVertexById(id);
     }
 
   }
@@ -367,6 +318,9 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
       return modeMap.put(mode.getId(), mode);
     }
 
+    /**
+     * constructor
+     */
     public Modes() {
       modeMap = new TreeMap<Long, Mode>();
     }
@@ -505,8 +459,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
    */
   public PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder networkBuilder) {
     super(groupId, PhysicalNetwork.class);
+    this.graph = new Graph(groupId, networkBuilder);
     this.networkBuilder = networkBuilder;
-    this.networkBuilder.setIdGroupingToken(IdGenerator.createIdGroupingToken(this, this.getId()));
   }
 
   // Getters - Setters
@@ -518,7 +472,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
    * @return the network id grouping token
    */
   public IdGroupingToken getNetworkIdGroupingToken() {
-    return this.networkBuilder.getIdGroupingToken();
+    return graph.getGraphIdGroupingToken();
   }
 
 }

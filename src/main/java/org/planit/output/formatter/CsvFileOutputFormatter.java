@@ -31,6 +31,7 @@ import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
@@ -137,7 +138,8 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
           odPathIterator.next();
           if (outputConfiguration.isPersistZeroFlow() || (odPathIterator.getCurrentValue() != null)) {
             List<Object> rowValues = outputProperties.stream().map(outputProperty -> pathOutputTypeAdapter.getPathOutputPropertyValue(outputProperty.getOutputProperty(),
-                odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType())).map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
+                odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType())).map(outValue -> OutputUtils.formatObject(outValue))
+                .collect(Collectors.toList());
             csvPrinter.printRecord(rowValues);
           }
         }
@@ -172,7 +174,8 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       LinkOutputTypeAdapter linkOutputTypeAdapter = (LinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
       SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
       for (Mode mode : modes) {
-        for (LinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments()) {
+        for (EdgeSegment edgeSegment : linkOutputTypeAdapter.getPhysicalLinkSegments()) {
+          LinkSegment linkSegment = (LinkSegment) edgeSegment;
           if (outputConfiguration.isPersistZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
             List<Object> rowValues = outputProperties.stream().map(outputProperty -> linkOutputTypeAdapter.getLinkOutputPropertyValue(outputProperty.getOutputProperty(),
                 linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier())).map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());

@@ -33,16 +33,17 @@ public class AlgorithmB extends StaticTrafficAssignment {
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(AlgorithmB.class.getCanonicalName());
 
-  /** simulation data for Algorithm B */
-  private final AlgorithmBSimulationData simulationData = new AlgorithmBSimulationData();
+  /** equilibration functionality for Algorithm B */
+  private final AlgorithmBEquilibration equilibration;
 
   /**
    * Constructor
    * 
-   * @param groupId
+   * @param groupId group the id generator will be using when genarting the id
    */
   public AlgorithmB(IdGroupingToken groupId) {
     super(groupId);
+    equilibration = new AlgorithmBEquilibration(this, this.getOutputManager());
   }
 
   @Override
@@ -55,7 +56,6 @@ public class AlgorithmB extends StaticTrafficAssignment {
   @Override
   protected void addRegisteredEventTypeListeners(EventType eventType) {
     // TODO Auto-generated method stub
-
   }
 
   @Override
@@ -64,41 +64,12 @@ public class AlgorithmB extends StaticTrafficAssignment {
     return null;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   protected void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
-    // initialise the origin-based bushes for each origin and mode
-//    initialiseBushes();
-//
-//    boolean converged = false;
-//
-//    Calendar iterationStartTime = Calendar.getInstance();
-//    while (!converged) {
-//      dualityGapFunction.reset();
-//      smoothing.update(simulationData.getIterationIndex());
-//
-//      // NETWORK LOADING - PER MODE
-//      for (final Mode mode : modes) {
-//        // :TODO ugly -> you are not resetting 1 matrix but multiple NAMES ARE WRONG
-//        // :TODO: slow -> only reset or do something when it is stored in the first place, this is
-//        // not checked
-//        simulationData.resetSkimMatrix(mode, getTransportNetwork().getZoning().zones);
-//        simulationData.resetPathMatrix(mode, getTransportNetwork().getZoning().zones);
-//        simulationData.resetModalNetworkSegmentFlows(mode, numberOfNetworkSegments);
-//
-//        final double[] modalLinkSegmentCosts = simulationData.getModalLinkSegmentCosts(mode);
-//        executeAndSmoothTimePeriodAndMode(timePeriod, mode, modalLinkSegmentCosts);
-//      }
-//
-//      dualityGapFunction.computeGap();
-//      simulationData.incrementIterationIndex();
-//      iterationStartTime = logIterationInformation(iterationStartTime, dualityGapFunction.getMeasuredNetworkCost(), dualityGapFunction.getGap());
-//      for (final Mode mode : modes) {
-//        final double[] modalLinkSegmentCosts = recalculateModalLinkSegmentCosts(mode, timePeriod);
-//        simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
-//      }
-//      converged = dualityGapFunction.hasConverged(simulationData.getIterationIndex());
-//      outputManager.persistOutputData(timePeriod, modes, converged);
-//    }
+    equilibration.executeTimePeriod(timePeriod, modes);
   }
 
   /**
@@ -115,7 +86,7 @@ public class AlgorithmB extends StaticTrafficAssignment {
    * @return simulation data
    */
   public AlgorithmBSimulationData getIterationData() {
-    return simulationData;
+    return equilibration.getIterationData();
   }
 
 }
