@@ -1,11 +1,11 @@
 package org.planit.algorithms.nodemodel;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import org.ojalgo.array.Array1D;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.Vertex.EdgeSegments;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 
@@ -33,7 +33,7 @@ public class TampereNodeModelFixedInput {
    * @param edgeSegments  to map from
    * @throws PlanItException
    */
-  private void mapLinkSegments(ArrayList<MacroscopicLinkSegment> linkSegments, EdgeSegments edgeSegments) throws PlanItException {
+  private void mapLinkSegments(ArrayList<MacroscopicLinkSegment> linkSegments, Set<EdgeSegment> edgeSegments) throws PlanItException {
     PlanItException.throwIf(edgeSegments == null, "edge segments to map are null");
 
     for (EdgeSegment incomingLinkSegment : edgeSegments) {
@@ -65,8 +65,8 @@ public class TampereNodeModelFixedInput {
    * @param incomingEdgeSegments to map
    * @throws PlanItException
    */
-  private void mapIncomingLinkSegments(EdgeSegments incomingEdgeSegments) throws PlanItException {
-    this.incomingLinkSegments = new ArrayList<MacroscopicLinkSegment>(incomingEdgeSegments.getNumberOfEdges());
+  private void mapIncomingLinkSegments(Set<EdgeSegment> incomingEdgeSegments) throws PlanItException {
+    this.incomingLinkSegments = new ArrayList<MacroscopicLinkSegment>(incomingEdgeSegments.size());
     mapLinkSegments(incomingLinkSegments, incomingEdgeSegments);
   }
 
@@ -76,8 +76,8 @@ public class TampereNodeModelFixedInput {
    * @param outgoingEdgeSegments to map
    * @throws PlanItException
    */
-  private void mapOutgoingLinkSegments(EdgeSegments outgoingEdgeSegments) throws PlanItException {
-    this.outgoingLinkSegments = new ArrayList<MacroscopicLinkSegment>(outgoingEdgeSegments.getNumberOfEdges());
+  private void mapOutgoingLinkSegments(Set<EdgeSegment> outgoingEdgeSegments) throws PlanItException {
+    this.outgoingLinkSegments = new ArrayList<MacroscopicLinkSegment>(outgoingEdgeSegments.size());
     mapLinkSegments(outgoingLinkSegments, outgoingEdgeSegments);
   }
 

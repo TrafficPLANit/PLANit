@@ -12,14 +12,14 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public interface GraphBuilder {
+public interface GraphBuilder<V extends Vertex, E extends Edge, ES extends EdgeSegment> {
 
   /**
    * Create a new vertex instance
    * 
    * @return created vertex
    */
-  public Vertex createVertex();
+  public V createVertex();
 
   /**
    * Create a new link instance
@@ -30,7 +30,7 @@ public interface GraphBuilder {
    * @return created edge
    * @throws PlanItException thrown if there is an error
    */
-  public Edge createEdge(final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException;
+  public E createEdge(final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException;
 
   /**
    * Create a new physical link segment instance
@@ -40,7 +40,7 @@ public interface GraphBuilder {
    * @return edgeSegment the created edge segment
    * @throws PlanItException thrown if error
    */
-  public EdgeSegment createEdgeSegment(Edge parentEdge, boolean directionAB) throws PlanItException;
+  public ES createEdgeSegment(Edge parentEdge, boolean directionAB) throws PlanItException;
 
   /**
    * Each builder needs a group if token to allow all underlying factory methods to generated ids uniquely tied to the group the entities belong to

@@ -3,17 +3,20 @@ package org.planit.network.physical.macroscopic;
 import java.util.Map;
 
 import org.planit.network.physical.PhysicalNetworkBuilder;
+import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 
 /**
- * Create network entities for a macroscopic simulation model
+ * Create network entities for a macroscopic simulation model using Nodes, Links, and MacroscopicLinkSegments
  * 
  * @author markr
  *
  */
-public interface MacroscopicPhysicalNetworkBuilder extends PhysicalNetworkBuilder {
+public interface MacroscopicPhysicalNetworkBuilder extends PhysicalNetworkBuilder<Node, Link, MacroscopicLinkSegment> {
 
   /**
    * Create a fully functional macroscopic link segment type instance

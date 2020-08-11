@@ -10,12 +10,13 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignmentComponent;
-import org.planit.graph.Graph;
+import org.planit.graph.GraphImpl;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.Edge;
-import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.EdgeSegments;
+import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.network.physical.Link;
@@ -40,22 +41,36 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   private static final Logger LOGGER = Logger.getLogger(PhysicalNetwork.class.getCanonicalName());
 
   /**
-   * The graph containing the edges and vertices
+   * The graph containing the nodes, links, and link segments (or derived implementations)
    */
-  private final Graph graph;
+  private final GraphImpl<? extends Node, ? extends Link, ? extends LinkSegment> graph;
 
   /**
    * Internal class for all Link specific code
    *
    */
-  public class Links implements Iterable<Edge> {
+  public class Links<L extends Link> implements Iterable<L> {
+
+    /**
+     * the reference to the graphs nodes (needed explicitly for its type)
+     */
+    private final Edges<L> graphLinks;
+
+    /**
+     * Constructor
+     * 
+     * @param edges tie edges of graph to the links
+     */
+    protected Links(Edges<L> edges) {
+      this.graphLinks = edges;
+    }
 
     /**
      * Iterator over available links
      */
     @Override
-    public Iterator<Edge> iterator() {
-      return graph.edges.iterator();
+    public Iterator<L> iterator() {
+      return graphLinks.iterator();
     }
 
     /**
@@ -67,8 +82,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return the created link
      * @throws PlanItException thrown if there is an error
      */
-    public Link registerNewLink(final Node nodeA, final Node nodeB, final double length) throws PlanItException {
-      final Link newLink = (Link) graph.edges.registerNewEdge(nodeA, nodeB, length);
+    public L registerNewLink(final Node nodeA, final Node nodeB, final double length) throws PlanItException {
+      final L newLink = graphLinks.registerNewEdge(nodeA, nodeB, length);
       return newLink;
     }
 
@@ -78,8 +93,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param id the id of the link
      * @return the retrieved link
      */
-    public Link getLink(final long id) {
-      return (Link) graph.edges.getEdge(id);
+    public L getLink(final long id) {
+      return graphLinks.getEdge(id);
     }
 
     /**
@@ -88,7 +103,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return the number of links in the network
      */
     public int getNumberOfLinks() {
-      return graph.edges.getNumberOfEdges();
+      return graphLinks.getNumberOfEdges();
     }
   }
 
@@ -96,12 +111,27 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
    * Internal class for LinkSegment specific code (non-physical link segments are placed in the zoning)
    *
    */
-  public class LinkSegments implements Iterable<EdgeSegment> {
+  public class LinkSegments<LS extends LinkSegment> implements Iterable<LS> {
 
     /**
      * Map to store all link segments for a given start node Id
      */
-    private Map<Long, List<LinkSegment>> linkSegmentMapByStartNodeId;
+    private Map<Long, List<LS>> linkSegmentMapByStartNodeId;
+
+    /**
+     * the reference to the graphs edge segments (needed explicitly for its type)
+     */
+    private final EdgeSegments<LS> graphLinkSegments;
+
+    /**
+     * Constructor
+     * 
+     * @param edgeSegments tie edges of graph to the links
+     */
+    protected LinkSegments(EdgeSegments<LS> edgeSegments) {
+      this.graphLinkSegments = edgeSegments;
+      linkSegmentMapByStartNodeId = new HashMap<Long, List<LS>>();
+    }
 
     /**
      * Register a link segment on the network
@@ -109,27 +139,20 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param linkSegment the link segment to be registered
      * @throws PlanItException thrown if the current link segment external Id has already been assigned
      */
-    protected void registerLinkSegment(final LinkSegment linkSegment) throws PlanItException {
-      final Node startNode = (Node) linkSegment.getUpstreamVertex();
+    protected void registerLinkSegment(final LS linkSegment) throws PlanItException {
+      final Vertex startNode = linkSegment.getUpstreamVertex();
       if (!linkSegmentMapByStartNodeId.containsKey(startNode.getId())) {
-        linkSegmentMapByStartNodeId.put(startNode.getId(), new ArrayList<LinkSegment>());
+        linkSegmentMapByStartNodeId.put(startNode.getId(), new ArrayList<LS>());
       }
       linkSegmentMapByStartNodeId.get(startNode.getId()).add(linkSegment);
     }
 
     /**
-     * Constructor
-     */
-    public LinkSegments() {
-      linkSegmentMapByStartNodeId = new HashMap<Long, List<LinkSegment>>();
-    }
-
-    /**
-     * Iterator over available nodes
+     * Iterator over available edge segments
      */
     @Override
-    public Iterator<EdgeSegment> iterator() {
-      return graph.edgeSegments.iterator();
+    public Iterator<LS> iterator() {
+      return graphLinkSegments.iterator();
     }
 
     /**
@@ -139,15 +162,15 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param endId   reference to end node
      * @return the linkSegment found
      */
-    public LinkSegment getLinkSegmentByStartAndEndNodeId(final long startId, final long endId) {
+    public LS getLinkSegmentByStartAndEndNodeId(final long startId, final long endId) {
       if (!linkSegmentMapByStartNodeId.containsKey(startId)) {
         LOGGER.warning(LoggingUtils.createNetworkPrefix(getId()) + String.format("no link segment with start node %d has been registered in the network", startId));
         return null;
       }
-      final List<LinkSegment> linkSegmentsForCurrentStartNode = linkSegmentMapByStartNodeId.get(startId);
-      for (final LinkSegment linkSegment : linkSegmentsForCurrentStartNode) {
-        final Node endNode = (Node) linkSegment.getDownstreamVertex();
-        if (endNode.getId() == endId) {
+      final List<LS> linkSegmentsForCurrentStartNode = linkSegmentMapByStartNodeId.get(startId);
+      for (final LS linkSegment : linkSegmentsForCurrentStartNode) {
+        final Vertex downstreamVertex = linkSegment.getDownstreamVertex();
+        if (downstreamVertex.getId() == endId) {
           return linkSegment;
         }
       }
@@ -164,8 +187,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LinkSegment createLinkSegment(final Link parentLink, final boolean directionAB) throws PlanItException {
-      return (LinkSegment) graph.edgeSegments.createEdgeSegment(parentLink, directionAB);
+    public LS createLinkSegment(final Link parentLink, final boolean directionAB) throws PlanItException {
+      return graphLinkSegments.createEdgeSegment(parentLink, directionAB);
     }
 
     /**
@@ -176,9 +199,12 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param directionAB direction of travel
      * @throws PlanItException thrown if there is an error
      */
-    public void registerLinkSegment(final Link parentLink, final LinkSegment linkSegment, final boolean directionAB) throws PlanItException {
-      graph.edgeSegments.registerEdgeSegment(parentLink, linkSegment, directionAB);
+    public void registerLinkSegment(final Link parentLink, final LS linkSegment, final boolean directionAB) throws PlanItException {
+      graphLinkSegments.registerEdgeSegment(parentLink, linkSegment, directionAB);
       registerLinkSegment(linkSegment);
+    }
+
+    public void registerLinkSegmentTest(LS linkSegment) {
     }
 
     /**
@@ -187,8 +213,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param id id of the link segment
      * @return retrieved linkSegment
      */
-    public LinkSegment getLinkSegment(final long id) {
-      return (LinkSegment) graph.edgeSegments.getEdgeSegment(id);
+    public LS getLinkSegment(final long id) {
+      return graphLinkSegments.getEdgeSegment(id);
     }
 
     /**
@@ -233,9 +259,9 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return the retrieved link segment, or null if no link segment type was found
      */
     public LinkSegment getLinkSegmentByExternalId(Object externalId) {
-      for (EdgeSegment linkSegment : graph.edgeSegments) {
+      for (LinkSegment linkSegment : graph.edgeSegments) {
         if (linkSegment.getExternalId().equals(externalId)) {
-          return (LinkSegment) linkSegment;
+          return linkSegment;
         }
       }
       return null;
@@ -246,14 +272,28 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   /**
    * Internal class for all Node specific code
    */
-  public class Nodes implements Iterable<Vertex> {
+  public class Nodes<N extends Node> implements Iterable<N> {
+
+    /**
+     * the reference to the graphs nodes (needed explicitly for its type)
+     */
+    private final Vertices<N> graphNodes;
+
+    /**
+     * Constructor
+     * 
+     * @param vertices reference to graph vertices
+     */
+    protected Nodes(Vertices<N> vertices) {
+      this.graphNodes = vertices;
+    }
 
     /**
      * Iterator over available nodes
      */
     @Override
-    public Iterator<Vertex> iterator() {
-      return graph.vertices.iterator();
+    public Iterator<N> iterator() {
+      return graphNodes.iterator();
     }
 
     /**
@@ -261,8 +301,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      *
      * @return new node created
      */
-    public Node registerNewNode() {
-      final Node newNode = (Node) graph.vertices.registerNewNode();
+    public N registerNewNode() {
+      final N newNode = graphNodes.registerNewVertex();
       return newNode;
     }
 
@@ -272,8 +312,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param externalId the externalId of the node
      * @return new node created
      */
-    public Node registerNewNode(Object externalId) {
-      final Node newNode = (Node) graph.vertices.registerNewVertex(externalId);
+    public N registerNewNode(Object externalId) {
+      final N newNode = graphNodes.registerNewVertex(externalId);
       return newNode;
     }
 
@@ -283,7 +323,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return number of registered nodes
      */
     public int getNumberOfNodes() {
-      return graph.vertices.getNumberOfVertices();
+      return graphNodes.getNumberOfVertices();
     }
 
     /**
@@ -292,8 +332,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @param id Id of node
      * @return retrieved node
      */
-    public Node getNodeById(final long id) {
-      return (Node) graph.vertices.getVertexById(id);
+    public N getNodeById(final long id) {
+      return graphNodes.getVertexById(id);
     }
 
   }
@@ -424,7 +464,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   /**
    * Network builder responsible for constructing all network related (derived) instances
    */
-  protected final PhysicalNetworkBuilder networkBuilder;
+  protected final PhysicalNetworkBuilder<? extends Node, ? extends Link, ? extends LinkSegment> networkBuilder;
 
   // PUBLIC
 
@@ -434,17 +474,17 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   /**
    * internal class instance containing all link specific functionality
    */
-  public final Links links = new Links();
+  public final Links<Link> links;
 
   /**
    * internal class instance containing all link segment specific functionality
    */
-  public final LinkSegments linkSegments = new LinkSegments();
+  public final LinkSegments<LinkSegment> linkSegments;
 
   /**
    * internal class instance containing all nodes specific functionality
    */
-  public final Nodes nodes = new Nodes();
+  public final Nodes<Node> nodes;
 
   /**
    * internal class instance containing all modes specific functionality
@@ -457,10 +497,21 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
    * @param groupId        contiguous id generation within this group for instances of this class
    * @param networkBuilder the builder to be used to create this network
    */
-  public PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder networkBuilder) {
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  public <N extends Node, E extends Link, LS extends LinkSegment> PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder<N, E, LS> networkBuilder) {
     super(groupId, PhysicalNetwork.class);
-    this.graph = new Graph(groupId, networkBuilder);
-    this.networkBuilder = networkBuilder;
+    this.graph = new GraphImpl<N, E, LS>(groupId, networkBuilder /* for graphbuilder part */);
+    this.networkBuilder = networkBuilder; // for network builder part, i.e., modes
+
+    // initialise inner classes with the right generic type inferred from the builder
+    // TODO: useless generics on these inner classes since they are fixed to Node, Link, LinkSegment
+    // we cannot successfully use <? extends Link(Segment)> or <? extends Node> here due to issues
+    // with generics on producing or consuming (look up PECS (https://stackoverflow.com/questions/4343202/difference-between-super-t-and-extends-t-in-java)
+    // so currently we use this but it is not ideal
+    // Note: we can also not use generics in this class signature because otherwise the trafficcomponent factory registration goes haywire
+    this.nodes = new Nodes(graph.vertices);
+    this.links = new Links(graph.edges);
+    this.linkSegments = new LinkSegments(graph.edgeSegments);
   }
 
   // Getters - Setters

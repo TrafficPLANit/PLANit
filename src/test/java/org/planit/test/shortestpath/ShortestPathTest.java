@@ -101,14 +101,14 @@ public class ShortestPathTest {
           Node nodeB = network.nodes.getNodeById(linkRowIndex*(gridSize+1) + linkColIndex);
           // all links are 1 km in length          
           Link link = network.links.registerNewLink(nodeA, nodeB, 1);
-          nodeA.getEdges().addEdge(link);
-          nodeB.getEdges().addEdge(link);
+          nodeA.addEdge(link);
+          nodeB.addEdge(link);
           LinkSegment linkSegmentAb = network.linkSegments.createLinkSegment(link, true);
           LinkSegment linkSegmentBa = network.linkSegments.createLinkSegment(link, false);
-          nodeB.getEntryEdgeSegments().addEdgeSegment(linkSegmentAb);
-          nodeB.getExitEdgeSegments().addEdgeSegment(linkSegmentBa);
-          nodeA.getExitEdgeSegments().addEdgeSegment(linkSegmentAb);
-          nodeA.getEntryEdgeSegments().addEdgeSegment(linkSegmentBa);
+          nodeB.addEdgeSegment(linkSegmentAb);
+          nodeB.addEdgeSegment(linkSegmentBa);
+          nodeA.addEdgeSegment(linkSegmentAb);
+          nodeA.addEdgeSegment(linkSegmentBa);
         }
       }
         
@@ -119,14 +119,14 @@ public class ShortestPathTest {
           Node nodeA = network.nodes.getNodeById((linkRowIndex-1)*(gridSize+1)+linkColIndex);
           Node nodeB = network.nodes.getNodeById(linkRowIndex*(gridSize+1)+linkColIndex);
           Link link = network.links.registerNewLink(nodeA, nodeB, 1);
-          nodeA.getEdges().addEdge(link);
-          nodeB.getEdges().addEdge(link);
+          nodeA.addEdge(link);
+          nodeB.addEdge(link);
           LinkSegment linkSegmentAb = network.linkSegments.createLinkSegment(link, true);
           LinkSegment linkSegmentBa = network.linkSegments.createLinkSegment(link, false);
-          nodeB.getExitEdgeSegments().addEdgeSegment(linkSegmentBa);
-          nodeB.getEntryEdgeSegments().addEdgeSegment(linkSegmentAb);
-          nodeA.getExitEdgeSegments().addEdgeSegment(linkSegmentAb);
-          nodeA.getEntryEdgeSegments().addEdgeSegment(linkSegmentBa);
+          nodeB.addEdgeSegment(linkSegmentBa);
+          nodeB.addEdgeSegment(linkSegmentAb);
+          nodeA.addEdgeSegment(linkSegmentAb);
+          nodeA.addEdgeSegment(linkSegmentBa);
         }  
       }
       

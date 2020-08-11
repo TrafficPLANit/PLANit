@@ -22,7 +22,7 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  * @author markr
  *
  */
-public class MacroscopicNetworkBuilder implements MacroscopicPhysicalNetworkBuilder {
+public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysicalNetworkBuilder {
 
   /**
    * Contiguous id generation within this group id token for all instances created with factory methods in this class
@@ -42,10 +42,6 @@ public class MacroscopicNetworkBuilder implements MacroscopicPhysicalNetworkBuil
    */
   @Override
   public Link createEdge(Vertex nodeA, Vertex nodeB, final double length) throws PlanItException {
-    if (!(nodeA instanceof Node) || !(nodeB instanceof Node)) {
-      throw new PlanItException(String.format("provided vertices (%s (id:%d), %s(id:%d)) are not of type Node when creating a new Link", nodeA.getExternalId(), nodeA.getId(),
-          nodeB.getExternalId(), nodeB.getId()));
-    }
     return new LinkImpl(groupId, (Node) nodeA, (Node) nodeB, length);
   }
 
@@ -54,9 +50,6 @@ public class MacroscopicNetworkBuilder implements MacroscopicPhysicalNetworkBuil
    */
   @Override
   public MacroscopicLinkSegment createEdgeSegment(Edge parentLink, boolean directionAB) throws PlanItException {
-    if (!(parentLink instanceof Link)) {
-      throw new PlanItException(String.format("provided parent link (id:%d) is not of type Link when creating a new LinkSegment", parentLink.getId()));
-    }
     return new MacroscopicLinkSegmentImpl(groupId, (Link) parentLink, directionAB);
   }
 

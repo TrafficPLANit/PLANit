@@ -1,12 +1,12 @@
 package org.planit.graph;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
 import org.opengis.geometry.DirectPosition;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
@@ -14,7 +14,7 @@ import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
- * Node representation connected to one or more entry and exit links
+ * vertex representation connected to one or more entry and exit edges
  *
  * @author markr
  *
@@ -24,99 +24,7 @@ public class VertexImpl implements Vertex {
   /** generated UID */
   private static final long serialVersionUID = 2165199386965239623L;
 
-  /**
-   * edges of this vertex
-   *
-   * @author markr
-   */
-  public class EdgesImpl implements Edges {
-
-    protected Set<Edge> edges = new TreeSet<Edge>();
-
-    /**
-     * #{@inheritDoc}
-     */
-    @Override
-    public boolean addEdge(final Edge edge) {
-      return edges.add(edge);
-    }
-
-    /**
-     * #{@inheritDoc}
-     */
-    @Override
-    public boolean removeEdge(final Edge edge) {
-      return edges.remove(edge);
-    }
-
-    /**
-     * #{@inheritDoc}
-     */
-    @Override
-    public Set<Edge> getEdges() {
-      return edges;
-    }
-  }
-
-  /**
-   * EdgeSegment container
-   *
-   * @author markr
-   */
-  public class EdgeSegmentsImpl implements EdgeSegments {
-
-    /**
-     * Edge segments which connect to this vertex
-     */
-    protected Set<EdgeSegment> edgeSegments = new TreeSet<EdgeSegment>();
-
-    /**
-     * #{@inheritDoc}
-     */
-    @Override
-    public boolean addEdgeSegment(final EdgeSegment edgeSegment) {
-      return edgeSegments.add(edgeSegment);
-    }
-
-    /**
-     * #{@inheritDoc}
-     */
-    @Override
-    public boolean removeEdgeSegment(final EdgeSegment edgeSegment) {
-      return edgeSegments.remove(edgeSegment);
-    }
-
-    /**
-     * #{@inheritDoc}
-     */
-    @Override
-    public boolean isEmpty() {
-      return edgeSegments.isEmpty();
-    }
-
-    /**
-     * #{@inheritDoc}
-     */
-    @Override
-    public int getNumberOfEdges() {
-      return edgeSegments.size();
-    }
-
-    /**
-     * Iterator over available edge segments
-     */
-    @Override
-    public Iterator<EdgeSegment> iterator() {
-      return edgeSegments.iterator();
-    }
-  }
-
   // Protected
-
-  /**
-   * Centre point geometry which is coordinate reference system aware
-   */
-  protected DirectPosition centrePointGeometry;
 
   /**
    * generate unique node id
@@ -132,11 +40,11 @@ public class VertexImpl implements Vertex {
    * Unique internal identifier
    */
   protected final long id;
-  
+
   /**
    * External identifier used in input files
    */
-  protected Object externalId;  
+  protected Object externalId;
 
   /**
    * generic input property storage
@@ -144,19 +52,24 @@ public class VertexImpl implements Vertex {
   protected Map<String, Object> inputProperties = null;
 
   /**
-   * edge container
+   * Centre point geometry which is coordinate reference system aware
    */
-  protected final Edges edges = new EdgesImpl();
+  protected DirectPosition centrePointGeometry;
 
   /**
-   * exitEdgeSegmentcontainer
+   * Edges of this vertex
    */
-  protected final EdgeSegments exitEdgeSegments = new EdgeSegmentsImpl();
+  protected final Set<Edge> edges = new TreeSet<Edge>();
 
   /**
-   * entryEdgeSegment container
+   * Entry edge segments which connect to this vertex
    */
-  protected final EdgeSegments entryEdgeSegments = new EdgeSegmentsImpl();
+  protected final Set<EdgeSegment> entryEdgeSegments = new TreeSet<EdgeSegment>();
+
+  /**
+   * Exit edge segments which connect to this vertex
+   */
+  protected final Set<EdgeSegment> exitEdgeSegments = new TreeSet<EdgeSegment>();
 
   /**
    * Constructor
@@ -195,7 +108,7 @@ public class VertexImpl implements Vertex {
   public long getId() {
     return id;
   }
-  
+
   /**
    * {@inheritDoc}
    */
@@ -218,7 +131,7 @@ public class VertexImpl implements Vertex {
   @Override
   public boolean hasExternalId() {
     return (externalId != null);
-  }  
+  }
 
   /**
    * Add a property from the original input that is not part of the readily available members
@@ -259,24 +172,90 @@ public class VertexImpl implements Vertex {
    * #{@inheritDoc}
    */
   @Override
-  public EdgeSegments getEntryEdgeSegments() {
-    return entryEdgeSegments;
+  public boolean addEdge(final Edge edge) {
+    return edges.add(edge);
   }
 
   /**
    * #{@inheritDoc}
    */
   @Override
-  public EdgeSegments getExitEdgeSegments() {
-    return exitEdgeSegments;
+  public boolean removeEdge(final Edge edge) {
+    return edges.remove(edge);
   }
 
   /**
    * #{@inheritDoc}
    */
   @Override
-  public Edges getEdges() {
+  public Set<Edge> getEdges() {
     return edges;
+  }
+
+  /**
+   * #{@inheritDoc}
+   */
+  @Override
+  public Set<EdgeSegment> getEntryEdgeSegments() {
+    return this.entryEdgeSegments;
+  }
+
+  /**
+   * #{@inheritDoc}
+   */
+  @Override
+  public Set<EdgeSegment> getExitEdgeSegments() {
+    return this.exitEdgeSegments;
+  }
+
+  /**
+   * #{@inheritDoc}
+   */
+  @Override
+  public boolean addEdgeSegment(final EdgeSegment edgeSegment) throws PlanItException {
+    if (edgeSegment.getUpstreamVertex().getId() == getId()) {
+      return exitEdgeSegments.add(edgeSegment);
+    } else if (edgeSegment.getDownstreamVertex().getId() == getId()) {
+      return entryEdgeSegments.add(edgeSegment);
+    }
+    throw new PlanItException(String.format("edge segment %s (id:%d) does not have this vertex %s (%d) on either end", edgeSegment.getExternalId(), edgeSegment.getId()));
+  }
+
+  /**
+   * #{@inheritDoc}
+   */
+  @Override
+  public boolean removeEdgeSegment(final EdgeSegment edgeSegment) throws PlanItException {
+    if (edgeSegment.getUpstreamVertex().getId() == getId()) {
+      return exitEdgeSegments.remove(edgeSegment);
+    } else if (edgeSegment.getDownstreamVertex().getId() == getId()) {
+      return entryEdgeSegments.remove(edgeSegment);
+    }
+    throw new PlanItException(String.format("edge segment %s (id:%d) does not have this vertex %s (%d) on either end", edgeSegment.getExternalId(), edgeSegment.getId()));
+  }
+
+  /**
+   * #{@inheritDoc}
+   */
+  @Override
+  public boolean hasExitEdgeSegments() {
+    return exitEdgeSegments.isEmpty();
+  }
+
+  /**
+   * #{@inheritDoc}
+   */
+  @Override
+  public boolean hasEntryEdgeSegments() {
+    return entryEdgeSegments.isEmpty();
+  }
+
+  /**
+   * #{@inheritDoc}
+   */
+  @Override
+  public int getNumberOfEdges() {
+    return edges.size();
   }
 
 }

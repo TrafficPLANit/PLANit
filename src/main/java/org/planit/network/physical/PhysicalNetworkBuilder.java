@@ -1,7 +1,10 @@
 package org.planit.network.physical;
 
 import org.planit.graph.GraphBuilder;
+import org.planit.utils.network.physical.Link;
+import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.physical.Node;
 
 /**
  * Build network elements based on chosen network view. Implementations are registered on the network class which uses it to construct network elements
@@ -9,7 +12,7 @@ import org.planit.utils.network.physical.Mode;
  * @author markr
  *
  */
-public interface PhysicalNetworkBuilder extends GraphBuilder {
+public interface PhysicalNetworkBuilder<N extends Node, L extends Link, LS extends LinkSegment> extends GraphBuilder<N, L, LS> {
 
   /**
    * Create a new mode
