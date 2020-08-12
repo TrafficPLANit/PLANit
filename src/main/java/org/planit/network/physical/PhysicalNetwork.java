@@ -6,22 +6,18 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.graph.GraphImpl;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.EdgeSegments;
-import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.physical.Modes;
 import org.planit.utils.network.physical.Node;
 
 /**
@@ -30,7 +26,7 @@ import org.planit.utils.network.physical.Node;
  *
  * @author markr
  */
-public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork> implements Serializable {
+public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegment> extends TrafficAssignmentComponent<PhysicalNetwork<N,L,LS>> implements Serializable {
 
   // INNER CLASSES
 
@@ -44,28 +40,14 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
    * Internal class for all Link specific code
    *
    */
-  public class Links<L extends Link> implements Iterable<L> {
-
-    /**
-     * the reference to the graphs nodes (needed explicitly for its type)
-     */
-    private final Edges<L> graphLinks;
-
-    /**
-     * Constructor
-     * 
-     * @param edges tie edges of graph to the links
-     */
-    protected Links(Edges<L> edges) {
-      this.graphLinks = edges;
-    }
+  public class Links implements Iterable<L> {
 
     /**
      * Iterator over available links
      */
     @Override
     public Iterator<L> iterator() {
-      return graphLinks.iterator();
+      return graph.edges.iterator();
     }
 
     /**
@@ -77,8 +59,8 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return the created link
      * @throws PlanItException thrown if there is an error
      */
-    public L registerNewLink(final Node nodeA, final Node nodeB, final double length) throws PlanItException {
-      final L newLink = graphLinks.registerNewEdge(nodeA, nodeB, length);
+    public L registerNewLink(final N nodeA, final N nodeB, final double length) throws PlanItException {
+      final L newLink = graph.edges.registerNewEdge(nodeA, nodeB, length);
       return newLink;
     }
 
@@ -89,7 +71,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return the retrieved link
      */
     public L getLink(final long id) {
-      return graphLinks.getEdge(id);
+      return graph.edges.getEdge(id);
     }
 
     /**
@@ -98,7 +80,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return the number of links in the network
      */
     public int getNumberOfLinks() {
-      return graphLinks.getNumberOfEdges();
+      return graph.edges.getNumberOfEdges();
     }
   }
 
@@ -106,27 +88,12 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
    * Internal class for LinkSegment specific code (non-physical link segments are placed in the zoning)
    *
    */
-  public class LinkSegments<LS extends LinkSegment> implements Iterable<LS> {
+  public class LinkSegments implements Iterable<LS> {
 
     /**
      * Map to store all link segments for a given start node Id
      */
-    private Map<Long, List<LS>> linkSegmentMapByStartNodeId;
-
-    /**
-     * the reference to the graphs edge segments (needed explicitly for its type)
-     */
-    private final EdgeSegments<LS> graphLinkSegments;
-
-    /**
-     * Constructor
-     * 
-     * @param edgeSegments tie edges of graph to the links
-     */
-    protected LinkSegments(EdgeSegments<LS> edgeSegments) {
-      this.graphLinkSegments = edgeSegments;
-      linkSegmentMapByStartNodeId = new HashMap<Long, List<LS>>();
-    }
+    private Map<Long, List<LS>> linkSegmentMapByStartNodeId = new HashMap<Long, List<LS>>();
 
     /**
      * Register a link segment on the network
@@ -147,7 +114,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      */
     @Override
     public Iterator<LS> iterator() {
-      return graphLinkSegments.iterator();
+      return graph.edgeSegments.iterator();
     }
 
     /**
@@ -183,7 +150,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @throws PlanItException thrown if there is an error
      */
     public LS createLinkSegment(final Link parentLink, final boolean directionAB) throws PlanItException {
-      return graphLinkSegments.createEdgeSegment(parentLink, directionAB);
+      return graph.edgeSegments.createEdgeSegment(parentLink, directionAB);
     }
 
     /**
@@ -195,7 +162,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @throws PlanItException thrown if there is an error
      */
     public void registerLinkSegment(final Link parentLink, final LS linkSegment, final boolean directionAB) throws PlanItException {
-      graphLinkSegments.registerEdgeSegment(parentLink, linkSegment, directionAB);
+      graph.edgeSegments.registerEdgeSegment(parentLink, linkSegment, directionAB);
       registerLinkSegment(linkSegment);
     }
 
@@ -209,7 +176,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return retrieved linkSegment
      */
     public LS getLinkSegment(final long id) {
-      return graphLinkSegments.getEdgeSegment(id);
+      return graph.edgeSegments.getEdgeSegment(id);
     }
 
     /**
@@ -267,28 +234,14 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   /**
    * Internal class for all Node specific code
    */
-  public class Nodes<N extends Node> implements Iterable<N> {
-
-    /**
-     * the reference to the graphs nodes (needed explicitly for its type)
-     */
-    private final Vertices<N> graphNodes;
-
-    /**
-     * Constructor
-     * 
-     * @param vertices reference to graph vertices
-     */
-    protected Nodes(Vertices<N> vertices) {
-      this.graphNodes = vertices;
-    }
+  public class Nodes implements Iterable<N> {
 
     /**
      * Iterator over available nodes
      */
     @Override
     public Iterator<N> iterator() {
-      return graphNodes.iterator();
+      return graph.vertices.iterator();
     }
 
     /**
@@ -297,7 +250,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return new node created
      */
     public N registerNewNode() {
-      final N newNode = graphNodes.registerNewVertex();
+      final N newNode = graph.vertices.registerNewVertex();
       return newNode;
     }
 
@@ -308,7 +261,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return new node created
      */
     public N registerNewNode(Object externalId) {
-      final N newNode = graphNodes.registerNewVertex(externalId);
+      final N newNode = graph.vertices.registerNewVertex(externalId);
       return newNode;
     }
 
@@ -318,7 +271,7 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return number of registered nodes
      */
     public int getNumberOfNodes() {
-      return graphNodes.getNumberOfVertices();
+      return graph.vertices.getNumberOfVertices();
     }
 
     /**
@@ -328,141 +281,39 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
      * @return retrieved node
      */
     public N getNodeById(final long id) {
-      return graphNodes.getVertexById(id);
+      return graph.vertices.getVertexById(id);
     }
 
   }
-
+  
   /**
-   * Internal class for all Mode specific code
+   * the network builder
    */
-  public class Modes implements Iterable<Mode> {
-
-    /**
-     * Map to store modes by their Id
-     */
-    private Map<Long, Mode> modeMap;
-
-    /**
-     * Add mode to the internal container
-     *
-     * @param mode to be registered in this network
-     * @return mode, in case it overrides an existing mode, the removed mode is returned
-     */
-    protected Mode registerMode(final Mode mode) {
-      return modeMap.put(mode.getId(), mode);
-    }
-
-    /**
-     * constructor
-     */
-    public Modes() {
-      modeMap = new TreeMap<Long, Mode>();
-    }
-
-    /**
-     * Iterator over available modes
-     */
-    @Override
-    public Iterator<Mode> iterator() {
-      return modeMap.values().iterator();
-    }
-
-    /**
-     * Create and register new mode
-     *
-     * @param externalModeId the external mode id for the mode
-     * @param name           of the mode
-     * @param pcu            value for the mode
-     * @return new mode created
-     */
-    public Mode registerNewMode(final long externalModeId, final String name, final double pcu) {
-      final Mode newMode = networkBuilder.createMode(externalModeId, name, pcu);
-      registerMode(newMode);
-      return newMode;
-    }
-
-    /**
-     * Return number of registered modes
-     *
-     * @return number of registered modes
-     */
-    public int getNumberOfModes() {
-      return modeMap.size();
-    }
-
-    /**
-     * Return a Mode by its id
-     * 
-     * @param id the id of the Mode
-     * @return the specified mode
-     * 
-     */
-    public Mode getModeById(long id) {
-      return modeMap.get(id);
-    }
-
-    /**
-     * Collect the first registered mode
-     * 
-     * @return first registered mode if any
-     */
-    public Mode getFirst() {
-      return getModeById(0);
-    }
-
-    /**
-     * Retrieve a Mode by its external Id
-     * 
-     * This method has the option to convert the external Id parameter into a long value, to find the mode when mode objects use long values for external ids.
-     * 
-     * @param externalId    the external Id of the specified mode
-     * @param convertToLong if true, the external Id is converted into a long before beginning the search
-     * @return the retrieved mode, or null if no mode was found
-     */
-    public Mode getModeByExternalId(Object externalId, boolean convertToLong) {
-      if (convertToLong) {
-        try {
-          long value = Long.valueOf(externalId.toString());
-          return getModeByExternalId(value);
-        } catch (NumberFormatException e) {
-          // do nothing - if conversion to long is not possible, use general method instead
-        }
-      }
-      return getModeByExternalId(externalId);
-    }
-
-    /**
-     * Retrieve a Mode by its external Id
-     * 
-     * This method is not efficient, since it loops through all the registered modes in order to find the required time period. The equivalent method in InputBuilderListener is
-     * more efficient and should be used in preference to this in Java code.
-     * 
-     * @param externalId the external Id of the specified mode
-     * @return the retrieved mode, or null if no mode was found
-     */
-    public Mode getModeByExternalId(Object externalId) {
-      for (Mode mode : modeMap.values()) {
-        if (mode.getExternalId().equals(externalId)) {
-          return mode;
-        }
-      }
-      return null;
-    }
-
-  }
-
-  // Protected
-
+  private final PhysicalNetworkBuilder<N, L, LS> networkBuilder;
+  
   /**
    * The graph containing the nodes, links, and link segments (or derived implementations)
    */
-  protected final GraphImpl<? extends Node, ? extends Link, ? extends LinkSegment> graph;
+  private final GraphImpl<N, L, LS> graph;  
 
+  // Protected
+  
   /**
-   * Network builder responsible for constructing all network related (derived) instances
+   * collect the registered network builder 
+   * @return networkBuilder the network builder registered
    */
-  protected final PhysicalNetworkBuilder<? extends Node, ? extends Link, ? extends LinkSegment> networkBuilder;
+  protected GraphImpl<N,L,LS> getGraph(){
+    return graph;
+  }  
+
+    
+  /**
+   * collect the registered network builder 
+   * @return networkBuilder the network builder registered
+   */
+  protected PhysicalNetworkBuilder<N, L, LS> getNetworkBuilder(){
+    return networkBuilder;
+  }
 
   // PUBLIC
 
@@ -472,22 +323,22 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
   /**
    * internal class instance containing all link specific functionality
    */
-  public final Links<Link> links;
+  public final Links links = new Links();
 
   /**
    * internal class instance containing all link segment specific functionality
    */
-  public final LinkSegments<LinkSegment> linkSegments;
+  public final LinkSegments linkSegments = new LinkSegments();
 
   /**
    * internal class instance containing all nodes specific functionality
    */
-  public final Nodes<Node> nodes;
+  public final Nodes nodes = new Nodes();
 
   /**
    * internal class instance containing all modes specific functionality
    */
-  public final Modes modes = new Modes();
+  public final Modes modes;
 
   /**
    * Network Constructor
@@ -495,21 +346,11 @@ public class PhysicalNetwork extends TrafficAssignmentComponent<PhysicalNetwork>
    * @param groupId        contiguous id generation within this group for instances of this class
    * @param networkBuilder the builder to be used to create this network
    */
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  public <N extends Node, E extends Link, LS extends LinkSegment> PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder<N, E, LS> networkBuilder) {
+  public PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder<N, L, LS> networkBuilder) {
     super(groupId, PhysicalNetwork.class);
-    this.graph = new GraphImpl<N, E, LS>(groupId, networkBuilder /* for graphbuilder part */);
-    this.networkBuilder = networkBuilder; // for network builder part, i.e., modes
-
-    // initialise inner classes with the right generic type inferred from the builder
-    // TODO: useless generics on these inner classes since they are fixed to Node, Link, LinkSegment
-    // we cannot successfully use <? extends Link(Segment)> or <? extends Node> here due to issues
-    // with generics on producing or consuming (look up PECS (https://stackoverflow.com/questions/4343202/difference-between-super-t-and-extends-t-in-java)
-    // so currently we use this but it is not ideal
-    // Note: we can also not use generics in this class signature because otherwise the trafficcomponent factory registration goes haywire
-    this.nodes = new Nodes(graph.vertices);
-    this.links = new Links(graph.edges);
-    this.linkSegments = new LinkSegments(graph.edgeSegments);
+    this.networkBuilder = networkBuilder; /* for derived classes building part */
+    this.graph = new GraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
+    this.modes = new ModesImpl(getNetworkIdGroupingToken()); /* for mode building added by this class */
   }
 
   // Getters - Setters

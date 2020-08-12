@@ -3,7 +3,6 @@ package org.planit.network.physical.macroscopic;
 import java.util.Map;
 
 import org.planit.network.physical.LinkImpl;
-import org.planit.network.physical.ModeImpl;
 import org.planit.network.physical.NodeImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
@@ -51,14 +50,6 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
   @Override
   public MacroscopicLinkSegment createEdgeSegment(Edge parentLink, boolean directionAB) throws PlanItException {
     return new MacroscopicLinkSegmentImpl(groupId, (Link) parentLink, directionAB);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Mode createMode(long externalModeId, String name, double pcu) {
-    return new ModeImpl(groupId, externalModeId, name, pcu);
   }
 
   /**

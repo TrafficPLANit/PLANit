@@ -6,6 +6,9 @@ import org.planit.network.virtual.Zoning;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.network.physical.Link;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.Connectoid;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
@@ -21,7 +24,7 @@ public class TransportNetwork {
   /**
    * Holds the physical road network that is being modeled
    */
-  protected final PhysicalNetwork physicalNetwork;
+  protected final PhysicalNetwork<? extends Node, ? extends Link, ? extends LinkSegment> physicalNetwork;
 
   /**
    * Holds the zoning structure and virtual transport network interfacing with the physical network
@@ -80,7 +83,7 @@ public class TransportNetwork {
    * @param physicalNetwork the PhysicalNetwork used to generate this TransportNetwork
    * @param zoning          the Zoning used to generate this TransportNetwork
    */
-  public TransportNetwork(PhysicalNetwork physicalNetwork, Zoning zoning) {
+  public TransportNetwork(PhysicalNetwork<? extends Node,? extends Link,? extends LinkSegment> physicalNetwork, Zoning zoning) {
     this.physicalNetwork = physicalNetwork;
     this.zoning = zoning;
   }
@@ -169,7 +172,7 @@ public class TransportNetwork {
    * 
    * @return physicalNetwork
    */
-  public PhysicalNetwork getPhysicalNetwork() {
+  public PhysicalNetwork<? extends Node, ? extends Link, ? extends LinkSegment> getPhysicalNetwork() {
     return physicalNetwork;
   }
 

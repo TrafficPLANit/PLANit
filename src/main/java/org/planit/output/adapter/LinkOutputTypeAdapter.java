@@ -28,7 +28,7 @@ public interface LinkOutputTypeAdapter extends OutputTypeAdapter {
    * 
    * @return a List of link segments for this assignment
    */
-  public PhysicalNetwork.LinkSegments<? extends LinkSegment> getPhysicalLinkSegments();
+  public PhysicalNetwork<?,?,? extends LinkSegment>.LinkSegments getPhysicalLinkSegments();
 
   /**
    * Return the value of a specified output property of a link segment

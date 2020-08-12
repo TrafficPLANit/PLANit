@@ -4,6 +4,9 @@ import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.network.physical.Link;
+import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.Node;
 
 /**
  * Class for dynamic cost functions, which calculate link segment costs for each iteration
@@ -32,6 +35,6 @@ public abstract class PhysicalCost extends TrafficAssignmentComponent<PhysicalCo
    * @param physicalNetwork the physical network
    * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
    */
-  public abstract void initialiseBeforeSimulation(PhysicalNetwork physicalNetwork) throws PlanItException;
+  public abstract void initialiseBeforeSimulation(PhysicalNetwork<? extends Node, ? extends Link, ? extends LinkSegment> physicalNetwork) throws PlanItException;
 
 }

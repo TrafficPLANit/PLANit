@@ -43,7 +43,7 @@ public class ModeImpl implements Mode {
    * @param pcu      the PCU value of this mode
    */
 
-  public ModeImpl(final IdGroupingToken groupId, final String name, final double pcu) {
+  protected ModeImpl(final IdGroupingToken groupId, final String name, final double pcu) {
     this.id = IdGenerator.generateId(groupId, Mode.class);
     this.externalId = DEFAULT_EXTERNAL_ID;
     this.name = name;
@@ -58,7 +58,7 @@ public class ModeImpl implements Mode {
    * @param name       the name of this mode
    * @param pcu        the PCU value of this mode
    */
-  public ModeImpl(final IdGroupingToken groupId, final Object externalId, final String name, final double pcu) {
+  protected ModeImpl(final IdGroupingToken groupId, final Object externalId, final String name, final double pcu) {
     this.id = IdGenerator.generateId(groupId, ModeImpl.class);
     this.externalId = externalId;
     this.name = name;

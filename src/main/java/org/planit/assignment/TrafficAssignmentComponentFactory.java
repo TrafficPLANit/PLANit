@@ -43,7 +43,7 @@ import org.planit.utils.reflection.ReflectionUtils;
  *
  * @param <T> generic type of a type traffic assignment component for which we construct the eligible derived classes by class name
  */
-public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentComponent<T> & Serializable> extends EventProducer implements Serializable {
+public class TrafficAssignmentComponentFactory<T extends Serializable> extends EventProducer implements Serializable {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentComponentFactory.class.getCanonicalName());
@@ -55,29 +55,29 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
   public static final EventType TRAFFICCOMPONENT_CREATE = new EventType("TRAFFICCOMPONENT.CREATE");
 
   /** instance of the super component class this factory creates subclass instances for */
-  protected final Class<T> componentSuperType;
+  protected final String componentSuperTypeCanonicalName;
 
   /**
    * Register per traffic assignment component type the derived classes that are supported
    */
-  protected static final HashMap<Class<? extends TrafficAssignmentComponent<?>>, TreeSet<String>> registeredTrafficAssignmentComponents;
+  protected static final HashMap<String, TreeSet<String>> registeredTrafficAssignmentComponents;
 
   // register the traffic component types that we allow
   static {
     registeredTrafficAssignmentComponents = new HashMap<>();
-    registeredTrafficAssignmentComponents.put(Zoning.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(NetworkLoading.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(Smoothing.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(Demands.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(PhysicalNetwork.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(PhysicalCost.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(InitialPhysicalCost.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(VirtualCost.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(FundamentalDiagram.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(NodeModel.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(PathChoice.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(LogitChoiceModel.class, new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(ODPathSets.class, new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(Zoning.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(NetworkLoading.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(Smoothing.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(Demands.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(PhysicalNetwork.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(PhysicalCost.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(InitialPhysicalCost.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(VirtualCost.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(FundamentalDiagram.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(NodeModel.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(PathChoice.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(LogitChoiceModel.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(ODPathSets.class.getCanonicalName(), new TreeSet<>());
 
     registerDefaultImplementations();
   }
@@ -117,9 +117,11 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
    */
   @SuppressWarnings("unchecked")
   private T createTrafficComponent(final String trafficAssignmentComponentClassName, final Object[] constructorParameters) throws PlanItException {
-    final TreeSet<String> eligibleComponentTypes = registeredTrafficAssignmentComponents.get(componentSuperType);
+    final TreeSet<String> eligibleComponentTypes = registeredTrafficAssignmentComponents.get(componentSuperTypeCanonicalName);
     PlanItException.throwIf(!eligibleComponentTypes.contains(trafficAssignmentComponentClassName), "Provided Traffic Assignment Component class is not eligible for construction");
-    return (T) ReflectionUtils.createInstance(trafficAssignmentComponentClassName, constructorParameters);
+    Object instance = ReflectionUtils.createInstance(trafficAssignmentComponentClassName, constructorParameters);  
+    PlanItException.throwIf(!(instance instanceof TrafficAssignmentComponent<?>), "provided factory class is not eligible for construction since it is not derived from TrafficAssignmentComponent<?>");    
+    return (T)instance;
   }
 
   /**
@@ -137,13 +139,29 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
   // PUBLIC
 
   /**
-   * Constructor
+   * Constructor. Here we make sure it is a type that extends the traffic assignment component class. We do not do so generally on the class level since
+   * this might lead to conflicts when the class has generic arguments itself which leads to issues (that I have not been able to solve). In the latter case use the other
+   * constructor which gets around this problem by simply providing the canoncial class name corresponding to type T
    *
    * @param componentSuperType super type for this factory
    */
-  public TrafficAssignmentComponentFactory(final Class<T> componentSuperType) {
-    this.componentSuperType = componentSuperType;
+  public <U extends TrafficAssignmentComponent<U> & Serializable > TrafficAssignmentComponentFactory(final Class<U> componentSuperType) {
+    this.componentSuperTypeCanonicalName = componentSuperType.getCanonicalName();
   }
+  
+  /**
+   * Constructor.
+   * 
+   * Use this constructor when the component super type that you use is not compatible with Class<T>, for example because the super type itself
+   * uses generics, i.e., T<U,V>, in which case the default constructor does not work. Make sure however, that the provided canonical class name is compatible with
+   * T, i.e., it must extend from TrafficAssigmentComponent<T>
+   *
+   * @param componentSuperType super type's canonical class name for this factory which should be the same as Class<T>.getCanonicalName()
+   */
+  public TrafficAssignmentComponentFactory(String componentSuperTypeCanonicalName) {
+    this.componentSuperTypeCanonicalName = componentSuperTypeCanonicalName;
+  }  
+  
 
   /**
    * Register a component type that one can choose for the given traffic component
@@ -151,23 +169,23 @@ public class TrafficAssignmentComponentFactory<T extends TrafficAssignmentCompon
    * @param trafficAssignmentComponent TrafficAssignmentComponent to be registered
    * @throws PlanItException thrown if there is an error
    */
-  @SuppressWarnings("unchecked")
   public static void registerTrafficAssignmentComponentType(final Class<? extends TrafficAssignmentComponent<?>> trafficAssignmentComponent) throws PlanItException {
-    Class<? extends TrafficAssignmentComponent<?>> currentClass = trafficAssignmentComponent;
+    Class<?> currentClass = trafficAssignmentComponent;
     while (currentClass != null) {
       final Type currentSuperClass = currentClass.getGenericSuperclass();
-      if (currentSuperClass instanceof ParameterizedType && ((ParameterizedType) currentSuperClass).getRawType() == TrafficAssignmentComponent.class) {
+      if (  currentSuperClass instanceof ParameterizedType && 
+            ((ParameterizedType) currentSuperClass).getRawType() == TrafficAssignmentComponent.class) {
         // superclass is a trafficAssignmentComponent class, so the current class is the
         // class that we need
         // register by collecting the component entry and placing the component
-        final TreeSet<String> treeSet = registeredTrafficAssignmentComponents.get(currentClass);
+        final TreeSet<String> treeSet = registeredTrafficAssignmentComponents.get(currentClass.getCanonicalName());
         PlanItException.throwIf(treeSet == null, "Base class of traffic assignment component not registered as eligible on PLANit");
 
         treeSet.add(trafficAssignmentComponent.getCanonicalName());
-        registeredTrafficAssignmentComponents.get(currentClass).add(trafficAssignmentComponent.getCanonicalName());
+        registeredTrafficAssignmentComponents.get(currentClass.getCanonicalName()).add(trafficAssignmentComponent.getCanonicalName());
         return;
       } else {
-        currentClass = (Class<? extends TrafficAssignmentComponent<?>>) currentClass.getSuperclass(); // move
+        currentClass = currentClass.getSuperclass(); // move
       }
     }
     throw new PlanItException("trafficAssignmentComponent not eligible for registration");

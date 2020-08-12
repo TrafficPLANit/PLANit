@@ -10,11 +10,12 @@ import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.Pair;
+import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 
@@ -221,15 +222,14 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
    * @param physicalNetwork PhysicalNetwork object containing the updated parameter values
    */
   @Override
-  public void initialiseBeforeSimulation(final PhysicalNetwork physicalNetwork) {
+  public void initialiseBeforeSimulation(final PhysicalNetwork<? extends Node, ? extends Link, ? extends LinkSegment> physicalNetwork) {
     final MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) physicalNetwork;
     bprParametersPerLinkSegment = new BPRParameters[macroscopicNetwork.linkSegments.getNumberOfLinkSegments()];
-    for (final EdgeSegment linkSegment : macroscopicNetwork.linkSegments) {
-      final MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
+    for (final MacroscopicLinkSegment macroscopicLinkSegment : macroscopicNetwork.linkSegments) {
       final int id = (int) macroscopicLinkSegment.getId();
       bprParametersPerLinkSegment[id] = new BPRParameters();
       final MacroscopicLinkSegmentType macroscopicLinkSegmentType = macroscopicLinkSegment.getLinkSegmentType();
-      for (final Mode mode : physicalNetwork.modes) {
+      for (final Mode mode : macroscopicNetwork.modes) {
         Pair<Double, Double> alphaBetaPair;
         if ((parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment) != null)
             && (parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode) != null)) {

@@ -7,7 +7,10 @@ import java.util.logging.Logger;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Mode;
+import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 
@@ -17,16 +20,19 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  * @author markr
  *
  */
-public class MacroscopicNetwork extends PhysicalNetwork {
+public class MacroscopicNetwork extends PhysicalNetwork<Node, Link, MacroscopicLinkSegment> {
 
   /** the logger */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(MacroscopicNetwork.class.getCanonicalName());
 
-  // Protected
 
   /** Generated UID */
   private static final long serialVersionUID = -6844990013871601434L;
+   
+  // Protected
+  
+  protected final MacroscopicPhysicalNetworkBuilder macroscopicNetworkBuilder;
 
   /**
    * Map which stores link segment types by generated Id
@@ -41,7 +47,8 @@ public class MacroscopicNetwork extends PhysicalNetwork {
    * @param groupId contiguous id generation within this group for instances of this class
    */
   public MacroscopicNetwork(final IdGroupingToken groupId) {
-    super(groupId, new MacroscopicPhysicalNetworkBuilderImpl());
+    super(groupId,  new MacroscopicPhysicalNetworkBuilderImpl());
+    this.macroscopicNetworkBuilder = (MacroscopicPhysicalNetworkBuilder) getNetworkBuilder();
   }
 
   /**
@@ -58,11 +65,7 @@ public class MacroscopicNetwork extends PhysicalNetwork {
   public MacroscopicLinkSegmentType createAndRegisterNewMacroscopicLinkSegmentType(final String name, final double capacity, final double maximumDensity,
       final Object linkSegmentExternalId, final Map<Mode, MacroscopicModeProperties> modeProperties) throws PlanItException {
 
-    PlanItException.throwIf(!(networkBuilder instanceof MacroscopicPhysicalNetworkBuilderImpl),
-        "Macroscopic network perspective only allows macroscopic link segment types to be registered");
-
-    MacroscopicLinkSegmentType linkSegmentType = ((MacroscopicPhysicalNetworkBuilderImpl) networkBuilder).createLinkSegmentType(name, capacity, maximumDensity,
-        linkSegmentExternalId, modeProperties);
+    MacroscopicLinkSegmentType linkSegmentType = macroscopicNetworkBuilder.createLinkSegmentType(name, capacity, maximumDensity,linkSegmentExternalId, modeProperties);
     registerLinkSegmentType(linkSegmentType);
     return linkSegmentType;
   }

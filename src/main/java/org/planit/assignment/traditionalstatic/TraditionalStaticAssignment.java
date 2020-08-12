@@ -23,6 +23,7 @@ import org.planit.input.InputBuilderListener;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
@@ -390,10 +391,11 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void setModalLinkSegmentCosts(final Mode mode, final double[] currentSegmentCosts, Cost<LinkSegment> cost) throws PlanItException {
-    for (final EdgeSegment linkSegment : transportNetwork.getPhysicalNetwork().linkSegments) {
+    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) transportNetwork.getPhysicalNetwork();
+    for (final LinkSegment linkSegment : macroscopicNetwork.linkSegments) {
       double currentSegmentCost = Double.POSITIVE_INFINITY;
-      if (((LinkSegment) linkSegment).isModeAllowedThroughLink(mode)) {
-        currentSegmentCost = cost.getSegmentCost(mode, (LinkSegment) linkSegment);
+      if (linkSegment.isModeAllowedThroughLink(mode)) {
+        currentSegmentCost = cost.getSegmentCost(mode, linkSegment);
         if (currentSegmentCost < 0.0) {
           throw new PlanItException("Error during calculation of link segment costs");
         }

@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import org.opengis.geometry.DirectPosition;
 import org.planit.assignment.TrafficAssignment;
 import org.planit.graph.VertexImpl;
-import org.planit.network.physical.PhysicalNetwork.LinkSegments;
+import org.planit.network.physical.PhysicalNetwork;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.OutputProperty;
@@ -237,7 +237,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * Provide access to the available link segments
    */
   @Override
-  public LinkSegments getPhysicalLinkSegments() {
+  public PhysicalNetwork<?,?,? extends LinkSegment>.LinkSegments getPhysicalLinkSegments() {
     return trafficAssignment.getTransportNetwork().getPhysicalNetwork().linkSegments;
   }
 
