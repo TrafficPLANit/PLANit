@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.planit.graph.EdgeSegmentImpl;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
@@ -52,8 +53,9 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
    * @param groupId,    contiguous id generation within this group for instances of this class
    * @param parentLink  parent link of segment
    * @param directionAB direction of travel
+   * @throws PlanItException throw when error
    */
-  protected LinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) {
+  protected LinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) throws PlanItException {
     super(groupId, parentLink, directionAB);
     maximumSpeedMap = new HashMap<Mode, Double>();
     this.linkSegmentId = generateLinkSegmentId(groupId);

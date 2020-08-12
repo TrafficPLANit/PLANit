@@ -1,9 +1,20 @@
 package org.planit.graph;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.planit.utils.graph.DirectedGraph;
+import org.planit.utils.graph.DirectedVertex;
+import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.EdgeSegments;
+import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.misc.Pair;
 
 /**
  * 
@@ -15,7 +26,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class ACyclicSubGraph {
+public class ACyclicSubGraph<V extends DirectedVertex, E extends Edge, ES extends EdgeSegment> implements DirectedSubGraph<V, E, ES>{
 
   /**
    * The id of this acyclic sub graph
@@ -25,12 +36,18 @@ public class ACyclicSubGraph {
   /**
    * The parent graph where this is an acyclic subgraph of
    */
-  GraphImpl parentGraph;
+  DirectedGraph<V,E,ES> parentGraph;
 
   /**
    * root of the sub graph
    */
-  Vertex root;
+  DirectedVertex root;
+  
+  /**
+   * list to store vertices (and its activated edge segments) in topological order
+   * We only store outgoing active edge segments of each active vertex
+   */
+  private LinkedList<Pair<V,List<ES>>> topologicalEdgeSegmentList = new LinkedList<Pair<V, List<ES>>>();
 
   /**
    * Constructor
@@ -39,14 +56,45 @@ public class ACyclicSubGraph {
    * @param parentGraph parent Graph we are a subset of
    * @param root        (initial) root of the subgraph
    */
-  public ACyclicSubGraph(final IdGroupingToken groupId, GraphImpl parentGraph, Vertex root) {
+  public ACyclicSubGraph(final IdGroupingToken groupId, DirectedGraph<V,E,ES> parentGraph, V root) {
     this.id = IdGenerator.generateId(groupId, ACyclicSubGraph.class);
     this.parentGraph = parentGraph;
     this.root = root;
+    topologicalEdgeSegmentList.add(new Pair<V,List<ES>>(root, new ArrayList<ES>()));
   }
 
-  public void addEdgeSegment(EdgeSegment edge) {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long getId() {
+    return this.id;
+  }  
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedGraph<V, E, ES> getParentGraph() {
+    return parentGraph;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedVertex getRootVertex() {
+    return root;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean addEdgeSegment(EdgeSegment edgeSegment) {
+    return false;
+  }
+
+
 
 }

@@ -467,7 +467,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    */
   @Override
   protected TrafficAssignmentBuilder createTrafficAssignmentBuilder(final InputBuilderListener trafficComponentCreateListener, final Demands demands, final Zoning zoning,
-      final PhysicalNetwork physicalNetwork) throws PlanItException {
+      final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException {
     return new TraditionalStaticAssignmentBuilder(this, trafficComponentCreateListener, demands, zoning, physicalNetwork);
   }
 

@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.Pair;
@@ -47,8 +48,8 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
   protected final int numberOfVertices;
   
   /** Comparator to sort based on the second elements minimum value (ascending order) */
-  protected static final Comparator<Pair<Vertex, Double>> pairSecondComparator =
-      Comparator.comparing(Pair<Vertex, Double>::getSecond, (f1, f2) -> {
+  protected static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator =
+      Comparator.comparing(Pair<DirectedVertex, Double>::getSecond, (f1, f2) -> {
         return f1.compareTo(f2);
       });  
 
@@ -76,7 +77,7 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
    * @throws PlanItException thrown if an error occurs
    */
   @Override
-  public ShortestPathResult executeOneToAll(Vertex currentOrigin) throws PlanItException {
+  public ShortestPathResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException {
     boolean[] vertexVisited = new boolean[numberOfVertices];
     this.currentOrigin = currentOrigin;
     
@@ -88,13 +89,13 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
     EdgeSegment[] incomingEdgeSegment = new EdgeSegment[numberOfVertices];
     Arrays.fill(incomingEdgeSegment, null);
 
-    PriorityQueue<Pair<Vertex, Double>> openVertices = new PriorityQueue<Pair<Vertex, Double>>(numberOfVertices, pairSecondComparator);
-    openVertices.add(new Pair<Vertex, Double>(currentOrigin, 0.0)); // cost to reach self is zero
+    PriorityQueue<Pair<DirectedVertex, Double>> openVertices = new PriorityQueue<Pair<DirectedVertex, Double>>(numberOfVertices, pairSecondComparator);
+    openVertices.add(new Pair<DirectedVertex, Double>(currentOrigin, 0.0)); // cost to reach self is zero
 
     // collect cheapest cost and expand the vertex if not already visited
     while (!openVertices.isEmpty()) {
-      Pair<Vertex, Double> cheapestNextVertex = openVertices.poll();
-      Vertex currentVertex = cheapestNextVertex.getFirst();
+      Pair<DirectedVertex, Double> cheapestNextVertex = openVertices.poll();
+      DirectedVertex currentVertex = cheapestNextVertex.getFirst();
       int currentVertexId = (int) currentVertex.getId();
       double currentCost = cheapestNextVertex.getSecond();
       if (vertexVisited[currentVertexId]) {
@@ -111,7 +112,7 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
         double currentEdgeSegmentCost = edgeSegmentCosts[(int) adjacentEdgeSegment.getId()];
         if (currentEdgeSegmentCost < Double.POSITIVE_INFINITY) {
           
-          Vertex adjacentVertex = adjacentEdgeSegment.getDownstreamVertex();
+          DirectedVertex adjacentVertex = adjacentEdgeSegment.getDownstreamVertex();
           int adjacentVertexId = (int) adjacentVertex.getId();
           if (!vertexVisited[adjacentVertexId]) {
             double adjacentVertexCost = vertexMeasuredCost[adjacentVertexId];
@@ -122,7 +123,7 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
             if (adjacentVertexCost > computedCostToReachAdjacentVertex) {
               vertexMeasuredCost[adjacentVertexId] = computedCostToReachAdjacentVertex;
               incomingEdgeSegment[adjacentVertexId] = adjacentEdgeSegment;
-              openVertices.add(new Pair<Vertex, Double>(adjacentVertex, computedCostToReachAdjacentVertex)); // place on queue
+              openVertices.add(new Pair<DirectedVertex, Double>(adjacentVertex, computedCostToReachAdjacentVertex)); // place on queue
             }            
           }
         }

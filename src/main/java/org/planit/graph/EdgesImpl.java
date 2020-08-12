@@ -7,6 +7,7 @@ import java.util.TreeMap;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Edges;
+import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
 
 /**

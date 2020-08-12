@@ -4,13 +4,13 @@ import java.util.logging.Logger;
 
 import org.opengis.geometry.DirectPosition;
 import org.planit.assignment.TrafficAssignment;
-import org.planit.graph.VertexImpl;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.Node;
@@ -27,6 +27,20 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   /** the logger */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(LinkOutputTypeAdapterImpl.class.getCanonicalName());
+  
+  /** collect location as string representation from vertex
+   * @param vertex
+   * @return node location
+   */
+  private String getVertexLocationAsString(Vertex vertex) {
+    DirectPosition centrePoint = vertex.getCentrePointGeometry();
+    if (centrePoint == null) {
+      return OutputFormatter.NOT_SPECIFIED;
+    } else {
+      double[] coordinates = centrePoint.getCoordinate();
+      return coordinates[0] + "-" + coordinates[1];
+    }
+  }
 
   /**
    * Returns the value of the capacity per lane
@@ -107,16 +121,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if the location could not be retrieved
    */
   protected Object getDownstreamNodeLocation(LinkSegment linkSegment) throws PlanItException {
-    PlanItException.throwIf(!(linkSegment.getDownstreamVertex() instanceof VertexImpl), "Downstream node location not available");
-
-    VertexImpl downstreamVertex = (VertexImpl) linkSegment.getDownstreamVertex();
-    DirectPosition centrePoint = downstreamVertex.getCentrePointGeometry();
-    if (centrePoint == null) {
-      return OutputFormatter.NOT_SPECIFIED;
-    } else {
-      double[] coordinates = centrePoint.getCoordinate();
-      return coordinates[0] + "-" + coordinates[1];
-    }
+    Vertex downstreamVertex = linkSegment.getDownstreamVertex();
+    return getVertexLocationAsString(downstreamVertex);
   }
 
   /**
@@ -200,16 +206,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if there is an error
    */
   protected Object getUpstreamNodeLocation(LinkSegment linkSegment) throws PlanItException {
-    PlanItException.throwIf(!(linkSegment.getDownstreamVertex() instanceof VertexImpl), "Upstream node location not available");
-
-    VertexImpl upstreamVertex = (VertexImpl) linkSegment.getUpstreamVertex();
-    DirectPosition centrePoint = upstreamVertex.getCentrePointGeometry();
-    if (centrePoint == null) {
-      return OutputFormatter.NOT_SPECIFIED;
-    } else {
-      double[] coordinates = centrePoint.getCoordinate();
-      return coordinates[0] + "-" + coordinates[1];
-    }
+    Vertex upstreamVertex = linkSegment.getUpstreamVertex();
+    return getVertexLocationAsString(upstreamVertex);
   }
 
   /**

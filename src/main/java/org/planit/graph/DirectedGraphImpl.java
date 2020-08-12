@@ -2,11 +2,13 @@ package org.planit.graph;
 
 import java.util.logging.Logger;
 
+import org.planit.utils.graph.DirectedGraph;
+import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Edges;
-import org.planit.utils.graph.Vertex;
+import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -18,11 +20,11 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class GraphImpl<V extends Vertex, E extends Edge, ES extends EdgeSegment> {
+public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES extends EdgeSegment> implements DirectedGraph<V,E,ES>{
 
   /** the logger */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(GraphImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(DirectedGraphImpl.class.getCanonicalName());
 
   /**
    * The id of this graph
@@ -41,17 +43,17 @@ public class GraphImpl<V extends Vertex, E extends Edge, ES extends EdgeSegment>
   /**
    * class instance containing all edges
    */
-  public final Edges<E> edges;
+  protected final Edges<E> edges;
 
   /**
    * class instance containing all edge segments
    */
-  public final EdgeSegments<ES> edgeSegments;
+  protected final EdgeSegments<ES> edgeSegments;
 
   /**
    * class instance containing all vertices
    */
-  public final Vertices<V> vertices;
+  protected final Vertices<V> vertices;
 
   /**
    * Graph Constructor
@@ -59,8 +61,8 @@ public class GraphImpl<V extends Vertex, E extends Edge, ES extends EdgeSegment>
    * @param groupId        contiguous id generation within this group for instances of this class
    * @param networkBuilder the builder to be used to create this network
    */
-  public GraphImpl(final IdGroupingToken groupId, final GraphBuilder<V, E, ES> graphBuilder) {
-    this.id = IdGenerator.generateId(groupId, GraphImpl.class);
+  public DirectedGraphImpl(final IdGroupingToken groupId, final GraphBuilder<V, E, ES> graphBuilder) {
+    this.id = IdGenerator.generateId(groupId, DirectedGraphImpl.class);
     this.graphBuilder = graphBuilder;
     this.graphBuilder.setIdGroupingToken(IdGenerator.createIdGroupingToken(this, this.getId()));
 
@@ -72,14 +74,37 @@ public class GraphImpl<V extends Vertex, E extends Edge, ES extends EdgeSegment>
   // Getters - Setters
 
   /**
-   * collect the id of this graph
-   * 
-   * @return graph id
+   * {@inheritDoc}
    */
+  @Override
   public long getId() {
     return this.id;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Vertices<V> getVertices() {
+    return vertices;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Edges<E> getEdges() {
+    return edges;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegments<ES> getEdgeSegments() {
+    return edgeSegments;
+  }
+  
   /**
    * Collect the id grouping token used for all entities registered on the graph, i.e., this network's specific identifier for generating ids unique and contiguous within this
    * network and this network only
@@ -88,6 +113,6 @@ public class GraphImpl<V extends Vertex, E extends Edge, ES extends EdgeSegment>
    */
   public IdGroupingToken getGraphIdGroupingToken() {
     return this.graphBuilder.getIdGroupingToken();
-  }
+  }  
 
 }

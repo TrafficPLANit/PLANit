@@ -41,8 +41,9 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param parentLink  the parent link of this link segment
    * @param directionAB direction of travel
+   * @throws PlanItException thrown when error
    */
-  public MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) {
+  public MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) throws PlanItException {
     super(groupId, parentLink, directionAB);
   }
 

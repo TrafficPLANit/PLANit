@@ -8,6 +8,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
+import org.planit.utils.graph.GraphBuilder;
 
 public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES> {
 

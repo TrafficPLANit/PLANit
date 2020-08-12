@@ -1,5 +1,7 @@
 package org.planit.graph;
 
+import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
@@ -33,12 +35,12 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
   /**
    * the upstreamVertex of the edge segment
    */
-  protected final Vertex upstreamVertex;
+  protected final DirectedVertex upstreamVertex;
 
   /**
    * The downstream vertex of this edge segment
    */
-  protected final Vertex downstreamVertex;
+  protected final DirectedVertex downstreamVertex;
 
   /**
    * The external Id for this link segment type
@@ -63,12 +65,16 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param parentEdge  parent edge of segment
    * @param directionAB direction of travel
+   * @throws PlanItException thrown when parent edge's vertices are incompatible with directional edge segments
    */
-  protected EdgeSegmentImpl(final IdGroupingToken groupId, final Edge parentEdge, final boolean directionAB) {
+  protected EdgeSegmentImpl(final IdGroupingToken groupId, final Edge parentEdge, final boolean directionAB) throws PlanItException {
     this.id = generateEdgeSegmentId(groupId);
     this.parentEdge = parentEdge;
-    this.upstreamVertex = directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB();
-    this.downstreamVertex = directionAB ? parentEdge.getVertexB() : parentEdge.getVertexA();
+    if(!(parentEdge.getVertexA() instanceof DirectedVertex && parentEdge.getVertexB() instanceof DirectedVertex)){
+      throw new PlanItException(String.format("parent edges (id:%d) vertices do not support directed edge segments, they must be of type DirectedVertex",parentEdge.getId()));
+    }
+    this.upstreamVertex   = (DirectedVertex) (directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB());
+    this.downstreamVertex = (DirectedVertex) (directionAB ? parentEdge.getVertexB() : parentEdge.getVertexA());
   }
 
   // Public
@@ -79,7 +85,7 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
    * @return upstream vertex
    */
   @Override
-  public Vertex getUpstreamVertex() {
+  public DirectedVertex getUpstreamVertex() {
     return upstreamVertex;
   }
 
@@ -89,7 +95,7 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
    * @return downstream vertex
    */
   @Override
-  public Vertex getDownstreamVertex() {
+  public DirectedVertex getDownstreamVertex() {
     return downstreamVertex;
   }
 

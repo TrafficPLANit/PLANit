@@ -3,7 +3,7 @@
  */
 package org.planit.network.physical;
 
-import org.planit.graph.VertexImpl;
+import org.planit.graph.DirectedVertexImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
@@ -14,7 +14,7 @@ import org.planit.utils.network.physical.Node;
  * @author markr
  *
  */
-public class NodeImpl extends VertexImpl implements Node {
+public class NodeImpl extends DirectedVertexImpl implements Node {
 
   // Protected
 

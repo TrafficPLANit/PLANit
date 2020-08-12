@@ -7,6 +7,7 @@ import java.util.TreeSet;
 
 import org.opengis.geometry.DirectPosition;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
@@ -19,7 +20,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class VertexImpl implements Vertex {
+public class DirectedVertexImpl implements DirectedVertex {
 
   /** generated UID */
   private static final long serialVersionUID = 2165199386965239623L;
@@ -76,17 +77,16 @@ public class VertexImpl implements Vertex {
    * 
    * @param groupId, contiguous id generation within this group for instances of this class
    */
-  protected VertexImpl(final IdGroupingToken groupId) {
+  protected DirectedVertexImpl(final IdGroupingToken groupId) {
     this.id = generateVertexId(groupId);
   }
 
   // Public
 
   /**
-   * Collect the geometry of the point location of this vertex
-   * 
-   * @return direct position reflecting point location
+   * #{@inheritDoc}
    */
+  @Override
   public DirectPosition getCentrePointGeometry() {
     return centrePointGeometry;
   }
@@ -134,11 +134,9 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * Add a property from the original input that is not part of the readily available members
-   *
-   * @param key   key (name) of the input property
-   * @param value value of the input property
+   * {@inheritDoc}
    */
+  @Override
   public void addInputProperty(final String key, final Object value) {
     if (inputProperties == null) {
       inputProperties = new HashMap<String, Object>();
@@ -169,7 +167,7 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public boolean addEdge(final Edge edge) {
@@ -177,7 +175,7 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public boolean removeEdge(final Edge edge) {
@@ -185,7 +183,7 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public Set<Edge> getEdges() {
@@ -193,7 +191,7 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public Set<EdgeSegment> getEntryEdgeSegments() {
@@ -201,7 +199,7 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public Set<EdgeSegment> getExitEdgeSegments() {
@@ -209,7 +207,7 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public boolean addEdgeSegment(final EdgeSegment edgeSegment) throws PlanItException {
@@ -222,7 +220,7 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public boolean removeEdgeSegment(final EdgeSegment edgeSegment) throws PlanItException {
@@ -235,7 +233,7 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public boolean hasExitEdgeSegments() {
@@ -243,7 +241,7 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public boolean hasEntryEdgeSegments() {
@@ -251,11 +249,27 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public int getNumberOfEdges() {
     return edges.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int getNumberOfEntryEdgeSegments() {
+    return entryEdgeSegments.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int getNumberOfExitEdgeSegments() {
+    return exitEdgeSegments.size();
   }
 
 }

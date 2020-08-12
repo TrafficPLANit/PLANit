@@ -6,8 +6,8 @@ import java.util.PriorityQueue;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.geo.PlanitGeoUtils;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.Vertex;
 import org.planit.utils.misc.Pair;
 
 /**
@@ -54,8 +54,8 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
   /** 
    * Comparator to sort based on the second elements minimum value (ascending order) 
    */
-  protected static final Comparator<Pair<Vertex, Double>> pairSecondComparator =
-      Comparator.comparing(Pair<Vertex, Double>::getSecond, (f1, f2) -> {
+  protected static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator =
+      Comparator.comparing(Pair<DirectedVertex, Double>::getSecond, (f1, f2) -> {
         return f1.compareTo(f2);
       });
   
@@ -84,7 +84,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
    * hold geo positions otherwise the execution will fail with a nullpointer.
    */
   @Override
-  public ShortestPathResult executeOneToOne(Vertex origin, Vertex destination) throws PlanItException {   
+  public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) throws PlanItException {   
     PlanitGeoUtils geoUtils = new PlanitGeoUtils(crs);
     if(origin.getCentrePointGeometry()==null || destination.getCentrePointGeometry()==null) {
       throw new PlanItException("aStar shortest path must compute distances between vertices on-the-fly. One or more vertices do not have location information available making this impossible");
@@ -102,17 +102,17 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     boolean[] closedVertex = new boolean[numberOfVertices];
     Arrays.fill(closedVertex, Boolean.FALSE);
 
-    PriorityQueue<Pair<Vertex, Double>> openVertices = new PriorityQueue<Pair<Vertex, Double>>(numberOfVertices, pairSecondComparator);       
+    PriorityQueue<Pair<DirectedVertex, Double>> openVertices = new PriorityQueue<Pair<DirectedVertex, Double>>(numberOfVertices, pairSecondComparator);       
     
     // initialise for origin
-    openVertices.add(new Pair<Vertex, Double>(origin, 0.0));
+    openVertices.add(new Pair<DirectedVertex, Double>(origin, 0.0));
     vertexMeasuredCost[(int)origin.getId()] = 0.0;
     vertexHeuristicCost[(int)origin.getId()] = geoUtils.getDistanceInKilometres(origin.getCentrePointGeometry(), destination.getCentrePointGeometry())*heuristicDistanceMultiplier;
     incomingEdgeSegment[(int)origin.getId()] = null;
     
-    Vertex currentVertex =null;
+    DirectedVertex currentVertex =null;
     while(!openVertices.isEmpty()) {
-      Pair<Vertex, Double> cheapestNextVertex = openVertices.poll();
+      Pair<DirectedVertex, Double> cheapestNextVertex = openVertices.poll();
       currentVertex = cheapestNextVertex.getFirst();      
       int vertexId = (int)currentVertex.getId();
       // reached destination with lowest cost possible
@@ -143,7 +143,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
           //updated actual cost to adjacent node
           double tentativeCost = costToVertex+exitEdgeCost;
           
-          Vertex adjacentVertex = adjacentEdgeSegment.getDownstreamVertex();
+          DirectedVertex adjacentVertex = adjacentEdgeSegment.getDownstreamVertex();
           double adjacentMeasuredCost = vertexMeasuredCost[adjacentVertexId];
           
           // first visit, compute heuristic on the fly (once)
@@ -159,7 +159,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
             
             // prioritise exploring the new vertex based on f-score (measured + heuristic)
             double priorityCost                   = tentativeCost + vertexHeuristicCost[adjacentVertexId];            
-            openVertices.add(new Pair<Vertex, Double>(adjacentVertex, priorityCost)); // place on queue
+            openVertices.add(new Pair<DirectedVertex, Double>(adjacentVertex, priorityCost)); // place on queue
           }
         }            
       }

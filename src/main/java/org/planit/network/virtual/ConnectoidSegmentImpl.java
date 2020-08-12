@@ -1,6 +1,7 @@
 package org.planit.network.virtual;
 
 import org.planit.graph.EdgeSegmentImpl;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.virtual.Connectoid;
@@ -47,8 +48,9 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
    * @param groupId          contiguous id generation within this group for instances of this class
    * @param parentConnectoid parent connectoid
    * @param directionAb      direction of travel
+   * @throws PlanItException thrown when error
    */
-  public ConnectoidSegmentImpl(final IdGroupingToken groupId, final Connectoid parentConnectoid, final boolean directionAb) {
+  public ConnectoidSegmentImpl(final IdGroupingToken groupId, final Connectoid parentConnectoid, final boolean directionAb) throws PlanItException {
     super(groupId, parentConnectoid, directionAb);
     this.connectoidSegmentId = generateConnectoidSegmentId(groupId);
   }

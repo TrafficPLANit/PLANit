@@ -1,11 +1,11 @@
 package org.planit.algorithms.shortestpath;
 
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.Vertex;
+import org.planit.utils.graph.DirectedVertex;
 
 /**
  * An algorithm which calculates the shortest (a.k.a. lowest cost) path to all
- * vertices from a given origin vertex
+ * vertices from a given origin vertex for a directed graph
  * 
  * @author markr
  *
@@ -21,6 +21,6 @@ public interface OneToOneShortestPathAlgorithm {
    * @return shortest path result of the execution
    * @throws PlanItException thrown if path cannot be created
    */
-  public ShortestPathResult executeOneToOne(Vertex origin, Vertex destination) throws PlanItException;
+  public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) throws PlanItException;
 
 }

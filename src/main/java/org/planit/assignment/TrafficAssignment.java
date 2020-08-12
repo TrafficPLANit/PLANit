@@ -74,7 +74,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * Physical network to use
    */
-  protected PhysicalNetwork physicalNetwork;
+  protected PhysicalNetwork<?,?,?> physicalNetwork;
 
   /**
    * The transport network to use which is an adaptor around the physical network and the zoning
@@ -131,8 +131,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @return created traffic assignment builder
    * @throws PlanItException thrown if there is an error
    */
-  protected abstract TrafficAssignmentBuilder createTrafficAssignmentBuilder(InputBuilderListener trafficComponentCreateListener, Demands demands, Zoning zoning,
-      PhysicalNetwork physicalNetwork) throws PlanItException;
+  protected abstract TrafficAssignmentBuilder createTrafficAssignmentBuilder(InputBuilderListener trafficComponentCreateListener, Demands demands, Zoning zoning, PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException;
 
   // Protected methods
 
@@ -261,11 +260,13 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @return trafficAssignmentBuilder to use
    * @throws PlanItException thrown if there is an error
    */
-  public TrafficAssignmentBuilder collectBuilder(final InputBuilderListener trafficComponentCreateListener, final Demands theDemands, final Zoning theZoning,
-      final PhysicalNetwork thePhysicalNetwork) throws PlanItException {
+  public TrafficAssignmentBuilder collectBuilder(
+      final InputBuilderListener trafficComponentCreateListener, final Demands theDemands, final Zoning theZoning, final PhysicalNetwork<?,?,?> thePhysicalNetwork) throws PlanItException {
+    
     if (this.trafficAssignmentBuilder == null) {
       this.trafficAssignmentBuilder = createTrafficAssignmentBuilder(trafficComponentCreateListener, theDemands, theZoning, thePhysicalNetwork);
     }
+    
     return this.trafficAssignmentBuilder;
   }
 
@@ -413,7 +414,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @param physicalNetwork the PhysicalNetwork object for the current assignment
    */
-  public void setPhysicalNetwork(final PhysicalNetwork physicalNetwork) {
+  public void setPhysicalNetwork(final PhysicalNetwork<?,?,?> physicalNetwork) {
     this.physicalNetwork = physicalNetwork;
   }
 

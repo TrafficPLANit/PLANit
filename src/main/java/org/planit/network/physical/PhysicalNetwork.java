@@ -9,9 +9,10 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignmentComponent;
-import org.planit.graph.GraphImpl;
+import org.planit.graph.DirectedGraphImpl;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
@@ -47,7 +48,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      */
     @Override
     public Iterator<L> iterator() {
-      return graph.edges.iterator();
+      return graph.getEdges().iterator();
     }
 
     /**
@@ -60,7 +61,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @throws PlanItException thrown if there is an error
      */
     public L registerNewLink(final N nodeA, final N nodeB, final double length) throws PlanItException {
-      final L newLink = graph.edges.registerNewEdge(nodeA, nodeB, length);
+      final L newLink = graph.getEdges().registerNewEdge(nodeA, nodeB, length);
       return newLink;
     }
 
@@ -71,7 +72,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the retrieved link
      */
     public L getLink(final long id) {
-      return graph.edges.getEdge(id);
+      return graph.getEdges().getEdge(id);
     }
 
     /**
@@ -80,7 +81,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the number of links in the network
      */
     public int getNumberOfLinks() {
-      return graph.edges.getNumberOfEdges();
+      return graph.getEdges().getNumberOfEdges();
     }
   }
 
@@ -114,7 +115,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      */
     @Override
     public Iterator<LS> iterator() {
-      return graph.edgeSegments.iterator();
+      return graph.getEdgeSegments().iterator();
     }
 
     /**
@@ -150,7 +151,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @throws PlanItException thrown if there is an error
      */
     public LS createLinkSegment(final Link parentLink, final boolean directionAB) throws PlanItException {
-      return graph.edgeSegments.createEdgeSegment(parentLink, directionAB);
+      return graph.getEdgeSegments().createEdgeSegment(parentLink, directionAB);
     }
 
     /**
@@ -162,7 +163,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @throws PlanItException thrown if there is an error
      */
     public void registerLinkSegment(final Link parentLink, final LS linkSegment, final boolean directionAB) throws PlanItException {
-      graph.edgeSegments.registerEdgeSegment(parentLink, linkSegment, directionAB);
+      graph.getEdgeSegments().registerEdgeSegment(parentLink, linkSegment, directionAB);
       registerLinkSegment(linkSegment);
     }
 
@@ -176,7 +177,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return retrieved linkSegment
      */
     public LS getLinkSegment(final long id) {
-      return graph.edgeSegments.getEdgeSegment(id);
+      return graph.getEdgeSegments().getEdgeSegment(id);
     }
 
     /**
@@ -185,7 +186,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return number of registered link segments
      */
     public int getNumberOfLinkSegments() {
-      return graph.edgeSegments.getNumberOfEdgeSegments();
+      return graph.getEdgeSegments().getNumberOfEdgeSegments();
     }
 
     /**
@@ -221,7 +222,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the retrieved link segment, or null if no link segment type was found
      */
     public LinkSegment getLinkSegmentByExternalId(Object externalId) {
-      for (LinkSegment linkSegment : graph.edgeSegments) {
+      for (LinkSegment linkSegment : graph.getEdgeSegments()) {
         if (linkSegment.getExternalId().equals(externalId)) {
           return linkSegment;
         }
@@ -241,7 +242,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      */
     @Override
     public Iterator<N> iterator() {
-      return graph.vertices.iterator();
+      return graph.getVertices().iterator();
     }
 
     /**
@@ -250,7 +251,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return new node created
      */
     public N registerNewNode() {
-      final N newNode = graph.vertices.registerNewVertex();
+      final N newNode = graph.getVertices().registerNewVertex();
       return newNode;
     }
 
@@ -261,7 +262,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return new node created
      */
     public N registerNewNode(Object externalId) {
-      final N newNode = graph.vertices.registerNewVertex(externalId);
+      final N newNode = graph.getVertices().registerNewVertex(externalId);
       return newNode;
     }
 
@@ -271,7 +272,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return number of registered nodes
      */
     public int getNumberOfNodes() {
-      return graph.vertices.getNumberOfVertices();
+      return graph.getVertices().getNumberOfVertices();
     }
 
     /**
@@ -281,7 +282,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return retrieved node
      */
     public N getNodeById(final long id) {
-      return graph.vertices.getVertexById(id);
+      return graph.getVertices().getVertexById(id);
     }
 
   }
@@ -294,7 +295,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   /**
    * The graph containing the nodes, links, and link segments (or derived implementations)
    */
-  private final GraphImpl<N, L, LS> graph;  
+  private final DirectedGraph<N, L, LS> graph;  
 
   // Protected
   
@@ -302,7 +303,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * collect the registered network builder 
    * @return networkBuilder the network builder registered
    */
-  protected GraphImpl<N,L,LS> getGraph(){
+  protected DirectedGraph<N,L,LS> getGraph(){
     return graph;
   }  
 
@@ -349,7 +350,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   public PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder<N, L, LS> networkBuilder) {
     super(groupId, PhysicalNetwork.class);
     this.networkBuilder = networkBuilder; /* for derived classes building part */
-    this.graph = new GraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
+    this.graph = new DirectedGraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
     this.modes = new ModesImpl(getNetworkIdGroupingToken()); /* for mode building added by this class */
   }
 
@@ -362,7 +363,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @return the network id grouping token
    */
   public IdGroupingToken getNetworkIdGroupingToken() {
-    return graph.getGraphIdGroupingToken();
+    return ((DirectedGraphImpl<N,L,LS>)graph).getGraphIdGroupingToken();
   }
 
 }

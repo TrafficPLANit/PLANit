@@ -1,6 +1,6 @@
 package org.planit.network.virtual;
 
-import org.planit.graph.VertexImpl;
+import org.planit.graph.DirectedVertexImpl;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.Zone;
@@ -11,7 +11,7 @@ import org.planit.utils.network.virtual.Zone;
  * @author gman6028
  *
  */
-public class CentroidImpl extends VertexImpl implements Centroid {
+public class CentroidImpl extends DirectedVertexImpl implements Centroid {
 
   // Protected
 
