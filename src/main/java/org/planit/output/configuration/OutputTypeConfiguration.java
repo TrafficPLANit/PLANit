@@ -6,8 +6,6 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import org.planit.assignment.TrafficAssignment;
-import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
@@ -25,11 +23,6 @@ public abstract class OutputTypeConfiguration {
 
   /** the logger */
   protected static final Logger LOGGER = Logger.getLogger(OutputTypeConfiguration.class.getCanonicalName());
-
-  /**
-   * The traffic assignment object on which this output type configuration is being registered
-   */
-  protected TrafficAssignment trafficAssignment;
 
   /**
    * Filters output properties in the OutputAdapter and outputs them as an array
@@ -97,12 +90,10 @@ public abstract class OutputTypeConfiguration {
   /**
    * OutputTypeconfiguration constructor
    * 
-   * @param trafficAssignment TrafficAssignment object whose results are being reported
    * @param outputType        the output type being created
    * @throws PlanItException thrown if there is an exception
    */
-  public OutputTypeConfiguration(TrafficAssignment trafficAssignment, OutputType outputType) throws PlanItException {
-    this.trafficAssignment = trafficAssignment;
+  public OutputTypeConfiguration(OutputType outputType) throws PlanItException {
     this.outputType = outputType;
     outputProperties = new TreeSet<BaseOutputProperty>();
     activeSubOutputTypes = new TreeSet<SubOutputTypeEnum>();
@@ -133,12 +124,6 @@ public abstract class OutputTypeConfiguration {
    * @throws PlanItException thrown if there is an error
    */
   public void addProperty(OutputProperty outputProperty) throws PlanItException {
-    if (outputProperty.equals(OutputProperty.DENSITY)) {
-      if (trafficAssignment instanceof TraditionalStaticAssignment) {
-        LOGGER.warning("attempt made to register invalid output property DENSITY  on Traditional Static Assignment. This will be ignored");
-        return;
-      }
-    }
     BaseOutputProperty baseOutputProperty = BaseOutputProperty.convertToBaseOutputProperty(outputProperty);
     if (isOutputPropertyValid(baseOutputProperty)) {
       outputProperties.add(baseOutputProperty);

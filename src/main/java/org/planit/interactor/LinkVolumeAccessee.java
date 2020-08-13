@@ -26,7 +26,7 @@ public interface LinkVolumeAccessee extends InteractorAccessee {
    *          the specified link segment
    * @return the total flow across this link segment
    */
-  public double getTotalNetworkSegmentFlow(LinkSegment linkSegment);
+  public double getTotalLinkSegmentFlow(LinkSegment linkSegment);
 
   /**
    * Get link segment flows for a specified mode

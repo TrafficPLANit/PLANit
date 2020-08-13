@@ -144,7 +144,7 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
    */
   @Override
   public double getSegmentCost(final Mode mode, final LinkSegment linkSegment) throws PlanItException {
-    final double flow = linkVolumeAccessee.getTotalNetworkSegmentFlow(linkSegment);
+    final double flow = linkVolumeAccessee.getTotalLinkSegmentFlow(linkSegment);
 
     // BPR function with mode specific free flow time and general PCU based delay
     final MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;

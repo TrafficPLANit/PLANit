@@ -2,6 +2,8 @@ package org.planit.assignment.algorithmb;
 
 import java.util.Set;
 
+import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
+import org.planit.network.transport.TransportNetwork;
 import org.planit.output.OutputManager;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
@@ -29,8 +31,14 @@ public class AlgorithmBEquilibration {
    * initialiseBushes
    */
   private void initialiseBushes() {
-    // TODO Auto-generated method stub
-
+    TransportNetwork transportNetwork = assignment.getTransportNetwork();
+    double[] edgeSegmentCosts = null; // <-- to do
+    DijkstraShortestPathAlgorithm dijkstra = 
+        new DijkstraShortestPathAlgorithm(edgeSegmentCosts, transportNetwork.getTotalNumberOfEdgeSegments(), transportNetwork.getTotalNumberOfVertices());
+    
+    for(Zone zone : assignment.getTransportNetwork().getZoning().zones) {
+      /* for each origin create initial bush with shortest path */
+    }
   }
 
   /**

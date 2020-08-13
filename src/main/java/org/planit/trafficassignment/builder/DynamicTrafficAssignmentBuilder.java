@@ -18,7 +18,7 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficAssignmentBuilder implements PathChoiceBuilder {
+public class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAssignment> extends CapacityConstrainedTrafficAssignmentBuilder<T> implements PathChoiceBuilder {
 
   // needed to allow path choice to register inputbuilder listener on its traffic components
   @SuppressWarnings("unused")
@@ -37,8 +37,8 @@ public class DynamicTrafficAssignmentBuilder extends CapacityConstrainedTrafficA
    * @param physicalNetwork                the physical network
    * @throws PlanItException thrown if there is an exception
    */
-  public DynamicTrafficAssignmentBuilder(final DynamicTrafficAssignment assignment, final InputBuilderListener trafficComponentCreateListener, final Demands demands,
-      final Zoning zoning, final PhysicalNetwork physicalNetwork) throws PlanItException {
+  public DynamicTrafficAssignmentBuilder(final T assignment, final InputBuilderListener trafficComponentCreateListener, final Demands demands,
+      final Zoning zoning, final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException {
     super(assignment, trafficComponentCreateListener, demands, zoning, physicalNetwork);
     this.trafficComponentCreateListener = trafficComponentCreateListener;
     pathChoiceFactory = new TrafficAssignmentComponentFactory<PathChoice>(PathChoice.class);

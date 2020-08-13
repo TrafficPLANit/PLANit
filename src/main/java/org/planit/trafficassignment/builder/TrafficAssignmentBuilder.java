@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
 import org.planit.assignment.TrafficAssignmentComponentFactory;
+import org.planit.configurator.Configurator;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
@@ -16,13 +17,17 @@ import org.planit.gap.StopCriterion;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
+import org.planit.output.OutputManager;
+import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
+import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.network.physical.Mode;
 
@@ -33,20 +38,30 @@ import org.planit.utils.network.physical.Mode;
  * @author markr
  *
  */
-public abstract class TrafficAssignmentBuilder {
+public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentBuilder.class.getCanonicalName());
+  
+  /**
+   * The configurator for this builder
+   */
+  protected final Configurator<T> configurator;
+  
+  /**
+   * Output manager deals with all the output configurations for the registered traffic assignments
+   */
+  private final OutputManager outputManager;
+  
+  /**
+   * The traffic assignment class to build in canonical string form
+   */
+  private final Class<T> trafficAssignmentClass;
 
   /**
-   * log registering an item on this traffic assignment
-   * 
-   * @param item     to (un)register
-   * @param register when true it signals activate, otherwise deactive
+   * id grouping token
    */
-  private void logRegisteredComponent(Object item, boolean register) {
-    LOGGER.info(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + LoggingUtils.activateItemByClassName(item, register));
-  }
+  private IdGroupingToken groupId;
 
   /**
    * Register the demands zoning and network objects
@@ -56,7 +71,7 @@ public abstract class TrafficAssignmentBuilder {
    * @param network network object to be registered
    * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
    */
-  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final PhysicalNetwork network) throws PlanItException {
+  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final PhysicalNetwork<?,?,?> network) throws PlanItException {
     if (zoning == null || demands == null || network == null) {
       PlanItException.throwIf(zoning == null, "zoning in registerDemandZoningAndNetwork is null");
       PlanItException.throwIf(demands == null, "demands in registerDemandZoningAndNetwork is null");
@@ -73,37 +88,17 @@ public abstract class TrafficAssignmentBuilder {
         }
       }
     }
-    parentAssignment.setPhysicalNetwork(network);
-    logRegisteredComponent(network, true);
-    parentAssignment.setZoning(zoning);
-    logRegisteredComponent(zoning, true);
-    parentAssignment.setDemands(demands);
-    logRegisteredComponent(demands, true);
+    configurator.registerDelayedSetter("setPhysicalNetwork", network);
+    configurator.registerDelayedSetter("setZoning", zoning);
+    configurator.registerDelayedSetter("setDemands", demands);
   }
 
-  /**
-   * The smoothing factory used in the assignment algorithm
-   *
-   * NB: The smoothing factory is defined here because the same smoothing algorithm is used for all assignments. If we later decide to use more than one smoothing algorithm and
-   * allow different traffic assignments to use different smoothing algorithms, we would need to move this property and its handler methods to CustomPlanItProject and treat it like
-   * the factories for PhysicalNetwork, Demands and Zoning (and allow the different smoothing algorithms to be registered on the project).
-   */
-  protected final TrafficAssignmentComponentFactory<Smoothing> smoothingFactory;
-
-  /**
-   * Cost factory to create physical costs to register on the generalized cost.
-   */
-  protected final TrafficAssignmentComponentFactory<PhysicalCost> physicalCostFactory;
-
-  /**
-   * Cost factory to create physical costs to register on the generalized cost.
-   */
-  protected final TrafficAssignmentComponentFactory<VirtualCost> virtualCostFactory;
-
-  /**
-   * The assignment all components will be registered on
-   */
-  protected final TrafficAssignment parentAssignment;
+//  /**
+//   * The assignment all components will be registered on
+//   */
+//  protected T parentAssignment;
+  
+  
 
   /**
    * Currently, there exists only a single gap function (link based relative duality gap) that is created via this factory method. It should be injected by each traffic assignment
@@ -114,32 +109,75 @@ public abstract class TrafficAssignmentBuilder {
   protected GapFunction createGapFunction() {
     return new LinkBasedRelativeDualityGapFunction(new StopCriterion());
   }
+  
+  /**
+   * Create the output type adapter for the current output type, specifically tailored towards the assignment type that we are builing
+   *
+   * @param outputType the current output type
+   * @return the output type adapter corresponding to the current traffic assignment and output type
+   */
+  public abstract OutputTypeAdapter createOutputTypeAdapter(OutputType outputType);  
 
   // PUBLIC
-
+  
   /**
    * Constructor
    * 
-   * @param parentAssignment               the parent assignment
-   * @param trafficComponentCreateListener the input builder
+   * @param projectToken                  idGrouping token
+   * @param trafficAssignmentClass        class to build
    * @param demands                        the demands
    * @param zoning                         the zoning
    * @param physicalNetwork                the physical network
-   * @throws PlanItException if registration of demands, zoning, or network does not work
+   * @throws PlanItException
    */
-  TrafficAssignmentBuilder(final TrafficAssignment parentAssignment, final InputBuilderListener trafficComponentCreateListener, final Demands demands, final Zoning zoning,
-      final PhysicalNetwork physicalNetwork) throws PlanItException {
-    this.parentAssignment = parentAssignment;
+  protected TrafficAssignmentBuilder(final IdGroupingToken projectToken, final Class<T> trafficAssignmentClass, final Demands demands, final Zoning zoning, final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException{
+    this.groupId = projectToken; 
+    this.trafficAssignmentClass = trafficAssignmentClass;
+    /* all calls to configure assignment are registered on configurator which in turn is called when build() is executed */
+    this.configurator = new Configurator<T>();
+    
+    this.outputManager = new OutputManager();
+    configurator.registerDelayedSetter("setOutputManager", outputManager);
+    
+    GapFunction theGapFunction = createGapFunction();
+    configurator.registerDelayedSetter("setGapFunction", theGapFunction);
+    
     registerDemandZoningAndNetwork(demands, zoning, physicalNetwork);
-
-    smoothingFactory = new TrafficAssignmentComponentFactory<Smoothing>(Smoothing.class);
-    physicalCostFactory = new TrafficAssignmentComponentFactory<PhysicalCost>(PhysicalCost.class);
-    virtualCostFactory = new TrafficAssignmentComponentFactory<VirtualCost>(VirtualCost.class);
-    // register listener on factories
-    smoothingFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
-    physicalCostFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
-    virtualCostFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    
+    // By default, activate the link outputs
+    activateOutput(OutputType.LINK);    
   }
+  
+
+//  /**
+//   * Constructor
+//   * 
+//   * @param parentAssignment               the parent assignment
+//   * @param trafficComponentCreateListener the input builder
+//   * @param demands                        the demands
+//   * @param zoning                         the zoning
+//   * @param physicalNetwork                the physical network
+//   * @throws PlanItException if registration of demands, zoning, or network does not work
+//   */
+//  protected TrafficAssignmentBuilder(
+//      final T parentAssignment, 
+//      final InputBuilderListener trafficComponentCreateListener, 
+//      final Demands demands, 
+//      final Zoning zoning,
+//      final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException {
+//    this(demands, zoning, physicalNetwork);
+//    
+//    this.parentAssignment = parentAssignment;
+//
+//
+//    smoothingFactory = new TrafficAssignmentComponentFactory<Smoothing>(Smoothing.class);
+//    physicalCostFactory = new TrafficAssignmentComponentFactory<PhysicalCost>(PhysicalCost.class);
+//    virtualCostFactory = new TrafficAssignmentComponentFactory<VirtualCost>(VirtualCost.class);
+//    // register listener on factories
+//    smoothingFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+//    physicalCostFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+//    virtualCostFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);    
+//  }
 
   /**
    * Initialize the traffic assignment defaults for the activated assignment method:
@@ -147,10 +185,11 @@ public abstract class TrafficAssignmentBuilder {
    * @throws PlanItException thrown when there is an error
    */
   public void initialiseDefaults() throws PlanItException {
+    //TODO: remove -> replaced by what is done in constructor
     // default gap function
     GapFunction theGapFunction = createGapFunction();
-    parentAssignment.setGapFunction(theGapFunction);
-    logRegisteredComponent(theGapFunction, true);
+    configurator.registerDelayedSetter("setGapFunction", theGapFunction);
+    //parentAssignment.setGapFunction(theGapFunction);
 
     // By default, activate the link outputs
     activateOutput(OutputType.LINK);
@@ -167,8 +206,7 @@ public abstract class TrafficAssignmentBuilder {
    */
   public Smoothing createAndRegisterSmoothing(final String smoothingType) throws PlanItException {
     final Smoothing smoothing = smoothingFactory.create(smoothingType, new Object[] { parentAssignment.getIdGroupingtoken() });
-    parentAssignment.setSmoothing(smoothing);
-    logRegisteredComponent(smoothing, true);
+    configurator.registerDelayedSetter("setSmoothing", smoothing);
     return smoothing;
   }
 
@@ -181,8 +219,7 @@ public abstract class TrafficAssignmentBuilder {
    */
   public PhysicalCost createAndRegisterPhysicalCost(final String physicalTraveltimeCostFunctionType) throws PlanItException {
     final PhysicalCost physicalCost = physicalCostFactory.create(physicalTraveltimeCostFunctionType, new Object[] { parentAssignment.getIdGroupingtoken() });
-    parentAssignment.setPhysicalCost(physicalCost);
-    logRegisteredComponent(physicalCost, true);
+    configurator.registerDelayedSetter("setPhysicalCost", physicalCost);
     return physicalCost;
   }
 
@@ -194,10 +231,9 @@ public abstract class TrafficAssignmentBuilder {
    * @throws PlanItException thrown if there is an error
    */
   public VirtualCost createAndRegisterVirtualCost(final String virtualTraveltimeCostFunctionType) throws PlanItException {
-    final VirtualCost createdCost = virtualCostFactory.create(virtualTraveltimeCostFunctionType, new Object[] { parentAssignment.getIdGroupingtoken() });
-    parentAssignment.setVirtualCost(createdCost);
-    logRegisteredComponent(createdCost, true);
-    return createdCost;
+    final VirtualCost virtualCost = virtualCostFactory.create(virtualTraveltimeCostFunctionType, new Object[] { parentAssignment.getIdGroupingtoken() });
+    configurator.registerDelayedSetter("setVirtualCost", virtualCost);
+    return virtualCost;
   }
 
   /**
@@ -207,8 +243,7 @@ public abstract class TrafficAssignmentBuilder {
    * @throws PlanItException thrown if there is an error or validation failure during setup of the output formatter
    */
   public void registerOutputFormatter(final OutputFormatter outputFormatter) throws PlanItException {
-    parentAssignment.registerOutputFormatter(outputFormatter);
-    logRegisteredComponent(outputFormatter, true);
+    outputManager.registerOutputFormatter(outputFormatter);
   }
 
   /**
@@ -220,8 +255,7 @@ public abstract class TrafficAssignmentBuilder {
    * @throws PlanItException thrown if there is an error during removal of the output formatter
    */
   public void unregisterOutputFormatter(final OutputFormatter outputFormatter) throws PlanItException {
-    parentAssignment.unregisterOutputFormatter(outputFormatter);
-    logRegisteredComponent(outputFormatter, false);
+    outputManager.unregisterOutputFormatter(outputFormatter);
   }
 
   /**
@@ -230,7 +264,7 @@ public abstract class TrafficAssignmentBuilder {
    * @return List of OutputFormatter objects registered on this assignment
    */
   public List<OutputFormatter> getOutputFormatters() {
-    return parentAssignment.getOutputFormatters();
+    return outputManager.getOutputFormatters();
   }
 
   /**
@@ -240,7 +274,7 @@ public abstract class TrafficAssignmentBuilder {
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    */
   public void registerInitialLinkSegmentCost(final InitialLinkSegmentCost initialLinkSegmentCost) {
-    parentAssignment.setInitialLinkSegmentCost(initialLinkSegmentCost);
+    configurator.registerDelayedSetter("setInitialLinkSegmentCost", initialLinkSegmentCost);
   }
 
   /**
@@ -262,9 +296,9 @@ public abstract class TrafficAssignmentBuilder {
    */
   public void registerInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCost initialLinkSegmentCost) throws PlanItException {
     PlanItException.throwIf(timePeriod == null, "time period null when registering initial link segment costs");
-    parentAssignment.setInitialLinkSegmentCost(timePeriod, initialLinkSegmentCost);
+    configurator.registerDelayedSetter("setInitialLinkSegmentCost", timePeriod, initialLinkSegmentCost);
   }
-
+  
   /**
    * Method that allows one to activate specific output types for persistence on the traffic assignment instance
    *
@@ -273,8 +307,11 @@ public abstract class TrafficAssignmentBuilder {
    * @throws PlanItException thrown if there is an error activating the output
    */
   public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
-    LOGGER.info(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + "activated: OutputType." + outputType);
-    return parentAssignment.activateOutput(outputType);
+    if (!isOutputTypeActive(outputType)) {
+      return outputManager.createAndRegisterOutputTypeConfiguration(outputType);
+    } else {
+      return outputManager.getOutputTypeConfiguration(outputType);
+    }
   }
 
   /**
@@ -283,8 +320,10 @@ public abstract class TrafficAssignmentBuilder {
    * @param outputType OutputType to be deactivated
    */
   public void deactivateOutput(final OutputType outputType) {
-    LOGGER.info(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + "deactivated: OutputType." + outputType);
-    parentAssignment.deactivateOutput(outputType);
+    if (isOutputTypeActive(outputType)) {
+      outputManager.deregisterOutputTypeConfiguration(outputType);
+      outputManager.deregisterOutputTypeAdapter(outputType);
+    }
   }
 
   /**
@@ -294,7 +333,7 @@ public abstract class TrafficAssignmentBuilder {
    * @return true if active, false otherwise
    */
   public boolean isOutputTypeActive(final OutputType outputType) {
-    return parentAssignment.isOutputTypeActive(outputType);
+    return outputManager.isOutputTypeActive(outputType);
   }
 
   /**
@@ -303,43 +342,77 @@ public abstract class TrafficAssignmentBuilder {
    * @return outputConfiguration for this traffic assignment
    */
   public OutputConfiguration getOutputConfiguration() {
-    return parentAssignment.getOutputConfiguration();
+    return outputManager.getOutputConfiguration();
   }
 
-  /**
-   * Collect the gap function of the trafficAssignment instance
-   *
-   * @return gapFunction
-   */
-  public GapFunction getGapFunction() {
-    return parentAssignment.getGapFunction();
-  }
-
-  /**
-   * Collect the physical cost entity registered on the traffic assignment
+//  /**
+//   * Collect the gap function of the trafficAssignment instance
+//   *
+//   * @return gapFunction
+//   */
+//  public GapFunction getGapFunction() {
+//    return parentAssignment.getGapFunction();
+//  }
+//
+//  /**
+//   * Collect the physical cost entity registered on the traffic assignment
+//   * 
+//   * @return physicalCost
+//   */
+//  public PhysicalCost getPhysicalCost() {
+//    return parentAssignment.getPhysicalCost();
+//  }
+//
+//  /**
+//   * Collect the virtual cost entity registered on the traffic assignment
+//   * 
+//   * @return smoothing
+//   */
+//  public VirtualCost getVirtualCost() {
+//    return parentAssignment.getVirtualCost();
+//  }
+//
+//  /**
+//   * Collect the smoothing entity registered on the traffic assignment
+//   * 
+//   * @return smoothing
+//   */
+//  public Smoothing getSmoothing() {
+//    return parentAssignment.getSmoothing();
+//  }
+  
+  /** Build the traffic assignment
    * 
-   * @return physicalCost
+   * @param inputBuilderListener which is registered for all traffic assignment components that are built in case they need to be configured by some external entity
+   * @return traffic assignment instance that is built
+   * @throws PlanItException thrown if error
    */
-  public PhysicalCost getPhysicalCost() {
-    return parentAssignment.getPhysicalCost();
-  }
-
-  /**
-   * Collect the virtual cost entity registered on the traffic assignment
-   * 
-   * @return smoothing
-   */
-  public VirtualCost getVirtualCost() {
-    return parentAssignment.getVirtualCost();
-  }
-
-  /**
-   * Collect the smoothing entity registered on the traffic assignment
-   * 
-   * @return smoothing
-   */
-  public Smoothing getSmoothing() {
-    return parentAssignment.getSmoothing();
+  public T build(InputBuilderListener inputBuilderListener) throws PlanItException {
+    // Build the assignment
+    String trafficAssignmentClassName = trafficAssignmentClass.getClass().getCanonicalName();
+    TrafficAssignmentComponentFactory<TrafficAssignment> assignmentFactory =  new TrafficAssignmentComponentFactory<TrafficAssignment>(trafficAssignmentClassName);
+    final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentClassName, new Object[] { groupId });
+    PlanItException.throwIf(!(networkLoadingAndAssignment instanceof TrafficAssignment), "not a valid traffic assignment type");
+    @SuppressWarnings("unchecked")  T trafficAssignment =  (T)networkLoadingAndAssignment;
+    
+    TrafficAssignmentComponentFactory<Smoothing> smoothingFactory = new TrafficAssignmentComponentFactory<Smoothing>(Smoothing.class);
+    TrafficAssignmentComponentFactory<PhysicalCost>physicalCostFactory = new TrafficAssignmentComponentFactory<PhysicalCost>(PhysicalCost.class);
+    TrafficAssignmentComponentFactory<VirtualCost> virtualCostFactory = new TrafficAssignmentComponentFactory<VirtualCost>(VirtualCost.class);
+    // register listener on factories
+    smoothingFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    physicalCostFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    virtualCostFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);            
+    
+    //for all output types --> create the adapters and register them on the manager
+    for(OutputTypeConfiguration otc : outputManager.getRegisteredOutputTypeConfigurations()) {
+      final OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(otc.getOutputType());
+      outputManager.registerOutputTypeAdapter(otc.getOutputType(), outputTypeAdapter);        
+    }
+     
+    // perform all delayed setters on the assignment
+    configurator.configure(trafficAssignment);
+    
+    return trafficAssignment;
   }
 
 }

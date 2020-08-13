@@ -63,13 +63,23 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * Output manager deals with all the output configurations for the registered traffic assignments
    */
   private OutputManager outputManager;
+  
+  /**
+   * log registering an item on this traffic assignment
+   * 
+   * @param item     to (un)register
+   * @param register when true it signals activate, otherwise deactive
+   */
+  private void logRegisteredComponent(Object item, boolean register) {
+    LOGGER.info(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + LoggingUtils.activateItemByClassName(item, register));
+  }  
 
   // Protected
 
   /**
    * The builder for all traffic assignment instances
    */
-  protected TrafficAssignmentBuilder trafficAssignmentBuilder;
+  protected TrafficAssignmentBuilder<?> trafficAssignmentBuilder;
 
   /**
    * Physical network to use
@@ -124,6 +134,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * create the traffic assignment builder for this traffic assignment
    * 
+   * @deprecated
    * @param trafficComponentCreateListener listener to register on all traffic assignment components that this builder can build
    * @param demands                        the demands this assignment works on
    * @param zoning                         the zoning this assignment works on
@@ -131,7 +142,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @return created traffic assignment builder
    * @throws PlanItException thrown if there is an error
    */
-  protected abstract TrafficAssignmentBuilder createTrafficAssignmentBuilder(InputBuilderListener trafficComponentCreateListener, Demands demands, Zoning zoning, PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException;
+  protected abstract TrafficAssignmentBuilder<?> createTrafficAssignmentBuilder(InputBuilderListener trafficComponentCreateListener, Demands demands, Zoning zoning, PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException;
 
   // Protected methods
 
@@ -252,7 +263,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
   /**
    * Each traffic assignment class can have its own builder which reveals what components need to be registered on the traffic assignment instance in order to function properly.
-   *
+   * 
+   * @deprecated
    * @param trafficComponentCreateListener, the listener should be registered on all traffic component factories the traffic assignment utilises
    * @param theDemands                      this assignment works on
    * @param theZoning                       this assignment works on
@@ -277,13 +289,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   public abstract void executeEquilibration() throws PlanItException;
 
-  /**
-   * Create the output type adapter for the current output type
-   *
-   * @param outputType the current output type
-   * @return the output type adapter corresponding to the current traffic assignment and output type
-   */
-  public abstract OutputTypeAdapter createOutputTypeAdapter(OutputType outputType);
 
   /**
    * Collect the current iteration index of the simulation
@@ -293,47 +298,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
   public abstract int getIterationIndex();
 
   // Public methods
-
-  /**
-   * Method that allows one to activate specific output types for persistence which is passed on to the output manager
-   *
-   * @param outputType OutputType object to be used
-   * @return outputTypeConfiguration the output type configuration that is now active
-   * @throws PlanItException thrown if there is an error activating the output
-   */
-  public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
-    OutputTypeConfiguration theOutputTypeConfiguration = null;
-    if (!isOutputTypeActive(outputType)) {
-      final OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(outputType);
-      outputManager.registerOutputTypeAdapter(outputType, outputTypeAdapter);
-      theOutputTypeConfiguration = outputManager.createAndRegisterOutputTypeConfiguration(outputType, this);
-    } else {
-      theOutputTypeConfiguration = outputManager.getOutputTypeConfiguration(outputType);
-    }
-    return theOutputTypeConfiguration;
-  }
-
-  /**
-   * Deactivate the specified output type
-   * 
-   * @param outputType the output type to be deactivated
-   */
-  public void deactivateOutput(final OutputType outputType) {
-    if (isOutputTypeActive(outputType)) {
-      outputManager.deregisterOutputTypeConfiguration(outputType);
-      outputManager.deregisterOutputTypeAdapter(outputType);
-    }
-  }
-
-  /**
-   * Verify if a given output type is active
-   * 
-   * @param outputType the output type to check if active
-   * @return true if active, false otherwise
-   */
-  public boolean isOutputTypeActive(final OutputType outputType) {
-    return outputManager.isOutputTypeActive(outputType);
-  }
 
   /**
    * Execute assignment, including initializing resources, running equilibration and then closing resources
@@ -365,20 +329,12 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Provide the output configuration for user access (via the output manager)
-   *
-   * @return outputConfiguration for this traffic assignment
-   */
-  public OutputConfiguration getOutputConfiguration() {
-    return outputManager.getOutputConfiguration();
-  }
-
-  /**
    * Set the Smoothing object for the current assignment
    *
    * @param smoothing Smoothing object for the current assignment
    */
   public void setSmoothing(final Smoothing smoothing) {
+    logRegisteredComponent(smoothing, true);    
     this.smoothing = smoothing;
   }
 
@@ -394,20 +350,21 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults() right after construction
    *
+   * @param gapfunction the gap function to set
+   */
+  public void setGapFunction(final GapFunction gapfunction) {
+    logRegisteredComponent(gapfunction, true);        
+    this.gapFunction = gapfunction;
+  }
+  
+  /**
+   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults() right after construction
+   *
    * @return gapFunction
    */
   public GapFunction getGapFunction() {
     return gapFunction;
-  }
-
-  /**
-   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults() right after construction
-   *
-   * @param gapfunction the gap function to set
-   */
-  public void setGapFunction(final GapFunction gapfunction) {
-    this.gapFunction = gapfunction;
-  }
+  }  
 
   /**
    * Set the PhysicalNetwork for the current assignment
@@ -415,6 +372,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param physicalNetwork the PhysicalNetwork object for the current assignment
    */
   public void setPhysicalNetwork(final PhysicalNetwork<?,?,?> physicalNetwork) {
+    logRegisteredComponent(physicalNetwork, true);    
     this.physicalNetwork = physicalNetwork;
   }
 
@@ -424,6 +382,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param demands the Demands object for the current assignment
    */
   public void setDemands(final Demands demands) {
+    logRegisteredComponent(demands, true);    
     this.demands = demands;
   }
 
@@ -433,6 +392,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param zoning the Zoning object for the current assignment
    */
   public void setZoning(final Zoning zoning) {
+    logRegisteredComponent(zoning, true);    
     this.zoning = zoning;
   }
 
@@ -456,22 +416,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Get the dynamic physical cost object for the current assignment
-   *
-   * @return the physical cost object for the current assignment
-   */
-  public PhysicalCost getPhysicalCost() {
-    return physicalCost;
-  }
-
-  /**
    * Set the physical cost where in case the cost is an InteractorAccessor will trigger an event to get access to the required data via requesting an InteractorAccessee
    *
    * @param physicalCost the physical cost object for the current assignment
    * @throws PlanItException thrown if there is an error
    */
   public void setPhysicalCost(final PhysicalCost physicalCost) throws PlanItException {
+    logRegisteredComponent(physicalCost, true);    
     this.physicalCost = physicalCost;
+    //TODO: move this to builder.build() when we have refactored to building of traffic assignment
     if (this.physicalCost instanceof InteractorAccessor) {
       // request an accessee instance that we can use to collect the relevant
       // information for the cost
@@ -481,6 +434,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
       PlanItException.throwIf(!listeners.containsKey(requestAccessee), "Error during setPhysicalCost");
     }
   }
+  
+  /**
+   * Get the dynamic physical cost object for the current assignment
+   *
+   * @return the physical cost object for the current assignment
+   */
+  public PhysicalCost getPhysicalCost() {
+    return physicalCost;
+  }  
 
   /**
    * Returns the virtual cost object for the current assignment
@@ -498,6 +460,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @throws PlanItException thrown if there is an error
    */
   public void setVirtualCost(final VirtualCost virtualCost) throws PlanItException {
+    logRegisteredComponent(virtualCost, true);    
     this.virtualCost = virtualCost;
     if (this.virtualCost instanceof InteractorAccessor) {
       // request an accessee instance that we can use to collect the relevant
@@ -506,37 +469,19 @@ public abstract class TrafficAssignment extends NetworkLoading {
       addRegisteredEventTypeListeners(requestAccesseeType);
       fireEvent(new Event(requestAccesseeType, this, this.virtualCost));
       if (!listeners.containsKey(requestAccesseeType)) {
-        String errorMessage = "Error during setVirtualCost";
-        throw new PlanItException(errorMessage);
+        throw new PlanItException("error during setVirtualCost");
       }
     }
   }
-
-  /**
-   * Register the output formatter on the assignment
-   *
-   * @param outputFormatter OutputFormatter to be registered
+  
+  /** Set the output manager which holds all the configuration options regarding this assignment
+   * @param outputManager
    */
-  public void registerOutputFormatter(final OutputFormatter outputFormatter) {
-    outputManager.registerOutputFormatter(outputFormatter);
-  }
-
-  /**
-   * Unregister an output formatter
-   * 
-   * @param outputFormatter the output formatter to be removed
-   */
-  public void unregisterOutputFormatter(final OutputFormatter outputFormatter) {
-    outputManager.unregisterOutputFormatter(outputFormatter);
-  }
-
-  /**
-   * Returns a list of output formatters registered on this assignment
-   *
-   * @return List of OutputFormatter objects registered on this assignment
-   */
-  public List<OutputFormatter> getOutputFormatters() {
-    return outputManager.getOutputFormatters();
+  public void setOutputManager(OutputManager outputManager) {
+    this.outputManager = outputManager;
+    //TODO: move all logging of components to one central place instead of in setters
+    outputManager.getOutputFormatters().forEach(of -> logRegisteredComponent(of, false));
+    outputManager.getRegisteredOutputTypeConfigurations().forEach( oc -> LOGGER.info(LoggingUtils.createRunIdPrefix(this.getId()) + "activated: OutputType." + oc.getOutputType()));
   }
 
 }

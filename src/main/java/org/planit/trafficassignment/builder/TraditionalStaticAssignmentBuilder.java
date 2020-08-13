@@ -1,14 +1,21 @@
 package org.planit.trafficassignment.builder;
 
-import org.planit.assignment.TrafficAssignment;
+import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
+import org.planit.output.adapter.OutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticPathOutputTypeAdapter;
+import org.planit.output.enums.OutputType;
 import org.planit.sdinteraction.smoothing.MSASmoothing;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.misc.LoggingUtils;
 
 /**
  * Builder for a traditional static assignment. It injects the following defaults into the underlying assignment instance:
@@ -24,22 +31,44 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder {
-
+public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder<TraditionalStaticAssignment> {
+  
+  /**
+   * Create the output type adapter for the current output type
+   *
+   * @param outputType the current output type
+   * @return the output type adapter corresponding to the current traffic assignment and output type
+   */
+  @Override
+  public OutputTypeAdapter createOutputTypeAdapter(final OutputType outputType) {
+    OutputTypeAdapter outputTypeAdapter = null;
+    switch (outputType) {
+    case LINK:
+      outputTypeAdapter = new TraditionalStaticAssignmentLinkOutputTypeAdapter(outputType, this);
+      break;
+    case OD:
+      outputTypeAdapter = new TraditionalStaticAssignmentODOutputTypeAdapter(outputType, this);
+      break;
+    case PATH:
+      outputTypeAdapter = new TraditionalStaticPathOutputTypeAdapter(outputType, this);
+      break;
+    default:
+      LOGGER.warning(LoggingUtils.createRunIdPrefix(getId()) + outputType.value() + " has not been defined yet.");
+    }
+    return outputTypeAdapter;
+  }  
+  
   /**
    * Constructor
-   * 
-   * @param parentAssignment               the parent assignment
-   * @param trafficComponentCreateListener the input builder
+   * @param projectToken id grouping token
    * @param demands                        the demands
    * @param zoning                         the zoning
    * @param physicalNetwork                the physical network
    * @throws PlanItException thrown if there is an error
    */
-  public TraditionalStaticAssignmentBuilder(final TrafficAssignment parentAssignment, final InputBuilderListener trafficComponentCreateListener, final Demands demands,
-      final Zoning zoning, final PhysicalNetwork physicalNetwork) throws PlanItException {
-    super(parentAssignment, trafficComponentCreateListener, demands, zoning, physicalNetwork);
-  }
+  protected TraditionalStaticAssignmentBuilder(IdGroupingToken projectToken, final Demands demands, final Zoning zoning, final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException{
+    super(projectToken, demands, zoning, physicalNetwork);
+  }  
 
   /**
    * Traditional static assignment has the following defaults set for it: - PhysicalCost: BPR - Virtualcost: FIXED - Smoothing: MSA - Gapfunction: LinkBasedRelativeDualityGap

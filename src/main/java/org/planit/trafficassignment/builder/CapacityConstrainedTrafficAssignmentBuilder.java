@@ -16,8 +16,8 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignmentBuilder {
-
+public class CapacityConstrainedTrafficAssignmentBuilder<T extends CapacityConstrainedAssignment> extends TrafficAssignmentBuilder<T> {
+  
   // FACTORIES
 
   /**
@@ -40,8 +40,8 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
    * @param physicalNetwork                the physical network
    * @throws PlanItException thrown if there is an error
    */
-  protected CapacityConstrainedTrafficAssignmentBuilder(final CapacityConstrainedAssignment capacityConstrainedAssignment,
-      final InputBuilderListener trafficComponentCreateListener, final Demands demands, final Zoning zoning, final PhysicalNetwork physicalNetwork) throws PlanItException {
+  protected CapacityConstrainedTrafficAssignmentBuilder(final T capacityConstrainedAssignment,
+      final InputBuilderListener trafficComponentCreateListener, final Demands demands, final Zoning zoning, final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException {
     super(capacityConstrainedAssignment, trafficComponentCreateListener, demands, zoning, physicalNetwork);
     fundamentalDiagramFactory = new TrafficAssignmentComponentFactory<FundamentalDiagram>(FundamentalDiagram.class);
     nodeModelFactory = new TrafficAssignmentComponentFactory<NodeModel>(NodeModel.class);
@@ -61,10 +61,11 @@ public class CapacityConstrainedTrafficAssignmentBuilder extends TrafficAssignme
    * @return FundamentalDiagram created
    * @throws PlanItException thrown if there is an error
    */
-  public FundamentalDiagram createAndRegisterFundamentalDiagram(final String fundamentalDiagramType, final PhysicalNetwork physicalNetwork) throws PlanItException {
+  public FundamentalDiagram createAndRegisterFundamentalDiagram(final String fundamentalDiagramType, final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException {
     final FundamentalDiagram createdFundamentalDiagram = fundamentalDiagramFactory.create(fundamentalDiagramType, new Object[] { parentAssignment.getIdGroupingtoken() },
         physicalNetwork);
-    ((CapacityConstrainedAssignment) parentAssignment).setFundamentalDiagram(createdFundamentalDiagram);
+    parentAssignment.setFundamentalDiagram(createdFundamentalDiagram);
+    configurator.registerDelayedSetter("setFundamentalDiagram", createdFundamentalDiagram);
     return createdFundamentalDiagram;
   }
 

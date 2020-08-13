@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.planit.assignment.TrafficAssignment;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
@@ -65,8 +64,8 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
    * @param trafficAssignment TrafficAssignment object whose results are to be reported
    * @throws PlanItException thrown if there is an error adding the default properties
    */
-  public LinkOutputTypeConfiguration(TrafficAssignment trafficAssignment) throws PlanItException {
-    super(trafficAssignment, OutputType.LINK);
+  public LinkOutputTypeConfiguration() throws PlanItException {
+    super(OutputType.LINK);
     addProperty(OutputProperty.LINK_SEGMENT_ID);
     addProperty(OutputProperty.LINK_SEGMENT_EXTERNAL_ID);
     addProperty(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID);

@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.planit.assignment.TrafficAssignment;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.PathOutputIdentificationType;
@@ -70,8 +69,8 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    * @param trafficAssignment TrafficAssignment object whose results are to be reported
    * @throws PlanItException thrown if there is an error adding the default properties
    */
-  public PathOutputTypeConfiguration(TrafficAssignment trafficAssignment) throws PlanItException {
-    super(trafficAssignment, OutputType.PATH);
+  public PathOutputTypeConfiguration() throws PlanItException {
+    super(OutputType.PATH);
     // add default output properties
     addProperty(OutputProperty.RUN_ID);
     addProperty(OutputProperty.PATH_ID);

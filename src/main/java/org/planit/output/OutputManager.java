@@ -52,16 +52,26 @@ public class OutputManager {
    * output configurations per output type
    */
   private Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations;
+  
+  /**
+   * Base constructor of Output writer
+   * 
+   */
+  public OutputManager() {
+    outputFormatters = new ArrayList<OutputFormatter>();
+    outputConfiguration = new OutputConfiguration();
+    outputTypeConfigurations = new HashMap<OutputType, OutputTypeConfiguration>();
+    //TODO: outputadapter not set because we do not have assignment yet FIX THIS
+  }  
 
   /**
    * Base constructor of Output writer
    * 
    * @param trafficAssignment the traffic assignment this output manager is managing for
+   * @deprecated
    */
   public OutputManager(TrafficAssignment trafficAssignment) {
-    outputFormatters = new ArrayList<OutputFormatter>();
-    outputConfiguration = new OutputConfiguration();
-    outputTypeConfigurations = new HashMap<OutputType, OutputTypeConfiguration>();
+    this();
     outputAdapter = new OutputAdapter(trafficAssignment);
   }
 
@@ -113,21 +123,20 @@ public class OutputManager {
    * Factory method to create an output configuration and adapter for a given type
    * 
    * @param outputType        the output type to register the configuration for
-   * @param trafficAssignment traffic assignment we are creating this configuration for
    * @return outputTypeconfiguration the output type configuration that has been newly registered
    * @throws PlanItException thrown if there is an error
    */
-  public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType, TrafficAssignment trafficAssignment) throws PlanItException {
+  public OutputTypeConfiguration createAndRegisterOutputTypeConfiguration(OutputType outputType) throws PlanItException {
     OutputTypeConfiguration createdOutputTypeConfiguration = null;
     switch (outputType) {
     case LINK:
-      createdOutputTypeConfiguration = new LinkOutputTypeConfiguration(trafficAssignment);
+      createdOutputTypeConfiguration = new LinkOutputTypeConfiguration();
       break;
     case OD:
-      createdOutputTypeConfiguration = new OriginDestinationOutputTypeConfiguration(trafficAssignment);
+      createdOutputTypeConfiguration = new OriginDestinationOutputTypeConfiguration();
       break;
     case PATH:
-      createdOutputTypeConfiguration = new PathOutputTypeConfiguration(trafficAssignment);
+      createdOutputTypeConfiguration = new PathOutputTypeConfiguration();
       break;
     default:
       LOGGER.warning(outputType.value() + " has not been defined yet.");

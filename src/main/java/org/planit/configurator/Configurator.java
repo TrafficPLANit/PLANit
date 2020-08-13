@@ -21,7 +21,7 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public abstract class Configurator<T> {
+public class Configurator<T> {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(Configurator.class.getCanonicalName());
@@ -40,7 +40,7 @@ public abstract class Configurator<T> {
     PlanItException.throwIf(parameters == null, "The parameters to collect signature for are null");
     Class<?>[] parameterTypes = new Class<?>[parameters.length];
     for (int index = 0; index < parameters.length; ++index) {
-      parameterTypes[index] = parameters.getClass();
+      parameterTypes[index] = parameters[index].getClass();
     }
     return parameterTypes;
   }
@@ -61,27 +61,44 @@ public abstract class Configurator<T> {
   protected void callVoidMethod(T instance, String methodName, Object... parameters)
       throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, PlanItException, NoSuchMethodException, SecurityException {
     PlanItException.throwIf(instance == null, "The instance to configure by calling " + methodName + " is not available");
-    Class<?>[] parameterTypes = collectParameterTypes(parameters);
-    Method method = instance.getClass().getDeclaredMethod(methodName, parameterTypes);
-    method.invoke(instance, parameters);
+    
+    // check if each parameter is assignable for the method at hand. first match we choose
+    for (Method method : instance.getClass().getMethods()) {
+      if (!method.getName().equals(methodName)) {
+          continue;
+      }
+      Class<?>[] parameterTypes = method.getParameterTypes();
+      boolean matches = true;
+      for (int i = 0; i < parameterTypes.length; i++) {
+          if (!parameterTypes[i].isAssignableFrom(parameters[i].getClass())) {
+              matches = false;
+              break;
+          }
+      }
+      if (matches) {
+          // obtain a Class[] based on the passed arguments as Object[]
+        method.invoke(instance,  parameters);
+        break;
+      }
+    }    
   }
 
+  /**
+   * Constructor
+   */
+  public Configurator() {
+    this.delayedMethodCalls = new HashMap<String, Object[]>();
+  }
+  
   /**
    * Register a method call to a setter that should be invoked on the to be configured object instance once it is available
    * 
    * @param methodName the method name
    * @param parameters the parameters of the method
    */
-  protected void registerDelayedSetter(String methodName, Object... parameters) {
+  public void registerDelayedSetter(String methodName, Object... parameters) {
     delayedMethodCalls.put(methodName, parameters);
-  }
-
-  /**
-   * Constructor
-   */
-  protected Configurator() {
-    this.delayedMethodCalls = new HashMap<String, Object[]>();
-  }
+  }  
 
   /**
    * Configure the passed in instance with the registered method calls

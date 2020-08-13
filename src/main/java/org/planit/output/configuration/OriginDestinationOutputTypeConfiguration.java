@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.planit.assignment.TrafficAssignment;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
@@ -65,11 +64,10 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
    * 
    * Define the default output properties here.
    * 
-   * @param trafficAssignment TrafficAssignment object whose results are to be reported
    * @throws PlanItException thrown if there is an error adding the default properties
    */
-  public OriginDestinationOutputTypeConfiguration(TrafficAssignment trafficAssignment) throws PlanItException {
-    super(trafficAssignment, OutputType.OD);
+  public OriginDestinationOutputTypeConfiguration() throws PlanItException {
+    super(OutputType.OD);
     // add default sub output types (OD - SKIM - COST);
     activeSubOutputTypes.add(ODSkimSubOutputType.COST);
     // add default output properties
