@@ -65,7 +65,7 @@ public class CapacityConstrainedTrafficAssignmentBuilder<T extends CapacityConst
     final FundamentalDiagram createdFundamentalDiagram = fundamentalDiagramFactory.create(fundamentalDiagramType, new Object[] { parentAssignment.getIdGroupingtoken() },
         physicalNetwork);
     parentAssignment.setFundamentalDiagram(createdFundamentalDiagram);
-    configurator.registerDelayedSetter("setFundamentalDiagram", createdFundamentalDiagram);
+    configurator.registerDelayedMethodCall("setFundamentalDiagram", createdFundamentalDiagram);
     return createdFundamentalDiagram;
   }
 

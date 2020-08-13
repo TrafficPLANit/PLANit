@@ -32,7 +32,7 @@ import org.planit.utils.misc.LoggingUtils;
  *
  */
 public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder<TraditionalStaticAssignment> {
-  
+
   /**
    * Create the output type adapter for the current output type
    *
@@ -56,30 +56,25 @@ public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder
       LOGGER.warning(LoggingUtils.createRunIdPrefix(getId()) + outputType.value() + " has not been defined yet.");
     }
     return outputTypeAdapter;
-  }  
-  
-  /**
-   * Constructor
-   * @param projectToken id grouping token
-   * @param demands                        the demands
-   * @param zoning                         the zoning
-   * @param physicalNetwork                the physical network
-   * @throws PlanItException thrown if there is an error
-   */
-  protected TraditionalStaticAssignmentBuilder(IdGroupingToken projectToken, final Demands demands, final Zoning zoning, final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException{
-    super(projectToken, demands, zoning, physicalNetwork);
-  }  
+  }
 
   /**
-   * Traditional static assignment has the following defaults set for it: - PhysicalCost: BPR - Virtualcost: FIXED - Smoothing: MSA - Gapfunction: LinkBasedRelativeDualityGap
+   * Constructor
+   * 
+   * @param projectToken    id grouping token
+   * @param inputBuilder    the inputBuilder
+   * @param demands         the demands
+   * @param zoning          the zoning
+   * @param physicalNetwork the physical network
+   * @throws PlanItException thrown if there is an error
    */
-  @Override
-  public void initialiseDefaults() throws PlanItException {
-    super.initialiseDefaults();
-    // add defaults for traditional static assignment
+  protected TraditionalStaticAssignmentBuilder(final IdGroupingToken projectToken, final InputBuilderListener inputBuilder, final Demands demands, final Zoning zoning,
+      final PhysicalNetwork<?, ?, ?> physicalNetwork) throws PlanItException {
+    super(TraditionalStaticAssignment.class, projectToken, inputBuilder, demands, zoning, physicalNetwork);
+
+    // initialise defaults
     this.createAndRegisterPhysicalCost(BPRLinkTravelTimeCost.class.getCanonicalName());
     this.createAndRegisterVirtualCost(FixedConnectoidTravelTimeCost.class.getCanonicalName());
     this.createAndRegisterSmoothing(MSASmoothing.class.getCanonicalName());
   }
-
 }

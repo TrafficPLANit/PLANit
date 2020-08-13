@@ -5,8 +5,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import org.planit.configurator.Configurator;
+import org.planit.utils.configurator.Configurator;
 import org.planit.utils.exceptions.PlanItException;
 
 /**

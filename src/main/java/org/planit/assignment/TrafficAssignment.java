@@ -1,7 +1,6 @@
 package org.planit.assignment;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -13,22 +12,15 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
-import org.planit.input.InputBuilderListener;
 import org.planit.interactor.InteractorAccessor;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
-import org.planit.output.adapter.OutputTypeAdapter;
-import org.planit.output.configuration.OutputConfiguration;
-import org.planit.output.configuration.OutputTypeConfiguration;
-import org.planit.output.enums.OutputType;
-import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
@@ -63,7 +55,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * Output manager deals with all the output configurations for the registered traffic assignments
    */
   private OutputManager outputManager;
-  
+
   /**
    * log registering an item on this traffic assignment
    * 
@@ -71,20 +63,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param register when true it signals activate, otherwise deactive
    */
   private void logRegisteredComponent(Object item, boolean register) {
-    LOGGER.info(LoggingUtils.createRunIdPrefix(parentAssignment.getId()) + LoggingUtils.activateItemByClassName(item, register));
-  }  
+    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.activateItemByClassName(item, register));
+  }
 
   // Protected
 
   /**
-   * The builder for all traffic assignment instances
-   */
-  protected TrafficAssignmentBuilder<?> trafficAssignmentBuilder;
-
-  /**
    * Physical network to use
    */
-  protected PhysicalNetwork<?,?,?> physicalNetwork;
+  protected PhysicalNetwork<?, ?, ?> physicalNetwork;
 
   /**
    * The transport network to use which is an adaptor around the physical network and the zoning
@@ -130,19 +117,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * Map storing InitialLinkSegmentCost objects for each time period
    */
   protected Map<TimePeriod, InitialLinkSegmentCost> initialLinkSegmentCostByTimePeriod;
-
-  /**
-   * create the traffic assignment builder for this traffic assignment
-   * 
-   * @deprecated
-   * @param trafficComponentCreateListener listener to register on all traffic assignment components that this builder can build
-   * @param demands                        the demands this assignment works on
-   * @param zoning                         the zoning this assignment works on
-   * @param physicalNetwork                the physical network this assignment works on
-   * @return created traffic assignment builder
-   * @throws PlanItException thrown if there is an error
-   */
-  protected abstract TrafficAssignmentBuilder<?> createTrafficAssignmentBuilder(InputBuilderListener trafficComponentCreateListener, Demands demands, Zoning zoning, PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException;
 
   // Protected methods
 
@@ -255,32 +229,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   public TrafficAssignment(IdGroupingToken groupId) {
     super(groupId);
-    outputManager = new OutputManager(this);
     initialLinkSegmentCostByTimePeriod = new HashMap<TimePeriod, InitialLinkSegmentCost>();
   }
 
   // Public abstract methods
-
-  /**
-   * Each traffic assignment class can have its own builder which reveals what components need to be registered on the traffic assignment instance in order to function properly.
-   * 
-   * @deprecated
-   * @param trafficComponentCreateListener, the listener should be registered on all traffic component factories the traffic assignment utilises
-   * @param theDemands                      this assignment works on
-   * @param theZoning                       this assignment works on
-   * @param thePhysicalNetwork              this assignment works on
-   * @return trafficAssignmentBuilder to use
-   * @throws PlanItException thrown if there is an error
-   */
-  public TrafficAssignmentBuilder collectBuilder(
-      final InputBuilderListener trafficComponentCreateListener, final Demands theDemands, final Zoning theZoning, final PhysicalNetwork<?,?,?> thePhysicalNetwork) throws PlanItException {
-    
-    if (this.trafficAssignmentBuilder == null) {
-      this.trafficAssignmentBuilder = createTrafficAssignmentBuilder(trafficComponentCreateListener, theDemands, theZoning, thePhysicalNetwork);
-    }
-    
-    return this.trafficAssignmentBuilder;
-  }
 
   /**
    * Run equilibration after resources initialized, including saving results
@@ -288,7 +240,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @throws PlanItException thrown if there is an error
    */
   public abstract void executeEquilibration() throws PlanItException;
-
 
   /**
    * Collect the current iteration index of the simulation
@@ -334,7 +285,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param smoothing Smoothing object for the current assignment
    */
   public void setSmoothing(final Smoothing smoothing) {
-    logRegisteredComponent(smoothing, true);    
+    logRegisteredComponent(smoothing, true);
     this.smoothing = smoothing;
   }
 
@@ -353,10 +304,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param gapfunction the gap function to set
    */
   public void setGapFunction(final GapFunction gapfunction) {
-    logRegisteredComponent(gapfunction, true);        
+    logRegisteredComponent(gapfunction, true);
     this.gapFunction = gapfunction;
   }
-  
+
   /**
    * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults() right after construction
    *
@@ -364,15 +315,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   public GapFunction getGapFunction() {
     return gapFunction;
-  }  
+  }
 
   /**
    * Set the PhysicalNetwork for the current assignment
    *
    * @param physicalNetwork the PhysicalNetwork object for the current assignment
    */
-  public void setPhysicalNetwork(final PhysicalNetwork<?,?,?> physicalNetwork) {
-    logRegisteredComponent(physicalNetwork, true);    
+  public void setPhysicalNetwork(final PhysicalNetwork<?, ?, ?> physicalNetwork) {
+    logRegisteredComponent(physicalNetwork, true);
     this.physicalNetwork = physicalNetwork;
   }
 
@@ -382,7 +333,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param demands the Demands object for the current assignment
    */
   public void setDemands(final Demands demands) {
-    logRegisteredComponent(demands, true);    
+    logRegisteredComponent(demands, true);
     this.demands = demands;
   }
 
@@ -392,7 +343,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param zoning the Zoning object for the current assignment
    */
   public void setZoning(final Zoning zoning) {
-    logRegisteredComponent(zoning, true);    
+    logRegisteredComponent(zoning, true);
     this.zoning = zoning;
   }
 
@@ -422,9 +373,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @throws PlanItException thrown if there is an error
    */
   public void setPhysicalCost(final PhysicalCost physicalCost) throws PlanItException {
-    logRegisteredComponent(physicalCost, true);    
+    logRegisteredComponent(physicalCost, true);
     this.physicalCost = physicalCost;
-    //TODO: move this to builder.build() when we have refactored to building of traffic assignment
+    // TODO: move this to builder.build() when we have refactored to building of traffic assignment
     if (this.physicalCost instanceof InteractorAccessor) {
       // request an accessee instance that we can use to collect the relevant
       // information for the cost
@@ -434,7 +385,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
       PlanItException.throwIf(!listeners.containsKey(requestAccessee), "Error during setPhysicalCost");
     }
   }
-  
+
   /**
    * Get the dynamic physical cost object for the current assignment
    *
@@ -442,7 +393,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   public PhysicalCost getPhysicalCost() {
     return physicalCost;
-  }  
+  }
 
   /**
    * Returns the virtual cost object for the current assignment
@@ -460,7 +411,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @throws PlanItException thrown if there is an error
    */
   public void setVirtualCost(final VirtualCost virtualCost) throws PlanItException {
-    logRegisteredComponent(virtualCost, true);    
+    logRegisteredComponent(virtualCost, true);
     this.virtualCost = virtualCost;
     if (this.virtualCost instanceof InteractorAccessor) {
       // request an accessee instance that we can use to collect the relevant
@@ -473,15 +424,17 @@ public abstract class TrafficAssignment extends NetworkLoading {
       }
     }
   }
-  
-  /** Set the output manager which holds all the configuration options regarding this assignment
+
+  /**
+   * Set the output manager which holds all the configuration options regarding this assignment
+   * 
    * @param outputManager
    */
   public void setOutputManager(OutputManager outputManager) {
     this.outputManager = outputManager;
-    //TODO: move all logging of components to one central place instead of in setters
+    // TODO: move all logging of components to one central place instead of in setters
     outputManager.getOutputFormatters().forEach(of -> logRegisteredComponent(of, false));
-    outputManager.getRegisteredOutputTypeConfigurations().forEach( oc -> LOGGER.info(LoggingUtils.createRunIdPrefix(this.getId()) + "activated: OutputType." + oc.getOutputType()));
+    outputManager.getRegisteredOutputTypeConfigurations().forEach(oc -> LOGGER.info(LoggingUtils.createRunIdPrefix(this.getId()) + "activated: OutputType." + oc.getOutputType()));
   }
 
 }

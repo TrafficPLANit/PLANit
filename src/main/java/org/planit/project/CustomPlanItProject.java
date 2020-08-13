@@ -23,7 +23,6 @@ import org.planit.project.PlanItProjectInput.ProjectDemands;
 import org.planit.project.PlanItProjectInput.ProjectNetworks;
 import org.planit.project.PlanItProjectInput.ProjectODPathSets;
 import org.planit.project.PlanItProjectInput.ProjectZonings;
-import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilderFactory;
@@ -44,7 +43,7 @@ public class CustomPlanItProject {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(CustomPlanItProject.class.getCanonicalName());
-  
+
   /**
    * Internal class for registered traffic assignments
    *
@@ -89,7 +88,7 @@ public class CustomPlanItProject {
      * @return first traffic assignment that is registered if none return null
      */
     public TrafficAssignmentBuilder<?> getFirstTrafficAssignmentBuilder() {
-      return hasRegisteredAssignmentBuilders() ? builders.iterator().next(): null;
+      return hasRegisteredAssignmentBuilders() ? builders.iterator().next() : null;
     }
 
     /**
@@ -98,74 +97,6 @@ public class CustomPlanItProject {
     @Override
     public Iterator<TrafficAssignmentBuilder<?>> iterator() {
       return builders.iterator();
-    }
-
-  }  
-
-  /**
-   * Internal class for registered traffic assignments
-   *
-   *@deprecated
-   */
-  public class ProjectAssignments implements Iterable<TrafficAssignment> {
-
-    /**
-     * The traffic assignment(s) registered on this project
-     */
-    protected final TreeMap<Long, TrafficAssignment> trafficAssignmentsMap = new TreeMap<Long, TrafficAssignment>();
-
-    /**
-     * add traffic assignment
-     * 
-     * @param trafficAssignment to add
-     */
-    protected void addTrafficAssignment(TrafficAssignment trafficAssignment) {
-      trafficAssignmentsMap.put(trafficAssignment.getId(), trafficAssignment);
-    }
-
-    /**
-     * Get traffic assignment by id
-     *
-     * @param id the id of the traffic assignment
-     * @return the retrieved assignment
-     */
-    public TrafficAssignment getTrafficAssignment(final long id) {
-      return trafficAssignmentsMap.get(id);
-    }
-
-    /**
-     * Get the number of traffic assignment
-     *
-     * @return the number of traffic assignment in the project
-     */
-    public int getNumberOfTrafficAssignments() {
-      return trafficAssignmentsMap.size();
-    }
-
-    /**
-     * Check if assignments have already been registered
-     *
-     * @return true if registered assignments exist, false otherwise
-     */
-    public boolean hasRegisteredAssignments() {
-      return !trafficAssignmentsMap.isEmpty();
-    }
-
-    /**
-     * Collect the first traffic assignment that is registered (if any). Otherwise return null
-     * 
-     * @return first traffic assignment that is registered if none return null
-     */
-    public TrafficAssignment getFirstTrafficAssignment() {
-      return hasRegisteredAssignments() ? trafficAssignmentsMap.firstEntry().getValue() : null;
-    }
-
-    /**
-     * iterable over registered traffic assignments
-     */
-    @Override
-    public Iterator<TrafficAssignment> iterator() {
-      return trafficAssignmentsMap.values().iterator();
     }
 
   }
@@ -196,17 +127,7 @@ public class CustomPlanItProject {
    */
   protected final TreeMap<Long, OutputFormatter> outputFormatters;
 
-
   // Protected methods
-
-  /**
-   * Instantiate the factories and register the event manager on them
-   *
-   */
-  protected void initialiseFactories() {
-    assignmentFactory = new TrafficAssignmentComponentFactory<NetworkLoading>(NetworkLoading.class);
-    assignmentFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
-  }
 
   /**
    * Execute a particular traffic assignment
@@ -243,9 +164,8 @@ public class CustomPlanItProject {
   public final ProjectODPathSets odPathSets;
 
   /**
-   * The registered assignments
+   * The registered assignment builders
    */
-  public final ProjectAssignments trafficAssignments = new ProjectAssignments();
   public final ProjectAssignmentBuilders assignmentBuilders = new ProjectAssignmentBuilders();
 
   // Public methods
@@ -271,8 +191,6 @@ public class CustomPlanItProject {
     this.zonings = inputs.zonings;
     this.odPathSets = inputs.odPathSets;
     this.outputFormatters = new TreeMap<Long, OutputFormatter>();
-
-    initialiseFactories();
   }
 
   /**
@@ -292,7 +210,7 @@ public class CustomPlanItProject {
    * @return the generated physical network
    * @throws PlanItException thrown if there is an error
    */
-  public PhysicalNetwork<?,?,?> createAndRegisterPhysicalNetwork(final String physicalNetworkType) throws PlanItException {
+  public PhysicalNetwork<?, ?, ?> createAndRegisterPhysicalNetwork(final String physicalNetworkType) throws PlanItException {
     return inputs.createAndRegisterPhysicalNetwork(physicalNetworkType);
   }
 
@@ -303,7 +221,7 @@ public class CustomPlanItProject {
    * @return the generated zoning object
    * @throws PlanItException thrown if there is an error
    */
-  public Zoning createAndRegisterZoning(final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException {
+  public Zoning createAndRegisterZoning(final PhysicalNetwork<?, ?, ?> physicalNetwork) throws PlanItException {
     return inputs.createAndRegisterZoning(physicalNetwork);
   }
 
@@ -315,7 +233,7 @@ public class CustomPlanItProject {
    * @return the generated demands object
    * @throws PlanItException thrown if there is an error
    */
-  public Demands createAndRegisterDemands(final Zoning zoning, final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException {
+  public Demands createAndRegisterDemands(final Zoning zoning, final PhysicalNetwork<?, ?, ?> physicalNetwork) throws PlanItException {
     return inputs.createAndRegisterDemands(zoning, physicalNetwork);
   }
 
@@ -328,7 +246,7 @@ public class CustomPlanItProject {
    * @return od path sets that have been parsed
    * @throws PlanItException thrown if there is an error
    */
-  public ODPathSets createAndRegisterOdPathSets(final PhysicalNetwork<?,?,?> physicalNetwork, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
+  public ODPathSets createAndRegisterOdPathSets(final PhysicalNetwork<?, ?, ?> physicalNetwork, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
     return inputs.createAndRegisterOdPathSets(physicalNetwork, zoning, odPathSetInputPath);
   }
 
@@ -366,7 +284,7 @@ public class CustomPlanItProject {
 //    // internals of the traffic assignment concrete class instance
 //    return trafficAssignmentBuilder;
 //  }
-  
+
   /**
    * Create and register a deterministic traffic assignment instance of a given type
    *
@@ -376,13 +294,17 @@ public class CustomPlanItProject {
    * @param thePhysicalNetwork    the physical network
    * @return the traffic assignment builder object
    * @throws PlanItException thrown if there is an error
-   */  
+   */
   public TrafficAssignmentBuilder<?> createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands, final Zoning theZoning,
-      final PhysicalNetwork<?,?,?> thePhysicalNetwork) throws PlanItException {   
-    TrafficAssignmentBuilder<?> taBuilder = TrafficAssignmentBuilderFactory.createBuilder(trafficAssignmentType, projectToken, theDemands, theZoning, thePhysicalNetwork);
+      final PhysicalNetwork<?, ?, ?> thePhysicalNetwork) throws PlanItException {
+    
+    TrafficAssignmentBuilder<?> taBuilder = 
+        TrafficAssignmentBuilderFactory.createBuilder(
+            trafficAssignmentType, projectToken, inputBuilderListener, theDemands, theZoning,thePhysicalNetwork);
     assignmentBuilders.addTrafficAssignmentBuilder(taBuilder);
+    
     return taBuilder;
-  }  
+  }
 
   /**
    * Create and register initial link segment costs from a (single) file which we assume are available in the native xml/csv output format as provided in this project
@@ -392,7 +314,7 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork<?,?,?> network, final String fileName) throws PlanItException {
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork<?, ?, ?> network, final String fileName) throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName);
   }
 
@@ -405,7 +327,7 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCostPeriod object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork<?,?,?> network, final String fileName, final TimePeriod timePeriod)
+  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork<?, ?, ?> network, final String fileName, final TimePeriod timePeriod)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
   }
@@ -419,7 +341,7 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCostPeriod objects
    * @throws PlanItException thrown if there is an error
    */
-  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork<?,?,?> network, final String fileName, final Demands demands)
+  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork<?, ?, ?> network, final String fileName, final Demands demands)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, demands);
   }
@@ -445,7 +367,7 @@ public class CustomPlanItProject {
    * @param network the specified physical network
    * @return the initial link segment costs for the specified physical network
    */
-  public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final PhysicalNetwork<?,?,?> network) {
+  public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final PhysicalNetwork<?, ?, ?> network) {
     return inputs.getInitialLinkSegmentCost(network);
   }
 
@@ -458,7 +380,7 @@ public class CustomPlanItProject {
   public OutputFormatter getOutputFormatter(final long id) {
     return outputFormatters.get(id);
   }
-  
+
   /**
    * Execute all registered traffic assignments
    *
@@ -469,7 +391,7 @@ public class CustomPlanItProject {
   public void executeAllTrafficAssignments() throws PlanItException {
     for (TrafficAssignmentBuilder<?> tab : assignmentBuilders) {
       try {
-        TrafficAssignment ta = tab.build(inputBuilderListener);
+        TrafficAssignment ta = tab.build();
         LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.activateItemByClassName(ta, true));
         LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.createRunIdPrefix(ta.getId()) + "assignment created");
         ta.execute();
@@ -477,6 +399,6 @@ public class CustomPlanItProject {
         LOGGER.severe(pe.getMessage());
       }
     }
-  }  
+  }
 
 }

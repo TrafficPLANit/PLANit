@@ -17,28 +17,18 @@ import org.planit.assignment.StaticTrafficAssignment;
 import org.planit.cost.Cost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
-import org.planit.demands.Demands;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
-import org.planit.input.InputBuilderListener;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
-import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
-import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odpath.ODPathMatrix;
-import org.planit.output.adapter.OutputTypeAdapter;
-import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapter;
-import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
-import org.planit.output.adapter.TraditionalStaticPathOutputTypeAdapter;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.path.Path;
 import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.builder.TraditionalStaticAssignmentBuilder;
-import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.utils.arrays.ArrayOperations;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
@@ -326,7 +316,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private boolean setModalLinkSegmentCostsToInitialCost(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
-    if (initialLinkSegmentCost==null || !initialLinkSegmentCost.isSegmentCostsSetForMode(mode)) {
+    if (initialLinkSegmentCost == null || !initialLinkSegmentCost.isSegmentCostsSetForMode(mode)) {
       return false;
     }
     setModalLinkSegmentCosts(mode, currentSegmentCosts, initialLinkSegmentCost);
@@ -334,8 +324,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   }
 
   /**
-   * Initialize the link segment costs from the InitialLinkSegmentCost of passed in time period. If there is no initial cost available for the timp eriod
-   * we set the default initial cost if it is present.
+   * Initialize the link segment costs from the InitialLinkSegmentCost of passed in time period. If there is no initial cost available for the timp eriod we set the default initial
+   * cost if it is present.
    *
    * This method is called during the first iteration of the simulation.
    *
@@ -347,7 +337,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    */
   private boolean setModalLinkSegmentCostsToInitialCost(final Mode mode, final TimePeriod timePeriod, final double[] currentSegmentCosts) throws PlanItException {
     final InitialLinkSegmentCost initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod);
-    if (initialLinkSegmentCostForTimePeriod==null || !initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
+    if (initialLinkSegmentCostForTimePeriod == null || !initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
       return setModalLinkSegmentCostsToInitialCost(mode, currentSegmentCosts);
     }
     InitialPhysicalCost initialTimePeriodCost = initialLinkSegmentCostByTimePeriod.get(timePeriod);
@@ -370,11 +360,11 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     populateModalConnectoidCosts(mode, currentSegmentCosts);
     if (setModalLinkSegmentCostsToInitialCost(mode, timePeriod, currentSegmentCosts)) {
       return currentSegmentCosts;
-    }    
+    }
     calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
     return currentSegmentCosts;
   }
-  
+
   /**
    * Recalculate the modal link segment costs after each iteration
    *
@@ -388,7 +378,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     populateModalConnectoidCosts(mode, currentSegmentCosts);
     calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
     return currentSegmentCosts;
-  }  
+  }
 
   /**
    * Set the link segment costs
@@ -455,15 +445,6 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       converged = dualityGapFunction.hasConverged(simulationData.getIterationIndex());
       getOutputManager().persistOutputData(timePeriod, modes, converged);
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected TrafficAssignmentBuilder createTrafficAssignmentBuilder(final InputBuilderListener trafficComponentCreateListener, final Demands demands, final Zoning zoning,
-      final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException {
-    return new TraditionalStaticAssignmentBuilder(this, trafficComponentCreateListener, demands, zoning, physicalNetwork);
   }
 
   /** {@inheritDoc} */
@@ -536,7 +517,6 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       }
     }
   }
-
 
   /**
    * Return the simulation data for the current iteration
