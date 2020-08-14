@@ -36,7 +36,8 @@ import org.planit.utils.exceptions.PlanItException;
 public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends Configurator<T> {
   
   /** the logger */
-  protected static final Logger LOGGER = Logger.getLogger(TrafficAssignmentConfigurator.class.getCanonicalName());
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentConfigurator.class.getCanonicalName());
   
   protected static final String SET_OUTPUT_MANAGER = "setOutputManager";
   

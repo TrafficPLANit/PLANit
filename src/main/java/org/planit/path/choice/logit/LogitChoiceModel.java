@@ -13,6 +13,11 @@ public abstract class LogitChoiceModel extends TrafficAssignmentComponent<LogitC
 
   /** generated UID */
   private static final long serialVersionUID = -4578323513280128464L;
+  
+  /**
+   * short hand for MNL class type
+   */
+  public static final String MNL = MultinomialLogit.class.getCanonicalName();
 
   /**
    * Constructor

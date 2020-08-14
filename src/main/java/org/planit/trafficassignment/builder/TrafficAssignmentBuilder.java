@@ -115,7 +115,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * 
    * @throws PlanItException  thrown if error
    */
-  private void buildSubComponents(T trafficAssignmentInstance) throws PlanItException {
+  protected void buildSubComponents(T trafficAssignmentInstance) throws PlanItException {
     TrafficAssignmentConfigurator<?> configurator = ((TrafficAssignmentConfigurator<?>)getConfigurator());
     // build its subcomponents via their own builders
     
@@ -184,7 +184,6 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
   /**
    * Build the traffic assignment
    * 
-   * @param inputBuilderListener which is registered for all traffic assignment components that are built in case they need to be configured by some external entity
    * @return traffic assignment instance that is built
    * @throws PlanItException thrown if error
    */

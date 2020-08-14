@@ -15,6 +15,11 @@ public class PathChoice extends TrafficAssignmentComponent<PathChoice> {
 
   /** generate UID */
   private static final long serialVersionUID = 6220514783786893944L;
+  
+  /**
+   * short for stochastic path choice type
+   */
+  public static final String STOCHASTIC = StochasticPathChoice.class.getCanonicalName();
 
   /**
    * Constructor

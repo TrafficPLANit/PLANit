@@ -2,11 +2,8 @@ package org.planit.path.choice;
 
 import java.util.logging.Logger;
 
-import org.planit.assignment.TrafficAssignmentComponentFactory;
-import org.planit.input.InputBuilderListener;
 import org.planit.od.odpath.ODPathMatrix;
 import org.planit.path.choice.logit.LogitChoiceModel;
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -26,11 +23,6 @@ public class StochasticPathChoice extends PathChoice {
   private static final Logger LOGGER = Logger.getLogger(StochasticPathChoice.class.getCanonicalName());
 
   /**
-   * logit choice model factory to create logit models to direct the probabilities of choosing paths
-   */
-  protected final TrafficAssignmentComponentFactory<LogitChoiceModel> logitChoiceModelFactory;
-
-  /**
    * The registered logit choice model
    */
   protected LogitChoiceModel logitChoiceModel = null;
@@ -46,22 +38,16 @@ public class StochasticPathChoice extends PathChoice {
    * @param groupId                        contiguous id generation within this group for instances of this class
    * @param trafficComponentCreateListener thelistener to fire notify of create events when we create a logit choice model
    */
-  public StochasticPathChoice(final IdGroupingToken groupId, final InputBuilderListener trafficComponentCreateListener) {
+  public StochasticPathChoice(final IdGroupingToken groupId) {
     super(groupId);
-    logitChoiceModelFactory = new TrafficAssignmentComponentFactory<LogitChoiceModel>(LogitChoiceModel.class);
-    logitChoiceModelFactory.addListener(trafficComponentCreateListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
   }
-
+  
   /**
-   * create and register the logit model of choice
-   * 
-   * @param canonicalName name of the class to be instantiated
-   * @return the logit choice model that is registered
-   * @throws PlanItException thrown if error
+   * set the chosen logit model 
+   * @param logitChoiceModel chosen model
    */
-  public LogitChoiceModel createAndRegisterLogitModel(final String canonicalName) throws PlanItException {
-    this.logitChoiceModel = logitChoiceModelFactory.create(canonicalName, new Object[] { groupId });
-    return this.logitChoiceModel;
+  public void setLogitModel(LogitChoiceModel logitChoiceModel) {
+    this.logitChoiceModel = logitChoiceModel;
   }
 
   /**
@@ -69,7 +55,7 @@ public class StochasticPathChoice extends PathChoice {
    *
    * @param odPathSet the fixed od path set in the shape of an od path matrix
    */
-  public void RegisterOdPathMatrix(final ODPathMatrix odPathSet) {
+  public void setOdPathMatrix(final ODPathMatrix odPathSet) {
     this.odPathSet = odPathSet;
   }
 

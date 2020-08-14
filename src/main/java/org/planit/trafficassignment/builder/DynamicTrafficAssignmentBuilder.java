@@ -8,7 +8,7 @@ import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.path.choice.PathChoice;
 import org.planit.path.choice.PathChoiceBuilder;
-import org.planit.sdinteraction.smoothing.Smoothing;
+import org.planit.path.choice.PathChoiceBuilderFactory;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
@@ -18,14 +18,43 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAssignment> extends CapacityConstrainedTrafficAssignmentBuilder<T> implements PathChoiceBuilder {
+public class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAssignment> extends CapacityConstrainedTrafficAssignmentBuilder<T> {
 
   // needed to allow path choice to register inputbuilder listener on its traffic components
   @SuppressWarnings("unused")
   private final InputBuilderListener trafficComponentCreateListener;
-
-  /** the path choice factory */
-  final protected TrafficAssignmentComponentFactory<PathChoice> pathChoiceFactory;
+  
+  /** create a path choice instance based on configuration
+   * 
+   * @return path choice instance
+   * @throws PlanItException thrown if error
+   */  
+  protected PathChoice createPathChoiceInstance(DynamicAssignmentConfigurator<? extends DynamicTrafficAssignment> configurator) throws PlanItException {
+    TrafficAssignmentComponentFactory<PathChoice> pathChoiceFactory = new TrafficAssignmentComponentFactory<PathChoice>(PathChoice.class);
+    pathChoiceFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);    
+    return pathChoiceFactory.create(configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
+  }    
+  
+  /**
+   * In addition to the super class sub components, we also construct the subcomponents specific to dynamic traffic assignment
+   * 
+   * @param trafficAssignmentInstance the instance to build on
+   */
+  protected void buildSubComponents(T trafficAssignmentInstance) throws PlanItException {  
+    super.buildSubComponents(trafficAssignmentInstance);
+    
+    DynamicAssignmentConfigurator<? extends DynamicTrafficAssignment> configurator = (DynamicAssignmentConfigurator<? extends DynamicTrafficAssignment>)getConfigurator();    
+    
+    /* path choice sub component...
+     * ...because it has sub components of its own, we must construct a builder for it instead of instantiating it directly here */
+    if(configurator.getPathChoice() != null) {      
+      PathChoiceBuilder<? extends PathChoice> pathChoiceBuilder = 
+          PathChoiceBuilderFactory.createBuilder(
+              configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(), getGroupIdToken(), getInputBuilderListener());
+      PathChoice pathChoice = pathChoiceBuilder.build();
+      trafficAssignmentInstance.setPathChoice(pathChoice);      
+    }
+  }
 
   /**
    * Constructor
@@ -40,34 +69,8 @@ public class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAssignment>
   public DynamicTrafficAssignmentBuilder(final T assignment, final InputBuilderListener trafficComponentCreateListener, final Demands demands,
       final Zoning zoning, final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException {
     super(assignment, trafficComponentCreateListener, demands, zoning, physicalNetwork);
-    this.trafficComponentCreateListener = trafficComponentCreateListener;
-    pathChoiceFactory = new TrafficAssignmentComponentFactory<PathChoice>(PathChoice.class);
+    this.trafficComponentCreateListener = trafficComponentCreateListener;    
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public PathChoice createAndRegisterPathChoice(final String pathChoiceType) throws PlanItException {
-    final PathChoice pathChoice = pathChoiceFactory.create(pathChoiceType, new Object[] { parentAssignment.getIdGroupingtoken() });
-    ((DynamicTrafficAssignment) parentAssignment).setPathChoice(pathChoice);
-    return pathChoice;
-  }
-
-  // PUBLIC FACTORY METHODS
-
-  /**
-   * Create and Register smoothing component
-   *
-   * @param smoothingType the type of smoothing component to be created
-   * @return Smoothing object created
-   * @throws PlanItException thrown if there is an error
-   */
-  @Override
-  public Smoothing createAndRegisterSmoothing(final String smoothingType) throws PlanItException {
-    final Smoothing smoothing = smoothingFactory.create(smoothingType, new Object[] { parentAssignment.getIdGroupingtoken() });
-    parentAssignment.setSmoothing(smoothing);
-    return smoothing;
-  }
+ 
 
 }
