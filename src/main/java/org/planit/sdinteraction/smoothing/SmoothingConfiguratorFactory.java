@@ -3,7 +3,7 @@ package org.planit.sdinteraction.smoothing;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
- * Traffic assignment builder factory for the smoothing types supported directory by PLANit
+ * factory for the smoothing configurator types supported directory by PLANit
  * 
  * @author markr
  *
@@ -13,7 +13,7 @@ public class SmoothingConfiguratorFactory {
   /**
    * Create a configurator for given smoothing type
    * 
-   * @param smoothingType   type of assignment the builder is created for
+   * @param smoothingType type of assignment the builder is created for
    * @return the created configurator
    * @throws PlanItException thrown if error
    */

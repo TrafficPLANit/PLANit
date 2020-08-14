@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import org.djutils.event.Event;
 import org.djutils.event.EventType;
+import org.planit.assignment.algorithmb.AlgorithmB;
 import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
@@ -129,14 +130,14 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param eventType the event type to register
    */
   protected abstract void addRegisteredEventTypeListeners(EventType eventType);
-  
+
   /**
    * Create the output type adapter for the current output type, specifically tailored towards the assignment type that we are builing
    *
    * @param outputType the current output type
    * @return the output type adapter corresponding to the current traffic assignment and output type
    */
-  protected abstract OutputTypeAdapter createOutputTypeAdapter(OutputType outputType);    
+  protected abstract OutputTypeAdapter createOutputTypeAdapter(OutputType outputType);
 
   /**
    * create the logging prefix for logging statements during equilibration
@@ -230,8 +231,14 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
   // Public
 
-  // short hand to choose traditional static assignment as assignment type
+  /** short hand to choose traditional static assignment as assignment type */
   public static String TRADITIONAL_STATIC_ASSIGNMENT = TraditionalStaticAssignment.class.getCanonicalName();
+
+  /** short hand to choose algorithmB as assignment type */
+  public static String ALGORITHM_B = AlgorithmB.class.getCanonicalName();
+
+  /** short hand to choose eLTM as assignment type */
+  public static String ELTM = org.planit.assignment.eltm.ELTM.class.getCanonicalName();
 
   /**
    * Constructor. Note that defaults that partly depend on derived classes are assumed to be invoked by the calling method via this.initialiseDefaults()
@@ -456,7 +463,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
     for (OutputTypeConfiguration otc : outputManager.getRegisteredOutputTypeConfigurations()) {
       final OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(otc.getOutputType());
       outputManager.registerOutputTypeAdapter(otc.getOutputType(), outputTypeAdapter);
-    } 
+    }
   }
 
 }

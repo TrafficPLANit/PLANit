@@ -4,7 +4,6 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
@@ -70,10 +69,10 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
   protected EdgeSegmentImpl(final IdGroupingToken groupId, final Edge parentEdge, final boolean directionAB) throws PlanItException {
     this.id = generateEdgeSegmentId(groupId);
     this.parentEdge = parentEdge;
-    if(!(parentEdge.getVertexA() instanceof DirectedVertex && parentEdge.getVertexB() instanceof DirectedVertex)){
-      throw new PlanItException(String.format("parent edges (id:%d) vertices do not support directed edge segments, they must be of type DirectedVertex",parentEdge.getId()));
+    if (!(parentEdge.getVertexA() instanceof DirectedVertex && parentEdge.getVertexB() instanceof DirectedVertex)) {
+      throw new PlanItException(String.format("parent edges (id:%d) vertices do not support directed edge segments, they must be of type DirectedVertex", parentEdge.getId()));
     }
-    this.upstreamVertex   = (DirectedVertex) (directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB());
+    this.upstreamVertex = (DirectedVertex) (directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB());
     this.downstreamVertex = (DirectedVertex) (directionAB ? parentEdge.getVertexB() : parentEdge.getVertexA());
   }
 
