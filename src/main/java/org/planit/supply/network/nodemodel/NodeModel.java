@@ -15,6 +15,11 @@ public abstract class NodeModel extends TrafficAssignmentComponent<NodeModel> im
 
   /** generated UID */
   private static final long serialVersionUID = -6966680588075724261L;
+  
+  /**
+   * Short hand for Tampere node model calss type
+   */
+  public static final String TAMPERE = TampereNodeModel.class.getCanonicalName();
 
   /**
    * Base constructor

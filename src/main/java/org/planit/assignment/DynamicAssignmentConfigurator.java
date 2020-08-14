@@ -1,6 +1,5 @@
-package org.planit.trafficassignment.builder;
+package org.planit.assignment;
 
-import org.planit.assignment.DynamicTrafficAssignment;
 import org.planit.path.choice.PathChoice;
 import org.planit.path.choice.PathChoiceConfigurator;
 import org.planit.path.choice.PathChoiceConfiguratorFactory;
@@ -12,7 +11,7 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class DynamicAssignmentConfigurator<T extends DynamicTrafficAssignment> extends TrafficAssignmentConfigurator<T> {
+public class DynamicAssignmentConfigurator<T extends DynamicTrafficAssignment> extends CapacityConstrainedTrafficAssignmentConfigurator<T> {
   
   /**
    * Nested configurator for path choice within this assignment

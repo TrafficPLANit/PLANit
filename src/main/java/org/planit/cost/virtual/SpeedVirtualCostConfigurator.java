@@ -1,7 +1,7 @@
 package org.planit.cost.virtual;
 
 /**
- * Configurator for FixedConnectoidTravelTimeCost implementation
+ * Configurator for SpeedConnectoidTravelTimeCost implementation
  * 
  * @author markr
  */

@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import org.planit.assignment.TrafficAssignmentComponentFactory;
 import org.planit.input.InputBuilderListener;
 import org.planit.path.choice.logit.LogitChoiceModel;
-import org.planit.utils.configurator.Configurator;
+import org.planit.utils.builder.Configurator;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 

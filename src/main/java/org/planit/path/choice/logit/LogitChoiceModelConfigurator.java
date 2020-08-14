@@ -1,6 +1,6 @@
 package org.planit.path.choice.logit;
 
-import org.planit.utils.configurator.Configurator;
+import org.planit.utils.builder.Configurator;
 import org.planit.utils.exceptions.PlanItException;
 
 /**

@@ -1,8 +1,8 @@
 package org.planit.assignment;
 
 import org.planit.input.InputBuilderListener;
+import org.planit.utils.builder.Builder;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.misc.Builder;
 
 /**
  * 

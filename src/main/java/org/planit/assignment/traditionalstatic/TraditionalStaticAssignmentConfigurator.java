@@ -1,6 +1,6 @@
-package org.planit.trafficassignment.builder;
+package org.planit.assignment.traditionalstatic;
 
-import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
+import org.planit.assignment.TrafficAssignmentConfigurator;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.sdinteraction.smoothing.MSASmoothing;

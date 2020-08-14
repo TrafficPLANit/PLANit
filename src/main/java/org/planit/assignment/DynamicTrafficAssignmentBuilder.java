@@ -1,7 +1,5 @@
-package org.planit.trafficassignment.builder;
+package org.planit.assignment;
 
-import org.planit.assignment.DynamicTrafficAssignment;
-import org.planit.assignment.TrafficAssignmentComponentFactory;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
@@ -10,6 +8,7 @@ import org.planit.path.choice.PathChoice;
 import org.planit.path.choice.PathChoiceBuilder;
 import org.planit.path.choice.PathChoiceBuilderFactory;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * A dynamic traffic assignment builder is assumed to only support capacity constrained traffic assignment instances. It is used to build the traffic assignment instance with the
@@ -18,7 +17,7 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAssignment> extends CapacityConstrainedTrafficAssignmentBuilder<T> {
+public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAssignment> extends CapacityConstrainedTrafficAssignmentBuilder<T> {
 
   // needed to allow path choice to register inputbuilder listener on its traffic components
   @SuppressWarnings("unused")
@@ -59,17 +58,24 @@ public class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAssignment>
   /**
    * Constructor
    *
-   * @param assignment                     the dynamic assignment
-   * @param trafficComponentCreateListener the listener for further traffic components that are created by the builder
+   * @param trafficAssignmentClass  the traffic assignment class we are building
+   * @param groupId the id generation group this builder is part of 
+   * @param inputBuilderListener the listener for further traffic components that are created by the builder
    * @param demands                        the demands
    * @param zoning                         the zoning
    * @param physicalNetwork                the physical network
    * @throws PlanItException thrown if there is an exception
    */
-  public DynamicTrafficAssignmentBuilder(final T assignment, final InputBuilderListener trafficComponentCreateListener, final Demands demands,
-      final Zoning zoning, final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException {
-    super(assignment, trafficComponentCreateListener, demands, zoning, physicalNetwork);
-    this.trafficComponentCreateListener = trafficComponentCreateListener;    
+  public DynamicTrafficAssignmentBuilder(
+      final Class<T> trafficAssignmentClass, 
+      IdGroupingToken groupId, 
+      final InputBuilderListener inputBuilderListener, 
+      final Demands demands, 
+      final Zoning zoning, 
+      final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException {
+    
+    super(trafficAssignmentClass, groupId, inputBuilderListener, demands, zoning, physicalNetwork);
+    this.trafficComponentCreateListener = inputBuilderListener;    
   }
  
 

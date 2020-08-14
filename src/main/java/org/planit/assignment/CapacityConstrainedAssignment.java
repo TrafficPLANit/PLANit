@@ -2,7 +2,6 @@ package org.planit.assignment;
 
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
-import org.planit.trafficassignment.builder.CapacityConstrainedTrafficAssignmentBuilder;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -17,11 +16,6 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
 
   /** generated UID */
   private static final long serialVersionUID = 2568729148299613377L;
-
-  /**
-   * The builder for all capacity constrained traffic assignment instances
-   */
-  protected CapacityConstrainedTrafficAssignmentBuilder capacityConstrainedBuilder;
 
   /**
    * Fundamental diagram to use

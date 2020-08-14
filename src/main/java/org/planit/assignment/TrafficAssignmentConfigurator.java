@@ -1,9 +1,8 @@
-package org.planit.trafficassignment.builder;
+package org.planit.assignment;
 
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.planit.assignment.TrafficAssignment;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.physical.PhysicalCostConfigurator;
 import org.planit.cost.physical.PhysicalCostConfiguratorFactory;
@@ -12,7 +11,10 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.cost.virtual.VirtualCostConfigurator;
 import org.planit.cost.virtual.VirtualCostConfiguratorFactory;
+import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
+import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
@@ -22,7 +24,7 @@ import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.sdinteraction.smoothing.SmoothingConfigurator;
 import org.planit.sdinteraction.smoothing.SmoothingConfiguratorFactory;
 import org.planit.time.TimePeriod;
-import org.planit.utils.configurator.Configurator;
+import org.planit.utils.builder.Configurator;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
@@ -48,6 +50,13 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   protected static final String SET_PHYSICAL_COST = "setPhysicalCost";
    
   protected static final String SET_INITIAL_LINK_SEGMENT_COST = "setInitialLinkSegmentCost";
+  
+  protected static final String SET_PHYSICAL_NETWORK = "setPhysicalNetwork";
+  
+  protected static final String SET_ZONING = "setZoning";
+  
+  protected static final String SET_DEMANDS = "setDemands";
+   
 
   /**
    * Output manager deals with all the output configurations for the registered traffic assignments
@@ -81,7 +90,59 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
     registerDelayedMethodCall(SET_OUTPUT_MANAGER, outputManager);    
   }
   
-  // PUBLIC FACTORY METHODS  
+  /**
+   * Set the network
+   * 
+   * @param network to set
+   */
+  public void setPhysicalNetwork(PhysicalNetwork<?, ?, ?> network) {
+    registerDelayedMethodCall(SET_PHYSICAL_NETWORK, network);    
+  }  
+  
+  /**
+   * collect the registered network
+   * 
+   * @return network
+   */
+  public PhysicalNetwork<?,?,?> getPhysicalNetwork() {
+    return (PhysicalNetwork<?, ?, ?>) getFirstParameterOfDelayedMethodCall(SET_PHYSICAL_NETWORK);
+  }
+  
+  /**
+   * Set the zoning
+   * 
+   * @param zoning to set
+   */
+  public void setZoning(Zoning zoning) {
+    registerDelayedMethodCall(SET_ZONING, zoning);    
+  }  
+  
+  /**
+   * collect the registered zoning
+   * 
+   * @return zoning
+   */
+  public Zoning getZoning() {
+    return (Zoning) getFirstParameterOfDelayedMethodCall(SET_ZONING);
+  }  
+  
+  /**
+   * Set the demands
+   * 
+   * @param demands to set
+   */
+  public void setDemands(Demands demands) {
+    registerDelayedMethodCall(SET_DEMANDS, demands);    
+  }  
+  
+  /**
+   * collect the registered demands
+   * 
+   * @return demands
+   */
+  public Demands getDemands() {
+    return (Demands) getFirstParameterOfDelayedMethodCall(SET_DEMANDS);
+  }    
 
   /**
    * Create and Register smoothing component
@@ -227,6 +288,15 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   public OutputConfiguration getOutputConfiguration() {
     return outputManager.getOutputConfiguration();
   }
+  
+  /**
+   * Provide the output type configuration for user access (if available)
+   *
+   * @return outputTypeConfiguration for this traffic assignment, null if not available
+   */
+  public OutputTypeConfiguration getOutputTypeConfiguration(final OutputType outputType) {
+    return outputManager.getOutputTypeConfiguration(outputType);
+  }  
   
   /** Set the gap function for this assignment
    * @param theGapFunction

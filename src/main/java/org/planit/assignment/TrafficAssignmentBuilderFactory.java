@@ -1,6 +1,6 @@
-package org.planit.trafficassignment.builder;
+package org.planit.assignment;
 
-import org.planit.assignment.TrafficAssignment;
+import org.planit.assignment.traditionalstatic.TraditionalStaticAssignmentBuilder;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;

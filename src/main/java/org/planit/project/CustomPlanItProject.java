@@ -8,8 +8,11 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
+import org.planit.assignment.TrafficAssignmentBuilder;
+import org.planit.assignment.TrafficAssignmentBuilderFactory;
 import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.assignment.TrafficAssignmentComponentFactory;
+import org.planit.assignment.TrafficAssignmentConfigurator;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.demands.Demands;
@@ -24,9 +27,6 @@ import org.planit.project.PlanItProjectInput.ProjectNetworks;
 import org.planit.project.PlanItProjectInput.ProjectODPathSets;
 import org.planit.project.PlanItProjectInput.ProjectZonings;
 import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
-import org.planit.trafficassignment.builder.TrafficAssignmentBuilderFactory;
-import org.planit.trafficassignment.builder.TrafficAssignmentConfigurator;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -250,41 +250,6 @@ public class CustomPlanItProject {
   public ODPathSets createAndRegisterOdPathSets(final PhysicalNetwork<?, ?, ?> physicalNetwork, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
     return inputs.createAndRegisterOdPathSets(physicalNetwork, zoning, odPathSetInputPath);
   }
-
-//  /**
-//   * Create and register a deterministic traffic assignment instance of a given type
-//   *
-//   * @param trafficAssignmentType the class name of the traffic assignment type object to be created
-//   * @param theDemands            the demands
-//   * @param theZoning             the zoning
-//   * @param thePhysicalNetwork    the physical network
-//   * @return the traffic assignment builder object
-//   * @throws PlanItException thrown if there is an error
-//   */
-//  public TrafficAssignmentBuilder<?> createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands, final Zoning theZoning,
-//      final PhysicalNetwork<?,?,?> thePhysicalNetwork) throws PlanItException {
-//
-//    final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentType, new Object[] { projectToken });
-//    PlanItException.throwIf(!(networkLoadingAndAssignment instanceof TrafficAssignment), "not a valid traffic assignment type");
-//
-//    final TrafficAssignment trafficAssignment = (TrafficAssignment) networkLoadingAndAssignment;
-//    LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.activateItemByClassName(trafficAssignment, true));
-//    LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.createRunIdPrefix(trafficAssignment.getId()) + "assignment registered");
-//
-//    final TrafficAssignmentBuilder trafficAssignmentBuilder = trafficAssignment.collectBuilder(inputBuilderListener, theDemands, theZoning, thePhysicalNetwork);
-//
-//    // now initialize it, since initialization depends on the concrete class we
-//    // cannot do this on the constructor of the superclass nor
-//    // can we do it in the derived constructors as some components are the same
-//    // across assignments and we want to avoid duplicate code
-//    trafficAssignmentBuilder.initialiseDefaults();
-//    trafficAssignments.addTrafficAssignment(trafficAssignment);
-//    // do not allow direct access to the traffic assignment component. Instead,
-//    // provide the traffic assignment builder object which is dedicated to providing
-//    // all the configuration options relevant to the end user while hiding any
-//    // internals of the traffic assignment concrete class instance
-//    return trafficAssignmentBuilder;
-//  }
 
   /**
    * Create and register a deterministic traffic assignment instance of a given type

@@ -1,11 +1,11 @@
-package org.planit.trafficassignment.builder;
+package org.planit.assignment.traditionalstatic;
 
-import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
+import org.planit.assignment.TrafficAssignmentBuilder;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
-import org.planit.utils.configurator.Configurator;
+import org.planit.utils.builder.Configurator;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 
@@ -47,7 +47,7 @@ public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder
    * @param physicalNetwork the physical network
    * @throws PlanItException thrown if there is an error
    */
-  protected TraditionalStaticAssignmentBuilder(final IdGroupingToken projectToken, final InputBuilderListener inputBuilder, final Demands demands, final Zoning zoning,
+  public TraditionalStaticAssignmentBuilder(final IdGroupingToken projectToken, final InputBuilderListener inputBuilder, final Demands demands, final Zoning zoning,
       final PhysicalNetwork<?, ?, ?> physicalNetwork) throws PlanItException {
     super(TraditionalStaticAssignment.class, projectToken, inputBuilder, demands, zoning, physicalNetwork);
   }

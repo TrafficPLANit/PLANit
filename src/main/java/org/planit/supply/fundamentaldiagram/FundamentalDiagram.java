@@ -15,6 +15,11 @@ public abstract class FundamentalDiagram extends TrafficAssignmentComponent<Fund
 
   /** generated UID */
   private static final long serialVersionUID = 5815100111048623093L;
+  
+  /**
+   * short hand for NEwell fundamental diagram class type
+   */
+  public static final String NEWELL = NewellFundamentalDiagram.class.getCanonicalName();
 
   /**
    * Base constructor

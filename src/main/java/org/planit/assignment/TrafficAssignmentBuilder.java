@@ -1,10 +1,7 @@
-package org.planit.trafficassignment.builder;
+package org.planit.assignment;
 
 import java.util.logging.Logger;
 
-import org.planit.assignment.TrafficAssignment;
-import org.planit.assignment.TrafficAssignmentComponentFactory;
-import org.planit.assignment.TrafficComponentBuilder;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.demands.Demands;
@@ -58,9 +55,12 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
         }
       }
     }
-    getConfigurator().registerDelayedMethodCall("setPhysicalNetwork", network);
-    getConfigurator().registerDelayedMethodCall("setZoning", zoning);
-    getConfigurator().registerDelayedMethodCall("setDemands", demands);
+    
+    // register on configurator
+    TrafficAssignmentConfigurator<? extends TrafficAssignment> configurator = ((TrafficAssignmentConfigurator<? extends TrafficAssignment>) getConfigurator());    
+    configurator.setPhysicalNetwork(network);
+    configurator.setZoning(zoning);
+    configurator.setDemands(demands);
   }
      
   /**

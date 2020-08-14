@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.djutils.event.EventType;
 import org.planit.assignment.StaticTrafficAssignment;
+import org.planit.assignment.TrafficAssignmentBuilder;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
@@ -12,7 +13,6 @@ import org.planit.network.virtual.Zoning;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.enums.OutputType;
 import org.planit.time.TimePeriod;
-import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Mode;
@@ -31,6 +31,7 @@ public class AlgorithmB extends StaticTrafficAssignment {
   private static final long serialVersionUID = 3187519479500384861L;
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(AlgorithmB.class.getCanonicalName());
 
   /** equilibration functionality for Algorithm B */
@@ -46,12 +47,6 @@ public class AlgorithmB extends StaticTrafficAssignment {
     equilibration = new AlgorithmBEquilibration(this, this.getOutputManager());
   }
 
-  @Override
-  protected TrafficAssignmentBuilder createTrafficAssignmentBuilder(InputBuilderListener trafficComponentCreateListener, Demands demands, Zoning zoning,
-      PhysicalNetwork physicalNetwork) throws PlanItException {
-    // TODO Auto-generated method stub
-    return null;
-  }
 
   @Override
   protected void addRegisteredEventTypeListeners(EventType eventType) {
