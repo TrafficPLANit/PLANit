@@ -26,6 +26,7 @@ import org.planit.project.PlanItProjectInput.ProjectZonings;
 import org.planit.time.TimePeriod;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilder;
 import org.planit.trafficassignment.builder.TrafficAssignmentBuilderFactory;
+import org.planit.trafficassignment.builder.TrafficAssignmentConfigurator;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -292,10 +293,10 @@ public class CustomPlanItProject {
    * @param theDemands            the demands
    * @param theZoning             the zoning
    * @param thePhysicalNetwork    the physical network
-   * @return the traffic assignment builder object
+   * @return the traffic assignment configurator object
    * @throws PlanItException thrown if there is an error
    */
-  public TrafficAssignmentBuilder<?> createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands, final Zoning theZoning,
+  public TrafficAssignmentConfigurator<? extends TrafficAssignment> createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands, final Zoning theZoning,
       final PhysicalNetwork<?, ?, ?> thePhysicalNetwork) throws PlanItException {
     
     TrafficAssignmentBuilder<?> taBuilder = 
@@ -303,7 +304,12 @@ public class CustomPlanItProject {
             trafficAssignmentType, projectToken, inputBuilderListener, theDemands, theZoning,thePhysicalNetwork);
     assignmentBuilders.addTrafficAssignmentBuilder(taBuilder);
     
-    return taBuilder;
+    /* unconventional but useful in our context:
+     * the configuration of the builder is exposed via its configurator. This ensures that the end user
+     * remains unaware of the builder pattern, but instead simply configures a proxy. The builder in turn
+     * is built from within the project leveraging the configuration that the user interacted with
+     */    
+    return (TrafficAssignmentConfigurator<? extends TrafficAssignment>) taBuilder.getConfigurator();
   }
 
   /**

@@ -13,6 +13,7 @@ import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticPathOutputTypeAdapter;
 import org.planit.output.enums.OutputType;
 import org.planit.sdinteraction.smoothing.MSASmoothing;
+import org.planit.utils.configurator.Configurator;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
@@ -34,29 +35,15 @@ import org.planit.utils.misc.LoggingUtils;
 public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder<TraditionalStaticAssignment> {
 
   /**
-   * Create the output type adapter for the current output type
-   *
-   * @param outputType the current output type
-   * @return the output type adapter corresponding to the current traffic assignment and output type
+   * the user will configure this builder via this configurator
+   * 
+   * @return TraditionalStaticAssignmentConfigurator instance
    */
   @Override
-  public OutputTypeAdapter createOutputTypeAdapter(final OutputType outputType) {
-    OutputTypeAdapter outputTypeAdapter = null;
-    switch (outputType) {
-    case LINK:
-      outputTypeAdapter = new TraditionalStaticAssignmentLinkOutputTypeAdapter(outputType, this);
-      break;
-    case OD:
-      outputTypeAdapter = new TraditionalStaticAssignmentODOutputTypeAdapter(outputType, this);
-      break;
-    case PATH:
-      outputTypeAdapter = new TraditionalStaticPathOutputTypeAdapter(outputType, this);
-      break;
-    default:
-      LOGGER.warning(LoggingUtils.createRunIdPrefix(getId()) + outputType.value() + " has not been defined yet.");
-    }
-    return outputTypeAdapter;
+  protected Configurator<TraditionalStaticAssignment> createConfigurator() {
+    return new TraditionalStaticAssignmentConfigurator(TraditionalStaticAssignment.class);
   }
+
 
   /**
    * Constructor

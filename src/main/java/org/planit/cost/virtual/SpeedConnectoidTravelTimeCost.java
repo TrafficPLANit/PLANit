@@ -59,7 +59,7 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
    * 
    * @param connectoidSpeed the speed
    */
-  public void setConnectiodSpeed(final double connectoidSpeed) {
+  public void setConnectoidSpeed(final double connectoidSpeed) {
     this.connectoidSpeed = connectoidSpeed;
   }
 

@@ -61,6 +61,11 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
     // currently no specific initialization needed
   }
 
+  /**
+   * set the fixed cost used for all relevant link segments
+   * 
+   * @param fixedConnectoidCost the fixed cost to use
+   */
   public void setFixedConnectoidCost(final double fixedConnectoidCost) {
     this.fixedConnectoidCost = fixedConnectoidCost;
   }

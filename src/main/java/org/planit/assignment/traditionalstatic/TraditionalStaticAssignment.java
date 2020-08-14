@@ -25,6 +25,10 @@ import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odpath.ODPathMatrix;
+import org.planit.output.adapter.OutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
+import org.planit.output.adapter.TraditionalStaticPathOutputTypeAdapter;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.path.Path;
@@ -403,6 +407,31 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       currentSegmentCosts[(int) linkSegment.getId()] = currentSegmentCost;
     }
   }
+  
+  /**
+   * Create the output type adapter for the current output type
+   *
+   * @param outputType the current output type
+   * @return the output type adapter corresponding to the current traffic assignment and output type
+   */
+  @Override
+  public OutputTypeAdapter createOutputTypeAdapter(final OutputType outputType) {
+    OutputTypeAdapter outputTypeAdapter = null;
+    switch (outputType) {
+    case LINK:
+      outputTypeAdapter = new TraditionalStaticAssignmentLinkOutputTypeAdapter(outputType, this);
+      break;
+    case OD:
+      outputTypeAdapter = new TraditionalStaticAssignmentODOutputTypeAdapter(outputType, this);
+      break;
+    case PATH:
+      outputTypeAdapter = new TraditionalStaticPathOutputTypeAdapter(outputType, this);
+      break;
+    default:
+      LOGGER.warning(LoggingUtils.createRunIdPrefix(getId()) + outputType.value() + " has not been defined yet.");
+    }
+    return outputTypeAdapter;
+  }  
 
   /**
    * Perform assignment for a given time period using Dijkstra's algorithm

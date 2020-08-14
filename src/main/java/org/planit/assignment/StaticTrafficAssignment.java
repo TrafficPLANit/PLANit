@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.planit.output.adapter.OutputTypeAdapter;
+import org.planit.output.enums.OutputType;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
@@ -26,16 +28,16 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(StaticTrafficAssignment.class.getCanonicalName());
-
+    
   /**
-   * Constructor
+   * Execute the time period for the registered modes
    * 
-   * @param groupId for id generation
+   * @param timePeriod to execute
+   * @param modes      to consider
+   * @throws PlanItException thrown if error
    */
-  public StaticTrafficAssignment(IdGroupingToken groupId) {
-    super(groupId);
-  }
-
+  protected abstract void executeTimePeriod(final TimePeriod timePeriod, final Set<Mode> modes) throws PlanItException;  
+  
   /**
    * Perform assignment for a given time period
    *
@@ -47,16 +49,17 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
     final Calendar initialStartTime = startTime;
     executeTimePeriod(timePeriod, demands.getRegisteredModesForTimePeriod(timePeriod));
     LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
-  }
+  }  
 
   /**
-   * Execute the time period for the registered modes
+   * Constructor
    * 
-   * @param timePeriod to execute
-   * @param modes      to consider
-   * @throws PlanItException thrown if error
+   * @param groupId for id generation
    */
-  protected abstract void executeTimePeriod(final TimePeriod timePeriod, final Set<Mode> modes) throws PlanItException;
+  protected StaticTrafficAssignment(IdGroupingToken groupId) {
+    super(groupId);
+  }
+
 
   /**
    * Execute equilibration over all time periods and modes
