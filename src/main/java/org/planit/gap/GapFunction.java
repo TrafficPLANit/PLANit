@@ -14,10 +14,14 @@ public abstract class GapFunction {
   protected final StopCriterion stopCriterion;
 
   /**
+   * short code for link based relative duality gap function type
+   */
+  public static final String LINK_BASED_RELATIVE_GAP = LinkBasedRelativeDualityGapFunction.class.getCanonicalName();
+
+  /**
    * Constructor
    * 
-   * @param stopCriterion
-   *          the StopCriterion object to be used
+   * @param stopCriterion the StopCriterion object to be used
    */
   public GapFunction(StopCriterion stopCriterion) {
     this.stopCriterion = stopCriterion;

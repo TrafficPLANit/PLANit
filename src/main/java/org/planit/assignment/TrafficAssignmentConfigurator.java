@@ -13,6 +13,7 @@ import org.planit.cost.virtual.VirtualCostConfigurator;
 import org.planit.cost.virtual.VirtualCostConfiguratorFactory;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
+import org.planit.gap.GapFunctionConfigurator;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
@@ -28,56 +29,95 @@ import org.planit.utils.builder.Configurator;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
- * Configurator class for traffic assignment. Hides builder pattern from user while allowing for easy way to configure an assignment without
- * having actual access to it.
+ * Configurator class for traffic assignment. Hides builder pattern from user while allowing for easy way to configure an assignment without having actual access to it.
  * 
  * @author markr
  *
  * @param <T>
  */
 public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends Configurator<T> {
-  
+
   /** the logger */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(TrafficAssignmentConfigurator.class.getCanonicalName());
-  
+
   protected static final String SET_OUTPUT_MANAGER = "setOutputManager";
-  
-  protected static final String SET_GAP_FUNCTION= "setGapFunction";
-  
-  protected static final String SET_VIRTUAL_COST= "setVirtualCost";
-   
+
+  protected static final String SET_GAP_FUNCTION = "setGapFunction";
+
+  protected static final String SET_VIRTUAL_COST = "setVirtualCost";
+
   protected static final String SET_PHYSICAL_COST = "setPhysicalCost";
-   
+
   protected static final String SET_INITIAL_LINK_SEGMENT_COST = "setInitialLinkSegmentCost";
-  
+
   protected static final String SET_PHYSICAL_NETWORK = "setPhysicalNetwork";
-  
+
   protected static final String SET_ZONING = "setZoning";
-  
+
   protected static final String SET_DEMANDS = "setDemands";
-   
 
   /**
    * Output manager deals with all the output configurations for the registered traffic assignments
    */
-  private final OutputManager outputManager;  
-  
+  private final OutputManager outputManager;
+
   /**
    * Nested configurator for smoothing within this assignment
    */
   private SmoothingConfigurator<? extends Smoothing> smoothingConfigurator = null;
-  
+
   /**
    * Nested configurator for physical cost within this assignment
    */
   private PhysicalCostConfigurator<? extends PhysicalCost> physicalCostConfigurator = null;
-  
+
   /**
    * Nested configurator for virtual cost within this assignment
    */
-  private VirtualCostConfigurator<? extends VirtualCost> virtualCostConfigurator = null;  
-  
+  private VirtualCostConfigurator<? extends VirtualCost> virtualCostConfigurator = null;
+
+  /**
+   * Nested configurator for vgap function within this assignment
+   */
+  private GapFunctionConfigurator<? extends GapFunction> gapFunctionConfigurator = null;
+
+  /**
+   * Set the gap function configurator for this assignment
+   * 
+   * @param theGapFunction
+   */
+  protected void setGapFunction(GapFunctionConfigurator<? extends GapFunction> gapFunctionConfigurator) {
+    this.gapFunctionConfigurator = gapFunctionConfigurator;
+  }
+
+  /**
+   * Set the network
+   * 
+   * @param network to set
+   */
+  protected void setPhysicalNetwork(PhysicalNetwork<?, ?, ?> network) {
+    registerDelayedMethodCall(SET_PHYSICAL_NETWORK, network);
+  }
+
+  /**
+   * Set the zoning
+   * 
+   * @param zoning to set
+   */
+  protected void setZoning(Zoning zoning) {
+    registerDelayedMethodCall(SET_ZONING, zoning);
+  }
+
+  /**
+   * Set the demands
+   * 
+   * @param demands to set
+   */
+  protected void setDemands(Demands demands) {
+    registerDelayedMethodCall(SET_DEMANDS, demands);
+  }
+
   /**
    * Constructor
    * 
@@ -85,38 +125,20 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    */
   public TrafficAssignmentConfigurator(Class<T> instanceType) {
     super(instanceType);
-    
+
     this.outputManager = new OutputManager();
-    registerDelayedMethodCall(SET_OUTPUT_MANAGER, outputManager);    
+    registerDelayedMethodCall(SET_OUTPUT_MANAGER, outputManager);
   }
-  
-  /**
-   * Set the network
-   * 
-   * @param network to set
-   */
-  public void setPhysicalNetwork(PhysicalNetwork<?, ?, ?> network) {
-    registerDelayedMethodCall(SET_PHYSICAL_NETWORK, network);    
-  }  
-  
+
   /**
    * collect the registered network
    * 
    * @return network
    */
-  public PhysicalNetwork<?,?,?> getPhysicalNetwork() {
+  public PhysicalNetwork<?, ?, ?> getPhysicalNetwork() {
     return (PhysicalNetwork<?, ?, ?>) getFirstParameterOfDelayedMethodCall(SET_PHYSICAL_NETWORK);
   }
-  
-  /**
-   * Set the zoning
-   * 
-   * @param zoning to set
-   */
-  public void setZoning(Zoning zoning) {
-    registerDelayedMethodCall(SET_ZONING, zoning);    
-  }  
-  
+
   /**
    * collect the registered zoning
    * 
@@ -124,17 +146,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    */
   public Zoning getZoning() {
     return (Zoning) getFirstParameterOfDelayedMethodCall(SET_ZONING);
-  }  
-  
-  /**
-   * Set the demands
-   * 
-   * @param demands to set
-   */
-  public void setDemands(Demands demands) {
-    registerDelayedMethodCall(SET_DEMANDS, demands);    
-  }  
-  
+  }
+
   /**
    * collect the registered demands
    * 
@@ -142,7 +155,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    */
   public Demands getDemands() {
     return (Demands) getFirstParameterOfDelayedMethodCall(SET_DEMANDS);
-  }    
+  }
 
   /**
    * Create and Register smoothing component
@@ -152,10 +165,10 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @throws PlanItException thrown if there is an error
    */
   public SmoothingConfigurator<? extends Smoothing> createAndRegisterSmoothing(final String smoothingType) throws PlanItException {
-    smoothingConfigurator= SmoothingConfiguratorFactory.createConfigurator(smoothingType);
+    smoothingConfigurator = SmoothingConfiguratorFactory.createConfigurator(smoothingType);
     return smoothingConfigurator;
   }
-  
+
   /**
    * Create and register physical link cost function to determine travel time
    *
@@ -288,7 +301,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   public OutputConfiguration getOutputConfiguration() {
     return outputManager.getOutputConfiguration();
   }
-  
+
   /**
    * Provide the output type configuration for user access (if available)
    *
@@ -296,22 +309,15 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    */
   public OutputTypeConfiguration getOutputTypeConfiguration(final OutputType outputType) {
     return outputManager.getOutputTypeConfiguration(outputType);
-  }  
-  
-  /** Set the gap function for this assignment
-   * @param theGapFunction
-   */
-  public void setGapFunction(GapFunction theGapFunction) {    
-    registerDelayedMethodCall(SET_GAP_FUNCTION, theGapFunction);
-  }    
+  }
 
   /**
    * Collect the gap function of the trafficAssignment instance
    *
    * @return gapFunction
    */
-  public GapFunction getGapFunction() {
-    return (GapFunction) getFirstParameterOfDelayedMethodCall(SET_GAP_FUNCTION);
+  public GapFunctionConfigurator<? extends GapFunction> getGapFunction() {
+    return this.gapFunctionConfigurator;
   }
 
   /**
@@ -340,6 +346,5 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   public SmoothingConfigurator<? extends Smoothing> getSmoothing() {
     return smoothingConfigurator;
   }
-
 
 }
