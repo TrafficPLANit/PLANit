@@ -75,7 +75,9 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
   @SuppressWarnings("unchecked")
   protected T createTrafficAssignmentInstance() throws PlanItException {
     String trafficAssignmentClassName = getClassToBuild().getCanonicalName();
+
     TrafficAssignmentComponentFactory<TrafficAssignment> assignmentFactory = new TrafficAssignmentComponentFactory<TrafficAssignment>(NetworkLoading.class.getCanonicalName());
+    assignmentFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentClassName, new Object[] { groupId });
     PlanItException.throwIf(!(networkLoadingAndAssignment instanceof TrafficAssignment), "not a valid traffic assignment type");
     return (T) networkLoadingAndAssignment;

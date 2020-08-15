@@ -183,7 +183,7 @@ public class CustomPlanItProject {
     this.projectToken = IdGenerator.createIdGroupingToken(this, this.id);
 
     this.inputBuilderListener = inputBuilderListener;
-    LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.activateItemByClassName(inputBuilderListener, true));
+    LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.logActiveStateByClassName(inputBuilderListener, true));
 
     // connect inputs
     this.inputs = new PlanItProjectInput(this.id, projectToken, inputBuilderListener);
@@ -261,19 +261,17 @@ public class CustomPlanItProject {
    * @return the traffic assignment configurator object
    * @throws PlanItException thrown if there is an error
    */
-  public TrafficAssignmentConfigurator<? extends TrafficAssignment> createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands, final Zoning theZoning,
-      final PhysicalNetwork<?, ?, ?> thePhysicalNetwork) throws PlanItException {
-    
-    TrafficAssignmentBuilder<?> taBuilder = 
-        TrafficAssignmentBuilderFactory.createBuilder(
-            trafficAssignmentType, projectToken, inputBuilderListener, theDemands, theZoning,thePhysicalNetwork);
+  public TrafficAssignmentConfigurator<? extends TrafficAssignment> createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands,
+      final Zoning theZoning, final PhysicalNetwork<?, ?, ?> thePhysicalNetwork) throws PlanItException {
+
+    TrafficAssignmentBuilder<?> taBuilder = TrafficAssignmentBuilderFactory.createBuilder(trafficAssignmentType, projectToken, inputBuilderListener, theDemands, theZoning,
+        thePhysicalNetwork);
     assignmentBuilders.addTrafficAssignmentBuilder(taBuilder);
-    
-    /* unconventional but useful in our context:
-     * the configuration of the builder is exposed via its configurator. This ensures that the end user
-     * remains unaware of the builder pattern, but instead simply configures a proxy. The builder in turn
-     * is built from within the project leveraging the configuration that the user interacted with
-     */    
+
+    /*
+     * unconventional but useful in our context: the configuration of the builder is exposed via its configurator. This ensures that the end user remains unaware of the builder
+     * pattern, but instead simply configures a proxy. The builder in turn is built from within the project leveraging the configuration that the user interacted with
+     */
     return (TrafficAssignmentConfigurator<? extends TrafficAssignment>) taBuilder.getConfigurator();
   }
 
@@ -360,15 +358,26 @@ public class CustomPlanItProject {
    * @throws PlanItException required for subclasses which override this method and generate an exception before the runs start
    */
   public void executeAllTrafficAssignments() throws PlanItException {
+    Set<TrafficAssignment> failedAssignments = new HashSet<TrafficAssignment>();
     for (TrafficAssignmentBuilder<?> tab : assignmentBuilders) {
+      TrafficAssignment ta = null;
       try {
-        TrafficAssignment ta = tab.build();
-        LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.activateItemByClassName(ta, true));
+        ta = tab.build();
+        LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.logActiveStateByClassName(ta, true));
         LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.createRunIdPrefix(ta.getId()) + "assignment created");
         ta.execute();
       } catch (final PlanItException pe) {
         LOGGER.severe(pe.getMessage());
+        if (ta != null) {
+          failedAssignments.add(ta);
+        }
       }
+    }
+
+    if (!failedAssignments.isEmpty()) {
+      String failedAssignmentessage = "the following assignments failed:";
+      failedAssignments.forEach(ta -> failedAssignmentessage.concat(" ").concat(String.valueOf(ta.getId())));
+      throw new PlanItException(failedAssignmentessage);
     }
   }
 

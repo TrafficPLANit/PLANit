@@ -119,7 +119,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
   private T createTrafficComponent(final String trafficAssignmentComponentClassName, final Object[] constructorParameters) throws PlanItException {
     final TreeSet<String> eligibleComponentTypes = registeredTrafficAssignmentComponents.get(componentSuperTypeCanonicalName);
     PlanItException.throwIf(eligibleComponentTypes == null || !eligibleComponentTypes.contains(trafficAssignmentComponentClassName),
-        "Provided Traffic Assignment Component class is not eligible for construction");
+        "provided Traffic Assignment Component class is not eligible for construction");
 
     Object instance = ReflectionUtils.createInstance(trafficAssignmentComponentClassName, constructorParameters);
     PlanItException.throwIf(!(instance instanceof TrafficAssignmentComponent<?>),
@@ -137,7 +137,8 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
    */
   private void dispatchTrafficComponentEvent(final T newTrafficComponent, final Object[] parameters) throws PlanItException {
     fireEvent(new org.djutils.event.Event(TRAFFICCOMPONENT_CREATE, this, new Object[] { newTrafficComponent, parameters }));
-    PlanItException.throwIf(!listeners.containsKey(TRAFFICCOMPONENT_CREATE), "Error during dispatchTrafficComponentEvent");
+    PlanItException.throwIf(!listeners.containsKey(TRAFFICCOMPONENT_CREATE),
+        String.format("error during dispatchTrafficComponentEvent for %s", newTrafficComponent.getClass().getCanonicalName()));
   }
 
   // PUBLIC

@@ -67,7 +67,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param register when true it signals activate, otherwise deactive
    */
   private void logRegisteredComponent(Object item, boolean register) {
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.activateItemByClassName(item, register));
+    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.logActiveStateByClassName(item, register));
   }
 
   // Protected
