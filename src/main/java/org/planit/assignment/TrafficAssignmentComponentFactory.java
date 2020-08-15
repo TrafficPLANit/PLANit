@@ -118,10 +118,14 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
   @SuppressWarnings("unchecked")
   private T createTrafficComponent(final String trafficAssignmentComponentClassName, final Object[] constructorParameters) throws PlanItException {
     final TreeSet<String> eligibleComponentTypes = registeredTrafficAssignmentComponents.get(componentSuperTypeCanonicalName);
-    PlanItException.throwIf(!eligibleComponentTypes.contains(trafficAssignmentComponentClassName), "Provided Traffic Assignment Component class is not eligible for construction");
-    Object instance = ReflectionUtils.createInstance(trafficAssignmentComponentClassName, constructorParameters);  
-    PlanItException.throwIf(!(instance instanceof TrafficAssignmentComponent<?>), "provided factory class is not eligible for construction since it is not derived from TrafficAssignmentComponent<?>");    
-    return (T)instance;
+    PlanItException.throwIf(eligibleComponentTypes == null || !eligibleComponentTypes.contains(trafficAssignmentComponentClassName),
+        "Provided Traffic Assignment Component class is not eligible for construction");
+
+    Object instance = ReflectionUtils.createInstance(trafficAssignmentComponentClassName, constructorParameters);
+    PlanItException.throwIf(!(instance instanceof TrafficAssignmentComponent<?>),
+        "provided factory class is not eligible for construction since it is not derived from TrafficAssignmentComponent<?>");
+
+    return (T) instance;
   }
 
   /**
@@ -139,29 +143,28 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
   // PUBLIC
 
   /**
-   * Constructor. Here we make sure it is a type that extends the traffic assignment component class. We do not do so generally on the class level since
-   * this might lead to conflicts when the class has generic arguments itself which leads to issues (that I have not been able to solve). In the latter case use the other
-   * constructor which gets around this problem by simply providing the canoncial class name corresponding to type T
+   * Constructor. Here we make sure it is a type that extends the traffic assignment component class. We do not do so generally on the class level since this might lead to
+   * conflicts when the class has generic arguments itself which leads to issues (that I have not been able to solve). In the latter case use the other constructor which gets
+   * around this problem by simply providing the canoncial class name corresponding to type T
    *
    * @param componentSuperType super type for this factory
    */
-  public <U extends TrafficAssignmentComponent<U> & Serializable > TrafficAssignmentComponentFactory(final Class<U> componentSuperType) {
+  public <U extends TrafficAssignmentComponent<U> & Serializable> TrafficAssignmentComponentFactory(final Class<U> componentSuperType) {
     this.componentSuperTypeCanonicalName = componentSuperType.getCanonicalName();
   }
-  
+
   /**
    * Constructor.
    * 
-   * Use this constructor when the component super type that you use is not compatible with Class<T>, for example because the super type itself
-   * uses generics, i.e., T<U,V>, in which case the default constructor does not work. Make sure however, that the provided canonical class name is compatible with
-   * T, i.e., it must extend from TrafficAssigmentComponent<T>
+   * Use this constructor when the component super type that you use is not compatible with Class<T>, for example because the super type itself uses generics, i.e., T<U,V>, in
+   * which case the default constructor does not work. Make sure however, that the provided canonical class name is compatible with T, i.e., it must extend from
+   * TrafficAssigmentComponent<T>
    *
    * @param componentSuperType super type's canonical class name for this factory which should be the same as Class<T>.getCanonicalName()
    */
   public TrafficAssignmentComponentFactory(String componentSuperTypeCanonicalName) {
     this.componentSuperTypeCanonicalName = componentSuperTypeCanonicalName;
-  }  
-  
+  }
 
   /**
    * Register a component type that one can choose for the given traffic component
@@ -173,8 +176,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
     Class<?> currentClass = trafficAssignmentComponent;
     while (currentClass != null) {
       final Type currentSuperClass = currentClass.getGenericSuperclass();
-      if (  currentSuperClass instanceof ParameterizedType && 
-            ((ParameterizedType) currentSuperClass).getRawType() == TrafficAssignmentComponent.class) {
+      if (currentSuperClass instanceof ParameterizedType && ((ParameterizedType) currentSuperClass).getRawType() == TrafficAssignmentComponent.class) {
         // superclass is a trafficAssignmentComponent class, so the current class is the
         // class that we need
         // register by collecting the component entry and placing the component
