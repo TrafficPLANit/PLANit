@@ -123,9 +123,9 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @return gap function instance
    * @throws PlanItException thrown if error
    */
-  protected GapFunction createGapFunctionInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
+  protected GapFunction createGapFunctionInstance(TrafficAssignmentConfigurator<?> configurator, StopCriterion stopCriterion) throws PlanItException {
     PlanItException.throwIf(!(configurator.getGapFunction() instanceof LinkBasedRelativeGapConfigurator), "invalid gap function chosen");
-    return new LinkBasedRelativeDualityGapFunction(new StopCriterion());
+    return new LinkBasedRelativeDualityGapFunction(stopCriterion);
   }
 
   /**
@@ -160,7 +160,16 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
 
     // gap function
     if (configurator.getGapFunction() != null) {
-      GapFunction gapFunction = createGapFunctionInstance(configurator);
+
+      // stop criterion
+      // TODO: technically should be handled by the gap function having a builder of its own
+      // yet, the stop criterion is the only sub component and it will likely be moved,
+      // also there is only one stop criterion available at present. Therefore, we construct
+      // it here instead for now.
+      StopCriterion stopCriterion = new StopCriterion();
+      configurator.getGapFunction().getStopCriterion().configure(stopCriterion);
+
+      GapFunction gapFunction = createGapFunctionInstance(configurator, stopCriterion);
       configurator.getGapFunction().configure(gapFunction);
       trafficAssignmentInstance.setGapFunction(gapFunction);
     }

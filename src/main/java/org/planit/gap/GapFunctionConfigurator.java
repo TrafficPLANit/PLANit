@@ -13,12 +13,18 @@ import org.planit.utils.exceptions.PlanItException;
 public class GapFunctionConfigurator<T extends GapFunction> extends Configurator<T> {
 
   /**
+   * the configurator for the stop critetion
+   */
+  protected final StopCriterionConfigurator stopCriterionConfigurator;
+
+  /**
    * Constructor
    * 
    * @param instanceType to configure on
    */
   public GapFunctionConfigurator(Class<T> instanceType) {
     super(instanceType);
+    this.stopCriterionConfigurator = new StopCriterionConfigurator();
   }
 
   /**
@@ -30,6 +36,15 @@ public class GapFunctionConfigurator<T extends GapFunction> extends Configurator
   @Override
   public void configure(GapFunction gapFunction) throws PlanItException {
     super.configure((T) gapFunction);
+  }
+
+  /**
+   * Return the StopCriterion object
+   * 
+   * @return StopCriterion object being used
+   */
+  public StopCriterionConfigurator getStopCriterion() {
+    return stopCriterionConfigurator;
   }
 
 }
