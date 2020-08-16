@@ -14,6 +14,7 @@ import org.planit.gap.StopCriterion;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
+import org.planit.output.OutputManager;
 import org.planit.output.enums.OutputType;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
@@ -64,6 +65,24 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     configurator.setPhysicalNetwork(network);
     configurator.setZoning(zoning);
     configurator.setDemands(demands);
+  }
+
+  /**
+   * create the output manager and register it on the configurator to activate it on assignment when built
+   */
+  private void createOutputManager() {
+    TrafficAssignmentConfigurator<? extends TrafficAssignment> configurator = ((TrafficAssignmentConfigurator<? extends TrafficAssignment>) getConfigurator());
+    configurator.setOutputManager(new OutputManager());
+  }
+
+  /**
+   * create the output (type) adapters for the given assignment
+   * 
+   * @param trafficAssignment the assignment we are creating the adapters for
+   */
+  private void initialiseOutputAdapters(T trafficAssignment) {
+    TrafficAssignmentConfigurator<? extends TrafficAssignment> configurator = ((TrafficAssignmentConfigurator<? extends TrafficAssignment>) getConfigurator());
+    configurator.getOutputManager().initialiseOutputAdapters(trafficAssignment);
   }
 
   /**
@@ -211,6 +230,9 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     /* register inputs (on configurator) */
     registerDemandZoningAndNetwork(demands, zoning, physicalNetwork);
 
+    /* create an output manager for this assignment */
+    createOutputManager();
+
     /* register gap function (on configurator) */
     createGapFunction();
 
@@ -236,7 +258,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     getConfigurator().configure(trafficAssignment);
 
     /* information is now present to generate appropriate output type adapters (requires output manager which now has been set */
-    trafficAssignment.createOutputTypeAdapters();
+    initialiseOutputAdapters(trafficAssignment);
 
     return trafficAssignment;
   }

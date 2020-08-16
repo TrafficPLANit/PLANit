@@ -34,7 +34,7 @@ public class ELTM extends DynamicTrafficAssignment {
   }
 
   @Override
-  protected OutputTypeAdapter createOutputTypeAdapter(OutputType outputType) {
+  public OutputTypeAdapter createOutputTypeAdapter(OutputType outputType) {
     // TODO Auto-generated method stub
     return null;
   }

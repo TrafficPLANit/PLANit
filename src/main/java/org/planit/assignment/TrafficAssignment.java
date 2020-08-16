@@ -20,7 +20,6 @@ import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
 import org.planit.output.adapter.OutputTypeAdapter;
-import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.OutputType;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
@@ -130,14 +129,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param eventType the event type to register
    */
   protected abstract void addRegisteredEventTypeListeners(EventType eventType);
-
-  /**
-   * Create the output type adapter for the current output type, specifically tailored towards the assignment type that we are builing
-   *
-   * @param outputType the current output type
-   * @return the output type adapter corresponding to the current traffic assignment and output type
-   */
-  protected abstract OutputTypeAdapter createOutputTypeAdapter(OutputType outputType);
 
   /**
    * create the logging prefix for logging statements during equilibration
@@ -251,6 +242,14 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   // Public abstract methods
+
+  /**
+   * Create the output type adapter for the current output type, specifically tailored towards the assignment type that we are builing
+   *
+   * @param outputType the current output type
+   * @return the output type adapter corresponding to the current traffic assignment and output type
+   */
+  public abstract OutputTypeAdapter createOutputTypeAdapter(OutputType outputType);
 
   /**
    * Run equilibration after resources initialized, including saving results
@@ -453,17 +452,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
     // TODO: move all logging of components to one central place instead of in setters
     outputManager.getOutputFormatters().forEach(of -> logRegisteredComponent(of, false));
     outputManager.getRegisteredOutputTypeConfigurations().forEach(oc -> LOGGER.info(LoggingUtils.createRunIdPrefix(this.getId()) + "activated: OutputType." + oc.getOutputType()));
-  }
-
-  /**
-   * Based on the activate output configurations, the relevant output type adapters are created internally for the implementation we're representing
-   */
-  public void createOutputTypeAdapters() {
-    // for all output types --> create the adapters and register them on the manager
-    for (OutputTypeConfiguration otc : outputManager.getRegisteredOutputTypeConfigurations()) {
-      final OutputTypeAdapter outputTypeAdapter = createOutputTypeAdapter(otc.getOutputType());
-      outputManager.registerOutputTypeAdapter(otc.getOutputType(), outputTypeAdapter);
-    }
   }
 
 }

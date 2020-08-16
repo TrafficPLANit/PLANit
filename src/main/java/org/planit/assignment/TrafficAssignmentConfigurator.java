@@ -58,11 +58,6 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   protected static final String SET_DEMANDS = "setDemands";
 
   /**
-   * Output manager deals with all the output configurations for the registered traffic assignments
-   */
-  private final OutputManager outputManager;
-
-  /**
    * Nested configurator for smoothing within this assignment
    */
   private SmoothingConfigurator<? extends Smoothing> smoothingConfigurator = null;
@@ -119,15 +114,30 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   }
 
   /**
+   * Set the output manager
+   * 
+   * @param outputManager
+   */
+  protected void setOutputManager(OutputManager outputManager) {
+    registerDelayedMethodCall(SET_OUTPUT_MANAGER, outputManager);
+  }
+
+  /**
+   * Collect the registered output manager
+   * 
+   * @return outputManager
+   */
+  protected OutputManager getOutputManager() {
+    return (OutputManager) getFirstParameterOfDelayedMethodCall(SET_OUTPUT_MANAGER);
+  }
+
+  /**
    * Constructor
    * 
    * @param instanceType the class type of the instance we are configuring
    */
   public TrafficAssignmentConfigurator(Class<T> instanceType) {
     super(instanceType);
-
-    this.outputManager = new OutputManager();
-    registerDelayedMethodCall(SET_OUTPUT_MANAGER, outputManager);
   }
 
   /**
@@ -200,7 +210,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @throws PlanItException thrown if there is an error or validation failure during setup of the output formatter
    */
   public void registerOutputFormatter(final OutputFormatter outputFormatter) throws PlanItException {
-    outputManager.registerOutputFormatter(outputFormatter);
+    getOutputManager().registerOutputFormatter(outputFormatter);
   }
 
   /**
@@ -212,7 +222,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @throws PlanItException thrown if there is an error during removal of the output formatter
    */
   public void unregisterOutputFormatter(final OutputFormatter outputFormatter) throws PlanItException {
-    outputManager.unregisterOutputFormatter(outputFormatter);
+    getOutputManager().unregisterOutputFormatter(outputFormatter);
   }
 
   /**
@@ -221,7 +231,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @return List of OutputFormatter objects registered on this assignment
    */
   public List<OutputFormatter> getOutputFormatters() {
-    return outputManager.getOutputFormatters();
+    return getOutputManager().getOutputFormatters();
   }
 
   /**
@@ -265,9 +275,9 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    */
   public OutputTypeConfiguration activateOutput(final OutputType outputType) throws PlanItException {
     if (!isOutputTypeActive(outputType)) {
-      return outputManager.createAndRegisterOutputTypeConfiguration(outputType);
+      return getOutputManager().createAndRegisterOutputTypeConfiguration(outputType);
     } else {
-      return outputManager.getOutputTypeConfiguration(outputType);
+      return getOutputManager().getOutputTypeConfiguration(outputType);
     }
   }
 
@@ -278,8 +288,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    */
   public void deactivateOutput(final OutputType outputType) {
     if (isOutputTypeActive(outputType)) {
-      outputManager.deregisterOutputTypeConfiguration(outputType);
-      outputManager.deregisterOutputTypeAdapter(outputType);
+      getOutputManager().deregisterOutputTypeConfiguration(outputType);
+      getOutputManager().deregisterOutputTypeAdapter(outputType);
     }
   }
 
@@ -290,7 +300,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @return true if active, false otherwise
    */
   public boolean isOutputTypeActive(final OutputType outputType) {
-    return outputManager.isOutputTypeActive(outputType);
+    return getOutputManager().isOutputTypeActive(outputType);
   }
 
   /**
@@ -299,7 +309,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @return outputConfiguration for this traffic assignment
    */
   public OutputConfiguration getOutputConfiguration() {
-    return outputManager.getOutputConfiguration();
+    return getOutputManager().getOutputConfiguration();
   }
 
   /**
@@ -308,7 +318,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @return outputTypeConfiguration for this traffic assignment, null if not available
    */
   public OutputTypeConfiguration getOutputTypeConfiguration(final OutputType outputType) {
-    return outputManager.getOutputTypeConfiguration(outputType);
+    return getOutputManager().getOutputTypeConfiguration(outputType);
   }
 
   /**

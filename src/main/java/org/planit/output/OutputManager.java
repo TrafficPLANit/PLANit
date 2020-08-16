@@ -52,7 +52,7 @@ public class OutputManager {
    * output configurations per output type
    */
   private Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations;
-  
+
   /**
    * Base constructor of Output writer
    * 
@@ -61,18 +61,6 @@ public class OutputManager {
     outputFormatters = new ArrayList<OutputFormatter>();
     outputConfiguration = new OutputConfiguration();
     outputTypeConfigurations = new HashMap<OutputType, OutputTypeConfiguration>();
-    //TODO: outputadapter not set because we do not have assignment yet FIX THIS
-  }  
-
-  /**
-   * Base constructor of Output writer
-   * 
-   * @param trafficAssignment the traffic assignment this output manager is managing for
-   * @deprecated
-   */
-  public OutputManager(TrafficAssignment trafficAssignment) {
-    this();
-    outputAdapter = new OutputAdapter(trafficAssignment);
   }
 
   /**
@@ -122,7 +110,7 @@ public class OutputManager {
   /**
    * Factory method to create an output configuration and adapter for a given type
    * 
-   * @param outputType        the output type to register the configuration for
+   * @param outputType the output type to register the configuration for
    * @return outputTypeconfiguration the output type configuration that has been newly registered
    * @throws PlanItException thrown if there is an error
    */
@@ -160,11 +148,10 @@ public class OutputManager {
   /**
    * Register the OutputTypeAdapter for a given output type
    * 
-   * @param outputType        the output type to register the output type adapter for
    * @param outputTypeAdapter the OutputTypeAdapte to be registered
    */
-  public void registerOutputTypeAdapter(OutputType outputType, OutputTypeAdapter outputTypeAdapter) {
-    outputAdapter.registerOutputTypeAdapter(outputType, outputTypeAdapter);
+  public void registerOutputTypeAdapter(OutputTypeAdapter outputTypeAdapter) {
+    outputAdapter.registerOutputTypeAdapter(outputTypeAdapter.getOutputType(), outputTypeAdapter);
   }
 
   /**
@@ -253,6 +240,21 @@ public class OutputManager {
    */
   public List<OutputType> getRegisteredOutputTypes() {
     return new ArrayList<OutputType>(outputTypeConfigurations.keySet());
+  }
+
+  /**
+   * Based on the passed in assignment, create the necessary output adapters
+   * 
+   * @param trafficAssignment we are creating adapters for
+   */
+  public void initialiseOutputAdapters(TrafficAssignment trafficAssignment) {
+    /* main assignment adapter */
+    this.outputAdapter = new OutputAdapter(trafficAssignment);
+    /* sub type output adapters */
+    for (OutputTypeConfiguration otc : getRegisteredOutputTypeConfigurations()) {
+      final OutputTypeAdapter outputTypeAdapter = trafficAssignment.createOutputTypeAdapter(otc.getOutputType());
+      registerOutputTypeAdapter(outputTypeAdapter);
+    }
   }
 
 }
