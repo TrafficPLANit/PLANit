@@ -10,10 +10,10 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
  * @author markr
  */
 public class BPRConfigurator extends PhysicalCostConfigurator<BPRLinkTravelTimeCost> {
-  
-  private static final String SET_PARAMETERS = "setParamaters";
-  
-  private static final String SET_DEFAULT_PARAMETERS = "setDefaultParamaters";  
+
+  private static final String SET_PARAMETERS = "setParameters";
+
+  private static final String SET_DEFAULT_PARAMETERS = "setDefaultParameters";
 
   /**
    * Constructor
@@ -22,7 +22,7 @@ public class BPRConfigurator extends PhysicalCostConfigurator<BPRLinkTravelTimeC
   protected BPRConfigurator() {
     super(BPRLinkTravelTimeCost.class);
   }
-  
+
   /**
    * Set the alpha and beta values for a given link segment and mode
    *
@@ -66,6 +66,6 @@ public class BPRConfigurator extends PhysicalCostConfigurator<BPRLinkTravelTimeC
    */
   public void setDefaultParameters(final double alpha, final double beta) {
     registerDelayedMethodCall(SET_DEFAULT_PARAMETERS, alpha, beta);
-  }  
+  }
 
 }
