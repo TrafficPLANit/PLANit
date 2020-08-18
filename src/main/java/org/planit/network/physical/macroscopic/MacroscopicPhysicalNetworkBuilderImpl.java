@@ -64,6 +64,14 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
    * {@inheritDoc}
    */
   @Override
+  public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity, Object externalId) {
+    return new MacroscopicLinkSegmentTypeImpl(groupId, name, capacity, maximumDensity, externalId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void setIdGroupingToken(IdGroupingToken groupId) {
     this.groupId = groupId;
   }
