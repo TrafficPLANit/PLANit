@@ -26,12 +26,11 @@ public class MacroscopicNetwork extends PhysicalNetwork<Node, Link, MacroscopicL
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(MacroscopicNetwork.class.getCanonicalName());
 
-
   /** Generated UID */
   private static final long serialVersionUID = -6844990013871601434L;
-   
+
   // Protected
-  
+
   protected final MacroscopicPhysicalNetworkBuilder macroscopicNetworkBuilder;
 
   /**
@@ -47,27 +46,54 @@ public class MacroscopicNetwork extends PhysicalNetwork<Node, Link, MacroscopicL
    * @param groupId contiguous id generation within this group for instances of this class
    */
   public MacroscopicNetwork(final IdGroupingToken groupId) {
-    super(groupId,  new MacroscopicPhysicalNetworkBuilderImpl());
+    super(groupId, new MacroscopicPhysicalNetworkBuilderImpl());
     this.macroscopicNetworkBuilder = (MacroscopicPhysicalNetworkBuilder) getNetworkBuilder();
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param groupId       contiguous id generation within this group for instances of this class
+   * @param customBuilder a customBuilder
+   */
+  public MacroscopicNetwork(final IdGroupingToken groupId, MacroscopicPhysicalNetworkBuilder customBuilder) {
+    super(groupId, customBuilder);
+    this.macroscopicNetworkBuilder = customBuilder;
   }
 
   /**
    * Create and register new macroscopic link segment type on network.
    *
-   * @param name                  name of the link segment type
-   * @param capacity              capacity of the link segment type
-   * @param maximumDensity        maximum density of the link segment type
-   * @param linkSegmentExternalId the external reference number of this link type
-   * @param modeProperties        mode properties of the link segment type
+   * @param name                      name of the link segment type
+   * @param capacityPcuPerHour        capacity of the link segment type
+   * @param maximumDensityPcuPerKm    maximum density of the link segment type
+   * @param linkSegmentTypeExternalId the external reference number of this link type
+   * @param modeProperties            mode properties of the link segment type
    * @return the link segment type
    * @throws PlanItException thrown if there is an error
    */
-  public MacroscopicLinkSegmentType createAndRegisterNewMacroscopicLinkSegmentType(final String name, final double capacity, final double maximumDensity,
-      final Object linkSegmentExternalId, final Map<Mode, MacroscopicModeProperties> modeProperties) throws PlanItException {
+  public MacroscopicLinkSegmentType createAndRegisterNewMacroscopicLinkSegmentType(final String name, final double capacityPcuPerHour, final double maximumDensityPcuPerKm,
+      final Object linkSegmentTypeExternalId, final Map<Mode, MacroscopicModeProperties> modeProperties) throws PlanItException {
 
-    MacroscopicLinkSegmentType linkSegmentType = macroscopicNetworkBuilder.createLinkSegmentType(name, capacity, maximumDensity,linkSegmentExternalId, modeProperties);
+    MacroscopicLinkSegmentType linkSegmentType = macroscopicNetworkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentTypeExternalId,
+        modeProperties);
     registerLinkSegmentType(linkSegmentType);
     return linkSegmentType;
+  }
+
+  /**
+   * Create and register new macroscopic link segment type on network.
+   *
+   * @param name                      name of the link segment type
+   * @param capacityPcuPerHour        capacity of the link segment type
+   * @param maximumDensityPcuPerKm    maximum density of the link segment type
+   * @param linkSegmentTypeExternalId the external reference number of this link type
+   * @return the link segment type
+   * @throws PlanItException thrown if there is an error
+   */
+  public MacroscopicLinkSegmentType createAndRegisterNewMacroscopicLinkSegmentType(final String name, final double capacityPcuPerHour, final double maximumDensityPcuPerKm,
+      final Object linkSegmentTypeExternalId) throws PlanItException {
+    return createAndRegisterNewMacroscopicLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentTypeExternalId);
   }
 
   /**

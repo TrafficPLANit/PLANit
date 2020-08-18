@@ -8,10 +8,6 @@ import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.EdgeSegments;
-import org.planit.utils.graph.Edges;
-import org.planit.utils.graph.Vertex;
-import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.Pair;
@@ -26,7 +22,7 @@ import org.planit.utils.misc.Pair;
  * @author markr
  *
  */
-public class ACyclicSubGraph<V extends DirectedVertex, E extends Edge, ES extends EdgeSegment> implements DirectedSubGraph<V, E, ES>{
+public class ACyclicSubGraph<V extends DirectedVertex, E extends Edge, ES extends EdgeSegment> implements DirectedSubGraph<V, E, ES> {
 
   /**
    * The id of this acyclic sub graph
@@ -36,18 +32,17 @@ public class ACyclicSubGraph<V extends DirectedVertex, E extends Edge, ES extend
   /**
    * The parent graph where this is an acyclic subgraph of
    */
-  DirectedGraph<V,E,ES> parentGraph;
+  DirectedGraph<V, E, ES> parentGraph;
 
   /**
    * root of the sub graph
    */
   DirectedVertex root;
-  
+
   /**
-   * list to store vertices (and its activated edge segments) in topological order
-   * We only store outgoing active edge segments of each active vertex
+   * list to store vertices (and its activated edge segments) in topological order We only store outgoing active edge segments of each active vertex
    */
-  private LinkedList<Pair<V,List<ES>>> topologicalEdgeSegmentList = new LinkedList<Pair<V, List<ES>>>();
+  private LinkedList<Pair<V, List<ES>>> topologicalEdgeSegmentList = new LinkedList<Pair<V, List<ES>>>();
 
   /**
    * Constructor
@@ -56,11 +51,11 @@ public class ACyclicSubGraph<V extends DirectedVertex, E extends Edge, ES extend
    * @param parentGraph parent Graph we are a subset of
    * @param root        (initial) root of the subgraph
    */
-  public ACyclicSubGraph(final IdGroupingToken groupId, DirectedGraph<V,E,ES> parentGraph, V root) {
+  public ACyclicSubGraph(final IdGroupingToken groupId, DirectedGraph<V, E, ES> parentGraph, V root) {
     this.id = IdGenerator.generateId(groupId, ACyclicSubGraph.class);
     this.parentGraph = parentGraph;
     this.root = root;
-    topologicalEdgeSegmentList.add(new Pair<V,List<ES>>(root, new ArrayList<ES>()));
+    topologicalEdgeSegmentList.add(new Pair<V, List<ES>>(root, new ArrayList<ES>()));
   }
 
   /**
@@ -69,7 +64,7 @@ public class ACyclicSubGraph<V extends DirectedVertex, E extends Edge, ES extend
   @Override
   public long getId() {
     return this.id;
-  }  
+  }
 
   /**
    * {@inheritDoc}
@@ -94,7 +89,5 @@ public class ACyclicSubGraph<V extends DirectedVertex, E extends Edge, ES extend
   public boolean addEdgeSegment(EdgeSegment edgeSegment) {
     return false;
   }
-
-
 
 }

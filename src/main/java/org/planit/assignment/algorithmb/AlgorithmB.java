@@ -5,11 +5,6 @@ import java.util.logging.Logger;
 
 import org.djutils.event.EventType;
 import org.planit.assignment.StaticTrafficAssignment;
-import org.planit.assignment.TrafficAssignmentBuilder;
-import org.planit.demands.Demands;
-import org.planit.input.InputBuilderListener;
-import org.planit.network.physical.PhysicalNetwork;
-import org.planit.network.virtual.Zoning;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.enums.OutputType;
 import org.planit.time.TimePeriod;
@@ -46,7 +41,6 @@ public class AlgorithmB extends StaticTrafficAssignment {
     super(groupId);
     equilibration = new AlgorithmBEquilibration(this, this.getOutputManager());
   }
-
 
   @Override
   protected void addRegisteredEventTypeListeners(EventType eventType) {

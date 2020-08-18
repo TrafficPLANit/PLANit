@@ -1,5 +1,7 @@
 package org.planit.network.physical.macroscopic;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.planit.network.physical.LinkSegmentImpl;
@@ -29,6 +31,11 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   // Protected
 
   /**
+   * Map of maximum speeds along this link for each mode
+   */
+  protected Map<Mode, Double> maximumSpeedMap;
+
+  /**
    * the link type of this link containing all macroscopic features by user class
    */
   protected MacroscopicLinkSegmentType linkSegmentType = null;
@@ -45,6 +52,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    */
   public MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) throws PlanItException {
     super(groupId, parentLink, directionAB);
+    maximumSpeedMap = new HashMap<Mode, Double>();
   }
 
   /**
@@ -92,14 +100,34 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
 
   // getters - setters
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void setLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType) {
     this.linkSegmentType = linkSegmentType;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public MacroscopicLinkSegmentType getLinkSegmentType() {
     return linkSegmentType;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public double getMaximumSpeed(final Mode mode) {
+    return maximumSpeedMap.get(mode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void setMaximumSpeed(final Mode mode, final double maximumSpeed) {
+    maximumSpeedMap.put(mode, maximumSpeed);
   }
 
 }

@@ -92,7 +92,9 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   public MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane, final Object externalId,
       Map<Mode, MacroscopicModeProperties> modeProperties) {
     this(groupId, name, capacityPerLane, maximumDensityPerLane, externalId);
-    setModeProperties(modeProperties);
+    if (modeProperties != null) {
+      setModeProperties(modeProperties);
+    }
   }
 
   // Getters - Setters
@@ -147,13 +149,19 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   }
 
   /**
-   * Set the map of mode properties for this link
-   * 
-   * @param modeProperties map of mode properties for this link
+   * {@inheritDoc}
    */
   @Override
   public void setModeProperties(Map<Mode, MacroscopicModeProperties> modeProperties) {
     this.modeProperties = modeProperties;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicModeProperties addModeProperties(Mode mode, MacroscopicModeProperties properties) {
+    return modeProperties.put(mode, properties);
   }
 
 }

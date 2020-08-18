@@ -20,8 +20,10 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.MultiLineString;
 
 /**
- * General geotools related utils. Uses geodetic distance when possible. In case the CRS is not based on an ellipsoid (2d plane) it will simply compute
- * the distance between coorindates using Pythagoras with the unit distance in meters, consistent with the {@code CartesianAuthorityFactory.GENERIC_2D}
+ * General geotools related utils. Uses geodetic distance when possible. In case the CRS is not based on an ellipsoid (2d plane) it will simply compute the distance between
+ * coorindates using Pythagoras with the unit distance in meters, consistent with the {@code CartesianAuthorityFactory.GENERIC_2D}
+ * 
+ * It is assumed that x coordinate refers to latitude and y coordinate refers to longitude
  * 
  * @author markr
  *
@@ -34,9 +36,9 @@ public class PlanitGeoUtils {
   /**
    * Default Coordinate Reference System
    */
-  private static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = DefaultGeographicCRS.WGS84;
-  
-  private static final CoordinateReferenceSystem CARTESIANCRS = CartesianAuthorityFactory.GENERIC_2D;
+  public static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = DefaultGeographicCRS.WGS84;
+
+  public static final CoordinateReferenceSystem CARTESIANCRS = CartesianAuthorityFactory.GENERIC_2D;
 
   /**
    * Geodetic calculator to construct distances between points. It is assumed the network CRS is geodetic in nature.
@@ -68,11 +70,11 @@ public class PlanitGeoUtils {
     geometryBuilder = new GeometryBuilder(coordinateReferenceSystem);
     geometryFactory = geometryBuilder.getGeometryFactory();
     positionFactory = geometryBuilder.getPositionFactory();
-    
+
     // geodetic only works on ellipsoids
-    if(!coordinateReferenceSystem.equals(CARTESIANCRS)) {
-      geodeticDistanceCalculator = new GeodeticCalculator(coordinateReferenceSystem); 
-    }    
+    if (!coordinateReferenceSystem.equals(CARTESIANCRS)) {
+      geodeticDistanceCalculator = new GeodeticCalculator(coordinateReferenceSystem);
+    }
   }
 
   /**
@@ -86,16 +88,16 @@ public class PlanitGeoUtils {
   private double getDistanceInMetres(Position startPosition, Position endPosition) throws PlanItException {
     // not threadsafe
     try {
-      if(geodeticDistanceCalculator != null) {
+      if (geodeticDistanceCalculator != null) {
         // ellipsoid crs
         geodeticDistanceCalculator.setStartingPosition(startPosition);
         geodeticDistanceCalculator.setDestinationPosition(endPosition);
         return geodeticDistanceCalculator.getOrthodromicDistance();
-      }else {
+      } else {
         // cartesian in meters
-        double deltaCoordinate0 = startPosition.getDirectPosition().getOrdinate(0)-endPosition.getDirectPosition().getOrdinate(0);
-        double deltaCoordinate1 = startPosition.getDirectPosition().getOrdinate(1)-endPosition.getDirectPosition().getOrdinate(1);
-        double distanceInMeters = Math.sqrt( Math.pow(deltaCoordinate0,2)+ Math.pow(deltaCoordinate1,2));
+        double deltaCoordinate0 = startPosition.getDirectPosition().getOrdinate(0) - endPosition.getDirectPosition().getOrdinate(0);
+        double deltaCoordinate1 = startPosition.getDirectPosition().getOrdinate(1) - endPosition.getDirectPosition().getOrdinate(1);
+        double distanceInMeters = Math.sqrt(Math.pow(deltaCoordinate0, 2) + Math.pow(deltaCoordinate1, 2));
         return distanceInMeters;
       }
     } catch (Exception e) {
@@ -119,16 +121,15 @@ public class PlanitGeoUtils {
   /**
    * Create DirectPosition object from X- and Y-coordinates
    * 
-   * @param xCoordinate X-coordinate
-   * @param yCoordinate Y-coordinate
+   * @param xCoordinate X-coordinate (longitude assumed)
+   * @param yCoordinate Y-coordinate (latitude assumed)
    * @return DirectPosition object representing the location
    * @throws PlanItException thrown if there is an error during processing
    */
-  public DirectPosition getDirectPositionFromValues(double xCoordinate, double yCoordinate) throws PlanItException {
+  public DirectPosition createDirectPosition(double xCoordinate, double yCoordinate) throws PlanItException {
     Coordinate coordinate = new Coordinate(xCoordinate, yCoordinate);
-    Coordinate[] coordinates = { coordinate };
-    List<Position> positions = convertToDirectPositions(coordinates);
-    return (DirectPosition) positions.get(0);
+    DirectPosition newPosition = positionFactory.createDirectPosition(new double[] { coordinate.x, coordinate.y });
+    return newPosition;
   }
 
   /**
@@ -167,8 +168,7 @@ public class PlanitGeoUtils {
   public List<Position> convertToDirectPositions(com.vividsolutions.jts.geom.Coordinate[] coordinates) throws PlanItException {
     List<Position> positionList = new ArrayList<Position>(coordinates.length);
     for (Coordinate coordinate : coordinates) {
-      DirectPosition newPosition = positionFactory.createDirectPosition(new double[] { coordinate.x, coordinate.y });
-      positionList.add(newPosition);
+      positionList.add(createDirectPosition(coordinate.x, coordinate.y));
     }
     return positionList;
   }
