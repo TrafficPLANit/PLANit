@@ -3,8 +3,7 @@ package org.planit.network.physical.macroscopic;
 import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 
 /**
- * Mode specific properties for the macroscopic perspective on the supply side,
- * i.e. on a link segment of a particular type
+ * Mode specific properties for the macroscopic perspective on the supply side, i.e. on a link segment of a particular type
  * 
  * @author markr
  *
@@ -26,10 +25,8 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
   /**
    * Constructor
    * 
-   * @param maxSpeed
-   *          maximum speed for this mode
-   * @param criticalSpeed
-   *          critical speed for this mode
+   * @param maxSpeed      maximum speed for this mode
+   * @param criticalSpeed critical speed for this mode
    */
   public MacroscopicModePropertiesImpl(double maxSpeed, double criticalSpeed) {
     super();
@@ -48,14 +45,36 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
 
   // Getter - setters
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public double getMaxSpeed() {
     return maxSpeed;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public double getCriticalSpeed() {
     return criticalSpeed;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double setMaximumSpeed(double maxSpeed) {
+    return this.maxSpeed;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double setCriticalSpeed(double criticalSpeed) {
+    return this.criticalSpeed;
   }
 
 }

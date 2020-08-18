@@ -27,8 +27,10 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   /** the logger */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(LinkOutputTypeAdapterImpl.class.getCanonicalName());
-  
-  /** collect location as string representation from vertex
+
+  /**
+   * collect location as string representation from vertex
+   * 
    * @param vertex
    * @return node location
    */
@@ -173,7 +175,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
     if (!macroscopicLinkSegment.isModeAllowedThroughLink(mode)) {
       return 0.0;
     }
-    return macroscopicLinkSegment.getMaximumSpeed(mode);
+    return macroscopicLinkSegment.getLinkSegmentType().getModeProperties(mode).getMaxSpeed();
   }
 
   /**
@@ -235,7 +237,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * Provide access to the available link segments
    */
   @Override
-  public PhysicalNetwork<?,?,? extends LinkSegment>.LinkSegments getPhysicalLinkSegments() {
+  public PhysicalNetwork<?, ?, ? extends LinkSegment>.LinkSegments getPhysicalLinkSegments() {
     return trafficAssignment.getTransportNetwork().getPhysicalNetwork().linkSegments;
   }
 

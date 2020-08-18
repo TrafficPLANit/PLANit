@@ -81,7 +81,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
     PlanItException.throwIf(!isModeAllowedThroughLink(mode), "mode not allowed on link segment, no free flow time can be computed");
 
     final double linkLength = getParentLink().getLength();
-    final double maximumSpeed = getMaximumSpeed(mode);
+    final double maximumSpeed = getMaximumSpeed();
     final double segmentTypeMaximumSpeed = getLinkSegmentType().getModeProperties(mode).getMaxSpeed();
     double computedMaximumSpeed = Math.min(maximumSpeed, segmentTypeMaximumSpeed);
     return linkLength / computedMaximumSpeed;
@@ -115,19 +115,4 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   public MacroscopicLinkSegmentType getLinkSegmentType() {
     return linkSegmentType;
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  public double getMaximumSpeed(final Mode mode) {
-    return maximumSpeedMap.get(mode);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void setMaximumSpeed(final Mode mode, final double maximumSpeed) {
-    maximumSpeedMap.put(mode, maximumSpeed);
-  }
-
 }

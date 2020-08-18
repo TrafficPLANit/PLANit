@@ -64,36 +64,20 @@ public class MacroscopicNetwork extends PhysicalNetwork<Node, Link, MacroscopicL
   /**
    * Create and register new macroscopic link segment type on network.
    *
-   * @param name                      name of the link segment type
-   * @param capacityPcuPerHour        capacity of the link segment type
-   * @param maximumDensityPcuPerKm    maximum density of the link segment type
-   * @param linkSegmentTypeExternalId the external reference number of this link type
-   * @param modeProperties            mode properties of the link segment type
+   * @param name                  name of the link segment type
+   * @param capacity              capacity of the link segment type
+   * @param maximumDensity        maximum density of the link segment type
+   * @param linkSegmentExternalId the external reference number of this link type
+   * @param modeProperties        mode properties of the link segment type
    * @return the link segment type
    * @throws PlanItException thrown if there is an error
    */
-  public MacroscopicLinkSegmentType createAndRegisterNewMacroscopicLinkSegmentType(final String name, final double capacityPcuPerHour, final double maximumDensityPcuPerKm,
-      final Object linkSegmentTypeExternalId, final Map<Mode, MacroscopicModeProperties> modeProperties) throws PlanItException {
+  public MacroscopicLinkSegmentType createAndRegisterNewMacroscopicLinkSegmentType(final String name, final double capacity, final double maximumDensity,
+      final Object linkSegmentExternalId, final Map<Mode, MacroscopicModeProperties> modeProperties) throws PlanItException {
 
-    MacroscopicLinkSegmentType linkSegmentType = macroscopicNetworkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentTypeExternalId,
-        modeProperties);
+    MacroscopicLinkSegmentType linkSegmentType = macroscopicNetworkBuilder.createLinkSegmentType(name, capacity, maximumDensity, linkSegmentExternalId, modeProperties);
     registerLinkSegmentType(linkSegmentType);
     return linkSegmentType;
-  }
-
-  /**
-   * Create and register new macroscopic link segment type on network.
-   *
-   * @param name                      name of the link segment type
-   * @param capacityPcuPerHour        capacity of the link segment type
-   * @param maximumDensityPcuPerKm    maximum density of the link segment type
-   * @param linkSegmentTypeExternalId the external reference number of this link type
-   * @return the link segment type
-   * @throws PlanItException thrown if there is an error
-   */
-  public MacroscopicLinkSegmentType createAndRegisterNewMacroscopicLinkSegmentType(final String name, final double capacityPcuPerHour, final double maximumDensityPcuPerKm,
-      final Object linkSegmentTypeExternalId) throws PlanItException {
-    return createAndRegisterNewMacroscopicLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentTypeExternalId);
   }
 
   /**
