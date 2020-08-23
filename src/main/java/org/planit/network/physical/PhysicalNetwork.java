@@ -13,6 +13,7 @@ import org.planit.graph.DirectedGraphImpl;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedGraph;
+import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
@@ -27,7 +28,7 @@ import org.planit.utils.network.physical.Node;
  *
  * @author markr
  */
-public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegment> extends TrafficAssignmentComponent<PhysicalNetwork<N,L,LS>> implements Serializable {
+public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegment> extends TrafficAssignmentComponent<PhysicalNetwork<N, L, LS>> implements Serializable {
 
   // INNER CLASSES
 
@@ -52,7 +53,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     }
 
     /**
-     * Create new link to network identified via its id, injecting link length directly
+     * Create new link to network identified via its id, injecting link length directly (link is not registered on nodes, this is left to the user)
      *
      * @param nodeA  the first node in this link
      * @param nodeB  the second node in this link
@@ -61,7 +62,25 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @throws PlanItException thrown if there is an error
      */
     public L registerNewLink(final N nodeA, final N nodeB, final double length) throws PlanItException {
+      return registerNewLink(nodeA, nodeB, length, false);
+    }
+
+    /**
+     * Create new link to network identified via its id, injecting link length directly (link is not registered on nodes, this is left to the user)
+     *
+     * @param nodeA           the first node in this link
+     * @param nodeB           the second node in this link
+     * @param length          the length of this link
+     * @param registerOnNodes choice to register new link on the nodes or not
+     * @return the created link
+     * @throws PlanItException thrown if there is an error
+     */
+    public L registerNewLink(final N nodeA, final N nodeB, final double length, boolean registerOnNodes) throws PlanItException {
       final L newLink = graph.getEdges().registerNewEdge(nodeA, nodeB, length);
+      if (registerOnNodes) {
+        nodeA.addEdge(newLink);
+        nodeB.addEdge(newLink);
+      }
       return newLink;
     }
 
@@ -143,31 +162,62 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     }
 
     /**
-     * Create directional link segment
+     * Create directional link segment (not registered on nodes or link)
      *
      * @param parentLink  the parent link of this link segment
-     * @param directionAB direction of travel
+     * @param directionAb direction of travel
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LS createLinkSegment(final Link parentLink, final boolean directionAB) throws PlanItException {
-      return graph.getEdgeSegments().createEdgeSegment(parentLink, directionAB);
+    public LS createLinkSegment(final Link parentLink, final boolean directionAb) throws PlanItException {
+      return graph.getEdgeSegments().createEdgeSegment(parentLink, directionAb);
     }
 
     /**
-     * Register a link segment
+     * Create directional link segment and register it on the network (not registered on nodes or link)
+     *
+     * @param parentLink  the parent link of this link segment
+     * @param directionAb direction of travel
+     * @return the created link segment
+     * @throws PlanItException thrown if there is an error
+     */
+    public LS createAndRegisterLinkSegment(final Link parentLink, final boolean directionAb) throws PlanItException {
+      return createAndRegisterLinkSegment(parentLink, directionAb, false /* do not register on node and link */);
+    }
+
+    /**
+     * Create directional link segment and register it on the network (not registered on nodes or link)
+     *
+     * @param parentLink            the parent link of this link segment
+     * @param directionAb           direction of travel
+     * @param registerOnNodeAndLink option to register the new link segment on the underlying link and its nodes
+     * @return the created link segment
+     * @throws PlanItException thrown if there is an error
+     */
+    public LS createAndRegisterLinkSegment(final Link parentLink, final boolean directionAb, final boolean registerOnNodeAndLink) throws PlanItException {
+      LS linkSegment = createLinkSegment(parentLink, directionAb);
+      registerLinkSegment(parentLink, linkSegment, directionAb);
+      if (registerOnNodeAndLink) {
+        parentLink.registerEdgeSegment(linkSegment, directionAb);
+        if (parentLink.getVertexA() instanceof DirectedVertex) {
+          ((DirectedVertex) parentLink.getVertexA()).addEdgeSegment(linkSegment);
+          ((DirectedVertex) parentLink.getVertexB()).addEdgeSegment(linkSegment);
+        }
+      }
+      return linkSegment;
+    }
+
+    /**
+     * Register a link segment on network (not on nodes and link)
      *
      * @param parentLink  the parent link which specified link segment will be registered on
      * @param linkSegment link segment to be registered
-     * @param directionAB direction of travel
+     * @param directionAb direction of travel
      * @throws PlanItException thrown if there is an error
      */
-    public void registerLinkSegment(final Link parentLink, final LS linkSegment, final boolean directionAB) throws PlanItException {
-      graph.getEdgeSegments().registerEdgeSegment(parentLink, linkSegment, directionAB);
+    public void registerLinkSegment(final Link parentLink, final LS linkSegment, final boolean directionAb) throws PlanItException {
+      graph.getEdgeSegments().registerEdgeSegment(parentLink, linkSegment, directionAb);
       registerLinkSegment(linkSegment);
-    }
-
-    public void registerLinkSegmentTest(LS linkSegment) {
     }
 
     /**
@@ -286,33 +336,34 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     }
 
   }
-  
+
   /**
    * the network builder
    */
   private final PhysicalNetworkBuilder<N, L, LS> networkBuilder;
-  
+
   /**
    * The graph containing the nodes, links, and link segments (or derived implementations)
    */
-  private final DirectedGraph<N, L, LS> graph;  
+  private final DirectedGraph<N, L, LS> graph;
 
   // Protected
-  
-  /**
-   * collect the registered network builder 
-   * @return networkBuilder the network builder registered
-   */
-  protected DirectedGraph<N,L,LS> getGraph(){
-    return graph;
-  }  
 
-    
   /**
-   * collect the registered network builder 
+   * collect the registered network builder
+   * 
    * @return networkBuilder the network builder registered
    */
-  protected PhysicalNetworkBuilder<N, L, LS> getNetworkBuilder(){
+  protected DirectedGraph<N, L, LS> getGraph() {
+    return graph;
+  }
+
+  /**
+   * collect the registered network builder
+   * 
+   * @return networkBuilder the network builder registered
+   */
+  protected PhysicalNetworkBuilder<N, L, LS> getNetworkBuilder() {
     return networkBuilder;
   }
 
@@ -363,7 +414,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @return the network id grouping token
    */
   public IdGroupingToken getNetworkIdGroupingToken() {
-    return ((DirectedGraphImpl<N,L,LS>)graph).getGraphIdGroupingToken();
+    return ((DirectedGraphImpl<N, L, LS>) graph).getGraphIdGroupingToken();
   }
 
 }

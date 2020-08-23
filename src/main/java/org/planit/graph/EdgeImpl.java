@@ -181,7 +181,7 @@ public class EdgeImpl implements Edge {
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment getEdgeSegmentAB() {
+  public EdgeSegment getEdgeSegmentAb() {
     return edgeSegmentAB;
   }
 
@@ -189,7 +189,7 @@ public class EdgeImpl implements Edge {
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment getEdgeSegmentBA() {
+  public EdgeSegment getEdgeSegmentBa() {
     return edgeSegmentBA;
   }
 
@@ -200,4 +200,5 @@ public class EdgeImpl implements Edge {
   public int compareTo(final Edge o) {
     return Long.valueOf(id).compareTo(o.getId());
   }
+
 }

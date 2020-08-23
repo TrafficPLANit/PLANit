@@ -15,6 +15,7 @@ import org.opengis.geometry.coordinate.LineString;
 import org.opengis.geometry.coordinate.Position;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.Vertex;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.MultiLineString;
@@ -116,6 +117,18 @@ public class PlanitGeoUtils {
    */
   public double getDistanceInKilometres(Position startPosition, Position endPosition) throws PlanItException {
     return getDistanceInMetres(startPosition, endPosition) / 1000.0;
+  }
+
+  /**
+   * Compute the distance in kilometres between two vertices assuming the positions are set and based on the same crs as registered on this class instance
+   * 
+   * @param vertexA vertex with location
+   * @param vertexB vertex with location
+   * @return distance in kilometres between the points
+   * @throws PlanItException thrown if there is an error
+   */
+  public double getDistanceInKilometres(Vertex vertexA, Vertex vertexB) throws PlanItException {
+    return getDistanceInMetres(vertexA.getCentrePointGeometry(), vertexA.getCentrePointGeometry()) / 1000.0;
   }
 
   /**

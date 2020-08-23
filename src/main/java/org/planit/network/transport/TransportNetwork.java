@@ -83,7 +83,7 @@ public class TransportNetwork {
    * @param physicalNetwork the PhysicalNetwork used to generate this TransportNetwork
    * @param zoning          the Zoning used to generate this TransportNetwork
    */
-  public TransportNetwork(PhysicalNetwork<? extends Node,? extends Link,? extends LinkSegment> physicalNetwork, Zoning zoning) {
+  public TransportNetwork(PhysicalNetwork<? extends Node, ? extends Link, ? extends LinkSegment> physicalNetwork, Zoning zoning) {
     this.physicalNetwork = physicalNetwork;
     this.zoning = zoning;
   }
@@ -139,12 +139,6 @@ public class TransportNetwork {
     for (ConnectoidSegment connectoidSegment : virtualNetwork.connectoidSegments) {
       connectVerticesToEdgeSegment(connectoidSegment);
     }
-    for (Edge edge : physicalNetwork.links) {
-      connectVerticesToEdge(edge);
-    }
-    for (EdgeSegment linkSegment : physicalNetwork.linkSegments) {
-      connectVerticesToEdgeSegment(linkSegment);
-    }
   }
 
   /**
@@ -158,12 +152,6 @@ public class TransportNetwork {
     }
     for (ConnectoidSegment connectoidSegment : zoning.getVirtualNetwork().connectoidSegments) {
       disconnectVerticesFromEdgeSegment(connectoidSegment);
-    }
-    for (Edge link : physicalNetwork.links) {
-      disconnectVerticesFromEdge(link);
-    }
-    for (EdgeSegment linkSegment : physicalNetwork.linkSegments) {
-      disconnectVerticesFromEdgeSegment(linkSegment);
     }
   }
 
