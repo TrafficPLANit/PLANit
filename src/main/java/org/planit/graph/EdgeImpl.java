@@ -169,10 +169,9 @@ public class EdgeImpl implements Edge {
   }
 
   /**
-   * set the name of this edge
-   * 
-   * @param name the name of this edge
+   * {@inheritDoc}
    */
+  @Override  
   public void setName(final String name) {
     this.name = name;
   }
@@ -197,8 +196,8 @@ public class EdgeImpl implements Edge {
    * {@inheritDoc}
    */
   @Override
-  public int compareTo(final Edge o) {
-    return Long.valueOf(id).compareTo(o.getId());
+  public int compareTo(final Edge other) {
+    return Long.valueOf(id).compareTo(other.getId());
   }
 
 }
