@@ -12,8 +12,11 @@ import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.PositionFactory;
 import org.opengis.geometry.coordinate.GeometryFactory;
 import org.opengis.geometry.coordinate.LineString;
+import org.opengis.geometry.coordinate.PointArray;
 import org.opengis.geometry.coordinate.Position;
+import org.opengis.geometry.primitive.Point;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.TransformException;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Vertex;
 
@@ -172,12 +175,12 @@ public class PlanitGeoUtils {
   }
   
   /**
-   * Create a line string from the line string type passed in 
+   * Create a line string from the doubles passed in (list of doubles containing x1,y1,x2,y2,etc. coordinates
    * @param lineStringType source
-   * @return created line string (with zero offset and zero spacing compared to original)
-   * @throws PlanItException 
+   * @return created line string
+   * @throws PlanItException thrown if error
    */
-  public LineString createLineStringFromDoubleCoordinateList(List<Double> coordinateList) throws PlanItException {
+  public LineString createLineString(List<Double> coordinateList) throws PlanItException {
     PlanItException.throwIf(coordinateList.size()%2!=0, "coordinate list must contain an even number of entries to correctly identify (x,y) pairs");
     Iterator<Double> iter = coordinateList.iterator();
     List<Position> positionList = new ArrayList<Position>(coordinateList.size()/2);
@@ -185,7 +188,7 @@ public class PlanitGeoUtils {
       positionList.add(createDirectPosition(iter.next(), iter.next()));
     }
     return geometryFactory.createLineString(positionList);    
-  }
+  }  
   
   /**
    * Based on the csv string construct a line string
@@ -194,9 +197,9 @@ public class PlanitGeoUtils {
    * @param ts tuple separating character
    * @param cs comma separating character
    * @return the LineString created from the String
-   * @throws PlanItException 
+   * @throws PlanItException thrown if error
    */
-  public LineString createLineStringFromCsvString(String value, char ts, char cs) throws PlanItException {
+  public LineString createLineString(String value, char ts, char cs) throws PlanItException {
     List<Double> coordinateDoubleList = new ArrayList<Double>();
     String[] tupleString = value.split("["+ts+"]");
     for(int index=0; index < tupleString.length ; ++index) {
@@ -208,7 +211,17 @@ public class PlanitGeoUtils {
       coordinateDoubleList.add(Double.parseDouble(coordinateString[0]));
       coordinateDoubleList.add(Double.parseDouble(coordinateString[1]));
     }    
-    return createLineStringFromDoubleCoordinateList(coordinateDoubleList);
+    return createLineString(coordinateDoubleList);
+  }  
+  
+  /**
+   * Create a line string from the passed in positions
+   * @param positionList source
+   * @return created line string
+   * @throws PlanItException 
+   */
+  public LineString createLineStringFromPositions(List<Position> positionList) throws PlanItException {
+    return geometryFactory.createLineString(positionList);    
   }  
   
   /**
@@ -225,7 +238,7 @@ public class PlanitGeoUtils {
       PlanItException.throwIf(ts.length() > 1, String.format("tuple separating string to create LineString is not a single character but %s",ts));
       PlanItException.throwIf(cs.length() > 1, String.format("comma separating string to create LineString is not a single character but %s",cs));
     }
-    return createLineStringFromCsvString(value,ts.charAt(0),cs.charAt(0));
+    return createLineString(value,ts.charAt(0),cs.charAt(0));
   }   
 
   /**
@@ -241,6 +254,41 @@ public class PlanitGeoUtils {
       positionList.add(createDirectPosition(coordinate.x, coordinate.y));
     }
     return positionList;
+  }
+
+  /**
+   * Compute the length of the line string by traversing all nodes and computing the segment by segment distances
+   * TODO: find out if a faster way is possible
+   * 
+   * @param geometry to extract length from
+   * @return length in km
+   * @throws PlanItException 
+   */
+  public double getDistanceInKilometres(LineString geometry) throws PlanItException {
+    
+    PointArray pointArray = geometry.getControlPoints();
+    int numberOfPoints = pointArray.size();
+
+    if(numberOfPoints>1) {
+      
+      double computedLengthInKm = 0;
+      Position previousPoint = pointArray.get(0);
+      try {
+        for(int index = 1; index < numberOfPoints; ++index) {
+          geodeticDistanceCalculator.setStartingPosition(previousPoint);        
+          Position currentPoint = pointArray.get(index);
+          geodeticDistanceCalculator.setDestinationPosition(currentPoint);
+          computedLengthInKm += geodeticDistanceCalculator.getOrthodromicDistance();
+          previousPoint = currentPoint;
+        }      
+      }catch (TransformException e) {
+        LOGGER.severe(e.getMessage());
+        throw new PlanItException("Unable to utilise position in line string to compute its length");
+      }
+      
+      return computedLengthInKm;
+    }
+    throw new PlanItException("unable to compute distance for less than two points");
   }
 
 

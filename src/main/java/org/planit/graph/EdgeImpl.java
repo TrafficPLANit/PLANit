@@ -52,7 +52,7 @@ public class EdgeImpl implements Edge {
   /**
    * Length of edge
    */
-  protected double length;
+  protected double lengthInKm;
 
   /**
    * Edge segment A to B direction
@@ -88,7 +88,7 @@ public class EdgeImpl implements Edge {
     this.id = generateEdgeId(groupId);
     this.vertexA = vertexA;
     this.vertexB = vertexB;
-    this.length = length;
+    this.lengthInKm = length;
   }
 
   /**
@@ -131,8 +131,16 @@ public class EdgeImpl implements Edge {
    */
   @Override
   public double getLength() {
-    return length;
+    return lengthInKm;
   }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setLength(double lengthInKm) {
+    this.lengthInKm = lengthInKm;
+  }  
 
   // Getters-Setters
 
