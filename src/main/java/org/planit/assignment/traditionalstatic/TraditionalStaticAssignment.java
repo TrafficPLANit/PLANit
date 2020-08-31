@@ -33,7 +33,7 @@ import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.path.Path;
 import org.planit.time.TimePeriod;
-import org.planit.utils.arrays.ArrayOperations;
+import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
@@ -274,12 +274,12 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     final ODDemandMatrix odDemandMatrix = demands.get(mode, timePeriod);
     executeModeTimePeriod(mode, odDemandMatrix, currentModeData, modalLinkSegmentCosts, shortestPathAlgorithm);
 
-    final double totalModeSystemTravelTime = ArrayOperations.dotProduct(currentModeData.currentNetworkSegmentFlows, modalLinkSegmentCosts, numberOfNetworkSegments);
+    final double totalModeSystemTravelTime = ArrayUtils.dotProduct(currentModeData.currentNetworkSegmentFlows, modalLinkSegmentCosts, numberOfNetworkSegments);
     dualityGapFunction.increaseMeasuredNetworkCost(totalModeSystemTravelTime);
     applySmoothing(currentModeData);
 
     // aggregate smoothed mode specific flows - for cost computation
-    ArrayOperations.addTo(simulationData.getModalNetworkSegmentFlows(mode), currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
+    ArrayUtils.addTo(simulationData.getModalNetworkSegmentFlows(mode), currentModeData.currentNetworkSegmentFlows, numberOfNetworkSegments);
     simulationData.getModeSpecificData().put(mode, currentModeData);
   }
 
