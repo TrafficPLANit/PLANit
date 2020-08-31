@@ -1,11 +1,11 @@
 package org.planit.network.physical;
 
+import org.opengis.geometry.coordinate.LineString;
 import org.planit.graph.EdgeImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
-import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
 
 /**
@@ -31,6 +31,11 @@ public class LinkImpl extends EdgeImpl implements Link {
    * External Id of the physical link
    */
   protected Object externalId;
+  
+  /**
+   * The line geometry of this link if set
+   */
+  protected LineString lineGeometry;
 
   /**
    * generate unique link id
@@ -59,39 +64,54 @@ public class LinkImpl extends EdgeImpl implements Link {
     this.linkId = generateLinkId(groupId);
   }
 
-  /**
-   * Register linkSegment. If there already exists a linkSegment for that direction it is replaced and returned
-   *
-   * @param linkSegment the link segment to be registered
-   * @param directionAB direction of travel
-   * @return the replaced LinkSegment
-   * @throws PlanItException thrown if there is an error
-   */
-  @Override
-  public LinkSegment registerLinkSegment(final LinkSegment linkSegment, final boolean directionAB) throws PlanItException {
-    return (LinkSegment) registerEdgeSegment(linkSegment, directionAB);
-  }
-
   // Getters-Setters
 
+  /**
+   * {@inheritDoc}
+   */  
   @Override
   public long getLinkId() {
     return linkId;
   }
 
+  /**
+   * {@inheritDoc}
+   */  
   @Override
   public void setExternalId(final Object externalId) {
     this.externalId = externalId;
   }
 
+  /**
+   * {@inheritDoc}
+   */  
   @Override
   public Object getExternalId() {
     return externalId;
   }
-
+  
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean hasExternalId() {
     return (externalId != null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public LineString getGeometry() {
+    return lineGeometry;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setGeometry(LineString lineString) {
+    this.lineGeometry = lineString;    
   }
 
 }
