@@ -1,10 +1,8 @@
 package org.planit.cost.physical;
 
-import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.djutils.event.EventInterface;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.PhysicalNetwork;
@@ -24,7 +22,7 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
  *
  * @author markr
  */
-public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAccessor {
+public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkVolumeAccessor {
 
   /** generated UID */
   private static final long serialVersionUID = -1529475107840907959L;
@@ -248,15 +246,12 @@ public class BPRLinkTravelTimeCost extends PhysicalCost implements LinkVolumeAcc
   }
 
   /**
-   * we wait for a link volume accessee to be provided after it is requested. Here we get notified
+   * we expect a link volume accessee to be provided by the environment. This is our point of access
+   * 
+   * @param linkVolumeAccessee the accessee to extract link volumes from
    */
   @Override
-  public void notify(final EventInterface event) throws RemoteException {
-    if (event.getType().equals(LinkVolumeAccessee.INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE)) {
-      // when content contains the requested link volume accessee we collect and register it
-      if (event.getContent() instanceof LinkVolumeAccessee) {
-        this.linkVolumeAccessee = (LinkVolumeAccessee) event.getContent();
-      }
-    }
+  public void setLinkVolumeAccessee(LinkVolumeAccessee linkVolumeAccessee) {
+    this.linkVolumeAccessee = linkVolumeAccessee;
   }
 }

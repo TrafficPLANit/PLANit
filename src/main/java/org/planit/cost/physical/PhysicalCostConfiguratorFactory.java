@@ -17,9 +17,9 @@ public class PhysicalCostConfiguratorFactory {
    * @return the created configurator
    * @throws PlanItException thrown if error
    */
-  public static PhysicalCostConfigurator<? extends PhysicalCost> createConfigurator(final String physicalCostType) throws PlanItException {
+  public static PhysicalCostConfigurator<? extends AbstractPhysicalCost> createConfigurator(final String physicalCostType) throws PlanItException {
 
-    if (physicalCostType.equals(PhysicalCost.BPR)) {
+    if (physicalCostType.equals(AbstractPhysicalCost.BPR)) {
       return new BPRConfigurator();
     } else {
       throw new PlanItException(String.format("unable to construct configurator for given physicalCostType %s", physicalCostType));

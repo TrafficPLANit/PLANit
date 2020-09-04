@@ -428,7 +428,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) transportNetwork.getPhysicalNetwork();
     for (final LinkSegment linkSegment : macroscopicNetwork.linkSegments) {
       double currentSegmentCost = Double.POSITIVE_INFINITY;
-      if (linkSegment.isModeAllowedThroughLink(mode)) {
+      if (linkSegment.isModeAllowed(mode)) {
         currentSegmentCost = cost.getSegmentCost(mode, linkSegment);
         if (currentSegmentCost < 0.0) {
           throw new PlanItException("link segment cost is negative");
@@ -510,16 +510,6 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     }
   }
 
-  /** {@inheritDoc} */
-  @Override
-  protected void addRegisteredEventTypeListeners(final EventType eventType) {
-    // in case of traditional static assignment, the assignment provides access to the link volumes
-    // so we register ourselves as a listener for this event type
-    if (eventType.equals(LinkVolumeAccessee.INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE)) {
-      addListener(this, eventType);
-    }
-  }
-
   /**
    * Base Constructor
    * 
@@ -560,25 +550,6 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   @Override
   public int getNumberOfLinkSegments() {
     return getTransportNetwork().getTotalNumberOfPhysicalLinkSegments();
-  }
-
-  /**
-   * Deal with requests for link volume accessees since we are one. Whenever such a request arrives, we provide ourselves as a candidate and fire a response event of type
-   * LinkVolumeAccessee.INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE
-   *
-   * @param event to process
-   */
-  @Override
-  public void notify(final EventInterface event) throws RemoteException {
-    if (event.getType().equals(LinkVolumeAccessor.INTERACTOR_REQUEST_LINKVOLUMEACCESSEE_TYPE)) {
-      if (event.getContent() instanceof LinkVolumeAccessor) {
-        // source is accessor, so we provide ourselves as the accessee
-        final LinkVolumeAccessor theLinkVolumeAccessor = (LinkVolumeAccessor) event.getContent();
-        addListener(theLinkVolumeAccessor, INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE);
-        // fire event where we signal that an accessee is available (us) for this request
-        fireEvent(new Event(INTERACTOR_PROVIDE_LINKVOLUMEACCESSEE, this, this));
-      }
-    }
   }
 
   /**

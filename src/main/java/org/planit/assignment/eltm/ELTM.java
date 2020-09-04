@@ -1,6 +1,5 @@
 package org.planit.assignment.eltm;
 
-import org.djutils.event.EventType;
 import org.planit.assignment.DynamicTrafficAssignment;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.enums.OutputType;
@@ -25,11 +24,6 @@ public class ELTM extends DynamicTrafficAssignment {
    */
   public ELTM(IdGroupingToken groupId) {
     super(groupId);
-  }
-
-  @Override
-  protected void addRegisteredEventTypeListeners(EventType eventType) {
-    // TODO Auto-generated method stub
   }
 
   @Override

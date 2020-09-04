@@ -11,7 +11,7 @@ import org.djutils.event.EventProducer;
 import org.djutils.event.EventType;
 import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
-import org.planit.cost.physical.PhysicalCost;
+import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
@@ -70,7 +70,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
     registeredTrafficAssignmentComponents.put(Smoothing.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(Demands.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(PhysicalNetwork.class.getCanonicalName(), new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(PhysicalCost.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(AbstractPhysicalCost.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(InitialPhysicalCost.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(VirtualCost.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(FundamentalDiagram.class.getCanonicalName(), new TreeSet<>());

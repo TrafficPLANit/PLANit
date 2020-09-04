@@ -3,7 +3,7 @@ package org.planit.assignment;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.planit.cost.physical.PhysicalCost;
+import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.PhysicalCostConfigurator;
 import org.planit.cost.physical.PhysicalCostConfiguratorFactory;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
@@ -65,7 +65,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   /**
    * Nested configurator for physical cost within this assignment
    */
-  private PhysicalCostConfigurator<? extends PhysicalCost> physicalCostConfigurator = null;
+  private PhysicalCostConfigurator<? extends AbstractPhysicalCost> physicalCostConfigurator = null;
 
   /**
    * Nested configurator for virtual cost within this assignment
@@ -186,7 +186,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @return the physical cost created
    * @throws PlanItException thrown if there is an error
    */
-  public PhysicalCostConfigurator<? extends PhysicalCost> createAndRegisterPhysicalCost(final String physicalTraveltimeCostFunctionType) throws PlanItException {
+  public PhysicalCostConfigurator<? extends AbstractPhysicalCost> createAndRegisterPhysicalCost(final String physicalTraveltimeCostFunctionType) throws PlanItException {
     physicalCostConfigurator = PhysicalCostConfiguratorFactory.createConfigurator(physicalTraveltimeCostFunctionType);
     return physicalCostConfigurator;
   }
@@ -335,7 +335,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @return physicalCost
    */
-  public PhysicalCostConfigurator<? extends PhysicalCost> getPhysicalCost() {
+  public PhysicalCostConfigurator<? extends AbstractPhysicalCost> getPhysicalCost() {
     return physicalCostConfigurator;
   }
 

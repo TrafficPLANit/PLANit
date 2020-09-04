@@ -78,7 +78,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    */
   @Override
   public double computeFreeFlowTravelTime(final Mode mode) throws PlanItException {
-    PlanItException.throwIf(!isModeAllowedThroughLink(mode), "mode not allowed on link segment, no free flow time can be computed");
+    PlanItException.throwIf(!isModeAllowed(mode), "mode not allowed on link segment, no free flow time can be computed");
 
     final double linkLength = getParentLink().getLength();
     final double maximumSpeed = getMaximumSpeed();
@@ -94,7 +94,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    * @return true if vehicles of this mode can drive along this link, false otherwise
    */
   @Override
-  public boolean isModeAllowedThroughLink(Mode mode) {
+  public boolean isModeAllowed(Mode mode) {
     return linkSegmentType.getModeProperties(mode) != null;
   }
 
