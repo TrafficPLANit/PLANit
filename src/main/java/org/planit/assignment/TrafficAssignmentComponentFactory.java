@@ -17,7 +17,7 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.SpeedConnectoidTravelTimeCost;
-import org.planit.cost.virtual.VirtualCost;
+import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
@@ -72,7 +72,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
     registeredTrafficAssignmentComponents.put(PhysicalNetwork.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(AbstractPhysicalCost.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(InitialPhysicalCost.class.getCanonicalName(), new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(VirtualCost.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(AbstractVirtualCost.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(FundamentalDiagram.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(NodeModel.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(PathChoice.class.getCanonicalName(), new TreeSet<>());

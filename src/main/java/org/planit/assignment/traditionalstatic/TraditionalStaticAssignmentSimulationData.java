@@ -1,5 +1,7 @@
 package org.planit.assignment.traditionalstatic;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -12,6 +14,7 @@ import org.planit.od.odpath.ODPathMatrix;
 import org.planit.output.configuration.ODOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
+import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
@@ -81,8 +84,27 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param linkSegment the specified link segment
    * @return the total flow through this link segment
    */
-  public double getTotalNetworkSegmentFlow(LinkSegment linkSegment) {
+  public double collectTotalNetworkSegmentFlow(LinkSegment linkSegment) {
     return modeSpecificData.values().stream().collect((Collectors.summingDouble(modeData -> modeData.getCurrentSegmentFlows()[(int) linkSegment.getId()])));
+  }
+  
+  /**
+   * determine the total flow across all link segments across all modes
+   * 
+   * @return the total flows per link segment, null if no mode flows are available
+   */
+  public double[] collectTotalNetworkSegmentFlows() {
+    Collection<ModeData> modeData = modeSpecificData.values();
+    double[] networkSegmentFlows = null;
+    for(ModeData modeDataEntry : modeData) {
+      if(networkSegmentFlows == null) {
+        networkSegmentFlows = Arrays.copyOf(modeDataEntry.getCurrentSegmentFlows(), modeDataEntry.getCurrentSegmentFlows().length);
+      }else
+      {
+        ArrayUtils.addTo(networkSegmentFlows, modeDataEntry.getCurrentSegmentFlows());
+      }
+    }
+    return networkSegmentFlows;
   }
 
   /**

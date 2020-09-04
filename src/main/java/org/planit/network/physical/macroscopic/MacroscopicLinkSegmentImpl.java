@@ -70,21 +70,21 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   /**
    * Compute the free flow travel time by mode, i.e. when the link's maximum speed might be capped by the mode's maximum speed
    *
-   * If the input data are invalid, this method logs the problem and returns a negative value.
+   * If the input data are invalid, this method logs the problem and returns a negative value. If the mode is not allowed on the link segment
+   * and infinite free flow travel time is returned.
    *
    * @param mode mode of travel
-   * @return freeFlowTravelTime for this mode
+   * @return freeFlowTravelTime for this mode (when feasible)
    * @throws PlanItException when mode is not allowed on the link
    */
   @Override
-  public double computeFreeFlowTravelTime(final Mode mode) throws PlanItException {
-    PlanItException.throwIf(!isModeAllowed(mode), "mode not allowed on link segment, no free flow time can be computed");
+  public double computeFreeFlowTravelTime(final Mode mode){
+    if(!isModeAllowed(mode)) {
+      return Double.POSITIVE_INFINITY;
+    }
 
-    final double linkLength = getParentLink().getLength();
-    final double maximumSpeed = getMaximumSpeed();
     final double segmentTypeMaximumSpeed = getLinkSegmentType().getModeProperties(mode).getMaxSpeed();
-    double computedMaximumSpeed = Math.min(maximumSpeed, segmentTypeMaximumSpeed);
-    return linkLength / computedMaximumSpeed;
+    return getParentLink().getLength() /  Math.min(getMaximumSpeed(), segmentTypeMaximumSpeed);
   }
 
   /**

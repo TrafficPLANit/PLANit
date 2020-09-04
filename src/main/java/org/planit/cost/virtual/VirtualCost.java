@@ -1,44 +1,30 @@
 package org.planit.cost.virtual;
 
-import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.cost.Cost;
-import org.planit.network.virtual.VirtualNetwork;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
- * Object to handle the travel time cost of a virtual link
- *
+ * Interface to classify costs of virtual links
+ * 
  * @author markr
  *
  */
-public abstract class VirtualCost extends TrafficAssignmentComponent<VirtualCost> implements Cost<ConnectoidSegment> {
-
-  /** generated UID */
-  private static final long serialVersionUID = -8278650865770286434L;
-
-  /**
-   * Constructor
-   * 
-   * @param groupId, contiguous id generation within this group for instances of this class
-   */
-  protected VirtualCost(IdGroupingToken groupId) {
-    super(groupId, VirtualCost.class);
-  }
-
+public interface VirtualCost extends  Cost<ConnectoidSegment> {
+  
   /** short hand for configuring fixed virtual cost instance */
   public static final String FIXED = FixedConnectoidTravelTimeCost.class.getCanonicalName();
 
   /** short hand for configuring speed based virtual cost instance */
-  public static final String SPEED = SpeedConnectoidTravelTimeCost.class.getCanonicalName();
+  public static final String SPEED = SpeedConnectoidTravelTimeCost.class.getCanonicalName();  
 
   /**
-   * Initialize the virtual cost component
-   *
-   * @param virtualNetwork the virtual network
-   * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
+   * Invoker expects (mode specific ) costs in passed in array to be filled, where each entry signifies a link segment by its id
+   * 
+   * @param mode the mode these costs pertain to
+   * @param costToFill array of link segment costs identified by the link segment's internal id
+   * @throws PlanItException thrown if error
    */
-  public abstract void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException;
-
+  public void populateWithCost(Mode mode, double[] costToFill) throws PlanItException; 
 }

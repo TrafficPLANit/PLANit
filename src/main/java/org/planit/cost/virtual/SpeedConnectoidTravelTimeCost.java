@@ -12,7 +12,7 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
  * @author gman6028
  *
  */
-public class SpeedConnectoidTravelTimeCost extends VirtualCost {
+public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
 
   /** generated UID */
   private static final long serialVersionUID = 2813935702895030693L;
@@ -33,6 +33,15 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
     super(groupId);
     connectoidSpeed = DEFAULT_CONNECTOID_SPEED_KPH;
   }
+  
+  /**
+   * set the connectoid speed
+   * 
+   * @param connectoidSpeed the speed
+   */
+  public void setConnectoidSpeed(final double connectoidSpeed) {
+    this.connectoidSpeed = connectoidSpeed;
+  }  
 
   /**
    * Return the connectoid travel time using speed
@@ -45,6 +54,11 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
   public double getSegmentCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
     return connectoidSegment.getParentEdge().getLength() / connectoidSpeed;
   }
+  
+  @Override
+  public void populateWithCost(Mode mode, double[] costToFill) throws PlanItException {
+    // TODO Auto-generated method stub   
+  }  
 
   /**
    * #{@inheritDoc}
@@ -54,13 +68,5 @@ public class SpeedConnectoidTravelTimeCost extends VirtualCost {
     // currently no specific initialization needed
   }
 
-  /**
-   * set the connectoid speed
-   * 
-   * @param connectoidSpeed the speed
-   */
-  public void setConnectoidSpeed(final double connectoidSpeed) {
-    this.connectoidSpeed = connectoidSpeed;
-  }
 
 }

@@ -10,7 +10,7 @@ import org.planit.utils.exceptions.PlanItException;
  *
  * @param <T>
  */
-public class VirtualCostConfigurator<T extends VirtualCost> extends Configurator<T> {
+public class VirtualCostConfigurator<T extends AbstractVirtualCost> extends Configurator<T> {
 
   /**
    * Constructor 
@@ -27,7 +27,7 @@ public class VirtualCostConfigurator<T extends VirtualCost> extends Configurator
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void configure(VirtualCost virtualCost) throws PlanItException {
+  public void configure(AbstractVirtualCost virtualCost) throws PlanItException {
     super.configure((T) virtualCost);
   }
 

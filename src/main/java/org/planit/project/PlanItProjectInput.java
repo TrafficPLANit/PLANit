@@ -379,10 +379,10 @@ public class PlanItProjectInput {
         physicalNetworkFactory.create(physicalNetworkType, new Object[] { projectGroupId });
     
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createNetworkPrefix(physicalNetwork.getId());
-    LOGGER.info(String.format("%s#links: %d", prefix, physicalNetwork.links.getNumberOfLinks()));
-    LOGGER.info(String.format("%s#link segments: %d", prefix, physicalNetwork.linkSegments.getNumberOfLinkSegments()));    
-    LOGGER.info(String.format("%s#nodes: %d", prefix, physicalNetwork.nodes.getNumberOfNodes()));
-    LOGGER.info(String.format("%s#modes: %d", prefix, physicalNetwork.modes.getNumberOfModes()));
+    LOGGER.info(String.format("%s#links: %d", prefix, physicalNetwork.links.size()));
+    LOGGER.info(String.format("%s#link segments: %d", prefix, physicalNetwork.linkSegments.size()));    
+    LOGGER.info(String.format("%s#nodes: %d", prefix, physicalNetwork.nodes.size()));
+    LOGGER.info(String.format("%s#modes: %d", prefix, physicalNetwork.modes.size()));
     
     physicalNetworkMap.put(physicalNetwork.getId(), physicalNetwork);
     return physicalNetwork;

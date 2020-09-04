@@ -4,16 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.djutils.event.Event;
-import org.djutils.event.EventType;
 import org.planit.assignment.algorithmb.AlgorithmB;
 import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.cost.virtual.VirtualCost;
+import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
-import org.planit.interactor.InteractorAccessor;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.network.transport.TransportNetwork;
@@ -84,7 +81,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * The virtual cost function
    */
-  protected VirtualCost virtualCost;
+  protected AbstractVirtualCost virtualCost;
 
   /**
    * holds the count of all link segments in the transport network
@@ -401,7 +398,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @return the virtual cost object for the current assignments
    */
-  public VirtualCost getVirtualCost() {
+  public AbstractVirtualCost getVirtualCost() {
     return virtualCost;
   }
 
@@ -411,7 +408,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param virtualCost the virtual cost object to be assigned
    * @throws PlanItException thrown if there is an error
    */
-  public void setVirtualCost(final VirtualCost virtualCost) throws PlanItException {
+  public void setVirtualCost(final AbstractVirtualCost virtualCost) throws PlanItException {
     logRegisteredComponent(virtualCost, true);
     this.virtualCost = virtualCost;
   }

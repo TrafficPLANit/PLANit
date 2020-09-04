@@ -2,10 +2,8 @@ package org.planit.assignment;
 
 import java.util.logging.Logger;
 
-import org.djutils.event.Event;
-import org.djutils.event.EventType;
 import org.planit.cost.physical.AbstractPhysicalCost;
-import org.planit.cost.virtual.VirtualCost;
+import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
 import org.planit.gap.GapFunctionConfigurator;
@@ -14,7 +12,6 @@ import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.gap.LinkBasedRelativeGapConfigurator;
 import org.planit.gap.StopCriterion;
 import org.planit.input.InputBuilderListener;
-import org.planit.interactor.InteractorAccessor;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.PhysicalNetwork;
@@ -137,8 +134,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @return virtual cost instance
    * @throws PlanItException thrown if error
    */
-  protected VirtualCost createVirtualCostInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
-    TrafficAssignmentComponentFactory<VirtualCost> virtualCostFactory = new TrafficAssignmentComponentFactory<VirtualCost>(VirtualCost.class);
+  protected AbstractVirtualCost createVirtualCostInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
+    TrafficAssignmentComponentFactory<AbstractVirtualCost> virtualCostFactory = new TrafficAssignmentComponentFactory<AbstractVirtualCost>(AbstractVirtualCost.class);
     virtualCostFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     return virtualCostFactory.create(configurator.getVirtualCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
@@ -188,7 +185,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
 
     // virtual cost
     if (configurator.getVirtualCost() != null) {
-      VirtualCost virtualCost = createVirtualCostInstance(configurator);
+      AbstractVirtualCost virtualCost = createVirtualCostInstance(configurator);
       configurator.getVirtualCost().configure(virtualCost);
       trafficAssignmentInstance.setVirtualCost(virtualCost);
       

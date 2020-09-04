@@ -17,7 +17,7 @@ public class VirtualCostConfiguratorFactory {
    * @return the created configurator
    * @throws PlanItException thrown if error
    */
-  public static VirtualCostConfigurator<? extends VirtualCost> createConfigurator(final String virtualCostType) throws PlanItException {
+  public static VirtualCostConfigurator<? extends AbstractVirtualCost> createConfigurator(final String virtualCostType) throws PlanItException {
 
     if (virtualCostType.equals(VirtualCost.FIXED)) {
       return new FixedVirtualCostConfigurator();

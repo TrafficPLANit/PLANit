@@ -17,5 +17,5 @@ public interface PhysicalCost extends Cost<LinkSegment> {
 
   /** short hand for configuring physical cost with BPR function instance */
   public static final String BPR = BPRLinkTravelTimeCost.class.getCanonicalName();
-  
+   
 }

@@ -103,7 +103,7 @@ public class TransportNetwork {
    * @return the number of physical link segments in this network
    */
   public int getTotalNumberOfPhysicalLinkSegments() {
-    return physicalNetwork.linkSegments.getNumberOfLinkSegments();
+    return physicalNetwork.linkSegments.size();
   }
 
   /**
@@ -121,7 +121,7 @@ public class TransportNetwork {
    * @return the total number of physical and virtual vertices in this network
    */
   public int getTotalNumberOfVertices() {
-    return zoning.getVirtualNetwork().centroids.getNumberOfCentroids() + physicalNetwork.nodes.getNumberOfNodes();
+    return zoning.getVirtualNetwork().centroids.getNumberOfCentroids() + physicalNetwork.nodes.size();
   }
 
   /**

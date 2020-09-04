@@ -14,7 +14,7 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
  *
  */
 
-public class FixedConnectoidTravelTimeCost extends VirtualCost {
+public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
 
   /** Generate UID */
   private static final long serialVersionUID = 4907231205390412202L;
@@ -33,6 +33,15 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
   public FixedConnectoidTravelTimeCost(IdGroupingToken groupId) {
     super(groupId);
   }
+  
+  /**
+   * set the fixed cost used for all relevant link segments
+   * 
+   * @param fixedConnectoidCost the fixed cost to use
+   */
+  public void setFixedConnectoidCost(final double fixedConnectoidCost) {
+    this.fixedConnectoidCost = fixedConnectoidCost;
+  }  
 
   /**
    *
@@ -61,12 +70,9 @@ public class FixedConnectoidTravelTimeCost extends VirtualCost {
     // currently no specific initialization needed
   }
 
-  /**
-   * set the fixed cost used for all relevant link segments
-   * 
-   * @param fixedConnectoidCost the fixed cost to use
-   */
-  public void setFixedConnectoidCost(final double fixedConnectoidCost) {
-    this.fixedConnectoidCost = fixedConnectoidCost;
+
+  @Override
+  public void populateWithCost(Mode mode, double[] costToFill) throws PlanItException {
+    // TODO Auto-generated method stub    
   }
 }

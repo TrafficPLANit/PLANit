@@ -1,15 +1,11 @@
 package org.planit.assignment.traditionalstatic;
 
-import java.rmi.RemoteException;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.djutils.event.Event;
-import org.djutils.event.EventInterface;
-import org.djutils.event.EventType;
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
@@ -19,7 +15,6 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkVolumeAccessee;
-import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
@@ -96,7 +91,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       // flow initialisation
       simulationData.getModeSpecificData().put(mode, new ModeData(new double[numberOfNetworkSegments]));
       // cost initialisation
-      final double[] modalLinkSegmentCosts = initialiseModalLinkSegmentCosts(mode, timePeriod);
+      final double[] modalLinkSegmentCosts = initialiseLinkSegmentCosts(mode, timePeriod);
       simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
     }
   }  
@@ -336,7 +331,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void calculateModalLinkSegmentCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
-    setModalLinkSegmentCosts(mode, currentSegmentCosts, physicalCost);
+    getPhysicalCost().populateWithCost(mode, currentSegmentCosts);
   }
 
   /**
@@ -345,15 +340,15 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * This method is called during the first iteration of the simulation.
    *
    * @param mode                current mode of travel
-   * @param currentSegmentCosts array to store the current segment costs
+   * @param segmentCostToPopulate array to store the costs in
    * @return false if the initial costs cannot be set for this mode, true otherwise
    * @throws PlanItException thrown if there is an error
    */
-  private boolean setModalLinkSegmentCostsToInitialCost(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
+  private boolean populateToInitialCost(final Mode mode, final double[] segmentCostToPopulate) throws PlanItException {
     if (initialLinkSegmentCost == null || !initialLinkSegmentCost.isSegmentCostsSetForMode(mode)) {
       return false;
     }
-    setModalLinkSegmentCosts(mode, currentSegmentCosts, initialLinkSegmentCost);
+    populateCost(initialLinkSegmentCost, mode, segmentCostToPopulate);
     return true;
   }
 
@@ -365,19 +360,40 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    *
    * @param mode                current mode of travel
    * @param timePeriod          current time period
-   * @param currentSegmentCosts array to store the current segment costs
+   * @param segmentCostToPopulate array to store the current segment costs
    * @return false if the initial costs cannot be set for this mode, true otherwise
    * @throws PlanItException thrown if there is an error
    */
-  private boolean setModalLinkSegmentCostsToInitialCost(final Mode mode, final TimePeriod timePeriod, final double[] currentSegmentCosts) throws PlanItException {
+  private boolean populateToInitialCost(final Mode mode, final TimePeriod timePeriod, final double[] segmentCostToPopulate) throws PlanItException {
     final InitialLinkSegmentCost initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod);
     if (initialLinkSegmentCostForTimePeriod == null || !initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
-      return setModalLinkSegmentCostsToInitialCost(mode, currentSegmentCosts);
+      return populateToInitialCost(mode, segmentCostToPopulate);
     }
     InitialPhysicalCost initialTimePeriodCost = initialLinkSegmentCostByTimePeriod.get(timePeriod);
-    setModalLinkSegmentCosts(mode, currentSegmentCosts, initialTimePeriodCost);
+    populateCost(initialTimePeriodCost, mode, segmentCostToPopulate);
     return true;
   }
+  
+  /**
+   * Set the link segment costs
+   * 
+   * Cost set to POSITIVE_INFINITY for any mode which is forbidden along a link segment
+   *
+   * @param cost                Cost object used to calculate the cost*
+   * @param mode                current mode of travel
+   * @param costsToPopulate array to store the current segment costs
+   * @throws PlanItException thrown if there is an error
+   */
+  private void populateCost(Cost<LinkSegment> cost, final Mode mode, final double[] costsToPopulate) throws PlanItException {
+    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) transportNetwork.getPhysicalNetwork();
+    for (final LinkSegment linkSegment : macroscopicNetwork.linkSegments) {
+      double currentSegmentCost = cost.getSegmentCost(mode, linkSegment);
+      if (currentSegmentCost < 0.0) {
+        throw new PlanItException(String.format("link segment cost is negative for link segment %d (id: %d)",linkSegment.getExternalId(), linkSegment.getId()));
+      }
+      costsToPopulate[(int) linkSegment.getId()] = currentSegmentCost;
+    }
+  }  
 
   /**
    * Initialize the modal link segment costs before the first iteration.
@@ -389,12 +405,17 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @return array containing link costs for each link segment
    * @throws PlanItException thrown if there is an error
    */
-  private double[] initialiseModalLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
+  private double[] initialiseLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
     final double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
+    
+    /* virtual component */
     populateModalConnectoidCosts(mode, currentSegmentCosts);
-    if (setModalLinkSegmentCostsToInitialCost(mode, timePeriod, currentSegmentCosts)) {
+    
+    /* physical component */
+    if (populateToInitialCost(mode, timePeriod, currentSegmentCosts)) {
       return currentSegmentCosts;
     }
+    
     calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
     return currentSegmentCosts;
   }
@@ -412,30 +433,6 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     populateModalConnectoidCosts(mode, currentSegmentCosts);
     calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
     return currentSegmentCosts;
-  }
-
-  /**
-   * Set the link segment costs
-   * 
-   * Cost set to POSITIVE_INFINITY for any mode which is forbidden along a link segment
-   *
-   * @param mode                current mode of travel
-   * @param currentSegmentCosts array to store the current segment costs
-   * @param cost                Cost object used to calculate the cost
-   * @throws PlanItException thrown if there is an error
-   */
-  private void setModalLinkSegmentCosts(final Mode mode, final double[] currentSegmentCosts, Cost<LinkSegment> cost) throws PlanItException {
-    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) transportNetwork.getPhysicalNetwork();
-    for (final LinkSegment linkSegment : macroscopicNetwork.linkSegments) {
-      double currentSegmentCost = Double.POSITIVE_INFINITY;
-      if (linkSegment.isModeAllowed(mode)) {
-        currentSegmentCost = cost.getSegmentCost(mode, linkSegment);
-        if (currentSegmentCost < 0.0) {
-          throw new PlanItException("link segment cost is negative");
-        }
-      }
-      currentSegmentCosts[(int) linkSegment.getId()] = currentSegmentCost;
-    }
   }
   
   /**
@@ -532,24 +529,16 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * #{@inheritDoc}
    */
   @Override
-  public double getTotalLinkSegmentFlow(final LinkSegment linkSegment) {
-    return simulationData.getTotalNetworkSegmentFlow(linkSegment);
+  public double getLinkSegmentFlow(final LinkSegment linkSegment) {
+    return simulationData.collectTotalNetworkSegmentFlow(linkSegment);
   }
 
   /**
    * #{@inheritDoc}
    */
   @Override
-  public double[] getModalNetworkSegmentFlows(final Mode mode) {
-    return simulationData.getModeSpecificData().get(mode).getCurrentSegmentFlows();
-  }
-
-  /**
-   * #{@inheritDoc}
-   */
-  @Override
-  public int getNumberOfLinkSegments() {
-    return getTransportNetwork().getTotalNumberOfPhysicalLinkSegments();
+  public double[] getLinkSegmentFlows() {
+    return simulationData.collectTotalNetworkSegmentFlows();
   }
 
   /**

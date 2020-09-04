@@ -60,7 +60,7 @@ public class ModesImpl implements Modes {
    * @return new mode created
    */
   @Override  
-  public Mode registerNewMode(final long externalModeId, final String name, final double pcu) {
+  public Mode registerNew(final long externalModeId, final String name, final double pcu) {
     final Mode newMode = new ModeImpl(groupId, externalModeId, name, pcu);
     registerMode(newMode);
     return newMode;
@@ -72,7 +72,7 @@ public class ModesImpl implements Modes {
    * @return number of registered modes
    */
   @Override  
-  public int getNumberOfModes() {
+  public int size() {
     return modeMap.size();
   }
 
@@ -84,7 +84,7 @@ public class ModesImpl implements Modes {
    * 
    */
   @Override  
-  public Mode getModeById(long id) {
+  public Mode get(long id) {
     return modeMap.get(id);
   }
 
@@ -95,7 +95,7 @@ public class ModesImpl implements Modes {
    */
   @Override  
   public Mode getFirst() {
-    return getModeById(0);
+    return get(0);
   }
 
   /**
@@ -108,16 +108,16 @@ public class ModesImpl implements Modes {
    * @return the retrieved mode, or null if no mode was found
    */
   @Override  
-  public Mode getModeByExternalId(Object externalId, boolean convertToLong) {
+  public Mode getByExternalId(Object externalId, boolean convertToLong) {
     if (convertToLong) {
       try {
         long value = Long.valueOf(externalId.toString());
-        return getModeByExternalId(value);
+        return getByExternalId(value);
       } catch (NumberFormatException e) {
         // do nothing - if conversion to long is not possible, use general method instead
       }
     }
-    return getModeByExternalId(externalId);
+    return getByExternalId(externalId);
   }
 
   /**
@@ -129,7 +129,7 @@ public class ModesImpl implements Modes {
    * @param externalId the external Id of the specified mode
    * @return the retrieved mode, or null if no mode was found
    */
-  public Mode getModeByExternalId(Object externalId) {
+  public Mode getByExternalId(Object externalId) {
     for (Mode mode : modeMap.values()) {
       if (mode.getExternalId().equals(externalId)) {
         return mode;
