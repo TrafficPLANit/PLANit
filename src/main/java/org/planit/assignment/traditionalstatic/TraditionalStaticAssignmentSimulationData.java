@@ -1,9 +1,7 @@
 package org.planit.assignment.traditionalstatic;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -11,10 +9,8 @@ import org.planit.assignment.SimulationData;
 import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odpath.ODPathMatrix;
-import org.planit.output.OutputManager;
-import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
+import org.planit.output.configuration.ODOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
-import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
@@ -54,10 +50,6 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    */
   private Map<Mode, ODPathMatrix> modalODPathMatrixMap;
 
-  /**
-   * Set of active OD skim output types
-   */
-  private Set<ODSkimSubOutputType> activeOdSkimOutputTypes;
 
   /**
    * Constructor
@@ -66,21 +58,11 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param outputManager the OutputConfiguration
    * @throws PlanItException thrown if there is an error
    */
-  public TraditionalStaticAssignmentSimulationData(final IdGroupingToken groupId, final OutputManager outputManager) throws PlanItException {
+  public TraditionalStaticAssignmentSimulationData(final IdGroupingToken groupId) throws PlanItException {
     this.groupId = groupId;
     this.modeSpecificData = new TreeMap<Mode, ModeData>();
     this.modalNetworkSegmentCostsMap = new HashMap<Mode, double[]>();
     this.modalSkimMatrixMap = new HashMap<Mode, Map<ODSkimSubOutputType, ODSkimMatrix>>();
-    if (outputManager.isOutputTypeActive(OutputType.OD)) {
-      OriginDestinationOutputTypeConfiguration originDestinationOutputTypeConfiguration = (OriginDestinationOutputTypeConfiguration) outputManager
-          .getOutputTypeConfiguration(OutputType.OD);
-      // map to correct concrete subtype, so we avoid having to type cast every time we access it
-      Set<SubOutputTypeEnum> topLevelSet = originDestinationOutputTypeConfiguration.getActiveSubOutputTypes();
-      // NOTE: this assumes all subtypes are of type ODSkimOutputType!
-      this.activeOdSkimOutputTypes = topLevelSet.stream().map(e -> (ODSkimSubOutputType) e).collect(Collectors.toSet());
-    } else {
-      this.activeOdSkimOutputTypes = new HashSet<ODSkimSubOutputType>();
-    }
     this.modalODPathMatrixMap = new HashMap<Mode, ODPathMatrix>();
   }
 
@@ -129,11 +111,12 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param mode  the specified mode
    * @param zones Zones object containing all the origin and destination zones
    */
-  public void resetSkimMatrix(Mode mode, Zoning.Zones zones) {
+  public void resetSkimMatrix(Mode mode, Zoning.Zones zones,  ODOutputTypeConfiguration originDestinationOutputTypeConfiguration) {
     modalSkimMatrixMap.put(mode, new HashMap<ODSkimSubOutputType, ODSkimMatrix>());
-    for (ODSkimSubOutputType odSkimOutputType : activeOdSkimOutputTypes) {
-      ODSkimMatrix odSkimMatrix = new ODSkimMatrix(zones, odSkimOutputType);
-      modalSkimMatrixMap.get(mode).put(odSkimOutputType, odSkimMatrix);
+        
+    for (SubOutputTypeEnum odSkimOutputType : originDestinationOutputTypeConfiguration.getActiveSubOutputTypes()) {
+      ODSkimMatrix odSkimMatrix = new ODSkimMatrix(zones, (ODSkimSubOutputType)odSkimOutputType);
+      modalSkimMatrixMap.get(mode).put((ODSkimSubOutputType)odSkimOutputType, odSkimMatrix);
     }
   }
 
@@ -182,15 +165,6 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    */
   public Map<ODSkimSubOutputType, ODSkimMatrix> getSkimMatrixMap(Mode mode) {
     return modalSkimMatrixMap.get(mode);
-  }
-
-  /**
-   * Returns a Set of activated OD skim output types
-   * 
-   * @return Set of activated OD skim output types
-   */
-  public Set<ODSkimSubOutputType> getActiveSkimOutputTypes() {
-    return activeOdSkimOutputTypes;
   }
 
 }

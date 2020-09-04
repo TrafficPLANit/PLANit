@@ -29,8 +29,10 @@ import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
 import org.planit.output.adapter.TraditionalStaticPathOutputTypeAdapter;
+import org.planit.output.configuration.ODOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
+import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.path.Path;
 import org.planit.time.TimePeriod;
 import org.planit.utils.arrays.ArrayUtils;
@@ -63,11 +65,12 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * Epsilon margin when comparing flow rates (veh/h)
    */
   private static final double DEFAULT_FLOW_EPSILON = 0.000001;
-
+  
   /**
-   * Holds the running simulation data for the assignment
+   * Simulation data for this equilibration process
    */
-  private TraditionalStaticAssignmentSimulationData simulationData;
+  private TraditionalStaticAssignmentSimulationData simulationData;  
+
 
   /**
    * create the logging prefix for logging statements during equilibration
@@ -77,7 +80,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   protected String createLoggingPrefix() {
     return super.createLoggingPrefix(simulationData.getIterationIndex());
   }
-
+  
   /**
    * Initialize running simulation variables for the time period
    *
@@ -86,7 +89,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void initialiseTimePeriod(TimePeriod timePeriod, final Set<Mode> modes) throws PlanItException {
-    simulationData = new TraditionalStaticAssignmentSimulationData(groupId, getOutputManager());
+    simulationData = new TraditionalStaticAssignmentSimulationData(groupId);
     simulationData.setIterationIndex(0);
     simulationData.getModeSpecificData().clear();
     for (final Mode mode : modes) {
@@ -96,7 +99,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       final double[] modalLinkSegmentCosts = initialiseModalLinkSegmentCosts(mode, timePeriod);
       simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
     }
-  }
+  }  
 
   /**
    * Apply smoothing based on current and previous flows and the adopted smoothing method. The smoothed results are registered as the current segment flows while the current
@@ -148,30 +151,21 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
                 currentDestinationZone.getExternalId(), odDemand, mode.getExternalId()));
           }
 
-          // MARK 6-1-2020
-          // extracted this from separated method (method removed);
-          // we do to many things here (path search, path storage), better to leave it
-          // exposed at this level so we know where this functionality occurs
-          // when origin is updated we conduct ONE-TO-ALL shortest path search
+          /* new shortest path tree for current origin */
           if (previousOriginZoneId != currentOriginZone.getId()) {
 
             final Centroid originCentroid = currentOriginZone.getCentroid();
-            PlanItException.throwIf(originCentroid.getExitEdgeSegments().isEmpty(),
-                String.format("edge segments have not been assigned to Centroid for Zone %d", currentOriginZone.getExternalId()));
+            if(originCentroid.getExitEdgeSegments().isEmpty()) {
+              throw new PlanItException(String.format("edge segments have not been assigned to Centroid for Zone %d", currentOriginZone.getExternalId()));              
+            }
 
             // UPDATE SHORTEST PATHS
             shortestPathResult = shortestPathAlgorithm.executeOneToAll(originCentroid);
           }
 
-          // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
-          if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
-            final Path path = shortestPathResult.createPath(groupId, currentOriginZone.getCentroid(), currentDestinationZone.getCentroid());
-            odpathMatrix.setValue(currentOriginZone, currentDestinationZone, path);
-          }
 
-          double odShortestPathCost = 0.0;
           if ((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) {
-            odShortestPathCost = shortestPathResult.getCostToReach(currentDestinationZone.getCentroid());
+           double  odShortestPathCost = shortestPathResult.getCostToReach(currentDestinationZone.getCentroid());
             if (odShortestPathCost == Double.POSITIVE_INFINITY) {
               LOGGER.warning(createLoggingPrefix() + "impossible path from origin zone " + currentOriginZone.getExternalId() + " to destination zone "
                   + currentDestinationZone.getExternalId() + " (mode " + mode.getExternalId() + ")");
@@ -180,15 +174,18 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
               dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
             }
           }
-          previousOriginZoneId = currentOriginZone.getId();
+          previousOriginZoneId = currentOriginZone.getId();
+          /* update skim and path data if needed */
 
-          updateSkimMatrixMap(skimMatrixMap, currentOriginZone, currentDestinationZone, odDemand, shortestPathResult);
+          updateODOutputData(skimMatrixMap, currentOriginZone, currentDestinationZone, odDemand, shortestPathResult);
+          updatePathOutputData(odpathMatrix, currentOriginZone, currentDestinationZone, shortestPathResult);        
         }
       }
     }
   }
-  
-  /** apply smoothing for the current time period and mode results (to be called after executeTimePeriodAndMode)
+
+
+   /** apply smoothing for the current time period and mode results (to be called after executeTimePeriodAndMode)
    * 
    * @param mode                     the current mode
    * @param timePeriod               the current time period
@@ -266,17 +263,39 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param odDemand               the odDemand
    * @param shortestPathResult     costs for the shortest path results for the specified mode and origin-any destination
    */
-  private void updateSkimMatrixMap(final Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone,
+  private void updateODOutputData(final Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone,
       final double odDemand, final ShortestPathResult shortestPathResult) {
-    for (final ODSkimSubOutputType odSkimOutputType : simulationData.getActiveSkimOutputTypes()) {
-      if (odSkimOutputType.equals(ODSkimSubOutputType.COST)) {
-
-        // Collect cost to get to vertex from shortest path ONE-TO-ALL information directly
-        final double odGeneralisedCost = shortestPathResult.getCostToReach(currentDestinationZone.getCentroid());
-        final ODSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);
-        odSkimMatrix.setValue(currentOriginZone, currentDestinationZone, odGeneralisedCost);
+    
+    if (getOutputManager().isOutputTypeActive(OutputType.OD)) {
+      Set<SubOutputTypeEnum> activeSubOutputTypes = ((ODOutputTypeConfiguration)getOutputManager().getOutputTypeConfiguration(OutputType.OD)).getActiveSubOutputTypes();
+      for (final SubOutputTypeEnum odSkimOutputType : activeSubOutputTypes) {
+        if (odSkimOutputType.equals(ODSkimSubOutputType.COST)) {
+  
+          // Collect cost to get to vertex from shortest path ONE-TO-ALL information directly
+          final double odGeneralisedCost = shortestPathResult.getCostToReach(currentDestinationZone.getCentroid());
+          final ODSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);
+          odSkimMatrix.setValue(currentOriginZone, currentDestinationZone, odGeneralisedCost);
+        }
       }
     }
+  }
+  
+  
+  /**
+   * Update the OD path matrix
+   *
+   * @param odpathMatrix           OD path matrix to add to
+   * @param currentOriginZone      current origin zone
+   * @param currentDestinationZone current destination zone
+   * @param shortestPathResult     shortest path tree for given origin
+   */  
+  private void updatePathOutputData(ODPathMatrix odpathMatrix, Zone currentOriginZone, Zone currentDestinationZone, ShortestPathResult shortestPathResult) {
+   
+    // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
+    if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
+      final Path path = shortestPathResult.createPath(groupId, currentOriginZone.getCentroid(), currentDestinationZone.getCentroid());
+      odpathMatrix.setValue(currentOriginZone, currentDestinationZone, path);
+    }  
   }
 
   /**
@@ -452,7 +471,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  protected void executeTimePeriod(final TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
+  protected void executeTimePeriod(final TimePeriod timePeriod, Set<Mode> modes) throws PlanItException { 
+    
     initialiseTimePeriod(timePeriod, modes);
 
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
@@ -464,12 +484,16 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       smoothing.update(simulationData.getIterationIndex());
 
       // NETWORK LOADING - PER MODE
-      for (final Mode mode : modes) {
-        // :TODO ugly -> you are not resetting 1 matrix but multiple NAMES ARE WRONG
-        // :TODO: slow -> only reset or do something when it is stored in the first place, this is
-        // not checked
-        simulationData.resetSkimMatrix(mode, getTransportNetwork().getZoning().zones);
-        simulationData.resetPathMatrix(mode, getTransportNetwork().getZoning().zones);
+      for (final Mode mode : modes) {
+        // :TODO ugly -> you are not resetting 1 matrix but multiple, NAMES ARE WRONG
+        // :TODO: slow -> only reset or do something when it is stored in the first place, this is not checked
+       if(getOutputManager().isOutputTypeActive(OutputType.OD)) {
+          simulationData.resetSkimMatrix(mode, getTransportNetwork().getZoning().zones, (ODOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD));
+        }
+        if(getOutputManager().isOutputTypeActive(OutputType.PATH)) {;
+          simulationData.resetPathMatrix(mode, getTransportNetwork().getZoning().zones);
+        }
+        /* execute */
 
         executeAndSmoothTimePeriodAndMode(timePeriod, mode);
       }
