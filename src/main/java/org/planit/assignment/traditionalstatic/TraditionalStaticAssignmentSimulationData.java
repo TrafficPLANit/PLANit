@@ -35,11 +35,6 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   private IdGroupingToken groupId;
 
   /**
-   * segment flows for each mode
-   */
-  private Map<Mode, double[]> modalNetworkSegmentFlows = null;
-
-  /**
    * Stores the mode specific data required during assignment
    */
   private final Map<Mode, ModeData> modeSpecificData; // specific to tsa
@@ -73,7 +68,6 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    */
   public TraditionalStaticAssignmentSimulationData(final IdGroupingToken groupId, final OutputManager outputManager) throws PlanItException {
     this.groupId = groupId;
-    this.modalNetworkSegmentFlows = new HashMap<Mode, double[]>();
     this.modeSpecificData = new TreeMap<Mode, ModeData>();
     this.modalNetworkSegmentCostsMap = new HashMap<Mode, double[]>();
     this.modalSkimMatrixMap = new HashMap<Mode, Map<ODSkimSubOutputType, ODSkimMatrix>>();
@@ -88,16 +82,6 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
       this.activeOdSkimOutputTypes = new HashSet<ODSkimSubOutputType>();
     }
     this.modalODPathMatrixMap = new HashMap<Mode, ODPathMatrix>();
-  }
-
-  /**
-   * Get the flows for a specified mode
-   * 
-   * @param mode the specified mode
-   * @return array of flows for current mode
-   */
-  public double[] getModalNetworkSegmentFlows(Mode mode) {
-    return modalNetworkSegmentFlows.get(mode);
   }
 
   /**
@@ -116,27 +100,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @return the total flow through this link segment
    */
   public double getTotalNetworkSegmentFlow(LinkSegment linkSegment) {
-    return modalNetworkSegmentFlows.values().stream().collect((Collectors.summingDouble(flows -> flows[(int) linkSegment.getId()])));
-  }
-
-  /**
-   * Reset modal network segment flows by cloning empty array
-   * 
-   * @param mode                    the mode whose flows are to be reset
-   * @param numberOfNetworkSegments the number of network link segments
-   */
-  public void resetModalNetworkSegmentFlows(Mode mode, int numberOfNetworkSegments) {
-    setModalNetworkSegmentFlows(mode, new double[numberOfNetworkSegments]);
-  }
-
-  /**
-   * Set the flows for a specified mode
-   * 
-   * @param mode                     the specified mode
-   * @param modalNetworkSegmentFlows array of flows for the specified mode
-   */
-  public void setModalNetworkSegmentFlows(Mode mode, double[] modalNetworkSegmentFlows) {
-    this.modalNetworkSegmentFlows.put(mode, modalNetworkSegmentFlows);
+    return modeSpecificData.values().stream().collect((Collectors.summingDouble(modeData -> modeData.getCurrentSegmentFlows()[(int) linkSegment.getId()])));
   }
 
   /**

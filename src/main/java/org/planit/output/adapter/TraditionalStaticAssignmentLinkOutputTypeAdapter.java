@@ -49,7 +49,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
    */
   private double getFlow(final LinkSegment linkSegment, final Mode mode) throws PlanItException {
     final int id = (int) linkSegment.getId();
-    final double[] modalNetworkSegmentFlows = theAssignment.getIterationData().getModalNetworkSegmentFlows(mode);
+    final double[] modalNetworkSegmentFlows = theAssignment.getIterationData().getModeSpecificData().get(mode).getCurrentSegmentFlows();
     return modalNetworkSegmentFlows[id];
   }
 
@@ -117,7 +117,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
    */
   @Override
   public boolean isFlowPositive(final LinkSegment linkSegment, final Mode mode) {
-    return (theAssignment.getIterationData().getModalNetworkSegmentFlows(mode)[(int) linkSegment.getId()] > 0.0);
+    return (theAssignment.getIterationData().getModeSpecificData().get(mode).getCurrentSegmentFlows()[(int) linkSegment.getId()] > 0.0);    
   }
 
   /**

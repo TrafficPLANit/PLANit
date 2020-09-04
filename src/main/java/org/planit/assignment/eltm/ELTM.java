@@ -30,7 +30,6 @@ public class ELTM extends DynamicTrafficAssignment {
   @Override
   protected void addRegisteredEventTypeListeners(EventType eventType) {
     // TODO Auto-generated method stub
-
   }
 
   @Override
