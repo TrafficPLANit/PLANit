@@ -249,7 +249,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @param convertToLong if true, the external Id is converted into a long before beginning the search
      * @return the retrieved link segment, or null if no mode was found
      */
-    public LinkSegment getLinkByExternalId(Object externalId, boolean convertToLong) {
+    public LinkSegment getByExternalId(Object externalId, boolean convertToLong) {
       try {
         if (convertToLong) {
           long value = Long.valueOf(externalId.toString());

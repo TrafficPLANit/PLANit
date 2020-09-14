@@ -149,18 +149,29 @@ public class OutputManager {
    * Register the OutputTypeAdapter for a given output type
    * 
    * @param outputTypeAdapter the OutputTypeAdapte to be registered
+   * @throws PlanItException thrown if error
    */
   public void registerOutputTypeAdapter(OutputTypeAdapter outputTypeAdapter) {
+    if (outputAdapter == null) {
+      LOGGER.warning(String.format("output adapter not available to register type on, ignored regeistration of %s instance", outputTypeAdapter.getClass().getCanonicalName()));
+      return;
+    }
+    if (outputTypeAdapter == null) {
+      LOGGER.warning("output type adapter that is registered is null, ignored");
+      return;
+    }
     outputAdapter.registerOutputTypeAdapter(outputTypeAdapter.getOutputType(), outputTypeAdapter);
   }
 
   /**
-   * Deregister the output adapter for a specified output type
+   * Deregister the output adapter for a specified output type (if it exists)
    * 
    * @param outputType the output type whose adapter is to be deregistered
    */
   public void deregisterOutputTypeAdapter(OutputType outputType) {
-    outputAdapter.deregisterOutputTypeAdapter(outputType);
+    if (outputAdapter != null) {
+      outputAdapter.deregisterOutputTypeAdapter(outputType);
+    }
   }
 
   // getters - setters
