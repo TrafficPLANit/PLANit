@@ -2,8 +2,8 @@ package org.planit.assignment;
 
 import java.util.logging.Logger;
 
-import org.planit.cost.physical.PhysicalCost;
-import org.planit.cost.virtual.VirtualCost;
+import org.planit.cost.physical.AbstractPhysicalCost;
+import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
 import org.planit.gap.GapFunctionConfigurator;
@@ -12,6 +12,8 @@ import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.gap.LinkBasedRelativeGapConfigurator;
 import org.planit.gap.StopCriterion;
 import org.planit.input.InputBuilderListener;
+import org.planit.interactor.LinkVolumeAccessee;
+import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
@@ -120,8 +122,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @return physical cost instance
    * @throws PlanItException thrown if error
    */
-  protected PhysicalCost createPhysicalCostInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
-    TrafficAssignmentComponentFactory<PhysicalCost> physicalCostFactory = new TrafficAssignmentComponentFactory<PhysicalCost>(PhysicalCost.class);
+  protected AbstractPhysicalCost createPhysicalCostInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
+    TrafficAssignmentComponentFactory<AbstractPhysicalCost> physicalCostFactory = new TrafficAssignmentComponentFactory<AbstractPhysicalCost>(AbstractPhysicalCost.class);
     physicalCostFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     return physicalCostFactory.create(configurator.getPhysicalCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
@@ -132,8 +134,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @return virtual cost instance
    * @throws PlanItException thrown if error
    */
-  protected VirtualCost createVirtualCostInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
-    TrafficAssignmentComponentFactory<VirtualCost> virtualCostFactory = new TrafficAssignmentComponentFactory<VirtualCost>(VirtualCost.class);
+  protected AbstractVirtualCost createVirtualCostInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
+    TrafficAssignmentComponentFactory<AbstractVirtualCost> virtualCostFactory = new TrafficAssignmentComponentFactory<AbstractVirtualCost>(AbstractVirtualCost.class);
     virtualCostFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     return virtualCostFactory.create(configurator.getVirtualCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
@@ -167,16 +169,31 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
 
     // physical cost
     if (configurator.getPhysicalCost() != null) {
-      PhysicalCost physicalCost = createPhysicalCostInstance(configurator);
+      AbstractPhysicalCost physicalCost = createPhysicalCostInstance(configurator);
       configurator.getPhysicalCost().configure(physicalCost);
       trafficAssignmentInstance.setPhysicalCost(physicalCost);
+      
+      /* Physical cost <-> assignment dependency */
+      if(physicalCost instanceof LinkVolumeAccessor) {
+        PlanItException.throwIf(!(trafficAssignmentInstance instanceof LinkVolumeAccessee), "traffic assignment instance is expected to provide link volumes for physical cost by implementing the LinkVolumeAccessee interface");
+        /* by decoupling cost and assignment from the link volume dependency, we make it possible to have future cost
+         * components that do not require link volumes, or we have other classes providing the link volumes, not necessarily the 
+         * assignment. For now however, this is a hard match, until we need something more flexible */
+        ((LinkVolumeAccessor)physicalCost).setLinkVolumeAccessee((LinkVolumeAccessee)trafficAssignmentInstance);
+      }    
     }
 
     // virtual cost
     if (configurator.getVirtualCost() != null) {
-      VirtualCost virtualCost = createVirtualCostInstance(configurator);
+      AbstractVirtualCost virtualCost = createVirtualCostInstance(configurator);
       configurator.getVirtualCost().configure(virtualCost);
       trafficAssignmentInstance.setVirtualCost(virtualCost);
+      
+      /* virtual cost <-> assignment dependency (see physical cost above for rationale)*/
+      if(virtualCost instanceof LinkVolumeAccessor && trafficAssignmentInstance instanceof LinkVolumeAccessee) {
+        PlanItException.throwIf(!(trafficAssignmentInstance instanceof LinkVolumeAccessee), "traffic assignment instance is expected to provide link volumes for virtual cost by implementing the LinkVolumeAccessee interface");
+        ((LinkVolumeAccessor)virtualCost).setLinkVolumeAccessee((LinkVolumeAccessee)trafficAssignmentInstance);
+      }         
     }
 
     // gap function

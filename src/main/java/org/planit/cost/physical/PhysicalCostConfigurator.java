@@ -10,7 +10,7 @@ import org.planit.utils.exceptions.PlanItException;
  *
  * @param <T>
  */
-public class PhysicalCostConfigurator<T extends PhysicalCost> extends Configurator<T> {
+public class PhysicalCostConfigurator<T extends AbstractPhysicalCost> extends Configurator<T> {
 
   /**
    * Constructor 
@@ -27,7 +27,7 @@ public class PhysicalCostConfigurator<T extends PhysicalCost> extends Configurat
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void configure(PhysicalCost physicalCost) throws PlanItException {
+  public void configure(AbstractPhysicalCost physicalCost) throws PlanItException {
     super.configure((T) physicalCost);
   }
 

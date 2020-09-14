@@ -4,16 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.djutils.event.Event;
-import org.djutils.event.EventType;
 import org.planit.assignment.algorithmb.AlgorithmB;
 import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
-import org.planit.cost.physical.PhysicalCost;
+import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.cost.virtual.VirtualCost;
+import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
-import org.planit.interactor.InteractorAccessor;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.network.transport.TransportNetwork;
@@ -84,7 +81,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * The virtual cost function
    */
-  protected VirtualCost virtualCost;
+  protected AbstractVirtualCost virtualCost;
 
   /**
    * holds the count of all link segments in the transport network
@@ -114,7 +111,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * The physical generalized cost approach
    */
-  protected PhysicalCost physicalCost;
+  protected AbstractPhysicalCost physicalCost;
 
   /**
    * Map storing InitialLinkSegmentCost objects for each time period
@@ -122,13 +119,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
   protected Map<TimePeriod, InitialLinkSegmentCost> initialLinkSegmentCostByTimePeriod;
 
   // Protected methods
-
-  /**
-   * register all the known listeners for the passed in eventType on this producer for this event type
-   * 
-   * @param eventType the event type to register
-   */
-  protected abstract void addRegisteredEventTypeListeners(EventType eventType);
 
   /**
    * create the logging prefix for logging statements during equilibration
@@ -389,18 +379,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param physicalCost the physical cost object for the current assignment
    * @throws PlanItException thrown if there is an error
    */
-  public void setPhysicalCost(final PhysicalCost physicalCost) throws PlanItException {
+  public void setPhysicalCost(final AbstractPhysicalCost physicalCost) throws PlanItException {
     logRegisteredComponent(physicalCost, true);
     this.physicalCost = physicalCost;
-    // TODO: move this to builder.build() when we have refactored to building of traffic assignment
-    if (this.physicalCost instanceof InteractorAccessor) {
-      // request an accessee instance that we can use to collect the relevant
-      // information for the cost
-      final EventType requestAccessee = ((InteractorAccessor) physicalCost).getRequestedAccesseeEventType();
-      addRegisteredEventTypeListeners(requestAccessee);
-      fireEvent(new Event(requestAccessee, this, this.physicalCost));
-      PlanItException.throwIf(!listeners.containsKey(requestAccessee), "Error during setPhysicalCost");
-    }
   }
 
   /**
@@ -408,7 +389,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @return the physical cost object for the current assignment
    */
-  public PhysicalCost getPhysicalCost() {
+  public AbstractPhysicalCost getPhysicalCost() {
     return physicalCost;
   }
 
@@ -417,7 +398,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @return the virtual cost object for the current assignments
    */
-  public VirtualCost getVirtualCost() {
+  public AbstractVirtualCost getVirtualCost() {
     return virtualCost;
   }
 
@@ -427,19 +408,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @param virtualCost the virtual cost object to be assigned
    * @throws PlanItException thrown if there is an error
    */
-  public void setVirtualCost(final VirtualCost virtualCost) throws PlanItException {
+  public void setVirtualCost(final AbstractVirtualCost virtualCost) throws PlanItException {
     logRegisteredComponent(virtualCost, true);
     this.virtualCost = virtualCost;
-    if (this.virtualCost instanceof InteractorAccessor) {
-      // request an accessee instance that we can use to collect the relevant
-      // information for the virtual cost
-      final EventType requestAccesseeType = ((InteractorAccessor) virtualCost).getRequestedAccesseeEventType();
-      addRegisteredEventTypeListeners(requestAccesseeType);
-      fireEvent(new Event(requestAccesseeType, this, this.virtualCost));
-      if (!listeners.containsKey(requestAccesseeType)) {
-        throw new PlanItException("error during setVirtualCost");
-      }
-    }
   }
 
   /**

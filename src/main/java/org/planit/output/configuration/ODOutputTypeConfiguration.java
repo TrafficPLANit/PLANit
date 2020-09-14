@@ -30,7 +30,7 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfiguration {
+public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());
@@ -66,7 +66,7 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
    * 
    * @throws PlanItException thrown if there is an error adding the default properties
    */
-  public OriginDestinationOutputTypeConfiguration() throws PlanItException {
+  public ODOutputTypeConfiguration() throws PlanItException {
     super(OutputType.OD);
     // add default sub output types (OD - SKIM - COST);
     activeSubOutputTypes.add(ODSkimSubOutputType.COST);
@@ -90,13 +90,13 @@ public class OriginDestinationOutputTypeConfiguration extends OutputTypeConfigur
     OutputProperty[] outputKeyPropertiesArray = null;
     boolean valid = false;
     switch (findIdentificationMethod(outputKeyProperties)) {
-    case OriginDestinationOutputTypeConfiguration.ORIGIN_DESTINATION_ID_IDENTIFICATION:
+    case ODOutputTypeConfiguration.ORIGIN_DESTINATION_ID_IDENTIFICATION:
       outputKeyPropertiesArray = new OutputProperty[2];
       outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_ID;
       outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_ID;
       valid = true;
       break;
-    case OriginDestinationOutputTypeConfiguration.ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION:
+    case ODOutputTypeConfiguration.ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION:
       outputKeyPropertiesArray = new OutputProperty[2];
       outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_EXTERNAL_ID;
       outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_EXTERNAL_ID;

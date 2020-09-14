@@ -1,9 +1,9 @@
 package org.planit.assignment.traditionalstatic;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
@@ -11,11 +11,10 @@ import org.planit.assignment.SimulationData;
 import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odpath.ODPathMatrix;
-import org.planit.output.OutputManager;
-import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
+import org.planit.output.configuration.ODOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
-import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
+import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
@@ -33,11 +32,6 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * Contiguous id generation within this group id token for all instances created with factory methods in this class
    */
   private IdGroupingToken groupId;
-
-  /**
-   * segment flows for each mode
-   */
-  private Map<Mode, double[]> modalNetworkSegmentFlows = null;
 
   /**
    * Stores the mode specific data required during assignment
@@ -59,10 +53,6 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    */
   private Map<Mode, ODPathMatrix> modalODPathMatrixMap;
 
-  /**
-   * Set of active OD skim output types
-   */
-  private Set<ODSkimSubOutputType> activeOdSkimOutputTypes;
 
   /**
    * Constructor
@@ -71,33 +61,12 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param outputManager the OutputConfiguration
    * @throws PlanItException thrown if there is an error
    */
-  public TraditionalStaticAssignmentSimulationData(final IdGroupingToken groupId, final OutputManager outputManager) throws PlanItException {
+  public TraditionalStaticAssignmentSimulationData(final IdGroupingToken groupId) throws PlanItException {
     this.groupId = groupId;
-    this.modalNetworkSegmentFlows = new HashMap<Mode, double[]>();
     this.modeSpecificData = new TreeMap<Mode, ModeData>();
     this.modalNetworkSegmentCostsMap = new HashMap<Mode, double[]>();
     this.modalSkimMatrixMap = new HashMap<Mode, Map<ODSkimSubOutputType, ODSkimMatrix>>();
-    if (outputManager.isOutputTypeActive(OutputType.OD)) {
-      OriginDestinationOutputTypeConfiguration originDestinationOutputTypeConfiguration = (OriginDestinationOutputTypeConfiguration) outputManager
-          .getOutputTypeConfiguration(OutputType.OD);
-      // map to correct concrete subtype, so we avoid having to type cast every time we access it
-      Set<SubOutputTypeEnum> topLevelSet = originDestinationOutputTypeConfiguration.getActiveSubOutputTypes();
-      // NOTE: this assumes all subtypes are of type ODSkimOutputType!
-      this.activeOdSkimOutputTypes = topLevelSet.stream().map(e -> (ODSkimSubOutputType) e).collect(Collectors.toSet());
-    } else {
-      this.activeOdSkimOutputTypes = new HashSet<ODSkimSubOutputType>();
-    }
     this.modalODPathMatrixMap = new HashMap<Mode, ODPathMatrix>();
-  }
-
-  /**
-   * Get the flows for a specified mode
-   * 
-   * @param mode the specified mode
-   * @return array of flows for current mode
-   */
-  public double[] getModalNetworkSegmentFlows(Mode mode) {
-    return modalNetworkSegmentFlows.get(mode);
   }
 
   /**
@@ -115,28 +84,27 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param linkSegment the specified link segment
    * @return the total flow through this link segment
    */
-  public double getTotalNetworkSegmentFlow(LinkSegment linkSegment) {
-    return modalNetworkSegmentFlows.values().stream().collect((Collectors.summingDouble(flows -> flows[(int) linkSegment.getId()])));
+  public double collectTotalNetworkSegmentFlow(LinkSegment linkSegment) {
+    return modeSpecificData.values().stream().collect((Collectors.summingDouble(modeData -> modeData.getCurrentSegmentFlows()[(int) linkSegment.getId()])));
   }
-
+  
   /**
-   * Reset modal network segment flows by cloning empty array
+   * determine the total flow across all link segments across all modes
    * 
-   * @param mode                    the mode whose flows are to be reset
-   * @param numberOfNetworkSegments the number of network link segments
+   * @return the total flows per link segment, null if no mode flows are available
    */
-  public void resetModalNetworkSegmentFlows(Mode mode, int numberOfNetworkSegments) {
-    setModalNetworkSegmentFlows(mode, new double[numberOfNetworkSegments]);
-  }
-
-  /**
-   * Set the flows for a specified mode
-   * 
-   * @param mode                     the specified mode
-   * @param modalNetworkSegmentFlows array of flows for the specified mode
-   */
-  public void setModalNetworkSegmentFlows(Mode mode, double[] modalNetworkSegmentFlows) {
-    this.modalNetworkSegmentFlows.put(mode, modalNetworkSegmentFlows);
+  public double[] collectTotalNetworkSegmentFlows() {
+    Collection<ModeData> modeData = modeSpecificData.values();
+    double[] networkSegmentFlows = null;
+    for(ModeData modeDataEntry : modeData) {
+      if(networkSegmentFlows == null) {
+        networkSegmentFlows = Arrays.copyOf(modeDataEntry.getCurrentSegmentFlows(), modeDataEntry.getCurrentSegmentFlows().length);
+      }else
+      {
+        ArrayUtils.addTo(networkSegmentFlows, modeDataEntry.getCurrentSegmentFlows());
+      }
+    }
+    return networkSegmentFlows;
   }
 
   /**
@@ -165,11 +133,12 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param mode  the specified mode
    * @param zones Zones object containing all the origin and destination zones
    */
-  public void resetSkimMatrix(Mode mode, Zoning.Zones zones) {
+  public void resetSkimMatrix(Mode mode, Zoning.Zones zones,  ODOutputTypeConfiguration originDestinationOutputTypeConfiguration) {
     modalSkimMatrixMap.put(mode, new HashMap<ODSkimSubOutputType, ODSkimMatrix>());
-    for (ODSkimSubOutputType odSkimOutputType : activeOdSkimOutputTypes) {
-      ODSkimMatrix odSkimMatrix = new ODSkimMatrix(zones, odSkimOutputType);
-      modalSkimMatrixMap.get(mode).put(odSkimOutputType, odSkimMatrix);
+        
+    for (SubOutputTypeEnum odSkimOutputType : originDestinationOutputTypeConfiguration.getActiveSubOutputTypes()) {
+      ODSkimMatrix odSkimMatrix = new ODSkimMatrix(zones, (ODSkimSubOutputType)odSkimOutputType);
+      modalSkimMatrixMap.get(mode).put((ODSkimSubOutputType)odSkimOutputType, odSkimMatrix);
     }
   }
 
@@ -218,15 +187,6 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    */
   public Map<ODSkimSubOutputType, ODSkimMatrix> getSkimMatrixMap(Mode mode) {
     return modalSkimMatrixMap.get(mode);
-  }
-
-  /**
-   * Returns a Set of activated OD skim output types
-   * 
-   * @return Set of activated OD skim output types
-   */
-  public Set<ODSkimSubOutputType> getActiveSkimOutputTypes() {
-    return activeOdSkimOutputTypes;
   }
 
 }

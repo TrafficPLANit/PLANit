@@ -23,5 +23,5 @@ public interface Cost<T extends EdgeSegment> extends Serializable {
    * @throws PlanItException the exception thrown when not available
    */
   public double getSegmentCost(Mode mode, T edgeSegment) throws PlanItException;
-
+    
 }

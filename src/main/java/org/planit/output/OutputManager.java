@@ -12,7 +12,7 @@ import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.configuration.LinkOutputTypeConfiguration;
-import org.planit.output.configuration.OriginDestinationOutputTypeConfiguration;
+import org.planit.output.configuration.ODOutputTypeConfiguration;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.configuration.PathOutputTypeConfiguration;
@@ -121,7 +121,7 @@ public class OutputManager {
       createdOutputTypeConfiguration = new LinkOutputTypeConfiguration();
       break;
     case OD:
-      createdOutputTypeConfiguration = new OriginDestinationOutputTypeConfiguration();
+      createdOutputTypeConfiguration = new ODOutputTypeConfiguration();
       break;
     case PATH:
       createdOutputTypeConfiguration = new PathOutputTypeConfiguration();

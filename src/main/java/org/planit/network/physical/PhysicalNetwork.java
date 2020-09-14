@@ -62,7 +62,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @throws PlanItException thrown if there is an error
      */
     public L registerNewLink(final N nodeA, final N nodeB, final double length) throws PlanItException {
-      return registerNewLink(nodeA, nodeB, length, false);
+      return registerNew(nodeA, nodeB, length, false);
     }
 
     /**
@@ -75,7 +75,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link
      * @throws PlanItException thrown if there is an error
      */
-    public L registerNewLink(final N nodeA, final N nodeB, final double length, boolean registerOnNodes) throws PlanItException {
+    public L registerNew(final N nodeA, final N nodeB, final double length, boolean registerOnNodes) throws PlanItException {
       final L newLink = graph.getEdges().registerNewEdge(nodeA, nodeB, length);
       if (registerOnNodes) {
         nodeA.addEdge(newLink);
@@ -90,7 +90,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @param id the id of the link
      * @return the retrieved link
      */
-    public L getLink(final long id) {
+    public L get(final long id) {
       return graph.getEdges().getEdge(id);
     }
 
@@ -99,7 +99,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      *
      * @return the number of links in the network
      */
-    public int getNumberOfLinks() {
+    public int size() {
       return graph.getEdges().getNumberOfEdges();
     }
   }
@@ -121,7 +121,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @param linkSegment the link segment to be registered
      * @throws PlanItException thrown if the current link segment external Id has already been assigned
      */
-    protected void registerLinkSegment(final LS linkSegment) throws PlanItException {
+    protected void register(final LS linkSegment) throws PlanItException {
       final Vertex startNode = linkSegment.getUpstreamVertex();
       if (!linkSegmentMapByStartNodeId.containsKey(startNode.getId())) {
         linkSegmentMapByStartNodeId.put(startNode.getId(), new ArrayList<LS>());
@@ -144,7 +144,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @param endId   reference to end node
      * @return the linkSegment found
      */
-    public LS getLinkSegmentByStartAndEndNodeId(final long startId, final long endId) {
+    public LS getByStartAndEndNodeId(final long startId, final long endId) {
       if (!linkSegmentMapByStartNodeId.containsKey(startId)) {
         LOGGER.warning(LoggingUtils.createNetworkPrefix(getId()) + String.format("no link segment with start node %d has been registered in the network", startId));
         return null;
@@ -169,7 +169,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LS createLinkSegment(final Link parentLink, final boolean directionAb) throws PlanItException {
+    public LS createNew(final Link parentLink, final boolean directionAb) throws PlanItException {
       return graph.getEdgeSegments().createEdgeSegment(parentLink, directionAb);
     }
 
@@ -181,8 +181,8 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LS createAndRegisterLinkSegment(final Link parentLink, final boolean directionAb) throws PlanItException {
-      return createAndRegisterLinkSegment(parentLink, directionAb, false /* do not register on node and link */);
+    public LS createAndRegisterNew(final Link parentLink, final boolean directionAb) throws PlanItException {
+      return createAndRegisterNew(parentLink, directionAb, false /* do not register on node and link */);
     }
 
     /**
@@ -194,9 +194,9 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LS createAndRegisterLinkSegment(final Link parentLink, final boolean directionAb, final boolean registerOnNodeAndLink) throws PlanItException {
-      LS linkSegment = createLinkSegment(parentLink, directionAb);
-      registerLinkSegment(parentLink, linkSegment, directionAb);
+    public LS createAndRegisterNew(final Link parentLink, final boolean directionAb, final boolean registerOnNodeAndLink) throws PlanItException {
+      LS linkSegment = createNew(parentLink, directionAb);
+      register(parentLink, linkSegment, directionAb);
       if (registerOnNodeAndLink) {
         parentLink.registerEdgeSegment(linkSegment, directionAb);
         if (parentLink.getVertexA() instanceof DirectedVertex) {
@@ -215,9 +215,9 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @param directionAb direction of travel
      * @throws PlanItException thrown if there is an error
      */
-    public void registerLinkSegment(final Link parentLink, final LS linkSegment, final boolean directionAb) throws PlanItException {
+    public void register(final Link parentLink, final LS linkSegment, final boolean directionAb) throws PlanItException {
       graph.getEdgeSegments().registerEdgeSegment(parentLink, linkSegment, directionAb);
-      registerLinkSegment(linkSegment);
+      register(linkSegment);
     }
 
     /**
@@ -226,7 +226,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @param id id of the link segment
      * @return retrieved linkSegment
      */
-    public LS getLinkSegment(final long id) {
+    public LS get(final long id) {
       return graph.getEdgeSegments().getEdgeSegment(id);
     }
 
@@ -235,7 +235,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      *
      * @return number of registered link segments
      */
-    public int getNumberOfLinkSegments() {
+    public int size() {
       return graph.getEdgeSegments().getNumberOfEdgeSegments();
     }
 
@@ -249,17 +249,17 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @param convertToLong if true, the external Id is converted into a long before beginning the search
      * @return the retrieved link segment, or null if no mode was found
      */
-    public LinkSegment getLinkSegmentByExternalId(Object externalId, boolean convertToLong) {
+    public LinkSegment getLinkByExternalId(Object externalId, boolean convertToLong) {
       try {
         if (convertToLong) {
           long value = Long.valueOf(externalId.toString());
-          return getLinkSegmentByExternalId(value);
+          return getByExternalId(value);
         }
-        return getLinkSegmentByExternalId(externalId);
+        return getByExternalId(externalId);
       } catch (NumberFormatException e) {
         // do nothing - if conversion to long is not possible, use the general method instead
       }
-      return getLinkSegmentByExternalId(externalId);
+      return getByExternalId(externalId);
     }
 
     /**
@@ -271,7 +271,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @param externalId the external Id of the specified link segment type
      * @return the retrieved link segment, or null if no link segment type was found
      */
-    public LinkSegment getLinkSegmentByExternalId(Object externalId) {
+    public LinkSegment getByExternalId(Object externalId) {
       for (LinkSegment linkSegment : graph.getEdgeSegments()) {
         if (linkSegment.getExternalId().equals(externalId)) {
           return linkSegment;
@@ -300,7 +300,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      *
      * @return new node created
      */
-    public N registerNewNode() {
+    public N registerNew() {
       final N newNode = graph.getVertices().registerNewVertex();
       return newNode;
     }
@@ -311,7 +311,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @param externalId the externalId of the node
      * @return new node created
      */
-    public N registerNewNode(Object externalId) {
+    public N registerNew(Object externalId) {
       final N newNode = graph.getVertices().registerNewVertex(externalId);
       return newNode;
     }
@@ -321,7 +321,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      *
      * @return number of registered nodes
      */
-    public int getNumberOfNodes() {
+    public int size() {
       return graph.getVertices().getNumberOfVertices();
     }
 
@@ -331,7 +331,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @param id Id of node
      * @return retrieved node
      */
-    public N getNodeById(final long id) {
+    public N get(final long id) {
       return graph.getVertices().getVertexById(id);
     }
 

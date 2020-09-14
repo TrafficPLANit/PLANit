@@ -3,12 +3,12 @@ package org.planit.assignment;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.planit.cost.physical.PhysicalCost;
+import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.PhysicalCostConfigurator;
 import org.planit.cost.physical.PhysicalCostConfiguratorFactory;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
-import org.planit.cost.virtual.VirtualCost;
+import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.cost.virtual.VirtualCostConfigurator;
 import org.planit.cost.virtual.VirtualCostConfiguratorFactory;
 import org.planit.demands.Demands;
@@ -65,12 +65,12 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   /**
    * Nested configurator for physical cost within this assignment
    */
-  private PhysicalCostConfigurator<? extends PhysicalCost> physicalCostConfigurator = null;
+  private PhysicalCostConfigurator<? extends AbstractPhysicalCost> physicalCostConfigurator = null;
 
   /**
    * Nested configurator for virtual cost within this assignment
    */
-  private VirtualCostConfigurator<? extends VirtualCost> virtualCostConfigurator = null;
+  private VirtualCostConfigurator<? extends AbstractVirtualCost> virtualCostConfigurator = null;
 
   /**
    * Nested configurator for vgap function within this assignment
@@ -186,7 +186,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @return the physical cost created
    * @throws PlanItException thrown if there is an error
    */
-  public PhysicalCostConfigurator<? extends PhysicalCost> createAndRegisterPhysicalCost(final String physicalTraveltimeCostFunctionType) throws PlanItException {
+  public PhysicalCostConfigurator<? extends AbstractPhysicalCost> createAndRegisterPhysicalCost(final String physicalTraveltimeCostFunctionType) throws PlanItException {
     physicalCostConfigurator = PhysicalCostConfiguratorFactory.createConfigurator(physicalTraveltimeCostFunctionType);
     return physicalCostConfigurator;
   }
@@ -198,7 +198,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @return the cost function created
    * @throws PlanItException thrown if there is an error
    */
-  public VirtualCostConfigurator<? extends VirtualCost> createAndRegisterVirtualCost(final String virtualTraveltimeCostFunctionType) throws PlanItException {
+  public VirtualCostConfigurator<? extends AbstractVirtualCost> createAndRegisterVirtualCost(final String virtualTraveltimeCostFunctionType) throws PlanItException {
     virtualCostConfigurator = VirtualCostConfiguratorFactory.createConfigurator(virtualTraveltimeCostFunctionType);
     return virtualCostConfigurator;
   }
@@ -335,7 +335,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @return physicalCost
    */
-  public PhysicalCostConfigurator<? extends PhysicalCost> getPhysicalCost() {
+  public PhysicalCostConfigurator<? extends AbstractPhysicalCost> getPhysicalCost() {
     return physicalCostConfigurator;
   }
 
@@ -344,7 +344,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @return virtual cost
    */
-  public VirtualCostConfigurator<? extends VirtualCost> getVirtualCost() {
+  public VirtualCostConfigurator<? extends AbstractVirtualCost> getVirtualCost() {
     return virtualCostConfigurator;
   }
 
