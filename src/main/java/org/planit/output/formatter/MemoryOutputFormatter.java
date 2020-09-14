@@ -1,6 +1,5 @@
 package org.planit.output.formatter;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -333,24 +332,24 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Opens all resources used in the formatter
    * 
-   * @param outputTypeConfigurations OutputTypeConfigurations for the assignment that have been activated
-   * @param runId                    the traffic assignments runId
+   * @param outputConfiguration OutputTypeConfiguration for the assignment
+   * @param runId               the traffic assignments runId
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  public void initialiseBeforeSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations, long runId) throws PlanItException {
+  public void initialiseBeforeSimulation(OutputConfiguration outputConfiguration, long runId) throws PlanItException {
     timeModeOutputTypeIterationDataMap = new MultiKeyMap<Object, MultiKeyPlanItData>();
   }
 
   /**
    * Close all resources used in this formatter
    * 
-   * @param outputTypeConfigurations OutputTypeConfigurations for the assignment that have been activated
-   * @param outputAdapter            the outputAdapter
+   * @param outputTypeConfiguration OutputTypeConfiguration of the assignment
+   * @param outputAdapter           the outputAdapter
    * @throws PlanItException thrown if there is an error
    */
   @Override
-  public void finaliseAfterSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations, OutputAdapter outputAdapter) throws PlanItException {
+  public void finaliseAfterSimulation(OutputConfiguration outputConfiguration, OutputAdapter outputAdapter) throws PlanItException {
     // do nothing
   }
 

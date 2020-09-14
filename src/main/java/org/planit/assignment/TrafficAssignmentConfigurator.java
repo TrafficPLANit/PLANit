@@ -313,15 +313,6 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   }
 
   /**
-   * Provide the output type configuration for user access (if available)
-   *
-   * @return outputTypeConfiguration for this traffic assignment, null if not available
-   */
-  public OutputTypeConfiguration getOutputTypeConfiguration(final OutputType outputType) {
-    return getOutputManager().getOutputTypeConfiguration(outputType);
-  }
-
-  /**
    * Collect the gap function of the trafficAssignment instance
    *
    * @return gapFunction

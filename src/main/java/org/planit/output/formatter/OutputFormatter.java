@@ -1,12 +1,10 @@
 package org.planit.output.formatter;
 
-import java.util.Map;
 import java.util.Set;
 
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
-import org.planit.output.enums.OutputType;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.network.physical.Mode;
@@ -53,20 +51,20 @@ public interface OutputFormatter {
   /**
    * Open resources to store results
    * 
-   * @param outputTypeConfigurations OutputTypeConfigurations for the assignment to be saved
-   * @param runId                    the id number of the run
+   * @param outputConfiguration OutputTypeConfiguration for the assignment to be saved
+   * @param runId               the id number of the run
    * @throws PlanItException thrown if there is an error
    */
-  public void initialiseBeforeSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations, long runId) throws PlanItException;
+  public void initialiseBeforeSimulation(OutputConfiguration outputConfiguration, long runId) throws PlanItException;
 
   /**
    * Close resources to store results
    * 
-   * @param outputTypeConfigurations OutputTypeConfigurations for the assignment to be saved
-   * @param outputAdapter            the outputAdapter
+   * @param outputConfiguration OutputTypeConfiguration for the assignment to be saved
+   * @param outputAdapter       the outputAdapter
    * @throws PlanItException thrown if there is an error
    */
-  public void finaliseAfterSimulation(Map<OutputType, OutputTypeConfiguration> outputTypeConfigurations, OutputAdapter outputAdapter) throws PlanItException;
+  public void finaliseAfterSimulation(OutputConfiguration outputConfiguration, OutputAdapter outputAdapter) throws PlanItException;
 
   /**
    * Flag to indicate whether an implementation can handle multiple iterations
