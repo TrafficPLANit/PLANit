@@ -26,6 +26,10 @@ public interface OutputFormatter {
    * Default output formatter supported by PLANit from PLANitIO repository
    */
   public static final String PLANIT_OUTPUT_FORMATTER = "org.planit.io.output.formatter.PlanItOutputFormatter";
+
+  /**
+   * Memory output formatter which stores all results in memory rather than persist them to disk
+   */
   public static final String MEMORY_OUTPUT_FORMATTER = MemoryOutputFormatter.class.getCanonicalName();
 
   /**

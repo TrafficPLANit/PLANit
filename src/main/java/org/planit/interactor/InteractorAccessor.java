@@ -1,7 +1,5 @@
 package org.planit.interactor;
 
-import org.djutils.event.EventType;
-
 /**
  * Interactor accessor. The accessor accesses its accessee.
  * 
