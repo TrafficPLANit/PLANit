@@ -126,7 +126,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     final int id = (int) linkSegment.getId();
     
     final double freeFlowTravelTime = freeFlowTravelTimePerLinkSegment[(int) mode.getId()][id];
-    final double capacity = linkSegment.computeCapacity();
+    final double capacity = linkSegment.computeCapacityPcuH();
     
     final Pair<Double, Double> alphaBetaParameters = bprParametersPerLinkSegment[id].getAlphaBetaParameters(mode);
     final double alpha = alphaBetaParameters.getFirst();

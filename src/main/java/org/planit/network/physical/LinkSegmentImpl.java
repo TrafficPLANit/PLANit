@@ -89,7 +89,7 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
    * 
    * @param maximumSpeed
    */
-  public void setMaximumSpeed(double maximumSpeed) {
+  public void setMaximumSpeedKmH(double maximumSpeed) {
     this.maximumSpeed = maximumSpeed;
   }
 
@@ -98,7 +98,7 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
    * 
    * @param maximumSpeed
    */
-  public double getMaximumSpeed() {
+  public double getMaximumSpeedKmH() {
     return this.maximumSpeed;
   }
 

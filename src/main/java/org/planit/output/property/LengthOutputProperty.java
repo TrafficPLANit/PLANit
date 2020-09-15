@@ -1,7 +1,7 @@
 package org.planit.output.property;
 
 import org.planit.output.enums.Type;
-import org.planit.output.enums.Units;
+import org.planit.utils.unit.Units;
 
 public final class LengthOutputProperty extends BaseOutputProperty {
 

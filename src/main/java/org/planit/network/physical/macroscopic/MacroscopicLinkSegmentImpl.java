@@ -1,7 +1,6 @@
 package org.planit.network.physical.macroscopic;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.network.physical.LinkSegmentImpl;
@@ -31,11 +30,6 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   // Protected
 
   /**
-   * Map of maximum speeds along this link for each mode
-   */
-  protected Map<Mode, Double> maximumSpeedMap;
-
-  /**
    * the link type of this link containing all macroscopic features by user class
    */
   protected MacroscopicLinkSegmentType linkSegmentType = null;
@@ -52,7 +46,6 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    */
   public MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) throws PlanItException {
     super(groupId, parentLink, directionAB);
-    maximumSpeedMap = new HashMap<Mode, Double>();
   }
 
   /**
@@ -60,31 +53,31 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    *
    * Compute the total capacity by multiplying the capacity per lane and number of lanes
    *
-   * @return linkSegmentCapacity in PCU
+   * @return linkSegmentCapacity in PCU/h
    */
   @Override
-  public double computeCapacity() {
+  public double computeCapacityPcuH() {
     return getLinkSegmentType().getCapacityPerLane() * getNumberOfLanes();
   }
 
   /**
    * Compute the free flow travel time by mode, i.e. when the link's maximum speed might be capped by the mode's maximum speed
    *
-   * If the input data are invalid, this method logs the problem and returns a negative value. If the mode is not allowed on the link segment
-   * and infinite free flow travel time is returned.
+   * If the input data are invalid, this method logs the problem and returns a negative value. If the mode is not allowed on the link segment and infinite free flow travel time is
+   * returned.
    *
    * @param mode mode of travel
    * @return freeFlowTravelTime for this mode (when feasible)
    * @throws PlanItException when mode is not allowed on the link
    */
   @Override
-  public double computeFreeFlowTravelTime(final Mode mode){
-    if(!isModeAllowed(mode)) {
+  public double computeFreeFlowTravelTime(final Mode mode) {
+    if (!isModeAllowed(mode)) {
       return Double.POSITIVE_INFINITY;
     }
 
     final double segmentTypeMaximumSpeed = getLinkSegmentType().getModeProperties(mode).getMaxSpeed();
-    return getParentLink().getLengthKm() /  Math.min(getMaximumSpeed(), segmentTypeMaximumSpeed);
+    return getParentLink().getLengthKm() / Math.min(getMaximumSpeedKmH(), segmentTypeMaximumSpeed);
   }
 
   /**
@@ -96,6 +89,14 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   @Override
   public boolean isModeAllowed(Mode mode) {
     return linkSegmentType.getModeProperties(mode) != null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<Mode> getAllowedModes() {
+    return linkSegmentType.getAvailableModes();
   }
 
   // getters - setters
@@ -115,4 +116,5 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   public MacroscopicLinkSegmentType getLinkSegmentType() {
     return linkSegmentType;
   }
+
 }

@@ -2,6 +2,7 @@ package org.planit.network.physical.macroscopic;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -162,6 +163,16 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   @Override
   public MacroscopicModeProperties addModeProperties(Mode mode, MacroscopicModeProperties properties) {
     return modeProperties.put(mode, properties);
+  }
+
+  /**
+   * return the available modes for which mode properties have been registered
+   * 
+   * @return available modes
+   */
+  @Override
+  public Set<Mode> getAvailableModes() {
+    return modeProperties.keySet();
   }
 
 }

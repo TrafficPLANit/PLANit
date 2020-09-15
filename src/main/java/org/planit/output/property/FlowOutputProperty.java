@@ -1,7 +1,7 @@
 package org.planit.output.property;
 
 import org.planit.output.enums.Type;
-import org.planit.output.enums.Units;
+import org.planit.utils.unit.Units;
 
 public final class FlowOutputProperty extends BaseOutputProperty {
 
@@ -14,7 +14,7 @@ public final class FlowOutputProperty extends BaseOutputProperty {
 
   @Override
   public Units getUnits() {
-    return Units.VEH_H;
+    return Units.VEH_HOUR;
   }
 
   @Override

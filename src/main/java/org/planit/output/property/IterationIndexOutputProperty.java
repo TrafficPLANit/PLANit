@@ -2,8 +2,8 @@ package org.planit.output.property;
 
 import org.planit.assignment.TrafficAssignment;
 import org.planit.output.enums.Type;
-import org.planit.output.enums.Units;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.unit.Units;
 
 public final class IterationIndexOutputProperty extends BaseOutputProperty {
 

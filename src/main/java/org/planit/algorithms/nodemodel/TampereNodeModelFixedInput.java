@@ -55,7 +55,7 @@ public class TampereNodeModelFixedInput {
 
     arrayToInitialise = Array1D.PRIMITIVE64.makeZero(linkSegments.size());
     for (MacroscopicLinkSegment linkSegment : linkSegments) {
-      arrayToInitialise.add(linkSegment.computeCapacity());
+      arrayToInitialise.add(linkSegment.computeCapacityPcuH());
     }
   }
 
