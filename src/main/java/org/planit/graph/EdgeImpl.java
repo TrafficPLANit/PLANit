@@ -130,7 +130,7 @@ public class EdgeImpl implements Edge {
    * {@inheritDoc}
    */
   @Override
-  public double getLength() {
+  public double getLengthKm() {
     return lengthInKm;
   }
   

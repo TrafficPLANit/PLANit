@@ -84,7 +84,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
     }
 
     final double segmentTypeMaximumSpeed = getLinkSegmentType().getModeProperties(mode).getMaxSpeed();
-    return getParentLink().getLength() /  Math.min(getMaximumSpeed(), segmentTypeMaximumSpeed);
+    return getParentLink().getLengthKm() /  Math.min(getMaximumSpeed(), segmentTypeMaximumSpeed);
   }
 
   /**

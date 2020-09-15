@@ -1,5 +1,7 @@
 package org.planit.network.converter;
 
+import org.planit.utils.exceptions.PlanItException;
+
 /**
  * Network converter class able to convert a network from one type to another
  * 
@@ -31,8 +33,10 @@ public class NetworkConverter {
 
   /**
    * Convert the network parsed by the reader by passing it on to the writer. It is assumed both reader and writer are fully configured when this method is called
+   * 
+   * @throws PlanItException thrown if error
    */
-  public void convert() {
+  public void convert() throws PlanItException {
     writer.write(reader.read());
   }
 

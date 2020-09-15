@@ -98,6 +98,14 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
     return downstreamVertex;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isDirectionAb() {
+    return getParentEdge().hasEdgeSegmentAb() && getParentEdge().getEdgeSegmentAb().getId() == this.getId();
+  }
+
   // Getter - Setters
 
   /**

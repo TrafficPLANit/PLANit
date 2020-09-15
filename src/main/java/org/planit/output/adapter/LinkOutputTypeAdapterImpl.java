@@ -135,7 +135,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if there is an error
    */
   protected double getLength(LinkSegment linkSegment) throws PlanItException {
-    return linkSegment.getParentLink().getLength();
+    return linkSegment.getParentLink().getLengthKm();
   }
 
   /**

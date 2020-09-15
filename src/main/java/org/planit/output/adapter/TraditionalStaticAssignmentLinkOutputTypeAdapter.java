@@ -35,7 +35,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
     final int id = (int) linkSegment.getId();
     final double[] modalNetworkSegmentCosts = theAssignment.getIterationData().getModalLinkSegmentCosts(mode);
     final double travelTime = modalNetworkSegmentCosts[id];
-    final double length = linkSegment.getParentLink().getLength();
+    final double length = linkSegment.getParentLink().getLengthKm();
     return length / travelTime;
   }
 
