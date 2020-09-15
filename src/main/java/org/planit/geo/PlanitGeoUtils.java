@@ -130,7 +130,7 @@ public class PlanitGeoUtils {
    * @throws PlanItException thrown if there is an error
    */
   public double getDistanceInKilometres(Vertex vertexA, Vertex vertexB) throws PlanItException {
-    return getDistanceInMetres(vertexA.getCentrePointGeometry(), vertexA.getCentrePointGeometry()) / 1000.0;
+    return getDistanceInMetres(vertexA.getCentrePointGeometry(), vertexB.getCentrePointGeometry()) / 1000.0;
   }
 
   /**
