@@ -12,7 +12,7 @@ import org.planit.output.property.TimePeriodExternalIdOutputProperty;
 import org.planit.output.property.TimePeriodIdOutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 
 /**
  * Top-level abstract class which defines the common methods required by all output type adapters

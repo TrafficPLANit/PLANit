@@ -5,8 +5,8 @@ import java.io.Serializable;
 import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.Mode;
 
 /**
  * The initial physical costs for the network

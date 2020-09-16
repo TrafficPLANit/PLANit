@@ -7,8 +7,8 @@ import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.Mode;
 
 /**
  * Adapter providing access to the data of the TraditionalStaticAssignment class relevant for link outputs without exposing the internals of the traffic assignment class itself

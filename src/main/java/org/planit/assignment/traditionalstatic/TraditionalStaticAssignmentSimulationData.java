@@ -17,8 +17,8 @@ import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.Mode;
 
 /**
  * Simulation data which are specific to Traditional Static Assignment

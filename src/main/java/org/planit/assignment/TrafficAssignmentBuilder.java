@@ -23,7 +23,7 @@ import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 
 /**
  * All traffic assignment instances require a network, demand, and (equilibrium) smoothing procedure, all of which should be registered via this generic builder. Specific traffic

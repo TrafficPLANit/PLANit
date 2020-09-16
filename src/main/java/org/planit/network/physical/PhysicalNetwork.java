@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.graph.DirectedGraphImpl;
+import org.planit.mode.ModesImpl;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedGraph;
@@ -17,9 +18,9 @@ import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
+import org.planit.utils.mode.Modes;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.Modes;
 import org.planit.utils.network.physical.Node;
 
 /**

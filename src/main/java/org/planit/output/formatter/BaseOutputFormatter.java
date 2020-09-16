@@ -17,7 +17,7 @@ import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 
 /**
  * Base class for all formatters of output data, i.e. persistence of certain types of data into a particular format

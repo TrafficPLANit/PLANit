@@ -5,7 +5,7 @@ import org.planit.od.odpath.ODPathMatrix;
 import org.planit.output.enums.PathOutputIdentificationType;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 
 public interface PathOutputTypeAdapter extends OutputTypeAdapter {
 

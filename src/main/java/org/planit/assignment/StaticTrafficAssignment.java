@@ -9,7 +9,7 @@ import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 
 /**
  * A static traffic assignment class with some commonalities implemented shared across static assignment implementations

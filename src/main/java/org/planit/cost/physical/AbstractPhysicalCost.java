@@ -4,9 +4,9 @@ import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.Node;
 
 /**

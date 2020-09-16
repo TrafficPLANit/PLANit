@@ -5,7 +5,7 @@ import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 
 /**
  * Adapter providing access to the data of the TraditionalStaticAssignment class relevant for origin-destination outputs without exposing the internals of the traffic assignment

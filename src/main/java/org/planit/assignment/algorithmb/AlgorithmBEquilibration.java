@@ -7,7 +7,7 @@ import org.planit.network.transport.TransportNetwork;
 import org.planit.output.OutputManager;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.virtual.Zone;
 
 /**

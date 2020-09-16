@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 

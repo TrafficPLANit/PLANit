@@ -1,12 +1,12 @@
-package org.planit.network.physical;
+package org.planit.mode;
 
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Mode;
-import org.planit.utils.network.physical.Modes;
+import org.planit.utils.mode.Mode;
+import org.planit.utils.mode.Modes;
 
 /**
  * Implementation of the Modes interface to create and register modes on itself

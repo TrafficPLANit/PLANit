@@ -11,8 +11,8 @@ import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 

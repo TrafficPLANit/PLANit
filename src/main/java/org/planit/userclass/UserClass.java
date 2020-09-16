@@ -2,7 +2,7 @@ package org.planit.userclass;
 
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 
 /**
  * A user class defines a combination of one or more characteristics of users in an aggregate representation of traffic which partially dictate how they behave in traffic

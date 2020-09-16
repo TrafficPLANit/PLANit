@@ -9,7 +9,7 @@ import org.planit.output.property.OutputProperty;
 import org.planit.path.Path;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 
 /**
  * Top-level abstract class which defines the common methods required by Path output type adapters

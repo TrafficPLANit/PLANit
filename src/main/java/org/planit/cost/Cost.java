@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 
 /**
  * Cost of an EdgeSegment

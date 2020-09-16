@@ -11,8 +11,8 @@ import org.planit.demands.Demands;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.time.TimePeriod;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Mode;
-import org.planit.utils.network.physical.Modes;
+import org.planit.utils.mode.Mode;
+import org.planit.utils.mode.Modes;
 import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.Zone;
 

@@ -1,7 +1,7 @@
 package org.planit.cost.physical.initial;
 
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 
 /**
  * Initial Link Segment Cost for which all the link segments have the same cost value for a specified mode

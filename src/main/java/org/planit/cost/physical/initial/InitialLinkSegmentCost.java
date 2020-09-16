@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.Mode;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 
 /**

@@ -3,8 +3,8 @@ package org.planit.output.adapter;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.Mode;
 
 /**
  * Interface defining the methods required for a link output adapter

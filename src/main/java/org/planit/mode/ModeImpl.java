@@ -1,8 +1,8 @@
-package org.planit.network.physical;
+package org.planit.mode;
 
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Mode;
+import org.planit.utils.mode.Mode;
 
 /**
  * A Mode is a user class feature representing a single form of transport (car, truck etc.).
