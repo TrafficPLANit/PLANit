@@ -3,6 +3,8 @@ package org.planit.mode;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.mode.PhysicalModeFeatures;
+import org.planit.utils.mode.UsabilityModeFeatures;
 
 /**
  * A Mode is a user class feature representing a single form of transport (car, truck etc.).
@@ -34,6 +36,12 @@ public class ModeImpl implements Mode {
    * Name of this mode
    */
   private final String name;
+  
+  /** the physical features of this mode */
+  private final PhysicalModeFeatures physicalFeatures;
+  
+  /** the usability features of this mode */
+  private final UsabilityModeFeatures usedToFeatures;  
 
   /**
    * Constructor
@@ -48,6 +56,8 @@ public class ModeImpl implements Mode {
     this.externalId = DEFAULT_EXTERNAL_ID;
     this.name = name;
     this.pcu = pcu;
+    this.physicalFeatures = new PhysicalModeFeatures();
+    this.usedToFeatures = new UsabilityModeFeatures();
   }
 
   /**
@@ -59,10 +69,8 @@ public class ModeImpl implements Mode {
    * @param pcu        the PCU value of this mode
    */
   protected ModeImpl(final IdGroupingToken groupId, final Object externalId, final String name, final double pcu) {
-    this.id = IdGenerator.generateId(groupId, ModeImpl.class);
+    this(groupId,name, pcu);
     this.externalId = externalId;
-    this.name = name;
-    this.pcu = pcu;
   }
 
   // getters-setters
@@ -100,6 +108,22 @@ public class ModeImpl implements Mode {
   @Override
   public int compareTo(Mode o) {
     return (int) (this.getId() - o.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PhysicalModeFeatures getPhysicalFeatures() {
+    return physicalFeatures;
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public UsabilityModeFeatures getUseFeatures() {
+    return usedToFeatures;
   }
 
 }
