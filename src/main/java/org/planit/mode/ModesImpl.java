@@ -7,6 +7,7 @@ import java.util.TreeMap;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.Modes;
+import org.planit.utils.mode.PredefinedModeType;
 
 /**
  * Implementation of the Modes interface to create and register modes on itself
@@ -19,13 +20,14 @@ public class ModesImpl implements Modes {
    * Map to store modes by their Id
    */
   private final Map<Long, Mode> modeMap = new TreeMap<Long, Mode>();
-  
+
   /**
    * create id's for modes based on this group token
    */
   private final IdGroupingToken groupId;
-  
-  /** Constructor 
+
+  /**
+   * Constructor
    * 
    * @param groupId to generated id's within this group
    */
@@ -59,9 +61,9 @@ public class ModesImpl implements Modes {
    * @param pcu            value for the mode
    * @return new mode created
    */
-  @Override  
+  @Override
   public Mode registerNew(final long externalModeId, final String name, final double pcu) {
-    final Mode newMode = new ModeImpl(groupId, externalModeId, name, pcu);
+    final Mode newMode = new ModeImpl(groupId, PredefinedModeType.CUSTOM, externalModeId, name, pcu);
     registerMode(newMode);
     return newMode;
   }
@@ -71,7 +73,7 @@ public class ModesImpl implements Modes {
    *
    * @return number of registered modes
    */
-  @Override  
+  @Override
   public int size() {
     return modeMap.size();
   }
@@ -83,7 +85,7 @@ public class ModesImpl implements Modes {
    * @return the specified mode
    * 
    */
-  @Override  
+  @Override
   public Mode get(long id) {
     return modeMap.get(id);
   }
@@ -93,7 +95,7 @@ public class ModesImpl implements Modes {
    * 
    * @return first registered mode if any
    */
-  @Override  
+  @Override
   public Mode getFirst() {
     return get(0);
   }
@@ -107,7 +109,7 @@ public class ModesImpl implements Modes {
    * @param convertToLong if true, the external Id is converted into a long before beginning the search
    * @return the retrieved mode, or null if no mode was found
    */
-  @Override  
+  @Override
   public Mode getByExternalId(Object externalId, boolean convertToLong) {
     if (convertToLong) {
       try {
@@ -123,8 +125,8 @@ public class ModesImpl implements Modes {
   /**
    * Retrieve a Mode by its external Id
    * 
-   * This method is not efficient, since it loops through all the registered modes in order to find the required time period. The equivalent method in InputBuilderListener is
-   * more efficient and should be used in preference to this in Java code.
+   * This method is not efficient, since it loops through all the registered modes in order to find the required time period. The equivalent method in InputBuilderListener is more
+   * efficient and should be used in preference to this in Java code.
    * 
    * @param externalId the external Id of the specified mode
    * @return the retrieved mode, or null if no mode was found

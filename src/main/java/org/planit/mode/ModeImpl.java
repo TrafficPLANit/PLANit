@@ -4,6 +4,7 @@ import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.PhysicalModeFeatures;
+import org.planit.utils.mode.PredefinedModeType;
 import org.planit.utils.mode.UsabilityModeFeatures;
 
 /**
@@ -13,9 +14,10 @@ import org.planit.utils.mode.UsabilityModeFeatures;
  */
 public class ModeImpl implements Mode {
 
-  private final long DEFAULT_EXTERNAL_ID = 1;
+  public final static Long DEFAULT_EXTERNAL_ID = Long.valueOf(1);
 
-  // Protected
+  /** track the mode type of this mode */
+  private final PredefinedModeType modeType;
 
   /**
    * Each mode has a passenger car unit number indicating how many standard passenger cars a single unit of this mode represents
@@ -36,41 +38,74 @@ public class ModeImpl implements Mode {
    * Name of this mode
    */
   private final String name;
-  
+
   /** the physical features of this mode */
-  private final PhysicalModeFeatures physicalFeatures;
-  
+  private PhysicalModeFeatures physicalFeatures;
+
   /** the usability features of this mode */
-  private final UsabilityModeFeatures usedToFeatures;  
+  private UsabilityModeFeatures usedToFeatures;
 
   /**
-   * Constructor
+   * Constructor, using all defaults for non-provided parameters
    * 
    * @param groupId, contiguous id generation within this group for instances of this class
+   * @param modeType the predefined mode type this represents (if any)
    * @param name     the name of this mode
    * @param pcu      the PCU value of this mode
    */
 
-  protected ModeImpl(final IdGroupingToken groupId, final String name, final double pcu) {
-    this.id = IdGenerator.generateId(groupId, Mode.class);
-    this.externalId = DEFAULT_EXTERNAL_ID;
-    this.name = name;
-    this.pcu = pcu;
-    this.physicalFeatures = new PhysicalModeFeatures();
-    this.usedToFeatures = new UsabilityModeFeatures();
+  protected ModeImpl(final IdGroupingToken groupId, final PredefinedModeType modeType, final String name, final double pcu) {
+    this(groupId, modeType, DEFAULT_EXTERNAL_ID, name, pcu, new PhysicalModeFeaturesImpl(), new UsabilityModeFeaturesImpl());
+  }
+
+  /**
+   * Constructor, using all defaults for non-provided parameters
+   * 
+   * @param groupId,   contiguous id generation within this group for instances of this class
+   * @param modeType   the predefined mode type this represents (if any)
+   * @param externalId the externalId of this mode
+   * @param name       the name of this mode
+   * @param pcu        the PCU value of this mode
+   */
+  protected ModeImpl(final IdGroupingToken groupId, final PredefinedModeType modeType, final Object externalId, final String name, final double pcu) {
+    this(groupId, modeType, externalId, name, pcu, new PhysicalModeFeaturesImpl(), new UsabilityModeFeaturesImpl());
+  }
+
+  /**
+   * Constructor, using all defaults for non-provided parameters
+   * 
+   * @param groupId,          contiguous id generation within this group for instances of this class
+   * @param modeType          the predefined mode type this represents (if any)
+   * @param name              the name of this mode
+   * @param pcu               the PCU value of this mode
+   * @param physicalFeatures  physical features of the mode
+   * @param usabilityFeatures usability features of the mode
+   */
+  protected ModeImpl(final IdGroupingToken groupId, final PredefinedModeType modeType, final String name, final double pcu, final PhysicalModeFeatures physicalFeatures,
+      final UsabilityModeFeatures usabilityFeatures) {
+    this(groupId, modeType, DEFAULT_EXTERNAL_ID, name, pcu, physicalFeatures, usabilityFeatures);
   }
 
   /**
    * Constructor
    * 
-   * @param groupId,   contiguous id generation within this group for instances of this class
-   * @param externalId the externalId of this mode
-   * @param name       the name of this mode
-   * @param pcu        the PCU value of this mode
+   * @param groupId,          contiguous id generation within this group for instances of this class
+   * @param modeType          the predefined mode type this represents (if any)
+   * @param externalId        the externalId of this mode
+   * @param name              the name of this mode
+   * @param pcu               the PCU value of this mode
+   * @param physicalFeatures  physical features of the mode
+   * @param usabilityFeatures usability features of the mode
    */
-  protected ModeImpl(final IdGroupingToken groupId, final Object externalId, final String name, final double pcu) {
-    this(groupId,name, pcu);
+  protected ModeImpl(final IdGroupingToken groupId, PredefinedModeType modeType, final Object externalId, final String name, final double pcu,
+      final PhysicalModeFeatures physicalFeatures, final UsabilityModeFeatures usabilityFeatures) {
+    this.id = IdGenerator.generateId(groupId, Mode.class);
+    this.modeType = modeType;
     this.externalId = externalId;
+    this.name = name;
+    this.pcu = pcu;
+    this.physicalFeatures = new PhysicalModeFeaturesImpl();
+    this.usedToFeatures = new UsabilityModeFeaturesImpl();
   }
 
   // getters-setters
@@ -114,15 +149,15 @@ public class ModeImpl implements Mode {
    * {@inheritDoc}
    */
   @Override
-  public PhysicalModeFeatures getPhysicalFeatures() {
+  public final PhysicalModeFeatures getPhysicalFeatures() {
     return physicalFeatures;
   }
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
-  public UsabilityModeFeatures getUseFeatures() {
+  public final UsabilityModeFeatures getUseFeatures() {
     return usedToFeatures;
   }
 
