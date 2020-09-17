@@ -1,5 +1,8 @@
 package org.planit.network.converter;
 
+import java.util.logging.Logger;
+
+import org.planit.assignment.StaticTrafficAssignment;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
@@ -9,6 +12,9 @@ import org.planit.utils.exceptions.PlanItException;
  *
  */
 public class NetworkConverter {
+  
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(NetworkConverter.class.getCanonicalName());  
 
   /**
    * the reader
@@ -19,6 +25,14 @@ public class NetworkConverter {
    * the writer
    */
   protected final NetworkWriter writer;
+  
+  /** verify if mode conversion between reader and writer is valid
+   * @return true if valid, false otherwise
+   */
+  protected boolean isModeConversionValid() {
+    LOGGER.info("validating proposed mode conversion validity...");
+    return false;
+  }  
 
   /**
    * constructor
@@ -37,7 +51,12 @@ public class NetworkConverter {
    * @throws PlanItException thrown if error
    */
   public void convert() throws PlanItException {
-    writer.write(reader.read());
+    /* verify mode compatibility */
+    if(isModeConversionValid()) {
+      writer.write(reader.read());
+    }else {
+      LOGGER.severe("unable to convert network, modes mapping between reader and writer is incompatible");
+    }
   }
 
   /**
