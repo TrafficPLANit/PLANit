@@ -15,6 +15,7 @@ public enum Type {
   BOOLEAN("BOOLEAN"),
   STRING("STRING"),
   SRSNAME("SRSNAME");
+  
   private final String value;
 
   Type(String v) {

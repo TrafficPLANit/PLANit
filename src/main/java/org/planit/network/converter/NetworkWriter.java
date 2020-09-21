@@ -10,14 +10,14 @@ import org.planit.utils.exceptions.PlanItException;
  *
  */
 public interface NetworkWriter {
-  
+
   /**
-   * Each writer maps the modes of the PLANit network to the writer's output format. This mapping should be made available via this method
-   * It is required for any network converter to verify if the planit modes that are expected are compatible/available in the network that is being written
-   *   
+   * Each writer maps the modes of the PLANit network to the writer's output format. This mapping should be made available via this method It is required for any network converter
+   * to verify if the planit modes that are expected are compatible/available in the network that is being written
+   * 
    * @return the mode mapper
    */
-  PlanitMode2WriterModeMapper getModeMapper();  
+  // PlanitMode2WriterModeMapper getModeMapper();
 
   /**
    * write a planit network to disk based on the configuration of the implementing class

@@ -3,11 +3,16 @@ package org.planit.mode;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.Modes;
+import org.planit.utils.mode.PhysicalModeFeatures;
+import org.planit.utils.mode.PredefinedMode;
 import org.planit.utils.mode.PredefinedModeType;
+import org.planit.utils.mode.UsabilityModeFeatures;
 
 /**
  * Implementation of the Modes interface to create and register modes on itself
@@ -16,6 +21,9 @@ import org.planit.utils.mode.PredefinedModeType;
  *
  */
 public class ModesImpl implements Modes {
+
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = Logger.getLogger(ModesImpl.class.getCanonicalName());
   /**
    * Map to store modes by their Id
    */
@@ -54,16 +62,22 @@ public class ModesImpl implements Modes {
   }
 
   /**
-   * Create and register new mode
-   *
-   * @param externalModeId the external mode id for the mode
-   * @param name           of the mode
-   * @param pcu            value for the mode
-   * @return new mode created
+   * {@inheritDoc}
    */
   @Override
-  public Mode registerNew(final long externalModeId, final String name, final double pcu) {
-    final Mode newMode = new ModeImpl(groupId, PredefinedModeType.CUSTOM, externalModeId, name, pcu);
+  public Mode registerNewCustomMode(Object externalModeId, String name, double pcu, PhysicalModeFeatures physicalFeatures, UsabilityModeFeatures usabilityFeatures) {
+    final Mode newMode = new ModeImpl(groupId, externalModeId, name, pcu, physicalFeatures, usabilityFeatures);
+    registerMode(newMode);
+    return newMode;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public PredefinedMode registerNew(PredefinedModeType modeType) throws PlanItException {
+    PredefinedMode newMode = ModeFactory.createPredefinedMode(groupId, modeType);
     registerMode(newMode);
     return newMode;
   }
@@ -139,4 +153,5 @@ public class ModesImpl implements Modes {
     }
     return null;
   }
+
 }
