@@ -10,10 +10,10 @@ import org.planit.utils.mode.UseOfModeType;
 import org.planit.utils.mode.VehicularModeType;
 
 /**
- * the predefined heavy goods vehicle mode, i.e., small truck up to 3.5 tonnes
+ * the predefined heavy goods vehicle mode, i.e., truck over 3.5 tonnes
  * <ul>
  * <li>name: hgv</li>
- * <li>pcu: 2</li>
+ * <li>pcu: 2.5</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
  * <li>track: DOUBLE_TRACK</li>
@@ -26,7 +26,7 @@ import org.planit.utils.mode.VehicularModeType;
 public class HeavyGoodsMode extends PredefinedModeImpl {
 
   /* default pcu value for hgv mode */
-  public static final double DEFAULT_PCU = 2;
+  public static final double DEFAULT_PCU = 2.5;
 
   /* default physical features of hgv (VEHICLE, MOTORISED, DOUBLE_TRACK) */
   public static final PhysicalModeFeatures HGV_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.DOUBLE);

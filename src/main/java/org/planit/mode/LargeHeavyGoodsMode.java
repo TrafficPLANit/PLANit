@@ -10,7 +10,7 @@ import org.planit.utils.mode.UseOfModeType;
 import org.planit.utils.mode.VehicularModeType;
 
 /**
- * the predefined large heavy goods vehicle mode, i.e., articulated truck
+ * the predefined large heavy goods vehicle mode, i.e., large articulated truck, larger than heavy goods
  * <ul>
  * <li>name: lhgv</li>
  * <li>pcu: 3</li>

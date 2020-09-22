@@ -33,6 +33,8 @@ public class ModeFactory {
       return new CarShareMode(groupId);
     case CAR_HIGH_OCCUPANCY:
       return new CarHighOccupancyMode(groupId);
+    case GOODS_VEHICLE:
+      return new GoodsMode(groupId);
     case HEAVY_GOODS_VEHICLE:
       return new HeavyGoodsMode(groupId);
     case LARGE_HEAVY_GOODS_VEHICLE:
