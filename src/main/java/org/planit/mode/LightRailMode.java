@@ -36,12 +36,12 @@ public class LightRailMode extends PredefinedModeImpl {
   public static final UsabilityModeFeatures LIGHTRAIL_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);
 
   /**
-   * Constructor for train mode
+   * Constructor for lightrail mode
    * 
    * @param groupId to generate unique id
    */
   protected LightRailMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.TRAM, DEFAULT_PCU, LIGHTRAIL_PHYSICAL_FEATURES, LIGHTRAIL_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.LIGHTRAIL, DEFAULT_PCU, LIGHTRAIL_PHYSICAL_FEATURES, LIGHTRAIL_USABLITY_FEATURES);
   }
 
 }

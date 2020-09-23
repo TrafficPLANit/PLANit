@@ -77,15 +77,18 @@ public class ModesImpl implements Modes {
    */
   @Override
   public PredefinedMode registerNew(PredefinedModeType modeType) throws PlanItException {
-    PredefinedMode newMode = ModeFactory.createPredefinedMode(groupId, modeType);
-    registerMode(newMode);
-    return newMode;
+    PredefinedMode theMode = null;
+    if (!containsPredefinedMode(modeType)) {
+      theMode = ModeFactory.createPredefinedMode(groupId, modeType);
+      registerMode(theMode);
+    } else {
+      theMode = getPredefinedMode(modeType);
+    }
+    return theMode;
   }
 
   /**
-   * Return number of registered modes
-   *
-   * @return number of registered modes
+   * {@inheritDoc}
    */
   @Override
   public int size() {
@@ -93,11 +96,7 @@ public class ModesImpl implements Modes {
   }
 
   /**
-   * Return a Mode by its id
-   * 
-   * @param id the id of the Mode
-   * @return the specified mode
-   * 
+   * {@inheritDoc}
    */
   @Override
   public Mode get(long id) {
@@ -105,9 +104,23 @@ public class ModesImpl implements Modes {
   }
 
   /**
-   * Collect the first registered mode
-   * 
-   * @return first registered mode if any
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean containsPredefinedMode(PredefinedModeType modeType) {
+    return modeMap.values().stream().anyMatch(mode -> (mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PredefinedMode getPredefinedMode(PredefinedModeType modeType) {
+    return (PredefinedMode) modeMap.values().stream().dropWhile(mode -> (mode instanceof PredefinedMode) && mode.getName().equals(modeType.value())).findFirst().get();
+  }
+
+  /**
+   * {@inheritDoc}
    */
   @Override
   public Mode getFirst() {
