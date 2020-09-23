@@ -13,6 +13,7 @@ import org.planit.utils.mode.VehicularModeType;
  * the predefined bus mode
  * <ul>
  * <li>name: bus</li>
+ * <li>maxspeed (km/h): 100</li>
  * <li>pcu: 2</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
@@ -24,6 +25,9 @@ import org.planit.utils.mode.VehicularModeType;
  *
  */
 public class BusMode extends PredefinedModeImpl {
+
+  /* default max speed value for bus mode */
+  public static final double DEFAULT_MAX_SPEED_KMH = 100;
 
   /* default pcu value for bus mode */
   public static final double DEFAULT_PCU = 2;
@@ -40,7 +44,7 @@ public class BusMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected BusMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.BUS, DEFAULT_PCU, BUS_PHYSICAL_FEATURES, BUS_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.BUS, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, BUS_PHYSICAL_FEATURES, BUS_USABLITY_FEATURES);
   }
 
 }

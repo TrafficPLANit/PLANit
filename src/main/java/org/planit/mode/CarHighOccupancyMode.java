@@ -10,6 +10,7 @@ import org.planit.utils.mode.UseOfModeType;
  * the predefined car hov mode
  * <ul>
  * <li>name: car_hov</li>
+ * <li>maxspeed (km/h): 130</li>
  * <li>pcu: 1</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
@@ -21,6 +22,9 @@ import org.planit.utils.mode.UseOfModeType;
  *
  */
 public class CarHighOccupancyMode extends PredefinedModeImpl {
+
+  /* default max speed value for car hov mode */
+  public static final double DEFAULT_MAX_SPEED_KMH = CarMode.DEFAULT_MAX_SPEED_KMH;
 
   /* default pcu value for car hov mode */
   public static final double DEFAULT_PCU = CarMode.DEFAULT_PCU;
@@ -37,7 +41,7 @@ public class CarHighOccupancyMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected CarHighOccupancyMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.CAR_HIGH_OCCUPANCY, DEFAULT_PCU, CAR_HOV_PHYSICAL_FEATURES, CAR_HOV_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.CAR_HIGH_OCCUPANCY, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, CAR_HOV_PHYSICAL_FEATURES, CAR_HOV_USABLITY_FEATURES);
   }
 
 }

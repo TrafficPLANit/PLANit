@@ -1,5 +1,6 @@
 package org.planit.network.physical.macroscopic;
 
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 
 /**
@@ -39,7 +40,7 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
    */
   public MacroscopicModePropertiesImpl() {
     super();
-    this.maxSpeed = DEFAULT_MAXIMUM_SPEED;
+    this.maxSpeed = Mode.GLOBAL_DEFAULT_MAXIMUM_SPEED_KMH;
     this.criticalSpeed = DEFAULT_CRITICAL_SPEED;
   }
 
@@ -49,7 +50,7 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
    * {@inheritDoc}
    */
   @Override
-  public double getMaxSpeed() {
+  public double getMaximumSpeed() {
     return maxSpeed;
   }
 

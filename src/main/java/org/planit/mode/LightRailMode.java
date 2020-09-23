@@ -13,6 +13,7 @@ import org.planit.utils.mode.VehicularModeType;
  * the predefined lightrail mode
  * <ul>
  * <li>name: lightrail</li>
+ * <li>maxspeed (km/h): 70</li>
  * <li>pcu: 6</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
@@ -24,6 +25,9 @@ import org.planit.utils.mode.VehicularModeType;
  *
  */
 public class LightRailMode extends PredefinedModeImpl {
+
+  /* default max speed value for light rail mode */
+  public static final double DEFAULT_MAX_SPEED_KMH = 70;
 
   /* default pcu value for lightrail mode */
   public static final double DEFAULT_PCU = 6;
@@ -41,7 +45,7 @@ public class LightRailMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected LightRailMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.LIGHTRAIL, DEFAULT_PCU, LIGHTRAIL_PHYSICAL_FEATURES, LIGHTRAIL_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.LIGHTRAIL, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, LIGHTRAIL_PHYSICAL_FEATURES, LIGHTRAIL_USABLITY_FEATURES);
   }
 
 }

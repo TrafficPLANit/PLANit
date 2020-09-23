@@ -10,6 +10,7 @@ import org.planit.utils.mode.UseOfModeType;
  * the predefined car share mode
  * <ul>
  * <li>name: car</li>
+ * <li>maxspeed (km/h): 130</li>
  * <li>pcu: 1</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
@@ -21,6 +22,9 @@ import org.planit.utils.mode.UseOfModeType;
  *
  */
 public class CarShareMode extends PredefinedModeImpl {
+
+  /* default max speed value for car share mode */
+  public static final double DEFAULT_MAX_SPEED_KMH = CarMode.DEFAULT_MAX_SPEED_KMH;
 
   /* default pcu value for car share mode */
   public static final double DEFAULT_PCU = CarMode.DEFAULT_PCU;
@@ -37,7 +41,7 @@ public class CarShareMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected CarShareMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.CAR_SHARE, DEFAULT_PCU, CAR_SHARE_PHYSICAL_FEATURES, CAR_SHARE_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.CAR_SHARE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, CAR_SHARE_PHYSICAL_FEATURES, CAR_SHARE_USABLITY_FEATURES);
   }
 
 }

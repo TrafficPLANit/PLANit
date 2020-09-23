@@ -166,9 +166,15 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   }
 
   /**
-   * return the available modes for which mode properties have been registered
-   * 
-   * @return available modes
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isModeAvailable(Mode mode) {
+    return modeProperties.containsKey(mode);
+  }
+
+  /**
+   * {@inheritDoc}
    */
   @Override
   public Set<Mode> getAvailableModes() {

@@ -13,6 +13,7 @@ import org.planit.utils.mode.VehicularModeType;
  * the predefined train mode
  * <ul>
  * <li>name: train</li>
+ * <li>maxspeed (km/h): 140</li>
  * <li>pcu: 10</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
@@ -24,6 +25,9 @@ import org.planit.utils.mode.VehicularModeType;
  *
  */
 public class TrainMode extends PredefinedModeImpl {
+
+  /* default max speed value for train mode */
+  public static final double DEFAULT_MAX_SPEED_KMH = 140;
 
   /* default pcu value for train mode */
   public static final double DEFAULT_PCU = 10;
@@ -40,7 +44,7 @@ public class TrainMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected TrainMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.TRAIN, DEFAULT_PCU, TRAIN_PHYSICAL_FEATURES, TRAIN_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.TRAIN, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, TRAIN_PHYSICAL_FEATURES, TRAIN_USABLITY_FEATURES);
   }
 
 }

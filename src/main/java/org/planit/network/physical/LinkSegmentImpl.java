@@ -87,18 +87,18 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
   /**
    * This is the maximum speed that is physically present and a driver can observe from the signs on the road
    * 
-   * @param maximumSpeed
+   * @param maximumSpeed physical speed limit
    */
-  public void setMaximumSpeedKmH(double maximumSpeed) {
+  public void setPhysicalSpeedLimitKmH(double maximumSpeed) {
     this.maximumSpeed = maximumSpeed;
   }
 
   /**
    * This is the maximum speed that is physically present and a driver can observe from the signs on the road
    * 
-   * @param maximumSpeed
+   * @return maximumSpeed
    */
-  public double getMaximumSpeedKmH() {
+  public double getPhysicalSpeedLimitKmH() {
     return this.maximumSpeed;
   }
 

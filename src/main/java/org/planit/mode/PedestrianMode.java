@@ -13,6 +13,7 @@ import org.planit.utils.mode.VehicularModeType;
  * the predefined pedestrian mode
  * <ul>
  * <li>name: pedestrian</li>
+ * <li>maxspeed (km/h): 5</li>
  * <li>pcu: 0.1</li>
  * <li>vehicular type: NO_VEHICLE</li>
  * <li>motorisation: NON_MOTORISED</li>
@@ -24,6 +25,9 @@ import org.planit.utils.mode.VehicularModeType;
  *
  */
 public class PedestrianMode extends PredefinedModeImpl {
+
+  /* default max speed value for pedestrian mode */
+  public static final double DEFAULT_MAX_SPEED_KMH = 5;
 
   /* default pcu value for pedestrian mode */
   public static final double DEFAULT_PCU = 0.1;
@@ -41,7 +45,7 @@ public class PedestrianMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected PedestrianMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.PEDESTRIAN, DEFAULT_PCU, PEDESTRIAN_PHYSICAL_FEATURES, PEDESTRIAN_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.PEDESTRIAN, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, PEDESTRIAN_PHYSICAL_FEATURES, PEDESTRIAN_USABLITY_FEATURES);
   }
 
 }

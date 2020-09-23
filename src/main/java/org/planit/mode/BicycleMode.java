@@ -13,6 +13,7 @@ import org.planit.utils.mode.VehicularModeType;
  * the predefined bicycle mode
  * <ul>
  * <li>name: bicycle</li>
+ * <li>maxspeed (km/h): 15</li>
  * <li>pcu: 0.2</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: NON_MOTORISED</li>
@@ -24,6 +25,9 @@ import org.planit.utils.mode.VehicularModeType;
  *
  */
 public class BicycleMode extends PredefinedModeImpl {
+
+  /* default max speed value for bicycle mode */
+  public static final double DEFAULT_MAX_SPEED_KMH = 15;
 
   /* default pcu value for bicycle mode */
   public static final double DEFAULT_PCU = 0.2;
@@ -41,7 +45,7 @@ public class BicycleMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected BicycleMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.BICYCLE, DEFAULT_PCU, BICYCLE_PHYSICAL_FEATURES, BICYCLE_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.BICYCLE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, BICYCLE_PHYSICAL_FEATURES, BICYCLE_USABLITY_FEATURES);
   }
 
 }

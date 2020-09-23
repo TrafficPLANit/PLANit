@@ -61,14 +61,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   }
 
   /**
-   * Compute the free flow travel time by mode, i.e. when the link's maximum speed might be capped by the mode's maximum speed
-   *
-   * If the input data are invalid, this method logs the problem and returns a negative value. If the mode is not allowed on the link segment and infinite free flow travel time is
-   * returned.
-   *
-   * @param mode mode of travel
-   * @return freeFlowTravelTime for this mode (when feasible)
-   * @throws PlanItException when mode is not allowed on the link
+   * {@inheritDoc}
    */
   @Override
   public double computeFreeFlowTravelTime(final Mode mode) {
@@ -76,19 +69,28 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
       return Double.POSITIVE_INFINITY;
     }
 
-    final double segmentTypeMaximumSpeed = getLinkSegmentType().getModeProperties(mode).getMaxSpeed();
-    return getParentLink().getLengthKm() / Math.min(getMaximumSpeedKmH(), segmentTypeMaximumSpeed);
+    return getParentLink().getLengthKm() / getModelledSpeedLimitKmH(mode);
   }
 
   /**
-   * Returns whether vehicles of a specified mode are allowed through this link
-   * 
-   * @param mode the specified mode
-   * @return true if vehicles of this mode can drive along this link, false otherwise
+   * {@inheritDoc}
+   */
+  @Override
+  public double getModelledSpeedLimitKmH(Mode mode) {
+    if (!isModeAllowed(mode)) {
+      return 0.0;
+    }
+    final double modeSpeedLimit = mode.getMaximumSpeed();
+    final double segmentTypeMaximumSpeed = getLinkSegmentType().getModeProperties(mode).getMaximumSpeed();
+    return Math.min(getPhysicalSpeedLimitKmH(), Math.min(modeSpeedLimit, segmentTypeMaximumSpeed));
+  }
+
+  /**
+   * {@inheritDoc}
    */
   @Override
   public boolean isModeAllowed(Mode mode) {
-    return linkSegmentType.getModeProperties(mode) != null;
+    return linkSegmentType.isModeAvailable(mode);
   }
 
   /**

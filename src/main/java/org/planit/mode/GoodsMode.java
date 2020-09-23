@@ -13,6 +13,7 @@ import org.planit.utils.mode.VehicularModeType;
  * the predefined goods vehicle mode, i.e., truck below 3.5 tonnes
  * <ul>
  * <li>name: gv</li>
+ * <li>maxspeed (km/h): 100</li>
  * <li>pcu: 1.8</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
@@ -24,6 +25,9 @@ import org.planit.utils.mode.VehicularModeType;
  *
  */
 public class GoodsMode extends PredefinedModeImpl {
+
+  /* default max speed value for goods mode */
+  public static final double DEFAULT_MAX_SPEED_KMH = 100;
 
   /* default pcu value for hgv mode */
   public static final double DEFAULT_PCU = 1.8;
@@ -40,7 +44,7 @@ public class GoodsMode extends PredefinedModeImpl {
    * @param groupId to generate unique id
    */
   protected GoodsMode(IdGroupingToken groupId) {
-    super(groupId, PredefinedModeType.GOODS_VEHICLE, DEFAULT_PCU, GV_PHYSICAL_FEATURES, GV_USABLITY_FEATURES);
+    super(groupId, PredefinedModeType.GOODS_VEHICLE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, GV_PHYSICAL_FEATURES, GV_USABLITY_FEATURES);
   }
 
 }

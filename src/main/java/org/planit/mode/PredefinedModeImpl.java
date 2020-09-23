@@ -24,12 +24,14 @@ public class PredefinedModeImpl extends ModeImpl implements PredefinedMode {
    * 
    * @param groupId           groupId for id generation
    * @param modeType          predefined mode type used
+   * @param maxSpeed          the maximum speed for this predefined mode type
    * @param pcu               pcu value for this predefined mode
    * @param physicalFeatures  physical features of the mode
    * @param usabilityFeatures usabilitu features of the mode
    */
-  protected PredefinedModeImpl(IdGroupingToken groupId, PredefinedModeType modeType, double pcu, PhysicalModeFeatures physicalFeatures, UsabilityModeFeatures usabilityFeatures) {
-    super(groupId, modeType.value(), pcu, physicalFeatures, usabilityFeatures);
+  protected PredefinedModeImpl(IdGroupingToken groupId, PredefinedModeType modeType, double maxSpeed, double pcu, PhysicalModeFeatures physicalFeatures,
+      UsabilityModeFeatures usabilityFeatures) {
+    super(groupId, modeType.value(), maxSpeed, pcu, physicalFeatures, usabilityFeatures);
     this.modeType = modeType;
   }
 

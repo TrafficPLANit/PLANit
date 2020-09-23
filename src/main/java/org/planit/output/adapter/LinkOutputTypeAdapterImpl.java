@@ -170,12 +170,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    */
   protected double getMaximumSpeed(LinkSegment linkSegment, Mode mode) throws PlanItException {
     PlanItException.throwIf(!(linkSegment instanceof MacroscopicLinkSegment), "Tried to read maximum speed of an object which is not a MacroscopicLinkSegment");
-
-    MacroscopicLinkSegment macroscopicLinkSegment = (MacroscopicLinkSegment) linkSegment;
-    if (!macroscopicLinkSegment.isModeAllowed(mode)) {
-      return 0.0;
-    }
-    return macroscopicLinkSegment.getLinkSegmentType().getModeProperties(mode).getMaxSpeed();
+    return ((MacroscopicLinkSegment) linkSegment).getModelledSpeedLimitKmH(mode);
   }
 
   /**

@@ -65,8 +65,9 @@ public class ModesImpl implements Modes {
    * {@inheritDoc}
    */
   @Override
-  public Mode registerNewCustomMode(Object externalModeId, String name, double pcu, PhysicalModeFeatures physicalFeatures, UsabilityModeFeatures usabilityFeatures) {
-    final Mode newMode = new ModeImpl(groupId, externalModeId, name, pcu, physicalFeatures, usabilityFeatures);
+  public Mode registerNewCustomMode(Object externalModeId, String name, double maxSpeed, double pcu, PhysicalModeFeatures physicalFeatures,
+      UsabilityModeFeatures usabilityFeatures) {
+    final Mode newMode = new ModeImpl(groupId, externalModeId, name, maxSpeed, pcu, physicalFeatures, usabilityFeatures);
     registerMode(newMode);
     return newMode;
   }
