@@ -17,7 +17,7 @@ import org.planit.utils.mode.VehicularModeType;
  * <li>pcu: 6</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
- * <li>track: DOUBLE_TRACK</li>
+ * <li>track: RAIL</li>
  * <li>use: PUBLIC</li>
  * </ul>
  * 
@@ -32,8 +32,8 @@ public class SubwayMode extends PredefinedModeImpl {
   /* default pcu value for subway mode */
   public static final double DEFAULT_PCU = 6;
 
-  /* default physical features of subway (VEHICLE, MOTORISED, DOUBLE_TRACK) */
-  public static final PhysicalModeFeatures SUBWAY_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.DOUBLE);
+  /* default physical features of subway (VEHICLE, MOTORISED, RAIL) */
+  public static final PhysicalModeFeatures SUBWAY_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.RAIL);
 
   /* default usability features of subway (PUBLIC) */
   public static final UsabilityModeFeatures SUBWAY_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);

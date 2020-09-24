@@ -7,7 +7,7 @@ import org.planit.utils.mode.PredefinedModeType;
 
 /**
  * factory class to instantiate different (pre-specified) mode types. You can of course create your own modes. However, using the pre-specified modes makes it easier to interpret
- * and exchnage projects/applications using these modes.
+ * and exchange projects/applications using these modes.
  * 
  * @author markr
  *
@@ -45,6 +45,8 @@ public class ModeFactory {
       return new MotorBikeMode(groupId);
     case PEDESTRIAN:
       return new PedestrianMode(groupId);
+    case SUBWAY:
+      return new SubwayMode(groupId);
     case TRAIN:
       return new TrainMode(groupId);
     case TRAM:

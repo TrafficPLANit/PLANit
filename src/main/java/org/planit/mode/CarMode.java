@@ -17,7 +17,7 @@ import org.planit.utils.mode.VehicularModeType;
  * <li>pcu: 1</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
- * <li>track: DOUBLE_TRACK</li>
+ * <li>track: ROAD</li>
  * <li>use: PRIVATE</li>
  * </ul>
  * 
@@ -32,8 +32,8 @@ public class CarMode extends PredefinedModeImpl {
   /* default pcu value for car mode */
   public static final double DEFAULT_PCU = 1;
 
-  /* default physical features of car (VEHICLE, MOTORISED, DOUBLE_TRACK) */
-  public static final PhysicalModeFeatures CAR_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.DOUBLE);
+  /* default physical features of car (VEHICLE, MOTORISED, ROAD) */
+  public static final PhysicalModeFeatures CAR_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.ROAD);
 
   /* default usability features of car (PRIVATE) */
   public static final UsabilityModeFeatures CAR_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);

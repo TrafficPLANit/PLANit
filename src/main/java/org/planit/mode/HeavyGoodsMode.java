@@ -17,7 +17,7 @@ import org.planit.utils.mode.VehicularModeType;
  * <li>pcu: 2.5</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
- * <li>track: DOUBLE_TRACK</li>
+ * <li>track: ROAD</li>
  * <li>use: GOODS</li>
  * </ul>
  * 
@@ -32,8 +32,8 @@ public class HeavyGoodsMode extends PredefinedModeImpl {
   /* default pcu value for hgv mode */
   public static final double DEFAULT_PCU = 2.5;
 
-  /* default physical features of hgv (VEHICLE, MOTORISED, DOUBLE_TRACK) */
-  public static final PhysicalModeFeatures HGV_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.DOUBLE);
+  /* default physical features of hgv (VEHICLE, MOTORISED, ROAD) */
+  public static final PhysicalModeFeatures HGV_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.ROAD);
 
   /* default usability features of hgv (GOODS) */
   public static final UsabilityModeFeatures HGV_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.GOODS);

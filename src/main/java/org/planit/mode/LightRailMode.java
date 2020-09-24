@@ -17,7 +17,7 @@ import org.planit.utils.mode.VehicularModeType;
  * <li>pcu: 6</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
- * <li>track: DOUBLE_TRACK</li>
+ * <li>track: RAIL</li>
  * <li>use: PUBLIC</li>
  * </ul>
  * 
@@ -32,9 +32,9 @@ public class LightRailMode extends PredefinedModeImpl {
   /* default pcu value for lightrail mode */
   public static final double DEFAULT_PCU = 6;
 
-  /* default physical features of lightrail (VEHICLE, MOTORISED, DOUBLE_TRACK) */
+  /* default physical features of lightrail (VEHICLE, MOTORISED, RAIL) */
   public static final PhysicalModeFeatures LIGHTRAIL_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED,
-      TrackModeType.DOUBLE);
+      TrackModeType.RAIL);
 
   /* default usability features of lightrail (PUBLIC) */
   public static final UsabilityModeFeatures LIGHTRAIL_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);

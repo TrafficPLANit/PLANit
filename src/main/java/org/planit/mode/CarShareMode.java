@@ -14,7 +14,7 @@ import org.planit.utils.mode.UseOfModeType;
  * <li>pcu: 1</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
- * <li>track: DOUBLE_TRACK</li>
+ * <li>track: ROAD</li>
  * <li>use: RIDE_SHARE</li>
  * </ul>
  * 
@@ -29,7 +29,7 @@ public class CarShareMode extends PredefinedModeImpl {
   /* default pcu value for car share mode */
   public static final double DEFAULT_PCU = CarMode.DEFAULT_PCU;
 
-  /* default physical features of car share (VEHICLE, MOTORISED, DOUBLE_TRACK) */
+  /* default physical features of car share (VEHICLE, MOTORISED, ROAD) */
   public static final PhysicalModeFeatures CAR_SHARE_PHYSICAL_FEATURES = CarMode.CAR_PHYSICAL_FEATURES;
 
   /* default usability features of car share (RIDE_SHARE) */

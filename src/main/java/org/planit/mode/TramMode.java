@@ -17,7 +17,7 @@ import org.planit.utils.mode.VehicularModeType;
  * <li>pcu: 3</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
- * <li>track: DOUBLE_TRACK</li>
+ * <li>track: RAIL</li>
  * <li>use: PUBLIC</li>
  * </ul>
  * 
@@ -32,8 +32,8 @@ public class TramMode extends PredefinedModeImpl {
   /* default pcu value for tram mode */
   public static final double DEFAULT_PCU = 3;
 
-  /* default physical features of tram (VEHICLE, MOTORISED, DOUBLE_TRACK) */
-  public static final PhysicalModeFeatures TRAM_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.DOUBLE);
+  /* default physical features of tram (VEHICLE, MOTORISED, RAIL) */
+  public static final PhysicalModeFeatures TRAM_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.RAIL);
 
   /* default usability features of tram (PUBLIC) */
   public static final UsabilityModeFeatures TRAM_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PUBLIC);

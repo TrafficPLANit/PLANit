@@ -17,7 +17,7 @@ import org.planit.utils.mode.VehicularModeType;
  * <li>pcu: 0.1</li>
  * <li>vehicular type: NO_VEHICLE</li>
  * <li>motorisation: NON_MOTORISED</li>
- * <li>track: SINGLE_TRACK</li>
+ * <li>track: ROAD</li>
  * <li>use: PRIVATE</li>
  * </ul>
  * 
@@ -32,9 +32,9 @@ public class PedestrianMode extends PredefinedModeImpl {
   /* default pcu value for pedestrian mode */
   public static final double DEFAULT_PCU = 0.1;
 
-  /* default physical features of pedestrian (NO_VEHICLE, NON_MOTORISED, SINGLE_TRACK) */
+  /* default physical features of pedestrian (NO_VEHICLE, NON_MOTORISED, ROAD) */
   public static final PhysicalModeFeatures PEDESTRIAN_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.NO_VEHICLE, MotorisationModeType.NON_MOTORISED,
-      TrackModeType.SINGLE);
+      TrackModeType.ROAD);
 
   /* default usability features of pedestrian (PRIVATE) */
   public static final UsabilityModeFeatures PEDESTRIAN_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);

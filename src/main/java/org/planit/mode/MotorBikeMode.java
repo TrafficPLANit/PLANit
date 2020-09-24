@@ -17,7 +17,7 @@ import org.planit.utils.mode.VehicularModeType;
  * <li>pcu: 0.5</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: NON_MOTORISED</li>
- * <li>track: SINGLE_TRACK</li>
+ * <li>track: ROAD</li>
  * <li>use: PRIVATE</li>
  * </ul>
  * 
@@ -32,9 +32,9 @@ public class MotorBikeMode extends PredefinedModeImpl {
   /* default pcu value for motor bike mode */
   public static final double DEFAULT_PCU = 0.5;
 
-  /* default physical features of motor bike (VEHICLE, MOTORISED, SINGLE_TRACK) */
+  /* default physical features of motor bike (VEHICLE, MOTORISED, ROAD) */
   public static final PhysicalModeFeatures MOTOR_BIKE_PHYSICAL_FEATURES = new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED,
-      TrackModeType.SINGLE);
+      TrackModeType.ROAD);
 
   /* default usability features of motor bike (PRIVATE) */
   public static final UsabilityModeFeatures MOTOR_BIKE_USABLITY_FEATURES = new UsabilityModeFeaturesImpl(UseOfModeType.PRIVATE);

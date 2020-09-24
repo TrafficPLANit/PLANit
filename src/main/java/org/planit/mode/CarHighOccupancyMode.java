@@ -14,7 +14,7 @@ import org.planit.utils.mode.UseOfModeType;
  * <li>pcu: 1</li>
  * <li>vehicular type: VEHICULAR</li>
  * <li>motorisation: MOTORISED</li>
- * <li>track: DOUBLE_TRACK</li>
+ * <li>track: ROAD</li>
  * <li>use: HIGH_OCCUPANCY</li>
  * </ul>
  * 
@@ -29,7 +29,7 @@ public class CarHighOccupancyMode extends PredefinedModeImpl {
   /* default pcu value for car hov mode */
   public static final double DEFAULT_PCU = CarMode.DEFAULT_PCU;
 
-  /* default physical features of car hov (VEHICLE, MOTORISED, DOUBLE_TRACK) */
+  /* default physical features of car hov (VEHICLE, MOTORISED, ROAD) */
   public static final PhysicalModeFeatures CAR_HOV_PHYSICAL_FEATURES = CarMode.CAR_PHYSICAL_FEATURES;
 
   /* default usability features of car hov (RIDE_SHARE) */

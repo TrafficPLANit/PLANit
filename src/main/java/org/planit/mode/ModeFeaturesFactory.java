@@ -47,11 +47,11 @@ public class ModeFeaturesFactory {
   }
 
   /**
-   * create default physical mode features (VEHICLE, MOTORISED, DOUBLE (track))
+   * create default physical mode features (VEHICLE, MOTORISED, ROAD)
    * 
    * @return usability mode features that are created
    */
   public static PhysicalModeFeatures createDefaultPhysicalFeatures() {
-    return new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.DOUBLE);
+    return new PhysicalModeFeaturesImpl(VehicularModeType.VEHICLE, MotorisationModeType.MOTORISED, TrackModeType.ROAD);
   }
 }

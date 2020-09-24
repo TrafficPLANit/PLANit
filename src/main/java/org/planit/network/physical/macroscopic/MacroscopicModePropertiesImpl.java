@@ -12,36 +12,43 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties {
 
   /**
-   * Maximum speed of mode (tied to a road segment)
+   * Maximum speed of mode (tied to a road segment) in km/h
    */
-  protected final double maxSpeed;
+  protected final double maxSpeedKmH;
 
   /**
-   * Maximum speed of mode (tied to a road segment)
+   * Maximum speed of mode (tied to a road segment) in km/h
    */
-  protected final double criticalSpeed;
+  protected final double criticalSpeedKmH;
 
   // Public
 
   /**
    * Constructor
    * 
-   * @param maxSpeed      maximum speed for this mode
-   * @param criticalSpeed critical speed for this mode
+   * @param maxSpeedKmH      maximum speed for this mode in this context
+   * @param criticalSpeedKmH critical speed for this mode in this context
    */
-  public MacroscopicModePropertiesImpl(double maxSpeed, double criticalSpeed) {
+  MacroscopicModePropertiesImpl(final double maxSpeedKmH, final double criticalSpeedKmH) {
     super();
-    this.maxSpeed = maxSpeed;
-    this.criticalSpeed = criticalSpeed;
+    this.maxSpeedKmH = maxSpeedKmH;
+    this.criticalSpeedKmH = criticalSpeedKmH;
+  }
+
+  /**
+   * Constructor adopting default values
+   * 
+   * @param maxSpeedKmH maximum speed for this mode in this context
+   */
+  MacroscopicModePropertiesImpl(final double maxSpeedKmH) {
+    this(maxSpeedKmH, DEFAULT_CRITICAL_SPEED);
   }
 
   /**
    * Constructor adopting default values
    */
-  public MacroscopicModePropertiesImpl() {
-    super();
-    this.maxSpeed = Mode.GLOBAL_DEFAULT_MAXIMUM_SPEED_KMH;
-    this.criticalSpeed = DEFAULT_CRITICAL_SPEED;
+  MacroscopicModePropertiesImpl() {
+    this(Mode.GLOBAL_DEFAULT_MAXIMUM_SPEED_KMH, DEFAULT_CRITICAL_SPEED);
   }
 
   // Getter - setters
@@ -51,7 +58,7 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
    */
   @Override
   public double getMaximumSpeed() {
-    return maxSpeed;
+    return maxSpeedKmH;
   }
 
   /**
@@ -59,23 +66,23 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
    */
   @Override
   public double getCriticalSpeed() {
-    return criticalSpeed;
+    return criticalSpeedKmH;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public double setMaximumSpeed(double maxSpeed) {
-    return this.maxSpeed;
+  public double setMaximumSpeed(final double maxSpeed) {
+    return this.maxSpeedKmH;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public double setCriticalSpeed(double criticalSpeed) {
-    return this.criticalSpeed;
+  public double setCriticalSpeed(final double criticalSpeed) {
+    return this.criticalSpeedKmH;
   }
 
 }
