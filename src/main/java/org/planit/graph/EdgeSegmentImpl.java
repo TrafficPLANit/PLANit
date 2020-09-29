@@ -4,6 +4,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
@@ -34,12 +35,12 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
   /**
    * the upstreamVertex of the edge segment
    */
-  protected final DirectedVertex upstreamVertex;
+  protected DirectedVertex upstreamVertex;
 
   /**
    * The downstream vertex of this edge segment
    */
-  protected final DirectedVertex downstreamVertex;
+  protected DirectedVertex downstreamVertex;
 
   /**
    * The external Id for this link segment type
@@ -79,9 +80,24 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
   // Public
 
   /**
-   * Get the segment's upstream vertex
-   *
-   * @return upstream vertex
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeVertex(Vertex vertex) {
+    if (vertex != null) {
+      if (getUpstreamVertex() != null && getUpstreamVertex().getId() == vertex.getId()) {
+        this.upstreamVertex = null;
+        return true;
+      } else if (getDownstreamVertex() != null && getDownstreamVertex().getId() == vertex.getId()) {
+        this.downstreamVertex = null;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
    */
   @Override
   public DirectedVertex getUpstreamVertex() {
@@ -89,9 +105,7 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
   }
 
   /**
-   * Get the segment's downstream vertex
-   *
-   * @return downstream vertex
+   * {@inheritDoc}
    */
   @Override
   public DirectedVertex getDownstreamVertex() {

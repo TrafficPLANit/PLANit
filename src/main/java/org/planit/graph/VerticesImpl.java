@@ -37,22 +37,30 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
     this.graphBuilder = graphBuilder;
     this.vertexMap = new TreeMap<Long, V>();
   }
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
+  @Override
+  public void removeVertex(V vertex) {
+    vertexMap.remove(vertex.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public V createNewVertex() {
     return graphBuilder.createVertex();
-  }  
-  
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
   public V registerVertex(final V vertex) {
     return vertexMap.put(vertex.getId(), vertex);
-  }  
+  }
 
   /**
    * {@inheritDoc}

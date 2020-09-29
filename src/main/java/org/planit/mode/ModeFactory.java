@@ -27,6 +27,8 @@ public class ModeFactory {
     switch (modeType) {
     case BICYCLE:
       return new BicycleMode(groupId);
+    case BUS:
+      return new BusMode(groupId);
     case CAR:
       return new CarMode(groupId);
     case CAR_SHARE:

@@ -2,8 +2,8 @@ package org.planit.graph;
 
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
@@ -18,6 +18,8 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
 
   /** generated UID */
   private static final long serialVersionUID = 2165199386965239623L;
+
+  private static final Logger LOGGER = Logger.getLogger(DirectedVertexImpl.class.getCanonicalName());
 
   // Protected
 
@@ -62,26 +64,28 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    * {@inheritDoc}
    */
   @Override
-  public boolean addEdgeSegment(final EdgeSegment edgeSegment) throws PlanItException {
+  public boolean addEdgeSegment(final EdgeSegment edgeSegment) {
     if (edgeSegment.getUpstreamVertex().getId() == getId()) {
       return exitEdgeSegments.add(edgeSegment);
     } else if (edgeSegment.getDownstreamVertex().getId() == getId()) {
       return entryEdgeSegments.add(edgeSegment);
     }
-    throw new PlanItException(String.format("edge segment %s (id:%d) does not have this vertex %s (%d) on either end", edgeSegment.getExternalId(), edgeSegment.getId()));
+    LOGGER.warning(String.format("edge segment %s (id:%d) does not have this vertex %s (%d) on either end", edgeSegment.getExternalId(), edgeSegment.getId()));
+    return false;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public boolean removeEdgeSegment(final EdgeSegment edgeSegment) throws PlanItException {
+  public boolean removeEdgeSegment(final EdgeSegment edgeSegment) {
     if (edgeSegment.getUpstreamVertex().getId() == getId()) {
       return exitEdgeSegments.remove(edgeSegment);
     } else if (edgeSegment.getDownstreamVertex().getId() == getId()) {
       return entryEdgeSegments.remove(edgeSegment);
     }
-    throw new PlanItException(String.format("edge segment %s (id:%d) does not have this vertex %s (%d) on either end", edgeSegment.getExternalId(), edgeSegment.getId()));
+    LOGGER.warning(String.format("edge segment %s (id:%d) does not have this vertex %s (%d) on either end", edgeSegment.getExternalId(), edgeSegment.getId()));
+    return false;
   }
 
   /**

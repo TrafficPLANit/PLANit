@@ -2,6 +2,7 @@ package org.planit.network.converter;
 
 import java.util.logging.Logger;
 
+import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
@@ -31,8 +32,8 @@ public class NetworkConverter {
    * @return true if valid, false otherwise
    */
   protected boolean isModeConversionValid() {
-    LOGGER.info("validating proposed mode conversion validity...");
-    return false;
+    // TODO: put in some mechanism to match reader/writer mode mapping. currently not yet implemented
+    return true;
   }
 
   /**
@@ -54,7 +55,15 @@ public class NetworkConverter {
   public void convert() throws PlanItException {
     /* verify mode compatibility */
     if (isModeConversionValid()) {
-      writer.write(reader.read());
+
+      LOGGER.info("****************** [START] NETWORK CONVERTER: READ NETWORK   [START] ********************");
+      MacroscopicNetwork network = reader.read();
+      LOGGER.info("****************** [END]   NETWORK CONVERTER: READ NETWORK   [END]   ********************");
+
+      LOGGER.info("****************** [START] NETWORK CONVERTER: WRITE NETWORK [START] ********************");
+      writer.write(network);
+      LOGGER.info("****************** [END]   NETWORK CONVERTER: WRITE NETWORK [END]   ********************");
+
     } else {
       LOGGER.severe("unable to convert network, modes mapping between reader and writer is incompatible");
     }

@@ -117,7 +117,7 @@ public class ModesImpl implements Modes {
    */
   @Override
   public PredefinedMode getPredefinedMode(PredefinedModeType modeType) {
-    return (PredefinedMode) modeMap.values().stream().dropWhile(mode -> (mode instanceof PredefinedMode) && mode.getName().equals(modeType.value())).findFirst().get();
+    return (PredefinedMode) modeMap.values().stream().dropWhile(mode -> !((mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()))).findFirst().get();
   }
 
   /**

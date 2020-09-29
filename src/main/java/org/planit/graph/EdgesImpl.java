@@ -51,6 +51,14 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
+  public void remove(E edge) {
+    edgeMap.remove(edge.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Iterator<E> iterator() {
     return edgeMap.values().iterator();
   }
@@ -59,7 +67,7 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public E registerNewEdge(final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException {
+  public E registerNew(final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException {
     final E newEdge = graphBuilder.createEdge(vertexA, vertexB, length);
     registerEdge(newEdge);
     return newEdge;
@@ -69,7 +77,7 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public E getEdge(final long id) {
+  public E get(final long id) {
     return edgeMap.get(id);
   }
 
@@ -77,7 +85,7 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public int getNumberOfEdges() {
+  public int size() {
     return edgeMap.size();
   }
 }

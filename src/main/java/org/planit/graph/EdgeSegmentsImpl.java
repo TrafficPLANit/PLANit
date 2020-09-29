@@ -46,6 +46,14 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
    * {@inheritDoc}
    */
   @Override
+  public void remove(ES edgeSegment) {
+    edgeSegmentMap.remove(edgeSegment.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Iterator<ES> iterator() {
     return edgeSegmentMap.values().iterator();
   }
@@ -53,7 +61,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   /**
    * {@inheritDoc}
    */
-  public ES createEdgeSegment(final Edge parentEdge, final boolean directionAB) throws PlanItException {
+  public ES create(final Edge parentEdge, final boolean directionAB) throws PlanItException {
     final ES edgeSegment = graphBuilder.createEdgeSegment(parentEdge, directionAB);
     return edgeSegment;
   }
@@ -61,7 +69,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   /**
    * {@inheritDoc}
    */
-  public void registerEdgeSegment(final Edge parentEdge, final ES edgeSegment, final boolean directionAB) throws PlanItException {
+  public void createAndRegister(final Edge parentEdge, final ES edgeSegment, final boolean directionAB) throws PlanItException {
     parentEdge.registerEdgeSegment(edgeSegment, directionAB);
     registerEdgeSegment(edgeSegment);
   }
@@ -69,14 +77,14 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   /**
    * {@inheritDoc}
    */
-  public ES getEdgeSegment(final long id) {
+  public ES get(final long id) {
     return edgeSegmentMap.get(id);
   }
 
   /**
    * {@inheritDoc}
    */
-  public int getNumberOfEdgeSegments() {
+  public int size() {
     return edgeSegmentMap.size();
   }
 

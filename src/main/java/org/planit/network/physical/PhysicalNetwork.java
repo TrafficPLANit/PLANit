@@ -2,10 +2,14 @@ package org.planit.network.physical;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignmentComponent;
@@ -15,6 +19,8 @@ import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.DirectedVertex;
+import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
@@ -77,7 +83,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @throws PlanItException thrown if there is an error
      */
     public L registerNew(final N nodeA, final N nodeB, final double length, boolean registerOnNodes) throws PlanItException {
-      final L newLink = graph.getEdges().registerNewEdge(nodeA, nodeB, length);
+      final L newLink = graph.getEdges().registerNew(nodeA, nodeB, length);
       if (registerOnNodes) {
         nodeA.addEdge(newLink);
         nodeB.addEdge(newLink);
@@ -92,7 +98,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the retrieved link
      */
     public L get(final long id) {
-      return graph.getEdges().getEdge(id);
+      return graph.getEdges().get(id);
     }
 
     /**
@@ -101,7 +107,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the number of links in the network
      */
     public int size() {
-      return graph.getEdges().getNumberOfEdges();
+      return graph.getEdges().size();
     }
   }
 
@@ -171,7 +177,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @throws PlanItException thrown if there is an error
      */
     public LS createNew(final Link parentLink, final boolean directionAb) throws PlanItException {
-      return graph.getEdgeSegments().createEdgeSegment(parentLink, directionAb);
+      return graph.getEdgeSegments().create(parentLink, directionAb);
     }
 
     /**
@@ -217,7 +223,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @throws PlanItException thrown if there is an error
      */
     public void register(final Link parentLink, final LS linkSegment, final boolean directionAb) throws PlanItException {
-      graph.getEdgeSegments().registerEdgeSegment(parentLink, linkSegment, directionAb);
+      graph.getEdgeSegments().createAndRegister(parentLink, linkSegment, directionAb);
       register(linkSegment);
     }
 
@@ -228,7 +234,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return retrieved linkSegment
      */
     public LS get(final long id) {
-      return graph.getEdgeSegments().getEdgeSegment(id);
+      return graph.getEdgeSegments().get(id);
     }
 
     /**
@@ -237,7 +243,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return number of registered link segments
      */
     public int size() {
-      return graph.getEdgeSegments().getNumberOfEdgeSegments();
+      return graph.getEdgeSegments().size();
     }
 
     /**
@@ -351,9 +357,9 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   // Protected
 
   /**
-   * collect the registered network builder
+   * collect the graph
    * 
-   * @return networkBuilder the network builder registered
+   * @return graph
    */
   protected DirectedGraph<N, L, LS> getGraph() {
     return graph;
@@ -366,6 +372,38 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    */
   protected PhysicalNetworkBuilder<N, L, LS> getNetworkBuilder() {
     return networkBuilder;
+  }
+
+  /**
+   * update internal ids in case gaps are found
+   * 
+   * @throws PlanItException
+   */
+  protected void updateinternalIds() throws PlanItException {
+    throw new PlanItException("TODO recreate internal ids whenever subnetworks have been removed!");
+  }
+
+  /**
+   * helper function for recursive subnetwork identification
+   * 
+   * @param referenceNode   to process
+   * @param subNetworkNodes to add connected adjacent nodes to
+   */
+  protected void processSubNetworkNode(Node referenceNode, Set<Node> subNetworkNodes) {
+    while (!subNetworkNodes.isEmpty()) {
+      Node node = subNetworkNodes.iterator().next();
+      subNetworkNodes.add(node);
+
+      Set<Edge> edges = node.getEdges();
+      for (Edge edge : edges) {
+        if (!subNetworkNodes.contains(edge.getVertexA())) {
+          processSubNetworkNode((Node) edge.getVertexA(), subNetworkNodes);
+        }
+        if (!subNetworkNodes.contains(edge.getVertexB())) {
+          processSubNetworkNode((Node) edge.getVertexB(), subNetworkNodes);
+        }
+      }
+    }
   }
 
   // PUBLIC
@@ -416,6 +454,75 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    */
   public IdGroupingToken getNetworkIdGroupingToken() {
     return ((DirectedGraphImpl<N, L, LS>) graph).getGraphIdGroupingToken();
+  }
+
+  /**
+   * remove any dangling subnetworks from the network if they exist and subsequently reorder the internal ids if needed
+   */
+  public void removeDanglingSubnetworks() {
+    Set<Node> remainingNodes = new HashSet<Node>(nodes.size());
+    nodes.forEach(node -> remainingNodes.add(node));
+    Map<Node, Integer> identifiedSubNetworkSizes = new HashMap<Node, Integer>();
+
+    while (!remainingNodes.iterator().hasNext()) {
+      /* recursively traverse the subnetwork */
+      Node referenceNode = remainingNodes.iterator().next();
+      Set<Node> subNetworkNodesToPopulate = new HashSet<Node>();
+      processSubNetworkNode(referenceNode, subNetworkNodesToPopulate);
+
+      /* register size and remove subnetwork from remaining nodes */
+      identifiedSubNetworkSizes.put(referenceNode, subNetworkNodesToPopulate.size());
+      remainingNodes.removeAll(subNetworkNodesToPopulate);
+    }
+
+    /* remove all non-dominating subnetworks */
+    int maxSubNetworkSize = Collections.max(identifiedSubNetworkSizes.values());
+    for (Entry<Node, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
+      if (maxSubNetworkSize > entry.getValue()) {
+        /* not the biggest subnetwork, remove from network */
+        removeSubnetworkOf(entry.getKey());
+      }
+    }
+  }
+
+  /**
+   * remove the (sub)network in which the passed in node resides. Apply reordering of internal ids of remaining network.
+   * 
+   * @param referenceNode to identify subnetwork by
+   */
+  @SuppressWarnings("unchecked")
+  public void removeSubnetworkOf(Node referenceNode) {
+    Set<Node> subNetworkNodesToPopulate = new HashSet<Node>();
+    processSubNetworkNode(referenceNode, subNetworkNodesToPopulate);
+
+    /* remove the subnetwork from the actual network */
+    for (Node node : subNetworkNodesToPopulate) {
+      Set<Edge> nodeEdges = node.getEdges();
+      nodeEdges.forEach(edge -> this.graph.getEdges().remove((L) edge));
+
+      /* remove from network if not already done */
+      Set<EdgeSegment> entryEdgeSegments = node.getEntryEdgeSegments();
+      entryEdgeSegments.forEach(edgeSegment -> this.graph.getEdgeSegments().remove((LS) edgeSegment));
+      Set<EdgeSegment> exitEdgeSegments = node.getExitEdgeSegments();
+      exitEdgeSegments.forEach(edgeSegment -> this.graph.getEdgeSegments().remove((LS) edgeSegment));
+
+      /* remove edges and edge segments from node */
+      nodeEdges.forEach(edge -> node.removeEdge(edge));
+      entryEdgeSegments.forEach(edgeSegment -> node.removeEdgeSegment(edgeSegment));
+      exitEdgeSegments.forEach(edgeSegment -> node.removeEdgeSegment(edgeSegment));
+
+      /* remove node from edges and edge segments */
+      entryEdgeSegments.forEach(edgeSegment -> edgeSegment.removeVertex(node));
+      exitEdgeSegments.forEach(edgeSegment -> edgeSegment.removeVertex(node));
+    }
+
+    // CONTINUE HERE!!!!!!
+    try {
+      updateinternalIds();
+    } catch (PlanItException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
 }
