@@ -20,7 +20,7 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
   /**
    * The graph builder to create edges
    */
-  private final GraphBuilder<?, E, ?> graphBuilder;
+  private final GraphBuilder<?, E> graphBuilder;
 
   /**
    * Map to store edges by their Id
@@ -42,7 +42,7 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
    * 
    * @param graphBuilder the builder for edge implementations
    */
-  public EdgesImpl(GraphBuilder<?, E, ?> graphBuilder) {
+  public EdgesImpl(GraphBuilder<?, E> graphBuilder) {
     this.graphBuilder = graphBuilder;
     this.edgeMap = new TreeMap<Long, E>();
   }
@@ -87,5 +87,13 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
   @Override
   public int size() {
     return edgeMap.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isEmpty() {
+    return size()==0;
   }
 }

@@ -5,17 +5,17 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
-import org.planit.utils.graph.GraphBuilder;
 
 public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES> {
 
   /**
    * The graph builder to create edgse segments
    */
-  GraphBuilder<?, ?, ES> graphBuilder;
+  DirectedGraphBuilder<?, ?, ES> graphBuilder;
 
   /**
    * Map to store edge segments by their Id
@@ -37,7 +37,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
    * 
    * @param graphBuilder the grpahBuilder to use to create edge segments
    */
-  public EdgeSegmentsImpl(GraphBuilder<?, ?, ES> graphBuilder) {
+  public EdgeSegmentsImpl(DirectedGraphBuilder<?, ?, ES> graphBuilder) {
     this.graphBuilder = graphBuilder;
     this.edgeSegmentMap = new TreeMap<Long, ES>();
   }

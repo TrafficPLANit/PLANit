@@ -10,6 +10,7 @@ import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.IdSetter;
 
 /**
  * vertex representation connected to one or more entry and exit edges
@@ -17,7 +18,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class VertexImpl implements Vertex {
+public class VertexImpl implements Vertex, IdSetter<Long> {
 
   /** generated UID */
   private static final long serialVersionUID = -2877566769607366608L;
@@ -37,7 +38,7 @@ public class VertexImpl implements Vertex {
   /**
    * Unique internal identifier
    */
-  protected final long id;
+  protected long id;
 
   /**
    * External identifier used in input files
@@ -95,6 +96,14 @@ public class VertexImpl implements Vertex {
   public long getId() {
     return id;
   }
+  
+  /**
+   * #{@inheritDoc}
+   */  
+  @Override
+  public void overwriteId(Long id) {
+    this.id = id;
+  }  
 
   /**
    * {@inheritDoc}

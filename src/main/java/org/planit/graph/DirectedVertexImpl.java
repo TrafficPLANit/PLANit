@@ -19,6 +19,7 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
   /** generated UID */
   private static final long serialVersionUID = 2165199386965239623L;
 
+  /** the logger */
   private static final Logger LOGGER = Logger.getLogger(DirectedVertexImpl.class.getCanonicalName());
 
   // Protected

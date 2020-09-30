@@ -1,6 +1,6 @@
 package org.planit.network.physical;
 
-import org.planit.utils.graph.GraphBuilder;
+import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
@@ -12,6 +12,6 @@ import org.planit.utils.network.physical.Node;
  * @author markr
  *
  */
-public interface PhysicalNetworkBuilder<N extends Node, L extends Link, LS extends LinkSegment> extends GraphBuilder<N, L, LS> {
+public interface PhysicalNetworkBuilder<N extends Node, L extends Link, LS extends LinkSegment> extends DirectedGraphBuilder<N, L, LS> {
 
 }

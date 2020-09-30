@@ -9,6 +9,7 @@ import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.IdSetter;
 
 /**
  * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry additional information for each
@@ -17,7 +18,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class EdgeImpl implements Edge {
+public class EdgeImpl implements Edge, IdSetter<Long> {
 
   // Protected
 
@@ -27,7 +28,7 @@ public class EdgeImpl implements Edge {
   /**
    * Unique internal identifier
    */
-  protected final long id;
+  protected long id;
 
   /**
    * Generic input property storage
@@ -151,6 +152,14 @@ public class EdgeImpl implements Edge {
   public long getId() {
     return id;
   }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void overwriteId(Long id) {
+    this.id = id;
+  }  
 
   /**
    * {@inheritDoc}

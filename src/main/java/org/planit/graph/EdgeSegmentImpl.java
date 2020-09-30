@@ -7,6 +7,7 @@ import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.IdSetter;
 
 /**
  * EdgeSegment represents an edge in a particular (single) direction. Each edge has either one or two edge segments where each edge segment may have a more detailed geography than
@@ -17,7 +18,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class EdgeSegmentImpl implements EdgeSegment {
+public abstract class EdgeSegmentImpl implements EdgeSegment, IdSetter<Long> {
 
   /** generated UID */
   private static final long serialVersionUID = -6521489123632246969L;
@@ -25,7 +26,7 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
   /**
    * unique internal identifier
    */
-  protected final long id;
+  protected long id;
 
   /**
    * segment's parent edge
@@ -131,6 +132,11 @@ public abstract class EdgeSegmentImpl implements EdgeSegment {
   public long getId() {
     return this.id;
   }
+  
+  @Override
+  public void overwriteId(Long id) {
+      this.id = id;
+  }  
 
   /**
    * parent edge of the segment

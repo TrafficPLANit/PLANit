@@ -1,10 +1,13 @@
 package org.planit.network.physical;
 
+import java.util.logging.Logger;
+
 import org.opengis.geometry.coordinate.LineString;
 import org.planit.graph.EdgeImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.MultiIdSetter;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Node;
 
@@ -15,17 +18,20 @@ import org.planit.utils.network.physical.Node;
  * @author markr
  *
  */
-public class LinkImpl extends EdgeImpl implements Link {
+public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
 
   // Protected
 
   /** generated UID */
   private static final long serialVersionUID = 2360017879557363410L;
+  
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(LinkImpl.class.getCanonicalName());
 
   /**
    * unique internal identifier
    */
-  protected final long linkId;
+  protected long linkId;
 
   /**
    * External Id of the physical link
@@ -73,6 +79,20 @@ public class LinkImpl extends EdgeImpl implements Link {
   public long getLinkId() {
     return linkId;
   }
+  
+  /**
+   * Allows one to overwrite the underlying edge id (first id), and link id (second id) at the same time
+   * 
+   * @param ids (only supports two ids, first edge id, second link id)
+   */
+  @Override
+  public void overwriteIds(Long... ids) {
+    if(ids.length != 2) {
+      LOGGER.warning(String.format("overwriting link ids requires exactly two ids, one for the edge and one for the link, we found %d, ignored",ids.length));
+    }
+    overwriteId(ids[0]);
+    this.linkId = ids[1];
+  }  
 
   /**
    * {@inheritDoc}

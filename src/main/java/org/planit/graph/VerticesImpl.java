@@ -21,7 +21,7 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
   /**
    * The graph builder to create vertices
    */
-  private final GraphBuilder<V, ?, ?> graphBuilder;
+  private final GraphBuilder<V, ?> graphBuilder;
 
   /**
    * Map to store nodes by their Id
@@ -33,7 +33,7 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
    * 
    * @param graphBuilder the graph builder to use to create vertices
    */
-  public VerticesImpl(GraphBuilder<V, ?, ?> graphBuilder) {
+  public VerticesImpl(GraphBuilder<V, ?> graphBuilder) {
     this.graphBuilder = graphBuilder;
     this.vertexMap = new TreeMap<Long, V>();
   }

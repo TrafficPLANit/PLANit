@@ -7,6 +7,7 @@ import org.planit.network.physical.NodeImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.Link;

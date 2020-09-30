@@ -22,7 +22,9 @@ import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.IdSetter;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.mode.Modes;
 import org.planit.utils.network.physical.Link;
@@ -108,6 +110,27 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      */
     public int size() {
       return graph.getEdges().size();
+    }
+
+    /**
+     * update the internal ids of all links in case there are gaps due to removal of links after their initial creation
+     */
+    public void updateInternalIds() {
+      if(!graph.getEdges().isEmpty()) {
+        Edge anEdge = graph.getEdges().iterator().next();
+        if(IdSetter.class.isAssignableFrom(anEdge.getClass())) {
+         
+          IdGenerator.reset(getNetworkIdGroupingToken(), Link.class); // use Link because that is how the ids are registered, not LinkImpl which is the runtime class of anEdge
+          IdGenerator.reset(getNetworkIdGroupingToken(), Edge.class); // use edge because that is how the ids are registered, not LinkImpl which is the runtime class of anEdge
+          
+          ((EdgesImpl)graph.getEdges()).updateInternalIds();
+          
+          for(Edge edge : graph.getEdges()) {
+            ((IdSetter)edge).overwriteId(id);
+          }
+        }
+      }
+      
     }
   }
 
@@ -375,12 +398,14 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   }
 
   /**
-   * update internal ids in case gaps are found
+   * update internal ids for the network's internal structure (nodes, links, link segments) in case gaps are found.
+   * It is expected that all implementations for nodes, links, link segments support the IdSetter interface. If not
+   * a warning will be issued and the id's cannot be updated
    * 
    * @throws PlanItException
    */
-  protected void updateinternalIds() throws PlanItException {
-    throw new PlanItException("TODO recreate internal ids whenever subnetworks have been removed!");
+  protected void updateNetworkInfrastructureInternalIds() throws PlanItException {    
+    this.links.updateInternalIds();
   }
 
   /**
@@ -390,11 +415,10 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @param subNetworkNodes to add connected adjacent nodes to
    */
   protected void processSubNetworkNode(Node referenceNode, Set<Node> subNetworkNodes) {
-    while (!subNetworkNodes.isEmpty()) {
-      Node node = subNetworkNodes.iterator().next();
-      subNetworkNodes.add(node);
+    if(!subNetworkNodes.contains(referenceNode)) {
+      subNetworkNodes.add(referenceNode);
 
-      Set<Edge> edges = node.getEdges();
+      Set<Edge> edges = referenceNode.getEdges();
       for (Edge edge : edges) {
         if (!subNetworkNodes.contains(edge.getVertexA())) {
           processSubNetworkNode((Node) edge.getVertexA(), subNetworkNodes);
@@ -455,16 +479,28 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   public IdGroupingToken getNetworkIdGroupingToken() {
     return ((DirectedGraphImpl<N, L, LS>) graph).getGraphIdGroupingToken();
   }
-
+  
   /**
    * remove any dangling subnetworks from the network if they exist and subsequently reorder the internal ids if needed
+   * 
    */
   public void removeDanglingSubnetworks() {
+    removeDanglingSubnetworks(Integer.MAX_VALUE);
+  }  
+
+  /**
+   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
+   * 
+   * @param belowSize only remove subnetworks below the given size
+   */
+  public void removeDanglingSubnetworks(Integer belowsize) {
+    Set<Integer> removedSubnetworksOfSize = new HashSet<Integer>();
+    
     Set<Node> remainingNodes = new HashSet<Node>(nodes.size());
     nodes.forEach(node -> remainingNodes.add(node));
     Map<Node, Integer> identifiedSubNetworkSizes = new HashMap<Node, Integer>();
 
-    while (!remainingNodes.iterator().hasNext()) {
+    while (remainingNodes.iterator().hasNext()) {
       /* recursively traverse the subnetwork */
       Node referenceNode = remainingNodes.iterator().next();
       Set<Node> subNetworkNodesToPopulate = new HashSet<Node>();
@@ -478,11 +514,22 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     /* remove all non-dominating subnetworks */
     int maxSubNetworkSize = Collections.max(identifiedSubNetworkSizes.values());
     for (Entry<Node, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
-      if (maxSubNetworkSize > entry.getValue()) {
-        /* not the biggest subnetwork, remove from network */
-        removeSubnetworkOf(entry.getKey());
+      int subNetworkSize = entry.getValue();
+      if (maxSubNetworkSize > subNetworkSize) {        
+        /* not the biggest subnetwork, remove from network if below threshold */
+        if(subNetworkSize < belowsize) {
+          removeSubnetworkOf(entry.getKey());
+          removedSubnetworksOfSize.add(subNetworkSize);
+        }
       }
     }
+    
+    if(belowsize != Integer.MAX_VALUE) {
+      LOGGER.info(String.format("removed %d dangling networks",removedSubnetworksOfSize));  
+    }else {
+      LOGGER.info(String.format("removed %d dangling networks of size %d or less",removedSubnetworksOfSize, belowsize));
+    }
+    
   }
 
   /**
@@ -516,12 +563,10 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
       exitEdgeSegments.forEach(edgeSegment -> edgeSegment.removeVertex(node));
     }
 
-    // CONTINUE HERE!!!!!!
     try {
-      updateinternalIds();
+      getNetworkBuilder().removeIdGaps(graphs); <-- CONTINUE HERE>
     } catch (PlanItException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      LOGGER.severe(String.format("unable to update internal ids after removing dangling subnetwork (reference node id:%d)",referenceNode.getId()));
     }
   }
 

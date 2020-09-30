@@ -3,12 +3,12 @@ package org.planit.graph;
 import java.util.logging.Logger;
 
 import org.planit.utils.graph.DirectedGraph;
+import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Edges;
-import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -36,7 +36,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES exte
   /**
    * Graph builder responsible for constructing all graph related (derived) instances
    */
-  protected final GraphBuilder<V, E, ES> graphBuilder;
+  protected final DirectedGraphBuilder<V, E, ES> graphBuilder;
 
   // PUBLIC
 
@@ -61,7 +61,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES exte
    * @param groupId        contiguous id generation within this group for instances of this class
    * @param networkBuilder the builder to be used to create this network
    */
-  public DirectedGraphImpl(final IdGroupingToken groupId, final GraphBuilder<V, E, ES> graphBuilder) {
+  public DirectedGraphImpl(final IdGroupingToken groupId, final DirectedGraphBuilder<V, E, ES> graphBuilder) {
     this.id = IdGenerator.generateId(groupId, DirectedGraphImpl.class);
     this.graphBuilder = graphBuilder;
     this.graphBuilder.setIdGroupingToken(IdGenerator.createIdGroupingToken(this, this.getId()));
