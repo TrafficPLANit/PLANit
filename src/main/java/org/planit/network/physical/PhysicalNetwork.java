@@ -564,7 +564,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     }
 
     try {
-      getNetworkBuilder().removeIdGaps(graphs); <-- CONTINUE HERE>
+      getNetworkBuilder().removeIdGaps(this);
     } catch (PlanItException e) {
       LOGGER.severe(String.format("unable to update internal ids after removing dangling subnetwork (reference node id:%d)",referenceNode.getId()));
     }

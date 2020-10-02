@@ -1,5 +1,6 @@
 package org.planit.network.physical;
 
+import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
@@ -14,4 +15,13 @@ import org.planit.utils.network.physical.Node;
  */
 public interface PhysicalNetworkBuilder<N extends Node, L extends Link, LS extends LinkSegment> extends DirectedGraphBuilder<N, L, LS> {
 
+  /**
+   * remove Id gaps for a physical network
+   * 
+   * @param physicalNetwork to rmeove id gaps from
+   */
+  @SuppressWarnings("unchecked")
+  default void removeIdGaps(PhysicalNetwork<N, L, LS> physicalNetworks) {
+    removeIdGaps((DirectedGraph<N,L,LS>)physicalNetworks);
+  }
 }

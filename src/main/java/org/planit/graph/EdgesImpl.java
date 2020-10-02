@@ -28,16 +28,6 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
   private final Map<Long, E> edgeMap;
 
   /**
-   * Add edge to the internal container
-   *
-   * @param edge edge to be registered in this network
-   * @return edge, in case it overrides an existing edge, the removed edge is returned
-   */
-  protected E registerEdge(final E edge) {
-    return edgeMap.put(edge.getId(), edge);
-  }
-
-  /**
    * Constructor
    * 
    * @param graphBuilder the builder for edge implementations
@@ -46,6 +36,17 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
     this.graphBuilder = graphBuilder;
     this.edgeMap = new TreeMap<Long, E>();
   }
+  
+  /**
+   * Add edge to the internal container. Do not use this unless you know what you are doing because it can mess up the contiguous internal id
+   * structure of the edges. PReferred method is to only use registerNew.
+   *
+   * @param edge edge to be registered in this network based on its internal id
+   * @return edge, in case it overrides an existing edge, the removed edge is returned
+   */
+  public E register(final E edge) {
+    return edgeMap.put(edge.getId(), edge);
+  }  
 
   /**
    * {@inheritDoc}
@@ -69,7 +70,7 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
   @Override
   public E registerNew(final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException {
     final E newEdge = graphBuilder.createEdge(vertexA, vertexB, length);
-    registerEdge(newEdge);
+    register(newEdge);
     return newEdge;
   }
 
@@ -96,4 +97,5 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
   public boolean isEmpty() {
     return size()==0;
   }
+
 }
