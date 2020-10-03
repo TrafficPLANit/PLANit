@@ -57,7 +57,7 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
    * @param groupId contiguous id generation within this group for instances of this class
    * @return id of this link segment
    */
-  protected static int generateMacroscopicLinkSegmentTypeId(final IdGroupingToken groupId) {
+  protected static long generateMacroscopicLinkSegmentTypeId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, MacroscopicLinkSegmentType.class);
   }
 

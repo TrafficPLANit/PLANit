@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;

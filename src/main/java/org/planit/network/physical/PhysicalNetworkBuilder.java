@@ -1,7 +1,7 @@
 package org.planit.network.physical;
 
+import org.planit.graph.DirectedGraphBuilder;
 import org.planit.utils.graph.DirectedGraph;
-import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;

@@ -28,7 +28,7 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
   /**
    * unique internal identifier
    */
-  protected final int connectoidSegmentId;
+  protected final long connectoidSegmentId;
 
   /**
    * generate unique connectoid segment id
@@ -36,7 +36,7 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
    * @param groupId contiguous id generation within this group for instances of this class
    * @return linkSegmentId
    */
-  protected static int generateConnectoidSegmentId(final IdGroupingToken groupId) {
+  protected static long generateConnectoidSegmentId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, ConnectoidSegment.class);
   }
 
@@ -58,7 +58,7 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
   // Public getters - setters
 
   @Override
-  public int getConnectoidSegmentId() {
+  public long getConnectoidSegmentId() {
     return connectoidSegmentId;
   }
 }

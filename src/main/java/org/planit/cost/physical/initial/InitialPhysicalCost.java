@@ -6,7 +6,7 @@ import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.cost.physical.PhysicalCost;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 
 /**
  * The initial physical costs for the network
@@ -35,6 +35,6 @@ public abstract class InitialPhysicalCost extends TrafficAssignmentComponent<Ini
    * @param linkSegment the current link segment
    * @param cost        the initial cost for this mode and link segment
    */
-  public abstract void setSegmentCost(Mode mode, LinkSegment linkSegment, double cost);
+  public abstract void setSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment, double cost);
 
 }

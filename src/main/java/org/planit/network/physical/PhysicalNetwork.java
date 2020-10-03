@@ -22,9 +22,7 @@ import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.IdSetter;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.mode.Modes;
 import org.planit.utils.network.physical.Link;
@@ -111,7 +109,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     public int size() {
       return graph.getEdges().size();
     }
-    
+
   }
 
   /**
@@ -384,7 +382,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @param subNetworkNodes to add connected adjacent nodes to
    */
   protected void processSubNetworkNode(Node referenceNode, Set<Node> subNetworkNodes) {
-    if(!subNetworkNodes.contains(referenceNode)) {
+    if (!subNetworkNodes.contains(referenceNode)) {
       subNetworkNodes.add(referenceNode);
 
       Set<Edge> edges = referenceNode.getEdges();
@@ -448,14 +446,14 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   public IdGroupingToken getNetworkIdGroupingToken() {
     return ((DirectedGraphImpl<N, L, LS>) graph).getGraphIdGroupingToken();
   }
-  
+
   /**
    * remove any dangling subnetworks from the network if they exist and subsequently reorder the internal ids if needed
    * 
    */
   public void removeDanglingSubnetworks() {
     removeDanglingSubnetworks(Integer.MAX_VALUE);
-  }  
+  }
 
   /**
    * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
@@ -464,7 +462,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    */
   public void removeDanglingSubnetworks(Integer belowsize) {
     Set<Integer> removedSubnetworksOfSize = new HashSet<Integer>();
-    
+
     Set<Node> remainingNodes = new HashSet<Node>(nodes.size());
     nodes.forEach(node -> remainingNodes.add(node));
     Map<Node, Integer> identifiedSubNetworkSizes = new HashMap<Node, Integer>();
@@ -484,21 +482,21 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     int maxSubNetworkSize = Collections.max(identifiedSubNetworkSizes.values());
     for (Entry<Node, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
       int subNetworkSize = entry.getValue();
-      if (maxSubNetworkSize > subNetworkSize) {        
+      if (maxSubNetworkSize > subNetworkSize) {
         /* not the biggest subnetwork, remove from network if below threshold */
-        if(subNetworkSize < belowsize) {
+        if (subNetworkSize < belowsize) {
           removeSubnetworkOf(entry.getKey());
           removedSubnetworksOfSize.add(subNetworkSize);
         }
       }
     }
-    
-    if(belowsize != Integer.MAX_VALUE) {
-      LOGGER.info(String.format("removed %d dangling networks",removedSubnetworksOfSize));  
-    }else {
-      LOGGER.info(String.format("removed %d dangling networks of size %d or less",removedSubnetworksOfSize, belowsize));
+
+    if (belowsize != Integer.MAX_VALUE) {
+      LOGGER.info(String.format("removed %d dangling networks", removedSubnetworksOfSize));
+    } else {
+      LOGGER.info(String.format("removed %d dangling networks of size %d or less", removedSubnetworksOfSize, belowsize));
     }
-    
+
   }
 
   /**

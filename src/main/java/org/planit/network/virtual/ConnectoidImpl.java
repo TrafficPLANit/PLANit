@@ -39,7 +39,7 @@ public class ConnectoidImpl extends EdgeImpl implements Connectoid {
    * @param groupId contiguous id generation within this group for instances of this class
    * @return id of connectoid
    */
-  protected static int generateConnectoidId(final IdGroupingToken groupId) {
+  protected static long generateConnectoidId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Connectoid.class);
   }
 

@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.planit.utils.graph.DirectedGraph;
+import org.planit.utils.graph.DirectedSubGraph;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;

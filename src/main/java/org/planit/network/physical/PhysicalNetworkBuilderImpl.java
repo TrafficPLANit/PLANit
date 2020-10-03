@@ -32,13 +32,13 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  * @author markr
  *
  */
-public abstract class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node,Link,LinkSegment> {
+public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, Link, LinkSegment> {
 
   /**
    * Contiguous id generation within this group id token for all instances created with factory methods in this class
    */
   protected IdGroupingToken groupId;
-  
+
   /**
    * Remove any id gaps present in the passed in links by updating their ids (if the edges are of the implementation compatible with this builder).
    * The working assumption is that while ids might be missing, links are registered as a single blokc, i.e., all edges within the available id range of links are either
@@ -98,22 +98,24 @@ public abstract class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuild
       }
     }
   }
-   
+
   /**
    * Remove any id gaps present in the passed in nodes by updating their ids if the edges are of the implementation compatible with this builder
    * 
    * @param nodes to create contiguous ids for starting from zero
-   */  
+   */
   @SuppressWarnings("unchecked")
   protected void removeIdGaps(Vertices<Node> nodes) {
     // TODO
   }
-  
+
   /** todo */
   protected void removeIdGaps(EdgeSegments<LinkSegment> edgeSegments) {
-    //TODO
+    // TODO
   }
-  
+
+  // Public methods
+
   /**
    * {@inheritDoc}
    */
@@ -134,6 +136,14 @@ public abstract class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuild
    * {@inheritDoc}
    */
   @Override
+  public LinkSegment createEdgeSegment(Edge parentLink, boolean directionAB) throws PlanItException {
+    return new LinkSegmentImpl(getIdGroupingToken(), (Link) parentLink, directionAB);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void setIdGroupingToken(IdGroupingToken groupId) {
     this.groupId = groupId;
   }
@@ -148,16 +158,16 @@ public abstract class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuild
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public void removeIdGaps(DirectedGraph<Node, Link, LinkSegment> directedGraph) {
-    this.removeIdGaps((Graph<Node, Link>)directedGraph);
+    this.removeIdGaps((Graph<Node, Link>) directedGraph);
     removeIdGaps(directedGraph.getEdgeSegments());
   }
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public void removeIdGaps(Graph<Node, Link> graph) {
     removeIdGaps(graph.getEdges());

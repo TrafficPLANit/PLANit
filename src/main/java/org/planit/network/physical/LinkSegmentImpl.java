@@ -13,7 +13,7 @@ import org.planit.utils.network.physical.LinkSegment;
  * @author gman6028, markr
  *
  */
-public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
+public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
 
   /** generated UID */
   private static final long serialVersionUID = -4893553215218232006L;
