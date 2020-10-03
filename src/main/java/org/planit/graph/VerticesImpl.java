@@ -42,7 +42,7 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public void removeVertex(V vertex) {
+  public void remove(V vertex) {
     vertexMap.remove(vertex.getId());
   }
 
@@ -50,7 +50,7 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V createNewVertex() {
+  public V createNew() {
     return graphBuilder.createVertex();
   }
 
@@ -58,7 +58,7 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V registerVertex(final V vertex) {
+  public V register(final V vertex) {
     return vertexMap.put(vertex.getId(), vertex);
   }
 
@@ -74,9 +74,9 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V registerNewVertex() {
-    final V newVertex = createNewVertex();
-    registerVertex(newVertex);
+  public V registerNew() {
+    final V newVertex = createNew();
+    register(newVertex);
     return newVertex;
   }
 
@@ -84,10 +84,10 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V registerNewVertex(Object externalId) {
-    final V newVertex = createNewVertex();
+  public V registerNew(Object externalId) {
+    final V newVertex = createNew();
     newVertex.setExternalId(externalId);
-    registerVertex(newVertex);
+    register(newVertex);
     return newVertex;
   }
 
@@ -95,7 +95,7 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public int getNumberOfVertices() {
+  public int size() {
     return vertexMap.size();
   }
 
@@ -103,7 +103,7 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V getVertexById(final long id) {
+  public V get(final long id) {
     return vertexMap.get(id);
   }
 
