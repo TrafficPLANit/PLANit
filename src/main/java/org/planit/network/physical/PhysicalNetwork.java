@@ -111,27 +111,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     public int size() {
       return graph.getEdges().size();
     }
-
-    /**
-     * update the internal ids of all links in case there are gaps due to removal of links after their initial creation
-     */
-    public void updateInternalIds() {
-      if(!graph.getEdges().isEmpty()) {
-        Edge anEdge = graph.getEdges().iterator().next();
-        if(IdSetter.class.isAssignableFrom(anEdge.getClass())) {
-         
-          IdGenerator.reset(getNetworkIdGroupingToken(), Link.class); // use Link because that is how the ids are registered, not LinkImpl which is the runtime class of anEdge
-          IdGenerator.reset(getNetworkIdGroupingToken(), Edge.class); // use edge because that is how the ids are registered, not LinkImpl which is the runtime class of anEdge
-          
-          ((EdgesImpl)graph.getEdges()).updateInternalIds();
-          
-          for(Edge edge : graph.getEdges()) {
-            ((IdSetter)edge).overwriteId(id);
-          }
-        }
-      }
-      
-    }
+    
   }
 
   /**
@@ -331,7 +311,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return new node created
      */
     public N registerNew() {
-      final N newNode = graph.getVertices().registerNewVertex();
+      final N newNode = graph.getVertices().registerNew();
       return newNode;
     }
 
@@ -342,7 +322,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return new node created
      */
     public N registerNew(Object externalId) {
-      final N newNode = graph.getVertices().registerNewVertex(externalId);
+      final N newNode = graph.getVertices().registerNew(externalId);
       return newNode;
     }
 
@@ -352,7 +332,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return number of registered nodes
      */
     public int size() {
-      return graph.getVertices().getNumberOfVertices();
+      return graph.getVertices().size();
     }
 
     /**
@@ -362,7 +342,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return retrieved node
      */
     public N get(final long id) {
-      return graph.getVertices().getVertexById(id);
+      return graph.getVertices().get(id);
     }
 
   }
@@ -395,17 +375,6 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    */
   protected PhysicalNetworkBuilder<N, L, LS> getNetworkBuilder() {
     return networkBuilder;
-  }
-
-  /**
-   * update internal ids for the network's internal structure (nodes, links, link segments) in case gaps are found.
-   * It is expected that all implementations for nodes, links, link segments support the IdSetter interface. If not
-   * a warning will be issued and the id's cannot be updated
-   * 
-   * @throws PlanItException
-   */
-  protected void updateNetworkInfrastructureInternalIds() throws PlanItException {    
-    this.links.updateInternalIds();
   }
 
   /**
@@ -563,11 +532,8 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
       exitEdgeSegments.forEach(edgeSegment -> edgeSegment.removeVertex(node));
     }
 
-    try {
-      getNetworkBuilder().removeIdGaps(this);
-    } catch (PlanItException e) {
-      LOGGER.severe(String.format("unable to update internal ids after removing dangling subnetwork (reference node id:%d)",referenceNode.getId()));
-    }
+    /* remove any gaps in ids created by removing dangling subnetworks */
+    getNetworkBuilder().removeIdGaps(this);
   }
 
 }

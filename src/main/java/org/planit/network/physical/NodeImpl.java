@@ -38,7 +38,7 @@ public class NodeImpl extends DirectedVertexImpl implements Node, MultiIdSetter<
    * @param groupId contiguous id generation within this group for instances of this class
    * @return nodeId
    */
-  protected static int generateNodeId(final IdGroupingToken groupId) {
+  protected static long generateNodeId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Node.class);
   }
 
@@ -74,7 +74,7 @@ public class NodeImpl extends DirectedVertexImpl implements Node, MultiIdSetter<
     if(ids.length != 2) {
       LOGGER.warning(String.format("overwriting node ids requires exactly two ids, one for the vertex and one for the node, we found %d, ignored",ids.length));
     }
-    overwriteId(ids[0]);
+    this.overwriteId(ids[0]);
     this.nodeId = ids[1];
   }
      

@@ -31,7 +31,7 @@ public class VertexImpl implements Vertex, IdSetter<Long> {
    * @param groupId, contiguous id generation within this group for instances of this class
    * @return nodeId
    */
-  protected static int generateVertexId(final IdGroupingToken groupId) {
+  protected static long generateVertexId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Vertex.class);
   }
 

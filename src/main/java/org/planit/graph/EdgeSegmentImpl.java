@@ -54,7 +54,7 @@ public abstract class EdgeSegmentImpl implements EdgeSegment, IdSetter<Long> {
    * @param groupId contiguous id generation within this group for instances of this class
    * @return id id of this EdgeSegment
    */
-  protected static int generateEdgeSegmentId(final IdGroupingToken groupId) {
+  protected static long generateEdgeSegmentId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, EdgeSegment.class);
   }
 

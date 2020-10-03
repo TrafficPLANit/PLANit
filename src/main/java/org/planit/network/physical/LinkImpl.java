@@ -51,7 +51,7 @@ public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
    */
   protected static long generateLinkId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Link.class);
-  }
+  }  
 
   // Public
 

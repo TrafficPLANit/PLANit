@@ -39,7 +39,7 @@ public abstract class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSeg
    * @param groupId, contiguous id generation within this group for instances of this class
    * @return id of this link segment
    */
-  protected static int generateLinkSegmentId(final IdGroupingToken groupId) {
+  protected static long generateLinkSegmentId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, LinkSegment.class);
   }
 
