@@ -19,7 +19,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES extends EdgeSegment> implements DirectedGraph<V,E,ES>{
+public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES extends EdgeSegment> implements DirectedGraph<V, E, ES> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -42,12 +42,12 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES exte
   /**
    * class instance containing all edges
    */
-  protected final Edges<E> edges;
+  protected final Edges<V, E> edges;
 
   /**
    * class instance containing all edge segments
    */
-  protected final EdgeSegments<ES> edgeSegments;
+  protected final EdgeSegments<E, ES> edgeSegments;
 
   /**
    * class instance containing all vertices
@@ -65,9 +65,9 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES exte
     this.graphBuilder = graphBuilder;
     this.graphBuilder.setIdGroupingToken(IdGenerator.createIdGroupingToken(this, this.getId()));
 
-    this.edges = new EdgesImpl<E>(graphBuilder);
+    this.edges = new EdgesImpl<V, E>(graphBuilder);
     this.vertices = new VerticesImpl<V>(graphBuilder);
-    this.edgeSegments = new EdgeSegmentsImpl<ES>(graphBuilder);
+    this.edgeSegments = new EdgeSegmentsImpl<E, ES>(graphBuilder);
   }
 
   // Getters - Setters
@@ -92,7 +92,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES exte
    * {@inheritDoc}
    */
   @Override
-  public Edges<E> getEdges() {
+  public Edges<V, E> getEdges() {
     return edges;
   }
 
@@ -100,10 +100,10 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES exte
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegments<ES> getEdgeSegments() {
+  public EdgeSegments<E, ES> getEdgeSegments() {
     return edgeSegments;
   }
-  
+
   /**
    * Collect the id grouping token used for all entities registered on the graph, i.e., this network's specific identifier for generating ids unique and contiguous within this
    * network and this network only
@@ -112,6 +112,6 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES exte
    */
   public IdGroupingToken getGraphIdGroupingToken() {
     return this.graphBuilder.getIdGroupingToken();
-  }  
+  }
 
 }

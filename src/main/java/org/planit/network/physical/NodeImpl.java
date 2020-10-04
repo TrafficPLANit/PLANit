@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 import org.planit.graph.DirectedVertexImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.MultiIdSetter;
 import org.planit.utils.network.physical.Node;
 
 /**
@@ -17,15 +16,16 @@ import org.planit.utils.network.physical.Node;
  * @author markr
  *
  */
-public class NodeImpl extends DirectedVertexImpl implements Node, MultiIdSetter<Long> {
+public class NodeImpl extends DirectedVertexImpl implements Node {
 
   // Protected
 
   /** generated UID */
   private static final long serialVersionUID = 8237965522827691852L;
-  
+
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(NodeImpl.class.getCanonicalName());  
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = Logger.getLogger(NodeImpl.class.getCanonicalName());
 
   /**
    * Unique node identifier
@@ -40,6 +40,15 @@ public class NodeImpl extends DirectedVertexImpl implements Node, MultiIdSetter<
    */
   protected static long generateNodeId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Node.class);
+  }
+
+  /**
+   * set the node id on this node
+   * 
+   * @param nodeId to set
+   */
+  protected void setNodeId(long nodeId) {
+    this.nodeId = nodeId;
   }
 
   // Public
@@ -63,20 +72,5 @@ public class NodeImpl extends DirectedVertexImpl implements Node, MultiIdSetter<
   public long getNodeId() {
     return nodeId;
   }
-
-  /**
-   * Allows one to overwrite the underlying vertex id (first id), and node id (second id) at the same time
-   * 
-   * @param ids (only supports two ids, first edge id, second link id)
-   */
-  @Override
-  public void overwriteIds(Long... ids) {
-    if(ids.length != 2) {
-      LOGGER.warning(String.format("overwriting node ids requires exactly two ids, one for the vertex and one for the node, we found %d, ignored",ids.length));
-    }
-    this.overwriteId(ids[0]);
-    this.nodeId = ids[1];
-  }
-     
 
 }

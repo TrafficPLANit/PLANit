@@ -9,12 +9,12 @@ import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
 
-public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES> {
+public class EdgeSegmentsImpl<E extends Edge, ES extends EdgeSegment> implements EdgeSegments<E, ES> {
 
   /**
    * The graph builder to create edgse segments
    */
-  DirectedGraphBuilder<?, ?, ES> graphBuilder;
+  DirectedGraphBuilder<?, E, ES> graphBuilder;
 
   /**
    * Map to store edge segments by their Id
@@ -36,7 +36,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
    * 
    * @param graphBuilder the grpahBuilder to use to create edge segments
    */
-  public EdgeSegmentsImpl(DirectedGraphBuilder<?, ?, ES> graphBuilder) {
+  public EdgeSegmentsImpl(DirectedGraphBuilder<?, E, ES> graphBuilder) {
     this.graphBuilder = graphBuilder;
     this.edgeSegmentMap = new TreeMap<Long, ES>();
   }
@@ -60,7 +60,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   /**
    * {@inheritDoc}
    */
-  public ES create(final Edge parentEdge, final boolean directionAB) throws PlanItException {
+  public ES create(final E parentEdge, final boolean directionAB) throws PlanItException {
     final ES edgeSegment = graphBuilder.createEdgeSegment(parentEdge, directionAB);
     return edgeSegment;
   }
@@ -68,7 +68,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   /**
    * {@inheritDoc}
    */
-  public void createAndRegister(final Edge parentEdge, final ES edgeSegment, final boolean directionAB) throws PlanItException {
+  public void createAndRegister(final E parentEdge, final ES edgeSegment, final boolean directionAB) throws PlanItException {
     parentEdge.registerEdgeSegment(edgeSegment, directionAB);
     registerEdgeSegment(edgeSegment);
   }

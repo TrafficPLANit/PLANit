@@ -20,7 +20,6 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
-import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
@@ -506,32 +505,11 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    */
   @SuppressWarnings("unchecked")
   public void removeSubnetworkOf(Node referenceNode) {
-    Set<Node> subNetworkNodesToPopulate = new HashSet<Node>();
-    processSubNetworkNode(referenceNode, subNetworkNodesToPopulate);
+    Set<Node> subNetworkNodesToRemove = new HashSet<Node>();
+    processSubNetworkNode(referenceNode, subNetworkNodesToRemove);
 
-    /* remove the subnetwork from the actual network */
-    for (Node node : subNetworkNodesToPopulate) {
-      Set<Edge> nodeEdges = node.getEdges();
-      nodeEdges.forEach(edge -> this.graph.getEdges().remove((L) edge));
-
-      /* remove from network if not already done */
-      Set<EdgeSegment> entryEdgeSegments = node.getEntryEdgeSegments();
-      entryEdgeSegments.forEach(edgeSegment -> this.graph.getEdgeSegments().remove((LS) edgeSegment));
-      Set<EdgeSegment> exitEdgeSegments = node.getExitEdgeSegments();
-      exitEdgeSegments.forEach(edgeSegment -> this.graph.getEdgeSegments().remove((LS) edgeSegment));
-
-      /* remove edges and edge segments from node */
-      nodeEdges.forEach(edge -> node.removeEdge(edge));
-      entryEdgeSegments.forEach(edgeSegment -> node.removeEdgeSegment(edgeSegment));
-      exitEdgeSegments.forEach(edgeSegment -> node.removeEdgeSegment(edgeSegment));
-
-      /* remove node from edges and edge segments */
-      entryEdgeSegments.forEach(edgeSegment -> edgeSegment.removeVertex(node));
-      exitEdgeSegments.forEach(edgeSegment -> edgeSegment.removeVertex(node));
-    }
-
-    /* remove any gaps in ids created by removing dangling subnetworks */
-    getNetworkBuilder().removeIdGaps(this);
+    TODO -> create appropriate parametyerised calls in various builders who then relay to underlying ones if needed
+    getNetworkBuilder().removeSubNetwork(this.graph, subNetworkNodesToRemove);
   }
 
 }

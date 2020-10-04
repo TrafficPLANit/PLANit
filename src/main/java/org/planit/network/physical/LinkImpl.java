@@ -7,7 +7,6 @@ import org.planit.graph.EdgeImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.MultiIdSetter;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Node;
 
@@ -18,14 +17,15 @@ import org.planit.utils.network.physical.Node;
  * @author markr
  *
  */
-public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
+public class LinkImpl extends EdgeImpl implements Link {
 
   // Protected
 
   /** generated UID */
   private static final long serialVersionUID = 2360017879557363410L;
-  
+
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(LinkImpl.class.getCanonicalName());
 
   /**
@@ -37,7 +37,7 @@ public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
    * External Id of the physical link
    */
   protected Object externalId;
-  
+
   /**
    * The line geometry of this link if set
    */
@@ -51,7 +51,16 @@ public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
    */
   protected static long generateLinkId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Link.class);
-  }  
+  }
+
+  /**
+   * Set the link id
+   * 
+   * @param linkId to set
+   */
+  protected void setLinkId(long linkId) {
+    this.linkId = linkId;
+  }
 
   // Public
 
@@ -67,36 +76,22 @@ public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
    */
   public LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length) throws PlanItException {
     super(groupId, nodeA, nodeB, length);
-    this.linkId = generateLinkId(groupId);
+    setLinkId(generateLinkId(groupId));
   }
 
   // Getters-Setters
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public long getLinkId() {
     return linkId;
   }
-  
-  /**
-   * Allows one to overwrite the underlying edge id (first id), and link id (second id) at the same time
-   * 
-   * @param ids (only supports two ids, first edge id, second link id)
-   */
-  @Override
-  public void overwriteIds(Long... ids) {
-    if(ids.length != 2) {
-      LOGGER.warning(String.format("overwriting link ids requires exactly two ids, one for the edge and one for the link, we found %d, ignored",ids.length));
-    }
-    overwriteId(ids[0]);
-    this.linkId = ids[1];
-  }  
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public void setExternalId(final Object externalId) {
     this.externalId = externalId;
@@ -104,12 +99,12 @@ public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public Object getExternalId() {
     return externalId;
   }
-  
+
   /**
    * {@inheritDoc}
    */
@@ -120,7 +115,7 @@ public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public LineString getGeometry() {
     return lineGeometry;
@@ -131,7 +126,7 @@ public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
    */
   @Override
   public void setGeometry(LineString lineString) {
-    this.lineGeometry = lineString;    
+    this.lineGeometry = lineString;
   }
 
 }

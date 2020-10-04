@@ -7,7 +7,6 @@ import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.IdSetter;
 
 /**
  * EdgeSegment represents an edge in a particular (single) direction. Each edge has either one or two edge segments where each edge segment may have a more detailed geography than
@@ -18,7 +17,7 @@ import org.planit.utils.id.IdSetter;
  * @author markr
  *
  */
-public abstract class EdgeSegmentImpl implements EdgeSegment, IdSetter<Long> {
+public class EdgeSegmentImpl implements EdgeSegment {
 
   /** generated UID */
   private static final long serialVersionUID = -6521489123632246969L;
@@ -58,6 +57,15 @@ public abstract class EdgeSegmentImpl implements EdgeSegment, IdSetter<Long> {
     return IdGenerator.generateId(groupId, EdgeSegment.class);
   }
 
+  /**
+   * set id of edge segment
+   * 
+   * @param id to set
+   */
+  protected void setId(Long id) {
+    this.id = id;
+  }
+
   // Public
 
   /**
@@ -69,7 +77,7 @@ public abstract class EdgeSegmentImpl implements EdgeSegment, IdSetter<Long> {
    * @throws PlanItException thrown when parent edge's vertices are incompatible with directional edge segments
    */
   protected EdgeSegmentImpl(final IdGroupingToken groupId, final Edge parentEdge, final boolean directionAB) throws PlanItException {
-    this.id = generateEdgeSegmentId(groupId);
+    setId(generateEdgeSegmentId(groupId));
     this.parentEdge = parentEdge;
     if (!(parentEdge.getVertexA() instanceof DirectedVertex && parentEdge.getVertexB() instanceof DirectedVertex)) {
       throw new PlanItException(String.format("parent edges (id:%d) vertices do not support directed edge segments, they must be of type DirectedVertex", parentEdge.getId()));
@@ -132,11 +140,6 @@ public abstract class EdgeSegmentImpl implements EdgeSegment, IdSetter<Long> {
   public long getId() {
     return this.id;
   }
-  
-  @Override
-  public void overwriteId(Long id) {
-      this.id = id;
-  }  
 
   /**
    * parent edge of the segment

@@ -9,7 +9,6 @@ import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.IdSetter;
 
 /**
  * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry additional information for each
@@ -18,7 +17,7 @@ import org.planit.utils.id.IdSetter;
  * @author markr
  *
  */
-public class EdgeImpl implements Edge, IdSetter<Long> {
+public class EdgeImpl implements Edge {
 
   // Protected
 
@@ -74,6 +73,15 @@ public class EdgeImpl implements Edge, IdSetter<Long> {
     return IdGenerator.generateId(groupId, Edge.class);
   }
 
+  /**
+   * set id on this edge
+   * 
+   * @param id to set
+   */
+  protected void setId(long id) {
+    this.id = id;
+  }
+
   // Public
 
   /**
@@ -86,7 +94,7 @@ public class EdgeImpl implements Edge, IdSetter<Long> {
    * @throws PlanItException thrown if there is an error
    */
   protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException {
-    this.id = generateEdgeId(groupId);
+    setId(generateEdgeId(groupId));
     this.vertexA = vertexA;
     this.vertexB = vertexB;
     this.lengthInKm = length;
@@ -106,6 +114,41 @@ public class EdgeImpl implements Edge, IdSetter<Long> {
       this.edgeSegmentBA = edgeSegment;
     }
     return currentEdgeSegment;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeVertex(Vertex vertex) {
+    if (vertex != null) {
+      if (getVertexA() != null && getVertexA().getId() == vertex.getId()) {
+        return removeVertexA();
+      } else if (getVertexB() != null && getVertexB().getId() == vertex.getId()) {
+        return removeVertexB();
+      }
+    }
+    return false;
+  }
+
+  /**
+   * remove vertex B by setting it to null
+   * 
+   * @return true
+   */
+  public boolean removeVertexB() {
+    this.vertexB = null;
+    return true;
+  }
+
+  /**
+   * remove vertex A by setting it to null
+   * 
+   * @return true
+   */
+  public boolean removeVertexA() {
+    this.vertexA = null;
+    return true;
   }
 
   /**
@@ -134,14 +177,14 @@ public class EdgeImpl implements Edge, IdSetter<Long> {
   public double getLengthKm() {
     return lengthInKm;
   }
-  
+
   /**
    * {@inheritDoc}
    */
   @Override
   public void setLength(double lengthInKm) {
     this.lengthInKm = lengthInKm;
-  }  
+  }
 
   // Getters-Setters
 
@@ -152,14 +195,6 @@ public class EdgeImpl implements Edge, IdSetter<Long> {
   public long getId() {
     return id;
   }
-  
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void overwriteId(Long id) {
-    this.id = id;
-  }  
 
   /**
    * {@inheritDoc}
@@ -188,7 +223,7 @@ public class EdgeImpl implements Edge, IdSetter<Long> {
   /**
    * {@inheritDoc}
    */
-  @Override  
+  @Override
   public void setName(final String name) {
     this.name = name;
   }

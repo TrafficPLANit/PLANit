@@ -1,5 +1,7 @@
 package org.planit.graph;
 
+import java.util.Set;
+
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.DirectedVertex;
@@ -14,7 +16,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public interface DirectedGraphBuilder<V extends DirectedVertex, E extends Edge, ES extends EdgeSegment> extends GraphBuilder<V,E> {
+public interface DirectedGraphBuilder<V extends DirectedVertex, E extends Edge, ES extends EdgeSegment> extends GraphBuilder<V, E> {
 
   /**
    * Create a new physical link segment instance
@@ -24,14 +26,14 @@ public interface DirectedGraphBuilder<V extends DirectedVertex, E extends Edge, 
    * @return edgeSegment the created edge segment
    * @throws PlanItException thrown if error
    */
-  public ES createEdgeSegment(Edge parentEdge, boolean directionAB) throws PlanItException;
+  public ES createEdgeSegment(E parentEdge, boolean directionAB) throws PlanItException;
 
   /**
    * Each builder needs a group if token to allow all underlying factory methods to generated ids uniquely tied to the group the entities belong to
    * 
-   * @param groupId, contiguous id generation within this group for instances created with the factory methods
+   * @param grouptoken, contiguous id generation within this group for instances created with the factory methods
    */
-  public void setIdGroupingToken(IdGroupingToken groupId);
+  public void setIdGroupingToken(IdGroupingToken grouptoken);
 
   /**
    * Collect the id grouping token used by this builder
@@ -39,15 +41,14 @@ public interface DirectedGraphBuilder<V extends DirectedVertex, E extends Edge, 
    * @return idGroupingToken the id grouping token used by this builder
    */
   public IdGroupingToken getIdGroupingToken();
-  
+
   /**
-   * Remove any existing id gaps for the passed in directed graph's entities (edges, vertices, edges segments). With an id gap is meant
-   * that there exists an entity with id x, and id x+2 but not x+1. Then x+1 is a gap. This method ensures all ids are contiguous
-   * such that the highest id reflects the number of available entities-1 (starting at zero).
+   * remove the subnetwork from the graph. It is assumed the graph has been built by this builder. All edges and edge segments connected to the nodes in the subnetwork are removed
+   * as well, also all internal ids are updated accordingly to avoid any internal id gaps
    * 
-   * @param graph the graph to remove the id gaps from.
+   * @param directedGraph      to remove the subnetwork from
+   * @param subNetworkToRemove the subnetwork to remove
    */
-  public void removeIdGaps(DirectedGraph<V, E, ES> directedGraph);
-  
+  void removeSubNetwork(DirectedGraph<V, E, ES> directedGraph, Set<DirectedVertex> subNetworkToRemove);
 
 }
