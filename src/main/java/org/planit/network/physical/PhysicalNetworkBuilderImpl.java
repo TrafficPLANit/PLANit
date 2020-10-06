@@ -1,5 +1,8 @@
 package org.planit.network.physical;
 
+import java.util.logging.Logger;
+
+import org.planit.graph.DirectedGraphBuilderImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
@@ -14,10 +17,11 @@ import org.planit.utils.network.physical.Node;
  */
 public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, Link, LinkSegment> {
 
-  /**
-   * Contiguous id generation within this group id token for all instances created with factory methods in this class
-   */
-  protected IdGroupingToken groupId;
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = Logger.getLogger(PhysicalNetworkBuilderImpl.class.getCanonicalName());
+
+  /** hold an implementation of directed graph builder to use its overlapping functionality */
+  protected DirectedGraphBuilderImpl directedGraphBuilderImpl = new DirectedGraphBuilderImpl();
 
   // Public methods
 
@@ -26,7 +30,7 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
    */
   @Override
   public Node createVertex() {
-    return new NodeImpl(groupId);
+    return new NodeImpl(getIdGroupingToken());
   }
 
   /**
@@ -34,7 +38,7 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
    */
   @Override
   public Link createEdge(Node nodeA, Node nodeB, final double length) throws PlanItException {
-    return new LinkImpl(groupId, (Node) nodeA, (Node) nodeB, length);
+    return new LinkImpl(getIdGroupingToken(), nodeA, nodeB, length);
   }
 
   /**
@@ -49,8 +53,8 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
    * {@inheritDoc}
    */
   @Override
-  public void setIdGroupingToken(IdGroupingToken groupId) {
-    this.groupId = groupId;
+  public void setIdGroupingToken(IdGroupingToken groupToken) {
+    directedGraphBuilderImpl.setIdGroupingToken(groupToken);
   }
 
   /**
@@ -58,7 +62,7 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
    */
   @Override
   public IdGroupingToken getIdGroupingToken() {
-    return this.groupId;
+    return directedGraphBuilderImpl.getIdGroupingToken();
   }
 
 }

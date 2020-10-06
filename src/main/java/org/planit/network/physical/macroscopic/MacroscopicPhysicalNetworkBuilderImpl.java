@@ -1,16 +1,10 @@
 package org.planit.network.physical.macroscopic;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.network.physical.PhysicalNetworkBuilderImpl;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedGraph;
-import org.planit.utils.graph.DirectedVertex;
-import org.planit.utils.graph.Edge;
-import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.Graph;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.Link;
@@ -25,9 +19,10 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  * @author markr
  *
  */
-public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysicalNetworkBuilder {
+public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysicalNetworkBuilder<Node, Link, MacroscopicLinkSegment> {
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(MacroscopicPhysicalNetworkBuilderImpl.class.getCanonicalName());
 
   /** use physical network builder to create all but link segments */
@@ -53,8 +48,8 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegment createEdgeSegment(Edge parentLink, boolean directionAB) throws PlanItException {
-    return new MacroscopicLinkSegmentImpl(getIdGroupingToken(), (Link) parentLink, directionAB);
+  public MacroscopicLinkSegment createEdgeSegment(Link parentLink, boolean directionAB) throws PlanItException {
+    return new MacroscopicLinkSegmentImpl(getIdGroupingToken(), parentLink, directionAB);
   }
 
   /**
@@ -87,20 +82,6 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
   @Override
   public IdGroupingToken getIdGroupingToken() {
     return physicalNetworkBuilder.getIdGroupingToken();
-  }
-
-  @Override
-  public void removeSubNetwork(DirectedGraph<DirectedVertex, Edge, EdgeSegment> directedGraph, Set<DirectedVertex> subNetworkToRemove) {
-    // NOTE CHECK IF GOES WELL WITH ID GENERATOR RESETTING THE RIGHT CLASS (EDGE vs LINK, VERTEX vs NODE, EDGESEGMENT vs MACRSCOPIC LINKSEGMENT etc.
-    // possibly this needs some tweaking
-    int bla = 4;
-  }
-
-  @Override
-  public void removeSubNetwork(Graph<Node, Link> graph, Set<Node> subNetworkToRemove) {
-    // NOTE CHECK IF GOES WELL WITH ID GENERATOR RESETTING THE RIGHT CLASS (EDGE vs LINK, VERTEX vs NODE, EDGESEGMENT vs MACRSCOPIC LINKSEGMENT etc.
-    // possibly this needs some tweaking
-    int bla = 4;
   }
 
 }

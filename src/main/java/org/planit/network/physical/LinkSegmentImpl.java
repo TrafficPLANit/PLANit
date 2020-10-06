@@ -21,7 +21,7 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
   /**
    * unique internal identifier
    */
-  protected final long linkSegmentId;
+  protected long linkSegmentId;
 
   /**
    * segment's number of lanes
@@ -44,6 +44,15 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
   }
 
   /**
+   * Set the link segment id
+   * 
+   * @param linkSegmentId to use
+   */
+  protected void setLinkSegmentId(long linkSegmentId) {
+    this.linkSegmentId = linkSegmentId;
+  }
+
+  /**
    * Constructor
    *
    * @param groupId,    contiguous id generation within this group for instances of this class
@@ -53,7 +62,7 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    */
   protected LinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) throws PlanItException {
     super(groupId, parentLink, directionAB);
-    this.linkSegmentId = generateLinkSegmentId(groupId);
+    setLinkSegmentId(generateLinkSegmentId(groupId));
   }
 
   // Public

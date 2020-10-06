@@ -1,13 +1,9 @@
 package org.planit.graph;
 
-import java.util.Set;
-
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -41,14 +37,5 @@ public interface DirectedGraphBuilder<V extends DirectedVertex, E extends Edge, 
    * @return idGroupingToken the id grouping token used by this builder
    */
   public IdGroupingToken getIdGroupingToken();
-
-  /**
-   * remove the subnetwork from the graph. It is assumed the graph has been built by this builder. All edges and edge segments connected to the nodes in the subnetwork are removed
-   * as well, also all internal ids are updated accordingly to avoid any internal id gaps
-   * 
-   * @param directedGraph      to remove the subnetwork from
-   * @param subNetworkToRemove the subnetwork to remove
-   */
-  void removeSubNetwork(DirectedGraph<V, E, ES> directedGraph, Set<DirectedVertex> subNetworkToRemove);
 
 }

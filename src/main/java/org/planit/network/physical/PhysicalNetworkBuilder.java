@@ -6,8 +6,7 @@ import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
 
 /**
- * Build network elements based on chosen network view. Implementations are registered on the network class which uses it to construct network elements. The only difference with
- * the graphBuilder is that we enforce our network elements to be derived from Node, Link, and LinkSegment
+ * builder and modifier for physical networks of given parameterised types.
  * 
  * @author markr
  *

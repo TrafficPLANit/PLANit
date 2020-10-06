@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
 
