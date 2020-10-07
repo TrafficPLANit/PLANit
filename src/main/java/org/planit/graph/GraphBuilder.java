@@ -2,7 +2,9 @@ package org.planit.graph;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -44,5 +46,19 @@ public interface GraphBuilder<V extends Vertex, E extends Edge> {
    * @return idGroupingToken the id grouping token used by this builder
    */
   public IdGroupingToken getIdGroupingToken();
+
+  /**
+   * recreate the ids for all passed in edges
+   * 
+   * @param edges to recreate ids for
+   */
+  public void recreateIds(Edges<? extends V, ? extends E> edges);
+
+  /**
+   * recreate the ids for all passed in vertices
+   * 
+   * @param vertices to recreate ids for
+   */
+  public void recreateIds(Vertices<? extends V> vertices);
 
 }

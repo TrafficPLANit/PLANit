@@ -30,7 +30,7 @@ public class EdgeSegmentImpl implements EdgeSegment {
   /**
    * segment's parent edge
    */
-  protected final Edge parentEdge;
+  protected Edge parentEdge;
 
   /**
    * the upstreamVertex of the edge segment
@@ -149,6 +149,14 @@ public class EdgeSegmentImpl implements EdgeSegment {
   @Override
   public Edge getParentEdge() {
     return this.parentEdge;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeParentEdge() {
+    this.parentEdge = null;
   }
 
   /**

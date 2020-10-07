@@ -1,5 +1,6 @@
 package org.planit.graph;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -28,11 +29,21 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
   private Map<Long, V> vertexMap;
 
   /**
+   * updates the vertex map keys based on vertex ids in case an external force has changed already registered vertices
+   */
+  protected void updateIdMapping() {
+    /* identify which entries need to be re-registered because of a mismatch */
+    Map<Long, V> updatedMap = new HashMap<Long, V>(vertexMap.size());
+    vertexMap.forEach((oldId, vertex) -> updatedMap.put(vertex.getId(), vertex));
+    vertexMap = updatedMap;
+  }
+
+  /**
    * Constructor
    * 
    * @param graphBuilder the graph builder to use to create vertices
    */
-  public VerticesImpl(GraphBuilder<V, ?> graphBuilder) {
+  public VerticesImpl(final GraphBuilder<V, ?> graphBuilder) {
     this.graphBuilder = graphBuilder;
     this.vertexMap = new TreeMap<Long, V>();
   }
@@ -41,8 +52,16 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public void remove(V vertex) {
+  public void remove(final V vertex) {
     vertexMap.remove(vertex.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void remove(long vertexId) {
+    vertexMap.remove(vertexId);
   }
 
   /**

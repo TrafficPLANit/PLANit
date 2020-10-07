@@ -5,6 +5,9 @@ import java.util.logging.Logger;
 
 import org.planit.network.physical.PhysicalNetworkBuilderImpl;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.EdgeSegments;
+import org.planit.utils.graph.Edges;
+import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.Link;
@@ -82,6 +85,30 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
   @Override
   public IdGroupingToken getIdGroupingToken() {
     return physicalNetworkBuilder.getIdGroupingToken();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(EdgeSegments<? extends Link, ? extends MacroscopicLinkSegment> macroscopicinkSegments) {
+    physicalNetworkBuilder.recreateIds(macroscopicinkSegments);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(Edges<? extends Node, ? extends Link> links) {
+    physicalNetworkBuilder.recreateIds(links);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(Vertices<? extends Node> nodes) {
+    physicalNetworkBuilder.recreateIds(nodes);
   }
 
 }

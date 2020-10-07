@@ -1,5 +1,6 @@
 package org.planit.graph;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -24,7 +25,17 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<V, E> 
   /**
    * Map to store edges by their Id
    */
-  private final Map<Long, E> edgeMap;
+  private Map<Long, E> edgeMap;
+
+  /**
+   * updates the edge map keys based on edge ids in case an external force has changed already registered edges
+   */
+  protected void updateIdMapping() {
+    /* identify which entries need to be re-registered because of a mismatch */
+    Map<Long, E> updatedMap = new HashMap<Long, E>(edgeMap.size());
+    edgeMap.forEach((oldId, edge) -> updatedMap.put(edge.getId(), edge));
+    edgeMap = updatedMap;
+  }
 
   /**
    * Constructor
@@ -53,6 +64,14 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<V, E> 
   @Override
   public void remove(E edge) {
     edgeMap.remove(edge.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void remove(long edgeId) {
+    edgeMap.remove(edgeId);
   }
 
   /**
