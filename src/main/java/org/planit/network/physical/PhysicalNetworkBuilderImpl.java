@@ -9,6 +9,7 @@ import org.planit.graph.VerticesImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Edges;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -44,8 +45,12 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
    * {@inheritDoc}
    */
   @Override
-  public Link createEdge(Node nodeA, Node nodeB, final double length) throws PlanItException {
-    return new LinkImpl(getIdGroupingToken(), nodeA, nodeB, length);
+  public Link createEdge(Vertex nodeA, Vertex nodeB, final double length) throws PlanItException {
+    if (nodeA instanceof Node && nodeB instanceof Node) {
+      return new LinkImpl(getIdGroupingToken(), (Node) nodeA, (Node) nodeB, length);
+    } else {
+      throw new PlanItException("unable to create link, vertices should be of type Node");
+    }
   }
 
   /**
@@ -95,8 +100,11 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void recreateIds(Edges<? extends Node, ? extends Link> links) {
+  public void recreateIds(Edges<? extends Link> links) {
     /* delegate for edge ids */
     directedGraphBuilderImpl.recreateIds(links);
 

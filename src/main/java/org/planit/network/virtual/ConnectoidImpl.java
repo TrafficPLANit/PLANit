@@ -1,6 +1,6 @@
 package org.planit.network.virtual;
 
-import org.planit.graph.EdgeImpl;
+import org.planit.graph.DirectedEdgeImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -16,7 +16,7 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
  * @author markr
  *
  */
-public class ConnectoidImpl extends EdgeImpl implements Connectoid {
+public class ConnectoidImpl extends DirectedEdgeImpl implements Connectoid {
 
   // Protected
 

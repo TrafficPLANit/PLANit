@@ -63,12 +63,12 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link
      * @throws PlanItException thrown if there is an error
      */
-    public L registerNewLink(final N nodeA, final N nodeB, final double length) throws PlanItException {
+    public L registerNew(final Node nodeA, final Node nodeB, final double length) throws PlanItException {
       return registerNew(nodeA, nodeB, length, false);
     }
 
     /**
-     * Create new link to network identified via its id, injecting link length directly (link is not registered on nodes, this is left to the user)
+     * Create new link to network identified via its id, injecting link length directly
      *
      * @param nodeA           the first node in this link
      * @param nodeB           the second node in this link
@@ -77,7 +77,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link
      * @throws PlanItException thrown if there is an error
      */
-    public L registerNew(final N nodeA, final N nodeB, final double length, boolean registerOnNodes) throws PlanItException {
+    public L registerNew(final Node nodeA, final Node nodeB, final double length, boolean registerOnNodes) throws PlanItException {
       final L newLink = graph.getEdges().registerNew(nodeA, nodeB, length);
       if (registerOnNodes) {
         nodeA.addEdge(newLink);
@@ -184,8 +184,8 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LS createAndRegisterNew(final L parentLink, final boolean directionAb) throws PlanItException {
-      return createAndRegisterNew(parentLink, directionAb, false /* do not register on node and link */);
+    public LS registerNew(final L parentLink, final boolean directionAb) throws PlanItException {
+      return registerNew(parentLink, directionAb, false /* do not register on node and link */);
     }
 
     /**
@@ -197,7 +197,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LS createAndRegisterNew(final L parentLink, final boolean directionAb, final boolean registerOnNodeAndLink) throws PlanItException {
+    public LS registerNew(final L parentLink, final boolean directionAb, final boolean registerOnNodeAndLink) throws PlanItException {
       LS linkSegment = createNew(parentLink, directionAb);
       register(parentLink, linkSegment, directionAb);
       if (registerOnNodeAndLink) {
@@ -437,12 +437,31 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     LOGGER.info(String.format("Removing dangling subnetworks with less than %s vertices", belowsize != Integer.MAX_VALUE ? String.valueOf(belowsize) : "infinite"));
     LOGGER.info(String.format("Original number of nodes %d, links %d, link segments %d", nodes.size(), links.size(), linkSegments.size()));
 
-    if (getGraph() instanceof GraphModifier<?>) {
-      ((GraphModifier<?>) getGraph()).removeDanglingSubGraphs(belowsize);
+    if (getGraph() instanceof GraphModifier<?, ?>) {
+      ((GraphModifier<?, ?>) getGraph()).removeDanglingSubGraphs(belowsize);
     } else {
       LOGGER.severe("Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored");
     }
     LOGGER.info(String.format("remaining number of nodes %d, links %d, link segments %d", nodes.size(), links.size(), linkSegments.size()));
+  }
+
+  /**
+   * Break the passed in links by inserting the passed in node in between. After completion the original links remain as NodeA->NodeToBreakAt, and new links as inserted for
+   * NodeToBreakAt->NodeB.
+   * 
+   * Underlying link segments (if any) are also updated accordingly in the same manner
+   * 
+   * @param linksToBreak  the links to break
+   * @param nodeToBreakAt the node to break at
+   * @throws PlanItException thrown if error
+   */
+  @SuppressWarnings("unchecked")
+  public void breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt) throws PlanItException {
+    if (getGraph() instanceof GraphModifier<?, ?>) {
+      ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
+    } else {
+      LOGGER.severe("Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored");
+    }
   }
 
 }

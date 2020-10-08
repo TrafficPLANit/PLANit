@@ -7,13 +7,14 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
 
-public class EdgeSegmentsImpl<E extends Edge, ES extends EdgeSegment> implements EdgeSegments<E, ES> {
+public class EdgeSegmentsImpl<E extends DirectedEdge, ES extends EdgeSegment> implements EdgeSegments<E, ES> {
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(EdgeSegmentsImpl.class.getCanonicalName());
 
   /**

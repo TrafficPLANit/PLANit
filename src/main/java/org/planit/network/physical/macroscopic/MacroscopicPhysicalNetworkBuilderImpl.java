@@ -7,6 +7,7 @@ import org.planit.network.physical.PhysicalNetworkBuilderImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Edges;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
@@ -67,7 +68,7 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
    * {@inheritDoc}
    */
   @Override
-  public Link createEdge(Node nodeA, Node nodeB, double length) throws PlanItException {
+  public Link createEdge(Vertex nodeA, Vertex nodeB, double length) throws PlanItException {
     return physicalNetworkBuilder.createEdge(nodeA, nodeB, length);
   }
 
@@ -99,7 +100,7 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(Edges<? extends Node, ? extends Link> links) {
+  public void recreateIds(Edges<? extends Link> links) {
     physicalNetworkBuilder.recreateIds(links);
   }
 

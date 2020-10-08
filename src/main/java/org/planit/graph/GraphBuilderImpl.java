@@ -44,6 +44,14 @@ public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
    * {@inheritDoc}
    */
   @Override
+  public Edge copyEdge(Edge edgeToCopy) {
+    edgeToCopy.clone();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void setIdGroupingToken(IdGroupingToken groupToken) {
     this.groupToken = groupToken;
   }
@@ -60,7 +68,7 @@ public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(Edges<? extends Vertex, ? extends Edge> edges) {
+  public void recreateIds(Edges<? extends Edge> edges) {
     if (edges instanceof EdgesImpl<?, ?>) {
       /* remove gaps by simply resetting and recreating all edge ids */
       IdGenerator.reset(getIdGroupingToken(), Edge.class);

@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.DirectedSubGraph;
 import org.planit.utils.graph.DirectedVertex;
-import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -23,7 +23,7 @@ import org.planit.utils.misc.Pair;
  * @author markr
  *
  */
-public class ACyclicSubGraph<V extends DirectedVertex, E extends Edge, ES extends EdgeSegment> implements DirectedSubGraph<V, E, ES> {
+public class ACyclicSubGraph<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> implements DirectedSubGraph<V, E, ES> {
 
   /**
    * The id of this acyclic sub graph

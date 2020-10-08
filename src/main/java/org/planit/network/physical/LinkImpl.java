@@ -3,7 +3,7 @@ package org.planit.network.physical;
 import java.util.logging.Logger;
 
 import org.opengis.geometry.coordinate.LineString;
-import org.planit.graph.EdgeImpl;
+import org.planit.graph.DirectedEdgeImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -17,7 +17,7 @@ import org.planit.utils.network.physical.Node;
  * @author markr
  *
  */
-public class LinkImpl extends EdgeImpl implements Link {
+public class LinkImpl extends DirectedEdgeImpl implements Link {
 
   // Protected
 
@@ -32,11 +32,6 @@ public class LinkImpl extends EdgeImpl implements Link {
    * unique internal identifier
    */
   protected long linkId;
-
-  /**
-   * External Id of the physical link
-   */
-  protected Object externalId;
 
   /**
    * The line geometry of this link if set
@@ -62,7 +57,14 @@ public class LinkImpl extends EdgeImpl implements Link {
     this.linkId = linkId;
   }
 
-  // Public
+  /**
+   * Copy constructor
+   * 
+   * @param linkImpl to copy
+   */
+  protected LinkImpl(LinkImpl linkImpl) {
+    super(linkImpl);
+  }
 
   /**
    * Constructor which injects link length directly
@@ -74,10 +76,12 @@ public class LinkImpl extends EdgeImpl implements Link {
    * @param name     the name of the link
    * @throws PlanItException thrown if there is an error
    */
-  public LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length) throws PlanItException {
+  protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length) throws PlanItException {
     super(groupId, nodeA, nodeB, length);
     setLinkId(generateLinkId(groupId));
   }
+
+  // Public
 
   // Getters-Setters
 
@@ -87,30 +91,6 @@ public class LinkImpl extends EdgeImpl implements Link {
   @Override
   public long getLinkId() {
     return linkId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setExternalId(final Object externalId) {
-    this.externalId = externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Object getExternalId() {
-    return externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasExternalId() {
-    return (externalId != null);
   }
 
   /**
@@ -127,6 +107,14 @@ public class LinkImpl extends EdgeImpl implements Link {
   @Override
   public void setGeometry(LineString lineString) {
     this.lineGeometry = lineString;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected Link clone() throws CloneNotSupportedException {
+    return new LinkImpl(this);
   }
 
 }

@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.Graph;
@@ -26,7 +27,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>, GraphModifier<V> {
+public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>, GraphModifier<V, E> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -49,7 +50,7 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
   /**
    * class instance containing all edges
    */
-  protected final Edges<V, E> edges;
+  protected final Edges<E> edges;
 
   /**
    * class instance containing all vertices
@@ -118,7 +119,7 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
    * {@inheritDoc}
    */
   @Override
-  public Edges<V, E> getEdges() {
+  public Edges<E> getEdges() {
     return edges;
   }
 
@@ -154,27 +155,31 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
       remainingVertices.removeAll(subNetworkVerticesToPopulate);
     }
 
-    /* remove all non-dominating subnetworks */
-    int maxSubNetworkSize = Collections.max(identifiedSubNetworkSizes.values());
-    LOGGER.info(String.format("Main network contains %d vertices", maxSubNetworkSize));
-    LOGGER.fine(String.format("remaining vertices %d, edges %d", getVertices().size(), getEdges().size()));
-    for (Entry<V, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
-      int subNetworkSize = entry.getValue();
-      if (maxSubNetworkSize > subNetworkSize) {
-        /* not the biggest subnetwork, remove from network if below threshold */
-        if (subNetworkSize < belowsize) {
-          removeSubGraphOf(entry.getKey());
-          removedSubnetworksOfSize.add(subNetworkSize);
-          LOGGER.fine(String.format("removing %d vertices from graph", subNetworkSize));
-          LOGGER.fine(String.format("remaining vertices %d, edges %d", getVertices().size(), getEdges().size()));
+    if (!identifiedSubNetworkSizes.isEmpty()) {
+      /* remove all non-dominating subnetworks */
+      int maxSubNetworkSize = Collections.max(identifiedSubNetworkSizes.values());
+      LOGGER.info(String.format("Main network contains %d vertices", maxSubNetworkSize));
+      LOGGER.fine(String.format("remaining vertices %d, edges %d", getVertices().size(), getEdges().size()));
+      for (Entry<V, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
+        int subNetworkSize = entry.getValue();
+        if (maxSubNetworkSize > subNetworkSize) {
+          /* not the biggest subnetwork, remove from network if below threshold */
+          if (subNetworkSize < belowsize) {
+            removeSubGraphOf(entry.getKey());
+            removedSubnetworksOfSize.add(subNetworkSize);
+            LOGGER.fine(String.format("removing %d vertices from graph", subNetworkSize));
+            LOGGER.fine(String.format("remaining vertices %d, edges %d", getVertices().size(), getEdges().size()));
+          }
         }
       }
-    }
 
-    if (belowsize == Integer.MAX_VALUE) {
-      LOGGER.info(String.format("removed %d dangling sub graphs", removedSubnetworksOfSize.size()));
+      if (belowsize == Integer.MAX_VALUE) {
+        LOGGER.info(String.format("removed %d dangling sub graphs", removedSubnetworksOfSize.size()));
+      } else {
+        LOGGER.info(String.format("removed %d dangling sub graphs of size %d or less", removedSubnetworksOfSize.size(), belowsize));
+      }
     } else {
-      LOGGER.info(String.format("removed %d dangling sub graphs of size %d or less", removedSubnetworksOfSize.size(), belowsize));
+      LOGGER.warning("no networks identified, unable to remove dangling subnetworks");
     }
 
   }
@@ -184,7 +189,7 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void removeSubGraph(Set<V> subGraphToRemove) {
+  public void removeSubGraph(Set<? extends V> subGraphToRemove) {
 
     /* remove the subnetwork from the actual network */
     for (V vertex : subGraphToRemove) {
@@ -208,14 +213,28 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
   }
 
   /**
-   * remove the (sub)graph in which the passed in vertex resides. Apply reordering of internal ids of remaining network.
-   * 
-   * @param referenceVertex to identify subnetwork by
+   * {@inheritDoc}
    */
   public void removeSubGraphOf(V referenceVertex) {
     Set<V> subNetworkNodesToRemove = new HashSet<V>();
     processSubNetworkVertex(referenceVertex, subNetworkNodesToRemove);
     removeSubGraph(subNetworkNodesToRemove);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public void breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
+    for (E edgeToBreak : edgesToBreak) {
+      E aToBreak = edgeToBreak;
+      /* create copy of edge */
+      E breakToB = this.edges.createCopy(edgeToBreak);
+      /* update connections to vertices, and other components */
+      aToBreak.replace(edgeToBreak.getVertexB(), vertexToBreakAt, true);
+      breakToB.replace(edgeToBreak.getVertexA(), vertexToBreakAt, true);
+    }
   }
 
 }

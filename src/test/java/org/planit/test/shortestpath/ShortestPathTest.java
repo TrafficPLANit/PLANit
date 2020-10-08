@@ -100,7 +100,7 @@ public class ShortestPathTest {
           Node nodeA = network.nodes.get(linkRowIndex*(gridSize+1) + linkColIndex-1);
           Node nodeB = network.nodes.get(linkRowIndex*(gridSize+1) + linkColIndex);
           // all links are 1 km in length          
-          Link link = network.links.registerNewLink(nodeA, nodeB, 1);
+          Link link = network.links.registerNew(nodeA, nodeB, 1);
           nodeA.addEdge(link);
           nodeB.addEdge(link);
           LinkSegment linkSegmentAb = network.linkSegments.createNew(link, true);
@@ -118,7 +118,7 @@ public class ShortestPathTest {
           // all links are 1 km in length
           Node nodeA = network.nodes.get((linkRowIndex-1)*(gridSize+1)+linkColIndex);
           Node nodeB = network.nodes.get(linkRowIndex*(gridSize+1)+linkColIndex);
-          Link link = network.links.registerNewLink(nodeA, nodeB, 1);
+          Link link = network.links.registerNew(nodeA, nodeB, 1);
           nodeA.addEdge(link);
           nodeB.addEdge(link);
           LinkSegment linkSegmentAb = network.linkSegments.createNew(link, true);

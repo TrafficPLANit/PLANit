@@ -1,12 +1,14 @@
 package org.planit.graph;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.DirectedVertex;
-import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.id.IdGroupingToken;
@@ -18,7 +20,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES extends EdgeSegment> extends GraphImpl<V, E> implements DirectedGraph<V, E, ES> {
+public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> extends GraphImpl<V, E> implements DirectedGraph<V, E, ES> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -57,7 +59,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES exte
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void removeSubGraph(Set<V> subNetworkToRemove) {
+  public void removeSubGraph(Set<? extends V> subNetworkToRemove) {
 
     /* remove the edge segment portion of the directed subgraph from the actual directed graph */
     for (DirectedVertex directedVertex : subNetworkToRemove) {
@@ -69,8 +71,8 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES exte
       exitEdgeSegments.forEach(edgeSegment -> getEdgeSegments().remove((ES) edgeSegment));
 
       /* remove directed vertex from edge segments */
-      entryEdgeSegments.forEach(edgeSegment -> edgeSegment.removeVertex(directedVertex));
-      exitEdgeSegments.forEach(edgeSegment -> edgeSegment.removeVertex(directedVertex));
+      entryEdgeSegments.forEach(edgeSegment -> edgeSegment.remove(directedVertex));
+      exitEdgeSegments.forEach(edgeSegment -> edgeSegment.remove(directedVertex));
 
       /* remove edge from edge segments */
       entryEdgeSegments.forEach(edgeSegment -> edgeSegment.removeParentEdge());
@@ -91,6 +93,23 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES exte
 
     /* do the same for vertices and edges */
     super.removeSubGraph(subNetworkToRemove);
+  }
+
+  /**
+   * Identical to the {@code }GraphImpl implementation except that we now also account for the edge segments present on the edge. Copies of the original edge segments are placed on
+   * vertexToBreakAt->VertexB, while the original ones are retained at VertexA->vertexToBreakAt
+   * 
+   * @param edgesToBreak    edges to break
+   * @param vertexToBreakAt the vertex to break at
+   */
+  @Override
+  public void breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
+    // PREP for edge segments
+
+    // delegate regular breaking of edge
+    super.breakEdgesAt(edgesToBreak, vertexToBreakAt);
+
+    // FINALISE for (copied) edge segments
   }
 
 }

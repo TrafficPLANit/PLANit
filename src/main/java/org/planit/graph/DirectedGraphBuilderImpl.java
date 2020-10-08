@@ -3,11 +3,12 @@ package org.planit.graph;
 import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedVertex;
-import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Edges;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -18,7 +19,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVertex, Edge, EdgeSegment> {
+public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVertex, DirectedEdge, EdgeSegment> {
 
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(DirectedGraphBuilderImpl.class.getCanonicalName());
@@ -38,15 +39,24 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
    * {@inheritDoc}
    */
   @Override
-  public Edge createEdge(DirectedVertex vertexA, DirectedVertex vertexB, final double length) throws PlanItException {
-    return graphBuilder.createEdge(vertexA, vertexB, length);
+  public DirectedEdge createEdge(Vertex vertexA, Vertex vertexB, final double lengthKm) throws PlanItException {
+    if (vertexA instanceof DirectedVertex && vertexB instanceof DirectedVertex) {
+      return new DirectedEdgeImpl(graphBuilder.getIdGroupingToken(), (DirectedVertex) vertexA, (DirectedVertex) vertexB, lengthKm);
+    }
+    throw new PlanItException("unable to create directed edge since provides vertices are not directed");
+  }
+
+  @Override
+  public DirectedEdge copyEdge(DirectedEdge edgeToCopy) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment createEdgeSegment(Edge parentEdge, boolean directionAB) throws PlanItException {
+  public EdgeSegment createEdgeSegment(DirectedEdge parentEdge, boolean directionAB) throws PlanItException {
     return new EdgeSegmentImpl(graphBuilder.getIdGroupingToken(), parentEdge, directionAB);
   }
 
@@ -70,7 +80,7 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(Edges<? extends DirectedVertex, ? extends Edge> edges) {
+  public void recreateIds(Edges<? extends DirectedEdge> edges) {
     graphBuilder.recreateIds(edges);
   }
 
@@ -86,7 +96,7 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(EdgeSegments<? extends Edge, ? extends EdgeSegment> edgeSegments) {
+  public void recreateIds(EdgeSegments<? extends DirectedEdge, ? extends EdgeSegment> edgeSegments) {
     if (edgeSegments instanceof EdgeSegmentsImpl<?, ?>) {
       /* remove gaps by simply resetting and recreating all edge segment ids */
       IdGenerator.reset(getIdGroupingToken(), EdgeSegment.class);

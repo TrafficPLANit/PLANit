@@ -1,10 +1,9 @@
 package org.planit.graph;
 
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedVertex;
-import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
@@ -25,22 +24,22 @@ public class EdgeSegmentImpl implements EdgeSegment {
   /**
    * unique internal identifier
    */
-  protected long id;
-
-  /**
-   * segment's parent edge
-   */
-  protected Edge parentEdge;
+  private long id;
 
   /**
    * the upstreamVertex of the edge segment
    */
-  protected DirectedVertex upstreamVertex;
+  private DirectedVertex upstreamVertex;
 
   /**
    * The downstream vertex of this edge segment
    */
-  protected DirectedVertex downstreamVertex;
+  private DirectedVertex downstreamVertex;
+
+  /**
+   * segment's parent edge
+   */
+  protected DirectedEdge parentEdge;
 
   /**
    * The external Id for this link segment type
@@ -66,6 +65,24 @@ public class EdgeSegmentImpl implements EdgeSegment {
     this.id = id;
   }
 
+  /**
+   * set the downstream vertex
+   * 
+   * @param downstreamVertex to set
+   */
+  protected void setDownstreamVertex(DirectedVertex downstreamVertex) {
+    this.downstreamVertex = downstreamVertex;
+  }
+
+  /**
+   * set the upstream vertex
+   * 
+   * @param upstreamVertex to set
+   */
+  protected void setUpstreamVertex(DirectedVertex upstreamVertex) {
+    this.upstreamVertex = upstreamVertex;
+  }
+
   // Public
 
   /**
@@ -76,7 +93,7 @@ public class EdgeSegmentImpl implements EdgeSegment {
    * @param directionAB direction of travel
    * @throws PlanItException thrown when parent edge's vertices are incompatible with directional edge segments
    */
-  protected EdgeSegmentImpl(final IdGroupingToken groupId, final Edge parentEdge, final boolean directionAB) throws PlanItException {
+  protected EdgeSegmentImpl(final IdGroupingToken groupId, final DirectedEdge parentEdge, final boolean directionAB) throws PlanItException {
     setId(generateEdgeSegmentId(groupId));
     this.parentEdge = parentEdge;
     if (!(parentEdge.getVertexA() instanceof DirectedVertex && parentEdge.getVertexB() instanceof DirectedVertex)) {
@@ -92,7 +109,7 @@ public class EdgeSegmentImpl implements EdgeSegment {
    * {@inheritDoc}
    */
   @Override
-  public boolean removeVertex(Vertex vertex) {
+  public boolean remove(DirectedVertex vertex) {
     if (vertex != null) {
       if (getUpstreamVertex() != null && getUpstreamVertex().getId() == vertex.getId()) {
         this.upstreamVertex = null;
@@ -132,9 +149,7 @@ public class EdgeSegmentImpl implements EdgeSegment {
   // Getter - Setters
 
   /**
-   * Unique id of the edge segment
-   *
-   * @return id
+   * {@inheritDoc}
    */
   @Override
   public long getId() {
@@ -142,12 +157,10 @@ public class EdgeSegmentImpl implements EdgeSegment {
   }
 
   /**
-   * parent edge of the segment
-   *
-   * @return parentEdge
+   * {@inheritDoc}
    */
   @Override
-  public Edge getParentEdge() {
+  public DirectedEdge getParentEdge() {
     return this.parentEdge;
   }
 
@@ -160,9 +173,7 @@ public class EdgeSegmentImpl implements EdgeSegment {
   }
 
   /**
-   * set external id of the instance. Note that this id need not be unique (unlike regular id)
-   * 
-   * @param externalId for the edge segment
+   * {@inheritDoc}
    */
   @Override
   public void setExternalId(final Object externalId) {
@@ -170,9 +181,7 @@ public class EdgeSegmentImpl implements EdgeSegment {
   }
 
   /**
-   * Does the instance have an external id
-   * 
-   * @return true when available, false otherwise
+   * {@inheritDoc}
    */
   @Override
   public boolean hasExternalId() {
@@ -180,9 +189,7 @@ public class EdgeSegmentImpl implements EdgeSegment {
   }
 
   /**
-   * Get external id of the instance. Note that this id need not be unique (unlike regular id)
-   * 
-   * @return externalId
+   * {@inheritDoc}
    */
   @Override
   public Object getExternalId() {
@@ -197,6 +204,28 @@ public class EdgeSegmentImpl implements EdgeSegment {
   @Override
   public int compareTo(final EdgeSegment o) {
     return (int) (id - o.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean replace(DirectedVertex vertexToReplace, DirectedVertex vertexToReplaceWith) {
+    boolean vertexReplaced = false;
+
+    /* replace vertices on edge segment */
+    if (vertexToReplaceWith != null) {
+      if (getUpstreamVertex() != null && vertexToReplace.getId() == getUpstreamVertex().getId()) {
+        remove(vertexToReplace);
+        setUpstreamVertex(vertexToReplaceWith);
+        vertexReplaced = true;
+      } else if (getDownstreamVertex() != null && vertexToReplace.getId() == getDownstreamVertex().getId()) {
+        remove(vertexToReplace);
+        setDownstreamVertex(vertexToReplaceWith);
+        vertexReplaced = true;
+      }
+    }
+    return vertexReplaced;
   }
 
 }

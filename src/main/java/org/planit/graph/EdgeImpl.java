@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
-import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -27,7 +26,22 @@ public class EdgeImpl implements Edge {
   /**
    * Unique internal identifier
    */
-  protected long id;
+  private long id;
+
+  /**
+   * Vertex A
+   */
+  private Vertex vertexA = null;
+
+  /**
+   * Vertex B
+   */
+  private Vertex vertexB = null;
+
+  /**
+   * External Id of the physical link
+   */
+  protected Object externalId;
 
   /**
    * Generic input property storage
@@ -40,28 +54,9 @@ public class EdgeImpl implements Edge {
   protected String name = null;
 
   /**
-   * Vertex A
-   */
-  protected Vertex vertexA = null;
-
-  /**
-   * Vertex B
-   */
-  protected Vertex vertexB = null;
-
-  /**
    * Length of edge
    */
   protected double lengthInKm;
-
-  /**
-   * Edge segment A to B direction
-   */
-  protected EdgeSegment edgeSegmentAB = null;
-  /**
-   * Edge segment B to A direction
-   */
-  protected EdgeSegment edgeSegmentBA = null;
 
   /**
    * Generate edge id
@@ -82,7 +77,23 @@ public class EdgeImpl implements Edge {
     this.id = id;
   }
 
-  // Public
+  /**
+   * set vertex B
+   * 
+   * @param vertexB to set
+   */
+  protected void setVertexB(Vertex vertexB) {
+    this.vertexB = vertexB;
+  }
+
+  /**
+   * set vertex A
+   * 
+   * @param vertexA to set
+   */
+  protected void setVertexA(Vertex vertexA) {
+    this.vertexA = vertexA;
+  }
 
   /**
    * Constructor which injects link lengths directly
@@ -90,30 +101,56 @@ public class EdgeImpl implements Edge {
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param vertexA  first vertex in the link
    * @param vertexB  second vertex in the link
-   * @param length   length of the link
+   * @param lengthKm length of the link
    * @throws PlanItException thrown if there is an error
    */
-  protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException {
+  protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB, final double lengthKm) throws PlanItException {
     setId(generateEdgeId(groupId));
-    this.vertexA = vertexA;
-    this.vertexB = vertexB;
-    this.lengthInKm = length;
+    setVertexA(vertexA);
+    setVertexB(vertexB);
+    setLengthKm(lengthKm);
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param edgeImpl to copy
+   */
+  protected EdgeImpl(EdgeImpl edgeImpl) {
+    setId(edgeImpl.getId());
+    setVertexA(edgeImpl.getVertexA());
+    setVertexB(edgeImpl.getVertexB());
+    setLengthKm(edgeImpl.getLengthKm());
+    setName(edgeImpl.getName());
+    if (inputProperties != null) {
+      inputProperties = new HashMap<String, Object>(inputProperties);
+    }
+  }
+
+  // Public
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setExternalId(final Object externalId) {
+    this.externalId = externalId;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) throws PlanItException {
-    PlanItException.throwIf(edgeSegment.getParentEdge().getId() != getId(), "inconsistency between link segment parent link and link it is being registered on");
+  public Object getExternalId() {
+    return externalId;
+  }
 
-    final EdgeSegment currentEdgeSegment = directionAB ? edgeSegmentAB : edgeSegmentBA;
-    if (directionAB) {
-      this.edgeSegmentAB = edgeSegment;
-    } else {
-      this.edgeSegmentBA = edgeSegment;
-    }
-    return currentEdgeSegment;
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean hasExternalId() {
+    return (externalId != null);
   }
 
   /**
@@ -137,7 +174,7 @@ public class EdgeImpl implements Edge {
    * @return true
    */
   public boolean removeVertexB() {
-    this.vertexB = null;
+    setVertexB(null);
     return true;
   }
 
@@ -147,7 +184,7 @@ public class EdgeImpl implements Edge {
    * @return true
    */
   public boolean removeVertexA() {
-    this.vertexA = null;
+    setVertexA(null);
     return true;
   }
 
@@ -182,7 +219,7 @@ public class EdgeImpl implements Edge {
    * {@inheritDoc}
    */
   @Override
-  public void setLength(double lengthInKm) {
+  public void setLengthKm(double lengthInKm) {
     this.lengthInKm = lengthInKm;
   }
 
@@ -232,24 +269,47 @@ public class EdgeImpl implements Edge {
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment getEdgeSegmentAb() {
-    return edgeSegmentAB;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public EdgeSegment getEdgeSegmentBa() {
-    return edgeSegmentBA;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public int compareTo(final Edge other) {
     return Long.valueOf(id).compareTo(other.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public boolean replace(final Vertex vertexToReplace, final Vertex vertexToReplaceWith, boolean updateVertexEdges) throws PlanItException {
+    boolean vertexReplaced = false;
+
+    /* replace vertices on edge */
+    if (vertexToReplaceWith != null) {
+      if (getVertexA() != null && vertexToReplace.getId() == getVertexA().getId()) {
+        removeVertex(vertexToReplace);
+        setVertexA(vertexToReplaceWith);
+        vertexReplaced = true;
+      } else if (getVertexB() != null && vertexToReplace.getId() == getVertexB().getId()) {
+        removeVertex(vertexToReplace);
+        setVertexB(vertexToReplaceWith);
+        vertexReplaced = true;
+      }
+    }
+
+    /* replace edge on vertices */
+    if (vertexReplaced && updateVertexEdges) {
+      vertexToReplace.removeEdge(this);
+      vertexToReplaceWith.addEdge(this);
+    }
+
+    return vertexReplaced;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  protected Edge clone() throws CloneNotSupportedException {
+    return new EdgeImpl(this);
   }
 
 }

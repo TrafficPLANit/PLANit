@@ -15,12 +15,12 @@ import org.planit.utils.graph.Vertex;
  * 
  * @author markr
  */
-public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<V, E> {
+public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
 
   /**
    * The graph builder to create edges
    */
-  private final GraphBuilder<V, E> graphBuilder;
+  private final GraphBuilder<? extends V, ? extends E> graphBuilder;
 
   /**
    * Map to store edges by their Id
@@ -86,7 +86,7 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<V, E> 
    * {@inheritDoc}
    */
   @Override
-  public E registerNew(final V vertexA, final V vertexB, final double length) throws PlanItException {
+  public E registerNew(final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException {
     final E newEdge = graphBuilder.createEdge(vertexA, vertexB, length);
     register(newEdge);
     return newEdge;
@@ -114,6 +114,16 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<V, E> 
   @Override
   public boolean isEmpty() {
     return size() == 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public E registerCopy(E edgeToCopy) {
+    final E copy = graphBuilder.copyEdge(edgeToCopy);
+    register(copy);
+    return copy;
   }
 
 }
