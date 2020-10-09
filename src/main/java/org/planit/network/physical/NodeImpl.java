@@ -58,9 +58,19 @@ public class NodeImpl extends DirectedVertexImpl implements Node {
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  public NodeImpl(final IdGroupingToken groupId) {
+  protected NodeImpl(final IdGroupingToken groupId) {
     super(groupId);
     this.nodeId = generateNodeId(groupId);
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param nodeImpl to copy
+   */
+  protected NodeImpl(NodeImpl nodeImpl) {
+    super(nodeImpl);
+    setNodeId(nodeImpl.getNodeId());
   }
 
   // Getters-Setters
@@ -71,6 +81,14 @@ public class NodeImpl extends DirectedVertexImpl implements Node {
   @Override
   public long getNodeId() {
     return nodeId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public NodeImpl clone() {
+    return new NodeImpl(this);
   }
 
 }

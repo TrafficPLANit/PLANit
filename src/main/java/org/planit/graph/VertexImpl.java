@@ -76,6 +76,19 @@ public class VertexImpl implements Vertex {
     this.id = generateVertexId(groupId);
   }
 
+  /**
+   * Copy constructor (for now input properties are NOT copied, because a shallow copy of contents is dangerous)
+   * 
+   * @param vertexImpl to copy
+   */
+  protected VertexImpl(VertexImpl vertexImpl) {
+    setId(vertexImpl.getId());
+    setExternalId(vertexImpl.getExternalId());
+    setCentrePointGeometry(vertexImpl.getCentrePointGeometry());
+    edges.putAll(vertexImpl.edges);
+    inputProperties = null; // not copied, shallow copy of objects is dangerous
+  }
+
   // Public
 
   /**
@@ -211,6 +224,14 @@ public class VertexImpl implements Vertex {
       }
     }
     return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public VertexImpl clone() {
+    return new VertexImpl(this);
   }
 
 }

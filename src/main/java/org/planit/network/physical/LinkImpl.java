@@ -64,6 +64,8 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    */
   protected LinkImpl(LinkImpl linkImpl) {
     super(linkImpl);
+    setLinkId(linkImpl.getLinkId());
+    setGeometry(linkImpl.getGeometry());
   }
 
   /**
@@ -113,7 +115,7 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * {@inheritDoc}
    */
   @Override
-  protected Link clone() throws CloneNotSupportedException {
+  public LinkImpl clone() {
     return new LinkImpl(this);
   }
 

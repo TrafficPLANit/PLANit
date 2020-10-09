@@ -23,7 +23,6 @@ import org.planit.utils.id.IdGroupingToken;
 public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> extends GraphImpl<V, E> implements DirectedGraph<V, E, ES> {
 
   /** the logger */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(DirectedGraphImpl.class.getCanonicalName());
 
   // Protected
@@ -31,7 +30,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
   /**
    * class instance containing all edge segments
    */
-  protected final EdgeSegments<E, ES> edgeSegments;
+  protected final EdgeSegments<ES> edgeSegments;
 
   /**
    * DirectedGraph Constructor
@@ -41,7 +40,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
    */
   public DirectedGraphImpl(final IdGroupingToken groupToken, final DirectedGraphBuilder<V, E, ES> graphBuilder) {
     super(groupToken, graphBuilder);
-    this.edgeSegments = new EdgeSegmentsImpl<E, ES>(graphBuilder);
+    this.edgeSegments = new EdgeSegmentsImpl<ES>(graphBuilder);
   }
 
   // Getters - Setters
@@ -50,7 +49,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegments<E, ES> getEdgeSegments() {
+  public EdgeSegments<ES> getEdgeSegments() {
     return edgeSegments;
   }
 
@@ -101,15 +100,60 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
    * 
    * @param edgesToBreak    edges to break
    * @param vertexToBreakAt the vertex to break at
+   * @return affected edges of breaking the passed in edges, includes the newly created edges and modified existing edges
    */
+  @SuppressWarnings("unchecked")
   @Override
-  public void breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
-    // PREP for edge segments
+  public List<E> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
+    /* delegate regular breaking of edges */
+    List<E> affectedEdges = super.breakEdgesAt(edgesToBreak, vertexToBreakAt);
 
-    // delegate regular breaking of edge
-    super.breakEdgesAt(edgesToBreak, vertexToBreakAt);
+    /* edge segments have only been shallow copied since undirected graph is unaware of them */
+    /* break edge segments here */
+    Set<EdgeSegment> identifiedEdgeSegmentOnEdge = new HashSet<EdgeSegment>();
+    for (E brokenEdge : affectedEdges) {
 
-    // FINALISE for (copied) edge segments
+      /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
+      if (brokenEdge.hasEdgeSegmentAb()) {
+        EdgeSegment edgeSegmentAb = brokenEdge.getEdgeSegmentAb();
+        if (identifiedEdgeSegmentOnEdge.contains(edgeSegmentAb)) {
+          /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
+          edgeSegmentAb = this.edgeSegments.registerUniqueCopyOf((ES) edgeSegmentAb, brokenEdge);
+        } else {
+          identifiedEdgeSegmentOnEdge.add(edgeSegmentAb);
+        }
+
+        /* update parent edge */
+        brokenEdge.replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb);
+
+        /* update segment's vertices */
+        edgeSegmentAb.replace(edgeSegmentAb.getUpstreamVertex(), (DirectedVertex) brokenEdge.getVertexA());
+        edgeSegmentAb.replace(edgeSegmentAb.getDownstreamVertex(), (DirectedVertex) brokenEdge.getVertexB());
+
+        /* update vertices' segments */
+        edgeSegmentAb.getUpstreamVertex().replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb);
+        edgeSegmentAb.getDownstreamVertex().replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb);
+      }
+
+      /* do the same for edge segment B-> A */
+      if (brokenEdge.hasEdgeSegmentBa()) {
+        PlanItException.throwIf(!(brokenEdge.getEdgeSegmentAb() instanceof EdgeSegmentImpl), "incompatible edge segment implementation found");
+        EdgeSegment edgeSegmentBa = brokenEdge.getEdgeSegmentBa();
+        if (identifiedEdgeSegmentOnEdge.contains(edgeSegmentBa)) {
+          edgeSegmentBa = this.edgeSegments.registerUniqueCopyOf((ES) edgeSegmentBa, brokenEdge);
+        } else {
+          identifiedEdgeSegmentOnEdge.add(edgeSegmentBa);
+        }
+
+        brokenEdge.replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa);
+        edgeSegmentBa.replace(edgeSegmentBa.getDownstreamVertex(), (DirectedVertex) brokenEdge.getVertexA());
+        edgeSegmentBa.replace(edgeSegmentBa.getUpstreamVertex(), (DirectedVertex) brokenEdge.getVertexB());
+        edgeSegmentBa.getUpstreamVertex().replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa);
+        edgeSegmentBa.getDownstreamVertex().replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa);
+      }
+    }
+
+    return affectedEdges;
   }
 
 }

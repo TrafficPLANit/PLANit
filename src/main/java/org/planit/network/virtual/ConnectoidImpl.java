@@ -24,14 +24,9 @@ public class ConnectoidImpl extends DirectedEdgeImpl implements Connectoid {
   private static final long serialVersionUID = 373775073620741347L;
 
   /**
-   * unique internal identifier
+   * unique internal identifier across connectoids
    */
-  protected final long connectoidId;
-
-  /**
-   * External Id of the connectoid
-   */
-  protected Object externalId = Long.MIN_VALUE;
+  protected long connectoidId;
 
   /**
    * Generate connectoid id
@@ -43,7 +38,14 @@ public class ConnectoidImpl extends DirectedEdgeImpl implements Connectoid {
     return IdGenerator.generateId(groupId, Connectoid.class);
   }
 
-  // Public
+  /**
+   * Set the connectoid id
+   * 
+   * @param connectoidId to set
+   */
+  protected void setConnectoidId(long connectoidId) {
+    this.connectoidId = connectoidId;
+  }
 
   /**
    * Constructor
@@ -55,9 +57,9 @@ public class ConnectoidImpl extends DirectedEdgeImpl implements Connectoid {
    * @param externalId externalId of the connectoid (can be null, in which case this has not be set in the input files)
    * @throws PlanItException thrown if there is an error
    */
-  public ConnectoidImpl(final IdGroupingToken groupId, final Centroid centroidA, final Node nodeB, final double length, final Object externalId) throws PlanItException {
+  protected ConnectoidImpl(final IdGroupingToken groupId, final Centroid centroidA, final Node nodeB, final double length, final Object externalId) throws PlanItException {
     super(groupId, centroidA, nodeB, length);
-    this.connectoidId = generateConnectoidId(groupId);
+    setConnectoidId(generateConnectoidId(groupId));
     setExternalId(externalId);
   }
 
@@ -70,10 +72,22 @@ public class ConnectoidImpl extends DirectedEdgeImpl implements Connectoid {
    * @param length    length of the current connectoid
    * @throws PlanItException thrown if there is an error
    */
-  public ConnectoidImpl(final IdGroupingToken groupId, final Centroid centroidA, final Node nodeB, final double length) throws PlanItException {
+  protected ConnectoidImpl(final IdGroupingToken groupId, final Centroid centroidA, final Node nodeB, final double length) throws PlanItException {
     super(groupId, centroidA, nodeB, length);
-    this.connectoidId = generateConnectoidId(groupId);
+    setConnectoidId(generateConnectoidId(groupId));
   }
+
+  /**
+   * Copy constructor
+   * 
+   * @param connectoidImpl to copy
+   */
+  protected ConnectoidImpl(ConnectoidImpl connectoidImpl) {
+    super(connectoidImpl);
+    setConnectoidId(connectoidImpl.getConnectoidId());
+  }
+
+  // Public
 
   /**
    * Register connectoidSegment.
@@ -93,28 +107,18 @@ public class ConnectoidImpl extends DirectedEdgeImpl implements Connectoid {
   // Getters-Setters
 
   /**
-   *
-   * Return the id of this connectoid
-   *
-   * @return id of this connectoid
+   * {@inheritDoc}
    */
   @Override
   public long getConnectoidId() {
     return connectoidId;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public Object getExternalId() {
-    return externalId;
-  }
-
-  @Override
-  public void setExternalId(final Object externalId) {
-    this.externalId = externalId;
-  }
-
-  @Override
-  public boolean hasExternalId() {
-    return (externalId != null);
+  public ConnectoidImpl clone() {
+    return new ConnectoidImpl(this);
   }
 }

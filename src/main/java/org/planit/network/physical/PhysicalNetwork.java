@@ -219,7 +219,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @throws PlanItException thrown if there is an error
      */
     public void register(final L parentLink, final LS linkSegment, final boolean directionAb) throws PlanItException {
-      graph.getEdgeSegments().createAndRegister(parentLink, linkSegment, directionAb);
+      graph.getEdgeSegments().registerNew(parentLink, linkSegment, directionAb);
       register(linkSegment);
     }
 

@@ -39,12 +39,12 @@ public class EdgeSegmentImpl implements EdgeSegment {
   /**
    * segment's parent edge
    */
-  protected DirectedEdge parentEdge;
+  private DirectedEdge parentEdge;
 
   /**
    * The external Id for this link segment type
    */
-  protected Object externalId;
+  private Object externalId;
 
   /**
    * Generate unique edge segment id
@@ -83,6 +83,15 @@ public class EdgeSegmentImpl implements EdgeSegment {
     this.upstreamVertex = upstreamVertex;
   }
 
+  /**
+   * set the parent edge
+   * 
+   * @param parentEdge to set
+   */
+  protected void setParentEdge(DirectedEdge parentEdge) {
+    this.parentEdge = parentEdge;
+  }
+
   // Public
 
   /**
@@ -95,12 +104,26 @@ public class EdgeSegmentImpl implements EdgeSegment {
    */
   protected EdgeSegmentImpl(final IdGroupingToken groupId, final DirectedEdge parentEdge, final boolean directionAB) throws PlanItException {
     setId(generateEdgeSegmentId(groupId));
-    this.parentEdge = parentEdge;
+    setParentEdge(parentEdge);
+
     if (!(parentEdge.getVertexA() instanceof DirectedVertex && parentEdge.getVertexB() instanceof DirectedVertex)) {
       throw new PlanItException(String.format("parent edges (id:%d) vertices do not support directed edge segments, they must be of type DirectedVertex", parentEdge.getId()));
     }
-    this.upstreamVertex = (DirectedVertex) (directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB());
-    this.downstreamVertex = (DirectedVertex) (directionAB ? parentEdge.getVertexB() : parentEdge.getVertexA());
+    setUpstreamVertex((DirectedVertex) (directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB()));
+    setDownstreamVertex((DirectedVertex) (directionAB ? parentEdge.getVertexB() : parentEdge.getVertexA()));
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param edgeSegmentImpl to copy
+   */
+  protected EdgeSegmentImpl(EdgeSegmentImpl edgeSegmentImpl) {
+    setId(edgeSegmentImpl.getId());
+    setExternalId(edgeSegmentImpl.getExternalId());
+    setParentEdge(edgeSegmentImpl.getParentEdge());
+    setUpstreamVertex(edgeSegmentImpl.getUpstreamVertex());
+    setDownstreamVertex(edgeSegmentImpl.getDownstreamVertex());
   }
 
   // Public
@@ -204,6 +227,14 @@ public class EdgeSegmentImpl implements EdgeSegment {
   @Override
   public int compareTo(final EdgeSegment o) {
     return (int) (id - o.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegment clone() {
+    return new EdgeSegmentImpl(this);
   }
 
   /**

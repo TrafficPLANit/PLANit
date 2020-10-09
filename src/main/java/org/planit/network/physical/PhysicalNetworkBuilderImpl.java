@@ -7,6 +7,7 @@ import org.planit.graph.EdgeSegmentsImpl;
 import org.planit.graph.EdgesImpl;
 import org.planit.graph.VerticesImpl;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.Vertex;
@@ -57,7 +58,7 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
    * {@inheritDoc}
    */
   @Override
-  public LinkSegment createEdgeSegment(Link parentLink, boolean directionAB) throws PlanItException {
+  public LinkSegment createEdgeSegment(DirectedEdge parentLink, boolean directionAB) throws PlanItException {
     return new LinkSegmentImpl(getIdGroupingToken(), (Link) parentLink, directionAB);
   }
 
@@ -81,11 +82,11 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(EdgeSegments<? extends Link, ? extends LinkSegment> linkSegments) {
+  public void recreateIds(EdgeSegments<? extends LinkSegment> linkSegments) {
     directedGraphBuilderImpl.recreateIds(linkSegments);
 
     /* conduct linkIds ourselves since it is a physical network add-on */
-    if (linkSegments instanceof EdgeSegmentsImpl<?, ?>) {
+    if (linkSegments instanceof EdgeSegmentsImpl<?>) {
       /* remove gaps by simply resetting and recreating all node ids */
       IdGenerator.reset(getIdGroupingToken(), LinkSegment.class);
 
@@ -150,6 +151,38 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
     } else {
       LOGGER.severe("expected the Vertices implementation to be compatible with graph builder, this is not the case: unable to correctly remove subnetwork and update ids");
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Link createUniqueCopyOf(Link linkToCopy) {
+    if (linkToCopy instanceof LinkImpl) {
+      LinkImpl copy = (LinkImpl) directedGraphBuilderImpl.createUniqueCopyOf(linkToCopy);
+
+      /* make unique copy by updating link id */
+      copy.setLinkId(LinkImpl.generateLinkId(getIdGroupingToken()));
+      return copy;
+    }
+    LOGGER.severe("passed in link is not an instance created by this builder, incompatible for creating a copy");
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinkSegment createUniqueCopyOf(LinkSegment linkSegmentToCopy, DirectedEdge parentEdge) {
+    if (linkSegmentToCopy instanceof LinkSegmentImpl) {
+      LinkSegmentImpl copy = (LinkSegmentImpl) directedGraphBuilderImpl.createUniqueCopyOf(linkSegmentToCopy, parentEdge);
+
+      /* make unique copy by updating link segment id */
+      copy.setLinkSegmentId(LinkSegmentImpl.generateLinkSegmentId(getIdGroupingToken()));
+      return copy;
+    }
+    LOGGER.severe("passed in link segment is not an instance created by this builder, incompatible for creating a copy");
+    return null;
   }
 
 }

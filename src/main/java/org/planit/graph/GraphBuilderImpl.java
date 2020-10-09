@@ -44,14 +44,6 @@ public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
    * {@inheritDoc}
    */
   @Override
-  public Edge copyEdge(Edge edgeToCopy) {
-    edgeToCopy.clone();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void setIdGroupingToken(IdGroupingToken groupToken) {
     this.groupToken = groupToken;
   }
@@ -109,6 +101,22 @@ public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
     } else {
       LOGGER.severe("expected the Vertices implementation to be compatible with graph builder, this is not the case: unable to correctly remove subnetwork and update ids");
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Edge createUniqueCopyOf(Edge edgeToCopy) {
+    if (edgeToCopy instanceof EdgeImpl) {
+      /* shallow copy as is */
+      EdgeImpl copy = (EdgeImpl) edgeToCopy.clone();
+      /* make unique copy by updating id */
+      copy.setId(EdgeImpl.generateEdgeId(getIdGroupingToken()));
+      return copy;
+    }
+    LOGGER.severe("passed in edge is not an instance created by this builder, incompatible for creating a copy");
+    return null;
   }
 
 }

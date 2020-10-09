@@ -65,7 +65,9 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
    */
   @SuppressWarnings("unchecked")
   protected void processSubNetworkVertex(V referenceVertex, Set<V> subNetworkVertices) {
-    if (!subNetworkVertices.contains(referenceVertex)) {
+    if (referenceVertex == null) {
+      LOGGER.warning("reference vertex null, unable to further identify subnetwork");
+    } else if (!subNetworkVertices.contains(referenceVertex)) {
       subNetworkVertices.add(referenceVertex);
 
       Collection<? extends Edge> edges = referenceVertex.getEdges();
@@ -167,7 +169,7 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
           if (subNetworkSize < belowsize) {
             removeSubGraphOf(entry.getKey());
             removedSubnetworksOfSize.add(subNetworkSize);
-            LOGGER.fine(String.format("removing %d vertices from graph", subNetworkSize));
+            LOGGER.info(String.format("removing %d vertices from graph", subNetworkSize));
             LOGGER.fine(String.format("remaining vertices %d, edges %d", getVertices().size(), getEdges().size()));
           }
         }
@@ -224,17 +226,40 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
   /**
    * {@inheritDoc}
    * 
+   * @return
+   * 
    */
   @Override
-  public void breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
+  public List<E> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
+    List<E> affectedEdges = new ArrayList<E>();
     for (E edgeToBreak : edgesToBreak) {
+
       E aToBreak = edgeToBreak;
-      /* create copy of edge */
-      E breakToB = this.edges.createCopy(edgeToBreak);
-      /* update connections to vertices, and other components */
-      aToBreak.replace(edgeToBreak.getVertexB(), vertexToBreakAt, true);
-      breakToB.replace(edgeToBreak.getVertexA(), vertexToBreakAt, true);
+      /* create copy of edge with unique id and register it */
+      E breakToB = this.edges.registerUniqueCopyOf(edgeToBreak);
+
+      if (edgeToBreak.getVertexA() == null || edgeToBreak.getVertexB() == null) {
+        LOGGER.severe(String.format("unable to break edge since edge to break %s (id:%d) is missing one or more vertices", edgeToBreak.getExternalId(), edgeToBreak.getId()));
+      } else {
+        
+        THE PROBLEM IS THAT BOTH aToBreak and breakToB fiddle with edgeSegmentAb and Ba but they are the same
+        for both at this point, so they get updated wrongly (twice).
+        Solution: no longer implement derived versino of replace for directedEdgeImpl which updated the edge segment vertices
+        do it in the DirectedGraphImpl once we are there -> benefit would be that replace is very simple (preferred)
+        
+        this also forces to update the vertices here which is more elegant anyway
+
+        /* update connections to vertices, and other components */
+        aToBreak.replace(edgeToBreak.getVertexB(), vertexToBreakAt, true);
+        breakToB.replace(edgeToBreak.getVertexA(), vertexToBreakAt, true);
+        /* since breakToB replaced original edge, replace original edge on the B vertex */
+        breakToB.getVertexB().replace(aToBreak, breakToB);
+
+        affectedEdges.add(aToBreak);
+        affectedEdges.add(breakToB);
+      }
     }
+    return affectedEdges;
   }
 
 }

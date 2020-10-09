@@ -20,7 +20,7 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
   /**
    * The graph builder to create edges
    */
-  private final GraphBuilder<? extends V, ? extends E> graphBuilder;
+  private final GraphBuilder<V, E> graphBuilder;
 
   /**
    * Map to store edges by their Id
@@ -120,8 +120,8 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public E registerCopy(E edgeToCopy) {
-    final E copy = graphBuilder.copyEdge(edgeToCopy);
+  public E registerUniqueCopyOf(E edgeToCopy) {
+    final E copy = graphBuilder.createUniqueCopyOf(edgeToCopy);
     register(copy);
     return copy;
   }

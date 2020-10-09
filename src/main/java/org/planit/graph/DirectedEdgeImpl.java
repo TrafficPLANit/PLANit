@@ -1,5 +1,7 @@
 package org.planit.graph;
 
+import java.util.logging.Logger;
+
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedVertex;
@@ -21,14 +23,35 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
   /** generated UID */
   private static final long serialVersionUID = -3061186642253968991L;
 
+  /** the logger to use */
+  private static final Logger LOGGER = Logger.getLogger(DirectedEdgeImpl.class.getCanonicalName());
+
   /**
    * Edge segment A to B direction
    */
-  protected EdgeSegment edgeSegmentAB = null;
+  private EdgeSegment edgeSegmentAb = null;
   /**
    * Edge segment B to A direction
    */
-  protected EdgeSegment edgeSegmentBA = null;
+  private EdgeSegment edgeSegmentBa = null;
+
+  /**
+   * set edge segment from B to A
+   * 
+   * @param edgeSegmentBa
+   */
+  protected void setEdgeSegmentBa(EdgeSegment edgeSegmentBa) {
+    this.edgeSegmentBa = edgeSegmentBa;
+  }
+
+  /**
+   * set edge segment from A to B
+   * 
+   * @param edgeSegmentBa
+   */
+  protected void setEdgeSegmentAb(EdgeSegment edgeSegmentAb) {
+    this.edgeSegmentAb = edgeSegmentAb;
+  }
 
   /**
    * Constructor which injects link lengths directly
@@ -44,12 +67,14 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
   }
 
   /**
-   * Copy Constructor
+   * Copy Constructor. Note that edgse segments are shallow copied and point to the passed in edge as their parent So additional effort is needed to make the new edge usable
    * 
-   * @param directedEdgeImpl top copy
+   * @param directedEdgeImpl to copy
    */
   protected DirectedEdgeImpl(DirectedEdgeImpl directedEdgeImpl) {
-    // TODO Auto-generated constructor stub
+    super(directedEdgeImpl);
+    setEdgeSegmentAb(directedEdgeImpl.getEdgeSegmentAb());
+    setEdgeSegmentBa(directedEdgeImpl.getEdgeSegmentBa());
   }
 
   // Public
@@ -61,11 +86,11 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
   public EdgeSegment registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) throws PlanItException {
     PlanItException.throwIf(edgeSegment.getParentEdge().getId() != getId(), "inconsistency between link segment parent link and link it is being registered on");
 
-    final EdgeSegment currentEdgeSegment = directionAB ? edgeSegmentAB : edgeSegmentBA;
+    final EdgeSegment currentEdgeSegment = directionAB ? getEdgeSegmentAb() : getEdgeSegmentBa();
     if (directionAB) {
-      this.edgeSegmentAB = edgeSegment;
+      setEdgeSegmentAb(edgeSegment);
     } else {
-      this.edgeSegmentBA = edgeSegment;
+      setEdgeSegmentBa(edgeSegment);
     }
     return currentEdgeSegment;
   }
@@ -75,7 +100,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    */
   @Override
   public EdgeSegment getEdgeSegmentAb() {
-    return edgeSegmentAB;
+    return edgeSegmentAb;
   }
 
   /**
@@ -83,7 +108,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    */
   @Override
   public EdgeSegment getEdgeSegmentBa() {
-    return edgeSegmentBA;
+    return edgeSegmentBa;
   }
 
   /**
@@ -105,7 +130,6 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
       }
       if (hasEdgeSegmentBa()) {
         getEdgeSegmentBa().replace((DirectedVertex) vertexToReplace, (DirectedVertex) vertexToReplaceWith);
-        ((DirectedVertex) vertexToReplace).removeEdgeSegment(getEdgeSegmentBa());
       }
 
       /* replace edge segments on vertex */
@@ -131,8 +155,24 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdge clone() throws CloneNotSupportedException {
+  public DirectedEdgeImpl clone() {
     return new DirectedEdgeImpl(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void replace(EdgeSegment edgeSegmentToReplace, EdgeSegment edgeSegmentToReplaceWith) {
+    if (edgeSegmentToReplace != null) {
+      if (hasEdgeSegmentAb() && getEdgeSegmentAb().getId() == edgeSegmentToReplace.getId()) {
+        setEdgeSegmentAb(edgeSegmentToReplaceWith);
+      } else if (hasEdgeSegmentBa() && getEdgeSegmentBa().getId() == edgeSegmentToReplace.getId()) {
+        setEdgeSegmentBa(edgeSegmentToReplaceWith);
+      } else {
+        LOGGER.warning("provided edge segment to replace is not known on the directed edge");
+      }
+    }
   }
 
 }

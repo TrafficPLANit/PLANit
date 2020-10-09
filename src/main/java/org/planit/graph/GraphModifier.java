@@ -50,8 +50,9 @@ public interface GraphModifier<V extends Vertex, E extends Edge> {
    * 
    * @param edgesToBreak    the links to break
    * @param vertexToBreakAt the node to break at
+   * @returns affectedEdges the list of all edges that are affected by the breaking of the passed in edges
    * @throws PlanItException thrown if error
    */
-  public void breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException;
+  public List<E> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException;
 
 }

@@ -46,12 +46,6 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
     throw new PlanItException("unable to create directed edge since provides vertices are not directed");
   }
 
-  @Override
-  public DirectedEdge copyEdge(DirectedEdge edgeToCopy) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
   /**
    * {@inheritDoc}
    */
@@ -96,8 +90,8 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(EdgeSegments<? extends DirectedEdge, ? extends EdgeSegment> edgeSegments) {
-    if (edgeSegments instanceof EdgeSegmentsImpl<?, ?>) {
+  public void recreateIds(EdgeSegments<? extends EdgeSegment> edgeSegments) {
+    if (edgeSegments instanceof EdgeSegmentsImpl<?>) {
       /* remove gaps by simply resetting and recreating all edge segment ids */
       IdGenerator.reset(getIdGroupingToken(), EdgeSegment.class);
 
@@ -110,10 +104,40 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
         }
       }
 
-      ((EdgeSegmentsImpl<?, ?>) edgeSegments).updateIdMapping();
+      ((EdgeSegmentsImpl<?>) edgeSegments).updateIdMapping();
     } else {
       LOGGER.severe("expected the Edge segment implementation to be compatible with graph builder, this is not the case: unable to correctly remove subnetwork and update ids");
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedEdge createUniqueCopyOf(DirectedEdge edgeToCopy) {
+    if (edgeToCopy instanceof DirectedEdgeImpl) {
+      return (DirectedEdgeImpl) this.graphBuilder.createUniqueCopyOf(edgeToCopy);
+    }
+    LOGGER.severe("passed in directed edge is not an instance created by this builder, incompatible for creating a copy");
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegment createUniqueCopyOf(EdgeSegment edgeSegmentToCopy, DirectedEdge newParentEdge) {
+    if (edgeSegmentToCopy instanceof EdgeSegmentImpl) {
+      /* shallow copy as is */
+      EdgeSegmentImpl copy = (EdgeSegmentImpl) edgeSegmentToCopy.clone();
+      /* make unique copy by updating id */
+      copy.setId(EdgeSegmentImpl.generateEdgeSegmentId(getIdGroupingToken()));
+      /* update parent edge */
+      copy.setParentEdge(newParentEdge);
+      return copy;
+    }
+    LOGGER.severe("passed in edge segment is not an instance created by this builder, incompatible for creating a copy");
+    return null;
   }
 
 }

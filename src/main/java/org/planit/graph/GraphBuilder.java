@@ -34,14 +34,6 @@ public interface GraphBuilder<V extends Vertex, E extends Edge> {
   public E createEdge(final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException;
 
   /**
-   * Create a copy of the passed in edge. IT is expected that a new unique id is created to be able to distinguish the original from the copy
-   * 
-   * @param edgeToCopy the edge to copy
-   * @return copy that is created
-   */
-  public E copyEdge(E edgeToCopy);
-
-  /**
    * Each builder needs a group if token to allow all underlying factory methods to generated ids uniquely tied to the group the entities belong to
    * 
    * @param groupId, contiguous id generation within this group for instances created with the factory methods
@@ -68,5 +60,13 @@ public interface GraphBuilder<V extends Vertex, E extends Edge> {
    * @param vertices to recreate ids for
    */
   public void recreateIds(Vertices<? extends V> vertices);
+
+  /**
+   * create a shallo copy of the passed in edge, albeit with unique internal ids
+   * 
+   * @param edgeToCopy the edge to copy
+   * @return new edge based on passed in edge
+   */
+  public E createUniqueCopyOf(E edgeToCopy);
 
 }

@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.planit.network.physical.PhysicalNetworkBuilderImpl;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.Vertex;
@@ -52,8 +53,11 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegment createEdgeSegment(Link parentLink, boolean directionAB) throws PlanItException {
-    return new MacroscopicLinkSegmentImpl(getIdGroupingToken(), parentLink, directionAB);
+  public MacroscopicLinkSegment createEdgeSegment(DirectedEdge parentLink, boolean directionAB) throws PlanItException {
+    if (parentLink instanceof Link) {
+      return new MacroscopicLinkSegmentImpl(getIdGroupingToken(), (Link) parentLink, directionAB);
+    }
+    throw new PlanItException("passed in parent edge is not of type Link, incompatible with Macroscopic network builder");
   }
 
   /**
@@ -92,7 +96,7 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(EdgeSegments<? extends Link, ? extends MacroscopicLinkSegment> macroscopicinkSegments) {
+  public void recreateIds(EdgeSegments<? extends MacroscopicLinkSegment> macroscopicinkSegments) {
     physicalNetworkBuilder.recreateIds(macroscopicinkSegments);
   }
 
@@ -110,6 +114,22 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
   @Override
   public void recreateIds(Vertices<? extends Node> nodes) {
     physicalNetworkBuilder.recreateIds(nodes);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Link createUniqueCopyOf(Link linkToCopy) {
+    return physicalNetworkBuilder.createUniqueCopyOf(linkToCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegment createUniqueCopyOf(MacroscopicLinkSegment linkSegmentToCopy, DirectedEdge parentEdge) {
+    return (MacroscopicLinkSegmentImpl) physicalNetworkBuilder.createUniqueCopyOf(linkSegmentToCopy, parentEdge);
   }
 
 }

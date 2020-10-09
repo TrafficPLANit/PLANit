@@ -43,6 +43,18 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
     super(groupId);
   }
 
+  /**
+   * Copy constructor
+   * 
+   * @param directedVertexImpl to copy
+   */
+  protected DirectedVertexImpl(DirectedVertexImpl directedVertexImpl) {
+    super(directedVertexImpl);
+    entryEdgeSegments.addAll(directedVertexImpl.getEntryEdgeSegments());
+    exitEdgeSegments.addAll(directedVertexImpl.getExitEdgeSegments());
+
+  }
+
   // Public
 
   /**
@@ -118,6 +130,14 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
   @Override
   public int getNumberOfExitEdgeSegments() {
     return exitEdgeSegments.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedVertexImpl clone() {
+    return new DirectedVertexImpl(this);
   }
 
 }

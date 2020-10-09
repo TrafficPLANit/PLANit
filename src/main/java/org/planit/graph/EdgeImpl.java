@@ -16,7 +16,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class EdgeImpl implements Edge {
+public class EdgeImpl implements Edge, Cloneable {
 
   // Protected
 
@@ -112,19 +112,18 @@ public class EdgeImpl implements Edge {
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, input properties are not copied because shallow copy is considered dangerous at this point
    * 
    * @param edgeImpl to copy
    */
   protected EdgeImpl(EdgeImpl edgeImpl) {
     setId(edgeImpl.getId());
+    setExternalId(edgeImpl.getExternalId());
     setVertexA(edgeImpl.getVertexA());
     setVertexB(edgeImpl.getVertexB());
     setLengthKm(edgeImpl.getLengthKm());
     setName(edgeImpl.getName());
-    if (inputProperties != null) {
-      inputProperties = new HashMap<String, Object>(inputProperties);
-    }
+    inputProperties = null; // not copied, shallow copy of objects is dangerous
   }
 
   // Public
@@ -308,7 +307,7 @@ public class EdgeImpl implements Edge {
    * 
    */
   @Override
-  protected Edge clone() throws CloneNotSupportedException {
+  public EdgeImpl clone() {
     return new EdgeImpl(this);
   }
 

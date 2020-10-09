@@ -8,10 +8,11 @@ import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedEdge;
+import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
 
-public class EdgeSegmentsImpl<E extends DirectedEdge, ES extends EdgeSegment> implements EdgeSegments<E, ES> {
+public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -20,7 +21,7 @@ public class EdgeSegmentsImpl<E extends DirectedEdge, ES extends EdgeSegment> im
   /**
    * The graph builder to create edgse segments
    */
-  protected DirectedGraphBuilder<?, E, ES> graphBuilder;
+  protected DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> directedGraphBuilder;
 
   /**
    * Map to store edge segments by their Id
@@ -51,8 +52,8 @@ public class EdgeSegmentsImpl<E extends DirectedEdge, ES extends EdgeSegment> im
    * 
    * @param graphBuilder the grpahBuilder to use to create edge segments
    */
-  public EdgeSegmentsImpl(DirectedGraphBuilder<?, E, ES> graphBuilder) {
-    this.graphBuilder = graphBuilder;
+  public EdgeSegmentsImpl(DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> graphBuilder) {
+    this.directedGraphBuilder = graphBuilder;
     this.edgeSegmentMap = new TreeMap<Long, ES>();
   }
 
@@ -83,15 +84,15 @@ public class EdgeSegmentsImpl<E extends DirectedEdge, ES extends EdgeSegment> im
   /**
    * {@inheritDoc}
    */
-  public ES create(final E parentEdge, final boolean directionAB) throws PlanItException {
-    final ES edgeSegment = graphBuilder.createEdgeSegment(parentEdge, directionAB);
+  public ES create(final DirectedEdge parentEdge, final boolean directionAB) throws PlanItException {
+    final ES edgeSegment = directedGraphBuilder.createEdgeSegment(parentEdge, directionAB);
     return edgeSegment;
   }
 
   /**
    * {@inheritDoc}
    */
-  public void createAndRegister(final E parentEdge, final ES edgeSegment, final boolean directionAB) throws PlanItException {
+  public void registerNew(final DirectedEdge parentEdge, final ES edgeSegment, final boolean directionAB) throws PlanItException {
     parentEdge.registerEdgeSegment(edgeSegment, directionAB);
     register(edgeSegment);
   }
@@ -108,6 +109,16 @@ public class EdgeSegmentsImpl<E extends DirectedEdge, ES extends EdgeSegment> im
    */
   public int size() {
     return edgeSegmentMap.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ES registerUniqueCopyOf(ES edgeSegmentToCopy, DirectedEdge newParentEdge) {
+    final ES copy = directedGraphBuilder.createUniqueCopyOf(edgeSegmentToCopy, newParentEdge);
+    register(copy);
+    return copy;
   }
 
 }
