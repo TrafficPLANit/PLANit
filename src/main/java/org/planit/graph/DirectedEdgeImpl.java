@@ -6,7 +6,6 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -109,46 +108,6 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
   @Override
   public EdgeSegment getEdgeSegmentBa() {
     return edgeSegmentBa;
-  }
-
-  /**
-   * Same as @{code EdgeImpl} only now we also update the references to the edge segments if indicated
-   * 
-   * @param vertextoReplace     the vertex to realpce
-   * @param vertexToReplaceWith the vertex to replace with
-   * @param updateVertexEdges   when true register and unregister the changes on the relevant vertices for both edges and edge segments, when false not
-   * @throws PlanItException thrown if error
-   */
-  @Override
-  public boolean replace(Vertex vertexToReplace, Vertex vertexToReplaceWith, boolean updateVertexEdges) throws PlanItException {
-    boolean isReplaced = super.replace(vertexToReplace, vertexToReplaceWith, updateVertexEdges);
-
-    if (vertexToReplace instanceof DirectedVertex && vertexToReplaceWith instanceof DirectedVertex) {
-      /* replace vertices on edge segments */
-      if (hasEdgeSegmentAb()) {
-        getEdgeSegmentAb().replace((DirectedVertex) vertexToReplace, (DirectedVertex) vertexToReplaceWith);
-      }
-      if (hasEdgeSegmentBa()) {
-        getEdgeSegmentBa().replace((DirectedVertex) vertexToReplace, (DirectedVertex) vertexToReplaceWith);
-      }
-
-      /* replace edge segments on vertex */
-      if (updateVertexEdges) {
-        if (hasEdgeSegmentAb()) {
-          ((DirectedVertex) vertexToReplace).removeEdgeSegment(getEdgeSegmentAb());
-          ((DirectedVertex) vertexToReplaceWith).addEdgeSegment(getEdgeSegmentAb());
-        }
-        if (hasEdgeSegmentBa()) {
-          ((DirectedVertex) vertexToReplace).removeEdgeSegment(getEdgeSegmentBa());
-          ((DirectedVertex) vertexToReplaceWith).addEdgeSegment(getEdgeSegmentBa());
-        }
-
-      }
-    } else {
-      throw new PlanItException("unable to replace vertex on directed edge, provided vertices are not directed");
-    }
-
-    return isReplaced;
   }
 
   /**

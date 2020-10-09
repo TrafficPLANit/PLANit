@@ -277,7 +277,7 @@ public class EdgeImpl implements Edge, Cloneable {
    * 
    */
   @Override
-  public boolean replace(final Vertex vertexToReplace, final Vertex vertexToReplaceWith, boolean updateVertexEdges) throws PlanItException {
+  public boolean replace(final Vertex vertexToReplace, final Vertex vertexToReplaceWith) throws PlanItException {
     boolean vertexReplaced = false;
 
     /* replace vertices on edge */
@@ -291,12 +291,6 @@ public class EdgeImpl implements Edge, Cloneable {
         setVertexB(vertexToReplaceWith);
         vertexReplaced = true;
       }
-    }
-
-    /* replace edge on vertices */
-    if (vertexReplaced && updateVertexEdges) {
-      vertexToReplace.removeEdge(this);
-      vertexToReplaceWith.addEdge(this);
     }
 
     return vertexReplaced;

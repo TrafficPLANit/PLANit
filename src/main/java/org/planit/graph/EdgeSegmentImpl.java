@@ -65,33 +65,6 @@ public class EdgeSegmentImpl implements EdgeSegment {
     this.id = id;
   }
 
-  /**
-   * set the downstream vertex
-   * 
-   * @param downstreamVertex to set
-   */
-  protected void setDownstreamVertex(DirectedVertex downstreamVertex) {
-    this.downstreamVertex = downstreamVertex;
-  }
-
-  /**
-   * set the upstream vertex
-   * 
-   * @param upstreamVertex to set
-   */
-  protected void setUpstreamVertex(DirectedVertex upstreamVertex) {
-    this.upstreamVertex = upstreamVertex;
-  }
-
-  /**
-   * set the parent edge
-   * 
-   * @param parentEdge to set
-   */
-  protected void setParentEdge(DirectedEdge parentEdge) {
-    this.parentEdge = parentEdge;
-  }
-
   // Public
 
   /**
@@ -149,6 +122,22 @@ public class EdgeSegmentImpl implements EdgeSegment {
    * {@inheritDoc}
    */
   @Override
+  public void setDownstreamVertex(DirectedVertex downstreamVertex) {
+    this.downstreamVertex = downstreamVertex;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setUpstreamVertex(DirectedVertex upstreamVertex) {
+    this.upstreamVertex = upstreamVertex;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public DirectedVertex getUpstreamVertex() {
     return upstreamVertex;
   }
@@ -185,6 +174,14 @@ public class EdgeSegmentImpl implements EdgeSegment {
   @Override
   public DirectedEdge getParentEdge() {
     return this.parentEdge;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setParentEdge(DirectedEdge parentEdge) {
+    this.parentEdge = parentEdge;
   }
 
   /**
@@ -235,28 +232,6 @@ public class EdgeSegmentImpl implements EdgeSegment {
   @Override
   public EdgeSegment clone() {
     return new EdgeSegmentImpl(this);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean replace(DirectedVertex vertexToReplace, DirectedVertex vertexToReplaceWith) {
-    boolean vertexReplaced = false;
-
-    /* replace vertices on edge segment */
-    if (vertexToReplaceWith != null) {
-      if (getUpstreamVertex() != null && vertexToReplace.getId() == getUpstreamVertex().getId()) {
-        remove(vertexToReplace);
-        setUpstreamVertex(vertexToReplaceWith);
-        vertexReplaced = true;
-      } else if (getDownstreamVertex() != null && vertexToReplace.getId() == getDownstreamVertex().getId()) {
-        remove(vertexToReplace);
-        setDownstreamVertex(vertexToReplaceWith);
-        vertexReplaced = true;
-      }
-    }
-    return vertexReplaced;
   }
 
 }

@@ -241,19 +241,21 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
       if (edgeToBreak.getVertexA() == null || edgeToBreak.getVertexB() == null) {
         LOGGER.severe(String.format("unable to break edge since edge to break %s (id:%d) is missing one or more vertices", edgeToBreak.getExternalId(), edgeToBreak.getId()));
       } else {
-        
-        THE PROBLEM IS THAT BOTH aToBreak and breakToB fiddle with edgeSegmentAb and Ba but they are the same
-        for both at this point, so they get updated wrongly (twice).
-        Solution: no longer implement derived versino of replace for directedEdgeImpl which updated the edge segment vertices
-        do it in the DirectedGraphImpl once we are there -> benefit would be that replace is very simple (preferred)
-        
-        this also forces to update the vertices here which is more elegant anyway
 
-        /* update connections to vertices, and other components */
-        aToBreak.replace(edgeToBreak.getVertexB(), vertexToBreakAt, true);
-        breakToB.replace(edgeToBreak.getVertexA(), vertexToBreakAt, true);
-        /* since breakToB replaced original edge, replace original edge on the B vertex */
-        breakToB.getVertexB().replace(aToBreak, breakToB);
+        Vertex oldVertexB = edgeToBreak.getVertexB();
+        Vertex oldVertexA = edgeToBreak.getVertexA();
+
+        /* replace vertices on edges */
+        aToBreak.replace(oldVertexB, vertexToBreakAt);
+        breakToB.replace(oldVertexA, vertexToBreakAt);
+
+        /* replace edges on original vertices */
+        oldVertexB.replace(edgeToBreak, breakToB, true);
+        oldVertexA.replace(edgeToBreak, aToBreak, true);
+
+        /* add edges to new vertex */
+        vertexToBreakAt.addEdge(aToBreak);
+        vertexToBreakAt.addEdge(breakToB);
 
         affectedEdges.add(aToBreak);
         affectedEdges.add(breakToB);
