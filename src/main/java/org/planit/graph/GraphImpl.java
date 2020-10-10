@@ -230,12 +230,12 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
    * 
    */
   @Override
-  public Map<Long, List<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
-    Map<Long, List<E>> affectedEdges = new HashMap<Long, List<E>>();
+  public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
+    Map<Long, Set<E>> affectedEdges = new HashMap<Long, Set<E>>();
     for (E edgeToBreak : edgesToBreak) {
-      affectedEdges.putIfAbsent(edgeToBreak.getId(), new ArrayList<E>());
+      affectedEdges.putIfAbsent(edgeToBreak.getId(), new HashSet<E>());
 
-      List<E> affectedEdgesOfEdgeToBreak = affectedEdges.get(edgeToBreak.getId());
+      Set<E> affectedEdgesOfEdgeToBreak = affectedEdges.get(edgeToBreak.getId());
       E aToBreak = edgeToBreak;
       /* create copy of edge with unique id and register it */
       E breakToB = this.edges.registerUniqueCopyOf(edgeToBreak);

@@ -6,9 +6,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.geo.PlanitGeoUtils;
 import org.planit.graph.DirectedGraphImpl;
 import org.planit.graph.GraphModifier;
 import org.planit.mode.ModesImpl;
@@ -457,9 +459,17 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @throws PlanItException thrown if error
    */
   @SuppressWarnings("unchecked")
-  public Map<Long, List<L>> breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt) throws PlanItException {
+  public Map<Long, Set<L>> breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt) throws PlanItException {
     if (getGraph() instanceof GraphModifier<?, ?>) {
-      return ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
+      Map<Long, Set<L>> affectedLinks = ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
+      /* all links geometry needs to be updated based on breaking it */
+      affectedLinks.forEach((id, affectedLinksForId) -> {
+        affectedLinksForId.forEach((affectedLink) -> {
+          TODO -> REMODEL THE LINE STRING OF EACH LINK BY TRUNCATING IT BASED ON START AND END NODES
+          TO DO SO GEOUTILS SHOULD BE AVAILABLE ON THE NETWORK -> MISSING IN XSD AS OPTIONAL WITH DEFAULT
+        });
+      });
+      return affectedLinks;
     }
     LOGGER.severe("Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored");
     return null;

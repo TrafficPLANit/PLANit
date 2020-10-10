@@ -54,6 +54,6 @@ public interface GraphModifier<V extends Vertex, E extends Edge> {
    * @returns affectedEdges the list of all result edges of the breaking of links by their original link id
    * @throws PlanItException thrown if error
    */
-  public Map<Long, List<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException;
+  public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException;
 
 }

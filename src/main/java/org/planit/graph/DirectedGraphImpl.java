@@ -106,15 +106,15 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
    */
   @SuppressWarnings("unchecked")
   @Override
-  public Map<Long, List<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
+  public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
 
     /* delegate regular breaking of edges */
-    Map<Long, List<E>> brokenEdgesByOriginalEdgeId = super.breakEdgesAt(edgesToBreak, vertexToBreakAt);
+    Map<Long, Set<E>> brokenEdgesByOriginalEdgeId = super.breakEdgesAt(edgesToBreak, vertexToBreakAt);
 
     /* edge segments have only been shallow copied since undirected graph is unaware of them */
     /* break edge segments here using the already updated vertex/edge information in affected edges */
     Set<EdgeSegment> identifiedEdgeSegmentOnEdge = new HashSet<EdgeSegment>();
-    for (Entry<Long, List<E>> entry : brokenEdgesByOriginalEdgeId.entrySet()) {
+    for (Entry<Long, Set<E>> entry : brokenEdgesByOriginalEdgeId.entrySet()) {
       for (E brokenEdge : entry.getValue()) {
 
         /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
