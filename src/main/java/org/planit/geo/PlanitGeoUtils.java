@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.geotools.geometry.GeometryBuilder;
+import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
@@ -62,6 +63,8 @@ public class PlanitGeoUtils {
     geodeticDistanceCalculator = new GeodeticCalculator(coordinateReferenceSystem);
     geometryFactory = geometryBuilder.getGeometryFactory();
     positionFactory = geometryBuilder.getPositionFactory();
+
+    JTSFactoryFinder.getGeometryFactory();
   }
 
   /**
@@ -88,7 +91,7 @@ public class PlanitGeoUtils {
    * @return distance in metres between the points
    * @throws PlanItException thrown if there is an error
    */
-  private double getDistanceInMetres(Position startPosition, Position endPosition) throws PlanItException {
+  public double getDistanceInMetres(Position startPosition, Position endPosition) throws PlanItException {
     // not threadsafe
     try {
       if (geodeticDistanceCalculator != null) {
@@ -282,6 +285,31 @@ public class PlanitGeoUtils {
       return computedLengthInKm;
     }
     throw new PlanItException("unable to compute distance for less than two points");
+  }
+
+  /**
+   * Find the closest explicit sample point registered on the line string compared to the passed in position
+   * 
+   * @param toMatch    position to egt closest to
+   * @param lineString to sample ordinates from to check
+   * @return closest ordinate (position) on line string to passed in toMatch position
+   * @throws PlanItException thrown if error
+   */
+  public Position getClosestSamplePointOnLineString(Position toMatch, LineString lineString) throws PlanItException {
+    if (lineString != null && toMatch != null) {
+      double minDistance = Double.POSITIVE_INFINITY;
+      Position minDistancePosition = null;
+      for (Position samplePoint : lineString.getSamplePoints()) {
+        double currDistance = getDistanceInMetres(toMatch, samplePoint);
+        if (getDistanceInMetres(toMatch, samplePoint) < minDistance) {
+          minDistance = currDistance;
+          minDistancePosition = samplePoint;
+        }
+      }
+
+      return minDistancePosition;
+    }
+    throw new PlanItException(" closest orindate position to lines tring could not be computed since either the line string or reference position is null");
   }
 
 }

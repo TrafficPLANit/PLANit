@@ -2,6 +2,8 @@ package org.planit.graph;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -104,71 +106,68 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
    */
   @SuppressWarnings("unchecked")
   @Override
-  public List<E> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
+  public Map<Long, List<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
 
     /* delegate regular breaking of edges */
-    List<E> affectedEdges = super.breakEdgesAt(edgesToBreak, vertexToBreakAt);
+    Map<Long, List<E>> brokenEdgesByOriginalEdgeId = super.breakEdgesAt(edgesToBreak, vertexToBreakAt);
 
     /* edge segments have only been shallow copied since undirected graph is unaware of them */
     /* break edge segments here using the already updated vertex/edge information in affected edges */
     Set<EdgeSegment> identifiedEdgeSegmentOnEdge = new HashSet<EdgeSegment>();
-    for (E brokenEdge : affectedEdges) {
+    for (Entry<Long, List<E>> entry : brokenEdgesByOriginalEdgeId.entrySet()) {
+      for (E brokenEdge : entry.getValue()) {
 
-      if (((Long) brokenEdge.getExternalId()).longValue() == 785914650) {
-        int bla = 4;
-      }
+        /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
+        if (brokenEdge.hasEdgeSegmentAb()) {
+          EdgeSegment edgeSegmentAb = brokenEdge.getEdgeSegmentAb();
 
-      /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
-      if (brokenEdge.hasEdgeSegmentAb()) {
-        EdgeSegment edgeSegmentAb = brokenEdge.getEdgeSegmentAb();
+          if (identifiedEdgeSegmentOnEdge.contains(edgeSegmentAb)) {
+            /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
+            edgeSegmentAb = this.edgeSegments.registerUniqueCopyOf((ES) edgeSegmentAb, brokenEdge);
 
-        if (identifiedEdgeSegmentOnEdge.contains(edgeSegmentAb)) {
-          /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
-          edgeSegmentAb = this.edgeSegments.registerUniqueCopyOf((ES) edgeSegmentAb, brokenEdge);
+            /* replace edge <-> edge segment relation */
+            brokenEdge.replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb);
+            edgeSegmentAb.setParentEdge(brokenEdge);
+          } else {
+            identifiedEdgeSegmentOnEdge.add(edgeSegmentAb);
+          }
 
-          /* replace edge <-> edge segment relation */
-          brokenEdge.replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb);
-          edgeSegmentAb.setParentEdge(brokenEdge);
-        } else {
-          identifiedEdgeSegmentOnEdge.add(edgeSegmentAb);
+          /* update segment's vertices */
+          edgeSegmentAb.replace(edgeSegmentAb.getUpstreamVertex(), (DirectedVertex) brokenEdge.getVertexA());
+          edgeSegmentAb.replace(edgeSegmentAb.getDownstreamVertex(), (DirectedVertex) brokenEdge.getVertexB());
+
+          /* update vertices' segments */
+          edgeSegmentAb.getUpstreamVertex().replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb, true);
+          edgeSegmentAb.getDownstreamVertex().replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb, true);
         }
 
-        /* update segment's vertices */
-        edgeSegmentAb.replace(edgeSegmentAb.getUpstreamVertex(), (DirectedVertex) brokenEdge.getVertexA());
-        edgeSegmentAb.replace(edgeSegmentAb.getDownstreamVertex(), (DirectedVertex) brokenEdge.getVertexB());
+        /* do the same for edge segment B-> A */
+        if (brokenEdge.hasEdgeSegmentBa()) {
+          EdgeSegment edgeSegmentBa = brokenEdge.getEdgeSegmentBa();
 
-        /* update vertices' segments */
-        edgeSegmentAb.getUpstreamVertex().replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb, true);
-        edgeSegmentAb.getDownstreamVertex().replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb, true);
-      }
+          if (identifiedEdgeSegmentOnEdge.contains(edgeSegmentBa)) {
+            /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
+            edgeSegmentBa = this.edgeSegments.registerUniqueCopyOf((ES) edgeSegmentBa, brokenEdge);
 
-      /* do the same for edge segment B-> A */
-      if (brokenEdge.hasEdgeSegmentBa()) {
-        EdgeSegment edgeSegmentBa = brokenEdge.getEdgeSegmentBa();
+            /* replace edge <-> edge segment relation */
+            brokenEdge.replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa);
+            edgeSegmentBa.setParentEdge(brokenEdge);
+          } else {
+            identifiedEdgeSegmentOnEdge.add(edgeSegmentBa);
+          }
 
-        if (identifiedEdgeSegmentOnEdge.contains(edgeSegmentBa)) {
-          /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
-          edgeSegmentBa = this.edgeSegments.registerUniqueCopyOf((ES) edgeSegmentBa, brokenEdge);
+          /* update segment's vertices */
+          edgeSegmentBa.replace(edgeSegmentBa.getUpstreamVertex(), (DirectedVertex) brokenEdge.getVertexB());
+          edgeSegmentBa.replace(edgeSegmentBa.getDownstreamVertex(), (DirectedVertex) brokenEdge.getVertexA());
 
-          /* replace edge <-> edge segment relation */
-          brokenEdge.replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa);
-          edgeSegmentBa.setParentEdge(brokenEdge);
-        } else {
-          identifiedEdgeSegmentOnEdge.add(edgeSegmentBa);
+          /* update vertices' segments */
+          edgeSegmentBa.getUpstreamVertex().replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa, true);
+          edgeSegmentBa.getDownstreamVertex().replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa, true);
         }
-
-        /* update segment's vertices */
-        edgeSegmentBa.replace(edgeSegmentBa.getUpstreamVertex(), (DirectedVertex) brokenEdge.getVertexB());
-        edgeSegmentBa.replace(edgeSegmentBa.getDownstreamVertex(), (DirectedVertex) brokenEdge.getVertexA());
-
-        /* update vertices' segments */
-        edgeSegmentBa.getUpstreamVertex().replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa, true);
-        edgeSegmentBa.getDownstreamVertex().replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa, true);
       }
-
     }
 
-    return affectedEdges;
+    return brokenEdgesByOriginalEdgeId;
   }
 
 }

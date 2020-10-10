@@ -1,6 +1,7 @@
 package org.planit.graph;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.planit.utils.exceptions.PlanItException;
@@ -50,9 +51,9 @@ public interface GraphModifier<V extends Vertex, E extends Edge> {
    * 
    * @param edgesToBreak    the links to break
    * @param vertexToBreakAt the node to break at
-   * @returns affectedEdges the list of all edges that are affected by the breaking of the passed in edges
+   * @returns affectedEdges the list of all result edges of the breaking of links by their original link id
    * @throws PlanItException thrown if error
    */
-  public List<E> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException;
+  public Map<Long, List<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException;
 
 }

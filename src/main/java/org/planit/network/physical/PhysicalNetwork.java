@@ -453,15 +453,16 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * 
    * @param linksToBreak  the links to break
    * @param nodeToBreakAt the node to break at
+   * @return the broken edges for each original edge's id
    * @throws PlanItException thrown if error
    */
   @SuppressWarnings("unchecked")
-  public void breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt) throws PlanItException {
+  public Map<Long, List<L>> breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt) throws PlanItException {
     if (getGraph() instanceof GraphModifier<?, ?>) {
-      ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
-    } else {
-      LOGGER.severe("Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored");
+      return ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
     }
+    LOGGER.severe("Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored");
+    return null;
   }
 
 }
