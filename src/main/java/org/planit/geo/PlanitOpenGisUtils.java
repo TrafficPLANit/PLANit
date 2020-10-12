@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.geotools.geometry.GeometryBuilder;
-import org.geotools.geometry.jts.JTSFactoryFinder;
+import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
@@ -55,9 +55,6 @@ public class PlanitOpenGisUtils {
   private GeometryFactory geometryFactory;
   private PositionFactory positionFactory;
 
-  /** jts geometry factory, jts geometry differs from opengis implementation by not carrying the crs and being more lightweight */
-  private com.vividsolutions.jts.geom.GeometryFactory jtsGeometryFactory;
-
   /**
    * Constructor
    * 
@@ -69,8 +66,6 @@ public class PlanitOpenGisUtils {
     geodeticDistanceCalculator = new GeodeticCalculator(coordinateReferenceSystem);
     geometryFactory = geometryBuilder.getGeometryFactory();
     positionFactory = geometryBuilder.getPositionFactory();
-
-    jtsGeometryFactory = JTSFactoryFinder.getGeometryFactory();
   }
 
   /**
@@ -139,7 +134,9 @@ public class PlanitOpenGisUtils {
    * @throws PlanItException thrown if there is an error
    */
   public double getDistanceInKilometres(Vertex vertexA, Vertex vertexB) throws PlanItException {
-    return getDistanceInMetres(vertexA.getPosition(), vertexB.getPosition()) / 1000.0;
+    DirectPosition positionA = JTS.toDirectPosition(vertexA.getPosition().getCoordinate(), geometryBuilder.getCoordinateReferenceSystem());
+    DirectPosition positionB = JTS.toDirectPosition(vertexB.getPosition().getCoordinate(), geometryBuilder.getCoordinateReferenceSystem());
+    return getDistanceInMetres(positionA, positionB) / 1000.0;
   }
 
   /**
@@ -163,10 +160,11 @@ public class PlanitOpenGisUtils {
    * @return LineString GeoTools line string output object
    * @throws PlanItException thrown if there is an error
    */
+  @SuppressWarnings("unchecked")
   public LineString convertToOpenGisLineString(com.vividsolutions.jts.geom.LineString jtsLineString) throws PlanItException {
     Coordinate[] coordinates = jtsLineString.getCoordinates();
-    List<Position> positionList = convertToDirectPositions(coordinates);
-    return geometryFactory.createLineString(positionList);
+    List<? extends Position> positionList = (List<? extends Position>) convertToDirectPositions(coordinates);
+    return geometryFactory.createLineString((List<Position>) positionList);
   }
 
   /**

@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.geo.PlanitGeoUtils;
+import org.planit.geo.PlanitJtsUtils;
 import org.planit.graph.DirectedGraphImpl;
 import org.planit.graph.GraphModifier;
 import org.planit.mode.ModesImpl;
@@ -445,7 +446,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    */
   public PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder<N, L, LS> networkBuilder) {
     super(groupId, PhysicalNetwork.class);
-    this.coordinateReferenceSystem = PlanitGeoUtils.DEFAULT_GEOGRAPHIC_CRS;
+    this.coordinateReferenceSystem = PlanitJtsUtils.DEFAULT_GEOGRAPHIC_CRS;
 
     this.networkBuilder = networkBuilder; /* for derived classes building part */
     this.graph = new DirectedGraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
@@ -494,7 +495,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * 
    * @return
    */
-  public final CoordinateReferenceSystem setCoordinateReferenceSystem(CoordinateReferenceSystem coordinateReferenceSystem) {
+  public final void setCoordinateReferenceSystem(CoordinateReferenceSystem coordinateReferenceSystem) {
     if (!coordinateReferenceSystemLocked && isEmpty()) {
       this.coordinateReferenceSystem = coordinateReferenceSystem;
       this.coordinateReferenceSystemLocked = true;

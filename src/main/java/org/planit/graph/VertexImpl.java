@@ -9,7 +9,7 @@ import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
-import com.vividsolutions.jts.geomgraph.Position;
+import com.vividsolutions.jts.geom.Point;
 
 /**
  * vertex representation connected to one or more entry and exit edges
@@ -61,7 +61,7 @@ public class VertexImpl implements Vertex {
   /**
    * Centre point geometry which is coordinate reference system aware
    */
-  protected Position position;
+  protected Point position;
 
   /**
    * Edges of this vertex
@@ -96,7 +96,7 @@ public class VertexImpl implements Vertex {
    * #{@inheritDoc}
    */
   @Override
-  public Position getPosition() {
+  public Point getPosition() {
     return position;
   }
 
@@ -104,7 +104,7 @@ public class VertexImpl implements Vertex {
    * #{@inheritDoc}
    */
   @Override
-  public void setPosition(final Position position) {
+  public void setPosition(final Point position) {
     this.position = position;
   }
 

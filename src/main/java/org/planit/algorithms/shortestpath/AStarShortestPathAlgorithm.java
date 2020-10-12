@@ -5,7 +5,7 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.planit.geo.PlanitOpenGisUtils;
+import org.planit.geo.PlanitJtsUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
@@ -42,7 +42,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
   /**
    * CRS based utility class to interpret the position information of vertices
    */
-  protected final PlanitOpenGisUtils geoUtils;
+  protected final PlanitJtsUtils geoUtils;
 
   /**
    * conversion multiplier to convert distance (km) to cost
@@ -70,7 +70,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     this.edgeSegmentCosts = edgeSegmentCosts;
     this.numberOfVertices = numberOfVertices;
     this.numberOfEdgeSegments = edgeSegmentCosts.length;
-    geoUtils = new PlanitOpenGisUtils(crs);
+    geoUtils = new PlanitJtsUtils(crs);
     this.heuristicDistanceMultiplier = heuristicDistanceMultiplier;
   }
 
@@ -105,8 +105,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     // initialise for origin
     openVertices.add(new Pair<DirectedVertex, Double>(origin, 0.0));
     vertexMeasuredCost[(int) origin.getId()] = 0.0;
-    vertexHeuristicCost[(int) origin.getId()] = geoUtils.getDistanceInKilometres(origin.getPosition(), destination.getPosition())
-        * heuristicDistanceMultiplier;
+    vertexHeuristicCost[(int) origin.getId()] = geoUtils.getDistanceInKilometres(origin.getPosition(), destination.getPosition()) * heuristicDistanceMultiplier;
     incomingEdgeSegment[(int) origin.getId()] = null;
 
     DirectedVertex currentVertex = null;
@@ -147,8 +146,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
 
           // first visit, compute heuristic on the fly (once)
           if (adjacentMeasuredCost == Double.POSITIVE_INFINITY) {
-            vertexHeuristicCost[adjacentVertexId] = geoUtils.getDistanceInKilometres(adjacentVertex.getPosition(), destination.getPosition())
-                * heuristicDistanceMultiplier;
+            vertexHeuristicCost[adjacentVertexId] = geoUtils.getDistanceInKilometres(adjacentVertex.getPosition(), destination.getPosition()) * heuristicDistanceMultiplier;
           }
 
           // when tentative cost is more attractive, update path
