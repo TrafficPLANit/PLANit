@@ -4,11 +4,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.opengis.geometry.DirectPosition;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+
+import com.vividsolutions.jts.geomgraph.Position;
 
 /**
  * vertex representation connected to one or more entry and exit edges
@@ -60,7 +61,7 @@ public class VertexImpl implements Vertex {
   /**
    * Centre point geometry which is coordinate reference system aware
    */
-  protected DirectPosition centrePointGeometry;
+  protected Position position;
 
   /**
    * Edges of this vertex
@@ -84,7 +85,7 @@ public class VertexImpl implements Vertex {
   protected VertexImpl(VertexImpl vertexImpl) {
     setId(vertexImpl.getId());
     setExternalId(vertexImpl.getExternalId());
-    setCentrePointGeometry(vertexImpl.getCentrePointGeometry());
+    setPosition(vertexImpl.getPosition());
     edges.putAll(vertexImpl.edges);
     inputProperties = null; // not copied, shallow copy of objects is dangerous
   }
@@ -95,16 +96,16 @@ public class VertexImpl implements Vertex {
    * #{@inheritDoc}
    */
   @Override
-  public DirectPosition getCentrePointGeometry() {
-    return centrePointGeometry;
+  public Position getPosition() {
+    return position;
   }
 
   /**
    * #{@inheritDoc}
    */
   @Override
-  public void setCentrePointGeometry(final DirectPosition centrePointGeometry) {
-    this.centrePointGeometry = centrePointGeometry;
+  public void setPosition(final Position position) {
+    this.position = position;
   }
 
   // Getters-Setters

@@ -257,12 +257,12 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     this.network = (MacroscopicNetwork) physicalNetwork;
 
     /* pre-compute the free flow travel times */
-    freeFlowTravelTimePerLinkSegment = new double[network.modes.size()][network.linkSegments.size()];
+    freeFlowTravelTimePerLinkSegment = new double[network.modes.size()][(int) network.linkSegments.size()];
     ArrayUtils.loopAll(freeFlowTravelTimePerLinkSegment, (modeId,
         linkSegmentId) -> freeFlowTravelTimePerLinkSegment[modeId][linkSegmentId] = network.linkSegments.get(linkSegmentId).computeFreeFlowTravelTime(network.modes.get(modeId)));
 
     /* explicitly set bpr parameters for each mode/segment combination */
-    bprParametersPerLinkSegment = new BPRParameters[network.linkSegments.size()];
+    bprParametersPerLinkSegment = new BPRParameters[(int) network.linkSegments.size()];
     for (final MacroscopicLinkSegment macroscopicLinkSegment : network.linkSegments) {
       final int id = (int) macroscopicLinkSegment.getId();
       bprParametersPerLinkSegment[id] = new BPRParameters();

@@ -107,7 +107,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   /**
    * {@inheritDoc}
    */
-  public int size() {
+  public long size() {
     return edgeSegmentMap.size();
   }
 

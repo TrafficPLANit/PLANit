@@ -2,13 +2,14 @@ package org.planit.network.physical;
 
 import java.util.logging.Logger;
 
-import org.opengis.geometry.coordinate.LineString;
 import org.planit.graph.DirectedEdgeImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Node;
+
+import com.vividsolutions.jts.geom.LineString;
 
 /**
  * Link class connecting two nodes via some geometry. Each link has one or two underlying link segments in a particular direction which may carry additional information for each

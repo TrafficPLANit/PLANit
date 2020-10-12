@@ -25,23 +25,26 @@ import com.vividsolutions.jts.geom.MultiLineString;
 
 /**
  * General geotools related utils. Uses geodetic distance when possible. In case the CRS is not based on an ellipsoid (2d plane) it will simply compute the distance between
- * coorindates using Pythagoras with the unit distance in meters, consistent with the {@code CartesianAuthorityFactory.GENERIC_2D}
+ * coordinates using Pythagoras with the unit distance in meters, consistent with the {@code CartesianAuthorityFactory.GENERIC_2D}
  * 
  * It is assumed that x coordinate refers to latitude and y coordinate refers to longitude
  * 
  * @author markr
  *
  */
-public class PlanitGeoUtils {
+public class PlanitOpenGisUtils {
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(PlanitGeoUtils.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(PlanitOpenGisUtils.class.getCanonicalName());
 
   /**
-   * Default Coordinate Reference System
+   * Default Coordinate Reference System: WGS84
    */
   public static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = DefaultGeographicCRS.WGS84;
 
+  /**
+   * In absence of a geographic crs we can also use cartesian: GENERIC_2D
+   */
   public static final CoordinateReferenceSystem CARTESIANCRS = CartesianAuthorityFactory.GENERIC_2D;
 
   /**
@@ -52,19 +55,22 @@ public class PlanitGeoUtils {
   private GeometryFactory geometryFactory;
   private PositionFactory positionFactory;
 
+  /** jts geometry factory, jts geometry differs from opengis implementation by not carrying the crs and being more lightweight */
+  private com.vividsolutions.jts.geom.GeometryFactory jtsGeometryFactory;
+
   /**
    * Constructor
    * 
    * Uses default coordinate reference system
    */
-  public PlanitGeoUtils() {
+  public PlanitOpenGisUtils() {
     CoordinateReferenceSystem coordinateReferenceSystem = new DefaultGeographicCRS(DEFAULT_GEOGRAPHIC_CRS);
     geometryBuilder = new GeometryBuilder(coordinateReferenceSystem);
     geodeticDistanceCalculator = new GeodeticCalculator(coordinateReferenceSystem);
     geometryFactory = geometryBuilder.getGeometryFactory();
     positionFactory = geometryBuilder.getPositionFactory();
 
-    JTSFactoryFinder.getGeometryFactory();
+    jtsGeometryFactory = JTSFactoryFinder.getGeometryFactory();
   }
 
   /**
@@ -72,7 +78,7 @@ public class PlanitGeoUtils {
    * 
    * @param coordinateReferenceSystem OpenGIS CoordinateReferenceSystem object containing geometry
    */
-  public PlanitGeoUtils(CoordinateReferenceSystem coordinateReferenceSystem) {
+  public PlanitOpenGisUtils(CoordinateReferenceSystem coordinateReferenceSystem) {
     geometryBuilder = new GeometryBuilder(coordinateReferenceSystem);
     geometryFactory = geometryBuilder.getGeometryFactory();
     positionFactory = geometryBuilder.getPositionFactory();
@@ -133,7 +139,7 @@ public class PlanitGeoUtils {
    * @throws PlanItException thrown if there is an error
    */
   public double getDistanceInKilometres(Vertex vertexA, Vertex vertexB) throws PlanItException {
-    return getDistanceInMetres(vertexA.getCentrePointGeometry(), vertexB.getCentrePointGeometry()) / 1000.0;
+    return getDistanceInMetres(vertexA.getPosition(), vertexB.getPosition()) / 1000.0;
   }
 
   /**
@@ -252,12 +258,17 @@ public class PlanitGeoUtils {
    * @return List of GeoTools Position objects
    * @throws PlanItException thrown if there is an error
    */
-  public List<Position> convertToDirectPositions(com.vividsolutions.jts.geom.Coordinate[] coordinates) throws PlanItException {
-    List<Position> positionList = new ArrayList<Position>(coordinates.length);
+  public List<DirectPosition> convertToDirectPositions(Coordinate[] coordinates) throws PlanItException {
+    List<DirectPosition> positionList = new ArrayList<DirectPosition>(coordinates.length);
     for (Coordinate coordinate : coordinates) {
       positionList.add(createDirectPosition(coordinate.x, coordinate.y));
     }
     return positionList;
+  }
+
+  public List<Position> createJtsPositions(Coordinate[] coordinates) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
   /**

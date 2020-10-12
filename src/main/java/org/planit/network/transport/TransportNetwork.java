@@ -103,7 +103,7 @@ public class TransportNetwork {
    * @return the number of physical link segments in this network
    */
   public int getTotalNumberOfPhysicalLinkSegments() {
-    return physicalNetwork.linkSegments.size();
+    return (int) physicalNetwork.linkSegments.size();
   }
 
   /**

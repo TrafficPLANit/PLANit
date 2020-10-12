@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.geo.PlanitGeoUtils;
 import org.planit.graph.DirectedGraphImpl;
@@ -26,6 +27,8 @@ import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
 
+import com.vividsolutions.jts.geom.LineString;
+
 /**
  * Model free Network consisting of nodes and links, each of which can be iterated over. This network does not contain any transport specific information, hence the qualification
  * "model free".
@@ -42,8 +45,18 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(PhysicalNetwork.class.getCanonicalName());
 
+  /** the coordinate reference system used for all entities in this network */
+  private CoordinateReferenceSystem coordinateReferenceSystem;
+
+  /** one can set the coordinate reference system only when the network is empty and only once at this point */
+  private boolean coordinateReferenceSystemLocked = false;
+
   /**
    * Internal class for all Link specific code
+   *
+   */
+  /**
+   * @author markr
    *
    */
   public class Links implements Iterable<L> {
@@ -105,6 +118,15 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      */
     public int size() {
       return graph.getEdges().size();
+    }
+
+    /**
+     * check if size is zero
+     * 
+     * @return true when empty false otherwise
+     */
+    public boolean isEmpty() {
+      return graph.getEdges().isEmpty();
     }
 
   }
@@ -240,7 +262,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      *
      * @return number of registered link segments
      */
-    public int size() {
+    public long size() {
       return graph.getEdgeSegments().size();
     }
 
@@ -283,6 +305,15 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
         }
       }
       return null;
+    }
+
+    /**
+     * check if size is zero
+     * 
+     * @return true if empty false otherwise
+     */
+    public boolean isEmpty() {
+      return graph.getEdgeSegments().isEmpty();
     }
 
   }
@@ -338,6 +369,15 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      */
     public N get(final long id) {
       return graph.getVertices().get(id);
+    }
+
+    /**
+     * check if size is zero
+     * 
+     * @return true when empty false otherwise
+     */
+    public boolean isEmpty() {
+      return graph.getVertices().isEmpty();
     }
 
   }
@@ -398,13 +438,31 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   public final Modes modes;
 
   /**
-   * Network Constructor
+   * Network Constructor using default coordinate reference system
    *
    * @param groupId        contiguous id generation within this group for instances of this class
    * @param networkBuilder the builder to be used to create this network
    */
   public PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder<N, L, LS> networkBuilder) {
     super(groupId, PhysicalNetwork.class);
+    this.coordinateReferenceSystem = PlanitGeoUtils.DEFAULT_GEOGRAPHIC_CRS;
+
+    this.networkBuilder = networkBuilder; /* for derived classes building part */
+    this.graph = new DirectedGraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
+    this.modes = new ModesImpl(getNetworkIdGroupingToken()); /* for mode building added by this class */
+  }
+
+  /**
+   * Network Constructor
+   *
+   * @param groupId                   contiguous id generation within this group for instances of this class
+   * @param networkBuilder            the builder to be used to create this network
+   * @param coordinateReferenceSystem the coordinate reference system to use
+   */
+  public PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder<N, L, LS> networkBuilder, final CoordinateReferenceSystem coordinateReferenceSystem) {
+    super(groupId, PhysicalNetwork.class);
+    this.coordinateReferenceSystem = coordinateReferenceSystem;
+
     this.networkBuilder = networkBuilder; /* for derived classes building part */
     this.graph = new DirectedGraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
     this.modes = new ModesImpl(getNetworkIdGroupingToken()); /* for mode building added by this class */
@@ -420,6 +478,36 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    */
   public IdGroupingToken getNetworkIdGroupingToken() {
     return ((DirectedGraphImpl<N, L, LS>) graph).getGraphIdGroupingToken();
+  }
+
+  /**
+   * Collect the coordinate reference system used for this network
+   * 
+   * @return
+   */
+  public CoordinateReferenceSystem getCoordinateReferenceSystem() {
+    return coordinateReferenceSystem;
+  }
+
+  /**
+   * Collect the coordinate reference system used for this network
+   * 
+   * @return
+   */
+  public final CoordinateReferenceSystem setCoordinateReferenceSystem(CoordinateReferenceSystem coordinateReferenceSystem) {
+    if (!coordinateReferenceSystemLocked && isEmpty()) {
+      this.coordinateReferenceSystem = coordinateReferenceSystem;
+      this.coordinateReferenceSystemLocked = true;
+    }
+  }
+
+  /**
+   * check if network is empty, meaning not a single link, node, or link segment is registered yet
+   * 
+   * @return true if empty fals otherwise
+   */
+  public boolean isEmpty() {
+    return nodes.isEmpty() && links.isEmpty() && linkSegments.isEmpty();
   }
 
   /**
@@ -465,8 +553,13 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
       /* all links geometry needs to be updated based on breaking it */
       affectedLinks.forEach((id, affectedLinksForId) -> {
         affectedLinksForId.forEach((affectedLink) -> {
-          TODO -> REMODEL THE LINE STRING OF EACH LINK BY TRUNCATING IT BASED ON START AND END NODES
-          TO DO SO GEOUTILS SHOULD BE AVAILABLE ON THE NETWORK -> MISSING IN XSD AS OPTIONAL WITH DEFAULT
+          if (affectedLink.getNodeA().equals(nodeToBreakAt)) {
+            TRUNCATE line string
+          } else if (affectedLink.getNodeB().equals(nodeToBreakAt)) {
+            TRUNCATE line string
+          } else {
+            LOGGER.warning(String.format("unable to locate node to break at for broken link %s (id:%d)", affectedLink.getExternalId(), affectedLink.getId()));
+          }
         });
       });
       return affectedLinks;

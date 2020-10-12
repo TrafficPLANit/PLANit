@@ -90,7 +90,7 @@ public class ShortestPathTest {
         for(int nodeColIndex = 0;nodeColIndex<=gridSize;++nodeColIndex) { 
           Node node = network.nodes.registerNew(nodeRowIndex*gridSize+nodeColIndex);
           // all nodes are spaced 1 km apart
-          node.setCentrePointGeometry(geoBuilder.createDirectPosition(new double[] {nodeRowIndex*1000, nodeColIndex*1000}));
+          node.setPosition(geoBuilder.createDirectPosition(new double[] {nodeRowIndex*1000, nodeColIndex*1000}));
         }
       }
       
@@ -138,15 +138,15 @@ public class ShortestPathTest {
       Zone zoneE = zoning.zones.createAndRegisterNewZone("E");
       
       centroidA = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneA);
-      centroidA.setCentrePointGeometry(geoBuilder.createDirectPosition(new double[] {0, 0}));
+      centroidA.setPosition(geoBuilder.createDirectPosition(new double[] {0, 0}));
       centroidB = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneB);
-      centroidB.setCentrePointGeometry(geoBuilder.createDirectPosition(new double[] {1*1000, 4*1000}));
+      centroidB.setPosition(geoBuilder.createDirectPosition(new double[] {1*1000, 4*1000}));
       centroidC = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneC);
-      centroidC.setCentrePointGeometry(geoBuilder.createDirectPosition(new double[] {2*1000, 2*1000}));
+      centroidC.setPosition(geoBuilder.createDirectPosition(new double[] {2*1000, 2*1000}));
       centroidD = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneD);
-      centroidD.setCentrePointGeometry(geoBuilder.createDirectPosition(new double[] {3*1000, 4*1000}));
+      centroidD.setPosition(geoBuilder.createDirectPosition(new double[] {3*1000, 4*1000}));
       centroidE = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneE);
-      centroidE.setCentrePointGeometry(geoBuilder.createDirectPosition(new double[] {4*1000, 4*1000}));
+      centroidE.setPosition(geoBuilder.createDirectPosition(new double[] {4*1000, 4*1000}));
       
       zoning.getVirtualNetwork().connectoids.registerNewConnectoid(centroidA, network.nodes.get(0), 0);
       zoning.getVirtualNetwork().connectoids.registerNewConnectoid(centroidB, network.nodes.get(21), 0);

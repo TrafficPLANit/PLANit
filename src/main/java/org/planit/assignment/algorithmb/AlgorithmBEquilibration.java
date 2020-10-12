@@ -33,10 +33,10 @@ public class AlgorithmBEquilibration {
   private void initialiseBushes() {
     TransportNetwork transportNetwork = assignment.getTransportNetwork();
     double[] edgeSegmentCosts = null; // <-- to do
-    DijkstraShortestPathAlgorithm dijkstra = 
-        new DijkstraShortestPathAlgorithm(edgeSegmentCosts, transportNetwork.getTotalNumberOfEdgeSegments(), transportNetwork.getTotalNumberOfVertices());
-    
-    for(Zone zone : assignment.getTransportNetwork().getZoning().zones) {
+    DijkstraShortestPathAlgorithm dijkstra = new DijkstraShortestPathAlgorithm(edgeSegmentCosts, transportNetwork.getTotalNumberOfEdgeSegments(),
+        transportNetwork.getTotalNumberOfVertices());
+
+    for (Zone zone : assignment.getTransportNetwork().getZoning().zones) {
       /* for each origin create initial bush with shortest path */
     }
   }

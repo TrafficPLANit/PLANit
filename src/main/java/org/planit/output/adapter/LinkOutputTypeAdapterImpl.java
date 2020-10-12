@@ -35,7 +35,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @return node location
    */
   private String getVertexLocationAsString(Vertex vertex) {
-    DirectPosition centrePoint = vertex.getCentrePointGeometry();
+    DirectPosition centrePoint = vertex.getPosition();
     if (centrePoint == null) {
       return OutputFormatter.NOT_SPECIFIED;
     } else {
