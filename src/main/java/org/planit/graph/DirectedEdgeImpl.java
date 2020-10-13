@@ -66,7 +66,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
   }
 
   /**
-   * Copy Constructor. Note that edgse segments are shallow copied and point to the passed in edge as their parent So additional effort is needed to make the new edge usable
+   * Copy Constructor. Edge segments are shallow copied and point to the passed in edge as their parent So additional effort is needed to make the new edge usable
    * 
    * @param directedEdgeImpl to copy
    */

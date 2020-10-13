@@ -51,7 +51,7 @@ public class EdgeImpl implements Edge, Cloneable {
   /**
    * Name of the edge
    */
-  protected String name = null;
+  protected String name = "";
 
   /**
    * Length of edge
@@ -122,7 +122,7 @@ public class EdgeImpl implements Edge, Cloneable {
     setVertexA(edgeImpl.getVertexA());
     setVertexB(edgeImpl.getVertexB());
     setLengthKm(edgeImpl.getLengthKm());
-    setName(new String(edgeImpl.getName()));
+    setName(getName() != null ? edgeImpl.getName() : "");
     inputProperties = null; // not copied, shallow copy of objects is dangerous
   }
 

@@ -94,7 +94,14 @@ public class PlanitJtsUtils {
    */
   public double getDistanceInMetres(Coordinate startCoordinate, Coordinate endCoordinate) throws PlanItException {
     try {
-      return JTS.orthodromicDistance(startCoordinate, endCoordinate, crs);
+      if (crs.equals(CARTESIANCRS)) {
+        // cartesian in meters
+        double deltaCoordinate0 = startCoordinate.x - endCoordinate.x;
+        double deltaCoordinate1 = startCoordinate.y - endCoordinate.y;
+        return Math.sqrt(Math.pow(deltaCoordinate0, 2) + Math.pow(deltaCoordinate1, 2));
+      } else {
+        return JTS.orthodromicDistance(startCoordinate, endCoordinate, crs);
+      }
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
       throw new PlanItException("Error when computing distance in meters between two Positions in JtsUtils", e);
@@ -378,15 +385,15 @@ public class PlanitJtsUtils {
     }
 
     int numCoordinates = geometry.getNumPoints();
-    if (numCoordinates > finalPoint || numCoordinates > offset) {
+    if (numCoordinates < finalPoint || numCoordinates < offset) {
       LOGGER.severe("unable to extract coordinates from line string, provided location(s) are incompatible with the line string points");
       return null;
     }
 
-    Coordinate[] coordinates = new Coordinate[numCoordinates - finalPoint];
+    Coordinate[] coordinates = new Coordinate[finalPoint - offset + 1];
     for (int index = offset; index <= finalPoint; ++index) {
       Coordinate coordinate = geometry.getCoordinateN(index);
-      coordinates[index] = coordinate;
+      coordinates[index - offset] = coordinate;
     }
 
     return coordinates;
