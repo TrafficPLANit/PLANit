@@ -78,14 +78,15 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * Copy constructor (for now input properties are NOT copied, because a shallow copy of contents is dangerous)
+   * Copy constructor (for now input properties are NOT copied, because a shallow copy of contents is dangerous). Geometry is deep copied, edges are not because they are not owned
+   * by the vertex.
    * 
    * @param vertexImpl to copy
    */
   protected VertexImpl(VertexImpl vertexImpl) {
     setId(vertexImpl.getId());
     setExternalId(vertexImpl.getExternalId());
-    setPosition(vertexImpl.getPosition());
+    setPosition((Point) vertexImpl.getPosition().clone());
     edges.putAll(vertexImpl.edges);
     inputProperties = null; // not copied, shallow copy of objects is dangerous
   }

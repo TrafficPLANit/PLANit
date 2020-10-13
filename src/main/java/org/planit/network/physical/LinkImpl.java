@@ -59,14 +59,14 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, geometry is deep copied, see also {@code DirectedEdge} copy constructed
    * 
    * @param linkImpl to copy
    */
   protected LinkImpl(LinkImpl linkImpl) {
     super(linkImpl);
     setLinkId(linkImpl.getLinkId());
-    setGeometry(linkImpl.getGeometry());
+    setGeometry((LineString) linkImpl.getGeometry().clone());
   }
 
   /**

@@ -6,12 +6,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.assignment.TrafficAssignmentComponent;
-import org.planit.geo.PlanitGeoUtils;
 import org.planit.geo.PlanitJtsUtils;
 import org.planit.graph.DirectedGraphImpl;
 import org.planit.graph.GraphModifier;
@@ -551,18 +551,22 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   public Map<Long, Set<L>> breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt) throws PlanItException {
     if (getGraph() instanceof GraphModifier<?, ?>) {
       Map<Long, Set<L>> affectedLinks = ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
-      /* all links geometry needs to be updated based on breaking it */
-      affectedLinks.forEach((id, affectedLinksForId) -> {
-        affectedLinksForId.forEach((affectedLink) -> {
-          if (affectedLink.getNodeA().equals(nodeToBreakAt)) {
-            TRUNCATE line string
-          } else if (affectedLink.getNodeB().equals(nodeToBreakAt)) {
-            TRUNCATE line string
+
+      /* broken links geometry must be updated since it links is truncated compared to its original */
+      PlanitJtsUtils geoUtils = new PlanitJtsUtils(getCoordinateReferenceSystem());
+      for (Entry<Long, Set<L>> brokenLinks : affectedLinks.entrySet()) {
+        for (Link brokenLink : brokenLinks.getValue()) {
+          LineString updatedGeometry = null;
+          if (brokenLink.getNodeA().equals(nodeToBreakAt)) {
+            updatedGeometry = geoUtils.createCopyWithoutCoordinatesBefore(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
+          } else if (brokenLink.getNodeB().equals(nodeToBreakAt)) {
+            updatedGeometry = geoUtils.createCopyWithoutCoordinatesAfter(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
           } else {
-            LOGGER.warning(String.format("unable to locate node to break at for broken link %s (id:%d)", affectedLink.getExternalId(), affectedLink.getId()));
+            LOGGER.warning(String.format("unable to locate node to break at for broken link %s (id:%d)", brokenLink.getExternalId(), brokenLink.getId()));
           }
-        });
-      });
+          brokenLink.setGeometry(updatedGeometry);
+        }
+      }
       return affectedLinks;
     }
     LOGGER.severe("Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored");

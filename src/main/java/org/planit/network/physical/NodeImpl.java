@@ -64,7 +64,7 @@ public class NodeImpl extends DirectedVertexImpl implements Node {
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, see also {@code VertexImpl)
    * 
    * @param nodeImpl to copy
    */

@@ -3,6 +3,7 @@ package org.planit.geo;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -282,6 +283,113 @@ public class PlanitJtsUtils {
       return computedLengthInMetres / 1000.0;
     }
     throw new PlanItException("unable to compute distance for less than two points");
+  }
+
+  /**
+   * Remove all coordinates in the line string up to but not including the passed in position. In case the position cannot be found, an exception will be thrown
+   * 
+   * @param position     to use
+   * @param geometryetry linestring
+   * @throws PlanItException thrown if position could not be located
+   */
+  public LineString createCopyWithoutCoordinatesBefore(Point position, LineString geometry) throws PlanItException {
+    Optional<Integer> offset = findCoordinatePosition(position.getCoordinate(), geometry);
+
+    if (!offset.isPresent()) {
+      throw new PlanItException(String.format("point %s does not exist on line string, unable to create copy from this location", position.toString()));
+    }
+
+    Coordinate[] coordinates = copyCoordinatesFrom(offset.get(), geometry);
+
+    return createLineStringFromCoordinates(coordinates);
+  }
+
+  /**
+   * Remove all coordinates in the line string after but not including the passed in position. In case the position cannot be found, an exception will be thrown
+   * 
+   * @param position     to use
+   * @param geometryetry linestring
+   * @throws PlanItException thrown if position could not be located
+   */
+  public LineString createCopyWithoutCoordinatesAfter(Point position, LineString geometry) throws PlanItException {
+    Optional<Integer> offset = findCoordinatePosition(position.getCoordinate(), geometry);
+
+    if (!offset.isPresent()) {
+      throw new PlanItException(String.format("point %s does not exist on line string, unable to create copy from this location", position.toString()));
+    }
+
+    Coordinate[] coordinates = copyCoordinatesUntil(offset.get(), geometry);
+
+    return createLineStringFromCoordinates(coordinates);
+  }
+
+  /**
+   * find at which position the coordinate resides.
+   * 
+   * @param coordinateToLocate the one to locate
+   * @param geometry           to locate from
+   * @return the position if present
+   */
+  public Optional<Integer> findCoordinatePosition(Coordinate coordinateToLocate, LineString geometry) {
+    int numCoordinates = geometry.getNumPoints();
+    for (int index = 0; index < numCoordinates; ++index) {
+      Coordinate coordinate = geometry.getCoordinateN(index);
+      if (coordinate.equals2D(coordinateToLocate)) {
+        return Optional.of(index);
+      }
+    }
+    return Optional.empty();
+  }
+
+  /**
+   * copy the coordinates in the line string starting at the given offset (included)
+   * 
+   * @param offset   to start at
+   * @param geometry to copy from
+   * @return coordinate array, when offset is out of bounds null is returned
+   */
+  public Coordinate[] copyCoordinatesFrom(int offset, LineString geometry) {
+    return copyCoordinatesBetween(offset, geometry.getNumPoints() - 1, geometry);
+  }
+
+  /**
+   * copy the coordinates in the line string until the given location, the location is included
+   * 
+   * @param finalPoint to end with
+   * @param geometry   to copy from
+   * @return coordinate array, when offset is out of bounds null is returned
+   */
+  public Coordinate[] copyCoordinatesUntil(int finalPoint, LineString geometry) {
+    return copyCoordinatesBetween(0, finalPoint, geometry);
+  }
+
+  /**
+   * copy the coordinates in the line string from-to the given locations, the locations are included
+   * 
+   * @param offset     to start at
+   * @param finalPoint to end with
+   * @param geometry   to copy from
+   * @return coordinate array, when offset is out of bounds null is returned
+   */
+  public Coordinate[] copyCoordinatesBetween(int offset, int finalPoint, LineString geometry) {
+    if (offset >= finalPoint) {
+      LOGGER.severe("unable to extract coordinates from line string, offset is larger or equal than final point");
+      return null;
+    }
+
+    int numCoordinates = geometry.getNumPoints();
+    if (numCoordinates > finalPoint || numCoordinates > offset) {
+      LOGGER.severe("unable to extract coordinates from line string, provided location(s) are incompatible with the line string points");
+      return null;
+    }
+
+    Coordinate[] coordinates = new Coordinate[numCoordinates - finalPoint];
+    for (int index = offset; index <= finalPoint; ++index) {
+      Coordinate coordinate = geometry.getCoordinateN(index);
+      coordinates[index] = coordinate;
+    }
+
+    return coordinates;
   }
 
 }
