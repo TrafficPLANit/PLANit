@@ -303,7 +303,7 @@ public class PlanitJtsUtils {
     Optional<Integer> offset = findCoordinatePosition(position.getCoordinate(), geometry);
 
     if (!offset.isPresent()) {
-      throw new PlanItException(String.format("point %s does not exist on line string, unable to create copy from this location", position.toString()));
+      throw new PlanItException(String.format("point (%s) does not exist on line string (%s), unable to create copy from this location", position.toString(), geometry.toString()));
     }
 
     Coordinate[] coordinates = copyCoordinatesFrom(offset.get(), geometry);
@@ -322,7 +322,7 @@ public class PlanitJtsUtils {
     Optional<Integer> offset = findCoordinatePosition(position.getCoordinate(), geometry);
 
     if (!offset.isPresent()) {
-      throw new PlanItException(String.format("point %s does not exist on line string, unable to create copy from this location", position.toString()));
+      throw new PlanItException(String.format("point (%s) does not exist on line string %s, unable to create copy from this location", position.toString(), geometry.toString()));
     }
 
     Coordinate[] coordinates = copyCoordinatesUntil(offset.get(), geometry);
