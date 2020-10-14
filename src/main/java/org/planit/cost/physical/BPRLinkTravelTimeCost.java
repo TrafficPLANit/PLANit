@@ -2,6 +2,7 @@ package org.planit.cost.physical;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.physical.PhysicalNetwork;
@@ -75,7 +76,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
       return parametersMap.get(mode);
     }
   }
- 
+
   /** the network */
   protected MacroscopicNetwork network;
 
@@ -108,35 +109,34 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * Array to store BPRParameters objects for each link segment to be used in calculateSegmentCost()
    */
   protected BPRParameters[] bprParametersPerLinkSegment;
-  
+
   /**
    * 2d Array to store free flow travel time for each [mode][link segment] to be used in calculateSegmentCost()
    */
-  protected double[][] freeFlowTravelTimePerLinkSegment; 
-  
+  protected double[][] freeFlowTravelTimePerLinkSegment;
+
   /**
    * BPR function computation for
    * 
-   * @param linkSegment the link segment
-   * @param mode given mode
+   * @param linkSegment    the link segment
+   * @param mode           given mode
    * @param flowPcuPerHour available flow
    * @return travel time in hours
    */
   protected double computeCostInHours(MacroscopicLinkSegment linkSegment, Mode mode, double flowPcuPerHour) {
     final int id = (int) linkSegment.getId();
-    
+
     final double freeFlowTravelTime = freeFlowTravelTimePerLinkSegment[(int) mode.getId()][id];
     final double capacity = linkSegment.computeCapacityPcuH();
-    
+
     final Pair<Double, Double> alphaBetaParameters = bprParametersPerLinkSegment[id].getAlphaBetaParameters(mode);
     final double alpha = alphaBetaParameters.getFirst();
     final double beta = alphaBetaParameters.getSecond();
 
     // Travel Time * (1 + alpha*(v/c)^beta)
-    return freeFlowTravelTime * (1.0 + alpha * Math.pow(flowPcuPerHour / capacity, beta));                                                                                                      
-  }  
-  
-  
+    return freeFlowTravelTime * (1.0 + alpha * Math.pow(flowPcuPerHour / capacity, beta));
+  }
+
   /**
    * Default alpha BPR parameter if not other information is available
    */
@@ -145,7 +145,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   /**
    * Default beta BPR parameter if not other information is available
    */
-  public static final double DEFAULT_BETA = 4.0;  
+  public static final double DEFAULT_BETA = 4.0;
 
   /**
    * Constructor
@@ -159,7 +159,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     defaultParametersPerLinkSegmentTypeAndMode = new HashMap<MacroscopicLinkSegmentType, BPRParameters>();
     defaultParameters = new Pair<Double, Double>(DEFAULT_ALPHA, DEFAULT_BETA);
   }
-  
+
   /**
    * Set the alpha and beta values for a given link segment and mode
    *
@@ -209,7 +209,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    */
   public void setDefaultParameters(final double alpha, final double beta) {
     defaultParameters = new Pair<Double, Double>(alpha, beta);
-  }  
+  }
 
   /**
    * Return the travel time for the current link for a given mode
@@ -223,25 +223,25 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    *
    */
   @Override
-  public double getSegmentCost(final Mode mode, final LinkSegment linkSegment) throws PlanItException {
-    return computeCostInHours((MacroscopicLinkSegment)linkSegment, mode, linkVolumeAccessee.getLinkSegmentFlow(linkSegment));
+  public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) throws PlanItException {
+    return computeCostInHours((MacroscopicLinkSegment) linkSegment, mode, linkVolumeAccessee.getLinkSegmentFlow(linkSegment));
   }
-  
+
   /**
    * populate the cost array with the BPR link travel times for all link segments for the specified mode
    * 
-   * @param mode the mode to use
+   * @param mode       the mode to use
    * @param costToFill the cost to populate (in hours)
    */
   @Override
   public void populateWithCost(Mode mode, double[] costToFill) throws PlanItException {
     double[] linkSegmentFlows = linkVolumeAccessee.getLinkSegmentFlows();
-    
-    for(MacroscopicLinkSegment linkSegment : network.linkSegments) {
+
+    for (MacroscopicLinkSegment linkSegment : network.linkSegments) {
       final int id = (int) linkSegment.getId();
       costToFill[id] = computeCostInHours(linkSegment, mode, linkSegmentFlows[id]);
     }
-  }  
+  }
 
   /**
    * Register the BPR cost parameter values on the PhysicalNetwork
@@ -254,14 +254,15 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   @Override
   public void initialiseBeforeSimulation(final PhysicalNetwork<? extends Node, ? extends Link, ? extends LinkSegment> physicalNetwork) throws PlanItException {
     PlanItException.throwIf(!(physicalNetwork instanceof MacroscopicNetwork), "BPR cost is oncly compatible with macroscopic networks");
-    this.network = (MacroscopicNetwork)physicalNetwork;
-    
+    this.network = (MacroscopicNetwork) physicalNetwork;
+
     /* pre-compute the free flow travel times */
-    freeFlowTravelTimePerLinkSegment = new double[network.modes.size()][ network.linkSegments.size()];
-    ArrayUtils.loopAll(freeFlowTravelTimePerLinkSegment, (modeId, linkSegmentId) -> freeFlowTravelTimePerLinkSegment[modeId][linkSegmentId] = network.linkSegments.get(linkSegmentId).computeFreeFlowTravelTime(network.modes.get(modeId)));
-    
+    freeFlowTravelTimePerLinkSegment = new double[network.modes.size()][(int) network.linkSegments.size()];
+    ArrayUtils.loopAll(freeFlowTravelTimePerLinkSegment, (modeId,
+        linkSegmentId) -> freeFlowTravelTimePerLinkSegment[modeId][linkSegmentId] = network.linkSegments.get(linkSegmentId).computeFreeFlowTravelTime(network.modes.get(modeId)));
+
     /* explicitly set bpr parameters for each mode/segment combination */
-    bprParametersPerLinkSegment = new BPRParameters[network.linkSegments.size()];
+    bprParametersPerLinkSegment = new BPRParameters[(int) network.linkSegments.size()];
     for (final MacroscopicLinkSegment macroscopicLinkSegment : network.linkSegments) {
       final int id = (int) macroscopicLinkSegment.getId();
       bprParametersPerLinkSegment[id] = new BPRParameters();

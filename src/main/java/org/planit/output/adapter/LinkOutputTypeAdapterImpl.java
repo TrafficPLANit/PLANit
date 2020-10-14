@@ -2,7 +2,6 @@ package org.planit.output.adapter;
 
 import java.util.logging.Logger;
 
-import org.opengis.geometry.DirectPosition;
 import org.planit.assignment.TrafficAssignment;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.output.enums.OutputType;
@@ -15,6 +14,8 @@ import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
+
+import com.vividsolutions.jts.geom.Point;
 
 /**
  * Top-level abstract class which defines the common methods required by Link output type adapters
@@ -35,12 +36,11 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @return node location
    */
   private String getVertexLocationAsString(Vertex vertex) {
-    DirectPosition centrePoint = vertex.getCentrePointGeometry();
-    if (centrePoint == null) {
+    Point position = vertex.getPosition();
+    if (position == null) {
       return OutputFormatter.NOT_SPECIFIED;
     } else {
-      double[] coordinates = centrePoint.getCoordinate();
-      return coordinates[0] + "-" + coordinates[1];
+      return position.getCoordinate().x + "-" + position.getCoordinate().y;
     }
   }
 

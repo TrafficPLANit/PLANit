@@ -5,6 +5,7 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.physical.PhysicalNetworkBuilder;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
@@ -31,12 +32,19 @@ public class MacroscopicNetwork extends PhysicalNetwork<Node, Link, MacroscopicL
 
   // Protected
 
-  protected final MacroscopicPhysicalNetworkBuilder macroscopicNetworkBuilder;
-
   /**
    * Map which stores link segment types by generated Id
    */
   protected Map<Long, MacroscopicLinkSegmentType> macroscopicLinkSegmentTypeByIdMap = new TreeMap<Long, MacroscopicLinkSegmentType>();
+
+  /**
+   * collect the builder as macroscopic network builder
+   * 
+   * @return macroscopic network builder of this network
+   */
+  protected MacroscopicPhysicalNetworkBuilder<? extends Node, ? extends Link, ? extends MacroscopicLinkSegment> getMacroscopicNetworkBuilder() {
+    return (MacroscopicPhysicalNetworkBuilder<? extends Node, ? extends Link, ? extends MacroscopicLinkSegment>) getNetworkBuilder();
+  }
 
   // Public
 
@@ -47,7 +55,6 @@ public class MacroscopicNetwork extends PhysicalNetwork<Node, Link, MacroscopicL
    */
   public MacroscopicNetwork(final IdGroupingToken groupId) {
     super(groupId, new MacroscopicPhysicalNetworkBuilderImpl());
-    this.macroscopicNetworkBuilder = (MacroscopicPhysicalNetworkBuilder) getNetworkBuilder();
   }
 
   /**
@@ -56,9 +63,9 @@ public class MacroscopicNetwork extends PhysicalNetwork<Node, Link, MacroscopicL
    * @param groupId       contiguous id generation within this group for instances of this class
    * @param customBuilder a customBuilder
    */
-  public MacroscopicNetwork(final IdGroupingToken groupId, MacroscopicPhysicalNetworkBuilder customBuilder) {
-    super(groupId, customBuilder);
-    this.macroscopicNetworkBuilder = customBuilder;
+  @SuppressWarnings("unchecked")
+  public MacroscopicNetwork(final IdGroupingToken groupId, MacroscopicPhysicalNetworkBuilder<? extends Node, ? extends Link, ? extends MacroscopicLinkSegment> customBuilder) {
+    super(groupId, (PhysicalNetworkBuilder<Node, Link, MacroscopicLinkSegment>) customBuilder);
   }
 
   /**
@@ -75,7 +82,7 @@ public class MacroscopicNetwork extends PhysicalNetwork<Node, Link, MacroscopicL
   public MacroscopicLinkSegmentType createAndRegisterNewMacroscopicLinkSegmentType(final String name, final double capacityPcuPerHour, final double maximumDensityPcuPerKm,
       final Object linkSegmentExternalId, final Map<Mode, MacroscopicModeProperties> modeProperties) throws PlanItException {
 
-    MacroscopicLinkSegmentType linkSegmentType = macroscopicNetworkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentExternalId,
+    MacroscopicLinkSegmentType linkSegmentType = getMacroscopicNetworkBuilder().createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentExternalId,
         modeProperties);
     registerLinkSegmentType(linkSegmentType);
     return linkSegmentType;
@@ -94,7 +101,7 @@ public class MacroscopicNetwork extends PhysicalNetwork<Node, Link, MacroscopicL
   public MacroscopicLinkSegmentType createAndRegisterNewMacroscopicLinkSegmentType(final String name, final double capacityPcuPerHour, final double maximumDensityPcuPerKm,
       final Object linkSegmentExternalId) throws PlanItException {
 
-    MacroscopicLinkSegmentType linkSegmentType = macroscopicNetworkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentExternalId);
+    MacroscopicLinkSegmentType linkSegmentType = getMacroscopicNetworkBuilder().createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentExternalId);
     registerLinkSegmentType(linkSegmentType);
     return linkSegmentType;
   }

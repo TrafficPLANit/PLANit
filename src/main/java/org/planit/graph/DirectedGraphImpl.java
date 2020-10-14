@@ -1,16 +1,18 @@
 package org.planit.graph;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Logger;
 
+import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedGraph;
-import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.graph.DirectedVertex;
-import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
-import org.planit.utils.graph.Edges;
-import org.planit.utils.graph.Vertices;
-import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -20,30 +22,12 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES extends EdgeSegment> implements DirectedGraph<V,E,ES>{
+public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> extends GraphImpl<V, E> implements DirectedGraph<V, E, ES> {
 
   /** the logger */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(DirectedGraphImpl.class.getCanonicalName());
 
-  /**
-   * The id of this graph
-   */
-  private final long id;
-
   // Protected
-
-  /**
-   * Graph builder responsible for constructing all graph related (derived) instances
-   */
-  protected final DirectedGraphBuilder<V, E, ES> graphBuilder;
-
-  // PUBLIC
-
-  /**
-   * class instance containing all edges
-   */
-  protected final Edges<E> edges;
 
   /**
    * class instance containing all edge segments
@@ -51,23 +35,13 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES exte
   protected final EdgeSegments<ES> edgeSegments;
 
   /**
-   * class instance containing all vertices
-   */
-  protected final Vertices<V> vertices;
-
-  /**
-   * Graph Constructor
+   * DirectedGraph Constructor
    *
-   * @param groupId        contiguous id generation within this group for instances of this class
+   * @param groupToken     contiguous id generation within this group for instances of this class
    * @param networkBuilder the builder to be used to create this network
    */
-  public DirectedGraphImpl(final IdGroupingToken groupId, final DirectedGraphBuilder<V, E, ES> graphBuilder) {
-    this.id = IdGenerator.generateId(groupId, DirectedGraphImpl.class);
-    this.graphBuilder = graphBuilder;
-    this.graphBuilder.setIdGroupingToken(IdGenerator.createIdGroupingToken(this, this.getId()));
-
-    this.edges = new EdgesImpl<E>(graphBuilder);
-    this.vertices = new VerticesImpl<V>(graphBuilder);
+  public DirectedGraphImpl(final IdGroupingToken groupToken, final DirectedGraphBuilder<V, E, ES> graphBuilder) {
+    super(groupToken, graphBuilder);
     this.edgeSegments = new EdgeSegmentsImpl<ES>(graphBuilder);
   }
 
@@ -77,42 +51,123 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends Edge, ES exte
    * {@inheritDoc}
    */
   @Override
-  public long getId() {
-    return this.id;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Vertices<V> getVertices() {
-    return vertices;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Edges<E> getEdges() {
-    return edges;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public EdgeSegments<ES> getEdgeSegments() {
     return edgeSegments;
   }
-  
+
   /**
-   * Collect the id grouping token used for all entities registered on the graph, i.e., this network's specific identifier for generating ids unique and contiguous within this
-   * network and this network only
-   * 
-   * @return the graph id grouping token
+   * {@inheritDoc}
    */
-  public IdGroupingToken getGraphIdGroupingToken() {
-    return this.graphBuilder.getIdGroupingToken();
-  }  
+  @SuppressWarnings("unchecked")
+  @Override
+  public void removeSubGraph(Set<? extends V> subNetworkToRemove) {
+
+    /* remove the edge segment portion of the directed subgraph from the actual directed graph */
+    for (DirectedVertex directedVertex : subNetworkToRemove) {
+      Set<EdgeSegment> entryEdgeSegments = new HashSet<EdgeSegment>(directedVertex.getEntryEdgeSegments());
+      Set<EdgeSegment> exitEdgeSegments = new HashSet<EdgeSegment>(directedVertex.getExitEdgeSegments());
+
+      /* remove vertex' edge segments from graph */
+      entryEdgeSegments.forEach(edgeSegment -> getEdgeSegments().remove((ES) edgeSegment));
+      exitEdgeSegments.forEach(edgeSegment -> getEdgeSegments().remove((ES) edgeSegment));
+
+      /* remove directed vertex from edge segments */
+      entryEdgeSegments.forEach(edgeSegment -> edgeSegment.remove(directedVertex));
+      exitEdgeSegments.forEach(edgeSegment -> edgeSegment.remove(directedVertex));
+
+      /* remove edge from edge segments */
+      entryEdgeSegments.forEach(edgeSegment -> edgeSegment.removeParentEdge());
+      exitEdgeSegments.forEach(edgeSegment -> edgeSegment.removeParentEdge());
+
+      /* remove edge segments from vertex */
+      entryEdgeSegments.forEach(edgeSegment -> directedVertex.removeEdgeSegment(edgeSegment));
+      exitEdgeSegments.forEach(edgeSegment -> directedVertex.removeEdgeSegment(edgeSegment));
+    }
+
+    /* ensure no id gaps remain after the removal of internal entities */
+    if (graphBuilder instanceof DirectedGraphBuilder<?, ?, ?>) {
+      ((DirectedGraphBuilder<?, E, ES>) graphBuilder).recreateIds(getEdgeSegments());
+    } else {
+      LOGGER.severe(
+          "expected the EdgeSegments implementation to be compatible with directed graph builder, this is not the case: unable to correctly remove subnetwork and update ids");
+    }
+
+    /* do the same for vertices and edges */
+    super.removeSubGraph(subNetworkToRemove);
+  }
+
+  /**
+   * Identical to the {@code }GraphImpl implementation except that we now also account for the edge segments present on the edge. Copies of the original edge segments are placed on
+   * vertexToBreakAt->VertexB, while the original ones are retained at VertexA->vertexToBreakAt
+   * 
+   * @param edgesToBreak    edges to break
+   * @param vertexToBreakAt the vertex to break at
+   * @return affected edges of breaking the passed in edges, includes the newly created edges and modified existing edges
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
+
+    /* delegate regular breaking of edges */
+    Map<Long, Set<E>> brokenEdgesByOriginalEdgeId = super.breakEdgesAt(edgesToBreak, vertexToBreakAt);
+
+    /* edge segments have only been shallow copied since undirected graph is unaware of them */
+    /* break edge segments here using the already updated vertex/edge information in affected edges */
+    Set<EdgeSegment> identifiedEdgeSegmentOnEdge = new HashSet<EdgeSegment>();
+    for (Entry<Long, Set<E>> entry : brokenEdgesByOriginalEdgeId.entrySet()) {
+      for (E brokenEdge : entry.getValue()) {
+
+        /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
+        if (brokenEdge.hasEdgeSegmentAb()) {
+          EdgeSegment edgeSegmentAb = brokenEdge.getEdgeSegmentAb();
+
+          if (identifiedEdgeSegmentOnEdge.contains(edgeSegmentAb)) {
+            /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
+            edgeSegmentAb = this.edgeSegments.registerUniqueCopyOf((ES) edgeSegmentAb, brokenEdge);
+
+            /* replace edge <-> edge segment relation */
+            brokenEdge.replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb);
+            edgeSegmentAb.setParentEdge(brokenEdge);
+          } else {
+            identifiedEdgeSegmentOnEdge.add(edgeSegmentAb);
+          }
+
+          /* update segment's vertices */
+          edgeSegmentAb.replace(edgeSegmentAb.getUpstreamVertex(), (DirectedVertex) brokenEdge.getVertexA());
+          edgeSegmentAb.replace(edgeSegmentAb.getDownstreamVertex(), (DirectedVertex) brokenEdge.getVertexB());
+
+          /* update vertices' segments */
+          edgeSegmentAb.getUpstreamVertex().replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb, true);
+          edgeSegmentAb.getDownstreamVertex().replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb, true);
+        }
+
+        /* do the same for edge segment B-> A */
+        if (brokenEdge.hasEdgeSegmentBa()) {
+          EdgeSegment edgeSegmentBa = brokenEdge.getEdgeSegmentBa();
+
+          if (identifiedEdgeSegmentOnEdge.contains(edgeSegmentBa)) {
+            /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
+            edgeSegmentBa = this.edgeSegments.registerUniqueCopyOf((ES) edgeSegmentBa, brokenEdge);
+
+            /* replace edge <-> edge segment relation */
+            brokenEdge.replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa);
+            edgeSegmentBa.setParentEdge(brokenEdge);
+          } else {
+            identifiedEdgeSegmentOnEdge.add(edgeSegmentBa);
+          }
+
+          /* update segment's vertices */
+          edgeSegmentBa.replace(edgeSegmentBa.getUpstreamVertex(), (DirectedVertex) brokenEdge.getVertexB());
+          edgeSegmentBa.replace(edgeSegmentBa.getDownstreamVertex(), (DirectedVertex) brokenEdge.getVertexA());
+
+          /* update vertices' segments */
+          edgeSegmentBa.getUpstreamVertex().replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa, true);
+          edgeSegmentBa.getDownstreamVertex().replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa, true);
+        }
+      }
+    }
+
+    return brokenEdgesByOriginalEdgeId;
+  }
 
 }

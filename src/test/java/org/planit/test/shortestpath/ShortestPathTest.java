@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
-import org.geotools.geometry.GeometryBuilder;
+import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,6 +22,9 @@ import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.Zone;
+
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
 
 /**
  * Test the shortest path algorithms
@@ -82,7 +85,7 @@ public class ShortestPathTest {
     
     try {
       // local CRS in meters
-      GeometryBuilder geoBuilder = new GeometryBuilder(crs);
+      GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
       
       int gridSize = 4;
       network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
@@ -90,7 +93,7 @@ public class ShortestPathTest {
         for(int nodeColIndex = 0;nodeColIndex<=gridSize;++nodeColIndex) { 
           Node node = network.nodes.registerNew(nodeRowIndex*gridSize+nodeColIndex);
           // all nodes are spaced 1 km apart
-          node.setCentrePointGeometry(geoBuilder.createDirectPosition(new double[] {nodeRowIndex*1000, nodeColIndex*1000}));
+          node.setPosition(geoFactory.createPoint(new Coordinate(nodeRowIndex*1000, nodeColIndex*1000)));
         }
       }
       
@@ -100,7 +103,7 @@ public class ShortestPathTest {
           Node nodeA = network.nodes.get(linkRowIndex*(gridSize+1) + linkColIndex-1);
           Node nodeB = network.nodes.get(linkRowIndex*(gridSize+1) + linkColIndex);
           // all links are 1 km in length          
-          Link link = network.links.registerNewLink(nodeA, nodeB, 1);
+          Link link = network.links.registerNew(nodeA, nodeB, 1);
           nodeA.addEdge(link);
           nodeB.addEdge(link);
           LinkSegment linkSegmentAb = network.linkSegments.createNew(link, true);
@@ -118,7 +121,7 @@ public class ShortestPathTest {
           // all links are 1 km in length
           Node nodeA = network.nodes.get((linkRowIndex-1)*(gridSize+1)+linkColIndex);
           Node nodeB = network.nodes.get(linkRowIndex*(gridSize+1)+linkColIndex);
-          Link link = network.links.registerNewLink(nodeA, nodeB, 1);
+          Link link = network.links.registerNew(nodeA, nodeB, 1);
           nodeA.addEdge(link);
           nodeB.addEdge(link);
           LinkSegment linkSegmentAb = network.linkSegments.createNew(link, true);
@@ -138,15 +141,15 @@ public class ShortestPathTest {
       Zone zoneE = zoning.zones.createAndRegisterNewZone("E");
       
       centroidA = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneA);
-      centroidA.setCentrePointGeometry(geoBuilder.createDirectPosition(new double[] {0, 0}));
+      centroidA.setPosition(geoFactory.createPoint(new Coordinate(0, 0)));
       centroidB = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneB);
-      centroidB.setCentrePointGeometry(geoBuilder.createDirectPosition(new double[] {1*1000, 4*1000}));
+      centroidB.setPosition(geoFactory.createPoint(new Coordinate(1*1000, 4*1000)));
       centroidC = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneC);
-      centroidC.setCentrePointGeometry(geoBuilder.createDirectPosition(new double[] {2*1000, 2*1000}));
+      centroidC.setPosition(geoFactory.createPoint(new Coordinate(2*1000, 2*1000)));
       centroidD = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneD);
-      centroidD.setCentrePointGeometry(geoBuilder.createDirectPosition(new double[] {3*1000, 4*1000}));
+      centroidD.setPosition(geoFactory.createPoint(new Coordinate(3*1000, 4*1000)));
       centroidE = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneE);
-      centroidE.setCentrePointGeometry(geoBuilder.createDirectPosition(new double[] {4*1000, 4*1000}));
+      centroidE.setPosition(geoFactory.createPoint(new Coordinate(4*1000, 4*1000)));
       
       zoning.getVirtualNetwork().connectoids.registerNewConnectoid(centroidA, network.nodes.get(0), 0);
       zoning.getVirtualNetwork().connectoids.registerNewConnectoid(centroidB, network.nodes.get(21), 0);

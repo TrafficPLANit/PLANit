@@ -12,8 +12,8 @@ import org.planit.time.TimePeriod;
 import org.planit.userclass.TravelerType;
 import org.planit.userclass.UserClass;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.virtual.Zone;
 
@@ -71,7 +71,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   /**
    * Map which stores link segments by external Id
    */
-  private Map<Object, LinkSegment> linkSegmentExternalIdToLinkSegmentMap;
+  private Map<Object, MacroscopicLinkSegment> linkSegmentExternalIdToLinkSegmentMap;
 
   /**
    * Flag to determine whether duplicate external Id should be considered an error (defaults to true)
@@ -105,7 +105,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
     userClassExternalIdToUserClassMap = new HashMap<Object, UserClass>();
     timePeriodExternalIdToTimePeriodMap = new HashMap<Object, TimePeriod>();
     zoneExternalIdToZoneMap = new HashMap<Object, Zone>();
-    linkSegmentExternalIdToLinkSegmentMap = new HashMap<Object, LinkSegment>();
+    linkSegmentExternalIdToLinkSegmentMap = new HashMap<Object, MacroscopicLinkSegment>();
     errorIfDuplicateExternalId = true;
   }
 
@@ -299,7 +299,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @param externalId external Id of the link segment
    * @return the specified link segment
    */
-  public LinkSegment getLinkSegmentByExternalId(Object externalId) {
+  public MacroscopicLinkSegment getLinkSegmentByExternalId(Object externalId) {
     return linkSegmentExternalIdToLinkSegmentMap.get(externalId);
   }
 
@@ -310,7 +310,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @param linkSegment link segment to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public boolean addLinkSegmentToExternalIdMap(Object externalId, LinkSegment linkSegment) {
+  public boolean addLinkSegmentToExternalIdMap(Object externalId, MacroscopicLinkSegment linkSegment) {
     return addObjectToExternalIdMap(externalId, linkSegment, linkSegmentExternalIdToLinkSegmentMap, "link segment");
   }
 

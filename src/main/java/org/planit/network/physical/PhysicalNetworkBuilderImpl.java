@@ -1,30 +1,22 @@
 package org.planit.network.physical;
 
-import java.util.Map;
+import java.util.logging.Logger;
 
+import org.planit.graph.DirectedGraphBuilderImpl;
+import org.planit.graph.EdgeSegmentsImpl;
 import org.planit.graph.EdgesImpl;
 import org.planit.graph.VerticesImpl;
-import org.planit.network.physical.LinkImpl;
-import org.planit.network.physical.NodeImpl;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedGraph;
-import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Edges;
-import org.planit.utils.graph.Graph;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.IdSetter;
-import org.planit.utils.id.MultiIdSetter;
-import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
-import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 
 /**
  * Create network entities for a physical network simulation model
@@ -32,94 +24,22 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  * @author markr
  *
  */
-public abstract class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node,Link,LinkSegment> {
+public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, Link, LinkSegment> {
 
-  /**
-   * Contiguous id generation within this group id token for all instances created with factory methods in this class
-   */
-  protected IdGroupingToken groupId;
-  
-  /**
-   * Remove any id gaps present in the passed in links by updating their ids (if the edges are of the implementation compatible with this builder).
-   * The working assumption is that while ids might be missing, links are registered as a single blokc, i.e., all edges within the available id range of links are either
-   * links or are unused ids. If this is not the case, this method cannot be used to removed idGaps since the underlying edge ids are also updated based on this approach. If
-   * edge ids are also used for anythong else than links (connectoids), than these other entities ids should also subsequently be updated and they should not interleave with
-   * each other before updating the ids. 
-   * 
-   * The id generator ids for EDGE and LINK are reset and repopulated while re-registering all links as edges on the network.
-   * 
-   * @param links to create contiguous ids fro starting with zero
-   */
-  @SuppressWarnings("unchecked")
-  protected void removeIdGaps(Edges<Link> links) {   
-    /* only proceed when implementation of edges and link is compatible with this builder */
-    if( !links.isEmpty() && links instanceof EdgesImpl && 
-        links.iterator().next() instanceof MultiIdSetter<?>) {
-      
-      /* prep */
-      Link prevAvailableLink = links.iterator().next();
-      long previousId = prevAvailableLink.getId();
-      long currId = previousId+1;
-      
-      IdGroupingToken token = getIdGroupingToken();      
-      boolean firstGap = true;
-      /* end prep */
-      
-      while(currId < links.size()) {
-        Link currLink = links.get(currId);
-        
-        if(currLink!=null) {         
-          if(currLink.getId() != prevAvailableLink.getId()+1) {
-            
-            /* first gap, reset id generator's offset */
-            if(firstGap) {
-              IdGenerator.resetTo(token, Edge.class, prevAvailableLink.getId());
-              IdGenerator.resetTo(token, Link.class, prevAvailableLink.getLinkId());
-              firstGap = false;
-            }
-            
-            /* unregister link before re-registering with updated ids */
-            links.remove(currLink);
-            /* update internal id and link id, and re-register based on overwritten ids */
-            
-            CONTINUE -> SPLIT IN TWO -> CREATE GRAPHBUILDER THAT ALLOWS FOR REMOVING GAPS FROM EDGES VIA EDGE IMPL -> DO THAT FIRST IN GENERAL ONLY THEN CALL THIS METHOD
-            THIS METHOD ONlY UPDATES THE LINKS --> REMOVE IDSETTERS -> JUST MAKE IT PROTECTED SINCE WE CAN ACCESS IT :)
-            
-            ((MultiIdSetter<Long>)currLink).overwriteIds(LinkImpl.generateEdgeId(token), LinkImpl.generateLinkId(token));
-            ((EdgesImpl<Link>)links).register(currLink);          
-          }else {
-            /* not missing, update prevAvailableLink */
-            prevAvailableLink = currLink;  
-          }
-        }
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = Logger.getLogger(PhysicalNetworkBuilderImpl.class.getCanonicalName());
 
-        previousId = currId;
-        ++currId;
-      }
-    }
-  }
-   
-  /**
-   * Remove any id gaps present in the passed in nodes by updating their ids if the edges are of the implementation compatible with this builder
-   * 
-   * @param nodes to create contiguous ids for starting from zero
-   */  
-  @SuppressWarnings("unchecked")
-  protected void removeIdGaps(Vertices<Node> nodes) {
-    // TODO
-  }
-  
-  /** todo */
-  protected void removeIdGaps(EdgeSegments<LinkSegment> edgeSegments) {
-    //TODO
-  }
-  
+  /** hold an implementation of directed graph builder to use its overlapping functionality */
+  protected DirectedGraphBuilderImpl directedGraphBuilderImpl = new DirectedGraphBuilderImpl();
+
+  // Public methods
+
   /**
    * {@inheritDoc}
    */
   @Override
   public Node createVertex() {
-    return new NodeImpl(groupId);
+    return new NodeImpl(getIdGroupingToken());
   }
 
   /**
@@ -127,15 +47,27 @@ public abstract class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuild
    */
   @Override
   public Link createEdge(Vertex nodeA, Vertex nodeB, final double length) throws PlanItException {
-    return new LinkImpl(groupId, (Node) nodeA, (Node) nodeB, length);
+    if (nodeA instanceof Node && nodeB instanceof Node) {
+      return new LinkImpl(getIdGroupingToken(), (Node) nodeA, (Node) nodeB, length);
+    } else {
+      throw new PlanItException("unable to create link, vertices should be of type Node");
+    }
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void setIdGroupingToken(IdGroupingToken groupId) {
-    this.groupId = groupId;
+  public LinkSegment createEdgeSegment(DirectedEdge parentLink, boolean directionAB) throws PlanItException {
+    return new LinkSegmentImpl(getIdGroupingToken(), (Link) parentLink, directionAB);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setIdGroupingToken(IdGroupingToken groupToken) {
+    directedGraphBuilderImpl.setIdGroupingToken(groupToken);
   }
 
   /**
@@ -143,25 +75,114 @@ public abstract class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuild
    */
   @Override
   public IdGroupingToken getIdGroupingToken() {
-    return this.groupId;
+    return directedGraphBuilderImpl.getIdGroupingToken();
   }
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
-  public void removeIdGaps(DirectedGraph<Node, Link, LinkSegment> directedGraph) {
-    this.removeIdGaps((Graph<Node, Link>)directedGraph);
-    removeIdGaps(directedGraph.getEdgeSegments());
+  public void recreateIds(EdgeSegments<? extends LinkSegment> linkSegments) {
+    directedGraphBuilderImpl.recreateIds(linkSegments);
+
+    /* conduct linkIds ourselves since it is a physical network add-on */
+    if (linkSegments instanceof EdgeSegmentsImpl<?>) {
+      /* remove gaps by simply resetting and recreating all node ids */
+      IdGenerator.reset(getIdGroupingToken(), LinkSegment.class);
+
+      for (LinkSegment linkSegment : linkSegments) {
+        if (linkSegment instanceof LinkSegmentImpl) {
+          ((LinkSegmentImpl) linkSegment).setLinkSegmentId(LinkSegmentImpl.generateLinkSegmentId(getIdGroupingToken()));
+        } else {
+          LOGGER.severe(String.format("attempting to reset id on link segment (%s) that is not compatible with the node implementation generated by this builder, ignored",
+              linkSegment.getClass().getCanonicalName()));
+        }
+      }
+    }
   }
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
-  public void removeIdGaps(Graph<Node, Link> graph) {
-    removeIdGaps(graph.getEdges());
-    removeIdGaps(graph.getVertices());
+  public void recreateIds(Edges<? extends Link> links) {
+    /* delegate for edge ids */
+    directedGraphBuilderImpl.recreateIds(links);
+
+    /* conduct linkIds ourselves since it is a physical network add-on */
+    if (links instanceof EdgesImpl<?, ?>) {
+      /* remove gaps by simply resetting and recreating all link ids */
+      IdGenerator.reset(getIdGroupingToken(), Link.class);
+
+      for (Link link : links) {
+        if (link instanceof LinkImpl) {
+          ((LinkImpl) link).setLinkId(LinkImpl.generateLinkId(getIdGroupingToken()));
+        } else {
+          LOGGER.severe(String.format("attempting to reset linkId on link (%s) that is not compatible with the link implementation generated by this builder, ignored",
+              link.getClass().getCanonicalName()));
+        }
+      }
+    } else {
+      LOGGER.severe("expected the Edges implementation to be compatible with graph builder, this is not the case: unable to correctly remove subnetwork and update ids");
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(Vertices<? extends Node> nodes) {
+    /* delegate for vertex ids */
+    directedGraphBuilderImpl.recreateIds(nodes);
+
+    /* conduct linkIds ourselves since it is a physical network add-on */
+    if (nodes instanceof VerticesImpl<?>) {
+      /* remove gaps by simply resetting and recreating all node ids */
+      IdGenerator.reset(getIdGroupingToken(), Node.class);
+
+      for (Node node : nodes) {
+        if (node instanceof NodeImpl) {
+          ((NodeImpl) node).setNodeId(NodeImpl.generateNodeId(getIdGroupingToken()));
+        } else {
+          LOGGER.severe(String.format("attempting to reset id on node (%s) that is not compatible with the node implementation generated by this builder, ignored",
+              node.getClass().getCanonicalName()));
+        }
+      }
+    } else {
+      LOGGER.severe("expected the Vertices implementation to be compatible with graph builder, this is not the case: unable to correctly remove subnetwork and update ids");
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Link createUniqueCopyOf(Link linkToCopy) {
+    if (linkToCopy instanceof LinkImpl) {
+      LinkImpl copy = (LinkImpl) directedGraphBuilderImpl.createUniqueCopyOf(linkToCopy);
+
+      /* make unique copy by updating link id */
+      copy.setLinkId(LinkImpl.generateLinkId(getIdGroupingToken()));
+      return copy;
+    }
+    LOGGER.severe("passed in link is not an instance created by this builder, incompatible for creating a copy");
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinkSegment createUniqueCopyOf(LinkSegment linkSegmentToCopy, DirectedEdge parentEdge) {
+    if (linkSegmentToCopy instanceof LinkSegmentImpl) {
+      LinkSegmentImpl copy = (LinkSegmentImpl) directedGraphBuilderImpl.createUniqueCopyOf(linkSegmentToCopy, parentEdge);
+
+      /* make unique copy by updating link segment id */
+      copy.setLinkSegmentId(LinkSegmentImpl.generateLinkSegmentId(getIdGroupingToken()));
+      return copy;
+    }
+    LOGGER.severe("passed in link segment is not an instance created by this builder, incompatible for creating a copy");
+    return null;
   }
 
 }

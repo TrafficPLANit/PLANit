@@ -2,14 +2,14 @@ package org.planit.network.physical;
 
 import java.util.logging.Logger;
 
-import org.opengis.geometry.coordinate.LineString;
-import org.planit.graph.EdgeImpl;
+import org.planit.graph.DirectedEdgeImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.MultiIdSetter;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Node;
+
+import com.vividsolutions.jts.geom.LineString;
 
 /**
  * Link class connecting two nodes via some geometry. Each link has one or two underlying link segments in a particular direction which may carry additional information for each
@@ -18,14 +18,15 @@ import org.planit.utils.network.physical.Node;
  * @author markr
  *
  */
-public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
+public class LinkImpl extends DirectedEdgeImpl implements Link {
 
   // Protected
 
   /** generated UID */
   private static final long serialVersionUID = 2360017879557363410L;
-  
+
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(LinkImpl.class.getCanonicalName());
 
   /**
@@ -33,11 +34,6 @@ public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
    */
   protected long linkId;
 
-  /**
-   * External Id of the physical link
-   */
-  protected Object externalId;
-  
   /**
    * The line geometry of this link if set
    */
@@ -51,9 +47,27 @@ public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
    */
   protected static long generateLinkId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Link.class);
-  }  
+  }
 
-  // Public
+  /**
+   * Set the link id
+   * 
+   * @param linkId to set
+   */
+  protected void setLinkId(long linkId) {
+    this.linkId = linkId;
+  }
+
+  /**
+   * Copy constructor, geometry is deep copied, see also {@code DirectedEdge} copy constructed
+   * 
+   * @param linkImpl to copy
+   */
+  protected LinkImpl(LinkImpl linkImpl) {
+    super(linkImpl);
+    setLinkId(linkImpl.getLinkId());
+    setGeometry((LineString) linkImpl.getGeometry().clone());
+  }
 
   /**
    * Constructor which injects link length directly
@@ -65,62 +79,26 @@ public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
    * @param name     the name of the link
    * @throws PlanItException thrown if there is an error
    */
-  public LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length) throws PlanItException {
+  protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length) throws PlanItException {
     super(groupId, nodeA, nodeB, length);
-    this.linkId = generateLinkId(groupId);
+    setLinkId(generateLinkId(groupId));
   }
+
+  // Public
 
   // Getters-Setters
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public long getLinkId() {
     return linkId;
   }
-  
-  /**
-   * Allows one to overwrite the underlying edge id (first id), and link id (second id) at the same time
-   * 
-   * @param ids (only supports two ids, first edge id, second link id)
-   */
-  @Override
-  public void overwriteIds(Long... ids) {
-    if(ids.length != 2) {
-      LOGGER.warning(String.format("overwriting link ids requires exactly two ids, one for the edge and one for the link, we found %d, ignored",ids.length));
-    }
-    overwriteId(ids[0]);
-    this.linkId = ids[1];
-  }  
 
-  /**
-   * {@inheritDoc}
-   */  
-  @Override
-  public void setExternalId(final Object externalId) {
-    this.externalId = externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */  
-  @Override
-  public Object getExternalId() {
-    return externalId;
-  }
-  
   /**
    * {@inheritDoc}
    */
-  @Override
-  public boolean hasExternalId() {
-    return (externalId != null);
-  }
-
-  /**
-   * {@inheritDoc}
-   */  
   @Override
   public LineString getGeometry() {
     return lineGeometry;
@@ -131,7 +109,15 @@ public class LinkImpl extends EdgeImpl implements Link, MultiIdSetter<Long> {
    */
   @Override
   public void setGeometry(LineString lineString) {
-    this.lineGeometry = lineString;    
+    this.lineGeometry = lineString;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinkImpl clone() {
+    return new LinkImpl(this);
   }
 
 }

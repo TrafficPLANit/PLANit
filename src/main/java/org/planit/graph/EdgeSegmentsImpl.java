@@ -1,21 +1,27 @@
 package org.planit.graph;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedGraphBuilder;
-import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.DirectedEdge;
+import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
 
 public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES> {
 
+  /** the logger */
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = Logger.getLogger(EdgeSegmentsImpl.class.getCanonicalName());
+
   /**
    * The graph builder to create edgse segments
    */
-  DirectedGraphBuilder<?, ?, ES> graphBuilder;
+  protected DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> directedGraphBuilder;
 
   /**
    * Map to store edge segments by their Id
@@ -23,12 +29,21 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   private Map<Long, ES> edgeSegmentMap;
 
   /**
-   * Register a link segment on the network
+   * updates the edge segments map keys based on edge segment ids in case an external force has changed already registered edges
+   */
+  protected void updateIdMapping() {
+    /* identify which entries need to be re-registered because of a mismatch */
+    Map<Long, ES> updatedMap = new HashMap<Long, ES>(edgeSegmentMap.size());
+    edgeSegmentMap.forEach((oldId, edgeSegment) -> updatedMap.put(edgeSegment.getId(), edgeSegment));
+    edgeSegmentMap = updatedMap;
+  }
+
+  /**
+   * Register an edge segment on the network. Use cautiously, if p only register via a factory method to ensure correct id generation within the container
    *
    * @param edgeSegment the link segment to be registered
-   * @throws PlanItException thrown if the current link segment external Id has already been assigned
    */
-  protected void registerEdgeSegment(final ES edgeSegment) throws PlanItException {
+  public void register(final ES edgeSegment) {
     edgeSegmentMap.put(edgeSegment.getId(), edgeSegment);
   }
 
@@ -37,8 +52,8 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
    * 
    * @param graphBuilder the grpahBuilder to use to create edge segments
    */
-  public EdgeSegmentsImpl(DirectedGraphBuilder<?, ?, ES> graphBuilder) {
-    this.graphBuilder = graphBuilder;
+  public EdgeSegmentsImpl(DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> graphBuilder) {
+    this.directedGraphBuilder = graphBuilder;
     this.edgeSegmentMap = new TreeMap<Long, ES>();
   }
 
@@ -54,6 +69,14 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
    * {@inheritDoc}
    */
   @Override
+  public void remove(long edgeSegmentId) {
+    edgeSegmentMap.remove(edgeSegmentId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Iterator<ES> iterator() {
     return edgeSegmentMap.values().iterator();
   }
@@ -61,17 +84,17 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   /**
    * {@inheritDoc}
    */
-  public ES create(final Edge parentEdge, final boolean directionAB) throws PlanItException {
-    final ES edgeSegment = graphBuilder.createEdgeSegment(parentEdge, directionAB);
+  public ES create(final DirectedEdge parentEdge, final boolean directionAB) throws PlanItException {
+    final ES edgeSegment = directedGraphBuilder.createEdgeSegment(parentEdge, directionAB);
     return edgeSegment;
   }
 
   /**
    * {@inheritDoc}
    */
-  public void createAndRegister(final Edge parentEdge, final ES edgeSegment, final boolean directionAB) throws PlanItException {
+  public void registerNew(final DirectedEdge parentEdge, final ES edgeSegment, final boolean directionAB) throws PlanItException {
     parentEdge.registerEdgeSegment(edgeSegment, directionAB);
-    registerEdgeSegment(edgeSegment);
+    register(edgeSegment);
   }
 
   /**
@@ -84,8 +107,18 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   /**
    * {@inheritDoc}
    */
-  public int size() {
+  public long size() {
     return edgeSegmentMap.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ES registerUniqueCopyOf(ES edgeSegmentToCopy, DirectedEdge newParentEdge) {
+    final ES copy = directedGraphBuilder.createUniqueCopyOf(edgeSegmentToCopy, newParentEdge);
+    register(copy);
+    return copy;
   }
 
 }

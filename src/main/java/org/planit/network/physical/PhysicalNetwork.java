@@ -2,9 +2,7 @@ package org.planit.network.physical;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -12,24 +10,25 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.geo.PlanitJtsUtils;
 import org.planit.graph.DirectedGraphImpl;
+import org.planit.graph.GraphModifier;
 import org.planit.mode.ModesImpl;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.DirectedVertex;
-import org.planit.utils.graph.Edge;
-import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.IdSetter;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.mode.Modes;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
+
+import com.vividsolutions.jts.geom.LineString;
 
 /**
  * Model free Network consisting of nodes and links, each of which can be iterated over. This network does not contain any transport specific information, hence the qualification
@@ -47,8 +46,18 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(PhysicalNetwork.class.getCanonicalName());
 
+  /** the coordinate reference system used for all entities in this network */
+  private CoordinateReferenceSystem coordinateReferenceSystem;
+
+  /** one can set the coordinate reference system only when the network is empty and only once at this point */
+  private boolean coordinateReferenceSystemLocked = false;
+
   /**
    * Internal class for all Link specific code
+   *
+   */
+  /**
+   * @author markr
    *
    */
   public class Links implements Iterable<L> {
@@ -70,12 +79,12 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link
      * @throws PlanItException thrown if there is an error
      */
-    public L registerNewLink(final N nodeA, final N nodeB, final double length) throws PlanItException {
+    public L registerNew(final Node nodeA, final Node nodeB, final double length) throws PlanItException {
       return registerNew(nodeA, nodeB, length, false);
     }
 
     /**
-     * Create new link to network identified via its id, injecting link length directly (link is not registered on nodes, this is left to the user)
+     * Create new link to network identified via its id, injecting link length directly
      *
      * @param nodeA           the first node in this link
      * @param nodeB           the second node in this link
@@ -84,7 +93,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link
      * @throws PlanItException thrown if there is an error
      */
-    public L registerNew(final N nodeA, final N nodeB, final double length, boolean registerOnNodes) throws PlanItException {
+    public L registerNew(final Node nodeA, final Node nodeB, final double length, boolean registerOnNodes) throws PlanItException {
       final L newLink = graph.getEdges().registerNew(nodeA, nodeB, length);
       if (registerOnNodes) {
         nodeA.addEdge(newLink);
@@ -111,7 +120,16 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     public int size() {
       return graph.getEdges().size();
     }
-    
+
+    /**
+     * check if size is zero
+     * 
+     * @return true when empty false otherwise
+     */
+    public boolean isEmpty() {
+      return graph.getEdges().isEmpty();
+    }
+
   }
 
   /**
@@ -179,7 +197,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LS createNew(final Link parentLink, final boolean directionAb) throws PlanItException {
+    public LS createNew(final L parentLink, final boolean directionAb) throws PlanItException {
       return graph.getEdgeSegments().create(parentLink, directionAb);
     }
 
@@ -191,8 +209,8 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LS createAndRegisterNew(final Link parentLink, final boolean directionAb) throws PlanItException {
-      return createAndRegisterNew(parentLink, directionAb, false /* do not register on node and link */);
+    public LS registerNew(final L parentLink, final boolean directionAb) throws PlanItException {
+      return registerNew(parentLink, directionAb, false /* do not register on node and link */);
     }
 
     /**
@@ -204,7 +222,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @return the created link segment
      * @throws PlanItException thrown if there is an error
      */
-    public LS createAndRegisterNew(final Link parentLink, final boolean directionAb, final boolean registerOnNodeAndLink) throws PlanItException {
+    public LS registerNew(final L parentLink, final boolean directionAb, final boolean registerOnNodeAndLink) throws PlanItException {
       LS linkSegment = createNew(parentLink, directionAb);
       register(parentLink, linkSegment, directionAb);
       if (registerOnNodeAndLink) {
@@ -225,8 +243,8 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      * @param directionAb direction of travel
      * @throws PlanItException thrown if there is an error
      */
-    public void register(final Link parentLink, final LS linkSegment, final boolean directionAb) throws PlanItException {
-      graph.getEdgeSegments().createAndRegister(parentLink, linkSegment, directionAb);
+    public void register(final L parentLink, final LS linkSegment, final boolean directionAb) throws PlanItException {
+      graph.getEdgeSegments().registerNew(parentLink, linkSegment, directionAb);
       register(linkSegment);
     }
 
@@ -245,7 +263,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
      *
      * @return number of registered link segments
      */
-    public int size() {
+    public long size() {
       return graph.getEdgeSegments().size();
     }
 
@@ -288,6 +306,15 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
         }
       }
       return null;
+    }
+
+    /**
+     * check if size is zero
+     * 
+     * @return true if empty false otherwise
+     */
+    public boolean isEmpty() {
+      return graph.getEdgeSegments().isEmpty();
     }
 
   }
@@ -345,6 +372,15 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
       return graph.getVertices().get(id);
     }
 
+    /**
+     * check if size is zero
+     * 
+     * @return true when empty false otherwise
+     */
+    public boolean isEmpty() {
+      return graph.getVertices().isEmpty();
+    }
+
   }
 
   /**
@@ -377,28 +413,6 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     return networkBuilder;
   }
 
-  /**
-   * helper function for recursive subnetwork identification
-   * 
-   * @param referenceNode   to process
-   * @param subNetworkNodes to add connected adjacent nodes to
-   */
-  protected void processSubNetworkNode(Node referenceNode, Set<Node> subNetworkNodes) {
-    if(!subNetworkNodes.contains(referenceNode)) {
-      subNetworkNodes.add(referenceNode);
-
-      Set<Edge> edges = referenceNode.getEdges();
-      for (Edge edge : edges) {
-        if (!subNetworkNodes.contains(edge.getVertexA())) {
-          processSubNetworkNode((Node) edge.getVertexA(), subNetworkNodes);
-        }
-        if (!subNetworkNodes.contains(edge.getVertexB())) {
-          processSubNetworkNode((Node) edge.getVertexB(), subNetworkNodes);
-        }
-      }
-    }
-  }
-
   // PUBLIC
 
   // shorthand for the macroscopic network canonical class name
@@ -425,13 +439,31 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   public final Modes modes;
 
   /**
-   * Network Constructor
+   * Network Constructor using default coordinate reference system
    *
    * @param groupId        contiguous id generation within this group for instances of this class
    * @param networkBuilder the builder to be used to create this network
    */
   public PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder<N, L, LS> networkBuilder) {
     super(groupId, PhysicalNetwork.class);
+    this.coordinateReferenceSystem = PlanitJtsUtils.DEFAULT_GEOGRAPHIC_CRS;
+
+    this.networkBuilder = networkBuilder; /* for derived classes building part */
+    this.graph = new DirectedGraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
+    this.modes = new ModesImpl(getNetworkIdGroupingToken()); /* for mode building added by this class */
+  }
+
+  /**
+   * Network Constructor
+   *
+   * @param groupId                   contiguous id generation within this group for instances of this class
+   * @param networkBuilder            the builder to be used to create this network
+   * @param coordinateReferenceSystem the coordinate reference system to use
+   */
+  public PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder<N, L, LS> networkBuilder, final CoordinateReferenceSystem coordinateReferenceSystem) {
+    super(groupId, PhysicalNetwork.class);
+    this.coordinateReferenceSystem = coordinateReferenceSystem;
+
     this.networkBuilder = networkBuilder; /* for derived classes building part */
     this.graph = new DirectedGraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
     this.modes = new ModesImpl(getNetworkIdGroupingToken()); /* for mode building added by this class */
@@ -448,14 +480,44 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   public IdGroupingToken getNetworkIdGroupingToken() {
     return ((DirectedGraphImpl<N, L, LS>) graph).getGraphIdGroupingToken();
   }
-  
+
+  /**
+   * Collect the coordinate reference system used for this network
+   * 
+   * @return
+   */
+  public CoordinateReferenceSystem getCoordinateReferenceSystem() {
+    return coordinateReferenceSystem;
+  }
+
+  /**
+   * Collect the coordinate reference system used for this network
+   * 
+   * @return
+   */
+  public final void setCoordinateReferenceSystem(CoordinateReferenceSystem coordinateReferenceSystem) {
+    if (!coordinateReferenceSystemLocked && isEmpty()) {
+      this.coordinateReferenceSystem = coordinateReferenceSystem;
+      this.coordinateReferenceSystemLocked = true;
+    }
+  }
+
+  /**
+   * check if network is empty, meaning not a single link, node, or link segment is registered yet
+   * 
+   * @return true if empty fals otherwise
+   */
+  public boolean isEmpty() {
+    return nodes.isEmpty() && links.isEmpty() && linkSegments.isEmpty();
+  }
+
   /**
    * remove any dangling subnetworks from the network if they exist and subsequently reorder the internal ids if needed
    * 
    */
   public void removeDanglingSubnetworks() {
     removeDanglingSubnetworks(Integer.MAX_VALUE);
-  }  
+  }
 
   /**
    * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
@@ -463,77 +525,52 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @param belowSize only remove subnetworks below the given size
    */
   public void removeDanglingSubnetworks(Integer belowsize) {
-    Set<Integer> removedSubnetworksOfSize = new HashSet<Integer>();
-    
-    Set<Node> remainingNodes = new HashSet<Node>(nodes.size());
-    nodes.forEach(node -> remainingNodes.add(node));
-    Map<Node, Integer> identifiedSubNetworkSizes = new HashMap<Node, Integer>();
+    LOGGER.info(String.format("Removing dangling subnetworks with less than %s vertices", belowsize != Integer.MAX_VALUE ? String.valueOf(belowsize) : "infinite"));
+    LOGGER.info(String.format("Original number of nodes %d, links %d, link segments %d", nodes.size(), links.size(), linkSegments.size()));
 
-    while (remainingNodes.iterator().hasNext()) {
-      /* recursively traverse the subnetwork */
-      Node referenceNode = remainingNodes.iterator().next();
-      Set<Node> subNetworkNodesToPopulate = new HashSet<Node>();
-      processSubNetworkNode(referenceNode, subNetworkNodesToPopulate);
-
-      /* register size and remove subnetwork from remaining nodes */
-      identifiedSubNetworkSizes.put(referenceNode, subNetworkNodesToPopulate.size());
-      remainingNodes.removeAll(subNetworkNodesToPopulate);
+    if (getGraph() instanceof GraphModifier<?, ?>) {
+      ((GraphModifier<?, ?>) getGraph()).removeDanglingSubGraphs(belowsize);
+    } else {
+      LOGGER.severe("Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored");
     }
-
-    /* remove all non-dominating subnetworks */
-    int maxSubNetworkSize = Collections.max(identifiedSubNetworkSizes.values());
-    for (Entry<Node, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
-      int subNetworkSize = entry.getValue();
-      if (maxSubNetworkSize > subNetworkSize) {        
-        /* not the biggest subnetwork, remove from network if below threshold */
-        if(subNetworkSize < belowsize) {
-          removeSubnetworkOf(entry.getKey());
-          removedSubnetworksOfSize.add(subNetworkSize);
-        }
-      }
-    }
-    
-    if(belowsize != Integer.MAX_VALUE) {
-      LOGGER.info(String.format("removed %d dangling networks",removedSubnetworksOfSize));  
-    }else {
-      LOGGER.info(String.format("removed %d dangling networks of size %d or less",removedSubnetworksOfSize, belowsize));
-    }
-    
+    LOGGER.info(String.format("remaining number of nodes %d, links %d, link segments %d", nodes.size(), links.size(), linkSegments.size()));
   }
 
   /**
-   * remove the (sub)network in which the passed in node resides. Apply reordering of internal ids of remaining network.
+   * Break the passed in links by inserting the passed in node in between. After completion the original links remain as NodeA->NodeToBreakAt, and new links as inserted for
+   * NodeToBreakAt->NodeB.
    * 
-   * @param referenceNode to identify subnetwork by
+   * Underlying link segments (if any) are also updated accordingly in the same manner
+   * 
+   * @param linksToBreak  the links to break
+   * @param nodeToBreakAt the node to break at
+   * @return the broken edges for each original edge's id
+   * @throws PlanItException thrown if error
    */
   @SuppressWarnings("unchecked")
-  public void removeSubnetworkOf(Node referenceNode) {
-    Set<Node> subNetworkNodesToPopulate = new HashSet<Node>();
-    processSubNetworkNode(referenceNode, subNetworkNodesToPopulate);
+  public Map<Long, Set<L>> breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt) throws PlanItException {
+    if (getGraph() instanceof GraphModifier<?, ?>) {
+      Map<Long, Set<L>> affectedLinks = ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
 
-    /* remove the subnetwork from the actual network */
-    for (Node node : subNetworkNodesToPopulate) {
-      Set<Edge> nodeEdges = node.getEdges();
-      nodeEdges.forEach(edge -> this.graph.getEdges().remove((L) edge));
-
-      /* remove from network if not already done */
-      Set<EdgeSegment> entryEdgeSegments = node.getEntryEdgeSegments();
-      entryEdgeSegments.forEach(edgeSegment -> this.graph.getEdgeSegments().remove((LS) edgeSegment));
-      Set<EdgeSegment> exitEdgeSegments = node.getExitEdgeSegments();
-      exitEdgeSegments.forEach(edgeSegment -> this.graph.getEdgeSegments().remove((LS) edgeSegment));
-
-      /* remove edges and edge segments from node */
-      nodeEdges.forEach(edge -> node.removeEdge(edge));
-      entryEdgeSegments.forEach(edgeSegment -> node.removeEdgeSegment(edgeSegment));
-      exitEdgeSegments.forEach(edgeSegment -> node.removeEdgeSegment(edgeSegment));
-
-      /* remove node from edges and edge segments */
-      entryEdgeSegments.forEach(edgeSegment -> edgeSegment.removeVertex(node));
-      exitEdgeSegments.forEach(edgeSegment -> edgeSegment.removeVertex(node));
+      /* broken links geometry must be updated since it links is truncated compared to its original */
+      PlanitJtsUtils geoUtils = new PlanitJtsUtils(getCoordinateReferenceSystem());
+      for (Entry<Long, Set<L>> brokenLinks : affectedLinks.entrySet()) {
+        for (Link brokenLink : brokenLinks.getValue()) {
+          LineString updatedGeometry = null;
+          if (brokenLink.getNodeA().equals(nodeToBreakAt)) {
+            updatedGeometry = geoUtils.createCopyWithoutCoordinatesBefore(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
+          } else if (brokenLink.getNodeB().equals(nodeToBreakAt)) {
+            updatedGeometry = geoUtils.createCopyWithoutCoordinatesAfter(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
+          } else {
+            LOGGER.warning(String.format("unable to locate node to break at for broken link %s (id:%d)", brokenLink.getExternalId(), brokenLink.getId()));
+          }
+          brokenLink.setGeometry(updatedGeometry);
+        }
+      }
+      return affectedLinks;
     }
-
-    /* remove any gaps in ids created by removing dangling subnetworks */
-    getNetworkBuilder().removeIdGaps(this);
+    LOGGER.severe("Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored");
+    return null;
   }
 
 }

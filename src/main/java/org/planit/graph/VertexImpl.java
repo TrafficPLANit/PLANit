@@ -1,16 +1,15 @@
 package org.planit.graph;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 
-import org.opengis.geometry.DirectPosition;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.IdSetter;
+
+import com.vividsolutions.jts.geom.Point;
 
 /**
  * vertex representation connected to one or more entry and exit edges
@@ -18,7 +17,7 @@ import org.planit.utils.id.IdSetter;
  * @author markr
  *
  */
-public class VertexImpl implements Vertex, IdSetter<Long> {
+public class VertexImpl implements Vertex {
 
   /** generated UID */
   private static final long serialVersionUID = -2877566769607366608L;
@@ -33,6 +32,15 @@ public class VertexImpl implements Vertex, IdSetter<Long> {
    */
   protected static long generateVertexId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Vertex.class);
+  }
+
+  /**
+   * Set id on vertex
+   * 
+   * @param id to set
+   */
+  public void setId(Long id) {
+    this.id = id;
   }
 
   /**
@@ -53,12 +61,12 @@ public class VertexImpl implements Vertex, IdSetter<Long> {
   /**
    * Centre point geometry which is coordinate reference system aware
    */
-  protected DirectPosition centrePointGeometry;
+  protected Point position;
 
   /**
    * Edges of this vertex
    */
-  protected final Set<Edge> edges = new TreeSet<Edge>();
+  protected final Map<Long, Edge> edges = new HashMap<Long, Edge>();
 
   /**
    * Constructor
@@ -69,22 +77,36 @@ public class VertexImpl implements Vertex, IdSetter<Long> {
     this.id = generateVertexId(groupId);
   }
 
+  /**
+   * Copy constructor (for now input properties are NOT copied, because a shallow copy of contents is dangerous). Geometry is deep copied, edges are not because they are not owned
+   * by the vertex.
+   * 
+   * @param vertexImpl to copy
+   */
+  protected VertexImpl(VertexImpl vertexImpl) {
+    setId(vertexImpl.getId());
+    setExternalId(vertexImpl.getExternalId());
+    setPosition((Point) vertexImpl.getPosition().clone());
+    edges.putAll(vertexImpl.edges);
+    inputProperties = null; // not copied, shallow copy of objects is dangerous
+  }
+
   // Public
 
   /**
    * #{@inheritDoc}
    */
   @Override
-  public DirectPosition getCentrePointGeometry() {
-    return centrePointGeometry;
+  public Point getPosition() {
+    return position;
   }
 
   /**
    * #{@inheritDoc}
    */
   @Override
-  public void setCentrePointGeometry(final DirectPosition centrePointGeometry) {
-    this.centrePointGeometry = centrePointGeometry;
+  public void setPosition(final Point position) {
+    this.position = position;
   }
 
   // Getters-Setters
@@ -96,14 +118,6 @@ public class VertexImpl implements Vertex, IdSetter<Long> {
   public long getId() {
     return id;
   }
-  
-  /**
-   * #{@inheritDoc}
-   */  
-  @Override
-  public void overwriteId(Long id) {
-    this.id = id;
-  }  
 
   /**
    * {@inheritDoc}
@@ -167,7 +181,7 @@ public class VertexImpl implements Vertex, IdSetter<Long> {
    */
   @Override
   public boolean addEdge(final Edge edge) {
-    return edges.add(edge);
+    return edges.put(edge.getId(), edge) != null;
   }
 
   /**
@@ -175,15 +189,20 @@ public class VertexImpl implements Vertex, IdSetter<Long> {
    */
   @Override
   public boolean removeEdge(final Edge edge) {
-    return edges.remove(edge);
+    return removeEdge(edge.getId());
+  }
+
+  @Override
+  public boolean removeEdge(final long edgeId) {
+    return edges.remove(edgeId) != null;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Set<Edge> getEdges() {
-    return edges;
+  public Collection<Edge> getEdges() {
+    return edges.values();
   }
 
   /**
@@ -199,7 +218,7 @@ public class VertexImpl implements Vertex, IdSetter<Long> {
    */
   @Override
   public Edge getEdge(Vertex otherVertex) {
-    for (Edge edge : edges) {
+    for (Edge edge : getEdges()) {
       if (edge.getVertexA().getId() == this.getId() && edge.getVertexB().getId() == otherVertex.getId()) {
         return edge;
       } else if (edge.getVertexB().getId() == this.getId() && edge.getVertexA().getId() == otherVertex.getId()) {
@@ -207,6 +226,14 @@ public class VertexImpl implements Vertex, IdSetter<Long> {
       }
     }
     return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public VertexImpl clone() {
+    return new VertexImpl(this);
   }
 
 }

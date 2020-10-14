@@ -1,24 +1,16 @@
 package org.planit.network.physical.macroscopic;
 
 import java.util.Map;
+import java.util.logging.Logger;
 
-import org.planit.graph.EdgesImpl;
-import org.planit.graph.VerticesImpl;
-import org.planit.network.physical.LinkImpl;
-import org.planit.network.physical.NodeImpl;
 import org.planit.network.physical.PhysicalNetworkBuilderImpl;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedGraph;
-import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Edges;
-import org.planit.utils.graph.Graph;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
-import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.IdSetter;
-import org.planit.utils.id.MultiIdSetter;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Node;
@@ -32,26 +24,14 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  * @author markr
  *
  */
-public class MacroscopicPhysicalNetworkBuilderImpl extends PhysicalNetworkBuilderImpl implements MacroscopicPhysicalNetworkBuilder {
+public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysicalNetworkBuilder<Node, Link, MacroscopicLinkSegment> {
 
- 
-  
-  /**
-   * Remove any id gaps present in the passed in macroscopic link segments by updating their ids if the edges are of the implementation compatible with this builder
-   * 
-   * @param vertices
-   */   
-  protected void removeIdGaps(EdgeSegments<MacroscopicLinkSegment> linkSegments) {
-    //TODO
-  }  
+  /** the logger */
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = Logger.getLogger(MacroscopicPhysicalNetworkBuilderImpl.class.getCanonicalName());
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public MacroscopicLinkSegment createEdgeSegment(Edge parentLink, boolean directionAB) throws PlanItException {
-    return new MacroscopicLinkSegmentImpl(getIdGroupingToken(), (Link) parentLink, directionAB);
-  }
+  /** use physical network builder to create all but link segments */
+  protected final PhysicalNetworkBuilderImpl physicalNetworkBuilder = new PhysicalNetworkBuilderImpl();
 
   /**
    * {@inheritDoc}
@@ -69,14 +49,87 @@ public class MacroscopicPhysicalNetworkBuilderImpl extends PhysicalNetworkBuilde
     return new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacity, maximumDensity, externalId);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegment createEdgeSegment(DirectedEdge parentLink, boolean directionAB) throws PlanItException {
+    if (parentLink instanceof Link) {
+      return new MacroscopicLinkSegmentImpl(getIdGroupingToken(), (Link) parentLink, directionAB);
+    }
+    throw new PlanItException("passed in parent edge is not of type Link, incompatible with Macroscopic network builder");
+  }
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
-  public void removeIdGaps(DirectedGraph<Node, Link, MacroscopicLinkSegment> directedGraph) {
-    this.removeIdGaps((Graph<Node, Link>)directedGraph);
-    removeIdGaps(directedGraph.getEdgeSegments());
+  public Node createVertex() {
+    return physicalNetworkBuilder.createVertex();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Link createEdge(Vertex nodeA, Vertex nodeB, double length) throws PlanItException {
+    return physicalNetworkBuilder.createEdge(nodeA, nodeB, length);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setIdGroupingToken(IdGroupingToken groupId) {
+    physicalNetworkBuilder.setIdGroupingToken(groupId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public IdGroupingToken getIdGroupingToken() {
+    return physicalNetworkBuilder.getIdGroupingToken();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(EdgeSegments<? extends MacroscopicLinkSegment> macroscopicinkSegments) {
+    physicalNetworkBuilder.recreateIds(macroscopicinkSegments);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(Edges<? extends Link> links) {
+    physicalNetworkBuilder.recreateIds(links);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(Vertices<? extends Node> nodes) {
+    physicalNetworkBuilder.recreateIds(nodes);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Link createUniqueCopyOf(Link linkToCopy) {
+    return physicalNetworkBuilder.createUniqueCopyOf(linkToCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegment createUniqueCopyOf(MacroscopicLinkSegment linkSegmentToCopy, DirectedEdge parentEdge) {
+    return (MacroscopicLinkSegmentImpl) physicalNetworkBuilder.createUniqueCopyOf(linkSegmentToCopy, parentEdge);
   }
 
 }

@@ -28,7 +28,7 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
   /**
    * unique internal identifier
    */
-  protected final int connectoidSegmentId;
+  private long connectoidSegmentId;
 
   /**
    * generate unique connectoid segment id
@@ -36,11 +36,18 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
    * @param groupId contiguous id generation within this group for instances of this class
    * @return linkSegmentId
    */
-  protected static int generateConnectoidSegmentId(final IdGroupingToken groupId) {
+  protected static long generateConnectoidSegmentId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, ConnectoidSegment.class);
   }
 
-  // Public
+  /**
+   * Set connectoid segment id
+   * 
+   * @param generateConnectoidSegmentId to set
+   */
+  protected void setConnectoidSegmentId(long connectoidSegmentId) {
+    this.connectoidSegmentId = connectoidSegmentId;
+  }
 
   /**
    * Constructor
@@ -50,15 +57,36 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
    * @param directionAb      direction of travel
    * @throws PlanItException thrown when error
    */
-  public ConnectoidSegmentImpl(final IdGroupingToken groupId, final Connectoid parentConnectoid, final boolean directionAb) throws PlanItException {
+  protected ConnectoidSegmentImpl(final IdGroupingToken groupId, final Connectoid parentConnectoid, final boolean directionAb) throws PlanItException {
     super(groupId, parentConnectoid, directionAb);
-    this.connectoidSegmentId = generateConnectoidSegmentId(groupId);
+    setConnectoidSegmentId(generateConnectoidSegmentId(groupId));
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param connectoidSegmentImpl to set
+   */
+  protected ConnectoidSegmentImpl(ConnectoidSegmentImpl connectoidSegmentImpl) {
+    super(connectoidSegmentImpl);
+    setConnectoidSegmentId(connectoidSegmentImpl.getConnectoidSegmentId());
   }
 
   // Public getters - setters
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public int getConnectoidSegmentId() {
+  public long getConnectoidSegmentId() {
     return connectoidSegmentId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidSegmentImpl clone() {
+    return new ConnectoidSegmentImpl(this);
   }
 }

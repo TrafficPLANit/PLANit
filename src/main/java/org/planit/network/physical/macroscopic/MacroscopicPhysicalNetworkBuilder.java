@@ -16,7 +16,7 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  * @author markr
  *
  */
-public interface MacroscopicPhysicalNetworkBuilder extends PhysicalNetworkBuilder<Node, Link, MacroscopicLinkSegment> {
+public interface MacroscopicPhysicalNetworkBuilder<N extends Node, L extends Link, MLS extends MacroscopicLinkSegment> extends PhysicalNetworkBuilder<N, L, MLS> {
 
   /**
    * Create a fully functional macroscopic link segment type instance

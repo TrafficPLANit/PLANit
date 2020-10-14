@@ -43,6 +43,18 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
     super(groupId);
   }
 
+  /**
+   * Copy constructor
+   * 
+   * @param directedVertexImpl to copy
+   */
+  protected DirectedVertexImpl(DirectedVertexImpl directedVertexImpl) {
+    super(directedVertexImpl);
+    entryEdgeSegments.addAll(directedVertexImpl.getEntryEdgeSegments());
+    exitEdgeSegments.addAll(directedVertexImpl.getExitEdgeSegments());
+
+  }
+
   // Public
 
   /**
@@ -80,13 +92,12 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    */
   @Override
   public boolean removeEdgeSegment(final EdgeSegment edgeSegment) {
-    if (edgeSegment.getUpstreamVertex().getId() == getId()) {
-      return exitEdgeSegments.remove(edgeSegment);
-    } else if (edgeSegment.getDownstreamVertex().getId() == getId()) {
-      return entryEdgeSegments.remove(edgeSegment);
+    boolean removed = false;
+    removed = exitEdgeSegments.remove(edgeSegment);
+    if (!removed) {
+      removed = entryEdgeSegments.remove(edgeSegment);
     }
-    LOGGER.warning(String.format("edge segment %s (id:%d) does not have this vertex %s (%d) on either end", edgeSegment.getExternalId(), edgeSegment.getId()));
-    return false;
+    return removed;
   }
 
   /**
@@ -119,6 +130,14 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
   @Override
   public int getNumberOfExitEdgeSegments() {
     return exitEdgeSegments.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedVertexImpl clone() {
+    return new DirectedVertexImpl(this);
   }
 
 }

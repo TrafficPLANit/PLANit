@@ -1,5 +1,6 @@
 package org.planit.graph;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -7,7 +8,6 @@ import java.util.TreeMap;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Edges;
-import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
 
 /**
@@ -15,38 +15,48 @@ import org.planit.utils.graph.Vertex;
  * 
  * @author markr
  */
-public class EdgesImpl<E extends Edge> implements Edges<E> {
+public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
 
   /**
    * The graph builder to create edges
    */
-  private final GraphBuilder<?, E> graphBuilder;
+  private final GraphBuilder<V, E> graphBuilder;
 
   /**
    * Map to store edges by their Id
    */
-  private final Map<Long, E> edgeMap;
+  private Map<Long, E> edgeMap;
+
+  /**
+   * updates the edge map keys based on edge ids in case an external force has changed already registered edges
+   */
+  protected void updateIdMapping() {
+    /* identify which entries need to be re-registered because of a mismatch */
+    Map<Long, E> updatedMap = new HashMap<Long, E>(edgeMap.size());
+    edgeMap.forEach((oldId, edge) -> updatedMap.put(edge.getId(), edge));
+    edgeMap = updatedMap;
+  }
 
   /**
    * Constructor
    * 
    * @param graphBuilder the builder for edge implementations
    */
-  public EdgesImpl(GraphBuilder<?, E> graphBuilder) {
+  public EdgesImpl(GraphBuilder<V, E> graphBuilder) {
     this.graphBuilder = graphBuilder;
     this.edgeMap = new TreeMap<Long, E>();
   }
-  
+
   /**
-   * Add edge to the internal container. Do not use this unless you know what you are doing because it can mess up the contiguous internal id
-   * structure of the edges. PReferred method is to only use registerNew.
+   * Add edge to the internal container. Do not use this unless you know what you are doing because it can mess up the contiguous internal id structure of the edges. PReferred
+   * method is to only use registerNew.
    *
    * @param edge edge to be registered in this network based on its internal id
    * @return edge, in case it overrides an existing edge, the removed edge is returned
    */
   public E register(final E edge) {
     return edgeMap.put(edge.getId(), edge);
-  }  
+  }
 
   /**
    * {@inheritDoc}
@@ -54,6 +64,14 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
   @Override
   public void remove(E edge) {
     edgeMap.remove(edge.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void remove(long edgeId) {
+    edgeMap.remove(edgeId);
   }
 
   /**
@@ -95,7 +113,17 @@ public class EdgesImpl<E extends Edge> implements Edges<E> {
    */
   @Override
   public boolean isEmpty() {
-    return size()==0;
+    return size() == 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public E registerUniqueCopyOf(E edgeToCopy) {
+    final E copy = graphBuilder.createUniqueCopyOf(edgeToCopy);
+    register(copy);
+    return copy;
   }
 
 }

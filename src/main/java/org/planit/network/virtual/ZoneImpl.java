@@ -42,7 +42,7 @@ public class ZoneImpl implements Zone {
    * @param groupId contiguous id generation within this group for instances of this class
    * @return id for this zone
    */
-  protected static int generateZoneId(final IdGroupingToken groupId) {
+  protected static long generateZoneId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Zone.class);
   }
 

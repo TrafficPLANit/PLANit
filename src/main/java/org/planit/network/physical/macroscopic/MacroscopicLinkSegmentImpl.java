@@ -44,8 +44,18 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    * @param directionAB direction of travel
    * @throws PlanItException thrown when error
    */
-  public MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) throws PlanItException {
+  protected MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) throws PlanItException {
     super(groupId, parentLink, directionAB);
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param macroscopicLinkSegmentImpl to copy
+   */
+  protected MacroscopicLinkSegmentImpl(MacroscopicLinkSegmentImpl macroscopicLinkSegmentImpl) {
+    super(macroscopicLinkSegmentImpl);
+    setLinkSegmentType(macroscopicLinkSegmentImpl.getLinkSegmentType());
   }
 
   /**
@@ -117,6 +127,13 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   @Override
   public MacroscopicLinkSegmentType getLinkSegmentType() {
     return linkSegmentType;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public MacroscopicLinkSegmentImpl clone() {
+    return new MacroscopicLinkSegmentImpl(this);
   }
 
 }
