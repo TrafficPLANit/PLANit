@@ -552,15 +552,15 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     if (getGraph() instanceof GraphModifier<?, ?>) {
             
       Map<Long, Set<L>> affectedLinks = ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
+      
+      if(((Long)nodeToBreakAt.getExternalId()).longValue() == 7035357247l) {
+        int bla = 4;
+      }
 
       /* broken links geometry must be updated since it links is truncated compared to its original */
       PlanitJtsUtils geoUtils = new PlanitJtsUtils(getCoordinateReferenceSystem());
       for (Entry<Long, Set<L>> brokenLinks : affectedLinks.entrySet()) {
         for (Link brokenLink : brokenLinks.getValue()) {
-          if( ((Long)brokenLink.getExternalId()) == 273641207) {
-            int bla = 4;
-            LOGGER.info("FROM:" + brokenLink.getGeometry().toString());
-          }
           LineString updatedGeometry = null;
           if (brokenLink.getNodeA().equals(nodeToBreakAt)) {
             updatedGeometry = geoUtils.createCopyWithoutCoordinatesBefore(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
@@ -570,10 +570,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
             LOGGER.warning(String.format("unable to locate node to break at (%s) for broken link %s (id:%d)",nodeToBreakAt.getPosition().toString(), brokenLink.getExternalId(), brokenLink.getId()));
           }
           brokenLink.setGeometry(updatedGeometry);
-          if( ((Long)brokenLink.getExternalId()) == 273641207) {
-            int bla = 4;
-            LOGGER.info("TO:" + brokenLink.getGeometry().toString());
-          }
+          brokenLink.setLengthKm(geoUtils.getDistanceInKilometres(updatedGeometry));
         }
       }
       return affectedLinks;

@@ -120,6 +120,10 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
         /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
         if (brokenEdge.hasEdgeSegmentAb()) {
           EdgeSegment edgeSegmentAb = brokenEdge.getEdgeSegmentAb();
+          
+          if(edgeSegmentAb.getId() == 457l) {
+            int bla = 4;
+          }
 
           if (identifiedEdgeSegmentOnEdge.contains(edgeSegmentAb)) {
             /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
