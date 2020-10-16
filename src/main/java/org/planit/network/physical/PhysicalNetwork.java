@@ -535,6 +535,21 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     }
     LOGGER.info(String.format("remaining number of nodes %d, links %d, link segments %d", nodes.size(), links.size(), linkSegments.size()));
   }
+  
+  /**
+   * Break the passed in link by inserting the passed in node in between. After completion the original links remain as NodeA->NodeToBreakAt, and new links as inserted for
+   * NodeToBreakAt->NodeB.
+   * 
+   * Underlying link segments (if any) are also updated accordingly in the same manner
+   * 
+   * @param linkToBreak  the link to break
+   * @param nodeToBreakAt the node to break at
+   * @return the broken edges for each original edge's id
+   * @throws PlanItException thrown if error
+   */
+  public Map<Long, Set<L>> breakLinkAt(L linkToBreak, N nodeToBreakAt) throws PlanItException {
+    return breakLinksAt(List.of(linkToBreak),nodeToBreakAt);
+  }
 
   /**
    * Break the passed in links by inserting the passed in node in between. After completion the original links remain as NodeA->NodeToBreakAt, and new links as inserted for
