@@ -133,5 +133,5 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
       }
     }
   }
-
+  
 }

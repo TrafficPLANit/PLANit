@@ -50,9 +50,6 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    */
   protected void setLinkSegmentId(long linkSegmentId) {
     this.linkSegmentId = linkSegmentId;
-    if(linkSegmentId == 259l) {
-      int bla = 4;
-    }
   }
 
   /**

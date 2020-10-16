@@ -1,9 +1,7 @@
 package org.planit.network.physical;
 
-import java.util.Optional;
 import java.util.logging.Logger;
 
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.graph.DirectedEdgeImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;

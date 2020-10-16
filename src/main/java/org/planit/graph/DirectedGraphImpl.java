@@ -121,28 +121,27 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
         if (brokenEdge.hasEdgeSegmentAb()) {
           EdgeSegment edgeSegmentAb = brokenEdge.getEdgeSegmentAb();
           
-          if(edgeSegmentAb.getId() == 457l) {
-            int bla = 4;
-          }
-
           if (identifiedEdgeSegmentOnEdge.contains(edgeSegmentAb)) {
             /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
             edgeSegmentAb = this.edgeSegments.registerUniqueCopyOf((ES) edgeSegmentAb, brokenEdge);
-
-            /* replace edge <-> edge segment relation */
-            brokenEdge.replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb);
-            edgeSegmentAb.setParentEdge(brokenEdge);
           } else {
             identifiedEdgeSegmentOnEdge.add(edgeSegmentAb);
           }
+          
+          /* update parent edge <-> edge segment */
+          brokenEdge.replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb);
+          edgeSegmentAb.setParentEdge(brokenEdge);          
 
           /* update segment's vertices */
-          edgeSegmentAb.replace(edgeSegmentAb.getUpstreamVertex(), (DirectedVertex) brokenEdge.getVertexA());
-          edgeSegmentAb.replace(edgeSegmentAb.getDownstreamVertex(), (DirectedVertex) brokenEdge.getVertexB());
+          edgeSegmentAb.setUpstreamVertex((DirectedVertex) brokenEdge.getVertexA());
+          edgeSegmentAb.setDownstreamVertex((DirectedVertex) brokenEdge.getVertexB());
 
           /* update vertices' segments */
           edgeSegmentAb.getUpstreamVertex().replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb, true);
           edgeSegmentAb.getDownstreamVertex().replace(brokenEdge.getEdgeSegmentAb(), edgeSegmentAb, true);
+          
+          /* useful for debugging */
+          //edgeSegmentAb.validate();
         }
 
         /* do the same for edge segment B-> A */
@@ -152,21 +151,23 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
           if (identifiedEdgeSegmentOnEdge.contains(edgeSegmentBa)) {
             /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
             edgeSegmentBa = this.edgeSegments.registerUniqueCopyOf((ES) edgeSegmentBa, brokenEdge);
-
-            /* replace edge <-> edge segment relation */
-            brokenEdge.replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa);
-            edgeSegmentBa.setParentEdge(brokenEdge);
           } else {
             identifiedEdgeSegmentOnEdge.add(edgeSegmentBa);
           }
+          /* update parent edge <-> edge segment */
+          brokenEdge.replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa);
+          edgeSegmentBa.setParentEdge(brokenEdge);            
 
           /* update segment's vertices */
-          edgeSegmentBa.replace(edgeSegmentBa.getUpstreamVertex(), (DirectedVertex) brokenEdge.getVertexB());
-          edgeSegmentBa.replace(edgeSegmentBa.getDownstreamVertex(), (DirectedVertex) brokenEdge.getVertexA());
+          edgeSegmentBa.setUpstreamVertex((DirectedVertex) brokenEdge.getVertexB());
+          edgeSegmentBa.setDownstreamVertex((DirectedVertex) brokenEdge.getVertexA());
 
           /* update vertices' segments */
           edgeSegmentBa.getUpstreamVertex().replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa, true);
           edgeSegmentBa.getDownstreamVertex().replace(brokenEdge.getEdgeSegmentBa(), edgeSegmentBa, true);
+          
+          /* useful for debugging */
+          //edgeSegmentBa.validate();
         }
       }
     }

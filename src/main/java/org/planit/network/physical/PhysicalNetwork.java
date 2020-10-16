@@ -553,10 +553,6 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
             
       Map<Long, Set<L>> affectedLinks = ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
       
-      if(((Long)nodeToBreakAt.getExternalId()).longValue() == 7035357247l) {
-        int bla = 4;
-      }
-
       /* broken links geometry must be updated since it links is truncated compared to its original */
       PlanitJtsUtils geoUtils = new PlanitJtsUtils(getCoordinateReferenceSystem());
       for (Entry<Long, Set<L>> brokenLinks : affectedLinks.entrySet()) {
