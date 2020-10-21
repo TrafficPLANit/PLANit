@@ -116,7 +116,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
     Set<EdgeSegment> identifiedEdgeSegmentOnEdge = new HashSet<EdgeSegment>();
     for (Entry<Long, Set<E>> entry : brokenEdgesByOriginalEdgeId.entrySet()) {
       for (E brokenEdge : entry.getValue()) {
-
+        
         /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
         if (brokenEdge.hasEdgeSegmentAb()) {
           EdgeSegment edgeSegmentAb = brokenEdge.getEdgeSegmentAb();
