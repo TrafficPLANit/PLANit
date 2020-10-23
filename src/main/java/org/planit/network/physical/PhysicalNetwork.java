@@ -27,7 +27,6 @@ import org.planit.utils.mode.Modes;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
-
 import com.vividsolutions.jts.geom.LineString;
 
 /**
@@ -247,6 +246,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
       graph.getEdgeSegments().registerNew(parentLink, linkSegment, directionAb);
       register(linkSegment);
     }
+      
 
     /**
      * Get link segment by id

@@ -41,5 +41,12 @@ public interface MacroscopicPhysicalNetworkBuilder<N extends Node, L extends Lin
    * @return macroscopicLinkSegmentType the created link segment type
    */
   public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity, Object externalId);
+  
+  /** create a copy of the passed in link segment type where only the unique identifiers are different
+   * 
+   * @param linkSegmentTypeToCopy to create a unique copy of
+   * @return copy of passed on link segment type with unique id
+   */
+  public MacroscopicLinkSegmentType createUniqueCopyOf(MacroscopicLinkSegmentType linkSegmentTypeToCopy);
 
 }

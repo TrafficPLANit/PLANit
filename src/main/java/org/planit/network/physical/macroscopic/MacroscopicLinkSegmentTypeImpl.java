@@ -24,7 +24,7 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   /**
    * Unique segment type id
    */
-  protected final long id;
+  protected long id;
 
   /**
    * External reference number of link type
@@ -50,6 +50,14 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
    * Map of mode properties for each mode for this link segment
    */
   protected Map<Mode, MacroscopicModeProperties> modeProperties;
+  
+  /**
+   * set the id on this link segment type
+   * @param id to set
+   */
+  protected void setId(long id) {
+    this.id = id;
+  }  
 
   /**
    * Generate next id available
@@ -72,14 +80,14 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
    * @param maximumDensityPerLane maximum density per lane of this link segment type
    * @param externalId            external reference number of the link type
    */
-  public MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane,
+  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane,
       final Object externalId) {
-    this.id = generateMacroscopicLinkSegmentTypeId(groupId);
-    this.name = name;
+    setId(generateMacroscopicLinkSegmentTypeId(groupId));
+    setName(name);
     this.capacityPerLane = capacityPerLane;
     this.maximumDensityPerLane = maximumDensityPerLane;
     this.externalId = externalId;
-    modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
+    this.modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
   }
 
   /**
@@ -90,46 +98,84 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
    * @param externalId            external reference number of the link type
    * @param modeProperties        mode properties
    */
-  public MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane, final Object externalId,
+  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane, final Object externalId,
       Map<Mode, MacroscopicModeProperties> modeProperties) {
     this(groupId, name, capacityPerLane, maximumDensityPerLane, externalId);
     if (modeProperties != null) {
       setModeProperties(modeProperties);
     }
   }
+  
+  /**
+   * Copy constructor. Use carefully since ids are also copied causing non-unique ids. Note that the mode propertoes are owned by each instance so they are deep copied, 
+   * everything else is not
+   * 
+   * @param macroscopicLinkSegmentTypeImpl to copy from
+   */
+  protected MacroscopicLinkSegmentTypeImpl(final MacroscopicLinkSegmentTypeImpl other) {
+    setId(other.getId());
+    setName(other.getName());
+    this.capacityPerLane = other.getCapacityPerLane();
+    this.maximumDensityPerLane = other.getMaximumDensityPerLane();
+    this.externalId = other.getExternalId();
+    
+    this.modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
+    other.modeProperties.forEach( (mode, properties) -> modeProperties.put(mode, properties.clone()));
+  }  
 
   // Getters - Setters
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public long getId() {
     return id;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String getName() {
     return name;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void setName(String name) {
     this.name = name;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public double getCapacityPerLane() {
     return capacityPerLane;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public double getMaximumDensityPerLane() {
     return maximumDensityPerLane;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Object getExternalId() {
     return externalId;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean hasExternalId() {
     return (externalId != null);
@@ -179,6 +225,30 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   @Override
   public Set<Mode> getAvailableModes() {
     return modeProperties.keySet();
+  }
+
+  /**
+   * Compare link segment types based on their id alone, which is assumed to be unique
+   */
+  @Override
+  public int compareTo(MacroscopicLinkSegmentType other) {
+    return Long.valueOf(id).compareTo(other.getId());
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegmentType clone() {
+    return new MacroscopicLinkSegmentTypeImpl(this);    
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicModeProperties removeModeProperties(Mode toBeRemovedMode) {
+    return modeProperties.remove(toBeRemovedMode);
   }
 
 }

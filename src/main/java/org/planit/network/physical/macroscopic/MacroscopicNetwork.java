@@ -115,6 +115,18 @@ public class MacroscopicNetwork extends PhysicalNetwork<Node, Link, MacroscopicL
   public MacroscopicLinkSegmentType registerLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType) {
     return macroscopicLinkSegmentTypeByIdMap.put(linkSegmentType.getId(), linkSegmentType);
   }
+  
+  /**
+   * Create a unique copy (in terms of id) of the passed in link segment type and register it. All exogenous relations (to parent link, nodes, etc.) remain unchanged
+   * 
+   * @param linkSegmentTypeToCopy to register unique copy of
+   * @return registered unique copy
+   */
+  public MacroscopicLinkSegmentType registerUniqueCopyOf(final MacroscopicLinkSegmentType linkSegmentTypeToCopy) {
+    MacroscopicLinkSegmentType linkSegmentType = getMacroscopicNetworkBuilder().createUniqueCopyOf(linkSegmentTypeToCopy);
+    registerLinkSegmentType(linkSegmentType);  
+    return linkSegmentType;
+  }
 
   /**
    * Return a link segment type identified by its generated id

@@ -132,4 +132,20 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
     return (MacroscopicLinkSegmentImpl) physicalNetworkBuilder.createUniqueCopyOf(linkSegmentToCopy, parentEdge);
   }
 
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public MacroscopicLinkSegmentType createUniqueCopyOf(MacroscopicLinkSegmentType linkSegmentTypeToCopy) {
+    if (linkSegmentTypeToCopy instanceof MacroscopicLinkSegmentTypeImpl) {  
+      /* shallow copy as is */
+      MacroscopicLinkSegmentTypeImpl copy = (MacroscopicLinkSegmentTypeImpl) linkSegmentTypeToCopy.clone();
+      /* make unique copy by updating id */
+      copy.setId(MacroscopicLinkSegmentTypeImpl.generateMacroscopicLinkSegmentTypeId(getIdGroupingToken()));
+      return copy;
+    }
+    LOGGER.severe("passed in link segment type is not an instance created by this builder, incompatible for creating a copy");
+    return null;    
+  }
+
 }

@@ -164,7 +164,7 @@ public class ModeImpl implements Mode {
    */
   @Override
   public int compareTo(Mode o) {
-    return (int) (this.getId() - o.getId());
+    return Long.compare(this.getId(),o.getId());
   }
 
   /**

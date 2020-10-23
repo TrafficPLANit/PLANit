@@ -54,6 +54,16 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
   // Getter - setters
 
   /**
+   * Copy constructor 
+   * 
+   * @param other to copy
+   */
+  public MacroscopicModePropertiesImpl(final MacroscopicModePropertiesImpl other) {
+    this.maxSpeedKmH = other.maxSpeedKmH;
+    this.criticalSpeedKmH = other.criticalSpeedKmH;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -83,6 +93,14 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
   @Override
   public double setCriticalSpeed(final double criticalSpeed) {
     return this.criticalSpeedKmH;
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override  
+  public MacroscopicModeProperties clone() {
+    return new MacroscopicModePropertiesImpl(this);    
   }
 
 }
