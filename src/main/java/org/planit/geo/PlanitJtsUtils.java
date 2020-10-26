@@ -399,4 +399,15 @@ public class PlanitJtsUtils {
     return coordinates;
   }
 
+  /**
+   * concatenate the passed in gemoetries (lines strings) by simply copying all the coorcinates in order and create a new line string from these points
+   * 
+   * @param geometries to concatenate
+   * @return created concatnated linesString
+   */
+  public LineString concatenate(LineString... geometries) {
+    MultiLineString theMultiLineString = jtsGeometryFactory.createMultiLineString(geometries);
+    return jtsGeometryFactory.createLineString(theMultiLineString.getCoordinates());
+  }
+
 }
