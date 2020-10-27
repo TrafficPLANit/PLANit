@@ -2,6 +2,7 @@ package org.planit.graph;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
@@ -18,7 +19,8 @@ import org.planit.utils.id.IdGroupingToken;
  */
 public class EdgeImpl implements Edge, Cloneable {
 
-  // Protected
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(EdgeImpl.class.getCanonicalName());
 
   /** generated UID */
   private static final long serialVersionUID = -3061186642253968991L;
@@ -303,6 +305,36 @@ public class EdgeImpl implements Edge, Cloneable {
   @Override
   public EdgeImpl clone() {
     return new EdgeImpl(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public boolean validate() {
+
+    if (getVertexA() == null) {
+      LOGGER.warning(String.format("vertex A missing on edge (id:%d)", getId()));
+      return false;
+    }
+
+    if (getVertexB() == null) {
+      LOGGER.warning(String.format("vertex B missing on edge segment (id:%d)", getId()));
+      return false;
+    }
+
+    if (getVertexA().getEdges(getVertexB()) == null || !(getVertexA().getEdges(getVertexB()).contains(this))) {
+      LOGGER.warning(String.format("edge (id:%d) not registered on vertex A", getId()));
+      return false;
+    }
+
+    if (getVertexB().getEdges(getVertexA()) == null || !(getVertexB().getEdges(getVertexA()).contains(this))) {
+      LOGGER.warning(String.format("edge (id:%d) not registered on vertex B", getId()));
+      return false;
+    }
+
+    return true;
   }
 
 }

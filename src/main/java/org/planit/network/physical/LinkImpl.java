@@ -26,7 +26,6 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
   private static final long serialVersionUID = 2360017879557363410L;
 
   /** the logger */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(LinkImpl.class.getCanonicalName());
 
   /**
@@ -111,13 +110,35 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
   public void setGeometry(LineString lineString) {
     this.lineGeometry = lineString;
   }
-  
+
   /**
    * {@inheritDoc}
    */
   @Override
   public LinkImpl clone() {
     return new LinkImpl(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean validate() {
+    if (super.validate()) {
+
+      if (getGeometry() != null) {
+        if (!getNodeA().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(0))) {
+          LOGGER.warning(String.format("link (id:%d) geometry inconsistent with extreme node A", getId()));
+          return false;
+        }
+
+        if (!getNodeB().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(getGeometry().getNumPoints() - 1))) {
+          LOGGER.warning(String.format("link (id:%d) geometry inconsistent with extreme node A", getId()));
+          return false;
+        }
+      }
+    }
+    return false;
   }
 
 }

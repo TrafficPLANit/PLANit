@@ -27,6 +27,7 @@ import org.planit.utils.mode.Modes;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
+
 import com.vividsolutions.jts.geom.LineString;
 
 /**
@@ -246,7 +247,6 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
       graph.getEdgeSegments().registerNew(parentLink, linkSegment, directionAb);
       register(linkSegment);
     }
-      
 
     /**
      * Get link segment by id
@@ -516,39 +516,44 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * 
    */
   public void removeDanglingSubnetworks() {
-    removeDanglingSubnetworks(Integer.MAX_VALUE);
+    removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
   }
 
   /**
    * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
    * 
-   * @param belowSize only remove subnetworks below the given size
+   * @param belowSize         remove subnetworks below the given size
+   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
+   * @param alwaysKeepLargest when true the largest of the subnetwork sis always kept, otherwise not
    */
-  public void removeDanglingSubnetworks(Integer belowsize) {
+  public void removeDanglingSubnetworks(Integer belowsize, Integer aboveSize, boolean alwaysKeepLargest) {
     LOGGER.info(String.format("Removing dangling subnetworks with less than %s vertices", belowsize != Integer.MAX_VALUE ? String.valueOf(belowsize) : "infinite"));
+    if (aboveSize != Integer.MAX_VALUE) {
+      LOGGER.info(String.format("Removing dangling subnetworks with more than %s vertices", String.valueOf(aboveSize)));
+    }
     LOGGER.info(String.format("Original number of nodes %d, links %d, link segments %d", nodes.size(), links.size(), linkSegments.size()));
 
     if (getGraph() instanceof GraphModifier<?, ?>) {
-      ((GraphModifier<?, ?>) getGraph()).removeDanglingSubGraphs(belowsize);
+      ((GraphModifier<?, ?>) getGraph()).removeDanglingSubGraphs(belowsize, aboveSize, alwaysKeepLargest);
     } else {
       LOGGER.severe("Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored");
     }
     LOGGER.info(String.format("remaining number of nodes %d, links %d, link segments %d", nodes.size(), links.size(), linkSegments.size()));
   }
-  
+
   /**
    * Break the passed in link by inserting the passed in node in between. After completion the original links remain as NodeA->NodeToBreakAt, and new links as inserted for
    * NodeToBreakAt->NodeB.
    * 
    * Underlying link segments (if any) are also updated accordingly in the same manner
    * 
-   * @param linkToBreak  the link to break
+   * @param linkToBreak   the link to break
    * @param nodeToBreakAt the node to break at
    * @return the broken edges for each original edge's id
    * @throws PlanItException thrown if error
    */
   public Map<Long, Set<L>> breakLinkAt(L linkToBreak, N nodeToBreakAt) throws PlanItException {
-    return breakLinksAt(List.of(linkToBreak),nodeToBreakAt);
+    return breakLinksAt(List.of(linkToBreak), nodeToBreakAt);
   }
 
   /**
@@ -565,9 +570,9 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   @SuppressWarnings("unchecked")
   public Map<Long, Set<L>> breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt) throws PlanItException {
     if (getGraph() instanceof GraphModifier<?, ?>) {
-            
+
       Map<Long, Set<L>> affectedLinks = ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
-      
+
       /* broken links geometry must be updated since it links is truncated compared to its original */
       PlanitJtsUtils geoUtils = new PlanitJtsUtils(getCoordinateReferenceSystem());
       for (Entry<Long, Set<L>> brokenLinks : affectedLinks.entrySet()) {
@@ -578,7 +583,8 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
           } else if (brokenLink.getNodeB().equals(nodeToBreakAt)) {
             updatedGeometry = geoUtils.createCopyWithoutCoordinatesAfter(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
           } else {
-            LOGGER.warning(String.format("unable to locate node to break at (%s) for broken link %s (id:%d)",nodeToBreakAt.getPosition().toString(), brokenLink.getExternalId(), brokenLink.getId()));
+            LOGGER.warning(String.format("unable to locate node to break at (%s) for broken link %s (id:%d)", nodeToBreakAt.getPosition().toString(), brokenLink.getExternalId(),
+                brokenLink.getId()));
           }
           brokenLink.setGeometry(updatedGeometry);
           brokenLink.setLengthKm(geoUtils.getDistanceInKilometres(updatedGeometry));
@@ -588,6 +594,16 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     }
     LOGGER.severe("Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored");
     return null;
+  }
+
+  /**
+   * Basic validation of the network veifying if all nodes and link s are properly set and connected
+   */
+  public void validate() {
+    graph.validate();
+    links.forEach(link -> link.validate());
+    linkSegments.forEach(linkSegment -> linkSegment.validate());
+    nodes.forEach(node -> node.validate());
   }
 
 }

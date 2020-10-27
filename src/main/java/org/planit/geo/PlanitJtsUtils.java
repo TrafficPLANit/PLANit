@@ -293,10 +293,12 @@ public class PlanitJtsUtils {
   }
 
   /**
-   * Remove all coordinates in the line string up to but not including the passed in position. In case the position cannot be found, an exception will be thrown
+   * Remove all coordinates in the line string up to but not including the first occurrence of the passed in position. In case the position cannot be found, an exception will be
+   * thrown
    * 
-   * @param position     to use
-   * @param geometryetry linestring
+   * @param position to use
+   * @param geometry linestring
+   * @return the line string created
    * @throws PlanItException thrown if position could not be located
    */
   public LineString createCopyWithoutCoordinatesBefore(Point position, LineString geometry) throws PlanItException {
@@ -309,6 +311,21 @@ public class PlanitJtsUtils {
     Coordinate[] coordinates = copyCoordinatesFrom(offset.get(), geometry);
 
     return createLineStringFromCoordinates(coordinates);
+  }
+
+  /**
+   * Remove all coordinates in the line string up to but not including the passed in index.
+   * 
+   * @param startIndex start index
+   * @param geometry   to apply to
+   * @return the line string created
+   * @throws PlanItException thrown if error
+   */
+  public LineString createCopyWithoutCoordinatesBefore(int startIndex, LineString geometry) throws PlanItException {
+    if (startIndex >= geometry.getNumPoints() || startIndex < 0) {
+      throw new PlanItException("invalid start index for extracting coordinates from line string geometry");
+    }
+    return createLineStringFromCoordinates(copyCoordinatesFrom(startIndex, geometry));
   }
 
   /**
@@ -326,8 +343,22 @@ public class PlanitJtsUtils {
     }
 
     Coordinate[] coordinates = copyCoordinatesUntil(offset.get(), geometry);
-
     return createLineStringFromCoordinates(coordinates);
+  }
+
+  /**
+   * Remove all coordinates in the line string after but not including the passed in index.
+   * 
+   * @param endIndex end index
+   * @param geometry to apply to
+   * @return the line string created
+   * @throws PlanItException thrown if error
+   */
+  public LineString createCopyWithoutCoordinatesAfter(int endIndex, LineString geometry) throws PlanItException {
+    if (endIndex >= geometry.getNumPoints() || endIndex < 0) {
+      throw new PlanItException("invalid end index for extracting coordinates from line string geometry");
+    }
+    return createLineStringFromCoordinates(copyCoordinatesUntil(endIndex, geometry));
   }
 
   /**

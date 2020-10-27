@@ -18,18 +18,19 @@ public interface GraphModifier<V extends Vertex, E extends Edge> {
 
   /**
    * remove any dangling sub graphs from the graph if they exist
-   * 
    */
   default void removeDanglingSubGraphs() {
-    removeDanglingSubGraphs(Integer.MAX_VALUE);
+    removeDanglingSubGraphs(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
   }
 
   /**
    * remove any dangling subgraphs below a given size from the graph if they exist and subsequently reorder the internal ids if needed
    * 
-   * @param belowSize only remove sub graphs below the given size
+   * @param belowSize         remove subgraphs below the given size
+   * @param aboveSize         remove subgraphs above the given size (typically set to maximum value)
+   * @param alwaysKeepLargest indicate if the largest of the subgraphs is always to be kept even if it does not match the criteria
    */
-  void removeDanglingSubGraphs(Integer belowsize);
+  void removeDanglingSubGraphs(Integer belowsize, Integer aboveSize, boolean alwaysKeepLargest);
 
   /**
    * remove the subgraph identified by the passed in vertices

@@ -2,7 +2,10 @@ package org.planit.graph;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
 
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
@@ -18,6 +21,9 @@ import com.vividsolutions.jts.geom.Point;
  *
  */
 public class VertexImpl implements Vertex {
+
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(VertexImpl.class.getCanonicalName());
 
   /** generated UID */
   private static final long serialVersionUID = -2877566769607366608L;
@@ -217,15 +223,16 @@ public class VertexImpl implements Vertex {
    * {@inheritDoc}
    */
   @Override
-  public Edge getEdge(Vertex otherVertex) {
+  public Set<Edge> getEdges(Vertex otherVertex) {
+    Set<Edge> edges = new HashSet<Edge>();
     for (Edge edge : getEdges()) {
       if (edge.getVertexA().getId() == this.getId() && edge.getVertexB().getId() == otherVertex.getId()) {
-        return edge;
+        edges.add(edge);
       } else if (edge.getVertexB().getId() == this.getId() && edge.getVertexA().getId() == otherVertex.getId()) {
-        return edge;
+        edges.add(edge);
       }
     }
-    return null;
+    return edges;
   }
 
   /**
@@ -234,6 +241,20 @@ public class VertexImpl implements Vertex {
   @Override
   public VertexImpl clone() {
     return new VertexImpl(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean validate() {
+    for (Edge edge : getEdges()) {
+      if (!edge.hasVertex(this)) {
+        LOGGER.warning(String.format("edge (id:%d) does not contain vertex (id:%d) even though the vertex is connected to it", edge.getId(), getId()));
+        return false;
+      }
+    }
+    return true;
   }
 
 }

@@ -139,7 +139,7 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
    * {@inheritDoc}
    */
   @Override
-  public void removeDanglingSubGraphs(Integer belowsize) {
+  public void removeDanglingSubGraphs(Integer belowsize, Integer abovesize, boolean alwaysKeepLargest) {
     List<Integer> removedSubnetworksOfSize = new ArrayList<Integer>();
 
     Set<V> remainingVertices = new HashSet<V>(getVertices().size());
@@ -164,9 +164,9 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
       LOGGER.fine(String.format("remaining vertices %d, edges %d", getVertices().size(), getEdges().size()));
       for (Entry<V, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
         int subNetworkSize = entry.getValue();
-        if (maxSubNetworkSize > subNetworkSize) {
+        if (subNetworkSize < maxSubNetworkSize || !alwaysKeepLargest) {
           /* not the biggest subnetwork, remove from network if below threshold */
-          if (subNetworkSize < belowsize) {
+          if (subNetworkSize < belowsize || subNetworkSize > abovesize) {
             removeSubGraphOf(entry.getKey());
             removedSubnetworksOfSize.add(subNetworkSize);
             LOGGER.info(String.format("removing %d vertices from graph", subNetworkSize));
@@ -175,11 +175,7 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
         }
       }
 
-      if (belowsize == Integer.MAX_VALUE) {
-        LOGGER.info(String.format("removed %d dangling sub graphs", removedSubnetworksOfSize.size()));
-      } else {
-        LOGGER.info(String.format("removed %d dangling sub graphs of size %d or less", removedSubnetworksOfSize.size(), belowsize));
-      }
+      LOGGER.info(String.format("removed %d dangling sub graphs", removedSubnetworksOfSize.size()));
     } else {
       LOGGER.warning("no networks identified, unable to remove dangling subnetworks");
     }
