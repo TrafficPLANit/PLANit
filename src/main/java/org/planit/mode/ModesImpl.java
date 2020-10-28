@@ -1,6 +1,5 @@
 package org.planit.mode;
 
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -174,7 +173,7 @@ public class ModesImpl implements Modes {
    * {@inheritDoc}}
    */
   @Override
-  public Collection<Mode> getAll() {
+  public Set<Mode> setOf() {
     return Set.copyOf(modeMap.values());
   }
 
