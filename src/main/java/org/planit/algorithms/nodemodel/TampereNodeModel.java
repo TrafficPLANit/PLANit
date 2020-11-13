@@ -110,8 +110,8 @@ public class TampereNodeModel extends NodeModel {
    * @return true if demand constrained in link(s) is/are found, false otherwise
    */
   protected boolean updateDemandConstrainedInLinkSegments(Pair<Double, Integer> mostRestrictingOutLinkSegmentData) {
-    final int mostRestrictedOutLinkIndex = mostRestrictingOutLinkSegmentData.getSecond();
-    final double outLinkSegmentScalingFactorBeta = mostRestrictingOutLinkSegmentData.getFirst();
+    final int mostRestrictedOutLinkIndex = mostRestrictingOutLinkSegmentData.second();
+    final double outLinkSegmentScalingFactorBeta = mostRestrictingOutLinkSegmentData.first();
 
     ArrayList<Long> demandConstrainedInLinksY = new ArrayList<Long>();
     // Y(m) = { a of unprocessed in-links | t_ab_topbar > 0, lambda_a * beta_b > 1}
@@ -144,8 +144,8 @@ public class TampereNodeModel extends NodeModel {
    * @param mostRestrictingOutLinkSegmentData out-link segment restriction factor and index
    */
   protected void updateCapacityConstrainedInLinkSegments(Pair<Double, Integer> mostRestrictingOutLinkSegmentData) {
-    final int mostRestrictedOutLinkIndex = mostRestrictingOutLinkSegmentData.getSecond();
-    final double outLinkSegmentScalingFactorBeta = mostRestrictingOutLinkSegmentData.getFirst();
+    final int mostRestrictedOutLinkIndex = mostRestrictingOutLinkSegmentData.second();
+    final double outLinkSegmentScalingFactorBeta = mostRestrictingOutLinkSegmentData.first();
 
     // Z(m) = { a of unprocessed in-links | t_ab_topbar > 0 }
     scaledRemainingTurnSendingFlows.loopColumn(mostRestrictedOutLinkIndex, (inLinkSegmentIndex, outLinkSegmentIndex) -> {

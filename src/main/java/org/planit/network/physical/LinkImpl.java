@@ -128,12 +128,12 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
 
       if (getGeometry() != null) {
         if (!getNodeA().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(0))) {
-          LOGGER.warning(String.format("link (id:%d) geometry inconsistent with extreme node A", getId()));
+          LOGGER.warning(String.format("link (id:%d externalId:%s) geometry inconsistent with extreme node A", getId(), getExternalId()));
           return false;
         }
 
         if (!getNodeB().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(getGeometry().getNumPoints() - 1))) {
-          LOGGER.warning(String.format("link (id:%d) geometry inconsistent with extreme node A", getId()));
+          LOGGER.warning(String.format("link (id:%d externalId:%s) geometry inconsistent with extreme node A", getId(), getExternalId()));
           return false;
         }
       }

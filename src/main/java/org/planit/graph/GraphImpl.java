@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -58,28 +59,41 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
   protected final Vertices<V> vertices;
 
   /**
-   * helper function for recursive subnetwork identification
+   * helper function for subnetwork identification (deliberately NOT recursive to avoid stack overflow on large networks)
    * 
    * @param referenceVertex    to process
    * @param subNetworkVertices to add connected adjacent nodes to
+   * @throws PlanItException thrown if parameters are null
    */
   @SuppressWarnings("unchecked")
-  protected void processSubNetworkVertex(V referenceVertex, Set<V> subNetworkVertices) {
-    if (referenceVertex == null) {
-      LOGGER.warning("reference vertex null, unable to further identify subnetwork");
-    } else if (!subNetworkVertices.contains(referenceVertex)) {
-      subNetworkVertices.add(referenceVertex);
-
-      Collection<? extends Edge> edges = referenceVertex.getEdges();
-      for (Edge edge : edges) {
-        if (!subNetworkVertices.contains(edge.getVertexA())) {
-          processSubNetworkVertex((V) edge.getVertexA(), subNetworkVertices);
-        }
-        if (!subNetworkVertices.contains(edge.getVertexB())) {
-          processSubNetworkVertex((V) edge.getVertexB(), subNetworkVertices);
-        }
+  protected Set<V> processSubNetworkVertex(V referenceVertex) throws PlanItException {
+    PlanItException.throwIfNull(referenceVertex, "provided reference vertex is null when identifying its subnetwork, thisis not allowed");
+    Set<V> subNetworkVertices = new HashSet<>();
+    subNetworkVertices.add(referenceVertex);
+    
+    Set<V> verticesToExplore = new HashSet<>();     
+    verticesToExplore.add(referenceVertex);
+    Iterator<V> vertexIter = verticesToExplore.iterator();
+    while(vertexIter.hasNext()) {
+      /* collect and remove since it is processed */
+      V currVertex = vertexIter.next();
+      vertexIter.remove();
+      
+      /* add newly found vertices to explore, and add then to final subnetwork list as well */       
+      Collection<? extends Edge> edgesOfCurrVertex = currVertex.getEdges();
+      for(Edge currEdge : edgesOfCurrVertex) {
+        if(currEdge.getVertexA()!=null && currEdge.getVertexA().getId()!=currVertex.getId() && !subNetworkVertices.contains(currEdge.getVertexA())) {
+          subNetworkVertices.add((V)currEdge.getVertexA());
+          verticesToExplore.add((V)currEdge.getVertexA());    
+        }else if(currEdge.getVertexB()!=null && currEdge.getVertexB().getId()!=currVertex.getId() && !subNetworkVertices.contains(currEdge.getVertexB())) {
+          subNetworkVertices.add((V)currEdge.getVertexB());
+          verticesToExplore.add((V)currEdge.getVertexB());    
+        }          
       }
+      /* update iterator */
+      vertexIter = verticesToExplore.iterator();
     }
+    return subNetworkVertices;
   }
 
   /**
@@ -137,9 +151,10 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
 
   /**
    * {@inheritDoc}
+   * @throws PlanItException thrown if error
    */
   @Override
-  public void removeDanglingSubGraphs(Integer belowsize, Integer abovesize, boolean alwaysKeepLargest) {
+  public void removeDanglingSubGraphs(Integer belowsize, Integer abovesize, boolean alwaysKeepLargest) throws PlanItException {
     List<Integer> removedSubnetworksOfSize = new ArrayList<Integer>();
 
     Set<V> remainingVertices = new HashSet<V>(getVertices().size());
@@ -149,8 +164,7 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
     while (remainingVertices.iterator().hasNext()) {
       /* recursively traverse the subnetwork */
       V referenceVertex = remainingVertices.iterator().next();
-      Set<V> subNetworkVerticesToPopulate = new HashSet<V>();
-      processSubNetworkVertex(referenceVertex, subNetworkVerticesToPopulate);
+      Set<V> subNetworkVerticesToPopulate = processSubNetworkVertex(referenceVertex);
 
       /* register size and remove subnetwork from remaining nodes */
       identifiedSubNetworkSizes.put(referenceVertex, subNetworkVerticesToPopulate.size());
@@ -213,9 +227,8 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
   /**
    * {@inheritDoc}
    */
-  public void removeSubGraphOf(V referenceVertex) {
-    Set<V> subNetworkNodesToRemove = new HashSet<V>();
-    processSubNetworkVertex(referenceVertex, subNetworkNodesToRemove);
+  public void removeSubGraphOf(V referenceVertex) throws PlanItException {
+    Set<V> subNetworkNodesToRemove = processSubNetworkVertex(referenceVertex);
     removeSubGraph(subNetworkNodesToRemove);
   }
 

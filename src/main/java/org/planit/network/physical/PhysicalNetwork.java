@@ -513,9 +513,10 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
   /**
    * remove any dangling subnetworks from the network if they exist and subsequently reorder the internal ids if needed
+   * @throws PlanItException thrown if error
    * 
    */
-  public void removeDanglingSubnetworks() {
+  public void removeDanglingSubnetworks() throws PlanItException {
     removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
   }
 
@@ -525,8 +526,9 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @param belowSize         remove subnetworks below the given size
    * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
    * @param alwaysKeepLargest when true the largest of the subnetwork sis always kept, otherwise not
+   * @throws PlanItException thrown if error
    */
-  public void removeDanglingSubnetworks(Integer belowsize, Integer aboveSize, boolean alwaysKeepLargest) {
+  public void removeDanglingSubnetworks(Integer belowsize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
     LOGGER.info(String.format("Removing dangling subnetworks with less than %s vertices", belowsize != Integer.MAX_VALUE ? String.valueOf(belowsize) : "infinite"));
     if (aboveSize != Integer.MAX_VALUE) {
       LOGGER.info(String.format("Removing dangling subnetworks with more than %s vertices", String.valueOf(aboveSize)));

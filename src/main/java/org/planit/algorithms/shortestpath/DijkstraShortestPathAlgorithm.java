@@ -49,7 +49,7 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
   
   /** Comparator to sort based on the second elements minimum value (ascending order) */
   protected static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator =
-      Comparator.comparing(Pair<DirectedVertex, Double>::getSecond, (f1, f2) -> {
+      Comparator.comparing(Pair<DirectedVertex, Double>::second, (f1, f2) -> {
         return f1.compareTo(f2);
       });  
 
@@ -95,9 +95,9 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
     // collect cheapest cost and expand the vertex if not already visited
     while (!openVertices.isEmpty()) {
       Pair<DirectedVertex, Double> cheapestNextVertex = openVertices.poll();
-      DirectedVertex currentVertex = cheapestNextVertex.getFirst();
+      DirectedVertex currentVertex = cheapestNextVertex.first();
       int currentVertexId = (int) currentVertex.getId();
-      double currentCost = cheapestNextVertex.getSecond();
+      double currentCost = cheapestNextVertex.second();
       if (vertexVisited[currentVertexId]) {
         continue;
       }

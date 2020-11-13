@@ -246,50 +246,50 @@ public class EdgeSegmentImpl implements EdgeSegment {
   @Override
   public boolean validate() {
     if (parentEdge == null) {
-      LOGGER.warning(String.format("parent edge missing on edge segment (id:%d)", getId()));
+      LOGGER.warning(String.format("parent edge missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
       return false;
     }
 
     if (getUpstreamVertex() == null) {
-      LOGGER.warning(String.format("upstream vertex missing on edge segment (id:%d)", getId()));
+      LOGGER.warning(String.format("upstream vertex missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
       return false;
     }
 
     if (getDownstreamVertex() == null) {
-      LOGGER.warning(String.format("downstream vertex missing on edge segment (id:%d)", getId()));
+      LOGGER.warning(String.format("downstream vertex missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
       return false;
     }
 
     if (getParentEdge().getVertexA() == getUpstreamVertex()) {
       if (getParentEdge().getEdgeSegmentAb() == null) {
-        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d) should be the same but it is null", getId()));
+        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", getId(), getExternalId()));
         return false;
       }
       if (!getParentEdge().getEdgeSegmentAb().equals(this)) {
-        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d) should be the same but it is not", getId()));
+        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is not", getId(), getExternalId()));
         return false;
       }
     }
     if (getParentEdge().getVertexB() == getUpstreamVertex()) {
       if (getParentEdge().getEdgeSegmentBa() == null) {
-        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d) should be the same but it is null", getId()));
+        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", getId(), getExternalId()));
         return false;
       }
 
       if (!getParentEdge().getEdgeSegmentBa().equals(this)) {
-        LOGGER.warning(String.format("edge segment B->A on parent edge of this edge segment (id:%d) should be the same but it is not", getId()));
+        LOGGER.warning(String.format("edge segment B->A on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is not", getId(), getExternalId()));
         return false;
       }
     }
 
     if (getParentEdge().getVertexA().equals(getUpstreamVertex())) {
       if (!getParentEdge().getVertexB().equals(getDownstreamVertex())) {
-        LOGGER.warning(String.format("edge segment (id:%d) vertices do not match with parent edge vertices", getId()));
+        LOGGER.warning(String.format("edge segment (id:%d externalId:%s) vertices do not match with parent edge vertices", getId(), getExternalId()));
         return false;
       }
     } else {
       if (!getParentEdge().getVertexB().equals(getUpstreamVertex()) || !getParentEdge().getVertexA().equals(getDownstreamVertex())) {
-        LOGGER.warning(String.format("edge segment (id:%d) vertices do not match with parent edge vertices", getId()));
+        LOGGER.warning(String.format("edge segment (id:%d externalId:%s) vertices do not match with parent edge vertices", getId(), getExternalId()));
         return false;
       }
     }

@@ -52,7 +52,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
   /**
    * Comparator to sort based on the second elements minimum value (ascending order)
    */
-  protected static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator = Comparator.comparing(Pair<DirectedVertex, Double>::getSecond, (f1, f2) -> {
+  protected static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator = Comparator.comparing(Pair<DirectedVertex, Double>::second, (f1, f2) -> {
     return f1.compareTo(f2);
   });
 
@@ -111,7 +111,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     DirectedVertex currentVertex = null;
     while (!openVertices.isEmpty()) {
       Pair<DirectedVertex, Double> cheapestNextVertex = openVertices.poll();
-      currentVertex = cheapestNextVertex.getFirst();
+      currentVertex = cheapestNextVertex.first();
       int vertexId = (int) currentVertex.getId();
       // reached destination with lowest cost possible
       if (vertexId == destination.getId()) {

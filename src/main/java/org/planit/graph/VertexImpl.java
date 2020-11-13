@@ -250,7 +250,7 @@ public class VertexImpl implements Vertex {
   public boolean validate() {
     for (Edge edge : getEdges()) {
       if (!edge.hasVertex(this)) {
-        LOGGER.warning(String.format("edge (id:%d) does not contain vertex (id:%d) even though the vertex is connected to it", edge.getId(), getId()));
+        LOGGER.warning(String.format("edge (id:%d) does not contain vertex (id:%d externalId:%s) even though the vertex is connected to it", edge.getId(), getId(), getExternalId()));
         return false;
       }
     }

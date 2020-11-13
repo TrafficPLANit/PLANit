@@ -315,22 +315,22 @@ public class EdgeImpl implements Edge, Cloneable {
   public boolean validate() {
 
     if (getVertexA() == null) {
-      LOGGER.warning(String.format("vertex A missing on edge (id:%d)", getId()));
+      LOGGER.warning(String.format("vertex A missing on edge (id:%d externalId:%s)", getId(), getExternalId()));
       return false;
     }
 
     if (getVertexB() == null) {
-      LOGGER.warning(String.format("vertex B missing on edge segment (id:%d)", getId()));
+      LOGGER.warning(String.format("vertex B missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
       return false;
     }
 
     if (getVertexA().getEdges(getVertexB()) == null || !(getVertexA().getEdges(getVertexB()).contains(this))) {
-      LOGGER.warning(String.format("edge (id:%d) not registered on vertex A", getId()));
+      LOGGER.warning(String.format("edge (id:%d externalId:%s) not registered on vertex A", getId(), getExternalId()));
       return false;
     }
 
     if (getVertexB().getEdges(getVertexA()) == null || !(getVertexB().getEdges(getVertexA()).contains(this))) {
-      LOGGER.warning(String.format("edge (id:%d) not registered on vertex B", getId()));
+      LOGGER.warning(String.format("edge (id:%d externalId:%s) not registered on vertex B", getId(), getExternalId()));
       return false;
     }
 
