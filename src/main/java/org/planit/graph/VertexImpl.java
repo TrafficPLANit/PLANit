@@ -65,7 +65,7 @@ public class VertexImpl implements Vertex {
   protected Map<String, Object> inputProperties = null;
 
   /**
-   * Centre point geometry which is coordinate reference system aware
+   * Position of the vertex
    */
   protected Point position;
 
@@ -250,7 +250,8 @@ public class VertexImpl implements Vertex {
   public boolean validate() {
     for (Edge edge : getEdges()) {
       if (!edge.hasVertex(this)) {
-        LOGGER.warning(String.format("edge (id:%d) does not contain vertex (id:%d externalId:%s) even though the vertex is connected to it", edge.getId(), getId(), getExternalId()));
+        LOGGER
+            .warning(String.format("edge (id:%d) does not contain vertex (id:%d externalId:%s) even though the vertex is connected to it", edge.getId(), getId(), getExternalId()));
         return false;
       }
     }

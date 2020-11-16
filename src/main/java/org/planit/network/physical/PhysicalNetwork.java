@@ -10,9 +10,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.geo.PlanitJtsUtils;
+import org.planit.geo.PlanitOpenGisUtils;
 import org.planit.graph.DirectedGraphImpl;
 import org.planit.graph.GraphModifier;
 import org.planit.mode.ModesImpl;
@@ -496,9 +498,32 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @return
    */
   public final void setCoordinateReferenceSystem(CoordinateReferenceSystem coordinateReferenceSystem) {
-    if (!coordinateReferenceSystemLocked && isEmpty()) {
+    if (!coordinateReferenceSystemLocked || isEmpty()) {
       this.coordinateReferenceSystem = coordinateReferenceSystem;
       this.coordinateReferenceSystemLocked = true;
+    } else {
+      LOGGER.warning("Coordinate Reference System is already set. To change the CRS after instantiation, use transform() method");
+    }
+  }
+
+  /**
+   * change the coordinate system, which will result in an update of all geometries in the network from the original CRS to the new CRS. If the network is empty and no CRS is set
+   * yet, then this is identical to calling setCoordinateReferenceSystem
+   * 
+   * @param newCoordinateReferenceSystem to transform the network to
+   * @throws PlanItException
+   * @throws FactoryException
+   */
+  public void transform(CoordinateReferenceSystem newCoordinateReferenceSystem) throws PlanItException {
+    if (!coordinateReferenceSystemLocked || isEmpty()) {
+      setCoordinateReferenceSystem(coordinateReferenceSystem);
+    } else {
+      try {
+        getGraph().transformGeometries(PlanitOpenGisUtils.findMathTransform(getCoordinateReferenceSystem(), newCoordinateReferenceSystem));
+      } catch (Exception e) {
+        PlanitOpenGisUtils.findMathTransform(getCoordinateReferenceSystem(), newCoordinateReferenceSystem);
+        throw new PlanItException(String.format("error during transformation of network's CRS", e));
+      }
     }
   }
 
@@ -513,6 +538,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
   /**
    * remove any dangling subnetworks from the network if they exist and subsequently reorder the internal ids if needed
+   * 
    * @throws PlanItException thrown if error
    * 
    */

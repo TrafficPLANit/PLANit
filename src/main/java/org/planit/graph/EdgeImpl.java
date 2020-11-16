@@ -10,6 +10,8 @@ import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
+import com.vividsolutions.jts.geom.LineString;
+
 /**
  * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry additional information for each
  * particular direction of the edge.
@@ -44,6 +46,11 @@ public class EdgeImpl implements Edge, Cloneable {
    * External Id of the physical link
    */
   protected Object externalId;
+
+  /**
+   * The line geometry of this link if set
+   */
+  protected LineString lineGeometry;
 
   /**
    * Generic input property storage
@@ -111,6 +118,7 @@ public class EdgeImpl implements Edge, Cloneable {
     setVertexA(vertexA);
     setVertexB(vertexB);
     setLengthKm(lengthKm);
+    setGeometry(null);
   }
 
   /**
@@ -121,6 +129,9 @@ public class EdgeImpl implements Edge, Cloneable {
   protected EdgeImpl(EdgeImpl edgeImpl) {
     setId(edgeImpl.getId());
     setExternalId(edgeImpl.getExternalId());
+    if (edgeImpl.hasGeometry()) {
+      setGeometry((LineString) edgeImpl.getGeometry().clone());
+    }
     setVertexA(edgeImpl.getVertexA());
     setVertexB(edgeImpl.getVertexB());
     setLengthKm(edgeImpl.getLengthKm());
@@ -152,6 +163,22 @@ public class EdgeImpl implements Edge, Cloneable {
   @Override
   public boolean hasExternalId() {
     return (externalId != null);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LineString getGeometry() {
+    return lineGeometry;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setGeometry(LineString lineString) {
+    this.lineGeometry = lineString;
   }
 
   /**

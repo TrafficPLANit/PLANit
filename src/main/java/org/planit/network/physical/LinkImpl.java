@@ -9,8 +9,6 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Node;
 
-import com.vividsolutions.jts.geom.LineString;
-
 /**
  * Link class connecting two nodes via some geometry. Each link has one or two underlying link segments in a particular direction which may carry additional information for each
  * particular direction of the link.
@@ -32,11 +30,6 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * unique internal identifier
    */
   protected long linkId;
-
-  /**
-   * The line geometry of this link if set
-   */
-  protected LineString lineGeometry;
 
   /**
    * generate unique link id
@@ -65,7 +58,6 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
   protected LinkImpl(LinkImpl linkImpl) {
     super(linkImpl);
     setLinkId(linkImpl.getLinkId());
-    setGeometry((LineString) linkImpl.getGeometry().clone());
   }
 
   /**
@@ -99,22 +91,6 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * {@inheritDoc}
    */
   @Override
-  public LineString getGeometry() {
-    return lineGeometry;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setGeometry(LineString lineString) {
-    this.lineGeometry = lineString;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public LinkImpl clone() {
     return new LinkImpl(this);
   }
@@ -128,12 +104,12 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
 
       if (getGeometry() != null) {
         if (!getNodeA().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(0))) {
-          LOGGER.warning(String.format("link (id:%d externalId:%s) geometry inconsistent with extreme node A", getId(), getExternalId()));
+
           return false;
         }
 
         if (!getNodeB().getPosition().getCoordinate().equals2D(getGeometry().getCoordinateN(getGeometry().getNumPoints() - 1))) {
-          LOGGER.warning(String.format("link (id:%d externalId:%s) geometry inconsistent with extreme node A", getId(), getExternalId()));
+          LOGGER.warning(String.format("link (id:%d externalId:%s) geometry inconsistent with extreme node B", getId(), getExternalId()));
           return false;
         }
       }

@@ -3,10 +3,12 @@ package org.planit.geo;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.geotools.geometry.GeometryBuilder;
 import org.geotools.geometry.jts.JTS;
+import org.geotools.referencing.CRS;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
@@ -17,6 +19,7 @@ import org.opengis.geometry.coordinate.LineString;
 import org.opengis.geometry.coordinate.PointArray;
 import org.opengis.geometry.coordinate.Position;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.opengis.referencing.operation.MathTransform;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Vertex;
 
@@ -46,6 +49,15 @@ public class PlanitOpenGisUtils {
    * In absence of a geographic crs we can also use cartesian: GENERIC_2D
    */
   public static final CoordinateReferenceSystem CARTESIANCRS = CartesianAuthorityFactory.GENERIC_2D;
+
+  /*
+   * the geotools gt-epsg-hsql dependency tries to take over the logging and the formatting of the logging. It is initialised whenever {@code CRS.decode} is invoked from some of
+   * this class' static methods. Therefore, here we programmatically disable this unwanted behaviour
+   */
+  static {
+    Logger.getLogger("org.hsqldb").setLevel(Level.WARNING);
+    System.setProperty("hsqldb.reconfig_logging", "false");
+  }
 
   /**
    * Geodetic calculator to construct distances between points. It is assumed the network CRS is geodetic in nature.
@@ -319,6 +331,56 @@ public class PlanitOpenGisUtils {
       return minDistancePosition;
     }
     throw new PlanItException(" closest orindate position to lines tring could not be computed since either the line string or reference position is null");
+  }
+
+  /**
+   * Convenience method that wraps the CRS.findMathTransform by catching exceptions and producing a planit excepion only as well as allowing for lenient transformer
+   * 
+   * @param sourceCRS      the source
+   * @param destinationCRS the destination
+   * @return transformer
+   * @throws PlanItException thrown if error
+   */
+  public static MathTransform findMathTransform(CoordinateReferenceSystem sourceCRS, CoordinateReferenceSystem destinationCRS) throws PlanItException {
+    PlanItException.throwIfNull(sourceCRS, "source coordinate reference system null when creating math transform");
+    PlanItException.throwIfNull(destinationCRS, "destination coordinate reference system null when creating math transform");
+
+    try {
+      /* allows for some lenience in transformation due to different datums */
+      boolean lenient = true;
+      return CRS.findMathTransform(sourceCRS, destinationCRS, lenient);
+    } catch (Exception e) {
+      throw new PlanItException(String.format("error during creation of transformer from CRS %s to CRS %s", sourceCRS.toString(), destinationCRS.toString()), e);
+    }
+
+  }
+
+  /**
+   * create a coordinate reference system instance based on String representation, e.g. "EPSG:4326" for WGS84", using the underlying geotools hsql authority factory. see also
+   * {@link https://docs.geotools.org/latest/userguide/library/referencing/crs.html} on some context on why we include the hsql dependency in the planit build to ensure that the
+   * provided crs codes here can actually be transformed into a viable CRS and why it makes sense to provide this simple wrapper method in this utility class
+   * <p>
+   * always make sure you lookup the CRS via this method as it ensures the logging of PLANit is not messed up by the geotools-HSQL dependency since we programmatically disallow it
+   * to overwrite our logging configuration in the static initialiser of this class.
+   * </p>
+   * 
+   * @param code for the CRS
+   * @return the created coordinate reference system
+   */
+  public static CoordinateReferenceSystem createCoordinateReferenceSystem(String code) {
+    CoordinateReferenceSystem crs = null;
+    if (code != null) {
+      try {
+        crs = CRS.decode(code);
+      } catch (Exception e1) {
+        try {
+          crs = CRS.decode(code, true);
+        } catch (Exception e2) {
+          LOGGER.warning(String.format("unable to find coordinate reference system for %s", code));
+        }
+      }
+    }
+    return crs;
   }
 
 }

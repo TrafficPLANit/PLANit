@@ -61,7 +61,11 @@ public class NetworkConverter {
       LOGGER.info("****************** [END]   NETWORK CONVERTER: READ NETWORK   [END]   ********************");
 
       LOGGER.info("****************** [START] NETWORK CONVERTER: WRITE NETWORK [START] ********************");
-      writer.write(network);
+      if (reader.hasCountry()) {
+        writer.write(network, reader.getCountry());
+      } else {
+        writer.write(network);
+      }
       LOGGER.info("****************** [END]   NETWORK CONVERTER: WRITE NETWORK [END]   ********************");
 
     } else {

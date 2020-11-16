@@ -26,4 +26,21 @@ public interface NetworkReader {
    * @throws PlanItException thrown if error
    */
   public MacroscopicNetwork read() throws PlanItException;
+
+  /**
+   * each network reader should be able to produce the country in which this network is created. In case the network is fictitious and no country is available, null is to be
+   * returned. In case the network spans multiple countries, it is best to simply use the {@Link CountryNames.WORLD} as the country.
+   * 
+   * @return
+   */
+  public String getCountry();
+
+  /**
+   * Verify if the reader is linked to a specific country or not
+   * 
+   * @return true when country is set, false otherwise
+   */
+  default public boolean hasCountry() {
+    return getCountry() != null;
+  }
 }

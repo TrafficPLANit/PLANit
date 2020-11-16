@@ -20,12 +20,24 @@ public interface NetworkWriter {
   // PlanitMode2WriterModeMapper getModeMapper();
 
   /**
-   * write a planit network to disk based on the configuration of the implementing class
+   * write a network to the writer's output format.
    * 
    * @return parsed network
    * @throws PlanItException thrown if error
    */
-  public void write(MacroscopicNetwork network) throws PlanItException;
+  default public void write(MacroscopicNetwork network) throws PlanItException {
+    write(network, null);
+  }
+
+  /**
+   * write a network to the writer's output format and convert its geometry to the most likely CRS based on the provided country. If no mathching CRS can be found, no geometry
+   * transformation is applied and the data is kept as offered
+   * 
+   * @param network to write
+   * @param country reference to the country the network resides in, used to transform geoinformation to most appropriate CRS
+   * @throws PlanItException thrown if error
+   */
+  public void write(MacroscopicNetwork network, String country) throws PlanItException;
 
   /**
    * collect the way the ids should be mapped
@@ -40,4 +52,5 @@ public interface NetworkWriter {
    * @param idMapper to use
    */
   public void setIdMapper(IdMapper idMapper);
+
 }

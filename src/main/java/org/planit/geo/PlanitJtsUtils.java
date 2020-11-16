@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.coordinate.PointArray;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -38,14 +37,14 @@ public class PlanitJtsUtils {
   private static final Logger LOGGER = Logger.getLogger(PlanitJtsUtils.class.getCanonicalName());
 
   /**
-   * Default Coordinate Reference System: WGS84
+   * Default Coordinate Reference System: WGS84, {@link PlanitOpenGisUtils.DEFAULT_GEOGRAPHIC_CRS}
    */
-  public static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = DefaultGeographicCRS.WGS84;
+  public static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = PlanitOpenGisUtils.DEFAULT_GEOGRAPHIC_CRS;
 
   /**
-   * In absence of a geographic crs we can also use cartesian: GENERIC_2D
+   * In absence of a geographic crs we can also use cartesian: GENERIC_2D, {@link PlanitOpenGisUtils.CARTESIANCRS}
    */
-  public static final CoordinateReferenceSystem CARTESIANCRS = CartesianAuthorityFactory.GENERIC_2D;
+  public static final CoordinateReferenceSystem CARTESIANCRS = PlanitOpenGisUtils.CARTESIANCRS;
 
   /** the crs to use */
   private final CoordinateReferenceSystem crs;
@@ -331,7 +330,7 @@ public class PlanitJtsUtils {
   /**
    * Remove all coordinates in the line string after but not including the passed in position. In case the position cannot be found, an exception will be thrown
    * 
-   * @param position     first location of this position in geometry is the last entry in the copied geometry
+   * @param position first location of this position in geometry is the last entry in the copied geometry
    * @param geometry linestring
    * @throws PlanItException thrown if position could not be located
    */
@@ -342,7 +341,7 @@ public class PlanitJtsUtils {
       throw new PlanItException(String.format("point (%s) does not exist on line string %s, unable to create copy from this location", position.toString(), geometry.toString()));
     }
 
-    Coordinate[] coordinates = copyCoordinatesUpToNotIncluding(offset.get()+1, geometry);
+    Coordinate[] coordinates = copyCoordinatesUpToNotIncluding(offset.get() + 1, geometry);
     return createLineStringFromCoordinates(coordinates);
   }
 
@@ -355,57 +354,58 @@ public class PlanitJtsUtils {
    * @throws PlanItException thrown if error
    */
   public LineString createCopyWithoutCoordinatesAfter(int endIndex, LineString geometry) throws PlanItException {
-    if(geometry == null) {
+    if (geometry == null) {
       return null;
     }
-    
+
     if (endIndex >= geometry.getNumPoints() || endIndex < 0) {
       throw new PlanItException("invalid end index for extracting coordinates from line string geometry");
     }
-    return createLineStringFromCoordinates(copyCoordinatesUpToNotIncluding(endIndex+1, geometry));
+    return createLineStringFromCoordinates(copyCoordinatesUpToNotIncluding(endIndex + 1, geometry));
   }
-  
-  /** create an identical copy, except that any adjacent duplicate coordinates in the line string are removed
+
+  /**
+   * create an identical copy, except that any adjacent duplicate coordinates in the line string are removed
    * 
    * @param geometry to remove duplicate coordinates from
    * @return geometry copy without duplicates
    */
   public LineString createCopyWithoutAdjacentDuplicateCoordinates(LineString geometry) {
-    if(geometry == null) {
+    if (geometry == null) {
       return null;
     }
-    
+
     ArrayList<Coordinate> coordinateList = new ArrayList<>(geometry.getNumPoints());
     int numCoordinates = geometry.getNumPoints();
     int index = 0;
-    int nextIndex = index+1;
-    for (; index < numCoordinates; ++index, ++nextIndex) {            
+    int nextIndex = index + 1;
+    for (; index < numCoordinates; ++index, ++nextIndex) {
       Coordinate coordinate = geometry.getCoordinateN(index);
       boolean isAdjacentDuplicate = false;
-      if(nextIndex<numCoordinates) {
-        Coordinate adjacentCoordinate = geometry.getCoordinateN(index+1);
+      if (nextIndex < numCoordinates) {
+        Coordinate adjacentCoordinate = geometry.getCoordinateN(index + 1);
         isAdjacentDuplicate = coordinate.equals2D(adjacentCoordinate);
       }
-      if(!isAdjacentDuplicate) {
+      if (!isAdjacentDuplicate) {
         coordinateList.add(coordinate);
       }
     }
     return jtsGeometryFactory.createLineString(coordinateList.stream().toArray(Coordinate[]::new));
   }
-  
+
   /**
    * find first position where the coordinate resides on the geometry.
    * 
    * @param coordinateToLocate the one to locate
-   * @param offset start searching from offset position
+   * @param offset             start searching from offset position
    * @param geometry           to locate from
    * @return the position if present
    */
   public Optional<Integer> findFirstCoordinatePosition(Coordinate coordinateToLocate, int offset, LineString geometry) {
-    if(geometry == null || coordinateToLocate==null) {
-      return null;
+    if (geometry == null || coordinateToLocate == null) {
+      return Optional.empty();
     }
-    
+
     int numCoordinates = geometry.getNumPoints();
     for (int index = offset; index < numCoordinates; ++index) {
       Coordinate coordinate = geometry.getCoordinateN(index);
@@ -414,7 +414,7 @@ public class PlanitJtsUtils {
       }
     }
     return Optional.empty();
-  }  
+  }
 
   /**
    * find first position where the coordinate resides on the geometry.
@@ -458,7 +458,7 @@ public class PlanitJtsUtils {
    * @param untilPoint to end with (not included)
    * @param geometry   to copy from
    * @return coordinate array, when offset is out of bounds empty coordinate array is returned
-   * @throws PlanItException  thrown if error
+   * @throws PlanItException thrown if error
    */
   public Coordinate[] copyCoordinatesFromUpToNotIncluding(int offset, int untilPoint, LineString geometry) throws PlanItException {
     PlanItException.throwIfNull(geometry, "provided geometry to copy coordinates from is null");
