@@ -12,7 +12,7 @@ import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Point;
 
 /**
  * vertex representation connected to one or more entry and exit edges

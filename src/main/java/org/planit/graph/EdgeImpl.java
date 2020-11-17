@@ -10,7 +10,7 @@ import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.LineString;
 
 /**
  * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry additional information for each

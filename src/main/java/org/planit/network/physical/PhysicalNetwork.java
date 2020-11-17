@@ -30,7 +30,7 @@ import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
 
-import com.vividsolutions.jts.geom.LineString;
+import org.locationtech.jts.geom.LineString;
 
 /**
  * Model free Network consisting of nodes and links, each of which can be iterated over. This network does not contain any transport specific information, hence the qualification

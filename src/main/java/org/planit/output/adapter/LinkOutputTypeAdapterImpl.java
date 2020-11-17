@@ -15,7 +15,7 @@ import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Point;
 
 /**
  * Top-level abstract class which defines the common methods required by Link output type adapters

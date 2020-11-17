@@ -23,8 +23,8 @@ import org.opengis.referencing.operation.MathTransform;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Vertex;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.MultiLineString;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.MultiLineString;
 
 /**
  * General geotools related utils. Uses geodetic distance when possible. In case the CRS is not based on an ellipsoid (2d plane) it will simply compute the distance between
@@ -173,7 +173,7 @@ public class PlanitOpenGisUtils {
    * @throws PlanItException thrown if there is an error
    */
   @SuppressWarnings("unchecked")
-  public LineString convertToOpenGisLineString(com.vividsolutions.jts.geom.LineString jtsLineString) throws PlanItException {
+  public LineString convertToOpenGisLineString(org.locationtech.jts.geom.LineString jtsLineString) throws PlanItException {
     Coordinate[] coordinates = jtsLineString.getCoordinates();
     List<? extends Position> positionList = (List<? extends Position>) convertToDirectPositions(coordinates);
     return geometryFactory.createLineString((List<Position>) positionList);
@@ -189,7 +189,7 @@ public class PlanitOpenGisUtils {
   public LineString convertToOpenGisLineString(MultiLineString jtsMultiLineString) throws PlanItException {
     PlanItException.throwIf(((MultiLineString) jtsMultiLineString).getNumGeometries() > 1, "MultiLineString contains multiple LineStrings");
 
-    return convertToOpenGisLineString((com.vividsolutions.jts.geom.LineString) ((MultiLineString) jtsMultiLineString).getGeometryN(0));
+    return convertToOpenGisLineString((org.locationtech.jts.geom.LineString) ((MultiLineString) jtsMultiLineString).getGeometryN(0));
   }
 
   /**
