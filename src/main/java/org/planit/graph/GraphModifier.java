@@ -17,11 +17,13 @@ import org.planit.utils.graph.Vertex;
 public interface GraphModifier<V extends Vertex, E extends Edge> {
 
   /**
-   * remove any dangling sub graphs from the graph if they exist
+   * remove any dangling sub graphs from the graph if they exist and reorder the ids if needed
+   * 
    * @throws PlanItException thrown if error
    */
   default void removeDanglingSubGraphs() throws PlanItException {
-    removeDanglingSubGraphs(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
+    boolean alwaysKeepLargest = true;
+    removeDanglingSubGraphs(Integer.MAX_VALUE, Integer.MAX_VALUE, alwaysKeepLargest);
   }
 
   /**
@@ -38,16 +40,20 @@ public interface GraphModifier<V extends Vertex, E extends Edge> {
    * remove the subgraph identified by the passed in vertices
    * 
    * @param subNetworkToRemove
+   * @param recreateIds        indicate if the ids of the graph entities are to be recreated, if false gaps will occur so it is expected to be handled by the user afterwards in
+   *                           this case
    */
-  public void removeSubGraph(Set<? extends V> subGraphToRemove);
+  public void removeSubGraph(Set<? extends V> subGraphToRemove, boolean recreateIds);
 
   /**
    * remove the (sub)graph in which the passed in vertex resides. Apply reordering of internal ids of remaining network.
    * 
    * @param referenceVertex to identify subnetwork by
+   * @param recreateIds     indicate if the ids of the graph entities are to be recreated, if false gaps will occur so it is expected to be handled by the user afterwards in this
+   *                        case
    * @throws PlanItException thrown if error
    */
-  public void removeSubGraphOf(V referenceVertex) throws PlanItException;
+  public void removeSubGraphOf(V referenceVertex, boolean recreateIds) throws PlanItException;
 
   /**
    * Break the passed in edges by inserting the passed in vertex in between. After completion the original edges remain as VertexA->VertexToBreakAt, and new edges are inserted for
@@ -59,5 +65,11 @@ public interface GraphModifier<V extends Vertex, E extends Edge> {
    * @throws PlanItException thrown if error
    */
   public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException;
+
+  /**
+   * this method will recreate all ids of the graph's main components, e.g., vertices, edges, and potentially other eligible components of derived graph implementations. Can be
+   * used in conjunctions with the removal of subgraphs in case the recreation of ids was switched off manually for some reason.
+   */
+  public void recreateIds();
 
 }

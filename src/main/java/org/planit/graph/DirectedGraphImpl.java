@@ -60,7 +60,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void removeSubGraph(Set<? extends V> subNetworkToRemove) {
+  public void removeSubGraph(Set<? extends V> subNetworkToRemove, boolean recreateIds) {
 
     /* remove the edge segment portion of the directed subgraph from the actual directed graph */
     for (DirectedVertex directedVertex : subNetworkToRemove) {
@@ -84,6 +84,18 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
       exitEdgeSegments.forEach(edgeSegment -> directedVertex.removeEdgeSegment(edgeSegment));
     }
 
+    /* do the same for vertices and edges */
+    super.removeSubGraph(subNetworkToRemove, recreateIds);
+  }
+
+  /**
+   * Identical to {@link GraphImpl.recreateIds()} except that now the ids of the edge segments are also recreated on top of the vertices and edges
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public void recreateIds() {
+    super.recreateIds();
+
     /* ensure no id gaps remain after the removal of internal entities */
     if (graphBuilder instanceof DirectedGraphBuilder<?, ?, ?>) {
       ((DirectedGraphBuilder<?, E, ES>) graphBuilder).recreateIds(getEdgeSegments());
@@ -91,9 +103,6 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
       LOGGER.severe(
           "expected the EdgeSegments implementation to be compatible with directed graph builder, this is not the case: unable to correctly remove subnetwork and update ids");
     }
-
-    /* do the same for vertices and edges */
-    super.removeSubGraph(subNetworkToRemove);
   }
 
   /**

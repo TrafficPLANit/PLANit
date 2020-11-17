@@ -371,6 +371,7 @@ public class PlanitOpenGisUtils {
     CoordinateReferenceSystem crs = null;
     if (code != null) {
       try {
+        /* decode lookup is performed using the gt hsql database which is loaded as dependency in pom */
         crs = CRS.decode(code);
       } catch (Exception e1) {
         try {

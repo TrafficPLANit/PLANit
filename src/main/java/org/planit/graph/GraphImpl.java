@@ -70,25 +70,25 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
     PlanItException.throwIfNull(referenceVertex, "provided reference vertex is null when identifying its subnetwork, thisis not allowed");
     Set<V> subNetworkVertices = new HashSet<>();
     subNetworkVertices.add(referenceVertex);
-    
-    Set<V> verticesToExplore = new HashSet<>();     
+
+    Set<V> verticesToExplore = new HashSet<>();
     verticesToExplore.add(referenceVertex);
     Iterator<V> vertexIter = verticesToExplore.iterator();
-    while(vertexIter.hasNext()) {
+    while (vertexIter.hasNext()) {
       /* collect and remove since it is processed */
       V currVertex = vertexIter.next();
       vertexIter.remove();
-      
-      /* add newly found vertices to explore, and add then to final subnetwork list as well */       
+
+      /* add newly found vertices to explore, and add then to final subnetwork list as well */
       Collection<? extends Edge> edgesOfCurrVertex = currVertex.getEdges();
-      for(Edge currEdge : edgesOfCurrVertex) {
-        if(currEdge.getVertexA()!=null && currEdge.getVertexA().getId()!=currVertex.getId() && !subNetworkVertices.contains(currEdge.getVertexA())) {
-          subNetworkVertices.add((V)currEdge.getVertexA());
-          verticesToExplore.add((V)currEdge.getVertexA());    
-        }else if(currEdge.getVertexB()!=null && currEdge.getVertexB().getId()!=currVertex.getId() && !subNetworkVertices.contains(currEdge.getVertexB())) {
-          subNetworkVertices.add((V)currEdge.getVertexB());
-          verticesToExplore.add((V)currEdge.getVertexB());    
-        }          
+      for (Edge currEdge : edgesOfCurrVertex) {
+        if (currEdge.getVertexA() != null && currEdge.getVertexA().getId() != currVertex.getId() && !subNetworkVertices.contains(currEdge.getVertexA())) {
+          subNetworkVertices.add((V) currEdge.getVertexA());
+          verticesToExplore.add((V) currEdge.getVertexA());
+        } else if (currEdge.getVertexB() != null && currEdge.getVertexB().getId() != currVertex.getId() && !subNetworkVertices.contains(currEdge.getVertexB())) {
+          subNetworkVertices.add((V) currEdge.getVertexB());
+          verticesToExplore.add((V) currEdge.getVertexB());
+        }
       }
       /* update iterator */
       vertexIter = verticesToExplore.iterator();
@@ -151,10 +151,11 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
 
   /**
    * {@inheritDoc}
-   * @throws PlanItException thrown if error
+   * 
    */
   @Override
   public void removeDanglingSubGraphs(Integer belowsize, Integer abovesize, boolean alwaysKeepLargest) throws PlanItException {
+    boolean recreateIdsImmediately = false;
     List<Integer> removedSubnetworksOfSize = new ArrayList<Integer>();
 
     Set<V> remainingVertices = new HashSet<V>(getVertices().size());
@@ -181,7 +182,7 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
         if (subNetworkSize < maxSubNetworkSize || !alwaysKeepLargest) {
           /* not the biggest subnetwork, remove from network if below threshold */
           if (subNetworkSize < belowsize || subNetworkSize > abovesize) {
-            removeSubGraphOf(entry.getKey());
+            removeSubGraphOf(entry.getKey(), recreateIdsImmediately);
             removedSubnetworksOfSize.add(subNetworkSize);
             LOGGER.info(String.format("removing %d vertices from graph", subNetworkSize));
             LOGGER.fine(String.format("remaining vertices %d, edges %d", getVertices().size(), getEdges().size()));
@@ -194,6 +195,11 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
       LOGGER.warning("no networks identified, unable to remove dangling subnetworks");
     }
 
+    /* only recreate ids once after all subnetworks have been removed */
+    if (!recreateIdsImmediately) {
+      recreateIds();
+    }
+
   }
 
   /**
@@ -201,7 +207,7 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void removeSubGraph(Set<? extends V> subGraphToRemove) {
+  public void removeSubGraph(Set<? extends V> subGraphToRemove, boolean recreateIds) {
 
     /* remove the subnetwork from the actual network */
     for (V vertex : subGraphToRemove) {
@@ -219,17 +225,18 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
       vertexEdges.forEach(edge -> getEdges().remove((E) edge));
     }
 
-    /* ensure no id gaps remain after the removal of internal entities */
-    graphBuilder.recreateIds(getEdges());
-    graphBuilder.recreateIds(getVertices());
+    if (recreateIds) {
+      /* ensure no id gaps remain after the removal of internal entities */
+      recreateIds();
+    }
   }
 
   /**
    * {@inheritDoc}
    */
-  public void removeSubGraphOf(V referenceVertex) throws PlanItException {
+  public void removeSubGraphOf(V referenceVertex, boolean recreateIds) throws PlanItException {
     Set<V> subNetworkNodesToRemove = processSubNetworkVertex(referenceVertex);
-    removeSubGraph(subNetworkNodesToRemove);
+    removeSubGraph(subNetworkNodesToRemove, recreateIds);
   }
 
   /**
@@ -273,6 +280,15 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
       }
     }
     return affectedEdges;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds() {
+    graphBuilder.recreateIds(getEdges());
+    graphBuilder.recreateIds(getVertices());
   }
 
 }
