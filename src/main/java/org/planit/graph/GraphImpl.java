@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
@@ -156,8 +157,8 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
   @Override
   public void removeDanglingSubGraphs(Integer belowsize, Integer abovesize, boolean alwaysKeepLargest) throws PlanItException {
     boolean recreateIdsImmediately = false;
-    List<Integer> removedSubnetworksOfSize = new ArrayList<Integer>();
 
+    Map<Integer,LongAdder> removedDanglingNetworksBySize = new HashMap<>();
     Set<V> remainingVertices = new HashSet<V>(getVertices().size());
     getVertices().forEach(vertex -> remainingVertices.add(vertex));
     Map<V, Integer> identifiedSubNetworkSizes = new HashMap<V, Integer>();
@@ -175,7 +176,6 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
     if (!identifiedSubNetworkSizes.isEmpty()) {
       /* remove all non-dominating subnetworks */
       int maxSubNetworkSize = Collections.max(identifiedSubNetworkSizes.values());
-      LOGGER.info(String.format("Main network contains %d vertices", maxSubNetworkSize));
       LOGGER.fine(String.format("remaining vertices %d, edges %d", getVertices().size(), getEdges().size()));
       for (Entry<V, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
         int subNetworkSize = entry.getValue();
@@ -183,14 +183,19 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
           /* not the biggest subnetwork, remove from network if below threshold */
           if (subNetworkSize < belowsize || subNetworkSize > abovesize) {
             removeSubGraphOf(entry.getKey(), recreateIdsImmediately);
-            removedSubnetworksOfSize.add(subNetworkSize);
-            LOGGER.info(String.format("removing %d vertices from graph", subNetworkSize));
+            removedDanglingNetworksBySize.putIfAbsent(subNetworkSize, new LongAdder());
+            removedDanglingNetworksBySize.get(subNetworkSize).increment();
+            LOGGER.fine(String.format("removing %d vertices from graph", subNetworkSize));
             LOGGER.fine(String.format("remaining vertices %d, edges %d", getVertices().size(), getEdges().size()));
           }
         }
       }
-
-      LOGGER.info(String.format("removed %d dangling sub graphs", removedSubnetworksOfSize.size()));
+      final LongAdder totalCount = new LongAdder();
+      removedDanglingNetworksBySize.forEach( (size, count) -> {
+        LOGGER.info(String.format("sub graph size %d - %d removed", size, count.longValue()));
+        totalCount.add(count.longValue());
+      });     
+      LOGGER.info(String.format("removed %d dangling sub graphs", totalCount.longValue()));
     } else {
       LOGGER.warning("no networks identified, unable to remove dangling subnetworks");
     }
