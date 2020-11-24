@@ -10,17 +10,16 @@ import java.util.stream.Collectors;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.opengis.geometry.DirectPosition;
-import org.opengis.geometry.coordinate.PointArray;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.Vertex;
-
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.MultiLineString;
 import org.locationtech.jts.geom.Point;
+import org.opengis.geometry.DirectPosition;
+import org.opengis.geometry.coordinate.PointArray;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.Vertex;
 
 /**
  * General geotools related utils. Uses geodetic distance when possible. In case the CRS is not based on an ellipsoid (2d plane) it will simply compute the distance between
@@ -50,7 +49,7 @@ public class PlanitJtsUtils {
   private final CoordinateReferenceSystem crs;
 
   /** jts geometry factory, jts geometry differs from opengis implementation by not carrying the crs and being more lightweight */
-  private GeometryFactory jtsGeometryFactory;
+  private static final GeometryFactory jtsGeometryFactory = JTSFactoryFinder.getGeometryFactory();
 
   /**
    * Constructor
@@ -68,7 +67,6 @@ public class PlanitJtsUtils {
    */
   public PlanitJtsUtils(CoordinateReferenceSystem coordinateReferenceSystem) {
     this.crs = coordinateReferenceSystem;
-    jtsGeometryFactory = JTSFactoryFinder.getGeometryFactory();
   }
 
   /**
@@ -139,9 +137,9 @@ public class PlanitJtsUtils {
    * @return point object representing the location
    * @throws PlanItException thrown if there is an error during processing
    */
-  public Point createPoint(double xCoordinate, double yCoordinate) throws PlanItException {
+  public static Point createPoint(double xCoordinate, double yCoordinate) throws PlanItException {
     Coordinate coordinate = new Coordinate(xCoordinate, yCoordinate);
-    Point newPoint = this.jtsGeometryFactory.createPoint(coordinate);
+    Point newPoint = jtsGeometryFactory.createPoint(coordinate);
     return newPoint;
   }
 
@@ -152,7 +150,7 @@ public class PlanitJtsUtils {
    * @return jtsLineString created
    * @throws PlanItException thrown if there is an error
    */
-  public LineString convertToJtsLineString(org.opengis.geometry.coordinate.LineString openGisLineString) throws PlanItException {
+  public static LineString convertToJtsLineString(org.opengis.geometry.coordinate.LineString openGisLineString) throws PlanItException {
     PointArray samplePoints = openGisLineString.getSamplePoints();
     List<Coordinate> coordinates = samplePoints.stream().map(point -> createCoordinate(point.getDirectPosition())).collect(Collectors.toList());
     return jtsGeometryFactory.createLineString((Coordinate[]) coordinates.toArray());
@@ -165,7 +163,7 @@ public class PlanitJtsUtils {
    * @return jts LineString output object
    * @throws PlanItException thrown if there is an error in casting
    */
-  public LineString convertToLineString(MultiLineString jtsMultiLineString) throws PlanItException {
+  public static LineString convertToLineString(MultiLineString jtsMultiLineString) throws PlanItException {
     PlanItException.throwIf(((MultiLineString) jtsMultiLineString).getNumGeometries() > 1, "MultiLineString contains multiple LineStrings");
     return (LineString) jtsMultiLineString.getGeometryN(0);
   }
@@ -177,7 +175,7 @@ public class PlanitJtsUtils {
    * @return created line string
    * @throws PlanItException thrown if error
    */
-  public LineString createLineString(List<Double> coordinateList) throws PlanItException {
+  public static LineString createLineString(List<Double> coordinateList) throws PlanItException {
     PlanItException.throwIf(coordinateList.size() % 2 != 0, "coordinate list must contain an even number of entries to correctly identify (x,y) pairs");
     Iterator<Double> iter = coordinateList.iterator();
     Coordinate[] coordinateArray = new Coordinate[coordinateList.size() / 2];
@@ -197,7 +195,7 @@ public class PlanitJtsUtils {
    * @return the LineString created from the String
    * @throws PlanItException thrown if error
    */
-  public LineString createLineString(String value, char ts, char cs) throws PlanItException {
+  public static LineString createLineString(String value, char ts, char cs) throws PlanItException {
     List<Double> coordinateDoubleList = new ArrayList<Double>();
     String[] tupleString = value.split("[" + ts + "]");
     for (int index = 0; index < tupleString.length; ++index) {
@@ -219,7 +217,7 @@ public class PlanitJtsUtils {
    * @return created line string
    * @throws PlanItException
    */
-  public LineString createLineStringFromCoordinates(Coordinate[] coordinates) throws PlanItException {
+  public static LineString createLineStringFromCoordinates(Coordinate[] coordinates) throws PlanItException {
     return jtsGeometryFactory.createLineString(coordinates);
   }
 
@@ -232,7 +230,7 @@ public class PlanitJtsUtils {
    * @return the LineString created from the String
    * @throws PlanItException
    */
-  public LineString createLineStringFromCsvString(String value, String ts, String cs) throws PlanItException {
+  public static LineString createLineStringFromCsvString(String value, String ts, String cs) throws PlanItException {
     if (ts.length() > 1 || cs.length() > 1) {
       PlanItException.throwIf(ts.length() > 1, String.format("tuple separating string to create LineString is not a single character but %s", ts));
       PlanItException.throwIf(cs.length() > 1, String.format("comma separating string to create LineString is not a single character but %s", cs));
@@ -247,7 +245,7 @@ public class PlanitJtsUtils {
    * @return coordinates array of JTS Coordinate objects
    * @throws PlanItException thrown if there is an error
    */
-  public Coordinate[] convertToCoordinates(List<DirectPosition> positions) throws PlanItException {
+  public static Coordinate[] convertToCoordinates(List<DirectPosition> positions) throws PlanItException {
     Coordinate[] coordinates = new Coordinate[positions.size()];
     for (int index = 0; index < coordinates.length; ++index) {
       coordinates[index] = createCoordinate(positions.get(index));
@@ -261,7 +259,7 @@ public class PlanitJtsUtils {
    * @param position in opengis format
    * @return JTS coordinate created
    */
-  public Coordinate createCoordinate(DirectPosition position) {
+  public static Coordinate createCoordinate(DirectPosition position) {
     return new Coordinate(position.getOrdinate(0), position.getOrdinate(1));
   }
 
@@ -300,7 +298,7 @@ public class PlanitJtsUtils {
    * @return the line string created
    * @throws PlanItException thrown if position could not be located
    */
-  public LineString createCopyWithoutCoordinatesBefore(Point position, LineString geometry) throws PlanItException {
+  public static LineString createCopyWithoutCoordinatesBefore(Point position, LineString geometry) throws PlanItException {
     Optional<Integer> offset = findFirstCoordinatePosition(position.getCoordinate(), geometry);
 
     if (!offset.isPresent()) {
@@ -320,7 +318,7 @@ public class PlanitJtsUtils {
    * @return the line string created
    * @throws PlanItException thrown if error
    */
-  public LineString createCopyWithoutCoordinatesBefore(int startIndex, LineString geometry) throws PlanItException {
+  public static LineString createCopyWithoutCoordinatesBefore(int startIndex, LineString geometry) throws PlanItException {
     if (startIndex >= geometry.getNumPoints() || startIndex < 0) {
       throw new PlanItException("invalid start index for extracting coordinates from line string geometry");
     }
@@ -334,7 +332,7 @@ public class PlanitJtsUtils {
    * @param geometry linestring
    * @throws PlanItException thrown if position could not be located
    */
-  public LineString createCopyWithoutCoordinatesAfter(Point position, LineString geometry) throws PlanItException {
+  public static LineString createCopyWithoutCoordinatesAfter(Point position, LineString geometry) throws PlanItException {
     Optional<Integer> offset = findFirstCoordinatePosition(position.getCoordinate(), geometry);
 
     if (!offset.isPresent()) {
@@ -353,7 +351,7 @@ public class PlanitJtsUtils {
    * @return the line string created
    * @throws PlanItException thrown if error
    */
-  public LineString createCopyWithoutCoordinatesAfter(int endIndex, LineString geometry) throws PlanItException {
+  public static LineString createCopyWithoutCoordinatesAfter(int endIndex, LineString geometry) throws PlanItException {
     if (geometry == null) {
       return null;
     }
@@ -370,7 +368,7 @@ public class PlanitJtsUtils {
    * @param geometry to remove duplicate coordinates from
    * @return geometry copy without duplicates
    */
-  public LineString createCopyWithoutAdjacentDuplicateCoordinates(LineString geometry) {
+  public static LineString createCopyWithoutAdjacentDuplicateCoordinates(LineString geometry) {
     if (geometry == null) {
       return null;
     }
@@ -401,7 +399,7 @@ public class PlanitJtsUtils {
    * @param geometry           to locate from
    * @return the position if present
    */
-  public Optional<Integer> findFirstCoordinatePosition(Coordinate coordinateToLocate, int offset, LineString geometry) {
+  public static Optional<Integer> findFirstCoordinatePosition(Coordinate coordinateToLocate, int offset, LineString geometry) {
     if (geometry == null || coordinateToLocate == null) {
       return Optional.empty();
     }
@@ -423,7 +421,7 @@ public class PlanitJtsUtils {
    * @param geometry           to locate from
    * @return the position if present
    */
-  public Optional<Integer> findFirstCoordinatePosition(Coordinate coordinateToLocate, LineString geometry) {
+  public static Optional<Integer> findFirstCoordinatePosition(Coordinate coordinateToLocate, LineString geometry) {
     return findFirstCoordinatePosition(coordinateToLocate, 0, geometry);
   }
 
@@ -435,7 +433,7 @@ public class PlanitJtsUtils {
    * @return coordinate array, when offset is out of bounds null is returned
    * @throws PlanItException thrown if error
    */
-  public Coordinate[] copyCoordinatesFrom(int offset, LineString geometry) throws PlanItException {
+  public static Coordinate[] copyCoordinatesFrom(int offset, LineString geometry) throws PlanItException {
     return copyCoordinatesFromUpToNotIncluding(offset, geometry.getNumPoints(), geometry);
   }
 
@@ -447,7 +445,7 @@ public class PlanitJtsUtils {
    * @return coordinate array, when offset is out of bounds null is returned
    * @throws PlanItException thrown if error
    */
-  public Coordinate[] copyCoordinatesUpToNotIncluding(int untilPoint, LineString geometry) throws PlanItException {
+  public static Coordinate[] copyCoordinatesUpToNotIncluding(int untilPoint, LineString geometry) throws PlanItException {
     return copyCoordinatesFromUpToNotIncluding(0, untilPoint, geometry);
   }
 
@@ -460,7 +458,7 @@ public class PlanitJtsUtils {
    * @return coordinate array, when offset is out of bounds empty coordinate array is returned
    * @throws PlanItException thrown if error
    */
-  public Coordinate[] copyCoordinatesFromUpToNotIncluding(int offset, int untilPoint, LineString geometry) throws PlanItException {
+  public static Coordinate[] copyCoordinatesFromUpToNotIncluding(int offset, int untilPoint, LineString geometry) throws PlanItException {
     PlanItException.throwIfNull(geometry, "provided geometry to copy coordinates from is null");
 
     int numCoordinates = geometry.getNumPoints();
@@ -483,7 +481,7 @@ public class PlanitJtsUtils {
    * @param geometries to concatenate
    * @return created concatnated linesString
    */
-  public LineString concatenate(LineString... geometries) {
+  public static LineString concatenate(LineString... geometries) {
     MultiLineString theMultiLineString = jtsGeometryFactory.createMultiLineString(geometries);
     return jtsGeometryFactory.createLineString(theMultiLineString.getCoordinates());
   }

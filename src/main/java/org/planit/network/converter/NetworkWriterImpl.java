@@ -37,4 +37,5 @@ public abstract class NetworkWriterImpl implements NetworkWriter {
   public void setIdMapper(IdMapper idMapper) {
     this.idMapper = idMapper;
   }
+
 }

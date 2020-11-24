@@ -36,17 +36,22 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   /**
    * Map which stores which external node Ids corresponding to Nodes
    */
-  private Map<Object, Node> nodeExternalIdToNodeMap;
+  protected Map<Object, Node> nodeExternalIdToNodeMap;
+
+  /**
+   * Map which stores link segments by external Id
+   */
+  protected Map<Object, MacroscopicLinkSegment> linkSegmentExternalIdToLinkSegmentMap;
 
   /**
    * Map which stores external link segment type Ids corresponding to link segment types
    */
-  private Map<Object, MacroscopicLinkSegmentType> linkSegmentTypeExternalIdToLinkSegmentTypeMap;
+  protected Map<Object, MacroscopicLinkSegmentType> linkSegmentTypeExternalIdToLinkSegmentTypeMap;
 
   /**
    * Map which stores Mode external Ids corresponding to Modes
    */
-  private Map<Object, Mode> modeExternalIdToModeMap;
+  protected Map<Object, Mode> modeExternalIdToModeMap;
 
   /**
    * Map which stores traveler type by external Id
@@ -61,22 +66,17 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   /**
    * Map which stores time periods by external Id
    */
-  private Map<Object, TimePeriod> timePeriodExternalIdToTimePeriodMap;
+  protected Map<Object, TimePeriod> timePeriodExternalIdToTimePeriodMap;
 
   /**
    * Map which stores zones by external Id
    */
-  private Map<Object, Zone> zoneExternalIdToZoneMap;
-
-  /**
-   * Map which stores link segments by external Id
-   */
-  private Map<Object, MacroscopicLinkSegment> linkSegmentExternalIdToLinkSegmentMap;
+  protected Map<Object, Zone> zoneExternalIdToZoneMap;
 
   /**
    * Flag to determine whether duplicate external Id should be considered an error (defaults to true)
    */
-  private boolean errorIfDuplicateExternalId;
+  private boolean errorIfDuplicateExternalId = DEFAULT_ERROR_ON_DUPLICATE_EXTERNAL_ID;
 
   /**
    * Stores an object by its external Id, after checking whether the external Id is a duplicate
@@ -94,6 +94,9 @@ public abstract class InputBuilderListener implements EventListenerInterface {
     return containsDuplicates;
   }
 
+  /** default setting */
+  public static boolean DEFAULT_ERROR_ON_DUPLICATE_EXTERNAL_ID = true;
+
   /**
    * Constructor
    */
@@ -106,7 +109,6 @@ public abstract class InputBuilderListener implements EventListenerInterface {
     timePeriodExternalIdToTimePeriodMap = new HashMap<Object, TimePeriod>();
     zoneExternalIdToZoneMap = new HashMap<Object, Zone>();
     linkSegmentExternalIdToLinkSegmentMap = new HashMap<Object, MacroscopicLinkSegment>();
-    errorIfDuplicateExternalId = true;
   }
 
   /**
