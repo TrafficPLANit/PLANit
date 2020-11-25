@@ -29,7 +29,7 @@ import org.planit.utils.mode.Modes;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
-
+import org.planit.utils.network.physical.Nodes;
 import org.locationtech.jts.geom.LineString;
 
 /**
@@ -322,70 +322,6 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   }
 
   /**
-   * Internal class for all Node specific code
-   */
-  public class Nodes implements Iterable<N> {
-
-    /**
-     * Iterator over available nodes
-     */
-    @Override
-    public Iterator<N> iterator() {
-      return graph.getVertices().iterator();
-    }
-
-    /**
-     * Create and register new node
-     *
-     * @return new node created
-     */
-    public N registerNew() {
-      final N newNode = graph.getVertices().registerNew();
-      return newNode;
-    }
-
-    /**
-     * Create and register new node
-     *
-     * @param externalId the externalId of the node
-     * @return new node created
-     */
-    public N registerNew(Object externalId) {
-      final N newNode = graph.getVertices().registerNew(externalId);
-      return newNode;
-    }
-
-    /**
-     * Return number of registered nodes
-     *
-     * @return number of registered nodes
-     */
-    public int size() {
-      return graph.getVertices().size();
-    }
-
-    /**
-     * Find a node by its d
-     *
-     * @param id Id of node
-     * @return retrieved node
-     */
-    public N get(final long id) {
-      return graph.getVertices().get(id);
-    }
-
-    /**
-     * check if size is zero
-     * 
-     * @return true when empty false otherwise
-     */
-    public boolean isEmpty() {
-      return graph.getVertices().isEmpty();
-    }
-
-  }
-
-  /**
    * the network builder
    */
   private final PhysicalNetworkBuilder<N, L, LS> networkBuilder;
@@ -433,7 +369,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   /**
    * internal class instance containing all nodes specific functionality
    */
-  public final Nodes nodes = new Nodes();
+  public final Nodes<N> nodes;
 
   /**
    * internal class instance containing all modes specific functionality
@@ -453,6 +389,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     this.networkBuilder = networkBuilder; /* for derived classes building part */
     this.graph = new DirectedGraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
     this.modes = new ModesImpl(getNetworkIdGroupingToken()); /* for mode building added by this class */
+    this.nodes = new NodesImpl<N>(getGraph().getVertices());
   }
 
   /**
@@ -469,6 +406,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     this.networkBuilder = networkBuilder; /* for derived classes building part */
     this.graph = new DirectedGraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
     this.modes = new ModesImpl(getNetworkIdGroupingToken()); /* for mode building added by this class */
+    this.nodes = new NodesImpl<N>(getGraph().getVertices());    
   }
 
   // Getters - Setters
@@ -607,9 +545,9 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
         for (Link brokenLink : brokenLinks.getValue()) {
           LineString updatedGeometry = null;
           if (brokenLink.getNodeA().equals(nodeToBreakAt)) {
-            updatedGeometry = geoUtils.createCopyWithoutCoordinatesBefore(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
+            updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesBefore(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
           } else if (brokenLink.getNodeB().equals(nodeToBreakAt)) {
-            updatedGeometry = geoUtils.createCopyWithoutCoordinatesAfter(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
+            updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesAfter(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
           } else {
             LOGGER.warning(String.format("unable to locate node to break at (%s) for broken link %s (id:%d)", nodeToBreakAt.getPosition().toString(), brokenLink.getExternalId(),
                 brokenLink.getId()));
@@ -625,7 +563,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   }
 
   /**
-   * Basic validation of the network veifying if all nodes and link s are properly set and connected
+   * Basic validation of the network verifying if all nodes and link s are properly set and connected
    */
   public void validate() {
     graph.validate();
