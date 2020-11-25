@@ -3,7 +3,6 @@ package org.planit.output.adapter;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.network.physical.PhysicalNetwork;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.OutputProperty;
@@ -12,6 +11,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.LinkSegments;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 
@@ -232,7 +232,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * Provide access to the available link segments
    */
   @Override
-  public PhysicalNetwork<?, ?, ? extends LinkSegment>.LinkSegments getPhysicalLinkSegments() {
+  public LinkSegments<? extends LinkSegment> getPhysicalLinkSegments() {
     return trafficAssignment.getTransportNetwork().getPhysicalNetwork().linkSegments;
   }
 

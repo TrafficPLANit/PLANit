@@ -1,9 +1,6 @@
 package org.planit.network.physical;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -21,13 +18,12 @@ import org.planit.mode.ModesImpl;
 import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedGraph;
-import org.planit.utils.graph.DirectedVertex;
-import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.mode.Modes;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.LinkSegments;
+import org.planit.utils.network.physical.Links;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.Nodes;
 import org.locationtech.jts.geom.LineString;
@@ -53,273 +49,6 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
   /** one can set the coordinate reference system only when the network is empty and only once at this point */
   private boolean coordinateReferenceSystemLocked = false;
-
-  /**
-   * Internal class for all Link specific code
-   *
-   */
-  /**
-   * @author markr
-   *
-   */
-  public class Links implements Iterable<L> {
-
-    /**
-     * Iterator over available links
-     */
-    @Override
-    public Iterator<L> iterator() {
-      return graph.getEdges().iterator();
-    }
-
-    /**
-     * Create new link to network identified via its id, injecting link length directly (link is not registered on nodes, this is left to the user)
-     *
-     * @param nodeA  the first node in this link
-     * @param nodeB  the second node in this link
-     * @param length the length of this link
-     * @return the created link
-     * @throws PlanItException thrown if there is an error
-     */
-    public L registerNew(final Node nodeA, final Node nodeB, final double length) throws PlanItException {
-      return registerNew(nodeA, nodeB, length, false);
-    }
-
-    /**
-     * Create new link to network identified via its id, injecting link length directly
-     *
-     * @param nodeA           the first node in this link
-     * @param nodeB           the second node in this link
-     * @param length          the length of this link
-     * @param registerOnNodes choice to register new link on the nodes or not
-     * @return the created link
-     * @throws PlanItException thrown if there is an error
-     */
-    public L registerNew(final Node nodeA, final Node nodeB, final double length, boolean registerOnNodes) throws PlanItException {
-      final L newLink = graph.getEdges().registerNew(nodeA, nodeB, length);
-      if (registerOnNodes) {
-        nodeA.addEdge(newLink);
-        nodeB.addEdge(newLink);
-      }
-      return newLink;
-    }
-
-    /**
-     * Get link by id
-     *
-     * @param id the id of the link
-     * @return the retrieved link
-     */
-    public L get(final long id) {
-      return graph.getEdges().get(id);
-    }
-
-    /**
-     * Get the number of links on the network
-     *
-     * @return the number of links in the network
-     */
-    public int size() {
-      return graph.getEdges().size();
-    }
-
-    /**
-     * check if size is zero
-     * 
-     * @return true when empty false otherwise
-     */
-    public boolean isEmpty() {
-      return graph.getEdges().isEmpty();
-    }
-
-  }
-
-  /**
-   * Internal class for LinkSegment specific code (non-physical link segments are placed in the zoning)
-   *
-   */
-  public class LinkSegments implements Iterable<LS> {
-
-    /**
-     * Map to store all link segments for a given start node Id
-     */
-    private Map<Long, List<LS>> linkSegmentMapByStartNodeId = new HashMap<Long, List<LS>>();
-
-    /**
-     * Register a link segment on the network
-     *
-     * @param linkSegment the link segment to be registered
-     * @throws PlanItException thrown if the current link segment external Id has already been assigned
-     */
-    protected void register(final LS linkSegment) throws PlanItException {
-      final Vertex startNode = linkSegment.getUpstreamVertex();
-      if (!linkSegmentMapByStartNodeId.containsKey(startNode.getId())) {
-        linkSegmentMapByStartNodeId.put(startNode.getId(), new ArrayList<LS>());
-      }
-      linkSegmentMapByStartNodeId.get(startNode.getId()).add(linkSegment);
-    }
-
-    /**
-     * Iterator over available edge segments
-     */
-    @Override
-    public Iterator<LS> iterator() {
-      return graph.getEdgeSegments().iterator();
-    }
-
-    /**
-     * Find a LinkSegment by the external Ids of its start and end nodes
-     *
-     * @param startId reference to start node
-     * @param endId   reference to end node
-     * @return the linkSegment found
-     */
-    public LS getByStartAndEndNodeId(final long startId, final long endId) {
-      if (!linkSegmentMapByStartNodeId.containsKey(startId)) {
-        LOGGER.warning(LoggingUtils.createNetworkPrefix(getId()) + String.format("no link segment with start node %d has been registered in the network", startId));
-        return null;
-      }
-      final List<LS> linkSegmentsForCurrentStartNode = linkSegmentMapByStartNodeId.get(startId);
-      for (final LS linkSegment : linkSegmentsForCurrentStartNode) {
-        final Vertex downstreamVertex = linkSegment.getDownstreamVertex();
-        if (downstreamVertex.getId() == endId) {
-          return linkSegment;
-        }
-      }
-      LOGGER.warning(
-          LoggingUtils.createNetworkPrefix(getId()) + String.format("no link segment with start node %d and end node %d has been registered in the network", startId, endId));
-      return null;
-    }
-
-    /**
-     * Create directional link segment (not registered on nodes or link)
-     *
-     * @param parentLink  the parent link of this link segment
-     * @param directionAb direction of travel
-     * @return the created link segment
-     * @throws PlanItException thrown if there is an error
-     */
-    public LS createNew(final L parentLink, final boolean directionAb) throws PlanItException {
-      return graph.getEdgeSegments().create(parentLink, directionAb);
-    }
-
-    /**
-     * Create directional link segment and register it on the network (not registered on nodes or link)
-     *
-     * @param parentLink  the parent link of this link segment
-     * @param directionAb direction of travel
-     * @return the created link segment
-     * @throws PlanItException thrown if there is an error
-     */
-    public LS registerNew(final L parentLink, final boolean directionAb) throws PlanItException {
-      return registerNew(parentLink, directionAb, false /* do not register on node and link */);
-    }
-
-    /**
-     * Create directional link segment and register it on the network (not registered on nodes or link)
-     *
-     * @param parentLink            the parent link of this link segment
-     * @param directionAb           direction of travel
-     * @param registerOnNodeAndLink option to register the new link segment on the underlying link and its nodes
-     * @return the created link segment
-     * @throws PlanItException thrown if there is an error
-     */
-    public LS registerNew(final L parentLink, final boolean directionAb, final boolean registerOnNodeAndLink) throws PlanItException {
-      LS linkSegment = createNew(parentLink, directionAb);
-      register(parentLink, linkSegment, directionAb);
-      if (registerOnNodeAndLink) {
-        parentLink.registerEdgeSegment(linkSegment, directionAb);
-        if (parentLink.getVertexA() instanceof DirectedVertex) {
-          ((DirectedVertex) parentLink.getVertexA()).addEdgeSegment(linkSegment);
-          ((DirectedVertex) parentLink.getVertexB()).addEdgeSegment(linkSegment);
-        }
-      }
-      return linkSegment;
-    }
-
-    /**
-     * Register a link segment on network (not on nodes and link)
-     *
-     * @param parentLink  the parent link which specified link segment will be registered on
-     * @param linkSegment link segment to be registered
-     * @param directionAb direction of travel
-     * @throws PlanItException thrown if there is an error
-     */
-    public void register(final L parentLink, final LS linkSegment, final boolean directionAb) throws PlanItException {
-      graph.getEdgeSegments().registerNew(parentLink, linkSegment, directionAb);
-      register(linkSegment);
-    }
-
-    /**
-     * Get link segment by id
-     *
-     * @param id id of the link segment
-     * @return retrieved linkSegment
-     */
-    public LS get(final long id) {
-      return graph.getEdgeSegments().get(id);
-    }
-
-    /**
-     * Return number of registered link segments
-     *
-     * @return number of registered link segments
-     */
-    public long size() {
-      return graph.getEdgeSegments().size();
-    }
-
-    /**
-     * Retrieve a link segment by its external Id
-     * 
-     * This method has the option to convert the external Id parameter into a long value, to find the link segment type when link segment type objects use long values for external
-     * ids.
-     * 
-     * @param externalId    the external Id of the specified link segment
-     * @param convertToLong if true, the external Id is converted into a long before beginning the search
-     * @return the retrieved link segment, or null if no mode was found
-     */
-    public LinkSegment getByExternalId(Object externalId, boolean convertToLong) {
-      try {
-        if (convertToLong) {
-          long value = Long.valueOf(externalId.toString());
-          return getByExternalId(value);
-        }
-        return getByExternalId(externalId);
-      } catch (NumberFormatException e) {
-        // do nothing - if conversion to long is not possible, use the general method instead
-      }
-      return getByExternalId(externalId);
-    }
-
-    /**
-     * Retrieve a link segment by its external Id
-     * 
-     * This method is not efficient, since it loops through all the registered modes in order to find the required link segment. The equivalent method in InputBuilderListener is
-     * more efficient and should be used in preference to this in Java code.
-     * 
-     * @param externalId the external Id of the specified link segment type
-     * @return the retrieved link segment, or null if no link segment type was found
-     */
-    public LinkSegment getByExternalId(Object externalId) {
-      for (LinkSegment linkSegment : graph.getEdgeSegments()) {
-        if (linkSegment.getExternalId().equals(externalId)) {
-          return linkSegment;
-        }
-      }
-      return null;
-    }
-
-    /**
-     * check if size is zero
-     * 
-     * @return true if empty false otherwise
-     */
-    public boolean isEmpty() {
-      return graph.getEdgeSegments().isEmpty();
-    }
-
-  }
 
   /**
    * the network builder
@@ -359,12 +88,12 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   /**
    * internal class instance containing all link specific functionality
    */
-  public final Links links = new Links();
+  public final Links<L> links;
 
   /**
    * internal class instance containing all link segment specific functionality
    */
-  public final LinkSegments linkSegments = new LinkSegments();
+  public final LinkSegments<LS> linkSegments;
 
   /**
    * internal class instance containing all nodes specific functionality
@@ -389,7 +118,10 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     this.networkBuilder = networkBuilder; /* for derived classes building part */
     this.graph = new DirectedGraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
     this.modes = new ModesImpl(getNetworkIdGroupingToken()); /* for mode building added by this class */
+    
     this.nodes = new NodesImpl<N>(getGraph().getVertices());
+    this.links = new LinksImpl<L>(getGraph().getEdges());
+    this.linkSegments = new LinkSegmentsImpl<LS>(getGraph().getEdgeSegments());
   }
 
   /**
@@ -406,7 +138,10 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     this.networkBuilder = networkBuilder; /* for derived classes building part */
     this.graph = new DirectedGraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
     this.modes = new ModesImpl(getNetworkIdGroupingToken()); /* for mode building added by this class */
-    this.nodes = new NodesImpl<N>(getGraph().getVertices());    
+    
+    this.nodes = new NodesImpl<N>(getGraph().getVertices());
+    this.links = new LinksImpl<L>(getGraph().getEdges());
+    this.linkSegments = new LinkSegmentsImpl<LS>(getGraph().getEdgeSegments());
   }
 
   // Getters - Setters

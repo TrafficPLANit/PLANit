@@ -16,14 +16,14 @@ import org.planit.utils.network.physical.Nodes;
 public class NodesImpl<N extends Node> implements Nodes<N> {
 
   /**
-   * The graph we use to create and register our nodes on
+   * The vertices we use to create and register our nodes on
    */
   private final Vertices<N> vertices;
 
   /**
    * Constructor
    * 
-   * @param graph the graph to use to create and register nodes on
+   * @param vertices the vertices to use to create and register nodes on
    */
   public NodesImpl(final Vertices<N> vertices) {
     this.vertices = vertices;

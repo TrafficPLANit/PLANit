@@ -106,8 +106,8 @@ public class ShortestPathTest {
           Link link = network.links.registerNew(nodeA, nodeB, 1);
           nodeA.addEdge(link);
           nodeB.addEdge(link);
-          LinkSegment linkSegmentAb = network.linkSegments.createNew(link, true);
-          LinkSegment linkSegmentBa = network.linkSegments.createNew(link, false);
+          LinkSegment linkSegmentAb = network.linkSegments.create(link, true);
+          LinkSegment linkSegmentBa = network.linkSegments.create(link, false);
           nodeB.addEdgeSegment(linkSegmentAb);
           nodeB.addEdgeSegment(linkSegmentBa);
           nodeA.addEdgeSegment(linkSegmentAb);
@@ -124,8 +124,8 @@ public class ShortestPathTest {
           Link link = network.links.registerNew(nodeA, nodeB, 1);
           nodeA.addEdge(link);
           nodeB.addEdge(link);
-          LinkSegment linkSegmentAb = network.linkSegments.createNew(link, true);
-          LinkSegment linkSegmentBa = network.linkSegments.createNew(link, false);
+          LinkSegment linkSegmentAb = network.linkSegments.create(link, true);
+          LinkSegment linkSegmentBa = network.linkSegments.create(link, false);
           nodeB.addEdgeSegment(linkSegmentBa);
           nodeB.addEdgeSegment(linkSegmentAb);
           nodeA.addEdgeSegment(linkSegmentAb);

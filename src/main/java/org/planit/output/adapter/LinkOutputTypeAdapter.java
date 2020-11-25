@@ -5,6 +5,7 @@ import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.LinkSegments;
 
 /**
  * Interface defining the methods required for a link output adapter
@@ -28,7 +29,7 @@ public interface LinkOutputTypeAdapter extends OutputTypeAdapter {
    * 
    * @return a List of link segments for this assignment
    */
-  public PhysicalNetwork<?,?,? extends LinkSegment>.LinkSegments getPhysicalLinkSegments();
+  public LinkSegments<? extends LinkSegment> getPhysicalLinkSegments();
 
   /**
    * Return the value of a specified output property of a link segment

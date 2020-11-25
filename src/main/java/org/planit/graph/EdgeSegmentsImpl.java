@@ -39,7 +39,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   }
 
   /**
-   * Register an edge segment on the network. Use cautiously, if p only register via a factory method to ensure correct id generation within the container
+   * Register an edge segment. Use cautiously, Only register via a factory method to ensure correct id generation within the container
    *
    * @param edgeSegment the link segment to be registered
    */
@@ -92,10 +92,28 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   /**
    * {@inheritDoc}
    */
-  public void registerNew(final DirectedEdge parentEdge, final ES edgeSegment, final boolean directionAB) throws PlanItException {
+  public void register(final DirectedEdge parentEdge, final ES edgeSegment, final boolean directionAB) throws PlanItException {
     parentEdge.registerEdgeSegment(edgeSegment, directionAB);
     register(edgeSegment);
   }
+  
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public ES registerNew(DirectedEdge parentEdge, boolean directionAb, boolean registerOnNodeAndLink)
+      throws PlanItException {
+    ES edgeSegment = create(parentEdge, directionAb);
+    register(parentEdge, edgeSegment, directionAb);
+    if (registerOnNodeAndLink) {
+      parentEdge.registerEdgeSegment(edgeSegment, directionAb);
+      if (parentEdge.getVertexA() instanceof DirectedVertex) {
+        ((DirectedVertex) parentEdge.getVertexA()).addEdgeSegment(edgeSegment);
+        ((DirectedVertex) parentEdge.getVertexB()).addEdgeSegment(edgeSegment);
+      }
+    }
+    return edgeSegment;
+  }  
 
   /**
    * {@inheritDoc}
@@ -120,5 +138,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
     register(copy);
     return copy;
   }
+
+
 
 }

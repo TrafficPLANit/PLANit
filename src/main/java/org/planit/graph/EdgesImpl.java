@@ -81,16 +81,21 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
   public Iterator<E> iterator() {
     return edgeMap.values().iterator();
   }
-
+  
   /**
    * {@inheritDoc}
-   */
+   */  
   @Override
-  public E registerNew(final Vertex vertexA, final Vertex vertexB, final double length) throws PlanItException {
+  public E registerNew(Vertex vertexA, Vertex vertexB, double length, boolean registerOnVertices)
+      throws PlanItException {
     final E newEdge = graphBuilder.createEdge(vertexA, vertexB, length);
     register(newEdge);
+    if (registerOnVertices) {
+      vertexA.addEdge(newEdge);
+      vertexB.addEdge(newEdge);
+    }    
     return newEdge;
-  }
+  }  
 
   /**
    * {@inheritDoc}
@@ -125,5 +130,7 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
     register(copy);
     return copy;
   }
+
+
 
 }
