@@ -182,6 +182,14 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   }
 
   /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public void setExternalId(Object externalId) {
+    this.externalId = externalId;
+  }  
+
+  /**
    * Returns the mode properties for a specified mode along this link
    * 
    * @param mode the specified mode

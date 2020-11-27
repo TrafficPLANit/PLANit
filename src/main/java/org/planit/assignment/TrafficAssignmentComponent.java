@@ -5,6 +5,7 @@ import java.io.Serializable;
 import org.djutils.event.EventProducer;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.Idable;
 
 /**
  * Traffic assignment components are the main building blocks to conduct traffic assignment on
@@ -12,7 +13,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T> & Serializable> extends EventProducer {
+public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T> & Serializable> extends EventProducer implements Idable {
 
   /** generated UID */
   private static final long serialVersionUID = -3940841069228367177L;
@@ -58,6 +59,7 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
    * 
    * @return id of traffic assignment component
    */
+  @Override
   public long getId() {
     return id;
   }

@@ -1,5 +1,6 @@
 package org.planit.geo;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -237,6 +238,30 @@ public class PlanitJtsUtils {
     }
     return createLineString(value, ts.charAt(0), cs.charAt(0));
   }
+  
+  /**
+   * Based on the line string construct a csv string
+   * 
+   * @param geometry the values containing the x,y coordinates in the crs of this instance
+   * @param ts    tuple separating string to use
+   * @param cs    comma separating string to use
+   * @param df decinal formatter to format the decimals of the coordinates
+   * @return the LineString created from the String
+   * @throws PlanItException
+   */  
+  public static String createCsvStringFromLineString(LineString geometry, Character ts, Character cs, DecimalFormat df) {    
+    Coordinate[] coordinates = geometry.getCoordinates();
+    StringBuilder csvStringBuilder = new StringBuilder();    
+    for (int index = 0, lastIndex= coordinates.length-1; index < coordinates.length; ++index) {
+      Coordinate coordinate = coordinates[index];
+      csvStringBuilder.append(df.format(coordinate.x)).append(cs).append(df.format(coordinate.y));
+      if(index == lastIndex) {
+        break;
+      }
+      csvStringBuilder.append(ts);      
+    }
+    return csvStringBuilder.toString();
+  }  
 
   /**
    * Convert OpenGIS directPosition to JTS coordinates

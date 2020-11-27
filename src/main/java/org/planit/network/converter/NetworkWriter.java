@@ -24,13 +24,13 @@ public interface NetworkWriter {
    * 
    * @return the idmapping choice
    */
-  public IdMapper getIdMapper();
+  public IdMapperType getIdMapper();
 
   /**
    * set the way ids should be mapped
    * 
    * @param idMapper to use
    */
-  public void setIdMapper(IdMapper idMapper);
+  public void setIdMapper(IdMapperType idMapper);
 
 }

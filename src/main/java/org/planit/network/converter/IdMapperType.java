@@ -7,7 +7,9 @@ package org.planit.network.converter;
  * @author markr
  *
  */
-public enum IdMapper {
+public enum IdMapperType {
 
   ID, EXTERNAL_ID, GENERATED,
 }
+
+

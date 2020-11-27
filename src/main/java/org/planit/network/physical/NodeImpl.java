@@ -31,6 +31,9 @@ public class NodeImpl extends DirectedVertexImpl implements Node {
    * Unique node identifier
    */
   protected long nodeId;
+  
+  /** name of the node */
+  protected String name;
 
   /**
    * generate unique node id
@@ -71,9 +74,11 @@ public class NodeImpl extends DirectedVertexImpl implements Node {
   protected NodeImpl(NodeImpl nodeImpl) {
     super(nodeImpl);
     setNodeId(nodeImpl.getNodeId());
+    setName(nodeImpl.getName());
   }
 
   // Getters-Setters
+    
 
   /**
    * {@inheritDoc}
@@ -90,5 +95,21 @@ public class NodeImpl extends DirectedVertexImpl implements Node {
   public NodeImpl clone() {
     return new NodeImpl(this);
   }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public void setName(String name) {
+    this.name = name;
+  }  
 
 }

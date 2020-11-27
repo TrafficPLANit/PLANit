@@ -1,20 +1,14 @@
 package org.planit.network.physical.macroscopic;
 
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.PhysicalNetworkBuilder;
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentTypes;
-import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 
 /**
  * Macroscopic Network which stores link segment types
