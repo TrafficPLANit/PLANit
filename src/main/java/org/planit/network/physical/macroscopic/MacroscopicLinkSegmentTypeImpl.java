@@ -50,14 +50,15 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
    * Map of mode properties for each mode for this link segment
    */
   protected Map<Mode, MacroscopicModeProperties> modeProperties;
-  
+
   /**
    * set the id on this link segment type
+   * 
    * @param id to set
    */
   protected void setId(long id) {
     this.id = id;
-  }  
+  }
 
   /**
    * Generate next id available
@@ -98,17 +99,17 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
    * @param externalId            external reference number of the link type
    * @param modeProperties        mode properties
    */
-  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane, final Object externalId,
-      Map<Mode, MacroscopicModeProperties> modeProperties) {
+  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane,
+      final Object externalId, Map<Mode, MacroscopicModeProperties> modeProperties) {
     this(groupId, name, capacityPerLane, maximumDensityPerLane, externalId);
     if (modeProperties != null) {
       setModeProperties(modeProperties);
     }
   }
-  
+
   /**
-   * Copy constructor. Use carefully since ids are also copied causing non-unique ids. Note that the mode propertoes are owned by each instance so they are deep copied, 
-   * everything else is not
+   * Copy constructor. Use carefully since ids are also copied causing non-unique ids. Note that the mode propertoes are owned by each instance so they are deep copied, everything
+   * else is not
    * 
    * @param macroscopicLinkSegmentTypeImpl to copy from
    */
@@ -118,10 +119,10 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
     this.capacityPerLane = other.getCapacityPerLane();
     this.maximumDensityPerLane = other.getMaximumDensityPerLane();
     this.externalId = other.getExternalId();
-    
+
     this.modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
-    other.modeProperties.forEach( (mode, properties) -> modeProperties.put(mode, properties.clone()));
-  }  
+    other.modeProperties.forEach((mode, properties) -> modeProperties.put(mode, properties.clone()));
+  }
 
   // Getters - Setters
 
@@ -183,11 +184,11 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public void setExternalId(Object externalId) {
     this.externalId = externalId;
-  }  
+  }
 
   /**
    * Returns the mode properties for a specified mode along this link
@@ -242,13 +243,13 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   public int compareTo(MacroscopicLinkSegmentType other) {
     return Long.valueOf(id).compareTo(other.getId());
   }
-  
+
   /**
    * {@inheritDoc}
    */
   @Override
   public MacroscopicLinkSegmentType clone() {
-    return new MacroscopicLinkSegmentTypeImpl(this);    
+    return new MacroscopicLinkSegmentTypeImpl(this);
   }
 
   /**

@@ -27,14 +27,14 @@ public class MacroscopicModePropertiesFactory {
    * @param maxSpeedKmH maximum speed for this mode in this context
    */
   public static MacroscopicModeProperties create(final double maxSpeedKmH) {
-    return create(maxSpeedKmH, MacroscopicModeProperties.DEFAULT_CRITICAL_SPEED);
+    return create(maxSpeedKmH, MacroscopicModeProperties.DEFAULT_CRITICAL_SPEED_KMH);
   }
 
   /**
    * factory method adopting default values
    */
   public static MacroscopicModeProperties create() {
-    return create(Mode.GLOBAL_DEFAULT_MAXIMUM_SPEED_KMH, MacroscopicModeProperties.DEFAULT_CRITICAL_SPEED);
+    return create(Mode.GLOBAL_DEFAULT_MAXIMUM_SPEED_KMH, MacroscopicModeProperties.DEFAULT_CRITICAL_SPEED_KMH);
   }
 
 }

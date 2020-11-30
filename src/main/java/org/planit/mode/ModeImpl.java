@@ -128,6 +128,19 @@ public class ModeImpl implements Mode {
     return externalId;
   }
 
+  @Override
+  public void setExternalId(Object externalId) {
+    this.externalId = externalId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean hasExternalId() {
+    return (externalId != null);
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -140,7 +153,7 @@ public class ModeImpl implements Mode {
    * {@inheritDoc}
    */
   @Override
-  public double getMaximumSpeed() {
+  public double getMaximumSpeedKmH() {
     return maxSpeed;
   }
 
@@ -152,11 +165,6 @@ public class ModeImpl implements Mode {
     return pcu;
   }
 
-  @Override
-  public boolean hasExternalId() {
-    return (externalId != null);
-  }
-
   /**
    * Compare based on id
    * 
@@ -164,7 +172,7 @@ public class ModeImpl implements Mode {
    */
   @Override
   public int compareTo(Mode o) {
-    return Long.compare(this.getId(),o.getId());
+    return Long.compare(this.getId(), o.getId());
   }
 
   /**

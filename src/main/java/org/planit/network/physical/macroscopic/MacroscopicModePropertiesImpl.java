@@ -41,14 +41,14 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
    * @param maxSpeedKmH maximum speed for this mode in this context
    */
   MacroscopicModePropertiesImpl(final double maxSpeedKmH) {
-    this(maxSpeedKmH, DEFAULT_CRITICAL_SPEED);
+    this(maxSpeedKmH, DEFAULT_CRITICAL_SPEED_KMH);
   }
 
   /**
    * Constructor adopting default values
    */
   MacroscopicModePropertiesImpl() {
-    this(Mode.GLOBAL_DEFAULT_MAXIMUM_SPEED_KMH, DEFAULT_CRITICAL_SPEED);
+    this(Mode.GLOBAL_DEFAULT_MAXIMUM_SPEED_KMH, DEFAULT_CRITICAL_SPEED_KMH);
   }
 
   // Getter - setters
@@ -67,7 +67,7 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
    * {@inheritDoc}
    */
   @Override
-  public double getMaximumSpeed() {
+  public double getMaximumSpeedKmH() {
     return maxSpeedKmH;
   }
 
@@ -75,7 +75,7 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
    * {@inheritDoc}
    */
   @Override
-  public double getCriticalSpeed() {
+  public double getCriticalSpeedKmH() {
     return criticalSpeedKmH;
   }
 
@@ -83,7 +83,7 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
    * {@inheritDoc}
    */
   @Override
-  public double setMaximumSpeed(final double maxSpeed) {
+  public double setMaximumSpeedKmH(final double maxSpeed) {
     return this.maxSpeedKmH;
   }
 
@@ -91,7 +91,7 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
    * {@inheritDoc}
    */
   @Override
-  public double setCriticalSpeed(final double criticalSpeed) {
+  public double setCriticalSpeedKmH(final double criticalSpeed) {
     return this.criticalSpeedKmH;
   }
   

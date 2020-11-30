@@ -1,5 +1,6 @@
 package org.planit.network.physical.macroscopic;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -19,20 +20,21 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
  *
  */
 public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTypes {
-  
+
   /** the logger to use */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentTypesImpl.class.getCanonicalName());
-  
+
   /** the builder to use for creating instances of macroscopic link segment types */
-  protected final MacroscopicPhysicalNetworkBuilder<?,?,MacroscopicLinkSegment> networkBuilder; 
-  
+  protected final MacroscopicPhysicalNetworkBuilder<?, ?, MacroscopicLinkSegment> networkBuilder;
+
   /**
    * Map which stores link segment types by generated Id
    */
   protected Map<Long, MacroscopicLinkSegmentType> macroscopicLinkSegmentTypeByIdMap = new TreeMap<Long, MacroscopicLinkSegmentType>();
-  
-  /** Constructor
+
+  /**
+   * Constructor
    * 
    * @param networkBuilder to use for delegating the creation of macroscopic link segment types to
    */
@@ -44,23 +46,21 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentType createAndRegisterNew(String name, double capacityPcuPerHour,
-      double maximumDensityPcuPerKm, Object linkSegmentExternalId, Map<Mode, MacroscopicModeProperties> modeProperties)
-      throws PlanItException {
-    
-    MacroscopicLinkSegmentType linkSegmentType = 
-        networkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentExternalId, modeProperties);
+  public MacroscopicLinkSegmentType createAndRegisterNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm, Object linkSegmentExternalId,
+      Map<Mode, MacroscopicModeProperties> modeProperties) throws PlanItException {
+
+    MacroscopicLinkSegmentType linkSegmentType = networkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentExternalId, modeProperties);
     register(linkSegmentType);
     return linkSegmentType;
   }
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
-  public MacroscopicLinkSegmentType createAndRegisterNew(String name, double capacityPcuPerHour,
-      double maximumDensityPcuPerKm, Object linkSegmentExternalId) throws PlanItException {
-    
+  public MacroscopicLinkSegmentType createAndRegisterNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm, Object linkSegmentExternalId)
+      throws PlanItException {
+
     MacroscopicLinkSegmentType linkSegmentType = networkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentExternalId);
     register(linkSegmentType);
     return linkSegmentType;
@@ -68,7 +68,7 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public MacroscopicLinkSegmentType register(MacroscopicLinkSegmentType linkSegmentType) {
     return macroscopicLinkSegmentTypeByIdMap.put(linkSegmentType.getId(), linkSegmentType);
@@ -76,17 +76,17 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public MacroscopicLinkSegmentType registerUniqueCopyOf(MacroscopicLinkSegmentType linkSegmentTypeToCopy) {
     MacroscopicLinkSegmentType linkSegmentType = networkBuilder.createUniqueCopyOf(linkSegmentTypeToCopy);
-    register(linkSegmentType);  
+    register(linkSegmentType);
     return linkSegmentType;
   }
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public int size() {
     return macroscopicLinkSegmentTypeByIdMap.size();
@@ -94,7 +94,7 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public MacroscopicLinkSegmentType get(long id) {
     return macroscopicLinkSegmentTypeByIdMap.get(id);
@@ -102,11 +102,18 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public Set<MacroscopicLinkSegmentType> setOf() {
-    return  Set.copyOf(macroscopicLinkSegmentTypeByIdMap.values());
+    return Set.copyOf(macroscopicLinkSegmentTypeByIdMap.values());
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Iterator<MacroscopicLinkSegmentType> iterator() {
+    return macroscopicLinkSegmentTypeByIdMap.values().iterator();
+  }
 
 }

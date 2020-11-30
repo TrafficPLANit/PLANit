@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.ExternalIdable;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
@@ -58,7 +59,7 @@ public class IdMapperFunctionFactory {
   }
 
   /**
-   * create a function that takes a link and id token and generates the appropriate id based on the user configuration
+   * create a function that takes a link and generates the appropriate id based on the user configuration
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates mapped link id's for persistence
@@ -69,7 +70,7 @@ public class IdMapperFunctionFactory {
   }
 
   /**
-   * create a function that takes a link segment type and id token and generates the appropriate id based on the user configuration
+   * create a function that takes a link segment type and generates the appropriate id based on the user configuration
    * 
    * @param idMapper the type of mapping function to create
    * @return function that generates mapped link segment type id's for persistence
@@ -80,8 +81,7 @@ public class IdMapperFunctionFactory {
   }
 
   /**
-   * create a function that takes a link segment and (optional) ide mapper and generates the appropriate MATSIM link id based on the user configuration id grouping token is only
-   * used when mapper is set to GENERATE, in which case the token is used for generating ids
+   * create a function that takes a link segment and (optional) id mapper and generates the appropriate MATSIM link id based on the user configuration
    * 
    * @return function that generates mapped link segment id's for persistence
    * @throws PlanItException thrown if error
@@ -107,6 +107,17 @@ public class IdMapperFunctionFactory {
     default:
       throw new PlanItException(String.format("unknown id mapping type found for link segments %s", idMapper.toString()));
     }
+  }
+
+  /**
+   * create a function that takes a mode and generates the appropriate id based on the user configuration
+   * 
+   * @param idMapper the type of mapping function to create
+   * @return function that generates mapped mode id's for persistence
+   * @throws PlanItException thrown if error
+   */
+  public static Function<Mode, String> createModeIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+    return createIdMappingFunction(Mode.class, idMapper);
   }
 
 }
