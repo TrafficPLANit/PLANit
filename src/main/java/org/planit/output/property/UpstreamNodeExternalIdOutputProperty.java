@@ -19,7 +19,7 @@ public final class UpstreamNodeExternalIdOutputProperty extends BaseOutputProper
 
   @Override
   public Type getType() {
-    return Type.LONG;
+    return Type.STRING;
   }
 
   @Override

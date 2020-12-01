@@ -24,7 +24,12 @@ public class ZoneImpl implements Zone {
   /**
    * External Id for this zone
    */
-  protected final Object externalId;
+  protected String externalId;
+
+  /**
+   * xml Id for this zone
+   */
+  protected String xmlId;
 
   /**
    * generic input property storage
@@ -55,9 +60,8 @@ public class ZoneImpl implements Zone {
    * @param externalId the external ID of this zone
    * @param centroid   of the zone
    */
-  public ZoneImpl(final IdGroupingToken groupId, final Object externalId, final Centroid centroid) {
+  public ZoneImpl(final IdGroupingToken groupId, final Centroid centroid) {
     id = generateZoneId(groupId);
-    this.externalId = externalId;
     this.centroid = centroid;
   }
 
@@ -67,9 +71,8 @@ public class ZoneImpl implements Zone {
    * @param groupId    contiguous id generation within this group for instances of this class
    * @param externalId the external ID of this zone
    */
-  public ZoneImpl(final IdGroupingToken groupId, final Object externalId) {
+  public ZoneImpl(final IdGroupingToken groupId) {
     id = generateZoneId(groupId);
-    this.externalId = externalId;
     this.centroid = null;
   }
 
@@ -125,14 +128,36 @@ public class ZoneImpl implements Zone {
     this.centroid = centroid;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public Object getExternalId() {
+  public String getExternalId() {
     return externalId;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public boolean hasExternalId() {
-    return (externalId != null);
+  public void setExternalId(String externalId) {
+    this.externalId = externalId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getXmlId() {
+    return this.xmlId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setXmlId(String xmlId) {
+    this.xmlId = xmlId;
   }
 
 }

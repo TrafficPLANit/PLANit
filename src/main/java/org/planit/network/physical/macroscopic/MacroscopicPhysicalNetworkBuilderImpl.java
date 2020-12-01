@@ -36,17 +36,16 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
   /**
    * {@inheritDoc}
    */
-  public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity, Object externalId,
-      Map<Mode, MacroscopicModeProperties> modeProperties) {
-    return new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacity, maximumDensity, externalId, modeProperties);
+  public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity, Map<Mode, MacroscopicModeProperties> modeProperties) {
+    return new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacity, maximumDensity, modeProperties);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity, Object externalId) {
-    return new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacity, maximumDensity, externalId);
+  public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity) {
+    return new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacity, maximumDensity);
   }
 
   /**
@@ -134,10 +133,10 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public MacroscopicLinkSegmentType createUniqueCopyOf(MacroscopicLinkSegmentType linkSegmentTypeToCopy) {
-    if (linkSegmentTypeToCopy instanceof MacroscopicLinkSegmentTypeImpl) {  
+    if (linkSegmentTypeToCopy instanceof MacroscopicLinkSegmentTypeImpl) {
       /* shallow copy as is */
       MacroscopicLinkSegmentTypeImpl copy = (MacroscopicLinkSegmentTypeImpl) linkSegmentTypeToCopy.clone();
       /* make unique copy by updating id */
@@ -145,7 +144,7 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
       return copy;
     }
     LOGGER.severe("passed in link segment type is not an instance created by this builder, incompatible for creating a copy");
-    return null;    
+    return null;
   }
 
 }

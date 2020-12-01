@@ -8,6 +8,8 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.algorithms.shortestpath.AStarShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
@@ -22,9 +24,6 @@ import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.Zone;
-
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
 
 /**
  * Test the shortest path algorithms
@@ -90,8 +89,10 @@ public class ShortestPathTest {
       int gridSize = 4;
       network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
       for(int nodeRowIndex = 0;nodeRowIndex<=gridSize;++nodeRowIndex) {
-        for(int nodeColIndex = 0;nodeColIndex<=gridSize;++nodeColIndex) { 
-          Node node = network.nodes.registerNew(nodeRowIndex*gridSize+nodeColIndex);
+        for(int nodeColIndex = 0;nodeColIndex<=gridSize;++nodeColIndex) {
+          String externalId = String.valueOf(nodeRowIndex*gridSize+nodeColIndex);
+          Node node = network.nodes.registerNew();
+          node.setExternalId(externalId);
           // all nodes are spaced 1 km apart
           node.setPosition(geoFactory.createPoint(new Coordinate(nodeRowIndex*1000, nodeColIndex*1000)));
         }
@@ -134,11 +135,16 @@ public class ShortestPathTest {
       }
       
       zoning = new Zoning(IdGroupingToken.collectGlobalToken(), network.getNetworkIdGroupingToken());
-      Zone zoneA = zoning.zones.createAndRegisterNewZone("A");
-      Zone zoneB = zoning.zones.createAndRegisterNewZone("B");
-      Zone zoneC = zoning.zones.createAndRegisterNewZone("C");
-      Zone zoneD = zoning.zones.createAndRegisterNewZone("D");
-      Zone zoneE = zoning.zones.createAndRegisterNewZone("E");
+      Zone zoneA = zoning.zones.createAndRegisterNewZone();
+      zoneA.setExternalId("A");
+      Zone zoneB = zoning.zones.createAndRegisterNewZone();
+      zoneB.setExternalId("B");
+      Zone zoneC = zoning.zones.createAndRegisterNewZone();
+      zoneC.setExternalId("C");
+      Zone zoneD = zoning.zones.createAndRegisterNewZone();
+      zoneD.setExternalId("D");
+      Zone zoneE = zoning.zones.createAndRegisterNewZone();
+      zoneE.setExternalId("E");
       
       centroidA = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneA);
       centroidA.setPosition(geoFactory.createPoint(new Coordinate(0, 0)));

@@ -46,10 +46,10 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentType createAndRegisterNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm, Object linkSegmentExternalId,
-      Map<Mode, MacroscopicModeProperties> modeProperties) throws PlanItException {
+  public MacroscopicLinkSegmentType createAndRegisterNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm, Map<Mode, MacroscopicModeProperties> modeProperties)
+      throws PlanItException {
 
-    MacroscopicLinkSegmentType linkSegmentType = networkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentExternalId, modeProperties);
+    MacroscopicLinkSegmentType linkSegmentType = networkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, modeProperties);
     register(linkSegmentType);
     return linkSegmentType;
   }
@@ -58,10 +58,9 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentType createAndRegisterNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm, Object linkSegmentExternalId)
-      throws PlanItException {
+  public MacroscopicLinkSegmentType createAndRegisterNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm) throws PlanItException {
 
-    MacroscopicLinkSegmentType linkSegmentType = networkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, linkSegmentExternalId);
+    MacroscopicLinkSegmentType linkSegmentType = networkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm);
     register(linkSegmentType);
     return linkSegmentType;
   }

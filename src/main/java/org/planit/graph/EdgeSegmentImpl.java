@@ -47,9 +47,14 @@ public class EdgeSegmentImpl implements EdgeSegment {
   private DirectedEdge parentEdge;
 
   /**
-   * The external Id for this link segment type
+   * The external Id for this edge segment
    */
-  private Object externalId;
+  private String externalId;
+
+  /**
+   * Xml Id of the edge segment
+   */
+  protected String xmlId;
 
   /**
    * Generate unique edge segment id
@@ -98,6 +103,7 @@ public class EdgeSegmentImpl implements EdgeSegment {
    */
   protected EdgeSegmentImpl(EdgeSegmentImpl edgeSegmentImpl) {
     setId(edgeSegmentImpl.getId());
+    setXmlId(edgeSegmentImpl.getXmlId());
     setExternalId(edgeSegmentImpl.getExternalId());
     setParentEdge(edgeSegmentImpl.getParentEdge());
     setUpstreamVertex(edgeSegmentImpl.getUpstreamVertex());
@@ -198,30 +204,6 @@ public class EdgeSegmentImpl implements EdgeSegment {
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setExternalId(final Object externalId) {
-    this.externalId = externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasExternalId() {
-    return (externalId != null);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Object getExternalId() {
-    return externalId;
-  }
-
-  /**
    * compare based on edge segment id
    *
    * @see java.lang.Comparable#compareTo(java.lang.Object)
@@ -295,5 +277,41 @@ public class EdgeSegmentImpl implements EdgeSegment {
     }
 
     return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public String getExternalId() {
+    return this.externalId;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public void setExternalId(String externalId) {
+    this.externalId = externalId;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public String getXmlId() {
+    return this.xmlId;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public void setXmlId(String xmlId) {
+    this.xmlId = xmlId;
   }
 }

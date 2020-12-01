@@ -102,17 +102,6 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V registerNew(Object externalId) {
-    final V newVertex = createNew();
-    newVertex.setExternalId(externalId);
-    register(newVertex);
-    return newVertex;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public int size() {
     return vertexMap.size();
   }

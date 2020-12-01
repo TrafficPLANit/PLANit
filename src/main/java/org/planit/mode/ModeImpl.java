@@ -23,7 +23,12 @@ public class ModeImpl implements Mode {
   /**
    * External Id of this mode
    */
-  private Object externalId;
+  private String externalId;
+
+  /**
+   * xml Id of this mode
+   */
+  private String xmlId;
 
   /**
    * Each mode has a maximum speed indicating the maximum speed this mode can take on int he context of the network. Typically this would be chosen as the maximum speed limit
@@ -55,22 +60,8 @@ public class ModeImpl implements Mode {
    * @param maxSpeed this mode takes on
    * @param pcu      the PCU value of this mode
    */
-
-  protected ModeImpl(final IdGroupingToken groupId, final String name, final double maxSpeed, final double pcu) {
-    this(groupId, DEFAULT_EXTERNAL_ID, name, maxSpeed, pcu, new PhysicalModeFeaturesImpl(), new UsabilityModeFeaturesImpl());
-  }
-
-  /**
-   * Constructor, using all defaults for non-provided parameters
-   * 
-   * @param groupId,   contiguous id generation within this group for instances of this class
-   * @param externalId the externalId of this mode
-   * @param name       the name of this mode
-   * @param maxSpeed   this mode takes on
-   * @param pcu        the PCU value of this mode
-   */
-  protected ModeImpl(final IdGroupingToken groupId, final Object externalId, final double maxSpeed, final String name, final double pcu) {
-    this(groupId, externalId, name, maxSpeed, pcu, new PhysicalModeFeaturesImpl(), new UsabilityModeFeaturesImpl());
+  protected ModeImpl(final IdGroupingToken groupId, final double maxSpeed, final String name, final double pcu) {
+    this(groupId, name, maxSpeed, pcu, new PhysicalModeFeaturesImpl(), new UsabilityModeFeaturesImpl());
   }
 
   /**
@@ -85,29 +76,12 @@ public class ModeImpl implements Mode {
    */
   protected ModeImpl(final IdGroupingToken groupId, final String name, final double maxSpeed, final double pcu, final PhysicalModeFeatures physicalFeatures,
       final UsabilityModeFeatures usabilityFeatures) {
-    this(groupId, DEFAULT_EXTERNAL_ID, name, maxSpeed, pcu, physicalFeatures, usabilityFeatures);
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param groupId,          contiguous id generation within this group for instances of this class
-   * @param externalId        the externalId of this mode
-   * @param name              the name of this mode
-   * @param maxSpeed          this mode takes on
-   * @param pcu               the PCU value of this mode
-   * @param physicalFeatures  physical features of the mode
-   * @param usabilityFeatures usability features of the mode
-   */
-  protected ModeImpl(final IdGroupingToken groupId, final Object externalId, final String name, final double maxSpeed, final double pcu,
-      final PhysicalModeFeatures physicalFeatures, final UsabilityModeFeatures usabilityFeatures) {
     this.id = IdGenerator.generateId(groupId, Mode.class);
-    this.externalId = externalId;
     this.name = name;
     this.maxSpeed = maxSpeed;
     this.pcu = pcu;
-    this.physicalFeatures = new PhysicalModeFeaturesImpl();
-    this.usedToFeatures = new UsabilityModeFeaturesImpl();
+    this.physicalFeatures = physicalFeatures;
+    this.usedToFeatures = usabilityFeatures;
   }
 
   // getters-setters
@@ -124,13 +98,32 @@ public class ModeImpl implements Mode {
    * {@inheritDoc}
    */
   @Override
-  public Object getExternalId() {
+  public String getExternalId() {
     return externalId;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void setExternalId(Object externalId) {
+  public void setExternalId(String externalId) {
     this.externalId = externalId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getXmlId() {
+    return xmlId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setXmlId(String xmlId) {
+    this.xmlId = xmlId;
   }
 
   /**

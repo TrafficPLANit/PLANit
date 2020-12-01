@@ -49,21 +49,6 @@ public class VirtualNetwork {
      * @return Connectoid object created and registered
      * @throws PlanItException thrown if there is an error
      */
-    public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length, Object externalId) throws PlanItException {
-      Connectoid newConnectoid = new ConnectoidImpl(groupId, centroid, node, length, externalId);
-      registerConnectoid(newConnectoid);
-      return newConnectoid;
-    }
-
-    /**
-     * Create new connectoid to from a specified centroid to a specified node
-     * 
-     * @param centroid centroid at one end of the connectoid
-     * @param node     node at other end of the connectoid
-     * @param length   length of connectiod
-     * @return Connectoid object created and registered
-     * @throws PlanItException thrown if there is an error
-     */
     public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length) throws PlanItException {
       Connectoid newConnectoid = new ConnectoidImpl(groupId, centroid, node, length);
       registerConnectoid(newConnectoid);

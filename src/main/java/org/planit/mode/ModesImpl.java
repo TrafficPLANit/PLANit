@@ -66,9 +66,8 @@ public class ModesImpl implements Modes {
    * {@inheritDoc}
    */
   @Override
-  public Mode registerNewCustomMode(Object externalModeId, String name, double maxSpeed, double pcu, PhysicalModeFeatures physicalFeatures,
-      UsabilityModeFeatures usabilityFeatures) {
-    final Mode newMode = new ModeImpl(groupId, externalModeId, name, maxSpeed, pcu, physicalFeatures, usabilityFeatures);
+  public Mode registerNewCustomMode(String name, double maxSpeed, double pcu, PhysicalModeFeatures physicalFeatures, UsabilityModeFeatures usabilityFeatures) {
+    final Mode newMode = new ModeImpl(groupId, name, maxSpeed, pcu, physicalFeatures, usabilityFeatures);
     registerMode(newMode);
     return newMode;
   }
@@ -132,35 +131,13 @@ public class ModesImpl implements Modes {
   /**
    * Retrieve a Mode by its external Id
    * 
-   * This method has the option to convert the external Id parameter into a long value, to find the mode when mode objects use long values for external ids.
-   * 
-   * @param externalId    the external Id of the specified mode
-   * @param convertToLong if true, the external Id is converted into a long before beginning the search
-   * @return the retrieved mode, or null if no mode was found
-   */
-  @Override
-  public Mode getByExternalId(Object externalId, boolean convertToLong) {
-    if (convertToLong) {
-      try {
-        long value = Long.valueOf(externalId.toString());
-        return getByExternalId(value);
-      } catch (NumberFormatException e) {
-        // do nothing - if conversion to long is not possible, use general method instead
-      }
-    }
-    return getByExternalId(externalId);
-  }
-
-  /**
-   * Retrieve a Mode by its external Id
-   * 
    * This method is not efficient, since it loops through all the registered modes in order to find the required time period. The equivalent method in InputBuilderListener is more
    * efficient and should be used in preference to this in Java code.
    * 
    * @param externalId the external Id of the specified mode
    * @return the retrieved mode, or null if no mode was found
    */
-  public Mode getByExternalId(Object externalId) {
+  public Mode getByExternalId(String externalId) {
     for (Mode mode : modeMap.values()) {
       if (mode.getExternalId().equals(externalId)) {
         return mode;

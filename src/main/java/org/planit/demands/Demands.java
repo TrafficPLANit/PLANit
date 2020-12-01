@@ -78,12 +78,11 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     /**
      * Factory method to create and register a new travel type on the demands
      * 
-     * @param externalId the external id
-     * @param name       the name of the travel type
+     * @param name the name of the travel type
      * @return new traveler type created
      */
-    public TravelerType createAndRegisterNewTravelerType(long externalId, String name) {
-      TravelerType newTravelerType = new TravelerType(groupId, externalId, name);
+    public TravelerType createAndRegisterNewTravelerType(String name) {
+      TravelerType newTravelerType = new TravelerType(groupId, name);
       registerTravelerType(newTravelerType);
       return newTravelerType;
     }
@@ -198,14 +197,13 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     /**
      * Factory method to create and register a new user class on the demands
      * 
-     * @param externalId    the external id for this user class
      * @param name          the name for this user class
      * @param mode          the mode for this user class
      * @param travellerType the travel type for this user class
      * @return new traveler type created
      */
-    public UserClass createAndRegisterNewUserClass(long externalId, String name, Mode mode, TravelerType travellerType) {
-      UserClass newUserClass = new UserClass(groupId, externalId, name, mode, travellerType);
+    public UserClass createAndRegisterNewUserClass(String name, Mode mode, TravelerType travellerType) {
+      UserClass newUserClass = new UserClass(groupId, name, mode, travellerType);
       registerUserClass(newUserClass);
       return newUserClass;
     }
@@ -320,15 +318,14 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     /**
      * Factory method to create and register a new time period on the demands
      * 
-     * @param externalId       the external id for this time period
      * @param description      the description for this time period
      * @param startTimeSeconds the start time in seconds since midnight (00:00)
      * @param durationSeconds  the duration in seconds since start time
      * @return new time period created
      * @throws PlanItException thrown if start time and/or duration are invalid
      */
-    public TimePeriod createAndRegisterNewTimePeriod(long externalId, String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
-      TimePeriod newTimePeriod = new TimePeriod(groupId, externalId, description, startTimeSeconds, durationSeconds);
+    public TimePeriod createAndRegisterNewTimePeriod(String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
+      TimePeriod newTimePeriod = new TimePeriod(groupId, description, startTimeSeconds, durationSeconds);
       registerTimePeriod(newTimePeriod);
       return newTimePeriod;
     }

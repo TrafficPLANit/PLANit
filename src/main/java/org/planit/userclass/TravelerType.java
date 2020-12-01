@@ -1,5 +1,6 @@
 package org.planit.userclass;
 
+import org.planit.utils.id.ExternalIdable;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
@@ -10,14 +11,14 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class TravelerType {
+public class TravelerType implements ExternalIdable {
 
   public static final String DEFAULT_NAME = "Default";
 
   /**
    * If no user class is defined the default user class will be assumed to have a traveler type referencing the default external traveler type id (1)
    */
-  public static final long DEFAULT_EXTERNAL_ID = 1;
+  public static final long DEFAULT_XML_ID = 1;
 
   /**
    * Unique feature id
@@ -27,7 +28,12 @@ public class TravelerType {
   /**
    * Unique external id
    */
-  private final Object externalId;
+  private String externalId;
+
+  /**
+   * xml Id
+   */
+  private String xmlId;
 
   /**
    * Name of this traveler type
@@ -42,7 +48,6 @@ public class TravelerType {
   public TravelerType(final IdGroupingToken groupId) {
     this.id = IdGenerator.generateId(groupId, TravelerType.class);
     this.name = DEFAULT_NAME;
-    this.externalId = DEFAULT_EXTERNAL_ID;
   }
 
   /**
@@ -53,24 +58,15 @@ public class TravelerType {
    * @param name      name of this traveler type
    * 
    */
-  public TravelerType(final IdGroupingToken groupId, final Object externaId, final String name) {
+  public TravelerType(final IdGroupingToken groupId, final String name) {
     this.id = IdGenerator.generateId(groupId, TravelerType.class);
-    this.externalId = externaId;
     this.name = name;
   }
 
   /**
-   * Constructor
-   * 
-   * @param groupId contiguous id generation within this group for instances of this class
-   * @param name    name of this traveler type
+   * {@inheritDoc}
    */
-  public TravelerType(final IdGroupingToken groupId, final String name) {
-    this.id = IdGenerator.generateId(groupId, TravelerType.class);
-    this.externalId = DEFAULT_EXTERNAL_ID;
-    this.name = name;
-  }
-
+  @Override
   public long getId() {
     return id;
   }
@@ -79,11 +75,35 @@ public class TravelerType {
     return name;
   }
 
-  public Object getExternalId() {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getExternalId() {
     return externalId;
   }
 
-  public boolean hasExternalId() {
-    return (externalId != null);
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setExternalId(String externalId) {
+    this.externalId = externalId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getXmlId() {
+    return this.xmlId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setXmlId(String xmlId) {
+    this.xmlId = xmlId;
   }
 }

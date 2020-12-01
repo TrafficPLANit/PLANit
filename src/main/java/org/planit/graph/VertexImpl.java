@@ -7,12 +7,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.locationtech.jts.geom.Point;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-
-import org.locationtech.jts.geom.Point;
 
 /**
  * vertex representation connected to one or more entry and exit edges
@@ -31,25 +30,6 @@ public class VertexImpl implements Vertex {
   // Protected
 
   /**
-   * generate unique node id
-   *
-   * @param groupId, contiguous id generation within this group for instances of this class
-   * @return nodeId
-   */
-  protected static long generateVertexId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, Vertex.class);
-  }
-
-  /**
-   * Set id on vertex
-   * 
-   * @param id to set
-   */
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  /**
    * Unique internal identifier
    */
   protected long id;
@@ -57,7 +37,12 @@ public class VertexImpl implements Vertex {
   /**
    * External identifier used in input files
    */
-  protected Object externalId;
+  protected String externalId;
+
+  /**
+   * The xml Id for this vertex
+   */
+  private String xmlId;
 
   /**
    * generic input property storage
@@ -73,6 +58,25 @@ public class VertexImpl implements Vertex {
    * Edges of this vertex
    */
   protected final Map<Long, Edge> edges = new HashMap<Long, Edge>();
+
+  /**
+   * generate unique node id
+   *
+   * @param groupId, contiguous id generation within this group for instances of this class
+   * @return nodeId
+   */
+  protected static long generateVertexId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, Vertex.class);
+  }
+
+  /**
+   * Set id on vertex
+   * 
+   * @param id to set
+   */
+  protected void setId(Long id) {
+    this.id = id;
+  }
 
   /**
    * Constructor
@@ -91,6 +95,7 @@ public class VertexImpl implements Vertex {
    */
   protected VertexImpl(VertexImpl vertexImpl) {
     setId(vertexImpl.getId());
+    setXmlId(vertexImpl.getXmlId());
     setExternalId(vertexImpl.getExternalId());
     setPosition((Point) vertexImpl.getPosition().clone());
     edges.putAll(vertexImpl.edges);
@@ -129,7 +134,7 @@ public class VertexImpl implements Vertex {
    * {@inheritDoc}
    */
   @Override
-  public Object getExternalId() {
+  public String getExternalId() {
     return externalId;
   }
 
@@ -137,7 +142,7 @@ public class VertexImpl implements Vertex {
    * {@inheritDoc}
    */
   @Override
-  public void setExternalId(final Object externalId) {
+  public void setExternalId(final String externalId) {
     this.externalId = externalId;
   }
 
@@ -145,8 +150,16 @@ public class VertexImpl implements Vertex {
    * {@inheritDoc}
    */
   @Override
-  public boolean hasExternalId() {
-    return (externalId != null);
+  public String getXmlId() {
+    return this.xmlId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setXmlId(final String xmlId) {
+    this.xmlId = xmlId;
   }
 
   /**

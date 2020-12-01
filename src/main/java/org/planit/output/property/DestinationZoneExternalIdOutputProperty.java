@@ -19,7 +19,7 @@ public final class DestinationZoneExternalIdOutputProperty extends BaseOutputPro
 
   @Override
   public Type getType() {
-    return Type.LONG;
+    return Type.STRING;
   }
 
   @Override

@@ -1,6 +1,7 @@
 package org.planit.network.physical;
 
 import java.util.Iterator;
+
 import org.planit.utils.graph.Vertices;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.Nodes;
@@ -58,7 +59,8 @@ public class NodesImpl<N extends Node> implements Nodes<N> {
    */
   @Override
   public N register(final N node) {
-    return vertices.register(node);  }
+    return vertices.register(node);
+  }
 
   /**
    * {@inheritDoc}
@@ -74,14 +76,6 @@ public class NodesImpl<N extends Node> implements Nodes<N> {
   @Override
   public N registerNew() {
     return vertices.registerNew();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public N registerNew(Object externalId) {
-    return vertices.registerNew(externalId);
   }
 
   /**

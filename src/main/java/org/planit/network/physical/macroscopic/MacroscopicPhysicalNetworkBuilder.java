@@ -24,12 +24,10 @@ public interface MacroscopicPhysicalNetworkBuilder<N extends Node, L extends Lin
    * @param name           the name of this link type
    * @param capacity       the capacity of this link type
    * @param maximumDensity the maximum density of this link type
-   * @param externalId     the external reference number of this link type
    * @param modeProperties the mode properties for each mode along this link
    * @return macroscopicLinkSegmentType the created link segment type
    */
-  public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity, Object externalId,
-      Map<Mode, MacroscopicModeProperties> modeProperties);
+  public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity, Map<Mode, MacroscopicModeProperties> modeProperties);
 
   /**
    * Create a macroscopic link segment type instance without mode properties
@@ -40,9 +38,10 @@ public interface MacroscopicPhysicalNetworkBuilder<N extends Node, L extends Lin
    * @param externalId     the external reference number of this link type
    * @return macroscopicLinkSegmentType the created link segment type
    */
-  public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity, Object externalId);
-  
-  /** create a copy of the passed in link segment type where only the unique identifiers are different
+  public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity);
+
+  /**
+   * create a copy of the passed in link segment type where only the unique identifiers are different
    * 
    * @param linkSegmentTypeToCopy to create a unique copy of
    * @return copy of passed on link segment type with unique id

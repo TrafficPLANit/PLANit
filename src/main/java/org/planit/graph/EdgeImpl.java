@@ -4,13 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.locationtech.jts.geom.LineString;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-
-import org.locationtech.jts.geom.LineString;
 
 /**
  * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry additional information for each
@@ -45,7 +44,12 @@ public class EdgeImpl implements Edge, Cloneable {
   /**
    * External Id of the physical link
    */
-  protected Object externalId;
+  protected String externalId;
+
+  /**
+   * Xml Id of the physical link
+   */
+  protected String xmlId;
 
   /**
    * The line geometry of this link if set
@@ -128,6 +132,7 @@ public class EdgeImpl implements Edge, Cloneable {
    */
   protected EdgeImpl(EdgeImpl edgeImpl) {
     setId(edgeImpl.getId());
+    setXmlId(edgeImpl.getXmlId());
     setExternalId(edgeImpl.getExternalId());
     if (edgeImpl.hasGeometry()) {
       setGeometry((LineString) edgeImpl.getGeometry().clone());
@@ -145,7 +150,7 @@ public class EdgeImpl implements Edge, Cloneable {
    * {@inheritDoc}
    */
   @Override
-  public void setExternalId(final Object externalId) {
+  public void setExternalId(final String externalId) {
     this.externalId = externalId;
   }
 
@@ -153,8 +158,24 @@ public class EdgeImpl implements Edge, Cloneable {
    * {@inheritDoc}
    */
   @Override
-  public Object getExternalId() {
+  public String getExternalId() {
     return externalId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getXmlId() {
+    return this.xmlId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setXmlId(String xmlId) {
+    this.xmlId = xmlId;
   }
 
   /**

@@ -21,7 +21,7 @@ public final class TimePeriodExternalIdOutputProperty extends BaseOutputProperty
 
   @Override
   public Type getType() {
-    return Type.LONG;
+    return Type.STRING;
   }
 
   @Override

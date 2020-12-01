@@ -20,7 +20,7 @@ public final class ModeExternalIdOutputProperty extends BaseOutputProperty {
 
   @Override
   public Type getType() {
-    return Type.LONG;
+    return Type.STRING;
   }
 
   @Override

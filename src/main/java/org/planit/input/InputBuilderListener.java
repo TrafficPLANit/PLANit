@@ -1,7 +1,6 @@
 package org.planit.input;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,133 +33,133 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   private static final long serialVersionUID = 4223028100274802893L;
 
   /**
-   * Map which stores which external node Ids corresponding to Nodes
+   * Map which stores which xml node Ids corresponding to Nodes
    */
-  protected Map<Object, Node> nodeExternalIdToNodeMap;
+  protected Map<String, Node> xmlIdNodeMap;
 
   /**
-   * Map which stores link segments by external Id
+   * Map which stores link segments by xml Id
    */
-  protected Map<Object, MacroscopicLinkSegment> linkSegmentExternalIdToLinkSegmentMap;
+  protected Map<String, MacroscopicLinkSegment> xmlIdLinkSegmentMap;
 
   /**
-   * Map which stores external link segment type Ids corresponding to link segment types
+   * Map which stores xml link segment type Ids corresponding to link segment types
    */
-  protected Map<Object, MacroscopicLinkSegmentType> linkSegmentTypeExternalIdToLinkSegmentTypeMap;
+  protected Map<String, MacroscopicLinkSegmentType> xmlIdLinkSegmentTypeMap;
 
   /**
-   * Map which stores Mode external Ids corresponding to Modes
+   * Map which stores Mode xml Ids corresponding to Modes
    */
-  protected Map<Object, Mode> modeExternalIdToModeMap;
+  protected Map<String, Mode> xmlIdModeMap;
 
   /**
-   * Map which stores traveler type by external Id
+   * Map which stores traveler type by xml Id
    */
-  protected Map<Object, TravelerType> travelerTypeExternalIdToTravelerTypeMap;
+  protected Map<String, TravelerType> xmlIdTravelerTypeMap;
 
   /**
-   * Map which stores user class by external Id
+   * Map which stores user class by xml Id
    */
-  protected Map<Object, UserClass> userClassExternalIdToUserClassMap;
+  protected Map<String, UserClass> xmlIdUserClassMap;
 
   /**
-   * Map which stores time periods by external Id
+   * Map which stores time periods by xml Id
    */
-  protected Map<Object, TimePeriod> timePeriodExternalIdToTimePeriodMap;
+  protected Map<String, TimePeriod> xmlIdTimePeriodMap;
 
   /**
-   * Map which stores zones by external Id
+   * Map which stores zones by xml Id
    */
-  protected Map<Object, Zone> zoneExternalIdToZoneMap;
+  protected Map<String, Zone> xmlIdZoneMap;
 
   /**
-   * Flag to determine whether duplicate external Id should be considered an error (defaults to true)
+   * Flag to determine whether duplicate xml Id should be considered an error (defaults to true)
    */
-  private boolean errorIfDuplicateExternalId = DEFAULT_ERROR_ON_DUPLICATE_EXTERNAL_ID;
+  private boolean errorIfDuplicateXmlId = DEFAULT_ERROR_ON_DUPLICATE_XML_ID;
 
   /**
-   * Stores an object by its external Id, after checking whether the external Id is a duplicate
+   * Stores an object by its xml Id, after checking whether the external Id is a duplicate
    * 
    * @param <T>        type of object being stored
-   * @param externalId external Id of object being stored
+   * @param xmlId      xmlId of object being stored
    * @param obj        object being stored
    * @param map        Map to store the object
    * @param objectName name of the object class
-   * @return true if this entry is duplicate use of an externalId, false otherwise
+   * @return true if this entry is duplicate use of an xml id, false otherwise
    */
-  private <T> boolean addObjectToExternalIdMap(Object externalId, T obj, Map<Object, T> map, String objectName) {
-    boolean containsDuplicates = map.containsKey(externalId);
-    map.put(externalId, obj);
+  private <T> boolean addObjectToXmlIdMap(String xmlId, T obj, Map<String, T> map, String objectName) {
+    boolean containsDuplicates = map.containsKey(xmlId);
+    map.put(xmlId, obj);
     return containsDuplicates;
   }
 
   /** default setting */
-  public static boolean DEFAULT_ERROR_ON_DUPLICATE_EXTERNAL_ID = true;
+  public static boolean DEFAULT_ERROR_ON_DUPLICATE_XML_ID = true;
 
   /**
    * Constructor
    */
   public InputBuilderListener() {
-    nodeExternalIdToNodeMap = new HashMap<Object, Node>();
-    linkSegmentTypeExternalIdToLinkSegmentTypeMap = new HashMap<Object, MacroscopicLinkSegmentType>();
-    modeExternalIdToModeMap = new HashMap<Object, Mode>();
-    travelerTypeExternalIdToTravelerTypeMap = new HashMap<Object, TravelerType>();
-    userClassExternalIdToUserClassMap = new HashMap<Object, UserClass>();
-    timePeriodExternalIdToTimePeriodMap = new HashMap<Object, TimePeriod>();
-    zoneExternalIdToZoneMap = new HashMap<Object, Zone>();
-    linkSegmentExternalIdToLinkSegmentMap = new HashMap<Object, MacroscopicLinkSegment>();
+    xmlIdNodeMap = new HashMap<String, Node>();
+    xmlIdLinkSegmentTypeMap = new HashMap<String, MacroscopicLinkSegmentType>();
+    xmlIdModeMap = new HashMap<String, Mode>();
+    xmlIdTravelerTypeMap = new HashMap<String, TravelerType>();
+    xmlIdUserClassMap = new HashMap<String, UserClass>();
+    xmlIdTimePeriodMap = new HashMap<String, TimePeriod>();
+    xmlIdZoneMap = new HashMap<String, Zone>();
+    xmlIdLinkSegmentMap = new HashMap<String, MacroscopicLinkSegment>();
   }
 
   /**
-   * Return a node for a specified external Id
+   * Return a node for a specified xml Id
    * 
-   * @param externalId the external Id
+   * @param xmlId the external Id
    * @return node corresponding to the specified external Id
    */
-  public Node getNodeByExternalId(Object externalId) {
-    return nodeExternalIdToNodeMap.get(externalId);
+  public Node getNodeByXmlId(String xmlId) {
+    return xmlIdNodeMap.get(xmlId);
   }
 
   /**
-   * Stores a node by its external Id
+   * Stores a node by its xmlId Id
    * 
-   * @param externalId external Id of node
-   * @param node       Node to be stored
+   * @param xmlId xml Id of node
+   * @param node  Node to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public boolean addNodeToExternalIdMap(Object externalId, Node node) {
-    return addObjectToExternalIdMap(externalId, node, nodeExternalIdToNodeMap, "node");
+  public boolean addNodeToXmlIdMap(String xmlId, Node node) {
+    return addObjectToXmlIdMap(xmlId, node, xmlIdNodeMap, "node");
   }
 
   /**
-   * Return the link segment type for a specified external Id
+   * Return the link segment type for a specified xmlId Id
    * 
-   * @param externalId the external Id
-   * @return the link segment type corresponding to the specified external Id
+   * @param xmlId the xml Id
+   * @return the link segment type corresponding to the specified xmlId
    */
-  public MacroscopicLinkSegmentType getLinkSegmentTypeByExternalId(Object externalId) {
-    return linkSegmentTypeExternalIdToLinkSegmentTypeMap.get(externalId);
+  public MacroscopicLinkSegmentType getLinkSegmentTypeByXmlId(String xmlId) {
+    return xmlIdLinkSegmentTypeMap.get(xmlId);
   }
 
   /**
-   * Stores a link segment type by its external Id
+   * Stores a link segment type by its xmlId
    * 
-   * @param externalId                 external Id of link segment type
+   * @param xmlId                      xml Id of link segment type
    * @param macroscopicLinkSegmentType to be stored
-   * @return true if this use of externalId is a duplicate, false otherwise
+   * @return true if this use of xmlId is a duplicate, false otherwise
    */
-  public boolean addLinkSegmentTypeToExternalIdMap(Object externalId, MacroscopicLinkSegmentType macroscopicLinkSegmentType) {
-    return addObjectToExternalIdMap(externalId, macroscopicLinkSegmentType, linkSegmentTypeExternalIdToLinkSegmentTypeMap, "link segment type");
+  public boolean addLinkSegmentTypeToXmlIdMap(String xmlId, MacroscopicLinkSegmentType macroscopicLinkSegmentType) {
+    return addObjectToXmlIdMap(xmlId, macroscopicLinkSegmentType, xmlIdLinkSegmentTypeMap, "link segment type");
   }
 
   /**
-   * Return Mode for a specified external Id
+   * Return Mode for a specified xml Id
    * 
-   * @param externalId the specified external Id
+   * @param xmlId the specified external Id
    * @return mode corresponding to specified Id
    */
-  public Mode getModeByExternalId(Object externalId) {
-    return modeExternalIdToModeMap.get(externalId);
+  public Mode getModeByXmlId(String xmlId) {
+    return xmlIdModeMap.get(xmlId);
   }
 
   /**
@@ -168,81 +167,81 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * 
    * @return collection of registered modes
    */
-  public Collection<Mode> getAllModes() {
-    return modeExternalIdToModeMap.values();
+  public Map<String, Mode> getAllModesByXmlId() {
+    return xmlIdModeMap;
   }
 
   /**
-   * Stores a mode by its external Id
+   * Stores a mode by its xmlId Id
    * 
-   * @param externalId external Id of this mode
-   * @param mode       mode to be stored
-   * @return true if this use of externalId is a duplicate, false otherwise
+   * @param xmlId xml Id of this mode
+   * @param mode  mode to be stored
+   * @return true if this use of xmlId is a duplicate, false otherwise
    */
-  public boolean addModeToExternalIdMap(Object externalId, Mode mode) {
-    return addObjectToExternalIdMap(externalId, mode, modeExternalIdToModeMap, "mode");
+  public boolean addModeToXmlIdMap(String xmlId, Mode mode) {
+    return addObjectToXmlIdMap(xmlId, mode, xmlIdModeMap, "mode");
   }
 
   /**
-   * Return traveler type for a specified external Id
+   * Return traveler type for a specified xmlId
    * 
-   * @param externalId the external Id
-   * @return the traveler type for the specified external Id
+   * @param xmlId the xml Id
+   * @return the traveler type for the specified xmlId
    */
-  public TravelerType getTravelerTypeByExternalId(Object externalId) {
-    return travelerTypeExternalIdToTravelerTypeMap.get(externalId);
+  public TravelerType getTravelerTypeByXmlId(String xmlId) {
+    return xmlIdTravelerTypeMap.get(xmlId);
   }
 
   /**
-   * Stores a traveler type by its external Id
+   * Stores a traveler type by its xmlId
    * 
-   * @param externalId   external Id of traveler type
+   * @param xmlId        xmlId of traveler type
    * @param travelerType traveler type to be stored
-   * @return true if this use of externalId is a duplicate, false otherwise
+   * @return true if this use of xmlId is a duplicate, false otherwise
    */
-  public boolean addTravelerTypeToExternalIdMap(Object externalId, TravelerType travelerType) {
-    return addObjectToExternalIdMap(externalId, travelerType, travelerTypeExternalIdToTravelerTypeMap, "traveller type");
+  public boolean addTravelerTypeToXmlIdMap(String xmlId, TravelerType travelerType) {
+    return addObjectToXmlIdMap(xmlId, travelerType, xmlIdTravelerTypeMap, "traveller type");
   }
 
   /**
    * Return user class by external Id
    * 
-   * @param externalId externalId of user class
+   * @param xmlId xmlId of user class
    * @return specified user class
    */
-  public UserClass getUserClassByExternalId(Object externalId) {
-    return userClassExternalIdToUserClassMap.get(externalId);
+  public UserClass getUserClassByXmlId(String xmlId) {
+    return xmlIdUserClassMap.get(xmlId);
   }
 
   /**
-   * Stores a user class by its external Id
+   * Stores a user class by its xmlId
    * 
-   * @param externalId external Id of user class
-   * @param userClass  user class to be stored
-   * @return true if this use of externalId is a duplicate, false otherwise
+   * @param xmlId     xmlId of user class
+   * @param userClass user class to be stored
+   * @return true if this use of xmlId is a duplicate, false otherwise
    */
-  public boolean addUserClassToExternalIdMap(Object externalId, UserClass userClass) {
-    return addObjectToExternalIdMap(externalId, userClass, userClassExternalIdToUserClassMap, "user class");
+  public boolean addUserClassToXmlIdMap(String xmlId, UserClass userClass) {
+    return addObjectToXmlIdMap(xmlId, userClass, xmlIdUserClassMap, "user class");
   }
 
   /**
-   * Return the time period for a specified external Id
+   * Return the time period for a specified xmlId
    * 
-   * @param externalId external Id of time period
+   * @param xmlId xmlId of time period
    * @return the specified time period
    */
-  public TimePeriod getTimePeriodByExternalId(Object externalId) {
-    return timePeriodExternalIdToTimePeriodMap.get(externalId);
+  public TimePeriod getTimePeriodByXmlId(String xmlId) {
+    return xmlIdTimePeriodMap.get(xmlId);
   }
 
   /**
-   * Returns whether a time period external Id matches set of external Ids for registered time periods
+   * Returns whether a time period for a given xmlId exists
    * 
-   * @param externalId the external time period Id being tested
+   * @param xmlId the xmlId time period being tested
    * @return true if the external Id matches a registered time period, false otherwise
    */
-  public boolean isTimePeriodExternalIdRegistered(Object externalId) {
-    return timePeriodExternalIdToTimePeriodMap.keySet().contains(externalId);
+  public boolean isTimePeriodXmlIdRegistered(String xmlId) {
+    return xmlIdTimePeriodMap.keySet().contains(xmlId);
   }
 
   /**
@@ -251,7 +250,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return the number of registered time periods
    */
   public int getNumberOfRegisteredTimePeriods() {
-    return timePeriodExternalIdToTimePeriodMap.keySet().size();
+    return xmlIdTimePeriodMap.keySet().size();
   }
 
   /**
@@ -259,79 +258,79 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * 
    * @return list of external ids of time periods
    */
-  public List<Object> getTimePeriodExternalIds() {
-    return new ArrayList<Object>(timePeriodExternalIdToTimePeriodMap.keySet());
+  public List<String> getTimePeriodXmlIds() {
+    return new ArrayList<String>(xmlIdTimePeriodMap.keySet());
   }
 
   /**
-   * Stores a time period by its external Id
+   * Stores a time period by its xmlId
    * 
-   * @param externalId external Id of time period
+   * @param xmlId      xmlId of time period
    * @param timePeriod time period to be stored
-   * @return true if this use of externalId is a duplicate, false otherwise
+   * @return true if this use of xmlId is a duplicate, false otherwise
    */
-  public boolean addTimePeriodToExternalIdMap(Object externalId, TimePeriod timePeriod) {
-    return addObjectToExternalIdMap(externalId, timePeriod, timePeriodExternalIdToTimePeriodMap, "time period");
+  public boolean addTimePeriodToXmlIdMap(String xmlId, TimePeriod timePeriod) {
+    return addObjectToXmlIdMap(xmlId, timePeriod, xmlIdTimePeriodMap, "time period");
   }
 
   /**
-   * Returns the zone for a specified external Id
+   * Returns the zone for a specified xmlId
    * 
-   * @param externalId the external Id
-   * @return the zone corresponding to this external Id
+   * @param xmlId the xmlId
+   * @return the zone corresponding to this xmlId
    */
-  public Zone getZoneByExternalId(Object externalId) {
-    return zoneExternalIdToZoneMap.get(externalId);
+  public Zone getZoneByXmlId(String xmlId) {
+    return xmlIdZoneMap.get(xmlId);
   }
 
   /**
-   * Stores a zone by its external Id
+   * Stores a zone by its xmlId
    * 
-   * @param externalId external Id of zone
-   * @param zone       zone to be stored
-   * @return true if this use of externalId is a duplicate, false otherwise
+   * @param xmlId xmlId of zone
+   * @param zone  zone to be stored
+   * @return true if this use of xmlId is a duplicate, false otherwise
    */
-  public boolean addZoneToExternalIdMap(Object externalId, Zone zone) {
-    return addObjectToExternalIdMap(externalId, zone, zoneExternalIdToZoneMap, "zone");
+  public boolean addZoneToXmlIdMap(String xmlId, Zone zone) {
+    return addObjectToXmlIdMap(xmlId, zone, xmlIdZoneMap, "zone");
   }
 
   /**
-   * Returns the link segment for a given external Id
+   * Returns the link segment for a given xmlId
    * 
-   * @param externalId external Id of the link segment
+   * @param xmlId xmlId of the link segment
    * @return the specified link segment
    */
-  public MacroscopicLinkSegment getLinkSegmentByExternalId(Object externalId) {
-    return linkSegmentExternalIdToLinkSegmentMap.get(externalId);
+  public MacroscopicLinkSegment getLinkSegmentByXmlId(String xmlId) {
+    return xmlIdLinkSegmentMap.get(xmlId);
   }
 
   /**
-   * Stores a link segment by its external Id
+   * Stores a link segment by its xmlId
    * 
-   * @param externalId  external Id of link segment
+   * @param xmlId       xmlId of link segment
    * @param linkSegment link segment to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public boolean addLinkSegmentToExternalIdMap(Object externalId, MacroscopicLinkSegment linkSegment) {
-    return addObjectToExternalIdMap(externalId, linkSegment, linkSegmentExternalIdToLinkSegmentMap, "link segment");
+  public boolean addLinkSegmentToXmlIdMap(String xmlId, MacroscopicLinkSegment linkSegment) {
+    return addObjectToXmlIdMap(xmlId, linkSegment, xmlIdLinkSegmentMap, "link segment");
   }
 
   /**
-   * Return whether input files having duplicate external Ids should be treated as an error
+   * Return whether input files having duplicate xmlIds should be treated as an error
    * 
    * @return true if duplicate Ids considered an error, false otherwise
    */
-  public boolean isErrorIfDuplicateExternalId() {
-    return errorIfDuplicateExternalId;
+  public boolean isErrorIfDuplicateXmlId() {
+    return errorIfDuplicateXmlId;
   }
 
   /**
-   * Set whether input files having duplicate external Ids should be treated as an error
+   * Set whether input files having duplicate xmlIds should be treated as an error
    * 
-   * @param errorIfDuplicateExternalId true if duplicate Ids considered an error, false otherwise
+   * @param errorIfDuplicateXmlId true if duplicate Ids considered an error, false otherwise
    */
-  public void setErrorIfDuplicateExternalId(boolean errorIfDuplicateExternalId) {
-    this.errorIfDuplicateExternalId = errorIfDuplicateExternalId;
+  public void setErrorIfDuplicateXmlId(boolean errorIfDuplicateXmlId) {
+    this.errorIfDuplicateXmlId = errorIfDuplicateXmlId;
   }
 
 }

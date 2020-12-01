@@ -50,22 +50,6 @@ public class ConnectoidImpl extends DirectedEdgeImpl implements Connectoid {
   /**
    * Constructor
    *
-   * @param groupId    contiguous id generation within this group for instances of this class
-   * @param centroidA  the centroid at one end of the connectoid
-   * @param nodeB      the node at the other end of the connectoid
-   * @param length     length of the current connectoid
-   * @param externalId externalId of the connectoid (can be null, in which case this has not be set in the input files)
-   * @throws PlanItException thrown if there is an error
-   */
-  protected ConnectoidImpl(final IdGroupingToken groupId, final Centroid centroidA, final Node nodeB, final double length, final Object externalId) throws PlanItException {
-    super(groupId, centroidA, nodeB, length);
-    setConnectoidId(generateConnectoidId(groupId));
-    setExternalId(externalId);
-  }
-
-  /**
-   * Constructor
-   *
    * @param groupId   contiguous id generation within this group for instances of this class
    * @param centroidA the centroid at one end of the connectoid
    * @param nodeB     the node at the other end of the connectoid

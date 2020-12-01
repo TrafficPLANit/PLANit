@@ -3,9 +3,9 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.utils.unit.Units;
 
-public final class DownstreamNodeExternalIdOutputProperty extends BaseOutputProperty {
+public final class ModeXmlIdOutputProperty extends BaseOutputProperty {
 
-  public static final String NAME = "Downstream Node External Id";
+  public static final String NAME = "Mode Xml Id";
 
   @Override
   public String getName() {
@@ -24,7 +24,7 @@ public final class DownstreamNodeExternalIdOutputProperty extends BaseOutputProp
 
   @Override
   public OutputProperty getOutputProperty() {
-    return OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID;
+    return OutputProperty.MODE_XML_ID;
   }
 
   @Override

@@ -3,6 +3,7 @@ package org.planit.time;
 import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.id.ExternalIdable;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
@@ -12,7 +13,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class TimePeriod implements Comparable<TimePeriod> {
+public class TimePeriod implements Comparable<TimePeriod>, ExternalIdable {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(TimePeriod.class.getCanonicalName());
@@ -33,9 +34,14 @@ public class TimePeriod implements Comparable<TimePeriod> {
   private final long id;
 
   /**
-   * Object external Id
+   * external Id
    */
-  private final Object externalId;
+  private String externalId;
+
+  /**
+   * xml Id
+   */
+  private String xmlId;
 
   /**
    * Description of this time period
@@ -46,19 +52,17 @@ public class TimePeriod implements Comparable<TimePeriod> {
    * Constructor
    * 
    * @param groupId          contiguous id generation within this group for instances of this class
-   * @param externalId       externalId of this time period
    * @param startTimeSeconds start time in seconds from midnight
    * @param durationSeconds  duration in seconds
    * @throws PlanItException thrown if error
    */
-  public TimePeriod(IdGroupingToken groupId, Object externalId, long startTimeSeconds, long durationSeconds) throws PlanItException {
+  public TimePeriod(IdGroupingToken groupId, long startTimeSeconds, long durationSeconds) throws PlanItException {
     PlanItException.throwIf(durationSeconds > (24.0 * 3600), "Duration more than 24 hours");
     PlanItException.throwIf(startTimeSeconds > (24.0 * 3600), "Start time later than 24 hours");
     this.id = IdGenerator.generateId(groupId, TimePeriod.class);
     this.startTimeSeconds = startTimeSeconds;
     this.durationSeconds = durationSeconds;
     this.description = null;
-    this.externalId = externalId;
   }
 
   /**
@@ -71,11 +75,10 @@ public class TimePeriod implements Comparable<TimePeriod> {
    * @param durationSeconds  duration of this time period
    * @throws PlanItException thrown if error
    */
-  public TimePeriod(IdGroupingToken groupId, Object externalId, String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
+  public TimePeriod(IdGroupingToken groupId, String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
     PlanItException.throwIf(durationSeconds > (24.0 * 3600), "Duration more than 24 hours");
     PlanItException.throwIf(startTimeSeconds > (24.0 * 3600), "Start time later than 24 hours");
     this.id = IdGenerator.generateId(groupId, TimePeriod.class);
-    this.externalId = externalId;
     this.startTimeSeconds = startTimeSeconds;
     this.durationSeconds = durationSeconds;
     this.description = description;
@@ -170,21 +173,35 @@ public class TimePeriod implements Comparable<TimePeriod> {
   }
 
   /**
-   * Return the external id of this time period
-   * 
-   * @return external id of this TimePeriod
+   * {@inheritDoc}
    */
-  public Object getExternalId() {
+  @Override
+  public String getExternalId() {
     return externalId;
   }
 
   /**
-   * Returns whether this time period has its external id set
-   * 
-   * @return true if the external Id has been set, false otherwise
+   * {@inheritDoc}
    */
-  public boolean hasExternalId() {
-    return (externalId != null);
+  @Override
+  public void setExternalId(String externalId) {
+    this.externalId = externalId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getXmlId() {
+    return this.xmlId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setXmlId(String xmlId) {
+    this.xmlId = xmlId;
   }
 
   /**
