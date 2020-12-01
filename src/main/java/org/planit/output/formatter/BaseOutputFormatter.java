@@ -230,10 +230,8 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
     }
 
     // Each output type configuration can contain multiple suboutputypes (or not). We collect the
-    // iteration reference (which
-    // might be different
-    // from the simulation iteration, and the (sub)outputtype combination before proceeding with the
-    // actual persisting
+    // iteration reference (which might be different from the simulation iteration, and the
+    // (sub)outputtype combination before proceeding with the actual persisting
     Map<OutputTypeEnum, Integer> outputTypeIterationInformation = new HashMap<OutputTypeEnum, Integer>();
     if (outputTypeConfiguration.hasActiveSubOutputTypes()) {
       // subdivided in suboutputtypes, each having their own file and possible a different reference
@@ -250,8 +248,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
     }
 
     // Each unique combination of (sub)output type (configuration), its iteration index, and related
-    // data is now relayed to
-    // the appropriate methods
+    // data is now relayed to the appropriate methods
     for (Map.Entry<OutputTypeEnum, Integer> entry : outputTypeIterationInformation.entrySet()) {
       OutputTypeEnum currentOutputTypeEnum = entry.getKey();
       int iterationIndex = entry.getValue();
