@@ -22,7 +22,7 @@ public class UserClass implements ExternalIdable {
   /**
    * Default external id
    */
-  public static final long DEFAULT_XML_ID = 1;
+  public static final String DEFAULT_XML_ID = "1";
 
   /**
    * id of this user class

@@ -33,133 +33,133 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   private static final long serialVersionUID = 4223028100274802893L;
 
   /**
-   * Map which stores which xml node Ids corresponding to Nodes
+   * Map which stores which source node Ids corresponding to Nodes (can be native xml id, or some external thrid party source id)
    */
-  protected Map<String, Node> xmlIdNodeMap;
+  protected Map<String, Node> sourceIdNodeMap;
 
   /**
-   * Map which stores link segments by xml Id
+   * Map which stores link segments by source Id
    */
-  protected Map<String, MacroscopicLinkSegment> xmlIdLinkSegmentMap;
+  protected Map<String, MacroscopicLinkSegment> sourceIdLinkSegmentMap;
 
   /**
-   * Map which stores xml link segment type Ids corresponding to link segment types
+   * Map which stores source link segment type Ids corresponding to link segment types
    */
-  protected Map<String, MacroscopicLinkSegmentType> xmlIdLinkSegmentTypeMap;
+  protected Map<String, MacroscopicLinkSegmentType> sourceIdLinkSegmentTypeMap;
 
   /**
-   * Map which stores Mode xml Ids corresponding to Modes
+   * Map which stores Mode source Ids corresponding to Modes
    */
-  protected Map<String, Mode> xmlIdModeMap;
+  protected Map<String, Mode> sourceIdModeMap;
 
   /**
-   * Map which stores traveler type by xml Id
+   * Map which stores traveler type by source Id
    */
-  protected Map<String, TravelerType> xmlIdTravelerTypeMap;
+  protected Map<String, TravelerType> sourceIdTravelerTypeMap;
 
   /**
-   * Map which stores user class by xml Id
+   * Map which stores user class by source Id
    */
-  protected Map<String, UserClass> xmlIdUserClassMap;
+  protected Map<String, UserClass> sourceIdUserClassMap;
 
   /**
-   * Map which stores time periods by xml Id
+   * Map which stores time periods by source Id
    */
-  protected Map<String, TimePeriod> xmlIdTimePeriodMap;
+  protected Map<String, TimePeriod> sourceIdTimePeriodMap;
 
   /**
-   * Map which stores zones by xml Id
+   * Map which stores zones by source Id
    */
-  protected Map<String, Zone> xmlIdZoneMap;
+  protected Map<String, Zone> sourceIdZoneMap;
 
   /**
-   * Flag to determine whether duplicate xml Id should be considered an error (defaults to true)
+   * Flag to determine whether duplicate source Id should be considered an error (defaults to true)
    */
-  private boolean errorIfDuplicateXmlId = DEFAULT_ERROR_ON_DUPLICATE_XML_ID;
+  private boolean errorIfDuplicateSourceId = DEFAULT_ERROR_ON_DUPLICATE_SOURCE_ID;
 
   /**
-   * Stores an object by its xml Id, after checking whether the external Id is a duplicate
+   * Stores an object by its source Id, after checking whether the external Id is a duplicate
    * 
    * @param <T>        type of object being stored
-   * @param xmlId      xmlId of object being stored
+   * @param sourceId      sourceId of object being stored
    * @param obj        object being stored
    * @param map        Map to store the object
    * @param objectName name of the object class
    * @return true if this entry is duplicate use of an xml id, false otherwise
    */
-  private <T> boolean addObjectToXmlIdMap(String xmlId, T obj, Map<String, T> map, String objectName) {
-    boolean containsDuplicates = map.containsKey(xmlId);
-    map.put(xmlId, obj);
+  private <T> boolean addObjectToSourceIdMap(String sourceId, T obj, Map<String, T> map, String objectName) {
+    boolean containsDuplicates = map.containsKey(sourceId);
+    map.put(sourceId, obj);
     return containsDuplicates;
   }
 
   /** default setting */
-  public static boolean DEFAULT_ERROR_ON_DUPLICATE_XML_ID = true;
+  public static boolean DEFAULT_ERROR_ON_DUPLICATE_SOURCE_ID = true;
 
   /**
    * Constructor
    */
   public InputBuilderListener() {
-    xmlIdNodeMap = new HashMap<String, Node>();
-    xmlIdLinkSegmentTypeMap = new HashMap<String, MacroscopicLinkSegmentType>();
-    xmlIdModeMap = new HashMap<String, Mode>();
-    xmlIdTravelerTypeMap = new HashMap<String, TravelerType>();
-    xmlIdUserClassMap = new HashMap<String, UserClass>();
-    xmlIdTimePeriodMap = new HashMap<String, TimePeriod>();
-    xmlIdZoneMap = new HashMap<String, Zone>();
-    xmlIdLinkSegmentMap = new HashMap<String, MacroscopicLinkSegment>();
+    sourceIdNodeMap = new HashMap<String, Node>();
+    sourceIdLinkSegmentTypeMap = new HashMap<String, MacroscopicLinkSegmentType>();
+    sourceIdModeMap = new HashMap<String, Mode>();
+    sourceIdTravelerTypeMap = new HashMap<String, TravelerType>();
+    sourceIdUserClassMap = new HashMap<String, UserClass>();
+    sourceIdTimePeriodMap = new HashMap<String, TimePeriod>();
+    sourceIdZoneMap = new HashMap<String, Zone>();
+    sourceIdLinkSegmentMap = new HashMap<String, MacroscopicLinkSegment>();
   }
 
   /**
-   * Return a node for a specified xml Id
+   * Return a node for a specified sourceId Id
    * 
-   * @param xmlId the external Id
+   * @param sourceId the external Id
    * @return node corresponding to the specified external Id
    */
-  public Node getNodeByXmlId(String xmlId) {
-    return xmlIdNodeMap.get(xmlId);
+  public Node getNodeBySourceId(String sourceId) {
+    return sourceIdNodeMap.get(sourceId);
   }
 
   /**
-   * Stores a node by its xmlId Id
+   * Stores a node by its sourceId
    * 
-   * @param xmlId xml Id of node
+   * @param sourceId source Id of node
    * @param node  Node to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public boolean addNodeToXmlIdMap(String xmlId, Node node) {
-    return addObjectToXmlIdMap(xmlId, node, xmlIdNodeMap, "node");
+  public boolean addNodeToSourceIdMap(String sourceId, Node node) {
+    return addObjectToSourceIdMap(sourceId, node, sourceIdNodeMap, "node");
   }
 
   /**
-   * Return the link segment type for a specified xmlId Id
+   * Return the link segment type for a specified sourceId
    * 
-   * @param xmlId the xml Id
-   * @return the link segment type corresponding to the specified xmlId
+   * @param sourceId the source Id
+   * @return the link segment type corresponding to the specified sourceId
    */
-  public MacroscopicLinkSegmentType getLinkSegmentTypeByXmlId(String xmlId) {
-    return xmlIdLinkSegmentTypeMap.get(xmlId);
+  public MacroscopicLinkSegmentType getLinkSegmentTypeBySourceId(String sourceId) {
+    return sourceIdLinkSegmentTypeMap.get(sourceId);
   }
 
   /**
-   * Stores a link segment type by its xmlId
+   * Stores a link segment type by its sourceId
    * 
-   * @param xmlId                      xml Id of link segment type
+   * @param sourceId                      xml Id of link segment type
    * @param macroscopicLinkSegmentType to be stored
-   * @return true if this use of xmlId is a duplicate, false otherwise
+   * @return true if this use of sourceId is a duplicate, false otherwise
    */
-  public boolean addLinkSegmentTypeToXmlIdMap(String xmlId, MacroscopicLinkSegmentType macroscopicLinkSegmentType) {
-    return addObjectToXmlIdMap(xmlId, macroscopicLinkSegmentType, xmlIdLinkSegmentTypeMap, "link segment type");
+  public boolean addLinkSegmentTypeToSourceIdMap(String sourceId, MacroscopicLinkSegmentType macroscopicLinkSegmentType) {
+    return addObjectToSourceIdMap(sourceId, macroscopicLinkSegmentType, sourceIdLinkSegmentTypeMap, "link segment type");
   }
 
   /**
    * Return Mode for a specified xml Id
    * 
-   * @param xmlId the specified external Id
+   * @param sourceId the specified external Id
    * @return mode corresponding to specified Id
    */
-  public Mode getModeByXmlId(String xmlId) {
-    return xmlIdModeMap.get(xmlId);
+  public Mode getModeBySourceId(String sourceId) {
+    return sourceIdModeMap.get(sourceId);
   }
 
   /**
@@ -167,81 +167,81 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * 
    * @return collection of registered modes
    */
-  public Map<String, Mode> getAllModesByXmlId() {
-    return xmlIdModeMap;
+  public Map<String, Mode> getAllModesBySourceId() {
+    return sourceIdModeMap;
   }
 
   /**
-   * Stores a mode by its xmlId Id
+   * Stores a mode by its sourceId Id
    * 
-   * @param xmlId xml Id of this mode
+   * @param sourceId xml Id of this mode
    * @param mode  mode to be stored
-   * @return true if this use of xmlId is a duplicate, false otherwise
+   * @return true if this use of sourceId is a duplicate, false otherwise
    */
-  public boolean addModeToXmlIdMap(String xmlId, Mode mode) {
-    return addObjectToXmlIdMap(xmlId, mode, xmlIdModeMap, "mode");
+  public boolean addModeToSourceIdMap(String sourceId, Mode mode) {
+    return addObjectToSourceIdMap(sourceId, mode, sourceIdModeMap, "mode");
   }
 
   /**
-   * Return traveler type for a specified xmlId
+   * Return traveler type for a specified sourceId
    * 
-   * @param xmlId the xml Id
-   * @return the traveler type for the specified xmlId
+   * @param sourceId the source Id
+   * @return the traveler type for the specified sourceId
    */
-  public TravelerType getTravelerTypeByXmlId(String xmlId) {
-    return xmlIdTravelerTypeMap.get(xmlId);
+  public TravelerType getTravelerTypeBySourceId(String sourceId) {
+    return sourceIdTravelerTypeMap.get(sourceId);
   }
 
   /**
-   * Stores a traveler type by its xmlId
+   * Stores a traveler type by its sourceId
    * 
-   * @param xmlId        xmlId of traveler type
+   * @param sourceId        sourceId of traveler type
    * @param travelerType traveler type to be stored
-   * @return true if this use of xmlId is a duplicate, false otherwise
+   * @return true if this use of sourceId is a duplicate, false otherwise
    */
-  public boolean addTravelerTypeToXmlIdMap(String xmlId, TravelerType travelerType) {
-    return addObjectToXmlIdMap(xmlId, travelerType, xmlIdTravelerTypeMap, "traveller type");
+  public boolean addTravelerTypeToSourceIdMap(String sourceId, TravelerType travelerType) {
+    return addObjectToSourceIdMap(sourceId, travelerType, sourceIdTravelerTypeMap, "traveller type");
   }
 
   /**
    * Return user class by external Id
    * 
-   * @param xmlId xmlId of user class
+   * @param sourceId sourceId of user class
    * @return specified user class
    */
-  public UserClass getUserClassByXmlId(String xmlId) {
-    return xmlIdUserClassMap.get(xmlId);
+  public UserClass getUserClassBySourceId(String sourceId) {
+    return sourceIdUserClassMap.get(sourceId);
   }
 
   /**
-   * Stores a user class by its xmlId
+   * Stores a user class by its sourceId
    * 
-   * @param xmlId     xmlId of user class
+   * @param sourceId     sourceId of user class
    * @param userClass user class to be stored
-   * @return true if this use of xmlId is a duplicate, false otherwise
+   * @return true if this use of sourceId is a duplicate, false otherwise
    */
-  public boolean addUserClassToXmlIdMap(String xmlId, UserClass userClass) {
-    return addObjectToXmlIdMap(xmlId, userClass, xmlIdUserClassMap, "user class");
+  public boolean addUserClassToSourceIdMap(String sourceId, UserClass userClass) {
+    return addObjectToSourceIdMap(sourceId, userClass, sourceIdUserClassMap, "user class");
   }
 
   /**
-   * Return the time period for a specified xmlId
+   * Return the time period for a specified sourceId
    * 
-   * @param xmlId xmlId of time period
+   * @param sourceId sourceId of time period
    * @return the specified time period
    */
-  public TimePeriod getTimePeriodByXmlId(String xmlId) {
-    return xmlIdTimePeriodMap.get(xmlId);
+  public TimePeriod getTimePeriodBySourceId(String sourceId) {
+    return sourceIdTimePeriodMap.get(sourceId);
   }
 
   /**
-   * Returns whether a time period for a given xmlId exists
+   * Returns whether a time period for a given sourceId exists
    * 
-   * @param xmlId the xmlId time period being tested
+   * @param sourceId the sourceId time period being tested
    * @return true if the external Id matches a registered time period, false otherwise
    */
-  public boolean isTimePeriodXmlIdRegistered(String xmlId) {
-    return xmlIdTimePeriodMap.keySet().contains(xmlId);
+  public boolean isTimePeriodSourceIdRegistered(String sourceId) {
+    return sourceIdTimePeriodMap.keySet().contains(sourceId);
   }
 
   /**
@@ -250,7 +250,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return the number of registered time periods
    */
   public int getNumberOfRegisteredTimePeriods() {
-    return xmlIdTimePeriodMap.keySet().size();
+    return sourceIdTimePeriodMap.keySet().size();
   }
 
   /**
@@ -258,79 +258,79 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * 
    * @return list of external ids of time periods
    */
-  public List<String> getTimePeriodXmlIds() {
-    return new ArrayList<String>(xmlIdTimePeriodMap.keySet());
+  public List<String> getTimePeriodSourceIds() {
+    return new ArrayList<String>(sourceIdTimePeriodMap.keySet());
   }
 
   /**
-   * Stores a time period by its xmlId
+   * Stores a time period by its sourceId
    * 
-   * @param xmlId      xmlId of time period
+   * @param sourceId      sourceId of time period
    * @param timePeriod time period to be stored
-   * @return true if this use of xmlId is a duplicate, false otherwise
+   * @return true if this use of sourceId is a duplicate, false otherwise
    */
-  public boolean addTimePeriodToXmlIdMap(String xmlId, TimePeriod timePeriod) {
-    return addObjectToXmlIdMap(xmlId, timePeriod, xmlIdTimePeriodMap, "time period");
+  public boolean addTimePeriodToSourceIdMap(String sourceId, TimePeriod timePeriod) {
+    return addObjectToSourceIdMap(sourceId, timePeriod, sourceIdTimePeriodMap, "time period");
   }
 
   /**
-   * Returns the zone for a specified xmlId
+   * Returns the zone for a specified sourceId
    * 
-   * @param xmlId the xmlId
-   * @return the zone corresponding to this xmlId
+   * @param sourceId the sourceId
+   * @return the zone corresponding to this sourceId
    */
-  public Zone getZoneByXmlId(String xmlId) {
-    return xmlIdZoneMap.get(xmlId);
+  public Zone getZoneBySourceId(String sourceId) {
+    return sourceIdZoneMap.get(sourceId);
   }
 
   /**
-   * Stores a zone by its xmlId
+   * Stores a zone by its sourceId
    * 
-   * @param xmlId xmlId of zone
+   * @param sourceId sourceId of zone
    * @param zone  zone to be stored
-   * @return true if this use of xmlId is a duplicate, false otherwise
+   * @return true if this use of sourceId is a duplicate, false otherwise
    */
-  public boolean addZoneToXmlIdMap(String xmlId, Zone zone) {
-    return addObjectToXmlIdMap(xmlId, zone, xmlIdZoneMap, "zone");
+  public boolean addZoneToSourceIdMap(String sourceId, Zone zone) {
+    return addObjectToSourceIdMap(sourceId, zone, sourceIdZoneMap, "zone");
   }
 
   /**
-   * Returns the link segment for a given xmlId
+   * Returns the link segment for a given sourceId
    * 
-   * @param xmlId xmlId of the link segment
+   * @param sourceId sourceId of the link segment
    * @return the specified link segment
    */
-  public MacroscopicLinkSegment getLinkSegmentByXmlId(String xmlId) {
-    return xmlIdLinkSegmentMap.get(xmlId);
+  public MacroscopicLinkSegment getLinkSegmentBySourceId(String sourceId) {
+    return sourceIdLinkSegmentMap.get(sourceId);
   }
 
   /**
-   * Stores a link segment by its xmlId
+   * Stores a link segment by its sourceId
    * 
-   * @param xmlId       xmlId of link segment
+   * @param sourceId       sourceId of link segment
    * @param linkSegment link segment to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
-  public boolean addLinkSegmentToXmlIdMap(String xmlId, MacroscopicLinkSegment linkSegment) {
-    return addObjectToXmlIdMap(xmlId, linkSegment, xmlIdLinkSegmentMap, "link segment");
+  public boolean addLinkSegmentToSourceIdMap(String sourceId, MacroscopicLinkSegment linkSegment) {
+    return addObjectToSourceIdMap(sourceId, linkSegment, sourceIdLinkSegmentMap, "link segment");
   }
 
   /**
-   * Return whether input files having duplicate xmlIds should be treated as an error
+   * Return whether input files having duplicate sourceIds should be treated as an error
    * 
    * @return true if duplicate Ids considered an error, false otherwise
    */
-  public boolean isErrorIfDuplicateXmlId() {
-    return errorIfDuplicateXmlId;
+  public boolean isErrorIfDuplicateSourceId() {
+    return errorIfDuplicateSourceId;
   }
 
   /**
-   * Set whether input files having duplicate xmlIds should be treated as an error
+   * Set whether input files having duplicate sourceIds should be treated as an error
    * 
-   * @param errorIfDuplicateXmlId true if duplicate Ids considered an error, false otherwise
+   * @param errorIfDuplicateSourceId true if duplicate Ids considered an error, false otherwise
    */
-  public void setErrorIfDuplicateXmlId(boolean errorIfDuplicateXmlId) {
-    this.errorIfDuplicateXmlId = errorIfDuplicateXmlId;
+  public void setErrorIfDuplicateSourceId(boolean errorIfDuplicateSourceId) {
+    this.errorIfDuplicateSourceId = errorIfDuplicateSourceId;
   }
 
 }

@@ -18,7 +18,7 @@ public class TravelerType implements ExternalIdable {
   /**
    * If no user class is defined the default user class will be assumed to have a traveler type referencing the default external traveler type id (1)
    */
-  public static final long DEFAULT_XML_ID = 1;
+  public static final String DEFAULT_XML_ID = "1";
 
   /**
    * Unique feature id
