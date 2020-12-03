@@ -134,7 +134,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
   public Object getLinkOutputPropertyValue(final OutputProperty outputProperty, final LinkSegment linkSegment, final Mode mode, final TimePeriod timePeriod,
       final double timeUnitMultiplier) {
     try {
-      Object obj = getCommonPropertyValue(outputProperty, mode, timePeriod);
+      Object obj = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (obj != null) {
         return obj;
       }

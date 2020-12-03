@@ -1,12 +1,11 @@
 package org.planit.output.property;
 
 import org.planit.output.enums.Type;
-import org.planit.utils.mode.Mode;
 import org.planit.utils.unit.Units;
 
-public final class ModeXmlIdOutputProperty extends BaseOutputProperty {
+public final class OriginZoneXmlIdOutputProperty extends BaseOutputProperty {
 
-  public static final String NAME = "Mode Xml Id";
+  public static final String NAME = "Origin Zone Xml Id";
 
   @Override
   public String getName() {
@@ -25,22 +24,12 @@ public final class ModeXmlIdOutputProperty extends BaseOutputProperty {
 
   @Override
   public OutputProperty getOutputProperty() {
-    return OutputProperty.MODE_XML_ID;
+    return OutputProperty.ORIGIN_ZONE_XML_ID;
   }
 
   @Override
   public OutputPropertyPriority getColumnPriority() {
     return OutputPropertyPriority.ID_PRIORITY;
-  }
-
-  /**
-   * Returns the Xml Id of the current mode
-   * 
-   * @param mode current mode
-   * @return the external Id of the current mode
-   */  
-  public static String getModeXmlId(Mode mode) {
-    return mode.getXmlId();
   }
 
 }

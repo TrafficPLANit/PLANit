@@ -18,11 +18,11 @@ import org.planit.utils.exceptions.PlanItException;
  * 
  * <ul>
  * <li>RUN_ID</li>
- * <li>TIME_PERIOD_EXTERNAL_ID</li>
- * <li>MODE_EXTERNAL_ID</li>
- * <li>ORIGIN_ZONE_EXTERNAL_ID
+ * <li>TIME_PERIOD_XML_ID</li>
+ * <li>MODE_XML_ID</li>
+ * <li>ORIGIN_ZONE_XML_ID
  * <li>
- * <li>DESTINATION_ZONE_EXTERNAL_ID</li>
+ * <li>DESTINATION_ZONE_XML_ID</li>
  * <li>OD_COST</li>
  * </ul>
  * 
@@ -37,10 +37,12 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
 
   /** od identification method by internal id flag */
   private static final int ORIGIN_DESTINATION_ID_IDENTIFICATION = 1;
+  /** od identification method by Xml id flag */
+  private static final int ORIGIN_DESTINATION_XML_ID_IDENTIFICATION = 2;
   /** od identification method by external id flag */
-  private static final int ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION = 2;
+  private static final int ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION = 3;  
   /** od identification method unknown flag */
-  private static final int ORIGIN_DESTINATION_NOT_IDENTIFIED = 3;
+  private static final int ORIGIN_DESTINATION_NOT_IDENTIFIED = 4;
 
   /**
    * Determine how an origin-destination cell is being identified in the output formatter
@@ -53,9 +55,12 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
     if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_ID)) {
       return ORIGIN_DESTINATION_ID_IDENTIFICATION;
     }
+    if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_XML_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_XML_ID)) {
+      return ORIGIN_DESTINATION_XML_ID_IDENTIFICATION;
+    }
     if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_EXTERNAL_ID)) {
       return ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION;
-    }
+    }    
     return ORIGIN_DESTINATION_NOT_IDENTIFIED;
   }
 
@@ -72,10 +77,10 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
     activeSubOutputTypes.add(ODSkimSubOutputType.COST);
     // add default output properties
     addProperty(OutputProperty.RUN_ID);
-    addProperty(OutputProperty.TIME_PERIOD_EXTERNAL_ID);
-    addProperty(OutputProperty.MODE_EXTERNAL_ID);
-    addProperty(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID);
-    addProperty(OutputProperty.DESTINATION_ZONE_EXTERNAL_ID);
+    addProperty(OutputProperty.TIME_PERIOD_XML_ID);
+    addProperty(OutputProperty.MODE_XML_ID);
+    addProperty(OutputProperty.ORIGIN_ZONE_XML_ID);
+    addProperty(OutputProperty.DESTINATION_ZONE_XML_ID);
     addProperty(OutputProperty.OD_COST);
   }
 
@@ -96,12 +101,18 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
       outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_ID;
       valid = true;
       break;
+    case ODOutputTypeConfiguration.ORIGIN_DESTINATION_XML_ID_IDENTIFICATION:
+      outputKeyPropertiesArray = new OutputProperty[2];
+      outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_XML_ID;
+      outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_XML_ID;
+      valid = true;
+      break;
     case ODOutputTypeConfiguration.ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION:
       outputKeyPropertiesArray = new OutputProperty[2];
       outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_EXTERNAL_ID;
       outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_EXTERNAL_ID;
       valid = true;
-      break;
+      break;      
     default:
       LOGGER.warning("configured keys cannot identify origin-destination cell in the skim matrix");
     }
@@ -140,28 +151,36 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
     switch (baseOutputProperty.getOutputProperty()) {
     case DESTINATION_ZONE_EXTERNAL_ID:
       return true;
+    case DESTINATION_ZONE_XML_ID:
+      return true;      
     case DESTINATION_ZONE_ID:
       return true;
     case ITERATION_INDEX:
       return true;
     case MODE_EXTERNAL_ID:
       return true;
+    case MODE_XML_ID:
+      return true;      
     case MODE_ID:
       return true;
     case OD_COST:
       return true;
     case ORIGIN_ZONE_EXTERNAL_ID:
       return true;
+    case ORIGIN_ZONE_XML_ID:
+      return true;      
     case ORIGIN_ZONE_ID:
       return true;
     case RUN_ID:
       return true;
     case TIME_PERIOD_EXTERNAL_ID:
       return true;
+    case TIME_PERIOD_XML_ID:
+      return true;      
     case TIME_PERIOD_ID:
       return true;
     default:
-      LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Origin-Destination output. This will be ignored");
+      LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an output property, which is inappropriate for Origin-Destination output. This will be ignored");
     }
     return false;
   }

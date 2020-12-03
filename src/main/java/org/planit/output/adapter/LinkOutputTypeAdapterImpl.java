@@ -100,9 +100,20 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @return he external Id of the downstream node
    * @throws PlanItException thrown if there is an error
    */
-  protected Object getDownstreamNodeExternalId(LinkSegment linkSegment) throws PlanItException {
+  protected String getDownstreamNodeExternalId(LinkSegment linkSegment) throws PlanItException {
     return ((Node) linkSegment.getDownstreamVertex()).getExternalId();
   }
+  
+  /**
+   * Returns the xml Id of the downstream node
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the xml Id of the downstream node
+   * @throws PlanItException thrown if there is an error
+   */
+  protected String getDownstreamNodeXmlId(LinkSegment linkSegment) throws PlanItException {
+    return ((Node) linkSegment.getDownstreamVertex()).getXmlId();
+  }  
 
   /**
    * Returns the Id of the downstream node
@@ -145,9 +156,20 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @return the external Id of the current link segment
    * @throws PlanItException thrown if there is an error
    */
-  protected Object getLinkSegmentExternalId(LinkSegment linkSegment) throws PlanItException {
+  protected String getLinkSegmentExternalId(LinkSegment linkSegment) throws PlanItException {
     return linkSegment.getExternalId();
   }
+  
+  /**
+   * Returns the Xml Id of the current link segment
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the Xml Id of the current link segment
+   * @throws PlanItException thrown if there is an error
+   */
+  protected String getLinkSegmentXmlId(LinkSegment linkSegment) throws PlanItException {
+    return linkSegment.getXmlId();
+  }  
 
   /**
    * Returns the Id of the current link segment
@@ -191,9 +213,20 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @return the external Id of the upstream node
    * @throws PlanItException thrown if there is an error
    */
-  protected Object getUpstreamNodeExternalId(LinkSegment linkSegment) throws PlanItException {
+  protected String getUpstreamNodeExternalId(LinkSegment linkSegment) throws PlanItException {
     return ((Node) linkSegment.getUpstreamVertex()).getExternalId();
   }
+  
+  /**
+   * Returns the Xml Id of the upstream node
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the xml Id of the upstream node
+   * @throws PlanItException thrown if there is an error
+   */
+  protected String getUpstreamNodeXmlId(LinkSegment linkSegment) throws PlanItException {
+    return ((Node) linkSegment.getUpstreamVertex()).getXmlId();
+  }  
 
   /**
    * Returns the location of the upstream node
@@ -251,7 +284,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   @Override
   public Object getLinkOutputPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) {
     try {
-      Object obj = getCommonPropertyValue(outputProperty, mode, timePeriod);
+      Object obj = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (obj != null) {
         return obj;
       }
@@ -260,6 +293,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
         return getCapacityPerLane(linkSegment);
       case DOWNSTREAM_NODE_EXTERNAL_ID:
         return getDownstreamNodeExternalId(linkSegment);
+      case DOWNSTREAM_NODE_XML_ID:
+        return getDownstreamNodeXmlId(linkSegment);        
       case DOWNSTREAM_NODE_ID:
         return getDownstreamNodeId(linkSegment);
       case DOWNSTREAM_NODE_LOCATION:
@@ -268,6 +303,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
         return getLength(linkSegment);
       case LINK_SEGMENT_EXTERNAL_ID:
         return getLinkSegmentExternalId(linkSegment);
+      case LINK_SEGMENT_XML_ID:
+        return getLinkSegmentXmlId(linkSegment);        
       case LINK_SEGMENT_ID:
         return getLinkSegmentId(linkSegment);
       case MAXIMUM_DENSITY:
@@ -278,6 +315,8 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
         return getNumberOfLanes(linkSegment);
       case UPSTREAM_NODE_EXTERNAL_ID:
         return getUpstreamNodeExternalId(linkSegment);
+      case UPSTREAM_NODE_XML_ID:
+        return getUpstreamNodeXmlId(linkSegment);        
       case UPSTREAM_NODE_ID:
         return getUpstreamNodeId(linkSegment);
       case UPSTREAM_NODE_LOCATION:

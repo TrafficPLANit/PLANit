@@ -14,12 +14,25 @@ import org.planit.utils.exceptions.PlanItException;
  * 
  * The following OutputProperty values are included by default:
  * 
- * MODE_EXTERNAL_ID UPSTREAM_NODE_EXTERNAL_ID DOWNSTREAM_NODE_EXTERNAL_ID FLOW CAPACITY_PER_LANE
- * NUMBER_OF_LANES LENGTH
- * CALCULATED_SPEED COST DENSITY LINK_SEGMENT_ID UPSTREAM_NODE_ID UPSTREAM_NODE_LOCATION
- * DOWNSTREAM_NODE_ID
- * DOWNSTREAM_NODE_LOCATION CAPACITY_PER_LANE LINK_COST MODE_ID MAXIMUM_SPEED
- * TIME_PERIOD_EXTERNAL_ID TIME_PERIOD_ID
+ * <ul>
+ * <li>MODE_ID</li> 
+ * <li>MODE_XML_ID </li>
+ * <li>FLOW CAPACITY_PER_LANE</li>
+ * <li>NUMBER_OF_LANES LENGTH</li>
+ * <li>CALCULATED_SPEED COST</li>
+ * <li>DENSITY LINK_SEGMENT_ID</li>
+ * <li>UPSTREAM_NODE_ID</li>
+ * <li>UPSTREAM_NODE_XML_ID</li> 
+ * <li>UPSTREAM_NODE_LOCATION</li>
+ * <li>DOWNSTREAM_NODE_ID</li>
+ * <li>DOWNSTREAM_NODE_XML_ID </li>
+ * <li>DOWNSTREAM_NODE_LOCATION</li>
+ * <li>CAPACITY_PER_LANE</li>
+ * <li>LINK_COST</li>
+ * <li>MAXIMUM_SPEED</li>
+ * <li>TIME_PERIOD_XML_ID</li>
+ * <li>TIME_PERIOD_ID</li>
+ * </ul> 
  * 
  * 
  * @author markr
@@ -30,10 +43,12 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(LinkOutputTypeConfiguration.class.getCanonicalName());
 
-  private static final int LINK_SEGMENT_IDENTIFICATION_BY_NODE_ID = 1;
-  private static final int LINK_SEGMENT_IDENTIFICATION_BY_ID = 2;
-  private static final int LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID = 3;
-  private static final int LINK_SEGMENT_NOT_IDENTIFIED = 4;
+  private static final int LINK_SEGMENT_IDENTIFICATION_BY_NODE_XML_ID = 1;
+  private static final int LINK_SEGMENT_IDENTIFICATION_BY_NODE_EXTERNAL_ID = 2;  
+  private static final int LINK_SEGMENT_IDENTIFICATION_BY_ID = 3;
+  private static final int LINK_SEGMENT_IDENTIFICATION_BY_XML_ID = 4;
+  private static final int LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID = 5;
+  private static final int LINK_SEGMENT_NOT_IDENTIFIED = 6;
 
   /**
    * Determine how a link is being identified in the output formatter
@@ -43,16 +58,23 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
    */
   private int findIdentificationMethod(OutputProperty[] outputKeyProperties) {
     List<OutputProperty> outputKeyPropertyList = Arrays.asList(outputKeyProperties);
-    if (outputKeyPropertyList.contains(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID) && outputKeyPropertyList.contains(
-        OutputProperty.UPSTREAM_NODE_EXTERNAL_ID)) {
-      return LINK_SEGMENT_IDENTIFICATION_BY_NODE_ID;
-    }
+    if (outputKeyPropertyList.contains(OutputProperty.DOWNSTREAM_NODE_XML_ID) && outputKeyPropertyList.contains(
+        OutputProperty.UPSTREAM_NODE_XML_ID)) {
+      return LINK_SEGMENT_IDENTIFICATION_BY_NODE_XML_ID;
+    } 
     if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_ID)) {
       return LINK_SEGMENT_IDENTIFICATION_BY_ID;
     }
+    if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_XML_ID)) {
+      return LINK_SEGMENT_IDENTIFICATION_BY_XML_ID;
+    }    
     if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_EXTERNAL_ID)) {
       return LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID;
     }
+    if (outputKeyPropertyList.contains(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID) && outputKeyPropertyList.contains(
+        OutputProperty.UPSTREAM_NODE_EXTERNAL_ID)) {
+      return LINK_SEGMENT_IDENTIFICATION_BY_NODE_EXTERNAL_ID;
+    }      
     return LINK_SEGMENT_NOT_IDENTIFIED;
   }
 
@@ -67,11 +89,11 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
   public LinkOutputTypeConfiguration() throws PlanItException {
     super(OutputType.LINK);
     addProperty(OutputProperty.LINK_SEGMENT_ID);
-    addProperty(OutputProperty.LINK_SEGMENT_EXTERNAL_ID);
-    addProperty(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID);
+    addProperty(OutputProperty.LINK_SEGMENT_XML_ID);
+    addProperty(OutputProperty.UPSTREAM_NODE_XML_ID);
     addProperty(OutputProperty.UPSTREAM_NODE_ID);
     addProperty(OutputProperty.UPSTREAM_NODE_LOCATION);
-    addProperty(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID);
+    addProperty(OutputProperty.DOWNSTREAM_NODE_XML_ID);
     addProperty(OutputProperty.DOWNSTREAM_NODE_ID);
     addProperty(OutputProperty.DOWNSTREAM_NODE_LOCATION);
     addProperty(OutputProperty.FLOW);
@@ -81,9 +103,9 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
     addProperty(OutputProperty.CALCULATED_SPEED);
     addProperty(OutputProperty.LINK_COST);
     addProperty(OutputProperty.MODE_ID);
-    addProperty(OutputProperty.MODE_EXTERNAL_ID);
+    addProperty(OutputProperty.MODE_XML_ID);
     addProperty(OutputProperty.MAXIMUM_SPEED);
-    addProperty(OutputProperty.TIME_PERIOD_EXTERNAL_ID);
+    addProperty(OutputProperty.TIME_PERIOD_XML_ID);
     addProperty(OutputProperty.TIME_PERIOD_ID);
   }
 
@@ -99,15 +121,26 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
     OutputProperty[] outputKeyPropertiesArray = null;
     boolean valid = false;
     switch (findIdentificationMethod(outputKeyProperties)) {
-      case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_NODE_ID:
+      case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_NODE_XML_ID:
+        outputKeyPropertiesArray = new OutputProperty[2];
+        outputKeyPropertiesArray[0] = OutputProperty.DOWNSTREAM_NODE_XML_ID;
+        outputKeyPropertiesArray[1] = OutputProperty.UPSTREAM_NODE_XML_ID;
+        valid = true;
+        break;
+      case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_NODE_EXTERNAL_ID:
         outputKeyPropertiesArray = new OutputProperty[2];
         outputKeyPropertiesArray[0] = OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID;
         outputKeyPropertiesArray[1] = OutputProperty.UPSTREAM_NODE_EXTERNAL_ID;
         valid = true;
-        break;
+        break;        
       case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_ID:
         outputKeyPropertiesArray = new OutputProperty[1];
         outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_ID;
+        valid = true;
+        break;
+      case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_XML_ID:
+        outputKeyPropertiesArray = new OutputProperty[1];
+        outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_XML_ID;
         valid = true;
         break;
       case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID:
@@ -141,10 +174,20 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
         return true;
       case DOWNSTREAM_NODE_EXTERNAL_ID:
         return true;
+      case DOWNSTREAM_NODE_XML_ID:
+        return true;        
       case DOWNSTREAM_NODE_ID:
         return true;
       case DOWNSTREAM_NODE_LOCATION:
         return true;
+      case UPSTREAM_NODE_EXTERNAL_ID:
+        return true;
+      case UPSTREAM_NODE_XML_ID:
+        return true;        
+      case UPSTREAM_NODE_ID:
+        return true;
+      case UPSTREAM_NODE_LOCATION:
+        return true;        
       case FLOW:
         return true;
       case ITERATION_INDEX:
@@ -155,6 +198,8 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
         return true;
       case LINK_SEGMENT_EXTERNAL_ID:
         return true;
+      case LINK_SEGMENT_XML_ID:
+        return true;        
       case LINK_SEGMENT_ID:
         return true;
       case MAXIMUM_DENSITY:
@@ -163,6 +208,8 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
         return true;
       case MODE_EXTERNAL_ID:
         return true;
+      case MODE_XML_ID:
+        return true;        
       case MODE_ID:
         return true;
       case NUMBER_OF_LANES:
@@ -171,13 +218,9 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
         return true;
       case TIME_PERIOD_EXTERNAL_ID:
         return true;
+      case TIME_PERIOD_XML_ID:
+        return true;        
       case TIME_PERIOD_ID:
-        return true;
-      case UPSTREAM_NODE_EXTERNAL_ID:
-        return true;
-      case UPSTREAM_NODE_ID:
-        return true;
-      case UPSTREAM_NODE_LOCATION:
         return true;
       case VC_RATIO:
         return true;

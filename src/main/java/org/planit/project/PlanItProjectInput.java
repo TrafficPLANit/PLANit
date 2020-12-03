@@ -488,10 +488,7 @@ public class PlanItProjectInput {
 
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating initial link segment costs");    
     final InitialLinkSegmentCost initialLinkSegmentCost = 
-        (InitialLinkSegmentCost) initialPhysicalCostFactory.create(
-            InitialLinkSegmentCost.class.getCanonicalName(),
-            new Object[] { projectGroupId }, 
-            network, fileName);
+        (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId }, network, fileName);
 
     initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
     return initialLinkSegmentCost;

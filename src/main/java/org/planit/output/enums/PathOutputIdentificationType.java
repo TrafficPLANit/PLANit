@@ -8,9 +8,11 @@ package org.planit.output.enums;
  */
 public enum PathOutputIdentificationType {
 
+  LINK_SEGMENT_XML_ID,
   LINK_SEGMENT_EXTERNAL_ID,
   LINK_SEGMENT_ID,
   NODE_EXTERNAL_ID,
+  NODE_XML_ID,
   NODE_ID;
 
 }

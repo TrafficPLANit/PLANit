@@ -74,47 +74,6 @@ public class PathImpl implements Path {
   }
 
   /**
-   * Output the path as a comma-separated list of edge segment external Id numbers
-   *
-   * @return string of comma-separated list of edge segment external Id numbers
-   */
-  private String getPathByEdgeSegmentExternalIdString() {
-    return getEdgeSegmentPathString(edgeSegment -> {
-      if ((edgeSegment instanceof ConnectoidSegment) && !(((ConnectoidSegment) edgeSegment).hasExternalId())) {
-        return "Connectoid Undefined";
-      }
-      return edgeSegment.getExternalId();
-    });
-  }
-
-  /**
-   * Output the path as a comma-separated list of edge segment Id numbers
-   *
-   * @return string of comma-separated list of edge segment Id numbers
-   */
-  private String getPathByEdgeSegmentIdString() {
-    return getEdgeSegmentPathString(EdgeSegment::getId);
-  }
-
-  /**
-   * Output the path as a comma-separated list of node external Id numbers
-   *
-   * @return string of comma-separated list of node external Id numbers
-   */
-  private String getPathByNodeExternalIdString() {
-    return getNodePathString(Node::getExternalId);
-  }
-
-  /**
-   * Output the path as a comma-separated list of node Id numbers
-   *
-   * @return string of comma-separated list of node Id numbers
-   */
-  private String getPathByNodeIdString() {
-    return getNodePathString(Node::getId);
-  }
-
-  /**
    * Constructor
    * 
    * @param groupId contiguous id generation within this group for instances of this class
@@ -171,13 +130,17 @@ public class PathImpl implements Path {
   public String toString(final PathOutputIdentificationType pathOutputType) {
     switch (pathOutputType) {
     case LINK_SEGMENT_EXTERNAL_ID:
-      return getPathByEdgeSegmentExternalIdString();
+      return getEdgeSegmentPathString(EdgeSegment::getExternalId);
+    case LINK_SEGMENT_XML_ID:
+      return getEdgeSegmentPathString(EdgeSegment::getXmlId);      
     case LINK_SEGMENT_ID:
-      return getPathByEdgeSegmentIdString();
+      return getEdgeSegmentPathString(EdgeSegment::getId);
     case NODE_EXTERNAL_ID:
-      return getPathByNodeExternalIdString();
+      return getNodePathString(Node::getExternalId);
+    case NODE_XML_ID:
+      return getNodePathString(Node::getXmlId);      
     case NODE_ID:
-      return getPathByNodeIdString();
+      return getNodePathString(Node::getId);
     }
     return "";
   }

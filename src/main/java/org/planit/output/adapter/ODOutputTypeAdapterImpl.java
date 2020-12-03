@@ -32,9 +32,20 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
    * @return the external Id of the destination zone for the current cell in the OD skim matrix
    * @throws PlanItException thrown if there is an error
    */
-  protected Object getDestinationZoneExternalId(ODMatrixIterator odMatrixIterator) throws PlanItException {
+  protected String getDestinationZoneExternalId(ODMatrixIterator odMatrixIterator) throws PlanItException {
     return odMatrixIterator.getCurrentDestination().getExternalId();
   }
+  
+  /**
+   * Returns the Xml Id of the destination zone for the current cell in the OD skim matrix
+   * 
+   * @param odMatrixIterator ODMatrixIterator object containing the required data
+   * @return the Xml Id of the destination zone for the current cell in the OD skim matrix
+   * @throws PlanItException thrown if there is an error
+   */
+  protected String getDestinationZoneXmlId(ODMatrixIterator odMatrixIterator) throws PlanItException {
+    return odMatrixIterator.getCurrentDestination().getXmlId();
+  }  
 
   /**
    * Returns the Id of the destination zone for the current cell in the OD skim matrix
@@ -54,9 +65,20 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
    * @return the origin zone external Id for the current cell in the OD skim matrix
    * @throws PlanItException thrown if there is an error
    */
-  protected Object getOriginZoneExternalId(ODMatrixIterator odMatrixIterator) throws PlanItException {
+  protected String getOriginZoneExternalId(ODMatrixIterator odMatrixIterator) throws PlanItException {
     return odMatrixIterator.getCurrentOrigin().getExternalId();
   }
+  
+  /**
+   * Returns the origin zone Xml Id for the current cell in the OD skim matrix
+   * 
+   * @param odMatrixIterator ODMatrixIterator object containing the required data
+   * @return the origin zone Xml Id for the current cell in the OD skim matrix
+   * @throws PlanItException thrown if there is an error
+   */
+  protected String getOriginZoneXmlId(ODMatrixIterator odMatrixIterator) throws PlanItException {
+    return odMatrixIterator.getCurrentOrigin().getXmlId();
+  }  
 
   /**
    * Returns the origin zone Id for the current cell in the OD skim matrix
@@ -104,19 +126,23 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
   @Override
   public Object getODOutputPropertyValue(OutputProperty outputProperty, ODMatrixIterator odMatrixIterator, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) {
     try {
-      Object obj = getCommonPropertyValue(outputProperty, mode, timePeriod);
+      Object obj = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (obj != null) {
         return obj;
       }
       switch (outputProperty) {
       case DESTINATION_ZONE_EXTERNAL_ID:
         return getDestinationZoneExternalId(odMatrixIterator);
+      case DESTINATION_ZONE_XML_ID:
+        return getDestinationZoneXmlId(odMatrixIterator);        
       case DESTINATION_ZONE_ID:
         return getDestinationZoneId(odMatrixIterator);
       case OD_COST:
         return getODCost(odMatrixIterator, timeUnitMultiplier);
       case ORIGIN_ZONE_EXTERNAL_ID:
         return getOriginZoneExternalId(odMatrixIterator);
+      case ORIGIN_ZONE_XML_ID:
+        return getOriginZoneXmlId(odMatrixIterator);        
       case ORIGIN_ZONE_ID:
         return getOriginZoneId(odMatrixIterator);
       default:

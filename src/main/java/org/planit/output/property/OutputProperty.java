@@ -26,9 +26,9 @@ public enum OutputProperty {
   OD_COST("org.planit.output.property.ODCostOutputProperty"), DOWNSTREAM_NODE_LOCATION("org.planit.output.property.DownstreamNodeLocationOutputProperty"),
   UPSTREAM_NODE_LOCATION("org.planit.output.property.UpstreamNodeLocationOutputProperty"), ITERATION_INDEX("org.planit.output.property.IterationIndexOutputProperty"),
   ORIGIN_ZONE_ID("org.planit.output.property.OriginZoneIdOutputProperty"), ORIGIN_ZONE_EXTERNAL_ID("org.planit.output.property.OriginZoneExternalIdOutputProperty"),
-  DESTINATION_ZONE_ID("org.planit.output.property.DestinationZoneIdOutputProperty"),
-  DESTINATION_ZONE_EXTERNAL_ID("org.planit.output.property.DestinationZoneExternalIdOutputProperty"), TIME_PERIOD_ID("org.planit.output.property.TimePeriodIdOutputProperty"),
-  TIME_PERIOD_EXTERNAL_ID("org.planit.output.property.TimePeriodExternalIdOutputProperty"), RUN_ID("org.planit.output.property.RunIdOutputProperty"),
+  ORIGIN_ZONE_XML_ID("org.planit.output.property.OriginZoneXmlIdOutputProperty"), DESTINATION_ZONE_ID("org.planit.output.property.DestinationZoneIdOutputProperty"),
+  DESTINATION_ZONE_XML_ID("org.planit.output.property.DestinationZoneXmlIdOutputProperty"), DESTINATION_ZONE_EXTERNAL_ID("org.planit.output.property.DestinationZoneExternalIdOutputProperty"), TIME_PERIOD_ID("org.planit.output.property.TimePeriodIdOutputProperty"),
+  TIME_PERIOD_XML_ID("org.planit.output.property.TimePeriodXmlIdOutputProperty"), TIME_PERIOD_EXTERNAL_ID("org.planit.output.property.TimePeriodExternalIdOutputProperty"), RUN_ID("org.planit.output.property.RunIdOutputProperty"),
   PATH_STRING("org.planit.output.property.PathOutputStringProperty"), PATH_ID("org.planit.output.property.PathIdOutputProperty"),
   VC_RATIO("org.planit.output.property.VCRatioOutputProperty"), COST_TIMES_FLOW("org.planit.output.property.CostTimesFlowOutputProperty"),
   LINK_TYPE("org.planit.output.property.LinkTypeOutputProperty");

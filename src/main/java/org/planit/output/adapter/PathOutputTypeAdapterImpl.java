@@ -26,9 +26,20 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @return the external Id of the destination zone for the current cell in the OD path matrix
    * @throws PlanItException thrown if there is an error
    */
-  protected Object getDestinationZoneExternalId(ODPathIterator odPathIterator) throws PlanItException {
+  protected String getDestinationZoneExternalId(ODPathIterator odPathIterator) throws PlanItException {
     return odPathIterator.getCurrentDestination().getExternalId();
   }
+  
+  /**
+   * Returns the Xml Id of the destination zone for the current cell in the OD path matrix
+   * 
+   * @param odPathIterator ODPathIterator object containing the required data
+   * @return the xml Id of the destination zone for the current cell in the OD path matrix
+   * @throws PlanItException thrown if there is an error
+   */
+  protected String getDestinationZoneXmlId(ODPathIterator odPathIterator) throws PlanItException {
+    return odPathIterator.getCurrentDestination().getXmlId();
+  }  
 
   /**
    * Returns the Id of the destination zone for the current cell in the OD path matrix
@@ -51,6 +62,17 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   protected Object getOriginZoneExternalId(ODPathIterator odPathIterator) throws PlanItException {
     return odPathIterator.getCurrentOrigin().getExternalId();
   }
+  
+  /**
+   * Returns the Xml Id of the origin zone for the current cell in the OD path matrix
+   * 
+   * @param odPathIterator ODPathIterator object containing the required data
+   * @return the xml Id of the origin zone for the current cell in the OD path matrix
+   * @throws PlanItException thrown if there is an error
+   */
+  protected String getOriginZoneXmlId(ODPathIterator odPathIterator) throws PlanItException {
+    return odPathIterator.getCurrentOrigin().getXmlId();
+  }    
 
   /**
    * Returns the origin zone Id for the current cell in the OD path matrix
@@ -118,13 +140,15 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   public Object getPathOutputPropertyValue(OutputProperty outputProperty, ODPathIterator odPathIterator, Mode mode,
       TimePeriod timePeriod, PathOutputIdentificationType pathOutputType) {
     try {
-      Object obj = getCommonPropertyValue(outputProperty, mode, timePeriod);
+      Object obj = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (obj != null) {
         return obj;
       }
       switch (outputProperty) {
         case DESTINATION_ZONE_EXTERNAL_ID:
           return getDestinationZoneExternalId(odPathIterator);
+        case DESTINATION_ZONE_XML_ID:
+          return getDestinationZoneXmlId(odPathIterator);          
         case DESTINATION_ZONE_ID:
           return getDestinationZoneId(odPathIterator);
         case PATH_STRING:
@@ -133,6 +157,8 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
           return getPathId(odPathIterator);
         case ORIGIN_ZONE_EXTERNAL_ID:
           return getOriginZoneExternalId(odPathIterator);
+        case ORIGIN_ZONE_XML_ID:
+          return getOriginZoneXmlId(odPathIterator);          
         case ORIGIN_ZONE_ID:
           return getOriginZoneId(odPathIterator);
         default:

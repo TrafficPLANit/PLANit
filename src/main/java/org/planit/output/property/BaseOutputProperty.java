@@ -111,7 +111,7 @@ public abstract class BaseOutputProperty implements Comparable<BaseOutputPropert
       return outputProperty;
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
-      throw new PlanItException("Error when converting base output property", e);
+      throw new PlanItException(String.format("Error when converting base output property %s", propertyClassName),e);
     }
   }
 
