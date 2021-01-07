@@ -143,7 +143,7 @@ public class LinkSegmentsImpl<LS extends LinkSegment> implements LinkSegments<LS
   @Override
   public LS getByExternalId(String externalId) {
     for (LS linkSegment : edgeSegments) {
-      if (linkSegment.getExternalId().equals(externalId)) {
+      if (externalId.equals(linkSegment.getExternalId())) {
         return linkSegment;
       }
     }
