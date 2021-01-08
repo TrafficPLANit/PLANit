@@ -27,6 +27,5 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @param pathOutputType the type of objects in the path list
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
-  public Object getPathOutputPropertyValue(OutputProperty outputProperty, ODPathIterator odPathIterator, Mode mode,
-      TimePeriod timePeriod, PathOutputIdentificationType pathOutputType);
+  public Object getPathOutputPropertyValue(OutputProperty outputProperty, ODPathIterator odPathIterator, Mode mode, TimePeriod timePeriod, PathOutputIdentificationType pathOutputType);
 }

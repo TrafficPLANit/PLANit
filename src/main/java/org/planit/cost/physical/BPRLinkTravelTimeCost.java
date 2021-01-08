@@ -2,6 +2,7 @@ package org.planit.cost.physical;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
@@ -27,6 +28,9 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
 
   /** generated UID */
   private static final long serialVersionUID = -1529475107840907959L;
+  
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(BPRLinkTravelTimeCost.class.getCanonicalName());
 
   /**
    * Inner class to store Map of alpha and beta parameters used in BPR function for each mode
@@ -133,7 +137,6 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     final double alpha = alphaBetaParameters.first();
     final double beta = alphaBetaParameters.second();
 
-    // Travel Time * (1 + alpha*(v/c)^beta)
     return freeFlowTravelTime * (1.0 + alpha * Math.pow(flowPcuPerHour / capacity, beta));
   }
 

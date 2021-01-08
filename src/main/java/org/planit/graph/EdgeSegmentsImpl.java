@@ -121,6 +121,24 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   public ES get(final long id) {
     return edgeSegmentMap.get(id);
   }
+  
+  /**
+   * Return an edge segment by its Xml id
+   * 
+   * Note: not an efficient implementation since it loops over all edge segments in linear time to identify the correct one, preferably use get instead whenever possible.
+   * 
+   * @param xmlid the XML id of the edge segment
+   * @return the specified edge segment instance
+   */
+  @Override
+  public ES getByXmlId(String xmlId) {
+    for (ES edgeSegment : this) {
+      if (xmlId.equals(edgeSegment.getXmlId())) {
+        return edgeSegment;
+      }
+    }
+    return null;
+  }   
 
   /**
    * {@inheritDoc}

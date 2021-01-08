@@ -98,6 +98,24 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
   public MacroscopicLinkSegmentType get(long id) {
     return macroscopicLinkSegmentTypeByIdMap.get(id);
   }
+  
+  /**
+   * Retrieve a MacroscopicLinkSegmentType by its xml Id
+   * 
+   * This method is not efficient, since it loops through all the registered types in order to find the required entry. Use get whenever possible instead
+   * 
+   * @param XmlId the XML Id of the specified MacroscopicLinkSegmentType instance
+   * @return the retrieved type, or null if nothing was found
+   */
+  @Override  
+  public MacroscopicLinkSegmentType getByXmlId(String xmlId) {
+    for (MacroscopicLinkSegmentType macroscopicLinkSegmentType : macroscopicLinkSegmentTypeByIdMap.values()) {
+      if (xmlId.equals(macroscopicLinkSegmentType.getXmlId())) {
+        return macroscopicLinkSegmentType;
+      }
+    }
+    return null;
+  }  
 
   /**
    * {@inheritDoc}

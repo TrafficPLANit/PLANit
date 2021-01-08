@@ -129,17 +129,18 @@ public class ModesImpl implements Modes {
   }
 
   /**
-   * Retrieve a Mode by its external Id
+   * Retrieve a Mode by its xml Id
    * 
-   * This method is not efficient, since it loops through all the registered modes in order to find the required time period. The equivalent method in InputBuilderListener is more
+   * This method is not efficient, since it loops through all the registered modes in order to find the required mode. The equivalent method in InputBuilderListener is more
    * efficient and should be used in preference to this in Java code.
    * 
-   * @param externalId the external Id of the specified mode
+   * @param XmlId the XML Id of the specified mode
    * @return the retrieved mode, or null if no mode was found
    */
-  public Mode getByExternalId(String externalId) {
+  @Override  
+  public Mode getByXmlId(String xmlId) {
     for (Mode mode : modeMap.values()) {
-      if (mode.getExternalId().equals(externalId)) {
+      if (xmlId.equals(mode.getXmlId())) {
         return mode;
       }
     }

@@ -117,37 +117,16 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     }
 
     /**
-     * Retrieve a TravelerType by its external Id
-     * 
-     * This method has the option to convert the external Id parameter into a long value, to find the traveler type when using long values for external ids.
-     * 
-     * @param externalId    the external Id of the specified traveler type
-     * @param convertToLong if true, the external Id is converted into a long before beginning the search
-     * @return the retrieved traveler type, or null if no user class was found
-     */
-    public TravelerType getTravelerTypeByExternalId(Object externalId, boolean convertToLong) {
-      if (convertToLong) {
-        try {
-          long value = Long.valueOf(externalId.toString());
-          return getTravelerTypeByExternalId(value);
-        } catch (NumberFormatException e) {
-          // do nothing - if conversion to long is not possible, use the general method instead
-        }
-      }
-      return getTravelerTypeByExternalId(externalId);
-    }
-
-    /**
-     * Retrieve a TravelerType by its external Id
+     * Retrieve a TravelerType by its XML Id
      * 
      * This method is not efficient, since it loops through all the registered traveler type in order to find the required entry.
      * 
-     * @param externalId the external Id of the specified traveler type
+     * @param xmlId the XML Id of the specified traveler type
      * @return the retrieved traveler type, or null if no traveler type was found
      */
-    public TravelerType getTravelerTypeByExternalId(Object externalId) {
+    public TravelerType getTravelerTypeByXmlId(String xmlId) {
       for (TravelerType travelerType : travelerTypes) {
-        if (travelerType.getExternalId().equals(externalId)) {
+        if (xmlId.equals(travelerType.getExternalId())) {
           return travelerType;
         }
       }
@@ -247,37 +226,16 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     }
 
     /**
-     * Retrieve a UserClass by its external Id
-     * 
-     * This method has the option to convert the external Id parameter into a long value, to find the user class when using long values for external ids.
-     * 
-     * @param externalId    the external Id of the specified user class
-     * @param convertToLong if true, the external Id is converted into a long before beginning the search
-     * @return the retrieved user class, or null if no user class was found
-     */
-    public UserClass getUserClassByExternalId(Object externalId, boolean convertToLong) {
-      if (convertToLong) {
-        try {
-          long value = Long.valueOf(externalId.toString());
-          return getUserClassByExternalId(value);
-        } catch (NumberFormatException e) {
-          // do nothing - if conversion to long is not possible, use the general method instead
-        }
-      }
-      return getUserClassByExternalId(externalId);
-    }
-
-    /**
-     * Retrieve a UserClass by its external Id
+     * Retrieve a UserClass by its XML Id
      * 
      * This method is not efficient, since it loops through all the registered user classes in order to find the required entry.
      * 
-     * @param externalId the external Id of the specified user class
+     * @param xmlId the XML Id of the specified user class
      * @return the retrieved user class, or null if no user class was found
      */
-    public UserClass getUserClassByExternalId(Object externalId) {
+    public UserClass getUserClassByXmlId(String xmlId) {
       for (UserClass userClass : userClasses) {
-        if (userClass.getExternalId().equals(externalId)) {
+        if (xmlId.equals(userClass.getXmlId())) {
           return userClass;
         }
       }
@@ -379,37 +337,16 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     }
 
     /**
-     * Retrieve a TimePeriod by its external Id
-     * 
-     * This method has the option to convert the external Id parameter into a long value, to find the time period when time period objects use long values for external ids.
-     * 
-     * @param externalId    the external Id of the specified time period
-     * @param convertToLong if true, the external Id is converted into a long before beginning the search
-     * @return the retrieved time period, or null if no time period was found
-     */
-    public TimePeriod getTimePeriodByExternalId(final Object externalId, final boolean convertToLong) {
-      if (convertToLong) {
-        try {
-          long value = Long.valueOf(externalId.toString());
-          return getTimePeriodByExternalId(value);
-        } catch (NumberFormatException e) {
-          // do nothing - if conversion to long is not possible, use the general method instead
-        }
-      }
-      return getTimePeriodByExternalId(externalId);
-    }
-
-    /**
-     * Retrieve a TimePeriod by its external Id
+     * Retrieve a TimePeriod by its xml Id
      * 
      * This method is not efficient, since it loops through all the registered time periods in order to find the required time period.
      * 
-     * @param externalId the external Id of the specified time period
+     * @param xmlId the XML Id of the specified time period
      * @return the retrieved time period, or null if no time period was found
      */
-    public TimePeriod getTimePeriodByExternalId(final Object externalId) {
+    public TimePeriod getTimePeriodByXmlId(final String xmlId) {
       for (TimePeriod timePeriod : timePeriods) {
-        if (timePeriod.getExternalId().equals(externalId)) {
+        if (xmlId.equals(timePeriod.getXmlId())) {
           return timePeriod;
         }
       }

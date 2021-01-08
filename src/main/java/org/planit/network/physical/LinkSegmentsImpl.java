@@ -100,6 +100,19 @@ public class LinkSegmentsImpl<LS extends LinkSegment> implements LinkSegments<LS
   public LS get(long id) {
     return edgeSegments.get(id);
   }
+  
+  /**
+   * Return an edge segment by its Xml id
+   * 
+   * Note: not an efficient implementation since it loops over all link segments in linear time to identify the correct one, preferably use get instead whenever possible.
+   * 
+   * @param xmlid the XML id of the edge segment
+   * @return the specified edge segment instance
+   */
+  @Override
+  public LS getByXmlId(String xmlId) {
+    return edgeSegments.getByXmlId(xmlId);
+  }  
 
   /**
    * {@inheritDoc}
@@ -149,5 +162,6 @@ public class LinkSegmentsImpl<LS extends LinkSegment> implements LinkSegments<LS
     }
     return null;
   }
+
 
 }

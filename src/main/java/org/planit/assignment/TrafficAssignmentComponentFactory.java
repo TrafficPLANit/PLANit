@@ -137,8 +137,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
    */
   private void dispatchTrafficComponentEvent(final T newTrafficComponent, final Object[] parameters) throws PlanItException {
     fireEvent(new org.djutils.event.Event(TRAFFICCOMPONENT_CREATE, this, new Object[] { newTrafficComponent, parameters }));
-    PlanItException.throwIf(!listeners.containsKey(TRAFFICCOMPONENT_CREATE),
-        String.format("error during dispatchTrafficComponentEvent for %s", newTrafficComponent.getClass().getCanonicalName()));
+    PlanItException.throwIf(!listeners.containsKey(TRAFFICCOMPONENT_CREATE), String.format("error during dispatchTrafficComponentEvent for %s", newTrafficComponent.getClass().getCanonicalName()));
   }
 
   // PUBLIC

@@ -375,8 +375,7 @@ public class PlanItProjectInput {
    */
   public PhysicalNetwork<?,?,?> createAndRegisterPhysicalNetwork(final String physicalNetworkType) throws PlanItException {
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating network");
-    final PhysicalNetwork<?,?,?> physicalNetwork = 
-        physicalNetworkFactory.create(physicalNetworkType, new Object[] { projectGroupId });
+    final PhysicalNetwork<?,?,?> physicalNetwork = physicalNetworkFactory.create(physicalNetworkType, new Object[] { projectGroupId });
     
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createNetworkPrefix(physicalNetwork.getId());
     LOGGER.info(String.format("%s#links: %d", prefix, physicalNetwork.links.size()));

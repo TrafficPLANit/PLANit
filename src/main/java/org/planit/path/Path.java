@@ -1,7 +1,5 @@
 package org.planit.path;
 
-import java.util.Iterator;
-
 import org.planit.output.enums.PathOutputIdentificationType;
 import org.planit.utils.graph.EdgeSegment;
 
@@ -11,7 +9,7 @@ import org.planit.utils.graph.EdgeSegment;
  * @author markr
  *
  */
-public interface Path {
+public interface Path extends Iterable<EdgeSegment> {
 
   /**
    * add an edge segment to the path by appending it
@@ -20,13 +18,6 @@ public interface Path {
    * @return true as per Collection.add
    */
   Boolean addEdgeSegment(EdgeSegment edgeSegment);
-
-  /**
-   * Iterator over the available edge segments
-   * 
-   * @return edgseSegmentIterator
-   */
-  Iterator<EdgeSegment> getIterator();
 
   /**
    * Outputs this path as a String, appropriate to a specified path output type

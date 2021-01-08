@@ -31,6 +31,7 @@ import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
@@ -135,7 +136,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
         ODPathMatrix odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
         for (ODPathIterator odPathIterator = odPathMatrix.iterator(); odPathIterator.hasNext();) {
           odPathIterator.next();
-          if (outputConfiguration.isPersistZeroFlow() || (odPathIterator.getCurrentValue() != null)) {
+          if (outputConfiguration.isPersistZeroFlow() || (odPathIterator.getCurrentValue() != null)) {            
             List<Object> rowValues = outputProperties.stream().map(outputProperty -> pathOutputTypeAdapter.getPathOutputPropertyValue(outputProperty.getOutputProperty(),
                 odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType())).map(outValue -> OutputUtils.formatObject(outValue))
                 .collect(Collectors.toList());

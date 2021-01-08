@@ -4,6 +4,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.function.Function;
+import java.util.logging.Logger;
 
 import org.planit.output.enums.PathOutputIdentificationType;
 import org.planit.utils.graph.EdgeSegment;
@@ -11,7 +12,6 @@ import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
-import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * This object creates a path of LinkSegment objects to a specified destination using the vertexPathAndCost object created by the (Dijkstra) Shortest Path Algorithm
@@ -22,6 +22,9 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
  *
  */
 public class PathImpl implements Path {
+  
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(PathImpl.class.getCanonicalName());
 
   /**
    * Id of the path
@@ -104,11 +107,11 @@ public class PathImpl implements Path {
 
   /**
    * {@inheritDoc}
-   */
+   */  
   @Override
-  public Iterator<EdgeSegment> getIterator() {
+  public Iterator<EdgeSegment> iterator() {
     return path.iterator();
-  }
+  } 
 
   /**
    * Return the id of this path
@@ -144,5 +147,7 @@ public class PathImpl implements Path {
     }
     return "";
   }
+
+
 
 }
