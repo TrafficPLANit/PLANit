@@ -45,17 +45,17 @@ public abstract class NetworkWriterImpl implements NetworkWriter {
   /**
    * constructor
    * 
-   * @param idMapper to use as default
+   * @param idMapperType to use as default
    */
-  protected NetworkWriterImpl(IdMapperType idMapper) {
-    setIdMapper(idMapper);
+  protected NetworkWriterImpl(IdMapperType idMapperType) {
+    setIdMapperType(idMapperType);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public IdMapperType getIdMapper() {
+  public IdMapperType getIdMapperType() {
     return idMapper;
   }
 
@@ -63,7 +63,7 @@ public abstract class NetworkWriterImpl implements NetworkWriter {
    * {@inheritDoc}
    */
   @Override
-  public void setIdMapper(IdMapperType idMapper) {
+  public void setIdMapperType(IdMapperType idMapper) {
     this.idMapper = idMapper;
   }
 

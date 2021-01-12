@@ -40,7 +40,23 @@ public class IdMapperFunctionFactory {
       };
     case EXTERNAL_ID:
       return (instance) -> {
-        return String.format("%s", instance.getExternalId());
+        if (instance.hasExternalId()) {
+          return instance.getExternalId();
+        } else if (instance.hasXmlId()) {
+          return instance.getXmlId();
+        } else {
+          return String.format("%s", instance.getId());
+        }
+      };
+    case DEFAULT:
+      return (instance) -> {
+        if (instance.hasXmlId()) {
+          return instance.getXmlId();
+        } else if (instance.hasExternalId()) {
+          return instance.getExternalId();
+        } else {
+          return String.format("%s", instance.getId());
+        }
       };
     default:
       throw new PlanItException(String.format("unknown id mapping type found for %s %s", Clazz.getName(), idMapper.toString()));
@@ -88,10 +104,6 @@ public class IdMapperFunctionFactory {
    */
   public static Function<MacroscopicLinkSegment, String> createLinkSegmentIdMappingFunction(final IdMapperType idMapper) throws PlanItException {
     switch (idMapper) {
-    case ID:
-      return (macroscopicLinkSegment) -> {
-        return Long.toString(macroscopicLinkSegment.getId());
-      };
     case EXTERNAL_ID:
       return (macroscopicLinkSegment) -> {
         /* when present on link segment use that external id, otherwise try link */
@@ -105,7 +117,7 @@ public class IdMapperFunctionFactory {
         }
       };
     default:
-      throw new PlanItException(String.format("unknown id mapping type found for link segments %s", idMapper.toString()));
+      return createIdMappingFunction(MacroscopicLinkSegment.class, idMapper);
     }
   }
 

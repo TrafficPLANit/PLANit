@@ -137,7 +137,7 @@ public class ModesImpl implements Modes {
    * @param XmlId the XML Id of the specified mode
    * @return the retrieved mode, or null if no mode was found
    */
-  @Override  
+  @Override
   public Mode getByXmlId(String xmlId) {
     for (Mode mode : modeMap.values()) {
       if (xmlId.equals(mode.getXmlId())) {

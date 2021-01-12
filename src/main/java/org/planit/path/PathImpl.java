@@ -22,8 +22,9 @@ import org.planit.utils.network.physical.Node;
  *
  */
 public class PathImpl implements Path {
-  
+
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(PathImpl.class.getCanonicalName());
 
   /**
@@ -32,8 +33,8 @@ public class PathImpl implements Path {
   private long id;
 
   /**
-   * deque containing the edge segments in the path (we use a deque for easy insertion at both ends which is generally preferable when cosntructing paths
-   * based on shortest path algorithms. Access is less of an issue as we only allow one to iterate
+   * deque containing the edge segments in the path (we use a deque for easy insertion at both ends which is generally preferable when cosntructing paths based on shortest path
+   * algorithms. Access is less of an issue as we only allow one to iterate
    */
   private final Deque<EdgeSegment> path;
 
@@ -107,11 +108,11 @@ public class PathImpl implements Path {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public Iterator<EdgeSegment> iterator() {
     return path.iterator();
-  } 
+  }
 
   /**
    * Return the id of this path
@@ -135,19 +136,17 @@ public class PathImpl implements Path {
     case LINK_SEGMENT_EXTERNAL_ID:
       return getEdgeSegmentPathString(EdgeSegment::getExternalId);
     case LINK_SEGMENT_XML_ID:
-      return getEdgeSegmentPathString(EdgeSegment::getXmlId);      
+      return getEdgeSegmentPathString(EdgeSegment::getXmlId);
     case LINK_SEGMENT_ID:
       return getEdgeSegmentPathString(EdgeSegment::getId);
     case NODE_EXTERNAL_ID:
       return getNodePathString(Node::getExternalId);
     case NODE_XML_ID:
-      return getNodePathString(Node::getXmlId);      
+      return getNodePathString(Node::getXmlId);
     case NODE_ID:
       return getNodePathString(Node::getId);
     }
     return "";
   }
-
-
 
 }

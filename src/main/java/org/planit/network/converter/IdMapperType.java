@@ -1,13 +1,17 @@
 package org.planit.network.converter;
 
 /**
- * Indicates which PLANit id to use for extracting ids on the output format. ID: use the PLANit internal id, EXTERNAL_ID: use the planit external id, GENERATEd: use a generator to
- * generate ids independent of the PLANit ids
+ * Indicates which PLANit id to use for extracting ids on the output format.
+ * <ul>
+ * <li>ID: use the PLANit internal id</li>
+ * <li>EXTERNAL_ID: use the planit external id, otherwise use xml id, otherwise use the internal id</li>
+ * <li>DEFAULT: use xml id if present, otherwise use the internal id</li>
+ * </ul>
  * 
  * @author markr
  *
  */
 public enum IdMapperType {
 
-  ID, EXTERNAL_ID
+  DEFAULT, ID, EXTERNAL_ID
 }
