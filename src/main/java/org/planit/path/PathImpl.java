@@ -14,7 +14,7 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
 
 /**
- * This object creates a path of LinkSegment objects to a specified destination using the vertexPathAndCost object created by the (Dijkstra) Shortest Path Algorithm
+ * This object represents a path based on a number of consecutive LinkSegments
  *
  * The path creation makes use of the fact that the origin pair will have a null EdgeSegment, so there is no need to specify the origin.
  *
@@ -33,24 +33,24 @@ public class PathImpl implements Path {
   private long id;
 
   /**
-   * deque containing the edge segments in the path (we use a deque for easy insertion at both ends which is generally preferable when cosntructing paths based on shortest path
+   * deque containing the edge segments in the path (we use a deque for easy insertion at both ends which is generally preferable when constructing paths based on shortest path
    * algorithms. Access is less of an issue as we only allow one to iterate
    */
   private final Deque<EdgeSegment> path;
 
   /**
-   * Returns the path as a String of comma-separated node Id or external Id values
+   * Returns the path as a String of comma-separated Ids using the id mapper
    *
-   * @param idGetter lambda function to get the required Id value
+   * @param idMapper lambda function to get the required Id value
    * @return the path as a String of comma-separated node Id or external Id values
    */
-  private String getNodePathString(final Function<Node, Object> idGetter) {
+  private String getNodePathString(final Function<Node, Object> idMapper) {
     final StringBuilder builder = new StringBuilder("[");
     for (final EdgeSegment edgeSegment : path) {
       final Vertex vertex = edgeSegment.getUpstreamVertex();
       if (vertex instanceof Node) {
         final Node node = (Node) vertex;
-        builder.append(idGetter.apply(node));
+        builder.append(idMapper.apply(node));
         if (edgeSegment.getDownstreamVertex() instanceof Node) {
           builder.append(",");
         }

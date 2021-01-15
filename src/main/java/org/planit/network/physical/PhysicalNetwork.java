@@ -86,22 +86,22 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   public static final String MACROSCOPICNETWORK = MacroscopicNetwork.class.getCanonicalName();
 
   /**
-   * internal class instance containing all link specific functionality
+   * class instance containing all link specific functionality
    */
   public final Links<L> links;
 
   /**
-   * internal class instance containing all link segment specific functionality
+   * class instance containing all link segment specific functionality
    */
   public final LinkSegments<LS> linkSegments;
 
   /**
-   * internal class instance containing all nodes specific functionality
+   * class instance containing all nodes specific functionality
    */
   public final Nodes<N> nodes;
 
   /**
-   * internal class instance containing all modes specific functionality
+   * class instance containing all modes specific functionality
    */
   public final Modes modes;
 
