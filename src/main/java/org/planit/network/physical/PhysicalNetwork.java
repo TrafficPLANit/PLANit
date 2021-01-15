@@ -15,7 +15,6 @@ import org.planit.geo.PlanitOpenGisUtils;
 import org.planit.graph.DirectedGraphImpl;
 import org.planit.graph.GraphModifier;
 import org.planit.mode.ModesImpl;
-import org.planit.network.physical.macroscopic.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.id.IdGroupingToken;
@@ -34,7 +33,7 @@ import org.locationtech.jts.geom.LineString;
  *
  * @author markr
  */
-public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegment> extends TrafficAssignmentComponent<PhysicalNetwork<N, L, LS>> implements Serializable {
+public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegment> {
 
   // INNER CLASSES
 

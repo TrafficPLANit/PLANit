@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.planit.data.MultiKeyPlanItData;
-import org.planit.network.physical.macroscopic.MacroscopicLinkSegmentImpl;
+import org.planit.network.macroscopic.physical.MacroscopicLinkSegmentImpl;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odpath.ODPathIterator;

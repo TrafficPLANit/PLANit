@@ -1,4 +1,4 @@
-package org.planit.network.physical.macroscopic;
+package org.planit.network.macroscopic.physical;
 
 import java.util.Set;
 import java.util.logging.Logger;

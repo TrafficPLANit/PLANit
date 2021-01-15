@@ -1,6 +1,6 @@
 package org.planit.network.converter;
 
-import org.planit.network.physical.macroscopic.MacroscopicNetwork;
+import org.planit.network.macroscopic.physical.MacroscopicNetwork;
 import org.planit.utils.exceptions.PlanItException;
 
 /**

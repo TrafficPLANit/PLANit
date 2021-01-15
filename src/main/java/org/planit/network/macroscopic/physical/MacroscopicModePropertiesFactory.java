@@ -1,4 +1,4 @@
-package org.planit.network.physical.macroscopic;
+package org.planit.network.macroscopic.physical;
 
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
