@@ -10,7 +10,7 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 
 /**
- * Implementation of the InfrastructureLayers interface
+ * Base implementation of the InfrastructureLayers interface
  * 
  * @author markr
  *
