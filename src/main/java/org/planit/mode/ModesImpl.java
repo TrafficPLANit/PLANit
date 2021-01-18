@@ -50,7 +50,7 @@ public class ModesImpl implements Modes {
    * @param mode to be registered in this network
    * @return mode, in case it overrides an existing mode, the removed mode is returned
    */
-  protected Mode registerMode(final Mode mode) {
+  protected Mode register(final Mode mode) {
     return modeMap.put(mode.getId(), mode);
   }
 
@@ -68,7 +68,7 @@ public class ModesImpl implements Modes {
   @Override
   public Mode registerNewCustomMode(String name, double maxSpeed, double pcu, PhysicalModeFeatures physicalFeatures, UsabilityModeFeatures usabilityFeatures) {
     final Mode newMode = new ModeImpl(groupId, name, maxSpeed, pcu, physicalFeatures, usabilityFeatures);
-    registerMode(newMode);
+    register(newMode);
     return newMode;
   }
 
@@ -81,7 +81,7 @@ public class ModesImpl implements Modes {
     PredefinedMode theMode = null;
     if (!containsPredefinedMode(modeType)) {
       theMode = ModeFactory.createPredefinedMode(groupId, modeType);
-      registerMode(theMode);
+      register(theMode);
     } else {
       theMode = getPredefinedMode(modeType);
     }

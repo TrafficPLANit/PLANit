@@ -7,6 +7,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.djutils.event.EventListenerInterface;
+import org.planit.network.InfrastructureLayer;
+import org.planit.network.InfrastructureNetwork;
+import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.TravelerType;
 import org.planit.userclass.UserClass;
@@ -81,7 +84,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * Stores an object by its source Id, after checking whether the external Id is a duplicate
    * 
    * @param <T>        type of object being stored
-   * @param sourceId      sourceId of object being stored
+   * @param sourceId   sourceId of object being stored
    * @param obj        object being stored
    * @param map        Map to store the object
    * @param objectName name of the object class
@@ -116,7 +119,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @param sourceId the external Id
    * @return node corresponding to the specified external Id
    */
-  public Node getNodeBySourceId(String sourceId) {
+  public Node getNodeByXmlId(String sourceId) {
     return sourceIdNodeMap.get(sourceId);
   }
 
@@ -124,7 +127,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * Stores a node by its sourceId
    * 
    * @param sourceId source Id of node
-   * @param node  Node to be stored
+   * @param node     Node to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */
   public boolean addNodeToSourceIdMap(String sourceId, Node node) {
@@ -144,7 +147,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   /**
    * Stores a link segment type by its sourceId
    * 
-   * @param sourceId                      xml Id of link segment type
+   * @param sourceId                   xml Id of link segment type
    * @param macroscopicLinkSegmentType to be stored
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
@@ -175,7 +178,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * Stores a mode by its sourceId Id
    * 
    * @param sourceId xml Id of this mode
-   * @param mode  mode to be stored
+   * @param mode     mode to be stored
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
   public boolean addModeToSourceIdMap(String sourceId, Mode mode) {
@@ -195,7 +198,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   /**
    * Stores a traveler type by its sourceId
    * 
-   * @param sourceId        sourceId of traveler type
+   * @param sourceId     sourceId of traveler type
    * @param travelerType traveler type to be stored
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
@@ -216,7 +219,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   /**
    * Stores a user class by its sourceId
    * 
-   * @param sourceId     sourceId of user class
+   * @param sourceId  sourceId of user class
    * @param userClass user class to be stored
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
@@ -265,7 +268,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   /**
    * Stores a time period by its sourceId
    * 
-   * @param sourceId      sourceId of time period
+   * @param sourceId   sourceId of time period
    * @param timePeriod time period to be stored
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
@@ -287,7 +290,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * Stores a zone by its sourceId
    * 
    * @param sourceId sourceId of zone
-   * @param zone  zone to be stored
+   * @param zone     zone to be stored
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
   public boolean addZoneToSourceIdMap(String sourceId, Zone zone) {
@@ -300,14 +303,33 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @param sourceId sourceId of the link segment
    * @return the specified link segment
    */
-  public MacroscopicLinkSegment getLinkSegmentBySourceId(String sourceId) {
+  public MacroscopicLinkSegment getLinkSegmentByXmlId(String sourceId) {
     return sourceIdLinkSegmentMap.get(sourceId);
+  }
+
+  /**
+   * returns the link segment by a given external id Extremely slow, because it is not indexed at the moment
+   * 
+   * @param network    to look in
+   * @param externalId to look for
+   * @return link segment
+   */
+  public MacroscopicLinkSegment getLinkSegmentByExternalId(InfrastructureNetwork network, String externalId) {
+    for (InfrastructureLayer layer : network.infrastructureLayers) {
+      if (layer instanceof MacroscopicPhysicalNetwork) {
+        MacroscopicLinkSegment linkSegment = ((MacroscopicPhysicalNetwork) layer).linkSegments.getByExternalId(externalId);
+        if (linkSegment != null) {
+          return linkSegment;
+        }
+      }
+    }
+    return null;
   }
 
   /**
    * Stores a link segment by its sourceId
    * 
-   * @param sourceId       sourceId of link segment
+   * @param sourceId    sourceId of link segment
    * @param linkSegment link segment to be stored
    * @return true if this use of externalId is a duplicate, false otherwise
    */

@@ -14,7 +14,7 @@ import org.planit.cost.virtual.VirtualCostConfiguratorFactory;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
 import org.planit.gap.GapFunctionConfigurator;
-import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.InfrastructureNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
 import org.planit.output.configuration.OutputConfiguration;
@@ -51,7 +51,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
 
   protected static final String SET_INITIAL_LINK_SEGMENT_COST = "setInitialLinkSegmentCost";
 
-  protected static final String SET_PHYSICAL_NETWORK = "setPhysicalNetwork";
+  protected static final String SET_INFRASTRUCTURE_NETWORK = "setInfrastructureNetwork";
 
   protected static final String SET_ZONING = "setZoning";
 
@@ -91,8 +91,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @param network to set
    */
-  protected void setPhysicalNetwork(PhysicalNetwork<?, ?, ?> network) {
-    registerDelayedMethodCall(SET_PHYSICAL_NETWORK, network);
+  protected void setInfrastructureNetwork(InfrastructureNetwork network) {
+    registerDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK, network);
   }
 
   /**
@@ -145,8 +145,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @return network
    */
-  public PhysicalNetwork<?, ?, ?> getPhysicalNetwork() {
-    return (PhysicalNetwork<?, ?, ?>) getFirstParameterOfDelayedMethodCall(SET_PHYSICAL_NETWORK);
+  public InfrastructureNetwork getInfrastructureNetwork() {
+    return (InfrastructureNetwork) getFirstParameterOfDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK);
   }
 
   /**

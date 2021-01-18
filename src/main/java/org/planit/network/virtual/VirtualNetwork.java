@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.planit.network.Network;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
@@ -17,9 +18,12 @@ import org.planit.utils.network.virtual.Zone;
  * 
  * @author markr
  */
-public class VirtualNetwork {
+public class VirtualNetwork extends Network {
 
   // INNER CLASSES
+
+  /** generated id */
+  private static final long serialVersionUID = -4088201905917614130L;
 
   /**
    * Internal class for all Connectoid specific code
@@ -50,7 +54,7 @@ public class VirtualNetwork {
      * @throws PlanItException thrown if there is an error
      */
     public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length) throws PlanItException {
-      Connectoid newConnectoid = new ConnectoidImpl(groupId, centroid, node, length);
+      Connectoid newConnectoid = new ConnectoidImpl(getIdGroupingToken(), centroid, node, length);
       registerConnectoid(newConnectoid);
       return newConnectoid;
     }
@@ -117,7 +121,7 @@ public class VirtualNetwork {
      * @throws PlanItException thrown if there is an error
      */
     public ConnectoidSegment createAndRegisterConnectoidSegment(Connectoid parentConnectoid, boolean directionAB) throws PlanItException {
-      ConnectoidSegment connectoidSegment = new ConnectoidSegmentImpl(groupId, parentConnectoid, directionAB);
+      ConnectoidSegment connectoidSegment = new ConnectoidSegmentImpl(getIdGroupingToken(), parentConnectoid, directionAB);
       parentConnectoid.registerConnectoidSegment(connectoidSegment, directionAB);
       registerConnectoidSegment(connectoidSegment);
       return connectoidSegment;
@@ -169,7 +173,7 @@ public class VirtualNetwork {
      * @return registered new centroid
      */
     public Centroid registerNewCentroid(Zone zone) {
-      Centroid newCentroid = new CentroidImpl(groupId, zone);
+      Centroid newCentroid = new CentroidImpl(getIdGroupingToken(), zone);
       registerCentroid(newCentroid);
       return newCentroid;
     }
@@ -195,11 +199,6 @@ public class VirtualNetwork {
 
   // Protected
 
-  /**
-   * Contiguous id generation within this group id token for all instances created with factory methods in this class
-   */
-  protected final IdGroupingToken groupId;
-
   // for now use tree map to ensure non-duplicate keys until we add functionality
   // to account for this (treemap is slower than hashmap)
   protected Map<Long, Connectoid> connectoidMap = new TreeMap<Long, Connectoid>();
@@ -211,11 +210,10 @@ public class VirtualNetwork {
   /**
    * Constructor
    * 
-   * @param groupId contiguous id generation within this group for instances of this class
+   * @param tokenId contiguous id generation for instances of this class
    */
-  public VirtualNetwork(final IdGroupingToken groupId) {
-    // a virtual network has no id, i.e., there is only a single copy so we can utilise the passed in group id
-    this.groupId = groupId;
+  public VirtualNetwork(final IdGroupingToken tokenId) {
+    super(tokenId);
   }
 
   /**

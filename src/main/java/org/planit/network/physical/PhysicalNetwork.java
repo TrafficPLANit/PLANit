@@ -1,31 +1,29 @@
 package org.planit.network.physical;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
-import org.opengis.referencing.FactoryException;
+import org.locationtech.jts.geom.LineString;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.geo.PlanitJtsUtils;
 import org.planit.geo.PlanitOpenGisUtils;
 import org.planit.graph.DirectedGraphImpl;
 import org.planit.graph.GraphModifier;
-import org.planit.mode.ModesImpl;
+import org.planit.network.InfrastructureLayer;
+import org.planit.network.InfrastructureLayerImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.mode.Modes;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.LinkSegments;
 import org.planit.utils.network.physical.Links;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.Nodes;
-import org.locationtech.jts.geom.LineString;
 
 /**
  * Model free Network consisting of nodes and links, each of which can be iterated over. This network does not contain any transport specific information, hence the qualification
@@ -33,21 +31,16 @@ import org.locationtech.jts.geom.LineString;
  *
  * @author markr
  */
-public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegment> {
+public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegment> extends InfrastructureLayerImpl implements InfrastructureLayer {
 
   // INNER CLASSES
 
   /** generated UID */
+  @SuppressWarnings("unused")
   private static final long serialVersionUID = -2794450367185361960L;
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(PhysicalNetwork.class.getCanonicalName());
-
-  /** the coordinate reference system used for all entities in this network */
-  private CoordinateReferenceSystem coordinateReferenceSystem;
-
-  /** one can set the coordinate reference system only when the network is empty and only once at this point */
-  private boolean coordinateReferenceSystemLocked = false;
 
   /**
    * the network builder
@@ -81,9 +74,6 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
   // PUBLIC
 
-  // shorthand for the macroscopic network canonical class name
-  public static final String MACROSCOPICNETWORK = MacroscopicNetwork.class.getCanonicalName();
-
   /**
    * class instance containing all link specific functionality
    */
@@ -100,44 +90,17 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   public final Nodes<N> nodes;
 
   /**
-   * class instance containing all modes specific functionality
-   */
-  public final Modes modes;
-
-  /**
-   * Network Constructor using default coordinate reference system
-   *
-   * @param groupId        contiguous id generation within this group for instances of this class
-   * @param networkBuilder the builder to be used to create this network
-   */
-  public PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder<N, L, LS> networkBuilder) {
-    super(groupId, PhysicalNetwork.class);
-    this.coordinateReferenceSystem = PlanitJtsUtils.DEFAULT_GEOGRAPHIC_CRS;
-
-    this.networkBuilder = networkBuilder; /* for derived classes building part */
-    this.graph = new DirectedGraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
-    this.modes = new ModesImpl(getNetworkIdGroupingToken()); /* for mode building added by this class */
-    
-    this.nodes = new NodesImpl<N>(getGraph().getVertices());
-    this.links = new LinksImpl<L>(getGraph().getEdges());
-    this.linkSegments = new LinkSegmentsImpl<LS>(getGraph().getEdgeSegments());
-  }
-
-  /**
    * Network Constructor
    *
-   * @param groupId                   contiguous id generation within this group for instances of this class
-   * @param networkBuilder            the builder to be used to create this network
-   * @param coordinateReferenceSystem the coordinate reference system to use
+   * @param tokenId        contiguous id generation within this group for instances of this class
+   * @param networkBuilder the builder to be used to create this network
    */
-  public PhysicalNetwork(final IdGroupingToken groupId, final PhysicalNetworkBuilder<N, L, LS> networkBuilder, final CoordinateReferenceSystem coordinateReferenceSystem) {
-    super(groupId, PhysicalNetwork.class);
-    this.coordinateReferenceSystem = coordinateReferenceSystem;
+  public PhysicalNetwork(final IdGroupingToken tokenId, final PhysicalNetworkBuilder<N, L, LS> networkBuilder) {
+    super(tokenId);
 
     this.networkBuilder = networkBuilder; /* for derived classes building part */
-    this.graph = new DirectedGraphImpl<N, L, LS>(groupId, networkBuilder /* for graph builder part */);
-    this.modes = new ModesImpl(getNetworkIdGroupingToken()); /* for mode building added by this class */
-    
+    this.graph = new DirectedGraphImpl<N, L, LS>(tokenId, networkBuilder /* for graph builder part */);
+
     this.nodes = new NodesImpl<N>(getGraph().getVertices());
     this.links = new LinksImpl<L>(getGraph().getEdges());
     this.linkSegments = new LinkSegmentsImpl<LS>(getGraph().getEdgeSegments());
@@ -156,46 +119,15 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   }
 
   /**
-   * Collect the coordinate reference system used for this network
-   * 
-   * @return
+   * {@inheritDoc}
    */
-  public CoordinateReferenceSystem getCoordinateReferenceSystem() {
-    return coordinateReferenceSystem;
-  }
-
-  /**
-   * Collect the coordinate reference system used for this network
-   * 
-   * @return
-   */
-  public final void setCoordinateReferenceSystem(CoordinateReferenceSystem coordinateReferenceSystem) {
-    if (!coordinateReferenceSystemLocked || isEmpty()) {
-      this.coordinateReferenceSystem = coordinateReferenceSystem;
-      this.coordinateReferenceSystemLocked = true;
-    } else {
-      LOGGER.warning("Coordinate Reference System is already set. To change the CRS after instantiation, use transform() method");
-    }
-  }
-
-  /**
-   * change the coordinate system, which will result in an update of all geometries in the network from the original CRS to the new CRS. If the network is empty and no CRS is set
-   * yet, then this is identical to calling setCoordinateReferenceSystem
-   * 
-   * @param newCoordinateReferenceSystem to transform the network to
-   * @throws PlanItException
-   * @throws FactoryException
-   */
-  public void transform(CoordinateReferenceSystem newCoordinateReferenceSystem) throws PlanItException {
-    if (!coordinateReferenceSystemLocked || isEmpty()) {
-      setCoordinateReferenceSystem(coordinateReferenceSystem);
-    } else {
-      try {
-        getGraph().transformGeometries(PlanitOpenGisUtils.findMathTransform(getCoordinateReferenceSystem(), newCoordinateReferenceSystem));
-      } catch (Exception e) {
-        PlanitOpenGisUtils.findMathTransform(getCoordinateReferenceSystem(), newCoordinateReferenceSystem);
-        throw new PlanItException(String.format("error during transformation of network's CRS", e));
-      }
+  @Override
+  public void transform(CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException {
+    try {
+      getGraph().transformGeometries(PlanitOpenGisUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
+    } catch (Exception e) {
+      PlanitOpenGisUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
+      throw new PlanItException(String.format("error during transformation of network %s CRS", getXmlId()), e);
     }
   }
 
@@ -249,11 +181,12 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * 
    * @param linkToBreak   the link to break
    * @param nodeToBreakAt the node to break at
+   * @param crs           to use to recompute link lengths of broken links
    * @return the broken edges for each original edge's id
    * @throws PlanItException thrown if error
    */
-  public Map<Long, Set<L>> breakLinkAt(L linkToBreak, N nodeToBreakAt) throws PlanItException {
-    return breakLinksAt(List.of(linkToBreak), nodeToBreakAt);
+  public Map<Long, Set<L>> breakLinkAt(L linkToBreak, N nodeToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
+    return breakLinksAt(List.of(linkToBreak), nodeToBreakAt, crs);
   }
 
   /**
@@ -264,17 +197,18 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * 
    * @param linksToBreak  the links to break
    * @param nodeToBreakAt the node to break at
+   * @param crs           to use to recompute link lengths of broken links
    * @return the broken edges for each original edge's id
    * @throws PlanItException thrown if error
    */
   @SuppressWarnings("unchecked")
-  public Map<Long, Set<L>> breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt) throws PlanItException {
+  public Map<Long, Set<L>> breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
     if (getGraph() instanceof GraphModifier<?, ?>) {
 
       Map<Long, Set<L>> affectedLinks = ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
 
       /* broken links geometry must be updated since it links is truncated compared to its original */
-      PlanitJtsUtils geoUtils = new PlanitJtsUtils(getCoordinateReferenceSystem());
+      PlanitJtsUtils geoUtils = new PlanitJtsUtils(crs);
       for (Entry<Long, Set<L>> brokenLinks : affectedLinks.entrySet()) {
         for (Link brokenLink : brokenLinks.getValue()) {
           LineString updatedGeometry = null;
@@ -304,6 +238,23 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     links.forEach(link -> link.validate());
     linkSegments.forEach(linkSegment -> linkSegment.validate());
     nodes.forEach(node -> node.validate());
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public void logInfo(String prefix) {
+    /* log supported modes */
+    LOGGER.info(String.format("%s#supported modes: %s", prefix, getSupportedModes().stream().map((mode) -> {
+      return mode.getXmlId();
+    }).collect(Collectors.joining(", "))));
+
+    /* log infrastructure components */
+    LOGGER.info(String.format("%s#links: %d", prefix, links.size()));
+    LOGGER.info(String.format("%s#link segments: %d", prefix, linkSegments.size()));
+    LOGGER.info(String.format("%s#nodes: %d", prefix, nodes.size()));
   }
 
 }

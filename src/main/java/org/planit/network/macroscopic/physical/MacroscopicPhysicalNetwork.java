@@ -2,7 +2,7 @@ package org.planit.network.macroscopic.physical;
 
 import java.util.logging.Logger;
 
-import org.planit.network.macroscopic.InfrastructureLayer;
+import org.planit.network.InfrastructureLayer;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.physical.PhysicalNetworkBuilder;
 import org.planit.utils.id.IdGroupingToken;
@@ -12,7 +12,7 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentTypes;
 
 /**
- * Macroscopic Network which stores link segment types
+ * Macroscopic physical Network (layer) that supports one or more modes and link segment types, where the modes are registered on the network (Infrastructure network) level
  *
  * @author markr
  *
@@ -24,6 +24,7 @@ public class MacroscopicPhysicalNetwork extends PhysicalNetwork<Node, Link, Macr
   private static final Logger LOGGER = Logger.getLogger(MacroscopicPhysicalNetwork.class.getCanonicalName());
 
   /** Generated UID */
+  @SuppressWarnings("unused")
   private static final long serialVersionUID = -6844990013871601434L;
 
   // Protected
@@ -38,7 +39,7 @@ public class MacroscopicPhysicalNetwork extends PhysicalNetwork<Node, Link, Macr
   }
 
   // Public
-  
+
   public final MacroscopicLinkSegmentTypes linkSegmentTypes;
 
   /**
@@ -59,9 +60,10 @@ public class MacroscopicPhysicalNetwork extends PhysicalNetwork<Node, Link, Macr
    * @param customBuilder a customBuilder
    */
   @SuppressWarnings("unchecked")
-  public MacroscopicPhysicalNetwork(final IdGroupingToken groupId, MacroscopicPhysicalNetworkBuilder<? extends Node, ? extends Link, ? extends MacroscopicLinkSegment> customBuilder) {
+  public MacroscopicPhysicalNetwork(final IdGroupingToken groupId,
+      MacroscopicPhysicalNetworkBuilder<? extends Node, ? extends Link, ? extends MacroscopicLinkSegment> customBuilder) {
     super(groupId, (PhysicalNetworkBuilder<Node, Link, MacroscopicLinkSegment>) customBuilder);
-    linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl((MacroscopicPhysicalNetworkBuilder<?, ?, MacroscopicLinkSegment>) getMacroscopicNetworkBuilder());    
+    linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl((MacroscopicPhysicalNetworkBuilder<?, ?, MacroscopicLinkSegment>) getMacroscopicNetworkBuilder());
   }
 
 }

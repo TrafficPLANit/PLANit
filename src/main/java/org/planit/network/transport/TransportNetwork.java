@@ -1,14 +1,11 @@
 package org.planit.network.transport;
 
-import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.InfrastructureNetwork;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.network.physical.Link;
-import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.Connectoid;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
@@ -22,9 +19,9 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
 public class TransportNetwork {
 
   /**
-   * Holds the physical road network that is being modeled
+   * Holds the infrastructure road network that is being modelled
    */
-  protected final PhysicalNetwork<? extends Node, ? extends Link, ? extends LinkSegment> physicalNetwork;
+  protected final InfrastructureNetwork infrastructureNetwork;
 
   /**
    * Holds the zoning structure and virtual transport network interfacing with the physical network
@@ -83,8 +80,8 @@ public class TransportNetwork {
    * @param physicalNetwork the PhysicalNetwork used to generate this TransportNetwork
    * @param zoning          the Zoning used to generate this TransportNetwork
    */
-  public TransportNetwork(PhysicalNetwork<? extends Node, ? extends Link, ? extends LinkSegment> physicalNetwork, Zoning zoning) {
-    this.physicalNetwork = physicalNetwork;
+  public TransportNetwork(InfrastructureNetwork infrastructureNetwork, Zoning zoning) {
+    this.infrastructureNetwork = infrastructureNetwork;
     this.zoning = zoning;
   }
 
@@ -103,7 +100,7 @@ public class TransportNetwork {
    * @return the number of physical link segments in this network
    */
   public int getTotalNumberOfPhysicalLinkSegments() {
-    return (int) physicalNetwork.linkSegments.size();
+    return (int) infrastructureNetwork.linkSegments.size();
   }
 
   /**
@@ -121,7 +118,7 @@ public class TransportNetwork {
    * @return the total number of physical and virtual vertices in this network
    */
   public int getTotalNumberOfVertices() {
-    return zoning.getVirtualNetwork().centroids.getNumberOfCentroids() + physicalNetwork.nodes.size();
+    return zoning.getVirtualNetwork().centroids.getNumberOfCentroids() + infrastructureNetwork.nodes.size();
   }
 
   /**
@@ -160,8 +157,8 @@ public class TransportNetwork {
    * 
    * @return physicalNetwork
    */
-  public PhysicalNetwork<? extends Node, ? extends Link, ? extends LinkSegment> getPhysicalNetwork() {
-    return physicalNetwork;
+  public InfrastructureNetwork getInfrastructureNetwork() {
+    return infrastructureNetwork;
   }
 
   /**

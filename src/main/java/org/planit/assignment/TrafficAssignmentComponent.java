@@ -26,7 +26,7 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
   /**
    * id generation using this token will be contiguous and unique for each instance of this class
    */
-  protected IdGroupingToken groupId;
+  protected IdGroupingToken tokenId;
 
   /**
    * Traffic component type used to identify the component uniquely. If not provided to the constructor the class name is used
@@ -36,16 +36,16 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
   /**
    * Constructor
    * 
-   * @param groupId,   contiguous id generation within this group for instances of this class
+   * @param tokenId,   contiguous id generation using this same token for instances of this class
    * @param classType, the class type this instance belongs to and we are generating an id for
    */
-  protected TrafficAssignmentComponent(IdGroupingToken groupId, Class<?> classType) {
+  protected TrafficAssignmentComponent(IdGroupingToken tokenId, Class<?> classType) {
     // actual instance class
     this.trafficComponentType = this.getClass().getCanonicalName();
     // the groupId would generally be the token of the project or the assignment as it owns the components
     // the class type would be the super class of the all instances for which we want contiguous ids
-    this.groupId = groupId;
-    this.id = IdGenerator.generateId(groupId, classType);
+    this.tokenId = tokenId;
+    this.id = IdGenerator.generateId(tokenId, classType);
   }
 
   // Public
@@ -69,8 +69,8 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
    * 
    * @return id grouping token
    */
-  public IdGroupingToken getIdGroupingtoken() {
-    return groupId;
+  public IdGroupingToken getIdGroupingToken() {
+    return tokenId;
   }
 
   /**

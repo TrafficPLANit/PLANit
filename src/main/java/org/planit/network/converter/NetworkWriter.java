@@ -1,6 +1,6 @@
 package org.planit.network.converter;
 
-import org.planit.network.macroscopic.physical.MacroscopicNetwork;
+import org.planit.network.InfrastructureNetwork;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
@@ -17,7 +17,7 @@ public interface NetworkWriter {
    * @param metwork memory model network to write
    * @throws PlanItException thrown if error
    */
-  public void write(MacroscopicNetwork network) throws PlanItException;
+  public void write(InfrastructureNetwork network) throws PlanItException;
 
   /**
    * collect the way the ids should be mapped

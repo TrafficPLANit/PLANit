@@ -15,7 +15,7 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkVolumeAccessee;
-import org.planit.network.macroscopic.physical.MacroscopicNetwork;
+import org.planit.network.macroscopic.MacroscopicNetwork;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
@@ -84,7 +84,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void initialiseTimePeriod(TimePeriod timePeriod, final Set<Mode> modes) throws PlanItException {
-    simulationData = new TraditionalStaticAssignmentSimulationData(groupId);
+    simulationData = new TraditionalStaticAssignmentSimulationData(tokenId);
     simulationData.setIterationIndex(0);
     simulationData.getModeSpecificData().clear();
     for (final Mode mode : modes) {
@@ -288,7 +288,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
     if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
-      final Path path = shortestPathResult.createPath(groupId, currentOriginZone.getCentroid(), currentDestinationZone.getCentroid());
+      final Path path = shortestPathResult.createPath(tokenId, currentOriginZone.getCentroid(), currentDestinationZone.getCentroid());
       odpathMatrix.setValue(currentOriginZone, currentDestinationZone, path);
     }
   }
@@ -385,7 +385,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void populateCost(Cost<MacroscopicLinkSegment> cost, final Mode mode, final double[] costsToPopulate) throws PlanItException {
-    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) transportNetwork.getPhysicalNetwork();
+    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) transportNetwork.getInfrastructureNetwork();
     for (final MacroscopicLinkSegment linkSegment : macroscopicNetwork.linkSegments) {
       double currentSegmentCost = cost.getSegmentCost(mode, linkSegment);
       if (currentSegmentCost < 0.0) {

@@ -47,7 +47,7 @@ public class ODPathSets extends TrafficAssignmentComponent<ODPathSets> {
    * @return newly created od path matrix
    */
   public ODPathMatrix createAndRegisterOdPathMatrix(final Zoning zoning) {
-    final ODPathMatrix newOdPathMatrix = new ODPathMatrix(groupId, zoning.zones);
+    final ODPathMatrix newOdPathMatrix = new ODPathMatrix(tokenId, zoning.zones);
     odPathMatrices.put(newOdPathMatrix.getId(), newOdPathMatrix);
     return newOdPathMatrix;
   }

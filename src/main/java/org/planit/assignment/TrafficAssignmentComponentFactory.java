@@ -10,17 +10,17 @@ import java.util.logging.Logger;
 import org.djutils.event.EventProducer;
 import org.djutils.event.EventType;
 import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
-import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.physical.AbstractPhysicalCost;
+import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
+import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.SpeedConnectoidTravelTimeCost;
-import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
+import org.planit.network.Network;
 import org.planit.network.macroscopic.MacroscopicNetwork;
-import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.path.ODPathSets;
 import org.planit.path.choice.PathChoice;
@@ -69,7 +69,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
     registeredTrafficAssignmentComponents.put(NetworkLoading.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(Smoothing.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(Demands.class.getCanonicalName(), new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(PhysicalNetwork.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(Network.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(AbstractPhysicalCost.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(InitialPhysicalCost.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(AbstractVirtualCost.class.getCanonicalName(), new TreeSet<>());
@@ -137,7 +137,8 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
    */
   private void dispatchTrafficComponentEvent(final T newTrafficComponent, final Object[] parameters) throws PlanItException {
     fireEvent(new org.djutils.event.Event(TRAFFICCOMPONENT_CREATE, this, new Object[] { newTrafficComponent, parameters }));
-    PlanItException.throwIf(!listeners.containsKey(TRAFFICCOMPONENT_CREATE), String.format("error during dispatchTrafficComponentEvent for %s", newTrafficComponent.getClass().getCanonicalName()));
+    PlanItException.throwIf(!listeners.containsKey(TRAFFICCOMPONENT_CREATE),
+        String.format("error during dispatchTrafficComponentEvent for %s", newTrafficComponent.getClass().getCanonicalName()));
   }
 
   // PUBLIC

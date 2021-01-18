@@ -2,7 +2,7 @@ package org.planit.network.converter;
 
 import java.util.logging.Logger;
 
-import org.planit.network.macroscopic.physical.MacroscopicNetwork;
+import org.planit.network.InfrastructureNetwork;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
@@ -57,7 +57,7 @@ public class NetworkConverter {
     if (isModeConversionValid()) {
 
       LOGGER.info("****************** [START] NETWORK CONVERTER: READ NETWORK   [START] ********************");
-      MacroscopicNetwork network = reader.read();
+      InfrastructureNetwork network = reader.read();
       LOGGER.info("****************** [END]   NETWORK CONVERTER: READ NETWORK   [END]   ********************");
 
       LOGGER.info("****************** [START] NETWORK CONVERTER: WRITE NETWORK [START] ********************");

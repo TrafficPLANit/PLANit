@@ -17,6 +17,7 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
+import org.planit.network.InfrastructureNetwork;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.formatter.OutputFormatter;
@@ -205,25 +206,25 @@ public class CustomPlanItProject {
   }
 
   /**
-   * Create and register a physical network on the project
+   * Create and register an infrastructure based network on the project
    *
-   * @param physicalNetworkType name of physical network class to register
-   * @return the generated physical network
+   * @param infrastructureNetworkType name of infrastructure network class to register
+   * @return the generated infrastructure network
    * @throws PlanItException thrown if there is an error
    */
-  public PhysicalNetwork<?, ?, ?> createAndRegisterPhysicalNetwork(final String physicalNetworkType) throws PlanItException {
-    return inputs.createAndRegisterPhysicalNetwork(physicalNetworkType);
+  public InfrastructureNetwork createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
+    return inputs.createAndRegisterInfrastructureNetwork(infrastructureNetworkType);
   }
 
   /**
    * Create and register the zoning system on the network
    *
-   * @param physicalNetwork the physical network on which the zoning will be based
+   * @param network the network on which the zoning will be based
    * @return the generated zoning object
    * @throws PlanItException thrown if there is an error
    */
-  public Zoning createAndRegisterZoning(final PhysicalNetwork<?, ?, ?> physicalNetwork) throws PlanItException {
-    return inputs.createAndRegisterZoning(physicalNetwork);
+  public Zoning createAndRegisterZoning(final InfrastructureNetwork network) throws PlanItException {
+    return inputs.createAndRegisterZoning(network);
   }
 
   /**

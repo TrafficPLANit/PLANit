@@ -13,6 +13,9 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
+import org.planit.network.InfrastructureLayer;
+import org.planit.network.InfrastructureNetwork;
+import org.planit.network.Network;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.path.ODPathSets;
@@ -43,22 +46,22 @@ public class PlanItProjectInput {
   public class ProjectNetworks {
 
     /**
-     * Returns a List of networks
+     * Returns a List of infrastructure based networks
      *
      * @return List of networks
      */
-    public List<PhysicalNetwork<?,?,?>> toList() {
-      return new ArrayList<PhysicalNetwork<?,?,?>>(physicalNetworkMap.values());
+    public List<InfrastructureNetwork> toList() {
+      return new ArrayList<InfrastructureNetwork>(infrastructureNetworkMap.values());
     }
 
     /**
-     * Get physical network by id
+     * Get infrastructure network by id
      *
      * @param id the id of the network
      * @return the retrieved network
      */
-    public PhysicalNetwork<?,?,?> getPhysicalNetwork(final long id) {
-      return physicalNetworkMap.get(id);
+    public InfrastructureNetwork getInfrastructureNetwork(final long id) {
+      return infrastructureNetworkMap.get(id);
     }
 
     /**
@@ -66,17 +69,17 @@ public class PlanItProjectInput {
      *
      * @return the number of networks in the project
      */
-    public int getNumberOfPhysicalNetworks() {
-      return physicalNetworkMap.size();
+    public int getNumberOfInfrastructureNetworks() {
+      return infrastructureNetworkMap.size();
     }
 
     /**
-     * Check if networks have already been registered
+     * Check if infrastructure networks have already been registered
      *
      * @return true if registered networks exist, false otherwise
      */
-    public boolean hasRegisteredNetworks() {
-      return !physicalNetworkMap.isEmpty();
+    public boolean hasRegisteredInfrastructureNetworks() {
+      return !infrastructureNetworkMap.isEmpty();
     }
 
     /**
@@ -84,8 +87,8 @@ public class PlanItProjectInput {
      * 
      * @return first network that is registered if none return null
      */
-    public PhysicalNetwork<?,?,?> getFirstNetwork() {
-      return hasRegisteredNetworks() ? physicalNetworkMap.firstEntry().getValue() : null;
+    public InfrastructureNetwork getFirstInfrastructureNetwork() {
+      return hasRegisteredInfrastructureNetworks() ? infrastructureNetworkMap.firstEntry().getValue() : null;
     }
   }
 
@@ -262,11 +265,11 @@ public class PlanItProjectInput {
   private void initialiseFactories(InputBuilderListener inputBuilderListener) {
     initialPhysicalCostFactory = new TrafficAssignmentComponentFactory<InitialPhysicalCost>(InitialPhysicalCost.class);
     // due to nested generics, we supply class name rather than class
-    physicalNetworkFactory = new TrafficAssignmentComponentFactory<PhysicalNetwork<?,?,?>>(PhysicalNetwork.class.getCanonicalName());
+    infrastructureNetworkFactory = new TrafficAssignmentComponentFactory<Network>(Network.class.getCanonicalName());
     zoningFactory = new TrafficAssignmentComponentFactory<Zoning>(Zoning.class);
     demandsFactory = new TrafficAssignmentComponentFactory<Demands>(Demands.class);
 
-    physicalNetworkFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    infrastructureNetworkFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     zoningFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     demandsFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     initialPhysicalCostFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
@@ -277,7 +280,7 @@ public class PlanItProjectInput {
   /**
    * The physical networks registered on this project
    */
-  protected final TreeMap<Long, PhysicalNetwork<?,?,?>> physicalNetworkMap;
+  protected final TreeMap<Long, InfrastructureNetwork> infrastructureNetworkMap;
 
   /**
    * The demands registered on this project
@@ -301,9 +304,9 @@ public class PlanItProjectInput {
 
   // FACTORIES
   /**
-   * Object Factory for physical network object
+   * Object Factory for infrastructure network object
    */
-  protected TrafficAssignmentComponentFactory<PhysicalNetwork<?,?,?>> physicalNetworkFactory;
+  protected TrafficAssignmentComponentFactory<Network> infrastructureNetworkFactory;
 
   /**
    * Object factory for demands object
@@ -356,7 +359,7 @@ public class PlanItProjectInput {
    */
   public PlanItProjectInput(long projectId, IdGroupingToken projectGroupId, InputBuilderListener inputBuilderListener) {
     this.projectId = projectId;
-    this.physicalNetworkMap = new TreeMap<Long, PhysicalNetwork<?,?,?>>();
+    this.infrastructureNetworkMap = new TreeMap<Long, InfrastructureNetwork>();
     this.demandsMap = new TreeMap<Long, Demands>();
     this.zoningsMap = new TreeMap<Long, Zoning>();
     this.odPathSetsMap = new TreeMap<Long, ODPathSets>();
@@ -367,42 +370,51 @@ public class PlanItProjectInput {
   }
 
   /**
-   * Create and register a physical network on the project input
+   * Create and register an infrastructure based network on the project input
    *
-   * @param physicalNetworkType name of physical network class to register
-   * @return the generated physical network
+   * @param infrastructureNetworkType name of infrastructure network class to register
+   * @return the generated network
    * @throws PlanItException thrown if there is an error
    */
-  public PhysicalNetwork<?,?,?> createAndRegisterPhysicalNetwork(final String physicalNetworkType) throws PlanItException {
+  public InfrastructureNetwork createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating network");
-    final PhysicalNetwork<?,?,?> physicalNetwork = physicalNetworkFactory.create(physicalNetworkType, new Object[] { projectGroupId });
+    final Network theNetwork = infrastructureNetworkFactory.create(infrastructureNetworkType, new Object[] { projectGroupId });
     
-    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createNetworkPrefix(physicalNetwork.getId());
-    LOGGER.info(String.format("%s#links: %d", prefix, physicalNetwork.links.size()));
-    LOGGER.info(String.format("%s#link segments: %d", prefix, physicalNetwork.linkSegments.size()));    
-    LOGGER.info(String.format("%s#nodes: %d", prefix, physicalNetwork.nodes.size()));
-    LOGGER.info(String.format("%s#modes: %d", prefix, physicalNetwork.modes.size()));
+    /* for now we only support infrastructure based networks even though class heirarchy is more generic */
+    if(!(theNetwork instanceof InfrastructureNetwork)){
+      throw new PlanItException("we currently only support networks derived from InfrastructureNetwork");
+    }
+    InfrastructureNetwork infrastructureNetwork = (InfrastructureNetwork) theNetwork;
+
+    /* log info across layers */
+    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createNetworkPrefix(infrastructureNetwork.getId());
+    LOGGER.info(String.format("%s#modes: %d", prefix, infrastructureNetwork.modes.size()));    
     
-    physicalNetworkMap.put(physicalNetwork.getId(), physicalNetwork);
-    return physicalNetwork;
+    /* for each layer log information regarding contents */
+    for(InfrastructureLayer networkLayer : infrastructureNetwork.infrastructureLayers) {
+      networkLayer.logInfo(prefix);
+    }
+    
+    infrastructureNetworkMap.put(infrastructureNetwork.getId(), infrastructureNetwork);
+    return infrastructureNetwork;
   }
 
   /**
    * Create and register the zoning system on the network and project input
    *
-   * @param physicalNetwork the physical network on which the zoning will be based
+   * @param infrastructureNetwork the infrastructure network on which the zoning will be based
    * @return the generated zoning object
    * @throws PlanItException thrown if there is an error
    */
-  public Zoning createAndRegisterZoning(final PhysicalNetwork<?,?,?> physicalNetwork) throws PlanItException {
-    PlanItException.throwIf(physicalNetwork == null, "The physical network must be defined before definition of zones can begin");
+  public Zoning createAndRegisterZoning(final InfrastructureNetwork infrastructureNetwork) throws PlanItException {
+    PlanItException.throwIf(infrastructureNetwork == null, "The physical network must be defined before definition of zones can begin");
 
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating zoning");
     final Zoning zoning = 
         zoningFactory.create(
             Zoning.class.getCanonicalName(), 
-            new Object[] { projectGroupId, physicalNetwork.getNetworkIdGroupingToken() }, 
-            physicalNetwork);
+            new Object[] { projectGroupId, infrastructureNetwork.getIdGroupingToken() }, 
+            infrastructureNetwork);
     
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createZoningPrefix(zoning.getId());
     LOGGER.info(String.format("%s#zones: %d", prefix, zoning.zones.getNumberOfZones()));

@@ -54,7 +54,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
      * @return the new zone created
      */
     public Zone createAndRegisterNewZone() {
-      final ZoneImpl newZone = new ZoneImpl(groupId);
+      final ZoneImpl newZone = new ZoneImpl(tokenId);
       final Centroid centroid = virtualNetwork.centroids.registerNewCentroid(newZone);
       newZone.setCentroid(centroid);
       registerZone(newZone);

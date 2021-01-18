@@ -1,6 +1,6 @@
 package org.planit.network.converter;
 
-import org.planit.network.macroscopic.physical.MacroscopicNetwork;
+import org.planit.network.InfrastructureNetwork;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
@@ -17,6 +17,6 @@ public interface NetworkReader {
    * @return parsed network
    * @throws PlanItException thrown if error
    */
-  public MacroscopicNetwork read() throws PlanItException;
+  public InfrastructureNetwork read() throws PlanItException;
 
 }

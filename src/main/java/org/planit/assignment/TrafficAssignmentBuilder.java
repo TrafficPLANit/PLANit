@@ -14,6 +14,7 @@ import org.planit.gap.StopCriterion;
 import org.planit.input.InputBuilderListener;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
+import org.planit.network.InfrastructureNetwork;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
@@ -45,16 +46,16 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @param network network object to be registered
    * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
    */
-  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final PhysicalNetwork<?, ?, ?> network) throws PlanItException {
+  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final InfrastructureNetwork infrastructureNetwork) throws PlanItException {
     if (zoning == null || demands == null || network == null) {
       PlanItException.throwIf(zoning == null, "zoning in registerDemandZoningAndNetwork is null");
       PlanItException.throwIf(demands == null, "demands in registerDemandZoningAndNetwork is null");
-      PlanItException.throwIf(network == null, "network in registerDemandZoningAndNetwork is null");
+      PlanItException.throwIf(infrastructureNetwork == null, "network in registerDemandZoningAndNetwork is null");
     }
-    PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, network.modes),
+    PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, infrastructureNetwork.modes),
         "Zoning structure is incompatible with one or more of the demands, likely the number of zones does not match the number of origins and/or destinations");
 
-    for (final Mode mode : network.modes) {
+    for (final Mode mode : infrastructureNetwork.modes) {
       for (TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
         if (demands.get(mode, timePeriod) == null) {
           LOGGER.warning("no demand matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
@@ -64,7 +65,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
 
     // register on configurator
     TrafficAssignmentConfigurator<? extends TrafficAssignment> configurator = ((TrafficAssignmentConfigurator<? extends TrafficAssignment>) getConfigurator());
-    configurator.setPhysicalNetwork(network);
+    configurator.setInfrastructureNetwork(infrastructureNetwork);
     configurator.setZoning(zoning);
     configurator.setDemands(demands);
   }
@@ -172,15 +173,17 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
       AbstractPhysicalCost physicalCost = createPhysicalCostInstance(configurator);
       configurator.getPhysicalCost().configure(physicalCost);
       trafficAssignmentInstance.setPhysicalCost(physicalCost);
-      
+
       /* Physical cost <-> assignment dependency */
-      if(physicalCost instanceof LinkVolumeAccessor) {
-        PlanItException.throwIf(!(trafficAssignmentInstance instanceof LinkVolumeAccessee), "traffic assignment instance is expected to provide link volumes for physical cost by implementing the LinkVolumeAccessee interface");
-        /* by decoupling cost and assignment from the link volume dependency, we make it possible to have future cost
-         * components that do not require link volumes, or we have other classes providing the link volumes, not necessarily the 
-         * assignment. For now however, this is a hard match, until we need something more flexible */
-        ((LinkVolumeAccessor)physicalCost).setLinkVolumeAccessee((LinkVolumeAccessee)trafficAssignmentInstance);
-      }    
+      if (physicalCost instanceof LinkVolumeAccessor) {
+        PlanItException.throwIf(!(trafficAssignmentInstance instanceof LinkVolumeAccessee),
+            "traffic assignment instance is expected to provide link volumes for physical cost by implementing the LinkVolumeAccessee interface");
+        /*
+         * by decoupling cost and assignment from the link volume dependency, we make it possible to have future cost components that do not require link volumes, or we have other
+         * classes providing the link volumes, not necessarily the assignment. For now however, this is a hard match, until we need something more flexible
+         */
+        ((LinkVolumeAccessor) physicalCost).setLinkVolumeAccessee((LinkVolumeAccessee) trafficAssignmentInstance);
+      }
     }
 
     // virtual cost
@@ -188,12 +191,13 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
       AbstractVirtualCost virtualCost = createVirtualCostInstance(configurator);
       configurator.getVirtualCost().configure(virtualCost);
       trafficAssignmentInstance.setVirtualCost(virtualCost);
-      
-      /* virtual cost <-> assignment dependency (see physical cost above for rationale)*/
-      if(virtualCost instanceof LinkVolumeAccessor && trafficAssignmentInstance instanceof LinkVolumeAccessee) {
-        PlanItException.throwIf(!(trafficAssignmentInstance instanceof LinkVolumeAccessee), "traffic assignment instance is expected to provide link volumes for virtual cost by implementing the LinkVolumeAccessee interface");
-        ((LinkVolumeAccessor)virtualCost).setLinkVolumeAccessee((LinkVolumeAccessee)trafficAssignmentInstance);
-      }         
+
+      /* virtual cost <-> assignment dependency (see physical cost above for rationale) */
+      if (virtualCost instanceof LinkVolumeAccessor && trafficAssignmentInstance instanceof LinkVolumeAccessee) {
+        PlanItException.throwIf(!(trafficAssignmentInstance instanceof LinkVolumeAccessee),
+            "traffic assignment instance is expected to provide link volumes for virtual cost by implementing the LinkVolumeAccessee interface");
+        ((LinkVolumeAccessor) virtualCost).setLinkVolumeAccessee((LinkVolumeAccessee) trafficAssignmentInstance);
+      }
     }
 
     // gap function
