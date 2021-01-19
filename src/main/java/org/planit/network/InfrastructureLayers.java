@@ -35,7 +35,7 @@ public interface InfrastructureLayers extends Iterable<InfrastructureLayer> {
    * @return created infrastructure layer
    */
   public MacroscopicPhysicalNetwork createNew();
-
+  
   /**
    * Create a new infrastructure layer and registering on this class. Currently we only support macroscopic infrastructure layers so the returned type is the derived class
    * {@link MacroscopicPhysicalNetwork}. In future versions the user can choose which type is to be created
