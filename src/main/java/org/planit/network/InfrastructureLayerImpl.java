@@ -64,6 +64,37 @@ public abstract class InfrastructureLayerImpl implements InfrastructureLayer {
    * 
    */
   @Override
+  public boolean registerSupportedMode(Mode supportedMode) {
+    if (supportedMode != null) {
+      supportedModes.put(supportedMode.getId(), supportedMode);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public boolean registerSupportedModes(Collection<Mode> supportedModes) {
+    boolean success = false;
+    if (supportedModes != null && supportedModes.size() > 0) {
+      success = true;
+      for (Mode mode : supportedModes) {
+        if (!registerSupportedMode(mode)) {
+          success = false;
+        }
+      }
+    }
+    return success;
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
   public long getId() {
     return id;
   }

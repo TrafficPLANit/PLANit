@@ -173,12 +173,17 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       LinkOutputTypeAdapter linkOutputTypeAdapter = (LinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
       SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
       for (Mode mode : modes) {
-        for (LinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments()) {
-          if (outputConfiguration.isPersistZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
-            List<Object> rowValues = outputProperties.stream().map(outputProperty -> linkOutputTypeAdapter.getLinkOutputPropertyValue(outputProperty.getOutputProperty(),
-                linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier())).map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
-            csvPrinter.printRecord(rowValues);
+        Long networkLayerId = linkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
+        if (networkLayerId != null) {
+          for (LinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments(networkLayerId)) {
+            if (outputConfiguration.isPersistZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
+              List<Object> rowValues = outputProperties.stream().map(outputProperty -> linkOutputTypeAdapter.getLinkOutputPropertyValue(outputProperty.getOutputProperty(),
+                  linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier())).map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
+              csvPrinter.printRecord(rowValues);
+            }
           }
+        } else {
+          LOGGER.severe(String.format("network layer could not be identified for mode %s by csv output formatter", mode.getXmlId()));
         }
       }
     } catch (PlanItException e) {
@@ -199,7 +204,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @throws Exception thrown if there is an error opening the file
    */
   protected CSVPrinter openCsvFileAndWriteHeaders(OutputTypeConfiguration outputTypeConfiguration, String csvFileName) throws Exception {
-    CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(csvFileName), CSVFormat.DEFAULT);
+    CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(csvFileName), CSVFormat.DEFAULT.withIgnoreSurroundingSpaces());
     List<String> headerValues = outputTypeConfiguration.getOutputProperties().stream().map(BaseOutputProperty::getName).collect(Collectors.toList());
     csvPrinter.printRecord(headerValues);
     return csvPrinter;

@@ -210,13 +210,18 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     LinkOutputTypeAdapter linkOutputTypeAdapter = (LinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
     for (Mode mode : modes) {
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
-      for (LinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments()) {
-        if (outputConfiguration.isPersistZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
-          updateOutputAndKeyValuesForLink(multiKeyPlanItData, outputProperties, outputKeys, linkSegment, linkOutputTypeAdapter, mode, timePeriod);
-        }
 
+      Long networkLayerId = linkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
+      if (networkLayerId != null) {
+        for (LinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments(networkLayerId)) {
+          if (outputConfiguration.isPersistZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
+            updateOutputAndKeyValuesForLink(multiKeyPlanItData, outputProperties, outputKeys, linkSegment, linkOutputTypeAdapter, mode, timePeriod);
+          }
+        }
+        timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
+      } else {
+        LOGGER.severe(String.format("network layer could not be identified for mode %s by memory output formatter", mode.getXmlId()));
       }
-      timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
     }
   }
 

@@ -49,7 +49,7 @@ public class MacroscopicPhysicalNetwork extends PhysicalNetwork<Node, Link, Macr
    */
   @SuppressWarnings("unchecked")
   public MacroscopicPhysicalNetwork(final IdGroupingToken groupId) {
-    super(groupId, new MacroscopicPhysicalNetworkBuilderImpl());
+    super(groupId, new MacroscopicPhysicalNetworkBuilderImpl(groupId));
     linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl((MacroscopicPhysicalNetworkBuilder<?, ?, MacroscopicLinkSegment>) getMacroscopicNetworkBuilder());
   }
 

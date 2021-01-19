@@ -106,9 +106,6 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
     this.id = IdGenerator.generateId(groupId, GraphImpl.class);
     this.graphBuilder = graphBuilder;
 
-    IdGroupingToken groupToken = IdGenerator.createIdGroupingToken(this, this.getId());
-    this.graphBuilder.setIdGroupingToken(groupToken);
-
     this.edges = new EdgesImpl<V, E>(graphBuilder);
     this.vertices = new VerticesImpl<V>(graphBuilder);
   }
@@ -157,7 +154,7 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
   public void removeDanglingSubGraphs(Integer belowsize, Integer abovesize, boolean alwaysKeepLargest) throws PlanItException {
     boolean recreateIdsImmediately = false;
 
-    Map<Integer,LongAdder> removedDanglingNetworksBySize = new HashMap<>();
+    Map<Integer, LongAdder> removedDanglingNetworksBySize = new HashMap<>();
     Set<V> remainingVertices = new HashSet<V>(getVertices().size());
     getVertices().forEach(vertex -> remainingVertices.add(vertex));
     Map<V, Integer> identifiedSubNetworkSizes = new HashMap<V, Integer>();
@@ -190,10 +187,10 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
         }
       }
       final LongAdder totalCount = new LongAdder();
-      removedDanglingNetworksBySize.forEach( (size, count) -> {
+      removedDanglingNetworksBySize.forEach((size, count) -> {
         LOGGER.info(String.format("sub graph size %d - %d removed", size, count.longValue()));
         totalCount.add(count.longValue());
-      });     
+      });
       LOGGER.info(String.format("removed %d dangling sub graphs", totalCount.longValue()));
     } else {
       LOGGER.warning("no networks identified, unable to remove dangling subnetworks");

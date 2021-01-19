@@ -2,7 +2,10 @@ package org.planit.output.adapter;
 
 import java.util.logging.Logger;
 
+import org.locationtech.jts.geom.Point;
 import org.planit.assignment.TrafficAssignment;
+import org.planit.network.InfrastructureLayer;
+import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.OutputProperty;
@@ -14,8 +17,6 @@ import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.LinkSegments;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
-
-import org.locationtech.jts.geom.Point;
 
 /**
  * Top-level abstract class which defines the common methods required by Link output type adapters
@@ -103,7 +104,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   protected String getDownstreamNodeExternalId(LinkSegment linkSegment) throws PlanItException {
     return ((Node) linkSegment.getDownstreamVertex()).getExternalId();
   }
-  
+
   /**
    * Returns the xml Id of the downstream node
    * 
@@ -113,7 +114,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    */
   protected String getDownstreamNodeXmlId(LinkSegment linkSegment) throws PlanItException {
     return ((Node) linkSegment.getDownstreamVertex()).getXmlId();
-  }  
+  }
 
   /**
    * Returns the Id of the downstream node
@@ -159,7 +160,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   protected String getLinkSegmentExternalId(LinkSegment linkSegment) throws PlanItException {
     return linkSegment.getExternalId();
   }
-  
+
   /**
    * Returns the Xml Id of the current link segment
    * 
@@ -169,7 +170,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    */
   protected String getLinkSegmentXmlId(LinkSegment linkSegment) throws PlanItException {
     return linkSegment.getXmlId();
-  }  
+  }
 
   /**
    * Returns the Id of the current link segment
@@ -216,7 +217,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   protected String getUpstreamNodeExternalId(LinkSegment linkSegment) throws PlanItException {
     return ((Node) linkSegment.getUpstreamVertex()).getExternalId();
   }
-  
+
   /**
    * Returns the Xml Id of the upstream node
    * 
@@ -226,7 +227,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    */
   protected String getUpstreamNodeXmlId(LinkSegment linkSegment) throws PlanItException {
     return ((Node) linkSegment.getUpstreamVertex()).getXmlId();
-  }  
+  }
 
   /**
    * Returns the location of the upstream node
@@ -262,11 +263,27 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
   }
 
   /**
-   * Provide access to the available link segments
+   * {@inheritDoc}
    */
   @Override
-  public LinkSegments<? extends LinkSegment> getPhysicalLinkSegments() {
-    return trafficAssignment.getTransportNetwork().getPhysicalNetwork().linkSegments;
+  public Long getInfrastructureLayerIdForMode(Mode mode) {
+    InfrastructureLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getInfrastructureLayerByMode(mode);
+    return networkLayer != null ? networkLayer.getId() : null;
+  }
+
+  /**
+   * Provide access to the macroscopic link segments
+   * 
+   * @param infrastructureLayerId to use
+   */
+  @Override
+  public LinkSegments<? extends LinkSegment> getPhysicalLinkSegments(long infrastructureLayerId) {
+    InfrastructureLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().infrastructureLayers.get(infrastructureLayerId);
+    if (networkLayer instanceof MacroscopicPhysicalNetwork) {
+      return ((MacroscopicPhysicalNetwork) networkLayer).linkSegments;
+    }
+    LOGGER.warning(String.format("cannot collect physical link segments from infrastructure layer %s, as it is not a macroscopic physical network layer", networkLayer.getXmlId()));
+    return null;
   }
 
   /**
@@ -294,7 +311,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
       case DOWNSTREAM_NODE_EXTERNAL_ID:
         return getDownstreamNodeExternalId(linkSegment);
       case DOWNSTREAM_NODE_XML_ID:
-        return getDownstreamNodeXmlId(linkSegment);        
+        return getDownstreamNodeXmlId(linkSegment);
       case DOWNSTREAM_NODE_ID:
         return getDownstreamNodeId(linkSegment);
       case DOWNSTREAM_NODE_LOCATION:
@@ -304,7 +321,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
       case LINK_SEGMENT_EXTERNAL_ID:
         return getLinkSegmentExternalId(linkSegment);
       case LINK_SEGMENT_XML_ID:
-        return getLinkSegmentXmlId(linkSegment);        
+        return getLinkSegmentXmlId(linkSegment);
       case LINK_SEGMENT_ID:
         return getLinkSegmentId(linkSegment);
       case MAXIMUM_DENSITY:
@@ -316,7 +333,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
       case UPSTREAM_NODE_EXTERNAL_ID:
         return getUpstreamNodeExternalId(linkSegment);
       case UPSTREAM_NODE_XML_ID:
-        return getUpstreamNodeXmlId(linkSegment);        
+        return getUpstreamNodeXmlId(linkSegment);
       case UPSTREAM_NODE_ID:
         return getUpstreamNodeId(linkSegment);
       case UPSTREAM_NODE_LOCATION:

@@ -27,11 +27,12 @@ public enum OutputProperty {
   UPSTREAM_NODE_LOCATION("org.planit.output.property.UpstreamNodeLocationOutputProperty"), ITERATION_INDEX("org.planit.output.property.IterationIndexOutputProperty"),
   ORIGIN_ZONE_ID("org.planit.output.property.OriginZoneIdOutputProperty"), ORIGIN_ZONE_EXTERNAL_ID("org.planit.output.property.OriginZoneExternalIdOutputProperty"),
   ORIGIN_ZONE_XML_ID("org.planit.output.property.OriginZoneXmlIdOutputProperty"), DESTINATION_ZONE_ID("org.planit.output.property.DestinationZoneIdOutputProperty"),
-  DESTINATION_ZONE_XML_ID("org.planit.output.property.DestinationZoneXmlIdOutputProperty"), DESTINATION_ZONE_EXTERNAL_ID("org.planit.output.property.DestinationZoneExternalIdOutputProperty"), TIME_PERIOD_ID("org.planit.output.property.TimePeriodIdOutputProperty"),
-  TIME_PERIOD_XML_ID("org.planit.output.property.TimePeriodXmlIdOutputProperty"), TIME_PERIOD_EXTERNAL_ID("org.planit.output.property.TimePeriodExternalIdOutputProperty"), RUN_ID("org.planit.output.property.RunIdOutputProperty"),
-  PATH_STRING("org.planit.output.property.PathOutputStringProperty"), PATH_ID("org.planit.output.property.PathIdOutputProperty"),
-  VC_RATIO("org.planit.output.property.VCRatioOutputProperty"), COST_TIMES_FLOW("org.planit.output.property.CostTimesFlowOutputProperty"),
-  LINK_TYPE("org.planit.output.property.LinkTypeOutputProperty");
+  DESTINATION_ZONE_XML_ID("org.planit.output.property.DestinationZoneXmlIdOutputProperty"),
+  DESTINATION_ZONE_EXTERNAL_ID("org.planit.output.property.DestinationZoneExternalIdOutputProperty"), TIME_PERIOD_ID("org.planit.output.property.TimePeriodIdOutputProperty"),
+  TIME_PERIOD_XML_ID("org.planit.output.property.TimePeriodXmlIdOutputProperty"), TIME_PERIOD_EXTERNAL_ID("org.planit.output.property.TimePeriodExternalIdOutputProperty"),
+  RUN_ID("org.planit.output.property.RunIdOutputProperty"), PATH_STRING("org.planit.output.property.PathOutputStringProperty"),
+  PATH_ID("org.planit.output.property.PathIdOutputProperty"), VC_RATIO("org.planit.output.property.VCRatioOutputProperty"),
+  COST_TIMES_FLOW("org.planit.output.property.CostTimesFlowOutputProperty"), LINK_TYPE("org.planit.output.property.LinkTypeOutputProperty");
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(OutputProperty.class.getCanonicalName());
@@ -57,13 +58,13 @@ public enum OutputProperty {
    * @param v the specified class name
    * @return the enumeration value associated with this class name
    */
-  public static OutputProperty fromValue(String v) {
+  public static OutputProperty fromValue(String value) {
     for (OutputProperty outputProperty : OutputProperty.values()) {
-      if (outputProperty.value.equals(v)) {
+      if (outputProperty.value.equals(value)) {
         return outputProperty;
       }
     }
-    throw new IllegalArgumentException(v);
+    throw new IllegalArgumentException(value);
   }
 
   /**
@@ -73,12 +74,13 @@ public enum OutputProperty {
    * @return the enumeration associated with the specified header name
    * @throws PlanItException if the name is not associated with any output property
    */
-  public static OutputProperty fromHeaderName(String name) throws PlanItException {
+  public static OutputProperty fromHeaderName(final String name) throws PlanItException {
+    String strippedName = name.stripLeading().stripTrailing();
     try {
       for (OutputProperty outputProperty : OutputProperty.values()) {
         Class<?> entityClass = Class.forName(outputProperty.value);
         BaseOutputProperty baseOutputProperty = (BaseOutputProperty) entityClass.getDeclaredConstructor().newInstance();
-        if (baseOutputProperty.getName().equals(name)) {
+        if (baseOutputProperty.getName().equals(strippedName)) {
           return outputProperty;
         }
       }
@@ -86,7 +88,7 @@ public enum OutputProperty {
       LOGGER.severe(e.getMessage());
       throw new PlanItException(e);
     }
-    throw new PlanItException("The header name " + name + " is not associated with any output property");
+    throw new PlanItException("The header name " + strippedName + " is not associated with any output property");
   }
 
 }

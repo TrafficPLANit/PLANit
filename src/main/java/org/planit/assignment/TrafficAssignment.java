@@ -11,8 +11,8 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
+import org.planit.network.InfrastructureNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicLinkSegmentImpl;
-import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
@@ -69,9 +69,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
   // Protected
 
   /**
-   * Physical network to use
+   * network to use
    */
-  protected PhysicalNetwork<?, ?, ?> physicalNetwork;
+  private InfrastructureNetwork network;
 
   /**
    * The transport network to use which is an adaptor around the physical network and the zoning
@@ -137,7 +137,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   protected void checkForEmptyComponents() throws PlanItException {
     PlanItException.throwIf(demands == null, "Demand is null");
-    PlanItException.throwIf(physicalNetwork == null, "Network is null");
+    PlanItException.throwIf(network == null, "Network is null");
     PlanItException.throwIf(smoothing == null, "Smoothing is null");
     PlanItException.throwIf(zoning == null, "Zoning is null");
   }
@@ -148,7 +148,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @throws PlanItException thrown if the components are not compatible
    */
   protected void verifyComponentCompatibility() throws PlanItException {
-    // TODO
+    /*
+     * allow derived classes to verify if the chosen components are valid before proceeding, not mandatory
+     */
   }
 
   /**
@@ -157,7 +159,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @throws PlanItException thrown if there is an error
    */
   protected void createTransportNetwork() throws PlanItException {
-    transportNetwork = new TransportNetwork(physicalNetwork, zoning);
+    transportNetwork = new TransportNetwork(network, zoning);
     transportNetwork.integrateConnectoidsAndLinks();
     if (getTransportNetwork().getTotalNumberOfEdgeSegments() > Integer.MAX_VALUE) {
       throw new PlanItException("currently assignment internals expect to be castable to int, but max value is exceeded for link segments");
@@ -188,10 +190,13 @@ public abstract class TrafficAssignment extends NetworkLoading {
   protected void initialiseBeforeExecution() throws PlanItException {
     // verify validity
     checkForEmptyComponents();
-    verifyComponentCompatibility();
     createTransportNetwork();
+    /* check components, including the transport network that just has been created */
+    verifyComponentCompatibility();
+
     outputManager.initialiseBeforeSimulation(getId());
-    physicalCost.initialiseBeforeSimulation(physicalNetwork);
+
+    physicalCost.initialiseBeforeSimulation(network);
     virtualCost.initialiseBeforeSimulation(zoning.getVirtualNetwork());
   }
 
@@ -331,13 +336,13 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Set the PhysicalNetwork for the current assignment
+   * Set the network for the current assignment
    *
-   * @param physicalNetwork the PhysicalNetwork object for the current assignment
+   * @param network the network object for the current assignment
    */
-  public void setPhysicalNetwork(final PhysicalNetwork<?, ?, ?> physicalNetwork) {
-    logRegisteredComponent(physicalNetwork, true);
-    this.physicalNetwork = physicalNetwork;
+  public void setInfrastructureNetwork(final InfrastructureNetwork network) {
+    logRegisteredComponent(network, true);
+    this.network = network;
   }
 
   /**

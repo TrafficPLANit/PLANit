@@ -25,7 +25,16 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
   private static final Logger LOGGER = Logger.getLogger(DirectedGraphBuilderImpl.class.getCanonicalName());
 
   /** use graph builder impl for overlapping functionality */
-  private final GraphBuilderImpl graphBuilder = new GraphBuilderImpl();
+  private final GraphBuilderImpl graphBuilder;
+
+  /**
+   * constructor
+   * 
+   * @param groupId to use for construction of elements
+   */
+  public DirectedGraphBuilderImpl(IdGroupingToken groupId) {
+    this.graphBuilder = new GraphBuilderImpl(groupId);
+  }
 
   /**
    * {@inheritDoc}

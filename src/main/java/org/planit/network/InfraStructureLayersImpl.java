@@ -15,10 +15,10 @@ import org.planit.utils.mode.Mode;
  * @author markr
  *
  */
-public class InfraSructureLayersImpl implements InfrastructureLayers {
+public class InfraStructureLayersImpl implements InfrastructureLayers {
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(InfraSructureLayersImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(InfraStructureLayersImpl.class.getCanonicalName());
 
   /** track the registered infrastructure layers */
   protected final Map<Long, InfrastructureLayer> infrastructureLayers = new TreeMap<Long, InfrastructureLayer>();
@@ -26,15 +26,15 @@ public class InfraSructureLayersImpl implements InfrastructureLayers {
   /**
    * create id's for infrastructure layers based on this token
    */
-  private final IdGroupingToken tokenId;
+  private final IdGroupingToken groupingId;
 
   /**
    * Constructor
    * 
-   * @param tokenId to generated id's for infrastructure layers
+   * @param groupingId to generated id's for infrastructure layers
    */
-  public InfraSructureLayersImpl(IdGroupingToken tokenId) {
-    this.tokenId = tokenId;
+  public InfraStructureLayersImpl(IdGroupingToken groupingId) {
+    this.groupingId = groupingId;
   }
 
   /**
@@ -64,7 +64,7 @@ public class InfraSructureLayersImpl implements InfrastructureLayers {
    */
   @Override
   public MacroscopicPhysicalNetwork createNew() {
-    final MacroscopicPhysicalNetwork newInfrastructureLayer = new MacroscopicPhysicalNetwork(tokenId);
+    final MacroscopicPhysicalNetwork newInfrastructureLayer = new MacroscopicPhysicalNetwork(groupingId);
     register(newInfrastructureLayer);
     return newInfrastructureLayer;
   }

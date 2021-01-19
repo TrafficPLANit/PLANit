@@ -8,6 +8,7 @@ import org.planit.geo.PlanitJtsUtils;
 import org.planit.mode.ModesImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.Modes;
 
 /**
@@ -59,7 +60,7 @@ public class InfrastructureNetwork extends Network {
     /* for mode management */
     this.modes = new ModesImpl(tokenId);
     /* for layer management */
-    this.infrastructureLayers = new InfraSructureLayersImpl(tokenId);
+    this.infrastructureLayers = new InfraStructureLayersImpl(getNetworkGroupingTokenId());
     /* default crs */
     this.coordinateReferenceSystem = coordinateReferenceSystem;
   }
@@ -98,6 +99,16 @@ public class InfrastructureNetwork extends Network {
     for (InfrastructureLayer layer : infrastructureLayers) {
       layer.transform(coordinateReferenceSystem, newCoordinateReferenceSystem);
     }
+  }
+
+  /**
+   * collect an infrastructure layer by mode (identical to this.infrastructureLayers.get(mode))
+   * 
+   * @param mode to collect layer for
+   * @return corresponding layer, null if not found)
+   */
+  public InfrastructureLayer getInfrastructureLayerByMode(Mode mode) {
+    return infrastructureLayers.get(mode);
   }
 
 }

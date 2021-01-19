@@ -101,4 +101,16 @@ public interface InfrastructureLayers extends Iterable<InfrastructureLayer> {
    */
   public InfrastructureLayer get(final Mode mode);
 
+  /**
+   * collect the first layer present based on the iterator
+   * 
+   * @return first available layer, null if no layers are present
+   */
+  public default InfrastructureLayer getFirst() {
+    if (iterator().hasNext()) {
+      return iterator().next();
+    }
+    return null;
+  }
+
 }

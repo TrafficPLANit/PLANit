@@ -31,7 +31,16 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
   private static final Logger LOGGER = Logger.getLogger(MacroscopicPhysicalNetworkBuilderImpl.class.getCanonicalName());
 
   /** use physical network builder to create all but link segments */
-  protected final PhysicalNetworkBuilderImpl physicalNetworkBuilder = new PhysicalNetworkBuilderImpl();
+  protected final PhysicalNetworkBuilderImpl physicalNetworkBuilder;
+
+  /**
+   * constructor
+   * 
+   * @param groupId to use for id generation
+   */
+  public MacroscopicPhysicalNetworkBuilderImpl(IdGroupingToken groupId) {
+    this.physicalNetworkBuilder = new PhysicalNetworkBuilderImpl(groupId);
+  }
 
   /**
    * {@inheritDoc}

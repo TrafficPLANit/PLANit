@@ -3,7 +3,7 @@ package org.planit.assignment.eltm;
 import org.planit.assignment.DynamicTrafficAssignmentBuilder;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
-import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.InfrastructureNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.utils.builder.Configurator;
 import org.planit.utils.exceptions.PlanItException;
@@ -35,12 +35,12 @@ public class ELTMTrafficAssignmentBuilder extends DynamicTrafficAssignmentBuilde
    * @param trafficComponentCreateListener the listeners registered on all traffic components this builder creates
    * @param demands                        the demands
    * @param zoning                         the zoning
-   * @param physicalNetwork                the physical network
+   * @param network                        the network
    * @throws PlanItException when triangular fundamental diagram cannot be instantiated
    */
   public ELTMTrafficAssignmentBuilder(IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands, final Zoning zoning,
-      final PhysicalNetwork<?, ?, ?> physicalNetwork) throws PlanItException {
-    super(ELTM.class, groupId, inputBuilderListener, demands, zoning, physicalNetwork);
+      final InfrastructureNetwork network) throws PlanItException {
+    super(ELTM.class, groupId, inputBuilderListener, demands, zoning, network);
   }
 
 }

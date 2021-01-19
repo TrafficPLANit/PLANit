@@ -2,7 +2,7 @@ package org.planit.assignment;
 
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
-import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.InfrastructureNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
@@ -75,13 +75,13 @@ public abstract class CapacityConstrainedTrafficAssignmentBuilder<T extends Capa
    * @param inputBuilderListener   the listener to be registered for any traffic components being created by this class
    * @param demands                the demands
    * @param zoning                 the zoning
-   * @param physicalNetwork        the physical network
+   * @param network                the network
    * @throws PlanItException thrown if there is an error
    */
   protected CapacityConstrainedTrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, final IdGroupingToken groupId, InputBuilderListener inputBuilderListener,
-      final Demands demands, final Zoning zoning, final PhysicalNetwork<?, ?, ?> physicalNetwork) throws PlanItException {
+      final Demands demands, final Zoning zoning, final InfrastructureNetwork network) throws PlanItException {
 
-    super(trafficAssignmentClass, groupId, inputBuilderListener, demands, zoning, physicalNetwork);
+    super(trafficAssignmentClass, groupId, inputBuilderListener, demands, zoning, network);
 
   }
 

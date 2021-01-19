@@ -98,7 +98,7 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
   public MacroscopicLinkSegmentType get(long id) {
     return macroscopicLinkSegmentTypeByIdMap.get(id);
   }
-  
+
   /**
    * Retrieve a MacroscopicLinkSegmentType by its xml Id
    * 
@@ -107,7 +107,7 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
    * @param XmlId the XML Id of the specified MacroscopicLinkSegmentType instance
    * @return the retrieved type, or null if nothing was found
    */
-  @Override  
+  @Override
   public MacroscopicLinkSegmentType getByXmlId(String xmlId) {
     for (MacroscopicLinkSegmentType macroscopicLinkSegmentType : macroscopicLinkSegmentTypeByIdMap.values()) {
       if (xmlId.equals(macroscopicLinkSegmentType.getXmlId())) {
@@ -115,7 +115,7 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
       }
     }
     return null;
-  }  
+  }
 
   /**
    * {@inheritDoc}
@@ -131,6 +131,14 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
   @Override
   public Iterator<MacroscopicLinkSegmentType> iterator() {
     return macroscopicLinkSegmentTypeByIdMap.values().iterator();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegmentType getFirst() {
+    return iterator().next();
   }
 
 }

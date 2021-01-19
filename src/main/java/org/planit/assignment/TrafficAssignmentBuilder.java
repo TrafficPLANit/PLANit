@@ -15,7 +15,6 @@ import org.planit.input.InputBuilderListener;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.InfrastructureNetwork;
-import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
 import org.planit.output.enums.OutputType;
@@ -46,16 +45,16 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @param network network object to be registered
    * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
    */
-  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final InfrastructureNetwork infrastructureNetwork) throws PlanItException {
+  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final InfrastructureNetwork network) throws PlanItException {
     if (zoning == null || demands == null || network == null) {
       PlanItException.throwIf(zoning == null, "zoning in registerDemandZoningAndNetwork is null");
       PlanItException.throwIf(demands == null, "demands in registerDemandZoningAndNetwork is null");
-      PlanItException.throwIf(infrastructureNetwork == null, "network in registerDemandZoningAndNetwork is null");
+      PlanItException.throwIf(network == null, "network in registerDemandZoningAndNetwork is null");
     }
-    PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, infrastructureNetwork.modes),
+    PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, network.modes),
         "Zoning structure is incompatible with one or more of the demands, likely the number of zones does not match the number of origins and/or destinations");
 
-    for (final Mode mode : infrastructureNetwork.modes) {
+    for (final Mode mode : network.modes) {
       for (TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
         if (demands.get(mode, timePeriod) == null) {
           LOGGER.warning("no demand matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
@@ -65,7 +64,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
 
     // register on configurator
     TrafficAssignmentConfigurator<? extends TrafficAssignment> configurator = ((TrafficAssignmentConfigurator<? extends TrafficAssignment>) getConfigurator());
-    configurator.setInfrastructureNetwork(infrastructureNetwork);
+    configurator.setInfrastructureNetwork(network);
     configurator.setZoning(zoning);
     configurator.setDemands(demands);
   }
@@ -241,15 +240,15 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @param inputBuilderListener   the input builder listener
    * @param demands                the demands
    * @param zoning                 the zoning
-   * @param physicalNetwork        the physical network
+   * @param network                the network
    * @throws PlanItException
    */
   protected TrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, final IdGroupingToken projectToken, InputBuilderListener inputBuilderListener, final Demands demands,
-      final Zoning zoning, final PhysicalNetwork<?, ?, ?> physicalNetwork) throws PlanItException {
+      final Zoning zoning, final InfrastructureNetwork network) throws PlanItException {
     super(trafficAssignmentClass, projectToken, inputBuilderListener);
 
     /* register inputs (on configurator) */
-    registerDemandZoningAndNetwork(demands, zoning, physicalNetwork);
+    registerDemandZoningAndNetwork(demands, zoning, network);
 
     /* create an output manager for this assignment */
     createOutputManager();

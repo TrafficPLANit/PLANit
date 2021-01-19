@@ -15,7 +15,9 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkVolumeAccessee;
+import org.planit.network.InfrastructureLayer;
 import org.planit.network.macroscopic.MacroscopicNetwork;
+import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
@@ -44,7 +46,7 @@ import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.network.virtual.Zone;
 
 /**
- * Traditional static assignment traffic component. Provides configuration access via the CapacityRestrainedTrafficAssignmentBuilder it instantiates
+ * Traditional static assignment traffic component.This is the class that conducts the actual assignment.
  *
  * @author markr, gman6028
  *
@@ -68,12 +70,40 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   private TraditionalStaticAssignmentSimulationData simulationData;
 
   /**
+   * the layer used for this assignment
+   */
+  private MacroscopicPhysicalNetwork networkLayer;
+
+  /**
    * create the logging prefix for logging statements during equilibration
    * 
    * @return prefix
    */
   protected String createLoggingPrefix() {
     return super.createLoggingPrefix(simulationData.getIterationIndex());
+  }
+
+  /**
+   * Verify if the network contains a single compatible infrastructure layer as traditional static assignment does not support intermodal network layers
+   *
+   * @throws PlanItException thrown if the components are not compatible
+   */
+  @Override
+  protected void verifyComponentCompatibility() throws PlanItException {
+    /* network compatibility */
+    PlanItException.throwIf(!(transportNetwork.getInfrastructureNetwork() instanceof MacroscopicNetwork),
+        "Traditional static assignment is only compatible with macroscopic networks");
+    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) transportNetwork.getInfrastructureNetwork();
+    PlanItException.throwIf(macroscopicNetwork.infrastructureLayers.size() != 1,
+        "Traditional static assignment  is currently only compatible with networks using a single infrastructure layer");
+    InfrastructureLayer infrastructureLayer = macroscopicNetwork.infrastructureLayers.getFirst();
+    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicPhysicalNetwork),
+        "Traditional static assignment is only compatible with macroscopic physical network layers");
+    if (transportNetwork.getInfrastructureNetwork().modes.size() != infrastructureLayer.getSupportedModes().size()) {
+      LOGGER.warning("network wide modes do not match modes supported by the single available layer, consider removing unused modes");
+    }
+    /* register the layer */
+    this.networkLayer = (MacroscopicPhysicalNetwork) infrastructureLayer;
   }
 
   /**
@@ -385,8 +415,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void populateCost(Cost<MacroscopicLinkSegment> cost, final Mode mode, final double[] costsToPopulate) throws PlanItException {
-    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) transportNetwork.getInfrastructureNetwork();
-    for (final MacroscopicLinkSegment linkSegment : macroscopicNetwork.linkSegments) {
+    for (final MacroscopicLinkSegment linkSegment : networkLayer.linkSegments) {
       double currentSegmentCost = cost.getSegmentCost(mode, linkSegment);
       if (currentSegmentCost < 0.0) {
         throw new PlanItException(String.format("link segment cost is negative for link segment %d (id: %d)", linkSegment.getExternalId(), linkSegment.getId()));

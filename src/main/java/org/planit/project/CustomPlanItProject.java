@@ -17,8 +17,8 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
+import org.planit.network.InfrastructureLayer;
 import org.planit.network.InfrastructureNetwork;
-import org.planit.network.physical.PhysicalNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;
@@ -230,26 +230,26 @@ public class CustomPlanItProject {
   /**
    * Create and register demands to the project
    *
-   * @param zoning          Zoning object which defines the zones which will be used in the demand matrix to be created
-   * @param physicalNetwork the physical network which stores the modes (demands can different for each mode)
+   * @param zoning  Zoning object which defines the zones which will be used in the demand matrix to be created
+   * @param network the network which stores the modes (demands can different for each mode)
    * @return the generated demands object
    * @throws PlanItException thrown if there is an error
    */
-  public Demands createAndRegisterDemands(final Zoning zoning, final PhysicalNetwork<?, ?, ?> physicalNetwork) throws PlanItException {
-    return inputs.createAndRegisterDemands(zoning, physicalNetwork);
+  public Demands createAndRegisterDemands(final Zoning zoning, final InfrastructureNetwork network) throws PlanItException {
+    return inputs.createAndRegisterDemands(zoning, network);
   }
 
   /**
    * Create and register the OD path sets as populated by the input builder through the path source
    * 
-   * @param physicalNetwork    network the paths must be compatible with
+   * @param networkLayer       network layer the paths must be compatible with
    * @param zoning             zoning to match od paths to
    * @param odPathSetInputPath path to collect the paths from
    * @return od path sets that have been parsed
    * @throws PlanItException thrown if there is an error
    */
-  public ODPathSets createAndRegisterOdPathSets(final PhysicalNetwork<?, ?, ?> physicalNetwork, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
-    return inputs.createAndRegisterOdPathSets(physicalNetwork, zoning, odPathSetInputPath);
+  public ODPathSets createAndRegisterOdPathSets(final InfrastructureLayer networkLayer, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
+    return inputs.createAndRegisterOdPathSets(networkLayer, zoning, odPathSetInputPath);
   }
 
   /**
@@ -258,15 +258,15 @@ public class CustomPlanItProject {
    * @param trafficAssignmentType the class name of the traffic assignment type object to be created
    * @param theDemands            the demands
    * @param theZoning             the zoning
-   * @param thePhysicalNetwork    the physical network
+   * @param theNetwork            the network
    * @return the traffic assignment configurator object
    * @throws PlanItException thrown if there is an error
    */
   public TrafficAssignmentConfigurator<? extends TrafficAssignment> createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands,
-      final Zoning theZoning, final PhysicalNetwork<?, ?, ?> thePhysicalNetwork) throws PlanItException {
+      final Zoning theZoning, final InfrastructureNetwork theNetwork) throws PlanItException {
 
     TrafficAssignmentBuilder<?> taBuilder = TrafficAssignmentBuilderFactory.createBuilder(trafficAssignmentType, projectToken, inputBuilderListener, theDemands, theZoning,
-        thePhysicalNetwork);
+        theNetwork);
     assignmentBuilders.addTrafficAssignmentBuilder(taBuilder);
 
     /*
@@ -279,25 +279,25 @@ public class CustomPlanItProject {
   /**
    * Create and register initial link segment costs from a (single) file which we assume are available in the native xml/csv output format as provided in this project
    *
-   * @param network  physical network the InitialLinkSegmentCost object will be registered for
+   * @param network  network the InitialLinkSegmentCost object will be registered for
    * @param fileName file containing the initial link segment cost values
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork<?, ?, ?> network, final String fileName) throws PlanItException {
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork network, final String fileName) throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName);
   }
 
   /**
    * Create and register initial link segment costs from a (single) file and register it to the provided time period
    *
-   * @param network    physical network the InitialLinkSegmentCost object will be registered for
+   * @param network    network the InitialLinkSegmentCost object will be registered for
    * @param fileName   location of file containing the initial link segment cost values
    * @param timePeriod to register the initial cost on
    * @return the InitialLinkSegmentCostPeriod object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork<?, ?, ?> network, final String fileName, final TimePeriod timePeriod)
+  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork network, final String fileName, final TimePeriod timePeriod)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
   }
@@ -305,13 +305,13 @@ public class CustomPlanItProject {
   /**
    * Create and register initial link segment costs from a (single) file for all time periods in Demands object
    *
-   * @param network  physical network the InitialLinkSegmentCost object will be registered for
+   * @param network  network the InitialLinkSegmentCost object will be registered for
    * @param fileName location of file containing the initial link segment cost values
    * @param demands  the Demands object to extract all eligible time periods from
    * @return the InitialLinkSegmentCostPeriod objects
    * @throws PlanItException thrown if there is an error
    */
-  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final PhysicalNetwork<?, ?, ?> network, final String fileName, final Demands demands)
+  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork network, final String fileName, final Demands demands)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, demands);
   }
@@ -334,10 +334,10 @@ public class CustomPlanItProject {
   /**
    * Return the initial link segment costs for a network
    *
-   * @param network the specified physical network
+   * @param network the specified network
    * @return the initial link segment costs for the specified physical network
    */
-  public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final PhysicalNetwork<?, ?, ?> network) {
+  public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final InfrastructureNetwork network) {
     return inputs.getInitialLinkSegmentCost(network);
   }
 

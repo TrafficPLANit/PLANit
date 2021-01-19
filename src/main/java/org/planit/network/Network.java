@@ -3,6 +3,8 @@ package org.planit.network;
 import java.io.Serializable;
 
 import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.network.macroscopic.MacroscopicNetwork;
+import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -17,8 +19,11 @@ public class Network extends TrafficAssignmentComponent<Network> implements Seri
   /** generated serial id */
   private static final long serialVersionUID = -1434577945513081778L;
 
-  /** shorthand for creating an infrastructure network */
-  public static final String INFRASTUCTURE_NETWORK = InfrastructureNetwork.class.getCanonicalName();
+  /** a token for this network in particular to ensure unique ids across all entities of the same class instance within this network */
+  protected IdGroupingToken networkIdGroupingToken;
+
+  /** shorthand for creating a macroscopic infrastructure network */
+  public static final String MACROSCOPIC_NETWORK = MacroscopicNetwork.class.getCanonicalName();
 
   /**
    * Constructor
@@ -27,5 +32,15 @@ public class Network extends TrafficAssignmentComponent<Network> implements Seri
    */
   public Network(final IdGroupingToken tokenId) {
     super(tokenId, Network.class);
+    this.networkIdGroupingToken = IdGenerator.createIdGroupingToken(this, getId());
+  }
+
+  /**
+   * collect the grouping token for this network instance
+   * 
+   * @return id groupoing token
+   */
+  public IdGroupingToken getNetworkGroupingTokenId() {
+    return networkIdGroupingToken;
   }
 }

@@ -30,9 +30,13 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
   private static final Logger LOGGER = Logger.getLogger(PhysicalNetworkBuilderImpl.class.getCanonicalName());
 
   /** hold an implementation of directed graph builder to use its overlapping functionality */
-  protected DirectedGraphBuilderImpl directedGraphBuilderImpl = new DirectedGraphBuilderImpl();
+  protected DirectedGraphBuilderImpl directedGraphBuilderImpl;
 
   // Public methods
+
+  public PhysicalNetworkBuilderImpl(IdGroupingToken groupId) {
+    this.directedGraphBuilderImpl = new DirectedGraphBuilderImpl(groupId);
+  }
 
   /**
    * {@inheritDoc}

@@ -18,11 +18,19 @@ import org.planit.utils.id.IdGroupingToken;
  */
 public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
 
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(GraphBuilderImpl.class.getCanonicalName());
 
   /** the id group token */
-  protected IdGroupingToken groupToken;
+  protected IdGroupingToken groupIdToken;
+
+  /**
+   * Constructor
+   * 
+   * @param groupIdToken to use for creating element ids
+   */
+  public GraphBuilderImpl(IdGroupingToken groupIdToken) {
+    this.groupIdToken = groupIdToken;
+  }
 
   /**
    * {@inheritDoc}
@@ -44,8 +52,8 @@ public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
    * {@inheritDoc}
    */
   @Override
-  public void setIdGroupingToken(IdGroupingToken groupToken) {
-    this.groupToken = groupToken;
+  public void setIdGroupingToken(IdGroupingToken groupIdToken) {
+    this.groupIdToken = groupIdToken;
   }
 
   /**
@@ -53,7 +61,7 @@ public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
    */
   @Override
   public IdGroupingToken getIdGroupingToken() {
-    return this.groupToken;
+    return this.groupIdToken;
   }
 
   /**

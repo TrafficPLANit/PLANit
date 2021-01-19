@@ -90,7 +90,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
    */
   private double getVCRatio(final LinkSegment linkSegment) throws PlanItException {
     double totalFlow = 0.0;
-    for (final Mode mode : trafficAssignment.getTransportNetwork().getPhysicalNetwork().modes) {
+    for (final Mode mode : trafficAssignment.getTransportNetwork().getInfrastructureNetwork().modes) {
       totalFlow += getFlow(linkSegment, mode);
     }
     final double capacityPerLane = getCapacityPerLane(linkSegment);
@@ -117,7 +117,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
    */
   @Override
   public boolean isFlowPositive(final LinkSegment linkSegment, final Mode mode) {
-    return (theAssignment.getIterationData().getModeSpecificData().get(mode).getCurrentSegmentFlows()[(int) linkSegment.getId()] > 0.0);    
+    return (theAssignment.getIterationData().getModeSpecificData().get(mode).getCurrentSegmentFlows()[(int) linkSegment.getId()] > 0.0);
   }
 
   /**
@@ -161,4 +161,5 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
       return e;
     }
   }
+
 }

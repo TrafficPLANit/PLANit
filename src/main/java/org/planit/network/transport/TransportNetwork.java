@@ -1,6 +1,8 @@
 package org.planit.network.transport;
 
+import org.planit.network.InfrastructureLayer;
 import org.planit.network.InfrastructureNetwork;
+import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.network.virtual.Zoning;
 import org.planit.utils.exceptions.PlanItException;
@@ -95,12 +97,18 @@ public class TransportNetwork {
   }
 
   /**
-   * Returns the total number of link segments available in this transport network
+   * Returns the total number of link segments available in this transport network across all eligible layers
    * 
    * @return the number of physical link segments in this network
    */
   public int getTotalNumberOfPhysicalLinkSegments() {
-    return (int) infrastructureNetwork.linkSegments.size();
+    int totalPhysicalLinkSegments = 0;
+    for (InfrastructureLayer networkLayer : getInfrastructureNetwork().infrastructureLayers) {
+      if (networkLayer instanceof MacroscopicPhysicalNetwork) {
+        totalPhysicalLinkSegments += ((MacroscopicPhysicalNetwork) networkLayer).linkSegments.size();
+      }
+    }
+    return totalPhysicalLinkSegments;
   }
 
   /**
@@ -118,7 +126,22 @@ public class TransportNetwork {
    * @return the total number of physical and virtual vertices in this network
    */
   public int getTotalNumberOfVertices() {
-    return zoning.getVirtualNetwork().centroids.getNumberOfCentroids() + infrastructureNetwork.nodes.size();
+    return zoning.getVirtualNetwork().centroids.getNumberOfCentroids() + getTotalNumberOfPhysicalNodes();
+  }
+
+  /**
+   * Returns the total number of physical nodes available in this transport network across all eligible layers
+   * 
+   * @return the number of physical nodes in this network
+   */
+  public int getTotalNumberOfPhysicalNodes() {
+    int totalPhysicalNodes = 0;
+    for (InfrastructureLayer networkLayer : getInfrastructureNetwork().infrastructureLayers) {
+      if (networkLayer instanceof MacroscopicPhysicalNetwork) {
+        totalPhysicalNodes += ((MacroscopicPhysicalNetwork) networkLayer).nodes.size();
+      }
+    }
+    return totalPhysicalNodes;
   }
 
   /**
