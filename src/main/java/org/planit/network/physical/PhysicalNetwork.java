@@ -78,16 +78,41 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * class instance containing all link specific functionality
    */
   public final Links<L> links;
+  
+  
+  /** alternative to using the links public member
+   * 
+   * @return the links
+   */
+  public final Links<L> getLinks(){
+    return links;
+  }
 
   /**
    * class instance containing all link segment specific functionality
    */
   public final LinkSegments<LS> linkSegments;
+  
+  /** alternative to using the linkSegments public member
+   * 
+   * @return the linkSegments
+   */
+  public final LinkSegments<LS> getLinkSegments(){
+    return linkSegments;
+  }  
 
   /**
    * class instance containing all nodes specific functionality
    */
   public final Nodes<N> nodes;
+  
+  /** alternative to using the nodes public member
+   * 
+   * @return the nodes
+   */
+  public final Nodes<N> getNodes(){
+    return nodes;
+  }  
 
   /**
    * Network Constructor

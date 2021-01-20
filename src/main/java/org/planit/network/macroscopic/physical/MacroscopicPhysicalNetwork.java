@@ -65,5 +65,13 @@ public class MacroscopicPhysicalNetwork extends PhysicalNetwork<Node, Link, Macr
     super(groupId, (PhysicalNetworkBuilder<Node, Link, MacroscopicLinkSegment>) customBuilder);
     linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl((MacroscopicPhysicalNetworkBuilder<?, ?, MacroscopicLinkSegment>) getMacroscopicNetworkBuilder());
   }
+  
+  /** collect the link segment types, alternative to using the public member
+   * 
+   * @return the link segment types
+   */
+  public MacroscopicLinkSegmentTypes getLinkSegmentTypes() {
+    return this.linkSegmentTypes;
+  }
 
 }
