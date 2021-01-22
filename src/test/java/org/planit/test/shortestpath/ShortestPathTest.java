@@ -17,14 +17,14 @@ import org.planit.algorithms.shortestpath.ShortestPathResult;
 import org.planit.network.macroscopic.MacroscopicNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.network.transport.TransportNetwork;
-import org.planit.network.virtual.Zoning;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.math.Precision;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
-import org.planit.utils.network.virtual.Centroid;
-import org.planit.utils.network.virtual.Zone;
+import org.planit.utils.zoning.Centroid;
+import org.planit.utils.zoning.Zone;
+import org.planit.zoning.Zoning;
 
 /**
  * Test the shortest path algorithms
@@ -138,33 +138,33 @@ public class ShortestPathTest {
       }
       
       zoning = new Zoning(IdGroupingToken.collectGlobalToken(), networkLayer.getNetworkIdGroupingToken());
-      Zone zoneA = zoning.zones.createAndRegisterNewZone();
+      Zone zoneA = zoning.odZones.registerNew();
       zoneA.setExternalId("A");
-      Zone zoneB = zoning.zones.createAndRegisterNewZone();
+      Zone zoneB = zoning.odZones.registerNew();
       zoneB.setExternalId("B");
-      Zone zoneC = zoning.zones.createAndRegisterNewZone();
+      Zone zoneC = zoning.odZones.registerNew();
       zoneC.setExternalId("C");
-      Zone zoneD = zoning.zones.createAndRegisterNewZone();
+      Zone zoneD = zoning.odZones.registerNew();
       zoneD.setExternalId("D");
-      Zone zoneE = zoning.zones.createAndRegisterNewZone();
+      Zone zoneE = zoning.odZones.registerNew();
       zoneE.setExternalId("E");
       
-      centroidA = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneA);
+      centroidA = zoneA.getCentroid();
       centroidA.setPosition(geoFactory.createPoint(new Coordinate(0, 0)));
-      centroidB = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneB);
+      centroidB = zoneB.getCentroid();
       centroidB.setPosition(geoFactory.createPoint(new Coordinate(1*1000, 4*1000)));
-      centroidC = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneC);
+      centroidC = zoneC.getCentroid();
       centroidC.setPosition(geoFactory.createPoint(new Coordinate(2*1000, 2*1000)));
-      centroidD = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneD);
+      centroidD = zoneD.getCentroid();
       centroidD.setPosition(geoFactory.createPoint(new Coordinate(3*1000, 4*1000)));
-      centroidE = zoning.getVirtualNetwork().centroids.registerNewCentroid(zoneE);
+      centroidE = zoneE.getCentroid();
       centroidE.setPosition(geoFactory.createPoint(new Coordinate(4*1000, 4*1000)));
       
-      zoning.getVirtualNetwork().connectoids.registerNewConnectoid(centroidA, networkLayer.nodes.get(0), 0);
-      zoning.getVirtualNetwork().connectoids.registerNewConnectoid(centroidB, networkLayer.nodes.get(21), 0);
-      zoning.getVirtualNetwork().connectoids.registerNewConnectoid(centroidC, networkLayer.nodes.get(12), 0);
-      zoning.getVirtualNetwork().connectoids.registerNewConnectoid(centroidD, networkLayer.nodes.get(23), 0);
-      zoning.getVirtualNetwork().connectoids.registerNewConnectoid(centroidE, networkLayer.nodes.get(24), 0);
+      zoning.connectoids.registerNew(zoneA, networkLayer.nodes.get(0), 0);
+      zoning.connectoids.registerNew(zoneB, networkLayer.nodes.get(21), 0);
+      zoning.connectoids.registerNew(zoneC, networkLayer.nodes.get(12), 0);
+      zoning.connectoids.registerNew(zoneD, networkLayer.nodes.get(23), 0);
+      zoning.connectoids.registerNew(zoneE, networkLayer.nodes.get(24), 0);
       
       transportNetwork = new TransportNetwork(network, zoning);
       transportNetwork.integrateConnectoidsAndLinks();

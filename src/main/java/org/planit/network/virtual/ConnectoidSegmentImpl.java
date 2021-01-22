@@ -4,7 +4,7 @@ import org.planit.graph.EdgeSegmentImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.virtual.Connectoid;
+import org.planit.utils.network.virtual.ConnectoidEdge;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 
 /**
@@ -57,8 +57,8 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
    * @param directionAb      direction of travel
    * @throws PlanItException thrown when error
    */
-  protected ConnectoidSegmentImpl(final IdGroupingToken groupId, final Connectoid parentConnectoid, final boolean directionAb) throws PlanItException {
-    super(groupId, parentConnectoid, directionAb);
+  protected ConnectoidSegmentImpl(final IdGroupingToken groupId, final ConnectoidEdge parentEdge, final boolean directionAb) throws PlanItException {
+    super(groupId, parentEdge, directionAb);
     setConnectoidSegmentId(generateConnectoidSegmentId(groupId));
   }
 

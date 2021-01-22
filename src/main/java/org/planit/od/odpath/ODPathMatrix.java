@@ -1,11 +1,11 @@
 package org.planit.od.odpath;
 
-import org.planit.network.virtual.Zoning.Zones;
 import org.planit.od.ODDataImpl;
 import org.planit.path.Path;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.virtual.Zone;
+import org.planit.utils.zoning.Zone;
+import org.planit.utils.zoning.Zones;
 
 /**
  * This class stores the path objects from each origin to each destination.
@@ -31,10 +31,10 @@ public class ODPathMatrix extends ODDataImpl<Path> {
    * @param groupId contiguous id generation within this group for instances of this class
    * @param zones   the zones being used
    */
-  public ODPathMatrix(final IdGroupingToken groupId, final Zones zones) {
+  public ODPathMatrix(final IdGroupingToken groupId, final Zones<?> zones) {
     super(zones);
     this.id = IdGenerator.generateId(groupId, ODPathMatrix.class);
-    final int numberOfTravelAnalysisZones = zones.getNumberOfZones();
+    final int numberOfTravelAnalysisZones = zones.size();
     matrixContents = new Path[numberOfTravelAnalysisZones][numberOfTravelAnalysisZones];
   }
 
@@ -80,7 +80,7 @@ public class ODPathMatrix extends ODDataImpl<Path> {
   // getters - setters
 
   /**
-   * @return unique identifier of this  od pathmatrix instance
+   * @return unique identifier of this od pathmatrix instance
    */
   public long getId() {
     return this.id;

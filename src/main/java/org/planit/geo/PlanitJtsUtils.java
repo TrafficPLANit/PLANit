@@ -16,6 +16,7 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.geom.MultiLineString;
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.coordinate.PointArray;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
@@ -131,6 +132,16 @@ public class PlanitJtsUtils {
   }
 
   /**
+   * create a coordinate by mapping ordinate 0 to x and ordinate 1 to y on the open gis DirecPosition
+   * 
+   * @param position in opengis format
+   * @return JTS coordinate created
+   */
+  public static Coordinate createCoordinate(DirectPosition position) {
+    return new Coordinate(position.getOrdinate(0), position.getOrdinate(1));
+  }
+
+  /**
    * Create JTS point object from X- and Y-coordinates
    * 
    * @param xCoordinate X-coordinate (longitude assumed)
@@ -238,30 +249,60 @@ public class PlanitJtsUtils {
     }
     return createLineString(value, ts.charAt(0), cs.charAt(0));
   }
-  
+
   /**
    * Based on the line string construct a csv string
    * 
    * @param geometry the values containing the x,y coordinates in the crs of this instance
-   * @param ts    tuple separating string to use
-   * @param cs    comma separating string to use
-   * @param df decinal formatter to format the decimals of the coordinates
+   * @param ts       tuple separating string to use
+   * @param cs       comma separating string to use
+   * @param df       decinal formatter to format the decimals of the coordinates
    * @return the LineString created from the String
    * @throws PlanItException
-   */  
-  public static String createCsvStringFromLineString(LineString geometry, Character ts, Character cs, DecimalFormat df) {    
+   */
+  public static String createCsvStringFromLineString(LineString geometry, Character ts, Character cs, DecimalFormat df) {
     Coordinate[] coordinates = geometry.getCoordinates();
-    StringBuilder csvStringBuilder = new StringBuilder();    
-    for (int index = 0, lastIndex= coordinates.length-1; index < coordinates.length; ++index) {
+    StringBuilder csvStringBuilder = new StringBuilder();
+    for (int index = 0, lastIndex = coordinates.length - 1; index < coordinates.length; ++index) {
       Coordinate coordinate = coordinates[index];
       csvStringBuilder.append(df.format(coordinate.x)).append(cs).append(df.format(coordinate.y));
-      if(index == lastIndex) {
+      if (index == lastIndex) {
         break;
       }
-      csvStringBuilder.append(ts);      
+      csvStringBuilder.append(ts);
     }
     return csvStringBuilder.toString();
-  }  
+  }
+
+  /**
+   * Create an empty polygon geometry
+   * 
+   * @return polygon
+   */
+  public static Polygon createPolygon() {
+    Polygon polygon = jtsGeometryFactory.createPolygon();
+    return polygon;
+  }
+
+  /**
+   * create a polygon based on the passed in 2d list of doubles
+   * 
+   * @param coordinateList2D to use
+   * @return created polygon
+   */
+  public static Polygon create2DPolygon(List<Double> coordinateList2D) {
+    return jtsGeometryFactory.createPolygon(listTo2DCoordinates(coordinateList2D));
+  }
+
+  /**
+   * create a polygon based on the passed coordinate array
+   * 
+   * @param coords to use
+   * @return created polygon
+   */
+  public static Polygon createPolygon(Coordinate[] coords) {
+    return jtsGeometryFactory.createPolygon(jtsGeometryFactory.createLinearRing(coords));
+  }
 
   /**
    * Convert OpenGIS directPosition to JTS coordinates
@@ -270,7 +311,7 @@ public class PlanitJtsUtils {
    * @return coordinates array of JTS Coordinate objects
    * @throws PlanItException thrown if there is an error
    */
-  public static Coordinate[] convertToCoordinates(List<DirectPosition> positions) throws PlanItException {
+  public static Coordinate[] directPositionsToCoordinates(List<DirectPosition> positions) throws PlanItException {
     Coordinate[] coordinates = new Coordinate[positions.size()];
     for (int index = 0; index < coordinates.length; ++index) {
       coordinates[index] = createCoordinate(positions.get(index));
@@ -279,13 +320,21 @@ public class PlanitJtsUtils {
   }
 
   /**
-   * create a coordinate by mapping ordinate 0 to x and ordinate 1 to y on the open gis DirecPosition
+   * Create an array of coordinates based on a list of some type that can be interpreted as strings and converted to doubles.
    * 
-   * @param position in opengis format
-   * @return JTS coordinate created
+   * @param posList to extract coordinates from
    */
-  public static Coordinate createCoordinate(DirectPosition position) {
-    return new Coordinate(position.getOrdinate(0), position.getOrdinate(1));
+  public static Coordinate[] listTo2DCoordinates(List<?> posList) {
+    int dimensions = 2;
+    /* we parse as is, so we do not check for correct axis order (long/lat or lat/long for example) */
+    Coordinate[] coordinates = new Coordinate[posList.size() / dimensions];
+
+    int index = 0;
+    while (index + dimensions - 1 < posList.size()) {
+      coordinates[index / dimensions] = new Coordinate(Double.parseDouble(posList.get(index).toString()), Double.parseDouble(posList.get(index + 1).toString()));
+      index += dimensions;
+    }
+    return coordinates;
   }
 
   /**

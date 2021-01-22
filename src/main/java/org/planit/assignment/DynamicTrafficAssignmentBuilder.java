@@ -3,12 +3,12 @@ package org.planit.assignment;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.InfrastructureNetwork;
-import org.planit.network.virtual.Zoning;
 import org.planit.path.choice.PathChoice;
 import org.planit.path.choice.PathChoiceBuilder;
 import org.planit.path.choice.PathChoiceBuilderFactory;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.zoning.Zoning;
 
 /**
  * A dynamic traffic assignment builder is assumed to only support capacity constrained traffic assignment instances. It is used to build the traffic assignment instance with the

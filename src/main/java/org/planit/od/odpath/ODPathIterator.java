@@ -1,12 +1,11 @@
 package org.planit.od.odpath;
 
-import org.planit.network.virtual.Zoning;
 import org.planit.od.ODDataIteratorImpl;
 import org.planit.path.Path;
+import org.planit.utils.zoning.Zones;
 
 /**
- * Iterator which runs through rows and columns of a matrix of Path objects, making the Path, row
- * and column of each cell available
+ * Iterator which runs through rows and columns of a matrix of Path objects, making the Path, row and column of each cell available
  * 
  * @author gman6028
  *
@@ -22,9 +21,9 @@ public class ODPathIterator extends ODDataIteratorImpl<Path> {
    * Constructor
    * 
    * @param matrixContents matrix of Path objects for each origin-destination cell
-   * @param zones the zones in the current zoning
+   * @param zones          the zones in the current zoning
    */
-  public ODPathIterator(Path[][] matrixContents, Zoning.Zones zones) {
+  public ODPathIterator(Path[][] matrixContents, Zones<?> zones) {
     super(zones);
     this.matrixContents = matrixContents;
   }

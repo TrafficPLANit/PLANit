@@ -15,7 +15,6 @@ import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
 import org.planit.gap.GapFunctionConfigurator;
 import org.planit.network.InfrastructureNetwork;
-import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
@@ -27,6 +26,7 @@ import org.planit.sdinteraction.smoothing.SmoothingConfiguratorFactory;
 import org.planit.time.TimePeriod;
 import org.planit.utils.builder.Configurator;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.zoning.Zoning;
 
 /**
  * Configurator class for traffic assignment. Hides builder pattern from user while allowing for easy way to configure an assignment without having actual access to it.

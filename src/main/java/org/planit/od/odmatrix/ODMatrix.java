@@ -3,9 +3,9 @@ package org.planit.od.odmatrix;
 import java.util.logging.Logger;
 
 import org.ojalgo.array.Array2D;
-import org.planit.network.virtual.Zoning;
 import org.planit.od.ODDataImpl;
-import org.planit.utils.network.virtual.Zone;
+import org.planit.utils.zoning.Zone;
+import org.planit.utils.zoning.Zones;
 
 /**
  * This class contains common methods for handling origin-demand matrices.
@@ -28,7 +28,7 @@ public abstract class ODMatrix extends ODDataImpl<Double> {
    * 
    * @param zones holder for zones considered in the matrix
    */
-  public ODMatrix(Zoning.Zones zones) {
+  public ODMatrix(Zones<?> zones) {
     super(zones);
     matrixContents = Array2D.PRIMITIVE32.makeZero(getNumberOfTravelAnalysisZones(), getNumberOfTravelAnalysisZones());
   }

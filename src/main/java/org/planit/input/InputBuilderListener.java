@@ -17,7 +17,7 @@ import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
-import org.planit.utils.network.virtual.Zone;
+import org.planit.utils.zoning.Zone;
 
 /**
  * Listener which is automatically registered to the creation of any traffic assignment component for which it gets notified. @see

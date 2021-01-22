@@ -1,12 +1,11 @@
 package org.planit.od.odmatrix;
 
 import org.ojalgo.array.Array2D;
-import org.planit.network.virtual.Zoning;
 import org.planit.od.ODDataIteratorImpl;
+import org.planit.utils.zoning.Zones;
 
 /**
- * Iterator which runs through rows and columns of an OD matrix, making the value, row and column of
- * each cell available
+ * Iterator which runs through rows and columns of an OD matrix, making the value, row and column of each cell available
  * 
  * @author gman6028
  *
@@ -22,9 +21,9 @@ public class ODMatrixIterator extends ODDataIteratorImpl<Double> {
    * Constructor
    * 
    * @param matrixContents matrix object containing the data to be iterated through
-   * @param zones Zones object defining the zones in the network
+   * @param zones          Zones object defining the zones in the network
    */
-  public ODMatrixIterator(Array2D<Double> matrixContents, Zoning.Zones zones) {
+  public ODMatrixIterator(Array2D<Double> matrixContents, Zones<?> zones) {
     super(zones);
     this.matrixContents = matrixContents;
   }

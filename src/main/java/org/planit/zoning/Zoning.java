@@ -1,20 +1,21 @@
-package org.planit.network.virtual;
+package org.planit.zoning;
 
 import java.io.Serializable;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.demands.Demands;
+import org.planit.network.virtual.VirtualNetwork;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.time.TimePeriod;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.Modes;
-import org.planit.utils.network.virtual.Centroid;
-import org.planit.utils.network.virtual.Zone;
+import org.planit.utils.zoning.Connectoids;
+import org.planit.utils.zoning.OdZone;
+import org.planit.utils.zoning.TransferZone;
+import org.planit.utils.zoning.Zone;
+import org.planit.utils.zoning.Zones;
 
 /**
  * Zoning class which holds a particular zoning
@@ -31,85 +32,29 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(Zoning.class.getCanonicalName());
 
-  /**
-   * Internal class for all zone specific code
-   *
-   */
-  public class Zones implements Iterable<Zone> {
-
-    /**
-     * Add zone to the internal container.
-     *
-     * @param zone the zone to be added to this Zoning
-     * @return the zone added
-     */
-    protected Zone registerZone(final Zone zone) {
-      return zoneMap.put(zone.getId(), zone);
-    }
-
-    /**
-     * Create and register new zone to network identified via its id
-     *
-     * @param externalId external Id of this zone
-     * @return the new zone created
-     */
-    public Zone createAndRegisterNewZone() {
-      final ZoneImpl newZone = new ZoneImpl(tokenId);
-      final Centroid centroid = virtualNetwork.centroids.registerNewCentroid(newZone);
-      newZone.setCentroid(centroid);
-      registerZone(newZone);
-      return newZone;
-    }
-
-    /**
-     * Retrieve zone by its Id
-     *
-     * @param id the id of the zone
-     * @return zone the zone retrieved
-     */
-    public Zone getZoneById(final long id) {
-      return zoneMap.get(id);
-    }
-
-    /**
-     * Collect iterator for all registered zones (non-ordered)
-     * 
-     * @return iterator
-     */
-    @Override
-    public Iterator<Zone> iterator() {
-      return zoneMap.values().iterator();
-    }
-
-    /**
-     * Collect number of zones on the zoning
-     *
-     * @return the number of zones in this zoning
-     */
-    public int getNumberOfZones() {
-      return zoneMap.size();
-    }
-
-  }
-
   // Protected
 
   /**
-   * Map storing all the zones by their row/column in the OD matrix
-   */
-  protected final Map<Long, Zone> zoneMap = new TreeMap<Long, Zone>();
-
-  /**
-   * Virtual network holds all the virtual connections to the physical network
+   * Virtual network holds all the virtual connections to the physical network (layers)
    */
   protected final VirtualNetwork virtualNetwork;
 
   // Public
 
   /**
-   * provide access to zones of this zoning
+   * provide access to connectoids
    */
-  public final Zones zones = new Zones();
+  public final Connectoids connectoids;
+
+  /**
+   * provide access to zones
+   */
+  public final Zones<OdZone> odZones;
+
+  /**
+   * provide access to transger zones (if any)
+   */
+  public final Zones<TransferZone> transferZones;
 
   /**
    * Constructor
@@ -123,6 +68,9 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
    */
   public Zoning(IdGroupingToken groupId, IdGroupingToken networkGroupId) {
     super(groupId, Zoning.class);
+    connectoids = new ConnectoidsImpl(networkGroupId);
+    odZones = new OdZonesImpl(networkGroupId);
+    transferZones = new TransferZonesImpl(networkGroupId);
     virtualNetwork = new VirtualNetwork(networkGroupId);
   }
 
@@ -146,12 +94,12 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
    * @return true when compatible, false otherwise
    */
   public boolean isCompatibleWithDemands(Demands demands, Modes modes) {
-    final int noZonesInZoning = zones.getNumberOfZones();
+    final int nofZones = odZones.size();
     for (final Mode mode : modes) {
       for (TimePeriod timePeriod : demands.timePeriods) {
         final ODDemandMatrix odMatrix = demands.get(mode, timePeriod);
         if (odMatrix != null) {
-          if (noZonesInZoning != odMatrix.getNumberOfTravelAnalysisZones()) {
+          if (nofZones != odMatrix.getNumberOfTravelAnalysisZones()) {
             // inconsistent number of zones found
             return false;
           }
@@ -159,6 +107,29 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
       }
     }
     return true;
+  }
+
+  /**
+   * find a zone by over arching id regardless if it is a transfer or Od zone
+   * 
+   * @param id to find the zone by
+   * @return zone found (if any)
+   */
+  public Zone getZone(long id) {
+    Zone zone = odZones.get(id);
+    if (zone == null) {
+      zone = transferZones.get(id);
+    }
+    return zone;
+  }
+
+  /**
+   * collect the number of centroids across all zones (od and transfer zones)
+   * 
+   * @return total number of centroids
+   */
+  public long getNumberOfCentroids() {
+    return odZones.getNumberOfCentroids() + transferZones.getNumberOfCentroids();
   }
 
 }

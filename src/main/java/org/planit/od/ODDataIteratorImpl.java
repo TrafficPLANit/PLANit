@@ -1,7 +1,7 @@
 package org.planit.od;
 
-import org.planit.network.virtual.Zoning;
-import org.planit.utils.network.virtual.Zone;
+import org.planit.utils.zoning.Zone;
+import org.planit.utils.zoning.Zones;
 
 /**
  * Base class containing common methods required by all classes which implement ODDataIterator
@@ -23,22 +23,21 @@ public abstract class ODDataIteratorImpl<T> implements ODDataIterator<T> {
   protected int destinationId;
 
   /**
-   * Marker used to store the current position in the OD matrix (used internally, not accessible
-   * from other classes)
+   * Marker used to store the current position in the OD matrix (used internally, not accessible from other classes)
    */
   protected int currentLocation;
 
   /**
    * Zones object to store travel analysis zones (from Zoning object)
    */
-  protected Zoning.Zones zones;
+  protected Zones<?> zones;
 
   /**
    * Increment the location cursor for the next iteration
    */
   protected void updateCurrentLocation() {
-    originId = currentLocation / zones.getNumberOfZones();
-    destinationId = currentLocation % zones.getNumberOfZones();
+    originId = currentLocation / zones.size();
+    destinationId = currentLocation % zones.size();
     currentLocation++;
   }
 
@@ -47,7 +46,7 @@ public abstract class ODDataIteratorImpl<T> implements ODDataIterator<T> {
    * 
    * @param zones zones considered in the matrix
    */
-  public ODDataIteratorImpl(Zoning.Zones zones) {
+  public ODDataIteratorImpl(Zones<?> zones) {
     this.zones = zones;
     currentLocation = 0;
   }
@@ -59,7 +58,7 @@ public abstract class ODDataIteratorImpl<T> implements ODDataIterator<T> {
    */
   @Override
   public boolean hasNext() {
-    return currentLocation < (zones.getNumberOfZones() * zones.getNumberOfZones());
+    return currentLocation < (zones.size() * zones.size());
   }
 
   /**
@@ -69,7 +68,7 @@ public abstract class ODDataIteratorImpl<T> implements ODDataIterator<T> {
    */
   @Override
   public Zone getCurrentOrigin() {
-    return zones.getZoneById(originId);
+    return zones.get(originId);
   }
 
   /**
@@ -79,7 +78,7 @@ public abstract class ODDataIteratorImpl<T> implements ODDataIterator<T> {
    */
   @Override
   public Zone getCurrentDestination() {
-    return zones.getZoneById(destinationId);
+    return zones.get(destinationId);
   }
 
 }

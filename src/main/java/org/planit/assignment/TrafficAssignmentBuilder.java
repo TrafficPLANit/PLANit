@@ -15,7 +15,6 @@ import org.planit.input.InputBuilderListener;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.InfrastructureNetwork;
-import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
 import org.planit.output.enums.OutputType;
 import org.planit.sdinteraction.smoothing.Smoothing;
@@ -24,6 +23,7 @@ import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
+import org.planit.zoning.Zoning;
 
 /**
  * All traffic assignment instances require a network, demand, and (equilibrium) smoothing procedure, all of which should be registered via this generic builder. Specific traffic

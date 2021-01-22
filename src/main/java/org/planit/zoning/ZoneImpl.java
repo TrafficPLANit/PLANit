@@ -1,12 +1,13 @@
-package org.planit.network.virtual;
+package org.planit.zoning;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.locationtech.jts.geom.Polygon;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.virtual.Centroid;
-import org.planit.utils.network.virtual.Zone;
+import org.planit.utils.zoning.Centroid;
+import org.planit.utils.zoning.Zone;
 
 /**
  * Represents a demand generating zone in the network.
@@ -39,7 +40,12 @@ public class ZoneImpl implements Zone {
   /**
    * Centroid of the zone
    */
-  protected Centroid centroid = null;
+  protected final Centroid centroid;
+
+  /**
+   * geometry of this zone
+   */
+  protected Polygon geometry = null;
 
   /**
    * Generate unique id for this zone
@@ -56,24 +62,11 @@ public class ZoneImpl implements Zone {
   /**
    * Constructor
    * 
-   * @param groupId    contiguous id generation within this group for instances of this class
-   * @param externalId the external ID of this zone
-   * @param centroid   of the zone
+   * @param tokenId contiguous id generation within this group for instances of this class
    */
-  public ZoneImpl(final IdGroupingToken groupId, final Centroid centroid) {
-    id = generateZoneId(groupId);
-    this.centroid = centroid;
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param groupId    contiguous id generation within this group for instances of this class
-   * @param externalId the external ID of this zone
-   */
-  public ZoneImpl(final IdGroupingToken groupId) {
-    id = generateZoneId(groupId);
-    this.centroid = null;
+  public ZoneImpl(final IdGroupingToken tokenId) {
+    id = generateZoneId(tokenId);
+    this.centroid = new CentroidImpl(tokenId, this);
   }
 
   /**
@@ -120,15 +113,6 @@ public class ZoneImpl implements Zone {
   }
 
   /**
-   * Set the centroid of this zone
-   * 
-   * @param centroid centroid for this zone
-   */
-  public void setCentroid(Centroid centroid) {
-    this.centroid = centroid;
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -158,6 +142,24 @@ public class ZoneImpl implements Zone {
   @Override
   public void setXmlId(String xmlId) {
     this.xmlId = xmlId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setGeometry(Polygon geometry) {
+    // TODO Auto-generated method stub
+
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Polygon getGeometry() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

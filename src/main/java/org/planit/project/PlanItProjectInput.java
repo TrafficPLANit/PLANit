@@ -16,12 +16,12 @@ import org.planit.input.InputBuilderListener;
 import org.planit.network.InfrastructureLayer;
 import org.planit.network.InfrastructureNetwork;
 import org.planit.network.Network;
-import org.planit.network.virtual.Zoning;
 import org.planit.path.ODPathSets;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
+import org.planit.zoning.Zoning;
 
 /**
  * Class that holds all the input traffic components for a PLANit project. The PLANit project holds an instance of this class and delegates all calls relating to inputs to this
@@ -416,10 +416,12 @@ public class PlanItProjectInput {
             infrastructureNetwork);
     
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createZoningPrefix(zoning.getId());
-    LOGGER.info(String.format("%s#zones: %d", prefix, zoning.zones.getNumberOfZones()));
-    LOGGER.info(String.format("%s#centroids: %d", prefix, zoning.getVirtualNetwork().centroids.getNumberOfCentroids()));
-    LOGGER.info(String.format("%s#connectoids: %d", prefix, zoning.getVirtualNetwork().connectoids.getNumberOfConnectoids()));
+    LOGGER.info(String.format("%s#od zones: %d (#centroids: %d)", prefix, zoning.odZones.size(),zoning.odZones.getNumberOfCentroids()));
+    LOGGER.info(String.format("%s#connectoids: %d", prefix, zoning.getVirtualNetwork().connectoidEdges.size()));
     LOGGER.info(String.format("%s#connectoid segments: %d", prefix, zoning.getVirtualNetwork().connectoidSegments.getNumberOfConnectoidSegments()));
+    if(!zoning.transferZones.isEmpty()) {
+      LOGGER.info(String.format("%s#transfer zones: %d (#centroids:", prefix, zoning.transferZones.size(),zoning.transferZones.getNumberOfCentroids()));
+    }
 
     zoningsMap.put(zoning.getId(), zoning);
     return zoning;

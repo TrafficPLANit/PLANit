@@ -8,7 +8,6 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import org.planit.assignment.SimulationData;
-import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odpath.ODPathMatrix;
 import org.planit.output.configuration.ODOutputTypeConfiguration;
@@ -19,6 +18,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.zoning.Zones;
 
 /**
  * Simulation data which are specific to Traditional Static Assignment
@@ -53,7 +53,6 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    */
   private Map<Mode, ODPathMatrix> modalODPathMatrixMap;
 
-
   /**
    * Constructor
    * 
@@ -87,7 +86,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   public double collectTotalNetworkSegmentFlow(LinkSegment linkSegment) {
     return modeSpecificData.values().stream().collect((Collectors.summingDouble(modeData -> modeData.getCurrentSegmentFlows()[(int) linkSegment.getId()])));
   }
-  
+
   /**
    * determine the total flow across all link segments across all modes
    * 
@@ -96,11 +95,10 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   public double[] collectTotalNetworkSegmentFlows() {
     Collection<ModeData> modeData = modeSpecificData.values();
     double[] networkSegmentFlows = null;
-    for(ModeData modeDataEntry : modeData) {
-      if(networkSegmentFlows == null) {
+    for (ModeData modeDataEntry : modeData) {
+      if (networkSegmentFlows == null) {
         networkSegmentFlows = Arrays.copyOf(modeDataEntry.getCurrentSegmentFlows(), modeDataEntry.getCurrentSegmentFlows().length);
-      }else
-      {
+      } else {
         ArrayUtils.addTo(networkSegmentFlows, modeDataEntry.getCurrentSegmentFlows());
       }
     }
@@ -133,12 +131,12 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param mode  the specified mode
    * @param zones Zones object containing all the origin and destination zones
    */
-  public void resetSkimMatrix(Mode mode, Zoning.Zones zones,  ODOutputTypeConfiguration originDestinationOutputTypeConfiguration) {
+  public void resetSkimMatrix(Mode mode, Zones<?> zones, ODOutputTypeConfiguration originDestinationOutputTypeConfiguration) {
     modalSkimMatrixMap.put(mode, new HashMap<ODSkimSubOutputType, ODSkimMatrix>());
-        
+
     for (SubOutputTypeEnum odSkimOutputType : originDestinationOutputTypeConfiguration.getActiveSubOutputTypes()) {
-      ODSkimMatrix odSkimMatrix = new ODSkimMatrix(zones, (ODSkimSubOutputType)odSkimOutputType);
-      modalSkimMatrixMap.get(mode).put((ODSkimSubOutputType)odSkimOutputType, odSkimMatrix);
+      ODSkimMatrix odSkimMatrix = new ODSkimMatrix(zones, (ODSkimSubOutputType) odSkimOutputType);
+      modalSkimMatrixMap.get(mode).put((ODSkimSubOutputType) odSkimOutputType, odSkimMatrix);
     }
   }
 
@@ -148,7 +146,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param mode  the specified mode
    * @param zones Zones object containing all the origin and destination zones
    */
-  public void resetPathMatrix(Mode mode, Zoning.Zones zones) {
+  public void resetPathMatrix(Mode mode, Zones<?> zones) {
     modalODPathMatrixMap.put(mode, new ODPathMatrix(groupId, zones));
   }
 

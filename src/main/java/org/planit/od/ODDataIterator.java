@@ -2,7 +2,7 @@ package org.planit.od;
 
 import java.util.Iterator;
 
-import org.planit.utils.network.virtual.Zone;
+import org.planit.utils.zoning.Zone;
 
 /**
  * Defines methods for an iterator which moves through a matrix of origin-destination cells

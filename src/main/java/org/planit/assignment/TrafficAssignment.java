@@ -14,7 +14,6 @@ import org.planit.gap.GapFunction;
 import org.planit.network.InfrastructureNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicLinkSegmentImpl;
 import org.planit.network.transport.TransportNetwork;
-import org.planit.network.virtual.Zoning;
 import org.planit.output.OutputManager;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.enums.OutputType;
@@ -24,6 +23,7 @@ import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
+import org.planit.zoning.Zoning;
 
 /**
  * Traffic assignment class which simultaneously is responsible for the loading hence it is also considered as a traffic assignment component of this type
@@ -207,9 +207,9 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   protected void finalizeAfterExecution() throws PlanItException {
 
-    disbandTransportNetwork();
-
     outputManager.finaliseAfterSimulation();
+
+    disbandTransportNetwork();
   }
 
   /**

@@ -8,7 +8,7 @@ import org.planit.output.OutputManager;
 import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.virtual.Zone;
+import org.planit.utils.zoning.Zone;
 
 /**
  * All the functionality to equilibrate algorithm B
@@ -36,7 +36,7 @@ public class AlgorithmBEquilibration {
     DijkstraShortestPathAlgorithm dijkstra = new DijkstraShortestPathAlgorithm(edgeSegmentCosts, transportNetwork.getTotalNumberOfEdgeSegments(),
         transportNetwork.getTotalNumberOfVertices());
 
-    for (Zone zone : assignment.getTransportNetwork().getZoning().zones) {
+    for (Zone zone : assignment.getTransportNetwork().getZoning().odZones) {
       /* for each origin create initial bush with shortest path */
     }
   }
@@ -67,7 +67,7 @@ public class AlgorithmBEquilibration {
 
     boolean converged = false;
     while (!converged) {
-      for (Zone origin : assignment.getTransportNetwork().getZoning().zones) {
+      for (Zone origin : assignment.getTransportNetwork().getZoning().odZones) {
         boolean bushIsOptimal = false;
         // TODO Bush originBasedBush = getBush(origin);
 //        do {

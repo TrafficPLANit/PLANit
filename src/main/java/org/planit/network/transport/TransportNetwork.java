@@ -4,12 +4,13 @@ import org.planit.network.InfrastructureLayer;
 import org.planit.network.InfrastructureNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.network.virtual.VirtualNetwork;
-import org.planit.network.virtual.Zoning;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.network.virtual.Connectoid;
+import org.planit.utils.network.virtual.ConnectoidEdge;
 import org.planit.utils.network.virtual.ConnectoidSegment;
+import org.planit.zoning.Zoning;
 
 /**
  * Entire transport network that is being modeled including both the physical and virtual aspects of it as well as the zoning. It acts as a wrapper unifying the two components
@@ -121,12 +122,12 @@ public class TransportNetwork {
   }
 
   /**
-   * Returns the total number of virtual and physical vertices in this transport network
+   * Returns the total physical vertices and centroid vertices (of od and/or transfer zones) in this transport network
    * 
-   * @return the total number of physical and virtual vertices in this network
+   * @return the total number of vertices
    */
   public int getTotalNumberOfVertices() {
-    return zoning.getVirtualNetwork().centroids.getNumberOfCentroids() + getTotalNumberOfPhysicalNodes();
+    return zoning.odZones.getNumberOfCentroids() + zoning.transferZones.getNumberOfCentroids() + getTotalNumberOfPhysicalNodes();
   }
 
   /**
@@ -151,10 +152,12 @@ public class TransportNetwork {
    */
   public void integrateConnectoidsAndLinks() throws PlanItException {
     VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
-    for (Connectoid connectoid : virtualNetwork.connectoids) {
-      virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, true);
-      virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoid, false);
-      connectVerticesToEdge(connectoid);
+    for (Connectoid connectoid : zoning.connectoids) {
+      /* connectoid edge */
+      ConnectoidEdge connectoidEdge = virtualNetwork.connectoidEdges.registerNew(connectoid);
+      virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoidEdge, true);
+      virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoidEdge, false);
+      connectVerticesToEdge(connectoidEdge);
     }
     for (ConnectoidSegment connectoidSegment : virtualNetwork.connectoidSegments) {
       connectVerticesToEdgeSegment(connectoidSegment);
@@ -167,12 +170,15 @@ public class TransportNetwork {
    * @throws PlanItException thrown if there is an error
    */
   public void removeVirtualNetworkFromPhysicalNetwork() throws PlanItException {
-    for (Connectoid connectoid : zoning.getVirtualNetwork().connectoids) {
-      disconnectVerticesFromEdge(connectoid);
+    for (ConnectoidEdge connectoidEdge : zoning.getVirtualNetwork().connectoidEdges) {
+      disconnectVerticesFromEdge(connectoidEdge);
     }
     for (ConnectoidSegment connectoidSegment : zoning.getVirtualNetwork().connectoidSegments) {
       disconnectVerticesFromEdgeSegment(connectoidSegment);
     }
+
+    /* clear out contents */
+    zoning.getVirtualNetwork().clear();
   }
 
   /**

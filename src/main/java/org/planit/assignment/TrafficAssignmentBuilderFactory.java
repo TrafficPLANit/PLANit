@@ -4,9 +4,9 @@ import org.planit.assignment.traditionalstatic.TraditionalStaticAssignmentBuilde
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.InfrastructureNetwork;
-import org.planit.network.virtual.Zoning;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.zoning.Zoning;
 
 /**
  * Traffic assignment builder factory for the assignment types supported directory by PLANit

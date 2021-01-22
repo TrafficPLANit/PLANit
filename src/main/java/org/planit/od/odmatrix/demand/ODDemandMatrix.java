@@ -1,7 +1,7 @@
 package org.planit.od.odmatrix.demand;
 
-import org.planit.network.virtual.Zoning;
 import org.planit.od.odmatrix.ODMatrix;
+import org.planit.utils.zoning.Zones;
 
 /**
  * This class handles the OD demand matrix.
@@ -16,7 +16,7 @@ public class ODDemandMatrix extends ODMatrix {
    * 
    * @param zones holds the zones defined in the network
    */
-  public ODDemandMatrix(Zoning.Zones zones) {
+  public ODDemandMatrix(Zones<?> zones) {
     super(zones);
   }
 

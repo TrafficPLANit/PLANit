@@ -7,11 +7,9 @@ import java.util.TreeMap;
 import org.planit.network.Network;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Node;
-import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.Connectoid;
+import org.planit.utils.network.virtual.ConnectoidEdge;
 import org.planit.utils.network.virtual.ConnectoidSegment;
-import org.planit.utils.network.virtual.Zone;
 
 /**
  * Model free virtual network which is part of the zoning and holds all the virtual infrastructure connecting the zones to the physical road network.
@@ -29,61 +27,59 @@ public class VirtualNetwork extends Network {
    * Internal class for all Connectoid specific code
    *
    */
-  public class Connectoids implements Iterable<Connectoid> {
+  public class ConnectoidEdges implements Iterable<ConnectoidEdge> {
 
     /**
-     * Add connectoid to the internal container
+     * Add connectoid edge to the internal container
      * 
-     * If new connectoid overrides an existing connectoid, the removed connectoid is returned
+     * If new connectoid edge overrides an existing connectoid edge , the removed connectoid edge is returned
      * 
-     * @param connectoid the connectoid to be registered
-     * @return connectoid added
+     * @param connectoidEdge the connectoid edge to be registered
+     * @return connectoidEdge added
      */
-    protected Connectoid registerConnectoid(Connectoid connectoid) {
-      return connectoidMap.put(connectoid.getId(), connectoid);
+    protected ConnectoidEdge register(ConnectoidEdge connectoidEdge) {
+      return connectoidEdgeMap.put(connectoidEdge.getId(), connectoidEdge);
     }
 
     /**
-     * Create new connectoid to from a specified centroid to a specified node
+     * Create new connectoid edge to from a specified centroid to a specified node
      * 
-     * @param centroid   centroid at one end of the connectoid
-     * @param node       node at other end of the connectoid
-     * @param length     length of connectiod
-     * @param externalId external Id of connectoid
-     * @return Connectoid object created and registered
+     * @param parentConnectoid extract information from connectoid to create virtual connectoid edge
      * @throws PlanItException thrown if there is an error
      */
-    public Connectoid registerNewConnectoid(Centroid centroid, Node node, double length) throws PlanItException {
-      Connectoid newConnectoid = new ConnectoidImpl(getIdGroupingToken(), centroid, node, length);
-      registerConnectoid(newConnectoid);
-      return newConnectoid;
+    public ConnectoidEdge registerNew(Connectoid parentConnectoid) throws PlanItException {
+      /* constructed from connectoid information */
+      ConnectoidEdge newConnectoidEdge = new ConnectoidEdgeImpl(getIdGroupingToken(), parentConnectoid.getParentZone().getCentroid(), parentConnectoid.getAccessNode(),
+          parentConnectoid.getLength());
+      register(newConnectoidEdge);
+      return newConnectoidEdge;
     }
 
     /**
-     * Get connectoid by id
+     * Get connectoid edge by id
      * 
-     * @param id the id of this connectoid
-     * @return the retrieved connectoid
+     * @param id the id of this connectoid edge
+     * @return the retrieved connectoid edge
      */
-    public Connectoid getConnectoid(long id) {
-      return connectoidMap.get(id);
+    public ConnectoidEdge get(long id) {
+      return connectoidEdgeMap.get(id);
     }
 
     /**
-     * Return number of connectoids on the network
+     * Return number of connectoid edges on the network
      * 
-     * @return the number of connectoids
+     * @return the number of connectoid edges
      */
-    public int getNumberOfConnectoids() {
-      return connectoidMap.size();
+    public int size() {
+      return connectoidEdgeMap.size();
     }
 
     /**
-     * Collect the connectoids available through an iterator
+     * Collect the connectoid edges available through an iterator
      */
     @Override
-    public Iterator<Connectoid> iterator() {
-      return connectoidMap.values().iterator();
+    public Iterator<ConnectoidEdge> iterator() {
+      return connectoidEdgeMap.values().iterator();
     }
 
   }
@@ -120,9 +116,9 @@ public class VirtualNetwork extends Network {
      * @return created connectoid segment
      * @throws PlanItException thrown if there is an error
      */
-    public ConnectoidSegment createAndRegisterConnectoidSegment(Connectoid parentConnectoid, boolean directionAB) throws PlanItException {
-      ConnectoidSegment connectoidSegment = new ConnectoidSegmentImpl(getIdGroupingToken(), parentConnectoid, directionAB);
-      parentConnectoid.registerConnectoidSegment(connectoidSegment, directionAB);
+    public ConnectoidSegment createAndRegisterConnectoidSegment(ConnectoidEdge parent, boolean directionAB) throws PlanItException {
+      ConnectoidSegment connectoidSegment = new ConnectoidSegmentImpl(getIdGroupingToken(), parent, directionAB);
+      parent.registerConnectoidSegment(connectoidSegment, directionAB);
       registerConnectoidSegment(connectoidSegment);
       return connectoidSegment;
     }
@@ -148,62 +144,12 @@ public class VirtualNetwork extends Network {
 
   }
 
-  /**
-   * Internal class for all Centroid specific code
-   *
-   */
-  public class Centroids implements Iterable<Centroid> {
-
-    /**
-     * Add centroid to the internal container
-     * 
-     * If centroid overrides an existing centroid, the removed centroid is returned
-     * 
-     * @param centroid centroid to be registered
-     * @return registered centroid
-     */
-    public Centroid registerCentroid(Centroid centroid) {
-      return centroidMap.put(centroid.getId(), centroid);
-    }
-
-    /**
-     * Create new centroid
-     * 
-     * @param zone zone on which the centroid is registered
-     * @return registered new centroid
-     */
-    public Centroid registerNewCentroid(Zone zone) {
-      Centroid newCentroid = new CentroidImpl(getIdGroupingToken(), zone);
-      registerCentroid(newCentroid);
-      return newCentroid;
-    }
-
-    /**
-     * Access to all centroids via iterator
-     */
-    @Override
-    public Iterator<Centroid> iterator() {
-      return centroidMap.values().iterator();
-    }
-
-    /**
-     * Return number of registered centroids
-     * 
-     * @return number of registered centroids
-     */
-    public int getNumberOfCentroids() {
-      return centroidMap.size();
-    }
-
-  }
-
   // Protected
 
   // for now use tree map to ensure non-duplicate keys until we add functionality
   // to account for this (treemap is slower than hashmap)
-  protected Map<Long, Connectoid> connectoidMap = new TreeMap<Long, Connectoid>();
+  protected Map<Long, ConnectoidEdge> connectoidEdgeMap = new TreeMap<Long, ConnectoidEdge>();
   protected Map<Long, ConnectoidSegment> connectoidSegmentMap = new TreeMap<Long, ConnectoidSegment>();
-  protected Map<Long, Centroid> centroidMap = new TreeMap<Long, Centroid>();
 
   // PUBLIC
 
@@ -219,14 +165,18 @@ public class VirtualNetwork extends Network {
   /**
    * internal class instance containing all connectoid specific functionality
    */
-  public final Connectoids connectoids = new Connectoids();
+  public final ConnectoidEdges connectoidEdges = new ConnectoidEdges();
   /**
    * internal class instance containing all connectoid segment specific functionality
    */
   public final ConnectoidSegments connectoidSegments = new ConnectoidSegments();
+
   /**
-   * internal class instance containing all centroid specific functionality
+   * free up memory by clearing contents for garbage collection
    */
-  public final Centroids centroids = new Centroids();
+  public void clear() {
+    connectoidEdgeMap.clear();
+    connectoidSegmentMap.clear();
+  }
 
 }

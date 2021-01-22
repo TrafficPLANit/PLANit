@@ -41,9 +41,9 @@ import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
-import org.planit.utils.network.virtual.Centroid;
 import org.planit.utils.network.virtual.ConnectoidSegment;
-import org.planit.utils.network.virtual.Zone;
+import org.planit.utils.zoning.Centroid;
+import org.planit.utils.zoning.Zone;
 
 /**
  * Traditional static assignment traffic component.This is the class that conducts the actual assignment.
@@ -515,11 +515,11 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
         // :TODO ugly -> you are not resetting 1 matrix but multiple, NAMES ARE WRONG
         // :TODO: slow -> only reset or do something when it is stored in the first place, this is not checked
         if (getOutputManager().isOutputTypeActive(OutputType.OD)) {
-          simulationData.resetSkimMatrix(mode, getTransportNetwork().getZoning().zones, (ODOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD));
+          simulationData.resetSkimMatrix(mode, getTransportNetwork().getZoning().odZones, (ODOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD));
         }
         if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
           ;
-          simulationData.resetPathMatrix(mode, getTransportNetwork().getZoning().zones);
+          simulationData.resetPathMatrix(mode, getTransportNetwork().getZoning().odZones);
         }
 
         /* execute */

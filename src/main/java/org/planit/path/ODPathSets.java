@@ -3,9 +3,9 @@ package org.planit.path;
 import java.util.TreeMap;
 
 import org.planit.assignment.TrafficAssignmentComponent;
-import org.planit.network.virtual.Zoning;
 import org.planit.od.odpath.ODPathMatrix;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.zoning.Zoning;
 
 /**
  * Contains one or more origin-destination based path sets that can be used in assignment. For now each individual path set takes on the form of the already available
@@ -47,7 +47,7 @@ public class ODPathSets extends TrafficAssignmentComponent<ODPathSets> {
    * @return newly created od path matrix
    */
   public ODPathMatrix createAndRegisterOdPathMatrix(final Zoning zoning) {
-    final ODPathMatrix newOdPathMatrix = new ODPathMatrix(tokenId, zoning.zones);
+    final ODPathMatrix newOdPathMatrix = new ODPathMatrix(tokenId, zoning.odZones);
     odPathMatrices.put(newOdPathMatrix.getId(), newOdPathMatrix);
     return newOdPathMatrix;
   }

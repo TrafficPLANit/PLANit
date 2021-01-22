@@ -1,6 +1,6 @@
 package org.planit.od;
 
-import org.planit.network.virtual.Zoning;
+import org.planit.utils.zoning.Zones;
 
 /**
  * Base class containing common methods required by all classes which implement ODData
@@ -14,14 +14,14 @@ public abstract class ODDataImpl<T> implements ODData<T> {
   /**
    * holder for zones considered in the matrix
    */
-  protected Zoning.Zones zones;
+  protected Zones<?> zones;
 
   /**
    * Constructor
    * 
    * @param zones zones considered in the matrix
    */
-  public ODDataImpl(Zoning.Zones zones) {
+  public ODDataImpl(Zones<?> zones) {
     this.zones = zones;
 
   }
@@ -32,7 +32,7 @@ public abstract class ODDataImpl<T> implements ODData<T> {
    * @return number of zones in the object
    */
   public int getNumberOfTravelAnalysisZones() {
-    return zones.getNumberOfZones();
+    return zones.size();
   }
 
 }
