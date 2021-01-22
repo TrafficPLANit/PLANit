@@ -76,11 +76,6 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   protected Map<String, Zone> sourceIdZoneMap;
 
   /**
-   * Flag to determine whether duplicate source Id should be considered an error (defaults to true)
-   */
-  private boolean errorIfDuplicateSourceId = DEFAULT_ERROR_ON_DUPLICATE_SOURCE_ID;
-
-  /**
    * Stores an object by its source Id, after checking whether the external Id is a duplicate
    * 
    * @param <T>        type of object being stored
@@ -95,9 +90,9 @@ public abstract class InputBuilderListener implements EventListenerInterface {
     map.put(sourceId, obj);
     return containsDuplicates;
   }
-  
+
   // protected
-  
+
   /**
    * Stores a node by its sourceId
    * 
@@ -108,8 +103,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   protected boolean addNodeToSourceIdMap(String sourceId, Node node) {
     return addObjectToSourceIdMap(sourceId, node, sourceIdNodeMap, "node");
   }
-  
-  
+
   /**
    * Stores a mode by its sourceId Id
    * 
@@ -119,7 +113,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    */
   protected boolean addModeToSourceIdMap(String sourceId, Mode mode) {
     return addObjectToSourceIdMap(sourceId, mode, sourceIdModeMap, "mode");
-  }  
+  }
 
   /**
    * Stores a traveler type by its sourceId
@@ -130,7 +124,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    */
   protected boolean addTravelerTypeToSourceIdMap(String sourceId, TravelerType travelerType) {
     return addObjectToSourceIdMap(sourceId, travelerType, sourceIdTravelerTypeMap, "traveller type");
-  }  
+  }
 
   /**
    * Stores a user class by its sourceId
@@ -141,7 +135,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    */
   protected boolean addUserClassToSourceIdMap(String sourceId, UserClass userClass) {
     return addObjectToSourceIdMap(sourceId, userClass, sourceIdUserClassMap, "user class");
-  }  
+  }
 
   /**
    * Stores a time period by its sourceId
@@ -152,7 +146,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    */
   protected boolean addTimePeriodToSourceIdMap(String sourceId, TimePeriod timePeriod) {
     return addObjectToSourceIdMap(sourceId, timePeriod, sourceIdTimePeriodMap, "time period");
-  }  
+  }
 
   /**
    * Stores a zone by its sourceId
@@ -163,8 +157,8 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    */
   protected boolean addZoneToSourceIdMap(String sourceId, Zone zone) {
     return addObjectToSourceIdMap(sourceId, zone, sourceIdZoneMap, "zone");
-  }  
-  
+  }
+
   /**
    * Stores a link segment by its sourceId
    * 
@@ -174,7 +168,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    */
   protected boolean addLinkSegmentToSourceIdMap(String sourceId, MacroscopicLinkSegment linkSegment) {
     return addObjectToSourceIdMap(sourceId, linkSegment, sourceIdLinkSegmentMap, "link segment");
-  }  
+  }
 
   /** default setting */
   public static boolean DEFAULT_ERROR_ON_DUPLICATE_SOURCE_ID = true;
@@ -241,7 +235,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public TravelerType getTravelerTypeBySourceId(String sourceId) {
     return sourceIdTravelerTypeMap.get(sourceId);
   }
-  
+
   /**
    * Stores a link segment type by its sourceId
    * 
@@ -262,7 +256,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public UserClass getUserClassBySourceId(String sourceId) {
     return sourceIdUserClassMap.get(sourceId);
   }
-  
+
   /**
    * Return the time period for a specified sourceId
    * 
@@ -300,7 +294,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   public List<String> getTimePeriodSourceIds() {
     return new ArrayList<String>(sourceIdTimePeriodMap.keySet());
   }
-  
+
   /**
    * Returns the zone for a specified sourceId
    * 
@@ -338,24 +332,6 @@ public abstract class InputBuilderListener implements EventListenerInterface {
       }
     }
     return null;
-  }
-
-  /**
-   * Return whether input files having duplicate sourceIds should be treated as an error
-   * 
-   * @return true if duplicate Ids considered an error, false otherwise
-   */
-  public boolean isErrorIfDuplicateSourceId() {
-    return errorIfDuplicateSourceId;
-  }
-
-  /**
-   * Set whether input files having duplicate sourceIds should be treated as an error
-   * 
-   * @param errorIfDuplicateSourceId true if duplicate Ids considered an error, false otherwise
-   */
-  public void setErrorIfDuplicateSourceId(boolean errorIfDuplicateSourceId) {
-    this.errorIfDuplicateSourceId = errorIfDuplicateSourceId;
   }
 
 }
