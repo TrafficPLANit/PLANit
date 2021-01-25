@@ -5,10 +5,13 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
-import org.planit.utils.network.virtual.Connectoid;
+import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.Connectoids;
+import org.planit.utils.zoning.DirectedConnectoid;
+import org.planit.utils.zoning.UndirectedConnectoid;
 import org.planit.utils.zoning.Zone;
 
 /**
@@ -56,8 +59,8 @@ public class ConnectoidsImpl implements Connectoids {
    * {@inheritDoc}
    */
   @Override
-  public Connectoid registerNew(Zone parentzone, Node accessNode, double length) throws PlanItException {
-    Connectoid newConnectoid = new ConnectoidImpl(idToken, parentzone, accessNode, length);
+  public UndirectedConnectoid registerNew(Node accessNode, Zone parentZone, double length) throws PlanItException {
+    UndirectedConnectoid newConnectoid = new UndirectedConnectoidImpl(idToken, accessNode, parentZone, length);
     register(newConnectoid);
     return newConnectoid;
   }
@@ -66,9 +69,46 @@ public class ConnectoidsImpl implements Connectoids {
    * {@inheritDoc}
    */
   @Override
-  public Connectoid registerNew(Zone parentzone, Node accessNode) throws PlanItException {
-    // TODO Auto-generated method stub
-    return null;
+  public UndirectedConnectoid registerNew(Node accessNode, Zone parentZone) throws PlanItException {
+    return registerNew(accessNode, parentZone, Connectoid.DEFAULT_LENGTH_KM);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UndirectedConnectoid registerNew(Node accessNode) throws PlanItException {
+    UndirectedConnectoid newConnectoid = new UndirectedConnectoidImpl(idToken, accessNode);
+    register(newConnectoid);
+    return newConnectoid;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedConnectoid registerNew(EdgeSegment accessEdgeSegment, Zone parentZone, double length) throws PlanItException {
+    DirectedConnectoid newConnectoid = new DirectedConnectoidImpl(idToken, accessEdgeSegment, parentZone, length);
+    register(newConnectoid);
+    return newConnectoid;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedConnectoid registerNew(EdgeSegment accessEdgeSegment, Zone parentZone) throws PlanItException {
+    return registerNew(accessEdgeSegment, parentZone, Connectoid.DEFAULT_LENGTH_KM);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedConnectoid registerNew(EdgeSegment accessEdgeSegment) throws PlanItException {
+    DirectedConnectoid newConnectoid = new DirectedConnectoidImpl(idToken, accessEdgeSegment);
+    register(newConnectoid);
+    return newConnectoid;
   }
 
   /**

@@ -1,5 +1,7 @@
 package org.planit.network.transport;
 
+import java.util.Collection;
+
 import org.planit.network.InfrastructureLayer;
 import org.planit.network.InfrastructureNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
@@ -7,9 +9,9 @@ import org.planit.network.virtual.VirtualNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.network.virtual.Connectoid;
 import org.planit.utils.network.virtual.ConnectoidEdge;
 import org.planit.utils.network.virtual.ConnectoidSegment;
+import org.planit.utils.zoning.Connectoid;
 import org.planit.zoning.Zoning;
 
 /**
@@ -154,10 +156,12 @@ public class TransportNetwork {
     VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
     for (Connectoid connectoid : zoning.connectoids) {
       /* connectoid edge */
-      ConnectoidEdge connectoidEdge = virtualNetwork.connectoidEdges.registerNew(connectoid);
-      virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoidEdge, true);
-      virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoidEdge, false);
-      connectVerticesToEdge(connectoidEdge);
+      Collection<ConnectoidEdge> connectoidEdges = virtualNetwork.connectoidEdges.registerNew(connectoid);
+      for (ConnectoidEdge connectoidEdge : connectoidEdges) {
+        virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoidEdge, true);
+        virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoidEdge, false);
+        connectVerticesToEdge(connectoidEdge);
+      }
     }
     for (ConnectoidSegment connectoidSegment : virtualNetwork.connectoidSegments) {
       connectVerticesToEdgeSegment(connectoidSegment);

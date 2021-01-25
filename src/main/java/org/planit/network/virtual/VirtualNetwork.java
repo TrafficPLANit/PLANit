@@ -1,15 +1,22 @@
 package org.planit.network.virtual;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.planit.network.Network;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.virtual.Connectoid;
+import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.ConnectoidEdge;
 import org.planit.utils.network.virtual.ConnectoidSegment;
+import org.planit.utils.zoning.Connectoid;
+import org.planit.utils.zoning.DirectedConnectoid;
+import org.planit.utils.zoning.UndirectedConnectoid;
+import org.planit.utils.zoning.Zone;
 
 /**
  * Model free virtual network which is part of the zoning and holds all the virtual infrastructure connecting the zones to the physical road network.
@@ -44,15 +51,35 @@ public class VirtualNetwork extends Network {
     /**
      * Create new connectoid edge to from a specified centroid to a specified node
      * 
-     * @param parentConnectoid extract information from connectoid to create virtual connectoid edge
+     * @param connectoid extract information from connectoid to create virtual connectoid edge
+     * @return newly created connectoid edges (reference nodes not yet aware of connection)
      * @throws PlanItException thrown if there is an error
      */
-    public ConnectoidEdge registerNew(Connectoid parentConnectoid) throws PlanItException {
+    public Collection<ConnectoidEdge> registerNew(Connectoid connectoid) throws PlanItException {
+
       /* constructed from connectoid information */
-      ConnectoidEdge newConnectoidEdge = new ConnectoidEdgeImpl(getIdGroupingToken(), parentConnectoid.getParentZone().getCentroid(), parentConnectoid.getAccessNode(),
-          parentConnectoid.getLength());
-      register(newConnectoidEdge);
-      return newConnectoidEdge;
+      ArrayList<ConnectoidEdge> connectoidEdges = new ArrayList<ConnectoidEdge>();
+      for (Zone accessZone : connectoid) {
+
+        /* Access node */
+        /* for now we only utilise a single access node, either the given one, or the downstream node of a directed connectoid */
+        /* TODO: when we implement PT assignments this likely will change */
+        Node accessNode = null;
+        if (connectoid instanceof UndirectedConnectoid) {
+          accessNode = UndirectedConnectoid.class.cast(connectoid).getAccessNode();
+        } else if (connectoid instanceof DirectedConnectoid) {
+          EdgeSegment accessEdgeSegment = DirectedConnectoid.class.cast(connectoid).getAccessEdgeSegment();
+          accessNode = (Node) (accessEdgeSegment != null ? accessEdgeSegment.getDownstreamVertex() : null);
+        } else {
+          throw new PlanItException(String.format("connectoid %s is of unrecognised type and access node could not be retrieved", connectoid.getXmlId()));
+        }
+
+        /* create and register connectoid edge */
+        ConnectoidEdge newConnectoidEdge = new ConnectoidEdgeImpl(getIdGroupingToken(), accessZone.getCentroid(), accessNode, connectoid.getLength(accessZone));
+        register(newConnectoidEdge);
+        connectoidEdges.add(newConnectoidEdge);
+      }
+      return connectoidEdges;
     }
 
     /**

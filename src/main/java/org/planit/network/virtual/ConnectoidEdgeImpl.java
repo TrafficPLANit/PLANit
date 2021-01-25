@@ -5,10 +5,10 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
-import org.planit.utils.network.virtual.Connectoid;
 import org.planit.utils.network.virtual.ConnectoidEdge;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.zoning.Centroid;
+import org.planit.utils.zoning.Connectoid;
 
 /**
  * Edge implementation that represent edges that exist between centroids and connectoids (their node reference), so not physical entities but rather virtual links

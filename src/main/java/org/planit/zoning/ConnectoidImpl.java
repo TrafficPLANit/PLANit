@@ -1,42 +1,97 @@
 package org.planit.zoning;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Node;
-import org.planit.utils.network.virtual.Connectoid;
+import org.planit.utils.mode.Mode;
+import org.planit.utils.zoning.Connectoid;
+import org.planit.utils.zoning.ConnectoidType;
 import org.planit.utils.zoning.Zone;
 
 /**
- * connectoid connecting a zone to the physical road network, carrying two connectoid segments in one or two directions which may carry additional information for each particular
- * direction of the connectoid.
+ * connectoid connecting one or more (transfer/OD) zone(s) to the physical road network, the type of connectoid depends on the implementing class
  *
  * @author markr
  *
  */
-public class ConnectoidImpl extends ExternalIdAbleImpl implements Connectoid {
-
-  // Protected
+public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Connectoid {
 
   /** generated UID */
   @SuppressWarnings("unused")
   private static final long serialVersionUID = 373775073620741347L;
 
-  /**
-   * the parent zone this connectoid provides access to
-   */
-  protected Zone parentZone;
+  /** the logger */
+  private static final Logger LOGGER = Logger.getLogger(ConnectoidImpl.class.getCanonicalName());
+
+  // Protected
 
   /**
-   * the access point to an infrastructure layer
+   * Stores access properties for each zone
+   * 
+   * @author markr
+   *
    */
-  protected Node accessNode;
+  protected class AccessZoneProperties {
+
+    public final Zone accessZone;
+
+    public Double length = DEFAULT_LENGTH_KM;
+
+    public HashMap<Long, Mode> allowedModes = null;
+
+    /**
+     * constructor
+     * 
+     * @param accessZone   to use
+     * @param length       to use
+     * @param allowedModes to use (can be null)
+     */
+    protected AccessZoneProperties(Zone accessZone) {
+      this.accessZone = accessZone;
+    }
+
+    /**
+     * Copy constructor
+     * 
+     * @param other to copy
+     */
+    @SuppressWarnings("unchecked")
+    public AccessZoneProperties(AccessZoneProperties other) {
+      this.accessZone = other.accessZone;
+      this.length = other.length;
+      /* shallow */
+      if (other.allowedModes != null) {
+        this.allowedModes = (HashMap<Long, Mode>) other.allowedModes.clone();
+      }
+    }
+
+    void addAllowedMode(Mode mode) {
+      if (allowedModes == null) {
+        allowedModes = new HashMap<Long, Mode>();
+      }
+      allowedModes.put(mode.getId(), mode);
+    }
+  }
 
   /**
-   * we can virtually assign a length to the access to work out an approximate cost depending on how costs on connectoid access points are computed
+   * name of the connectoid if any
    */
-  protected double length;
+  protected String name = null;
+
+  /** the type of connectoid to identify its purpose more easily */
+  protected ConnectoidType type = DEFAULT_CONNECTOID_TYPE;
+
+  /** the zones and their properties accessible from this connectoid */
+  protected final HashMap<Long, AccessZoneProperties> accessZones = new HashMap<Long, AccessZoneProperties>();
 
   /**
    * Generate connectoid id
@@ -49,59 +104,13 @@ public class ConnectoidImpl extends ExternalIdAbleImpl implements Connectoid {
   }
 
   /**
-   * Set the parent zone
-   * 
-   * @param parentZone to use
-   */
-  protected void setParentZone(Zone parentZone) {
-    this.parentZone = parentZone;
-  }
-
-  /**
-   * Set the accessNode
-   * 
-   * @param accessNode to use
-   */
-  protected void setAccessNode(Node accessNode) {
-    this.accessNode = accessNode;
-  }
-
-  /**
-   * set length
-   * 
-   * @param length to use
-   */
-  protected void setLength(double length) {
-    this.length = length;
-  }
-
-  /**
    * Constructor
    *
-   * @param groupId    contiguous id generation within this group for instances of this class
-   * @param zone       the zone this connectoid provides access to
-   * @param accessNode the node in the network (layer) the connectoid connects with
-   * @param length     length of the current connectoid
+   * @param idToken contiguous id generation within this group for instances of this class
    * @throws PlanItException thrown if there is an error
    */
-  protected ConnectoidImpl(final IdGroupingToken groupId, final Zone zone, final Node accessNode, final double length) throws PlanItException {
-    super(generateConnectoidId(groupId));
-    setParentZone(zone);
-    setAccessNode(accessNode);
-    setLength(length);
-  }
-
-  /**
-   * Constructor
-   *
-   * @param groupId    contiguous id generation within this group for instances of this class
-   * @param zone       the zone this connectoid provides access to
-   * @param accessNode the node in the network (layer) the connectoid connects with
-   * @param length     length of the current connectoid
-   * @throws PlanItException thrown if there is an error
-   */
-  protected ConnectoidImpl(final IdGroupingToken groupId, final Zone zone, final Node accessNode) throws PlanItException {
-    this(groupId, zone, accessNode, DEFAULT_LENGTH_KM);
+  protected ConnectoidImpl(IdGroupingToken idToken) {
+    super(generateConnectoidId(idToken));
   }
 
   /**
@@ -111,9 +120,23 @@ public class ConnectoidImpl extends ExternalIdAbleImpl implements Connectoid {
    */
   protected ConnectoidImpl(ConnectoidImpl connectoidImpl) {
     super(connectoidImpl);
-    setParentZone(connectoidImpl.getParentZone());
-    setAccessNode(connectoidImpl.getAccessNode());
-    setLength(connectoidImpl.getLength());
+    for (AccessZoneProperties entry : connectoidImpl.accessZones.values()) {
+      accessZones.put(entry.accessZone.getId(), new AccessZoneProperties(entry));
+    }
+  }
+
+  /**
+   * Constructor
+   *
+   * @param idToken    contiguous id generation within this group for instances of this class
+   * @param accessZone for the connectoid
+   * @param length     for the connection
+   * @throws PlanItException thrown if there is an error
+   */
+  protected ConnectoidImpl(final IdGroupingToken idToken, Zone accessZone, double length) {
+    this(idToken);
+    addAccessZone(accessZone);
+    setLength(accessZone, length);
   }
 
   // Public
@@ -124,31 +147,157 @@ public class ConnectoidImpl extends ExternalIdAbleImpl implements Connectoid {
    * {@inheritDoc}
    */
   @Override
-  public ConnectoidImpl clone() {
-    return new ConnectoidImpl(this);
+  public void setType(ConnectoidType type) {
+    this.type = type;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Zone getParentZone() {
-    return parentZone;
+  public ConnectoidType getType() {
+    return type;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Node getAccessNode() {
-    return accessNode;
+  public void setName(String name) {
+    this.name = name;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public double getLength() {
-    return length;
+  public String getName() {
+    return this.name;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Collection<Zone> getAccessZones() {
+    return accessZones.values().stream().map((amp) -> {
+      return amp.accessZone;
+    }).collect(Collectors.toList());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Zone getFirstAccessZone() {
+    return iterator().next();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long getNumberOfAccessZones() {
+    return accessZones.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public Double getLength(Zone accessZone) {
+    if (!hasAccessZone(accessZone)) {
+      LOGGER.warning(String.format("unknown access zone %s for connectoid %s", accessZone.getXmlId(), getXmlId()));
+      return null;
+    }
+    return accessZones.get(accessZone.getId()).length;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Zone addAccessZone(Zone accessZone) {
+    AccessZoneProperties duplicate = accessZones.put(accessZone.getId(), new AccessZoneProperties(accessZone));
+    return duplicate != null ? duplicate.accessZone : null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isModeAllowed(Zone accessZone, Mode mode) throws PlanItException {
+    if (!hasAccessZone(accessZone)) {
+      LOGGER.warning(String.format("unknown access zone %s for connectoid %s", accessZone.getXmlId(), getXmlId()));
+      return false;
+    }
+    Map<Long, Mode> allowedModes = accessZones.get(accessZone.getId()).allowedModes;
+    /* when allowed modes are null --> all modes are allowed, otherwise, only explicitly allowed modes */
+    return allowedModes != null ? allowedModes.containsKey(mode.getId()) : true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean hasAccessZone(Zone accessZone) {
+    if (accessZone == null) {
+      return false;
+    }
+    return accessZones.containsKey(accessZone.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setLength(Zone accessZone, double length) {
+    if (hasAccessZone(accessZone)) {
+      accessZones.get(accessZone.getId()).length = length;
+    } else {
+      LOGGER.warning(String.format("unknown access zone %s for connectoid %s", accessZone.getXmlId(), getXmlId()));
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addAllowedMode(Zone accessZone, Mode... allowedModes) {
+    if (hasAccessZone(accessZone)) {
+      final AccessZoneProperties accessZoneProperties = accessZones.get(accessZone.getId());
+      Arrays.asList(allowedModes).forEach(allowedMode -> accessZoneProperties.addAllowedMode(allowedMode));
+    } else {
+      LOGGER.warning(String.format("unknown access zone %s for connectoid %s", accessZone.getXmlId(), getXmlId()));
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Iterator<Zone> iterator() {
+    Iterator<Zone> it = new Iterator<Zone>() {
+
+      private Iterator<AccessZoneProperties> iterator = accessZones.values().iterator();
+
+      @Override
+      public boolean hasNext() {
+        return iterator.hasNext();
+      }
+
+      @Override
+      public Zone next() {
+        return iterator.next().accessZone;
+      }
+
+      @Override
+      public void remove() {
+        throw new UnsupportedOperationException();
+      }
+    };
+    return it;
+  }
+
 }

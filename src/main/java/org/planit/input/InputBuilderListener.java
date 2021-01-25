@@ -17,6 +17,7 @@ import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.Zone;
 
 /**
@@ -36,12 +37,12 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   private static final long serialVersionUID = 4223028100274802893L;
 
   /**
-   * Map which stores which source node Ids corresponding to Nodes (can be native xml id, or some external thrid party source id)
+   * Map which stores which xml node Ids corresponding to Nodes (can be native xml id, or some external thrid party source id)
    */
   protected Map<String, Node> sourceIdNodeMap;
 
   /**
-   * Map which stores link segments by source Id
+   * Map which stores link segments by xml Id
    */
   protected Map<String, MacroscopicLinkSegment> sourceIdLinkSegmentMap;
 
@@ -51,41 +52,45 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   protected Map<String, MacroscopicLinkSegmentType> sourceIdLinkSegmentTypeMap;
 
   /**
-   * Map which stores Mode source Ids corresponding to Modes
+   * Map which stores Mode xml Ids corresponding to Modes
    */
   protected Map<String, Mode> sourceIdModeMap;
 
   /**
-   * Map which stores traveler type by source Id
+   * Map which stores traveler type by xml Id
    */
   protected Map<String, TravelerType> sourceIdTravelerTypeMap;
 
   /**
-   * Map which stores user class by source Id
+   * Map which stores user class by xml Id
    */
   protected Map<String, UserClass> sourceIdUserClassMap;
 
   /**
-   * Map which stores time periods by source Id
+   * Map which stores time periods by xml Id
    */
   protected Map<String, TimePeriod> sourceIdTimePeriodMap;
 
   /**
-   * Map which stores zones by source Id
+   * Map which stores zones by xml Id
    */
   protected Map<String, Zone> sourceIdZoneMap;
 
   /**
+   * Map to stores connectoids by xml Id
+   */
+  protected Map<String, Connectoid> sourceIdConnectoidMap;
+
+  /**
    * Stores an object by its source Id, after checking whether the external Id is a duplicate
    * 
-   * @param <T>        type of object being stored
-   * @param sourceId   sourceId of object being stored
-   * @param obj        object being stored
-   * @param map        Map to store the object
-   * @param objectName name of the object class
+   * @param <T>      type of object being stored
+   * @param sourceId sourceId of object being stored
+   * @param obj      object being stored
+   * @param map      Map to store the object
    * @return true if this entry is duplicate use of an xml id, false otherwise
    */
-  private <T> boolean addObjectToSourceIdMap(String sourceId, T obj, Map<String, T> map, String objectName) {
+  private <T> boolean addObjectToSourceIdMap(String sourceId, T obj, Map<String, T> map) {
     boolean containsDuplicates = map.containsKey(sourceId);
     map.put(sourceId, obj);
     return containsDuplicates;
@@ -101,7 +106,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return true if this use of externalId is a duplicate, false otherwise
    */
   protected boolean addNodeToSourceIdMap(String sourceId, Node node) {
-    return addObjectToSourceIdMap(sourceId, node, sourceIdNodeMap, "node");
+    return addObjectToSourceIdMap(sourceId, node, sourceIdNodeMap);
   }
 
   /**
@@ -112,7 +117,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
   protected boolean addModeToSourceIdMap(String sourceId, Mode mode) {
-    return addObjectToSourceIdMap(sourceId, mode, sourceIdModeMap, "mode");
+    return addObjectToSourceIdMap(sourceId, mode, sourceIdModeMap);
   }
 
   /**
@@ -123,7 +128,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
   protected boolean addTravelerTypeToSourceIdMap(String sourceId, TravelerType travelerType) {
-    return addObjectToSourceIdMap(sourceId, travelerType, sourceIdTravelerTypeMap, "traveller type");
+    return addObjectToSourceIdMap(sourceId, travelerType, sourceIdTravelerTypeMap);
   }
 
   /**
@@ -134,7 +139,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
   protected boolean addUserClassToSourceIdMap(String sourceId, UserClass userClass) {
-    return addObjectToSourceIdMap(sourceId, userClass, sourceIdUserClassMap, "user class");
+    return addObjectToSourceIdMap(sourceId, userClass, sourceIdUserClassMap);
   }
 
   /**
@@ -145,7 +150,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
   protected boolean addTimePeriodToSourceIdMap(String sourceId, TimePeriod timePeriod) {
-    return addObjectToSourceIdMap(sourceId, timePeriod, sourceIdTimePeriodMap, "time period");
+    return addObjectToSourceIdMap(sourceId, timePeriod, sourceIdTimePeriodMap);
   }
 
   /**
@@ -156,7 +161,18 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
   protected boolean addZoneToSourceIdMap(String sourceId, Zone zone) {
-    return addObjectToSourceIdMap(sourceId, zone, sourceIdZoneMap, "zone");
+    return addObjectToSourceIdMap(sourceId, zone, sourceIdZoneMap);
+  }
+
+  /**
+   * Stores a zone by its sourceId
+   * 
+   * @param sourceId sourceId of zone
+   * @param zone     zone to be stored
+   * @return true if this use of sourceId is a duplicate, false otherwise
+   */
+  protected boolean addConnectoidToSourceIdMap(String sourceId, Connectoid connectoid) {
+    return addObjectToSourceIdMap(sourceId, connectoid, sourceIdConnectoidMap);
   }
 
   /**
@@ -167,7 +183,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return true if this use of externalId is a duplicate, false otherwise
    */
   protected boolean addLinkSegmentToSourceIdMap(String sourceId, MacroscopicLinkSegment linkSegment) {
-    return addObjectToSourceIdMap(sourceId, linkSegment, sourceIdLinkSegmentMap, "link segment");
+    return addObjectToSourceIdMap(sourceId, linkSegment, sourceIdLinkSegmentMap);
   }
 
   /** default setting */
@@ -185,6 +201,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
     sourceIdTimePeriodMap = new HashMap<String, TimePeriod>();
     sourceIdZoneMap = new HashMap<String, Zone>();
     sourceIdLinkSegmentMap = new HashMap<String, MacroscopicLinkSegment>();
+    sourceIdConnectoidMap = new HashMap<String, Connectoid>();
   }
 
   /**
@@ -244,7 +261,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
   protected boolean addLinkSegmentTypeToSourceIdMap(String sourceId, MacroscopicLinkSegmentType macroscopicLinkSegmentType) {
-    return addObjectToSourceIdMap(sourceId, macroscopicLinkSegmentType, sourceIdLinkSegmentTypeMap, "link segment type");
+    return addObjectToSourceIdMap(sourceId, macroscopicLinkSegmentType, sourceIdLinkSegmentTypeMap);
   }
 
   /**
@@ -302,6 +319,16 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @return the zone corresponding to this sourceId
    */
   public Zone getZoneBySourceId(String sourceId) {
+    return sourceIdZoneMap.get(sourceId);
+  }
+
+  /**
+   * Returns the connectiod for a specified sourceId
+   * 
+   * @param sourceId the sourceId
+   * @return the connectoid corresponding to this sourceId
+   */
+  public Zone getConnectoidBySourceId(String sourceId) {
     return sourceIdZoneMap.get(sourceId);
   }
 
