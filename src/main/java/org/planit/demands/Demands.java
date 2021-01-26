@@ -192,7 +192,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * 
      * @return number of user classes
      */
-    public int getNumberOfUserClasses() {
+    public int size() {
       return userClassMap.size();
     }
 
@@ -202,7 +202,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @param id id of the user class
      * @return retrieved user class
      */
-    public UserClass getUserClassById(final long id) {
+    public UserClass get(final long id) {
       return userClassMap.get(id);
     }
 
@@ -212,7 +212,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @return first registered user class
      */
     public UserClass getFirst() {
-      return getUserClassById(0);
+      return get(0);
     }
 
     /**

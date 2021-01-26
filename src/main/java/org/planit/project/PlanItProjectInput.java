@@ -446,7 +446,7 @@ public class PlanItProjectInput {
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createDemandsPrefix(demands.getId());
     LOGGER.info(String.format("%s#time periods: %d", prefix, demands.timePeriods.getNumberOfTimePeriods()));
     LOGGER.info(String.format("%s#traveler types: %d", prefix, demands.travelerTypes.getNumberOfTravelerTypes()));    
-    LOGGER.info(String.format("%s#user classes: %d", prefix, demands.userClasses.getNumberOfUserClasses()));
+    LOGGER.info(String.format("%s#user classes: %d", prefix, demands.userClasses.size()));
 
     demandsMap.put(demands.getId(), demands);
     return demands;

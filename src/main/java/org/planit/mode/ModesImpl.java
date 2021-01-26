@@ -83,7 +83,7 @@ public class ModesImpl implements Modes {
       theMode = ModeFactory.createPredefinedMode(groupId, modeType);
       register(theMode);
     } else {
-      theMode = getPredefinedMode(modeType);
+      theMode = get(modeType);
     }
     return theMode;
   }
@@ -116,7 +116,7 @@ public class ModesImpl implements Modes {
    * {@inheritDoc}
    */
   @Override
-  public PredefinedMode getPredefinedMode(PredefinedModeType modeType) {
+  public PredefinedMode get(PredefinedModeType modeType) {
     return (PredefinedMode) modeMap.values().stream().dropWhile(mode -> !((mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()))).findFirst().get();
   }
 

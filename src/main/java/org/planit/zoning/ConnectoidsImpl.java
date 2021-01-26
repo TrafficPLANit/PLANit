@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.Connectoids;
@@ -87,8 +87,8 @@ public class ConnectoidsImpl implements Connectoids {
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(EdgeSegment accessEdgeSegment, Zone parentZone, double length) throws PlanItException {
-    DirectedConnectoid newConnectoid = new DirectedConnectoidImpl(idToken, accessEdgeSegment, parentZone, length);
+  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment, Zone parentZone, double length) throws PlanItException {
+    DirectedConnectoid newConnectoid = new DirectedConnectoidImpl(idToken, accessLinkSegment, parentZone, length);
     register(newConnectoid);
     return newConnectoid;
   }
@@ -97,16 +97,16 @@ public class ConnectoidsImpl implements Connectoids {
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(EdgeSegment accessEdgeSegment, Zone parentZone) throws PlanItException {
-    return registerNew(accessEdgeSegment, parentZone, Connectoid.DEFAULT_LENGTH_KM);
+  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment, Zone parentZone) throws PlanItException {
+    return registerNew(accessLinkSegment, parentZone, Connectoid.DEFAULT_LENGTH_KM);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(EdgeSegment accessEdgeSegment) throws PlanItException {
-    DirectedConnectoid newConnectoid = new DirectedConnectoidImpl(idToken, accessEdgeSegment);
+  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment) throws PlanItException {
+    DirectedConnectoid newConnectoid = new DirectedConnectoidImpl(idToken, accessLinkSegment);
     register(newConnectoid);
     return newConnectoid;
   }

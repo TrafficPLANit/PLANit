@@ -3,8 +3,8 @@ package org.planit.zoning;
 import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.zoning.DirectedConnectoid;
 import org.planit.utils.zoning.Zone;
 
@@ -28,14 +28,17 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
   /**
    * the access point to an infrastructure layer
    */
-  protected EdgeSegment accessEdgeSegment;
+  protected LinkSegment accessEdgeSegment;
+
+  /** the node access given an access edge segment is either up or downstream */
+  protected boolean nodeAccessDownstream = DEFAULT_NODE_ACCESS_DOWNSTREAM;
 
   /**
    * Set the accessEdgeSegment
    * 
    * @param accessEdgeSegment to use
    */
-  protected void setAccessEdgeSegment(EdgeSegment accessEdgeSegment) {
+  protected void setAccessLinkSegment(LinkSegment accessEdgeSegment) {
     this.accessEdgeSegment = accessEdgeSegment;
   }
 
@@ -43,14 +46,14 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    * Constructor
    *
    * @param idToken           contiguous id generation within this group for instances of this class
-   * @param accessEdgeSegment the edge segment in the network (layer) the connectoid connects with (possibly via its downstream node)
+   * @param accessLinkSegment the link segment in the network (layer) the connectoid connects with (possibly via its downstream node)
    * @param accessZone        for the connectoid
    * @param length            for the connection (not of the edge segment, but to access the zone)
    * @throws PlanItException thrown if there is an error
    */
-  protected DirectedConnectoidImpl(final IdGroupingToken idToken, final EdgeSegment accessEdgeSegment, Zone accessZone, double length) {
+  protected DirectedConnectoidImpl(final IdGroupingToken idToken, final LinkSegment accessLinkSegment, final Zone accessZone, double length) {
     super(idToken, accessZone, length);
-    setAccessEdgeSegment(accessEdgeSegment);
+    setAccessLinkSegment(accessLinkSegment);
   }
 
   /**
@@ -60,9 +63,9 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    * @param accessEdgeSegment the edge segment in the network (layer) the connectoid connects with (possibly via its downstream node)
    * @throws PlanItException thrown if there is an error
    */
-  public DirectedConnectoidImpl(IdGroupingToken idToken, EdgeSegment accessEdgeSegment) {
+  public DirectedConnectoidImpl(final IdGroupingToken idToken, final LinkSegment accessEdgeSegment) {
     super(idToken);
-    setAccessEdgeSegment(accessEdgeSegment);
+    setAccessLinkSegment(accessEdgeSegment);
   }
 
   /**
@@ -70,9 +73,9 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    * 
    * @param DirectedConnectoidImpl to copy
    */
-  protected DirectedConnectoidImpl(DirectedConnectoidImpl connectoidImpl) {
+  protected DirectedConnectoidImpl(final DirectedConnectoidImpl connectoidImpl) {
     super(connectoidImpl);
-    setAccessEdgeSegment(connectoidImpl.getAccessEdgeSegment());
+    setAccessLinkSegment(connectoidImpl.getAccessLinkSegment());
   }
 
   // Public
@@ -83,8 +86,24 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment getAccessEdgeSegment() {
+  public LinkSegment getAccessLinkSegment() {
     return accessEdgeSegment;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isNodeAccessDownstream() {
+    return nodeAccessDownstream;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setNodeAccessDownstream(boolean nodeAccessDownstream) {
+    this.nodeAccessDownstream = nodeAccessDownstream;
   }
 
 }

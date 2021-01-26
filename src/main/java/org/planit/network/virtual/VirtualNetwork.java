@@ -68,7 +68,7 @@ public class VirtualNetwork extends Network {
         if (connectoid instanceof UndirectedConnectoid) {
           accessNode = UndirectedConnectoid.class.cast(connectoid).getAccessNode();
         } else if (connectoid instanceof DirectedConnectoid) {
-          EdgeSegment accessEdgeSegment = DirectedConnectoid.class.cast(connectoid).getAccessEdgeSegment();
+          EdgeSegment accessEdgeSegment = DirectedConnectoid.class.cast(connectoid).getAccessLinkSegment();
           accessNode = (Node) (accessEdgeSegment != null ? accessEdgeSegment.getDownstreamVertex() : null);
         } else {
           throw new PlanItException(String.format("connectoid %s is of unrecognised type and access node could not be retrieved", connectoid.getXmlId()));
