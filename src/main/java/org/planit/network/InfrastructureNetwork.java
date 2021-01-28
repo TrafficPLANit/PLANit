@@ -1,7 +1,9 @@
 package org.planit.network;
 
+import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.HashedMap;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.geo.PlanitJtsUtils;
@@ -39,7 +41,7 @@ public class InfrastructureNetwork extends Network {
 
   /** the coordinate reference system used for all layers in this network */
   private CoordinateReferenceSystem coordinateReferenceSystem;
-
+  
   /**
    * Default constructor
    * 
@@ -110,5 +112,32 @@ public class InfrastructureNetwork extends Network {
   public InfrastructureLayer getInfrastructureLayerByMode(Mode mode) {
     return infrastructureLayers.get(mode);
   }
+  
+  /**
+   * Tries to intialise and create/register infrastructure layers via a predefined configuration rather than letting the user
+   * do this manually via the infrastructure layers container. Only possible when the network is still empty and no layers
+   * are yet active
+   * 
+   * @param planitInfrastructureLayerConfiguration to use for configuration
+   */
+  public void initialiseInfrastructureLayers(InfrastructureLayersConfigurator planitInfrastructureLayerConfiguration) {
+    if(!infrastructureLayers.isNoLayers()) {
+      LOGGER.warning("unable to initialise infrastructure layers based on provided configuration, since network already has layers defined");
+      return;
+    }
+    
+    /* register layers */
+    Map<String,Long> xmlIdToId = new HashedMap<String,Long>();
+    for(String layerXmlId : planitInfrastructureLayerConfiguration.infrastructureLayersByXmlId) {
+      InfrastructureLayer newLayer = infrastructureLayers.createNew();
+      newLayer.setXmlId(layerXmlId);
+      xmlIdToId.put(layerXmlId,newLayer.getId());
+    }
+    
+    /* register modes */
+    planitInfrastructureLayerConfiguration.modeToLayerXmlId.forEach( 
+        (mode,layerXmlId) -> infrastructureLayers.get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
+     
+  }    
 
 }

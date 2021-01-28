@@ -73,6 +73,8 @@ public class TamperNodeModelTest {
           new TampereNodeModel(
               new TampereNodeModelInput(
                   new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingflows));
+      
+      
       Array1D<Double> inLinkFlowAcceptanceFactors = tampereNodeModel.run();
       assertEquals(inLinkFlowAcceptanceFactors.get(0), 1.0, Precision.EPSILON_6);
       assertEquals(inLinkFlowAcceptanceFactors.get(1), 0.68483412, Precision.EPSILON_6);

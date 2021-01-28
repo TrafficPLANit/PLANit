@@ -24,7 +24,7 @@ public class Network extends TrafficAssignmentComponent<Network> implements Seri
 
   /** shorthand for creating a macroscopic infrastructure network */
   public static final String MACROSCOPIC_NETWORK = MacroscopicNetwork.class.getCanonicalName();
-
+  
   /**
    * Constructor
    * 
