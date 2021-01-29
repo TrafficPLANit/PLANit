@@ -184,18 +184,6 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * Compare vertices by their id
-   *
-   * @param o Vertex object to be compared to this one
-   * @return result of comparison
-   * @see java.lang.Comparable#compareTo(java.lang.Object)
-   */
-  @Override
-  public int compareTo(final Vertex o) {
-    return Long.valueOf(id).compareTo(o.getId());
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override

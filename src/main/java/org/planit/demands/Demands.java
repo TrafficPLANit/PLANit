@@ -322,7 +322,8 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @return Set of all registered time periods
      */
     public SortedSet<TimePeriod> asSortedSetByStartTime() {
-      SortedSet<TimePeriod> timePeriodSet = new TreeSet<TimePeriod>(timePeriodMap.values());
+      SortedSet<TimePeriod> timePeriodSet = new TreeSet<TimePeriod>(TimePeriod.comparatorByStartTime());
+      timePeriodSet.addAll(timePeriodMap.values());
       return timePeriodSet;
     }
 

@@ -1,5 +1,6 @@
 package org.planit.time;
 
+import java.util.Comparator;
 import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
@@ -13,7 +14,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class TimePeriod implements Comparable<TimePeriod>, ExternalIdable {
+public class TimePeriod implements ExternalIdable {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(TimePeriod.class.getCanonicalName());
@@ -47,6 +48,24 @@ public class TimePeriod implements Comparable<TimePeriod>, ExternalIdable {
    * Description of this time period
    */
   private final String description;
+  
+  /** custom comparator not by id but based on the start time and when equal duration
+   * 
+   * @return comparator by start time
+   */
+  public static Comparator<TimePeriod> comparatorByStartTime(){
+    Comparator<TimePeriod> sortOnStartTime = new Comparator<TimePeriod>() {
+      @Override
+      public int compare(TimePeriod o1, TimePeriod o2) {
+        long startTimeDiff = o1.getStartTimeSeconds() - o2.getStartTimeSeconds();
+        if (startTimeDiff != 0) {
+          return (int) startTimeDiff;
+        } else {
+          return (int) (o1.getDurationSeconds() - o2.getDurationSeconds());
+        }
+      }};
+      return sortOnStartTime;
+  }
 
   /**
    * Constructor
@@ -203,25 +222,22 @@ public class TimePeriod implements Comparable<TimePeriod>, ExternalIdable {
   public void setXmlId(String xmlId) {
     this.xmlId = xmlId;
   }
+  
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public int hashCode() {
+    return idHashCode();
+  }
 
   /**
-   * Compare this object with another TimePeriod object
-   * 
-   * Comparison is based on start time and duration
-   * 
-   * @param o TimePeriod this object is being compared to
-   * @return result of comparison
-   * @see java.lang.Comparable#compareTo(java.lang.Object)
-   */
+   * {@inheritDoc}
+   */    
   @Override
-  public int compareTo(TimePeriod o) {
-    long startTimeDiff = getStartTimeSeconds() - ((TimePeriod) o).getStartTimeSeconds();
-    if (startTimeDiff != 0) {
-      return (int) startTimeDiff;
-    } else {
-      return (int) (getDurationSeconds() - ((TimePeriod) o).getDurationSeconds());
-    }
-  }
+  public boolean equals(Object o) {
+    return idEquals(o);
+  }    
 
   /**
    * Output this object as a String

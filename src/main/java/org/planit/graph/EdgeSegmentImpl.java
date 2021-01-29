@@ -111,6 +111,22 @@ public class EdgeSegmentImpl implements EdgeSegment {
   }
 
   // Public
+  
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public int hashCode() {
+    return idHashCode();
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public boolean equals(Object obj) {
+    return idEquals(obj);
+  }  
 
   /**
    * {@inheritDoc}
@@ -201,16 +217,6 @@ public class EdgeSegmentImpl implements EdgeSegment {
   @Override
   public void removeParentEdge() {
     this.parentEdge = null;
-  }
-
-  /**
-   * compare based on edge segment id
-   *
-   * @see java.lang.Comparable#compareTo(java.lang.Object)
-   */
-  @Override
-  public int compareTo(final EdgeSegment o) {
-    return (int) (id - o.getId());
   }
 
   /**
@@ -314,4 +320,5 @@ public class EdgeSegmentImpl implements EdgeSegment {
   public void setXmlId(String xmlId) {
     this.xmlId = xmlId;
   }
+    
 }

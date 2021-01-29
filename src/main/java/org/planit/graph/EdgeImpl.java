@@ -142,9 +142,25 @@ public class EdgeImpl implements Edge, Cloneable {
     setLengthKm(edgeImpl.getLengthKm());
     setName(getName() != null ? edgeImpl.getName() : "");
     inputProperties = null; // not copied, shallow copy of objects is dangerous
-  }
+  }   
 
   // Public
+  
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public int hashCode() {
+    return idHashCode();
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public boolean equals(Object obj) {
+    return idEquals(obj);
+  }  
 
   /**
    * {@inheritDoc}
@@ -312,14 +328,6 @@ public class EdgeImpl implements Edge, Cloneable {
   @Override
   public void setName(final String name) {
     this.name = name;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int compareTo(final Edge other) {
-    return Long.valueOf(id).compareTo(other.getId());
   }
 
   /**

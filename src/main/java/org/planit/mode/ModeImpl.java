@@ -159,16 +159,6 @@ public class ModeImpl implements Mode {
   }
 
   /**
-   * Compare based on id
-   * 
-   * @see java.lang.Comparable#compareTo(java.lang.Object)
-   */
-  @Override
-  public int compareTo(Mode o) {
-    return Long.compare(this.getId(), o.getId());
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -183,5 +173,21 @@ public class ModeImpl implements Mode {
   public final UsabilityModeFeatures getUseFeatures() {
     return usedToFeatures;
   }
+  
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public int hashCode() {
+    return idHashCode();
+  }
+
+  /**
+   * {@inheritDoc}
+   */    
+  @Override
+  public boolean equals(Object o) {
+    return idEquals(o);
+  }  
 
 }

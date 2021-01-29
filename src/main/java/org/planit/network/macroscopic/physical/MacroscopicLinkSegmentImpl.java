@@ -57,6 +57,22 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
     super(macroscopicLinkSegmentImpl);
     setLinkSegmentType(macroscopicLinkSegmentImpl.getLinkSegmentType());
   }
+  
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public int hashCode() {
+    return idHashCode();
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public boolean equals(Object obj) {
+    return idEquals(obj);
+  }    
 
   /**
    * Return the total capacity

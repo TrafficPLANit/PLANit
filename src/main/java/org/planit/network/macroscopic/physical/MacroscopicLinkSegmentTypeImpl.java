@@ -126,6 +126,22 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
     this.modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
     other.modeProperties.forEach((mode, properties) -> modeProperties.put(mode, properties.clone()));
   }
+  
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public int hashCode() {
+    return idHashCode();
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public boolean equals(Object obj) {
+    return idEquals(obj);
+  }  
 
   // Getters - Setters
 
@@ -245,14 +261,6 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   @Override
   public Set<Mode> getAvailableModes() {
     return modeProperties.keySet();
-  }
-
-  /**
-   * Compare link segment types based on their id alone, which is assumed to be unique
-   */
-  @Override
-  public int compareTo(MacroscopicLinkSegmentType other) {
-    return Long.valueOf(id).compareTo(other.getId());
   }
 
   /**

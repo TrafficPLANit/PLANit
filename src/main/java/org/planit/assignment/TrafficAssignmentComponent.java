@@ -47,6 +47,22 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
     this.tokenId = tokenId;
     this.id = IdGenerator.generateId(tokenId, classType);
   }
+  
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public int hashCode() {
+    return idHashCode();
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public boolean equals(Object obj) {
+    return idEquals(obj);
+  }  
 
   // Public
 
