@@ -1,6 +1,9 @@
 package org.planit.network.macroscopic.physical;
 
+import java.util.Collection;
+
 import org.planit.utils.mode.Mode;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 
 /**
@@ -35,6 +38,35 @@ public class MacroscopicModePropertiesFactory {
    */
   public static MacroscopicModeProperties create() {
     return create(Mode.GLOBAL_DEFAULT_MAXIMUM_SPEED_KMH, MacroscopicModeProperties.DEFAULT_CRITICAL_SPEED_KMH);
+  }
+
+  /**
+   * add mode properties for the passed in modes to the passed in link segment type where we cap the max and critical speed based on the minimum of the mode's maximum speed and the
+   * osmway type's maximum speed
+   * 
+   * @param linkSegmentType    to populate for
+   * @param modesToAdd         to add
+   * @param osmWayTypeMaxSpeed maxSpeed to set
+   */
+  public static void createOnLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType, final Collection<Mode> modesToAdd, final double maxSpeedKmH) {
+    /* apply the way type's maximum speed to all modes, but for clarity already cap it to the mode's max speed if needed */
+    for (Mode planitMode : modesToAdd) {
+      createOnLinkSegmentType(linkSegmentType, planitMode, maxSpeedKmH);
+    }
+  }
+
+  /**
+   * add mode properties for the passed in modes to the passed in link segment type where we cap the max and critical speed based on the minimum of the mode's maximum speed and the
+   * osmway type's maximum speed
+   * 
+   * @param linkSegmentType    to populate for
+   * @param modeToAdd          to add
+   * @param osmWayTypeMaxSpeed maxSpeed to set
+   */
+  public static void createOnLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType, final Mode modeToAdd, final double maxSpeedKmH) {
+    /* apply the way type's maximum speed to all modes, but for clarity already cap it to the mode's max speed if needed */
+    double cappedMaxSpeed = Math.min(maxSpeedKmH, modeToAdd.getMaximumSpeedKmH());
+    linkSegmentType.addModeProperties(modeToAdd, create(cappedMaxSpeed, cappedMaxSpeed));
   }
 
 }
