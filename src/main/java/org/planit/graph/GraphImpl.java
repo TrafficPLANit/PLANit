@@ -188,10 +188,10 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
       }
       final LongAdder totalCount = new LongAdder();
       removedDanglingNetworksBySize.forEach((size, count) -> {
-        LOGGER.info(String.format("sub graph size %d - %d removed", size, count.longValue()));
+        LOGGER.fine(String.format("sub graph size %d - %d removed", size, count.longValue()));
         totalCount.add(count.longValue());
       });
-      LOGGER.info(String.format("removed %d dangling sub graphs", totalCount.longValue()));
+      LOGGER.fine(String.format("removed %d dangling sub graphs", totalCount.longValue()));
     } else {
       LOGGER.warning("no networks identified, unable to remove dangling subnetworks");
     }

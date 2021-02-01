@@ -78,13 +78,13 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * class instance containing all link specific functionality
    */
   public final Links<L> links;
-  
-  
-  /** alternative to using the links public member
+
+  /**
+   * alternative to using the links public member
    * 
    * @return the links
    */
-  public final Links<L> getLinks(){
+  public final Links<L> getLinks() {
     return links;
   }
 
@@ -92,27 +92,29 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * class instance containing all link segment specific functionality
    */
   public final LinkSegments<LS> linkSegments;
-  
-  /** alternative to using the linkSegments public member
+
+  /**
+   * alternative to using the linkSegments public member
    * 
    * @return the linkSegments
    */
-  public final LinkSegments<LS> getLinkSegments(){
+  public final LinkSegments<LS> getLinkSegments() {
     return linkSegments;
-  }  
+  }
 
   /**
    * class instance containing all nodes specific functionality
    */
   public final Nodes<N> nodes;
-  
-  /** alternative to using the nodes public member
+
+  /**
+   * alternative to using the nodes public member
    * 
    * @return the nodes
    */
-  public final Nodes<N> getNodes(){
+  public final Nodes<N> getNodes() {
     return nodes;
-  }  
+  }
 
   /**
    * Network Constructor
@@ -152,7 +154,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
       getGraph().transformGeometries(PlanitOpenGisUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
     } catch (Exception e) {
       PlanitOpenGisUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
-      throw new PlanItException(String.format("error during transformation of network %s CRS", getXmlId()), e);
+      throw new PlanItException(String.format("%s error during transformation of network %s CRS", InfrastructureLayer.createLayerLogPrefix(this), getXmlId()), e);
     }
   }
 
@@ -171,6 +173,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @throws PlanItException thrown if error
    * 
    */
+  @Override
   public void removeDanglingSubnetworks() throws PlanItException {
     removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
   }
@@ -180,22 +183,27 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * 
    * @param belowSize         remove subnetworks below the given size
    * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
-   * @param alwaysKeepLargest when true the largest of the subnetwork sis always kept, otherwise not
+   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
    * @throws PlanItException thrown if error
    */
+  @Override
   public void removeDanglingSubnetworks(Integer belowsize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
-    LOGGER.info(String.format("Removing dangling subnetworks with less than %s vertices", belowsize != Integer.MAX_VALUE ? String.valueOf(belowsize) : "infinite"));
+    LOGGER.info(String.format("%s Removing dangling subnetworks with less than %s vertices", InfrastructureLayer.createLayerLogPrefix(this),
+        belowsize != Integer.MAX_VALUE ? String.valueOf(belowsize) : "infinite"));
     if (aboveSize != Integer.MAX_VALUE) {
-      LOGGER.info(String.format("Removing dangling subnetworks with more than %s vertices", String.valueOf(aboveSize)));
+      LOGGER.info(String.format("%s Removing dangling subnetworks with more than %s vertices", InfrastructureLayer.createLayerLogPrefix(this), String.valueOf(aboveSize)));
     }
-    LOGGER.info(String.format("Original number of nodes %d, links %d, link segments %d", nodes.size(), links.size(), linkSegments.size()));
+    LOGGER.info(String.format("%s Original number of nodes %d, links %d, link segments %d", InfrastructureLayer.createLayerLogPrefix(this), nodes.size(), links.size(),
+        linkSegments.size()));
 
     if (getGraph() instanceof GraphModifier<?, ?>) {
       ((GraphModifier<?, ?>) getGraph()).removeDanglingSubGraphs(belowsize, aboveSize, alwaysKeepLargest);
     } else {
-      LOGGER.severe("Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored");
+      LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored",
+          InfrastructureLayer.createLayerLogPrefix(this)));
     }
-    LOGGER.info(String.format("remaining number of nodes %d, links %d, link segments %d", nodes.size(), links.size(), linkSegments.size()));
+    LOGGER.info(String.format("%s remaining number of nodes %d, links %d, link segments %d", InfrastructureLayer.createLayerLogPrefix(this), nodes.size(), links.size(),
+        linkSegments.size()));
   }
 
   /**
@@ -242,8 +250,8 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
           } else if (brokenLink.getNodeB().equals(nodeToBreakAt)) {
             updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesAfter(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
           } else {
-            LOGGER.warning(String.format("unable to locate node to break at (%s) for broken link %s (id:%d)", nodeToBreakAt.getPosition().toString(), brokenLink.getExternalId(),
-                brokenLink.getId()));
+            LOGGER.warning(String.format("%s unable to locate node to break at (%s) for broken link %s (id:%d)", InfrastructureLayer.createLayerLogPrefix(this),
+                nodeToBreakAt.getPosition().toString(), brokenLink.getExternalId(), brokenLink.getId()));
           }
           brokenLink.setGeometry(updatedGeometry);
           brokenLink.setLengthKm(geoUtils.getDistanceInKilometres(updatedGeometry));
@@ -251,18 +259,27 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
       }
       return affectedLinks;
     }
-    LOGGER.severe("Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored");
+    LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored",
+        InfrastructureLayer.createLayerLogPrefix(this)));
     return null;
   }
 
   /**
    * Basic validation of the network verifying if all nodes and link s are properly set and connected
    */
-  public void validate() {
-    graph.validate();
-    links.forEach(link -> link.validate());
-    linkSegments.forEach(linkSegment -> linkSegment.validate());
-    nodes.forEach(node -> node.validate());
+  @Override
+  public boolean validate() {
+    boolean isValid = graph.validate();
+    for (Link link : links) {
+      isValid = isValid && link.validate();
+    }
+    for (LinkSegment linkSegment : linkSegments) {
+      isValid = isValid && linkSegment.validate();
+    }
+    for (Node node : nodes) {
+      isValid = isValid && node.validate();
+    }
+    return isValid;
   }
 
   /**

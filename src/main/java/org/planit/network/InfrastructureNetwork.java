@@ -41,7 +41,7 @@ public class InfrastructureNetwork extends Network {
 
   /** the coordinate reference system used for all layers in this network */
   private CoordinateReferenceSystem coordinateReferenceSystem;
-  
+
   /**
    * Default constructor
    * 
@@ -112,32 +112,54 @@ public class InfrastructureNetwork extends Network {
   public InfrastructureLayer getInfrastructureLayerByMode(Mode mode) {
     return infrastructureLayers.get(mode);
   }
-  
+
   /**
-   * Tries to intialise and create/register infrastructure layers via a predefined configuration rather than letting the user
-   * do this manually via the infrastructure layers container. Only possible when the network is still empty and no layers
-   * are yet active
+   * Tries to intialise and create/register infrastructure layers via a predefined configuration rather than letting the user do this manually via the infrastructure layers
+   * container. Only possible when the network is still empty and no layers are yet active
    * 
    * @param planitInfrastructureLayerConfiguration to use for configuration
    */
   public void initialiseInfrastructureLayers(InfrastructureLayersConfigurator planitInfrastructureLayerConfiguration) {
-    if(!infrastructureLayers.isNoLayers()) {
+    if (!infrastructureLayers.isNoLayers()) {
       LOGGER.warning("unable to initialise infrastructure layers based on provided configuration, since network already has layers defined");
       return;
     }
-    
+
     /* register layers */
-    Map<String,Long> xmlIdToId = new HashedMap<String,Long>();
-    for(String layerXmlId : planitInfrastructureLayerConfiguration.infrastructureLayersByXmlId) {
+    Map<String, Long> xmlIdToId = new HashedMap<String, Long>();
+    for (String layerXmlId : planitInfrastructureLayerConfiguration.infrastructureLayersByXmlId) {
       InfrastructureLayer newLayer = infrastructureLayers.createNew();
       newLayer.setXmlId(layerXmlId);
-      xmlIdToId.put(layerXmlId,newLayer.getId());
+      xmlIdToId.put(layerXmlId, newLayer.getId());
     }
-    
+
     /* register modes */
-    planitInfrastructureLayerConfiguration.modeToLayerXmlId.forEach( 
-        (mode,layerXmlId) -> infrastructureLayers.get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
-     
-  }    
+    planitInfrastructureLayerConfiguration.modeToLayerXmlId.forEach((mode, layerXmlId) -> infrastructureLayers.get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
+
+  }
+
+  /**
+   * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the internal ids if needed
+   * 
+   * @throws PlanItException thrown if error
+   * 
+   */
+  public void removeDanglingSubnetworks() throws PlanItException {
+    removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
+  }
+
+  /**
+   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
+   * 
+   * @param belowSize         remove subnetworks below the given size
+   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
+   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
+   * @throws PlanItException thrown if error
+   */
+  public void removeDanglingSubnetworks(Integer belowsize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
+    for (InfrastructureLayer infrastructureLayer : this.infrastructureLayers) {
+      infrastructureLayer.removeDanglingSubnetworks(belowsize, aboveSize, alwaysKeepLargest);
+    }
+  }
 
 }

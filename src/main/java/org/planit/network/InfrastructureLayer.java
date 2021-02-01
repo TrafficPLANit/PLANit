@@ -17,6 +17,16 @@ import org.planit.utils.mode.Mode;
 public interface InfrastructureLayer extends ExternalIdable {
 
   /**
+   * create a string that can be used to prefix log statements for this layer to - in a unified way - identify this statement came from a particular layer
+   * 
+   * @param layer to use
+   * @return String "[layer: \<xmlID\> ]"
+   */
+  public static String createLayerLogPrefix(InfrastructureLayer layer) {
+    return String.format("[LAYER: %s ]", layer.getXmlId());
+  }
+
+  /**
    * register a mode as supported by this layer
    * 
    * @param supportedMode to support
@@ -64,6 +74,13 @@ public interface InfrastructureLayer extends ExternalIdable {
   public void logInfo(String prefix);
 
   /**
+   * validate the infrastructure of this layer
+   * 
+   * @return true when valid, false otherwise
+   */
+  public boolean validate();
+
+  /**
    * transform all underlying geometries in the layer from the given crs to the new crs
    * 
    * @param fromCoordinateReferenceSystem presumed current crs
@@ -71,5 +88,25 @@ public interface InfrastructureLayer extends ExternalIdable {
    * @thrown PlanItException thrown if error
    */
   public void transform(CoordinateReferenceSystem fromcoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException;
+
+  /**
+   * remove any dangling subnetworks from the layer if they exist and subsequently reorder the internal ids if needed
+   * 
+   * @throws PlanItException thrown if error
+   * 
+   */
+  public default void removeDanglingSubnetworks() throws PlanItException {
+    removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
+  }
+
+  /**
+   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
+   * 
+   * @param belowSize         remove subnetworks below the given size
+   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
+   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
+   * @throws PlanItException thrown if error
+   */
+  public void removeDanglingSubnetworks(Integer belowsize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException;
 
 }

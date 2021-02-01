@@ -560,4 +560,11 @@ public class PlanitJtsUtils {
     return jtsGeometryFactory.createLineString(theMultiLineString.getCoordinates());
   }
 
+  /**
+   * collect the crs used by this instance of the utils class
+   */
+  public CoordinateReferenceSystem getCoordinateReferenceSystem() {
+    return crs;
+  }
+
 }
