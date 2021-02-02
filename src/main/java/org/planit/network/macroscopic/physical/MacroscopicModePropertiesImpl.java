@@ -14,12 +14,12 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
   /**
    * Maximum speed of mode (tied to a road segment) in km/h
    */
-  protected final double maxSpeedKmH;
+  protected double maxSpeedKmH;
 
   /**
    * Maximum speed of mode (tied to a road segment) in km/h
    */
-  protected final double criticalSpeedKmH;
+  protected double criticalSpeedKmH;
 
   // Public
 
@@ -54,7 +54,7 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
   // Getter - setters
 
   /**
-   * Copy constructor 
+   * Copy constructor
    * 
    * @param other to copy
    */
@@ -83,24 +83,24 @@ public class MacroscopicModePropertiesImpl implements MacroscopicModeProperties 
    * {@inheritDoc}
    */
   @Override
-  public double setMaximumSpeedKmH(final double maxSpeed) {
-    return this.maxSpeedKmH;
+  public void setMaximumSpeedKmH(final double maxSpeedKmH) {
+    this.maxSpeedKmH = maxSpeedKmH;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public double setCriticalSpeedKmH(final double criticalSpeed) {
-    return this.criticalSpeedKmH;
+  public void setCriticalSpeedKmH(final double criticalSpeed) {
+    this.criticalSpeedKmH = criticalSpeed;
   }
-  
+
   /**
    * {@inheritDoc}
    */
-  @Override  
+  @Override
   public MacroscopicModeProperties clone() {
-    return new MacroscopicModePropertiesImpl(this);    
+    return new MacroscopicModePropertiesImpl(this);
   }
 
 }
