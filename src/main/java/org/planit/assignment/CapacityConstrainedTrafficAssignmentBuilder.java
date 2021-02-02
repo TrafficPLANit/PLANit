@@ -13,7 +13,7 @@ import org.planit.zoning.Zoning;
  * 
  * @author markr
  *
- * @param <T>
+ * @param <T> capacity constrained assignment type
  */
 public abstract class CapacityConstrainedTrafficAssignmentBuilder<T extends CapacityConstrainedAssignment> extends TrafficAssignmentBuilder<T> {
 

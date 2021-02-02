@@ -33,7 +33,7 @@ import org.planit.zoning.Zoning;
  * 
  * @author markr
  *
- * @param <T>
+ * @param <T> traffic assignment type
  */
 public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends Configurator<T> {
 
@@ -80,7 +80,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   /**
    * Set the gap function configurator for this assignment
    * 
-   * @param theGapFunction
+   * @param gapFunctionConfigurator to use
    */
   protected void setGapFunction(GapFunctionConfigurator<? extends GapFunction> gapFunctionConfigurator) {
     this.gapFunctionConfigurator = gapFunctionConfigurator;
@@ -116,7 +116,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   /**
    * Set the output manager
    * 
-   * @param outputManager
+   * @param outputManager to set
    */
   protected void setOutputManager(OutputManager outputManager) {
     registerDelayedMethodCall(SET_OUTPUT_MANAGER, outputManager);
@@ -125,7 +125,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   /**
    * Collect the registered output manager
    * 
-   * @return outputManager
+   * @return collected outputManager
    */
   protected OutputManager getOutputManager() {
     return (OutputManager) getFirstParameterOfDelayedMethodCall(SET_OUTPUT_MANAGER);

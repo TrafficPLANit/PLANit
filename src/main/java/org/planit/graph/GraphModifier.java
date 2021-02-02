@@ -34,14 +34,14 @@ public interface GraphModifier<V extends Vertex, E extends Edge> {
    * @param alwaysKeepLargest indicate if the largest of the subgraphs is always to be kept even if it does not match the criteria
    * @throws PlanItException thrown if error
    */
-  void removeDanglingSubGraphs(Integer belowsize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException;
+  void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException;
 
   /**
    * remove the subgraph identified by the passed in vertices
    * 
-   * @param subNetworkToRemove
-   * @param recreateIds        indicate if the ids of the graph entities are to be recreated, if false gaps will occur so it is expected to be handled by the user afterwards in
-   *                           this case
+   * @param subGraphToRemove the one to remove
+   * @param recreateIds      indicate if the ids of the graph entities are to be recreated, if false gaps will occur so it is expected to be handled by the user afterwards in this
+   *                         case
    */
   public void removeSubGraph(Set<? extends V> subGraphToRemove, boolean recreateIds);
 
@@ -56,12 +56,12 @@ public interface GraphModifier<V extends Vertex, E extends Edge> {
   public void removeSubGraphOf(V referenceVertex, boolean recreateIds) throws PlanItException;
 
   /**
-   * Break the passed in edges by inserting the passed in vertex in between. After completion the original edges remain as VertexA->VertexToBreakAt, and new edges are inserted for
-   * VertexToBreakAt->VertexB.
+   * Break the passed in edges by inserting the passed in vertex in between. After completion the original edges remain as (VertexA,VertexToBreakAt), and new edges are inserted for
+   * (VertexToBreakAt,VertexB).
    * 
    * @param edgesToBreak    the links to break
    * @param vertexToBreakAt the node to break at
-   * @returns affectedEdges the list of all result edges of the breaking of links by their original link id
+   * @return affectedEdges the list of all result edges of the breaking of links by their original link id
    * @throws PlanItException thrown if error
    */
   public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException;

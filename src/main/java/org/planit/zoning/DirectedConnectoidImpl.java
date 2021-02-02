@@ -2,7 +2,6 @@ package org.planit.zoning;
 
 import java.util.logging.Logger;
 
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.zoning.DirectedConnectoid;
@@ -49,7 +48,6 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    * @param accessLinkSegment the link segment in the network (layer) the connectoid connects with (possibly via its downstream node)
    * @param accessZone        for the connectoid
    * @param length            for the connection (not of the edge segment, but to access the zone)
-   * @throws PlanItException thrown if there is an error
    */
   protected DirectedConnectoidImpl(final IdGroupingToken idToken, final LinkSegment accessLinkSegment, final Zone accessZone, double length) {
     super(idToken, accessZone, length);
@@ -61,7 +59,6 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    *
    * @param idToken           contiguous id generation within this group for instances of this class
    * @param accessEdgeSegment the edge segment in the network (layer) the connectoid connects with (possibly via its downstream node)
-   * @throws PlanItException thrown if there is an error
    */
   public DirectedConnectoidImpl(final IdGroupingToken idToken, final LinkSegment accessEdgeSegment) {
     super(idToken);
@@ -71,7 +68,7 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
   /**
    * Copy constructor
    * 
-   * @param DirectedConnectoidImpl to copy
+   * @param connectoidImpl to copy
    */
   protected DirectedConnectoidImpl(final DirectedConnectoidImpl connectoidImpl) {
     super(connectoidImpl);

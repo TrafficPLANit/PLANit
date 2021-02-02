@@ -10,7 +10,7 @@ import org.planit.utils.graph.Vertices;
 
 /**
  * 
- * Vertices implementation using a graphbuilder<V> to create the vertices
+ * Vertices implementation using a graphbuilder &lt;V&gt; to create the vertices
  * 
  * @author markr
  *

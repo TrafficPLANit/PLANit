@@ -5,7 +5,7 @@ import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.Zones;
 
 /**
- * implementation of the Zones<T> interface for Od zones
+ * implementation of the Zones &lt;T&gt; interface for Od zones
  * 
  * @author markr
  *
@@ -13,7 +13,7 @@ import org.planit.utils.zoning.Zones;
 public class OdZonesImpl extends ZonesImpl<OdZone> implements Zones<OdZone> {
 
   /**
-   * constructor
+   * Constructor
    * 
    * @param tokenId to use
    */
@@ -22,7 +22,7 @@ public class OdZonesImpl extends ZonesImpl<OdZone> implements Zones<OdZone> {
   }
 
   /**
-   * {@index}
+   * {@inheritDoc}
    */
   @Override
   public OdZone registerNew() {

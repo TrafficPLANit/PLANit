@@ -5,14 +5,12 @@ package org.planit.gap;
  * 
  * @author markr
  *
- * @param <T>
  */
 public class LinkBasedRelativeGapConfigurator extends GapFunctionConfigurator<LinkBasedRelativeDualityGapFunction> {
 
   /**
    * Constructor
    * 
-   * @param instanceType to configure on
    */
   public LinkBasedRelativeGapConfigurator() {
     super(LinkBasedRelativeDualityGapFunction.class);

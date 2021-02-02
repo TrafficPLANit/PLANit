@@ -67,7 +67,6 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * @param nodeA    the first node in the link
    * @param nodeB    the second node in the link
    * @param length   the length of the link
-   * @param name     the name of the link
    * @throws PlanItException thrown if there is an error
    */
   protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length) throws PlanItException {

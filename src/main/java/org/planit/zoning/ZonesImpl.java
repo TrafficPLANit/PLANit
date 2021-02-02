@@ -9,10 +9,11 @@ import org.planit.utils.zoning.Zone;
 import org.planit.utils.zoning.Zones;
 
 /**
- * Partial implementation of the Zones<T> interface
+ * Partial implementation of the Zones &lt;T&gt; interface
  * 
  * @author markr
  *
+ * @param <Z> zone type
  */
 public abstract class ZonesImpl<Z extends Zone> implements Zones<Z> {
 
@@ -36,14 +37,14 @@ public abstract class ZonesImpl<Z extends Zone> implements Zones<Z> {
   /**
    * Constructor
    * 
-   * @param tokenId
+   * @param tokenId to use for id generation
    */
   public ZonesImpl(IdGroupingToken tokenId) {
     this.tokenId = tokenId;
   }
 
   /**
-   * {@index}
+   * {@inheritDoc}
    */
   @Override
   public Iterator<Z> iterator() {
@@ -51,7 +52,7 @@ public abstract class ZonesImpl<Z extends Zone> implements Zones<Z> {
   }
 
   /**
-   * {@index}
+   * {@inheritDoc}
    */
   @Override
   public Z register(Z zone) {
@@ -59,7 +60,7 @@ public abstract class ZonesImpl<Z extends Zone> implements Zones<Z> {
   }
 
   /**
-   * {@index}
+   * {@inheritDoc}
    */
   @Override
   public Z get(long id) {
@@ -67,7 +68,7 @@ public abstract class ZonesImpl<Z extends Zone> implements Zones<Z> {
   }
 
   /**
-   * {@index}
+   * {@inheritDoc}
    */
   @Override
   public int size() {

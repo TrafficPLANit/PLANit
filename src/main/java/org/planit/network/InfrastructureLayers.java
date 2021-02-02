@@ -15,7 +15,7 @@ public interface InfrastructureLayers extends Iterable<InfrastructureLayer> {
   /**
    * Remove
    * 
-   * @param instance to remove
+   * @param entity to remove
    * @return removed instance (if any), otherwise null
    */
   public InfrastructureLayer remove(final InfrastructureLayer entity);
@@ -71,7 +71,7 @@ public interface InfrastructureLayers extends Iterable<InfrastructureLayer> {
   /**
    * check if each layer itself is empty
    * 
-   * @return
+   * @return true when all empty false otherwise
    */
   default public boolean isEachLayerEmpty() {
     boolean eachLayerEmpty = true;

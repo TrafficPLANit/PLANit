@@ -29,7 +29,7 @@ public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder
    * the user will configure this builder via this configurator
    * 
    * @return TraditionalStaticAssignmentConfigurator instance
-   * @throws PlanItException
+   * @throws PlanItException thrown if error
    */
   @Override
   protected Configurator<TraditionalStaticAssignment> createConfigurator() throws PlanItException {

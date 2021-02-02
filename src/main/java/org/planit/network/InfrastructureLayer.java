@@ -20,7 +20,7 @@ public interface InfrastructureLayer extends ExternalIdable {
    * create a string that can be used to prefix log statements for this layer to - in a unified way - identify this statement came from a particular layer
    * 
    * @param layer to use
-   * @return String "[layer: \<xmlID\> ]"
+   * @return String "[layer: xmlID ]"
    */
   public static String createLayerLogPrefix(InfrastructureLayer layer) {
     return String.format("[LAYER: %s ]", layer.getXmlId());
@@ -85,15 +85,14 @@ public interface InfrastructureLayer extends ExternalIdable {
    * 
    * @param fromCoordinateReferenceSystem presumed current crs
    * @param toCoordinateReferenceSystem   to tranform to crs
-   * @thrown PlanItException thrown if error
+   * @throws PlanItException thrown if error
    */
-  public void transform(CoordinateReferenceSystem fromcoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException;
+  public void transform(CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException;
 
   /**
    * remove any dangling subnetworks from the layer if they exist and subsequently reorder the internal ids if needed
    * 
    * @throws PlanItException thrown if error
-   * 
    */
   public default void removeDanglingSubnetworks() throws PlanItException {
     removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
@@ -107,6 +106,6 @@ public interface InfrastructureLayer extends ExternalIdable {
    * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
    * @throws PlanItException thrown if error
    */
-  public void removeDanglingSubnetworks(Integer belowsize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException;
+  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException;
 
 }

@@ -8,12 +8,13 @@ import org.planit.utils.exceptions.PlanItException;
  * 
  * @author markr
  *
- * @param <T>
+ * @param <T> fundamental diagram type
  */
 public class FundamentalDiagramConfigurator<T extends FundamentalDiagram> extends Configurator<T> {
 
   /**
-   * Constructor 
+   * Constructor
+   * 
    * @param instanceType to configure on
    */
   public FundamentalDiagramConfigurator(Class<T> instanceType) {
@@ -23,7 +24,7 @@ public class FundamentalDiagramConfigurator<T extends FundamentalDiagram> extend
   /**
    * Needed to avoid issues with generics, although it should be obvious that T extends FundamentalDiagram
    * 
-   * @param fundamental diagram the instance to configure
+   * @param fundamentalDiagram the instance to configure
    */
   @SuppressWarnings("unchecked")
   @Override
@@ -31,5 +32,4 @@ public class FundamentalDiagramConfigurator<T extends FundamentalDiagram> extend
     super.configure((T) fundamentalDiagram);
   }
 
-  
 }

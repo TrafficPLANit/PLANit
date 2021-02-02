@@ -4,6 +4,37 @@ PlanIt Releases
 
 This project contains core code which is used by all the interface projects.
 
+## 0.2.0
+
+**enhancements**
+* rename everything related to routes to path in the memory model for consistency reasons (planit/#29)
+* rename RotueIdType to PathIdType (planitpy2j/#1)
+* results of shortest path calculations now provided in separate class ShortestPathResults (planit/#30)
+* A* shortest path algorithm implementation now available (planit/#27)
+* support for a overarching Graph interface/implementation as a basic building block for networks (planit/#31)
+* move eLTM code from separate repository to core as it is an assignment method we want to provide out-of-the-box (planit/#32)
+* add LICENSE.TXT to each repository so it is clearly licensed (planit/#33)
+* edge segments,edges, and vertices of the physical network should be connected while creating them (not when creating the final transport network) (planit/#35)
+* flows per mode map and modeData in traditionalstatictrafficassignment seem to overlap. Refactored (planit/#15)
+* refactored the configuration of all traffic assignment components using configurators (planit/#4), only network, demands, and zoning are treated differently still. This avoids user access to internals of algorithm classes.
+* traffic assignment builder delays building the traffic assignment until build is triggered (planit/#17)
+* costs using interactor no longer use convoluted event mechanism, this is simplified (planit/#36)
+* Add support for predefined modes and physical and usability features (planitxmlgenerator #2)
+* Refactor outputmanager and outputconfiguration especially on setting it up, this was not done correctly (planit/#12)     
+* add generic support for parsing/persisting networks and using PLANit as a converter between formats (planit/#37)
+* add maximum speed to mode so we have an upperbound regardless of any link(segment(types)) (planit/#39)
+* create a number of predefined default modes + add basic features to these modes (planit/#38)
+* add support for creation and transformation of coordinate reference systems on networks and its geometry (planit/#41)
+* move geometry from link to edge to be consistent with vertex and make it available at a lower level (planitutils/#2)
+* internal id is long, xml id is string, and external id is also string now, with their own base implementation class (planitxmlgenerator/#6) 
+* change default properties of output configuration to use XML_ID rather than EXTERNAL_ID (planit/#42)
+* support intermodal trips by creating an additional layer for networks where we allow for separate infrastructure networks and interactions between these networks (planit/#43)  
+* add support for custom PLANit modes in network (planit/#1) 
+
+**bug fixes**
+* max speed (without mode) on link segment was never placed in memory model, this is fixed (planit/#34)
+* setting of max speed for a particular mode via mode properties (after initial creation) was ignored bug (planit/#46) 
+
 ## 0.1.0
 
 * moved to new repository (www.github.com/trafficplanit/PLANit

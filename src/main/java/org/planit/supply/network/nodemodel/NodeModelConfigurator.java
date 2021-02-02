@@ -8,12 +8,13 @@ import org.planit.utils.exceptions.PlanItException;
  * 
  * @author markr
  *
- * @param <T>
+ * @param <T> node model type
  */
 public class NodeModelConfigurator<T extends NodeModel> extends Configurator<T> {
 
   /**
-   * Constructor 
+   * Constructor
+   * 
    * @param instanceType to configure on
    */
   public NodeModelConfigurator(Class<T> instanceType) {
@@ -31,5 +32,4 @@ public class NodeModelConfigurator<T extends NodeModel> extends Configurator<T> 
     super.configure((T) nodeModel);
   }
 
-  
 }

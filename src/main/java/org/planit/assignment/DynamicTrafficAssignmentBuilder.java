@@ -26,6 +26,7 @@ public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAs
   /**
    * create a path choice instance based on configuration
    * 
+   * @param configurator to extract path choice type from
    * @return path choice instance
    * @throws PlanItException thrown if error
    */

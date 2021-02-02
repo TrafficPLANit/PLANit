@@ -19,57 +19,56 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
 
   /** the logger */
   protected static final Logger LOGGER = Logger.getLogger(StochasticPathChoiceBuilder.class.getCanonicalName());
-  
+
   /**
-   *  create the configurator that goes with this builder
+   * create the configurator that goes with this builder
    */
   @Override
   protected Configurator<StochasticPathChoice> createConfigurator() throws PlanItException {
     return new StochasticPathChoiceConfigurator();
-  }  
-  
-  
-  /** create a physical cost instance based on configuration
+  }
+
+  /**
+   * create a logit model instance based on passed in configurator
    * 
-   * @return physical cost instance
+   * @return configurator for the path choice
    * @throws PlanItException thrown if error
-   */  
+   */
   protected LogitChoiceModel createLogitChoiceModelInstance(StochasticPathChoiceConfigurator configurator) throws PlanItException {
     TrafficAssignmentComponentFactory<LogitChoiceModel> logitChoiceModelFactory = new TrafficAssignmentComponentFactory<LogitChoiceModel>(LogitChoiceModel.class);
-    logitChoiceModelFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);    
+    logitChoiceModelFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
     return logitChoiceModelFactory.create(configurator.getLogitModel().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
-  }  
-  
+  }
+
   /**
    * call to build and configure all sub components of this builder
    * 
    * @param pathChoiceInstance the instance to build on
-   * @throws PlanItException  thrown if error
+   * @throws PlanItException thrown if error
    */
   @Override
   protected void buildSubComponents(StochasticPathChoice pathChoiceInstance) throws PlanItException {
-    StochasticPathChoiceConfigurator configurator = ((StochasticPathChoiceConfigurator)getConfigurator());
+    StochasticPathChoiceConfigurator configurator = ((StochasticPathChoiceConfigurator) getConfigurator());
 
     // build logit model
-    if(configurator.getLogitModel() != null) {
+    if (configurator.getLogitModel() != null) {
       LogitChoiceModel logitModel = createLogitChoiceModelInstance(configurator);
       configurator.getLogitModel().configure(logitModel);
       pathChoiceInstance.setLogitModel(logitModel);
-    }    
-  }  
-
+    }
+  }
 
   // PUBLIC
 
   /**
    * Constructor
    * 
-   * @param projectToken           idGrouping token
-   * @param inputBuilderListener   the input builder listener
+   * @param projectToken         idGrouping token
+   * @param inputBuilderListener the input builder listener
    * @throws PlanItException thrown if error
    */
   public StochasticPathChoiceBuilder(final IdGroupingToken projectToken, InputBuilderListener inputBuilderListener) throws PlanItException {
-    super(StochasticPathChoice.class, projectToken, inputBuilderListener);    
+    super(StochasticPathChoice.class, projectToken, inputBuilderListener);
   }
 
 }

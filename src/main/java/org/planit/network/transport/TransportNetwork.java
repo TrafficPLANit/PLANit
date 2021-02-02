@@ -82,8 +82,8 @@ public class TransportNetwork {
   /**
    * Constructor
    * 
-   * @param physicalNetwork the PhysicalNetwork used to generate this TransportNetwork
-   * @param zoning          the Zoning used to generate this TransportNetwork
+   * @param infrastructureNetwork the network used to generate this TransportNetwork
+   * @param zoning                the Zoning used to generate this TransportNetwork
    */
   public TransportNetwork(InfrastructureNetwork infrastructureNetwork, Zoning zoning) {
     this.infrastructureNetwork = infrastructureNetwork;

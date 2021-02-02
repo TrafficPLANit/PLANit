@@ -5,13 +5,12 @@ package org.planit.path.choice.logit;
  * 
  * @author markr
  *
- * @param <T>
  */
 public class MultinomialLogitConfigurator extends LogitChoiceModelConfigurator<MultinomialLogit> {
 
   /**
-   * Constructor 
-   * @param instanceType to configure on
+   * Constructor
+   * 
    */
   public MultinomialLogitConfigurator() {
     super(MultinomialLogit.class);

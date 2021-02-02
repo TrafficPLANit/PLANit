@@ -37,7 +37,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
   /**
    * set edge segment from B to A
    * 
-   * @param edgeSegmentBa
+   * @param edgeSegmentBa to set
    */
   protected void setEdgeSegmentBa(EdgeSegment edgeSegmentBa) {
     this.edgeSegmentBa = edgeSegmentBa;
@@ -46,7 +46,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
   /**
    * set edge segment from A to B
    * 
-   * @param edgeSegmentBa
+   * @param edgeSegmentAb to set
    */
   protected void setEdgeSegmentAb(EdgeSegment edgeSegmentAb) {
     this.edgeSegmentAb = edgeSegmentAb;
@@ -133,5 +133,5 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
       }
     }
   }
-  
+
 }

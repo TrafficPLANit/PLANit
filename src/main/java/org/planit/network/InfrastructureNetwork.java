@@ -4,7 +4,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.HashedMap;
-import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.geo.PlanitJtsUtils;
 import org.planit.mode.ModesImpl;
@@ -45,7 +44,7 @@ public class InfrastructureNetwork extends Network {
   /**
    * Default constructor
    * 
-   * @param tokenId
+   * @param tokenId to use for id generation
    */
   public InfrastructureNetwork(IdGroupingToken tokenId) {
     this(tokenId, PlanitJtsUtils.DEFAULT_GEOGRAPHIC_CRS);
@@ -79,7 +78,7 @@ public class InfrastructureNetwork extends Network {
   /**
    * set the coordinate reference system used for all layers
    * 
-   * @return
+   * @param coordinateReferenceSystem to set
    */
   public void setCoordinateReferenceSystem(final CoordinateReferenceSystem coordinateReferenceSystem) {
     if (infrastructureLayers.isEachLayerEmpty()) {
@@ -94,8 +93,7 @@ public class InfrastructureNetwork extends Network {
    * is set then this is identical to calling setCoordinateReferenceSystem, otherwise it will change the CRS while the set method will throw an exception
    * 
    * @param newCoordinateReferenceSystem to transform the network to
-   * @throws PlanItException
-   * @throws FactoryException
+   * @throws PlanItException thrown if error
    */
   public void transform(final CoordinateReferenceSystem newCoordinateReferenceSystem) throws PlanItException {
     for (InfrastructureLayer layer : infrastructureLayers) {
@@ -156,9 +154,9 @@ public class InfrastructureNetwork extends Network {
    * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
    * @throws PlanItException thrown if error
    */
-  public void removeDanglingSubnetworks(Integer belowsize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
+  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
     for (InfrastructureLayer infrastructureLayer : this.infrastructureLayers) {
-      infrastructureLayer.removeDanglingSubnetworks(belowsize, aboveSize, alwaysKeepLargest);
+      infrastructureLayer.removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest);
     }
   }
 

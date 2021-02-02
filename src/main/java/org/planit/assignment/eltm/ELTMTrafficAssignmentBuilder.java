@@ -30,12 +30,11 @@ public class ELTMTrafficAssignmentBuilder extends DynamicTrafficAssignmentBuilde
   /**
    * Constructor
    * 
-   * @param trafficAssignmentClass         the traffic assignment class we are building
-   * @param groupId                        the id generation group this builder is part of
-   * @param trafficComponentCreateListener the listeners registered on all traffic components this builder creates
-   * @param demands                        the demands
-   * @param zoning                         the zoning
-   * @param network                        the network
+   * @param groupId              the id generation group this builder is part of
+   * @param inputBuilderListener the listeners registered on all traffic components this builder creates
+   * @param demands              the demands
+   * @param zoning               the zoning
+   * @param network              the network
    * @throws PlanItException when triangular fundamental diagram cannot be instantiated
    */
   public ELTMTrafficAssignmentBuilder(IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands, final Zoning zoning,

@@ -8,7 +8,6 @@ import org.planit.utils.exceptions.PlanItException;
  * 
  * @author markr
  *
- * @param <T>
  */
 public class StopCriterionConfigurator extends Configurator<StopCriterion> {
 

@@ -64,7 +64,7 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl implements ConnectoidEd
   /**
    * Copy constructor
    * 
-   * @param connectoidImpl to copy
+   * @param connectoidEdgeImpl to copy
    */
   protected ConnectoidEdgeImpl(ConnectoidEdgeImpl connectoidEdgeImpl) {
     super(connectoidEdgeImpl);

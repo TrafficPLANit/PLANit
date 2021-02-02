@@ -53,9 +53,8 @@ public class TravelerType implements ExternalIdable {
   /**
    * Constructor
    * 
-   * @param groupId   contiguous id generation within this group for instances of this class
-   * @param externaId external id of this traveler type
-   * @param name      name of this traveler type
+   * @param groupId contiguous id generation within this group for instances of this class
+   * @param name    name of this traveler type
    * 
    */
   public TravelerType(final IdGroupingToken groupId, final String name) {

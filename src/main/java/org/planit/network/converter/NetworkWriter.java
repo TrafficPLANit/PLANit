@@ -14,7 +14,7 @@ public interface NetworkWriter {
   /**
    * write a network to the writer's output format.
    * 
-   * @param metwork memory model network to write
+   * @param network memory model network to write
    * @throws PlanItException thrown if error
    */
   public void write(InfrastructureNetwork network) throws PlanItException;

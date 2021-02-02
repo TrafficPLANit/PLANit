@@ -43,7 +43,7 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
   /**
    * Set connectoid segment id
    * 
-   * @param generateConnectoidSegmentId to set
+   * @param connectoidSegmentId to set
    */
   protected void setConnectoidSegmentId(long connectoidSegmentId) {
     this.connectoidSegmentId = connectoidSegmentId;
@@ -52,9 +52,9 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
   /**
    * Constructor
    *
-   * @param groupId          contiguous id generation within this group for instances of this class
-   * @param parentConnectoid parent connectoid
-   * @param directionAb      direction of travel
+   * @param groupId     contiguous id generation within this group for instances of this class
+   * @param parentEdge  parent connectoid
+   * @param directionAb direction of travel
    * @throws PlanItException thrown when error
    */
   protected ConnectoidSegmentImpl(final IdGroupingToken groupId, final ConnectoidEdge parentEdge, final boolean directionAb) throws PlanItException {

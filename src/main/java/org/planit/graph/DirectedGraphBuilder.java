@@ -28,7 +28,7 @@ public interface DirectedGraphBuilder<V extends DirectedVertex, E extends Edge, 
   /**
    * recreate the ids for all passed in edge segments
    * 
-   * @param edge segments to recreate ids for
+   * @param edgeSegments to recreate ids for
    */
   public void recreateIds(EdgeSegments<? extends ES> edgeSegments);
 

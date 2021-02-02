@@ -44,9 +44,8 @@ public class AlgorithmBEquilibration {
   /**
    * Constructor
    * 
-   * @param outputManager
-   * 
-   * @param outputManager
+   * @param assignment    to use
+   * @param outputManager to use
    */
   public AlgorithmBEquilibration(AlgorithmB assignment, OutputManager outputManager) {
     this.assignment = assignment;

@@ -56,8 +56,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   /**
    * Constructor
    * 
-   * @param groupId       contiguous id generation within this group for instances of this class
-   * @param outputManager the OutputConfiguration
+   * @param groupId contiguous id generation within this group for instances of this class
    * @throws PlanItException thrown if there is an error
    */
   public TraditionalStaticAssignmentSimulationData(final IdGroupingToken groupId) throws PlanItException {
@@ -128,8 +127,9 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   /**
    * Reset the skim matrix to all zeroes for a specified mode for all activated skim output types
    * 
-   * @param mode  the specified mode
-   * @param zones Zones object containing all the origin and destination zones
+   * @param mode                                     the specified mode
+   * @param zones                                    Zones object containing all the origin and destination zones
+   * @param originDestinationOutputTypeConfiguration configuration to use
    */
   public void resetSkimMatrix(Mode mode, Zones<?> zones, ODOutputTypeConfiguration originDestinationOutputTypeConfiguration) {
     modalSkimMatrixMap.put(mode, new HashMap<ODSkimSubOutputType, ODSkimMatrix>());

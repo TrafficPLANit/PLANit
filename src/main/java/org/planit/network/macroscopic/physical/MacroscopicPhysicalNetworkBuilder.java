@@ -35,7 +35,6 @@ public interface MacroscopicPhysicalNetworkBuilder<N extends Node, L extends Lin
    * @param name           the name of this link type
    * @param capacity       the capacity of this link type
    * @param maximumDensity the maximum density of this link type
-   * @param externalId     the external reference number of this link type
    * @return macroscopicLinkSegmentType the created link segment type
    */
   public MacroscopicLinkSegmentType createLinkSegmentType(String name, double capacity, double maximumDensity);

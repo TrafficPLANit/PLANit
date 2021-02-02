@@ -5,7 +5,7 @@ import org.planit.utils.zoning.TransferZone;
 import org.planit.utils.zoning.Zones;
 
 /**
- * implementation of the Zones<T> interface for transfer zones
+ * implementation of the Zones &lt;T&gt; interface for transfer zones
  * 
  * @author markr
  *
@@ -13,7 +13,7 @@ import org.planit.utils.zoning.Zones;
 public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Zones<TransferZone> {
 
   /**
-   * constructor
+   * Constructor
    * 
    * @param tokenId to use
    */
@@ -22,7 +22,7 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Zones<
   }
 
   /**
-   * {@index}
+   * {@inheritDoc}
    */
   @Override
   public TransferZone registerNew() {

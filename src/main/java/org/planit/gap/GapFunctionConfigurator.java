@@ -8,7 +8,7 @@ import org.planit.utils.exceptions.PlanItException;
  * 
  * @author markr
  *
- * @param <T>
+ * @param <T> gap function type
  */
 public class GapFunctionConfigurator<T extends GapFunction> extends Configurator<T> {
 

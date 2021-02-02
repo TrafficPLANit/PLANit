@@ -349,8 +349,8 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Close all resources used in this formatter
    * 
-   * @param outputTypeConfiguration OutputTypeConfiguration of the assignment
-   * @param outputAdapter           the outputAdapter
+   * @param outputConfiguration OutputConfiguration of the assignment
+   * @param outputAdapter       the outputAdapter
    * @throws PlanItException thrown if there is an error
    */
   @Override

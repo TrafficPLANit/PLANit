@@ -8,12 +8,13 @@ import org.planit.utils.exceptions.PlanItException;
  * 
  * @author markr
  *
- * @param <T>
+ * @param <T> abstract physical cost type
  */
 public class PhysicalCostConfigurator<T extends AbstractPhysicalCost> extends Configurator<T> {
 
   /**
-   * Constructor 
+   * Constructor
+   * 
    * @param instanceType to configure on
    */
   public PhysicalCostConfigurator(Class<T> instanceType) {
@@ -31,5 +32,4 @@ public class PhysicalCostConfigurator<T extends AbstractPhysicalCost> extends Co
     super.configure((T) physicalCost);
   }
 
-  
 }

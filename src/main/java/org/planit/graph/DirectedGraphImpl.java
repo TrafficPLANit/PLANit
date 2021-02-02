@@ -37,8 +37,8 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
   /**
    * DirectedGraph Constructor
    *
-   * @param groupToken     contiguous id generation within this group for instances of this class
-   * @param networkBuilder the builder to be used to create this network
+   * @param groupToken   contiguous id generation within this group for instances of this class
+   * @param graphBuilder the builder to be used to create this network
    */
   public DirectedGraphImpl(final IdGroupingToken groupToken, final DirectedGraphBuilder<V, E, ES> graphBuilder) {
     super(groupToken, graphBuilder);
@@ -89,7 +89,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
   }
 
   /**
-   * Identical to {@link GraphImpl.recreateIds()} except that now the ids of the edge segments are also recreated on top of the vertices and edges
+   * Identical to GraphImpl.recreateIds() except that now the ids of the edge segments are also recreated on top of the vertices and edges
    */
   @SuppressWarnings("unchecked")
   @Override
@@ -106,8 +106,8 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
   }
 
   /**
-   * Identical to the {@code }GraphImpl implementation except that we now also account for the edge segments present on the edge. Copies of the original edge segments are placed on
-   * vertexToBreakAt->VertexB, while the original ones are retained at VertexA->vertexToBreakAt
+   * Identical to the {@code GraphImpl} implementation except that we now also account for the edge segments present on the edge. Copies of the original edge segments are placed on
+   * (vertexToBreakAt,vertexB), while the original ones are retained at (vertexA,vertexToBreakAt)
    * 
    * @param edgesToBreak    edges to break
    * @param vertexToBreakAt the vertex to break at

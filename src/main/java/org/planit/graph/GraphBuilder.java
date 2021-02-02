@@ -27,7 +27,7 @@ public interface GraphBuilder<V extends Vertex, E extends Edge> {
    * 
    * @param vertexA the first vertex in this edge
    * @param vertexB the second vertex in this edge
-   * @param lenght  the length (in km)
+   * @param length  the length (in km)
    * @return created edge
    * @throws PlanItException thrown if there is an error
    */

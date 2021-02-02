@@ -96,13 +96,12 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
     parentEdge.registerEdgeSegment(edgeSegment, directionAB);
     register(edgeSegment);
   }
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
-  public ES registerNew(DirectedEdge parentEdge, boolean directionAb, boolean registerOnNodeAndLink)
-      throws PlanItException {
+  public ES registerNew(DirectedEdge parentEdge, boolean directionAb, boolean registerOnNodeAndLink) throws PlanItException {
     ES edgeSegment = create(parentEdge, directionAb);
     register(parentEdge, edgeSegment, directionAb);
     if (registerOnNodeAndLink) {
@@ -113,7 +112,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
       }
     }
     return edgeSegment;
-  }  
+  }
 
   /**
    * {@inheritDoc}
@@ -121,13 +120,13 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   public ES get(final long id) {
     return edgeSegmentMap.get(id);
   }
-  
+
   /**
    * Return an edge segment by its Xml id
    * 
    * Note: not an efficient implementation since it loops over all edge segments in linear time to identify the correct one, preferably use get instead whenever possible.
    * 
-   * @param xmlid the XML id of the edge segment
+   * @param xmlId the XML id of the edge segment
    * @return the specified edge segment instance
    */
   @Override
@@ -138,7 +137,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
       }
     }
     return null;
-  }   
+  }
 
   /**
    * {@inheritDoc}
@@ -156,7 +155,5 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
     register(copy);
     return copy;
   }
-
-
 
 }

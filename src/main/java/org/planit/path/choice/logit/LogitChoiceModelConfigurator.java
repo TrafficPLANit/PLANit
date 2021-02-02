@@ -8,12 +8,13 @@ import org.planit.utils.exceptions.PlanItException;
  * 
  * @author markr
  *
- * @param <T>
+ * @param <T> logit choice model type
  */
 public class LogitChoiceModelConfigurator<T extends LogitChoiceModel> extends Configurator<T> {
 
   /**
-   * Constructor 
+   * Constructor
+   * 
    * @param instanceType to configure on
    */
   public LogitChoiceModelConfigurator(Class<T> instanceType) {
@@ -23,7 +24,7 @@ public class LogitChoiceModelConfigurator<T extends LogitChoiceModel> extends Co
   /**
    * Needed to avoid issues with generics, although it should be obvious that T extends logit choice model
    * 
-   * @param logit choice model the instance to configure
+   * @param logitChoiceModel the instance to configure
    */
   @SuppressWarnings("unchecked")
   @Override

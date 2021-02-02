@@ -8,12 +8,13 @@ import org.planit.utils.exceptions.PlanItException;
  * 
  * @author markr
  *
- * @param <T>
+ * @param <T> abstract virtual cost type
  */
 public class VirtualCostConfigurator<T extends AbstractVirtualCost> extends Configurator<T> {
 
   /**
-   * Constructor 
+   * Constructor
+   * 
    * @param instanceType to configure on
    */
   public VirtualCostConfigurator(Class<T> instanceType) {
@@ -31,5 +32,4 @@ public class VirtualCostConfigurator<T extends AbstractVirtualCost> extends Conf
     super.configure((T) virtualCost);
   }
 
-  
 }

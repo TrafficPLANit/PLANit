@@ -120,7 +120,6 @@ public class OutputManager {
    * Register the OutputTypeAdapter for a given output type
    * 
    * @param outputTypeAdapter the OutputTypeAdapte to be registered
-   * @throws PlanItException thrown if error
    */
   public void registerOutputTypeAdapter(OutputTypeAdapter outputTypeAdapter) {
     if (outputAdapter == null) {

@@ -14,11 +14,10 @@ import org.planit.utils.network.physical.Links;
  * 
  * @author markr
  * 
- * @param <L>
+ * @param <L> link type
  */
 public class LinksImpl<L extends Link> implements Links<L> {
 
-  
   /**
    * The edges we use to create and register our links on
    */
@@ -31,8 +30,8 @@ public class LinksImpl<L extends Link> implements Links<L> {
    */
   public LinksImpl(final Edges<L> edges) {
     this.edges = edges;
-  }  
-  
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -43,30 +42,30 @@ public class LinksImpl<L extends Link> implements Links<L> {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public void remove(long linkId) {
     edges.remove(linkId);
   }
-  
+
   /**
    * Create new link to network identified via its id, injecting link length directly
    *
-   * @param vertexA           the first node in this link
-   * @param vertexB           the second node in this link
+   * @param vertexA         the first node in this link
+   * @param vertexB         the second node in this link
    * @param length          the length of this link
    * @param registerOnNodes choice to register new link on the nodes or not
    * @return the created link
    * @throws PlanItException thrown if there is an error
    */
-  @Override  
+  @Override
   public L registerNew(final Vertex vertexA, final Vertex vertexB, final double length, boolean registerOnNodes) throws PlanItException {
     return edges.registerNew(vertexA, vertexB, length, registerOnNodes);
-  }  
+  }
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public L registerUniqueCopyOf(L edgeToCopy) {
     return edges.registerUniqueCopyOf(edgeToCopy);
@@ -74,7 +73,7 @@ public class LinksImpl<L extends Link> implements Links<L> {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public L get(long id) {
     return edges.get(id);
@@ -82,7 +81,7 @@ public class LinksImpl<L extends Link> implements Links<L> {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public int size() {
     return edges.size();
@@ -90,7 +89,7 @@ public class LinksImpl<L extends Link> implements Links<L> {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public boolean isEmpty() {
     return edges.isEmpty();
@@ -98,12 +97,10 @@ public class LinksImpl<L extends Link> implements Links<L> {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public Iterator<L> iterator() {
     return edges.iterator();
   }
-
-
 
 }

@@ -8,12 +8,13 @@ import org.planit.utils.exceptions.PlanItException;
  * 
  * @author markr
  *
- * @param <T>
+ * @param <T> smoothing type
  */
 public class SmoothingConfigurator<T extends Smoothing> extends Configurator<T> {
 
   /**
-   * Constructor 
+   * Constructor
+   * 
    * @param instanceType to configure on
    */
   public SmoothingConfigurator(Class<T> instanceType) {
@@ -31,5 +32,4 @@ public class SmoothingConfigurator<T extends Smoothing> extends Configurator<T> 
     super.configure((T) smoothing);
   }
 
-  
 }

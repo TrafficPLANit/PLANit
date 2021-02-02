@@ -107,6 +107,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
   /**
    * create a smoothing instance based on configuration
    * 
+   * @param configurator for smoothing instance
    * @return smoothing instance
    * @throws PlanItException thrown if error
    */
@@ -118,7 +119,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
 
   /**
    * create a physical cost instance based on configuration
-   * 
+   *
+   * @param configurator for physical cost instance
    * @return physical cost instance
    * @throws PlanItException thrown if error
    */
@@ -131,6 +133,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
   /**
    * create a virtual cost instance based on configuration
    * 
+   * @param configurator for virtual cost instance
    * @return virtual cost instance
    * @throws PlanItException thrown if error
    */
@@ -143,6 +146,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
   /**
    * create a gap function instance based on configuration
    * 
+   * @param configurator  for gap function instance
+   * @param stopCriterion to use
    * @return gap function instance
    * @throws PlanItException thrown if error
    */
@@ -154,6 +159,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
   /**
    * call to build and configure all sub components of this builder
    * 
+   * @param trafficAssignmentInstance instance to build subcomponents for
    * @throws PlanItException thrown if error
    */
   protected void buildSubComponents(T trafficAssignmentInstance) throws PlanItException {
@@ -221,7 +227,6 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * Currently, there exists only a single gap function (link based relative duality gap) that is created via this factory method. It should be injected by each traffic assignment
    * method until we have multiple gap functions, in which case, it becomes an option like other components.
    * 
-   * @return the created gap function
    * @throws PlanItException thrown if error
    */
   protected void createGapFunction() throws PlanItException {
@@ -241,7 +246,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @param demands                the demands
    * @param zoning                 the zoning
    * @param network                the network
-   * @throws PlanItException
+   * @throws PlanItException thrown when error
    */
   protected TrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, final IdGroupingToken projectToken, InputBuilderListener inputBuilderListener, final Demands demands,
       final Zoning zoning, final InfrastructureNetwork network) throws PlanItException {

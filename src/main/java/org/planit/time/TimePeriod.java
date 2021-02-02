@@ -48,12 +48,13 @@ public class TimePeriod implements ExternalIdable {
    * Description of this time period
    */
   private final String description;
-  
-  /** custom comparator not by id but based on the start time and when equal duration
+
+  /**
+   * custom comparator not by id but based on the start time and when equal duration
    * 
    * @return comparator by start time
    */
-  public static Comparator<TimePeriod> comparatorByStartTime(){
+  public static Comparator<TimePeriod> comparatorByStartTime() {
     Comparator<TimePeriod> sortOnStartTime = new Comparator<TimePeriod>() {
       @Override
       public int compare(TimePeriod o1, TimePeriod o2) {
@@ -63,8 +64,9 @@ public class TimePeriod implements ExternalIdable {
         } else {
           return (int) (o1.getDurationSeconds() - o2.getDurationSeconds());
         }
-      }};
-      return sortOnStartTime;
+      }
+    };
+    return sortOnStartTime;
   }
 
   /**
@@ -88,7 +90,6 @@ public class TimePeriod implements ExternalIdable {
    * Constructor
    * 
    * @param groupId          contiguous id generation within this group for instances of this class
-   * @param externalId       externalId of this time period
    * @param description      description of this time period
    * @param startTimeSeconds start time of this time period
    * @param durationSeconds  duration of this time period
@@ -222,10 +223,10 @@ public class TimePeriod implements ExternalIdable {
   public void setXmlId(String xmlId) {
     this.xmlId = xmlId;
   }
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public int hashCode() {
     return idHashCode();
@@ -233,11 +234,11 @@ public class TimePeriod implements ExternalIdable {
 
   /**
    * {@inheritDoc}
-   */    
+   */
   @Override
   public boolean equals(Object o) {
     return idEquals(o);
-  }    
+  }
 
   /**
    * Output this object as a String

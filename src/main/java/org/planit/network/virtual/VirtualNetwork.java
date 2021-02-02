@@ -138,8 +138,8 @@ public class VirtualNetwork extends Network {
     /**
      * Create and register connectoid segment in AB direction on virtual network
      * 
-     * @param parentConnectoid the connectoid which will contain this connectoid segment
-     * @param directionAB      direction of travel
+     * @param parent      the connectoid which will contain this connectoid segment
+     * @param directionAB direction of travel
      * @return created connectoid segment
      * @throws PlanItException thrown if there is an error
      */

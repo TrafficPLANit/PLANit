@@ -12,6 +12,8 @@ import org.geotools.referencing.CRS;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.MultiLineString;
 import org.opengis.geometry.DirectPosition;
 import org.opengis.geometry.PositionFactory;
 import org.opengis.geometry.coordinate.GeometryFactory;
@@ -22,9 +24,6 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Vertex;
-
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.MultiLineString;
 
 /**
  * General geotools related utils. Uses geodetic distance when possible. In case the CRS is not based on an ellipsoid (2d plane) it will simply compute the distance between
@@ -195,7 +194,7 @@ public class PlanitOpenGisUtils {
   /**
    * Create a line string from the doubles passed in (list of doubles containing x1,y1,x2,y2,etc. coordinates
    * 
-   * @param lineStringType source
+   * @param coordinateList source
    * @return created line string
    * @throws PlanItException thrown if error
    */
@@ -238,7 +237,7 @@ public class PlanitOpenGisUtils {
    * 
    * @param positionList source
    * @return created line string
-   * @throws PlanItException
+   * @throws PlanItException thrown if error
    */
   public LineString createLineStringFromPositions(List<Position> positionList) throws PlanItException {
     return geometryFactory.createLineString(positionList);
@@ -251,7 +250,7 @@ public class PlanitOpenGisUtils {
    * @param ts    tuple separating string (which must be a a character)
    * @param cs    comma separating string (which must be a a character)
    * @return the LineString created from the String
-   * @throws PlanItException
+   * @throws PlanItException thrown if error
    */
   public LineString createLineStringFromCsvString(String value, String ts, String cs) throws PlanItException {
     if (ts.length() > 1 || cs.length() > 1) {
@@ -276,17 +275,12 @@ public class PlanitOpenGisUtils {
     return positionList;
   }
 
-  public List<Position> createJtsPositions(Coordinate[] coordinates) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
   /**
    * Compute the length of the line string by traversing all nodes and computing the segment by segment distances TODO: find out if a faster way is possible
    * 
    * @param geometry to extract length from
    * @return length in km
-   * @throws PlanItException
+   * @throws PlanItException thrown if error
    */
   public double getDistanceInKilometres(LineString geometry) throws PlanItException {
 
@@ -357,7 +351,7 @@ public class PlanitOpenGisUtils {
 
   /**
    * create a coordinate reference system instance based on String representation, e.g. "EPSG:4326" for WGS84", using the underlying geotools hsql authority factory. see also
-   * {@link https://docs.geotools.org/latest/userguide/library/referencing/crs.html} on some context on why we include the hsql dependency in the planit build to ensure that the
+   * {@code https://docs.geotools.org/latest/userguide/library/referencing/crs.html} on some context on why we include the hsql dependency in the planit build to ensure that the
    * provided crs codes here can actually be transformed into a viable CRS and why it makes sense to provide this simple wrapper method in this utility class
    * <p>
    * always make sure you lookup the CRS via this method as it ensures the logging of PLANit is not messed up by the geotools-HSQL dependency since we programmatically disallow it

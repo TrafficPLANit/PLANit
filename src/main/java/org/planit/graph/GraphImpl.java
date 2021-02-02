@@ -61,8 +61,8 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
   /**
    * helper function for subnetwork identification (deliberately NOT recursive to avoid stack overflow on large networks)
    * 
-   * @param referenceVertex    to process
-   * @param subNetworkVertices to add connected adjacent nodes to
+   * @param referenceVertex to process
+   * @return all vertices in the subnetwork connected to passed in reference vertex
    * @throws PlanItException thrown if parameters are null
    */
   @SuppressWarnings("unchecked")
@@ -99,8 +99,8 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
   /**
    * Graph Constructor
    *
-   * @param groupId        contiguous id generation within this group for instances of this class
-   * @param networkBuilder the builder to be used to create this network
+   * @param groupId      contiguous id generation within this group for instances of this class
+   * @param graphBuilder the builder to be used to create this network
    */
   public GraphImpl(final IdGroupingToken groupId, final GraphBuilder<V, E> graphBuilder) {
     this.id = IdGenerator.generateId(groupId, GraphImpl.class);
@@ -242,8 +242,6 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
 
   /**
    * {@inheritDoc}
-   * 
-   * @return
    * 
    */
   @Override

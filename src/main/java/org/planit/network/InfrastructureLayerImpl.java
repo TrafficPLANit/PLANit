@@ -31,7 +31,7 @@ public abstract class InfrastructureLayerImpl implements InfrastructureLayer {
   /**
    * generate unique node id
    *
-   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param tokenId contiguous id generation within this group for instances of this class
    * @return nodeId
    */
   protected static long generateId(final IdGroupingToken tokenId) {

@@ -24,6 +24,7 @@ import org.planit.utils.mode.UsabilityModeFeatures;
 public class ModesImpl implements Modes {
 
   @SuppressWarnings("unused")
+
   private static final Logger LOGGER = Logger.getLogger(ModesImpl.class.getCanonicalName());
   /**
    * Map to store modes by their Id
@@ -134,7 +135,7 @@ public class ModesImpl implements Modes {
    * This method is not efficient, since it loops through all the registered modes in order to find the required mode. The equivalent method in InputBuilderListener is more
    * efficient and should be used in preference to this in Java code.
    * 
-   * @param XmlId the XML Id of the specified mode
+   * @param xmlId the XML Id of the specified mode
    * @return the retrieved mode, or null if no mode was found
    */
   @Override

@@ -427,7 +427,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * Set the output manager which holds all the configuration options regarding this assignment
    * 
-   * @param outputManager
+   * @param outputManager to set
    */
   public void setOutputManager(OutputManager outputManager) {
     this.outputManager = outputManager;

@@ -14,7 +14,7 @@ public class ELTMConfigurator extends DynamicAssignmentConfigurator<ELTM> {
   /**
    * Constructor
    * 
-   * @throws PlanItException
+   * @throws PlanItException thrown when error
    */
   public ELTMConfigurator() throws PlanItException {
     super(ELTM.class);

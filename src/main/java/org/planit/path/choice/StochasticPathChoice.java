@@ -35,15 +35,15 @@ public class StochasticPathChoice extends PathChoice {
   /**
    * Constructor
    * 
-   * @param groupId                        contiguous id generation within this group for instances of this class
-   * @param trafficComponentCreateListener thelistener to fire notify of create events when we create a logit choice model
+   * @param groupId contiguous id generation within this group for instances of this class
    */
   public StochasticPathChoice(final IdGroupingToken groupId) {
     super(groupId);
   }
-  
+
   /**
-   * set the chosen logit model 
+   * set the chosen logit model
+   * 
    * @param logitChoiceModel chosen model
    */
   public void setLogitModel(LogitChoiceModel logitChoiceModel) {

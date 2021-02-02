@@ -47,6 +47,8 @@ public abstract class TrafficComponentBuilder<T> extends Builder<T> {
    * Constructor
    * 
    * @param classToBuild to have access to type of T
+   * @param groupId      to use for id generation
+   * @param inputBuilder the inputBuilder to use
    */
   protected TrafficComponentBuilder(Class<T> classToBuild, IdGroupingToken groupId, InputBuilderListener inputBuilder) {
     super(classToBuild);

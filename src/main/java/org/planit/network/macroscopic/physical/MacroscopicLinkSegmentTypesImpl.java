@@ -104,7 +104,7 @@ public class MacroscopicLinkSegmentTypesImpl implements MacroscopicLinkSegmentTy
    * 
    * This method is not efficient, since it loops through all the registered types in order to find the required entry. Use get whenever possible instead
    * 
-   * @param XmlId the XML Id of the specified MacroscopicLinkSegmentType instance
+   * @param xmlId the XML Id of the specified MacroscopicLinkSegmentType instance
    * @return the retrieved type, or null if nothing was found
    */
   @Override

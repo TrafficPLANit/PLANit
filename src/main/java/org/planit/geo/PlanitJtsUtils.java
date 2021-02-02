@@ -38,12 +38,12 @@ public class PlanitJtsUtils {
   private static final Logger LOGGER = Logger.getLogger(PlanitJtsUtils.class.getCanonicalName());
 
   /**
-   * Default Coordinate Reference System: WGS84, {@link PlanitOpenGisUtils.DEFAULT_GEOGRAPHIC_CRS}
+   * Default Coordinate Reference System: WGS84
    */
   public static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = PlanitOpenGisUtils.DEFAULT_GEOGRAPHIC_CRS;
 
   /**
-   * In absence of a geographic crs we can also use cartesian: GENERIC_2D, {@link PlanitOpenGisUtils.CARTESIANCRS}
+   * In absence of a geographic crs we can also use cartesian: GENERIC_2D
    */
   public static final CoordinateReferenceSystem CARTESIANCRS = PlanitOpenGisUtils.CARTESIANCRS;
 
@@ -122,8 +122,8 @@ public class PlanitJtsUtils {
   /**
    * Compute the distance in kilometres between two vertices assuming the positions are set and based on the same crs as registered on this class instance
    * 
-   * @param vertexA vertex with location
-   * @param vertexB vertex with location
+   * @param vertex1 vertex with location
+   * @param vertex2 vertex with location
    * @return distance in kilometres between the points
    * @throws PlanItException thrown if there is an error
    */
@@ -183,7 +183,7 @@ public class PlanitJtsUtils {
   /**
    * Create a JTS line string from the doubles passed in (list of doubles containing x1,y1,x2,y2,etc. coordinates
    * 
-   * @param lineStringType source
+   * @param coordinateList source
    * @return created line string
    * @throws PlanItException thrown if error
    */
@@ -227,7 +227,7 @@ public class PlanitJtsUtils {
    * 
    * @param coordinates source
    * @return created line string
-   * @throws PlanItException
+   * @throws PlanItException thrown if error
    */
   public static LineString createLineStringFromCoordinates(Coordinate[] coordinates) throws PlanItException {
     return jtsGeometryFactory.createLineString(coordinates);
@@ -240,7 +240,7 @@ public class PlanitJtsUtils {
    * @param ts    tuple separating string (which must be a a character)
    * @param cs    comma separating string (which must be a a character)
    * @return the LineString created from the String
-   * @throws PlanItException
+   * @throws PlanItException thrown if error
    */
   public static LineString createLineStringFromCsvString(String value, String ts, String cs) throws PlanItException {
     if (ts.length() > 1 || cs.length() > 1) {
@@ -258,7 +258,6 @@ public class PlanitJtsUtils {
    * @param cs       comma separating string to use
    * @param df       decinal formatter to format the decimals of the coordinates
    * @return the LineString created from the String
-   * @throws PlanItException
    */
   public static String createCsvStringFromLineString(LineString geometry, Character ts, Character cs, DecimalFormat df) {
     Coordinate[] coordinates = geometry.getCoordinates();
@@ -323,6 +322,7 @@ public class PlanitJtsUtils {
    * Create an array of coordinates based on a list of some type that can be interpreted as strings and converted to doubles.
    * 
    * @param posList to extract coordinates from
+   * @return coordinates array
    */
   public static Coordinate[] listTo2DCoordinates(List<?> posList) {
     int dimensions = 2;
@@ -342,7 +342,7 @@ public class PlanitJtsUtils {
    * 
    * @param geometry to extract length from
    * @return length in km
-   * @throws PlanItException
+   * @throws PlanItException thrown if error
    */
   public double getDistanceInKilometres(LineString geometry) throws PlanItException {
     Coordinate[] coordinates = geometry.getCoordinates();
@@ -404,6 +404,7 @@ public class PlanitJtsUtils {
    * 
    * @param position first location of this position in geometry is the last entry in the copied geometry
    * @param geometry linestring
+   * @return copy of the line string without indicated coordinates
    * @throws PlanItException thrown if position could not be located
    */
   public static LineString createCopyWithoutCoordinatesAfter(Point position, LineString geometry) throws PlanItException {
@@ -553,7 +554,7 @@ public class PlanitJtsUtils {
    * concatenate the passed in gemoetries (lines strings) by simply copying all the coorcinates in order and create a new line string from these points
    * 
    * @param geometries to concatenate
-   * @return created concatnated linesString
+   * @return created concatenated linesString
    */
   public static LineString concatenate(LineString... geometries) {
     MultiLineString theMultiLineString = jtsGeometryFactory.createMultiLineString(geometries);
@@ -562,6 +563,8 @@ public class PlanitJtsUtils {
 
   /**
    * collect the crs used by this instance of the utils class
+   * 
+   * @return crs used by instance
    */
   public CoordinateReferenceSystem getCoordinateReferenceSystem() {
     return crs;

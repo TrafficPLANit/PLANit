@@ -51,9 +51,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
     /**
      * constructor
      * 
-     * @param accessZone   to use
-     * @param length       to use
-     * @param allowedModes to use (can be null)
+     * @param accessZone to use
      */
     protected AccessZoneProperties(Zone accessZone) {
       this.accessZone = accessZone;
@@ -107,7 +105,6 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * Constructor
    *
    * @param idToken contiguous id generation within this group for instances of this class
-   * @throws PlanItException thrown if there is an error
    */
   protected ConnectoidImpl(IdGroupingToken idToken) {
     super(generateConnectoidId(idToken));
@@ -131,7 +128,6 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * @param idToken    contiguous id generation within this group for instances of this class
    * @param accessZone for the connectoid
    * @param length     for the connection
-   * @throws PlanItException thrown if there is an error
    */
   protected ConnectoidImpl(final IdGroupingToken idToken, Zone accessZone, double length) {
     this(idToken);

@@ -37,7 +37,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
 
   private static final int ORIGIN_DESTINATION_ID_IDENTIFICATION = 1;
   private static final int ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION = 2;
-  private static final int ORIGIN_DESTINATION_XML_ID_IDENTIFICATION = 3;  
+  private static final int ORIGIN_DESTINATION_XML_ID_IDENTIFICATION = 3;
   private static final int ORIGIN_DESTINATION_NOT_IDENTIFIED = 4;
 
   /**
@@ -58,7 +58,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     }
     if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_XML_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_XML_ID)) {
       return ORIGIN_DESTINATION_XML_ID_IDENTIFICATION;
-    }    
+    }
     if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_EXTERNAL_ID)) {
       return ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION;
     }
@@ -70,7 +70,6 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    * 
    * Define the default output properties here.
    * 
-   * @param trafficAssignment TrafficAssignment object whose results are to be reported
    * @throws PlanItException thrown if there is an error adding the default properties
    */
   public PathOutputTypeConfiguration() throws PlanItException {
@@ -108,7 +107,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
       outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_XML_ID;
       outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_XML_ID;
       valid = true;
-      break;      
+      break;
     case ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION:
       outputKeyPropertiesArray = new OutputProperty[2];
       outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_EXTERNAL_ID;
@@ -154,7 +153,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     switch (baseOutputProperty.getOutputProperty()) {
 
     case DESTINATION_ZONE_XML_ID:
-      return true;      
+      return true;
     case DESTINATION_ZONE_EXTERNAL_ID:
       return true;
     case DESTINATION_ZONE_ID:
@@ -164,7 +163,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     case MODE_EXTERNAL_ID:
       return true;
     case MODE_XML_ID:
-      return true;      
+      return true;
     case MODE_ID:
       return true;
     case PATH_STRING:
@@ -172,7 +171,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     case ORIGIN_ZONE_EXTERNAL_ID:
       return true;
     case ORIGIN_ZONE_XML_ID:
-      return true;      
+      return true;
     case ORIGIN_ZONE_ID:
       return true;
     case RUN_ID:
@@ -182,7 +181,7 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
     case TIME_PERIOD_EXTERNAL_ID:
       return true;
     case TIME_PERIOD_XML_ID:
-      return true;      
+      return true;
     case TIME_PERIOD_ID:
       return true;
     default:

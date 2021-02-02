@@ -8,12 +8,13 @@ import org.planit.utils.exceptions.PlanItException;
  * 
  * @author markr
  *
- * @param <T>
+ * @param <T> path choice type
  */
 public class PathChoiceConfigurator<T extends PathChoice> extends Configurator<T> {
 
   /**
-   * Constructor 
+   * Constructor
+   * 
    * @param instanceType to configure on
    */
   public PathChoiceConfigurator(Class<T> instanceType) {
@@ -23,7 +24,7 @@ public class PathChoiceConfigurator<T extends PathChoice> extends Configurator<T
   /**
    * Needed to avoid issues with generics, although it should be obvious that T extends Smoothing
    * 
-   * @param path choice the instance to configure
+   * @param pathChoice the instance to configure
    */
   @SuppressWarnings("unchecked")
   @Override

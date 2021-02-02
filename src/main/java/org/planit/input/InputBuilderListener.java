@@ -167,8 +167,8 @@ public abstract class InputBuilderListener implements EventListenerInterface {
   /**
    * Stores a zone by its sourceId
    * 
-   * @param sourceId sourceId of zone
-   * @param zone     zone to be stored
+   * @param sourceId   sourceId of zone
+   * @param connectoid connectoid to be stored
    * @return true if this use of sourceId is a duplicate, false otherwise
    */
   protected boolean addConnectoidToSourceIdMap(String sourceId, Connectoid connectoid) {

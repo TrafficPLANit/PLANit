@@ -39,6 +39,11 @@ public enum OutputProperty {
 
   private final String value;
 
+  /**
+   * Constructor
+   * 
+   * @param v value string
+   */
   OutputProperty(String v) {
     value = v;
   }
@@ -55,7 +60,7 @@ public enum OutputProperty {
   /**
    * Returns the enumeration value associated with the specified class name
    * 
-   * @param v the specified class name
+   * @param value the specified class name
    * @return the enumeration value associated with this class name
    */
   public static OutputProperty fromValue(String value) {

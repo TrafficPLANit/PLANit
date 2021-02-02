@@ -58,7 +58,6 @@ public class UserClass implements ExternalIdable {
    * Constructor of user class
    *
    * @param groupId      contiguous id generation within this group for instances of this class
-   * @param externalId   id of this user class
    * @param name         name of this user class
    * @param mode         the mode of travel
    * @param travelerType the travelerType

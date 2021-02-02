@@ -187,9 +187,9 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @throws PlanItException thrown if error
    */
   @Override
-  public void removeDanglingSubnetworks(Integer belowsize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
+  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
     LOGGER.info(String.format("%s Removing dangling subnetworks with less than %s vertices", InfrastructureLayer.createLayerLogPrefix(this),
-        belowsize != Integer.MAX_VALUE ? String.valueOf(belowsize) : "infinite"));
+        belowSize != Integer.MAX_VALUE ? String.valueOf(belowSize) : "infinite"));
     if (aboveSize != Integer.MAX_VALUE) {
       LOGGER.info(String.format("%s Removing dangling subnetworks with more than %s vertices", InfrastructureLayer.createLayerLogPrefix(this), String.valueOf(aboveSize)));
     }
@@ -197,7 +197,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
         linkSegments.size()));
 
     if (getGraph() instanceof GraphModifier<?, ?>) {
-      ((GraphModifier<?, ?>) getGraph()).removeDanglingSubGraphs(belowsize, aboveSize, alwaysKeepLargest);
+      ((GraphModifier<?, ?>) getGraph()).removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest);
     } else {
       LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored",
           InfrastructureLayer.createLayerLogPrefix(this)));
@@ -207,8 +207,8 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   }
 
   /**
-   * Break the passed in link by inserting the passed in node in between. After completion the original links remain as NodeA->NodeToBreakAt, and new links as inserted for
-   * NodeToBreakAt->NodeB.
+   * Break the passed in link by inserting the passed in node in between. After completion the original links remain as (NodeA,NodeToBreakAt), and new links as inserted for
+   * (NodeToBreakAt,NodeB).
    * 
    * Underlying link segments (if any) are also updated accordingly in the same manner
    * 
@@ -223,8 +223,8 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   }
 
   /**
-   * Break the passed in links by inserting the passed in node in between. After completion the original links remain as NodeA->NodeToBreakAt, and new links as inserted for
-   * NodeToBreakAt->NodeB.
+   * Break the passed in links by inserting the passed in node in between. After completion the original links remain as (NodeA,NodeToBreakAt), and new links as inserted for
+   * (NodeToBreakAt,NodeB).
    * 
    * Underlying link segments (if any) are also updated accordingly in the same manner
    * 

@@ -12,32 +12,34 @@ import org.planit.utils.exceptions.PlanItException;
  * Configurator for capacity constrained assignment
  * 
  * @author markr
- *
+ * 
+ * @param <T> capacity constrained traffic assignment type
  */
 public class CapacityConstrainedTrafficAssignmentConfigurator<T extends CapacityConstrainedAssignment> extends TrafficAssignmentConfigurator<T> {
-  
+
   /**
    * Nested configurator for fundamental diagram within this assignment
    */
   private FundamentalDiagramConfigurator<? extends FundamentalDiagram> fundamentalDiagramConfigurator = null;
-  
+
   /**
    * Nested configurator for node model within this assignment
    */
-  private NodeModelConfigurator<? extends NodeModel> nodeModelConfigurator = null;   
+  private NodeModelConfigurator<? extends NodeModel> nodeModelConfigurator = null;
 
   /**
-   * Constructor 
+   * Constructor
    * 
    * @param instanceType the type we are configuring for
    * @throws PlanItException thrown if error
    */
   public CapacityConstrainedTrafficAssignmentConfigurator(Class<T> instanceType) throws PlanItException {
-    super(instanceType);      
+    super(instanceType);
   }
-  
+
   /**
    * choose a particular fundamental diagram implementation
+   * 
    * @param fundamentalDiagramType type to choose
    * @return configurator
    * @throws PlanItException thrown if error
@@ -46,17 +48,19 @@ public class CapacityConstrainedTrafficAssignmentConfigurator<T extends Capacity
     fundamentalDiagramConfigurator = FundamentalDiagramConfiguratorFactory.createConfigurator(fundamentalDiagramType);
     return fundamentalDiagramConfigurator;
   }
-  
+
   /**
    * Collect the fundamental diagram configurator
+   * 
    * @return configurator
    */
-  public FundamentalDiagramConfigurator<? extends FundamentalDiagram> getFundamentalDiagram(){
+  public FundamentalDiagramConfigurator<? extends FundamentalDiagram> getFundamentalDiagram() {
     return fundamentalDiagramConfigurator;
   }
-  
+
   /**
    * choose a particular node model implementation
+   * 
    * @param nodeModelType type to choose
    * @return configurator
    * @throws PlanItException thrown if error
@@ -65,14 +69,14 @@ public class CapacityConstrainedTrafficAssignmentConfigurator<T extends Capacity
     nodeModelConfigurator = NodeModelConfiguratorFactory.createConfigurator(nodeModelType);
     return nodeModelConfigurator;
   }
-  
+
   /**
    * Collect the node model configurator
+   * 
    * @return configurator
    */
-  public NodeModelConfigurator<? extends NodeModel> getNodeModel(){
+  public NodeModelConfigurator<? extends NodeModel> getNodeModel() {
     return nodeModelConfigurator;
-  }  
-   
+  }
 
 }

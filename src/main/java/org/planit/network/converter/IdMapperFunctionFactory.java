@@ -27,12 +27,13 @@ public class IdMapperFunctionFactory {
    * create a function that takes a a class that extends {@link ExternalIdable} and generate the appropriate id based on the user configuration
    * 
    * @param <T>      ExternalIdable
+   * @param clazz    to use
    * @param idMapper the type of mapping function to create
    * @return function that generates node id's for MATSIM node output
    * @throws PlanItException thrown if error
    * 
    */
-  protected static <T extends ExternalIdable> Function<T, String> createIdMappingFunction(Class<T> Clazz, final IdMapperType idMapper) throws PlanItException {
+  protected static <T extends ExternalIdable> Function<T, String> createIdMappingFunction(Class<T> clazz, final IdMapperType idMapper) throws PlanItException {
     switch (idMapper) {
     case ID:
       return (instance) -> {
@@ -59,7 +60,7 @@ public class IdMapperFunctionFactory {
         }
       };
     default:
-      throw new PlanItException(String.format("unknown id mapping type found for %s %s", Clazz.getName(), idMapper.toString()));
+      throw new PlanItException(String.format("unknown id mapping type found for %s %s", clazz.getName(), idMapper.toString()));
     }
   }
 
@@ -99,7 +100,8 @@ public class IdMapperFunctionFactory {
   /**
    * create a function that takes a link segment and (optional) id mapper and generates the appropriate MATSIM link id based on the user configuration
    * 
-   * @return function that generates mapped link segment id's for persistence
+   * @param idMapper that generates mapped link segment id's for persistence
+   * @return created function
    * @throws PlanItException thrown if error
    */
   public static Function<MacroscopicLinkSegment, String> createLinkSegmentIdMappingFunction(final IdMapperType idMapper) throws PlanItException {

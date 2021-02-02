@@ -148,6 +148,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
    * conflicts when the class has generic arguments itself which leads to issues (that I have not been able to solve). In the latter case use the other constructor which gets
    * around this problem by simply providing the canoncial class name corresponding to type T
    *
+   * @param <U>                traffic assignment component type
    * @param componentSuperType super type for this factory
    */
   public <U extends TrafficAssignmentComponent<U> & Serializable> TrafficAssignmentComponentFactory(final Class<U> componentSuperType) {
@@ -157,11 +158,10 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
   /**
    * Constructor.
    * 
-   * Use this constructor when the component super type that you use is not compatible with Class<T>, for example because the super type itself uses generics, i.e., T<U,V>, in
-   * which case the default constructor does not work. Make sure however, that the provided canonical class name is compatible with T, i.e., it must extend from
-   * TrafficAssigmentComponent<T>
+   * Use this constructor when the component super type that you use is not compatible with ClassT, for example because the super type itself uses generics, i.e., T(U,V), in which
+   * case the default constructor does not work. Make sure however, that the provided canonical class name is compatible with T, i.e., it must extend from TrafficAssigmentComponent
    *
-   * @param componentSuperType super type's canonical class name for this factory which should be the same as Class<T>.getCanonicalName()
+   * @param componentSuperTypeCanonicalName super type's canonical class name for this factory which should be the same as ClassT.getCanonicalName()
    */
   public TrafficAssignmentComponentFactory(String componentSuperTypeCanonicalName) {
     this.componentSuperTypeCanonicalName = componentSuperTypeCanonicalName;

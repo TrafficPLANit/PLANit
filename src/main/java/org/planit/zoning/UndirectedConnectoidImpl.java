@@ -2,7 +2,6 @@ package org.planit.zoning;
 
 import java.util.logging.Logger;
 
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.zoning.UndirectedConnectoid;
@@ -48,7 +47,6 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
    * @param accessNode the node in the network (layer) the connectoid connects with
    * @param accessZone for the connectoid
    * @param length     for the connection
-   * @throws PlanItException thrown if there is an error
    */
   protected UndirectedConnectoidImpl(final IdGroupingToken idToken, final Node accessNode, Zone accessZone, double length) {
     super(idToken, accessZone, length);
@@ -60,7 +58,6 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
    *
    * @param idToken    contiguous id generation within this group for instances of this class
    * @param accessNode the node in the network (layer) the connectoid connects with
-   * @throws PlanItException thrown if there is an error
    */
   public UndirectedConnectoidImpl(IdGroupingToken idToken, Node accessNode) {
     super(idToken);
