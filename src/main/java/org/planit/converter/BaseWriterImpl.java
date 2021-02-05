@@ -1,4 +1,4 @@
-package org.planit.network.converter;
+package org.planit.converter;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.geo.PlanitOpenGisUtils;
@@ -6,12 +6,12 @@ import org.planit.utils.epsg.EpsgCodesByCountry;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
- * abstract class implementation to write a PLANit network to disk
+ * abstract base class implementation to write a PLANit network to disk with id mapping sorted for convenience
  * 
  * @author markr
  *
  */
-public abstract class NetworkWriterImpl implements NetworkWriter {
+public abstract class BaseWriterImpl<T> implements ConverterWriter<T> {
 
   /**
    * the id mapper to use
@@ -48,7 +48,7 @@ public abstract class NetworkWriterImpl implements NetworkWriter {
    * 
    * @param idMapperType to use as default
    */
-  protected NetworkWriterImpl(IdMapperType idMapperType) {
+  protected BaseWriterImpl(IdMapperType idMapperType) {
     setIdMapperType(idMapperType);
   }
 
@@ -67,5 +67,6 @@ public abstract class NetworkWriterImpl implements NetworkWriter {
   public void setIdMapperType(IdMapperType idMapper) {
     this.idMapper = idMapper;
   }
+   
 
 }

@@ -1,7 +1,7 @@
-package org.planit.network.converter;
+package org.planit.converter.network;
 
 /**
- * Factory class for creating converters for specific reader/writer combinations
+ * Factory class for creating network converters
  * 
  * @author markr
  *
@@ -9,7 +9,7 @@ package org.planit.network.converter;
 public class NetworkConverterFactory {
 
   /**
-   * Create the converter
+   * Create the network converter
    * 
    * @param reader the reader to use
    * @param writer the writer to use

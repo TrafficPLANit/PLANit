@@ -1,4 +1,4 @@
-package org.planit.network.converter;
+package org.planit.converter;
 
 import java.util.function.Function;
 import java.util.logging.Logger;

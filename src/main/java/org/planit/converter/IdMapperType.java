@@ -1,4 +1,4 @@
-package org.planit.network.converter;
+package org.planit.converter;
 
 /**
  * Indicates which PLANit id to use for extracting ids on the output format.
