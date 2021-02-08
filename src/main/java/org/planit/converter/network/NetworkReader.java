@@ -10,13 +10,13 @@ import org.planit.network.InfrastructureNetwork;
  *
  */
 public interface NetworkReader extends ConverterReader<InfrastructureNetwork> {
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   default String getTypeDescription() {
     return "NETWORK";
-  }  
+  }
 
 }

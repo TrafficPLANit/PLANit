@@ -10,13 +10,13 @@ import org.planit.zoning.Zoning;
  *
  */
 public interface ZoningReader extends ConverterReader<Zoning> {
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   default String getTypeDescription() {
     return "(OD/TRANSFER) ZONING";
-  }  
+  }
 
 }

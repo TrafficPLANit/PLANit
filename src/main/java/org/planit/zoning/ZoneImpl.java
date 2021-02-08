@@ -40,7 +40,7 @@ public class ZoneImpl implements Zone {
   /**
    * Centroid of the zone
    */
-  protected final Centroid centroid;
+  protected Centroid centroid;
 
   /**
    * geometry of this zone
@@ -57,6 +57,15 @@ public class ZoneImpl implements Zone {
     return IdGenerator.generateId(groupId, Zone.class);
   }
 
+  /**
+   * set the centroid for this zone. It is assumed the centroid is correctly configured to be compatible with this zoneImpl
+   * 
+   * @param centroid to set
+   */
+  protected void setCentroid(Centroid centroid) {
+    this.centroid = centroid;
+  }
+
   // Public
 
   /**
@@ -66,7 +75,6 @@ public class ZoneImpl implements Zone {
    */
   public ZoneImpl(final IdGroupingToken tokenId) {
     id = generateZoneId(tokenId);
-    this.centroid = new CentroidImpl(tokenId, this);
   }
 
   /**
@@ -149,8 +157,7 @@ public class ZoneImpl implements Zone {
    */
   @Override
   public void setGeometry(Polygon geometry) {
-    // TODO Auto-generated method stub
-
+    this.geometry = geometry;
   }
 
   /**
@@ -158,8 +165,7 @@ public class ZoneImpl implements Zone {
    */
   @Override
   public Polygon getGeometry() {
-    // TODO Auto-generated method stub
-    return null;
+    return geometry;
   }
 
 }

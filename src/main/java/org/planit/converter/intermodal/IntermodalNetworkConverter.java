@@ -12,18 +12,10 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public class IntermodalNetworkConverter extends MultiConverter<InfrastructureNetwork,Zoning> {
-  
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected boolean isModeConversionValid() {
-    // TODO 
-    return true;
-  }  
+public class IntermodalNetworkConverter extends MultiConverter<InfrastructureNetwork, Zoning> {
 
-  /** constructor
+  /**
+   * constructor
    * 
    * @param reader for intermodal networks
    * @param writer for intermodal networks

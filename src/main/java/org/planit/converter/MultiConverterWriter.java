@@ -11,7 +11,7 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public interface MultiConverterWriter<T,U> {
+public interface MultiConverterWriter<T, U> extends ConverterEntity {
 
   /**
    * write a network to the writer's output format.
@@ -21,12 +21,6 @@ public interface MultiConverterWriter<T,U> {
    * @throws PlanItException
    */
   void write(T entity1, U entity2) throws PlanItException;
-  
-  /** short description (one word capitals) of this reader for logging purposes
-   * 
-   * @return desciption
-   */
-  String getTypeDescription();  
 
   /**
    * collect the way the ids should be mapped

@@ -12,7 +12,7 @@ import org.planit.utils.misc.Pair;
  * @author markr
  *
  */
-public interface MultiConverterReader<T,U>  {
+public interface MultiConverterReader<T, U> extends ConverterEntity {
 
   /**
    * parse the network based on the configuration of the implementing class to yield a PLANit network
@@ -20,13 +20,6 @@ public interface MultiConverterReader<T,U>  {
    * @return parsed entities
    * @throws PlanItException thrown if error
    */
-  Pair<T,U> read() throws PlanItException;
-  
-  /** short description (one word capitals) of this reader for logging purposes
-   * 
-   * @return desciption
-   */
-  String getTypeDescription();
-  
+  Pair<T, U> read() throws PlanItException;
 
 }

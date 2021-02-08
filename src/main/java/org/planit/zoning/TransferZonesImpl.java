@@ -25,9 +25,9 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Zones<
    * {@inheritDoc}
    */
   @Override
-  public TransferZone registerNew() {
-    final TransferZone newZone = new TransferZoneImpl(getGroupingTokenId());
-    register(newZone);
+  public TransferZone createNew() {
+    TransferZoneImpl newZone = new TransferZoneImpl(getGroupingTokenId());
+    newZone.setCentroid(new CentroidImpl(getGroupingTokenId(), newZone));
     return newZone;
   }
 

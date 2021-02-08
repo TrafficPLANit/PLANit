@@ -25,9 +25,9 @@ public class OdZonesImpl extends ZonesImpl<OdZone> implements Zones<OdZone> {
    * {@inheritDoc}
    */
   @Override
-  public OdZone registerNew() {
-    final OdZone newZone = new OdZoneImpl(getGroupingTokenId());
-    register(newZone);
+  public OdZone createNew() {
+    OdZoneImpl newZone = new OdZoneImpl(getGroupingTokenId());
+    newZone.setCentroid(new CentroidImpl(getGroupingTokenId(), newZone));
     return newZone;
   }
 

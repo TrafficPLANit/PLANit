@@ -11,13 +11,13 @@ import org.planit.zoning.Zoning;
  *
  */
 public interface IntermodalReader extends MultiConverterReader<InfrastructureNetwork, Zoning> {
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   default String getTypeDescription() {
-    return "INETERMODAL NETWORK";
-  }  
+    return "INTERMODAL NETWORK";
+  }
 
 }

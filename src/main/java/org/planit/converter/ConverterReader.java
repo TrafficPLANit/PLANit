@@ -10,7 +10,7 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public interface ConverterReader<T> {
+public interface ConverterReader<T> extends ConverterEntity {
 
   /**
    * parse the network based on the configuration of the implementing class to yield a PLANit network
@@ -18,13 +18,6 @@ public interface ConverterReader<T> {
    * @return parsed network
    * @throws PlanItException thrown if error
    */
-  T read() throws PlanItException;
-  
-  /** short description (one word capitals) of this reader for logging purposes
-   * 
-   * @return desciption
-   */
-  String getTypeDescription();
-  
+  public abstract T read() throws PlanItException;
 
 }

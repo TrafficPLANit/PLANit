@@ -10,7 +10,7 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public interface ConverterWriter<T> {
+public interface ConverterWriter<T> extends ConverterEntity {
 
   /**
    * write a network to the writer's output format.
@@ -18,26 +18,20 @@ public interface ConverterWriter<T> {
    * @param network memory model network to write
    * @throws PlanItException thrown if error
    */
-  void write(T network) throws PlanItException;
-  
-  /** short description (one word capitals) of this reader for logging purposes
-   * 
-   * @return desciption
-   */
-  String getTypeDescription();  
+  public abstract void write(T network) throws PlanItException;
 
   /**
    * collect the way the ids should be mapped
    * 
    * @return the idmapping choice
    */
-  IdMapperType getIdMapperType();
+  public abstract IdMapperType getIdMapperType();
 
   /**
    * set the way ids should be mapped
    * 
    * @param idMapper to use
    */
-  void setIdMapperType(IdMapperType idMapper);
+  public abstract void setIdMapperType(IdMapperType idMapper);
 
 }
