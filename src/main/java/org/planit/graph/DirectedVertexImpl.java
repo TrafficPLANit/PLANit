@@ -78,6 +78,10 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    */
   @Override
   public boolean addEdgeSegment(final EdgeSegment edgeSegment) {
+    if (Long.valueOf(getExternalId()) == 63154547) {
+      int bla = 4;
+    }
+
     if (edgeSegment.getUpstreamVertex().getId() == getId()) {
       return exitEdgeSegments.add(edgeSegment);
     } else if (edgeSegment.getDownstreamVertex().getId() == getId()) {
