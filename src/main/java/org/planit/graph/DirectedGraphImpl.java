@@ -135,6 +135,7 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
             /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
             newEdgeSegmentAb = this.edgeSegments.registerUniqueCopyOf((ES) oldEdgeSegmentAb, brokenEdge);
           } else {
+            /* reuse the old first */
             identifiedEdgeSegmentOnEdge.add(newEdgeSegmentAb);
           }
 
@@ -147,8 +148,8 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
           newEdgeSegmentAb.setDownstreamVertex((DirectedVertex) brokenEdge.getVertexB());
 
           /* update vertices' segments */
-          newEdgeSegmentAb.getUpstreamVertex().replace(oldEdgeSegmentAb, newEdgeSegmentAb, true);
-          newEdgeSegmentAb.getDownstreamVertex().replace(oldEdgeSegmentAb, newEdgeSegmentAb, true);
+          newEdgeSegmentAb.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
+          newEdgeSegmentAb.getDownstreamVertex().replaceEntrySegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
 
           /* useful for debugging */
           // edgeSegmentAb.validate();
@@ -157,25 +158,25 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
         /* do the same for edge segment B-> A */
         if (brokenEdge.hasEdgeSegmentBa()) {
           EdgeSegment oldEdgeSegmentBa = brokenEdge.getEdgeSegmentBa();
-          EdgeSegment newEdgeSegmentAb = oldEdgeSegmentBa;
+          EdgeSegment newEdgeSegmentBa = oldEdgeSegmentBa;
 
           if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentBa)) {
             /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
-            newEdgeSegmentAb = this.edgeSegments.registerUniqueCopyOf((ES) oldEdgeSegmentBa, brokenEdge);
+            newEdgeSegmentBa = this.edgeSegments.registerUniqueCopyOf((ES) oldEdgeSegmentBa, brokenEdge);
           } else {
-            identifiedEdgeSegmentOnEdge.add(newEdgeSegmentAb);
+            identifiedEdgeSegmentOnEdge.add(newEdgeSegmentBa);
           }
           /* update parent edge <-> edge segment */
-          brokenEdge.replace(oldEdgeSegmentBa, newEdgeSegmentAb);
-          newEdgeSegmentAb.setParentEdge(brokenEdge);
+          brokenEdge.replace(oldEdgeSegmentBa, newEdgeSegmentBa);
+          newEdgeSegmentBa.setParentEdge(brokenEdge);
 
           /* update segment's vertices */
-          newEdgeSegmentAb.setUpstreamVertex((DirectedVertex) brokenEdge.getVertexB());
-          newEdgeSegmentAb.setDownstreamVertex((DirectedVertex) brokenEdge.getVertexA());
+          newEdgeSegmentBa.setUpstreamVertex((DirectedVertex) brokenEdge.getVertexB());
+          newEdgeSegmentBa.setDownstreamVertex((DirectedVertex) brokenEdge.getVertexA());
 
           /* update vertices' segments */
-          newEdgeSegmentAb.getUpstreamVertex().replace(oldEdgeSegmentBa, newEdgeSegmentAb, true);
-          newEdgeSegmentAb.getDownstreamVertex().replace(oldEdgeSegmentBa, newEdgeSegmentAb, true);
+          newEdgeSegmentBa.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
+          newEdgeSegmentBa.getDownstreamVertex().replaceEntrySegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
 
           /* useful for debugging */
           // edgeSegmentBa.validate();

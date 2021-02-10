@@ -103,6 +103,22 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
     }
     return removed;
   }
+  
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public boolean removeEntryEdgeSegment(EdgeSegment edgeSegment) {
+    return entryEdgeSegments.remove(edgeSegment);
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public boolean removeExitEdgeSegment(EdgeSegment edgeSegment) {
+    return exitEdgeSegments.remove(edgeSegment);
+  }  
 
   /**
    * {@inheritDoc}
