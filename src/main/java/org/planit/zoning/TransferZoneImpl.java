@@ -44,11 +44,6 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
   }
 
   /**
-   * default transfer zone type
-   */
-  public static TransferZoneType DEFAULT_TYPE = TransferZoneType.NONE;
-
-  /**
    * constructor
    * 
    * @param tokenId for id generation
@@ -70,7 +65,7 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
    * {@inheritDoc}
    */
   @Override
-  public void setTransferZoneType(TransferZoneType type) {
+  public void setType(TransferZoneType type) {
     this.type = type;
   }
 

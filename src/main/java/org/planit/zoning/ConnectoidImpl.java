@@ -1,6 +1,5 @@
 package org.planit.zoning;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -260,10 +259,10 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * {@inheritDoc}
    */
   @Override
-  public void addAllowedMode(Zone accessZone, Mode... allowedModes) {
+  public void addAllowedMode(Zone accessZone, Mode allowedMode) {
     if (hasAccessZone(accessZone)) {
       final AccessZoneProperties accessZoneProperties = accessZones.get(accessZone.getId());
-      Arrays.asList(allowedModes).forEach(allowedMode -> accessZoneProperties.addAllowedMode(allowedMode));
+      accessZoneProperties.addAllowedMode(allowedMode);
     } else {
       LOGGER.warning(String.format("unknown access zone %s for connectoid %s", accessZone.getXmlId(), getXmlId()));
     }

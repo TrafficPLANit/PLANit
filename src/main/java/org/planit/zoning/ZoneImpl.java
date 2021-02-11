@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.locationtech.jts.geom.Polygon;
+import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.Centroid;
@@ -15,22 +16,12 @@ import org.planit.utils.zoning.Zone;
  * @author markr
  *
  */
-public class ZoneImpl implements Zone {
-
+public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
+  
   /**
-   * Unique identifier for the zone
+   * name of the zone
    */
-  protected final long id;
-
-  /**
-   * External Id for this zone
-   */
-  protected String externalId;
-
-  /**
-   * xml Id for this zone
-   */
-  protected String xmlId;
+  protected String name;
 
   /**
    * generic input property storage
@@ -74,18 +65,9 @@ public class ZoneImpl implements Zone {
    * @param tokenId contiguous id generation within this group for instances of this class
    */
   public ZoneImpl(final IdGroupingToken tokenId) {
-    id = generateZoneId(tokenId);
+    super(generateZoneId(tokenId));
   }
 
-  /**
-   * Returns the id of this zone
-   * 
-   * @return id of this zone
-   */
-  @Override
-  public long getId() {
-    return this.id;
-  }
 
   /**
    * Add a property from the original input that is not part of the readily available members
@@ -124,38 +106,6 @@ public class ZoneImpl implements Zone {
    * {@inheritDoc}
    */
   @Override
-  public String getExternalId() {
-    return externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setExternalId(String externalId) {
-    this.externalId = externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getXmlId() {
-    return this.xmlId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setXmlId(String xmlId) {
-    this.xmlId = xmlId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void setGeometry(Polygon geometry) {
     this.geometry = geometry;
   }
@@ -167,5 +117,21 @@ public class ZoneImpl implements Zone {
   public Polygon getGeometry() {
     return geometry;
   }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override  
+  public void setName(String name) {
+    this.name = name;
+  }  
 
 }

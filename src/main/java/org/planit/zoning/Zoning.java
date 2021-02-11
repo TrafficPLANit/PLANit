@@ -14,6 +14,7 @@ import org.planit.utils.mode.Modes;
 import org.planit.utils.zoning.Connectoids;
 import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.TransferZone;
+import org.planit.utils.zoning.TransferZoneGroups;
 import org.planit.utils.zoning.Zone;
 import org.planit.utils.zoning.Zones;
 
@@ -52,9 +53,14 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   public final Zones<OdZone> odZones;
 
   /**
-   * provide access to transger zones (if any)
+   * provide access to transfer zones (if any)
    */
   public final Zones<TransferZone> transferZones;
+  
+  /**
+   * provide access to transfer zone groups (if any)
+   */
+  public final TransferZoneGroups transferZoneGroups;
 
   /**
    * Constructor
@@ -71,6 +77,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
     connectoids = new ConnectoidsImpl(networkGroupId);
     odZones = new OdZonesImpl(networkGroupId);
     transferZones = new TransferZonesImpl(networkGroupId);
+    transferZoneGroups = new TransferZoneGroupsImpl(networkGroupId);
     virtualNetwork = new VirtualNetwork(networkGroupId);
   }
 
