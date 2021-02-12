@@ -174,10 +174,7 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * Get input property by its key
-   *
-   * @param key the key of the input property
-   * @return value the value of the input property
+   * {@inheritDoc}
    */
   public Object getInputProperty(final String key) {
     return inputProperties.get(key);

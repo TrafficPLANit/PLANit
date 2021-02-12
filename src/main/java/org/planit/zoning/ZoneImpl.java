@@ -68,30 +68,6 @@ public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
     super(generateZoneId(tokenId));
   }
 
-
-  /**
-   * Add a property from the original input that is not part of the readily available members
-   * 
-   * @param key   property key
-   * @param value property value
-   */
-  public void addInputProperty(String key, Object value) {
-    if (inputProperties == null) {
-      inputProperties = new HashMap<String, Object>();
-    }
-    inputProperties.put(key, value);
-  }
-
-  /**
-   * Get input property by its key
-   * 
-   * @param key property key
-   * @return property value
-   */
-  public Object getInputProperty(String key) {
-    return inputProperties.get(key);
-  }
-
   /**
    * Returns the centroid of this zone
    * 
@@ -132,6 +108,25 @@ public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
   @Override  
   public void setName(String name) {
     this.name = name;
+  }  
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addInputProperty(final String key, final Object value) {
+    if (inputProperties == null) {
+      inputProperties = new HashMap<String, Object>();
+    }
+    inputProperties.put(key, value);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Object getInputProperty(final String key) {
+    return inputProperties.get(key);
   }  
 
 }
