@@ -5,9 +5,9 @@ import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.HashedMap;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.planit.geo.PlanitJtsUtils;
 import org.planit.mode.ModesImpl;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.Modes;

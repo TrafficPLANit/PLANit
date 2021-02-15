@@ -17,7 +17,7 @@ import org.planit.utils.zoning.Zone;
  *
  */
 public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
-  
+
   /**
    * name of the zone
    */
@@ -93,7 +93,7 @@ public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
   public Polygon getGeometry() {
     return geometry;
   }
-  
+
   /**
    * {@inheritDoc}
    */
@@ -105,11 +105,11 @@ public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
   /**
    * {@inheritDoc}
    */
-  @Override  
+  @Override
   public void setName(String name) {
     this.name = name;
-  }  
-  
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -126,7 +126,10 @@ public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
    */
   @Override
   public Object getInputProperty(final String key) {
-    return inputProperties.get(key);
-  }  
+    if (inputProperties != null) {
+      return inputProperties.get(key);
+    }
+    return null;
+  }
 
 }

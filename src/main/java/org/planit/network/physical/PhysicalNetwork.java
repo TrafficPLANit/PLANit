@@ -9,13 +9,13 @@ import java.util.stream.Collectors;
 
 import org.locationtech.jts.geom.LineString;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.planit.geo.PlanitJtsUtils;
 import org.planit.geo.PlanitOpenGisUtils;
 import org.planit.graph.DirectedGraphImpl;
 import org.planit.graph.GraphModifier;
 import org.planit.network.InfrastructureLayer;
 import org.planit.network.InfrastructureLayerImpl;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;

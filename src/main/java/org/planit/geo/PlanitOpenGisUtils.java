@@ -11,7 +11,6 @@ import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.MultiLineString;
 import org.opengis.geometry.DirectPosition;
@@ -23,6 +22,7 @@ import org.opengis.geometry.coordinate.Position;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.Vertex;
 
 /**
@@ -42,12 +42,12 @@ public class PlanitOpenGisUtils {
   /**
    * Default Coordinate Reference System: WGS84
    */
-  public static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = DefaultGeographicCRS.WGS84;
+  public static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = PlanitJtsUtils.DEFAULT_GEOGRAPHIC_CRS;
 
   /**
    * In absence of a geographic crs we can also use cartesian: GENERIC_2D
    */
-  public static final CoordinateReferenceSystem CARTESIANCRS = CartesianAuthorityFactory.GENERIC_2D;
+  public static final CoordinateReferenceSystem CARTESIANCRS = PlanitJtsUtils.CARTESIANCRS;
 
   /*
    * the geotools gt-epsg-hsql dependency tries to take over the logging and the formatting of the logging. It is initialised whenever {@code CRS.decode} is invoked from some of
