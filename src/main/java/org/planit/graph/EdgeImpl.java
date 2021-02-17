@@ -95,7 +95,7 @@ public class EdgeImpl implements Edge, Cloneable {
    * 
    * @param vertexB to set
    */
-  protected void setVertexB(Vertex vertexB) {
+  protected void setVertexB(Vertex vertexB) {   
     this.vertexB = vertexB;
   }
 
