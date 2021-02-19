@@ -71,7 +71,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * network to use
    */
-  private InfrastructureNetwork network;
+  private InfrastructureNetwork<?> network;
 
   /**
    * The transport network to use which is an adaptor around the physical network and the zoning
@@ -340,7 +340,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @param network the network object for the current assignment
    */
-  public void setInfrastructureNetwork(final InfrastructureNetwork network) {
+  public void setInfrastructureNetwork(final InfrastructureNetwork<?> network) {
     logRegisteredComponent(network, true);
     this.network = network;
   }

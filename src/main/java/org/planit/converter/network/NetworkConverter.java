@@ -11,7 +11,7 @@ import org.planit.network.InfrastructureNetwork;
  * @author markr
  *
  */
-public class NetworkConverter extends Converter<InfrastructureNetwork> {
+public class NetworkConverter extends Converter<InfrastructureNetwork<?>> {
 
   /** the logger */
   @SuppressWarnings("unused")

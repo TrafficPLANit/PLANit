@@ -91,7 +91,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @param network to set
    */
-  protected void setInfrastructureNetwork(InfrastructureNetwork network) {
+  protected void setInfrastructureNetwork(InfrastructureNetwork<?> network) {
     registerDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK, network);
   }
 
@@ -145,8 +145,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @return network
    */
-  public InfrastructureNetwork getInfrastructureNetwork() {
-    return (InfrastructureNetwork) getFirstParameterOfDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK);
+  public InfrastructureNetwork<?> getInfrastructureNetwork() {
+    return (InfrastructureNetwork<?>) getFirstParameterOfDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK);
   }
 
   /**

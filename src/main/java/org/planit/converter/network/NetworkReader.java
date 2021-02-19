@@ -9,7 +9,7 @@ import org.planit.network.InfrastructureNetwork;
  * @author markr
  *
  */
-public interface NetworkReader extends ConverterReader<InfrastructureNetwork> {
+public interface NetworkReader extends ConverterReader<InfrastructureNetwork<?>> {
 
   /**
    * {@inheritDoc}

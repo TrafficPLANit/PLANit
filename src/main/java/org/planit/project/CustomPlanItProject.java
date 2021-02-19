@@ -212,7 +212,7 @@ public class CustomPlanItProject {
    * @return the generated infrastructure network
    * @throws PlanItException thrown if there is an error
    */
-  public InfrastructureNetwork createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
+  public InfrastructureNetwork<?> createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
     return inputs.createAndRegisterInfrastructureNetwork(infrastructureNetworkType);
   }
 
@@ -223,7 +223,7 @@ public class CustomPlanItProject {
    * @return the generated zoning object
    * @throws PlanItException thrown if there is an error
    */
-  public Zoning createAndRegisterZoning(final InfrastructureNetwork network) throws PlanItException {
+  public Zoning createAndRegisterZoning(final InfrastructureNetwork<?> network) throws PlanItException {
     return inputs.createAndRegisterZoning(network);
   }
 
@@ -235,7 +235,7 @@ public class CustomPlanItProject {
    * @return the generated demands object
    * @throws PlanItException thrown if there is an error
    */
-  public Demands createAndRegisterDemands(final Zoning zoning, final InfrastructureNetwork network) throws PlanItException {
+  public Demands createAndRegisterDemands(final Zoning zoning, final InfrastructureNetwork<?> network) throws PlanItException {
     return inputs.createAndRegisterDemands(zoning, network);
   }
 
@@ -263,7 +263,7 @@ public class CustomPlanItProject {
    * @throws PlanItException thrown if there is an error
    */
   public TrafficAssignmentConfigurator<? extends TrafficAssignment> createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands,
-      final Zoning theZoning, final InfrastructureNetwork theNetwork) throws PlanItException {
+      final Zoning theZoning, final InfrastructureNetwork<?> theNetwork) throws PlanItException {
 
     TrafficAssignmentBuilder<?> taBuilder = TrafficAssignmentBuilderFactory.createBuilder(trafficAssignmentType, projectToken, inputBuilderListener, theDemands, theZoning,
         theNetwork);
@@ -284,7 +284,7 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork network, final String fileName) throws PlanItException {
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork<?> network, final String fileName) throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName);
   }
 
@@ -297,7 +297,7 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCostPeriod object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork network, final String fileName, final TimePeriod timePeriod)
+  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork<?> network, final String fileName, final TimePeriod timePeriod)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
   }
@@ -311,7 +311,7 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCostPeriod objects
    * @throws PlanItException thrown if there is an error
    */
-  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork network, final String fileName, final Demands demands)
+  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork<?> network, final String fileName, final Demands demands)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, demands);
   }
@@ -337,7 +337,7 @@ public class CustomPlanItProject {
    * @param network the specified network
    * @return the initial link segment costs for the specified physical network
    */
-  public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final InfrastructureNetwork network) {
+  public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final InfrastructureNetwork<?> network) {
     return inputs.getInitialLinkSegmentCost(network);
   }
 

@@ -41,6 +41,6 @@ public abstract class AbstractPhysicalCost extends TrafficAssignmentComponent<Ab
    * @param network the network
    * @throws PlanItException thrown if error
    */
-  public abstract void initialiseBeforeSimulation(InfrastructureNetwork network) throws PlanItException;
+  public abstract void initialiseBeforeSimulation(InfrastructureNetwork<?> network) throws PlanItException;
 
 }

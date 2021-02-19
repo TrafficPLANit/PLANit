@@ -13,7 +13,8 @@ import org.planit.geo.PlanitOpenGisUtils;
 import org.planit.graph.DirectedGraphImpl;
 import org.planit.graph.GraphModifier;
 import org.planit.network.InfrastructureLayer;
-import org.planit.network.InfrastructureLayerImpl;
+import org.planit.network.TopologicalLayer;
+import org.planit.network.TopologicalLayerImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.DirectedGraph;
@@ -31,7 +32,7 @@ import org.planit.utils.network.physical.Nodes;
  *
  * @author markr
  */
-public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegment> extends InfrastructureLayerImpl implements InfrastructureLayer {
+public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegment> extends TopologicalLayerImpl implements TopologicalLayer {
 
   // INNER CLASSES
 
@@ -297,6 +298,54 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     LOGGER.info(String.format("%s#links: %d", prefix, links.size()));
     LOGGER.info(String.format("%s#link segments: %d", prefix, linkSegments.size()));
     LOGGER.info(String.format("%s#nodes: %d", prefix, nodes.size()));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean hasNodes() {
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public boolean hasLinks() {
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public boolean hasLinkSegments() {
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public long getNumberOfNodes() {
+    return this.nodes.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public long getNumberOfLinks() {
+    return this.links.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public long getNumberOfLinkSegments() {
+    return this.linkSegments.size();
   }
 
 }

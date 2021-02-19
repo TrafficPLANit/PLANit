@@ -29,7 +29,7 @@ public abstract class CapacityConstrainedTrafficAssignmentBuilder<T extends Capa
    * @throws PlanItException thrown if error
    */
   protected CapacityConstrainedTrafficAssignmentBuilder(Class<T> capacityconstrainedAssignmentClass, IdGroupingToken tokenId, InputBuilderListener inputBuilderListener,
-      Demands demands, Zoning zoning, InfrastructureNetwork network) throws PlanItException {
+      Demands demands, Zoning zoning, InfrastructureNetwork<?> network) throws PlanItException {
     super(capacityconstrainedAssignmentClass, tokenId, inputBuilderListener, demands, zoning, network);
   }
 

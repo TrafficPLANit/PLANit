@@ -26,7 +26,7 @@ public class TransportNetwork {
   /**
    * Holds the infrastructure road network that is being modelled
    */
-  protected final InfrastructureNetwork infrastructureNetwork;
+  protected final InfrastructureNetwork<? extends InfrastructureLayer> infrastructureNetwork;
 
   /**
    * Holds the zoning structure and virtual transport network interfacing with the physical network
@@ -85,7 +85,7 @@ public class TransportNetwork {
    * @param infrastructureNetwork the network used to generate this TransportNetwork
    * @param zoning                the Zoning used to generate this TransportNetwork
    */
-  public TransportNetwork(InfrastructureNetwork infrastructureNetwork, Zoning zoning) {
+  public TransportNetwork(InfrastructureNetwork<? extends InfrastructureLayer> infrastructureNetwork, Zoning zoning) {
     this.infrastructureNetwork = infrastructureNetwork;
     this.zoning = zoning;
   }
@@ -106,10 +106,9 @@ public class TransportNetwork {
    */
   public int getTotalNumberOfPhysicalLinkSegments() {
     int totalPhysicalLinkSegments = 0;
-    for (InfrastructureLayer networkLayer : getInfrastructureNetwork().infrastructureLayers) {
-      if (networkLayer instanceof MacroscopicPhysicalNetwork) {
-        totalPhysicalLinkSegments += ((MacroscopicPhysicalNetwork) networkLayer).linkSegments.size();
-      }
+    Collection<MacroscopicPhysicalNetwork> networkLayers = getInfrastructureNetwork().infrastructureLayers.<MacroscopicPhysicalNetwork>getLayersOfType();
+    for(MacroscopicPhysicalNetwork layer :  networkLayers) {
+      totalPhysicalLinkSegments += layer.getNumberOfLinkSegments();
     }
     return totalPhysicalLinkSegments;
   }
@@ -139,11 +138,11 @@ public class TransportNetwork {
    */
   public int getTotalNumberOfPhysicalNodes() {
     int totalPhysicalNodes = 0;
-    for (InfrastructureLayer networkLayer : getInfrastructureNetwork().infrastructureLayers) {
-      if (networkLayer instanceof MacroscopicPhysicalNetwork) {
-        totalPhysicalNodes += ((MacroscopicPhysicalNetwork) networkLayer).nodes.size();
-      }
-    }
+    Collection<MacroscopicPhysicalNetwork> networkLayers = getInfrastructureNetwork().infrastructureLayers.<MacroscopicPhysicalNetwork>getLayersOfType();
+    for(MacroscopicPhysicalNetwork layer :  networkLayers) {
+      totalPhysicalNodes += layer.getNumberOfNodes();
+    }    
+    
     return totalPhysicalNodes;
   }
 
@@ -190,7 +189,7 @@ public class TransportNetwork {
    * 
    * @return physicalNetwork
    */
-  public InfrastructureNetwork getInfrastructureNetwork() {
+  public InfrastructureNetwork<? extends InfrastructureLayer> getInfrastructureNetwork() {
     return infrastructureNetwork;
   }
 

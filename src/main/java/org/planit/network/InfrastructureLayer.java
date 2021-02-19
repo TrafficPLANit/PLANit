@@ -2,8 +2,6 @@ package org.planit.network;
 
 import java.util.Collection;
 
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.ExternalIdable;
 import org.planit.utils.mode.Mode;
 
@@ -32,7 +30,7 @@ public interface InfrastructureLayer extends ExternalIdable {
    * @param supportedMode to support
    * @return true when successful false otherwise
    */
-  public boolean registerSupportedMode(Mode supportedMode);
+  public abstract boolean registerSupportedMode(Mode supportedMode);
 
   /**
    * register modes as supported by this layer
@@ -40,15 +38,36 @@ public interface InfrastructureLayer extends ExternalIdable {
    * @param supportedModes to support
    * @return true when successful false otherwise
    */
-  public boolean registerSupportedModes(Collection<Mode> supportedModes);
+  public abstract boolean registerSupportedModes(Collection<Mode> supportedModes);
 
   /**
    * collect the modes supported by this infrastructure layer
    * 
    * @return the supported modes for at least some part of the available infrastructure
    */
-  public Collection<Mode> getSupportedModes();
+  public abstract Collection<Mode> getSupportedModes();
 
+  /**
+   * check if the layer is empty of any infrastructure
+   * 
+   * @return true when empty, false otherwise
+   */
+  public abstract boolean isEmpty();
+
+  /**
+   * invoked by entities inquiring about general information about the layer to display to users
+   * 
+   * @param prefix optional prefix to include in each line of logging
+   */
+  public abstract void logInfo(String prefix);
+
+  /**
+   * validate the infrastructure of this layer
+   * 
+   * @return true when valid, false otherwise
+   */
+  public abstract boolean validate();
+  
   /**
    * Determine if mode is supported by this layer
    * 
@@ -57,55 +76,6 @@ public interface InfrastructureLayer extends ExternalIdable {
    */
   default public boolean supports(Mode mode) {
     return getSupportedModes().contains(mode);
-  }
-
-  /**
-   * check if the layer is empty of any infrastructure
-   * 
-   * @return true when empty, false otherwise
-   */
-  public boolean isEmpty();
-
-  /**
-   * invoked by entities inquiring about general information about the layer to display to users
-   * 
-   * @param prefix optional prefix to include in each line of logging
-   */
-  public void logInfo(String prefix);
-
-  /**
-   * validate the infrastructure of this layer
-   * 
-   * @return true when valid, false otherwise
-   */
-  public boolean validate();
-
-  /**
-   * transform all underlying geometries in the layer from the given crs to the new crs
-   * 
-   * @param fromCoordinateReferenceSystem presumed current crs
-   * @param toCoordinateReferenceSystem   to tranform to crs
-   * @throws PlanItException thrown if error
-   */
-  public void transform(CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException;
-
-  /**
-   * remove any dangling subnetworks from the layer if they exist and subsequently reorder the internal ids if needed
-   * 
-   * @throws PlanItException thrown if error
-   */
-  public default void removeDanglingSubnetworks() throws PlanItException {
-    removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
-  }
-
-  /**
-   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
-   * 
-   * @param belowSize         remove subnetworks below the given size
-   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
-   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
-   * @throws PlanItException thrown if error
-   */
-  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException;
+  }    
 
 }

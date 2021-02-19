@@ -2,7 +2,9 @@ package org.planit.network.macroscopic;
 
 import java.util.logging.Logger;
 
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.InfrastructureLayers;
+import org.planit.network.TopologicalNetwork;
+import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -11,7 +13,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class MacroscopicNetwork extends InfrastructureNetwork {
+public class MacroscopicNetwork extends TopologicalNetwork<MacroscopicPhysicalNetwork> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -21,6 +23,15 @@ public class MacroscopicNetwork extends InfrastructureNetwork {
   private static final long serialVersionUID = -4208133694967189790L;
 
   // Protected
+  
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected InfrastructureLayers<MacroscopicPhysicalNetwork> createInfrastructureLayers(IdGroupingToken networkIdToken) {
+    return new MacroscopicPhysicalNetworkLayers(networkIdToken);
+  }  
 
   // Public
 

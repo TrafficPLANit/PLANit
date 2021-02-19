@@ -49,8 +49,8 @@ public class PlanItProjectInput {
      *
      * @return List of networks
      */
-    public List<InfrastructureNetwork> toList() {
-      return new ArrayList<InfrastructureNetwork>(infrastructureNetworkMap.values());
+    public List<InfrastructureNetwork<?>> toList() {
+      return new ArrayList<InfrastructureNetwork<?>>(infrastructureNetworkMap.values());
     }
 
     /**
@@ -59,7 +59,7 @@ public class PlanItProjectInput {
      * @param id the id of the network
      * @return the retrieved network
      */
-    public InfrastructureNetwork getInfrastructureNetwork(final long id) {
+    public InfrastructureNetwork<?> getInfrastructureNetwork(final long id) {
       return infrastructureNetworkMap.get(id);
     }
 
@@ -86,7 +86,7 @@ public class PlanItProjectInput {
      * 
      * @return first network that is registered if none return null
      */
-    public InfrastructureNetwork getFirstInfrastructureNetwork() {
+    public InfrastructureNetwork<?> getFirstInfrastructureNetwork() {
       return hasRegisteredInfrastructureNetworks() ? infrastructureNetworkMap.firstEntry().getValue() : null;
     }
   }
@@ -279,7 +279,7 @@ public class PlanItProjectInput {
   /**
    * The physical networks registered on this project
    */
-  protected final TreeMap<Long, InfrastructureNetwork> infrastructureNetworkMap;
+  protected final TreeMap<Long, InfrastructureNetwork<? extends InfrastructureLayer>> infrastructureNetworkMap;
 
   /**
    * The demands registered on this project
@@ -299,7 +299,7 @@ public class PlanItProjectInput {
   /**
    * Map to store all InitialLinkSegmentCost objects for each physical network
    */
-  protected final Map<InfrastructureNetwork, List<InitialLinkSegmentCost>> initialLinkSegmentCosts = new HashMap<InfrastructureNetwork, List<InitialLinkSegmentCost>>();
+  protected final Map<InfrastructureNetwork<?>, List<InitialLinkSegmentCost>> initialLinkSegmentCosts = new HashMap<InfrastructureNetwork<?>, List<InitialLinkSegmentCost>>();
 
   // FACTORIES
   /**
@@ -358,7 +358,7 @@ public class PlanItProjectInput {
    */
   public PlanItProjectInput(long projectId, IdGroupingToken projectGroupId, InputBuilderListener inputBuilderListener) {
     this.projectId = projectId;
-    this.infrastructureNetworkMap = new TreeMap<Long, InfrastructureNetwork>();
+    this.infrastructureNetworkMap = new TreeMap<Long, InfrastructureNetwork<? extends InfrastructureLayer>>();
     this.demandsMap = new TreeMap<Long, Demands>();
     this.zoningsMap = new TreeMap<Long, Zoning>();
     this.odPathSetsMap = new TreeMap<Long, ODPathSets>();
@@ -375,7 +375,7 @@ public class PlanItProjectInput {
    * @return the generated network
    * @throws PlanItException thrown if there is an error
    */
-  public InfrastructureNetwork createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
+  public InfrastructureNetwork<?> createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating network");
     final Network theNetwork = infrastructureNetworkFactory.create(infrastructureNetworkType, new Object[] { projectGroupId });
     
@@ -383,7 +383,7 @@ public class PlanItProjectInput {
     if(!(theNetwork instanceof InfrastructureNetwork)){
       throw new PlanItException("we currently only support networks derived from InfrastructureNetwork");
     }
-    InfrastructureNetwork infrastructureNetwork = (InfrastructureNetwork) theNetwork;
+    InfrastructureNetwork<?> infrastructureNetwork = (InfrastructureNetwork<?>) theNetwork;
 
     /* log info across layers */
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createNetworkPrefix(infrastructureNetwork.getId());
@@ -405,7 +405,7 @@ public class PlanItProjectInput {
    * @return the generated zoning object
    * @throws PlanItException thrown if there is an error
    */
-  public Zoning createAndRegisterZoning(final InfrastructureNetwork infrastructureNetwork) throws PlanItException {
+  public Zoning createAndRegisterZoning(final InfrastructureNetwork<?> infrastructureNetwork) throws PlanItException {
     PlanItException.throwIf(infrastructureNetwork == null, "The physical network must be defined before definition of zones can begin");
 
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating zoning");
@@ -435,7 +435,7 @@ public class PlanItProjectInput {
    * @return            the generated demands object
    * @throws PlanItException thrown if there is an error
    */
-  public Demands createAndRegisterDemands(final Zoning zoning, final InfrastructureNetwork network) throws PlanItException {
+  public Demands createAndRegisterDemands(final Zoning zoning, final InfrastructureNetwork<?> network) throws PlanItException {
     PlanItException.throwIf(zoning == null, "Zones must be defined before definition of demands can begin");
     PlanItException.throwIf(network == null, "network must be defined before definition of demands can begin");
 
@@ -487,7 +487,7 @@ public class PlanItProjectInput {
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork network, final String fileName) throws PlanItException {
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork<?> network, final String fileName) throws PlanItException {
     PlanItException.throwIf(network == null, "Physical network must be read in before initial costs can be read");
 
     if (!initialLinkSegmentCosts.containsKey(network)) {
@@ -511,7 +511,7 @@ public class PlanItProjectInput {
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork network, final String fileName, final TimePeriod timePeriod)
+  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork<?> network, final String fileName, final TimePeriod timePeriod)
       throws PlanItException {
     PlanItException.throwIf(network == null, "Physical network must be read in before initial costs can be read");
 
@@ -548,7 +548,7 @@ public class PlanItProjectInput {
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork network, final String fileName, final Demands demands)
+  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork<?> network, final String fileName, final Demands demands)
       throws PlanItException {
 
     PlanItException.throwIf(network == null, "Physical network must be read in before initial costs can be read");
@@ -567,7 +567,7 @@ public class PlanItProjectInput {
    * @param network the specified network
    * @return the initial link segment costs for the specified physical network
    */
-  public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final InfrastructureNetwork network) {
+  public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final InfrastructureNetwork<?> network) {
     return initialLinkSegmentCosts.get(network);
   }
 }

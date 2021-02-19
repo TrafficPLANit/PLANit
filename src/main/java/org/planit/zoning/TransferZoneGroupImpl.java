@@ -3,7 +3,6 @@ package org.planit.zoning;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 
 import org.planit.utils.id.ExternalIdAbleImpl;

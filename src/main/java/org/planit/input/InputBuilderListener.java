@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.djutils.event.EventListenerInterface;
-import org.planit.network.InfrastructureLayer;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TopologicalLayer;
+import org.planit.network.TopologicalNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.time.TimePeriod;
 import org.planit.userclass.TravelerType;
@@ -349,8 +349,8 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @param externalId to look for
    * @return link segment
    */
-  public MacroscopicLinkSegment getLinkSegmentByExternalId(InfrastructureNetwork network, String externalId) {
-    for (InfrastructureLayer layer : network.infrastructureLayers) {
+  public MacroscopicLinkSegment getLinkSegmentByExternalId(TopologicalNetwork<?> network, String externalId) {
+    for (TopologicalLayer layer : network.infrastructureLayers) {
       if (layer instanceof MacroscopicPhysicalNetwork) {
         MacroscopicLinkSegment linkSegment = ((MacroscopicPhysicalNetwork) layer).linkSegments.getByExternalId(externalId);
         if (linkSegment != null) {

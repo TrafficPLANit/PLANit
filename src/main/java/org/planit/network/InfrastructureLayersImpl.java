@@ -5,43 +5,50 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 
 /**
- * Base implementation of the InfrastructureLayers interface
+ * Base implementation of the InfrastructureLayers interface, without the createNew() method
  * 
  * @author markr
  *
  */
-public class InfraStructureLayersImpl implements InfrastructureLayers {
+public abstract class InfrastructureLayersImpl<T extends InfrastructureLayer> implements InfrastructureLayers<T> {
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(InfraStructureLayersImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(InfrastructureLayersImpl.class.getCanonicalName());
 
   /** track the registered infrastructure layers */
-  protected final Map<Long, InfrastructureLayer> infrastructureLayers = new TreeMap<Long, InfrastructureLayer>();
+  protected final Map<Long, T> infrastructureLayers = new TreeMap<Long, T>();
 
   /**
    * create id's for infrastructure layers based on this token
    */
-  private final IdGroupingToken groupingId;
+  private final IdGroupingToken idToken;
+  
+  /** collect the token for id generation
+   * 
+   * @return id token
+   */
+  protected IdGroupingToken getIdToken() {
+    return idToken;
+  }
 
   /**
    * Constructor
    * 
-   * @param groupingId to generated id's for infrastructure layers
+   * @param idToken to generated id's for infrastructure layers
    */
-  public InfraStructureLayersImpl(IdGroupingToken groupingId) {
-    this.groupingId = groupingId;
+  public InfrastructureLayersImpl(IdGroupingToken idToken) {
+    this.idToken = idToken;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public InfrastructureLayer remove(InfrastructureLayer entity) {
+  public T remove(T entity) {
 
     if (entity == null) {
       LOGGER.warning("cannot remove infrastructure layer, null provided");
@@ -55,25 +62,16 @@ public class InfraStructureLayersImpl implements InfrastructureLayers {
    * {@inheritDoc}
    */
   @Override
-  public InfrastructureLayer remove(long id) {
+  public T remove(long id) {
     return infrastructureLayers.remove(id);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public MacroscopicPhysicalNetwork createNew() {
-    final MacroscopicPhysicalNetwork newInfrastructureLayer = new MacroscopicPhysicalNetwork(groupingId);
-    register(newInfrastructureLayer);
-    return newInfrastructureLayer;
-  }
 
   /**
    * return iterator over the available infrastructure layers
    */
   @Override
-  public Iterator<InfrastructureLayer> iterator() {
+  public Iterator<T> iterator() {
     return infrastructureLayers.values().iterator();
   }
 
@@ -81,7 +79,7 @@ public class InfraStructureLayersImpl implements InfrastructureLayers {
    * {@inheritDoc}
    */
   @Override
-  public InfrastructureLayer register(InfrastructureLayer entity) {
+  public T register(T entity) {
 
     if (entity == null) {
       LOGGER.warning("cannot register infrastructure layer, null provided");
@@ -95,8 +93,8 @@ public class InfraStructureLayersImpl implements InfrastructureLayers {
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicPhysicalNetwork registerNew() {
-    final MacroscopicPhysicalNetwork newInfrastructureLayer = createNew();
+  public T registerNew() {
+    final T newInfrastructureLayer = createNew();
     register(newInfrastructureLayer);
     return newInfrastructureLayer;
   }
@@ -113,7 +111,7 @@ public class InfraStructureLayersImpl implements InfrastructureLayers {
    * {@inheritDoc}
    */
   @Override
-  public InfrastructureLayer get(long id) {
+  public T get(long id) {
     return infrastructureLayers.get(id);
   }
 
@@ -121,8 +119,8 @@ public class InfraStructureLayersImpl implements InfrastructureLayers {
    * {@inheritDoc}
    */
   @Override
-  public InfrastructureLayer get(final Mode mode) {
-    for (InfrastructureLayer layer : this) {
+  public T get(final Mode mode) {
+    for (T layer : this) {
       if (layer.supports(mode)) {
         return layer;
       }

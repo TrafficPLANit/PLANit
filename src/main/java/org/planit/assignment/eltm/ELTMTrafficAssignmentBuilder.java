@@ -38,7 +38,7 @@ public class ELTMTrafficAssignmentBuilder extends DynamicTrafficAssignmentBuilde
    * @throws PlanItException when triangular fundamental diagram cannot be instantiated
    */
   public ELTMTrafficAssignmentBuilder(IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands, final Zoning zoning,
-      final InfrastructureNetwork network) throws PlanItException {
+      final InfrastructureNetwork<?> network) throws PlanItException {
     super(ELTM.class, groupId, inputBuilderListener, demands, zoning, network);
   }
 

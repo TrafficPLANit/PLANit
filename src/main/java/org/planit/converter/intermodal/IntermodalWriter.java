@@ -10,7 +10,7 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public interface IntermodalWriter extends MultiConverterWriter<InfrastructureNetwork, Zoning> {
+public interface IntermodalWriter extends MultiConverterWriter<InfrastructureNetwork<?>, Zoning> {
   
   /**
    * {@inheritDoc}
