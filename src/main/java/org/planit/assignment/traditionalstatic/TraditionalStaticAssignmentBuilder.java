@@ -47,7 +47,7 @@ public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder
    * @throws PlanItException thrown if there is an error
    */
   public TraditionalStaticAssignmentBuilder(final IdGroupingToken projectToken, final InputBuilderListener inputBuilder, final Demands demands, final Zoning zoning,
-      final InfrastructureNetwork<?> network) throws PlanItException {
+      final InfrastructureNetwork<?,?> network) throws PlanItException {
     super(TraditionalStaticAssignment.class, projectToken, inputBuilder, demands, zoning, network);
   }
 }

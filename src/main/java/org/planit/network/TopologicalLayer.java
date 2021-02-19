@@ -31,26 +31,6 @@ public interface TopologicalLayer extends InfrastructureLayer {
    */
   public abstract void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException;
   
-  /**
-   * check if nodes are present on this topological layer
-   * 
-   * @return true when present, false otherwise
-   */
-  public abstract boolean hasNodes();
-
-  /**
-   * check if links are present on this topological layer
-   * 
-   * @return true when present, false otherwise
-   */  
-  public abstract boolean hasLinks();
-  
-  /**
-   * check if link segments are present on this topological layer
-   * 
-   * @return true when present, false otherwise
-   */  
-  public abstract boolean hasLinkSegments();
   
   /** Number of nodes
    * @return number of nodes

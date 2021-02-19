@@ -302,30 +302,6 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
   /**
    * {@inheritDoc}
-   */
-  @Override
-  public boolean hasNodes() {
-    return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */  
-  @Override
-  public boolean hasLinks() {
-    return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */  
-  @Override
-  public boolean hasLinkSegments() {
-    return true;
-  }
-
-  /**
-   * {@inheritDoc}
    */  
   @Override
   public long getNumberOfNodes() {

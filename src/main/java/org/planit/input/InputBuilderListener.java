@@ -349,7 +349,7 @@ public abstract class InputBuilderListener implements EventListenerInterface {
    * @param externalId to look for
    * @return link segment
    */
-  public MacroscopicLinkSegment getLinkSegmentByExternalId(TopologicalNetwork<?> network, String externalId) {
+  public MacroscopicLinkSegment getLinkSegmentByExternalId(TopologicalNetwork<?,?> network, String externalId) {
     for (TopologicalLayer layer : network.infrastructureLayers) {
       if (layer instanceof MacroscopicPhysicalNetwork) {
         MacroscopicLinkSegment linkSegment = ((MacroscopicPhysicalNetwork) layer).linkSegments.getByExternalId(externalId);

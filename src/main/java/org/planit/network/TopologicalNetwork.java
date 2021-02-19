@@ -10,12 +10,13 @@ import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
- * A network with topological infrastructure layers
+ * A network with topological infrastructure layers, meaning that apart from representig a physicla reality the result is topologically meaningful, has nodes, links, and some
+ * geographic notion via a coordinate reference system
  * 
  * @author markr
  *
  */
-public abstract class TopologicalNetwork<T extends TopologicalLayer> extends InfrastructureNetwork<T> {
+public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends TopologicalLayers<T>> extends InfrastructureNetwork<T,U> {
 
   /** generated serial id */
   private static final long serialVersionUID = 2402806336978560448L;

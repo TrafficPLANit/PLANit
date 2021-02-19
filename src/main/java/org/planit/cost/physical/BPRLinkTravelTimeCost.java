@@ -255,7 +255,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @throws PlanItException thrown if error
    */
   @Override
-  public void initialiseBeforeSimulation(final InfrastructureNetwork<?> network) throws PlanItException {
+  public void initialiseBeforeSimulation(final InfrastructureNetwork<?,?> network) throws PlanItException {
     PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "BPR cost is only compatible with macroscopic networks");
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.infrastructureLayers.size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");

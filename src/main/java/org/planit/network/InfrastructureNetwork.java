@@ -10,12 +10,17 @@ import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.Modes;
 
 /**
- * A network with physical infrastructure layers
+ * A network with physical infrastructure layers. One can choose the container for the different layers as a generic type that defines the
+ * container level operations available. Each container has a certain base class for the InfrastructureLayer entities which is the second generic type.
+ * This allows one to have a base class for each layer, while the layer itself can derive from this base level. This way the user has maximum flexibility regarding
+ * what the functinoality and properties of each layer are and how they are exposed via the container
  * 
  * @author markr
  *
+ * @param <U> infrastructure layer base class
+ * @param <T> infrastructure layer container class where each layer extends \<U\>
  */
-public abstract class InfrastructureNetwork<T extends InfrastructureLayer> extends Network {
+public abstract class InfrastructureNetwork<U extends InfrastructureLayer, T extends InfrastructureLayers<U>> extends Network {
 
   /** generated serial id */
   private static final long serialVersionUID = 2402806336978560448L;
@@ -33,14 +38,14 @@ public abstract class InfrastructureNetwork<T extends InfrastructureLayer> exten
   public final Modes modes;
 
   /** stores the various layers grouped by their supported modes of transport */
-  public final InfrastructureLayers<T> infrastructureLayers;
+  public final T infrastructureLayers;
   
   /**Derived type is to provide the actual layer implementations
    * 
    * @param networkIdToken to use
    * @return infrastructure layers container
    */
-  protected abstract InfrastructureLayers<T> createInfrastructureLayers(IdGroupingToken networkIdToken);
+  protected abstract T createInfrastructureLayers(IdGroupingToken networkIdToken);
 
   /**
    * Default constructor
@@ -62,7 +67,7 @@ public abstract class InfrastructureNetwork<T extends InfrastructureLayer> exten
    * @param mode to collect layer for
    * @return corresponding layer, null if not found)
    */
-  public T getInfrastructureLayerByMode(Mode mode) {
+  public U getInfrastructureLayerByMode(Mode mode) {
     return infrastructureLayers.get(mode);
   }
 

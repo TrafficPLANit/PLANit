@@ -8,7 +8,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class TopologicalLayersImpl<T extends TopologicalLayer> extends InfrastructureLayersImpl<T> {
+public abstract class TopologicalLayersImpl<T extends TopologicalLayer> extends InfrastructureLayersImpl<T> implements TopologicalLayers<T> {
 
   /** Constructor
    * 
@@ -16,6 +16,6 @@ public abstract class TopologicalLayersImpl<T extends TopologicalLayer> extends 
    */
   public TopologicalLayersImpl(IdGroupingToken groupingId) {
     super(groupingId);
-  }
+  }    
 
 }

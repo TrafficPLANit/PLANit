@@ -69,7 +69,7 @@ public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAs
    * @throws PlanItException thrown if there is an exception
    */
   public DynamicTrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands,
-      final Zoning zoning, final InfrastructureNetwork<?> network) throws PlanItException {
+      final Zoning zoning, final InfrastructureNetwork<?,?> network) throws PlanItException {
 
     super(trafficAssignmentClass, groupId, inputBuilderListener, demands, zoning, network);
     this.trafficComponentCreateListener = inputBuilderListener;

@@ -2,7 +2,6 @@ package org.planit.network.transport;
 
 import java.util.Collection;
 
-import org.planit.network.InfrastructureLayer;
 import org.planit.network.InfrastructureNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.network.virtual.VirtualNetwork;
@@ -26,7 +25,7 @@ public class TransportNetwork {
   /**
    * Holds the infrastructure road network that is being modelled
    */
-  protected final InfrastructureNetwork<? extends InfrastructureLayer> infrastructureNetwork;
+  protected final InfrastructureNetwork<?,?> infrastructureNetwork;
 
   /**
    * Holds the zoning structure and virtual transport network interfacing with the physical network
@@ -85,7 +84,7 @@ public class TransportNetwork {
    * @param infrastructureNetwork the network used to generate this TransportNetwork
    * @param zoning                the Zoning used to generate this TransportNetwork
    */
-  public TransportNetwork(InfrastructureNetwork<? extends InfrastructureLayer> infrastructureNetwork, Zoning zoning) {
+  public TransportNetwork(InfrastructureNetwork<?,?> infrastructureNetwork, Zoning zoning) {
     this.infrastructureNetwork = infrastructureNetwork;
     this.zoning = zoning;
   }
@@ -189,7 +188,7 @@ public class TransportNetwork {
    * 
    * @return physicalNetwork
    */
-  public InfrastructureNetwork<? extends InfrastructureLayer> getInfrastructureNetwork() {
+  public InfrastructureNetwork<?,?> getInfrastructureNetwork() {
     return infrastructureNetwork;
   }
 

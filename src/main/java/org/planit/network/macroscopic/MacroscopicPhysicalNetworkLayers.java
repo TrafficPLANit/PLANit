@@ -28,6 +28,42 @@ public class MacroscopicPhysicalNetworkLayers extends TopologicalLayersImpl<Macr
     final MacroscopicPhysicalNetwork networkLayer  = new MacroscopicPhysicalNetwork(this.getIdToken());
     register(networkLayer);
     return networkLayer;
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public long getNumberOfNodes() {
+    long sum = 0;
+    for(MacroscopicPhysicalNetwork layer : this) {
+      sum += layer.getNumberOfNodes();
+    }
+    return sum;
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public long getNumberOfLinks() {
+    long sum = 0;
+    for(MacroscopicPhysicalNetwork layer : this) {
+      sum += layer.getNumberOfLinks();
+    }
+    return sum;
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public long getNumberOfLinkSegments() {
+    long sum = 0;
+    for(MacroscopicPhysicalNetwork layer : this) {
+      sum += layer.getNumberOfLinkSegments();
+    }
+    return sum;
   }  
 
 }
