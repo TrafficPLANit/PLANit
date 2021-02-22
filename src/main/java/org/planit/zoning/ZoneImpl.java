@@ -3,7 +3,7 @@ package org.planit.zoning;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.Geometry;
 import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -36,7 +36,7 @@ public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
   /**
    * geometry of this zone
    */
-  protected Polygon geometry = null;
+  protected Geometry geometry = null;
 
   /**
    * Generate unique id for this zone
@@ -82,7 +82,7 @@ public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
    * {@inheritDoc}
    */
   @Override
-  public void setGeometry(Polygon geometry) {
+  public void setGeometry(Geometry geometry) {
     this.geometry = geometry;
   }
 
@@ -90,7 +90,7 @@ public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
    * {@inheritDoc}
    */
   @Override
-  public Polygon getGeometry() {
+  public Geometry getGeometry() {
     return geometry;
   }
 
