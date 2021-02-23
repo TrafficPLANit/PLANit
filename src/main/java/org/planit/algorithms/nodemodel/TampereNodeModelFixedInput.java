@@ -145,7 +145,7 @@ public class TampereNodeModelFixedInput {
    */
   public TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities, Array1D<Double> outgoingLinkSegmentReceivingFlows) throws PlanItException {
     this.incomingLinkSegmentCapacities = incomingLinkSegmentCapacities.copy();
-    this.outgoingLinkSegmentReceivingFlows = incomingLinkSegmentCapacities.copy();
+    this.outgoingLinkSegmentReceivingFlows = outgoingLinkSegmentReceivingFlows.copy();
   }
 
   /**
