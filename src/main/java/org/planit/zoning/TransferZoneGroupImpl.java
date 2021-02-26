@@ -77,7 +77,9 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
    */  
   @Override
   public TransferZone addTransferZone(TransferZone transferZone) {
-    return transferZoneMap.put(transferZone.getId(), transferZone);
+    TransferZone prevTransferZone = transferZoneMap.put(transferZone.getId(), transferZone);
+    transferZone.addToTransferZoneGroup(this);
+    return prevTransferZone;
   }
 
   /**
@@ -85,7 +87,9 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
    */  
   @Override
   public TransferZone removeTransferZone(TransferZone transferZone) {
-    return transferZoneMap.remove(transferZone.getId());
+    TransferZone removedZone = transferZoneMap.remove(transferZone.getId());
+    transferZone.removeFromTransferZoneGroup(this);
+    return removedZone;
   }
 
   /**
