@@ -103,7 +103,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     PriorityQueue<Pair<DirectedVertex, Double>> openVertices = new PriorityQueue<Pair<DirectedVertex, Double>>(numberOfVertices, pairSecondComparator);
 
     // initialise for origin
-    openVertices.add(Pair.create(origin, 0.0));
+    openVertices.add(Pair.of(origin, 0.0));
     vertexMeasuredCost[(int) origin.getId()] = 0.0;
     vertexHeuristicCost[(int) origin.getId()] = geoUtils.getDistanceInKilometres(origin.getPosition(), destination.getPosition()) * heuristicDistanceMultiplier;
     incomingEdgeSegment[(int) origin.getId()] = null;
@@ -156,7 +156,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
 
             // prioritise exploring the new vertex based on f-score (measured + heuristic)
             double priorityCost = tentativeCost + vertexHeuristicCost[adjacentVertexId];
-            openVertices.add(Pair.create(adjacentVertex, priorityCost)); // place on queue
+            openVertices.add(Pair.of(adjacentVertex, priorityCost)); // place on queue
           }
         }
       }

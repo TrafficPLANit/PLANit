@@ -90,7 +90,7 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
     Arrays.fill(incomingEdgeSegment, null);
 
     PriorityQueue<Pair<DirectedVertex, Double>> openVertices = new PriorityQueue<Pair<DirectedVertex, Double>>(numberOfVertices, pairSecondComparator);
-    openVertices.add(Pair.create(currentOrigin, 0.0)); // cost to reach self is zero
+    openVertices.add(Pair.of(currentOrigin, 0.0)); // cost to reach self is zero
 
     // collect cheapest cost and expand the vertex if not already visited
     while (!openVertices.isEmpty()) {
@@ -123,7 +123,7 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
             if (adjacentVertexCost > computedCostToReachAdjacentVertex) {
               vertexMeasuredCost[adjacentVertexId] = computedCostToReachAdjacentVertex;
               incomingEdgeSegment[adjacentVertexId] = adjacentEdgeSegment;
-              openVertices.add(Pair.create(adjacentVertex, computedCostToReachAdjacentVertex)); // place on queue
+              openVertices.add(Pair.of(adjacentVertex, computedCostToReachAdjacentVertex)); // place on queue
             }            
           }
         }

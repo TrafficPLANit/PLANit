@@ -89,7 +89,7 @@ public class TampereNodeModel extends NodeModel {
         }
       }
     }
-    return Pair.create(foundRestrictionFactor, foundOutLinkSegmentIndex);
+    return Pair.of(foundRestrictionFactor, foundOutLinkSegmentIndex);
   }
 
   /**

@@ -57,7 +57,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
      * @param beta  BPR beta value
      */
     private void registerParameters(final Mode mode, final double alpha, final double beta) {
-      parametersMap.put(mode, Pair.create(alpha, beta));
+      parametersMap.put(mode, Pair.of(alpha, beta));
     }
 
     /**
@@ -160,7 +160,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     parametersPerLinkSegmentAndMode = new HashMap<MacroscopicLinkSegment, BPRParameters>();
     defaultParametersPerMode = new BPRParameters();
     defaultParametersPerLinkSegmentTypeAndMode = new HashMap<MacroscopicLinkSegmentType, BPRParameters>();
-    defaultParameters = Pair.create(DEFAULT_ALPHA, DEFAULT_BETA);
+    defaultParameters = Pair.of(DEFAULT_ALPHA, DEFAULT_BETA);
   }
 
   /**
@@ -211,7 +211,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @param beta  beta value
    */
   public void setDefaultParameters(final double alpha, final double beta) {
-    defaultParameters = Pair.create(alpha, beta);
+    defaultParameters = Pair.of(alpha, beta);
   }
 
   /**

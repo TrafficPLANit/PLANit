@@ -56,7 +56,7 @@ public class ACyclicSubGraph<V extends DirectedVertex, E extends DirectedEdge, E
     this.id = IdGenerator.generateId(groupId, ACyclicSubGraph.class);
     this.parentGraph = parentGraph;
     this.root = root;
-    topologicalEdgeSegmentList.add(Pair.create(root, new ArrayList<ES>()));
+    topologicalEdgeSegmentList.add(Pair.of(root, new ArrayList<ES>()));
   }
 
   /**
