@@ -3,7 +3,6 @@ package org.planit.zoning;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
-
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
@@ -126,5 +125,5 @@ public class ConnectoidsImpl implements Connectoids {
   public int size() {
     return connectoidMap.size();
   }
-
+  
 }

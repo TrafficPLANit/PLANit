@@ -2,6 +2,7 @@ package org.planit.zoning;
 
 import java.util.logging.Logger;
 
+import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.zoning.DirectedConnectoid;
@@ -86,6 +87,14 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
   public LinkSegment getAccessLinkSegment() {
     return accessEdgeSegment;
   }
+  
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public void replaceAccessLinkSegment(EdgeSegment exitEdgeSegment) {
+    setAccessLinkSegment(accessEdgeSegment);
+  }  
 
   /**
    * {@inheritDoc}
