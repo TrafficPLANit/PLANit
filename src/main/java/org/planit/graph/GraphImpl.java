@@ -31,7 +31,6 @@ import org.planit.utils.id.IdGroupingToken;
 public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>, GraphModifier<V, E> {
 
   /** the logger */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(GraphImpl.class.getCanonicalName());
 
   /**
