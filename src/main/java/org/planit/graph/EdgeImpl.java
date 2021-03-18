@@ -135,7 +135,7 @@ public class EdgeImpl implements Edge, Cloneable {
     setXmlId(edgeImpl.getXmlId());
     setExternalId(edgeImpl.getExternalId());
     if (edgeImpl.hasGeometry()) {
-      setGeometry((LineString) edgeImpl.getGeometry().clone());
+      setGeometry((LineString) edgeImpl.getGeometry().copy());
     }
     setVertexA(edgeImpl.getVertexA());
     setVertexB(edgeImpl.getVertexB());

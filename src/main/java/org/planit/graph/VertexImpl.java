@@ -97,7 +97,7 @@ public class VertexImpl implements Vertex {
     setId(vertexImpl.getId());
     setXmlId(vertexImpl.getXmlId());
     setExternalId(vertexImpl.getExternalId());
-    setPosition((Point) vertexImpl.getPosition().clone());
+    setPosition((Point) vertexImpl.getPosition().copy());
     edges.putAll(vertexImpl.edges);
     inputProperties = null; // not copied, shallow copy of objects is dangerous
   }
