@@ -1,5 +1,6 @@
 package org.planit.graph;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -62,7 +63,7 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    */
   @Override
   public Set<EdgeSegment> getEntryEdgeSegments() {
-    return this.entryEdgeSegments;
+    return Collections.unmodifiableSet(this.entryEdgeSegments);
   }
 
   /**
@@ -70,7 +71,7 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    */
   @Override
   public Set<EdgeSegment> getExitEdgeSegments() {
-    return this.exitEdgeSegments;
+    return Collections.unmodifiableSet(this.exitEdgeSegments);
   }
 
   /**
@@ -100,10 +101,10 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
     }
     return removed;
   }
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public boolean removeEntryEdgeSegment(EdgeSegment edgeSegment) {
     return entryEdgeSegments.remove(edgeSegment);
@@ -111,11 +112,11 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public boolean removeExitEdgeSegment(EdgeSegment edgeSegment) {
     return exitEdgeSegments.remove(edgeSegment);
-  }  
+  }
 
   /**
    * {@inheritDoc}

@@ -1,6 +1,7 @@
 package org.planit.graph;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -206,7 +207,7 @@ public class VertexImpl implements Vertex {
    */
   @Override
   public Collection<Edge> getEdges() {
-    return edges.values();
+    return Collections.unmodifiableCollection(edges.values());
   }
 
   /**
