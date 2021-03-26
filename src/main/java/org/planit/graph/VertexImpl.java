@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import org.locationtech.jts.geom.Point;
@@ -13,6 +14,7 @@ import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.misc.CloneUtils;
 
 /**
  * vertex representation connected to one or more entry and exit edges
@@ -89,7 +91,7 @@ public class VertexImpl implements Vertex {
   }
 
   /**
-   * Copy constructor (for now input properties are NOT copied, because a shallow copy of contents is dangerous). Geometry is deep copied, edges are not because they are not owned
+   * Copy constructor. Geometry and input properties are deep copied, edges are not because they are not owned by this class
    * by the vertex.
    * 
    * @param vertexImpl to copy
@@ -100,7 +102,11 @@ public class VertexImpl implements Vertex {
     setExternalId(vertexImpl.getExternalId());
     setPosition((Point) vertexImpl.getPosition().copy());
     edges.putAll(vertexImpl.edges);
-    inputProperties = null; // not copied, shallow copy of objects is dangerous
+    if(vertexImpl.inputProperties!= null && !vertexImpl.inputProperties.isEmpty()) {
+      for( Entry<String, Object> entry : vertexImpl.inputProperties.entrySet()) {
+        addInputProperty(new String(entry.getKey()), CloneUtils.clone(entry.getValue()));
+      }
+    }
   }
 
   // Public

@@ -2,6 +2,7 @@ package org.planit.graph;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import org.locationtech.jts.geom.LineString;
@@ -10,6 +11,7 @@ import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.misc.CloneUtils;
 
 /**
  * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry additional information for each
@@ -126,7 +128,7 @@ public class EdgeImpl implements Edge, Cloneable {
   }
 
   /**
-   * Copy constructor, input properties are not copied because shallow copy is considered dangerous at this point
+   * Copy constructor, input properties are copied using serialisation/deserialisation because shallow copy is considered dangerous
    * 
    * @param edgeImpl to copy
    */
@@ -141,7 +143,11 @@ public class EdgeImpl implements Edge, Cloneable {
     setVertexB(edgeImpl.getVertexB());
     setLengthKm(edgeImpl.getLengthKm());
     setName(getName() != null ? edgeImpl.getName() : "");
-    inputProperties = null; // not copied, shallow copy of objects is dangerous
+    if(edgeImpl.inputProperties!= null && !edgeImpl.inputProperties.isEmpty()) {
+      for( Entry<String, Object> entry : edgeImpl.inputProperties.entrySet()) {
+        addInputProperty(new String(entry.getKey()), CloneUtils.clone(entry.getValue()));
+      }
+    }
   }   
 
   // Public
@@ -269,6 +275,9 @@ public class EdgeImpl implements Edge, Cloneable {
    */
   @Override
   public Object getInputProperty(final String key) {
+    if(inputProperties==null) {
+      return null;
+    }
     return inputProperties.get(key);
   }
 
