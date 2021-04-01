@@ -6,7 +6,7 @@ import java.util.PriorityQueue;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.geo.PlanitJtsUtils;
+import org.planit.utils.geo.PlanitJtsCrsUtils;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.misc.Pair;
@@ -42,7 +42,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
   /**
    * CRS based utility class to interpret the position information of vertices
    */
-  protected final PlanitJtsUtils geoUtils;
+  protected final PlanitJtsCrsUtils geoUtils;
 
   /**
    * conversion multiplier to convert distance (km) to cost
@@ -70,7 +70,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     this.edgeSegmentCosts = edgeSegmentCosts;
     this.numberOfVertices = numberOfVertices;
     this.numberOfEdgeSegments = edgeSegmentCosts.length;
-    geoUtils = new PlanitJtsUtils(crs);
+    geoUtils = new PlanitJtsCrsUtils(crs);
     this.heuristicDistanceMultiplier = heuristicDistanceMultiplier;
   }
 

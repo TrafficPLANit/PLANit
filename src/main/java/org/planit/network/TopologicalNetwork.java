@@ -6,11 +6,11 @@ import java.util.logging.Logger;
 import org.apache.commons.collections4.map.HashedMap;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.geo.PlanitJtsUtils;
+import org.planit.utils.geo.PlanitJtsCrsUtils;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
- * A network with topological infrastructure layers, meaning that apart from representig a physicla reality the result is topologically meaningful, has nodes, links, and some
+ * A network with topological infrastructure layers, meaning that apart from representing a physical reality the result is topologically meaningful, has nodes, links, and some
  * geographic notion via a coordinate reference system
  * 
  * @author markr
@@ -37,7 +37,7 @@ public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends T
    * @param tokenId to use for id generation
    */
   public TopologicalNetwork(IdGroupingToken tokenId) {
-    this(tokenId, PlanitJtsUtils.DEFAULT_GEOGRAPHIC_CRS);
+    this(tokenId, PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS);
   }
 
   /**

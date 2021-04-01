@@ -28,8 +28,7 @@ public abstract class BaseWriterImpl<T> implements ConverterWriter<T> {
    * @return crs for destination
    * @throws PlanItException thrown if error
    */
-  protected CoordinateReferenceSystem identifyDestinationCoordinateReferenceSystem(CoordinateReferenceSystem overwriteCrs, String countryName,
-      CoordinateReferenceSystem fallBackCrs) throws PlanItException {
+  protected CoordinateReferenceSystem identifyDestinationCoordinateReferenceSystem(CoordinateReferenceSystem overwriteCrs, String countryName, CoordinateReferenceSystem fallBackCrs) throws PlanItException {
 
     /* CRS and transformer (if needed) */
     CoordinateReferenceSystem destinationCrs = overwriteCrs;

@@ -22,7 +22,7 @@ import org.opengis.geometry.coordinate.Position;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.geo.PlanitJtsUtils;
+import org.planit.utils.geo.PlanitJtsCrsUtils;
 import org.planit.utils.graph.Vertex;
 
 /**
@@ -42,12 +42,12 @@ public class PlanitOpenGisUtils {
   /**
    * Default Coordinate Reference System: WGS84
    */
-  public static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = PlanitJtsUtils.DEFAULT_GEOGRAPHIC_CRS;
+  public static final DefaultGeographicCRS DEFAULT_GEOGRAPHIC_CRS = PlanitJtsCrsUtils.DEFAULT_GEOGRAPHIC_CRS;
 
   /**
    * In absence of a geographic crs we can also use cartesian: GENERIC_2D
    */
-  public static final CoordinateReferenceSystem CARTESIANCRS = PlanitJtsUtils.CARTESIANCRS;
+  public static final CoordinateReferenceSystem CARTESIANCRS = PlanitJtsCrsUtils.CARTESIANCRS;
 
   /*
    * the geotools gt-epsg-hsql dependency tries to take over the logging and the formatting of the logging. It is initialised whenever {@code CRS.decode} is invoked from some of

@@ -16,6 +16,7 @@ import org.planit.network.InfrastructureLayer;
 import org.planit.network.TopologicalLayer;
 import org.planit.network.TopologicalLayerImpl;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.geo.PlanitJtsCrsUtils;
 import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.id.IdGroupingToken;
@@ -242,7 +243,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
       Map<Long, Set<L>> affectedLinks = ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
 
       /* broken links geometry must be updated since it links is truncated compared to its original */
-      PlanitJtsUtils geoUtils = new PlanitJtsUtils(crs);
+      PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
       for (Entry<Long, Set<L>> brokenLinks : affectedLinks.entrySet()) {
         for (Link brokenLink : brokenLinks.getValue()) {
           LineString updatedGeometry = null;

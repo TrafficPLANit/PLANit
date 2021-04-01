@@ -6,7 +6,7 @@ package org.planit.converter.intermodal;
  * @author markr
  *
  */
-public class IntermodalNetworkConverterFactory {
+public class IntermodalConverterFactory {
 
   /**
    * Create the intermodal converter
@@ -15,7 +15,7 @@ public class IntermodalNetworkConverterFactory {
    * @param writer the writer to use
    * @return the converter that is created
    */
-  public static IntermodalNetworkConverter createConverter(IntermodalReader reader, IntermodalWriter writer) {
-    return new IntermodalNetworkConverter(reader, writer);
+  public static IntermodalConverter createConverter(IntermodalReader reader, IntermodalWriter writer) {
+    return new IntermodalConverter(reader, writer);
   }
 }
