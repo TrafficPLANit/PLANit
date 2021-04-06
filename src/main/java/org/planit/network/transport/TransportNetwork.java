@@ -10,7 +10,8 @@ import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.network.virtual.ConnectoidEdge;
 import org.planit.utils.network.virtual.ConnectoidSegment;
-import org.planit.utils.zoning.Connectoid;
+import org.planit.utils.zoning.DirectedConnectoid;
+import org.planit.utils.zoning.UndirectedConnectoid;
 import org.planit.zoning.Zoning;
 
 /**
@@ -77,6 +78,19 @@ public class TransportNetwork {
   }
 
   // Public
+
+  /** create and register the edge segments for the passed in connectoid edges
+   * @param virtualNetwork to create and register on 
+   * @param connectoidEdges to process
+   * @throws PlanItException thrown if error
+   */
+  protected void createAndRegisterConectoidEdgeSegments(VirtualNetwork virtualNetwork, Collection<ConnectoidEdge> connectoidEdges) throws PlanItException {
+    for (ConnectoidEdge connectoidEdge : connectoidEdges) {
+      virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoidEdge, true);
+      virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoidEdge, false);
+      connectVerticesToEdge(connectoidEdge);
+    }
+  }
 
   /**
    * Constructor
@@ -146,21 +160,23 @@ public class TransportNetwork {
   }
 
   /**
-   * Integrate physical and virtual links
+   * Integrate physical and virtual links within od zones (undirected connectoid access node <-> centroid)
    * 
    * @throws PlanItException thrown if there is an error
    */
-  public void integrateConnectoidsAndLinks() throws PlanItException {
+  public void integrateTransportNetworkViaConnectoids() throws PlanItException {
     VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
-    for (Connectoid connectoid : zoning.connectoids) {
-      /* connectoid edge */
-      Collection<ConnectoidEdge> connectoidEdges = virtualNetwork.connectoidEdges.registerNew(connectoid);
-      for (ConnectoidEdge connectoidEdge : connectoidEdges) {
-        virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoidEdge, true);
-        virtualNetwork.connectoidSegments.createAndRegisterConnectoidSegment(connectoidEdge, false);
-        connectVerticesToEdge(connectoidEdge);
-      }
+    for (UndirectedConnectoid undirectedConnectoid : zoning.odConnectoids) {
+      /* undirected connectoid (virtual) edge between zone centroid and access node*/
+      Collection<ConnectoidEdge> connectoidEdges = virtualNetwork.connectoidEdges.registerNew(undirectedConnectoid);
+      createAndRegisterConectoidEdgeSegments(virtualNetwork, connectoidEdges);
+
     }
+    for (DirectedConnectoid directedConnectoid : zoning.transferConnectoids) {
+      /* directed connectoid (virtual) edge between zone centroid and access link segment's downstream node*/
+      Collection<ConnectoidEdge> connectoidEdges = virtualNetwork.connectoidEdges.registerNew(directedConnectoid);
+      createAndRegisterConectoidEdgeSegments(virtualNetwork, connectoidEdges);
+    }    
     for (ConnectoidSegment connectoidSegment : virtualNetwork.connectoidSegments) {
       connectVerticesToEdgeSegment(connectoidSegment);
     }

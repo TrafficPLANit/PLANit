@@ -160,7 +160,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   protected void createTransportNetwork() throws PlanItException {
     transportNetwork = new TransportNetwork(network, zoning);
-    transportNetwork.integrateConnectoidsAndLinks();
+    transportNetwork.integrateTransportNetworkViaConnectoids();
     if (getTransportNetwork().getTotalNumberOfEdgeSegments() > Integer.MAX_VALUE) {
       throw new PlanItException("currently assignment internals expect to be castable to int, but max value is exceeded for link segments");
     }

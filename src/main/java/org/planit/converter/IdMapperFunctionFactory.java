@@ -10,6 +10,7 @@ import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.zoning.DirectedConnectoid;
 
 /**
  * Factory that creates functions for id mapping from PLANit ids to ids to be used for persistence. Based on the passed in IdMapper type functions will generate different ids when
@@ -62,7 +63,7 @@ public class IdMapperFunctionFactory {
     default:
       throw new PlanItException(String.format("unknown id mapping type found for %s %s", clazz.getName(), idMapper.toString()));
     }
-  }
+  }  
 
   /**
    * create a function that takes a node and generates the appropriate id based on the user configuration
@@ -132,6 +133,17 @@ public class IdMapperFunctionFactory {
    */
   public static Function<Mode, String> createModeIdMappingFunction(IdMapperType idMapper) throws PlanItException {
     return createIdMappingFunction(Mode.class, idMapper);
+  }
+  
+  /**
+   * create a function that takes a directed connectoid (stop facility) and generates the appropriate id based on the user configuration
+   * 
+   * @param idMapper the type of mapping function to create
+   * @return function that generates node id's for MATSIM node output
+   * @throws PlanItException thrown if error
+   */
+  public static Function<DirectedConnectoid, String> createDirectedConnectoidIdMappingFunction(final IdMapperType idMapper) throws PlanItException {
+    return createIdMappingFunction(DirectedConnectoid.class, idMapper);
   }
 
 }

@@ -2,6 +2,7 @@ package org.planit.zoning;
 
 import java.util.logging.Logger;
 
+import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.zoning.UndirectedConnectoid;
@@ -25,11 +26,31 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
   private static final Logger LOGGER = Logger.getLogger(UndirectedConnectoidImpl.class.getCanonicalName());
 
   // Protected
+  
+  /** unique id across undirected connectoids */
+  protected long undirectedConnectoidId;
 
   /**
    * the access point to an infrastructure layer
    */
   protected Node accessNode;
+  
+  /**
+   * Generate undirected connectoid id
+   *
+   * @param groupId contiguous id generation within this group for instances of this class
+   * @return id of undirected connectoid
+   */
+  protected static long generateUndirectedConnectoidId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, UndirectedConnectoid.class);
+  }  
+  
+  /** set the directed connectoid id
+   * @param directedConnectoidId to use
+   */
+  protected void setUndirectedConnectoidId(long undirectedConnectoidId) {
+    this.undirectedConnectoidId = undirectedConnectoidId;
+  }    
 
   /**
    * Set the accessNode
@@ -50,6 +71,7 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
    */
   protected UndirectedConnectoidImpl(final IdGroupingToken idToken, final Node accessNode, Zone accessZone, double length) {
     super(idToken, accessZone, length);
+    setUndirectedConnectoidId(generateUndirectedConnectoidId(idToken));
     setAccessNode(accessNode);
   }
 
@@ -77,6 +99,14 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
   // Public
 
   // Getters-Setters
+  
+  /** collect the undirected connectoid's unique id
+   * 
+   * @return undirected connectoid id
+   */
+  public long getUndirectedConnectoidId() {
+    return undirectedConnectoidId;
+  }  
 
   /**
    * {@inheritDoc}

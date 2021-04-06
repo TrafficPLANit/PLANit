@@ -160,14 +160,14 @@ public class ShortestPathTest {
       centroidE = zoneE.getCentroid();
       centroidE.setPosition(geoFactory.createPoint(new Coordinate(4*1000, 4*1000)));
       
-      zoning.connectoids.registerNew(networkLayer.nodes.get(0),  zoneA, 0);
-      zoning.connectoids.registerNew(networkLayer.nodes.get(21), zoneB, 0);
-      zoning.connectoids.registerNew(networkLayer.nodes.get(12), zoneC, 0);
-      zoning.connectoids.registerNew(networkLayer.nodes.get(23), zoneD, 0);
-      zoning.connectoids.registerNew(networkLayer.nodes.get(24), zoneE, 0);
+      zoning.odConnectoids.registerNew(networkLayer.nodes.get(0),  zoneA, 0);
+      zoning.odConnectoids.registerNew(networkLayer.nodes.get(21), zoneB, 0);
+      zoning.odConnectoids.registerNew(networkLayer.nodes.get(12), zoneC, 0);
+      zoning.odConnectoids.registerNew(networkLayer.nodes.get(23), zoneD, 0);
+      zoning.odConnectoids.registerNew(networkLayer.nodes.get(24), zoneE, 0);
       
       transportNetwork = new TransportNetwork(network, zoning);
-      transportNetwork.integrateConnectoidsAndLinks();
+      transportNetwork.integrateTransportNetworkViaConnectoids();
           
       // costs
       linkSegmentCosts = new double[]

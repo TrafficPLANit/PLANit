@@ -3,6 +3,7 @@ package org.planit.zoning;
 import java.util.logging.Logger;
 
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.zoning.DirectedConnectoid;
@@ -24,6 +25,9 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
   private static final Logger LOGGER = Logger.getLogger(DirectedConnectoidImpl.class.getCanonicalName());
 
   // Protected
+  
+  /** unique id across directed connectoids */
+  protected long directedConnectoidId;  
 
   /**
    * the access point to an infrastructure layer
@@ -32,6 +36,23 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
 
   /** the node access given an access edge segment is either up or downstream */
   protected boolean nodeAccessDownstream = DEFAULT_NODE_ACCESS_DOWNSTREAM;
+  
+  /**
+   * Generate directed connectoid id
+   *
+   * @param groupId contiguous id generation within this group for instances of this class
+   * @return id of directed connectoid
+   */
+  protected static long generateDirectedConnectoidId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, DirectedConnectoid.class);
+  }  
+  
+  /** set the directed connectoid id
+   * @param directedConnectoidId to use
+   */
+  protected void setDirectedConnectoidId(long directedConnectoidId) {
+    this.directedConnectoidId = directedConnectoidId;
+  }  
 
   /**
    * Set the accessEdgeSegment
@@ -52,6 +73,7 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    */
   protected DirectedConnectoidImpl(final IdGroupingToken idToken, final LinkSegment accessLinkSegment, final Zone accessZone, double length) {
     super(idToken, accessZone, length);
+    setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
     setAccessLinkSegment(accessLinkSegment);
   }
 
@@ -79,6 +101,14 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
   // Public
 
   // Getters-Setters
+  
+  /** the directed connectoid unique id
+   * 
+   * @return directed connectoid id
+   */
+  public long getDirectedConnectoidId() {
+    return directedConnectoidId;
+  }  
 
   /**
    * {@inheritDoc}

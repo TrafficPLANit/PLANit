@@ -3,23 +3,17 @@ package org.planit.zoning;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.Node;
 import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.Connectoids;
-import org.planit.utils.zoning.DirectedConnectoid;
-import org.planit.utils.zoning.UndirectedConnectoid;
-import org.planit.utils.zoning.Zone;
 
 /**
- * Implementation of Connectoids class
+ * Base implementation of Connectoids container and factory class
  * 
  * @author markr
  *
  */
-public class ConnectoidsImpl implements Connectoids {
+public abstract class ConnectoidsImpl<T extends Connectoid> implements Connectoids<T> {
 
   /** id generation token */
   protected IdGroupingToken idToken;
@@ -27,7 +21,16 @@ public class ConnectoidsImpl implements Connectoids {
   /**
    * connectoids container
    */
-  protected Map<Long, Connectoid> connectoidMap = new TreeMap<Long, Connectoid>();
+  protected Map<Long, T> connectoidMap = new TreeMap<Long, T>();
+  
+  /** Register on container
+   * @param idToUse to use
+   * @param connectoid to register
+   * @return result of put on map
+   */
+  protected T register(long idToUse, T connectoid) {
+    return connectoidMap.put(idToUse, connectoid);
+  }
 
   /**
    * Constructor
@@ -42,7 +45,7 @@ public class ConnectoidsImpl implements Connectoids {
    * {@inheritDoc}
    */
   @Override
-  public Iterator<Connectoid> iterator() {
+  public Iterator<T> iterator() {
     return connectoidMap.values().iterator();
   }
 
@@ -50,71 +53,7 @@ public class ConnectoidsImpl implements Connectoids {
    * {@inheritDoc}
    */
   @Override
-  public Connectoid register(Connectoid connectoid) {
-    return connectoidMap.put(connectoid.getId(), connectoid);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public UndirectedConnectoid registerNew(Node accessNode, Zone parentZone, double length) throws PlanItException {
-    UndirectedConnectoid newConnectoid = new UndirectedConnectoidImpl(idToken, accessNode, parentZone, length);
-    register(newConnectoid);
-    return newConnectoid;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public UndirectedConnectoid registerNew(Node accessNode, Zone parentZone) throws PlanItException {
-    return registerNew(accessNode, parentZone, Connectoid.DEFAULT_LENGTH_KM);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public UndirectedConnectoid registerNew(Node accessNode) throws PlanItException {
-    UndirectedConnectoid newConnectoid = new UndirectedConnectoidImpl(idToken, accessNode);
-    register(newConnectoid);
-    return newConnectoid;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment, Zone parentZone, double length) throws PlanItException {
-    DirectedConnectoid newConnectoid = new DirectedConnectoidImpl(idToken, accessLinkSegment, parentZone, length);
-    register(newConnectoid);
-    return newConnectoid;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment, Zone parentZone) throws PlanItException {
-    return registerNew(accessLinkSegment, parentZone, Connectoid.DEFAULT_LENGTH_KM);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment) throws PlanItException {
-    DirectedConnectoid newConnectoid = new DirectedConnectoidImpl(idToken, accessLinkSegment);
-    register(newConnectoid);
-    return newConnectoid;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Connectoid get(long id) {
+  public T get(long id) {
     return connectoidMap.get(id);
   }
 

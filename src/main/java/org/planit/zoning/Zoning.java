@@ -11,10 +11,11 @@ import org.planit.time.TimePeriod;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.Modes;
-import org.planit.utils.zoning.Connectoids;
+import org.planit.utils.zoning.DirectedConnectoids;
 import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.TransferZone;
 import org.planit.utils.zoning.TransferZoneGroups;
+import org.planit.utils.zoning.UndirectedConnectoids;
 import org.planit.utils.zoning.Zone;
 import org.planit.utils.zoning.Zones;
 
@@ -43,9 +44,14 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   // Public   
 
   /**
-   * provide access to connectoids
+   * provide access to undirected connectoids (of od zones)
    */
-  public final Connectoids connectoids;
+  public final UndirectedConnectoids odConnectoids;
+  
+  /**
+   * provide access to directed connectoids (of transfer zones)
+   */
+  public final DirectedConnectoids transferConnectoids;  
 
   /**
    * provide access to zones
@@ -74,7 +80,8 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
    */
   public Zoning(IdGroupingToken groupId, IdGroupingToken networkGroupId) {
     super(groupId, Zoning.class);
-    connectoids = new ConnectoidsImpl(networkGroupId);
+    odConnectoids = new UndirectedConnectoidsImpl(networkGroupId);
+    transferConnectoids = new DirectedConnectoidsImpl(networkGroupId);
     odZones = new OdZonesImpl(networkGroupId);
     transferZones = new TransferZonesImpl(networkGroupId);
     transferZoneGroups = new TransferZoneGroupsImpl(networkGroupId);
@@ -137,6 +144,15 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
    */
   public long getNumberOfCentroids() {
     return odZones.getNumberOfCentroids() + transferZones.getNumberOfCentroids();
+  }
+
+  /**
+   * collect the number of connectoids (od and transfer)
+   * 
+   * @return total number of connectoids
+   */  
+  public long getNumberOfConnectoids() {
+    return odConnectoids.size() + transferConnectoids.size();
   }
 
 }
