@@ -11,7 +11,7 @@ import org.locationtech.jts.geom.LineString;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.geo.PlanitOpenGisUtils;
 import org.planit.graph.DirectedGraphImpl;
-import org.planit.graph.GraphModifier;
+import org.planit.graph.modifier.DirectedGraphModifierImpl;
 import org.planit.network.InfrastructureLayer;
 import org.planit.network.TopologicalLayer;
 import org.planit.network.TopologicalLayerImpl;
@@ -19,6 +19,9 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.geo.PlanitJtsCrsUtils;
 import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.DirectedGraph;
+import org.planit.utils.graph.modifier.DirectedGraphModifier;
+import org.planit.utils.graph.modifier.GraphModifier;
+import org.planit.utils.graph.modifier.RemoveDirectedSubGraphListener;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
@@ -26,6 +29,8 @@ import org.planit.utils.network.physical.LinkSegments;
 import org.planit.utils.network.physical.Links;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.Nodes;
+import org.planit.zoning.Zoning;
+import org.planit.zoning.listener.UpdateZoningOnSubGraphRemoval;
 
 /**
  * Model free Network consisting of nodes and links, each of which can be iterated over. This network does not contain any transport specific information, hence the qualification
@@ -53,6 +58,9 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * The graph containing the nodes, links, and link segments (or derived implementations)
    */
   private final DirectedGraph<N, L, LS> graph;
+
+  /** the graph modifier to use to apply larger modifications */
+  protected DirectedGraphModifier<N, L, LS> graphModifier;
 
   // Protected
 
@@ -129,6 +137,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
     this.networkBuilder = networkBuilder; /* for derived classes building part */
     this.graph = new DirectedGraphImpl<N, L, LS>(tokenId, networkBuilder /* for graph builder part */);
+    this.graphModifier = new DirectedGraphModifierImpl<N, L, LS>((DirectedGraphImpl<N, L, LS>) graph, networkBuilder);
 
     this.nodes = new NodesImpl<N>(getGraph().getVertices());
     this.links = new LinksImpl<L>(getGraph().getEdges());
@@ -190,6 +199,21 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    */
   @Override
   public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
+    removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest, null);
+  }
+
+  /**
+   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed. Also remove zoning entities that rely
+   * solely on removed dangling network entities
+   * 
+   * @param belowSize         remove subnetworks below the given size
+   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
+   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
+   * @param zoning            to update based on removed dangling infrastructure, e.g. remove all zoning entities referencing only removed infrastructure
+   * @throws PlanItException thrown if error
+   */
+  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, Zoning zoning) throws PlanItException {
+    /* logging */
     LOGGER.info(String.format("%s Removing dangling subnetworks with less than %s vertices", InfrastructureLayer.createLayerLogPrefix(this),
         belowSize != Integer.MAX_VALUE ? String.valueOf(belowSize) : "infinite"));
     if (aboveSize != Integer.MAX_VALUE) {
@@ -198,12 +222,28 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     LOGGER.info(String.format("%s Original number of nodes %d, links %d, link segments %d", InfrastructureLayer.createLayerLogPrefix(this), nodes.size(), links.size(),
         linkSegments.size()));
 
-    if (getGraph() instanceof GraphModifier<?, ?>) {
-      ((GraphModifier<?, ?>) getGraph()).removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest);
-    } else {
+    /* check validity */
+    if (!(getGraph() instanceof GraphModifier<?, ?>)) {
       LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored",
           InfrastructureLayer.createLayerLogPrefix(this)));
+      return;
     }
+
+    /* create callback for zoning */
+    RemoveDirectedSubGraphListener<N, L, LS> subGraphRemovalListener = null;
+    if (zoning != null) {
+      subGraphRemovalListener = new UpdateZoningOnSubGraphRemoval<N, L, LS>(zoning);
+      graphModifier.registerRemoveSubGraphListener(subGraphRemovalListener);
+    }
+
+    /* perform removal */
+    graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest);
+
+    /* unregister calback for zoning */
+    if (zoning != null) {
+      graphModifier.unregisterRemoveSubGraphListener(subGraphRemovalListener);
+    }
+
     LOGGER.info(String.format("%s remaining number of nodes %d, links %d, link segments %d", InfrastructureLayer.createLayerLogPrefix(this), nodes.size(), links.size(),
         linkSegments.size()));
   }
@@ -303,7 +343,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public long getNumberOfNodes() {
     return this.nodes.size();
@@ -311,7 +351,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public long getNumberOfLinks() {
     return this.links.size();
@@ -319,7 +359,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public long getNumberOfLinkSegments() {
     return this.linkSegments.size();

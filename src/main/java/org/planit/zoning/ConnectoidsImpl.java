@@ -3,6 +3,7 @@ package org.planit.zoning;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.Connectoids;
@@ -22,9 +23,11 @@ public abstract class ConnectoidsImpl<T extends Connectoid> implements Connectoi
    * connectoids container
    */
   protected Map<Long, T> connectoidMap = new TreeMap<Long, T>();
-  
-  /** Register on container
-   * @param idToUse to use
+
+  /**
+   * Register on container
+   * 
+   * @param idToUse    to use
    * @param connectoid to register
    * @return result of put on map
    */
@@ -39,6 +42,22 @@ public abstract class ConnectoidsImpl<T extends Connectoid> implements Connectoi
    */
   public ConnectoidsImpl(IdGroupingToken idToken) {
     this.idToken = idToken;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Connectoid remove(T connectoid) {
+    return remove(connectoid.getId());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Connectoid remove(long connectoidId) {
+    return connectoidMap.remove(connectoidId);
   }
 
   /**
@@ -64,5 +83,5 @@ public abstract class ConnectoidsImpl<T extends Connectoid> implements Connectoi
   public int size() {
     return connectoidMap.size();
   }
-  
+
 }

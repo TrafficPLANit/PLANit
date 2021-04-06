@@ -1,18 +1,7 @@
 package org.planit.graph;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.Graph;
@@ -28,9 +17,10 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>, GraphModifier<V, E> {
+public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E> {
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(GraphImpl.class.getCanonicalName());
 
   /**
@@ -56,44 +46,6 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
    * class instance containing all vertices
    */
   protected final Vertices<V> vertices;
-
-  /**
-   * helper function for subnetwork identification (deliberately NOT recursive to avoid stack overflow on large networks)
-   * 
-   * @param referenceVertex to process
-   * @return all vertices in the subnetwork connected to passed in reference vertex
-   * @throws PlanItException thrown if parameters are null
-   */
-  @SuppressWarnings("unchecked")
-  protected Set<V> processSubNetworkVertex(V referenceVertex) throws PlanItException {
-    PlanItException.throwIfNull(referenceVertex, "provided reference vertex is null when identifying its subnetwork, thisis not allowed");
-    Set<V> subNetworkVertices = new HashSet<>();
-    subNetworkVertices.add(referenceVertex);
-
-    Set<V> verticesToExplore = new HashSet<>();
-    verticesToExplore.add(referenceVertex);
-    Iterator<V> vertexIter = verticesToExplore.iterator();
-    while (vertexIter.hasNext()) {
-      /* collect and remove since it is processed */
-      V currVertex = vertexIter.next();
-      vertexIter.remove();
-
-      /* add newly found vertices to explore, and add then to final subnetwork list as well */
-      Collection<? extends Edge> edgesOfCurrVertex = currVertex.getEdges();
-      for (Edge currEdge : edgesOfCurrVertex) {
-        if (currEdge.getVertexA() != null && currEdge.getVertexA().getId() != currVertex.getId() && !subNetworkVertices.contains(currEdge.getVertexA())) {
-          subNetworkVertices.add((V) currEdge.getVertexA());
-          verticesToExplore.add((V) currEdge.getVertexA());
-        } else if (currEdge.getVertexB() != null && currEdge.getVertexB().getId() != currVertex.getId() && !subNetworkVertices.contains(currEdge.getVertexB())) {
-          subNetworkVertices.add((V) currEdge.getVertexB());
-          verticesToExplore.add((V) currEdge.getVertexB());
-        }
-      }
-      /* update iterator */
-      vertexIter = verticesToExplore.iterator();
-    }
-    return subNetworkVertices;
-  }
 
   /**
    * Graph Constructor
@@ -143,150 +95,6 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E>,
    */
   public IdGroupingToken getGraphIdGroupingToken() {
     return this.graphBuilder.getIdGroupingToken();
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   */
-  @Override
-  public void removeDanglingSubGraphs(Integer belowsize, Integer abovesize, boolean alwaysKeepLargest) throws PlanItException {
-    boolean recreateIdsImmediately = false;
-
-    Map<Integer, LongAdder> removedDanglingNetworksBySize = new HashMap<>();
-    Set<V> remainingVertices = new HashSet<V>(getVertices().size());
-    getVertices().forEach(vertex -> remainingVertices.add(vertex));
-    Map<V, Integer> identifiedSubNetworkSizes = new HashMap<V, Integer>();
-
-    while (remainingVertices.iterator().hasNext()) {
-      /* recursively traverse the subnetwork */
-      V referenceVertex = remainingVertices.iterator().next();
-      Set<V> subNetworkVerticesToPopulate = processSubNetworkVertex(referenceVertex);
-
-      /* register size and remove subnetwork from remaining nodes */
-      identifiedSubNetworkSizes.put(referenceVertex, subNetworkVerticesToPopulate.size());
-      remainingVertices.removeAll(subNetworkVerticesToPopulate);
-    }
-
-    if (!identifiedSubNetworkSizes.isEmpty()) {
-      /* remove all non-dominating subnetworks */
-      int maxSubNetworkSize = Collections.max(identifiedSubNetworkSizes.values());
-      LOGGER.fine(String.format("remaining vertices %d, edges %d", getVertices().size(), getEdges().size()));
-      for (Entry<V, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
-        int subNetworkSize = entry.getValue();
-        if (subNetworkSize < maxSubNetworkSize || !alwaysKeepLargest) {
-          /* not the biggest subnetwork, remove from network if below threshold */
-          if (subNetworkSize < belowsize || subNetworkSize > abovesize) {
-            removeSubGraphOf(entry.getKey(), recreateIdsImmediately);
-            removedDanglingNetworksBySize.putIfAbsent(subNetworkSize, new LongAdder());
-            removedDanglingNetworksBySize.get(subNetworkSize).increment();
-            LOGGER.fine(String.format("removing %d vertices from graph", subNetworkSize));
-            LOGGER.fine(String.format("remaining vertices %d, edges %d", getVertices().size(), getEdges().size()));
-          }
-        }
-      }
-      final LongAdder totalCount = new LongAdder();
-      removedDanglingNetworksBySize.forEach((size, count) -> {
-        LOGGER.fine(String.format("sub graph size %d - %d removed", size, count.longValue()));
-        totalCount.add(count.longValue());
-      });
-      LOGGER.fine(String.format("removed %d dangling sub graphs", totalCount.longValue()));
-    } else {
-      LOGGER.warning("no networks identified, unable to remove dangling subnetworks");
-    }
-
-    /* only recreate ids once after all subnetworks have been removed */
-    if (!recreateIdsImmediately) {
-      recreateIds();
-    }
-
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @SuppressWarnings("unchecked")
-  @Override
-  public void removeSubGraph(Set<? extends V> subGraphToRemove, boolean recreateIds) {
-
-    /* remove the subnetwork from the actual network */
-    for (V vertex : subGraphToRemove) {
-      Set<Edge> vertexEdges = new HashSet<Edge>(vertex.getEdges());
-
-      /* remove edges from vertex */
-      vertexEdges.forEach(edge -> vertex.removeEdge(edge));
-
-      /* remove vertex from vertex' edges */
-      vertexEdges.forEach(edge -> edge.removeVertex(vertex));
-
-      /* remove vertex from graph */
-      getVertices().remove(vertex);
-      /* remove vertex' edges from graph */
-      vertexEdges.forEach(edge -> getEdges().remove((E) edge));
-    }
-
-    if (recreateIds) {
-      /* ensure no id gaps remain after the removal of internal entities */
-      recreateIds();
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void removeSubGraphOf(V referenceVertex, boolean recreateIds) throws PlanItException {
-    Set<V> subNetworkNodesToRemove = processSubNetworkVertex(referenceVertex);
-    removeSubGraph(subNetworkNodesToRemove, recreateIds);
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   */
-  @Override
-  public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
-    Map<Long, Set<E>> affectedEdges = new HashMap<Long, Set<E>>();
-    for (E edgeToBreak : edgesToBreak) {
-      affectedEdges.putIfAbsent(edgeToBreak.getId(), new HashSet<E>());
-
-      Set<E> affectedEdgesOfEdgeToBreak = affectedEdges.get(edgeToBreak.getId());
-      E aToBreak = edgeToBreak;
-      /* create copy of edge with unique id and register it */
-      E breakToB = this.edges.registerUniqueCopyOf(edgeToBreak);
-
-      if (edgeToBreak.getVertexA() == null || edgeToBreak.getVertexB() == null) {
-        LOGGER.severe(String.format("unable to break edge since edge to break %s (id:%d) is missing one or more vertices", edgeToBreak.getExternalId(), edgeToBreak.getId()));
-      } else {
-
-        Vertex oldVertexB = edgeToBreak.getVertexB();
-        Vertex oldVertexA = edgeToBreak.getVertexA();
-
-        /* replace vertices on edges */
-        aToBreak.replace(oldVertexB, vertexToBreakAt);
-        breakToB.replace(oldVertexA, vertexToBreakAt);
-
-        /* replace edges on original vertices */
-        oldVertexB.replace(edgeToBreak, breakToB, true);
-        oldVertexA.replace(edgeToBreak, aToBreak, true);
-
-        /* add edges to new vertex */
-        vertexToBreakAt.addEdge(aToBreak);
-        vertexToBreakAt.addEdge(breakToB);
-
-        affectedEdgesOfEdgeToBreak.add(aToBreak);
-        affectedEdgesOfEdgeToBreak.add(breakToB);
-      }
-    }
-    return affectedEdges;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void recreateIds() {
-    graphBuilder.recreateIds(getEdges());
-    graphBuilder.recreateIds(getVertices());
   }
 
 }

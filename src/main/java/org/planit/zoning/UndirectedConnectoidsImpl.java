@@ -25,16 +25,15 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
     super(idToken);
   }
 
-
   /**
-   * register using undirected connectoid id
+   * register using internal connectoid id unique across all connectoids
+   * 
    * @param connectoid to register
    */
   @Override
   public UndirectedConnectoid register(UndirectedConnectoid connectoid) {
-    return register(connectoid.getUndirectedConnectoidId(), connectoid);
+    return register(connectoid.getId(), connectoid);
   }
-
 
   /**
    * {@inheritDoc}
@@ -63,5 +62,5 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
     register(newConnectoid);
     return newConnectoid;
   }
-  
+
 }

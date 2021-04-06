@@ -8,6 +8,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.geo.PlanitJtsCrsUtils;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.zoning.Zoning;
 
 /**
  * A network with topological infrastructure layers, meaning that apart from representing a physical reality the result is topologically meaningful, has nodes, links, and some
@@ -16,7 +17,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends TopologicalLayers<T>> extends InfrastructureNetwork<T,U> {
+public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends TopologicalLayers<T>> extends InfrastructureNetwork<T, U> {
 
   /** generated serial id */
   private static final long serialVersionUID = 2402806336978560448L;
@@ -30,7 +31,7 @@ public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends T
 
   /** the coordinate reference system used for all layers in this network */
   private CoordinateReferenceSystem coordinateReferenceSystem;
-  
+
   /**
    * Default constructor
    * 
@@ -132,8 +133,22 @@ public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends T
    * @throws PlanItException thrown if error
    */
   public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
+    removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest, null);
+  }
+
+  /**
+   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed. From the zoning remove any zones that
+   * rely on infrastructure that is deemed dangling
+   * 
+   * @param belowSize         remove subnetworks below the given size
+   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
+   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
+   * @param zoning            to also remove dangling entities from based on the identified dangling networks
+   * @throws PlanItException thrown if error
+   */
+  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, Zoning zoning) throws PlanItException {
     for (TopologicalLayer infrastructureLayer : this.infrastructureLayers) {
-      infrastructureLayer.removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest);
+      infrastructureLayer.removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest, zoning);
     }
   }
 

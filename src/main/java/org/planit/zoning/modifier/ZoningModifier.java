@@ -1,4 +1,4 @@
-package org.planit.zoning;
+package org.planit.zoning.modifier;
 
 import java.util.Map;
 import java.util.Map.Entry;

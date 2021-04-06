@@ -111,10 +111,10 @@ public class EdgeSegmentImpl implements EdgeSegment {
   }
 
   // Public
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public int hashCode() {
     return idHashCode();
@@ -122,11 +122,11 @@ public class EdgeSegmentImpl implements EdgeSegment {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public boolean equals(Object obj) {
     return idEquals(obj);
-  }  
+  }
 
   /**
    * {@inheritDoc}
@@ -320,5 +320,5 @@ public class EdgeSegmentImpl implements EdgeSegment {
   public void setXmlId(String xmlId) {
     this.xmlId = xmlId;
   }
-    
+
 }

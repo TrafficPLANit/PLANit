@@ -25,16 +25,14 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
     super(idToken);
   }
 
-
-
   /**
-   *register a directed connectoid using the directed connectoid id
+   * register a directed connectoid using the connectoid id unqiue across all connectoids
    *
-   *@param connectoid to register
+   * @param connectoid to register
    */
   @Override
   public DirectedConnectoid register(DirectedConnectoid connectoid) {
-    return register(connectoid.getDirectedConnectoidId(), connectoid);
+    return register(connectoid.getId(), connectoid);
   }
 
   /**
@@ -64,5 +62,5 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
     register(newConnectoid);
     return newConnectoid;
   }
-  
+
 }
