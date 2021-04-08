@@ -223,9 +223,8 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
         linkSegments.size()));
 
     /* check validity */
-    if (!(getGraph() instanceof GraphModifier<?, ?>)) {
-      LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored",
-          InfrastructureLayer.createLayerLogPrefix(this)));
+    if (graphModifier == null) {
+      LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored", InfrastructureLayer.createLayerLogPrefix(this)));
       return;
     }
 
@@ -276,34 +275,32 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @return the broken edges for each original edge's id
    * @throws PlanItException thrown if error
    */
-  @SuppressWarnings("unchecked")
   public Map<Long, Set<L>> breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
-    if (getGraph() instanceof GraphModifier<?, ?>) {
-
-      Map<Long, Set<L>> affectedLinks = ((GraphModifier<N, L>) getGraph()).breakEdgesAt(linksToBreak, nodeToBreakAt);
-
-      /* broken links geometry must be updated since it links is truncated compared to its original */
-      PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
-      for (Entry<Long, Set<L>> brokenLinks : affectedLinks.entrySet()) {
-        for (Link brokenLink : brokenLinks.getValue()) {
-          LineString updatedGeometry = null;
-          if (brokenLink.getNodeA().equals(nodeToBreakAt)) {
-            updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesBefore(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
-          } else if (brokenLink.getNodeB().equals(nodeToBreakAt)) {
-            updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesAfter(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
-          } else {
-            LOGGER.warning(String.format("%s unable to locate node to break at (%s) for broken link %s (id:%d)", InfrastructureLayer.createLayerLogPrefix(this),
-                nodeToBreakAt.getPosition().toString(), brokenLink.getExternalId(), brokenLink.getId()));
-          }
-          brokenLink.setGeometry(updatedGeometry);
-          brokenLink.setLengthKm(geoUtils.getDistanceInKilometres(updatedGeometry));
-        }
-      }
-      return affectedLinks;
+    if (graphModifier == null) {
+      LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored", InfrastructureLayer.createLayerLogPrefix(this)));
+      return null;
     }
-    LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored",
-        InfrastructureLayer.createLayerLogPrefix(this)));
-    return null;
+
+    Map<Long, Set<L>> affectedLinks = graphModifier.breakEdgesAt(linksToBreak, nodeToBreakAt);
+
+    /* broken links geometry must be updated since it links is truncated compared to its original */
+    PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
+    for (Entry<Long, Set<L>> brokenLinks : affectedLinks.entrySet()) {
+      for (Link brokenLink : brokenLinks.getValue()) {
+        LineString updatedGeometry = null;
+        if (brokenLink.getNodeA().equals(nodeToBreakAt)) {
+          updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesBefore(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
+        } else if (brokenLink.getNodeB().equals(nodeToBreakAt)) {
+          updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesAfter(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
+        } else {
+          LOGGER.warning(String.format("%s unable to locate node to break at (%s) for broken link %s (id:%d)", InfrastructureLayer.createLayerLogPrefix(this),
+              nodeToBreakAt.getPosition().toString(), brokenLink.getExternalId(), brokenLink.getId()));
+        }
+        brokenLink.setGeometry(updatedGeometry);
+        brokenLink.setLengthKm(geoUtils.getDistanceInKilometres(updatedGeometry));
+      }
+    }
+    return affectedLinks;
   }
 
   /**
