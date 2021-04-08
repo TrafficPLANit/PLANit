@@ -13,11 +13,16 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
+import org.locationtech.jts.geom.LineString;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.graph.GraphBuilder;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.geo.PlanitJtsCrsUtils;
+import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Graph;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.graph.modifier.BreakEdgeListener;
 import org.planit.utils.graph.modifier.GraphModifier;
 import org.planit.utils.graph.modifier.RemoveSubGraphListener;
 
@@ -32,8 +37,31 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
   /** the graphbuilder related to the graph */
   protected final GraphBuilder<V, E> theGraphBuilder;
 
-  /** the currently registered remove subgraph listeners */
+  /** track removeSubGraphListeners */
   protected final Set<RemoveSubGraphListener<V, E>> registeredRemoveSubGraphListeners;
+
+  /** track breakEdgeListeners */
+  protected final Set<BreakEdgeListener<V, E>> registeredBreakEdgeListeners;
+
+  /**
+   * update the geometry of the broken edge, knowing at what vertex it was broken from a previously longer edge
+   * 
+   * @param brokenEdge     the broken edge
+   * @param vertexBrokenAt the vertex it was broken at
+   * @throws PlanItException thrown if error
+   */
+  protected static <V extends Vertex, E extends Edge> void updateBrokenEdgeGeometry(E brokenEdge, V vertexBrokenAt) throws PlanItException {
+    LineString updatedGeometry = null;
+    if (brokenEdge.getVertexA().equals(vertexBrokenAt)) {
+      updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesBefore(vertexBrokenAt.getPosition(), brokenEdge.getGeometry());
+    } else if (brokenEdge.getVertexB().equals(vertexBrokenAt)) {
+      updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesAfter(vertexBrokenAt.getPosition(), brokenEdge.getGeometry());
+    } else {
+      LOGGER.warning(String.format("unable to locate vertex to break at (%s) for broken edge %s (id:%d)", vertexBrokenAt.getPosition().toString(), brokenEdge.getExternalId(),
+          brokenEdge.getId()));
+    }
+    brokenEdge.setGeometry(updatedGeometry);
+  }
 
   /**
    * helper function for subnetwork identification (deliberately NOT recursive to avoid stack overflow on large networks)
@@ -83,6 +111,7 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
     this.theGraph = theGraph;
     this.theGraphBuilder = graphBuilder;
     this.registeredRemoveSubGraphListeners = new TreeSet<RemoveSubGraphListener<V, E>>();
+    this.registeredBreakEdgeListeners = new TreeSet<BreakEdgeListener<V, E>>();
   }
 
   /**
@@ -209,7 +238,9 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
    * 
    */
   @Override
-  public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
+  public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
+    PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
+
     Map<Long, Set<E>> affectedEdges = new HashMap<Long, Set<E>>();
     for (E edgeToBreak : edgesToBreak) {
       affectedEdges.putIfAbsent(edgeToBreak.getId(), new HashSet<E>());
@@ -240,6 +271,18 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
 
         affectedEdgesOfEdgeToBreak.add(aToBreak);
         affectedEdgesOfEdgeToBreak.add(breakToB);
+      }
+
+      /* broken links geometry must be updated since it links is truncated compared to its original */
+      for (E brokenEdge : Set.of(aToBreak, breakToB)) {
+        updateBrokenEdgeGeometry(brokenEdge, vertexToBreakAt);
+        brokenEdge.setLengthKm(geoUtils.getDistanceInKilometres(brokenEdge.getGeometry()));
+      }
+
+      if (!registeredBreakEdgeListeners.isEmpty()) {
+        for (BreakEdgeListener<V, E> listener : registeredBreakEdgeListeners) {
+          listener.onBreakEdge(vertexToBreakAt, aToBreak, breakToB);
+        }
       }
     }
     return affectedEdges;
@@ -274,8 +317,25 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
    * {@inheritDoc}
    */
   @Override
+  public void unregisterBreakEdgeListener(BreakEdgeListener<V, E> listener) {
+    registeredBreakEdgeListeners.remove(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void registerBreakEdgeListener(BreakEdgeListener<V, E> listener) {
+    registeredBreakEdgeListeners.add(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void reset() {
     registeredRemoveSubGraphListeners.clear();
+    registeredBreakEdgeListeners.clear();
   }
 
 }

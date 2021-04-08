@@ -13,6 +13,8 @@ import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.modifier.BreakEdgeListener;
+import org.planit.utils.graph.modifier.BreakEdgeSegmentListener;
 import org.planit.utils.graph.modifier.DirectedGraphModifier;
 import org.planit.utils.graph.modifier.RemoveDirectedSubGraphListener;
 import org.planit.utils.graph.modifier.RemoveSubGraphListener;
@@ -136,8 +138,8 @@ public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends Direc
 
         /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
         if (brokenEdge.hasEdgeSegmentAb()) {
-          EdgeSegment oldEdgeSegmentAb = brokenEdge.getEdgeSegmentAb();
-          EdgeSegment newEdgeSegmentAb = oldEdgeSegmentAb;
+          ES oldEdgeSegmentAb = (ES) brokenEdge.getEdgeSegmentAb();
+          ES newEdgeSegmentAb = (ES) oldEdgeSegmentAb;
 
           if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentAb)) {
             /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
@@ -159,14 +161,22 @@ public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends Direc
           newEdgeSegmentAb.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
           newEdgeSegmentAb.getDownstreamVertex().replaceEntrySegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
 
+          if (!registeredBreakEdgeListeners.isEmpty()) {
+            for (BreakEdgeListener<V, E> listener : registeredBreakEdgeListeners) {
+              if (listener instanceof BreakEdgeSegmentListener<?, ?, ?>) {
+                ((BreakEdgeSegmentListener<V, E, ES>) listener).onBreakEdgeSegment(vertexToBreakAt, brokenEdge, newEdgeSegmentAb);
+              }
+            }
+          }
+
           /* useful for debugging */
           // edgeSegmentAb.validate();
         }
 
         /* do the same for edge segment B-> A */
         if (brokenEdge.hasEdgeSegmentBa()) {
-          EdgeSegment oldEdgeSegmentBa = brokenEdge.getEdgeSegmentBa();
-          EdgeSegment newEdgeSegmentBa = oldEdgeSegmentBa;
+          ES oldEdgeSegmentBa = (ES) brokenEdge.getEdgeSegmentBa();
+          ES newEdgeSegmentBa = (ES) oldEdgeSegmentBa;
 
           if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentBa)) {
             /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
@@ -186,10 +196,19 @@ public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends Direc
           newEdgeSegmentBa.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
           newEdgeSegmentBa.getDownstreamVertex().replaceEntrySegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
 
+          if (!registeredBreakEdgeListeners.isEmpty()) {
+            for (BreakEdgeListener<V, E> listener : registeredBreakEdgeListeners) {
+              if (listener instanceof BreakEdgeSegmentListener<?, ?, ?>) {
+                ((BreakEdgeSegmentListener<V, E, ES>) listener).onBreakEdgeSegment(vertexToBreakAt, brokenEdge, newEdgeSegmentBa);
+              }
+            }
+          }
+
           /* useful for debugging */
           // edgeSegmentBa.validate();
         }
       }
+
     }
 
     return brokenEdgesByOriginalEdgeId;

@@ -2,12 +2,10 @@ package org.planit.network.physical;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.locationtech.jts.geom.LineString;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.geo.PlanitOpenGisUtils;
 import org.planit.graph.DirectedGraphImpl;
@@ -16,11 +14,9 @@ import org.planit.network.InfrastructureLayer;
 import org.planit.network.TopologicalLayer;
 import org.planit.network.TopologicalLayerImpl;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.geo.PlanitJtsCrsUtils;
-import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.DirectedGraph;
+import org.planit.utils.graph.modifier.BreakEdgeListener;
 import org.planit.utils.graph.modifier.DirectedGraphModifier;
-import org.planit.utils.graph.modifier.GraphModifier;
 import org.planit.utils.graph.modifier.RemoveDirectedSubGraphListener;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
@@ -224,7 +220,8 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
     /* check validity */
     if (graphModifier == null) {
-      LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored", InfrastructureLayer.createLayerLogPrefix(this)));
+      LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored",
+          InfrastructureLayer.createLayerLogPrefix(this)));
       return;
     }
 
@@ -265,7 +262,8 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
   /**
    * Break the passed in links by inserting the passed in node in between. After completion the original links remain as (NodeA,NodeToBreakAt), and new links as inserted for
-   * (NodeToBreakAt,NodeB).
+   * (NodeToBreakAt,NodeB). It is assumed no transfer zones exist in the network, otherwise one should use the same method yet provide the zoning as an additiona parameter to
+   * ensure affected connectoids are updated to reflect the new situation
    * 
    * Underlying link segments (if any) are also updated accordingly in the same manner
    * 
@@ -276,30 +274,40 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @throws PlanItException thrown if error
    */
   public Map<Long, Set<L>> breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
+    return breakLinksAt(linksToBreak, nodeToBreakAt, crs, null);
+  }
+
+  /**
+   * Break the passed in links by inserting the passed in node in between. After completion the original links remain as (NodeA,NodeToBreakAt), and new links as inserted for
+   * (NodeToBreakAt,NodeB).
+   * 
+   * Underlying link segments (if any) are also updated accordingly in the same manner
+   * 
+   * @param linksToBreak       the links to break
+   * @param nodeToBreakAt      the node to break at
+   * @param crs                to use to recompute link lengths of broken links
+   * @param breakEdgeListeners the listeners to register (temporarily) when we break edges so they get invoked for callbacks
+   * @return the broken edges for each original edge's id
+   * @throws PlanItException thrown if error
+   */
+  public Map<Long, Set<L>> breakLinksAt(List<? extends L> linksToBreak, N nodeToBreakAt, CoordinateReferenceSystem crs, Set<BreakEdgeListener<N, L>> breakEdgeListeners)
+      throws PlanItException {
     if (graphModifier == null) {
-      LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored", InfrastructureLayer.createLayerLogPrefix(this)));
+      LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored",
+          InfrastructureLayer.createLayerLogPrefix(this)));
       return null;
     }
 
-    Map<Long, Set<L>> affectedLinks = graphModifier.breakEdgesAt(linksToBreak, nodeToBreakAt);
-
-    /* broken links geometry must be updated since it links is truncated compared to its original */
-    PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
-    for (Entry<Long, Set<L>> brokenLinks : affectedLinks.entrySet()) {
-      for (Link brokenLink : brokenLinks.getValue()) {
-        LineString updatedGeometry = null;
-        if (brokenLink.getNodeA().equals(nodeToBreakAt)) {
-          updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesBefore(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
-        } else if (brokenLink.getNodeB().equals(nodeToBreakAt)) {
-          updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesAfter(nodeToBreakAt.getPosition(), brokenLink.getGeometry());
-        } else {
-          LOGGER.warning(String.format("%s unable to locate node to break at (%s) for broken link %s (id:%d)", InfrastructureLayer.createLayerLogPrefix(this),
-              nodeToBreakAt.getPosition().toString(), brokenLink.getExternalId(), brokenLink.getId()));
-        }
-        brokenLink.setGeometry(updatedGeometry);
-        brokenLink.setLengthKm(geoUtils.getDistanceInKilometres(updatedGeometry));
-      }
+    if (breakEdgeListeners != null) {
+      breakEdgeListeners.forEach(listener -> graphModifier.registerBreakEdgeListener(listener));
     }
+
+    Map<Long, Set<L>> affectedLinks = graphModifier.breakEdgesAt(linksToBreak, nodeToBreakAt, crs);
+
+    if (breakEdgeListeners != null) {
+      breakEdgeListeners.forEach(listener -> graphModifier.unregisterBreakEdgeListener(listener));
+    }
+
     return affectedLinks;
   }
 
