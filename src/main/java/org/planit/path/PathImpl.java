@@ -11,7 +11,6 @@ import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Node;
 
 /**
  * This object represents a path based on a number of consecutive LinkSegments
@@ -44,14 +43,14 @@ public class PathImpl implements Path {
    * @param idMapper lambda function to get the required Id value
    * @return the path as a String of comma-separated node Id or external Id values
    */
-  private String getNodePathString(final Function<Node, Object> idMapper) {
+  private String getNodePathString(final Function<Vertex, Object> idMapper) {
     final StringBuilder builder = new StringBuilder("[");
     for (final EdgeSegment edgeSegment : path) {
       final Vertex vertex = edgeSegment.getUpstreamVertex();
-      if (vertex instanceof Node) {
-        final Node node = (Node) vertex;
+      if (vertex instanceof Vertex) {
+        final Vertex node = (Vertex) vertex;
         builder.append(idMapper.apply(node));
-        if (edgeSegment.getDownstreamVertex() instanceof Node) {
+        if (edgeSegment.getDownstreamVertex() instanceof Vertex) {
           builder.append(",");
         }
       }
@@ -140,11 +139,11 @@ public class PathImpl implements Path {
     case LINK_SEGMENT_ID:
       return getEdgeSegmentPathString(EdgeSegment::getId);
     case NODE_EXTERNAL_ID:
-      return getNodePathString(Node::getExternalId);
+      return getNodePathString(Vertex::getExternalId);
     case NODE_XML_ID:
-      return getNodePathString(Node::getXmlId);
+      return getNodePathString(Vertex::getXmlId);
     case NODE_ID:
-      return getNodePathString(Node::getId);
+      return getNodePathString(Vertex::getId);
     }
     return "";
   }

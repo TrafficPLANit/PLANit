@@ -1,8 +1,10 @@
 package org.planit.network;
 
+import java.util.Set;
+
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.zoning.Zoning;
+import org.planit.utils.graph.modifier.RemoveSubGraphListener;
 
 /**
  * An infrastructure layer represents the infrastructure suited for a number of modes. This can be in the form of a physical network or by some other (more aggregate)
@@ -20,7 +22,7 @@ public interface TopologicalLayer extends InfrastructureLayer {
    * @param toCoordinateReferenceSystem   to tranform to crs
    * @throws PlanItException thrown if error
    */
-  public abstract void transform(CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException;
+  public abstract void transform(CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException;  
 
   /**
    * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
@@ -28,10 +30,10 @@ public interface TopologicalLayer extends InfrastructureLayer {
    * @param belowSize         remove subnetworks below the given size
    * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
    * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
-   * @param zoning            to remove entities reliant on dangling removed network components
+   * @param listeners         to call back during removal of danlging subnetworks
    * @throws PlanItException thrown if error
    */
-  public abstract void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, Zoning zoning) throws PlanItException;
+  public abstract void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener<?, ?>> listeners) throws PlanItException;
 
   /**
    * Number of nodes

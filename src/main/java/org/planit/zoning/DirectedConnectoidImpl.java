@@ -2,6 +2,7 @@ package org.planit.zoning;
 
 import java.util.logging.Logger;
 
+import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -140,6 +141,14 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
   @Override
   public void setNodeAccessDownstream(boolean nodeAccessDownstream) {
     this.nodeAccessDownstream = nodeAccessDownstream;
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public DirectedVertex getAccessVertex() {
+    return isNodeAccessDownstream() ? getAccessLinkSegment().getDownstreamVertex() : getAccessLinkSegment().getUpstreamVertex();
   }
 
 }

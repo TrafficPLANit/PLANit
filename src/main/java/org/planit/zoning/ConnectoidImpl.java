@@ -96,17 +96,26 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * @param groupId contiguous id generation within this group for instances of this class
    * @return id of connectoid
    */
-  protected static long generateConnectoidId(final IdGroupingToken groupId) {
+  protected static long generateId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Connectoid.class);
   }
-
+  
+  /**
+   * set the connectoid id
+   * 
+   * @param id to set as unique internal id across all connectoids
+   */
+  protected void setId(long id) {
+    super.setId(id);
+  }
+  
   /**
    * Constructor
    *
    * @param idToken contiguous id generation within this group for instances of this class
    */
   protected ConnectoidImpl(IdGroupingToken idToken) {
-    super(generateConnectoidId(idToken));
+    super(generateId(idToken));
   }
 
   /**
@@ -133,6 +142,17 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
     addAccessZone(accessZone);
     setLength(accessZone, length);
   }
+  
+  /**
+   * Constructor
+   *
+   * @param idToken    contiguous id generation within this group for instances of this class
+   * @param accessZone for the connectoid
+   */
+  protected ConnectoidImpl(final IdGroupingToken idToken, Zone accessZone) {
+    this(idToken);
+    addAccessZone(accessZone);
+  }  
 
   // Public
 

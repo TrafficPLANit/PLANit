@@ -1,10 +1,10 @@
 package org.planit.zoning;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.Connectoids;
 
@@ -16,13 +16,21 @@ import org.planit.utils.zoning.Connectoids;
  */
 public abstract class ConnectoidsImpl<T extends Connectoid> implements Connectoids<T> {
 
-  /** id generation token */
-  protected IdGroupingToken idToken;
-
   /**
    * connectoids container
    */
   protected Map<Long, T> connectoidMap = new TreeMap<Long, T>();
+  
+  /**
+   * recreate the mapping such that all the keys used for each connectoid reflect their internal id.
+   * To be called whenever the ids of connectoids are changed
+   */
+  protected void updateIdMapping() {
+    Map<Long, T> updatedMap = new HashMap<Long, T>(connectoidMap.size());
+    connectoidMap.forEach((oldId, connectoid) -> updatedMap.put(connectoid.getId(), connectoid));
+    connectoidMap.clear();
+    connectoidMap = updatedMap;
+  }  
 
   /**
    * Register on container
@@ -33,15 +41,6 @@ public abstract class ConnectoidsImpl<T extends Connectoid> implements Connectoi
    */
   protected T register(long idToUse, T connectoid) {
     return connectoidMap.put(idToUse, connectoid);
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param idToken to use
-   */
-  public ConnectoidsImpl(IdGroupingToken idToken) {
-    this.idToken = idToken;
   }
 
   /**

@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.graph.DirectedGraphBuilder;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedEdge;
@@ -120,15 +121,17 @@ public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends Direc
    * 
    * @param edgesToBreak    edges to break
    * @param vertexToBreakAt the vertex to break at
+   * @param crs required to update edge lengths
    * @return affected edges of breaking the passed in edges, includes the newly created edges and modified existing edges
    */
   @SuppressWarnings("unchecked")
   @Override
-  public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt) throws PlanItException {
+  public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {    
+    
     DirectedGraph<V, E, ES> theDirectedGraph = (DirectedGraph<V, E, ES>) theGraph;
 
     /* delegate regular breaking of edges */
-    Map<Long, Set<E>> brokenEdgesByOriginalEdgeId = super.breakEdgesAt(edgesToBreak, vertexToBreakAt);
+    Map<Long, Set<E>> brokenEdgesByOriginalEdgeId = super.breakEdgesAt(edgesToBreak, vertexToBreakAt, crs);
 
     /* edge segments have only been shallow copied since undirected graph is unaware of them */
     /* break edge segments here using the already updated vertex/edge information in affected edges */

@@ -17,7 +17,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.modifier.BreakEdgeListener;
 import org.planit.utils.graph.modifier.DirectedGraphModifier;
-import org.planit.utils.graph.modifier.RemoveDirectedSubGraphListener;
+import org.planit.utils.graph.modifier.RemoveSubGraphListener;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
@@ -25,8 +25,6 @@ import org.planit.utils.network.physical.LinkSegments;
 import org.planit.utils.network.physical.Links;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.Nodes;
-import org.planit.zoning.Zoning;
-import org.planit.zoning.listener.UpdateZoningOnSubGraphRemoval;
 
 /**
  * Model free Network consisting of nodes and links, each of which can be iterated over. This network does not contain any transport specific information, hence the qualification
@@ -175,40 +173,18 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   }
 
   /**
-   * remove any dangling subnetworks from the network if they exist and subsequently reorder the internal ids if needed
-   * 
-   * @throws PlanItException thrown if error
-   * 
-   */
-  @Override
-  public void removeDanglingSubnetworks() throws PlanItException {
-    removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
-  }
-
-  /**
-   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
-   * 
-   * @param belowSize         remove subnetworks below the given size
-   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
-   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
-   * @throws PlanItException thrown if error
-   */
-  @Override
-  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
-    removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest, null);
-  }
-
-  /**
    * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed. Also remove zoning entities that rely
    * solely on removed dangling network entities
    * 
    * @param belowSize         remove subnetworks below the given size
    * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
    * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
-   * @param zoning            to update based on removed dangling infrastructure, e.g. remove all zoning entities referencing only removed infrastructure
+   * @param listeners         listeners to be invoked during removal of subgraphs, may be null
    * @throws PlanItException thrown if error
    */
-  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, Zoning zoning) throws PlanItException {
+  @SuppressWarnings("unchecked")
+  @Override  
+  public void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener<?, ?>> listeners) throws PlanItException {
     /* logging */
     LOGGER.info(String.format("%s Removing dangling subnetworks with less than %s vertices", InfrastructureLayer.createLayerLogPrefix(this),
         belowSize != Integer.MAX_VALUE ? String.valueOf(belowSize) : "infinite"));
@@ -226,18 +202,16 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     }
 
     /* create callback for zoning */
-    RemoveDirectedSubGraphListener<N, L, LS> subGraphRemovalListener = null;
-    if (zoning != null) {
-      subGraphRemovalListener = new UpdateZoningOnSubGraphRemoval<N, L, LS>(zoning);
-      graphModifier.registerRemoveSubGraphListener(subGraphRemovalListener);
+    if (listeners != null) {
+      listeners.forEach( listener -> graphModifier.registerRemoveSubGraphListener((RemoveSubGraphListener<N,L>)listener));
     }
 
     /* perform removal */
     graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest);
 
-    /* unregister calback for zoning */
-    if (zoning != null) {
-      graphModifier.unregisterRemoveSubGraphListener(subGraphRemovalListener);
+    /* unregister call back for zoning */
+    if (listeners != null) {
+      listeners.forEach( listener -> graphModifier.unregisterRemoveSubGraphListener((RemoveSubGraphListener<N,L>)listener));
     }
 
     LOGGER.info(String.format("%s remaining number of nodes %d, links %d, link segments %d", InfrastructureLayer.createLayerLogPrefix(this), nodes.size(), links.size(),
@@ -253,11 +227,12 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @param linkToBreak   the link to break
    * @param nodeToBreakAt the node to break at
    * @param crs           to use to recompute link lengths of broken links
+   * @param breakEdgeListeners the listeners to register (temporarily) when we break edges so they get invoked for callbacks (may be nnull)
    * @return the broken edges for each original edge's id
    * @throws PlanItException thrown if error
    */
-  public Map<Long, Set<L>> breakLinkAt(L linkToBreak, N nodeToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
-    return breakLinksAt(List.of(linkToBreak), nodeToBreakAt, crs);
+  public Map<Long, Set<L>> breakLinkAt(L linkToBreak, N nodeToBreakAt, CoordinateReferenceSystem crs, Set<BreakEdgeListener<N, L>> breakEdgeListeners) throws PlanItException {
+    return breakLinksAt(List.of(linkToBreak), nodeToBreakAt, crs, breakEdgeListeners);
   }
 
   /**

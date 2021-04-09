@@ -1,7 +1,6 @@
 package org.planit.zoning;
 
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.DirectedConnectoid;
@@ -16,13 +15,17 @@ import org.planit.utils.zoning.Zone;
  */
 public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid> implements DirectedConnectoids {
 
+  /** the zoning builder to use */
+  protected final ZoningBuilder zoningBuilder;
+  
   /**
    * Constructor
    * 
-   * @param idToken to use
+   * @param zoningBuilder to use
    */
-  public DirectedConnectoidsImpl(IdGroupingToken idToken) {
-    super(idToken);
+  public DirectedConnectoidsImpl(ZoningBuilder zoningBuilder) {
+    super();
+    this.zoningBuilder = zoningBuilder;
   }
 
   /**
@@ -40,7 +43,9 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
    */
   @Override
   public DirectedConnectoid registerNew(LinkSegment accessLinkSegment, Zone parentZone, double length) throws PlanItException {
-    DirectedConnectoid newConnectoid = new DirectedConnectoidImpl(idToken, accessLinkSegment, parentZone, length);
+    DirectedConnectoid newConnectoid = registerNew(accessLinkSegment);
+    newConnectoid.addAccessZone(parentZone);
+    newConnectoid.setLength(parentZone, length);
     register(newConnectoid);
     return newConnectoid;
   }
@@ -58,7 +63,7 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
    */
   @Override
   public DirectedConnectoid registerNew(LinkSegment accessLinkSegment) throws PlanItException {
-    DirectedConnectoid newConnectoid = new DirectedConnectoidImpl(idToken, accessLinkSegment);
+    DirectedConnectoid newConnectoid = zoningBuilder.createDirectedConnectoid(accessLinkSegment);
     register(newConnectoid);
     return newConnectoid;
   }

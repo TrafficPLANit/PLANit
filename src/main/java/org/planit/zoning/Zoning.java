@@ -18,6 +18,8 @@ import org.planit.utils.zoning.TransferZoneGroups;
 import org.planit.utils.zoning.UndirectedConnectoids;
 import org.planit.utils.zoning.Zone;
 import org.planit.utils.zoning.Zones;
+import org.planit.zoning.modifier.ZoningModifier;
+import org.planit.zoning.modifier.ZoningModifierImpl;
 
 /**
  * Zoning class which holds a particular zoning
@@ -40,6 +42,16 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
    * Virtual network holds all the virtual connections to the physical network (layers)
    */
   protected final VirtualNetwork virtualNetwork;
+  
+  /** modifier that can be used to perform modifications to the zoning that comprise more than a single element of the zoning, e.g.
+   * updating of ids. It is also used by listeners that are needed to update the zoning components in case the referenced network gets modified
+   */
+  protected final ZoningModifier zoningModifier;
+  
+  /**
+   * the zoning builder, used to create all zoning entities and additional (hidden) functionality that can be used by the zoning modifier if needed
+   */
+  private final ZoningBuilder zoningBuilder;  
 
   // Public   
 
@@ -80,12 +92,16 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
    */
   public Zoning(IdGroupingToken groupId, IdGroupingToken networkGroupId) {
     super(groupId, Zoning.class);
-    odConnectoids = new UndirectedConnectoidsImpl(networkGroupId);
-    transferConnectoids = new DirectedConnectoidsImpl(networkGroupId);
-    odZones = new OdZonesImpl(networkGroupId);
-    transferZones = new TransferZonesImpl(networkGroupId);
-    transferZoneGroups = new TransferZoneGroupsImpl(networkGroupId);
     virtualNetwork = new VirtualNetwork(networkGroupId);
+    this.zoningBuilder = new ZoningBuilderImpl(networkGroupId);
+    
+    odConnectoids = new UndirectedConnectoidsImpl(zoningBuilder);
+    transferConnectoids = new DirectedConnectoidsImpl(zoningBuilder);
+    odZones = new OdZonesImpl(zoningBuilder);
+    transferZones = new TransferZonesImpl(zoningBuilder);
+    transferZoneGroups = new TransferZoneGroupsImpl(zoningBuilder);
+       
+    zoningModifier = new ZoningModifierImpl(this, zoningBuilder);
   }
 
   // Public - getters - setters
@@ -153,6 +169,14 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
    */  
   public long getNumberOfConnectoids() {
     return odConnectoids.size() + transferConnectoids.size();
+  }
+  
+  /** the zoning's modifier instance
+   * 
+   * @return the zoning modifier
+   */
+  public ZoningModifier getZoningModifier() {
+    return zoningModifier;
   }
 
 }

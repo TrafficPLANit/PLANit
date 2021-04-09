@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.TransferZone;
 import org.planit.utils.zoning.TransferZoneGroup;
 import org.planit.utils.zoning.TransferZoneType;
@@ -39,7 +38,7 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
    * @return odZoneId
    */
   protected static long generateTransferZoneId(final IdGroupingToken tokenId) {
-    return IdGenerator.generateId(tokenId, OdZone.class);
+    return IdGenerator.generateId(tokenId, TransferZone.class);
   }
 
   /**

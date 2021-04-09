@@ -102,7 +102,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if there is an error
    */
   protected String getDownstreamNodeExternalId(LinkSegment linkSegment) throws PlanItException {
-    return ((Node) linkSegment.getDownstreamVertex()).getExternalId();
+    return ((Vertex) linkSegment.getDownstreamVertex()).getExternalId();
   }
 
   /**
@@ -113,7 +113,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if there is an error
    */
   protected String getDownstreamNodeXmlId(LinkSegment linkSegment) throws PlanItException {
-    return ((Node) linkSegment.getDownstreamVertex()).getXmlId();
+    return ((Vertex) linkSegment.getDownstreamVertex()).getXmlId();
   }
 
   /**
@@ -124,7 +124,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if there is an error
    */
   protected long getDownstreamNodeId(LinkSegment linkSegment) throws PlanItException {
-    return ((Node) linkSegment.getDownstreamVertex()).getId();
+    return ((Vertex) linkSegment.getDownstreamVertex()).getId();
   }
 
   /**
@@ -215,7 +215,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if there is an error
    */
   protected String getUpstreamNodeExternalId(LinkSegment linkSegment) throws PlanItException {
-    return ((Node) linkSegment.getUpstreamVertex()).getExternalId();
+    return ((Vertex) linkSegment.getUpstreamVertex()).getExternalId();
   }
 
   /**
@@ -226,7 +226,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if there is an error
    */
   protected String getUpstreamNodeXmlId(LinkSegment linkSegment) throws PlanItException {
-    return ((Node) linkSegment.getUpstreamVertex()).getXmlId();
+    return ((Vertex) linkSegment.getUpstreamVertex()).getXmlId();
   }
 
   /**
@@ -249,7 +249,7 @@ public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @throws PlanItException thrown if there is an error
    */
   protected long getUpstreamNodeId(LinkSegment linkSegment) throws PlanItException {
-    return ((Node) linkSegment.getUpstreamVertex()).getId();
+    return ((Vertex) linkSegment.getUpstreamVertex()).getId();
   }
 
   /**

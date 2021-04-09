@@ -1,6 +1,5 @@
 package org.planit.zoning;
 
-import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.TransferZone;
 import org.planit.utils.zoning.Zones;
 
@@ -12,13 +11,17 @@ import org.planit.utils.zoning.Zones;
  */
 public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Zones<TransferZone> {
 
+  /** the zoning builder to use */
+  protected final ZoningBuilder zoningBuilder;
+  
   /**
    * Constructor
    * 
-   * @param tokenId to use
+   * @param zoningBuilder to use
    */
-  public TransferZonesImpl(IdGroupingToken tokenId) {
-    super(tokenId);
+  public TransferZonesImpl(ZoningBuilder zoningBuilder) {
+    super();
+    this.zoningBuilder = zoningBuilder;
   }
 
   /**
@@ -26,9 +29,7 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Zones<
    */
   @Override
   public TransferZone createNew() {
-    TransferZoneImpl newZone = new TransferZoneImpl(getGroupingTokenId());
-    newZone.setCentroid(new CentroidImpl(getGroupingTokenId(), newZone));
-    return newZone;
+    return zoningBuilder.createTransferZone();
   }
 
 }

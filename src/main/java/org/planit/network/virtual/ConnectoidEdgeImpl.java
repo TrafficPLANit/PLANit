@@ -2,9 +2,9 @@ package org.planit.network.virtual;
 
 import org.planit.graph.DirectedEdgeImpl;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.virtual.ConnectoidEdge;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.zoning.Centroid;
@@ -56,8 +56,8 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl implements ConnectoidEd
    * @param length    length of the current connectoid
    * @throws PlanItException thrown if there is an error
    */
-  protected ConnectoidEdgeImpl(final IdGroupingToken groupId, final Centroid centroidA, final Node nodeB, final double length) throws PlanItException {
-    super(groupId, centroidA, nodeB, length);
+  protected ConnectoidEdgeImpl(final IdGroupingToken groupId, final Centroid centroidA, final DirectedVertex vertexB, final double length) throws PlanItException {
+    super(groupId, centroidA, vertexB, length);
     setConnectoidEdgeId(generateConnectoidEdgeId(groupId));
   }
 

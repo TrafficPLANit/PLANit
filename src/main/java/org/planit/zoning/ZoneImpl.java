@@ -56,6 +56,15 @@ public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
   protected void setCentroid(Centroid centroid) {
     this.centroid = centroid;
   }
+  
+  /**
+   * set the zone's unique internal id across all zones
+   * 
+   * @param id to set
+   */
+  protected void setId(long id) {
+    setId(id);
+  }
 
   // Public
 

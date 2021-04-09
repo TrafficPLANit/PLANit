@@ -38,6 +38,15 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
   protected static long generateTransferZoneGroupId(final IdGroupingToken tokenId) {
     return IdGenerator.generateId(tokenId, TransferZoneGroup.class);
   }  
+  
+  /**
+   * Set the transfer zone group id
+   * 
+   * @param id to set
+   */
+  protected void setId(long id) {
+    setId(id);
+  }
 
   /**
    * Constructor

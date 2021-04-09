@@ -62,7 +62,7 @@ public interface GraphBuilder<V extends Vertex, E extends Edge> {
   public void recreateIds(Vertices<? extends V> vertices);
 
   /**
-   * create a shallo copy of the passed in edge, albeit with unique internal ids
+   * create a shallow copy of the passed in edge, albeit with unique internal ids
    * 
    * @param edgeToCopy the edge to copy
    * @return new edge based on passed in edge

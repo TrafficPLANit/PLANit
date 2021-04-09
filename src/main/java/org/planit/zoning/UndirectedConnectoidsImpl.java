@@ -1,7 +1,6 @@
 package org.planit.zoning;
 
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.UndirectedConnectoid;
@@ -15,20 +14,22 @@ import org.planit.utils.zoning.Zone;
  *
  */
 public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnectoid> implements UndirectedConnectoids {
+  
+  /** the zoning builder to use */
+  protected final ZoningBuilder zoningBuilder;
 
   /**
    * Constructor
    * 
-   * @param idToken to use
+   * @param zoningBuilder to use
    */
-  public UndirectedConnectoidsImpl(IdGroupingToken idToken) {
-    super(idToken);
+  public UndirectedConnectoidsImpl(ZoningBuilder zoningBuilder) {
+    super();
+    this.zoningBuilder = zoningBuilder;
   }
 
   /**
-   * register using internal connectoid id unique across all connectoids
-   * 
-   * @param connectoid to register
+   * {@inheritDoc}
    */
   @Override
   public UndirectedConnectoid register(UndirectedConnectoid connectoid) {
@@ -40,8 +41,9 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
    */
   @Override
   public UndirectedConnectoid registerNew(Node accessNode, Zone parentZone, double length) throws PlanItException {
-    UndirectedConnectoid newConnectoid = new UndirectedConnectoidImpl(idToken, accessNode, parentZone, length);
-    register(newConnectoid);
+    UndirectedConnectoid newConnectoid = registerNew(accessNode);
+    newConnectoid.addAccessZone(parentZone);
+    newConnectoid.setLength(parentZone, length);
     return newConnectoid;
   }
 
@@ -58,7 +60,7 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
    */
   @Override
   public UndirectedConnectoid registerNew(Node accessNode) throws PlanItException {
-    UndirectedConnectoid newConnectoid = new UndirectedConnectoidImpl(idToken, accessNode);
+    UndirectedConnectoid newConnectoid = zoningBuilder.createUndirectedConnectoid(accessNode);
     register(newConnectoid);
     return newConnectoid;
   }

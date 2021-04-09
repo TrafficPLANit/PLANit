@@ -1,14 +1,15 @@
 package org.planit.network;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.HashedMap;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.geo.PlanitJtsCrsUtils;
+import org.planit.utils.graph.modifier.RemoveSubGraphListener;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.zoning.Zoning;
 
 /**
  * A network with topological infrastructure layers, meaning that apart from representing a physical reality the result is topologically meaningful, has nodes, links, and some
@@ -146,9 +147,9 @@ public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends T
    * @param zoning            to also remove dangling entities from based on the identified dangling networks
    * @throws PlanItException thrown if error
    */
-  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, Zoning zoning) throws PlanItException {
+  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener<?, ?>> listeners) throws PlanItException {
     for (TopologicalLayer infrastructureLayer : this.infrastructureLayers) {
-      infrastructureLayer.removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest, zoning);
+      infrastructureLayer.removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest, listeners);
     }
   }
 

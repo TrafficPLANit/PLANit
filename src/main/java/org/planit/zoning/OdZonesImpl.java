@@ -1,6 +1,5 @@
 package org.planit.zoning;
 
-import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.Zones;
 
@@ -12,13 +11,17 @@ import org.planit.utils.zoning.Zones;
  */
 public class OdZonesImpl extends ZonesImpl<OdZone> implements Zones<OdZone> {
 
+  /** the zoning builder to use */
+  protected final ZoningBuilder zoningBuilder;
+  
   /**
    * Constructor
    * 
-   * @param tokenId to use
+   * @param zoningBuilder to use
    */
-  public OdZonesImpl(IdGroupingToken tokenId) {
-    super(tokenId);
+  public OdZonesImpl(ZoningBuilder zoningBuilder) {
+    super();
+    this.zoningBuilder = zoningBuilder;
   }
 
   /**
@@ -26,9 +29,7 @@ public class OdZonesImpl extends ZonesImpl<OdZone> implements Zones<OdZone> {
    */
   @Override
   public OdZone createNew() {
-    OdZoneImpl newZone = new OdZoneImpl(getGroupingTokenId());
-    newZone.setCentroid(new CentroidImpl(getGroupingTokenId(), newZone));
-    return newZone;
+    return zoningBuilder.createOdZone();
   }
 
 }

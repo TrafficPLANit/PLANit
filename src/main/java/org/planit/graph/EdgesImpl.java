@@ -34,6 +34,7 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
     /* identify which entries need to be re-registered because of a mismatch */
     Map<Long, E> updatedMap = new HashMap<Long, E>(edgeMap.size());
     edgeMap.forEach((oldId, edge) -> updatedMap.put(edge.getId(), edge));
+    edgeMap.clear();
     edgeMap = updatedMap;
   }
 

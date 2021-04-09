@@ -1,10 +1,10 @@
 package org.planit.zoning;
 
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.TransferZoneGroup;
 import org.planit.utils.zoning.TransferZoneGroups;
 
@@ -20,26 +20,29 @@ public class TransferZoneGroupsImpl implements TransferZoneGroups {
   /**
    * Map storing all the transfer zone groups
    */
-  protected final Map<Long, TransferZoneGroup> transferZoneGroupsMap = new TreeMap<Long, TransferZoneGroup>();
+  protected Map<Long, TransferZoneGroup> transferZoneGroupsMap = new TreeMap<Long, TransferZoneGroup>();
 
-  /** token to use for id generation */
-  private IdGroupingToken tokenId;
+  /** zoning builder to use */
+  protected final ZoningBuilder zoningBuilder;
   
-  /** the grouping token id for id generation
-   * 
-   * @return token
-   */
-  protected IdGroupingToken getGroupingTokenId() {
-    return tokenId;
-  }
-
+  /**
+   * recreate the mapping such that all the keys used for each transfer zone group reflect their internal id.
+   * To be called whenever the ids of transfer zone groups are changed
+   */  
+  protected void updateIdMapping() {
+    Map<Long, TransferZoneGroup> updatedMap = new HashMap<Long, TransferZoneGroup>(transferZoneGroupsMap.size());
+    transferZoneGroupsMap.forEach((oldId, group) -> updatedMap.put(group.getId(), group));
+    transferZoneGroupsMap.clear();
+    transferZoneGroupsMap = updatedMap; 
+  }  
+  
   /**
    * Constructor
    * 
-   * @param tokenId to use
+   * @param zoningBuilder to use
    */
-  public TransferZoneGroupsImpl(IdGroupingToken tokenId) {
-    this.tokenId = tokenId;
+  public TransferZoneGroupsImpl(ZoningBuilder zoningBuilder) {
+    this.zoningBuilder = zoningBuilder;
   }
 
   /**
@@ -73,7 +76,7 @@ public class TransferZoneGroupsImpl implements TransferZoneGroups {
    */  
   @Override
   public TransferZoneGroup createNew() {
-    return new TransferZoneGroupImpl(getGroupingTokenId());
+    return zoningBuilder.createTransferZoneGroup();
   }
 
   /**
@@ -107,6 +110,5 @@ public class TransferZoneGroupsImpl implements TransferZoneGroups {
   public int size() {
     return transferZoneGroupsMap.size();
   }
-
 
 }

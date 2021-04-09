@@ -26,7 +26,7 @@ import org.planit.utils.network.physical.Node;
  */
 public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, Link, LinkSegment> {
 
-  @SuppressWarnings("unused")
+  /** the logger to use */
   private static final Logger LOGGER = Logger.getLogger(PhysicalNetworkBuilderImpl.class.getCanonicalName());
 
   /** hold an implementation of directed graph builder to use its overlapping functionality */
@@ -51,7 +51,7 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
    */
   @Override
   public Link createEdge(Vertex nodeA, Vertex nodeB, final double length) throws PlanItException {
-    if (nodeA instanceof Node && nodeB instanceof Node) {
+    if (nodeA instanceof Vertex && nodeB instanceof Vertex) {
       return new LinkImpl(getIdGroupingToken(), (Node) nodeA, (Node) nodeB, length);
     } else {
       throw new PlanItException("unable to create link, vertices should be of type Node");
@@ -142,9 +142,9 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
     /* conduct linkIds ourselves since it is a physical network add-on */
     if (nodes instanceof VerticesImpl<?>) {
       /* remove gaps by simply resetting and recreating all node ids */
-      IdGenerator.reset(getIdGroupingToken(), Node.class);
+      IdGenerator.reset(getIdGroupingToken(), Vertex.class);
 
-      for (Node node : nodes) {
+      for (Vertex node : nodes) {
         if (node instanceof NodeImpl) {
           ((NodeImpl) node).setNodeId(NodeImpl.generateNodeId(getIdGroupingToken()));
         } else {

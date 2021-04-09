@@ -8,6 +8,7 @@ import java.util.TreeMap;
 
 import org.planit.network.Network;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Node;
@@ -64,18 +65,18 @@ public class VirtualNetwork extends Network {
         /* Access node */
         /* for now we only utilise a single access node, either the given one, or the downstream node of a directed connectoid */
         /* TODO: when we implement PT assignments this likely will change */
-        Node accessNode = null;
+        DirectedVertex accessVertex = null;
         if (connectoid instanceof UndirectedConnectoid) {
-          accessNode = UndirectedConnectoid.class.cast(connectoid).getAccessNode();
+          accessVertex = UndirectedConnectoid.class.cast(connectoid).getAccessVertex();
         } else if (connectoid instanceof DirectedConnectoid) {
           EdgeSegment accessEdgeSegment = DirectedConnectoid.class.cast(connectoid).getAccessLinkSegment();
-          accessNode = (Node) (accessEdgeSegment != null ? accessEdgeSegment.getDownstreamVertex() : null);
+          accessVertex = (Node) (accessEdgeSegment != null ? accessEdgeSegment.getDownstreamVertex() : null);
         } else {
           throw new PlanItException(String.format("connectoid %s is of unrecognised type and access node could not be retrieved", connectoid.getXmlId()));
         }
 
         /* create and register connectoid edge */
-        ConnectoidEdge newConnectoidEdge = new ConnectoidEdgeImpl(getIdGroupingToken(), accessZone.getCentroid(), accessNode, connectoid.getLength(accessZone));
+        ConnectoidEdge newConnectoidEdge = new ConnectoidEdgeImpl(getIdGroupingToken(), accessZone.getCentroid(), accessVertex, connectoid.getLength(accessZone));
         register(newConnectoidEdge);
         connectoidEdges.add(newConnectoidEdge);
       }
