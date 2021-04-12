@@ -9,14 +9,14 @@ import org.planit.utils.zoning.TransferZoneGroup;
 import org.planit.utils.zoning.TransferZoneGroups;
 
 /**
- * Container for transfer zone groups where each transfer zone group logically groups multiple transfer zones together. 
- * Practically this can be used to represent public transport stations for example
+ * Container for transfer zone groups where each transfer zone group logically groups multiple transfer zones together. Practically this can be used to represent public transport
+ * stations for example
  * 
  * @author markr
  *
  */
 public class TransferZoneGroupsImpl implements TransferZoneGroups {
-  
+
   /**
    * Map storing all the transfer zone groups
    */
@@ -24,18 +24,17 @@ public class TransferZoneGroupsImpl implements TransferZoneGroups {
 
   /** zoning builder to use */
   protected final ZoningBuilder zoningBuilder;
-  
+
   /**
-   * recreate the mapping such that all the keys used for each transfer zone group reflect their internal id.
-   * To be called whenever the ids of transfer zone groups are changed
-   */  
+   * recreate the mapping such that all the keys used for each transfer zone group reflect their internal id. To be called whenever the ids of transfer zone groups are changed
+   */
   protected void updateIdMapping() {
     Map<Long, TransferZoneGroup> updatedMap = new HashMap<Long, TransferZoneGroup>(transferZoneGroupsMap.size());
     transferZoneGroupsMap.forEach((oldId, group) -> updatedMap.put(group.getId(), group));
     transferZoneGroupsMap.clear();
-    transferZoneGroupsMap = updatedMap; 
-  }  
-  
+    transferZoneGroupsMap = updatedMap;
+  }
+
   /**
    * Constructor
    * 
@@ -55,7 +54,7 @@ public class TransferZoneGroupsImpl implements TransferZoneGroups {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public TransferZoneGroup register(TransferZoneGroup transferZoneGroup) {
     return transferZoneGroupsMap.put(transferZoneGroup.getId(), transferZoneGroup);
@@ -63,7 +62,7 @@ public class TransferZoneGroupsImpl implements TransferZoneGroups {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public TransferZoneGroup registerNew() {
     TransferZoneGroup transferZoneGroup = createNew();
@@ -73,7 +72,7 @@ public class TransferZoneGroupsImpl implements TransferZoneGroups {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public TransferZoneGroup createNew() {
     return zoningBuilder.createTransferZoneGroup();
@@ -81,7 +80,7 @@ public class TransferZoneGroupsImpl implements TransferZoneGroups {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public TransferZoneGroup remove(TransferZoneGroup transferZone) {
     return transferZoneGroupsMap.remove(transferZone.getId());
@@ -89,7 +88,7 @@ public class TransferZoneGroupsImpl implements TransferZoneGroups {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public boolean hasTransferZoneGroup(TransferZoneGroup transferZoneGroup) {
     return transferZoneGroupsMap.containsKey(transferZoneGroup.getId());
@@ -97,7 +96,7 @@ public class TransferZoneGroupsImpl implements TransferZoneGroups {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public TransferZoneGroup get(long transferZoneGroupId) {
     return transferZoneGroupsMap.get(transferZoneGroupId);
@@ -105,7 +104,7 @@ public class TransferZoneGroupsImpl implements TransferZoneGroups {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public int size() {
     return transferZoneGroupsMap.size();

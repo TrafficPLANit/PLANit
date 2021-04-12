@@ -183,16 +183,9 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * @throws PlanItException thrown if error
    */
   @SuppressWarnings("unchecked")
-  @Override  
-  public void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener<?, ?>> listeners) throws PlanItException {
-    /* logging */
-    LOGGER.info(String.format("%s Removing dangling subnetworks with less than %s vertices", InfrastructureLayer.createLayerLogPrefix(this),
-        belowSize != Integer.MAX_VALUE ? String.valueOf(belowSize) : "infinite"));
-    if (aboveSize != Integer.MAX_VALUE) {
-      LOGGER.info(String.format("%s Removing dangling subnetworks with more than %s vertices", InfrastructureLayer.createLayerLogPrefix(this), String.valueOf(aboveSize)));
-    }
-    LOGGER.info(String.format("%s Original number of nodes %d, links %d, link segments %d", InfrastructureLayer.createLayerLogPrefix(this), nodes.size(), links.size(),
-        linkSegments.size()));
+  @Override
+  public void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener<?, ?>> listeners)
+      throws PlanItException {
 
     /* check validity */
     if (graphModifier == null) {
@@ -203,7 +196,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
     /* create callback for zoning */
     if (listeners != null) {
-      listeners.forEach( listener -> graphModifier.registerRemoveSubGraphListener((RemoveSubGraphListener<N,L>)listener));
+      listeners.forEach(listener -> graphModifier.registerRemoveSubGraphListener((RemoveSubGraphListener<N, L>) listener));
     }
 
     /* perform removal */
@@ -211,11 +204,9 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
 
     /* unregister call back for zoning */
     if (listeners != null) {
-      listeners.forEach( listener -> graphModifier.unregisterRemoveSubGraphListener((RemoveSubGraphListener<N,L>)listener));
+      listeners.forEach(listener -> graphModifier.unregisterRemoveSubGraphListener((RemoveSubGraphListener<N, L>) listener));
     }
 
-    LOGGER.info(String.format("%s remaining number of nodes %d, links %d, link segments %d", InfrastructureLayer.createLayerLogPrefix(this), nodes.size(), links.size(),
-        linkSegments.size()));
   }
 
   /**
@@ -224,9 +215,9 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
    * 
    * Underlying link segments (if any) are also updated accordingly in the same manner
    * 
-   * @param linkToBreak   the link to break
-   * @param nodeToBreakAt the node to break at
-   * @param crs           to use to recompute link lengths of broken links
+   * @param linkToBreak        the link to break
+   * @param nodeToBreakAt      the node to break at
+   * @param crs                to use to recompute link lengths of broken links
    * @param breakEdgeListeners the listeners to register (temporarily) when we break edges so they get invoked for callbacks (may be nnull)
    * @return the broken edges for each original edge's id
    * @throws PlanItException thrown if error

@@ -31,7 +31,7 @@ public class ModeImpl implements Mode {
   private String xmlId;
 
   /**
-   * Each mode has a maximum speed indicating the maximum speed this mode can take on int he context of the network. Typically this would be chosen as the maximum speed limit
+   * Each mode has a maximum speed indicating the maximum speed this mode can take on in the context of the network. Typically this would be chosen as the maximum speed limit
    * encountered for this mode across all road segments in the network.
    */
   private final double maxSpeed;
@@ -173,10 +173,10 @@ public class ModeImpl implements Mode {
   public final UsabilityModeFeatures getUseFeatures() {
     return usedToFeatures;
   }
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public int hashCode() {
     return idHashCode();
@@ -184,10 +184,10 @@ public class ModeImpl implements Mode {
 
   /**
    * {@inheritDoc}
-   */    
+   */
   @Override
   public boolean equals(Object o) {
     return idEquals(o);
-  }  
+  }
 
 }

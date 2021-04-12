@@ -26,7 +26,7 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
   private static final Logger LOGGER = Logger.getLogger(UndirectedConnectoidImpl.class.getCanonicalName());
 
   // Protected
-  
+
   /** unique id across undirected connectoids */
   protected long undirectedConnectoidId;
 
@@ -34,7 +34,7 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
    * the access point to an infrastructure layer
    */
   protected DirectedVertex accessVertex;
-  
+
   /**
    * Generate undirected connectoid id
    *
@@ -43,14 +43,16 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
    */
   protected static long generateUndirectedConnectoidId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, UndirectedConnectoid.class);
-  }  
-  
-  /** set the directed connectoid id
+  }
+
+  /**
+   * set the directed connectoid id
+   * 
    * @param directedConnectoidId to use
    */
   protected void setUndirectedConnectoidId(long undirectedConnectoidId) {
     this.undirectedConnectoidId = undirectedConnectoidId;
-  }    
+  }
 
   /**
    * Set the accessVertex
@@ -64,37 +66,39 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
   /**
    * Constructor
    *
-   * @param idToken    contiguous id generation within this group for instances of this class
+   * @param idToken      contiguous id generation within this group for instances of this class
    * @param accessVertex the node in the network (layer) the connectoid connects with
-   * @param accessZone for the connectoid
-   * @param length     for the connection
+   * @param accessZone   for the connectoid
+   * @param length       for the connection
    */
   protected UndirectedConnectoidImpl(final IdGroupingToken idToken, final DirectedVertex accessVertex, final Zone accessZone, double length) {
     super(idToken, accessZone, length);
     setUndirectedConnectoidId(generateUndirectedConnectoidId(idToken));
     setAccessVertex(accessVertex);
   }
-  
-  /**
-   * Constructor
-   *
-   * @param idToken    contiguous id generation within this group for instances of this class
-   * @param accessVertex the node in the network (layer) the connectoid connects with
-   * @param accessZone for the connectoid
-   */
-  public UndirectedConnectoidImpl(final IdGroupingToken idToken, final DirectedVertex accessVertex, final Zone accessZone) {
-    super(idToken, accessZone);
-    setAccessVertex(accessVertex);
-  }  
 
   /**
    * Constructor
    *
-   * @param idToken    contiguous id generation within this group for instances of this class
+   * @param idToken      contiguous id generation within this group for instances of this class
+   * @param accessVertex the node in the network (layer) the connectoid connects with
+   * @param accessZone   for the connectoid
+   */
+  public UndirectedConnectoidImpl(final IdGroupingToken idToken, final DirectedVertex accessVertex, final Zone accessZone) {
+    super(idToken, accessZone);
+    setUndirectedConnectoidId(generateUndirectedConnectoidId(idToken));
+    setAccessVertex(accessVertex);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param idToken      contiguous id generation within this group for instances of this class
    * @param accessVertex the node in the network (layer) the connectoid connects with
    */
   public UndirectedConnectoidImpl(final IdGroupingToken idToken, final DirectedVertex accessVertex) {
     super(idToken);
+    setUndirectedConnectoidId(generateUndirectedConnectoidId(idToken));
     setAccessVertex(accessVertex);
   }
 
@@ -112,14 +116,15 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
   // Public
 
   // Getters-Setters
-  
-  /** collect the undirected connectoid's unique id
+
+  /**
+   * collect the undirected connectoid's unique id
    * 
    * @return undirected connectoid id
    */
   public long getUndirectedConnectoidId() {
     return undirectedConnectoidId;
-  }  
+  }
 
   /**
    * {@inheritDoc}

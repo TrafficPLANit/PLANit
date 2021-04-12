@@ -26,9 +26,9 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
   private static final Logger LOGGER = Logger.getLogger(DirectedConnectoidImpl.class.getCanonicalName());
 
   // Protected
-  
+
   /** unique id across directed connectoids */
-  protected long directedConnectoidId;  
+  protected long directedConnectoidId;
 
   /**
    * the access point to an infrastructure layer
@@ -37,7 +37,7 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
 
   /** the node access given an access edge segment is either up or downstream */
   protected boolean nodeAccessDownstream = DEFAULT_NODE_ACCESS_DOWNSTREAM;
-  
+
   /**
    * Generate directed connectoid id
    *
@@ -46,14 +46,16 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    */
   protected static long generateDirectedConnectoidId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, DirectedConnectoid.class);
-  }  
-  
-  /** set the directed connectoid id
+  }
+
+  /**
+   * set the directed connectoid id
+   * 
    * @param directedConnectoidId to use
    */
   protected void setDirectedConnectoidId(long directedConnectoidId) {
     this.directedConnectoidId = directedConnectoidId;
-  }  
+  }
 
   /**
    * Set the accessEdgeSegment
@@ -86,6 +88,7 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    */
   public DirectedConnectoidImpl(final IdGroupingToken idToken, final LinkSegment accessEdgeSegment) {
     super(idToken);
+    setDirectedConnectoidId(generateDirectedConnectoidId(idToken));
     setAccessLinkSegment(accessEdgeSegment);
   }
 
@@ -96,20 +99,22 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    */
   protected DirectedConnectoidImpl(final DirectedConnectoidImpl connectoidImpl) {
     super(connectoidImpl);
+    setDirectedConnectoidId(connectoidImpl.getDirectedConnectoidId());
     setAccessLinkSegment(connectoidImpl.getAccessLinkSegment());
   }
 
   // Public
 
   // Getters-Setters
-  
-  /** the directed connectoid unique id
+
+  /**
+   * the directed connectoid unique id
    * 
    * @return directed connectoid id
    */
   public long getDirectedConnectoidId() {
     return directedConnectoidId;
-  }  
+  }
 
   /**
    * {@inheritDoc}
@@ -118,14 +123,14 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
   public LinkSegment getAccessLinkSegment() {
     return accessEdgeSegment;
   }
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public void replaceAccessLinkSegment(EdgeSegment exitEdgeSegment) {
     setAccessLinkSegment(accessEdgeSegment);
-  }  
+  }
 
   /**
    * {@inheritDoc}
@@ -145,7 +150,7 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public DirectedVertex getAccessVertex() {
     return isNodeAccessDownstream() ? getAccessLinkSegment().getDownstreamVertex() : getAccessLinkSegment().getUpstreamVertex();
