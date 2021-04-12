@@ -4,7 +4,7 @@ import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.property.OutputProperty;
-import org.planit.time.TimePeriod;
+import org.planit.utils.time.TimePeriod;
 import org.planit.utils.mode.Mode;
 
 /**

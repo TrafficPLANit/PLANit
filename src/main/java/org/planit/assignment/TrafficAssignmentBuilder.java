@@ -19,10 +19,10 @@ import org.planit.output.OutputManager;
 import org.planit.output.enums.OutputType;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.supply.networkloading.NetworkLoading;
-import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.time.TimePeriod;
 import org.planit.zoning.Zoning;
 
 /**
@@ -45,7 +45,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @param network network object to be registered
    * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
    */
-  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final InfrastructureNetwork<?,?> network) throws PlanItException {
+  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final InfrastructureNetwork<?, ?> network) throws PlanItException {
     if (zoning == null || demands == null || network == null) {
       PlanItException.throwIf(zoning == null, "zoning in registerDemandZoningAndNetwork is null");
       PlanItException.throwIf(demands == null, "demands in registerDemandZoningAndNetwork is null");
@@ -249,7 +249,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown when error
    */
   protected TrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, final IdGroupingToken projectToken, InputBuilderListener inputBuilderListener, final Demands demands,
-      final Zoning zoning, final InfrastructureNetwork<?,?> network) throws PlanItException {
+      final Zoning zoning, final InfrastructureNetwork<?, ?> network) throws PlanItException {
     super(trafficAssignmentClass, projectToken, inputBuilderListener);
 
     /* register inputs (on configurator) */

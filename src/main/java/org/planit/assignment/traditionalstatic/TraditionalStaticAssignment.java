@@ -31,7 +31,6 @@ import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.path.Path;
-import org.planit.time.TimePeriod;
 import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
@@ -42,6 +41,7 @@ import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.virtual.ConnectoidSegment;
+import org.planit.utils.time.TimePeriod;
 import org.planit.utils.zoning.Centroid;
 import org.planit.utils.zoning.Zone;
 
@@ -518,7 +518,6 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
           simulationData.resetSkimMatrix(mode, getTransportNetwork().getZoning().odZones, (ODOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD));
         }
         if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
-          ;
           simulationData.resetPathMatrix(mode, getTransportNetwork().getZoning().odZones);
         }
 

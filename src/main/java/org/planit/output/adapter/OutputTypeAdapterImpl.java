@@ -12,7 +12,7 @@ import org.planit.output.property.RunIdOutputProperty;
 import org.planit.output.property.TimePeriodExternalIdOutputProperty;
 import org.planit.output.property.TimePeriodIdOutputProperty;
 import org.planit.output.property.TimePeriodXmlIdOutputProperty;
-import org.planit.time.TimePeriod;
+import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 

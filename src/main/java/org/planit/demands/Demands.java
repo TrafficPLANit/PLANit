@@ -12,12 +12,14 @@ import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
-import org.planit.time.TimePeriod;
+import org.planit.time.TimePeriodImpl;
 import org.planit.userclass.TravelerType;
 import org.planit.userclass.UserClass;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.time.TimePeriod;
+import org.planit.utils.time.TimePeriodUtils;
 
 /**
  * Container class for all demands registered on the project. In PlanIt we assume that all traffic flows between an origin and destination. Hence all demand for a given time period
@@ -283,7 +285,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @throws PlanItException thrown if start time and/or duration are invalid
      */
     public TimePeriod createAndRegisterNewTimePeriod(String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
-      TimePeriod newTimePeriod = new TimePeriod(tokenId, description, startTimeSeconds, durationSeconds);
+      TimePeriod newTimePeriod = new TimePeriodImpl(tokenId, description, startTimeSeconds, durationSeconds);
       registerTimePeriod(newTimePeriod);
       return newTimePeriod;
     }
@@ -322,7 +324,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @return Set of all registered time periods
      */
     public SortedSet<TimePeriod> asSortedSetByStartTime() {
-      SortedSet<TimePeriod> timePeriodSet = new TreeSet<TimePeriod>(TimePeriod.comparatorByStartTime());
+      SortedSet<TimePeriod> timePeriodSet = new TreeSet<TimePeriod>(TimePeriodUtils.comparatorByStartTime());
       timePeriodSet.addAll(timePeriodMap.values());
       return timePeriodSet;
     }

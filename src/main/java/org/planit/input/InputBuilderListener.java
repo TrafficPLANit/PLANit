@@ -10,7 +10,7 @@ import org.djutils.event.EventListenerInterface;
 import org.planit.network.TopologicalLayer;
 import org.planit.network.TopologicalNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
-import org.planit.time.TimePeriod;
+import org.planit.utils.time.TimePeriod;
 import org.planit.userclass.TravelerType;
 import org.planit.userclass.UserClass;
 import org.planit.utils.mode.Mode;
