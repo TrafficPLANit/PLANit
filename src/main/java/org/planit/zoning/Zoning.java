@@ -179,4 +179,9 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
     return zoningModifier;
   }
 
+  public void remove(Zone danglingZone) {
+    // TODO Auto-generated method stub
+    
+  }
+
 }
