@@ -23,9 +23,9 @@ import org.planit.output.formatter.OutputFormatter;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.sdinteraction.smoothing.SmoothingConfigurator;
 import org.planit.sdinteraction.smoothing.SmoothingConfiguratorFactory;
-import org.planit.time.TimePeriod;
 import org.planit.utils.builder.Configurator;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.time.TimePeriod;
 import org.planit.zoning.Zoning;
 
 /**
@@ -91,7 +91,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @param network to set
    */
-  protected void setInfrastructureNetwork(InfrastructureNetwork<?,?> network) {
+  protected void setInfrastructureNetwork(InfrastructureNetwork<?, ?> network) {
     registerDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK, network);
   }
 
@@ -145,8 +145,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @return network
    */
-  public InfrastructureNetwork<?,?> getInfrastructureNetwork() {
-    return (InfrastructureNetwork<?,?>) getFirstParameterOfDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK);
+  public InfrastructureNetwork<?, ?> getInfrastructureNetwork() {
+    return (InfrastructureNetwork<?, ?>) getFirstParameterOfDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK);
   }
 
   /**

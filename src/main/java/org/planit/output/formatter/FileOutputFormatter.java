@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.util.logging.Logger;
 
 import org.planit.output.enums.OutputType;
-import org.planit.time.TimePeriod;
+import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 

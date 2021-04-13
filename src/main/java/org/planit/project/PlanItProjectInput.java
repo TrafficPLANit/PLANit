@@ -17,10 +17,10 @@ import org.planit.network.InfrastructureLayer;
 import org.planit.network.InfrastructureNetwork;
 import org.planit.network.Network;
 import org.planit.path.ODPathSets;
-import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
+import org.planit.utils.time.TimePeriod;
 import org.planit.zoning.Zoning;
 
 /**
@@ -521,8 +521,7 @@ public class PlanItProjectInput {
 
     LOGGER.info(
         LoggingUtils.createProjectPrefix(this.projectId)+
-        LoggingUtils.createTimePeriodPrefix(timePeriod.getExternalId(), timePeriod.getId())+
-        "populating initial link segment costs");
+        LoggingUtils.createTimePeriodPrefix(timePeriod)+"populating initial link segment costs");
     
     final InitialPhysicalCost initialLinkSegmentCostPeriod = 
         (InitialLinkSegmentCostPeriod) initialPhysicalCostFactory.create(

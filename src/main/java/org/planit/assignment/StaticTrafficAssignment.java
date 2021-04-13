@@ -5,11 +5,11 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * A static traffic assignment class with some commonalities implemented shared across static assignment implementations
@@ -26,7 +26,7 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(StaticTrafficAssignment.class.getCanonicalName());
-    
+
   /**
    * Execute the time period for the registered modes
    * 
@@ -34,8 +34,8 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
    * @param modes      to consider
    * @throws PlanItException thrown if error
    */
-  protected abstract void executeTimePeriod(final TimePeriod timePeriod, final Set<Mode> modes) throws PlanItException;  
-  
+  protected abstract void executeTimePeriod(final TimePeriod timePeriod, final Set<Mode> modes) throws PlanItException;
+
   /**
    * Perform assignment for a given time period
    *
@@ -47,7 +47,7 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
     final Calendar initialStartTime = startTime;
     executeTimePeriod(timePeriod, demands.getRegisteredModesForTimePeriod(timePeriod));
     LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
-  }  
+  }
 
   /**
    * Constructor
@@ -57,7 +57,6 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
   protected StaticTrafficAssignment(IdGroupingToken groupId) {
     super(groupId);
   }
-
 
   /**
    * Execute equilibration over all time periods and modes
@@ -70,7 +69,7 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
     final Collection<TimePeriod> timePeriods = demands.timePeriods.asSortedSetByStartTime();
     LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "total time periods: " + timePeriods.size());
     for (final TimePeriod timePeriod : timePeriods) {
-      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createTimePeriodPrefix(timePeriod.getExternalId(), timePeriod.getId()) + timePeriod.toString());
+      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createTimePeriodPrefix(timePeriod) + timePeriod.toString());
       executeTimePeriod(timePeriod);
     }
   }

@@ -5,7 +5,7 @@ import java.util.Set;
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.network.transport.TransportNetwork;
 import org.planit.output.OutputManager;
-import org.planit.time.TimePeriod;
+import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.zoning.Zone;

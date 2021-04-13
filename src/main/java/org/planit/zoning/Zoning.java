@@ -7,7 +7,7 @@ import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.demands.Demands;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
-import org.planit.time.TimePeriod;
+import org.planit.utils.time.TimePeriod;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.Modes;

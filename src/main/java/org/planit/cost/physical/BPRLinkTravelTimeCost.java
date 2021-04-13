@@ -120,7 +120,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   protected double[][] freeFlowTravelTimePerLinkSegment;
 
   /**
-   * BPR function computation for
+   * BPR function computation for. In case mode is nto allowed Double.MAX_VALUE is returned
    * 
    * @param linkSegment    the link segment
    * @param mode           given mode
@@ -128,6 +128,10 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @return travel time in hours
    */
   protected double computeCostInHours(MacroscopicLinkSegment linkSegment, Mode mode, double flowPcuPerHour) {
+    if (!linkSegment.isModeAllowed(mode)) {
+      return Double.MAX_VALUE;
+    }
+
     final int id = (int) linkSegment.getId();
 
     final double freeFlowTravelTime = freeFlowTravelTimePerLinkSegment[(int) mode.getId()][id];
@@ -255,7 +259,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @throws PlanItException thrown if error
    */
   @Override
-  public void initialiseBeforeSimulation(final InfrastructureNetwork<?,?> network) throws PlanItException {
+  public void initialiseBeforeSimulation(final InfrastructureNetwork<?, ?> network) throws PlanItException {
     PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "BPR cost is only compatible with macroscopic networks");
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.infrastructureLayers.size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");

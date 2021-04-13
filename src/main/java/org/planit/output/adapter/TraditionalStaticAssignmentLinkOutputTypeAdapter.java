@@ -5,7 +5,7 @@ import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
-import org.planit.time.TimePeriod;
+import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;

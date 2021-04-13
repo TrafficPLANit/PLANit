@@ -1,6 +1,6 @@
 package org.planit.cost.physical.initial;
 
-import org.planit.time.TimePeriod;
+import org.planit.utils.time.TimePeriod;
 import org.planit.utils.id.IdGroupingToken;
 
 /**

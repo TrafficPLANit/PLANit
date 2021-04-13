@@ -11,6 +11,7 @@ import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.network.physical.Node;
 
 /**
  * This object represents a path based on a number of consecutive LinkSegments
@@ -47,10 +48,10 @@ public class PathImpl implements Path {
     final StringBuilder builder = new StringBuilder("[");
     for (final EdgeSegment edgeSegment : path) {
       final Vertex vertex = edgeSegment.getUpstreamVertex();
-      if (vertex instanceof Vertex) {
-        final Vertex node = (Vertex) vertex;
+      if (vertex instanceof Node) {
+        final Node node = (Node) vertex;
         builder.append(idMapper.apply(node));
-        if (edgeSegment.getDownstreamVertex() instanceof Vertex) {
+        if (edgeSegment.getDownstreamVertex() instanceof Node) {
           builder.append(",");
         }
       }

@@ -1,7 +1,7 @@
 package org.planit.output.adapter;
 
 import org.planit.output.property.OutputProperty;
-import org.planit.time.TimePeriod;
+import org.planit.utils.time.TimePeriod;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.LinkSegments;

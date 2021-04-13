@@ -26,7 +26,7 @@ import org.planit.project.PlanItProjectInput.ProjectDemands;
 import org.planit.project.PlanItProjectInput.ProjectNetworks;
 import org.planit.project.PlanItProjectInput.ProjectODPathSets;
 import org.planit.project.PlanItProjectInput.ProjectZonings;
-import org.planit.time.TimePeriod;
+import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;

@@ -9,14 +9,13 @@ import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.OutputProperty;
-import org.planit.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.LinkSegments;
-import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Top-level abstract class which defines the common methods required by Link output type adapters
@@ -27,7 +26,6 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 public abstract class LinkOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements LinkOutputTypeAdapter {
 
   /** the logger */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(LinkOutputTypeAdapterImpl.class.getCanonicalName());
 
   /**

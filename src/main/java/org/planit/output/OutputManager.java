@@ -13,7 +13,7 @@ import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
-import org.planit.time.TimePeriod;
+import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 

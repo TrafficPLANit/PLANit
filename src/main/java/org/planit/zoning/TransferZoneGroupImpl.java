@@ -1,6 +1,7 @@
 package org.planit.zoning;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -18,17 +19,29 @@ import org.planit.utils.zoning.TransferZoneGroup;
  *
  */
 public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements TransferZoneGroup {
-  
+
   /**
    * Map storing all the transfer zones in the group
    */
-  protected final Map<Long, TransferZone> transferZoneMap = new TreeMap<Long, TransferZone>();
-  
+  protected Map<Long, TransferZone> transferZoneMap = new TreeMap<Long, TransferZone>();
+
   /**
    * name of the transfer zone group
    */
   protected String name = null;
-  
+
+  /**
+   * recreate the mapping such that all the keys used for each transfer zone reflect their internal id. To be called whenever the ids of transfer zones are changed
+   */
+  protected void updateTransferZoneIdMapping() {
+    if (!transferZoneMap.isEmpty()) {
+      Map<Long, TransferZone> updatedMap = new HashMap<Long, TransferZone>(transferZoneMap.size());
+      transferZoneMap.forEach((oldId, transferzone) -> updatedMap.put(transferzone.getId(), transferzone));
+      transferZoneMap.clear();
+      transferZoneMap = updatedMap;
+    }
+  }
+
   /**
    * generate unique transfer zone group id
    *
@@ -37,15 +50,15 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
    */
   protected static long generateTransferZoneGroupId(final IdGroupingToken tokenId) {
     return IdGenerator.generateId(tokenId, TransferZoneGroup.class);
-  }  
-  
+  }
+
   /**
    * Set the transfer zone group id
    * 
    * @param id to set
    */
   protected void setId(long id) {
-    setId(id);
+    super.setId(id);
   }
 
   /**
@@ -67,7 +80,7 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public String getName() {
     return name;
@@ -75,7 +88,7 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public void setName(String name) {
     this.name = name;
@@ -83,7 +96,7 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public TransferZone addTransferZone(TransferZone transferZone) {
     TransferZone prevTransferZone = transferZoneMap.put(transferZone.getId(), transferZone);
@@ -93,7 +106,7 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public TransferZone removeTransferZone(TransferZone transferZone) {
     TransferZone removedZone = transferZoneMap.remove(transferZone.getId());
@@ -103,7 +116,7 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public boolean hasTransferZone(TransferZone transferZone) {
     return transferZoneMap.containsKey(transferZone.getId());
@@ -111,7 +124,7 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public int size() {
     return transferZoneMap.size();
@@ -119,7 +132,7 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public Collection<TransferZone> getTransferZones() {
     return transferZoneMap.values();

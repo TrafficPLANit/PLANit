@@ -57,10 +57,10 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
     super(macroscopicLinkSegmentImpl);
     setLinkSegmentType(macroscopicLinkSegmentImpl.getLinkSegmentType());
   }
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public int hashCode() {
     return idHashCode();
@@ -68,11 +68,11 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public boolean equals(Object obj) {
     return idEquals(obj);
-  }    
+  }
 
   /**
    * Return the total capacity
@@ -92,7 +92,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   @Override
   public double computeFreeFlowTravelTime(final Mode mode) {
     if (!isModeAllowed(mode)) {
-      return Double.POSITIVE_INFINITY;
+      return Double.MAX_VALUE;
     }
 
     return getParentLink().getLengthKm() / getModelledSpeedLimitKmH(mode);
