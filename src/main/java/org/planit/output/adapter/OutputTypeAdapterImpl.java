@@ -1,5 +1,7 @@
 package org.planit.output.adapter;
 
+import java.util.Optional;
+
 import org.planit.assignment.TrafficAssignment;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
@@ -40,9 +42,9 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
    * @param outputProperty the specified output property
    * @param mode           the current mode
    * @param timePeriod     the current time period
-   * @return the value of the specified property, or null if the specified property is not common to all output adapters (or an Exception if an error has occurred)
+   * @return the value of the specified property, or null if the specified property is not common to all output adapters (or an Exception message if an error has occurred)
    */
-  protected Object getOutputTypeIndependentPropertyValue(OutputProperty outputProperty, Mode mode, TimePeriod timePeriod) {
+  protected Optional<?> getOutputTypeIndependentPropertyValue(OutputProperty outputProperty, Mode mode, TimePeriod timePeriod) {
     try {
       switch (outputProperty) {
       case MODE_EXTERNAL_ID:
@@ -58,14 +60,14 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
       case TIME_PERIOD_XML_ID:
         return TimePeriodXmlIdOutputProperty.getTimePeriodXmlId(timePeriod);        
       case TIME_PERIOD_ID:
-        return TimePeriodIdOutputProperty.getTimePeriodId(timePeriod);
+        return TimePeriodIdOutputProperty.getTimePeriodId(timePeriod);        
       case ITERATION_INDEX:
         return IterationIndexOutputProperty.getIterationIndex(trafficAssignment);
       default:
-        return null;
+        return Optional.empty();
       }
     } catch (PlanItException e) {
-      return e;
+      return Optional.of(e.getMessage());
     }
   }
 
@@ -94,8 +96,8 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
    * are only revealed in the next iteration this method should be overridden
    */
   @Override
-  public int getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) throws PlanItException {
-    return trafficAssignment.getIterationIndex();
+  public Optional<Integer> getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) throws PlanItException {
+    return Optional.of(trafficAssignment.getIterationIndex());
   }
 
 }

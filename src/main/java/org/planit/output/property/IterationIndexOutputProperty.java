@@ -1,5 +1,7 @@
 package org.planit.output.property;
 
+import java.util.Optional;
+
 import org.planit.assignment.TrafficAssignment;
 import org.planit.output.enums.Type;
 import org.planit.utils.exceptions.PlanItException;
@@ -41,8 +43,8 @@ public final class IterationIndexOutputProperty extends BaseOutputProperty {
    * @return the current iteration index
    * @throws PlanItException thrown if there is an error
    */
-  public static int getIterationIndex(TrafficAssignment trafficAssignment) throws PlanItException {
-    return trafficAssignment.getIterationIndex();
+  public static Optional<Integer> getIterationIndex(TrafficAssignment trafficAssignment) throws PlanItException {
+    return Optional.of(trafficAssignment.getIterationIndex());
   }
 
 }

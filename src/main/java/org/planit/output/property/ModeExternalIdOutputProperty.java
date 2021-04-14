@@ -1,5 +1,7 @@
 package org.planit.output.property;
 
+import java.util.Optional;
+
 import org.planit.output.enums.Type;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.unit.Units;
@@ -39,8 +41,8 @@ public final class ModeExternalIdOutputProperty extends BaseOutputProperty {
    * @param mode current mode
    * @return the external Id of the current mode
    */
-  public static Object getModeExternalId(Mode mode) {
-    return mode.getExternalId();
+  public static Optional<String> getModeExternalId(Mode mode) {
+    return Optional.of(mode.getExternalId());
   }
 
 }

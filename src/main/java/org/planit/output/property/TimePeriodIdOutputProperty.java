@@ -1,5 +1,7 @@
 package org.planit.output.property;
 
+import java.util.Optional;
+
 import org.planit.output.enums.Type;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
@@ -41,8 +43,8 @@ public final class TimePeriodIdOutputProperty extends BaseOutputProperty {
    * @return the current time period Id
    * @throws PlanItException thrown if there is an error
    */
-  public static long getTimePeriodId(TimePeriod timePeriod) throws PlanItException {
-    return timePeriod.getId();
+  public static Optional<Long> getTimePeriodId(TimePeriod timePeriod) throws PlanItException {
+    return Optional.of(timePeriod.getId());
   }
 
 }

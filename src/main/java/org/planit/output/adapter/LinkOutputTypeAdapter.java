@@ -1,53 +1,197 @@
 package org.planit.output.adapter;
 
+import java.util.Optional;
+
+import org.locationtech.jts.geom.Point;
+import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.OutputProperty;
-import org.planit.utils.time.TimePeriod;
-import org.planit.utils.mode.Mode;
+import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.LinkSegments;
 
 /**
  * Interface defining the methods required for a link output adapter
  * 
- * @author gman6028
+ * @author gman6028, markr
  *
  */
-public interface LinkOutputTypeAdapter extends OutputTypeAdapter {
-
+public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputTypeAdapter {
+  
   /**
-   * collect the infrastructure layer id this mode resides on
+   * collect location as string representation from vertex
    * 
-   * @param mode to collect layer id for
-   * @return infrastructure layer id, null if not found
+   * @param vertex
+   * @return node location
    */
-  public Long getInfrastructureLayerIdForMode(Mode mode);
+  public static Optional<String> getVertexLocationAsString(Vertex vertex) {
+    Point position = vertex.getPosition();
+    if (position == null) {
+      return Optional.of(OutputFormatter.NOT_SPECIFIED);
+    } else {
+      return Optional.of(position.getCoordinate().x + "-" + position.getCoordinate().y);
+    }
+  }
 
   /**
-   * Returns true if there is a flow through the current specified link segment for the specified mode
+   * Returns the external Id of the downstream node
    * 
-   * @param linkSegment specified link segment
-   * @param mode        specified mode
-   * @return true is there is flow through this link segment, false if the flow is zero
+   * @param linkSegment LinkSegment object containing the required data
+   * @return he external Id of the downstream node
+   * @throws PlanItException thrown if there is an error
    */
-  public boolean isFlowPositive(LinkSegment linkSegment, Mode mode);
+  public default Optional<String> getDownstreamNodeExternalId(T linkSegment) throws PlanItException {
+    return Optional.of(((Vertex) linkSegment.getDownstreamVertex()).getExternalId());
+  }
 
   /**
-   * Return a Link segments for this assignment
+   * Returns the xml Id of the downstream node
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the xml Id of the downstream node
+   * @throws PlanItException thrown if there is an error
+   */
+  public default Optional<String> getDownstreamNodeXmlId(T linkSegment) throws PlanItException {
+    return Optional.of(((Vertex) linkSegment.getDownstreamVertex()).getXmlId());
+  }
+
+  /**
+   * Returns the Id of the downstream node
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the Id of the downstream node
+   * @throws PlanItException thrown if there is an error
+   */
+  public default Optional<Long> getDownstreamNodeId(T linkSegment) throws PlanItException {
+    return Optional.of(((Vertex) linkSegment.getDownstreamVertex()).getId());
+  }
+
+  /**
+   * Returns the location of the downstream node
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the location of the downstream node
+   * @throws PlanItException thrown if the location could not be retrieved
+   */
+  public default Optional<String> getDownstreamNodeLocation(T linkSegment) throws PlanItException {
+    Vertex downstreamVertex = linkSegment.getDownstreamVertex();
+    return getVertexLocationAsString(downstreamVertex);
+  }
+
+  /**
+   * Returns the length of the current link segment
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the length of the current link segment
+   * @throws PlanItException thrown if there is an error
+   */
+  public default Optional<Double> getLength(T linkSegment) throws PlanItException {
+    return Optional.of(linkSegment.getParentLink().getLengthKm());
+  }
+
+  /**
+   * Returns the external Id of the current link segment
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the external Id of the current link segment
+   * @throws PlanItException thrown if there is an error
+   */
+  public default Optional<String> getLinkSegmentExternalId(T linkSegment) throws PlanItException {
+    return Optional.of(linkSegment.getExternalId());
+  }
+
+  /**
+   * Returns the Xml Id of the current link segment
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the Xml Id of the current link segment
+   * @throws PlanItException thrown if there is an error
+   */
+  public default Optional<String> getLinkSegmentXmlId(T linkSegment) throws PlanItException {
+    return Optional.of(linkSegment.getXmlId());
+  }
+
+  /**
+   * Returns the Id of the current link segment
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the Id of the current link segment
+   * @throws PlanItException thrown if there is an error
+   */
+  public default Optional<Long> getLinkSegmentId(T linkSegment) throws PlanItException {
+    return Optional.of(linkSegment.getId());
+  }
+
+  /**
+   * Returns the number of lanes of the current link
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the number of lanes of the current link
+   * @throws PlanItException thrown if there is an error
+   */
+  public default  Optional<Integer> getNumberOfLanes(T linkSegment) throws PlanItException {
+    return Optional.of(linkSegment.getNumberOfLanes());
+  }
+
+  /**
+   * Returns the external Id of the upstream node
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the external Id of the upstream node
+   * @throws PlanItException thrown if there is an error
+   */
+  public default Optional<String> getUpstreamNodeExternalId(T linkSegment) throws PlanItException {
+    return Optional.of(((Vertex) linkSegment.getUpstreamVertex()).getExternalId());
+  }
+
+  /**
+   * Returns the Xml Id of the upstream node
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the xml Id of the upstream node
+   * @throws PlanItException thrown if there is an error
+   */
+  public default Optional<String> getUpstreamNodeXmlId(T linkSegment) throws PlanItException {
+    return Optional.of(((Vertex) linkSegment.getUpstreamVertex()).getXmlId());
+  }
+
+  /**
+   * Returns the location of the upstream node
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the location of the upstream node
+   * @throws PlanItException thrown if there is an error
+   */
+  public default Optional<String> getUpstreamNodeLocation(T linkSegment) throws PlanItException {
+    Vertex upstreamVertex = linkSegment.getUpstreamVertex();
+    return getVertexLocationAsString(upstreamVertex);
+  }
+
+  /**
+   * Returns the Id of the upstream node
+   * 
+   * @param linkSegment LinkSegment object containing the required data
+   * @return the Id of the upstream node
+   * @throws PlanItException thrown if there is an error
+   */
+  public default Optional<Long> getUpstreamNodeId(T linkSegment) throws PlanItException {
+    return Optional.of(((Vertex) linkSegment.getUpstreamVertex()).getId());
+  }  
+
+  /**
+   * Return the Link segments for this assignment
    * 
    * @param infrastructureLayerId to collect link segments for
    * @return a List of link segments for this assignment
    */
-  public LinkSegments<? extends LinkSegment> getPhysicalLinkSegments(long infrastructureLayerId);
+  public abstract LinkSegments<T> getPhysicalLinkSegments(long infrastructureLayerId);
 
   /**
    * Return the value of a specified output property of a link segment
    * 
    * @param outputProperty     the specified output property
    * @param linkSegment        the specified link segment
-   * @param mode               the current mode
-   * @param timePeriod         the current time period
-   * @param timeUnitMultiplier the multiplier for time units
    * @return the value of the specified output property (or an Exception if an error occurs)
    */
-  public Object getLinkOutputPropertyValue(OutputProperty outputProperty, LinkSegment linkSegment, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier);
+  public abstract Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, T linkSegment);
 }

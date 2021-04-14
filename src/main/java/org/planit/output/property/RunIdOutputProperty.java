@@ -1,5 +1,7 @@
 package org.planit.output.property;
 
+import java.util.Optional;
+
 import org.planit.assignment.TrafficAssignment;
 import org.planit.output.enums.Type;
 import org.planit.utils.exceptions.PlanItException;
@@ -41,8 +43,8 @@ public final class RunIdOutputProperty extends BaseOutputProperty {
    * @return the current run id
    * @throws PlanItException thrown if there is an error
    */
-  public static long getRunId(TrafficAssignment trafficAssignment) throws PlanItException {
-    return trafficAssignment.getId();
+  public static Optional<Long> getRunId(TrafficAssignment trafficAssignment) throws PlanItException {
+    return Optional.of(trafficAssignment.getId());
   }
 
 }

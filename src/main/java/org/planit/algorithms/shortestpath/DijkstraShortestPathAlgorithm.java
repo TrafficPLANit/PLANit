@@ -83,7 +83,7 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
     
     // track measured cost for each vertex
     double[] vertexMeasuredCost = new double[numberOfVertices];    
-    Arrays.fill(vertexMeasuredCost, Double.POSITIVE_INFINITY);
+    Arrays.fill(vertexMeasuredCost, Double.MAX_VALUE);
     vertexMeasuredCost[(int)currentOrigin.getId()] = 0.0;
     // precedingVertex for each vertex (used to reconstruct path)
     EdgeSegment[] incomingEdgeSegment = new EdgeSegment[numberOfVertices];
@@ -110,7 +110,7 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
 
       for (EdgeSegment adjacentEdgeSegment : currentVertex.getExitEdgeSegments()) {
         double currentEdgeSegmentCost = edgeSegmentCosts[(int) adjacentEdgeSegment.getId()];
-        if (currentEdgeSegmentCost < Double.POSITIVE_INFINITY) {
+        if (currentEdgeSegmentCost < Double.MAX_VALUE) {
           
           DirectedVertex adjacentVertex = adjacentEdgeSegment.getDownstreamVertex();
           int adjacentVertexId = (int) adjacentVertex.getId();

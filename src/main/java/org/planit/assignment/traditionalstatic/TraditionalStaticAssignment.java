@@ -23,9 +23,6 @@ import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odpath.ODPathMatrix;
 import org.planit.output.adapter.OutputTypeAdapter;
-import org.planit.output.adapter.TraditionalStaticAssignmentLinkOutputTypeAdapter;
-import org.planit.output.adapter.TraditionalStaticAssignmentODOutputTypeAdapter;
-import org.planit.output.adapter.TraditionalStaticPathOutputTypeAdapter;
 import org.planit.output.configuration.ODOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
@@ -191,9 +188,9 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
           if ((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) {
             double odShortestPathCost = shortestPathResult.getCostToReach(currentDestinationZone.getCentroid());
-            if (odShortestPathCost == Double.POSITIVE_INFINITY) {
-              LOGGER.warning(createLoggingPrefix() + "impossible path from origin zone " + currentOriginZone.getExternalId() + " to destination zone "
-                  + currentDestinationZone.getExternalId() + " (mode " + mode.getExternalId() + ")");
+            if (odShortestPathCost == Double.POSITIVE_INFINITY || odShortestPathCost == Double.MAX_VALUE) {
+              LOGGER.warning(String.format("%s impossible path from origin zone %s (id:%d) to destination zone %s (id:%d) for mode %s (id:%d)",
+                  createLoggingPrefix(),currentOriginZone.getXmlId(), currentOriginZone.getId(), currentDestinationZone.getXmlId(), currentDestinationZone.getId(), mode.getXmlId(), mode.getId()));
             } else {
               updateNetworkFlowsForPath(shortestPathResult, currentOriginZone, currentDestinationZone, odDemand, currentModeData);
               dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
@@ -204,7 +201,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
           /* update skim and path data if needed */
 
           updateODOutputData(skimMatrixMap, currentOriginZone, currentDestinationZone, odDemand, shortestPathResult);
-          updatePathOutputData(odpathMatrix, currentOriginZone, currentDestinationZone, shortestPathResult);
+          updatePathOutputData(mode, odpathMatrix, currentOriginZone, currentDestinationZone, shortestPathResult);
         }
       }
     }
@@ -259,8 +256,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @return the path cost for the calculated minimum cost path
    * @throws PlanItException thrown if there is an error
    */
-  private void updateNetworkFlowsForPath(final ShortestPathResult shortestPathResult, final Zone origin, final Zone destination, final double odDemand,
-      final ModeData currentModeData) throws PlanItException {
+  private void updateNetworkFlowsForPath(final ShortestPathResult shortestPathResult, final Zone origin, final Zone destination, final double odDemand, final ModeData currentModeData) throws PlanItException {
 
     // prep
     EdgeSegment currentEdgeSegment = null;
@@ -309,17 +305,23 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   /**
    * Update the OD path matrix
    *
+   * @param mode                   the path is to be stored for (logging purposes only) 
    * @param odpathMatrix           OD path matrix to add to
-   * @param currentOriginZone      current origin zone
-   * @param currentDestinationZone current destination zone
+   * @param origin                 origin zone
+   * @param destination            destination zone
    * @param shortestPathResult     shortest path tree for given origin
    */
-  private void updatePathOutputData(ODPathMatrix odpathMatrix, Zone currentOriginZone, Zone currentDestinationZone, ShortestPathResult shortestPathResult) {
+  private void updatePathOutputData(Mode mode, ODPathMatrix odpathMatrix, Zone origin, Zone destination, ShortestPathResult shortestPathResult) {
 
     // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
     if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
-      final Path path = shortestPathResult.createPath(tokenId, currentOriginZone.getCentroid(), currentDestinationZone.getCentroid());
-      odpathMatrix.setValue(currentOriginZone, currentDestinationZone, path);
+      final Path path = shortestPathResult.createPath(tokenId, origin.getCentroid(), destination.getCentroid());
+      if(path== null) {
+        LOGGER.fine(
+            String.format("Unable to create path from origin %s (id:%d) to destination %s (id:%d) for mode %s (id:%d)", origin.getXmlId(), origin.getId(), destination.getXmlId(),
+            destination.getId(), mode.getXmlId(), mode.getId()));
+      }
+      odpathMatrix.setValue(origin, destination, path);
     }
   }
 

@@ -245,7 +245,7 @@ public class MultiKeyPlanItData {
 
     for (int i = 0; i < outputValueProperties.length; i++) {
       PlanItException.throwIf((!isValueTypeCorrect(outputValues[i], valueTypes[i])) && (!outputValues[i].equals(OutputFormatter.NOT_SPECIFIED)),
-          "Property in position " + i + " in setRowValues() is of the wrong type");
+          String.format("Property in position %d in setRowValues() is of the wrong type",i));
     }
     PlanItException.throwIf(!isKeyValuesValid(keyValues), "Call to setRowValues() with one or more keys of the wrong type");
 

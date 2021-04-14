@@ -1,8 +1,10 @@
-package org.planit.output.adapter;
+package org.planit.assignment.traditionalstatic;
+
+import java.util.Optional;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.od.odpath.ODPathMatrix;
+import org.planit.output.adapter.PathOutputTypeAdapterImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.utils.mode.Mode;
 
@@ -31,8 +33,8 @@ public class TraditionalStaticPathOutputTypeAdapter extends PathOutputTypeAdapte
    * @return the OD path object
    */
   @Override
-  public ODPathMatrix getODPathMatrix(Mode mode) {
-    return ((TraditionalStaticAssignment) trafficAssignment).getIterationData().getODPathMatrix(mode);
+  public Optional<ODPathMatrix> getODPathMatrix(Mode mode) {
+    return Optional.of(((TraditionalStaticAssignment) trafficAssignment).getIterationData().getODPathMatrix(mode));
   }
 
 }

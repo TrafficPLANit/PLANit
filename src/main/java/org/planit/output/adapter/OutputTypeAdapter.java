@@ -1,5 +1,7 @@
 package org.planit.output.adapter;
 
+import java.util.Optional;
+
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.utils.exceptions.PlanItException;
@@ -33,6 +35,6 @@ public interface OutputTypeAdapter {
    * @return iterationIndexForData
    * @throws PlanItException thrown if exception
    */
-  public int getIterationIndexForSubOutputType(SubOutputTypeEnum subOutputTypeEnum) throws PlanItException;
+  public Optional<Integer> getIterationIndexForSubOutputType(SubOutputTypeEnum subOutputTypeEnum) throws PlanItException;
 
 }

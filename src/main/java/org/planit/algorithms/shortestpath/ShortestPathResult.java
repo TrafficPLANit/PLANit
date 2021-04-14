@@ -65,8 +65,7 @@ public class ShortestPathResult {
     // extract path
     while (originVertexId != vertexId) {
       if (previousEdgeSegmentOnPath == null) {
-        LOGGER.warning(String.format("unable to extract path from origin %s (id:%d) to destination %s (id:%d)", origin.getExternalId(), origin.getId(), destination.getExternalId(),
-            destination.getId()));
+        /* unable to create path */
         return null;
       }
       pathEdgeSegments.addFirst(previousEdgeSegmentOnPath);

@@ -1,12 +1,13 @@
 package org.planit.output.adapter;
 
+import java.util.Optional;
+
 import org.planit.assignment.TrafficAssignment;
 import org.planit.od.odpath.ODPathIterator;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.PathOutputIdentificationType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
-import org.planit.path.Path;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
@@ -18,103 +19,6 @@ import org.planit.utils.mode.Mode;
  *
  */
 public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements PathOutputTypeAdapter {
-
-  /**
-   * Returns the external Id of the destination zone for the current cell in the OD path matrix
-   * 
-   * @param odPathIterator ODPathIterator object containing the required data
-   * @return the external Id of the destination zone for the current cell in the OD path matrix
-   * @throws PlanItException thrown if there is an error
-   */
-  protected String getDestinationZoneExternalId(ODPathIterator odPathIterator) throws PlanItException {
-    return odPathIterator.getCurrentDestination().getExternalId();
-  }
-  
-  /**
-   * Returns the Xml Id of the destination zone for the current cell in the OD path matrix
-   * 
-   * @param odPathIterator ODPathIterator object containing the required data
-   * @return the xml Id of the destination zone for the current cell in the OD path matrix
-   * @throws PlanItException thrown if there is an error
-   */
-  protected String getDestinationZoneXmlId(ODPathIterator odPathIterator) throws PlanItException {
-    return odPathIterator.getCurrentDestination().getXmlId();
-  }  
-
-  /**
-   * Returns the Id of the destination zone for the current cell in the OD path matrix
-   * 
-   * @param odPathIterator ODPathIterator object containing the required data
-   * @return the Id of the destination zone for the current cell in the OD path matrix
-   * @throws PlanItException thrown if there is an error
-   */
-  protected long getDestinationZoneId(ODPathIterator odPathIterator) throws PlanItException {
-    return odPathIterator.getCurrentDestination().getId();
-  }
-
-  /**
-   * Returns the origin zone external Id for the current cell in the OD path matrix
-   * 
-   * @param odPathIterator ODPathIterator object containing the required data
-   * @return the origin zone external Id for the current cell in the OD path matrix
-   * @throws PlanItException thrown if there is an error
-   */
-  protected Object getOriginZoneExternalId(ODPathIterator odPathIterator) throws PlanItException {
-    return odPathIterator.getCurrentOrigin().getExternalId();
-  }
-  
-  /**
-   * Returns the Xml Id of the origin zone for the current cell in the OD path matrix
-   * 
-   * @param odPathIterator ODPathIterator object containing the required data
-   * @return the xml Id of the origin zone for the current cell in the OD path matrix
-   * @throws PlanItException thrown if there is an error
-   */
-  protected String getOriginZoneXmlId(ODPathIterator odPathIterator) throws PlanItException {
-    return odPathIterator.getCurrentOrigin().getXmlId();
-  }    
-
-  /**
-   * Returns the origin zone Id for the current cell in the OD path matrix
-   * 
-   * @param odPathIterator ODPathIterator object containing the required data
-   * @return the origin zone Id for the current cell in the OD path matrix
-   * @throws PlanItException thrown if there is an error
-   */
-  protected long getOriginZoneId(ODPathIterator odPathIterator) throws PlanItException {
-    return odPathIterator.getCurrentOrigin().getId();
-  }
-
-  /**
-   * Returns the path as a String of comma-separated Id values
-   * 
-   * @param odPathIterator ODPathIterator object containing the required data
-   * @param pathOutputType the type of objects being used in the path
-   * @return the OD path as a String of comma-separated node external Id values
-   */
-  protected String getPathAsString(ODPathIterator odPathIterator, PathOutputIdentificationType pathOutputType) {
-    Path path = odPathIterator.getCurrentValue();
-    if (path != null) {
-      return path.toString(pathOutputType);
-    }
-    return "";
-  }
-
-  /**
-   * Return the Id of the current path
-   * 
-   * If there is no path between the current origin and destination zones, this returns -1
-   * 
-   * @param odPathIterator ODPathIterator object containing the required data
-   * @return the id of the current path, or -1 if no path exists
-   */
-  protected long getPathId(ODPathIterator odPathIterator) {
-    Path path = odPathIterator.getCurrentValue();
-    if (path == null) {
-      return -1;
-    }
-    return odPathIterator.getCurrentValue().getId();
-  }
 
   /**
    * Constructor
@@ -137,36 +41,38 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
   @Override
-  public Object getPathOutputPropertyValue(OutputProperty outputProperty, ODPathIterator odPathIterator, Mode mode,
-      TimePeriod timePeriod, PathOutputIdentificationType pathOutputType) {
+  public Optional<?> getPathOutputPropertyValue(
+      OutputProperty outputProperty, ODPathIterator odPathIterator, Mode mode, TimePeriod timePeriod, PathOutputIdentificationType pathOutputType) {
     try {
-      Object obj = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
-      if (obj != null) {
-        return obj;
+      
+      Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
+      if (value.isPresent()) {
+        return value;
       }
+      
       switch (outputProperty) {
         case DESTINATION_ZONE_EXTERNAL_ID:
-          return getDestinationZoneExternalId(odPathIterator);
+          return PathOutputTypeAdapter.getDestinationZoneExternalId(odPathIterator);
         case DESTINATION_ZONE_XML_ID:
-          return getDestinationZoneXmlId(odPathIterator);          
+          return PathOutputTypeAdapter.getDestinationZoneXmlId(odPathIterator);          
         case DESTINATION_ZONE_ID:
-          return getDestinationZoneId(odPathIterator);
+          return PathOutputTypeAdapter.getDestinationZoneId(odPathIterator);
         case PATH_STRING:
-          return getPathAsString(odPathIterator, pathOutputType);
+          return PathOutputTypeAdapter.getPathAsString(odPathIterator, pathOutputType);
         case PATH_ID:
-          return getPathId(odPathIterator);
+          return PathOutputTypeAdapter.getPathId(odPathIterator);
         case ORIGIN_ZONE_EXTERNAL_ID:
-          return getOriginZoneExternalId(odPathIterator);
+          return PathOutputTypeAdapter.getOriginZoneExternalId(odPathIterator);
         case ORIGIN_ZONE_XML_ID:
-          return getOriginZoneXmlId(odPathIterator);          
+          return PathOutputTypeAdapter.getOriginZoneXmlId(odPathIterator);          
         case ORIGIN_ZONE_ID:
-          return getOriginZoneId(odPathIterator);
+          return PathOutputTypeAdapter.getOriginZoneId(odPathIterator);
         default:
-          return new PlanItException("Tried to find link property of " + BaseOutputProperty.convertToBaseOutputProperty(
-              outputProperty).getName() + " which is not applicable for OD path");
+          return Optional.of(String.format("Tried to find link property of %s which is not applicable for OD path",
+              BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()));
       }
     } catch (PlanItException e) {
-      return e;
+      return Optional.of(e.getMessage());
     }
   }
 }

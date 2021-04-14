@@ -1,5 +1,7 @@
 package org.planit.output.property;
 
+import java.util.Optional;
+
 import org.planit.output.enums.Type;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
@@ -41,8 +43,8 @@ public final class ModeIdOutputProperty extends BaseOutputProperty {
    * @return the Id of the current mode
    * @throws PlanItException thrown if there is an error
    */
-  public static long getModeId(Mode mode) throws PlanItException {
-    return mode.getId();
+  public static Optional<Long> getModeId(Mode mode) throws PlanItException {
+    return Optional.of(mode.getId());
   }
 
 }

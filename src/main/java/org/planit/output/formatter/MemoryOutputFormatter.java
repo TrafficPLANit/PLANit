@@ -1,5 +1,6 @@
 package org.planit.output.formatter;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -12,7 +13,7 @@ import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
 import org.planit.od.odpath.ODPathIterator;
 import org.planit.od.odpath.ODPathMatrix;
-import org.planit.output.adapter.LinkOutputTypeAdapter;
+import org.planit.output.adapter.MacroscopicLinkOutputTypeAdapter;
 import org.planit.output.adapter.ODOutputTypeAdapter;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.PathOutputTypeAdapter;
@@ -28,8 +29,9 @@ import org.planit.output.property.OutputProperty;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.math.Precision;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 
 /**
  * OutputFormatter which stores data in memory, using specified keys and output properties.
@@ -99,11 +101,15 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @param timePeriod            the current time period
    * @throws PlanItException thrown if there is an error
    */
-  private void updateOutputAndKeyValuesForLink(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys, LinkSegment linkSegment,
-      LinkOutputTypeAdapter linkOutputTypeAdapter, Mode mode, TimePeriod timePeriod) throws PlanItException {
-    if (linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
+  private void updateOutputAndKeyValuesForLink(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys, MacroscopicLinkSegment linkSegment,
+      MacroscopicLinkOutputTypeAdapter<MacroscopicLinkSegment> linkOutputTypeAdapter, Mode mode, TimePeriod timePeriod) throws PlanItException {
+    
+    Optional<Boolean> flowPositive = linkOutputTypeAdapter.isFlowPositive(linkSegment, mode);
+    flowPositive.orElseThrow(() -> new PlanItException("unable to determine if flow is positive on link segment"));    
+    
+    if (flowPositive.get()) {
       updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-        return linkOutputTypeAdapter.getLinkOutputPropertyValue(label, linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier());
+        return linkOutputTypeAdapter.getLinkSegmentOutputPropertyValue(label, linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier()).get();
       });
     }
   }
@@ -123,7 +129,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   private void updateOutputAndKeyValuesForOD(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys,
       ODMatrixIterator odMatrixIterator, ODOutputTypeAdapter odOutputTypeAdapter, Mode mode, TimePeriod timePeriod) throws PlanItException {
     updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-      return odOutputTypeAdapter.getODOutputPropertyValue(label, odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier());
+      return odOutputTypeAdapter.getODOutputPropertyValue(label, odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier()).get();
     });
   }
 
@@ -144,7 +150,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   private void updateOutputAndKeyValuesForPath(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys, ODPathIterator odPathIterator,
       PathOutputTypeAdapter pathOutputTypeAdapter, Mode mode, TimePeriod timePeriod, PathOutputIdentificationType pathIdType) throws PlanItException {
     updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-      return pathOutputTypeAdapter.getPathOutputPropertyValue(label, odPathIterator, mode, timePeriod, pathIdType);
+      return pathOutputTypeAdapter.getPathOutputPropertyValue(label, odPathIterator, mode, timePeriod, pathIdType).get();
     });
   }
 
@@ -196,6 +202,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @param iterationIndex          the iteration index we are persisting for
    * @throws PlanItException thrown if there is an error
    */
+  @SuppressWarnings("unchecked")
   @Override
   protected void writeLinkResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
       OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
@@ -207,21 +214,24 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     OutputType outputType = (OutputType) currentOutputType;
     OutputProperty[] outputProperties = outputValueProperties.get(outputType);
     OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
-    LinkOutputTypeAdapter linkOutputTypeAdapter = (LinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+    MacroscopicLinkOutputTypeAdapter<MacroscopicLinkSegment> linkOutputTypeAdapter = 
+        (MacroscopicLinkOutputTypeAdapter<MacroscopicLinkSegment>) outputAdapter.getOutputTypeAdapter(outputType);
+    
     for (Mode mode : modes) {
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
 
-      Long networkLayerId = linkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
-      if (networkLayerId != null) {
-        for (LinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments(networkLayerId)) {
-          if (outputConfiguration.isPersistZeroFlow() || linkOutputTypeAdapter.isFlowPositive(linkSegment, mode)) {
-            updateOutputAndKeyValuesForLink(multiKeyPlanItData, outputProperties, outputKeys, linkSegment, linkOutputTypeAdapter, mode, timePeriod);
-          }
+      Optional<Long> networkLayerId = linkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
+      networkLayerId.orElseThrow(() -> new PlanItException("unable to determine if layer id for mode"));
+      
+      for (MacroscopicLinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments(networkLayerId.get())) {
+        Optional<Boolean> flowPositive = linkOutputTypeAdapter.isFlowPositive(linkSegment, mode);
+        flowPositive.orElseThrow(() -> new PlanItException("unable to determine if flow is positive on link segment"));
+        
+        if (outputConfiguration.isPersistZeroFlow() || flowPositive.get()) {
+          updateOutputAndKeyValuesForLink(multiKeyPlanItData, outputProperties, outputKeys, linkSegment, linkOutputTypeAdapter, mode, timePeriod);
         }
-        timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
-      } else {
-        LOGGER.severe(String.format("network layer could not be identified for mode %s by memory output formatter", mode.getXmlId()));
       }
+      timeModeOutputTypeIterationDataMap.put(mode, timePeriod, iterationIndex, outputType, multiKeyPlanItData);
     }
   }
 
@@ -237,6 +247,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @param iterationIndex          the iteration index we are persisting for
    * @throws PlanItException thrown if there is an error
    */
+  @SuppressWarnings("unchecked")
   @Override
   protected void writeOdResultsForCurrentTimePeriod(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputTypeEnum currentOutputType,
       OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
@@ -256,11 +267,15 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     ODOutputTypeAdapter odOutputTypeAdapter = (ODOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
     for (Mode mode : modes) {
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
-      ODSkimMatrix odSkimMatrix = odOutputTypeAdapter.getODSkimMatrix(subOutputType, mode);
-      for (ODMatrixIterator odMatrixIterator = odSkimMatrix.iterator(); odMatrixIterator.hasNext();) {
+      Optional<ODSkimMatrix> odSkimMatrix = odOutputTypeAdapter.getODSkimMatrix(subOutputType, mode);
+      odSkimMatrix.orElseThrow(() -> new PlanItException("unable to retrieve od skim matrix"));
+      
+      for (ODMatrixIterator odMatrixIterator = odSkimMatrix.get().iterator(); odMatrixIterator.hasNext();) {
         odMatrixIterator.next();
-        if (outputConfiguration.isPersistZeroFlow()
-            || ((Double) odOutputTypeAdapter.getODOutputPropertyValue(OutputProperty.OD_COST, odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier())) > 0.0) {
+        Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getODOutputPropertyValue(OutputProperty.OD_COST, odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier());
+        cost.orElseThrow(() ->new PlanItException("cost could not be retrieved when persisting"));        
+        
+        if (outputConfiguration.isPersistZeroFlow() || cost.get() > Precision.EPSILON_6) {
           updateOutputAndKeyValuesForOD(multiKeyPlanItData, outputProperties, outputKeys, odMatrixIterator, odOutputTypeAdapter, mode, timePeriod);
         }
       }
@@ -295,8 +310,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
     for (Mode mode : modes) {
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
-      ODPathMatrix odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
-      for (ODPathIterator odPathIterator = odPathMatrix.iterator(); odPathIterator.hasNext();) {
+      Optional<ODPathMatrix> odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
+      odPathMatrix.orElseThrow(() -> new PlanItException("od path matrix could not be retrieved when persisting"));
+      
+      for (ODPathIterator odPathIterator = odPathMatrix.get().iterator(); odPathIterator.hasNext();) {
         odPathIterator.next();
         if (outputConfiguration.isPersistZeroFlow() || (odPathIterator.getCurrentValue() != null)) {
           updateOutputAndKeyValuesForPath(multiKeyPlanItData, outputProperties, outputKeys, odPathIterator, pathOutputTypeAdapter, mode, timePeriod,

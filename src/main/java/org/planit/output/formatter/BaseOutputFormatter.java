@@ -2,6 +2,7 @@ package org.planit.output.formatter;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -238,13 +239,19 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
       // iteration index
       Set<SubOutputTypeEnum> subOutputTypes = outputTypeConfiguration.getActiveSubOutputTypes();
       for (SubOutputTypeEnum subOutputTypeEnum : subOutputTypes) {
-        int iterationIndex = outputAdapter.getOutputTypeAdapter(outputType).getIterationIndexForSubOutputType(subOutputTypeEnum);
-        outputTypeIterationInformation.put(subOutputTypeEnum, iterationIndex);
+        Optional<Integer> iterationIndex = outputAdapter.getOutputTypeAdapter(outputType).getIterationIndexForSubOutputType(subOutputTypeEnum);
+        if(iterationIndex.isEmpty()) {
+          throw new PlanItException("iteration index could not be retrieved when persisting");
+        }
+        outputTypeIterationInformation.put(subOutputTypeEnum, iterationIndex.get());
       }
     } else {
       // regular approach, single outputtype with single iteration reference
-      int iterationIndex = outputAdapter.getOutputTypeAdapter(outputType).getIterationIndexForSubOutputType(null);
-      outputTypeIterationInformation.put(outputType, iterationIndex);
+      Optional<Integer> iterationIndex = outputAdapter.getOutputTypeAdapter(outputType).getIterationIndexForSubOutputType(null);
+      if(iterationIndex.isEmpty()) {
+        throw new PlanItException("iteration index could not be retrieved when persisting");
+      }
+      outputTypeIterationInformation.put(outputType, iterationIndex.get());
     }
 
     // Each unique combination of (sub)output type (configuration), its iteration index, and related

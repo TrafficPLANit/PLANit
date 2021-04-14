@@ -1,14 +1,17 @@
-package org.planit.output.adapter;
+package org.planit.assignment.traditionalstatic;
+
+import java.util.Optional;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
+import org.planit.output.adapter.LinkOutputTypeAdapter;
+import org.planit.output.adapter.MacroscopicLinkOutputTypeAdapterImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 
 /**
  * Adapter providing access to the data of the TraditionalStaticAssignment class relevant for link outputs without exposing the internals of the traffic assignment class itself
@@ -16,7 +19,7 @@ import org.planit.utils.network.physical.LinkSegment;
  * @author markr
  *
  */
-public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutputTypeAdapterImpl {
+public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAdapterImpl<MacroscopicLinkSegment> implements LinkOutputTypeAdapter<MacroscopicLinkSegment> {
 
   /**
    * track parent assignment as its actual class
@@ -31,12 +34,12 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
    * @return the calculated speed across the link
    * @throws PlanItException thrown if there is an error
    */
-  private double getCalculatedSpeed(final LinkSegment linkSegment, final Mode mode) throws PlanItException {
+  private Optional<Double> getCalculatedSpeed(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
     final int id = (int) linkSegment.getId();
     final double[] modalNetworkSegmentCosts = theAssignment.getIterationData().getModalLinkSegmentCosts(mode);
     final double travelTime = modalNetworkSegmentCosts[id];
     final double length = linkSegment.getParentLink().getLengthKm();
-    return length / travelTime;
+    return Optional.of(length / travelTime);
   }
 
   /**
@@ -47,10 +50,10 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
    * @return the flow through the current link segment
    * @throws PlanItException thrown if there is an error
    */
-  private double getFlow(final LinkSegment linkSegment, final Mode mode) throws PlanItException {
+  private Optional<Double> getFlow(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
     final int id = (int) linkSegment.getId();
     final double[] modalNetworkSegmentFlows = theAssignment.getIterationData().getModeSpecificData().get(mode).getCurrentSegmentFlows();
-    return modalNetworkSegmentFlows[id];
+    return Optional.of(modalNetworkSegmentFlows[id]);
   }
 
   /**
@@ -62,10 +65,10 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
    * @return the travel cost (time) through the current link segment
    * @throws PlanItException thrown if there is an error
    */
-  private double getLinkCost(final LinkSegment linkSegment, final Mode mode, final double timeUnitMultiplier) throws PlanItException {
+  private Optional<Double> getLinkCost(final MacroscopicLinkSegment linkSegment, final Mode mode, final double timeUnitMultiplier) throws PlanItException {
     final int id = (int) linkSegment.getId();
     final double[] modalNetworkSegmentCosts = theAssignment.getIterationData().getModalLinkSegmentCosts(mode);
-    return modalNetworkSegmentCosts[id] * timeUnitMultiplier;
+    return Optional.of(modalNetworkSegmentCosts[id] * timeUnitMultiplier);
   }
 
   /**
@@ -77,8 +80,8 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
    * @return the travel cost (time) through the current link segment
    * @throws PlanItException thrown if there is an error
    */
-  private double getCostTimesFlow(final LinkSegment linkSegment, final Mode mode, final double timeUnitMultiplier) throws PlanItException {
-    return getLinkCost(linkSegment, mode, timeUnitMultiplier) * getFlow(linkSegment, mode);
+  private Optional<Double> getCostTimesFlow(final MacroscopicLinkSegment linkSegment, final Mode mode, final double timeUnitMultiplier) throws PlanItException {
+    return Optional.of(getLinkCost(linkSegment, mode, timeUnitMultiplier).get() * getFlow(linkSegment, mode).get());
   }
 
   /**
@@ -88,13 +91,13 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
    * @return VC ratio for the link
    * @throws PlanItException thrown if there is an error
    */
-  private double getVCRatio(final LinkSegment linkSegment) throws PlanItException {
+  private Optional<Double> getVCRatio(final MacroscopicLinkSegment linkSegment) throws PlanItException {
     double totalFlow = 0.0;
     for (final Mode mode : trafficAssignment.getTransportNetwork().getInfrastructureNetwork().modes) {
-      totalFlow += getFlow(linkSegment, mode);
+      totalFlow += getFlow(linkSegment, mode).get();
     }
-    final double capacityPerLane = getCapacityPerLane(linkSegment);
-    return totalFlow / (linkSegment.getNumberOfLanes() * capacityPerLane);
+    final double capacityPerLane = getCapacityPerLane(linkSegment).get();
+    return Optional.of(totalFlow / (linkSegment.getNumberOfLanes() * capacityPerLane));
   }
 
   /**
@@ -116,8 +119,8 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
    * @return true if there is flow through this link segment, false if the flow is zero
    */
   @Override
-  public boolean isFlowPositive(final LinkSegment linkSegment, final Mode mode) {
-    return (theAssignment.getIterationData().getModeSpecificData().get(mode).getCurrentSegmentFlows()[(int) linkSegment.getId()] > 0.0);
+  public Optional<Boolean> isFlowPositive(final MacroscopicLinkSegment linkSegment, final Mode mode) {
+    return Optional.of(theAssignment.getIterationData().getModeSpecificData().get(mode).getCurrentSegmentFlows()[(int) linkSegment.getId()] > 0.0);
   }
 
   /**
@@ -131,17 +134,19 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
    * @return the value of the specified output property (or an Exception if an error occurs)
    */
   @Override
-  public Object getLinkOutputPropertyValue(final OutputProperty outputProperty, final LinkSegment linkSegment, final Mode mode, final TimePeriod timePeriod,
+  public Optional<?> getLinkSegmentOutputPropertyValue(final OutputProperty outputProperty, final MacroscopicLinkSegment linkSegment, final Mode mode, final TimePeriod timePeriod,
       final double timeUnitMultiplier) {
     try {
-      Object obj = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
-      if (obj != null) {
-        return obj;
+      Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
+      if (value.isPresent()) {
+        return value;
       }
-      obj = super.getLinkOutputPropertyValue(outputProperty, linkSegment, mode, timePeriod, timeUnitMultiplier);
-      if (obj != null) {
-        return obj;
+      
+      value = super.getLinkSegmentOutputPropertyValue(outputProperty, linkSegment, mode, timePeriod, timeUnitMultiplier);
+      if (value.isPresent()) {
+        return value;
       }
+      
       switch (outputProperty) {
       case CALCULATED_SPEED:
         return getCalculatedSpeed(linkSegment, mode);
@@ -154,11 +159,11 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends LinkOutput
       case COST_TIMES_FLOW:
         return getCostTimesFlow(linkSegment, mode, timeUnitMultiplier);
       default:
-        return new PlanItException(
-            "Tried to find link property of " + BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName() + " which is not applicable for links.");
+        return Optional.of(String.format(
+            "Tried to find link property of %s which is not applicable for links", BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName() ));
       }
     } catch (final PlanItException e) {
-      return e;
+      return Optional.of(e.getMessage());
     }
   }
 
