@@ -20,6 +20,7 @@ import org.planit.utils.id.IdGroupingToken;
  */
 public class ShortestPathResult {
 
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ShortestPathResult.class.getCanonicalName());
 
   /**

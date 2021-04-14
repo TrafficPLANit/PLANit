@@ -1,9 +1,11 @@
 package org.planit.zoning;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -43,7 +45,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
 
     public final Zone accessZone;
 
-    public Double length = DEFAULT_LENGTH_KM;
+    public Double lengthKm = DEFAULT_LENGTH_KM;
 
     public HashMap<Long, Mode> allowedModes = null;
 
@@ -64,7 +66,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
     @SuppressWarnings("unchecked")
     public AccessZoneProperties(AccessZoneProperties other) {
       this.accessZone = other.accessZone;
-      this.length = other.length;
+      this.lengthKm = other.lengthKm;
       /* shallow */
       if (other.allowedModes != null) {
         this.allowedModes = (HashMap<Long, Mode>) other.allowedModes.clone();
@@ -221,12 +223,12 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * 
    */
   @Override
-  public Double getLength(Zone accessZone) {
+  public Optional<Double> getLengthKm(Zone accessZone) {
     if (!hasAccessZone(accessZone)) {
       LOGGER.warning(String.format("unknown access zone %s for connectoid %s", accessZone.getXmlId(), getXmlId()));
-      return null;
+      return Optional.empty();
     }
-    return accessZones.get(accessZone.getId()).length;
+    return Optional.of(accessZones.get(accessZone.getId()).lengthKm);
   }
 
   /**
@@ -272,7 +274,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   @Override
   public void setLength(Zone accessZone, double length) {
     if (hasAccessZone(accessZone)) {
-      accessZones.get(accessZone.getId()).length = length;
+      accessZones.get(accessZone.getId()).lengthKm = length;
     } else {
       LOGGER.warning(String.format("unknown access zone %s for connectoid %s", accessZone.getXmlId(), getXmlId()));
     }
@@ -290,6 +292,19 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
       LOGGER.warning(String.format("unknown access zone %s for connectoid %s", accessZone.getXmlId(), getXmlId()));
     }
   }
+  
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public Collection<Mode> getAllowedModes(Zone accessZone) {
+    if (hasAccessZone(accessZone)) {
+      final AccessZoneProperties accessZoneProperties = accessZones.get(accessZone.getId());
+      return Collections.unmodifiableCollection(accessZoneProperties.allowedModes.values());
+    }else {
+      return null;
+    }
+  }  
 
   /**
    * {@inheritDoc}

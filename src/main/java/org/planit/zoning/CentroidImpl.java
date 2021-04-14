@@ -8,7 +8,7 @@ import org.planit.utils.zoning.Zone;
 /**
  * Centroid implementation
  *
- * @author gman6028
+ * @author gman6028, markr
  *
  */
 public class CentroidImpl extends DirectedVertexImpl implements Centroid {
@@ -22,6 +22,9 @@ public class CentroidImpl extends DirectedVertexImpl implements Centroid {
    * the zone this centroid represents
    */
   private Zone parentZone;
+  
+  /** name of the centroid */
+  private String name;
 
   /**
    * Set the parent zone
@@ -51,19 +54,10 @@ public class CentroidImpl extends DirectedVertexImpl implements Centroid {
   protected CentroidImpl(CentroidImpl centroidImpl) {
     super(centroidImpl);
     setParentzone(centroidImpl.getParentZone());
+    setName(centroidImpl.getName());
   }
 
   // Public
-
-  // Getters-Setters
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Zone getParentZone() {
-    return this.parentZone;
-  }
 
   /**
    * {@inheritDoc}
@@ -71,6 +65,32 @@ public class CentroidImpl extends DirectedVertexImpl implements Centroid {
   @Override
   public CentroidImpl clone() {
     return new CentroidImpl(this);
+  }
+  
+  // Getters-Setters  
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Zone getParentZone() {
+    return this.parentZone;
+  }  
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  /**
+   * {@inheritDoc}
+   */    
+  @Override
+  public void setName(String name) {
+    this.name = name;
   }
 
 }

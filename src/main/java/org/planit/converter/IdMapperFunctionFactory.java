@@ -4,13 +4,15 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.ExternalIdable;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.Link;
-import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.DirectedConnectoid;
+import org.planit.utils.zoning.Zone;
 
 /**
  * Factory that creates functions for id mapping from PLANit ids to ids to be used for persistence. Based on the passed in IdMapper type functions will generate different ids when
@@ -42,23 +44,11 @@ public class IdMapperFunctionFactory {
       };
     case EXTERNAL_ID:
       return (instance) -> {
-        if (instance.hasExternalId()) {
-          return instance.getExternalId();
-        } else if (instance.hasXmlId()) {
-          return instance.getXmlId();
-        } else {
-          return String.format("%s", instance.getId());
-        }
+        return instance.getExternalId();
       };
     case DEFAULT:
       return (instance) -> {
-        if (instance.hasXmlId()) {
           return instance.getXmlId();
-        } else if (instance.hasExternalId()) {
-          return instance.getExternalId();
-        } else {
-          return String.format("%s", instance.getId());
-        }
       };
     default:
       throw new PlanItException(String.format("unknown id mapping type found for %s %s", clazz.getName(), idMapper.toString()));
@@ -72,8 +62,8 @@ public class IdMapperFunctionFactory {
    * @return function that generates node id's for MATSIM node output
    * @throws PlanItException thrown if error
    */
-  public static Function<Node, String> createNodeIdMappingFunction(final IdMapperType idMapper) throws PlanItException {
-    return createIdMappingFunction(Node.class, idMapper);
+  public static Function<Vertex, String> createVertexIdMappingFunction(final IdMapperType idMapper) throws PlanItException {
+    return createIdMappingFunction(Vertex.class, idMapper);
   }
 
   /**
@@ -136,14 +126,25 @@ public class IdMapperFunctionFactory {
   }
   
   /**
-   * create a function that takes a directed connectoid (stop facility) and generates the appropriate id based on the user configuration
+   * create a function that takes a connectoid and generates the appropriate id based on the user configuration
    * 
    * @param idMapper the type of mapping function to create
-   * @return function that generates node id's for MATSIM node output
+   * @return function that generates directed connectoi id's for node output
    * @throws PlanItException thrown if error
    */
-  public static Function<DirectedConnectoid, String> createDirectedConnectoidIdMappingFunction(final IdMapperType idMapper) throws PlanItException {
-    return createIdMappingFunction(DirectedConnectoid.class, idMapper);
+  public static Function<Connectoid, String> createConnectoidIdMappingFunction(final IdMapperType idMapper) throws PlanItException {
+    return createIdMappingFunction(Connectoid.class, idMapper);
+  }
+
+  /**
+   * create a function that takes a zone and generates the appropriate id based on the user configuration
+   * 
+   * @param idMapper the type of mapping function to create
+   * @return function that generates zone id's for zone output
+   * @throws PlanItException thrown if error
+   */  
+  public static Function<Zone, String> createZoneIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+    return createIdMappingFunction(Zone.class, idMapper);
   }
 
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.TreeMap;
 
 import org.planit.network.Network;
@@ -76,7 +77,9 @@ public class VirtualNetwork extends Network {
         }
 
         /* create and register connectoid edge */
-        ConnectoidEdge newConnectoidEdge = new ConnectoidEdgeImpl(getIdGroupingToken(), accessZone.getCentroid(), accessVertex, connectoid.getLength(accessZone));
+        Optional<Double> connectoidLength = connectoid.getLengthKm(accessZone);
+        connectoidLength.orElseThrow(() -> new PlanItException("unable to retrieve lenght for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
+        ConnectoidEdge newConnectoidEdge = new ConnectoidEdgeImpl(getIdGroupingToken(), accessZone.getCentroid(), accessVertex, connectoidLength.get());
         register(newConnectoidEdge);
         connectoidEdges.add(newConnectoidEdge);
       }
