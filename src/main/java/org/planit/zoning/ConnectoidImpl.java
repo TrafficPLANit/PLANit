@@ -101,7 +101,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   protected static long generateId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Connectoid.class);
   }
-  
+
   /**
    * set the connectoid id
    * 
@@ -110,7 +110,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   protected void setId(long id) {
     super.setId(id);
   }
-  
+
   /**
    * Constructor
    *
@@ -144,7 +144,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
     addAccessZone(accessZone);
     setLength(accessZone, length);
   }
-  
+
   /**
    * Constructor
    *
@@ -154,7 +154,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   protected ConnectoidImpl(final IdGroupingToken idToken, Zone accessZone) {
     this(idToken);
     addAccessZone(accessZone);
-  }  
+  }
 
   // Public
 
@@ -292,19 +292,20 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
       LOGGER.warning(String.format("unknown access zone %s for connectoid %s", accessZone.getXmlId(), getXmlId()));
     }
   }
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
-  public Collection<Mode> getAllowedModes(Zone accessZone) {
+  public Collection<Mode> getExplicitlyAllowedModes(Zone accessZone) {
     if (hasAccessZone(accessZone)) {
       final AccessZoneProperties accessZoneProperties = accessZones.get(accessZone.getId());
-      return Collections.unmodifiableCollection(accessZoneProperties.allowedModes.values());
-    }else {
-      return null;
+      if (accessZoneProperties.allowedModes != null && !accessZoneProperties.allowedModes.isEmpty()) {
+        return Collections.unmodifiableCollection(accessZoneProperties.allowedModes.values());
+      }
     }
-  }  
+    return null;
+  }
 
   /**
    * {@inheritDoc}
