@@ -31,7 +31,8 @@ public abstract class ConnectoidsImpl<T extends Connectoid> implements Connectoi
     connectoidMap.clear();
     connectoidMap = updatedMap;
   }  
-
+  
+  
   /**
    * Register on container
    * 

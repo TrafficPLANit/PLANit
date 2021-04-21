@@ -1,5 +1,6 @@
 package org.planit.zoning.modifier;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -71,9 +72,9 @@ public class ZoningModifierImpl implements ZoningModifier {
    * {@inheritDoc}
    */
   @Override
-  public void recreateZoneIds() {
-    zoningBuilder.recreateOdZoneIds(zoning.odZones, true /* reset zone ids once... */);
-    zoningBuilder.recreateTransferZoneIds(zoning.transferZones, zoning.transferZoneGroups, false /* ...but not again */);
+  public void recreateZoneIds() {    
+    zoningBuilder.recreateOdZoneIds(zoning.odZones, Collections.singleton(zoning.odConnectoids), true /* reset zone ids once... */);
+    zoningBuilder.recreateTransferZoneIds(zoning.transferZones, zoning.transferZoneGroups, Collections.singleton(zoning.transferConnectoids), false /* ...but not again */);
   }
 
   /**

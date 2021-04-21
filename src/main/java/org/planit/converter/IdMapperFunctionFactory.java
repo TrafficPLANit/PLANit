@@ -46,7 +46,7 @@ public class IdMapperFunctionFactory {
       return (instance) -> {
         return instance.getExternalId();
       };
-    case DEFAULT:
+    case XML:
       return (instance) -> {
           return instance.getXmlId();
       };

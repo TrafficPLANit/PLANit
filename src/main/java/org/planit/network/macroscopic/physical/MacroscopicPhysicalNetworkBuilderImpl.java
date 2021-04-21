@@ -27,7 +27,6 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;
 public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysicalNetworkBuilder<Node, Link, MacroscopicLinkSegment> {
 
   /** the logger */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(MacroscopicPhysicalNetworkBuilderImpl.class.getCanonicalName());
 
   /** use physical network builder to create all but link segments */

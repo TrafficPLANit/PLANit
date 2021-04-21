@@ -33,7 +33,7 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
   /**
    * recreate the mapping such that all the keys used for each transfer zone reflect their internal id. To be called whenever the ids of transfer zones are changed
    */
-  protected void updateTransferZoneIdMapping() {
+  protected void recreateTransferZoneIdMapping() {
     if (!transferZoneMap.isEmpty()) {
       Map<Long, TransferZone> updatedMap = new HashMap<Long, TransferZone>(transferZoneMap.size());
       transferZoneMap.forEach((oldId, transferzone) -> updatedMap.put(transferzone.getId(), transferzone));

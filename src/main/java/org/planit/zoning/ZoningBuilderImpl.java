@@ -1,5 +1,6 @@
 package org.planit.zoning;
 
+import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
@@ -121,6 +122,21 @@ public class ZoningBuilderImpl implements ZoningBuilder {
   protected Centroid createCentroid(Zone parentZone) {
     return new CentroidImpl(idToken, parentZone);
   }
+  
+  /** Recreate the zone id based index on connectoids provided whenever zone ids are recreated
+   * @param connectoids to update
+   */
+  protected void recreateZoneIdReferencesInConnectoids(Collection<Connectoids<?>> connectoids) {
+    /* update all connectoids access zones id mappings since the transfer zone index is used for this */
+    for (Connectoids<?> connectoidsEntry : connectoids) {        
+      for(Connectoid connectoid : connectoidsEntry) {
+        if(!(connectoid instanceof ConnectoidImpl)) {
+          LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of connectoids interface when attempting to update access zone references");  
+        }
+        ((ConnectoidImpl)connectoid).recreateAccessZoneIdMapping();
+      }
+    } 
+  }  
 
   /**
    * recreate the ids on the provided connectoids regarding their internal ids across all connectoids
@@ -281,7 +297,7 @@ public class ZoningBuilderImpl implements ZoningBuilder {
    * {@inheritDoc}
    */
   @Override
-  public void recreateOdZoneIds(Zones<OdZone> odZones, boolean resetZoneIds) {
+  public void recreateOdZoneIds(Zones<OdZone> odZones, Collection<Connectoids<?>> connectoids, boolean resetZoneIds) {
     if (resetZoneIds) {
       IdGenerator.reset(idToken, Zone.class);
     }
@@ -293,13 +309,16 @@ public class ZoningBuilderImpl implements ZoningBuilder {
       IdGenerator.reset(idToken, OdZone.class);
       recreateOdZoneIds(odZones);
     }
+    
+    /* recreate id based mapping for access zones of connecoids */
+    recreateZoneIdReferencesInConnectoids(connectoids);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void recreateTransferZoneIds(Zones<TransferZone> transferZones, TransferZoneGroups transferZoneGroups, boolean resetZoneIds) {
+  public void recreateTransferZoneIds(Zones<TransferZone> transferZones, TransferZoneGroups transferZoneGroups, Collection<Connectoids<?>> connectoids, boolean resetZoneIds) {
     if (resetZoneIds) {
       IdGenerator.reset(idToken, Zone.class);
     }
@@ -314,11 +333,13 @@ public class ZoningBuilderImpl implements ZoningBuilder {
       /* update all transfer zone groups id mappings for transfer zones since the transfer zone index is used for this */
       for (TransferZoneGroup group : transferZoneGroups) {
         if (!(group instanceof TransferZoneGroupImpl)) {
-          LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of TransferZoneGroup interface");
+          LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of TransferZoneGroup interface when attempting to update references");
         }
-        ((TransferZoneGroupImpl) group).updateTransferZoneIdMapping();
+        ((TransferZoneGroupImpl) group).recreateTransferZoneIdMapping();
       }
-
+      
+      /* recreate id based mapping for access zones of connecoids */
+      recreateZoneIdReferencesInConnectoids(connectoids);
     }
   }
 

@@ -1,7 +1,10 @@
 package org.planit.zoning;
 
+import java.util.Collection;
+
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.zoning.Connectoids;
 import org.planit.utils.zoning.DirectedConnectoid;
 import org.planit.utils.zoning.DirectedConnectoids;
 import org.planit.utils.zoning.OdZone;
@@ -71,16 +74,16 @@ public interface ZoningBuilder {
    * @param odZones      to recreate ids for
    * @param resetZoneIds when true the zone ids of all zone implementations (OdZone, TransferZone) are rest upon commencing), false then not
    */
-  public abstract void recreateOdZoneIds(Zones<OdZone> odZones, boolean resetZoneIds);
+  public abstract void recreateOdZoneIds(Zones<OdZone> odZones, Collection<Connectoids<?>> connectoids, boolean resetZoneIds);
 
   /**
-   * recreate the ids for all passed in transferZones and the references by id for the transfer zone groups
+   * recreate the ids for all passed in transferZones and the references by id for transfer zone groups, and connectoids (that are invalidated by changing the ids).
    * 
    * @param transferZones      to recreate ids for
-   * @param transferZoneGroups to update id indexed transfer zones for
-   * @param resetZoneIds       when true the zone ids of all zone implementations (OdZone, TransferZone) are rest upon commencing), false then not
+   * @param transferZoneGroups to update id indexed transfer zones for within the groups
+   * @param resetZoneIds       when true the zone ids of all zone implementations (OdZone, TransferZone) are reset upon commencing), false then not
    */
-  public abstract void recreateTransferZoneIds(Zones<TransferZone> transferZones, TransferZoneGroups transferZoneGroups, boolean resetZoneIds);
+  public abstract void recreateTransferZoneIds(Zones<TransferZone> transferZones, TransferZoneGroups transferZoneGroups, Collection<Connectoids<?>> connectoids, boolean resetZoneIds);
 
   /**
    * recreate the ids for all passed in transfer zone groups
