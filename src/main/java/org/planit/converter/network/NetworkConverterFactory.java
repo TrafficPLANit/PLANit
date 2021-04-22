@@ -15,7 +15,7 @@ public class NetworkConverterFactory {
    * @param writer the writer to use
    * @return the converter that is created
    */
-  public static NetworkConverter createConverter(NetworkReader reader, NetworkWriter writer) {
+  public static NetworkConverter create(NetworkReader reader, NetworkWriter writer) {
     return new NetworkConverter(reader, writer);
   }
 }
