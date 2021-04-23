@@ -13,6 +13,11 @@ import org.planit.utils.exceptions.PlanItException;
  */
 public interface MultiConverterWriter<T, U> extends ConverterEntity {
 
+  /** any settings to configure the writer can be configured by collecting these settings
+   * @return the settings to configure the writer
+   */
+  public abstract ConverterWriterSettings getSettings();  
+  
   /**
    * write a network to the writer's output format.
    * 

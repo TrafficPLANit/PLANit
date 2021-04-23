@@ -11,6 +11,11 @@ import org.planit.utils.exceptions.PlanItException;
  *
  */
 public interface ConverterReader<T> extends ConverterEntity {
+  
+  /** any settings to configure the reader can be configured by collecting these settings
+   * @return the settings to configrue the reader
+   */
+  public abstract ConverterReaderSettings getSettings();  
 
   /**
    * parse the network based on the configuration of the implementing class to yield a PLANit network
@@ -19,5 +24,5 @@ public interface ConverterReader<T> extends ConverterEntity {
    * @throws PlanItException thrown if error
    */
   public abstract T read() throws PlanItException;
-
+   
 }

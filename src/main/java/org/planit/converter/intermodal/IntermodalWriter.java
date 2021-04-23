@@ -17,7 +17,7 @@ public interface IntermodalWriter extends MultiConverterWriter<InfrastructureNet
    */  
   @Override
   default String getTypeDescription() {
-    return "INETERMODAL NETWORK";
+    return "INTERMODAL NETWORK";
   }  
 
 }

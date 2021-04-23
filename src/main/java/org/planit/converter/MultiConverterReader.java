@@ -13,6 +13,11 @@ import org.planit.utils.misc.Pair;
  *
  */
 public interface MultiConverterReader<T, U> extends ConverterEntity {
+  
+  /** any settings to configure the reader can be configured by collecting these settings
+   * @return the settings to configrue the reader
+   */
+  public abstract ConverterReaderSettings getSettings();  
 
   /**
    * parse the network based on the configuration of the implementing class to yield a PLANit network

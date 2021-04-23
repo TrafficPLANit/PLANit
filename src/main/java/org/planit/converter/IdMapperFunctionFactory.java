@@ -11,7 +11,6 @@ import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.zoning.Connectoid;
-import org.planit.utils.zoning.DirectedConnectoid;
 import org.planit.utils.zoning.Zone;
 
 /**
