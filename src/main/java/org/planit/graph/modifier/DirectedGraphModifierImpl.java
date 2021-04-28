@@ -121,13 +121,13 @@ public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends Direc
    * 
    * @param edgesToBreak    edges to break
    * @param vertexToBreakAt the vertex to break at
-   * @param crs required to update edge lengths
+   * @param crs             required to update edge lengths
    * @return affected edges of breaking the passed in edges, includes the newly created edges and modified existing edges
    */
   @SuppressWarnings("unchecked")
   @Override
-  public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {    
-    
+  public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
+
     DirectedGraph<V, E, ES> theDirectedGraph = (DirectedGraph<V, E, ES>) theGraph;
 
     /* delegate regular breaking of edges */
@@ -138,6 +138,10 @@ public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends Direc
     Set<EdgeSegment> identifiedEdgeSegmentOnEdge = new HashSet<EdgeSegment>();
     for (Entry<Long, Set<E>> entry : brokenEdgesByOriginalEdgeId.entrySet()) {
       for (E brokenEdge : entry.getValue()) {
+
+        if (brokenEdge.getExternalId() != null && brokenEdge.getExternalId().equals("151559215")) {
+          int bla = 4;
+        }
 
         /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
         if (brokenEdge.hasEdgeSegmentAb()) {
