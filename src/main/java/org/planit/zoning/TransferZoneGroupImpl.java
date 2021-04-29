@@ -1,7 +1,6 @@
 package org.planit.zoning;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -35,7 +34,7 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
    */
   protected void recreateTransferZoneIdMapping() {
     if (!transferZoneMap.isEmpty()) {
-      Map<Long, TransferZone> updatedMap = new HashMap<Long, TransferZone>(transferZoneMap.size());
+      Map<Long, TransferZone> updatedMap = new TreeMap<Long, TransferZone>();
       transferZoneMap.forEach((oldId, transferzone) -> updatedMap.put(transferzone.getId(), transferzone));
       transferZoneMap.clear();
       transferZoneMap = updatedMap;

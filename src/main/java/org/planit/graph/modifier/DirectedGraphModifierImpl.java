@@ -139,10 +139,6 @@ public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends Direc
     for (Entry<Long, Set<E>> entry : brokenEdgesByOriginalEdgeId.entrySet()) {
       for (E brokenEdge : entry.getValue()) {
 
-        if (brokenEdge.getExternalId() != null && brokenEdge.getExternalId().equals("151559215")) {
-          int bla = 4;
-        }
-
         /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
         if (brokenEdge.hasEdgeSegmentAb()) {
           ES oldEdgeSegmentAb = (ES) brokenEdge.getEdgeSegmentAb();

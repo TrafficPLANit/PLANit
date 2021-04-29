@@ -5,8 +5,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -44,11 +44,14 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   protected class AccessZoneProperties {
 
+    /** access zone for these properties */
     public final Zone accessZone;
 
+    /** length to connectoid */
     public Double lengthKm = DEFAULT_LENGTH_KM;
 
-    public HashMap<Long, Mode> allowedModes = null;
+    /** the explicitly allowed modes, when null all modes allowed */
+    public TreeMap<Long, Mode> allowedModes = null;
 
     /**
      * constructor
@@ -70,13 +73,16 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
       this.lengthKm = other.lengthKm;
       /* shallow */
       if (other.allowedModes != null) {
-        this.allowedModes = (HashMap<Long, Mode>) other.allowedModes.clone();
+        this.allowedModes = (TreeMap<Long, Mode>) other.allowedModes.clone();
       }
     }
 
+    /** add an allowed mode
+     * @param mode to explicitly allow
+     */
     void addAllowedMode(Mode mode) {
       if (allowedModes == null) {
-        allowedModes = new HashMap<Long, Mode>();
+        allowedModes = new TreeMap<Long, Mode>();
       }
       allowedModes.put(mode.getId(), mode);
     }
@@ -91,7 +97,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   protected ConnectoidType type = DEFAULT_CONNECTOID_TYPE;
 
   /** the zones and their properties accessible from this connectoid */
-  protected HashMap<Long, AccessZoneProperties> accessZones = new HashMap<Long, AccessZoneProperties>();
+  protected TreeMap<Long, AccessZoneProperties> accessZones = new TreeMap<Long, AccessZoneProperties>();
 
   /**
    * Generate connectoid id
@@ -108,7 +114,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   public void recreateAccessZoneIdMapping() {
     Collection<AccessZoneProperties> accessZoneValues = accessZones.values();
-    accessZones = new HashMap<Long, AccessZoneProperties>(accessZoneValues.size());
+    accessZones = new TreeMap<Long, AccessZoneProperties>();
     accessZoneValues.forEach( accessZoneValue -> accessZones.put(accessZoneValue.accessZone.getId(), accessZoneValue));    
   }  
 

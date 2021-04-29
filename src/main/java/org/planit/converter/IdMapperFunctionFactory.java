@@ -11,6 +11,7 @@ import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.zoning.Connectoid;
+import org.planit.utils.zoning.TransferZoneGroup;
 import org.planit.utils.zoning.Zone;
 
 /**
@@ -144,6 +145,17 @@ public class IdMapperFunctionFactory {
    */  
   public static Function<Zone, String> createZoneIdMappingFunction(IdMapperType idMapper) throws PlanItException {
     return createIdMappingFunction(Zone.class, idMapper);
+  }
+
+  /**
+   * create a function that takes a transfer zone group and generates the appropriate id based on the user configuration
+   * 
+   * @param idMapper the type of mapping function to create
+   * @return function that generates transfer zone group id's for transfer zone group output
+   * @throws PlanItException thrown if error
+   */   
+  public static Function<TransferZoneGroup, String> createTransferZoneGroupIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+    return createIdMappingFunction(TransferZoneGroup.class, idMapper);
   }
 
 }
