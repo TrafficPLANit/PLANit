@@ -1,8 +1,8 @@
 package org.planit.network.macroscopic.physical;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -90,7 +90,7 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
     setName(name);
     this.capacityPerLane = capacityPerLane;
     this.maximumDensityPerLane = maximumDensityPerLane;
-    this.modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
+    this.modeProperties = new TreeMap<Mode, MacroscopicModeProperties>();
   }
 
   /**
@@ -122,7 +122,7 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
     this.capacityPerLane = other.getCapacityPerLane();
     this.maximumDensityPerLane = other.getMaximumDensityPerLane();
 
-    this.modeProperties = new HashMap<Mode, MacroscopicModeProperties>();
+    this.modeProperties = new TreeMap<Mode, MacroscopicModeProperties>();
     other.modeProperties.forEach((mode, properties) -> modeProperties.put(mode, properties.clone()));
   }
 

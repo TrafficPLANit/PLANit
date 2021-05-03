@@ -1,6 +1,5 @@
 package org.planit.graph;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -33,7 +32,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
    */
   protected void updateIdMapping() {
     /* identify which entries need to be re-registered because of a mismatch */
-    Map<Long, ES> updatedMap = new HashMap<Long, ES>(edgeSegmentMap.size());
+    Map<Long, ES> updatedMap = new TreeMap<Long, ES>();
     edgeSegmentMap.forEach((oldId, edgeSegment) -> updatedMap.put(edgeSegment.getId(), edgeSegment));
     edgeSegmentMap = updatedMap;
   }
