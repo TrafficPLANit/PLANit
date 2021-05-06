@@ -32,7 +32,7 @@ public abstract class BaseWriterImpl<T> implements ConverterWriter<T> {
 
     /* CRS and transformer (if needed) */
     CoordinateReferenceSystem destinationCrs = overwriteCrs;
-    if (destinationCrs == null) {
+    if (destinationCrs == null && countryName!=null) {
       destinationCrs = PlanitOpenGisUtils.createCoordinateReferenceSystem(EpsgCodesByCountry.getEpsg(countryName));
     }
     if (destinationCrs == null) {
