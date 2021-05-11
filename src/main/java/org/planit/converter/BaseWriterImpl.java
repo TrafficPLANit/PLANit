@@ -1,9 +1,9 @@
 package org.planit.converter;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.planit.geo.PlanitOpenGisUtils;
 import org.planit.utils.epsg.EpsgCodesByCountry;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.geo.PlanitCrsUtils;
 
 /**
  * abstract base class implementation to write a PLANit network to disk with id mapping sorted for convenience
@@ -28,12 +28,13 @@ public abstract class BaseWriterImpl<T> implements ConverterWriter<T> {
    * @return crs for destination
    * @throws PlanItException thrown if error
    */
-  protected CoordinateReferenceSystem identifyDestinationCoordinateReferenceSystem(CoordinateReferenceSystem overwriteCrs, String countryName, CoordinateReferenceSystem fallBackCrs) throws PlanItException {
+  protected CoordinateReferenceSystem identifyDestinationCoordinateReferenceSystem(CoordinateReferenceSystem overwriteCrs, String countryName,
+      CoordinateReferenceSystem fallBackCrs) throws PlanItException {
 
     /* CRS and transformer (if needed) */
     CoordinateReferenceSystem destinationCrs = overwriteCrs;
-    if (destinationCrs == null && countryName!=null) {
-      destinationCrs = PlanitOpenGisUtils.createCoordinateReferenceSystem(EpsgCodesByCountry.getEpsg(countryName));
+    if (destinationCrs == null && countryName != null) {
+      destinationCrs = PlanitCrsUtils.createCoordinateReferenceSystem(EpsgCodesByCountry.getEpsg(countryName));
     }
     if (destinationCrs == null) {
       destinationCrs = fallBackCrs;
@@ -66,6 +67,5 @@ public abstract class BaseWriterImpl<T> implements ConverterWriter<T> {
   public void setIdMapperType(IdMapperType idMapper) {
     this.idMapper = idMapper;
   }
-   
 
 }
