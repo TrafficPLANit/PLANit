@@ -90,7 +90,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
     addProperty(OutputProperty.DOWNSTREAM_NODE_XML_ID);
     addProperty(OutputProperty.FLOW);
     addProperty(OutputProperty.CALCULATED_SPEED);
-    addProperty(OutputProperty.LINK_COST);
+    addProperty(OutputProperty.LINK_SEGMENT_COST);
     addProperty(OutputProperty.MODE_XML_ID);
     addProperty(OutputProperty.MAXIMUM_SPEED);
     addProperty(OutputProperty.TIME_PERIOD_XML_ID);
@@ -180,7 +180,7 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
       return true;
     case LENGTH:
       return true;
-    case LINK_COST:
+    case LINK_SEGMENT_COST:
       return true;
     case LINK_SEGMENT_EXTERNAL_ID:
       return true;

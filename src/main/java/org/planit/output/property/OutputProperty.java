@@ -22,7 +22,7 @@ public enum OutputProperty {
   UPSTREAM_NODE_XML_ID("org.planit.output.property.UpstreamNodeXmlIdOutputProperty"), DOWNSTREAM_NODE_ID("org.planit.output.property.DownstreamNodeIdOutputProperty"),
   DOWNSTREAM_NODE_EXTERNAL_ID("org.planit.output.property.DownstreamNodeExternalIdOutputProperty"),
   DOWNSTREAM_NODE_XML_ID("org.planit.output.property.DownstreamNodeXmlIdOutputProperty"), CAPACITY_PER_LANE("org.planit.output.property.CapacityPerLaneOutputProperty"),
-  NUMBER_OF_LANES("org.planit.output.property.NumberOfLanesOutputProperty"), LINK_COST("org.planit.output.property.LinkCostOutputProperty"),
+  NUMBER_OF_LANES("org.planit.output.property.NumberOfLanesOutputProperty"), LINK_SEGMENT_COST("org.planit.output.property.LinkSegmentCostOutputProperty"),
   OD_COST("org.planit.output.property.ODCostOutputProperty"), DOWNSTREAM_NODE_LOCATION("org.planit.output.property.DownstreamNodeLocationOutputProperty"),
   UPSTREAM_NODE_LOCATION("org.planit.output.property.UpstreamNodeLocationOutputProperty"), ITERATION_INDEX("org.planit.output.property.IterationIndexOutputProperty"),
   ORIGIN_ZONE_ID("org.planit.output.property.OriginZoneIdOutputProperty"), ORIGIN_ZONE_EXTERNAL_ID("org.planit.output.property.OriginZoneExternalIdOutputProperty"),
