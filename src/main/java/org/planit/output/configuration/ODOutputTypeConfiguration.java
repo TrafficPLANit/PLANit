@@ -17,7 +17,6 @@ import org.planit.utils.exceptions.PlanItException;
  * The following OutputProperty values are included by default:
  * 
  * <ul>
- * <li>RUN_ID</li>
  * <li>TIME_PERIOD_XML_ID</li>
  * <li>MODE_XML_ID</li>
  * <li>ORIGIN_ZONE_XML_ID
@@ -40,7 +39,7 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
   /** od identification method by Xml id flag */
   private static final int ORIGIN_DESTINATION_XML_ID_IDENTIFICATION = 2;
   /** od identification method by external id flag */
-  private static final int ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION = 3;  
+  private static final int ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION = 3;
   /** od identification method unknown flag */
   private static final int ORIGIN_DESTINATION_NOT_IDENTIFIED = 4;
 
@@ -60,7 +59,7 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
     }
     if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_EXTERNAL_ID)) {
       return ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION;
-    }    
+    }
     return ORIGIN_DESTINATION_NOT_IDENTIFIED;
   }
 
@@ -76,7 +75,6 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
     // add default sub output types (OD - SKIM - COST);
     activeSubOutputTypes.add(ODSkimSubOutputType.COST);
     // add default output properties
-    addProperty(OutputProperty.RUN_ID);
     addProperty(OutputProperty.TIME_PERIOD_XML_ID);
     addProperty(OutputProperty.MODE_XML_ID);
     addProperty(OutputProperty.ORIGIN_ZONE_XML_ID);
@@ -112,7 +110,7 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
       outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_EXTERNAL_ID;
       outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_EXTERNAL_ID;
       valid = true;
-      break;      
+      break;
     default:
       LOGGER.warning("configured keys cannot identify origin-destination cell in the skim matrix");
     }
@@ -152,7 +150,7 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
     case DESTINATION_ZONE_EXTERNAL_ID:
       return true;
     case DESTINATION_ZONE_XML_ID:
-      return true;      
+      return true;
     case DESTINATION_ZONE_ID:
       return true;
     case ITERATION_INDEX:
@@ -160,7 +158,7 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
     case MODE_EXTERNAL_ID:
       return true;
     case MODE_XML_ID:
-      return true;      
+      return true;
     case MODE_ID:
       return true;
     case OD_COST:
@@ -168,7 +166,7 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
     case ORIGIN_ZONE_EXTERNAL_ID:
       return true;
     case ORIGIN_ZONE_XML_ID:
-      return true;      
+      return true;
     case ORIGIN_ZONE_ID:
       return true;
     case RUN_ID:
@@ -176,7 +174,7 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
     case TIME_PERIOD_EXTERNAL_ID:
       return true;
     case TIME_PERIOD_XML_ID:
-      return true;      
+      return true;
     case TIME_PERIOD_ID:
       return true;
     default:

@@ -15,23 +15,23 @@ import org.planit.utils.exceptions.PlanItException;
  * The following OutputProperty values are included by default:
  * 
  * <ul>
- * <li>MODE_ID</li>
  * <li>MODE_XML_ID</li>
- * <li>FLOW CAPACITY_PER_LANE</li>
- * <li>NUMBER_OF_LANES LENGTH</li>
- * <li>CALCULATED_SPEED COST</li>
- * <li>DENSITY LINK_SEGMENT_ID</li>
- * <li>UPSTREAM_NODE_ID</li>
+ * <li>FLOW</li>
+ * <li>CAPACITY_PER_LANE</li>
+ * <li>NUMBER_OF_LANES</li>
+ * <li>LENGTH</li>
+ * <li>CALCULATED_SPEED</li>
+ * <li>DENSITY</li>
+ * <li>LINK_SEGMENT_ID</li>
  * <li>UPSTREAM_NODE_XML_ID</li>
  * <li>UPSTREAM_NODE_LOCATION</li>
- * <li>DOWNSTREAM_NODE_ID</li>
  * <li>DOWNSTREAM_NODE_XML_ID</li>
  * <li>DOWNSTREAM_NODE_LOCATION</li>
  * <li>CAPACITY_PER_LANE</li>
  * <li>LINK_COST</li>
+ * <li>MODE_XML_ID</li>
  * <li>MAXIMUM_SPEED</li>
  * <li>TIME_PERIOD_XML_ID</li>
- * <li>TIME_PERIOD_ID</li>
  * </ul>
  * 
  * 
@@ -85,25 +85,15 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
    */
   public LinkOutputTypeConfiguration() throws PlanItException {
     super(OutputType.LINK);
-    addProperty(OutputProperty.LINK_SEGMENT_ID);
     addProperty(OutputProperty.LINK_SEGMENT_XML_ID);
     addProperty(OutputProperty.UPSTREAM_NODE_XML_ID);
-    addProperty(OutputProperty.UPSTREAM_NODE_ID);
-    addProperty(OutputProperty.UPSTREAM_NODE_LOCATION);
     addProperty(OutputProperty.DOWNSTREAM_NODE_XML_ID);
-    addProperty(OutputProperty.DOWNSTREAM_NODE_ID);
-    addProperty(OutputProperty.DOWNSTREAM_NODE_LOCATION);
     addProperty(OutputProperty.FLOW);
-    addProperty(OutputProperty.CAPACITY_PER_LANE);
-    addProperty(OutputProperty.NUMBER_OF_LANES);
-    addProperty(OutputProperty.LENGTH);
     addProperty(OutputProperty.CALCULATED_SPEED);
     addProperty(OutputProperty.LINK_COST);
-    addProperty(OutputProperty.MODE_ID);
     addProperty(OutputProperty.MODE_XML_ID);
     addProperty(OutputProperty.MAXIMUM_SPEED);
     addProperty(OutputProperty.TIME_PERIOD_XML_ID);
-    addProperty(OutputProperty.TIME_PERIOD_ID);
   }
 
   /**

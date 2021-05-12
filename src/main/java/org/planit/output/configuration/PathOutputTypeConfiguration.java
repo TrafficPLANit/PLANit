@@ -17,7 +17,6 @@ import org.planit.utils.exceptions.PlanItException;
  * The following OutputProperty values are included by default:
  * 
  * <ul>
- * <li>RUN_ID</li>
  * <li>PATH_ID</li>
  * <li>TIME_PERIOD_XML_ID</li>
  * <li>MODE_XML_ID</li>
@@ -75,7 +74,6 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
   public PathOutputTypeConfiguration() throws PlanItException {
     super(OutputType.PATH);
     // add default output properties
-    addProperty(OutputProperty.RUN_ID);
     addProperty(OutputProperty.PATH_ID);
     addProperty(OutputProperty.TIME_PERIOD_XML_ID);
     addProperty(OutputProperty.MODE_XML_ID);
