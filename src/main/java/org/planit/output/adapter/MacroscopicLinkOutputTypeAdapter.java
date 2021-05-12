@@ -3,11 +3,11 @@ package org.planit.output.adapter;
 import java.util.Optional;
 
 import org.planit.output.property.OutputProperty;
-import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Interface defining the methods required for a link output adapter
@@ -16,7 +16,7 @@ import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
  *
  */
 public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegment> extends LinkOutputTypeAdapter<LS> {
-  
+
   /**
    * Returns the value of the capacity per lane
    * 
@@ -29,14 +29,36 @@ public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegm
   }
 
   /**
-   * Return the link segment type of the current link segment
+   * Return the link segment type name of the current link segment
    * 
    * @param linkSegment the current link segment
-   * @return the link segment type
+   * @return the link segment type name
    * @throws PlanItException thrown if there is an error
    */
-  public default Optional<String> getLinkType(LS linkSegment) throws PlanItException {
+  public default Optional<String> getLinkSegmentTypeName(LS linkSegment) throws PlanItException {
     return Optional.of(linkSegment.getLinkSegmentType().getName());
+  }
+
+  /**
+   * Return the link segment type id of the current link segment
+   * 
+   * @param linkSegment the current link segment
+   * @return the link segment type id
+   * @throws PlanItException thrown if there is an error
+   */
+  public default Optional<Long> getLinkSegmentTypeId(LS linkSegment) throws PlanItException {
+    return Optional.of(linkSegment.getLinkSegmentType().getId());
+  }
+
+  /**
+   * Return the link segment type xml id of the current link segment
+   * 
+   * @param linkSegment the current link segment
+   * @return the link segment type xml id
+   * @throws PlanItException thrown if there is an error
+   */
+  public default Optional<String> getLinkSegmentTypeXmlId(LS linkSegment) throws PlanItException {
+    return Optional.of(linkSegment.getLinkSegmentType().getXmlId());
   }
 
   /**
@@ -46,7 +68,7 @@ public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegm
    * @return the flow density of the current link
    * @throws PlanItException thrown if there is an error
    */
-  public default  Optional<Double> getMaximumDensity(LS linkSegment) throws PlanItException {
+  public default Optional<Double> getMaximumDensity(LS linkSegment) throws PlanItException {
     return Optional.of(linkSegment.getLinkSegmentType().getMaximumDensityPerLane());
   }
 
@@ -57,7 +79,7 @@ public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegm
    * @return he external Id of the downstream node
    * @throws PlanItException thrown if there is an error
    */
-  public default  Optional<String> getDownstreamNodeExternalId(LS linkSegment) throws PlanItException {
+  public default Optional<String> getDownstreamNodeExternalId(LS linkSegment) throws PlanItException {
     return Optional.of(((Vertex) linkSegment.getDownstreamVertex()).getExternalId());
   }
 

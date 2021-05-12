@@ -32,7 +32,8 @@ public enum OutputProperty {
   TIME_PERIOD_XML_ID("org.planit.output.property.TimePeriodXmlIdOutputProperty"), TIME_PERIOD_EXTERNAL_ID("org.planit.output.property.TimePeriodExternalIdOutputProperty"),
   RUN_ID("org.planit.output.property.RunIdOutputProperty"), PATH_STRING("org.planit.output.property.PathOutputStringProperty"),
   PATH_ID("org.planit.output.property.PathIdOutputProperty"), VC_RATIO("org.planit.output.property.VCRatioOutputProperty"),
-  COST_TIMES_FLOW("org.planit.output.property.CostTimesFlowOutputProperty"), LINK_TYPE("org.planit.output.property.LinkTypeOutputProperty");
+  COST_TIMES_FLOW("org.planit.output.property.CostTimesFlowOutputProperty"), LINK_SEGMENT_TYPE_ID("org.planit.output.property.LinkSegmentTypeIdOutputProperty"),
+  LINK_SEGMENT_TYPE_NAME("org.planit.output.property.LinkSegmentTypeNameOutputProperty"), LINK_SEGMENT_TYPE_XML_ID("org.planit.output.property.LinkSegmentTypeXmlIdOutputProperty");
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(OutputProperty.class.getCanonicalName());

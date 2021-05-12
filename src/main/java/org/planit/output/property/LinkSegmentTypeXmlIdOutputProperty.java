@@ -3,9 +3,9 @@ package org.planit.output.property;
 import org.planit.output.enums.Type;
 import org.planit.utils.unit.Units;
 
-public final class LinkTypeOutputProperty extends BaseOutputProperty {
+public final class LinkSegmentTypeXmlIdOutputProperty extends BaseOutputProperty {
 
-  public static final String NAME = "Link Type";
+  public static final String NAME = "Link Segment Type XML Id";
 
   @Override
   public String getName() {
@@ -24,12 +24,12 @@ public final class LinkTypeOutputProperty extends BaseOutputProperty {
 
   @Override
   public OutputProperty getOutputProperty() {
-    return OutputProperty.LINK_TYPE;
+    return OutputProperty.LINK_SEGMENT_TYPE_XML_ID;
   }
 
   @Override
   public OutputPropertyPriority getColumnPriority() {
-    return OutputPropertyPriority.INPUT_PRIORITY;
+    return OutputPropertyPriority.ID_PRIORITY;
   }
 
 }

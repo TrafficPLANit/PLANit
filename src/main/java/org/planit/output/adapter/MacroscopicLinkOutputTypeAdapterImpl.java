@@ -20,7 +20,8 @@ import org.planit.utils.time.TimePeriod;
  * @author gman6028, markr
  *
  */
-public abstract class MacroscopicLinkOutputTypeAdapterImpl<LS extends MacroscopicLinkSegment> extends LinkOutputTypeAdapterImpl<LS> implements MacroscopicLinkOutputTypeAdapter<LS> {
+public abstract class MacroscopicLinkOutputTypeAdapterImpl<LS extends MacroscopicLinkSegment> extends LinkOutputTypeAdapterImpl<LS>
+    implements MacroscopicLinkOutputTypeAdapter<LS> {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkOutputTypeAdapterImpl.class.getCanonicalName());
@@ -51,14 +52,15 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl<LS extends Macroscopi
    */
   @SuppressWarnings("unchecked")
   @Override
-  public LinkSegments<LS> getPhysicalLinkSegments(long infrastructureLayerId) {    
+  public LinkSegments<LS> getPhysicalLinkSegments(long infrastructureLayerId) {
     InfrastructureLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().infrastructureLayers.get(infrastructureLayerId);
     if (networkLayer instanceof MacroscopicPhysicalNetwork) {
       return (LinkSegments<LS>) ((MacroscopicPhysicalNetwork) networkLayer).linkSegments;
     }
-    LOGGER.warning(String.format("cannot collect macroscopic physical link segments from infrastructure layer %s, as it is not a macroscopic physical network layer", networkLayer.getXmlId()));
+    LOGGER.warning(String.format("cannot collect macroscopic physical link segments from infrastructure layer %s, as it is not a macroscopic physical network layer",
+        networkLayer.getXmlId()));
     return null;
-  }  
+  }
 
   /**
    * Return the value of a specified output property of a link segment
@@ -79,12 +81,12 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl<LS extends Macroscopi
       if (value.isPresent()) {
         return value;
       }
-      
+
       value = getLinkSegmentOutputPropertyValue(outputProperty, linkSegment);
       if (value.isPresent()) {
         return value;
       }
-      
+
       /* specific to macroscopic link segment */
       switch (outputProperty) {
       case CAPACITY_PER_LANE:
@@ -93,8 +95,12 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl<LS extends Macroscopi
         return getMaximumDensity(linkSegment);
       case MAXIMUM_SPEED:
         return getMaximumSpeed(linkSegment, mode);
-      case LINK_TYPE:
-        return getLinkType(linkSegment);
+      case LINK_SEGMENT_TYPE_NAME:
+        return getLinkSegmentTypeName(linkSegment);
+      case LINK_SEGMENT_TYPE_ID:
+        return getLinkSegmentTypeId(linkSegment);
+      case LINK_SEGMENT_TYPE_XML_ID:
+        return getLinkSegmentTypeXmlId(linkSegment);
       default:
         return Optional.empty();
       }

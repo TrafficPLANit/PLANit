@@ -182,6 +182,12 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
       return true;
     case LINK_SEGMENT_COST:
       return true;
+    case LINK_SEGMENT_TYPE_ID:
+      return true;
+    case LINK_SEGMENT_TYPE_NAME:
+      return true;
+    case LINK_SEGMENT_TYPE_XML_ID:
+      return true;
     case LINK_SEGMENT_EXTERNAL_ID:
       return true;
     case LINK_SEGMENT_XML_ID:
@@ -211,8 +217,6 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
     case VC_RATIO:
       return true;
     case COST_TIMES_FLOW:
-      return true;
-    case LINK_TYPE:
       return true;
     default:
       LOGGER.warning("tried to add " + baseOutputProperty.getName() + " as an ouput property, which is inappropriate for Link output.  This will be ignored");
