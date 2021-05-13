@@ -72,7 +72,7 @@ public class ZoningModifierImpl implements ZoningModifier {
    * {@inheritDoc}
    */
   @Override
-  public void recreateZoneIds() {    
+  public void recreateZoneIds() {
     zoningBuilder.recreateOdZoneIds(zoning.odZones, Collections.singleton(zoning.odConnectoids), true /* reset zone ids once... */);
     zoningBuilder.recreateTransferZoneIds(zoning.transferZones, zoning.transferZoneGroups, Collections.singleton(zoning.transferConnectoids), false /* ...but not again */);
   }
@@ -101,13 +101,7 @@ public class ZoningModifierImpl implements ZoningModifier {
       for (Zone danglingZone : danglingZones) {
         removeZone(danglingZone);
         if (danglingZone instanceof TransferZone) {
-          Set<TransferZoneGroup> transferzoneGroups = ((TransferZone) danglingZone).getTransferZoneGroups();
-          if (transferzoneGroups != null) {
-            for (TransferZoneGroup group : transferzoneGroups) {
-              /* remove zone from group */
-              group.removeTransferZone(((TransferZone) danglingZone));
-            }
-          }
+          ((TransferZone) danglingZone).removeFromAllTransferZoneGroups();
         }
       }
 

@@ -2,6 +2,7 @@ package org.planit.zoning;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.planit.utils.id.IdGenerator;
@@ -27,9 +28,9 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
    * the type of this transfer zone
    */
   private TransferZoneType type = DEFAULT_TYPE;
-  
+
   /** the transfer zone groups this transfer zone is part of */
-  Set<TransferZoneGroup> transferzoneGroups = null;  
+  Set<TransferZoneGroup> transferZoneGroups = null;
 
   /**
    * generate unique od zone id
@@ -86,52 +87,56 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public boolean hasTransferZoneGroup() {
-    return this.transferzoneGroups!=null && !this.transferzoneGroups.isEmpty();
+    return this.transferZoneGroups != null && !this.transferZoneGroups.isEmpty();
   }
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public boolean isInTransferZoneGroup(TransferZoneGroup transferZoneGroup) {
-    if(transferZoneGroup == null || !hasTransferZoneGroup()) {
+    if (transferZoneGroup == null || !hasTransferZoneGroup()) {
       return false;
     }
-    
-    return this.transferzoneGroups.contains(transferZoneGroup);
+
+    return this.transferZoneGroups.contains(transferZoneGroup);
   }
 
   /**
    * {@inheritDoc}
-   */   
+   */
   @Override
   public void addToTransferZoneGroup(TransferZoneGroup transferZoneGroup) {
-    if(transferZoneGroup == null) {
-      LOGGER.warning(String.format("transfer zone group null, unable to register on transfer zone %s",getXmlId()));
+    if (transferZoneGroup == null) {
+      LOGGER.warning(String.format("transfer zone group null, unable to register on transfer zone %s", getXmlId()));
       return;
     }
-    
-    if(!hasTransferZoneGroup()) {
-      this.transferzoneGroups = new HashSet<TransferZoneGroup>();
+
+    if (!hasTransferZoneGroup()) {
+      this.transferZoneGroups = new HashSet<TransferZoneGroup>();
     }
-    
+
     /* register */
-    this.transferzoneGroups.add(transferZoneGroup);
+    this.transferZoneGroups.add(transferZoneGroup);
   }
 
   /**
    * {@inheritDoc}
-   */   
+   */
   @Override
   public boolean removeFromTransferZoneGroup(TransferZoneGroup transferZoneGroup) {
     boolean success = false;
-    if(isInTransferZoneGroup(transferZoneGroup)) {
-      success = this.transferzoneGroups.remove(transferZoneGroup);
-      if(transferzoneGroups.isEmpty()) {
-        transferzoneGroups = null;
+    if (isInTransferZoneGroup(transferZoneGroup)) {
+      success = this.transferZoneGroups.remove(transferZoneGroup);
+      if (transferZoneGroups.isEmpty()) {
+        transferZoneGroups = null;
+      }
+
+      if (transferZoneGroup.hasTransferZone(this)) {
+        transferZoneGroup.removeTransferZone(this);
       }
     }
     return success;
@@ -139,11 +144,26 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
 
   /**
    * {@inheritDoc}
-   */   
+   */
+  @Override
+  public void removeFromAllTransferZoneGroups() {
+    if (hasTransferZoneGroup()) {
+      Iterator<TransferZoneGroup> iterator = transferZoneGroups.iterator();
+      while (iterator.hasNext()) {
+        TransferZoneGroup group = iterator.next();
+        iterator.remove();
+        group.removeTransferZone(this);
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public final Set<TransferZoneGroup> getTransferZoneGroups() {
-    if(hasTransferZoneGroup()) {
-      return Collections.unmodifiableSet(transferzoneGroups);
+    if (hasTransferZoneGroup()) {
+      return Collections.unmodifiableSet(transferZoneGroups);
     }
     return null;
   }

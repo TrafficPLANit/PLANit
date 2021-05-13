@@ -109,7 +109,9 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
   @Override
   public TransferZone removeTransferZone(TransferZone transferZone) {
     TransferZone removedZone = transferZoneMap.remove(transferZone.getId());
-    transferZone.removeFromTransferZoneGroup(this);
+    if (transferZone.isInTransferZoneGroup(this)) {
+      transferZone.removeFromTransferZoneGroup(this);
+    }
     return removedZone;
   }
 
