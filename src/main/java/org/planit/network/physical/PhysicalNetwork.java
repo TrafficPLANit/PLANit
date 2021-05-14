@@ -7,13 +7,13 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.planit.geo.PlanitOpenGisUtils;
 import org.planit.graph.DirectedGraphImpl;
 import org.planit.graph.modifier.DirectedGraphModifierImpl;
 import org.planit.network.InfrastructureLayer;
 import org.planit.network.TopologicalLayer;
 import org.planit.network.TopologicalLayerImpl;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.DirectedGraph;
 import org.planit.utils.graph.modifier.BreakEdgeListener;
 import org.planit.utils.graph.modifier.DirectedGraphModifier;
@@ -156,9 +156,9 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
   @Override
   public void transform(CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException {
     try {
-      getGraph().transformGeometries(PlanitOpenGisUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
+      getGraph().transformGeometries(PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
     } catch (Exception e) {
-      PlanitOpenGisUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
+      PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
       throw new PlanItException(String.format("%s error during transformation of network %s CRS", InfrastructureLayer.createLayerLogPrefix(this), getXmlId()), e);
     }
   }
