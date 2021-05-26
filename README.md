@@ -4,13 +4,18 @@ This is the core module of the PLANit project. It contains algorithms and traffi
 
 For more information on PLANit such as the user the manual, licensing, installation, getting started, reference documentation, and more, please visit [https://trafficplanit.github.io/PLANitManual/](https://trafficplanit.github.io/PLANitManual/)
 
-## Maven parent
+
+## Development
+
+We discuss the build tool used (Maven) and the Git branching model adopted (GitFlow)
+
+### Maven build 
 
 Projects need to be built from Maven before they can be run. The common maven configuration can be found in the PLANitParentPom project which acts as the parent for this project's pom.xml.
 
 > Make sure you install the PLANitParentPom pom.xml before conducting a maven build (in Eclipse) on this project, otherwise it cannot find the references dependencies, plugins, and other resources.
 
-## Maven and Eclipse - a quick introduction
+### Maven and Eclipse - a quick introduction
 
 The following notes explain how to run Maven builds for these projects in Eclipse.  They are aimed at readers who are not familiar with Maven.  Readers who are experienced in Maven or other IDEs are free to do their own configuration.
 
@@ -50,6 +55,9 @@ Whenever you click Run, the configuration dialog box closes.  Its setting on its
 
 It is a matter of personal taste whether you run unit tests directly (by right-clicking on a test suite and selecting Run As/JUnit Test) or run them as part of this build process.  Running them directly will not generate Java classes from XSD files, so if you have made changes to the XSD files you must rebuild.  Running directly is fractionally quicker, but the builds only take a few seconds so the difference is negligible.
 
+### Git Branching model
+
+We adopt GitFlow as per https://nvie.com/posts/a-successful-git-branching-model/
 
 
 
