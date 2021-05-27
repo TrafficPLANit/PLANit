@@ -1,6 +1,7 @@
 package org.planit.logging;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import java.util.Properties;
 import java.util.logging.FileHandler;
@@ -10,6 +11,8 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+
+import org.planit.utils.resource.ResourceUtils;
 
 /**
  * Utility class to close the current logger
@@ -60,8 +63,10 @@ public class Logging {
    */
   public static Logger createLogger(Class<?> clazz, String loggingFileName) throws Exception {
     Logger logger = Logger.getLogger("");
-    ClassLoader classLoader = clazz.getClassLoader();
     if (loggingFileName != null) {
+      
+      /* TODO:
+       * markr: no idea what this is doing, condider refactoring along the lines of the else clause that I rewrote */
       Handler handler = new FileHandler(loggingFileName);
       Formatter formatter = new SimpleFormatter();
       handler.setFormatter(formatter);
@@ -79,9 +84,13 @@ public class Logging {
       handler.setLevel(level);
       logger.addHandler(handler);
     } else {
-      InputStream in = classLoader.getResourceAsStream(DEFAULT_LOGGING_PROPERTIES_FILE_NAME);
+      
+      /* using uris we can deal with jar based resources, or simple files */
+      URI resourceUri = ResourceUtils.getResourceUri(DEFAULT_LOGGING_PROPERTIES_FILE_NAME);      
+      InputStream inputStream = ResourceUtils.getResourceAsInputStream(resourceUri);
+            
       LogManager logManager = LogManager.getLogManager();
-      logManager.readConfiguration(in);
+      logManager.readConfiguration(inputStream);
       logManager.addLogger(logger);
     }
 
