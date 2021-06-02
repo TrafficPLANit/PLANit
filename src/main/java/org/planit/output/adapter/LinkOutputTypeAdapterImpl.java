@@ -54,13 +54,9 @@ public abstract class LinkOutputTypeAdapterImpl<LS extends LinkSegment> extends 
   /**
    * Return the value of a specified output property of a link segment
    * 
-   * The DENSITY case should never be called for TraditionalStaticAssignment.
    * 
    * @param outputProperty     the specified output property
    * @param linkSegment        the specified link segment
-   * @param mode               the current mode
-   * @param timePeriod         the current time period
-   * @param timeUnitMultiplier the multiplier for time units
    * @return the value of the specified output property (or an Exception message if an error occurs)
    */
   @Override

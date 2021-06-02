@@ -13,24 +13,25 @@ import org.planit.utils.exceptions.PlanItException;
  */
 public interface MultiConverterWriter<T, U> extends ConverterEntity {
 
-  /** any settings to configure the writer can be configured by collecting these settings
+  /** Any settings to configure the writer can be configured by collecting these settings
+   * 
    * @return the settings to configure the writer
    */
   public abstract ConverterWriterSettings getSettings();  
   
   /**
-   * write a network to the writer's output format.
+   * Write a network to the writer's output format.
    * 
    * @param entity1 to write
    * @param entity2 to write
-   * @throws PlanItException
+   * @throws PlanItException thrown if error
    */
   void write(T entity1, U entity2) throws PlanItException;
 
   /**
    * collect the way the ids should be mapped
    * 
-   * @return the idmapping choice
+   * @return the id mapping choice
    */
   IdMapperType getIdMapperType();
 

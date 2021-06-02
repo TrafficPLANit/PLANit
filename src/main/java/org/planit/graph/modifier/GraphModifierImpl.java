@@ -46,6 +46,8 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
   /**
    * update the geometry of the broken edge, knowing at what vertex it was broken from a previously longer edge
    * 
+   * @param <V> type of vertex
+   * @param <E> type of edge
    * @param brokenEdge     the broken edge
    * @param vertexBrokenAt the vertex it was broken at
    * @throws PlanItException thrown if error
@@ -105,7 +107,7 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
    * Constructor
    * 
    * @param theGraph to use
-   * @param the      graphBuilder to use
+   * @param graphBuilder to use
    */
   public GraphModifierImpl(final Graph<V, E> theGraph, final GraphBuilder<V, E> graphBuilder) {
     this.theGraph = theGraph;

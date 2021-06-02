@@ -21,7 +21,7 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
   /**
    * collect location as string representation from vertex
    * 
-   * @param vertex
+   * @param vertex to extract location for
    * @return node location
    */
   public static Optional<String> getVertexLocationAsString(Vertex vertex) {
@@ -37,7 +37,7 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
    * Returns the external Id of the downstream node
    * 
    * @param linkSegment LinkSegment object containing the required data
-   * @return he external Id of the downstream node
+   * @return the external Id of the downstream node
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<String> getDownstreamNodeExternalId(T linkSegment) throws PlanItException {
@@ -45,10 +45,10 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
   }
 
   /**
-   * Returns the xml Id of the downstream node
+   * Returns the XML Id of the downstream node
    * 
    * @param linkSegment LinkSegment object containing the required data
-   * @return the xml Id of the downstream node
+   * @return the XML Id of the downstream node
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<String> getDownstreamNodeXmlId(T linkSegment) throws PlanItException {
@@ -101,10 +101,10 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
   }
 
   /**
-   * Returns the Xml Id of the current link segment
+   * Returns the XML Id of the current link segment
    * 
    * @param linkSegment LinkSegment object containing the required data
-   * @return the Xml Id of the current link segment
+   * @return the XML Id of the current link segment
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<String> getLinkSegmentXmlId(T linkSegment) throws PlanItException {
@@ -145,10 +145,10 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
   }
 
   /**
-   * Returns the Xml Id of the upstream node
+   * Returns the XML Id of the upstream node
    * 
    * @param linkSegment LinkSegment object containing the required data
-   * @return the xml Id of the upstream node
+   * @return the XML Id of the upstream node
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<String> getUpstreamNodeXmlId(T linkSegment) throws PlanItException {
