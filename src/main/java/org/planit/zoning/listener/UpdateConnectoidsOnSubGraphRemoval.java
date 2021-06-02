@@ -18,7 +18,7 @@ import org.planit.zoning.Zoning;
 
 /**
  * A listener designed to deal with the situation that sub graphs are removed from the network which leaves connectoids in the zoning that reference these sub graph elements invalid.
- * This listener should be used to register on the DirectedGraphModifier before any call to {@link GraphModifier.removeSubGraph) in which case callbacks are triggered which
+ * This listener should be used to register on the DirectedGraphModifier before any call to GraphModifier.removeSubGraph in which case callbacks are triggered which
  * allow this instance to update the connectoids, i.e., remove any affected connectoids that are no longer valid.
  * 
  * @author markr

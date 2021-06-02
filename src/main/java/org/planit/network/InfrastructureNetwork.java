@@ -18,7 +18,7 @@ import org.planit.utils.mode.Modes;
  * @author markr
  *
  * @param <U> infrastructure layer base class
- * @param <T> infrastructure layer container class where each layer extends \<U\>
+ * @param <T> infrastructure layer container class where each layer extends {@code <U>}
  */
 public abstract class InfrastructureNetwork<U extends InfrastructureLayer, T extends InfrastructureLayers<U>> extends Network {
 

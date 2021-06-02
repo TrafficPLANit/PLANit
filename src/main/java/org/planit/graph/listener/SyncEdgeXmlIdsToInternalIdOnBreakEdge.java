@@ -14,7 +14,7 @@ import org.planit.utils.id.IdAbleImpl;
  * If it is known that the XML ids are initially synced with the internal ids, then this listener can be used to sync all broken links' xml id to the internal id of these links ensuring uniqueness
  * after performing a break link action.
  * 
- * Class specifically designed to be used in tandem with {@link breakEdges}. 
+ * Class specifically designed to be used in tandem with breakEdges method on graph modifier. 
  * 
  * @author markr
  *

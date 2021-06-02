@@ -16,7 +16,7 @@ import org.planit.utils.zoning.DirectedConnectoid;
  * Whenever links are broken and these link are references by connectoids, it is possible we must update the access vertex/link segment of this connectoid. This is what this class
  * ensures.
  * 
- * Class specifically designed to be used in tandem with {@link breakLinksWithInternalNode}. Make sure you identify original downstream vertices of the access link segments for the
+ * Class specifically designed to be used in tandem with breakLinksWithInternalNode. Make sure you identify original downstream vertices of the access link segments for the
  * directed connectoids that could be affected by any break link action on the network. After a break link action this might no be the downstream vertex of the registered access
  * link segments because of the break link action. If changed (due to break links conducted) then we assume the access link segment has been split in two where the original is not
  * closest to the vertex anymore, but the farthest. Hence, we look one link segment downstream and identify if we can match to the desired vertex. If so, we replace the access link

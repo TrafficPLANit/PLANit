@@ -14,7 +14,7 @@ import org.planit.utils.graph.modifier.BreakEdgeSegmentListener;
  * If it is known that the XML ids are initially synced with the internal ids, then this listener can be used to sync all broken links' and link segments' xml id to the internal id of these links ensuring uniqueness
  * after performing a break link action.
  * 
- * Class specifically designed to be used in tandem with {@link breakEdges}. 
+ * Class specifically designed to be used in tandem with breakEdges on graph modifier. 
  * 
  * @author markr
  *
