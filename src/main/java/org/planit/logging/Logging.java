@@ -86,7 +86,7 @@ public class Logging {
     } else {
       
       /* using uris we can deal with jar based resources, or simple files */
-      URI resourceUri = ResourceUtils.getResourceUri(DEFAULT_LOGGING_PROPERTIES_FILE_NAME);      
+      URI resourceUri = ResourceUtils.getResourceUri(DEFAULT_LOGGING_PROPERTIES_FILE_NAME);
       InputStream inputStream = ResourceUtils.getResourceAsInputStream(resourceUri);
             
       LogManager logManager = LogManager.getLogManager();
