@@ -144,7 +144,7 @@ public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends T
    * @param belowSize         remove subnetworks below the given size
    * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
    * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
-   * @param zoning            to also remove dangling entities from based on the identified dangling networks
+   * @param listeners         to apply
    * @throws PlanItException thrown if error
    */
   public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener<?, ?>> listeners) throws PlanItException {

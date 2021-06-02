@@ -160,7 +160,7 @@ public class TransportNetwork {
   }
 
   /**
-   * Integrate physical and virtual links within od zones (undirected connectoid access node <-> centroid)
+   * Integrate physical and virtual links within od zones (undirected connectoid access node and centroid)
    * 
    * @throws PlanItException thrown if there is an error
    */

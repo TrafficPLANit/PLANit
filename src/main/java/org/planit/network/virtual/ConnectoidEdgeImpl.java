@@ -52,7 +52,7 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl implements ConnectoidEd
    *
    * @param groupId   contiguous id generation within this group for instances of this class
    * @param centroidA the centroid at one end of the connectoid
-   * @param nodeB     the node at the other end of the connectoid
+   * @param vertexB   the vertex at the other end of the connectoid
    * @param length    length of the current connectoid
    * @throws PlanItException thrown if there is an error
    */
