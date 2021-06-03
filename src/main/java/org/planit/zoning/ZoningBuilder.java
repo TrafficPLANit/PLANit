@@ -26,7 +26,7 @@ public interface ZoningBuilder {
   /**
    * Create a new undirected connectoid instance
    * 
-   * @param DirectedVertex for connectoid zone combination
+   * @param accessVertex for connectoid zone combination
    * @return created undirected connectoid
    */
   public abstract UndirectedConnectoid createUndirectedConnectoid(final DirectedVertex accessVertex);
@@ -61,7 +61,7 @@ public interface ZoningBuilder {
   public abstract TransferZoneGroup createTransferZoneGroup();
 
   /**
-   * recreate the ids for all passed in connectoids
+   * Recreate the ids for all passed in connectoids
    * 
    * @param undirectedConnectoids to recreate ids for
    * @param directedConnectoids   to recreate ids for
@@ -69,24 +69,26 @@ public interface ZoningBuilder {
   public abstract void recreateConnectoidIds(UndirectedConnectoids undirectedConnectoids, DirectedConnectoids directedConnectoids);
 
   /**
-   * recreate the ids for all passed in od zones
+   * Recreate the ids for all passed in od zones
    * 
    * @param odZones      to recreate ids for
+   * @param connectoids  to consider
    * @param resetZoneIds when true the zone ids of all zone implementations (OdZone, TransferZone) are rest upon commencing), false then not
    */
   public abstract void recreateOdZoneIds(Zones<OdZone> odZones, Collection<Connectoids<?>> connectoids, boolean resetZoneIds);
 
   /**
-   * recreate the ids for all passed in transferZones and the references by id for transfer zone groups, and connectoids (that are invalidated by changing the ids).
+   * Recreate the ids for all passed in transferZones and the references by id for transfer zone groups, and connectoids (that are invalidated by changing the ids).
    * 
    * @param transferZones      to recreate ids for
    * @param transferZoneGroups to update id indexed transfer zones for within the groups
+   * @param connectoids        to consider
    * @param resetZoneIds       when true the zone ids of all zone implementations (OdZone, TransferZone) are reset upon commencing), false then not
    */
   public abstract void recreateTransferZoneIds(Zones<TransferZone> transferZones, TransferZoneGroups transferZoneGroups, Collection<Connectoids<?>> connectoids, boolean resetZoneIds);
 
   /**
-   * recreate the ids for all passed in transfer zone groups
+   * Recreate the ids for all passed in transfer zone groups
    * 
    * @param transferZoneGroups to recreate ids for
    */

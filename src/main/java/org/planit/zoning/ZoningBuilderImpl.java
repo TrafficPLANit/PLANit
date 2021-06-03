@@ -193,9 +193,9 @@ public class ZoningBuilderImpl implements ZoningBuilder {
   }
 
   /**
-   * recreate the od zones ids on the provided od zones
+   * Recreate the od zones ids on the provided od zones
    *
-   * @param od zones to recreate ids for
+   * @param odZones to recreate ids for
    */
   protected void recreateOdZoneIds(Zones<OdZone> odZones) {
     BiConsumer<OdZoneImpl, Long> biComsumer = (odZone, newId) -> {
@@ -205,9 +205,9 @@ public class ZoningBuilderImpl implements ZoningBuilder {
   }
 
   /**
-   * recreate the od zones ids on the provided od zones
+   * Recreate the transfer zones ids on the provided transfer zones
    *
-   * @param od zones to recreate ids for
+   * @param transferZones zones to recreate ids for
    */
   protected void recreateTransferZoneIds(Zones<TransferZone> transferZones) {
     BiConsumer<TransferZoneImpl, Long> biComsumer = (odZone, newId) -> {

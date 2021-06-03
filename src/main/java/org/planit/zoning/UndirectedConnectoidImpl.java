@@ -46,9 +46,9 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
   }
 
   /**
-   * set the directed connectoid id
+   * Set the undirected connectoid id
    * 
-   * @param directedConnectoidId to use
+   * @param undirectedConnectoidId to use
    */
   protected void setUndirectedConnectoidId(long undirectedConnectoidId) {
     this.undirectedConnectoidId = undirectedConnectoidId;

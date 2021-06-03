@@ -29,17 +29,16 @@ import org.planit.utils.zoning.DirectedConnectoid;
  */
 public class UpdateConnectoidsOnBreakLink<V extends Vertex, E extends Edge, ES extends EdgeSegment> extends IdAbleImpl implements BreakEdgeSegmentListener<V, E, ES> {
 
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(UpdateConnectoidsOnBreakLink.class.getCanonicalName());
 
   /** information on the connectoid's desired access node location (before the break link action) */
   private final Map<Point, DirectedConnectoid> connectoidsAccessNodeLocationBeforeBreakLink;
 
   /**
-   * constructor taking information regarding the access link segment downstream vertex that the connectoid is attached to before any breaking of links. This will be used to update
+   * Constructor taking information regarding the access link segment downstream vertex that the connectoid is attached to before any breaking of links. This will be used to update
    * the connectoid to this same location after the break link in case this has been compromised
    * 
-   * @param connectoidsAccessNodeLocationBeforeBreakLink
+   * @param connectoidsAccessNodeLocationBeforeBreakLink to consider
    */
   public UpdateConnectoidsOnBreakLink(Map<Point, DirectedConnectoid> connectoidsAccessNodeLocationBeforeBreakLink) {
     super(BreakEdgeListener.generateId());
