@@ -31,7 +31,8 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
   /**
    * create a logit model instance based on passed in configurator
    * 
-   * @return configurator for the path choice
+   * @param configurator for the path choice
+   * @return created choice model
    * @throws PlanItException thrown if error
    */
   protected LogitChoiceModel createLogitChoiceModelInstance(StochasticPathChoiceConfigurator configurator) throws PlanItException {
