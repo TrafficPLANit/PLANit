@@ -12,7 +12,7 @@ public interface ConverterEntity {
   /**
    * short description (one word capitals) of this reader for logging purposes
    * 
-   * @return desciption
+   * @return description
    */
   public abstract String getTypeDescription();
 
