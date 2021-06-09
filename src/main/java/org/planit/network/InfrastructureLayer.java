@@ -76,6 +76,24 @@ public interface InfrastructureLayer extends ExternalIdable {
    */
   default public boolean supports(Mode mode) {
     return getSupportedModes().contains(mode);
+  }
+  
+  /**
+   * Determine if layer contains any supported modes
+   * 
+   * @return true when supporting a mode, false otherwise
+   */
+  default public boolean hasSupportedModes() {
+    return !getSupportedModes().isEmpty();
+  }   
+  
+  /**
+   * Collect the first mode found under the supported modes from the collection provided by getSupportedModes
+   * 
+   * @return first supported mode
+   */
+  default public Mode getFirstSupportedMode() {
+    return hasSupportedModes() ? getSupportedModes().iterator().next() : null;
   }    
 
 }
