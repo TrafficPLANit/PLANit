@@ -7,16 +7,16 @@
 		will fail. to install, in PLANitAll project, run mvn install on the pom.xml -->
 	<parent>
     <groupId>org.planit.parentpom</groupId>
-    <artifactId>PLANitParentPom</artifactId>
+    <artifactId>planit-parentpom</artifactId>
 		<version>0.2.1a1</version>
 	</parent>
 
 	<groupId>org.planit</groupId>
-	<artifactId>PLANit</artifactId>
+	<artifactId>planit-core</artifactId>
 	<description>PlanIt common code for traffic assignment</description>
 	<packaging>jar</packaging>
 
-	<name>PLANit</name>
+	<name>planit-core</name>
 	<url>https://github.com/TrafficPLANit/planit</url>
 
 	<!-- license based on the one published on the website -->
@@ -34,7 +34,7 @@
 		<!-- version inherited from parent -->
 		<dependency>
 			<groupId>org.planit.utils</groupId>
-			<artifactId>PLANitUtils</artifactId>
+			<artifactId>planit-utils</artifactId>
 		</dependency>
 
 		<!-- version inherited from parent -->
