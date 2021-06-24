@@ -10,7 +10,7 @@ import org.planit.zoning.Zoning;
  * Class for registered zonings on project
  *
  */
-class ProjectZonings {
+public class ProjectZonings {
   
   /**
    * The zonings registered on this project

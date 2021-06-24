@@ -14,7 +14,7 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public class ODPathSets extends TrafficAssignmentComponent<ODPathSets> {
+public class OdPathSets extends TrafficAssignmentComponent<OdPathSets> {
 
   /** generated UID */
   private static final long serialVersionUID = -8742549499023004121L;
@@ -29,8 +29,8 @@ public class ODPathSets extends TrafficAssignmentComponent<ODPathSets> {
    * 
    * @param groupId, contiguous id generation within this group for instances of this class
    */
-  public ODPathSets(IdGroupingToken groupId) {
-    super(groupId, ODPathSets.class);
+  public OdPathSets(IdGroupingToken groupId) {
+    super(groupId, OdPathSets.class);
   }
   
   /** Collect the number of registered od path sets

@@ -20,7 +20,7 @@ import org.planit.network.InfrastructureLayer;
 import org.planit.network.InfrastructureNetwork;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;
-import org.planit.path.ODPathSets;
+import org.planit.path.OdPathSets;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
@@ -106,7 +106,7 @@ public class CustomPlanItProject {
   /**
    * The registered OD path sets
    */
-  public final ProjectODPathSets odPathSets;
+  public final ProjectOdPathSets odPathSets;
   
   
 
@@ -188,7 +188,7 @@ public class CustomPlanItProject {
    * @return od path sets that have been parsed
    * @throws PlanItException thrown if there is an error
    */
-  public ODPathSets createAndRegisterOdPathSets(final InfrastructureLayer networkLayer, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
+  public OdPathSets createAndRegisterOdPathSets(final InfrastructureLayer networkLayer, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
     return inputs.createAndRegisterOdPathSets(networkLayer, zoning, odPathSetInputPath);
   }
 

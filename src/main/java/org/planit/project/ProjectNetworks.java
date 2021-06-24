@@ -10,7 +10,7 @@ import org.planit.network.InfrastructureNetwork;
  * Internal class for registered physical networks
  *
  */
-class ProjectNetworks {
+public class ProjectNetworks {
   
   /**
    * The physical networks registered on this project

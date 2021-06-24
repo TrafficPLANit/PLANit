@@ -17,7 +17,7 @@ import org.planit.input.InputBuilderListener;
 import org.planit.network.InfrastructureLayer;
 import org.planit.network.InfrastructureNetwork;
 import org.planit.network.Network;
-import org.planit.path.ODPathSets;
+import org.planit.path.OdPathSets;
 import org.planit.service.routed.RoutedServices;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
@@ -121,7 +121,7 @@ public class PlanItProjectInput {
   /**
    * The registered OD path sets
    */
-  protected final ProjectODPathSets odPathSets = new ProjectODPathSets();
+  protected final ProjectOdPathSets odPathSets = new ProjectOdPathSets();
 
   /**
    * Constructor
@@ -255,14 +255,14 @@ public class PlanItProjectInput {
    * @return od path sets that have been parsed
    * @throws PlanItException thrown if there is an error
    */
-  public ODPathSets createAndRegisterOdPathSets(final InfrastructureLayer networkLayer, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
+  public OdPathSets createAndRegisterOdPathSets(final InfrastructureLayer networkLayer, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
     PlanItException.throwIf(zoning == null, "Zones must be defined before definition of od path sets can proceed");
     PlanItException.throwIf(networkLayer == null, "Physical network must be defined before of od path sets can proceed");
 
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating od path sets");
-    final ODPathSets odPathSets = 
-        getComponentFactory(ODPathSets.class).create(
-            ODPathSets.class.getCanonicalName(), new Object[] { projectGroupId }, odPathSetInputPath);
+    final OdPathSets odPathSets = 
+        getComponentFactory(OdPathSets.class).create(
+            OdPathSets.class.getCanonicalName(), new Object[] { projectGroupId }, odPathSetInputPath);
     
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createOdPathSetsPrefix(odPathSets.getId());
     LOGGER.info(String.format("%s#od path sets: %d", prefix, odPathSets.getNumberOfOdPathSets()));

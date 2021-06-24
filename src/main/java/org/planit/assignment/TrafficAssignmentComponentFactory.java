@@ -21,7 +21,7 @@ import org.planit.cost.virtual.SpeedConnectoidTravelTimeCost;
 import org.planit.demands.Demands;
 import org.planit.network.Network;
 import org.planit.network.macroscopic.MacroscopicNetwork;
-import org.planit.path.ODPathSets;
+import org.planit.path.OdPathSets;
 import org.planit.path.choice.PathChoice;
 import org.planit.path.choice.logit.LogitChoiceModel;
 import org.planit.path.choice.logit.MultinomialLogit;
@@ -79,7 +79,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
     registeredTrafficAssignmentComponents.put(NodeModel.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(PathChoice.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(LogitChoiceModel.class.getCanonicalName(), new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(ODPathSets.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(OdPathSets.class.getCanonicalName(), new TreeSet<>());
 
     registerDefaultImplementations();
   }
@@ -103,7 +103,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
       registerTrafficAssignmentComponentType(NewellFundamentalDiagram.class);
       registerTrafficAssignmentComponentType(TampereNodeModel.class);
       registerTrafficAssignmentComponentType(MultinomialLogit.class);
-      registerTrafficAssignmentComponentType(ODPathSets.class);
+      registerTrafficAssignmentComponentType(OdPathSets.class);
     } catch (final PlanItException e) {
       LOGGER.severe(e.getMessage());
       e.printStackTrace();

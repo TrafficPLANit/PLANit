@@ -10,7 +10,7 @@ import org.planit.demands.Demands;
  * class for registered demands on project
  *
  */
-class ProjectDemands {
+public class ProjectDemands {
   
   /**
    * The demands registered on this project

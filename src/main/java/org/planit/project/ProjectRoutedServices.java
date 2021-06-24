@@ -10,7 +10,7 @@ import org.planit.service.routed.RoutedServices;
  * class for registered routed services on project
  *
  */
-class ProjectRoutedServices {
+public class ProjectRoutedServices {
   
   /**
    * The routed services registered on this project

@@ -10,7 +10,7 @@ import org.planit.assignment.TrafficAssignmentBuilder;
  * Container class for registered traffic assignments on PLANit projects
  *
  */
-class ProjectAssignmentBuilders implements Iterable<TrafficAssignmentBuilder<?>> {
+public class ProjectAssignmentBuilders implements Iterable<TrafficAssignmentBuilder<?>> {
 
   /**
    * The traffic assignment(s) registered on this project
