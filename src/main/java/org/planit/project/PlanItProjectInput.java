@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
+import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.assignment.TrafficAssignmentComponentFactory;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
@@ -17,6 +18,7 @@ import org.planit.network.InfrastructureLayer;
 import org.planit.network.InfrastructureNetwork;
 import org.planit.network.Network;
 import org.planit.path.ODPathSets;
+import org.planit.service.routed.RoutedServices;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
@@ -35,220 +37,6 @@ public class PlanItProjectInput {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(PlanItProjectInput.class.getCanonicalName());
-
-  // INNER CLASSES
-
-  /**
-   * Internal class for registered physical networks
-   *
-   */
-  public class ProjectNetworks {
-
-    /**
-     * Returns a List of infrastructure based networks
-     *
-     * @return List of networks
-     */
-    public List<InfrastructureNetwork<?,?>> toList() {
-      return new ArrayList<InfrastructureNetwork<?,?>>(infrastructureNetworkMap.values());
-    }
-
-    /**
-     * Get infrastructure network by id
-     *
-     * @param id the id of the network
-     * @return the retrieved network
-     */
-    public InfrastructureNetwork<?,?> getInfrastructureNetwork(final long id) {
-      return infrastructureNetworkMap.get(id);
-    }
-
-    /**
-     * Get the number of networks
-     *
-     * @return the number of networks in the project
-     */
-    public int getNumberOfInfrastructureNetworks() {
-      return infrastructureNetworkMap.size();
-    }
-
-    /**
-     * Check if infrastructure networks have already been registered
-     *
-     * @return true if registered networks exist, false otherwise
-     */
-    public boolean hasRegisteredInfrastructureNetworks() {
-      return !infrastructureNetworkMap.isEmpty();
-    }
-
-    /**
-     * Collect the first network that is registered (if any). Otherwise return null
-     * 
-     * @return first network that is registered if none return null
-     */
-    public InfrastructureNetwork<?,?> getFirstInfrastructureNetwork() {
-      return hasRegisteredInfrastructureNetworks() ? infrastructureNetworkMap.firstEntry().getValue() : null;
-    }
-  }
-
-  /**
-   * Internal class for registered demands
-   *
-   */
-  public class ProjectDemands {
-
-    /**
-     * Returns a List of demands
-     *
-     * @return List of demands
-     */
-    public List<Demands> toList() {
-      return new ArrayList<Demands>(demandsMap.values());
-    }
-
-    /**
-     * Get demands by id
-     *
-     * @param id the id of the demands
-     * @return the retrieved demands
-     */
-    public Demands getDemands(final long id) {
-      return demandsMap.get(id);
-    }
-
-    /**
-     * Get the number of demands
-     *
-     * @return the number of demands in the project
-     */
-    public int getNumberOfDemands() {
-      return demandsMap.size();
-    }
-
-    /**
-     * Check if demands have already been registered
-     *
-     * @return true if registered demands exist, false otherwise
-     */
-    public boolean hasRegisteredDemands() {
-      return !demandsMap.isEmpty();
-    }
-
-    /**
-     * Collect the first demands that are registered (if any). Otherwise return null
-     * 
-     * @return first demands that are registered if none return null
-     */
-    public Demands getFirstDemands() {
-      return hasRegisteredDemands() ? demandsMap.firstEntry().getValue() : null;
-    }
-  }
-
-  /**
-   * Internal class for registered zonings
-   *
-   */
-  public class ProjectZonings {
-
-    /**
-     * Returns a List of zoning
-     *
-     * @return List of zoning
-     */
-    public List<Zoning> toList() {
-      return new ArrayList<Zoning>(zoningsMap.values());
-    }
-
-    /**
-     * Get zoning by id
-     *
-     * @param id the id of the zoning
-     * @return the retrieved zoning
-     */
-    public Zoning getZoning(final long id) {
-      return zoningsMap.get(id);
-    }
-
-    /**
-     * Get the number of zonings
-     *
-     * @return the number of zonings in the project
-     */
-    public int getNumberOfZonings() {
-      return zoningsMap.size();
-    }
-
-    /**
-     * Check if zonings have already been registered
-     *
-     * @return true if registered zonings exist, false otherwise
-     */
-    public boolean hasRegisteredZonings() {
-      return !zoningsMap.isEmpty();
-    }
-
-    /**
-     * Collect the first zonings that are registered (if any). Otherwise return null
-     * 
-     * @return first zonings that are registered if none return null
-     */
-    public Zoning getFirstZoning() {
-      return hasRegisteredZonings() ? zoningsMap.firstEntry().getValue() : null;
-    }
-  }
-
-  /**
-   * Internal class for registered od path sets
-   *
-   */
-  public class ProjectODPathSets {
-
-    /**
-     * Returns a List of od path sets
-     *
-     * @return List of od path sets
-     */
-    public List<ODPathSets> toList() {
-      return new ArrayList<ODPathSets>(odPathSetsMap.values());
-    }
-
-    /**
-     * Get od rotue sets by id
-     *
-     * @param id the id of the link
-     * @return the retrieved link
-     */
-    public ODPathSets getODPathSets(final long id) {
-      return odPathSetsMap.get(id);
-    }
-
-    /**
-     * Get the number of od path sets
-     *
-     * @return the number of od path sets in the project
-     */
-    public int getNumberOfOdPathSets() {
-      return odPathSetsMap.size();
-    }
-
-    /**
-     * Check if od path sets have already been registered
-     *
-     * @return true if registered od rotue sets exist, false otherwise
-     */
-    public boolean hasRegisteredOdPathSets() {
-      return !odPathSetsMap.isEmpty();
-    }
-
-    /**
-     * Collect the first od path set that is registered (if any). Otherwise return null
-     * 
-     * @return first od path set that is registered if none return null
-     */
-    public ODPathSets getFirstOdPathSets() {
-      return hasRegisteredOdPathSets() ? odPathSetsMap.firstEntry().getValue() : null;
-    }
-  }
   
   /** the token for generating ids uniquely and contiguously within this projects context */
   private final IdGroupingToken projectGroupId;
@@ -262,39 +50,41 @@ public class PlanItProjectInput {
    * @param inputBuilderListener the input builder to parse inputs with
    */
   private void initialiseFactories(InputBuilderListener inputBuilderListener) {
-    initialPhysicalCostFactory = new TrafficAssignmentComponentFactory<InitialPhysicalCost>(InitialPhysicalCost.class);
-    // due to nested generics, we supply class name rather than class
-    infrastructureNetworkFactory = new TrafficAssignmentComponentFactory<Network>(Network.class.getCanonicalName());
-    zoningFactory = new TrafficAssignmentComponentFactory<Zoning>(Zoning.class);
-    demandsFactory = new TrafficAssignmentComponentFactory<Demands>(Demands.class);
+    trafficAssignmentComponentFactories = new TreeMap<Class<? extends TrafficAssignmentComponent<?>>, TrafficAssignmentComponentFactory<?>>();
+    
+    trafficAssignmentComponentFactories.put(
+        InitialPhysicalCost.class, new TrafficAssignmentComponentFactory<InitialPhysicalCost>(InitialPhysicalCost.class));
 
-    infrastructureNetworkFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
-    zoningFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
-    demandsFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
-    initialPhysicalCostFactory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    // due to nested generics, we supply class name rather than class
+    trafficAssignmentComponentFactories.put(
+        Network.class, new TrafficAssignmentComponentFactory<Network>(Network.class.getCanonicalName()));
+    
+    trafficAssignmentComponentFactories.put(
+        Zoning.class, new TrafficAssignmentComponentFactory<Zoning>(Zoning.class));
+    
+    trafficAssignmentComponentFactories.put(
+        Demands.class, new TrafficAssignmentComponentFactory<Demands>(Demands.class));
+    
+    trafficAssignmentComponentFactories.put(
+        RoutedServices.class, new TrafficAssignmentComponentFactory<RoutedServices>(RoutedServices.class));    
+    
+    /* register input builder as listener whenever an instance is created */
+    trafficAssignmentComponentFactories.forEach( 
+        (clazz, factory) -> factory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE));
   }
 
   // CONTAINERS
 
-  /**
-   * The physical networks registered on this project
+  /** Collect component factory cast to right instance
+   * 
+   * @param <T> type of component factory
+   * @param clazz to abse type of component factory to collect on
+   * @return component factory for clazz instances
    */
-  protected final TreeMap<Long, InfrastructureNetwork<?,?>> infrastructureNetworkMap;
-
-  /**
-   * The demands registered on this project
-   */
-  protected final TreeMap<Long, Demands> demandsMap;
-
-  /**
-   * The od path sets registered on this project
-   */
-  protected final TreeMap<Long, ODPathSets> odPathSetsMap;
-
-  /**
-   * The zonings registered on this project
-   */
-  protected final TreeMap<Long, Zoning> zoningsMap;
+  @SuppressWarnings("unchecked")
+  private <T extends TrafficAssignmentComponent<?>> TrafficAssignmentComponentFactory<T> getComponentFactory(Class<T> clazz) {
+    return (TrafficAssignmentComponentFactory<T>) trafficAssignmentComponentFactories.get(clazz);
+  }
 
   /**
    * Map to store all InitialLinkSegmentCost objects for each physical network
@@ -302,52 +92,36 @@ public class PlanItProjectInput {
   protected final Map<InfrastructureNetwork<?,?>, List<InitialLinkSegmentCost>> initialLinkSegmentCosts = new HashMap<InfrastructureNetwork<?,?>, List<InitialLinkSegmentCost>>();
 
   // FACTORIES
-  /**
-   * Object Factory for infrastructure network object
-   */
-  protected TrafficAssignmentComponentFactory<Network> infrastructureNetworkFactory;
-
-  /**
-   * Object factory for demands object
-   */
-  protected TrafficAssignmentComponentFactory<Demands> demandsFactory;
-
-  /**
-   * Object factory for zoning objects
-   */
-  protected TrafficAssignmentComponentFactory<Zoning> zoningFactory;
-
-  /**
-   * Object factory for od path sets object
-   */
-  protected TrafficAssignmentComponentFactory<ODPathSets> odPathSetsFactory;
-
-  /**
-   * Object factory for physical costs
-   */
-  protected TrafficAssignmentComponentFactory<InitialPhysicalCost> initialPhysicalCostFactory;
-
+  
+  /** available traffic assignment component factories by their derived class implementation */
+  protected Map<Class<? extends TrafficAssignmentComponent<?>>, TrafficAssignmentComponentFactory<?>> trafficAssignmentComponentFactories;
+  
   // INNER CLASS INSTANCES
 
   /**
    * The registered physical networks
    */
-  public final ProjectNetworks physicalNetworks = new ProjectNetworks();
+  protected final ProjectNetworks physicalNetworks = new ProjectNetworks();
 
   /**
    * The registered demands
    */
-  public final ProjectDemands demands = new ProjectDemands();
+  protected final ProjectDemands demands = new ProjectDemands();
 
   /**
    * The registered zonings
    */
-  public final ProjectZonings zonings = new ProjectZonings();
+  protected final ProjectZonings zonings = new ProjectZonings();
+  
+  /**
+   * The registered routed services
+   */
+  protected final ProjectRoutedServices routedServices = new ProjectRoutedServices();  
 
   /**
    * The registered OD path sets
    */
-  public final ProjectODPathSets odPathSets = new ProjectODPathSets();
+  protected final ProjectODPathSets odPathSets = new ProjectODPathSets();
 
   /**
    * Constructor
@@ -358,11 +132,6 @@ public class PlanItProjectInput {
    */
   public PlanItProjectInput(long projectId, IdGroupingToken projectGroupId, InputBuilderListener inputBuilderListener) {
     this.projectId = projectId;
-    this.infrastructureNetworkMap = new TreeMap<Long, InfrastructureNetwork<?,?>>();
-    this.demandsMap = new TreeMap<Long, Demands>();
-    this.zoningsMap = new TreeMap<Long, Zoning>();
-    this.odPathSetsMap = new TreeMap<Long, ODPathSets>();
-
     this.projectGroupId = projectGroupId;
 
     initialiseFactories(inputBuilderListener);
@@ -377,7 +146,7 @@ public class PlanItProjectInput {
    */
   public InfrastructureNetwork<?,?> createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating network");
-    final Network theNetwork = infrastructureNetworkFactory.create(infrastructureNetworkType, new Object[] { projectGroupId });
+    final Network theNetwork = getComponentFactory(Network.class).create(infrastructureNetworkType, new Object[] { projectGroupId });
     
     /* for now we only support infrastructure based networks even though class heirarchy is more generic */
     if(!(theNetwork instanceof InfrastructureNetwork)){
@@ -394,7 +163,7 @@ public class PlanItProjectInput {
       networkLayer.logInfo(prefix);
     }
     
-    infrastructureNetworkMap.put(infrastructureNetwork.getId(), infrastructureNetwork);
+    physicalNetworks.register(infrastructureNetwork);
     return infrastructureNetwork;
   }
 
@@ -410,7 +179,7 @@ public class PlanItProjectInput {
 
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating zoning");
     final Zoning zoning = 
-        zoningFactory.create(
+        getComponentFactory(Zoning.class).create(
             Zoning.class.getCanonicalName(), 
             new Object[] { projectGroupId, infrastructureNetwork.getNetworkGroupingTokenId() }, 
             infrastructureNetwork);
@@ -423,7 +192,7 @@ public class PlanItProjectInput {
       LOGGER.info(String.format("%s#transfer zones: %d (#centroids:", prefix, zoning.transferZones.size(),zoning.transferZones.getNumberOfCentroids()));
     }
 
-    zoningsMap.put(zoning.getId(), zoning);
+    zonings.register(zoning);
     return zoning;
   }
 
@@ -441,16 +210,41 @@ public class PlanItProjectInput {
 
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating demands");
     final Demands demands = 
-        demandsFactory.create(Demands.class.getCanonicalName(), new Object[] { projectGroupId }, zoning, network);  
+        getComponentFactory(Demands.class).create(
+            Demands.class.getCanonicalName(), new Object[] { projectGroupId }, zoning, network);  
     
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createDemandsPrefix(demands.getId());
     LOGGER.info(String.format("%s#time periods: %d", prefix, demands.timePeriods.getNumberOfTimePeriods()));
     LOGGER.info(String.format("%s#traveler types: %d", prefix, demands.travelerTypes.getNumberOfTravelerTypes()));    
     LOGGER.info(String.format("%s#user classes: %d", prefix, demands.userClasses.size()));
 
-    demandsMap.put(demands.getId(), demands);
+    this.demands.register(demands);
     return demands;
   }
+  
+  /**
+   * Create and register routed services to the project inputs
+   *
+   * @param zoning      zoning object which defines the connectoids used in the legs of the routed services
+   * @param network     the network which stores the modes and link segments used for the legs
+   * @return            the generated routed services object
+   * @throws PlanItException thrown if there is an error
+   */
+  public RoutedServices createAndRegisterRoutedServices(final Zoning zoning, final InfrastructureNetwork<?,?> network) throws PlanItException {
+    PlanItException.throwIf(zoning == null, "Zones must be defined before definition of routed services can begin");
+    PlanItException.throwIf(network == null, "network must be defined before definition of routed services can begin");
+
+    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating routed services");
+    final RoutedServices routedServices = 
+        getComponentFactory(RoutedServices.class).create(
+            RoutedServices.class.getCanonicalName(), new Object[] { projectGroupId }, zoning, network);  
+    
+    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createRoutedServicesPrefix(routedServices.getId());
+    //TODO: add aggregate logging stats
+
+    this.routedServices.register(routedServices);
+    return routedServices;
+  }  
 
   /**
    * Create and register the OD path sets on the project input
@@ -467,15 +261,13 @@ public class PlanItProjectInput {
 
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating od path sets");
     final ODPathSets odPathSets = 
-        odPathSetsFactory.create(
-            ODPathSets.class.getCanonicalName(), 
-            new Object[] { projectGroupId }, 
-            odPathSetInputPath);
+        getComponentFactory(ODPathSets.class).create(
+            ODPathSets.class.getCanonicalName(), new Object[] { projectGroupId }, odPathSetInputPath);
     
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createOdPathSetsPrefix(odPathSets.getId());
     LOGGER.info(String.format("%s#od path sets: %d", prefix, odPathSets.getNumberOfOdPathSets()));
 
-    odPathSetsMap.put(odPathSets.getId(), odPathSets);
+    this.odPathSets.register(odPathSets);
     return odPathSets;
   }
 
@@ -496,7 +288,8 @@ public class PlanItProjectInput {
 
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating initial link segment costs");    
     final InitialLinkSegmentCost initialLinkSegmentCost = 
-        (InitialLinkSegmentCost) initialPhysicalCostFactory.create(InitialLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId }, network, fileName);
+        (InitialLinkSegmentCost) getComponentFactory(InitialPhysicalCost.class).create(
+            InitialLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId }, network, fileName);
 
     initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
     return initialLinkSegmentCost;
@@ -524,12 +317,8 @@ public class PlanItProjectInput {
         LoggingUtils.createTimePeriodPrefix(timePeriod)+"populating initial link segment costs");
     
     final InitialPhysicalCost initialLinkSegmentCostPeriod = 
-        (InitialLinkSegmentCostPeriod) initialPhysicalCostFactory.create(
-            InitialLinkSegmentCostPeriod.class.getCanonicalName(),
-            new Object[] { projectGroupId }, 
-            network, 
-            fileName, 
-            timePeriod);
+        (InitialLinkSegmentCostPeriod) getComponentFactory(InitialPhysicalCost.class).create(
+            InitialLinkSegmentCostPeriod.class.getCanonicalName(), new Object[] { projectGroupId }, network, fileName, timePeriod);
 
     // explicitly register time period on the instance, since it is more specific than the regular initial cost without this information
     ((InitialLinkSegmentCostPeriod) initialLinkSegmentCostPeriod).setTimePeriod(timePeriod);

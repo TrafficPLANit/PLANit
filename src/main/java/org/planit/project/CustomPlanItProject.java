@@ -1,7 +1,6 @@
 package org.planit.project;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeMap;
@@ -22,10 +21,6 @@ import org.planit.network.InfrastructureNetwork;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;
 import org.planit.path.ODPathSets;
-import org.planit.project.PlanItProjectInput.ProjectDemands;
-import org.planit.project.PlanItProjectInput.ProjectNetworks;
-import org.planit.project.PlanItProjectInput.ProjectODPathSets;
-import org.planit.project.PlanItProjectInput.ProjectZonings;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
@@ -47,63 +42,6 @@ public class CustomPlanItProject {
   private static final Logger LOGGER = Logger.getLogger(CustomPlanItProject.class.getCanonicalName());
 
   /**
-   * Internal class for registered traffic assignments
-   *
-   */
-  public class ProjectAssignmentBuilders implements Iterable<TrafficAssignmentBuilder<?>> {
-
-    /**
-     * The traffic assignment(s) registered on this project
-     */
-    protected final Set<TrafficAssignmentBuilder<?>> builders = new HashSet<TrafficAssignmentBuilder<?>>();
-
-    /**
-     * add traffic assignment
-     * 
-     * @param trafficAssignmentBuilder to add
-     */
-    protected void addTrafficAssignmentBuilder(TrafficAssignmentBuilder<?> trafficAssignmentBuilder) {
-      builders.add(trafficAssignmentBuilder);
-    }
-
-    /**
-     * Get the number of traffic assignment
-     *
-     * @return the number of traffic assignment in the project
-     */
-    public int getNumberOfTrafficAssignmentBuilders() {
-      return builders.size();
-    }
-
-    /**
-     * Check if assignments have already been registered
-     *
-     * @return true if registered assignments exist, false otherwise
-     */
-    public boolean hasRegisteredAssignmentBuilders() {
-      return !builders.isEmpty();
-    }
-
-    /**
-     * Collect the first traffic assignment that is registered (if any). Otherwise return null
-     * 
-     * @return first traffic assignment that is registered if none return null
-     */
-    public TrafficAssignmentBuilder<?> getFirstTrafficAssignmentBuilder() {
-      return hasRegisteredAssignmentBuilders() ? builders.iterator().next() : null;
-    }
-
-    /**
-     * iterable over registered traffic assignments
-     */
-    @Override
-    public Iterator<TrafficAssignmentBuilder<?>> iterator() {
-      return builders.iterator();
-    }
-
-  }
-
-  /**
    * unique identifier for this project across all projects in the JVM
    */
   protected final long id;
@@ -123,6 +61,11 @@ public class CustomPlanItProject {
    * the listener that we register on each traffic assignment component creation event for external initialization
    */
   protected final InputBuilderListener inputBuilderListener;
+
+  /**
+   * The registered assignment builders
+   */
+  protected final ProjectAssignmentBuilders assignmentBuilders = new ProjectAssignmentBuilders();
 
   /**
    * The output formatter(s) registered on this project
@@ -164,11 +107,8 @@ public class CustomPlanItProject {
    * The registered OD path sets
    */
   public final ProjectODPathSets odPathSets;
-
-  /**
-   * The registered assignment builders
-   */
-  public final ProjectAssignmentBuilders assignmentBuilders = new ProjectAssignmentBuilders();
+  
+  
 
   // Public methods
 

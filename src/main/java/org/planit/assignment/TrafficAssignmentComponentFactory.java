@@ -27,6 +27,7 @@ import org.planit.path.choice.logit.LogitChoiceModel;
 import org.planit.path.choice.logit.MultinomialLogit;
 import org.planit.sdinteraction.smoothing.MSASmoothing;
 import org.planit.sdinteraction.smoothing.Smoothing;
+import org.planit.service.routed.RoutedServices;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.fundamentaldiagram.NewellFundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModel;
@@ -69,6 +70,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
     registeredTrafficAssignmentComponents.put(NetworkLoading.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(Smoothing.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(Demands.class.getCanonicalName(), new TreeSet<>());
+    registeredTrafficAssignmentComponents.put(RoutedServices.class.getCanonicalName(), new TreeSet<>());    
     registeredTrafficAssignmentComponents.put(Network.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(AbstractPhysicalCost.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(InitialPhysicalCost.class.getCanonicalName(), new TreeSet<>());
@@ -91,6 +93,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
       registerTrafficAssignmentComponentType(TraditionalStaticAssignment.class);
       registerTrafficAssignmentComponentType(MSASmoothing.class);
       registerTrafficAssignmentComponentType(Demands.class);
+      registerTrafficAssignmentComponentType(RoutedServices.class);
       registerTrafficAssignmentComponentType(MacroscopicNetwork.class);
       registerTrafficAssignmentComponentType(BPRLinkTravelTimeCost.class);
       registerTrafficAssignmentComponentType(InitialLinkSegmentCost.class);
