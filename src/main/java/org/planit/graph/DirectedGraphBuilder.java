@@ -23,7 +23,7 @@ public interface DirectedGraphBuilder<V extends DirectedVertex, E extends Edge, 
    * @return edgeSegment the created edge segment
    * @throws PlanItException thrown if error
    */
-  public ES createEdgeSegment(DirectedEdge parentEdge, boolean directionAB) throws PlanItException;
+  public ES createEdgeSegment(DirectedEdge parentEdge, boolean directionAB) throws PlanItException;    
 
   /**
    * recreate the ids for all passed in edge segments
@@ -40,6 +40,6 @@ public interface DirectedGraphBuilder<V extends DirectedVertex, E extends Edge, 
    * @param newParentEdge     use this as the new parent edge
    * @return created copy
    */
-  public ES createUniqueCopyOf(ES edgeSegmentToCopy, DirectedEdge newParentEdge);
+  public ES createUniqueCopyOf(ES edgeSegmentToCopy, DirectedEdge newParentEdge);    
 
 }

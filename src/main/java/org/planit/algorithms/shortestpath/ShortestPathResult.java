@@ -4,11 +4,12 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 
-import org.planit.path.Path;
-import org.planit.path.PathImpl;
+import org.planit.path.DirectedPathBuilder;
+import org.planit.path.DirectedPathImpl;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.path.DirectedPath;
 
 /**
  * Class that stores the result of a shortest path execution allowing one to extract paths or cost information
@@ -45,16 +46,16 @@ public class ShortestPathResult {
   }
 
   /**
-   * Create the path from the provided origin to a specified destination vertex, using the results available.
-   *
-   *
-   * @param groupId     contiguous id generation within this group for instances for paths
+   * Create the path from the provided origin to a specified destination vertex, using the results available. The path builder
+   * is used to create the instance of the path.
+   * 
+   * @param pathBuilder to use for creating path instances
    * @param origin      the specified origin vertex
    * @param destination the specified destination vertex
    * @return the path that is created, when no path could be extracted null is returned
    * 
    */
-  public Path createPath(IdGroupingToken groupId, Vertex origin, Vertex destination) {
+  public <T extends DirectedPath> T createPath(final DirectedPathBuilder<T> pathBuilder, Vertex origin, Vertex destination) {
     // path edge segment container
     final Deque<EdgeSegment> pathEdgeSegments = new LinkedList<EdgeSegment>();
 
@@ -75,7 +76,7 @@ public class ShortestPathResult {
     }
 
     // create path
-    return new PathImpl(groupId, pathEdgeSegments);
+    return pathBuilder.createPath(pathEdgeSegments);
   }
 
   /**

@@ -1,9 +1,9 @@
 package org.planit.od.odpath;
 
 import org.planit.od.ODDataImpl;
-import org.planit.path.Path;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.path.DirectedPath;
 import org.planit.utils.zoning.Zone;
 import org.planit.utils.zoning.Zones;
 
@@ -13,12 +13,12 @@ import org.planit.utils.zoning.Zones;
  * @author gman6028
  *
  */
-public class ODPathMatrix extends ODDataImpl<Path> {
+public class ODPathMatrix extends ODDataImpl<DirectedPath> {
 
   /**
    * Array storing path for each origin-destination pair
    */
-  private final Path[][] matrixContents;
+  private final DirectedPath[][] matrixContents;
 
   /**
    * Unique identifier
@@ -35,7 +35,7 @@ public class ODPathMatrix extends ODDataImpl<Path> {
     super(zones);
     this.id = IdGenerator.generateId(groupId, ODPathMatrix.class);
     final int numberOfTravelAnalysisZones = zones.size();
-    matrixContents = new Path[numberOfTravelAnalysisZones][numberOfTravelAnalysisZones];
+    matrixContents = new DirectedPath[numberOfTravelAnalysisZones][numberOfTravelAnalysisZones];
   }
 
   /**
@@ -46,7 +46,7 @@ public class ODPathMatrix extends ODDataImpl<Path> {
    * @return the path from the origin to the destination
    */
   @Override
-  public Path getValue(final Zone origin, final Zone destination) {
+  public DirectedPath getValue(final Zone origin, final Zone destination) {
     final int originId = (int) origin.getId();
     final int destinationId = (int) destination.getId();
     return matrixContents[originId][destinationId];
@@ -61,7 +61,7 @@ public class ODPathMatrix extends ODDataImpl<Path> {
    *
    */
   @Override
-  public void setValue(final Zone origin, final Zone destination, final Path path) {
+  public void setValue(final Zone origin, final Zone destination, final DirectedPath path) {
     final int originId = (int) origin.getId();
     final int destinationId = (int) destination.getId();
     matrixContents[originId][destinationId] = path;

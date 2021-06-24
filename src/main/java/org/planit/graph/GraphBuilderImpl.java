@@ -18,6 +18,7 @@ import org.planit.utils.id.IdGroupingToken;
  */
 public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
 
+  /** the logger ot use */
   private static final Logger LOGGER = Logger.getLogger(GraphBuilderImpl.class.getCanonicalName());
 
   /** the id group token */

@@ -84,7 +84,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @return new traveler type created
      */
     public TravelerType createAndRegisterNewTravelerType(String name) {
-      TravelerType newTravelerType = new TravelerType(tokenId, name);
+      TravelerType newTravelerType = new TravelerType(getIdGroupingToken(), name);
       registerTravelerType(newTravelerType);
       return newTravelerType;
     }
@@ -184,7 +184,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @return new traveler type created
      */
     public UserClass createAndRegisterNewUserClass(String name, Mode mode, TravelerType travellerType) {
-      UserClass newUserClass = new UserClass(tokenId, name, mode, travellerType);
+      UserClass newUserClass = new UserClass(getIdGroupingToken(), name, mode, travellerType);
       registerUserClass(newUserClass);
       return newUserClass;
     }
@@ -285,7 +285,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @throws PlanItException thrown if start time and/or duration are invalid
      */
     public TimePeriod createAndRegisterNewTimePeriod(String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
-      TimePeriod newTimePeriod = new TimePeriodImpl(tokenId, description, startTimeSeconds, durationSeconds);
+      TimePeriod newTimePeriod = new TimePeriodImpl(getIdGroupingToken(), description, startTimeSeconds, durationSeconds);
       registerTimePeriod(newTimePeriod);
       return newTimePeriod;
     }

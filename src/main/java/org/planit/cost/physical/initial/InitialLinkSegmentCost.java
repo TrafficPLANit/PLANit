@@ -99,17 +99,7 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
     if (!costPerModeAndLinkSegment.containsKey(mode.getId())) {
       costPerModeAndLinkSegment.put(mode.getId(), new HashMap<Long, Double>());
     }
-    costPerModeAndLinkSegment.get(mode.getId()).put(id, cost);
-  }
-
-  /**
-   * Collect initial cost id
-   *
-   * @return id
-   */
-  @Override
-  public long getId() {
-    return id;
+    costPerModeAndLinkSegment.get(mode.getId()).put(getId(), cost);
   }
 
 }

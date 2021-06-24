@@ -49,8 +49,8 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
   }
 
   /**
-   * Add edge to the internal container. Do not use this unless you know what you are doing because it can mess up the contiguous internal id structure of the edges. PReferred
-   * method is to only use registerNew.
+   * Add edge to the internal container. Do not use this unless you know what you are doing because it can mess up the contiguous internal id structure of the edges. 
+   * Preferred method is to only use registerNew.
    *
    * @param edge edge to be registered in this network based on its internal id
    * @return edge, in case it overrides an existing edge, the removed edge is returned
@@ -112,14 +112,6 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
   @Override
   public int size() {
     return edgeMap.size();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isEmpty() {
-    return size() == 0;
   }
 
   /**

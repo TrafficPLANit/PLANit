@@ -21,17 +21,17 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
   /**
    * unique identifier for this traffic component
    */
-  protected final long id;
+  private final long id;
 
   /**
    * id generation using this token will be contiguous and unique for each instance of this class
    */
-  protected IdGroupingToken tokenId;
+  private IdGroupingToken tokenId;
 
   /**
    * Traffic component type used to identify the component uniquely. If not provided to the constructor the class name is used
    */
-  protected final String trafficComponentType;
+  private final String trafficComponentType;
 
   /**
    * Constructor

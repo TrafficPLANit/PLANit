@@ -27,7 +27,8 @@ import org.planit.output.configuration.ODOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
-import org.planit.path.Path;
+import org.planit.path.DirectedPathBuilder;
+import org.planit.path.DirectedPathBuilderImpl;
 import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
@@ -38,6 +39,7 @@ import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.virtual.ConnectoidSegment;
+import org.planit.utils.path.DirectedPath;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.zoning.Centroid;
 import org.planit.utils.zoning.Zone;
@@ -70,6 +72,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * the layer used for this assignment
    */
   private MacroscopicPhysicalNetwork networkLayer;
+  
+  private final DirectedPathBuilder<DirectedPath> localPathBuilder;
 
   /**
    * create the logging prefix for logging statements during equilibration
@@ -111,7 +115,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void initialiseTimePeriod(TimePeriod timePeriod, final Set<Mode> modes) throws PlanItException {
-    simulationData = new TraditionalStaticAssignmentSimulationData(tokenId);
+    simulationData = new TraditionalStaticAssignmentSimulationData(getIdGroupingToken());
     simulationData.setIterationIndex(0);
     simulationData.getModeSpecificData().clear();
     for (final Mode mode : modes) {
@@ -315,7 +319,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
     if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
-      final Path path = shortestPathResult.createPath(tokenId, origin.getCentroid(), destination.getCentroid());
+      final DirectedPath path = shortestPathResult.createPath(localPathBuilder, origin.getCentroid(), destination.getCentroid());
       if(path== null) {
         LOGGER.fine(
             String.format("Unable to create path from origin %s (id:%d) to destination %s (id:%d) for mode %s (id:%d)", origin.getXmlId(), origin.getId(), destination.getXmlId(),
@@ -547,7 +551,11 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    */
   public TraditionalStaticAssignment(IdGroupingToken groupId) {
     super(groupId);
-    simulationData = null;
+    this.simulationData = null;
+
+    /* paths ought to have unique ids (at least their XML ids) within the context of the network layer where they are used, 
+     * so we must use the network layer id grouping token to ensure this when creating paths based on the shortest path algorithm used */
+    this.localPathBuilder = new DirectedPathBuilderImpl(networkLayer.getNetworkIdGroupingToken());
   }
 
   /**

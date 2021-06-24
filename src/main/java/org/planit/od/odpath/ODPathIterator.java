@@ -1,7 +1,7 @@
 package org.planit.od.odpath;
 
 import org.planit.od.ODDataIteratorImpl;
-import org.planit.path.Path;
+import org.planit.utils.path.DirectedPath;
 import org.planit.utils.zoning.Zones;
 
 /**
@@ -10,12 +10,12 @@ import org.planit.utils.zoning.Zones;
  * @author gman6028
  *
  */
-public class ODPathIterator extends ODDataIteratorImpl<Path> {
+public class ODPathIterator extends ODDataIteratorImpl<DirectedPath> {
 
   /**
    * array containing the Path object for each OD cell
    */
-  private Path[][] matrixContents;
+  private DirectedPath[][] matrixContents;
 
   /**
    * Constructor
@@ -23,7 +23,7 @@ public class ODPathIterator extends ODDataIteratorImpl<Path> {
    * @param matrixContents matrix of Path objects for each origin-destination cell
    * @param zones          the zones in the current zoning
    */
-  public ODPathIterator(Path[][] matrixContents, Zones<?> zones) {
+  public ODPathIterator(DirectedPath[][] matrixContents, Zones<?> zones) {
     super(zones);
     this.matrixContents = matrixContents;
   }
@@ -34,7 +34,7 @@ public class ODPathIterator extends ODDataIteratorImpl<Path> {
    * @return the Path in the current cell
    */
   @Override
-  public Path getCurrentValue() {
+  public DirectedPath getCurrentValue() {
     return matrixContents[originId][destinationId];
   }
 
@@ -44,7 +44,7 @@ public class ODPathIterator extends ODDataIteratorImpl<Path> {
    * @return the path the next cell
    */
   @Override
-  public Path next() {
+  public DirectedPath next() {
     updateCurrentLocation();
     return matrixContents[originId][destinationId];
   }

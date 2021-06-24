@@ -1,15 +1,17 @@
 package org.planit.output.adapter;
 
 import java.util.Optional;
-
 import org.planit.od.odpath.ODPathIterator;
 import org.planit.od.odpath.ODPathMatrix;
 import org.planit.output.enums.PathOutputIdentificationType;
 import org.planit.output.property.OutputProperty;
-import org.planit.path.Path;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.path.DirectedPath;
+import org.planit.utils.path.PathUtils;
 
 /**
  * Output type adapter interface for paths
@@ -17,7 +19,7 @@ import org.planit.utils.mode.Mode;
  * @author gman6028
  *
  */
-public interface PathOutputTypeAdapter extends OutputTypeAdapter {
+public interface PathOutputTypeAdapter extends OutputTypeAdapter {    
   
   /**
    * Returns the external Id of the destination zone for the current cell in the OD path matrix
@@ -93,9 +95,24 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @return the OD path as a String of comma-separated node external Id values
    */
   public static Optional<String> getPathAsString(ODPathIterator odPathIterator, PathOutputIdentificationType pathOutputType) {
-    Path path = odPathIterator.getCurrentValue();
+    DirectedPath path = odPathIterator.getCurrentValue();
     if (path != null) {
-      return Optional.of(path.toString(pathOutputType));
+      switch (pathOutputType) {
+        case LINK_SEGMENT_EXTERNAL_ID:
+          return Optional.of(PathUtils.getEdgeSegmentPathString(path, EdgeSegment::getExternalId));
+        case LINK_SEGMENT_XML_ID:
+          return Optional.of(PathUtils.getEdgeSegmentPathString(path, EdgeSegment::getXmlId));
+        case LINK_SEGMENT_ID:
+          return Optional.of(PathUtils.getEdgeSegmentPathString(path, EdgeSegment::getId));
+        case NODE_EXTERNAL_ID:
+          return Optional.of(PathUtils.getNodePathString(path, Vertex::getExternalId));
+        case NODE_XML_ID:
+          return Optional.of(PathUtils.getNodePathString(path, Vertex::getXmlId));
+        case NODE_ID:
+          return Optional.of(PathUtils.getNodePathString(path, Vertex::getId));
+        default:
+          return Optional.of("");
+        }
     }
     return Optional.of("");
   }
@@ -109,7 +126,7 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @return the id of the current path, or -1 if no path exists
    */
   public static Optional<Long> getPathId(ODPathIterator odPathIterator) {
-    Path path = odPathIterator.getCurrentValue();
+    DirectedPath path = odPathIterator.getCurrentValue();
     if (path == null) {
       return Optional.of(-1l);
     }

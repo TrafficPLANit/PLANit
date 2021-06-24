@@ -21,7 +21,6 @@ import org.planit.utils.id.IdGroupingToken;
  */
 public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVertex, DirectedEdge, EdgeSegment> {
 
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(DirectedGraphBuilderImpl.class.getCanonicalName());
 
   /** use graph builder impl for overlapping functionality */
