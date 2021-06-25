@@ -3,9 +3,10 @@ package org.planit.assignment;
 import java.io.Serializable;
 
 import org.djutils.event.EventProducer;
+import org.planit.utils.id.ExternalIdAbleImpl;
+import org.planit.utils.id.ExternalIdable;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.Idable;
 
 /**
  * Traffic assignment components are the main building blocks to conduct traffic assignment on
@@ -13,15 +14,13 @@ import org.planit.utils.id.Idable;
  * @author markr
  *
  */
-public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T> & Serializable> extends EventProducer implements Idable {
+public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T> & Serializable> extends EventProducer implements ExternalIdable {
 
   /** generated UID */
   private static final long serialVersionUID = -3940841069228367177L;
 
-  /**
-   * unique identifier for this traffic component
-   */
-  private final long id;
+  /** store id information */
+  private final ExternalIdAbleImpl idImpl;
 
   /**
    * id generation using this token will be contiguous and unique for each instance of this class
@@ -45,7 +44,7 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
     // the groupId would generally be the token of the project or the assignment as it owns the components
     // the class type would be the super class of the all instances for which we want contiguous ids
     this.tokenId = tokenId;
-    this.id = IdGenerator.generateId(tokenId, classType);
+    this.idImpl = new ExternalIdAbleImpl(IdGenerator.generateId(tokenId, classType));
   }
   
   /**
@@ -70,15 +69,54 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
     return trafficComponentType;
   }
 
+
   /**
-   * All traffic components must have a unique id
-   * 
-   * @return id of traffic assignment component
+   * {@inheritDoc}
    */
   @Override
   public long getId() {
-    return id;
+    return idImpl.getId();
   }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public String getExternalId() {
+    return idImpl.getExternalId();
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public void setExternalId(String externalId) {
+    idImpl.setExternalId(externalId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public String getXmlId() {
+    return idImpl.getXmlId();
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public void setXmlId(String xmlId) {
+    idImpl.setXmlId(xmlId);    
+  }
+
+  /**
+   * not to be confused with the PLANit ids, only present since this is an event producer, delegates to getXmlId()
+   */  
+  @Override
+  public Serializable getSourceId() {
+    return getXmlId();
+  }  
 
   /**
    * Collect the id grouping token used to generate ids for entities of this class.
@@ -88,15 +126,4 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
   public IdGroupingToken getIdGroupingToken() {
     return tokenId;
   }
-
-  /**
-   * the source id whenever this instance fires an event is simply this
-   * 
-   * @return this instance as source id
-   */
-  @Override
-  public Serializable getSourceId() {
-    return this;
-  }
-
 }
