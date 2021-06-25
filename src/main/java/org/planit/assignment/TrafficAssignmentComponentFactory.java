@@ -225,6 +225,18 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
     dispatchTrafficComponentEvent(newTrafficComponent, eventParameters);
     return newTrafficComponent;
   }
+   
+  
+  /** Allows one to verify if this factory creates derived classes of the provided class super type. Usefull in case
+   * the generic type parameter is not available at run time for this factory
+   * 
+   * @param <U> type to verify
+   * @param superClazz class of type
+   * @return true when factory is compatible, false otherwise
+   */
+  public <U> boolean isFactoryForDerivedClassesOf(Class<U> superClazz) {
+    return superClazz.getCanonicalName().equals(componentSuperTypeCanonicalName);
+  }
 
   /**
    * sourceId provides information of the source of an event fired from this class instance

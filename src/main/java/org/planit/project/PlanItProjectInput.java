@@ -1,6 +1,7 @@
 package org.planit.project;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,27 +51,22 @@ public class PlanItProjectInput {
    * @param inputBuilderListener the input builder to parse inputs with
    */
   private void initialiseFactories(InputBuilderListener inputBuilderListener) {
-    trafficAssignmentComponentFactories = new TreeMap<Class<? extends TrafficAssignmentComponent<?>>, TrafficAssignmentComponentFactory<?>>();
+    trafficAssignmentComponentFactories.clear();
     
-    trafficAssignmentComponentFactories.put(
-        InitialPhysicalCost.class, new TrafficAssignmentComponentFactory<InitialPhysicalCost>(InitialPhysicalCost.class));
+    trafficAssignmentComponentFactories.add(new TrafficAssignmentComponentFactory<InitialPhysicalCost>(InitialPhysicalCost.class));
 
     // due to nested generics, we supply class name rather than class
-    trafficAssignmentComponentFactories.put(
-        Network.class, new TrafficAssignmentComponentFactory<Network>(Network.class.getCanonicalName()));
+    trafficAssignmentComponentFactories.add(new TrafficAssignmentComponentFactory<Network>(Network.class.getCanonicalName()));
     
-    trafficAssignmentComponentFactories.put(
-        Zoning.class, new TrafficAssignmentComponentFactory<Zoning>(Zoning.class));
+    trafficAssignmentComponentFactories.add(new TrafficAssignmentComponentFactory<Zoning>(Zoning.class));
     
-    trafficAssignmentComponentFactories.put(
-        Demands.class, new TrafficAssignmentComponentFactory<Demands>(Demands.class));
+    trafficAssignmentComponentFactories.add(new TrafficAssignmentComponentFactory<Demands>(Demands.class));
     
-    trafficAssignmentComponentFactories.put(
-        RoutedServices.class, new TrafficAssignmentComponentFactory<RoutedServices>(RoutedServices.class));    
+    trafficAssignmentComponentFactories.add(new TrafficAssignmentComponentFactory<RoutedServices>(RoutedServices.class));    
     
     /* register input builder as listener whenever an instance is created */
     trafficAssignmentComponentFactories.forEach( 
-        (clazz, factory) -> factory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE));
+        (factory) -> factory.addListener(inputBuilderListener, TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE));
   }
 
   // CONTAINERS
@@ -80,10 +76,12 @@ public class PlanItProjectInput {
    * @param <T> type of component factory
    * @param clazz to abse type of component factory to collect on
    * @return component factory for clazz instances
+   * @throws PlanItException  when not available
    */
   @SuppressWarnings("unchecked")
-  private <T extends TrafficAssignmentComponent<?>> TrafficAssignmentComponentFactory<T> getComponentFactory(Class<T> clazz) {
-    return (TrafficAssignmentComponentFactory<T>) trafficAssignmentComponentFactories.get(clazz);
+  private <T extends TrafficAssignmentComponent<?>> TrafficAssignmentComponentFactory<T> getComponentFactory(Class<T> clazz) throws PlanItException {
+    return (TrafficAssignmentComponentFactory<T>) trafficAssignmentComponentFactories.stream().filter(
+        factory -> factory.isFactoryForDerivedClassesOf(clazz)).findFirst().orElseThrow(() -> new PlanItException("component factory unavailable for %s", clazz.getCanonicalName()));
   }
 
   /**
@@ -94,7 +92,7 @@ public class PlanItProjectInput {
   // FACTORIES
   
   /** available traffic assignment component factories by their derived class implementation */
-  protected Map<Class<? extends TrafficAssignmentComponent<?>>, TrafficAssignmentComponentFactory<?>> trafficAssignmentComponentFactories;
+  protected final Collection<TrafficAssignmentComponentFactory<?>> trafficAssignmentComponentFactories = new ArrayList<TrafficAssignmentComponentFactory<?>>();
   
   // INNER CLASS INSTANCES
 

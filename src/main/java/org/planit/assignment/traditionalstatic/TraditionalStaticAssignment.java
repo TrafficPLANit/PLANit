@@ -73,7 +73,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    */
   private MacroscopicPhysicalNetwork networkLayer;
   
-  private final DirectedPathBuilder<DirectedPath> localPathBuilder;
+  /** to generate paths we use a path builder that is configured to generate appropriate ids */
+  private DirectedPathBuilder<DirectedPath> localPathBuilder;
 
   /**
    * create the logging prefix for logging statements during equilibration
@@ -124,6 +125,12 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       // cost initialisation
       final double[] modalLinkSegmentCosts = initialiseLinkSegmentCosts(mode, timePeriod);
       simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
+    }
+    
+    /* paths ought to have unique ids (at least their XML ids) within the context of the network layer where they are used, 
+     * so we must use the network layer id grouping token to ensure this when creating paths based on the shortest path algorithm used */
+    if(this.localPathBuilder ==null ) {
+      this.localPathBuilder = new DirectedPathBuilderImpl(networkLayer.getNetworkIdGroupingToken());
     }
   }
 
@@ -552,10 +559,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   public TraditionalStaticAssignment(IdGroupingToken groupId) {
     super(groupId);
     this.simulationData = null;
-
-    /* paths ought to have unique ids (at least their XML ids) within the context of the network layer where they are used, 
-     * so we must use the network layer id grouping token to ensure this when creating paths based on the shortest path algorithm used */
-    this.localPathBuilder = new DirectedPathBuilderImpl(networkLayer.getNetworkIdGroupingToken());
+    this.localPathBuilder = null;
   }
 
   /**
