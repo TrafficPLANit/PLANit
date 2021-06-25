@@ -53,7 +53,6 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
     super(directedVertexImpl);
     entryEdgeSegments.addAll(directedVertexImpl.getEntryEdgeSegments());
     exitEdgeSegments.addAll(directedVertexImpl.getExitEdgeSegments());
-
   }
 
   // Public
@@ -116,38 +115,6 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
   @Override
   public boolean removeExitEdgeSegment(EdgeSegment edgeSegment) {
     return exitEdgeSegments.remove(edgeSegment);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasExitEdgeSegments() {
-    return exitEdgeSegments.isEmpty();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasEntryEdgeSegments() {
-    return entryEdgeSegments.isEmpty();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int getNumberOfEntryEdgeSegments() {
-    return entryEdgeSegments.size();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int getNumberOfExitEdgeSegments() {
-    return exitEdgeSegments.size();
   }
 
   /**

@@ -6,6 +6,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
@@ -18,7 +19,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class EdgeSegmentImpl implements EdgeSegment {
+public class EdgeSegmentImpl extends ExternalIdAbleImpl implements EdgeSegment {
 
   /** generated UID */
   private static final long serialVersionUID = -6521489123632246969L;
@@ -27,17 +28,12 @@ public class EdgeSegmentImpl implements EdgeSegment {
   private static final Logger LOGGER = Logger.getLogger(EdgeSegmentImpl.class.getCanonicalName());
 
   /**
-   * unique internal identifier
-   */
-  private long id;
-
-  /**
-   * the upstreamVertex of the edge segment
+   * the upstreamVertex of the edge segment TODO: remove instead store direction and derive vertex from parent if needed
    */
   private DirectedVertex upstreamVertex;
 
   /**
-   * The downstream vertex of this edge segment
+   * The downstream vertex of this edge segment TODO: remove instead store direction and derive vertex from parent if needed
    */
   private DirectedVertex downstreamVertex;
 
@@ -45,16 +41,6 @@ public class EdgeSegmentImpl implements EdgeSegment {
    * segment's parent edge
    */
   private DirectedEdge parentEdge;
-
-  /**
-   * The external Id for this edge segment
-   */
-  private String externalId;
-
-  /**
-   * Xml Id of the edge segment
-   */
-  protected String xmlId;
 
   /**
    * Generate unique edge segment id
@@ -67,12 +53,12 @@ public class EdgeSegmentImpl implements EdgeSegment {
   }
 
   /**
-   * set id of edge segment
+   * set id of edge segment and expose method to package
    * 
    * @param id to set
    */
   protected void setId(Long id) {
-    this.id = id;
+    super.setId(id);
   }
 
   // Public
@@ -86,7 +72,7 @@ public class EdgeSegmentImpl implements EdgeSegment {
    * @throws PlanItException thrown when parent edge's vertices are incompatible with directional edge segments
    */
   protected EdgeSegmentImpl(final IdGroupingToken groupId, final DirectedEdge parentEdge, final boolean directionAB) throws PlanItException {
-    setId(generateEdgeSegmentId(groupId));
+    super(generateEdgeSegmentId(groupId));
     setParentEdge(parentEdge);
 
     if (!(parentEdge.getVertexA() instanceof DirectedVertex && parentEdge.getVertexB() instanceof DirectedVertex)) {
@@ -102,9 +88,7 @@ public class EdgeSegmentImpl implements EdgeSegment {
    * @param edgeSegmentImpl to copy
    */
   protected EdgeSegmentImpl(EdgeSegmentImpl edgeSegmentImpl) {
-    setId(edgeSegmentImpl.getId());
-    setXmlId(edgeSegmentImpl.getXmlId());
-    setExternalId(edgeSegmentImpl.getExternalId());
+    super(edgeSegmentImpl);
     setParentEdge(edgeSegmentImpl.getParentEdge());
     setUpstreamVertex(edgeSegmentImpl.getUpstreamVertex());
     setDownstreamVertex(edgeSegmentImpl.getDownstreamVertex());
@@ -186,14 +170,6 @@ public class EdgeSegmentImpl implements EdgeSegment {
   }
 
   // Getter - Setters
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return this.id;
-  }
 
   /**
    * {@inheritDoc}
@@ -284,41 +260,4 @@ public class EdgeSegmentImpl implements EdgeSegment {
 
     return true;
   }
-
-  /**
-   * {@inheritDoc}
-   * 
-   */
-  @Override
-  public String getExternalId() {
-    return this.externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   */
-  @Override
-  public void setExternalId(String externalId) {
-    this.externalId = externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   */
-  @Override
-  public String getXmlId() {
-    return this.xmlId;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   */
-  @Override
-  public void setXmlId(String xmlId) {
-    this.xmlId = xmlId;
-  }
-
 }

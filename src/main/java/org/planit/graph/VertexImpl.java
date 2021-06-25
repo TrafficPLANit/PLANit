@@ -5,13 +5,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.locationtech.jts.geom.Point;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.CloneUtils;
@@ -22,7 +23,7 @@ import org.planit.utils.misc.CloneUtils;
  * @author markr
  *
  */
-public class VertexImpl implements Vertex {
+public class VertexImpl extends ExternalIdAbleImpl implements Vertex {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(VertexImpl.class.getCanonicalName());
@@ -31,21 +32,6 @@ public class VertexImpl implements Vertex {
   private static final long serialVersionUID = -2877566769607366608L;
 
   // Protected
-
-  /**
-   * Unique internal identifier
-   */
-  protected long id;
-
-  /**
-   * External identifier used in input files
-   */
-  protected String externalId;
-
-  /**
-   * The xml Id for this vertex
-   */
-  private String xmlId;
 
   /**
    * generic input property storage
@@ -63,22 +49,22 @@ public class VertexImpl implements Vertex {
   protected final Map<Long, Edge> edges = new HashMap<Long, Edge>();
 
   /**
-   * generate unique node id
+   * generate unique vertex id
    *
    * @param groupId, contiguous id generation within this group for instances of this class
-   * @return nodeId
+   * @return vertex id generated
    */
   protected static long generateVertexId(final IdGroupingToken groupId) {
     return IdGenerator.generateId(groupId, Vertex.class);
   }
 
   /**
-   * Set id on vertex
+   * set the internal id and expose to package
    * 
    * @param id to set
    */
-  protected void setId(Long id) {
-    this.id = id;
+  protected void setId(long id) {
+    super.setId(id);
   }
 
   /**
@@ -87,23 +73,20 @@ public class VertexImpl implements Vertex {
    * @param groupId, contiguous id generation within this group for instances of this class
    */
   protected VertexImpl(final IdGroupingToken groupId) {
-    this.id = generateVertexId(groupId);
+    super(generateVertexId(groupId));
   }
 
   /**
-   * Copy constructor. Geometry and input properties are deep copied, edges are not because they are not owned by this class
-   * by the vertex.
+   * Copy constructor. Geometry and input properties are deep copied, edges are not because they are not owned by this class by the vertex.
    * 
    * @param vertexImpl to copy
    */
   protected VertexImpl(VertexImpl vertexImpl) {
-    setId(vertexImpl.getId());
-    setXmlId(vertexImpl.getXmlId());
-    setExternalId(vertexImpl.getExternalId());
+    super(vertexImpl);
     setPosition((Point) vertexImpl.getPosition().copy());
     edges.putAll(vertexImpl.edges);
-    if(vertexImpl.inputProperties!= null && !vertexImpl.inputProperties.isEmpty()) {
-      for( Entry<String, Object> entry : vertexImpl.inputProperties.entrySet()) {
+    if (vertexImpl.inputProperties != null && !vertexImpl.inputProperties.isEmpty()) {
+      for (Entry<String, Object> entry : vertexImpl.inputProperties.entrySet()) {
         addInputProperty(new String(entry.getKey()), CloneUtils.clone(entry.getValue()));
       }
     }
@@ -128,46 +111,6 @@ public class VertexImpl implements Vertex {
   }
 
   // Getters-Setters
-
-  /**
-   * #{@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return id;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getExternalId() {
-    return externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setExternalId(final String externalId) {
-    this.externalId = externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getXmlId() {
-    return this.xmlId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setXmlId(final String xmlId) {
-    this.xmlId = xmlId;
-  }
 
   /**
    * {@inheritDoc}
@@ -214,14 +157,6 @@ public class VertexImpl implements Vertex {
   @Override
   public Collection<Edge> getEdges() {
     return Collections.unmodifiableCollection(edges.values());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int getNumberOfEdges() {
-    return edges.size();
   }
 
   /**

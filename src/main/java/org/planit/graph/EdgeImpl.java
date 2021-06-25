@@ -97,7 +97,7 @@ public class EdgeImpl implements Edge, Cloneable {
    * 
    * @param vertexB to set
    */
-  protected void setVertexB(Vertex vertexB) {   
+  protected void setVertexB(Vertex vertexB) {
     this.vertexB = vertexB;
   }
 
@@ -143,18 +143,18 @@ public class EdgeImpl implements Edge, Cloneable {
     setVertexB(edgeImpl.getVertexB());
     setLengthKm(edgeImpl.getLengthKm());
     setName(getName() != null ? edgeImpl.getName() : "");
-    if(edgeImpl.inputProperties!= null && !edgeImpl.inputProperties.isEmpty()) {
-      for( Entry<String, Object> entry : edgeImpl.inputProperties.entrySet()) {
+    if (edgeImpl.inputProperties != null && !edgeImpl.inputProperties.isEmpty()) {
+      for (Entry<String, Object> entry : edgeImpl.inputProperties.entrySet()) {
         addInputProperty(new String(entry.getKey()), CloneUtils.clone(entry.getValue()));
       }
     }
-  }   
+  }
 
   // Public
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public int hashCode() {
     return idHashCode();
@@ -162,11 +162,11 @@ public class EdgeImpl implements Edge, Cloneable {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public boolean equals(Object obj) {
     return idEquals(obj);
-  }  
+  }
 
   /**
    * {@inheritDoc}
@@ -275,7 +275,7 @@ public class EdgeImpl implements Edge, Cloneable {
    */
   @Override
   public Object getInputProperty(final String key) {
-    if(inputProperties==null) {
+    if (inputProperties == null) {
       return null;
     }
     return inputProperties.get(key);
