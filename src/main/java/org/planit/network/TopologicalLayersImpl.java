@@ -3,19 +3,20 @@ package org.planit.network;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
- * implementation of the InfrastructureLayers interface, without the createNew() method, but now with base layer class of TopologicalLayer
+ * implementation of the transport layers interface, without the createNew() method, but now with base layer class of TopologicalLayer
  * 
  * @author markr
  *
  */
-public abstract class TopologicalLayersImpl<T extends TopologicalLayer> extends InfrastructureLayersImpl<T> implements TopologicalLayers<T> {
+public abstract class TopologicalLayersImpl<T extends TopologicalLayer> extends TransportLayersImpl<T> implements TopologicalLayers<T> {
 
-  /** Constructor
+  /**
+   * Constructor
    * 
    * @param groupingId for id generation
    */
   public TopologicalLayersImpl(IdGroupingToken groupingId) {
     super(groupingId);
-  }    
+  }
 
 }

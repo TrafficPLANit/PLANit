@@ -8,10 +8,10 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.planit.graph.DirectedGraphBuilder;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedGraph;
+import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.modifier.BreakEdgeListener;

@@ -27,7 +27,7 @@ public class MacroscopicNetwork extends TopologicalNetwork<MacroscopicPhysicalNe
    * {@inheritDoc}
    */
   @Override
-  protected MacroscopicPhysicalNetworkLayers createInfrastructureLayers(IdGroupingToken networkIdToken) {
+  protected MacroscopicPhysicalNetworkLayers createLayersContainer(IdGroupingToken networkIdToken) {
     return new MacroscopicPhysicalNetworkLayers(networkIdToken);
   }  
 

@@ -79,8 +79,8 @@ public class MacroscopicPhysicalNetworkBuilderImpl implements MacroscopicPhysica
    * {@inheritDoc}
    */
   @Override
-  public Link createEdge(Vertex nodeA, Vertex nodeB, double length) throws PlanItException {
-    return physicalNetworkBuilder.createEdge(nodeA, nodeB, length);
+  public Link createEdge(Vertex nodeA, Vertex nodeB) throws PlanItException {
+    return physicalNetworkBuilder.createEdge(nodeA, nodeB);
   }
 
   /**

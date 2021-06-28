@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayerNetwork;
 
 /**
  * Internal class for registered physical networks
@@ -15,13 +15,13 @@ public class ProjectNetworks {
   /**
    * The physical networks registered on this project
    */
-  protected final TreeMap<Long, InfrastructureNetwork<?,?>> infrastructureNetworkMap;  
+  protected final TreeMap<Long, TransportLayerNetwork<?,?>> infrastructureNetworkMap;  
   
   /**
    * Constructor
    */
   protected ProjectNetworks() {
-    infrastructureNetworkMap = new TreeMap<Long, InfrastructureNetwork<?,?>>();
+    infrastructureNetworkMap = new TreeMap<Long, TransportLayerNetwork<?,?>>();
   }
 
   /**
@@ -29,8 +29,8 @@ public class ProjectNetworks {
    *
    * @return List of networks
    */
-  public List<InfrastructureNetwork<?,?>> toList() {
-    return new ArrayList<InfrastructureNetwork<?,?>>(infrastructureNetworkMap.values());
+  public List<TransportLayerNetwork<?,?>> toList() {
+    return new ArrayList<TransportLayerNetwork<?,?>>(infrastructureNetworkMap.values());
   }
 
   /**
@@ -39,7 +39,7 @@ public class ProjectNetworks {
    * @param id the id of the network
    * @return the retrieved network
    */
-  public InfrastructureNetwork<?,?> get(final long id) {
+  public TransportLayerNetwork<?,?> get(final long id) {
     return infrastructureNetworkMap.get(id);
   }
 
@@ -66,7 +66,7 @@ public class ProjectNetworks {
    * 
    * @return first network that is registered if none return null
    */
-  public InfrastructureNetwork<?,?> getFirst() {
+  public TransportLayerNetwork<?,?> getFirst() {
     return isEmpty() ? infrastructureNetworkMap.firstEntry().getValue() : null;
   }
 
@@ -74,7 +74,7 @@ public class ProjectNetworks {
    * 
    * @param infrastructureNetwork to register
    */
-  public void register(InfrastructureNetwork<?, ?> infrastructureNetwork) {
+  public void register(TransportLayerNetwork<?, ?> infrastructureNetwork) {
     infrastructureNetworkMap.put(infrastructureNetwork.getId(), infrastructureNetwork);    
   }
 }

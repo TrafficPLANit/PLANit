@@ -2,7 +2,7 @@ package org.planit.assignment;
 
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayerNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.zoning.Zoning;
@@ -29,7 +29,7 @@ public abstract class CapacityConstrainedTrafficAssignmentBuilder<T extends Capa
    * @throws PlanItException thrown if error
    */
   protected CapacityConstrainedTrafficAssignmentBuilder(Class<T> capacityconstrainedAssignmentClass, IdGroupingToken tokenId, InputBuilderListener inputBuilderListener,
-      Demands demands, Zoning zoning, InfrastructureNetwork<?,?> network) throws PlanItException {
+      Demands demands, Zoning zoning, TransportLayerNetwork<?,?> network) throws PlanItException {
     super(capacityconstrainedAssignmentClass, tokenId, inputBuilderListener, demands, zoning, network);
   }
 

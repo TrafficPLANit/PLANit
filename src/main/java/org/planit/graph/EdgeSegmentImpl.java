@@ -12,9 +12,7 @@ import org.planit.utils.id.IdGroupingToken;
 
 /**
  * EdgeSegment represents an edge in a particular (single) direction. Each edge has either one or two edge segments where each edge segment may have a more detailed geography than
- * its parent link (which represents both directions via a centreline)
- *
- * This class is now abstract. It is extended by LinkSegment (physical links) and Connectoid (virtual links).
+ * its parent link (which represents both directions via a centre line)
  *
  * @author markr
  *

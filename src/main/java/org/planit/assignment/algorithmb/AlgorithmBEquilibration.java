@@ -3,7 +3,7 @@ package org.planit.assignment.algorithmb;
 import java.util.Set;
 
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
-import org.planit.network.transport.TransportNetwork;
+import org.planit.network.transport.TransportModelNetwork;
 import org.planit.output.OutputManager;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
@@ -31,7 +31,7 @@ public class AlgorithmBEquilibration {
    * initialiseBushes
    */
   private void initialiseBushes() {
-    TransportNetwork transportNetwork = assignment.getTransportNetwork();
+    TransportModelNetwork transportNetwork = assignment.getTransportNetwork();
     double[] edgeSegmentCosts = null; // <-- to do
 
     @SuppressWarnings("unused")

@@ -1,7 +1,7 @@
 package org.planit.cost.physical;
 
 import org.planit.assignment.TrafficAssignmentComponent;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayerNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
@@ -41,6 +41,6 @@ public abstract class AbstractPhysicalCost extends TrafficAssignmentComponent<Ab
    * @param network the network
    * @throws PlanItException thrown if error
    */
-  public abstract void initialiseBeforeSimulation(InfrastructureNetwork<?,?> network) throws PlanItException;
+  public abstract void initialiseBeforeSimulation(TransportLayerNetwork<?,?> network) throws PlanItException;
 
 }

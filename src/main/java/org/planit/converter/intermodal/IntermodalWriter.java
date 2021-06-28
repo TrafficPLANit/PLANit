@@ -1,7 +1,7 @@
 package org.planit.converter.intermodal;
 
 import org.planit.converter.MultiConverterWriter;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayerNetwork;
 import org.planit.zoning.Zoning;
 
 /**
@@ -10,7 +10,7 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public interface IntermodalWriter extends MultiConverterWriter<InfrastructureNetwork<?,?>, Zoning> {
+public interface IntermodalWriter extends MultiConverterWriter<TransportLayerNetwork<?,?>, Zoning> {
   
   /**
    * {@inheritDoc}

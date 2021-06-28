@@ -14,7 +14,7 @@ import org.planit.cost.virtual.VirtualCostConfiguratorFactory;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
 import org.planit.gap.GapFunctionConfigurator;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayerNetwork;
 import org.planit.output.OutputManager;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
@@ -91,7 +91,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @param network to set
    */
-  protected void setInfrastructureNetwork(InfrastructureNetwork<?, ?> network) {
+  protected void setInfrastructureNetwork(TransportLayerNetwork<?, ?> network) {
     registerDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK, network);
   }
 
@@ -145,8 +145,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @return network
    */
-  public InfrastructureNetwork<?, ?> getInfrastructureNetwork() {
-    return (InfrastructureNetwork<?, ?>) getFirstParameterOfDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK);
+  public TransportLayerNetwork<?, ?> getInfrastructureNetwork() {
+    return (TransportLayerNetwork<?, ?>) getFirstParameterOfDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK);
   }
 
   /**

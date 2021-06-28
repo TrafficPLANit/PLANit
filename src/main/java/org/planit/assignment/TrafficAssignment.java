@@ -11,9 +11,9 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayerNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicLinkSegmentImpl;
-import org.planit.network.transport.TransportNetwork;
+import org.planit.network.transport.TransportModelNetwork;
 import org.planit.output.OutputManager;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.enums.OutputType;
@@ -71,12 +71,12 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * network to use
    */
-  private InfrastructureNetwork<?, ?> network;
+  private TransportLayerNetwork<?, ?> network;
 
   /**
    * The transport network to use which is an adaptor around the physical network and the zoning
    */
-  protected TransportNetwork transportNetwork = null;
+  protected TransportModelNetwork transportNetwork = null;
 
   /**
    * The virtual cost function
@@ -159,7 +159,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @throws PlanItException thrown if there is an error
    */
   protected void createTransportNetwork() throws PlanItException {
-    transportNetwork = new TransportNetwork(network, zoning);
+    transportNetwork = new TransportModelNetwork(network, zoning);
     transportNetwork.integrateTransportNetworkViaConnectoids();
     if (getTransportNetwork().getTotalNumberOfEdgeSegments() > Integer.MAX_VALUE) {
       throw new PlanItException("currently assignment internals expect to be castable to int, but max value is exceeded for link segments");
@@ -293,7 +293,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @return TransportNetwork used in current assignment
    */
-  public TransportNetwork getTransportNetwork() {
+  public TransportModelNetwork getTransportNetwork() {
     return transportNetwork;
   }
 
@@ -340,7 +340,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    *
    * @param network the network object for the current assignment
    */
-  public void setInfrastructureNetwork(final InfrastructureNetwork<?, ?> network) {
+  public void setInfrastructureNetwork(final TransportLayerNetwork<?, ?> network) {
     logRegisteredComponent(network, true);
     this.network = network;
   }

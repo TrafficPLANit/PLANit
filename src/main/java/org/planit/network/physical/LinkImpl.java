@@ -66,6 +66,19 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param nodeA    the first node in the link
    * @param nodeB    the second node in the link
+   * @throws PlanItException thrown if there is an error
+   */
+  protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB) throws PlanItException {
+    super(groupId, nodeA, nodeB);
+    setLinkId(generateLinkId(groupId));
+  }
+
+  /**
+   * Constructor which injects link length directly
+   *
+   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param nodeA    the first node in the link
+   * @param nodeB    the second node in the link
    * @param length   the length of the link
    * @throws PlanItException thrown if there is an error
    */

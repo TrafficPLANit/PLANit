@@ -7,10 +7,19 @@ import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedEdge;
+import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
 
+/**
+ * Implementation of EdgeSegments interface.
+ * 
+ * 
+ * @author markr
+ *
+ * @param <ES> edge segments type
+ */
 public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES> {
 
   /** the logger */
@@ -49,7 +58,7 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   /**
    * Constructor
    * 
-   * @param graphBuilder the grpahBuilder to use to create edge segments
+   * @param graphBuilder the graphBuilder to use to create edge segments
    */
   public EdgeSegmentsImpl(DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> graphBuilder) {
     this.directedGraphBuilder = graphBuilder;

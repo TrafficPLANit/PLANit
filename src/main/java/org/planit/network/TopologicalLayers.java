@@ -1,39 +1,50 @@
 package org.planit.network;
 
-import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
-import org.planit.utils.network.physical.Link;
-
 /**
- * interface to manage infrastructure layers. Currently we only support macroscopic infrastructure layers so every instance created through this class will return a
- * {@link MacroscopicPhysicalNetwork}. In future versions the user can choose which type is to be created.
+ * interface to manage topological layers, i.e., layers that contain a topologically meaningful representation in the form of nodes and links
  * 
  * @author markr
  *
  */
-public interface TopologicalLayers<T extends TopologicalLayer> extends InfrastructureLayers<T> {
-  
-  /** Number of nodes across all layers
+public interface TopologicalLayers<T extends TopologicalLayer> extends TransportLayers<T> {
+
+  /**
+   * Number of nodes across all layers
    * 
    * @return number of nodes
    */
-  public abstract long getNumberOfNodes();
+  public default long getNumberOfNodes() {
+    long sum = 0;
+    for (T layer : this) {
+      sum += layer.getNumberOfNodes();
+    }
+    return sum;
+  }
 
-  /** Number of links across all layers
+  /**
+   * Number of links across all layers
    * 
    * @return number of links
-   */  
-  public abstract long getNumberOfLinks();
-  
-  /** Number of link segments across all layers
-   * @return number of link segments
-   */  
-  public abstract long getNumberOfLinkSegments(); 
-  
-  
-  /** Collect the layer on which this link is registered, if no layer can be found, null is returned
-   * @param link to find layer for
-   * @return found layer, null if no match found
    */
-  public abstract T get(Link link);
+  public default long getNumberOfLinks() {
+    long sum = 0;
+    for (T layer : this) {
+      sum += layer.getNumberOfLinks();
+    }
+    return sum;
+  }
+
+  /**
+   * Number of link segments across all layers
+   * 
+   * @return number of link segments
+   */
+  public default long getNumberOfLinkSegments() {
+    long sum = 0;
+    for (T layer : this) {
+      sum += layer.getNumberOfLinkSegments();
+    }
+    return sum;
+  }
 
 }

@@ -1,7 +1,7 @@
 package org.planit.converter.network;
 
 import org.planit.converter.ConverterReader;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayerNetwork;
 
 /**
  * Interface to read a PLANit network
@@ -9,7 +9,7 @@ import org.planit.network.InfrastructureNetwork;
  * @author markr
  *
  */
-public interface NetworkReader extends ConverterReader<InfrastructureNetwork<?,?>> {
+public interface NetworkReader extends ConverterReader<TransportLayerNetwork<?,?>> {
 
   /**
    * {@inheritDoc}

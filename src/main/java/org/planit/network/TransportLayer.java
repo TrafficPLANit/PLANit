@@ -12,7 +12,7 @@ import org.planit.utils.mode.Mode;
  * @author markr
  *
  */
-public interface InfrastructureLayer extends ExternalIdable {
+public interface TransportLayer extends ExternalIdable {
 
   /**
    * create a string that can be used to prefix log statements for this layer to - in a unified way - identify this statement came from a particular layer
@@ -20,7 +20,7 @@ public interface InfrastructureLayer extends ExternalIdable {
    * @param layer to use
    * @return String "[layer: xmlID ]"
    */
-  public static String createLayerLogPrefix(InfrastructureLayer layer) {
+  public static String createLayerLogPrefix(TransportLayer layer) {
     return String.format("[LAYER: %s ]", layer.getXmlId());
   }
 

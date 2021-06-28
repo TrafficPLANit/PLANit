@@ -5,8 +5,8 @@ import org.planit.network.service.layer.ServiceNetworkLayer;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
- * A service network is a network built on top of a physical network providing services leveraging this underlying network. Each ServiceNetworkLayer in turn relates one-on-one to a
- * physical infrastructure layer where it provides services on that layer
+ * A service network is a network built on top of a topological (physical) transport network providing services leveraging this underlying network. Each ServiceNetworkLayer in turn
+ * relates one-on-one to a (physical) topological layer where it provides services on that layer.
  * 
  * @author markr
  *
@@ -16,15 +16,21 @@ public class ServiceNetwork extends TopologicalNetwork<ServiceNetworkLayer, Serv
   /** generated UID */
   private static final long serialVersionUID = 632938213490189010L;
 
+  /**
+   * Constructor
+   * 
+   * @param tokenId to use for id generation
+   */
   public ServiceNetwork(IdGroupingToken tokenId) {
     super(tokenId);
-    // TODO Auto-generated constructor stub
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  protected ServiceNetworkLayers createInfrastructureLayers(IdGroupingToken networkIdToken) {
-    // TODO Auto-generated method stub
-    return null;
+  protected ServiceNetworkLayers createLayersContainer(IdGroupingToken networkIdToken) {
+    return new ServiceNetworkLayers(networkIdToken);
   }
 
 }

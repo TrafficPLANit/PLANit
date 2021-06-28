@@ -71,7 +71,7 @@ public class EdgeImpl implements Edge, Cloneable {
   /**
    * Length of edge
    */
-  protected double lengthInKm;
+  protected Double lengthInKm;
 
   /**
    * Generate edge id
@@ -116,15 +116,26 @@ public class EdgeImpl implements Edge, Cloneable {
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param vertexA  first vertex in the link
    * @param vertexB  second vertex in the link
-   * @param lengthKm length of the link
-   * @throws PlanItException thrown if there is an error
    */
-  protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB, final double lengthKm) throws PlanItException {
+  protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB) {
     setId(generateEdgeId(groupId));
     setVertexA(vertexA);
     setVertexB(vertexB);
-    setLengthKm(lengthKm);
+    lengthInKm = null;
     setGeometry(null);
+  }
+
+  /**
+   * Constructor which injects link lengths directly
+   *
+   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param vertexA  first vertex in the link
+   * @param vertexB  second vertex in the link
+   * @param lengthKm length of the link
+   */
+  protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB, final double lengthKm) {
+    this(groupId, vertexA, vertexB);
+    setLengthKm(lengthKm);
   }
 
   /**

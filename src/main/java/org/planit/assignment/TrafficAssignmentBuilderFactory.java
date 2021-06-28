@@ -3,7 +3,7 @@ package org.planit.assignment;
 import org.planit.assignment.traditionalstatic.TraditionalStaticAssignmentBuilder;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayerNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.zoning.Zoning;
@@ -29,7 +29,7 @@ public class TrafficAssignmentBuilderFactory {
    * @throws PlanItException thrown if error
    */
   public static TrafficAssignmentBuilder<?> createBuilder(final String trafficAssignmentType, IdGroupingToken projectToken, InputBuilderListener inputBuilder, Demands theDemands,
-      Zoning theZoning, InfrastructureNetwork<?,?> theNetwork) throws PlanItException {
+      Zoning theZoning, TransportLayerNetwork<?,?> theNetwork) throws PlanItException {
 
     if (trafficAssignmentType.equals(TrafficAssignment.TRADITIONAL_STATIC_ASSIGNMENT)) {
       return new TraditionalStaticAssignmentBuilder(projectToken, inputBuilder, theDemands, theZoning, theNetwork);

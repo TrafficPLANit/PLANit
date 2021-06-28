@@ -9,25 +9,26 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 
 /**
- * Base implementation of the InfrastructureLayers interface, without the createNew() method
+ * Base implementation of the TransportLayer interface, without the createNew() method
  * 
  * @author markr
  *
  */
-public abstract class InfrastructureLayersImpl<T extends InfrastructureLayer> implements InfrastructureLayers<T> {
+public abstract class TransportLayersImpl<T extends TransportLayer> implements TransportLayers<T> {
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(InfrastructureLayersImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(TransportLayersImpl.class.getCanonicalName());
 
-  /** track the registered infrastructure layers */
-  protected final Map<Long, T> infrastructureLayers = new TreeMap<Long, T>();
+  /** track the registered transport layers */
+  protected final Map<Long, T> transportLayers = new TreeMap<Long, T>();
 
   /**
    * create id's for infrastructure layers based on this token
    */
   private final IdGroupingToken idToken;
-  
-  /** collect the token for id generation
+
+  /**
+   * Collect the token for id generation
    * 
    * @return id token
    */
@@ -40,7 +41,7 @@ public abstract class InfrastructureLayersImpl<T extends InfrastructureLayer> im
    * 
    * @param idToken to generated id's for infrastructure layers
    */
-  public InfrastructureLayersImpl(IdGroupingToken idToken) {
+  public TransportLayersImpl(IdGroupingToken idToken) {
     this.idToken = idToken;
   }
 
@@ -51,7 +52,7 @@ public abstract class InfrastructureLayersImpl<T extends InfrastructureLayer> im
   public T remove(T entity) {
 
     if (entity == null) {
-      LOGGER.warning("cannot remove infrastructure layer, null provided");
+      LOGGER.warning("cannot remove transport layer, null provided");
       return null;
     }
 
@@ -63,16 +64,15 @@ public abstract class InfrastructureLayersImpl<T extends InfrastructureLayer> im
    */
   @Override
   public T remove(long id) {
-    return infrastructureLayers.remove(id);
+    return transportLayers.remove(id);
   }
 
-
   /**
-   * return iterator over the available infrastructure layers
+   * return iterator over the available transport layers
    */
   @Override
   public Iterator<T> iterator() {
-    return infrastructureLayers.values().iterator();
+    return transportLayers.values().iterator();
   }
 
   /**
@@ -82,11 +82,11 @@ public abstract class InfrastructureLayersImpl<T extends InfrastructureLayer> im
   public T register(T entity) {
 
     if (entity == null) {
-      LOGGER.warning("cannot register infrastructure layer, null provided");
+      LOGGER.warning("cannot register transport layer, null provided");
       return null;
     }
 
-    return infrastructureLayers.put(entity.getId(), entity);
+    return transportLayers.put(entity.getId(), entity);
   }
 
   /**
@@ -94,9 +94,9 @@ public abstract class InfrastructureLayersImpl<T extends InfrastructureLayer> im
    */
   @Override
   public T registerNew() {
-    final T newInfrastructureLayer = createNew();
-    register(newInfrastructureLayer);
-    return newInfrastructureLayer;
+    final T newLayer = createNew();
+    register(newLayer);
+    return newLayer;
   }
 
   /**
@@ -104,7 +104,7 @@ public abstract class InfrastructureLayersImpl<T extends InfrastructureLayer> im
    */
   @Override
   public int size() {
-    return infrastructureLayers.size();
+    return transportLayers.size();
   }
 
   /**
@@ -112,7 +112,7 @@ public abstract class InfrastructureLayersImpl<T extends InfrastructureLayer> im
    */
   @Override
   public T get(long id) {
-    return infrastructureLayers.get(id);
+    return transportLayers.get(id);
   }
 
   /**

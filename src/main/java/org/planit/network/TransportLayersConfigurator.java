@@ -14,21 +14,21 @@ import org.planit.utils.mode.Modes;
 import org.planit.utils.mode.PredefinedMode;
 
 /**
- * Configurator class that allows one to create and modify a setup for the mapping of modes and infrastucture layers without actually creating them yet. The final result can be
- * used to instantiate the infrastructure layers on the actual infrastructure network when the time is right.
+ * Configurator class that allows one to create and modify a setup for the mapping of modes and transport layers without actually creating them yet. The final result can be used to
+ * instantiate the transport layers on the actual transport network when the time is right.
  * 
  * We also provide some default suggestions for quick setups avoiding complicated manual configurations.
  * 
  * @author markr
  *
  */
-public class InfrastructureLayersConfigurator {
+public class TransportLayersConfigurator {
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(InfrastructureLayersConfigurator.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(TransportLayersConfigurator.class.getCanonicalName());
 
   /** track unique proposed layers */
-  protected final Set<String> infrastructureLayersByXmlId = new HashSet<String>();
+  protected final Set<String> transportLayersByXmlId = new HashSet<String>();
 
   /** track mode to layer mapping */
   protected final Map<Mode, String> modeToLayerXmlId = new TreeMap<Mode, String>();
@@ -59,8 +59,8 @@ public class InfrastructureLayersConfigurator {
    * @param modes to use for all in one layer configuration
    * @return configuration reflective of all-in-one approach
    */
-  public static InfrastructureLayersConfigurator createAllInOneConfiguration(Modes modes) {
-    InfrastructureLayersConfigurator allInOne = new InfrastructureLayersConfigurator();
+  public static TransportLayersConfigurator createAllInOneConfiguration(Modes modes) {
+    TransportLayersConfigurator allInOne = new TransportLayersConfigurator();
 
     allInOne.addLayer(ALL_IN_ONE_LAYER_ID);
     modes.forEach(mode -> allInOne.setModeToLayer(mode, ALL_IN_ONE_LAYER_ID));
@@ -105,8 +105,8 @@ public class InfrastructureLayersConfigurator {
    * @param predefinedModes for multi-layer configuration
    * @return configuration reflective of all-in-one approach
    */
-  public static InfrastructureLayersConfigurator createMultiLayerConfiguration(Collection<PredefinedMode> predefinedModes) {
-    InfrastructureLayersConfigurator multiLayerConfiguration = new InfrastructureLayersConfigurator();
+  public static TransportLayersConfigurator createMultiLayerConfiguration(Collection<PredefinedMode> predefinedModes) {
+    TransportLayersConfigurator multiLayerConfiguration = new TransportLayersConfigurator();
 
     /* layers */
     multiLayerConfiguration.addLayer(ON_STREET_LAYER_XML_ID);
@@ -178,7 +178,7 @@ public class InfrastructureLayersConfigurator {
    * @return true if not already present, false otherwise
    */
   public boolean addLayer(String layerXmlId) {
-    return infrastructureLayersByXmlId.add(layerXmlId);
+    return transportLayersByXmlId.add(layerXmlId);
   }
 
   /**
@@ -200,7 +200,7 @@ public class InfrastructureLayersConfigurator {
         modeIter.remove();
       }
     }
-    return infrastructureLayersByXmlId.remove(layerXmlId);
+    return transportLayersByXmlId.remove(layerXmlId);
   }
 
   /**
@@ -211,7 +211,7 @@ public class InfrastructureLayersConfigurator {
    * @return previous layer the mode was added to (if any)
    */
   public String setModeToLayer(Mode mode, String layerXmlId) {
-    if (!infrastructureLayersByXmlId.contains(layerXmlId)) {
+    if (!transportLayersByXmlId.contains(layerXmlId)) {
       LOGGER.warning(String.format("layer %s not registered, can only register a mode for a layer that has been registered", layerXmlId));
     }
     return modeToLayerXmlId.put(mode, layerXmlId);

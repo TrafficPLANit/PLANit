@@ -15,7 +15,7 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkVolumeAccessee;
-import org.planit.network.InfrastructureLayer;
+import org.planit.network.TransportLayer;
 import org.planit.network.macroscopic.MacroscopicNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.od.odmatrix.ODMatrixIterator;
@@ -96,9 +96,9 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     PlanItException.throwIf(!(transportNetwork.getInfrastructureNetwork() instanceof MacroscopicNetwork),
         "Traditional static assignment is only compatible with macroscopic networks");
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) transportNetwork.getInfrastructureNetwork();
-    PlanItException.throwIf(macroscopicNetwork.infrastructureLayers.size() != 1,
+    PlanItException.throwIf(macroscopicNetwork.transportLayers.size() != 1,
         "Traditional static assignment  is currently only compatible with networks using a single infrastructure layer");
-    InfrastructureLayer infrastructureLayer = macroscopicNetwork.infrastructureLayers.getFirst();
+    TransportLayer infrastructureLayer = macroscopicNetwork.transportLayers.getFirst();
     PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicPhysicalNetwork),
         "Traditional static assignment is only compatible with macroscopic physical network layers");
     if (transportNetwork.getInfrastructureNetwork().modes.size() != infrastructureLayer.getSupportedModes().size()) {

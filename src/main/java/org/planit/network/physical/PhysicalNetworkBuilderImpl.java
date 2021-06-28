@@ -17,6 +17,7 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.LinkSegment;
 import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.physical.PhysicalNetworkBuilder;
 
 /**
  * Create network entities for a physical network simulation model
@@ -34,8 +35,13 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
 
   // Public methods
 
-  public PhysicalNetworkBuilderImpl(IdGroupingToken groupId) {
-    this.directedGraphBuilderImpl = new DirectedGraphBuilderImpl(groupId);
+  /**
+   * Constructor
+   * 
+   * @param tokenId to use for id generation
+   */
+  public PhysicalNetworkBuilderImpl(IdGroupingToken tokenId) {
+    this.directedGraphBuilderImpl = new DirectedGraphBuilderImpl(tokenId);
   }
 
   /**
@@ -50,9 +56,9 @@ public class PhysicalNetworkBuilderImpl implements PhysicalNetworkBuilder<Node, 
    * {@inheritDoc}
    */
   @Override
-  public Link createEdge(Vertex nodeA, Vertex nodeB, final double length) throws PlanItException {
-    if (nodeA instanceof Vertex && nodeB instanceof Vertex) {
-      return new LinkImpl(getIdGroupingToken(), (Node) nodeA, (Node) nodeB, length);
+  public Link createEdge(Vertex nodeA, Vertex nodeB) throws PlanItException {
+    if (nodeA instanceof Node && nodeB instanceof Node) {
+      return new LinkImpl(getIdGroupingToken(), (Node) nodeA, (Node) nodeB);
     } else {
       throw new PlanItException("unable to create link, vertices should be of type Node");
     }

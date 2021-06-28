@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.network.InfrastructureLayer;
+import org.planit.network.TransportLayer;
 import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
@@ -41,7 +41,7 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl<LS extends Macroscopi
    */
   @Override
   public Optional<Long> getInfrastructureLayerIdForMode(Mode mode) {
-    InfrastructureLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getInfrastructureLayerByMode(mode);
+    TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode);
     return Optional.of(networkLayer != null ? networkLayer.getId() : null);
   }
 
@@ -53,7 +53,7 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl<LS extends Macroscopi
   @SuppressWarnings("unchecked")
   @Override
   public LinkSegments<LS> getPhysicalLinkSegments(long infrastructureLayerId) {
-    InfrastructureLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().infrastructureLayers.get(infrastructureLayerId);
+    TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().transportLayers.get(infrastructureLayerId);
     if (networkLayer instanceof MacroscopicPhysicalNetwork) {
       return (LinkSegments<LS>) ((MacroscopicPhysicalNetwork) networkLayer).linkSegments;
     }

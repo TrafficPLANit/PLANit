@@ -2,7 +2,7 @@ package org.planit.assignment;
 
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayerNetwork;
 import org.planit.path.choice.PathChoice;
 import org.planit.path.choice.PathChoiceBuilder;
 import org.planit.path.choice.PathChoiceBuilderFactory;
@@ -69,7 +69,7 @@ public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAs
    * @throws PlanItException thrown if there is an exception
    */
   public DynamicTrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands,
-      final Zoning zoning, final InfrastructureNetwork<?,?> network) throws PlanItException {
+      final Zoning zoning, final TransportLayerNetwork<?,?> network) throws PlanItException {
 
     super(trafficAssignmentClass, groupId, inputBuilderListener, demands, zoning, network);
     this.trafficComponentCreateListener = inputBuilderListener;

@@ -15,12 +15,12 @@ import java.util.logging.Logger;
 
 import org.locationtech.jts.geom.LineString;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.planit.graph.GraphBuilder;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.geo.PlanitJtsCrsUtils;
 import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Graph;
+import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.modifier.BreakEdgeListener;
 import org.planit.utils.graph.modifier.GraphModifier;

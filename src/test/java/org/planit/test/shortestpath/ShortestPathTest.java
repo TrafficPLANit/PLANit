@@ -16,7 +16,7 @@ import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
 import org.planit.network.macroscopic.MacroscopicNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
-import org.planit.network.transport.TransportNetwork;
+import org.planit.network.transport.TransportModelNetwork;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.math.Precision;
 import org.planit.utils.network.physical.Link;
@@ -36,7 +36,7 @@ public class ShortestPathTest {
 
   private static final CoordinateReferenceSystem crs = CartesianAuthorityFactory.GENERIC_2D;
 
-  private TransportNetwork transportNetwork;
+  private TransportModelNetwork transportNetwork;
   private MacroscopicNetwork network;
   private MacroscopicPhysicalNetwork networkLayer;
   private Zoning zoning;
@@ -90,7 +90,7 @@ public class ShortestPathTest {
       
       int gridSize = 4;
       network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
-      networkLayer = network.infrastructureLayers.createNew();
+      networkLayer = network.transportLayers.createNew();
       for(int nodeRowIndex = 0;nodeRowIndex<=gridSize;++nodeRowIndex) {
         for(int nodeColIndex = 0;nodeColIndex<=gridSize;++nodeColIndex) {
           String externalId = String.valueOf(nodeRowIndex*gridSize+nodeColIndex);
@@ -166,7 +166,7 @@ public class ShortestPathTest {
       zoning.odConnectoids.registerNew(networkLayer.nodes.get(23), zoneD, 0);
       zoning.odConnectoids.registerNew(networkLayer.nodes.get(24), zoneE, 0);
       
-      transportNetwork = new TransportNetwork(network, zoning);
+      transportNetwork = new TransportModelNetwork(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids();
           
       // costs

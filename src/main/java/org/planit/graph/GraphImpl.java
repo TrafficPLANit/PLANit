@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.Graph;
+import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGenerator;

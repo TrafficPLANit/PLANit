@@ -8,6 +8,7 @@ import java.util.TreeMap;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Edges;
+import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
 
 /**
@@ -49,8 +50,8 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
   }
 
   /**
-   * Add edge to the internal container. Do not use this unless you know what you are doing because it can mess up the contiguous internal id structure of the edges. 
-   * Preferred method is to only use registerNew.
+   * Add edge to the internal container. Do not use this unless you know what you are doing because it can mess up the contiguous internal id structure of the edges. Preferred
+   * method is to only use registerNew.
    *
    * @param edge edge to be registered in this network based on its internal id
    * @return edge, in case it overrides an existing edge, the removed edge is returned
@@ -82,21 +83,20 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
   public Iterator<E> iterator() {
     return edgeMap.values().iterator();
   }
-  
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
-  public E registerNew(Vertex vertexA, Vertex vertexB, double length, boolean registerOnVertices)
-      throws PlanItException {
-    final E newEdge = graphBuilder.createEdge(vertexA, vertexB, length);
+  public E registerNew(Vertex vertexA, Vertex vertexB, boolean registerOnVertices) throws PlanItException {
+    final E newEdge = graphBuilder.createEdge(vertexA, vertexB);
     register(newEdge);
     if (registerOnVertices) {
       vertexA.addEdge(newEdge);
       vertexB.addEdge(newEdge);
-    }    
+    }
     return newEdge;
-  }  
+  }
 
   /**
    * {@inheritDoc}
@@ -123,7 +123,5 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
     register(copy);
     return copy;
   }
-
-
 
 }

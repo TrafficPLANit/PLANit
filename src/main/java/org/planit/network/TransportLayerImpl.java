@@ -9,12 +9,12 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 
 /**
- * Implementation of infrastructure layer interface with only barebones functionality to support ids and modes. Only meant as starting point for actual implementations
+ * Implementation of TransportLayer interface with only barebones functionality to support ids and modes. Only meant as starting point for actual implementations that built on it
  * 
  * @author markr
  *
  */
-public abstract class InfrastructureLayerImpl implements InfrastructureLayer {
+public abstract class TransportLayerImpl implements TransportLayer {
 
   /** unique id for this infrastructure layer */
   protected long id;
@@ -35,7 +35,7 @@ public abstract class InfrastructureLayerImpl implements InfrastructureLayer {
    * @return nodeId
    */
   protected static long generateId(final IdGroupingToken tokenId) {
-    return IdGenerator.generateId(tokenId, InfrastructureLayerImpl.class);
+    return IdGenerator.generateId(tokenId, TransportLayerImpl.class);
   }
 
   /**
@@ -52,7 +52,7 @@ public abstract class InfrastructureLayerImpl implements InfrastructureLayer {
    * 
    * @param tokenId to generate id for this instance for
    */
-  public InfrastructureLayerImpl(IdGroupingToken tokenId) {
+  public TransportLayerImpl(IdGroupingToken tokenId) {
     setId(generateId(tokenId));
 
     this.xmlId = null;

@@ -6,8 +6,8 @@ import java.util.logging.Logger;
 
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
-import org.planit.network.InfrastructureLayer;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayer;
+import org.planit.network.TransportLayerNetwork;
 import org.planit.network.macroscopic.MacroscopicNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.utils.arrays.ArrayUtils;
@@ -259,11 +259,11 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @throws PlanItException thrown if error
    */
   @Override
-  public void initialiseBeforeSimulation(final InfrastructureNetwork<?, ?> network) throws PlanItException {
+  public void initialiseBeforeSimulation(final TransportLayerNetwork<?, ?> network) throws PlanItException {
     PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "BPR cost is only compatible with macroscopic networks");
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
-    PlanItException.throwIf(macroscopicNetwork.infrastructureLayers.size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");
-    InfrastructureLayer infrastructureLayer = macroscopicNetwork.infrastructureLayers.getFirst();
+    PlanItException.throwIf(macroscopicNetwork.transportLayers.size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");
+    TransportLayer infrastructureLayer = macroscopicNetwork.transportLayers.getFirst();
     PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicPhysicalNetwork), "BPR cost is only compatible with macroscopic physical network layers");
     this.networkLayer = (MacroscopicPhysicalNetwork) infrastructureLayer;
     if (network.modes.size() != networkLayer.getSupportedModes().size()) {

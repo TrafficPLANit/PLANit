@@ -2,10 +2,10 @@ package org.planit.network.macroscopic.physical;
 
 import java.util.Map;
 
-import org.planit.network.physical.PhysicalNetworkBuilder;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.physical.PhysicalNetworkBuilder;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.physical.macroscopic.MacroscopicModeProperties;

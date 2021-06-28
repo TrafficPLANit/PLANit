@@ -4,10 +4,10 @@ import java.util.logging.Logger;
 
 import org.planit.network.TopologicalLayer;
 import org.planit.network.physical.PhysicalNetwork;
-import org.planit.network.physical.PhysicalNetworkBuilder;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.physical.Link;
 import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.physical.PhysicalNetworkBuilder;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentTypes;
 

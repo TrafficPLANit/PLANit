@@ -12,13 +12,13 @@ import org.planit.utils.graph.modifier.RemoveSubGraphListener;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
- * A network with topological infrastructure layers, meaning that apart from representing a physical reality the result is topologically meaningful, has nodes, links, and some
+ * A network with topological transport layers, meaning that apart from representing a physical reality the result is topologically meaningful, has nodes, links, and some
  * geographic notion via a coordinate reference system
  * 
  * @author markr
  *
  */
-public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends TopologicalLayers<T>> extends InfrastructureNetwork<T, U> {
+public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends TopologicalLayers<T>> extends TransportLayerNetwork<T, U> {
 
   /** generated serial id */
   private static final long serialVersionUID = 2402806336978560448L;
@@ -70,7 +70,7 @@ public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends T
    * @param coordinateReferenceSystem to set
    */
   public void setCoordinateReferenceSystem(final CoordinateReferenceSystem coordinateReferenceSystem) {
-    if (infrastructureLayers.isEachLayerEmpty()) {
+    if (transportLayers.isEachLayerEmpty()) {
       this.coordinateReferenceSystem = coordinateReferenceSystem;
     } else {
       LOGGER.warning("Coordinate Reference System is already set. To change the CRS after instantiation, use transform() method");
@@ -85,7 +85,7 @@ public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends T
    * @throws PlanItException thrown if error
    */
   public void transform(final CoordinateReferenceSystem newCoordinateReferenceSystem) throws PlanItException {
-    for (TopologicalLayer layer : infrastructureLayers) {
+    for (TopologicalLayer layer : transportLayers) {
       layer.transform(coordinateReferenceSystem, newCoordinateReferenceSystem);
     }
   }
@@ -94,24 +94,24 @@ public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends T
    * Tries to intialise and create/register infrastructure layers via a predefined configuration rather than letting the user do this manually via the infrastructure layers
    * container. Only possible when the network is still empty and no layers are yet active
    * 
-   * @param planitInfrastructureLayerConfiguration to use for configuration
+   * @param transportLayerConfiguration to use for configuration
    */
-  public void initialiseTopologicalLayers(InfrastructureLayersConfigurator planitInfrastructureLayerConfiguration) {
-    if (!infrastructureLayers.isNoLayers()) {
+  public void initialiseTopologicalLayers(TransportLayersConfigurator transportLayerConfiguration) {
+    if (!transportLayers.isNoLayers()) {
       LOGGER.warning("unable to initialise topological layers based on provided configuration, since network already has layers defined");
       return;
     }
 
     /* register layers */
     Map<String, Long> xmlIdToId = new HashedMap<String, Long>();
-    for (String layerXmlId : planitInfrastructureLayerConfiguration.infrastructureLayersByXmlId) {
-      InfrastructureLayer newLayer = infrastructureLayers.createNew();
+    for (String layerXmlId : transportLayerConfiguration.transportLayersByXmlId) {
+      TransportLayer newLayer = transportLayers.createNew();
       newLayer.setXmlId(layerXmlId);
       xmlIdToId.put(layerXmlId, newLayer.getId());
     }
 
     /* register modes */
-    planitInfrastructureLayerConfiguration.modeToLayerXmlId.forEach((mode, layerXmlId) -> infrastructureLayers.get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
+    transportLayerConfiguration.modeToLayerXmlId.forEach((mode, layerXmlId) -> transportLayers.get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
 
   }
 
@@ -148,7 +148,7 @@ public abstract class TopologicalNetwork<T extends TopologicalLayer, U extends T
    * @throws PlanItException thrown if error
    */
   public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener<?, ?>> listeners) throws PlanItException {
-    for (TopologicalLayer infrastructureLayer : this.infrastructureLayers) {
+    for (TopologicalLayer infrastructureLayer : this.transportLayers) {
       infrastructureLayer.removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest, listeners);
     }
   }

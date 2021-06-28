@@ -9,9 +9,8 @@ import java.util.stream.Collectors;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.graph.DirectedGraphImpl;
 import org.planit.graph.modifier.DirectedGraphModifierImpl;
-import org.planit.network.InfrastructureLayer;
-import org.planit.network.TopologicalLayer;
 import org.planit.network.TopologicalLayerImpl;
+import org.planit.network.TransportLayer;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.DirectedGraph;
@@ -25,6 +24,7 @@ import org.planit.utils.network.physical.LinkSegments;
 import org.planit.utils.network.physical.Links;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.Nodes;
+import org.planit.utils.network.physical.PhysicalNetworkBuilder;
 
 /**
  * Model free Network consisting of nodes and links, each of which can be iterated over. This network does not contain any transport specific information, hence the qualification
@@ -32,7 +32,7 @@ import org.planit.utils.network.physical.Nodes;
  *
  * @author markr
  */
-public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegment> extends TopologicalLayerImpl implements TopologicalLayer {
+public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegment> extends TopologicalLayerImpl {
 
   // INNER CLASSES
 
@@ -159,7 +159,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
       getGraph().transformGeometries(PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
     } catch (Exception e) {
       PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
-      throw new PlanItException(String.format("%s error during transformation of network %s CRS", InfrastructureLayer.createLayerLogPrefix(this), getXmlId()), e);
+      throw new PlanItException(String.format("%s error during transformation of physical network %s CRS", TransportLayer.createLayerLogPrefix(this), getXmlId()), e);
     }
   }
 
@@ -190,7 +190,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
     /* check validity */
     if (graphModifier == null) {
       LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored",
-          InfrastructureLayer.createLayerLogPrefix(this)));
+          TransportLayer.createLayerLogPrefix(this)));
       return;
     }
 
@@ -260,7 +260,7 @@ public class PhysicalNetwork<N extends Node, L extends Link, LS extends LinkSegm
       throws PlanItException {
     if (graphModifier == null) {
       LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored",
-          InfrastructureLayer.createLayerLogPrefix(this)));
+          TransportLayer.createLayerLogPrefix(this)));
       return null;
     }
 

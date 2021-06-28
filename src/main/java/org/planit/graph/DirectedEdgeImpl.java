@@ -58,10 +58,20 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param vertexA  first vertex in the link
    * @param vertexB  second vertex in the link
-   * @param lengthKm length of the link in km
-   * @throws PlanItException thrown if there is an error
    */
-  protected DirectedEdgeImpl(final IdGroupingToken groupId, final DirectedVertex vertexA, final DirectedVertex vertexB, final double lengthKm) throws PlanItException {
+  protected DirectedEdgeImpl(final IdGroupingToken groupId, final DirectedVertex vertexA, final DirectedVertex vertexB) {
+    super(groupId, vertexA, vertexB);
+  }
+
+  /**
+   * Constructor which injects link lengths directly
+   *
+   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param vertexA  first vertex in the link
+   * @param vertexB  second vertex in the link
+   * @param lengthKm length of the link in km
+   */
+  protected DirectedEdgeImpl(final IdGroupingToken groupId, final DirectedVertex vertexA, final DirectedVertex vertexB, final double lengthKm) {
     super(groupId, vertexA, vertexB, lengthKm);
   }
 

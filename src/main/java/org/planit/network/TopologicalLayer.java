@@ -7,13 +7,13 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.modifier.RemoveSubGraphListener;
 
 /**
- * An infrastructure layer represents the infrastructure suited for a number of modes. This can be in the form of a physical network or by some other (more aggregate)
- * representation. The combination of infrastructure layers can be used to construct an intermodal network. Each layer supports one or more modes
+ * An topological layer represents a layer suited for a number of modes containing of nodes and links. Since it is topologically meaningful it can have a coordinate reference
+ * system as well.
  * 
  * @author markr
  *
  */
-public interface TopologicalLayer extends InfrastructureLayer {
+public interface TopologicalLayer extends TransportLayer {
 
   /**
    * transform all underlying geometries in the layer from the given crs to the new crs
@@ -22,7 +22,7 @@ public interface TopologicalLayer extends InfrastructureLayer {
    * @param toCoordinateReferenceSystem   to tranform to crs
    * @throws PlanItException thrown if error
    */
-  public abstract void transform(CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException;  
+  public abstract void transform(CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException;
 
   /**
    * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
@@ -33,7 +33,8 @@ public interface TopologicalLayer extends InfrastructureLayer {
    * @param listeners         to call back during removal of danlging subnetworks
    * @throws PlanItException thrown if error
    */
-  public abstract void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener<?, ?>> listeners) throws PlanItException;
+  public abstract void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener<?, ?>> listeners)
+      throws PlanItException;
 
   /**
    * Number of nodes

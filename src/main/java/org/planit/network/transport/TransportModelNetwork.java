@@ -2,7 +2,7 @@ package org.planit.network.transport;
 
 import java.util.Collection;
 
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayerNetwork;
 import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.utils.exceptions.PlanItException;
@@ -21,12 +21,12 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public class TransportNetwork {
+public class TransportModelNetwork {
 
   /**
    * Holds the infrastructure road network that is being modelled
    */
-  protected final InfrastructureNetwork<?,?> infrastructureNetwork;
+  protected final TransportLayerNetwork<?,?> infrastructureNetwork;
 
   /**
    * Holds the zoning structure and virtual transport network interfacing with the physical network
@@ -98,7 +98,7 @@ public class TransportNetwork {
    * @param infrastructureNetwork the network used to generate this TransportNetwork
    * @param zoning                the Zoning used to generate this TransportNetwork
    */
-  public TransportNetwork(InfrastructureNetwork<?,?> infrastructureNetwork, Zoning zoning) {
+  public TransportModelNetwork(TransportLayerNetwork<?,?> infrastructureNetwork, Zoning zoning) {
     this.infrastructureNetwork = infrastructureNetwork;
     this.zoning = zoning;
   }
@@ -119,7 +119,7 @@ public class TransportNetwork {
    */
   public int getTotalNumberOfPhysicalLinkSegments() {
     int totalPhysicalLinkSegments = 0;
-    Collection<MacroscopicPhysicalNetwork> networkLayers = getInfrastructureNetwork().infrastructureLayers.<MacroscopicPhysicalNetwork>getLayersOfType();
+    Collection<MacroscopicPhysicalNetwork> networkLayers = getInfrastructureNetwork().transportLayers.<MacroscopicPhysicalNetwork>getLayersOfType();
     for(MacroscopicPhysicalNetwork layer :  networkLayers) {
       totalPhysicalLinkSegments += layer.getNumberOfLinkSegments();
     }
@@ -151,7 +151,7 @@ public class TransportNetwork {
    */
   public int getTotalNumberOfPhysicalNodes() {
     int totalPhysicalNodes = 0;
-    Collection<MacroscopicPhysicalNetwork> networkLayers = getInfrastructureNetwork().infrastructureLayers.<MacroscopicPhysicalNetwork>getLayersOfType();
+    Collection<MacroscopicPhysicalNetwork> networkLayers = getInfrastructureNetwork().transportLayers.<MacroscopicPhysicalNetwork>getLayersOfType();
     for(MacroscopicPhysicalNetwork layer :  networkLayers) {
       totalPhysicalNodes += layer.getNumberOfNodes();
     }    
@@ -204,7 +204,7 @@ public class TransportNetwork {
    * 
    * @return physicalNetwork
    */
-  public InfrastructureNetwork<?,?> getInfrastructureNetwork() {
+  public TransportLayerNetwork<?,?> getInfrastructureNetwork() {
     return infrastructureNetwork;
   }
 

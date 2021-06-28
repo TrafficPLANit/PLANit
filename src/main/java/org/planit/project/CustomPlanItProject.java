@@ -16,8 +16,8 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
-import org.planit.network.InfrastructureLayer;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayer;
+import org.planit.network.TransportLayerNetwork;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;
 import org.planit.path.OdPathSets;
@@ -152,7 +152,7 @@ public class CustomPlanItProject {
    * @return the generated infrastructure network
    * @throws PlanItException thrown if there is an error
    */
-  public InfrastructureNetwork<?,?> createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
+  public TransportLayerNetwork<?,?> createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
     return inputs.createAndRegisterInfrastructureNetwork(infrastructureNetworkType);
   }
 
@@ -163,7 +163,7 @@ public class CustomPlanItProject {
    * @return the generated zoning object
    * @throws PlanItException thrown if there is an error
    */
-  public Zoning createAndRegisterZoning(final InfrastructureNetwork<?,?> network) throws PlanItException {
+  public Zoning createAndRegisterZoning(final TransportLayerNetwork<?,?> network) throws PlanItException {
     return inputs.createAndRegisterZoning(network);
   }
 
@@ -175,7 +175,7 @@ public class CustomPlanItProject {
    * @return the generated demands object
    * @throws PlanItException thrown if there is an error
    */
-  public Demands createAndRegisterDemands(final Zoning zoning, final InfrastructureNetwork<?,?> network) throws PlanItException {
+  public Demands createAndRegisterDemands(final Zoning zoning, final TransportLayerNetwork<?,?> network) throws PlanItException {
     return inputs.createAndRegisterDemands(zoning, network);
   }
 
@@ -188,7 +188,7 @@ public class CustomPlanItProject {
    * @return od path sets that have been parsed
    * @throws PlanItException thrown if there is an error
    */
-  public OdPathSets createAndRegisterOdPathSets(final InfrastructureLayer networkLayer, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
+  public OdPathSets createAndRegisterOdPathSets(final TransportLayer networkLayer, final Zoning zoning, final String odPathSetInputPath) throws PlanItException {
     return inputs.createAndRegisterOdPathSets(networkLayer, zoning, odPathSetInputPath);
   }
 
@@ -203,7 +203,7 @@ public class CustomPlanItProject {
    * @throws PlanItException thrown if there is an error
    */
   public TrafficAssignmentConfigurator<? extends TrafficAssignment> createAndRegisterTrafficAssignment(final String trafficAssignmentType, final Demands theDemands,
-      final Zoning theZoning, final InfrastructureNetwork<?,?> theNetwork) throws PlanItException {
+      final Zoning theZoning, final TransportLayerNetwork<?,?> theNetwork) throws PlanItException {
 
     TrafficAssignmentBuilder<?> taBuilder = 
         TrafficAssignmentBuilderFactory.createBuilder(
@@ -225,7 +225,7 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork<?,?> network, final String fileName) throws PlanItException {
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?,?> network, final String fileName) throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName);
   }
 
@@ -238,7 +238,7 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCostPeriod object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork<?,?> network, final String fileName, final TimePeriod timePeriod)
+  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?,?> network, final String fileName, final TimePeriod timePeriod)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
   }
@@ -252,7 +252,7 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCostPeriod objects
    * @throws PlanItException thrown if there is an error
    */
-  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final InfrastructureNetwork<?,?> network, final String fileName, final Demands demands)
+  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?,?> network, final String fileName, final Demands demands)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, demands);
   }
@@ -278,7 +278,7 @@ public class CustomPlanItProject {
    * @param network the specified network
    * @return the initial link segment costs for the specified physical network
    */
-  public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final InfrastructureNetwork<?,?> network) {
+  public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final TransportLayerNetwork<?,?> network) {
     return inputs.getInitialLinkSegmentCost(network);
   }
 

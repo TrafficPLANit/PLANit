@@ -3,14 +3,15 @@ package org.planit.network;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
- * An infrastructure layer that is of a topological nature, i.e., it has node, links, etc.
+ * An transport layer that is of a topological nature, i.e., it has node, links, etc.
  * 
  * @author markr
  *
  */
-public abstract class TopologicalLayerImpl extends InfrastructureLayerImpl implements TopologicalLayer{
+public abstract class TopologicalLayerImpl extends TransportLayerImpl implements TopologicalLayer {
 
-  /** Constructor
+  /**
+   * Constructor
    * 
    * @param tokenId for id generation
    */

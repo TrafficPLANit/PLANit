@@ -1,7 +1,7 @@
 package org.planit.converter.network;
 
 import org.planit.converter.ConverterWriter;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayerNetwork;
 
 /**
  * Interface to write a PLANit network to disk
@@ -9,7 +9,7 @@ import org.planit.network.InfrastructureNetwork;
  * @author markr
  *
  */
-public interface NetworkWriter extends ConverterWriter<InfrastructureNetwork<?,?>> {
+public interface NetworkWriter extends ConverterWriter<TransportLayerNetwork<?,?>> {
   
   /**
    * {@inheritDoc}

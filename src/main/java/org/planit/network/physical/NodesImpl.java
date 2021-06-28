@@ -1,7 +1,6 @@
 package org.planit.network.physical;
 
-import java.util.Iterator;
-
+import org.planit.graph.VerticesWrapper;
 import org.planit.utils.graph.Vertices;
 import org.planit.utils.network.physical.Node;
 import org.planit.utils.network.physical.Nodes;
@@ -14,84 +13,15 @@ import org.planit.utils.network.physical.Nodes;
  *
  * @param <N> concrete class of nodes that are being created
  */
-public class NodesImpl<N extends Node> implements Nodes<N> {
-
-  /**
-   * The vertices we use to create and register our nodes on
-   */
-  private final Vertices<N> vertices;
+public class NodesImpl<N extends Node> extends VerticesWrapper<N> implements Nodes<N> {
 
   /**
    * Constructor
    * 
-   * @param vertices the vertices to use to create and register nodes on
+   * @param nodes the container instance to use to create and register nodes on
    */
-  public NodesImpl(final Vertices<N> vertices) {
-    this.vertices = vertices;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void remove(final N node) {
-    vertices.remove(node);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void remove(long nodeId) {
-    vertices.remove(nodeId);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public N createNew() {
-    return vertices.createNew();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public N register(final N node) {
-    return vertices.register(node);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Iterator<N> iterator() {
-    return vertices.iterator();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public N registerNew() {
-    return vertices.registerNew();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int size() {
-    return vertices.size();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public N get(final long id) {
-    return vertices.get(id);
+  public NodesImpl(final Vertices<N> nodes) {
+    super(nodes);
   }
 
 }

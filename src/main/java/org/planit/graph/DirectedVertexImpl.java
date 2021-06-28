@@ -84,7 +84,8 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
     } else if (edgeSegment.getDownstreamVertex().getId() == getId()) {
       return entryEdgeSegments.add(edgeSegment);
     }
-    LOGGER.warning(String.format("edge segment %s (id:%d) does not have this vertex %s (%d) on either end", edgeSegment.getExternalId(), edgeSegment.getId()));
+    LOGGER.warning(
+        String.format("Edge segment %s (id:%d) does not have this vertex %s (%d) on either end", edgeSegment.getExternalId(), edgeSegment.getId(), getExternalId(), getId()));
     return false;
   }
 

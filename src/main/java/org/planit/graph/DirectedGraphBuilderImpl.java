@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedEdge;
+import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
@@ -47,9 +48,9 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdge createEdge(Vertex vertexA, Vertex vertexB, final double lengthKm) throws PlanItException {
+  public DirectedEdge createEdge(Vertex vertexA, Vertex vertexB) throws PlanItException {
     if (vertexA instanceof DirectedVertex && vertexB instanceof DirectedVertex) {
-      return new DirectedEdgeImpl(graphBuilder.getIdGroupingToken(), (DirectedVertex) vertexA, (DirectedVertex) vertexB, lengthKm);
+      return new DirectedEdgeImpl(graphBuilder.getIdGroupingToken(), (DirectedVertex) vertexA, (DirectedVertex) vertexB);
     }
     throw new PlanItException("unable to create directed edge since provides vertices are not directed");
   }

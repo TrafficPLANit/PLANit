@@ -3,7 +3,7 @@ package org.planit.converter.network;
 import java.util.logging.Logger;
 
 import org.planit.converter.Converter;
-import org.planit.network.InfrastructureNetwork;
+import org.planit.network.TransportLayerNetwork;
 
 /**
  * Network converter class able to convert a network from one type to another
@@ -11,7 +11,7 @@ import org.planit.network.InfrastructureNetwork;
  * @author markr
  *
  */
-public class NetworkConverter extends Converter<InfrastructureNetwork<?,?>> {
+public class NetworkConverter extends Converter<TransportLayerNetwork<?,?>> {
 
   /** the logger */
   @SuppressWarnings("unused")

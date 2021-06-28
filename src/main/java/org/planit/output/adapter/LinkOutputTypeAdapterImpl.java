@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.network.InfrastructureLayer;
+import org.planit.network.TransportLayer;
 import org.planit.network.physical.PhysicalNetwork;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
@@ -42,7 +42,7 @@ public abstract class LinkOutputTypeAdapterImpl<LS extends LinkSegment> extends 
   @SuppressWarnings("unchecked")
   @Override
   public LinkSegments<LS> getPhysicalLinkSegments(long infrastructureLayerId) {
-    InfrastructureLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().infrastructureLayers.get(infrastructureLayerId);
+    TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().transportLayers.get(infrastructureLayerId);
     if (networkLayer instanceof PhysicalNetwork) {
       return ((PhysicalNetwork<?,?,LS>) networkLayer).linkSegments;
     }
