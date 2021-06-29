@@ -12,7 +12,7 @@ import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
 import org.planit.network.TransportLayerNetwork;
-import org.planit.network.macroscopic.physical.MacroscopicLinkSegmentImpl;
+import org.planit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.output.OutputManager;
 import org.planit.output.adapter.OutputTypeAdapter;

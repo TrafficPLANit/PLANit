@@ -49,16 +49,16 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public void remove(ES linkSegment) {
-    edgeSegments.remove(linkSegment);
+  public ES remove(ES edgeSegment) {
+    return edgeSegments.remove(edgeSegment);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void remove(long edgeSegmentId) {
-    edgeSegments.remove(edgeSegmentId);
+  public ES remove(final long edgeSegmentId) {
+    return edgeSegments.remove(edgeSegmentId);
   }
 
   /**
@@ -97,7 +97,15 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public long size() {
+  public ES getByExternalId(String xmlId) {
+    return edgeSegments.getByExternalId(xmlId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int size() {
     return edgeSegments.size();
   }
 

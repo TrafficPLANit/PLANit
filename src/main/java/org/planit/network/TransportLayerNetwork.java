@@ -8,6 +8,8 @@ import org.planit.mode.ModesImpl;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.Modes;
+import org.planit.utils.network.TransportLayers;
+import org.planit.utils.network.layer.TransportLayer;
 
 /**
  * A transport network with one or more layers. One can choose the container for the different layers as a generic type that defines the container level operations available. Each
@@ -87,7 +89,7 @@ public abstract class TransportLayerNetwork<U extends TransportLayer, T extends 
     /* register layers */
     Map<String, Long> xmlIdToId = new HashedMap<String, Long>();
     for (String layerXmlId : layerConfiguration.transportLayersByXmlId) {
-      TransportLayer newLayer = transportLayers.createNew();
+      TransportLayer newLayer = transportLayers.createAndRegisterNew();
       newLayer.setXmlId(layerXmlId);
       xmlIdToId.put(layerXmlId, newLayer.getId());
     }

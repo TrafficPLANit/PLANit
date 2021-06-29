@@ -3,7 +3,7 @@ package org.planit.network.transport;
 import java.util.Collection;
 
 import org.planit.network.TransportLayerNetwork;
-import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
+import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayer;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
@@ -119,8 +119,8 @@ public class TransportModelNetwork {
    */
   public int getTotalNumberOfPhysicalLinkSegments() {
     int totalPhysicalLinkSegments = 0;
-    Collection<MacroscopicPhysicalNetwork> networkLayers = getInfrastructureNetwork().transportLayers.<MacroscopicPhysicalNetwork>getLayersOfType();
-    for(MacroscopicPhysicalNetwork layer :  networkLayers) {
+    Collection<MacroscopicPhysicalLayer> networkLayers = getInfrastructureNetwork().transportLayers.<MacroscopicPhysicalLayer>getLayersOfType();
+    for(MacroscopicPhysicalLayer layer :  networkLayers) {
       totalPhysicalLinkSegments += layer.getNumberOfLinkSegments();
     }
     return totalPhysicalLinkSegments;
@@ -151,8 +151,8 @@ public class TransportModelNetwork {
    */
   public int getTotalNumberOfPhysicalNodes() {
     int totalPhysicalNodes = 0;
-    Collection<MacroscopicPhysicalNetwork> networkLayers = getInfrastructureNetwork().transportLayers.<MacroscopicPhysicalNetwork>getLayersOfType();
-    for(MacroscopicPhysicalNetwork layer :  networkLayers) {
+    Collection<MacroscopicPhysicalLayer> networkLayers = getInfrastructureNetwork().transportLayers.<MacroscopicPhysicalLayer>getLayersOfType();
+    for(MacroscopicPhysicalLayer layer :  networkLayers) {
       totalPhysicalNodes += layer.getNumberOfNodes();
     }    
     

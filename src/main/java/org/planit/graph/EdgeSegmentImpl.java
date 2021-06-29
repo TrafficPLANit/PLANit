@@ -70,8 +70,19 @@ public class EdgeSegmentImpl extends ExternalIdAbleImpl implements EdgeSegment {
    * @throws PlanItException thrown when parent edge's vertices are incompatible with directional edge segments
    */
   protected EdgeSegmentImpl(final IdGroupingToken groupId, final DirectedEdge parentEdge, final boolean directionAB) throws PlanItException {
-    super(generateEdgeSegmentId(groupId));
+    this(groupId, directionAB);
     setParentEdge(parentEdge);
+  }
+
+  /**
+   * Constructor (without setting parent edge)
+   *
+   * @param groupId     contiguous id generation within this group for instances of this class
+   * @param directionAB direction of travel
+   * @throws PlanItException thrown when parent edge's vertices are incompatible with directional edge segments
+   */
+  protected EdgeSegmentImpl(final IdGroupingToken groupId, final boolean directionAB) throws PlanItException {
+    super(generateEdgeSegmentId(groupId));
 
     if (!(parentEdge.getVertexA() instanceof DirectedVertex && parentEdge.getVertexB() instanceof DirectedVertex)) {
       throw new PlanItException(String.format("parent edges (id:%d) vertices do not support directed edge segments, they must be of type DirectedVertex", parentEdge.getId()));

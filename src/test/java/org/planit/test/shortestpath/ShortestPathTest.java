@@ -14,14 +14,14 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.algorithms.shortestpath.AStarShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
+import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayer;
 import org.planit.network.macroscopic.MacroscopicNetwork;
-import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.math.Precision;
-import org.planit.utils.network.physical.Link;
-import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.layer.physical.Link;
+import org.planit.utils.network.layer.physical.LinkSegment;
+import org.planit.utils.network.layer.physical.Node;
 import org.planit.utils.zoning.Centroid;
 import org.planit.utils.zoning.Zone;
 import org.planit.zoning.Zoning;
@@ -38,7 +38,7 @@ public class ShortestPathTest {
 
   private TransportModelNetwork transportNetwork;
   private MacroscopicNetwork network;
-  private MacroscopicPhysicalNetwork networkLayer;
+  private MacroscopicPhysicalLayer networkLayer;
   private Zoning zoning;
 
   double[] linkSegmentCosts;
@@ -90,7 +90,7 @@ public class ShortestPathTest {
       
       int gridSize = 4;
       network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
-      networkLayer = network.transportLayers.createNew();
+      networkLayer = network.transportLayers.createAndRegisterNew();
       for(int nodeRowIndex = 0;nodeRowIndex<=gridSize;++nodeRowIndex) {
         for(int nodeColIndex = 0;nodeColIndex<=gridSize;++nodeColIndex) {
           String externalId = String.valueOf(nodeRowIndex*gridSize+nodeColIndex);

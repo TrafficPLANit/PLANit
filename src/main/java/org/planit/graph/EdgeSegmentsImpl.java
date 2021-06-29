@@ -1,6 +1,5 @@
 package org.planit.graph;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -11,6 +10,7 @@ import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
+import org.planit.utils.wrapper.LongMapWrapper;
 
 /**
  * Implementation of EdgeSegments interface.
@@ -20,7 +20,7 @@ import org.planit.utils.graph.EdgeSegments;
  *
  * @param <ES> edge segments type
  */
-public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES> {
+public class EdgeSegmentsImpl<ES extends EdgeSegment> extends LongMapWrapper<ES> implements EdgeSegments<ES> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -32,27 +32,13 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   protected DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> directedGraphBuilder;
 
   /**
-   * Map to store edge segments by their Id
-   */
-  private Map<Long, ES> edgeSegmentMap;
-
-  /**
    * updates the edge segments map keys based on edge segment ids in case an external force has changed already registered edges
    */
   protected void updateIdMapping() {
     /* identify which entries need to be re-registered because of a mismatch */
     Map<Long, ES> updatedMap = new TreeMap<Long, ES>();
-    edgeSegmentMap.forEach((oldId, edgeSegment) -> updatedMap.put(edgeSegment.getId(), edgeSegment));
-    edgeSegmentMap = updatedMap;
-  }
-
-  /**
-   * Register an edge segment. Use cautiously, Only register via a factory method to ensure correct id generation within the container
-   *
-   * @param edgeSegment the link segment to be registered
-   */
-  public void register(final ES edgeSegment) {
-    edgeSegmentMap.put(edgeSegment.getId(), edgeSegment);
+    getMap().forEach((oldId, edgeSegment) -> updatedMap.put(edgeSegment.getId(), edgeSegment));
+    setMap(updatedMap);
   }
 
   /**
@@ -61,39 +47,16 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
    * @param graphBuilder the graphBuilder to use to create edge segments
    */
   public EdgeSegmentsImpl(DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> graphBuilder) {
+    super(new TreeMap<Long, ES>(), ES::getId);
     this.directedGraphBuilder = graphBuilder;
-    this.edgeSegmentMap = new TreeMap<Long, ES>();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void remove(ES edgeSegment) {
-    edgeSegmentMap.remove(edgeSegment.getId());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void remove(long edgeSegmentId) {
-    edgeSegmentMap.remove(edgeSegmentId);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Iterator<ES> iterator() {
-    return edgeSegmentMap.values().iterator();
   }
 
   /**
    * {@inheritDoc}
    */
   public ES create(final DirectedEdge parentEdge, final boolean directionAB) throws PlanItException {
-    final ES edgeSegment = directedGraphBuilder.createEdgeSegment(parentEdge, directionAB);
+    final ES edgeSegment = directedGraphBuilder.createEdgeSegment(directionAB);
+    edgeSegment.setParentEdge(parentEdge);
     return edgeSegment;
   }
 
@@ -123,13 +86,6 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
   }
 
   /**
-   * {@inheritDoc}
-   */
-  public ES get(final long id) {
-    return edgeSegmentMap.get(id);
-  }
-
-  /**
    * Return an edge segment by its Xml id
    * 
    * Note: not an efficient implementation since it loops over all edge segments in linear time to identify the correct one, preferably use get instead whenever possible.
@@ -139,19 +95,20 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
    */
   @Override
   public ES getByXmlId(String xmlId) {
-    for (ES edgeSegment : this) {
-      if (xmlId.equals(edgeSegment.getXmlId())) {
-        return edgeSegment;
-      }
-    }
-    return null;
+    return findFirst(edgeSegment -> xmlId.equals(((ES) edgeSegment).getXmlId()));
   }
 
   /**
-   * {@inheritDoc}
+   * Return an edge segment by its external id
+   * 
+   * Note: not an efficient implementation since it loops over all edge segments in linear time to identify the correct one, preferably use get instead whenever possible.
+   * 
+   * @param xmlId the XML id of the edge segment
+   * @return the specified edge segment instance
    */
-  public long size() {
-    return edgeSegmentMap.size();
+  @Override
+  public ES getByExternalId(String externalId) {
+    return findFirst(edgeSegment -> externalId.equals(((ES) edgeSegment).getExternalId()));
   }
 
   /**
@@ -159,7 +116,8 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> implements EdgeSegments<ES
    */
   @Override
   public ES registerUniqueCopyOf(ES edgeSegmentToCopy, DirectedEdge newParentEdge) {
-    final ES copy = directedGraphBuilder.createUniqueCopyOf(edgeSegmentToCopy, newParentEdge);
+    final ES copy = directedGraphBuilder.createUniqueCopyOf(edgeSegmentToCopy, null /* cannot set new parent edge directly due to generics */);
+    copy.setParentEdge(newParentEdge);
     register(copy);
     return copy;
   }

@@ -6,17 +6,17 @@ import java.util.logging.Logger;
 
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
-import org.planit.network.TransportLayer;
 import org.planit.network.TransportLayerNetwork;
+import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayer;
 import org.planit.network.macroscopic.MacroscopicNetwork;
-import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.network.layer.TransportLayer;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 
 /**
  * Well known BPR link performance function to compute travel time cost on link segment based on flow and configuration parameters. An instance of this class is compatible with a
@@ -82,7 +82,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   }
 
   /** the network layer the BPR is applied to */
-  protected MacroscopicPhysicalNetwork networkLayer;
+  protected MacroscopicPhysicalLayer networkLayer;
 
   /**
    * Link volume accessee object for this cost function
@@ -264,8 +264,8 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.transportLayers.size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");
     TransportLayer infrastructureLayer = macroscopicNetwork.transportLayers.getFirst();
-    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicPhysicalNetwork), "BPR cost is only compatible with macroscopic physical network layers");
-    this.networkLayer = (MacroscopicPhysicalNetwork) infrastructureLayer;
+    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicPhysicalLayer), "BPR cost is only compatible with macroscopic physical network layers");
+    this.networkLayer = (MacroscopicPhysicalLayer) infrastructureLayer;
     if (network.modes.size() != networkLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by only layer, this makes the assignment less efficient, consider removing unused modes");
     }

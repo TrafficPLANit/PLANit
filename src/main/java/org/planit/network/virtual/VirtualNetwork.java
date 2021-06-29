@@ -12,7 +12,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.layer.physical.Node;
 import org.planit.utils.network.virtual.ConnectoidEdge;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.zoning.Connectoid;

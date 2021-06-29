@@ -4,13 +4,13 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.network.TransportLayer;
-import org.planit.network.physical.PhysicalNetwork;
+import org.planit.network.layer.physical.PhysicalLayerImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.LinkSegments;
+import org.planit.utils.network.layer.TransportLayer;
+import org.planit.utils.network.layer.physical.LinkSegment;
+import org.planit.utils.network.layer.physical.LinkSegments;
 
 /**
  * Top-level abstract class which defines the common methods required by Link output type adapters
@@ -43,8 +43,8 @@ public abstract class LinkOutputTypeAdapterImpl<LS extends LinkSegment> extends 
   @Override
   public LinkSegments<LS> getPhysicalLinkSegments(long infrastructureLayerId) {
     TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().transportLayers.get(infrastructureLayerId);
-    if (networkLayer instanceof PhysicalNetwork) {
-      return ((PhysicalNetwork<?,?,LS>) networkLayer).linkSegments;
+    if (networkLayer instanceof PhysicalLayerImpl) {
+      return ((PhysicalLayerImpl<?,?,LS>) networkLayer).linkSegments;
     }
     LOGGER.warning(String.format("cannot collect physical link segments from infrastructure layer %s, as it is not a physical network layer", networkLayer.getXmlId()));
     return null;

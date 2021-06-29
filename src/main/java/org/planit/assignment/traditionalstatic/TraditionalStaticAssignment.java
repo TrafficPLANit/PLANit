@@ -15,9 +15,8 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkVolumeAccessee;
-import org.planit.network.TransportLayer;
+import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayer;
 import org.planit.network.macroscopic.MacroscopicNetwork;
-import org.planit.network.macroscopic.physical.MacroscopicPhysicalNetwork;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
@@ -36,8 +35,9 @@ import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.TransportLayer;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.time.TimePeriod;
@@ -71,7 +71,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   /**
    * the layer used for this assignment
    */
-  private MacroscopicPhysicalNetwork networkLayer;
+  private MacroscopicPhysicalLayer networkLayer;
   
   /** to generate paths we use a path builder that is configured to generate appropriate ids */
   private DirectedPathBuilder<DirectedPath> localPathBuilder;
@@ -99,13 +99,13 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     PlanItException.throwIf(macroscopicNetwork.transportLayers.size() != 1,
         "Traditional static assignment  is currently only compatible with networks using a single infrastructure layer");
     TransportLayer infrastructureLayer = macroscopicNetwork.transportLayers.getFirst();
-    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicPhysicalNetwork),
+    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicPhysicalLayer),
         "Traditional static assignment is only compatible with macroscopic physical network layers");
     if (transportNetwork.getInfrastructureNetwork().modes.size() != infrastructureLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by the single available layer, consider removing unused modes");
     }
     /* register the layer */
-    this.networkLayer = (MacroscopicPhysicalNetwork) infrastructureLayer;
+    this.networkLayer = (MacroscopicPhysicalLayer) infrastructureLayer;
   }
 
   /**

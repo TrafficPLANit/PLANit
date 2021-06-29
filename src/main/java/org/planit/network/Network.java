@@ -24,7 +24,7 @@ public class Network extends TrafficAssignmentComponent<Network> implements Seri
 
   /** shorthand for creating a macroscopic infrastructure network */
   public static final String MACROSCOPIC_NETWORK = MacroscopicNetwork.class.getCanonicalName();
-  
+
   /**
    * Constructor
    * 
@@ -33,12 +33,12 @@ public class Network extends TrafficAssignmentComponent<Network> implements Seri
   public Network(final IdGroupingToken tokenId) {
     super(tokenId, Network.class);
     this.networkIdGroupingToken = IdGenerator.createIdGroupingToken(this, getId());
-  }    
+  }
 
   /**
    * collect the grouping token for this network instance
    * 
-   * @return id groupoing token
+   * @return id grouping token
    */
   public IdGroupingToken getNetworkGroupingTokenId() {
     return networkIdGroupingToken;

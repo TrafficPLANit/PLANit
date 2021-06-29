@@ -1,9 +1,6 @@
 package org.planit.mode;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
@@ -14,6 +11,7 @@ import org.planit.utils.mode.PhysicalModeFeatures;
 import org.planit.utils.mode.PredefinedMode;
 import org.planit.utils.mode.PredefinedModeType;
 import org.planit.utils.mode.UsabilityModeFeatures;
+import org.planit.utils.wrapper.LongMapWrapper;
 
 /**
  * Implementation of the Modes interface to create and register modes on itself
@@ -21,15 +19,11 @@ import org.planit.utils.mode.UsabilityModeFeatures;
  * @author mark
  *
  */
-public class ModesImpl implements Modes {
+public class ModesImpl extends LongMapWrapper<Mode> implements Modes {
 
   @SuppressWarnings("unused")
 
   private static final Logger LOGGER = Logger.getLogger(ModesImpl.class.getCanonicalName());
-  /**
-   * Map to store modes by their Id
-   */
-  private final Map<Long, Mode> modeMap = new TreeMap<Long, Mode>();
 
   /**
    * create id's for modes based on this group token
@@ -42,25 +36,8 @@ public class ModesImpl implements Modes {
    * @param groupId to generated id's within this group
    */
   public ModesImpl(IdGroupingToken groupId) {
+    super(new HashMap<Long, Mode>(), Mode::getId);
     this.groupId = groupId;
-  }
-
-  /**
-   * Add mode to the internal container
-   *
-   * @param mode to be registered in this network
-   * @return mode, in case it overrides an existing mode, the removed mode is returned
-   */
-  protected Mode register(final Mode mode) {
-    return modeMap.put(mode.getId(), mode);
-  }
-
-  /**
-   * Iterator over available modes
-   */
-  @Override
-  public Iterator<Mode> iterator() {
-    return modeMap.values().iterator();
   }
 
   /**
@@ -93,24 +70,8 @@ public class ModesImpl implements Modes {
    * {@inheritDoc}
    */
   @Override
-  public int size() {
-    return modeMap.size();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Mode get(long id) {
-    return modeMap.get(id);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public boolean containsPredefinedMode(PredefinedModeType modeType) {
-    return modeMap.values().stream().anyMatch(mode -> (mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()));
+    return getMap().values().stream().anyMatch(mode -> (mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()));
   }
 
   /**
@@ -118,7 +79,7 @@ public class ModesImpl implements Modes {
    */
   @Override
   public PredefinedMode get(PredefinedModeType modeType) {
-    return (PredefinedMode) modeMap.values().stream().dropWhile(mode -> !((mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()))).findFirst().get();
+    return (PredefinedMode) getMap().values().stream().dropWhile(mode -> !((mode instanceof PredefinedMode) && mode.getName().equals(modeType.value()))).findFirst().get();
   }
 
   /**
@@ -140,20 +101,7 @@ public class ModesImpl implements Modes {
    */
   @Override
   public Mode getByXmlId(String xmlId) {
-    for (Mode mode : modeMap.values()) {
-      if (xmlId.equals(mode.getXmlId())) {
-        return mode;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}}
-   */
-  @Override
-  public Set<Mode> setOf() {
-    return Set.copyOf(modeMap.values());
+    return findFirst(mode -> xmlId.equals(((Mode) mode).getXmlId()));
   }
 
 }

@@ -16,7 +16,6 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
-import org.planit.network.TransportLayer;
 import org.planit.network.TransportLayerNetwork;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.formatter.OutputFormatterFactory;
@@ -26,6 +25,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
+import org.planit.utils.network.layer.TransportLayer;
 import org.planit.zoning.Zoning;
 
 /**

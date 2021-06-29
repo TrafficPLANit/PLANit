@@ -2,8 +2,6 @@ package org.planit.demands;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -20,6 +18,7 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.time.TimePeriodUtils;
+import org.planit.utils.wrapper.LongMapWrapper;
 
 /**
  * Container class for all demands registered on the project. In PlanIt we assume that all traffic flows between an origin and destination. Hence all demand for a given time period
@@ -54,27 +53,13 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
    * @author markr
    *
    */
-  public class TravelerTypes implements Iterable<TravelerType> {
-
-    /**
-     * traveler types are stored in an ordered fashion using a hash map
-     */
-    private final Map<Long, TravelerType> travelerTypeMap;
-
-    /**
-     * Register a traveler type
-     * 
-     * @param travelerType traveler type to be registered
-     */
-    protected void registerTravelerType(TravelerType travelerType) {
-      travelerTypeMap.put(travelerType.getId(), travelerType);
-    }
+  public class TravelerTypes extends LongMapWrapper<TravelerType> {
 
     /**
      * Constructor
      */
     public TravelerTypes() {
-      this.travelerTypeMap = new HashMap<Long, TravelerType>();
+      super(new HashMap<Long, TravelerType>(), TravelerType::getId);
     }
 
     /**
@@ -83,20 +68,10 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @param name the name of the travel type
      * @return new traveler type created
      */
-    public TravelerType createAndRegisterNewTravelerType(String name) {
+    public TravelerType createAndRegisterNew(String name) {
       TravelerType newTravelerType = new TravelerType(getIdGroupingToken(), name);
-      registerTravelerType(newTravelerType);
+      register(newTravelerType);
       return newTravelerType;
-    }
-
-    /**
-     * Retrieve a traveler type by its id
-     * 
-     * @param id id of the traveler type
-     * @return retrieved traveler type, if not present null is returned
-     */
-    public TravelerType getTravelerTypeById(final long id) {
-      return travelerTypeMap.get(id);
     }
 
     /**
@@ -105,17 +80,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @return first registered traveler type
      */
     public TravelerType getFirst() {
-      return getTravelerTypeById(0);
-    }
-
-    /**
-     * Iterator for traveler types (non-sorted)
-     * 
-     * @return iterator
-     */
-    @Override
-    public Iterator<TravelerType> iterator() {
-      return travelerTypeMap.values().iterator();
+      return get(0);
     }
 
     /**
@@ -126,22 +91,8 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @param xmlId the XML Id of the specified traveler type
      * @return the retrieved traveler type, or null if no traveler type was found
      */
-    public TravelerType getTravelerTypeByXmlId(String xmlId) {
-      for (TravelerType travelerType : travelerTypes) {
-        if (xmlId.equals(travelerType.getExternalId())) {
-          return travelerType;
-        }
-      }
-      return null;
-    }
-
-    /**
-     * Collect the number of registered traveler types
-     * 
-     * @return number of registered traveler types
-     */
-    public int getNumberOfTravelerTypes() {
-      return travelerTypeMap.size();
+    public TravelerType getByXmlId(String xmlId) {
+      return findFirst(travelerType -> xmlId.equals(((TravelerType) travelerType).getXmlId()));
     }
 
   }
@@ -152,27 +103,13 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
    * @author markr
    *
    */
-  public class UserClasses implements Iterable<UserClass> {
-
-    /**
-     * user classes are stored in an ordered fashion using a hash map
-     */
-    private final Map<Long, UserClass> userClassMap;
-
-    /**
-     * Register a user class
-     * 
-     * @param userClass user class to be registered
-     */
-    protected void registerUserClass(UserClass userClass) {
-      userClassMap.put(userClass.getId(), userClass);
-    }
+  public class UserClasses extends LongMapWrapper<UserClass> {
 
     /**
      * Constructor
      */
     public UserClasses() {
-      this.userClassMap = new HashMap<Long, UserClass>();
+      super(new HashMap<Long, UserClass>(), UserClass::getId);
     }
 
     /**
@@ -185,27 +122,8 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      */
     public UserClass createAndRegisterNewUserClass(String name, Mode mode, TravelerType travellerType) {
       UserClass newUserClass = new UserClass(getIdGroupingToken(), name, mode, travellerType);
-      registerUserClass(newUserClass);
+      register(newUserClass);
       return newUserClass;
-    }
-
-    /**
-     * Collect the number of registered user classes
-     * 
-     * @return number of user classes
-     */
-    public int size() {
-      return userClassMap.size();
-    }
-
-    /**
-     * Retrieve a user class by its id
-     * 
-     * @param id id of the user class
-     * @return retrieved user class
-     */
-    public UserClass get(final long id) {
-      return userClassMap.get(id);
     }
 
     /**
@@ -218,16 +136,6 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     }
 
     /**
-     * Iterator for user classes (non-sorted)
-     * 
-     * @return iterator
-     */
-    @Override
-    public Iterator<UserClass> iterator() {
-      return userClassMap.values().iterator();
-    }
-
-    /**
      * Retrieve a UserClass by its XML Id
      * 
      * This method is not efficient, since it loops through all the registered user classes in order to find the required entry.
@@ -236,43 +144,23 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @return the retrieved user class, or null if no user class was found
      */
     public UserClass getUserClassByXmlId(String xmlId) {
-      for (UserClass userClass : userClasses) {
-        if (xmlId.equals(userClass.getXmlId())) {
-          return userClass;
-        }
-      }
-      return null;
+      return findFirst(userClass -> xmlId.equals(((UserClass) userClass).getXmlId()));
     }
-
   }
 
   /**
    * Inner class to register and store time periods for the current demand object
    * 
-   * @author garym
+   * @author garym, markr
    *
    */
-  public class TimePeriods implements Iterable<TimePeriod> {
-
-    /**
-     * time periods are stored using a hashmap
-     */
-    private final Map<Long, TimePeriod> timePeriodMap;
-
-    /**
-     * Register a time period
-     * 
-     * @param timePeriod time period to be registered
-     */
-    protected void registerTimePeriod(final TimePeriod timePeriod) {
-      timePeriodMap.put(timePeriod.getId(), timePeriod);
-    }
+  public class TimePeriods extends LongMapWrapper<TimePeriod> {
 
     /**
      * Constructor
      */
     public TimePeriods() {
-      this.timePeriodMap = new HashMap<Long, TimePeriod>();
+      super(new HashMap<Long, TimePeriod>(), TimePeriod::getId);
     }
 
     /**
@@ -286,27 +174,8 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      */
     public TimePeriod createAndRegisterNewTimePeriod(String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
       TimePeriod newTimePeriod = new TimePeriodImpl(getIdGroupingToken(), description, startTimeSeconds, durationSeconds);
-      registerTimePeriod(newTimePeriod);
+      register(newTimePeriod);
       return newTimePeriod;
-    }
-
-    /**
-     * Retrieve a time period by its id
-     * 
-     * @param id id of the time period
-     * @return retrieved time period
-     */
-    public TimePeriod getTimePeriodById(final long id) {
-      return timePeriodMap.get(id);
-    }
-
-    /**
-     * Collect the number of registered time periods
-     * 
-     * @return numver of time periods
-     */
-    public int getNumberOfTimePeriods() {
-      return timePeriodMap.size();
     }
 
     /**
@@ -315,7 +184,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @return first registered time period
      */
     public TimePeriod getFirst() {
-      return getTimePeriodById(0);
+      return get(0);
     }
 
     /**
@@ -325,18 +194,8 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      */
     public SortedSet<TimePeriod> asSortedSetByStartTime() {
       SortedSet<TimePeriod> timePeriodSet = new TreeSet<TimePeriod>(TimePeriodUtils.comparatorByStartTime());
-      timePeriodSet.addAll(timePeriodMap.values());
+      timePeriodSet.addAll(getMap().values());
       return timePeriodSet;
-    }
-
-    /**
-     * Iterator for time periods (non-sorted)
-     * 
-     * @return iterator
-     */
-    @Override
-    public Iterator<TimePeriod> iterator() {
-      return timePeriodMap.values().iterator();
     }
 
     /**
@@ -348,12 +207,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      * @return the retrieved time period, or null if no time period was found
      */
     public TimePeriod getTimePeriodByXmlId(final String xmlId) {
-      for (TimePeriod timePeriod : timePeriods) {
-        if (xmlId.equals(timePeriod.getXmlId())) {
-          return timePeriod;
-        }
-      }
-      return null;
+      return findFirst(timePeriod -> xmlId.equals(((TimePeriod) timePeriod).getXmlId()));
     }
 
   }

@@ -1,6 +1,6 @@
 package org.planit.interactor;
 
-import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.layer.physical.LinkSegment;
 
 /**
  * Link Volume accessee object.

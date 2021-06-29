@@ -6,8 +6,8 @@ import java.util.Set;
 import org.ojalgo.array.Array1D;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.network.physical.Node;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.physical.Node;
 
 /**
  * Inner class that holds the mapping of the inputs to/from the underlying physical network (if any). Currently we support the PLANit network format for this mapping, or one

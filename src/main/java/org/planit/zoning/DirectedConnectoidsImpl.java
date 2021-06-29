@@ -1,7 +1,7 @@
 package org.planit.zoning;
 
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.DirectedConnectoid;
 import org.planit.utils.zoning.DirectedConnectoids;

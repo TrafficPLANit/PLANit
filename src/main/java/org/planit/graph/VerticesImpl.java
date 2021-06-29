@@ -1,13 +1,12 @@
 package org.planit.graph;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
+import org.planit.utils.wrapper.LongMapWrapper;
 
 /**
  * 
@@ -17,7 +16,7 @@ import org.planit.utils.graph.Vertices;
  *
  * @param <V> concrete class of vertices that are being created
  */
-public class VerticesImpl<V extends Vertex> implements Vertices<V> {
+public class VerticesImpl<V extends Vertex> extends LongMapWrapper<V> implements Vertices<V> {
 
   /**
    * The graph builder to create vertices
@@ -25,18 +24,13 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
   private final GraphBuilder<V, ?> graphBuilder;
 
   /**
-   * Map to store nodes by their Id
-   */
-  private Map<Long, V> vertexMap;
-
-  /**
    * updates the vertex map keys based on vertex ids in case an external force has changed already registered vertices
    */
   protected void updateIdMapping() {
     /* identify which entries need to be re-registered because of a mismatch */
-    Map<Long, V> updatedMap = new HashMap<Long, V>(vertexMap.size());
-    vertexMap.forEach((oldId, vertex) -> updatedMap.put(vertex.getId(), vertex));
-    vertexMap = updatedMap;
+    Map<Long, V> updatedMap = new TreeMap<Long, V>();
+    getMap().forEach((oldId, vertex) -> updatedMap.put(vertex.getId(), vertex));
+    setMap(updatedMap);
   }
 
   /**
@@ -45,24 +39,8 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
    * @param graphBuilder the graph builder to use to create vertices
    */
   public VerticesImpl(final GraphBuilder<V, ?> graphBuilder) {
+    super(new TreeMap<Long, V>(), V::getId);
     this.graphBuilder = graphBuilder;
-    this.vertexMap = new TreeMap<Long, V>();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void remove(final V vertex) {
-    vertexMap.remove(vertex.getId());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void remove(long vertexId) {
-    vertexMap.remove(vertexId);
   }
 
   /**
@@ -77,42 +55,10 @@ public class VerticesImpl<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V register(final V vertex) {
-    return vertexMap.put(vertex.getId(), vertex);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Iterator<V> iterator() {
-    return vertexMap.values().iterator();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public V registerNew() {
     final V newVertex = createNew();
     register(newVertex);
     return newVertex;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int size() {
-    return vertexMap.size();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public V get(final long id) {
-    return vertexMap.get(id);
   }
 
 }

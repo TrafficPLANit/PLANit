@@ -1,7 +1,7 @@
 package org.planit.cost.physical;
 
 import org.planit.cost.Cost;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 
 /**
  * Interface to classify costs of physical links

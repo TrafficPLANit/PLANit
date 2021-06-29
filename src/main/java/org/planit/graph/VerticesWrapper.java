@@ -33,16 +33,16 @@ public class VerticesWrapper<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public void remove(final V vertex) {
-    vertices.remove(vertex);
+  public V remove(final V vertex) {
+    return vertices.remove(vertex);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void remove(long id) {
-    vertices.remove(id);
+  public V remove(long id) {
+    return vertices.remove(id);
   }
 
   /**

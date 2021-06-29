@@ -3,7 +3,7 @@ package org.planit.zoning;
 import java.util.Collection;
 
 import org.planit.utils.graph.DirectedVertex;
-import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.zoning.Connectoids;
 import org.planit.utils.zoning.DirectedConnectoid;
 import org.planit.utils.zoning.DirectedConnectoids;

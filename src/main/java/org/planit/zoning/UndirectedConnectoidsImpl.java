@@ -1,7 +1,7 @@
 package org.planit.zoning;
 
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.network.physical.Node;
+import org.planit.utils.network.layer.physical.Node;
 import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.UndirectedConnectoid;
 import org.planit.utils.zoning.UndirectedConnectoids;

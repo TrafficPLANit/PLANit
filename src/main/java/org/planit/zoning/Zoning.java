@@ -18,7 +18,7 @@ import org.planit.utils.zoning.TransferZoneGroups;
 import org.planit.utils.zoning.UndirectedConnectoids;
 import org.planit.utils.zoning.Zone;
 import org.planit.utils.zoning.Zones;
-import org.planit.zoning.modifier.ZoningModifier;
+import org.planit.utils.zoning.modifier.ZoningModifier;
 import org.planit.zoning.modifier.ZoningModifierImpl;
 
 /**

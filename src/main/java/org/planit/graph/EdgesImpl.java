@@ -1,7 +1,5 @@
 package org.planit.graph;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -10,13 +8,14 @@ import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.wrapper.LongMapWrapper;
 
 /**
  * Implementation of Edges interface
  * 
  * @author markr
  */
-public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
+public class EdgesImpl<V extends Vertex, E extends Edge> extends LongMapWrapper<E> implements Edges<E> {
 
   /**
    * The graph builder to create edges
@@ -24,19 +23,14 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
   private final GraphBuilder<V, E> graphBuilder;
 
   /**
-   * Map to store edges by their Id
-   */
-  private Map<Long, E> edgeMap;
-
-  /**
    * updates the edge map keys based on edge ids in case an external force has changed already registered edges
    */
   protected void updateIdMapping() {
     /* identify which entries need to be re-registered because of a mismatch */
-    Map<Long, E> updatedMap = new HashMap<Long, E>(edgeMap.size());
-    edgeMap.forEach((oldId, edge) -> updatedMap.put(edge.getId(), edge));
-    edgeMap.clear();
-    edgeMap = updatedMap;
+    Map<Long, E> updatedMap = new TreeMap<Long, E>();
+    getMap().forEach((oldId, edge) -> updatedMap.put(edge.getId(), edge));
+    getMap().clear();
+    setMap(updatedMap);
   }
 
   /**
@@ -45,50 +39,15 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
    * @param graphBuilder the builder for edge implementations
    */
   public EdgesImpl(GraphBuilder<V, E> graphBuilder) {
+    super(new TreeMap<Long, E>(), E::getId);
     this.graphBuilder = graphBuilder;
-    this.edgeMap = new TreeMap<Long, E>();
-  }
-
-  /**
-   * Add edge to the internal container. Do not use this unless you know what you are doing because it can mess up the contiguous internal id structure of the edges. Preferred
-   * method is to only use registerNew.
-   *
-   * @param edge edge to be registered in this network based on its internal id
-   * @return edge, in case it overrides an existing edge, the removed edge is returned
-   */
-  public E register(final E edge) {
-    return edgeMap.put(edge.getId(), edge);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void remove(E edge) {
-    edgeMap.remove(edge.getId());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void remove(long edgeId) {
-    edgeMap.remove(edgeId);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Iterator<E> iterator() {
-    return edgeMap.values().iterator();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public E registerNew(Vertex vertexA, Vertex vertexB, boolean registerOnVertices) throws PlanItException {
+  public <V extends Vertex> E registerNew(V vertexA, V vertexB, boolean registerOnVertices) throws PlanItException {
     final E newEdge = graphBuilder.createEdge(vertexA, vertexB);
     register(newEdge);
     if (registerOnVertices) {
@@ -96,22 +55,6 @@ public class EdgesImpl<V extends Vertex, E extends Edge> implements Edges<E> {
       vertexB.addEdge(newEdge);
     }
     return newEdge;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public E get(final long id) {
-    return edgeMap.get(id);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int size() {
-    return edgeMap.size();
   }
 
   /**

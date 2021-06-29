@@ -1,8 +1,8 @@
 package org.planit.cost.physical;
 
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 
 /**
  * Configurator for BPRLinkTravelTimeCost implementation

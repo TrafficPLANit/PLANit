@@ -6,7 +6,7 @@ import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.zoning.DirectedConnectoid;
 import org.planit.utils.zoning.Zone;
 

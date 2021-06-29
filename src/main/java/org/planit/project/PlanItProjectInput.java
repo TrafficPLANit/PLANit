@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignmentComponent;
@@ -15,14 +14,14 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
-import org.planit.network.TransportLayer;
-import org.planit.network.TransportLayerNetwork;
 import org.planit.network.Network;
+import org.planit.network.TransportLayerNetwork;
 import org.planit.path.OdPathSets;
 import org.planit.service.routed.RoutedServices;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
+import org.planit.utils.network.layer.TransportLayer;
 import org.planit.utils.time.TimePeriod;
 import org.planit.zoning.Zoning;
 
@@ -60,7 +59,7 @@ public class PlanItProjectInput {
     
     trafficAssignmentComponentFactories.add(new TrafficAssignmentComponentFactory<Zoning>(Zoning.class));
     
-    trafficAssignmentComponentFactories.add(new TrafficAssignmentComponentFactory<Demands>(Demands.class));
+    trafficAssignmentComponentFactories.add(new TrafficAssignmentComponentFactory<Demands>(Demands.class));       
     
     trafficAssignmentComponentFactories.add(new TrafficAssignmentComponentFactory<RoutedServices>(RoutedServices.class));    
     
@@ -110,6 +109,11 @@ public class PlanItProjectInput {
    * The registered zonings
    */
   protected final ProjectZonings zonings = new ProjectZonings();
+  
+  /**
+   * The registered service networks
+   */
+  protected final ProjectNetworks serviceNetworks = new ProjectNetworks();  
   
   /**
    * The registered routed services
@@ -212,8 +216,8 @@ public class PlanItProjectInput {
             Demands.class.getCanonicalName(), new Object[] { projectGroupId }, zoning, network);  
     
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createDemandsPrefix(demands.getId());
-    LOGGER.info(String.format("%s#time periods: %d", prefix, demands.timePeriods.getNumberOfTimePeriods()));
-    LOGGER.info(String.format("%s#traveler types: %d", prefix, demands.travelerTypes.getNumberOfTravelerTypes()));    
+    LOGGER.info(String.format("%s#time periods: %d", prefix, demands.timePeriods.size()));
+    LOGGER.info(String.format("%s#traveler types: %d", prefix, demands.travelerTypes.size()));    
     LOGGER.info(String.format("%s#user classes: %d", prefix, demands.userClasses.size()));
 
     this.demands.register(demands);

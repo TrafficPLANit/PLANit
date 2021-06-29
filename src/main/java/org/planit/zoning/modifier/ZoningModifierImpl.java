@@ -10,6 +10,7 @@ import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.TransferZone;
 import org.planit.utils.zoning.TransferZoneGroup;
 import org.planit.utils.zoning.Zone;
+import org.planit.utils.zoning.modifier.ZoningModifier;
 import org.planit.zoning.Zoning;
 import org.planit.zoning.ZoningBuilder;
 

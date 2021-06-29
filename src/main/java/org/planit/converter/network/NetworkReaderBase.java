@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.physical.Node;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.network.layer.physical.Node;
 
 /**
  * A network reader implementation with built-in convenience containers that maps ids used by the external data source to relate entities to each other

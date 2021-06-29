@@ -1,7 +1,7 @@
 package org.planit.network.service;
 
-import org.planit.network.TopologicalNetwork;
-import org.planit.network.service.layer.ServiceNetworkLayer;
+import org.planit.network.TopologicalLayerNetwork;
+import org.planit.network.layer.service.ServiceNetworkLayer;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -11,7 +11,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class ServiceNetwork extends TopologicalNetwork<ServiceNetworkLayer, ServiceNetworkLayers> {
+public class ServiceNetwork extends TopologicalLayerNetwork<ServiceNetworkLayer, ServiceNetworkLayers> {
 
   /** generated UID */
   private static final long serialVersionUID = 632938213490189010L;

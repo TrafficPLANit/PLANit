@@ -2,7 +2,7 @@ package org.planit.assignment.eltm;
 
 import java.io.Serializable;
 
-import org.planit.utils.network.physical.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 
 /**
  * LinkSegment boundary of a link segment.

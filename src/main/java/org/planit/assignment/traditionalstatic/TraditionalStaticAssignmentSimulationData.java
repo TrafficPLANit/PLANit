@@ -17,7 +17,7 @@ import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.physical.LinkSegment;
+import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.zoning.Zones;
 
 /**

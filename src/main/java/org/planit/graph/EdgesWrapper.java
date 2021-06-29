@@ -34,16 +34,16 @@ public class EdgesWrapper<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public void remove(E edge) {
-    edges.remove(edge);
+  public E remove(final E edge) {
+    return edges.remove(edge);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void remove(long edgeId) {
-    edges.remove(edgeId);
+  public E remove(final long edgeId) {
+    return edges.remove(edgeId);
   }
 
   /**

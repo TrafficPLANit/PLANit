@@ -7,8 +7,8 @@ import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.network.physical.LinkSegment;
-import org.planit.utils.network.physical.LinkSegments;
+import org.planit.utils.network.layer.physical.LinkSegment;
+import org.planit.utils.network.layer.physical.LinkSegments;
 
 /**
  * Interface defining the methods required for a link output adapter
