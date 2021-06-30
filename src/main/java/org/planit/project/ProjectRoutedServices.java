@@ -3,13 +3,13 @@ package org.planit.project;
 import java.util.TreeMap;
 
 import org.planit.service.routed.RoutedServices;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * class for registered routed services on project
  *
  */
-public class ProjectRoutedServices extends LongMapWrapper<RoutedServices> {
+public class ProjectRoutedServices extends LongMapWrapperImpl<RoutedServices> {
 
   /**
    * Constructor

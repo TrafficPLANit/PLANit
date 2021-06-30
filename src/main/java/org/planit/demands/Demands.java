@@ -18,7 +18,7 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.time.TimePeriodUtils;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * Container class for all demands registered on the project. In PlanIt we assume that all traffic flows between an origin and destination. Hence all demand for a given time period
@@ -53,7 +53,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
    * @author markr
    *
    */
-  public class TravelerTypes extends LongMapWrapper<TravelerType> {
+  public class TravelerTypes extends LongMapWrapperImpl<TravelerType> {
 
     /**
      * Constructor
@@ -103,7 +103,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
    * @author markr
    *
    */
-  public class UserClasses extends LongMapWrapper<UserClass> {
+  public class UserClasses extends LongMapWrapperImpl<UserClass> {
 
     /**
      * Constructor
@@ -154,7 +154,7 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
    * @author garym, markr
    *
    */
-  public class TimePeriods extends LongMapWrapper<TimePeriod> {
+  public class TimePeriods extends LongMapWrapperImpl<TimePeriod> {
 
     /**
      * Constructor

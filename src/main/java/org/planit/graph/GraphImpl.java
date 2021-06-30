@@ -58,7 +58,7 @@ public class GraphImpl<V extends Vertex, E extends Edge> implements Graph<V, E> 
     this.id = IdGenerator.generateId(groupId, GraphImpl.class);
     this.graphBuilder = graphBuilder;
 
-    this.edges = new EdgesImpl<V, E>(graphBuilder);
+    this.edges = new EdgesImpl<E>(graphBuilder);
     this.vertices = new VerticesImpl<V>(graphBuilder);
   }
 

@@ -3,13 +3,13 @@ package org.planit.project;
 import java.util.TreeMap;
 
 import org.planit.network.TransportLayerNetwork;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * Internal class for registered physical networks
  *
  */
-public class ProjectNetworks extends LongMapWrapper<TransportLayerNetwork<?, ?>> {
+public class ProjectNetworks extends LongMapWrapperImpl<TransportLayerNetwork<?, ?>> {
 
   /**
    * Constructor

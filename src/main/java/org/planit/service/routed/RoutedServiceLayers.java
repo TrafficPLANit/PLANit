@@ -5,7 +5,7 @@ import java.util.TreeMap;
 import org.planit.network.layer.service.ServiceNetworkLayer;
 import org.planit.network.service.ServiceNetwork;
 import org.planit.service.routed.layer.RoutedServiceLayer;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * Implementation of container and factory to manage routed service layers. Each service layer is directly related to a single ServiceNetworkLayer on top of which the services in
@@ -14,7 +14,7 @@ import org.planit.utils.wrapper.LongMapWrapper;
  * @author markr
  *
  */
-public class RoutedServiceLayers extends LongMapWrapper<RoutedServiceLayer> {
+public class RoutedServiceLayers extends LongMapWrapperImpl<RoutedServiceLayer> {
 
   /** the parent service network the underlying layers build upon */
   protected final ServiceNetwork parentServiceNetwork;

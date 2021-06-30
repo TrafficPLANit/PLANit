@@ -3,13 +3,13 @@ package org.planit.project;
 import java.util.TreeMap;
 
 import org.planit.path.OdPathSets;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * class for registered od path sets
  *
  */
-public class ProjectOdPathSets extends LongMapWrapper<OdPathSets> {
+public class ProjectOdPathSets extends LongMapWrapperImpl<OdPathSets> {
 
   /**
    * Constructor

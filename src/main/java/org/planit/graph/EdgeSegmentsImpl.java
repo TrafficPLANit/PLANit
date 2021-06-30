@@ -10,7 +10,7 @@ import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * Implementation of EdgeSegments interface.
@@ -20,7 +20,7 @@ import org.planit.utils.wrapper.LongMapWrapper;
  *
  * @param <ES> edge segments type
  */
-public class EdgeSegmentsImpl<ES extends EdgeSegment> extends LongMapWrapper<ES> implements EdgeSegments<ES> {
+public class EdgeSegmentsImpl<ES extends EdgeSegment> extends LongMapWrapperImpl<ES> implements EdgeSegments<ES> {
 
   /** the logger */
   @SuppressWarnings("unused")

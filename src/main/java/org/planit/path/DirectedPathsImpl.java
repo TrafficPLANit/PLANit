@@ -6,7 +6,7 @@ import java.util.TreeMap;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.path.DirectedPaths;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * Implementation of DirectedPaths interface
@@ -15,7 +15,7 @@ import org.planit.utils.wrapper.LongMapWrapper;
  * 
  * @param <p> type of directed path
  */
-public class DirectedPathsImpl<P extends DirectedPath> extends LongMapWrapper<P> implements DirectedPaths<P> {
+public class DirectedPathsImpl<P extends DirectedPath> extends LongMapWrapperImpl<P> implements DirectedPaths<P> {
 
   /**
    * The builder to create paths

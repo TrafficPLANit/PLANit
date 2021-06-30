@@ -3,10 +3,13 @@ package org.planit.graph;
 import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedGraphBuilder;
+import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Edges;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -17,7 +20,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVertexImpl, DirectedEdgeImpl, EdgeSegmentImpl> {
+public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVertex, DirectedEdge, EdgeSegment> {
 
   private static final Logger LOGGER = Logger.getLogger(DirectedGraphBuilderImpl.class.getCanonicalName());
 
@@ -44,8 +47,7 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
   /**
    * {@inheritDoc}
    */
-  @Override
-  public DirectedEdgeImpl createEdge(DirectedVertexImpl vertexA, DirectedVertexImpl vertexB) throws PlanItException {
+  public DirectedEdgeImpl createEdge(Vertex vertexA, Vertex vertexB) throws PlanItException {
     return new DirectedEdgeImpl(graphBuilder.getIdGroupingToken(), vertexA, vertexB);
   }
 
@@ -53,10 +55,13 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegmentImpl createEdgeSegment(DirectedEdgeImpl parentEdge, boolean directionAB) throws PlanItException {
+  public EdgeSegmentImpl createEdgeSegment(DirectedEdge parentEdge, boolean directionAB) throws PlanItException {
     return new EdgeSegmentImpl(graphBuilder.getIdGroupingToken(), parentEdge, directionAB);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public EdgeSegmentImpl createEdgeSegment(boolean directionAB) throws PlanItException {
     return new EdgeSegmentImpl(graphBuilder.getIdGroupingToken(), directionAB);
@@ -82,7 +87,7 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(Edges<DirectedEdgeImpl> edges) {
+  public void recreateIds(Edges<? extends DirectedEdge> edges) {
     graphBuilder.recreateIds(edges);
   }
 
@@ -90,7 +95,7 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(Vertices<DirectedVertexImpl> vertices) {
+  public void recreateIds(Vertices<? extends DirectedVertex> vertices) {
     graphBuilder.recreateIds(vertices);
   }
 
@@ -98,18 +103,22 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(EdgeSegments<EdgeSegmentImpl> edgeSegments) {
+  public <X extends EdgeSegment> void recreateIds(EdgeSegments<X> edgeSegments) {
     if (edgeSegments instanceof EdgeSegmentsImpl<?>) {
       /* remove gaps by simply resetting and recreating all edge segment ids */
       IdGenerator.reset(getIdGroupingToken(), EdgeSegment.class);
 
-      for (EdgeSegmentImpl edgeSegment : edgeSegments) {
-        edgeSegment.setId(EdgeSegmentImpl.generateEdgeSegmentId(getIdGroupingToken()));
+      for (EdgeSegment edgeSegment : edgeSegments) {
+        if (edgeSegments instanceof EdgeSegmentImpl) {
+          ((EdgeSegmentImpl) edgeSegment).setId(EdgeSegmentImpl.generateEdgeSegmentId(getIdGroupingToken()));
+        } else {
+          LOGGER.severe("expected the edge segment implementation to be compatible with graph builder, this is not the case: unable to update ids");
+        }
       }
 
       ((EdgeSegmentsImpl<?>) edgeSegments).updateIdMapping();
     } else {
-      LOGGER.severe("expected the Edge segment implementation to be compatible with graph builder, this is not the case: unable to correctly remove subnetwork and update ids");
+      LOGGER.severe("expected the edge segments implementation to be compatible with graph builder, this is not the case: unable to update ids");
     }
   }
 
@@ -117,15 +126,24 @@ public class DirectedGraphBuilderImpl implements DirectedGraphBuilder<DirectedVe
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdgeImpl createUniqueCopyOf(DirectedEdgeImpl edgeToCopy) {
-    return (DirectedEdgeImpl) this.graphBuilder.createUniqueCopyOf(edgeToCopy);
+  public DirectedEdgeImpl createUniqueCopyOf(DirectedEdge edgeToCopy) {
+    if (edgeToCopy instanceof DirectedEdgeImpl) {
+      return (DirectedEdgeImpl) this.graphBuilder.createUniqueCopyOf(edgeToCopy);
+    } else {
+      LOGGER.severe("expected the edge to be compatible with directed graph builder, this is not the case: unable to create unique copy");
+    }
+    return null;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegmentImpl createUniqueCopyOf(EdgeSegmentImpl edgeSegmentToCopy, DirectedEdgeImpl newParentEdge) {
+  public EdgeSegmentImpl createUniqueCopyOf(EdgeSegment edgeSegmentToCopy, DirectedEdge newParentEdge) {
+    if (!(edgeSegmentToCopy instanceof EdgeSegmentImpl)) {
+      LOGGER.severe("expected the edge segment to be compatible with directed graph builder, this is not the case: unable to create unique copy");
+      return null;
+    }
     /* shallow copy as is */
     EdgeSegmentImpl copy = (EdgeSegmentImpl) edgeSegmentToCopy.clone();
     /* make unique copy by updating id */

@@ -11,7 +11,7 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
 import org.planit.utils.network.layer.macroscopic.MacroscopicModeProperties;
 import org.planit.utils.network.layer.macroscopic.MacroscopicPhysicalLayerBuilder;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * Implementation of the container interface
@@ -19,7 +19,7 @@ import org.planit.utils.wrapper.LongMapWrapper;
  * @author markr
  *
  */
-public class MacroscopicLinkSegmentTypesImpl extends LongMapWrapper<MacroscopicLinkSegmentType> implements MacroscopicLinkSegmentTypes {
+public class MacroscopicLinkSegmentTypesImpl extends LongMapWrapperImpl<MacroscopicLinkSegmentType> implements MacroscopicLinkSegmentTypes {
 
   /** the logger to use */
   @SuppressWarnings("unused")

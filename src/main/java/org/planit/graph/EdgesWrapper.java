@@ -14,19 +14,19 @@ import org.planit.utils.graph.Vertex;
  *
  * @param <E> type of edge
  */
-public class EdgesWrapper<E extends Edge> implements Edges<E> {
+public class EdgesWrapper<V extends Vertex, E extends Edge> implements Edges<V, E> {
 
   /**
    * The edges we are wrapping
    */
-  private final Edges<E> edges;
+  private final Edges<V, E> edges;
 
   /**
    * Constructor
    * 
    * @param edges the edges to use to create and register links on
    */
-  public EdgesWrapper(final Edges<E> edges) {
+  public EdgesWrapper(final Edges<V, E> edges) {
     this.edges = edges;
   }
 
@@ -50,7 +50,7 @@ public class EdgesWrapper<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public E registerNew(final Vertex vertexA, final Vertex vertexB, boolean registerOnVertices) throws PlanItException {
+  public E registerNew(final V vertexA, final V vertexB, boolean registerOnVertices) throws PlanItException {
     return edges.registerNew(vertexA, vertexB, registerOnVertices);
   }
 

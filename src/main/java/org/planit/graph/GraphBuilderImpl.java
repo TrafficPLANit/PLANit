@@ -38,15 +38,15 @@ public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
    * {@inheritDoc}
    */
   @Override
-  public Vertex createVertex() {
-    return new DirectedVertexImpl(getIdGroupingToken());
+  public VertexImpl createVertex() {
+    return new VertexImpl(getIdGroupingToken());
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Edge createEdge(Vertex vertexA, Vertex vertexB) throws PlanItException {
+  public EdgeImpl createEdge(Vertex vertexA, Vertex vertexB) throws PlanItException {
     return new EdgeImpl(getIdGroupingToken(), vertexA, vertexB);
   }
 
@@ -70,7 +70,7 @@ public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(Edges<? extends Edge> edges) {
+  public void recreateIds(Edges<?, ?> edges) {
     if (edges instanceof EdgesImpl<?, ?>) {
       /* remove gaps by simply resetting and recreating all edge ids */
       IdGenerator.reset(getIdGroupingToken(), Edge.class);
@@ -94,7 +94,7 @@ public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(Vertices<? extends Vertex> vertices) {
+  public void recreateIds(Vertices<?> vertices) {
     if (vertices instanceof VerticesImpl<?>) {
       /* remove gaps by simply resetting and recreating all vertex ids */
       IdGenerator.reset(getIdGroupingToken(), Vertex.class);

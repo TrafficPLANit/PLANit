@@ -7,7 +7,6 @@ import org.planit.graph.EdgeSegmentsImpl;
 import org.planit.graph.EdgesImpl;
 import org.planit.graph.VerticesImpl;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
@@ -27,7 +26,7 @@ import org.planit.utils.network.layer.physical.PhysicalNetworkLayerBuilder;
  * @author markr
  *
  */
-public class PhysicalLayerBuilderImpl implements PhysicalNetworkLayerBuilder<NodeImpl, LinkImpl, LinkSegmentImpl> {
+public class PhysicalLayerBuilderImpl implements PhysicalNetworkLayerBuilder<Node, Link, LinkSegment> {
 
   /** the logger to use */
   private static final Logger LOGGER = Logger.getLogger(PhysicalLayerBuilderImpl.class.getCanonicalName());
@@ -58,20 +57,16 @@ public class PhysicalLayerBuilderImpl implements PhysicalNetworkLayerBuilder<Nod
    * {@inheritDoc}
    */
   @Override
-  public LinkImpl createEdge(Vertex nodeA, Vertex nodeB) throws PlanItException {
-    if (nodeA instanceof Node && nodeB instanceof Node) {
-      return new LinkImpl(getIdGroupingToken(), (Node) nodeA, (Node) nodeB);
-    } else {
-      throw new PlanItException("unable to create link, vertices should be of type Node");
-    }
+  public LinkImpl createEdge(Node nodeA, Node nodeB) throws PlanItException {
+    return new LinkImpl(getIdGroupingToken(), nodeA, nodeB);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public LinkSegmentImpl createEdgeSegment(DirectedEdge parentLink, boolean directionAB) throws PlanItException {
-    return new LinkSegmentImpl(getIdGroupingToken(), (Link) parentLink, directionAB);
+  public LinkSegmentImpl createEdgeSegment(Link parentLink, boolean directionAB) throws PlanItException {
+    return new LinkSegmentImpl(getIdGroupingToken(), parentLink, directionAB);
   }
 
   /**
@@ -117,7 +112,7 @@ public class PhysicalLayerBuilderImpl implements PhysicalNetworkLayerBuilder<Nod
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(Edges<? extends Edge> links) {
+  public void recreateIds(Edges<?, ?> links) {
     /* delegate for edge ids */
     directedGraphBuilderImpl.recreateIds(links);
 
@@ -143,7 +138,7 @@ public class PhysicalLayerBuilderImpl implements PhysicalNetworkLayerBuilder<Nod
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(Vertices<? extends Vertex> nodes) {
+  public void recreateIds(Vertices<?> nodes) {
     /* delegate for vertex ids */
     directedGraphBuilderImpl.recreateIds(nodes);
 
@@ -169,7 +164,7 @@ public class PhysicalLayerBuilderImpl implements PhysicalNetworkLayerBuilder<Nod
    * {@inheritDoc}
    */
   @Override
-  public LinkImpl createUniqueCopyOf(LinkImpl linkToCopy) {
+  public LinkImpl createUniqueCopyOf(Link linkToCopy) {
     LinkImpl copy = (LinkImpl) directedGraphBuilderImpl.createUniqueCopyOf(linkToCopy);
 
     /* make unique copy by updating link id */
@@ -181,7 +176,7 @@ public class PhysicalLayerBuilderImpl implements PhysicalNetworkLayerBuilder<Nod
    * {@inheritDoc}
    */
   @Override
-  public LinkSegmentImpl createUniqueCopyOf(LinkSegmentImpl linkSegmentToCopy, LinkImpl parentLink) {
+  public LinkSegmentImpl createUniqueCopyOf(LinkSegment linkSegmentToCopy, Link parentLink) {
     LinkSegmentImpl copy = (LinkSegmentImpl) directedGraphBuilderImpl.createUniqueCopyOf(linkSegmentToCopy, parentLink);
 
     /* make unique copy by updating link segment id */

@@ -11,7 +11,7 @@ import org.planit.utils.mode.PhysicalModeFeatures;
 import org.planit.utils.mode.PredefinedMode;
 import org.planit.utils.mode.PredefinedModeType;
 import org.planit.utils.mode.UsabilityModeFeatures;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * Implementation of the Modes interface to create and register modes on itself
@@ -19,7 +19,7 @@ import org.planit.utils.wrapper.LongMapWrapper;
  * @author mark
  *
  */
-public class ModesImpl extends LongMapWrapper<Mode> implements Modes {
+public class ModesImpl extends LongMapWrapperImpl<Mode> implements Modes {
 
   @SuppressWarnings("unused")
 

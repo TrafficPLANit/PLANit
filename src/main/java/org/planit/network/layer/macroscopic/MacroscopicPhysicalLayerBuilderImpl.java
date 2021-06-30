@@ -7,8 +7,6 @@ import org.planit.network.layer.physical.LinkImpl;
 import org.planit.network.layer.physical.NodeImpl;
 import org.planit.network.layer.physical.PhysicalLayerBuilderImpl;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedEdge;
-import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Edges;
@@ -16,10 +14,12 @@ import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.layer.macroscopic.MacroscopicModeProperties;
 import org.planit.utils.network.layer.macroscopic.MacroscopicPhysicalLayerBuilder;
 import org.planit.utils.network.layer.physical.Link;
+import org.planit.utils.network.layer.physical.Node;
 
 /**
  * Create network entities for a macroscopic simulation model
@@ -27,7 +27,7 @@ import org.planit.utils.network.layer.physical.Link;
  * @author markr
  *
  */
-public class MacroscopicPhysicalLayerBuilderImpl implements MacroscopicPhysicalLayerBuilder<NodeImpl, LinkImpl, MacroscopicLinkSegmentImpl> {
+public class MacroscopicPhysicalLayerBuilderImpl implements MacroscopicPhysicalLayerBuilder<Node, Link, MacroscopicLinkSegment> {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicPhysicalLayerBuilderImpl.class.getCanonicalName());
@@ -63,7 +63,7 @@ public class MacroscopicPhysicalLayerBuilderImpl implements MacroscopicPhysicalL
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentImpl createEdgeSegment(DirectedEdge parentLink, boolean directionAB) throws PlanItException {
+  public MacroscopicLinkSegmentImpl createEdgeSegment(Link parentLink, boolean directionAB) throws PlanItException {
     if (parentLink instanceof Link) {
       return new MacroscopicLinkSegmentImpl(getIdGroupingToken(), (Link) parentLink, directionAB);
     }
@@ -82,7 +82,7 @@ public class MacroscopicPhysicalLayerBuilderImpl implements MacroscopicPhysicalL
    * {@inheritDoc}
    */
   @Override
-  public LinkImpl createEdge(Vertex nodeA, Vertex nodeB) throws PlanItException {
+  public LinkImpl createEdge(Node nodeA, Node nodeB) throws PlanItException {
     return physicalNetworkBuilder.createEdge(nodeA, nodeB);
   }
 
@@ -114,7 +114,7 @@ public class MacroscopicPhysicalLayerBuilderImpl implements MacroscopicPhysicalL
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(Edges<? extends Edge> links) {
+  public void recreateIds(Edges<?, ?> links) {
     physicalNetworkBuilder.recreateIds(links);
   }
 
@@ -130,7 +130,7 @@ public class MacroscopicPhysicalLayerBuilderImpl implements MacroscopicPhysicalL
    * {@inheritDoc}
    */
   @Override
-  public LinkImpl createUniqueCopyOf(LinkImpl linkToCopy) {
+  public LinkImpl createUniqueCopyOf(Link linkToCopy) {
     return physicalNetworkBuilder.createUniqueCopyOf(linkToCopy);
   }
 
@@ -138,7 +138,7 @@ public class MacroscopicPhysicalLayerBuilderImpl implements MacroscopicPhysicalL
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentImpl createUniqueCopyOf(MacroscopicLinkSegmentImpl linkSegmentToCopy, LinkImpl parentLink) {
+  public MacroscopicLinkSegmentImpl createUniqueCopyOf(MacroscopicLinkSegment linkSegmentToCopy, Link parentLink) {
     return (MacroscopicLinkSegmentImpl) physicalNetworkBuilder.createUniqueCopyOf(linkSegmentToCopy, parentLink);
   }
 

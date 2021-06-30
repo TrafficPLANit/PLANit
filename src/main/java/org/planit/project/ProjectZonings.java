@@ -2,14 +2,14 @@ package org.planit.project;
 
 import java.util.TreeMap;
 
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 import org.planit.zoning.Zoning;
 
 /**
  * Class for registered zonings on project
  *
  */
-public class ProjectZonings extends LongMapWrapper<Zoning> {
+public class ProjectZonings extends LongMapWrapperImpl<Zoning> {
 
   /**
    * Constructor

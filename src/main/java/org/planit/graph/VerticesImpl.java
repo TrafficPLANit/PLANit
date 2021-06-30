@@ -6,7 +6,7 @@ import java.util.TreeMap;
 import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * 
@@ -16,7 +16,7 @@ import org.planit.utils.wrapper.LongMapWrapper;
  *
  * @param <V> concrete class of vertices that are being created
  */
-public class VerticesImpl<V extends Vertex> extends LongMapWrapper<V> implements Vertices<V> {
+public class VerticesImpl<V extends Vertex> extends LongMapWrapperImpl<V> implements Vertices<V> {
 
   /**
    * The graph builder to create vertices

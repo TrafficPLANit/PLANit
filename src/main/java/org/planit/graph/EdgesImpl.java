@@ -8,14 +8,14 @@ import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * Implementation of Edges interface
  * 
  * @author markr
  */
-public class EdgesImpl<V extends Vertex, E extends Edge> extends LongMapWrapper<E> implements Edges<E> {
+public class EdgesImpl<V extends Vertex, E extends Edge> extends LongMapWrapperImpl<E> implements Edges<E> {
 
   /**
    * The graph builder to create edges
@@ -47,7 +47,7 @@ public class EdgesImpl<V extends Vertex, E extends Edge> extends LongMapWrapper<
    * {@inheritDoc}
    */
   @Override
-  public <V extends Vertex> E registerNew(V vertexA, V vertexB, boolean registerOnVertices) throws PlanItException {
+  public E registerNew(Vertex vertexA, Vertex vertexB, boolean registerOnVertices) throws PlanItException {
     final E newEdge = graphBuilder.createEdge(vertexA, vertexB);
     register(newEdge);
     if (registerOnVertices) {

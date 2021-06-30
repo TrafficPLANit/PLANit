@@ -3,13 +3,13 @@ package org.planit.project;
 import java.util.TreeMap;
 
 import org.planit.demands.Demands;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * class for registered demands on project
  *
  */
-public class ProjectDemands extends LongMapWrapper<Demands> {
+public class ProjectDemands extends LongMapWrapperImpl<Demands> {
 
   /**
    * Constructor

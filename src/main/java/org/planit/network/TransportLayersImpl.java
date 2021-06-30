@@ -7,7 +7,7 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.TransportLayers;
 import org.planit.utils.network.layer.TransportLayer;
-import org.planit.utils.wrapper.LongMapWrapper;
+import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * Base implementation of the TransportLayer interface, without the createNew() method
@@ -15,7 +15,7 @@ import org.planit.utils.wrapper.LongMapWrapper;
  * @author markr
  *
  */
-public abstract class TransportLayersImpl<T extends TransportLayer> extends LongMapWrapper<T> implements TransportLayers<T> {
+public abstract class TransportLayersImpl<T extends TransportLayer> extends LongMapWrapperImpl<T> implements TransportLayers<T> {
 
   /** the logger */
   @SuppressWarnings("unused")
