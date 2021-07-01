@@ -9,6 +9,7 @@ import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.EdgeSegmentFactory;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.wrapper.LongMapWrapperImpl;
 
@@ -27,9 +28,12 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> extends LongMapWrapperImpl
   private static final Logger LOGGER = Logger.getLogger(EdgeSegmentsImpl.class.getCanonicalName());
 
   /**
-   * The graph builder to create edgse segments
+   * The graph builder to create edge segments
    */
   protected DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> directedGraphBuilder;
+
+  /** factory to create edge segment instances */
+  private final EdgeSegmentFactory<ES> edgeSegmentFactory;
 
   /**
    * updates the edge segments map keys based on edge segment ids in case an external force has changed already registered edges
@@ -44,20 +48,25 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> extends LongMapWrapperImpl
   /**
    * Constructor
    * 
-   * @param graphBuilder the graphBuilder to use to create edge segments
+   * @param graphBuilder       the graphBuilder to use to create edge segments
+   * @param edgeSegmentFactory to use
    */
   public EdgeSegmentsImpl(DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> graphBuilder) {
     super(new TreeMap<Long, ES>(), ES::getId);
     this.directedGraphBuilder = graphBuilder;
+    this.edgeSegmentFactory = new EdgeSegmentFactoryImpl<ES>(graphBuilder, this);
   }
 
   /**
-   * {@inheritDoc}
+   * Constructor
+   * 
+   * @param graphBuilder       the graphBuilder to use to create edge segments
+   * @param edgeSegmentFactory to use
    */
-  public ES create(final DirectedEdge parentEdge, final boolean directionAB) throws PlanItException {
-    final ES edgeSegment = directedGraphBuilder.createEdgeSegment(directionAB);
-    edgeSegment.setParentEdge(parentEdge);
-    return edgeSegment;
+  public EdgeSegmentsImpl(DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> graphBuilder, final EdgeSegmentFactory<ES> edgeSegmentFactory) {
+    super(new TreeMap<Long, ES>(), ES::getId);
+    this.directedGraphBuilder = graphBuilder;
+    this.edgeSegmentFactory = edgeSegmentFactory;
   }
 
   /**
@@ -72,54 +81,8 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> extends LongMapWrapperImpl
    * {@inheritDoc}
    */
   @Override
-  public ES registerNew(DirectedEdge parentEdge, boolean directionAb, boolean registerOnNodeAndLink) throws PlanItException {
-    ES edgeSegment = create(parentEdge, directionAb);
-    register(parentEdge, edgeSegment, directionAb);
-    if (registerOnNodeAndLink) {
-      parentEdge.registerEdgeSegment(edgeSegment, directionAb);
-      if (parentEdge.getVertexA() instanceof DirectedVertex) {
-        ((DirectedVertex) parentEdge.getVertexA()).addEdgeSegment(edgeSegment);
-        ((DirectedVertex) parentEdge.getVertexB()).addEdgeSegment(edgeSegment);
-      }
-    }
-    return edgeSegment;
-  }
-
-  /**
-   * Return an edge segment by its Xml id
-   * 
-   * Note: not an efficient implementation since it loops over all edge segments in linear time to identify the correct one, preferably use get instead whenever possible.
-   * 
-   * @param xmlId the XML id of the edge segment
-   * @return the specified edge segment instance
-   */
-  @Override
-  public ES getByXmlId(String xmlId) {
-    return findFirst(edgeSegment -> xmlId.equals(((ES) edgeSegment).getXmlId()));
-  }
-
-  /**
-   * Return an edge segment by its external id
-   * 
-   * Note: not an efficient implementation since it loops over all edge segments in linear time to identify the correct one, preferably use get instead whenever possible.
-   * 
-   * @param xmlId the XML id of the edge segment
-   * @return the specified edge segment instance
-   */
-  @Override
-  public ES getByExternalId(String externalId) {
-    return findFirst(edgeSegment -> externalId.equals(((ES) edgeSegment).getExternalId()));
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ES registerUniqueCopyOf(ES edgeSegmentToCopy, DirectedEdge newParentEdge) {
-    final ES copy = directedGraphBuilder.createUniqueCopyOf(edgeSegmentToCopy, null /* cannot set new parent edge directly due to generics */);
-    copy.setParentEdge(newParentEdge);
-    register(copy);
-    return copy;
+  public EdgeSegmentFactory<ES> getFactory() {
+    return edgeSegmentFactory;
   }
 
 }

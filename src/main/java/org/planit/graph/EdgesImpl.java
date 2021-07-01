@@ -3,8 +3,8 @@ package org.planit.graph;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.EdgeFactory;
 import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
@@ -15,12 +15,15 @@ import org.planit.utils.wrapper.LongMapWrapperImpl;
  * 
  * @author markr
  */
-public class EdgesImpl<V extends Vertex, E extends Edge> extends LongMapWrapperImpl<E> implements Edges<E> {
+public class EdgesImpl<E extends Edge> extends LongMapWrapperImpl<E> implements Edges<E> {
 
   /**
    * The graph builder to create edges
    */
-  private final GraphBuilder<V, E> graphBuilder;
+  private final GraphBuilder<?, E> graphBuilder;
+
+  /** factory to create edge instances */
+  private final EdgeFactory<E> edgeFactory;
 
   /**
    * updates the edge map keys based on edge ids in case an external force has changed already registered edges
@@ -38,33 +41,29 @@ public class EdgesImpl<V extends Vertex, E extends Edge> extends LongMapWrapperI
    * 
    * @param graphBuilder the builder for edge implementations
    */
-  public EdgesImpl(GraphBuilder<V, E> graphBuilder) {
+  public EdgesImpl(GraphBuilder<?, E> graphBuilder) {
     super(new TreeMap<Long, E>(), E::getId);
     this.graphBuilder = graphBuilder;
+    this.edgeFactory = new EdgeFactoryImpl<E>(graphBuilder, this);
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param graphBuilder the builder for edge implementations
+   */
+  public EdgesImpl(GraphBuilder<? extends Vertex, E> graphBuilder, EdgeFactory<E> edgeFactory) {
+    super(new TreeMap<Long, E>(), E::getId);
+    this.graphBuilder = graphBuilder;
+    this.edgeFactory = edgeFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public E registerNew(Vertex vertexA, Vertex vertexB, boolean registerOnVertices) throws PlanItException {
-    final E newEdge = graphBuilder.createEdge(vertexA, vertexB);
-    register(newEdge);
-    if (registerOnVertices) {
-      vertexA.addEdge(newEdge);
-      vertexB.addEdge(newEdge);
-    }
-    return newEdge;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public E registerUniqueCopyOf(E edgeToCopy) {
-    final E copy = graphBuilder.createUniqueCopyOf(edgeToCopy);
-    register(copy);
-    return copy;
+  public EdgeFactory<? extends E> getFactory() {
+    return edgeFactory;
   }
 
 }

@@ -70,8 +70,8 @@ public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(Edges<?, ?> edges) {
-    if (edges instanceof EdgesImpl<?, ?>) {
+  public void recreateIds(Edges<?> edges) {
+    if (edges instanceof EdgesImpl<?>) {
       /* remove gaps by simply resetting and recreating all edge ids */
       IdGenerator.reset(getIdGroupingToken(), Edge.class);
 
@@ -84,7 +84,7 @@ public class GraphBuilderImpl implements GraphBuilder<Vertex, Edge> {
         }
       }
 
-      ((EdgesImpl<?, ?>) edges).updateIdMapping();
+      ((EdgesImpl<?>) edges).updateIdMapping();
     } else {
       LOGGER.severe("expected the Edges implementation to be compatible with graph builder, this is not the case: unable to correctly remove subnetwork and update ids");
     }

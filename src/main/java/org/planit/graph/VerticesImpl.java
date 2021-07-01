@@ -5,12 +5,13 @@ import java.util.TreeMap;
 
 import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.graph.VertexFactory;
 import org.planit.utils.graph.Vertices;
 import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * 
- * Vertices implementation using a graphbuilder &lt;V&gt; to create the vertices
+ * Vertices implementation container and factory access
  * 
  * @author markr
  *
@@ -22,6 +23,9 @@ public class VerticesImpl<V extends Vertex> extends LongMapWrapperImpl<V> implem
    * The graph builder to create vertices
    */
   private final GraphBuilder<V, ?> graphBuilder;
+
+  /** factory to create edge instances */
+  private final VertexFactory<? extends V> vertexFactory;
 
   /**
    * updates the vertex map keys based on vertex ids in case an external force has changed already registered vertices
@@ -41,24 +45,26 @@ public class VerticesImpl<V extends Vertex> extends LongMapWrapperImpl<V> implem
   public VerticesImpl(final GraphBuilder<V, ?> graphBuilder) {
     super(new TreeMap<Long, V>(), V::getId);
     this.graphBuilder = graphBuilder;
+    this.vertexFactory = new VertexFactoryImpl<V>(graphBuilder, this);
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param graphBuilder  the graph builder to use to create vertices
+   * @param vertexFactory to use
+   */
+  public VerticesImpl(final GraphBuilder<V, ?> graphBuilder, final VertexFactory<? extends V> vertexFactory) {
+    super(new TreeMap<Long, V>(), V::getId);
+    this.graphBuilder = graphBuilder;
+    this.vertexFactory = vertexFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public V createNew() {
-    return graphBuilder.createVertex();
+  public VertexFactory<? extends V> getFactory() {
+    return vertexFactory;
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public V registerNew() {
-    final V newVertex = createNew();
-    register(newVertex);
-    return newVertex;
-  }
-
 }

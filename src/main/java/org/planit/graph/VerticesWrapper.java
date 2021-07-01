@@ -1,8 +1,12 @@
 package org.planit.graph;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.function.Predicate;
 
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.graph.VertexFactory;
 import org.planit.utils.graph.Vertices;
 
 /**
@@ -41,22 +45,6 @@ public class VerticesWrapper<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V remove(long id) {
-    return vertices.remove(id);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public V createNew() {
-    return vertices.createNew();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public V register(final V vertex) {
     return vertices.register(vertex);
   }
@@ -73,14 +61,6 @@ public class VerticesWrapper<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V registerNew() {
-    return vertices.registerNew();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public int size() {
     return vertices.size();
   }
@@ -89,8 +69,48 @@ public class VerticesWrapper<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V get(final long id) {
-    return vertices.get(id);
+  public V get(Long key) {
+    return vertices.get(key);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isEmpty() {
+    return vertices.isEmpty();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Collection<V> toCollection() {
+    return vertices.toCollection();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<V> copyOfValuesAsSet() {
+    return vertices.copyOfValuesAsSet();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public V findFirst(Predicate<V> valuePredicate) {
+    return vertices.findFirst(valuePredicate);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public VertexFactory<? extends V> getFactory() {
+    return vertices.getFactory();
   }
 
 }

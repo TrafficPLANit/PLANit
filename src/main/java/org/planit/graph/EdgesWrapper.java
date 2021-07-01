@@ -1,11 +1,13 @@
 package org.planit.graph;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.function.Predicate;
 
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
+import org.planit.utils.graph.EdgeFactory;
 import org.planit.utils.graph.Edges;
-import org.planit.utils.graph.Vertex;
 
 /**
  * Class that wraps and Edges implementation
@@ -14,19 +16,19 @@ import org.planit.utils.graph.Vertex;
  *
  * @param <E> type of edge
  */
-public class EdgesWrapper<V extends Vertex, E extends Edge> implements Edges<V, E> {
+public class EdgesWrapper<E extends Edge> implements Edges<E> {
 
   /**
    * The edges we are wrapping
    */
-  private final Edges<V, E> edges;
+  private final Edges<E> edges;
 
   /**
    * Constructor
    * 
    * @param edges the edges to use to create and register links on
    */
-  public EdgesWrapper(final Edges<V, E> edges) {
+  public EdgesWrapper(final Edges<E> edges) {
     this.edges = edges;
   }
 
@@ -36,38 +38,6 @@ public class EdgesWrapper<V extends Vertex, E extends Edge> implements Edges<V, 
   @Override
   public E remove(final E edge) {
     return edges.remove(edge);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public E remove(final long edgeId) {
-    return edges.remove(edgeId);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public E registerNew(final V vertexA, final V vertexB, boolean registerOnVertices) throws PlanItException {
-    return edges.registerNew(vertexA, vertexB, registerOnVertices);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public E registerUniqueCopyOf(E edgeToCopy) {
-    return edges.registerUniqueCopyOf(edgeToCopy);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public E get(long id) {
-    return edges.get(id);
   }
 
   /**
@@ -92,5 +62,53 @@ public class EdgesWrapper<V extends Vertex, E extends Edge> implements Edges<V, 
   @Override
   public Iterator<E> iterator() {
     return edges.iterator();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public E register(E value) {
+    return edges.register(value);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public E get(Long key) {
+    return get(key.longValue());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Collection<E> toCollection() {
+    return edges.toCollection();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<E> copyOfValuesAsSet() {
+    return edges.copyOfValuesAsSet();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public E findFirst(Predicate<E> valuePredicate) {
+    return edges.findFirst(valuePredicate);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeFactory<? extends E> getFactory() {
+    return edges.getFactory();
   }
 }

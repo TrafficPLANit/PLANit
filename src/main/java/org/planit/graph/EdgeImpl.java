@@ -9,8 +9,8 @@ import org.locationtech.jts.geom.LineString;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.Idable;
 import org.planit.utils.misc.CloneUtils;
 
 /**
@@ -80,7 +80,7 @@ public class EdgeImpl implements Edge, Cloneable {
    * @return id of this Edge object
    */
   protected static long generateEdgeId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, Edge.class);
+    return Idable.generateId(groupId, Edge.class);
   }
 
   /**

@@ -1,11 +1,15 @@
 package org.planit.graph;
 
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.EdgeSegmentFactory;
 import org.planit.utils.graph.EdgeSegments;
 
 /**
@@ -57,48 +61,8 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public ES remove(final long edgeSegmentId) {
-    return edgeSegments.remove(edgeSegmentId);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ES create(DirectedEdge parent, boolean directionAB) throws PlanItException {
-    return edgeSegments.create(parent, directionAB);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void register(DirectedEdge parentEdge, ES edgeSegment, boolean directionAB) throws PlanItException {
     edgeSegments.register(parentEdge, edgeSegment, directionAB);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ES get(long id) {
-    return edgeSegments.get(id);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ES getByXmlId(String xmlId) {
-    return edgeSegments.getByXmlId(xmlId);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ES getByExternalId(String xmlId) {
-    return edgeSegments.getByExternalId(xmlId);
   }
 
   /**
@@ -113,14 +77,6 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public ES registerUniqueCopyOf(ES edgeSegmentToCopy, DirectedEdge newParent) {
-    return edgeSegments.registerUniqueCopyOf(edgeSegmentToCopy, newParent);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public Iterator<ES> iterator() {
     return edgeSegments.iterator();
   }
@@ -129,8 +85,56 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public ES registerNew(DirectedEdge parentEdge, boolean directionAb, boolean registerOnNodeAndLink) throws PlanItException {
-    return edgeSegments.registerNew(parentEdge, directionAb, registerOnNodeAndLink);
+  public ES register(ES value) {
+    return edgeSegments.register(value);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ES get(Long key) {
+    return edgeSegments.get(key);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isEmpty() {
+    return edgeSegments.isEmpty();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Collection<ES> toCollection() {
+    return edgeSegments.toCollection();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<ES> copyOfValuesAsSet() {
+    return edgeSegments.copyOfValuesAsSet();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ES findFirst(Predicate<ES> valuePredicate) {
+    return edgeSegments.findFirst(valuePredicate);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegmentFactory<? extends ES> getFactory() {
+    return edgeSegments.getFactory();
   }
 
 }
