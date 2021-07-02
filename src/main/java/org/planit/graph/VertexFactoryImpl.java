@@ -1,35 +1,42 @@
 package org.planit.graph;
 
-import org.planit.utils.graph.GraphBuilder;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.VertexFactory;
 import org.planit.utils.graph.Vertices;
+import org.planit.utils.id.IdGroupingToken;
 
-public class VertexFactoryImpl<V extends Vertex> implements VertexFactory<V> {
+/**
+ * Factory for creating vertices on vertices container
+ * 
+ * @author markr
+ */
+public class VertexFactoryImpl extends GraphEntityFactoryImpl<Vertex> implements VertexFactory {
 
-  private final GraphBuilder<V, ?> graphBuilder;
-  private final Vertices<V> vertices;
-
-  protected VertexFactoryImpl(GraphBuilder<V, ?> graphBuilder, final Vertices<V> vertices) {
-    this.graphBuilder = graphBuilder;
-    this.vertices = vertices;
+  /**
+   * Constructor
+   * 
+   * @param groupId  to use
+   * @param vertices to use
+   */
+  protected VertexFactoryImpl(final IdGroupingToken groupId, final Vertices vertices) {
+    super(groupId, vertices);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public V createNew() {
-    return graphBuilder.createVertex();
+  public Vertex createNew() {
+    return new VertexImpl(getIdGroupingToken());
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public V registerNew() {
-    final V newVertex = createNew();
-    vertices.register(newVertex);
+  public Vertex registerNew() {
+    final Vertex newVertex = createNew();
+    getGraphEntities().register(newVertex);
     return newVertex;
   }
 

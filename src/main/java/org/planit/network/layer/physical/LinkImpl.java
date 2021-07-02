@@ -34,11 +34,11 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
   /**
    * generate unique link id
    *
-   * @param groupId, contiguous id generation within this group for instances of this class
-   * @return linkId
+   * @param tokenId, contiguous id generation within this group for instances of this class
+   * @return linkId created
    */
-  protected static long generateLinkId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, Link.class);
+  protected static long generateLinkId(final IdGroupingToken tokenId) {
+    return IdGenerator.generateId(tokenId, Link.class);
   }
 
   /**
@@ -48,6 +48,17 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    */
   protected void setLinkId(long linkId) {
     this.linkId = linkId;
+  }
+
+  /**
+   * recreate the internal link id and set it
+   * 
+   * @return
+   */
+  protected long recreateLinkId(IdGroupingToken tokenId) {
+    long newLinkId = generateLinkId(tokenId);
+    setLinkId(newLinkId);
+    return newLinkId;
   }
 
   /**
@@ -97,6 +108,18 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
   @Override
   public long getLinkId() {
     return linkId;
+  }
+
+  /**
+   * Recreate id and link id
+   * 
+   * @param tokenId to use
+   * @return created id (updated link Id is not returned)
+   */
+  @Override
+  public long recreateId(IdGroupingToken tokenId) {
+    recreateLinkId(tokenId);
+    return super.recreateId(tokenId);
   }
 
   /**

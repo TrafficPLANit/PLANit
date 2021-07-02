@@ -6,8 +6,6 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.id.ExternalIdAbleImpl;
-import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -17,7 +15,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class EdgeSegmentImpl extends ExternalIdAbleImpl implements EdgeSegment {
+public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
 
   /** generated UID */
   private static final long serialVersionUID = -6521489123632246969L;
@@ -39,25 +37,6 @@ public class EdgeSegmentImpl extends ExternalIdAbleImpl implements EdgeSegment {
    * segment's parent edge
    */
   private DirectedEdge parentEdge;
-
-  /**
-   * Generate unique edge segment id
-   *
-   * @param groupId contiguous id generation within this group for instances of this class
-   * @return id id of this EdgeSegment
-   */
-  protected static long generateEdgeSegmentId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, EdgeSegment.class);
-  }
-
-  /**
-   * set id of edge segment and expose method to package
-   * 
-   * @param id to set
-   */
-  protected void setId(Long id) {
-    super.setId(id);
-  }
 
   // Public
 
@@ -82,7 +61,7 @@ public class EdgeSegmentImpl extends ExternalIdAbleImpl implements EdgeSegment {
    * @throws PlanItException thrown when parent edge's vertices are incompatible with directional edge segments
    */
   protected EdgeSegmentImpl(final IdGroupingToken groupId, final boolean directionAB) throws PlanItException {
-    super(generateEdgeSegmentId(groupId));
+    super(groupId, EDGE_SEGMENT_ID_CLASS);
 
     if (!(parentEdge.getVertexA() instanceof DirectedVertex && parentEdge.getVertexB() instanceof DirectedVertex)) {
       throw new PlanItException(String.format("parent edges (id:%d) vertices do not support directed edge segments, they must be of type DirectedVertex", parentEdge.getId()));
@@ -104,22 +83,6 @@ public class EdgeSegmentImpl extends ExternalIdAbleImpl implements EdgeSegment {
   }
 
   // Public
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int hashCode() {
-    return idHashCode();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean equals(Object obj) {
-    return idEquals(obj);
-  }
 
   /**
    * {@inheritDoc}
@@ -208,7 +171,7 @@ public class EdgeSegmentImpl extends ExternalIdAbleImpl implements EdgeSegment {
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment clone() {
+  public EdgeSegmentImpl clone() {
     return new EdgeSegmentImpl(this);
   }
 

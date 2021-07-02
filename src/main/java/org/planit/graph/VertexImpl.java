@@ -9,7 +9,6 @@ import java.util.Map.Entry;
 import org.locationtech.jts.geom.Point;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.CloneUtils;
 
@@ -19,7 +18,7 @@ import org.planit.utils.misc.CloneUtils;
  * @author markr
  *
  */
-public class VertexImpl extends ExternalIdAbleImpl implements Vertex {
+public class VertexImpl extends GraphEntityImpl implements Vertex {
 
   /** generated UID */
   private static final long serialVersionUID = -2877566769607366608L;
@@ -42,21 +41,12 @@ public class VertexImpl extends ExternalIdAbleImpl implements Vertex {
   protected final Map<Long, Edge> edges = new HashMap<Long, Edge>();
 
   /**
-   * set the internal id and expose to package
-   * 
-   * @param id to set
-   */
-  protected void setId(long id) {
-    super.setId(id);
-  }
-
-  /**
    * Constructor
    * 
    * @param groupId, contiguous id generation within this group for instances of this class
    */
   protected VertexImpl(final IdGroupingToken groupId) {
-    super(Vertex.generateVertexId(groupId));
+    super(groupId, VERTEX_ID_CLASS);
   }
 
   /**
@@ -121,6 +111,9 @@ public class VertexImpl extends ExternalIdAbleImpl implements Vertex {
     return edges.put(edge.getId(), edge) != null;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean removeEdge(final long edgeId) {
     return edges.remove(edgeId) != null;

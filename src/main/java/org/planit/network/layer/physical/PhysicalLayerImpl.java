@@ -12,7 +12,7 @@ import org.planit.graph.modifier.DirectedGraphModifierImpl;
 import org.planit.network.layer.TopologicalLayerImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.geo.PlanitJtsUtils;
-import org.planit.utils.graph.DirectedGraph;
+import org.planit.utils.graph.UntypedDirectedGraph;
 import org.planit.utils.graph.modifier.BreakEdgeListener;
 import org.planit.utils.graph.modifier.DirectedGraphModifier;
 import org.planit.utils.graph.modifier.RemoveSubGraphListener;
@@ -52,7 +52,7 @@ public class PhysicalLayerImpl<N extends Node, L extends Link, LS extends LinkSe
   /**
    * The graph containing the nodes, links, and link segments (or derived implementations)
    */
-  private final DirectedGraph<N, L, LS> graph;
+  private final UntypedDirectedGraph<N, L, LS> graph;
 
   /** the graph modifier to use to apply larger modifications */
   protected DirectedGraphModifier<N, L, LS> graphModifier;
@@ -64,7 +64,7 @@ public class PhysicalLayerImpl<N extends Node, L extends Link, LS extends LinkSe
    * 
    * @return graph
    */
-  protected DirectedGraph<N, L, LS> getGraph() {
+  protected UntypedDirectedGraph<N, L, LS> getGraph() {
     return graph;
   }
 
@@ -123,14 +123,16 @@ public class PhysicalLayerImpl<N extends Node, L extends Link, LS extends LinkSe
   /**
    * Network Constructor
    *
-   * @param tokenId              contiguous id generation within this group for instances of this class
-   * @param physicalLayerBuilder the builder to be used to create this network layer
+   * @param tokenId      contiguous id generation within this group for instances of this class
+   * @param nodes        nodes container to use
+   * @param links        links container to use
+   * @param linkSegments linkSegments container to use
    */
-  public PhysicalLayerImpl(final IdGroupingToken tokenId, final PhysicalNetworkLayerBuilder<N, L, LS> physicalLayerBuilder) {
+  public PhysicalLayerImpl(final IdGroupingToken tokenId, final Nodes<N> nodes, final Links<L> links, final LinkSegments<LS> linkSegments) {
     super(tokenId);
+    this.graph = new DirectedGraphImpl<N, L, LS>(tokenId, nodes, links, linkSegments);
+    this.links = links;
 
-    this.physicalLayerBuilder = physicalLayerBuilder; /* for derived classes building part */
-    this.graph = new DirectedGraphImpl<N, L, LS>(tokenId, physicalLayerBuilder /* for graph builder part */);
     this.graphModifier = new DirectedGraphModifierImpl<N, L, LS>((DirectedGraphImpl<N, L, LS>) graph, physicalLayerBuilder);
 
     this.nodes = new NodesImpl<N>(getGraph().getVertices());
@@ -334,6 +336,12 @@ public class PhysicalLayerImpl<N extends Node, L extends Link, LS extends LinkSe
   @Override
   public long getNumberOfLinkSegments() {
     return this.linkSegments.size();
+  }
+
+  @Override
+  public TopologicalLayerImpl clone() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

@@ -145,4 +145,10 @@ public abstract class TransportLayerImpl implements TransportLayer {
     return supportedModes.values();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TransportLayerImpl clone();
+
 }

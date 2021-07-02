@@ -1,78 +1,64 @@
 package org.planit.graph;
 
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.DirectedEdge;
-import org.planit.utils.graph.DirectedGraphBuilder;
-import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.EdgeSegmentFactory;
 import org.planit.utils.graph.EdgeSegments;
-import org.planit.utils.wrapper.LongMapWrapperImpl;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Implementation of EdgeSegments interface.
  * 
- * 
  * @author markr
  *
- * @param <ES> edge segments type
  */
-public class EdgeSegmentsImpl<ES extends EdgeSegment> extends LongMapWrapperImpl<ES> implements EdgeSegments<ES> {
+public class EdgeSegmentsImpl extends GraphEntitiesImpl<EdgeSegment> implements EdgeSegments {
 
   /** the logger */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(EdgeSegmentsImpl.class.getCanonicalName());
 
-  /**
-   * The graph builder to create edge segments
-   */
-  protected DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> directedGraphBuilder;
-
   /** factory to create edge segment instances */
-  private final EdgeSegmentFactory<ES> edgeSegmentFactory;
+  private final EdgeSegmentFactory edgeSegmentFactory;
 
   /**
-   * updates the edge segments map keys based on edge segment ids in case an external force has changed already registered edges
+   * Constructor
+   * 
+   * @param groupId to use for creating ids for instances
    */
-  protected void updateIdMapping() {
-    /* identify which entries need to be re-registered because of a mismatch */
-    Map<Long, ES> updatedMap = new TreeMap<Long, ES>();
-    getMap().forEach((oldId, edgeSegment) -> updatedMap.put(edgeSegment.getId(), edgeSegment));
-    setMap(updatedMap);
+  public EdgeSegmentsImpl(final IdGroupingToken groupId) {
+    super(EdgeSegment::getId);
+    this.edgeSegmentFactory = new EdgeSegmentFactoryImpl(groupId, this);
   }
 
   /**
    * Constructor
    * 
-   * @param graphBuilder       the graphBuilder to use to create edge segments
+   * @param groupId            to use for creating ids for instances
    * @param edgeSegmentFactory to use
    */
-  public EdgeSegmentsImpl(DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> graphBuilder) {
-    super(new TreeMap<Long, ES>(), ES::getId);
-    this.directedGraphBuilder = graphBuilder;
-    this.edgeSegmentFactory = new EdgeSegmentFactoryImpl<ES>(graphBuilder, this);
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param graphBuilder       the graphBuilder to use to create edge segments
-   * @param edgeSegmentFactory to use
-   */
-  public EdgeSegmentsImpl(DirectedGraphBuilder<? extends DirectedVertex, ? extends DirectedEdge, ES> graphBuilder, final EdgeSegmentFactory<ES> edgeSegmentFactory) {
-    super(new TreeMap<Long, ES>(), ES::getId);
-    this.directedGraphBuilder = graphBuilder;
+  public EdgeSegmentsImpl(final IdGroupingToken groupId, final EdgeSegmentFactory edgeSegmentFactory) {
+    super(EdgeSegment::getId);
     this.edgeSegmentFactory = edgeSegmentFactory;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param edgeSegmentsImpl top copy
+   */
+  public EdgeSegmentsImpl(EdgeSegmentsImpl edgeSegmentsImpl) {
+    super(edgeSegmentsImpl);
+    this.edgeSegmentFactory = edgeSegmentsImpl.edgeSegmentFactory;
   }
 
   /**
    * {@inheritDoc}
    */
-  public void register(final DirectedEdge parentEdge, final ES edgeSegment, final boolean directionAB) throws PlanItException {
+  public void register(final DirectedEdge parentEdge, final EdgeSegment edgeSegment, final boolean directionAB) throws PlanItException {
     parentEdge.registerEdgeSegment(edgeSegment, directionAB);
     register(edgeSegment);
   }
@@ -81,8 +67,16 @@ public class EdgeSegmentsImpl<ES extends EdgeSegment> extends LongMapWrapperImpl
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegmentFactory<ES> getFactory() {
+  public EdgeSegmentFactory getFactory() {
     return edgeSegmentFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegmentsImpl clone() {
+    return new EdgeSegmentsImpl(this);
   }
 
 }

@@ -1,6 +1,6 @@
 package org.planit.userclass;
 
-import org.planit.utils.id.ExternalIdable;
+import org.planit.utils.id.ExternalIdAble;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
@@ -12,7 +12,7 @@ import org.planit.utils.mode.Mode;
  * @author markr
  *
  */
-public class UserClass implements ExternalIdable {
+public class UserClass implements ExternalIdAble {
 
   /**
    * default name

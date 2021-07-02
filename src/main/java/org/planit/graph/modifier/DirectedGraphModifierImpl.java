@@ -9,11 +9,9 @@ import java.util.logging.Logger;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedEdge;
-import org.planit.utils.graph.DirectedGraph;
-import org.planit.utils.graph.DirectedGraphBuilder;
 import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.UntypedDirectedGraph;
 import org.planit.utils.graph.modifier.BreakEdgeListener;
 import org.planit.utils.graph.modifier.BreakEdgeSegmentListener;
 import org.planit.utils.graph.modifier.DirectedGraphModifier;
@@ -25,42 +23,49 @@ import org.planit.utils.graph.modifier.RemoveSubGraphListener;
  * 
  * @author markr
  *
- * @param <V>  vertex type
- * @param <E>  edge type
- * @param <ES> edge segment type
  */
-public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> extends GraphModifierImpl<V, E>
-    implements DirectedGraphModifier<V, E, ES> {
+public class DirectedGraphModifierImpl implements DirectedGraphModifier {
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(DirectedGraphModifierImpl.class.getCanonicalName());
+
+  /** composite class, reuse for non-directed modifications aspects */
+  GraphModifierImpl graphModifier;
+
+  /**
+   * Access to directed graph we are modifying
+   * 
+   * @return directed graph
+   */
+  protected UntypedDirectedGraph<?, ?, ?> getUntypedDirectedGraph() {
+    return (UntypedDirectedGraph<?, ?, ?>) graphModifier.theGraph;
+  }
 
   /**
    * Constructor
    * 
-   * @param theDirectedGraph        to use
-   * @param theDirectedGraphBuilder to use
+   * @param theDirectedGraph to use
    */
-  public DirectedGraphModifierImpl(final DirectedGraph<V, E, ES> theDirectedGraph, final DirectedGraphBuilder<V, E, ES> theDirectedGraphBuilder) {
-    super(theDirectedGraph, theDirectedGraphBuilder);
+  public DirectedGraphModifierImpl(final UntypedDirectedGraph<?, ?, ?> theDirectedGraph) {
+    this.graphModifier = new GraphModifierImpl(theDirectedGraph);
   }
 
   /**
    * {@inheritDoc}
    */
-  @SuppressWarnings("unchecked")
   @Override
-  public void removeSubGraph(Set<? extends V> subNetworkToRemove, boolean recreateIds) {
-    DirectedGraph<V, E, ES> theDirectedGraph = (DirectedGraph<V, E, ES>) theGraph;
-
+  public void removeSubGraph(Set<DirectedVertex> subGraphToRemove, boolean recreateIds) {
+    UntypedDirectedGraph<?, ?, ?> directedGraph = getUntypedDirectedGraph();
     /* remove the edge segment portion of the directed subgraph from the actual directed graph */
-    for (DirectedVertex directedVertex : subNetworkToRemove) {
+    for (DirectedVertex directedVertex : subGraphToRemove) {
+
       Set<EdgeSegment> entryEdgeSegments = new HashSet<EdgeSegment>(directedVertex.getEntryEdgeSegments());
       Set<EdgeSegment> exitEdgeSegments = new HashSet<EdgeSegment>(directedVertex.getExitEdgeSegments());
 
       /* remove vertex' edge segments from graph */
-      entryEdgeSegments.forEach(edgeSegment -> theDirectedGraph.getEdgeSegments().remove((ES) edgeSegment));
-      exitEdgeSegments.forEach(edgeSegment -> theDirectedGraph.getEdgeSegments().remove((ES) edgeSegment));
+      entryEdgeSegments.forEach(edgeSegment -> directedGraph.getEdgeSegments().remove(edgeSegment.getId()));
+      exitEdgeSegments.forEach(edgeSegment -> directedGraph.getEdgeSegments().remove(edgeSegment.getId()));
 
       /* remove directed vertex from edge segments */
       entryEdgeSegments.forEach(edgeSegment -> edgeSegment.remove(directedVertex));
@@ -76,43 +81,34 @@ public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends Direc
 
       /* remove edge segments from graph */
       for (EdgeSegment edgeSegment : entryEdgeSegments) {
-        theDirectedGraph.getEdgeSegments().remove((ES) edgeSegment);
-        if (!registeredRemoveSubGraphListeners.isEmpty()) {
-          for (RemoveSubGraphListener<V, E> listener : registeredRemoveSubGraphListeners) {
-            ((RemoveDirectedSubGraphListener<V, E, ES>) listener).onRemoveSubGraphEdgeSegment((ES) edgeSegment);
+        directedGraph.getEdgeSegments().remove(edgeSegment.getId());
+        if (!graphModifier.registeredRemoveSubGraphListeners.isEmpty()) {
+          for (RemoveSubGraphListener listener : graphModifier.registeredRemoveSubGraphListeners) {
+            ((RemoveDirectedSubGraphListener) listener).onRemoveSubGraphEdgeSegment(edgeSegment);
           }
         }
       }
       for (EdgeSegment edgeSegment : exitEdgeSegments) {
-        theDirectedGraph.getEdgeSegments().remove((ES) edgeSegment);
-        if (!registeredRemoveSubGraphListeners.isEmpty()) {
-          for (RemoveSubGraphListener<V, E> listener : registeredRemoveSubGraphListeners) {
-            ((RemoveDirectedSubGraphListener<V, E, ES>) listener).onRemoveSubGraphEdgeSegment((ES) edgeSegment);
+        directedGraph.getEdgeSegments().remove(edgeSegment.getId());
+        if (!graphModifier.registeredRemoveSubGraphListeners.isEmpty()) {
+          for (RemoveSubGraphListener listener : graphModifier.registeredRemoveSubGraphListeners) {
+            ((RemoveDirectedSubGraphListener) listener).onRemoveSubGraphEdgeSegment(edgeSegment);
           }
         }
       }
     }
 
     /* do the same for vertices and edges */
-    super.removeSubGraph(subNetworkToRemove, recreateIds);
+    graphModifier.removeSubGraph(subGraphToRemove, recreateIds);
   }
 
   /**
    * Identical to GraphImpl.recreateIds() except that now the ids of the edge segments are also recreated on top of the vertices and edges
    */
-  @SuppressWarnings("unchecked")
   @Override
   public void recreateIds() {
     super.recreateIds();
-
-    /* ensure no id gaps remain after the removal of internal entities */
-    if (theGraphBuilder instanceof DirectedGraphBuilder<?, ?, ?>) {
-      DirectedGraph<V, E, ES> theDirectedGraph = (DirectedGraph<V, E, ES>) theGraph;
-      ((DirectedGraphBuilder<?, E, ES>) theGraphBuilder).recreateIds(theDirectedGraph.getEdgeSegments());
-    } else {
-      LOGGER.severe(
-          "expected the EdgeSegments implementation to be compatible with directed graph builder, this is not the case: unable to correctly remove subnetwork and update ids");
-    }
+    getDirectedGraph().getEdgeSegments().recreateIds();
   }
 
   /**
@@ -128,7 +124,7 @@ public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends Direc
   @Override
   public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
 
-    DirectedGraph<V, E, ES> theDirectedGraph = (DirectedGraph<V, E, ES>) theGraph;
+    UntypedDirectedGraph<V, E, ES> theDirectedGraph = (UntypedDirectedGraph<V, E, ES>) theGraph;
 
     /* delegate regular breaking of edges */
     Map<Long, Set<E>> brokenEdgesByOriginalEdgeId = super.breakEdgesAt(edgesToBreak, vertexToBreakAt, crs);
@@ -146,7 +142,7 @@ public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends Direc
 
           if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentAb)) {
             /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
-            newEdgeSegmentAb = theDirectedGraph.getEdgeSegments().registerUniqueCopyOf((ES) oldEdgeSegmentAb, brokenEdge);
+            newEdgeSegmentAb = theDirectedGraph.getEdgeSegments().getFactory().registerUniqueCopyOf(oldEdgeSegmentAb, brokenEdge);
           } else {
             /* reuse the old first */
             identifiedEdgeSegmentOnEdge.add(newEdgeSegmentAb);
@@ -183,7 +179,7 @@ public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends Direc
 
           if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentBa)) {
             /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
-            newEdgeSegmentBa = theDirectedGraph.getEdgeSegments().registerUniqueCopyOf((ES) oldEdgeSegmentBa, brokenEdge);
+            newEdgeSegmentBa = theDirectedGraph.getEdgeSegments().getFactory().registerUniqueCopyOf(oldEdgeSegmentBa, brokenEdge);
           } else {
             identifiedEdgeSegmentOnEdge.add(newEdgeSegmentBa);
           }
@@ -221,8 +217,8 @@ public class DirectedGraphModifierImpl<V extends DirectedVertex, E extends Direc
    * {@inheritDoc}
    */
   @Override
-  public void registerRemoveSubGraphListener(RemoveDirectedSubGraphListener<V, E, ES> subGraphRemovalListener) {
-    super.registerRemoveSubGraphListener((RemoveSubGraphListener<V, E>) subGraphRemovalListener);
+  public void registerRemoveSubGraphListener(RemoveDirectedSubGraphListener subGraphRemovalListener) {
+    graphModifier.registerRemoveSubGraphListener(subGraphRemovalListener);
   }
 
 }

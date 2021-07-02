@@ -1,33 +1,43 @@
 package org.planit.graph;
 
-import java.util.logging.Logger;
-
 import org.planit.utils.graph.GraphEntities;
+import org.planit.utils.graph.GraphEntity;
 import org.planit.utils.graph.GraphEntityFactory;
-import org.planit.utils.id.ExternalIdable;
-import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
-public class GraphEntityFactoryImpl<E extends ExternalIdable> implements GraphEntityFactory<E> {
-
-  /** the logger ot use */
-  private static final Logger LOGGER = Logger.getLogger(GraphEntityFactoryImpl.class.getCanonicalName());
+/**
+ * Base implementation for creating and registering graph entities on underlying container and conducting changes to ids based on the factory settings for egenrating ids.
+ * 
+ * @author markr
+ *
+ * @param <E> type of graph entity
+ */
+public abstract class GraphEntityFactoryImpl<E extends GraphEntity> implements GraphEntityFactory<E> {
 
   /** the id group token */
   protected IdGroupingToken groupIdToken;
 
-  /** the class to rgister the generated ids under */
-  protected final Class<? extends ExternalIdable> groupIdClass;
+  /** container on which newly created entities are to be registered */
+  private final GraphEntities<E> graphEntities;
+
+  /**
+   * The entities to register on
+   * 
+   * @return graphEntities
+   */
+  protected GraphEntities<E> getGraphEntities() {
+    return graphEntities;
+  }
 
   /**
    * Constructor
    * 
-   * @param groupIdToken to use for creating element ids
-   * @param groupIdClass to register the created ids on
+   * @param groupIdToken  to use for creating element ids
+   * @param graphEntities to register the created instances on
    */
-  public GraphEntityFactoryImpl(IdGroupingToken groupIdToken, final Class<? extends ExternalIdable> groupIdClass) {
+  protected GraphEntityFactoryImpl(IdGroupingToken groupIdToken, GraphEntities<E> graphEntities) {
     this.groupIdToken = groupIdToken;
-    this.groupIdClass = groupIdClass;
+    this.graphEntities = graphEntities;
   }
 
   /**
@@ -50,26 +60,22 @@ public class GraphEntityFactoryImpl<E extends ExternalIdable> implements GraphEn
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(GraphEntities<E> entities) {
-    /* remove gaps by simply resetting and recreating all entity ids */
-    IdGenerator.reset(getIdGroupingToken(), groupIdClass /* e.g. Edge.class, vertex.class etc. */);
-
-    for (E entity : entities) {
-      ((EdgeImpl) entity).setId(entity.generateId(getIdGroupingToken(), groupIdClass));
-    }
-
-    ((EdgesImpl<?>) entities).updateIdMapping();
+  public E createUniqueCopyOf(E entityToCopy) {
+    /* shallow copy as is */
+    @SuppressWarnings("unchecked")
+    E copy = (E) entityToCopy.clone();
+    /* recreate id and register */
+    copy.recreateId(getIdGroupingToken());
+    return copy;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public E createUniqueCopyOf(E edgeToCopy) {
-    /* shallow copy as is */
-    E copy = (E) edgeToCopy.clone();
-    /* make unique copy by updating id */
-    copy.setId(copy.generateId(getIdGroupingToken()));
+  public E registerUniqueCopyOf(E entityToCopy) {
+    E copy = createUniqueCopyOf(entityToCopy);
+    graphEntities.register(copy);
     return copy;
   }
 }

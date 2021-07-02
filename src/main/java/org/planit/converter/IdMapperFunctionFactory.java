@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.id.ExternalIdable;
+import org.planit.utils.id.ExternalIdAble;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
@@ -27,7 +27,7 @@ public class IdMapperFunctionFactory {
   private static final Logger LOGGER = Logger.getLogger(IdMapperFunctionFactory.class.getCanonicalName());
 
   /**
-   * create a function that takes a a class that extends {@link ExternalIdable} and generate the appropriate id based on the user configuration
+   * create a function that takes a a class that extends {@link ExternalIdAble} and generate the appropriate id based on the user configuration
    * 
    * @param <T>      ExternalIdable
    * @param clazz    to use
@@ -36,7 +36,7 @@ public class IdMapperFunctionFactory {
    * @throws PlanItException thrown if error
    * 
    */
-  protected static <T extends ExternalIdable> Function<T, String> createIdMappingFunction(Class<T> clazz, final IdMapperType idMapper) throws PlanItException {
+  protected static <T extends ExternalIdAble> Function<T, String> createIdMappingFunction(Class<T> clazz, final IdMapperType idMapper) throws PlanItException {
     switch (idMapper) {
     case ID:
       return (instance) -> {

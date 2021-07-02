@@ -1,6 +1,6 @@
 package org.planit.userclass;
 
-import org.planit.utils.id.ExternalIdable;
+import org.planit.utils.id.ExternalIdAble;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
@@ -11,7 +11,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class TravelerType implements ExternalIdable {
+public class TravelerType implements ExternalIdAble {
 
   public static final String DEFAULT_NAME = "Default";
 

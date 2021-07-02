@@ -1,10 +1,9 @@
 package org.planit.network.layer.physical;
 
-import org.planit.graph.EdgesWrapper;
-import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.Edges;
-import org.planit.utils.graph.Vertex;
+import org.planit.graph.GraphEntitiesImpl;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.physical.Link;
+import org.planit.utils.network.layer.physical.LinkFactory;
 import org.planit.utils.network.layer.physical.Links;
 
 /**
@@ -15,25 +14,56 @@ import org.planit.utils.network.layer.physical.Links;
  * 
  * @param <L> link type
  */
-public class LinksImpl<L extends Link> extends EdgesWrapper<L> implements Links<L> {
+public class LinksImpl extends GraphEntitiesImpl<Link> implements Links<Link> {
+
+  /** factory to use */
+  private final LinkFactory<Link> linkFactory;
 
   /**
    * Constructor
    * 
-   * @param edges the edges to use to create and register links on
+   * @param groupId to use for creating ids for instances
    */
-  public LinksImpl(final Edges<L> edges) {
-    super(edges);
+  public LinksImpl(final IdGroupingToken groupId) {
+    super(Link::getId);
+    this.linkFactory = new LinkFactoryImpl(groupId, this);
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param groupId     to use for creating ids for instances
+   * @param linkFactory the factory to use
+   */
+  public LinksImpl(final IdGroupingToken groupId, LinkFactory<Link> linkFactory) {
+    super(Link::getId);
+    this.linkFactory = linkFactory;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param linksImpl to copy
+   */
+  public LinksImpl(LinksImpl linksImpl) {
+    super(linksImpl);
+    this.linkFactory = linksImpl.linkFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public L registerNew(Vertex vertexA, Vertex vertexB, double lengthKm, boolean registerOnVertices) throws PlanItException {
-    L link = (L) registerNew(vertexA, vertexB, false);
-    link.setLengthKm(lengthKm);
-    return link;
+  public LinkFactory<Link> getFactory() {
+    return linkFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinksImpl clone() {
+    return new LinksImpl(this);
   }
 
 }

@@ -1,57 +1,65 @@
 package org.planit.graph;
 
-import java.util.Map;
-import java.util.TreeMap;
-
 import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.DirectedEdgeFactory;
 import org.planit.utils.graph.DirectedEdges;
-import org.planit.utils.graph.DirectedVertex;
-import org.planit.utils.graph.GraphBuilder;
-import org.planit.utils.wrapper.LongMapWrapperImpl;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Implementation of DirectedEdges interface
  * 
  * @author markr
  */
-public class DirectedEdgesImpl<E extends DirectedEdge> extends LongMapWrapperImpl<E> implements DirectedEdges<E> {
+public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implements DirectedEdges {
+
+  /** factory to use */
+  private final DirectedEdgeFactory directedEdgeFactory;
 
   /**
-   * The graph builder to create edges
+   * Constructor
+   * 
+   * @param groupId to use for creating ids for instances
    */
-  private final GraphBuilder<? extends DirectedVertex, ? extends E> graphBuilder;
-
-  private final DirectedEdgeFactory<? extends E> directedEdgeFactory;
-
-  /**
-   * updates the edge map keys based on edge ids in case an external force has changed already registered edges
-   */
-  protected void updateIdMapping() {
-    /* identify which entries need to be re-registered because of a mismatch */
-    Map<Long, E> updatedMap = new TreeMap<Long, E>();
-    getMap().forEach((oldId, edge) -> updatedMap.put(edge.getId(), edge));
-    getMap().clear();
-    setMap(updatedMap);
+  public DirectedEdgesImpl(final IdGroupingToken groupId) {
+    super(DirectedEdge::getId);
+    this.directedEdgeFactory = new DirectedEdgeFactoryImpl(groupId, this);
   }
 
   /**
    * Constructor
    * 
-   * @param graphBuilder the builder for edge implementations
+   * @param groupId             to use for creating ids for instances
+   * @param directedEdgeFactory the factory to use
    */
-  public DirectedEdgesImpl(GraphBuilder<? extends DirectedVertex, ? extends E> graphBuilder, DirectedEdgeFactory<? extends E> directedEdgeFactory) {
-    super(new TreeMap<Long, E>(), DirectedEdge::getId);
-    this.graphBuilder = graphBuilder;
+  public DirectedEdgesImpl(final IdGroupingToken groupId, DirectedEdgeFactory directedEdgeFactory) {
+    super(DirectedEdge::getId);
     this.directedEdgeFactory = directedEdgeFactory;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param directedEdgesImpl to copy
+   */
+  public DirectedEdgesImpl(DirectedEdgesImpl directedEdgesImpl) {
+    super(directedEdgesImpl);
+    this.directedEdgeFactory = directedEdgesImpl.directedEdgeFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdgeFactory<? extends E> getFactory() {
+  public DirectedEdgeFactory getFactory() {
     return directedEdgeFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedEdgesImpl clone() {
+    return new DirectedEdgesImpl(this);
   }
 
 }

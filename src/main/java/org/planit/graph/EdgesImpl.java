@@ -1,39 +1,28 @@
 package org.planit.graph;
 
-import java.util.Map;
-import java.util.TreeMap;
-
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeFactory;
 import org.planit.utils.graph.Edges;
-import org.planit.utils.graph.GraphBuilder;
-import org.planit.utils.graph.Vertex;
-import org.planit.utils.wrapper.LongMapWrapperImpl;
+import org.planit.utils.id.IdGroupingToken;
 
 /**
  * Implementation of Edges interface
  * 
  * @author markr
  */
-public class EdgesImpl<E extends Edge> extends LongMapWrapperImpl<E> implements Edges<E> {
-
-  /**
-   * The graph builder to create edges
-   */
-  private final GraphBuilder<?, E> graphBuilder;
+public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
 
   /** factory to create edge instances */
-  private final EdgeFactory<E> edgeFactory;
+  private final EdgeFactory edgeFactory;
 
   /**
-   * updates the edge map keys based on edge ids in case an external force has changed already registered edges
+   * Constructor
+   * 
+   * @param groupId to use for creating ids for instances
    */
-  protected void updateIdMapping() {
-    /* identify which entries need to be re-registered because of a mismatch */
-    Map<Long, E> updatedMap = new TreeMap<Long, E>();
-    getMap().forEach((oldId, edge) -> updatedMap.put(edge.getId(), edge));
-    getMap().clear();
-    setMap(updatedMap);
+  public EdgesImpl(final IdGroupingToken groupId) {
+    super(Edge::getId);
+    this.edgeFactory = new EdgeFactoryImpl(groupId, this);
   }
 
   /**
@@ -41,29 +30,35 @@ public class EdgesImpl<E extends Edge> extends LongMapWrapperImpl<E> implements 
    * 
    * @param graphBuilder the builder for edge implementations
    */
-  public EdgesImpl(GraphBuilder<?, E> graphBuilder) {
-    super(new TreeMap<Long, E>(), E::getId);
-    this.graphBuilder = graphBuilder;
-    this.edgeFactory = new EdgeFactoryImpl<E>(graphBuilder, this);
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param graphBuilder the builder for edge implementations
-   */
-  public EdgesImpl(GraphBuilder<? extends Vertex, E> graphBuilder, EdgeFactory<E> edgeFactory) {
-    super(new TreeMap<Long, E>(), E::getId);
-    this.graphBuilder = graphBuilder;
+  public EdgesImpl(EdgeFactory edgeFactory) {
+    super(Edge::getId);
     this.edgeFactory = edgeFactory;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param edgesImpl to copy
+   */
+  public EdgesImpl(EdgesImpl edgesImpl) {
+    super(edgesImpl);
+    this.edgeFactory = edgesImpl.edgeFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public EdgeFactory<? extends E> getFactory() {
+  public EdgeFactory getFactory() {
     return edgeFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgesImpl clone() {
+    return new EdgesImpl(this);
   }
 
 }

@@ -3,8 +3,8 @@ package org.planit.assignment;
 import java.io.Serializable;
 
 import org.djutils.event.EventProducer;
+import org.planit.utils.id.ExternalIdAble;
 import org.planit.utils.id.ExternalIdAbleImpl;
-import org.planit.utils.id.ExternalIdable;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
@@ -14,7 +14,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T> & Serializable> extends EventProducer implements ExternalIdable {
+public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T> & Serializable> extends EventProducer implements ExternalIdAble {
 
   /** generated UID */
   private static final long serialVersionUID = -3940841069228367177L;
@@ -46,10 +46,21 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
     this.tokenId = tokenId;
     this.idImpl = new ExternalIdAbleImpl(IdGenerator.generateId(tokenId, classType));
   }
-  
+
+  /**
+   * Copy constructor
+   * 
+   * @param other, to copy
+   */
+  protected TrafficAssignmentComponent(TrafficAssignmentComponent<T> other) {
+    this.trafficComponentType = other.trafficComponentType;
+    this.tokenId = other.tokenId;
+    this.idImpl = other.idImpl.clone();
+  }
+
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public int hashCode() {
     return idHashCode();
@@ -57,18 +68,13 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public boolean equals(Object obj) {
     return idEquals(obj);
-  }  
-
-  // Public
-
-  public String getTrafficComponentType() {
-    return trafficComponentType;
   }
 
+  // Public
 
   /**
    * {@inheritDoc}
@@ -80,7 +86,7 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public String getExternalId() {
     return idImpl.getExternalId();
@@ -88,7 +94,7 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public void setExternalId(String externalId) {
     idImpl.setExternalId(externalId);
@@ -96,7 +102,7 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public String getXmlId() {
     return idImpl.getXmlId();
@@ -104,19 +110,31 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public void setXmlId(String xmlId) {
-    idImpl.setXmlId(xmlId);    
+    idImpl.setXmlId(xmlId);
   }
 
   /**
    * not to be confused with the PLANit ids, only present since this is an event producer, delegates to getXmlId()
-   */  
+   */
   @Override
   public Serializable getSourceId() {
     return getXmlId();
-  }  
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TrafficAssignmentComponent<T> clone();
+
+  // Public
+
+  public String getTrafficComponentType() {
+    return trafficComponentType;
+  }
 
   /**
    * Collect the id grouping token used to generate ids for entities of this class.

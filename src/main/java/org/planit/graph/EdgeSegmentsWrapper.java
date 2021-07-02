@@ -17,10 +17,8 @@ import org.planit.utils.graph.EdgeSegments;
  * 
  * 
  * @author markr
- *
- * @param <ES> edge segments type
  */
-public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments<ES> {
+public class EdgeSegmentsWrapper implements EdgeSegments {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -29,14 +27,14 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
   /**
    * The edge segments we are wrapping
    */
-  private final EdgeSegments<ES> edgeSegments;
+  private final EdgeSegments edgeSegments;
 
   /**
    * Provide access to edge segments
    * 
    * @return edge segments
    */
-  protected EdgeSegments<ES> getEdgeSegments() {
+  protected EdgeSegments getEdgeSegments() {
     return edgeSegments;
   }
 
@@ -45,15 +43,24 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * 
    * @param edgeSegments we are wrapping
    */
-  public EdgeSegmentsWrapper(final EdgeSegments<ES> edgeSegments) {
+  public EdgeSegmentsWrapper(final EdgeSegments edgeSegments) {
     this.edgeSegments = edgeSegments;
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param edgeSegments we are wrapping
+   */
+  public EdgeSegmentsWrapper(final EdgeSegmentsWrapper edgeSegmentsWrapper) {
+    this.edgeSegments = edgeSegmentsWrapper.edgeSegments.clone();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ES remove(ES edgeSegment) {
+  public EdgeSegment remove(EdgeSegment edgeSegment) {
     return edgeSegments.remove(edgeSegment);
   }
 
@@ -61,7 +68,15 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public void register(DirectedEdge parentEdge, ES edgeSegment, boolean directionAB) throws PlanItException {
+  public EdgeSegment remove(long id) {
+    return edgeSegments.remove(id);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void register(DirectedEdge parentEdge, EdgeSegment edgeSegment, boolean directionAB) throws PlanItException {
     edgeSegments.register(parentEdge, edgeSegment, directionAB);
   }
 
@@ -77,7 +92,7 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public Iterator<ES> iterator() {
+  public Iterator<EdgeSegment> iterator() {
     return edgeSegments.iterator();
   }
 
@@ -85,7 +100,7 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public ES register(ES value) {
+  public EdgeSegment register(EdgeSegment value) {
     return edgeSegments.register(value);
   }
 
@@ -93,7 +108,7 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public ES get(Long key) {
+  public EdgeSegment get(Long key) {
     return edgeSegments.get(key);
   }
 
@@ -109,7 +124,7 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public Collection<ES> toCollection() {
+  public Collection<EdgeSegment> toCollection() {
     return edgeSegments.toCollection();
   }
 
@@ -117,7 +132,7 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public Set<ES> copyOfValuesAsSet() {
+  public Set<EdgeSegment> copyOfValuesAsSet() {
     return edgeSegments.copyOfValuesAsSet();
   }
 
@@ -125,7 +140,7 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public ES findFirst(Predicate<ES> valuePredicate) {
+  public EdgeSegment findFirst(Predicate<EdgeSegment> valuePredicate) {
     return edgeSegments.findFirst(valuePredicate);
   }
 
@@ -133,8 +148,24 @@ public class EdgeSegmentsWrapper<ES extends EdgeSegment> implements EdgeSegments
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegmentFactory<? extends ES> getFactory() {
+  public EdgeSegmentFactory getFactory() {
     return edgeSegments.getFactory();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegmentsWrapper clone() {
+    return new EdgeSegmentsWrapper(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds() {
+    edgeSegments.recreateIds();
   }
 
 }

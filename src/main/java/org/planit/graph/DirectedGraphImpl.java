@@ -2,22 +2,21 @@ package org.planit.graph;
 
 import java.util.logging.Logger;
 
-import org.planit.utils.graph.DirectedEdge;
+import org.planit.utils.graph.DirectedEdges;
 import org.planit.utils.graph.DirectedGraph;
-import org.planit.utils.graph.DirectedGraphBuilder;
-import org.planit.utils.graph.DirectedVertex;
-import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.DirectedVertices;
 import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
  * 
- * A graph implementation consisting of vertices and edges
+ * A directed graph implementation consisting of directed vertices, directed edges and edge segments
  * 
  * @author markr
  *
  */
-public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> extends GraphImpl<V, E> implements DirectedGraph<V, E, ES> {
+public class DirectedGraphImpl<V extends DirectedVertices, E extends DirectedEdges, ES extends EdgeSegments> extends UntypedDirectedGraphImpl<V, E, ES>
+    implements DirectedGraph<V, E, ES> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -26,29 +25,22 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
   // Protected
 
   /**
-   * class instance containing all edge segments
-   */
-  protected final EdgeSegments<ES> edgeSegments;
-
-  /**
    * DirectedGraph Constructor
    *
    * @param groupToken   contiguous id generation within this group for instances of this class
    * @param graphBuilder the builder to be used to create this network
    */
-  public DirectedGraphImpl(final IdGroupingToken groupToken, final DirectedGraphBuilder<V, E, ES> graphBuilder) {
-    super(groupToken, graphBuilder);
-    this.edgeSegments = new EdgeSegmentsImpl<ES>(graphBuilder);
+  public DirectedGraphImpl(final IdGroupingToken groupToken, V vertices, E edges, ES edgeSegments) {
+    super(groupToken, vertices, edges, edgeSegments);
   }
 
-  // Getters - Setters
-
   /**
-   * {@inheritDoc}
+   * Copy constructor
+   * 
+   * @param directedGraphImpl to copy
    */
-  @Override
-  public EdgeSegments<ES> getEdgeSegments() {
-    return edgeSegments;
+  public DirectedGraphImpl(final DirectedGraphImpl<V, E, ES> directedGraphImpl) {
+    super(directedGraphImpl);
   }
 
 }

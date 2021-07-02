@@ -16,28 +16,45 @@ import org.planit.utils.graph.Edges;
  *
  * @param <E> type of edge
  */
-public class EdgesWrapper<E extends Edge> implements Edges<E> {
+public class EdgesWrapper implements Edges {
 
   /**
    * The edges we are wrapping
    */
-  private final Edges<E> edges;
+  private final Edges edges;
 
   /**
    * Constructor
    * 
    * @param edges the edges to use to create and register links on
    */
-  public EdgesWrapper(final Edges<E> edges) {
+  public EdgesWrapper(final Edges edges) {
     this.edges = edges;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public EdgesWrapper(final EdgesWrapper other) {
+    this.edges = other.edges.clone();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public E remove(final E edge) {
+  public Edge remove(final Edge edge) {
     return edges.remove(edge);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Edge remove(final long id) {
+    return edges.remove(id);
   }
 
   /**
@@ -60,7 +77,7 @@ public class EdgesWrapper<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public Iterator<E> iterator() {
+  public Iterator<Edge> iterator() {
     return edges.iterator();
   }
 
@@ -68,7 +85,7 @@ public class EdgesWrapper<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public E register(E value) {
+  public Edge register(Edge value) {
     return edges.register(value);
   }
 
@@ -76,7 +93,7 @@ public class EdgesWrapper<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public E get(Long key) {
+  public Edge get(Long key) {
     return get(key.longValue());
   }
 
@@ -84,7 +101,7 @@ public class EdgesWrapper<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public Collection<E> toCollection() {
+  public Collection<Edge> toCollection() {
     return edges.toCollection();
   }
 
@@ -92,7 +109,7 @@ public class EdgesWrapper<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public Set<E> copyOfValuesAsSet() {
+  public Set<Edge> copyOfValuesAsSet() {
     return edges.copyOfValuesAsSet();
   }
 
@@ -100,7 +117,7 @@ public class EdgesWrapper<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public E findFirst(Predicate<E> valuePredicate) {
+  public Edge findFirst(Predicate<Edge> valuePredicate) {
     return edges.findFirst(valuePredicate);
   }
 
@@ -108,7 +125,23 @@ public class EdgesWrapper<E extends Edge> implements Edges<E> {
    * {@inheritDoc}
    */
   @Override
-  public EdgeFactory<? extends E> getFactory() {
+  public EdgeFactory getFactory() {
     return edges.getFactory();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds() {
+    edges.recreateIds();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgesWrapper clone() {
+    return new EdgesWrapper(this);
   }
 }

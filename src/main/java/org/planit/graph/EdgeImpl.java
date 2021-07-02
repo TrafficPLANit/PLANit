@@ -10,7 +10,6 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.Idable;
 import org.planit.utils.misc.CloneUtils;
 
 /**
@@ -20,18 +19,13 @@ import org.planit.utils.misc.CloneUtils;
  * @author markr
  *
  */
-public class EdgeImpl implements Edge, Cloneable {
+public class EdgeImpl extends GraphEntityImpl implements Edge {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(EdgeImpl.class.getCanonicalName());
 
   /** generated UID */
   private static final long serialVersionUID = -3061186642253968991L;
-
-  /**
-   * Unique internal identifier
-   */
-  private long id;
 
   /**
    * Vertex A
@@ -42,16 +36,6 @@ public class EdgeImpl implements Edge, Cloneable {
    * Vertex B
    */
   private Vertex vertexB = null;
-
-  /**
-   * External Id of the physical link
-   */
-  protected String externalId;
-
-  /**
-   * Xml Id of the physical link
-   */
-  protected String xmlId;
 
   /**
    * The line geometry of this link if set
@@ -72,25 +56,6 @@ public class EdgeImpl implements Edge, Cloneable {
    * Length of edge
    */
   protected Double lengthInKm;
-
-  /**
-   * Generate edge id
-   *
-   * @param groupId, contiguous id generation within this group for instances of this class
-   * @return id of this Edge object
-   */
-  protected static long generateEdgeId(final IdGroupingToken groupId) {
-    return Idable.generateId(groupId, Edge.class);
-  }
-
-  /**
-   * set id on this edge
-   * 
-   * @param id to set
-   */
-  protected void setId(long id) {
-    this.id = id;
-  }
 
   /**
    * set vertex B
@@ -118,7 +83,7 @@ public class EdgeImpl implements Edge, Cloneable {
    * @param vertexB  second vertex in the link
    */
   protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB) {
-    setId(generateEdgeId(groupId));
+    super(groupId, EDGE_ID_CLASS);
     setVertexA(vertexA);
     setVertexB(vertexB);
     lengthInKm = null;
@@ -144,9 +109,7 @@ public class EdgeImpl implements Edge, Cloneable {
    * @param edgeImpl to copy
    */
   protected EdgeImpl(EdgeImpl edgeImpl) {
-    setId(edgeImpl.getId());
-    setXmlId(edgeImpl.getXmlId());
-    setExternalId(edgeImpl.getExternalId());
+    super(edgeImpl);
     if (edgeImpl.hasGeometry()) {
       setGeometry((LineString) edgeImpl.getGeometry().copy());
     }
@@ -162,62 +125,6 @@ public class EdgeImpl implements Edge, Cloneable {
   }
 
   // Public
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int hashCode() {
-    return idHashCode();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean equals(Object obj) {
-    return idEquals(obj);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setExternalId(final String externalId) {
-    this.externalId = externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getExternalId() {
-    return externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getXmlId() {
-    return this.xmlId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setXmlId(String xmlId) {
-    this.xmlId = xmlId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasExternalId() {
-    return (externalId != null);
-  }
 
   /**
    * {@inheritDoc}
@@ -309,14 +216,6 @@ public class EdgeImpl implements Edge, Cloneable {
   }
 
   // Getters-Setters
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return id;
-  }
 
   /**
    * {@inheritDoc}

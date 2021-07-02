@@ -17,27 +17,36 @@ import org.planit.utils.graph.Vertices;
  *
  * @param <V> concrete class of vertices
  */
-public class VerticesWrapper<V extends Vertex> implements Vertices<V> {
+public class VerticesWrapper implements Vertices {
 
   /**
    * The vertices we are wrapping
    */
-  private final Vertices<V> vertices;
+  private final Vertices vertices;
 
   /**
    * Constructor
    * 
    * @param vertices the vertices to wrap
    */
-  public VerticesWrapper(final Vertices<V> vertices) {
+  public VerticesWrapper(final Vertices vertices) {
     this.vertices = vertices;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param verticesWrapper to copy
+   */
+  public VerticesWrapper(final VerticesWrapper verticesWrapper) {
+    this.vertices = verticesWrapper.clone();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public V remove(final V vertex) {
+  public Vertex remove(final Vertex vertex) {
     return vertices.remove(vertex);
   }
 
@@ -45,7 +54,15 @@ public class VerticesWrapper<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V register(final V vertex) {
+  public Vertex remove(final long key) {
+    return vertices.remove(key);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Vertex register(final Vertex vertex) {
     return vertices.register(vertex);
   }
 
@@ -53,7 +70,7 @@ public class VerticesWrapper<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public Iterator<V> iterator() {
+  public Iterator<Vertex> iterator() {
     return vertices.iterator();
   }
 
@@ -69,7 +86,7 @@ public class VerticesWrapper<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V get(Long key) {
+  public Vertex get(Long key) {
     return vertices.get(key);
   }
 
@@ -85,7 +102,7 @@ public class VerticesWrapper<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public Collection<V> toCollection() {
+  public Collection<Vertex> toCollection() {
     return vertices.toCollection();
   }
 
@@ -93,7 +110,7 @@ public class VerticesWrapper<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public Set<V> copyOfValuesAsSet() {
+  public Set<Vertex> copyOfValuesAsSet() {
     return vertices.copyOfValuesAsSet();
   }
 
@@ -101,7 +118,7 @@ public class VerticesWrapper<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public V findFirst(Predicate<V> valuePredicate) {
+  public Vertex findFirst(Predicate<Vertex> valuePredicate) {
     return vertices.findFirst(valuePredicate);
   }
 
@@ -109,8 +126,24 @@ public class VerticesWrapper<V extends Vertex> implements Vertices<V> {
    * {@inheritDoc}
    */
   @Override
-  public VertexFactory<? extends V> getFactory() {
+  public VertexFactory getFactory() {
     return vertices.getFactory();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds() {
+    vertices.recreateIds();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public VerticesWrapper clone() {
+    return new VerticesWrapper(this);
   }
 
 }

@@ -36,11 +36,30 @@ public class Network extends TrafficAssignmentComponent<Network> implements Seri
   }
 
   /**
+   * Copy constructor
+   * 
+   * @param network to clone
+   */
+  public Network(Network network) {
+    super(network);
+  }
+
+  /**
    * collect the grouping token for this network instance
    * 
    * @return id grouping token
    */
   public IdGroupingToken getNetworkGroupingTokenId() {
     return networkIdGroupingToken;
+  }
+
+  /**
+   * Clone the network
+   * 
+   * @return cloned network
+   */
+  @Override
+  public Network clone() {
+    return new Network(this);
   }
 }

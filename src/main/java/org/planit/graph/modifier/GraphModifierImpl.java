@@ -19,40 +19,42 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.geo.PlanitJtsCrsUtils;
 import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.Edge;
-import org.planit.utils.graph.Graph;
-import org.planit.utils.graph.GraphBuilder;
+import org.planit.utils.graph.UntypedGraph;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.modifier.BreakEdgeListener;
 import org.planit.utils.graph.modifier.GraphModifier;
 import org.planit.utils.graph.modifier.RemoveSubGraphListener;
 
-public class GraphModifierImpl<V extends Vertex, E extends Edge> implements GraphModifier<V, E> {
+/**
+ * Apply modifications to the graph in an integrated fashion
+ * 
+ * @author markr
+ *
+ */
+public class GraphModifierImpl implements GraphModifier<Vertex, Edge> {
 
   /** the logger to use */
   private static final Logger LOGGER = Logger.getLogger(GraphModifierImpl.class.getCanonicalName());
 
   /** the graph to modify */
-  protected final Graph<V, E> theGraph;
-
-  /** the graphbuilder related to the graph */
-  protected final GraphBuilder<V, E> theGraphBuilder;
+  protected final UntypedGraph<?, ?> theGraph;
 
   /** track removeSubGraphListeners */
-  protected final Set<RemoveSubGraphListener<V, E>> registeredRemoveSubGraphListeners;
+  protected final Set<RemoveSubGraphListener> registeredRemoveSubGraphListeners;
 
   /** track breakEdgeListeners */
-  protected final Set<BreakEdgeListener<V, E>> registeredBreakEdgeListeners;
+  protected final Set<BreakEdgeListener> registeredBreakEdgeListeners;
 
   /**
    * update the geometry of the broken edge, knowing at what vertex it was broken from a previously longer edge
    * 
-   * @param <V> type of vertex
-   * @param <E> type of edge
+   * @param <V>            type of vertex
+   * @param <E>            type of edge
    * @param brokenEdge     the broken edge
    * @param vertexBrokenAt the vertex it was broken at
    * @throws PlanItException thrown if error
    */
-  protected static <V extends Vertex, E extends Edge> void updateBrokenEdgeGeometry(E brokenEdge, V vertexBrokenAt) throws PlanItException {
+  protected static void updateBrokenEdgeGeometry(Edge brokenEdge, Vertex vertexBrokenAt) throws PlanItException {
     LineString updatedGeometry = null;
     if (brokenEdge.getVertexA().equals(vertexBrokenAt)) {
       updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesBefore(vertexBrokenAt.getPosition(), brokenEdge.getGeometry());
@@ -72,29 +74,28 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
    * @return all vertices in the subnetwork connected to passed in reference vertex
    * @throws PlanItException thrown if parameters are null
    */
-  @SuppressWarnings("unchecked")
-  protected Set<V> processSubNetworkVertex(V referenceVertex) throws PlanItException {
+  protected Set<Vertex> processSubNetworkVertex(Vertex referenceVertex) throws PlanItException {
     PlanItException.throwIfNull(referenceVertex, "provided reference vertex is null when identifying its subnetwork, thisis not allowed");
-    Set<V> subNetworkVertices = new HashSet<>();
+    Set<Vertex> subNetworkVertices = new HashSet<Vertex>();
     subNetworkVertices.add(referenceVertex);
 
-    Set<V> verticesToExplore = new HashSet<>();
+    Set<Vertex> verticesToExplore = new HashSet<Vertex>();
     verticesToExplore.add(referenceVertex);
-    Iterator<V> vertexIter = verticesToExplore.iterator();
+    Iterator<Vertex> vertexIter = verticesToExplore.iterator();
     while (vertexIter.hasNext()) {
       /* collect and remove since it is processed */
-      V currVertex = vertexIter.next();
+      Vertex currVertex = vertexIter.next();
       vertexIter.remove();
 
       /* add newly found vertices to explore, and add then to final subnetwork list as well */
       Collection<? extends Edge> edgesOfCurrVertex = currVertex.getEdges();
       for (Edge currEdge : edgesOfCurrVertex) {
         if (currEdge.getVertexA() != null && currEdge.getVertexA().getId() != currVertex.getId() && !subNetworkVertices.contains(currEdge.getVertexA())) {
-          subNetworkVertices.add((V) currEdge.getVertexA());
-          verticesToExplore.add((V) currEdge.getVertexA());
+          subNetworkVertices.add(currEdge.getVertexA());
+          verticesToExplore.add(currEdge.getVertexA());
         } else if (currEdge.getVertexB() != null && currEdge.getVertexB().getId() != currVertex.getId() && !subNetworkVertices.contains(currEdge.getVertexB())) {
-          subNetworkVertices.add((V) currEdge.getVertexB());
-          verticesToExplore.add((V) currEdge.getVertexB());
+          subNetworkVertices.add(currEdge.getVertexB());
+          verticesToExplore.add(currEdge.getVertexB());
         }
       }
       /* update iterator */
@@ -107,13 +108,11 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
    * Constructor
    * 
    * @param theGraph to use
-   * @param graphBuilder to use
    */
-  public GraphModifierImpl(final Graph<V, E> theGraph, final GraphBuilder<V, E> graphBuilder) {
+  public GraphModifierImpl(final UntypedGraph<?, ?> theGraph) {
     this.theGraph = theGraph;
-    this.theGraphBuilder = graphBuilder;
-    this.registeredRemoveSubGraphListeners = new TreeSet<RemoveSubGraphListener<V, E>>();
-    this.registeredBreakEdgeListeners = new TreeSet<BreakEdgeListener<V, E>>();
+    this.registeredRemoveSubGraphListeners = new TreeSet<RemoveSubGraphListener>();
+    this.registeredBreakEdgeListeners = new TreeSet<BreakEdgeListener>();
   }
 
   /**
@@ -125,14 +124,14 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
     boolean recreateIdsImmediately = false;
 
     Map<Integer, LongAdder> removedDanglingNetworksBySize = new HashMap<>();
-    Set<V> remainingVertices = new HashSet<V>(theGraph.getVertices().size());
+    Set<Vertex> remainingVertices = new HashSet<Vertex>(theGraph.getVertices().size());
     theGraph.getVertices().forEach(vertex -> remainingVertices.add(vertex));
-    Map<V, Integer> identifiedSubNetworkSizes = new HashMap<V, Integer>();
+    Map<Vertex, Integer> identifiedSubNetworkSizes = new HashMap<Vertex, Integer>();
 
     while (remainingVertices.iterator().hasNext()) {
       /* recursively traverse the subnetwork */
-      V referenceVertex = remainingVertices.iterator().next();
-      Set<V> subNetworkVerticesToPopulate = processSubNetworkVertex(referenceVertex);
+      Vertex referenceVertex = remainingVertices.iterator().next();
+      Set<Vertex> subNetworkVerticesToPopulate = processSubNetworkVertex(referenceVertex);
 
       /* register size and remove subnetwork from remaining nodes */
       identifiedSubNetworkSizes.put(referenceVertex, subNetworkVerticesToPopulate.size());
@@ -143,7 +142,7 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
       /* remove all non-dominating subnetworks */
       int maxSubNetworkSize = Collections.max(identifiedSubNetworkSizes.values());
       LOGGER.fine(String.format("remaining vertices %d, edges %d", theGraph.getVertices().size(), theGraph.getEdges().size()));
-      for (Entry<V, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
+      for (Entry<Vertex, Integer> entry : identifiedSubNetworkSizes.entrySet()) {
         int subNetworkSize = entry.getValue();
         if (subNetworkSize < maxSubNetworkSize || !alwaysKeepLargest) {
 
@@ -178,13 +177,12 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
   /**
    * {@inheritDoc}
    */
-  @SuppressWarnings("unchecked")
   @Override
-  public void removeSubGraph(Set<? extends V> subGraphToRemove, boolean recreateIds) {
+  public void removeSubGraph(Set<Vertex> subGraphToRemove, boolean recreateIds) {
 
     /* remove the subnetwork from the actual network */
-    for (V vertex : subGraphToRemove) {
-      Set<Edge> vertexEdges = new HashSet<Edge>(vertex.getEdges());
+    for (Vertex vertex : subGraphToRemove) {
+      Set<? extends Edge> vertexEdges = new HashSet<>(vertex.getEdges());
 
       /* remove edges from vertex */
       for (Edge edge : vertexEdges) {
@@ -197,19 +195,19 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
       }
 
       /* remove vertex from graph */
-      theGraph.getVertices().remove(vertex);
+      theGraph.getVertices().remove(vertex.getId());
       if (!registeredRemoveSubGraphListeners.isEmpty()) {
-        for (RemoveSubGraphListener<V, E> listener : registeredRemoveSubGraphListeners) {
+        for (RemoveSubGraphListener listener : registeredRemoveSubGraphListeners) {
           listener.onRemoveSubGraphVertex(vertex);
         }
       }
 
       /* remove vertex' edges from graph */
       for (Edge edge : vertexEdges) {
-        theGraph.getEdges().remove((E) edge);
+        theGraph.getEdges().remove(edge.getId());
         if (!registeredRemoveSubGraphListeners.isEmpty()) {
-          for (RemoveSubGraphListener<V, E> listener : registeredRemoveSubGraphListeners) {
-            listener.onRemoveSubGraphEdge((E) edge);
+          for (RemoveSubGraphListener listener : registeredRemoveSubGraphListeners) {
+            listener.onRemoveSubGraphEdge(edge);
           }
         }
       }
@@ -221,7 +219,7 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
     }
 
     if (!registeredRemoveSubGraphListeners.isEmpty()) {
-      for (RemoveSubGraphListener<V, E> listener : registeredRemoveSubGraphListeners) {
+      for (RemoveSubGraphListener listener : registeredRemoveSubGraphListeners) {
         listener.onCompletion();
       }
     }
@@ -230,8 +228,8 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
   /**
    * {@inheritDoc}
    */
-  public void removeSubGraphOf(V referenceVertex, boolean recreateIds) throws PlanItException {
-    Set<V> subNetworkNodesToRemove = processSubNetworkVertex(referenceVertex);
+  public void removeSubGraphOf(Vertex referenceVertex, boolean recreateIds) throws PlanItException {
+    Set<Vertex> subNetworkNodesToRemove = processSubNetworkVertex(referenceVertex);
     removeSubGraph(subNetworkNodesToRemove, recreateIds);
   }
 
@@ -240,17 +238,18 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
    * 
    */
   @Override
-  public Map<Long, Set<E>> breakEdgesAt(List<? extends E> edgesToBreak, V vertexToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
+  public Map<Long, Set<Edge>> breakEdgesAt(List<Edge> edgesToBreak, Vertex vertexToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
     PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
 
-    Map<Long, Set<E>> affectedEdges = new HashMap<Long, Set<E>>();
-    for (E edgeToBreak : edgesToBreak) {
-      affectedEdges.putIfAbsent(edgeToBreak.getId(), new HashSet<E>());
+    Map<Long, Set<Edge>> affectedEdges = new HashMap<Long, Set<Edge>>();
+    for (Edge edgeToBreak : edgesToBreak) {
+      affectedEdges.putIfAbsent(edgeToBreak.getId(), new HashSet<Edge>());
 
-      Set<E> affectedEdgesOfEdgeToBreak = affectedEdges.get(edgeToBreak.getId());
-      E aToBreak = edgeToBreak;
+      Set<Edge> affectedEdgesOfEdgeToBreak = affectedEdges.get(edgeToBreak.getId());
+      Edge aToBreak = edgeToBreak;
+
       /* create copy of edge with unique id and register it */
-      E breakToB = theGraph.getEdges().registerUniqueCopyOf(edgeToBreak);
+      Edge breakToB = theGraph.getEdges().getFactory().registerUniqueCopyOf(edgeToBreak);
 
       if (edgeToBreak.getVertexA() == null || edgeToBreak.getVertexB() == null) {
         LOGGER.severe(String.format("unable to break edge since edge to break %s (id:%d) is missing one or more vertices", edgeToBreak.getExternalId(), edgeToBreak.getId()));
@@ -276,13 +275,13 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
       }
 
       /* broken links geometry must be updated since it links is truncated compared to its original */
-      for (E brokenEdge : Set.of(aToBreak, breakToB)) {
+      for (Edge brokenEdge : Set.of(aToBreak, breakToB)) {
         updateBrokenEdgeGeometry(brokenEdge, vertexToBreakAt);
         brokenEdge.setLengthKm(geoUtils.getDistanceInKilometres(brokenEdge.getGeometry()));
       }
 
       if (!registeredBreakEdgeListeners.isEmpty()) {
-        for (BreakEdgeListener<V, E> listener : registeredBreakEdgeListeners) {
+        for (BreakEdgeListener listener : registeredBreakEdgeListeners) {
           listener.onBreakEdge(vertexToBreakAt, aToBreak, breakToB);
         }
       }
@@ -295,15 +294,15 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
    */
   @Override
   public void recreateIds() {
-    theGraphBuilder.recreateIds(theGraph.getEdges());
-    theGraphBuilder.recreateIds(theGraph.getVertices());
+    theGraph.getEdges().recreateIds();
+    theGraph.getVertices().recreateIds();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void registerRemoveSubGraphListener(RemoveSubGraphListener<V, E> listener) {
+  public void registerRemoveSubGraphListener(RemoveSubGraphListener listener) {
     registeredRemoveSubGraphListeners.add(listener);
   }
 
@@ -311,7 +310,7 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
    * {@inheritDoc}
    */
   @Override
-  public void unregisterRemoveSubGraphListener(RemoveSubGraphListener<V, E> listener) {
+  public void unregisterRemoveSubGraphListener(RemoveSubGraphListener listener) {
     registeredRemoveSubGraphListeners.remove(listener);
   }
 
@@ -319,7 +318,7 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
    * {@inheritDoc}
    */
   @Override
-  public void unregisterBreakEdgeListener(BreakEdgeListener<V, E> listener) {
+  public void unregisterBreakEdgeListener(BreakEdgeListener listener) {
     registeredBreakEdgeListeners.remove(listener);
   }
 
@@ -327,7 +326,7 @@ public class GraphModifierImpl<V extends Vertex, E extends Edge> implements Grap
    * {@inheritDoc}
    */
   @Override
-  public void registerBreakEdgeListener(BreakEdgeListener<V, E> listener) {
+  public void registerBreakEdgeListener(BreakEdgeListener listener) {
     registeredBreakEdgeListeners.add(listener);
   }
 

@@ -8,7 +8,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.graph.DirectedGraphImpl;
 import org.planit.network.layer.TopologicalLayerImpl;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedGraph;
+import org.planit.utils.graph.UntypedDirectedGraph;
 import org.planit.utils.graph.modifier.RemoveSubGraphListener;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.TopologicalLayer;
@@ -44,7 +44,7 @@ public class RoutedServiceLayer extends TopologicalLayerImpl implements Topologi
   /**
    * The graph containing the nodes, links, and link segments (or derived implementations)
    */
-  private final DirectedGraph<ServiceNode, ServiceLeg, ServiceLegSegment> graph;
+  private final UntypedDirectedGraph<ServiceNode, ServiceLeg, ServiceLegSegment> graph;
 
   /** The physical network this service network is built on top of */
   @SuppressWarnings("unused")
@@ -55,7 +55,7 @@ public class RoutedServiceLayer extends TopologicalLayerImpl implements Topologi
    * 
    * @return graph used
    */
-  protected DirectedGraph<ServiceNode, ServiceLeg, ServiceLegSegment> getGraph() {
+  protected UntypedDirectedGraph<ServiceNode, ServiceLeg, ServiceLegSegment> getGraph() {
     return this.graph;
   }
 

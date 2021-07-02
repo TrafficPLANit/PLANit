@@ -20,4 +20,10 @@ public abstract class TopologicalLayerImpl extends TransportLayerImpl implements
     super(tokenId);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TopologicalLayerImpl clone();
+
 }
