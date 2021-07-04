@@ -28,9 +28,10 @@ public class EdgeSegmentFactoryImpl extends GraphEntityFactoryImpl<EdgeSegment> 
   /**
    * {@inheritDoc}
    */
+  @Override
   public EdgeSegment create(final DirectedEdge parentEdge, final boolean directionAB) throws PlanItException {
     final EdgeSegment edgeSegment = new EdgeSegmentImpl(getIdGroupingToken(), directionAB);
-    edgeSegment.setParentEdge(parentEdge);
+    edgeSegment.setParent(parentEdge);
     return edgeSegment;
   }
 
@@ -38,11 +39,11 @@ public class EdgeSegmentFactoryImpl extends GraphEntityFactoryImpl<EdgeSegment> 
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment registerNew(DirectedEdge parentEdge, boolean directionAb, boolean registerOnNodeAndLink) throws PlanItException {
+  public EdgeSegment registerNew(DirectedEdge parentEdge, boolean directionAb, boolean registerOnVertexAndEdge) throws PlanItException {
     final EdgeSegment edgeSegment = new EdgeSegmentImpl(getIdGroupingToken(), parentEdge, directionAb);
     getGraphEntities().register(edgeSegment);
 
-    if (registerOnNodeAndLink) {
+    if (registerOnVertexAndEdge) {
       parentEdge.registerEdgeSegment(edgeSegment, directionAb);
       if (parentEdge.getVertexA() instanceof DirectedVertex) {
         ((DirectedVertex) parentEdge.getVertexA()).addEdgeSegment(edgeSegment);
@@ -50,17 +51,6 @@ public class EdgeSegmentFactoryImpl extends GraphEntityFactoryImpl<EdgeSegment> 
       }
     }
     return edgeSegment;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public EdgeSegment registerUniqueCopyOf(EdgeSegment edgeSegmentToCopy, DirectedEdge newParentEdge) {
-    final EdgeSegment copy = createUniqueCopyOf(edgeSegmentToCopy);
-    copy.setParentEdge(newParentEdge);
-    getGraphEntities().register(copy);
-    return copy;
   }
 
 }

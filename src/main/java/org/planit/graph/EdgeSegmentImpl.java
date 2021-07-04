@@ -50,7 +50,7 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    */
   protected EdgeSegmentImpl(final IdGroupingToken groupId, final DirectedEdge parentEdge, final boolean directionAB) throws PlanItException {
     this(groupId, directionAB);
-    setParentEdge(parentEdge);
+    setParent(parentEdge);
   }
 
   /**
@@ -77,7 +77,7 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    */
   protected EdgeSegmentImpl(EdgeSegmentImpl edgeSegmentImpl) {
     super(edgeSegmentImpl);
-    setParentEdge(edgeSegmentImpl.getParentEdge());
+    setParent(edgeSegmentImpl.getParentEdge());
     setUpstreamVertex(edgeSegmentImpl.getUpstreamVertex());
     setDownstreamVertex(edgeSegmentImpl.getDownstreamVertex());
   }
@@ -155,7 +155,7 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    * {@inheritDoc}
    */
   @Override
-  public void setParentEdge(DirectedEdge parentEdge) {
+  public void setParent(DirectedEdge parentEdge) {
     this.parentEdge = parentEdge;
   }
 

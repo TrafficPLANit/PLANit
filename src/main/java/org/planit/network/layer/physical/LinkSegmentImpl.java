@@ -56,6 +56,17 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    * Constructor
    *
    * @param groupId,    contiguous id generation within this group for instances of this class
+   * @param directionAB direction of travel
+   * @throws PlanItException throw when error
+   */
+  protected LinkSegmentImpl(final IdGroupingToken groupId, final boolean directionAB) throws PlanItException {
+    this(groupId, null, directionAB);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param groupId,    contiguous id generation within this group for instances of this class
    * @param parentLink  parent link of segment
    * @param directionAB direction of travel
    * @throws PlanItException throw when error

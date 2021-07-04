@@ -60,7 +60,7 @@ public abstract class GraphEntityFactoryImpl<E extends GraphEntity> implements G
    * {@inheritDoc}
    */
   @Override
-  public E createUniqueCopyOf(E entityToCopy) {
+  public E createUniqueCopyOf(GraphEntity entityToCopy) {
     /* shallow copy as is */
     @SuppressWarnings("unchecked")
     E copy = (E) entityToCopy.clone();
@@ -73,7 +73,7 @@ public abstract class GraphEntityFactoryImpl<E extends GraphEntity> implements G
    * {@inheritDoc}
    */
   @Override
-  public E registerUniqueCopyOf(E entityToCopy) {
+  public E registerUniqueCopyOf(GraphEntity entityToCopy) {
     E copy = createUniqueCopyOf(entityToCopy);
     graphEntities.register(copy);
     return copy;

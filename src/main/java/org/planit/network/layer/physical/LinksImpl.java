@@ -8,16 +8,15 @@ import org.planit.utils.network.layer.physical.Links;
 
 /**
  * 
- * Links implementation wrapper that simply utilises passed in edges of the desired generic type to delegate registration and creation of its links on
+ * Links implementation
  * 
  * @author markr
  * 
- * @param <L> link type
  */
-public class LinksImpl extends GraphEntitiesImpl<Link> implements Links<Link> {
+public class LinksImpl extends GraphEntitiesImpl<Link> implements Links {
 
   /** factory to use */
-  private final LinkFactory<Link> linkFactory;
+  private final LinkFactory linkFactory;
 
   /**
    * Constructor
@@ -35,7 +34,7 @@ public class LinksImpl extends GraphEntitiesImpl<Link> implements Links<Link> {
    * @param groupId     to use for creating ids for instances
    * @param linkFactory the factory to use
    */
-  public LinksImpl(final IdGroupingToken groupId, LinkFactory<Link> linkFactory) {
+  public LinksImpl(final IdGroupingToken groupId, LinkFactory linkFactory) {
     super(Link::getId);
     this.linkFactory = linkFactory;
   }
@@ -54,7 +53,7 @@ public class LinksImpl extends GraphEntitiesImpl<Link> implements Links<Link> {
    * {@inheritDoc}
    */
   @Override
-  public LinkFactory<Link> getFactory() {
+  public LinkFactory getFactory() {
     return linkFactory;
   }
 

@@ -120,7 +120,7 @@ public class GraphModifierImpl implements GraphModifier<Vertex, Edge> {
    * 
    */
   @Override
-  public void removeDanglingSubGraphs(Integer belowsize, Integer abovesize, boolean alwaysKeepLargest) throws PlanItException {
+  public void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
     boolean recreateIdsImmediately = false;
 
     Map<Integer, LongAdder> removedDanglingNetworksBySize = new HashMap<>();
@@ -147,7 +147,7 @@ public class GraphModifierImpl implements GraphModifier<Vertex, Edge> {
         if (subNetworkSize < maxSubNetworkSize || !alwaysKeepLargest) {
 
           /* not the biggest subnetwork, remove from network if below threshold */
-          if (subNetworkSize < belowsize || subNetworkSize > abovesize) {
+          if (subNetworkSize < belowSize || subNetworkSize > aboveSize) {
 
             removeSubGraphOf(entry.getKey(), recreateIdsImmediately);
             removedDanglingNetworksBySize.putIfAbsent(subNetworkSize, new LongAdder());
@@ -178,7 +178,7 @@ public class GraphModifierImpl implements GraphModifier<Vertex, Edge> {
    * {@inheritDoc}
    */
   @Override
-  public void removeSubGraph(Set<Vertex> subGraphToRemove, boolean recreateIds) {
+  public void removeSubGraph(Set<? extends Vertex> subGraphToRemove, boolean recreateIds) {
 
     /* remove the subnetwork from the actual network */
     for (Vertex vertex : subGraphToRemove) {
@@ -238,18 +238,19 @@ public class GraphModifierImpl implements GraphModifier<Vertex, Edge> {
    * 
    */
   @Override
-  public Map<Long, Set<Edge>> breakEdgesAt(List<Edge> edgesToBreak, Vertex vertexToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
+  public <Ex extends Edge> Map<Long, Set<Ex>> breakEdgesAt(List<Ex> edgesToBreak, Vertex vertexToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
     PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
 
-    Map<Long, Set<Edge>> affectedEdges = new HashMap<Long, Set<Edge>>();
-    for (Edge edgeToBreak : edgesToBreak) {
-      affectedEdges.putIfAbsent(edgeToBreak.getId(), new HashSet<Edge>());
+    Map<Long, Set<Ex>> affectedEdges = new HashMap<Long, Set<Ex>>();
+    for (Ex edgeToBreak : edgesToBreak) {
+      affectedEdges.putIfAbsent(edgeToBreak.getId(), new HashSet<Ex>());
 
-      Set<Edge> affectedEdgesOfEdgeToBreak = affectedEdges.get(edgeToBreak.getId());
-      Edge aToBreak = edgeToBreak;
+      Set<Ex> affectedEdgesOfEdgeToBreak = affectedEdges.get(edgeToBreak.getId());
+      Ex aToBreak = edgeToBreak;
 
       /* create copy of edge with unique id and register it */
-      Edge breakToB = theGraph.getEdges().getFactory().registerUniqueCopyOf(edgeToBreak);
+      @SuppressWarnings("unchecked")
+      Ex breakToB = (Ex) theGraph.getEdges().getFactory().registerUniqueCopyOf(edgeToBreak);
 
       if (edgeToBreak.getVertexA() == null || edgeToBreak.getVertexB() == null) {
         LOGGER.severe(String.format("unable to break edge since edge to break %s (id:%d) is missing one or more vertices", edgeToBreak.getExternalId(), edgeToBreak.getId()));

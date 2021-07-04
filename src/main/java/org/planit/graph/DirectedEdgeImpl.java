@@ -88,6 +88,24 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
 
   // Public
 
+  // Protected
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedVertex getVertexA() {
+    return (DirectedVertex) super.getVertexA();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedVertex getVertexB() {
+    return (DirectedVertex) super.getVertexB();
+  }
+
   /**
    * {@inheritDoc}
    */

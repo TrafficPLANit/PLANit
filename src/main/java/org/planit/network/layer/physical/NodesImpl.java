@@ -1,27 +1,67 @@
 package org.planit.network.layer.physical;
 
-import org.planit.graph.VerticesWrapper;
-import org.planit.utils.graph.Vertices;
+import org.planit.graph.GraphEntitiesImpl;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.physical.Node;
+import org.planit.utils.network.layer.physical.NodeFactory;
 import org.planit.utils.network.layer.physical.Nodes;
 
 /**
  * 
- * Nodes implementation wrapper that simply utilises passed in vertices of the desired generic type to delegate registration and creation of its nodes on
+ * Nodes implementation
  * 
  * @author markr
  *
- * @param <N> concrete class of nodes that are being created
  */
-public class NodesImpl<N extends Node> extends VerticesWrapper<N> implements Nodes<N> {
+public class NodesImpl extends GraphEntitiesImpl<Node> implements Nodes {
+
+  /** factory to use */
+  private final NodeFactory nodeFactory;
 
   /**
    * Constructor
    * 
-   * @param nodes the container instance to use to create and register nodes on
+   * @param groupId to use for creating ids for instances
    */
-  public NodesImpl(final Vertices<N> nodes) {
-    super(nodes);
+  public NodesImpl(final IdGroupingToken groupId) {
+    super(Node::getId);
+    this.nodeFactory = new NodeFactoryImpl(groupId, this);
   }
 
+  /**
+   * Constructor
+   * 
+   * @param groupId     to use for creating ids for instances
+   * @param nodeFactory the factory to use
+   */
+  public NodesImpl(final IdGroupingToken groupId, NodeFactory nodeFactory) {
+    super(Node::getId);
+    this.nodeFactory = nodeFactory;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param nodesImpl to copy
+   */
+  public NodesImpl(NodesImpl nodesImpl) {
+    super(nodesImpl);
+    this.nodeFactory = nodesImpl.nodeFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public NodeFactory getFactory() {
+    return nodeFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public NodesImpl clone() {
+    return new NodesImpl(this);
+  }
 }
