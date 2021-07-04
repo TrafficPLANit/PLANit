@@ -1,11 +1,12 @@
-package org.planit.graph;
+package org.planit.graph.directed;
 
+import org.planit.graph.GraphEntityFactoryImpl;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedEdge;
-import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.EdgeSegmentFactory;
-import org.planit.utils.graph.EdgeSegments;
+import org.planit.utils.graph.directed.DirectedEdge;
+import org.planit.utils.graph.directed.DirectedVertex;
+import org.planit.utils.graph.directed.EdgeSegmentFactory;
+import org.planit.utils.graph.directed.EdgeSegments;
 import org.planit.utils.id.IdGroupingToken;
 
 /**

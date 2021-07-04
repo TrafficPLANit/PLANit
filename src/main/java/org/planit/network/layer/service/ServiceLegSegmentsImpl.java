@@ -1,7 +1,7 @@
 package org.planit.network.layer.service;
 
-import org.planit.graph.EdgeSegmentsWrapper;
-import org.planit.utils.graph.EdgeSegments;
+import org.planit.graph.directed.EdgeSegmentsWrapper;
+import org.planit.utils.graph.directed.EdgeSegments;
 import org.planit.utils.network.layer.service.ServiceLegSegment;
 import org.planit.utils.network.layer.service.ServiceLegSegments;
 

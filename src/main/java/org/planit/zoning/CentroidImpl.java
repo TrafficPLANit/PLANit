@@ -1,6 +1,6 @@
 package org.planit.zoning;
 
-import org.planit.graph.DirectedVertexImpl;
+import org.planit.graph.directed.DirectedVertexImpl;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.Centroid;
 import org.planit.utils.zoning.Zone;

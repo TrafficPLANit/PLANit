@@ -4,11 +4,11 @@ import java.util.logging.Logger;
 
 import org.planit.graph.DirectedGraphBuilderImpl;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedEdge;
-import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Edges;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
+import org.planit.utils.graph.directed.DirectedEdge;
+import org.planit.utils.graph.directed.EdgeSegments;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.service.ServiceLeg;
 import org.planit.utils.network.layer.service.ServiceLegSegment;

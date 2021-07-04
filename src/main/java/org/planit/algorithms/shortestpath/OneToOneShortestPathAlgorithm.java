@@ -1,7 +1,7 @@
 package org.planit.algorithms.shortestpath;
 
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedVertex;
+import org.planit.utils.graph.directed.DirectedVertex;
 
 /**
  * An algorithm which calculates the shortest (a.k.a. lowest cost) path to all

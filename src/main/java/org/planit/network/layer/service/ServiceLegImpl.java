@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.planit.graph.DirectedEdgeImpl;
+import org.planit.graph.directed.DirectedEdgeImpl;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.physical.Link;
 import org.planit.utils.network.layer.service.ServiceLeg;

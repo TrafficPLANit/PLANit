@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.planit.graph.DirectedGraphImpl;
+import org.planit.graph.directed.DirectedGraphImpl;
 import org.planit.network.layer.TopologicalLayerImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.UntypedDirectedGraph;

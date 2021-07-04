@@ -1,8 +1,8 @@
 package org.planit.network.virtual;
 
-import org.planit.graph.DirectedEdgeImpl;
+import org.planit.graph.directed.DirectedEdgeImpl;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedVertex;
+import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.virtual.ConnectoidEdge;

@@ -1,4 +1,4 @@
-package org.planit.graph;
+package org.planit.graph.directed;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -7,10 +7,10 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.DirectedEdge;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.EdgeSegmentFactory;
-import org.planit.utils.graph.EdgeSegments;
+import org.planit.utils.graph.directed.DirectedEdge;
+import org.planit.utils.graph.directed.EdgeSegmentFactory;
+import org.planit.utils.graph.directed.EdgeSegments;
 
 /**
  * Wrapper around an EdgeSegments instance.

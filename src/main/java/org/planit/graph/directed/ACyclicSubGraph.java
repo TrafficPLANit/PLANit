@@ -1,16 +1,16 @@
-package org.planit.graph;
+package org.planit.graph.directed;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.planit.utils.graph.DirectedEdges;
-import org.planit.utils.graph.DirectedGraph;
-import org.planit.utils.graph.DirectedSubGraph;
-import org.planit.utils.graph.DirectedVertex;
-import org.planit.utils.graph.DirectedVertices;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.EdgeSegments;
+import org.planit.utils.graph.directed.DirectedEdges;
+import org.planit.utils.graph.directed.DirectedGraph;
+import org.planit.utils.graph.directed.DirectedSubGraph;
+import org.planit.utils.graph.directed.DirectedVertex;
+import org.planit.utils.graph.directed.DirectedVertices;
+import org.planit.utils.graph.directed.EdgeSegments;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.Pair;

@@ -3,12 +3,12 @@ package org.planit.network.layer.physical;
 import java.util.logging.Logger;
 
 import org.planit.graph.DirectedGraphBuilderImpl;
-import org.planit.graph.EdgeSegmentsImpl;
 import org.planit.graph.VerticesImpl;
+import org.planit.graph.directed.EdgeSegmentsImpl;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.EdgeSegments;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.graph.Vertices;
+import org.planit.utils.graph.directed.EdgeSegments;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.physical.Link;

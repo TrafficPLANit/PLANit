@@ -2,7 +2,7 @@ package org.planit.network.layer.physical;
 
 import java.util.logging.Logger;
 
-import org.planit.graph.DirectedEdgeImpl;
+import org.planit.graph.directed.DirectedEdgeImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;

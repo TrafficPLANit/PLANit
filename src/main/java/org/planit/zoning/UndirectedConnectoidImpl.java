@@ -2,7 +2,7 @@ package org.planit.zoning;
 
 import java.util.logging.Logger;
 
-import org.planit.utils.graph.DirectedVertex;
+import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.UndirectedConnectoid;

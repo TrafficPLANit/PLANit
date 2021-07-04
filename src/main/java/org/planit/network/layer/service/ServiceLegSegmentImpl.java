@@ -1,6 +1,6 @@
 package org.planit.network.layer.service;
 
-import org.planit.graph.EdgeSegmentImpl;
+import org.planit.graph.directed.EdgeSegmentImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.service.ServiceLeg;

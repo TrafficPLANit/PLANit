@@ -2,9 +2,9 @@ package org.planit.graph.listener;
 
 import java.util.logging.Logger;
 
-import org.planit.utils.graph.DirectedEdge;
-import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.directed.DirectedEdge;
+import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.graph.modifier.BreakEdgeSegmentListener;
 
 /**

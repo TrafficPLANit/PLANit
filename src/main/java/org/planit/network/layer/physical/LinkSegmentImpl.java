@@ -1,6 +1,6 @@
 package org.planit.network.layer.physical;
 
-import org.planit.graph.EdgeSegmentImpl;
+import org.planit.graph.directed.EdgeSegmentImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;

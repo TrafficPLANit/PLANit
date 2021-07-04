@@ -2,11 +2,11 @@ package org.planit.graph;
 
 import java.util.logging.Logger;
 
-import org.planit.utils.graph.DirectedEdge;
-import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.GraphEntities;
 import org.planit.utils.graph.UntypedDirectedGraph;
+import org.planit.utils.graph.directed.DirectedEdge;
+import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.id.IdGroupingToken;
 
 /**

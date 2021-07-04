@@ -5,7 +5,7 @@ package org.planit.network.layer.physical;
 
 import java.util.logging.Logger;
 
-import org.planit.graph.DirectedVertexImpl;
+import org.planit.graph.directed.DirectedVertexImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.physical.Node;

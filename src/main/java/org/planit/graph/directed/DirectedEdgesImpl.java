@@ -1,8 +1,9 @@
-package org.planit.graph;
+package org.planit.graph.directed;
 
-import org.planit.utils.graph.DirectedEdge;
-import org.planit.utils.graph.DirectedEdgeFactory;
-import org.planit.utils.graph.DirectedEdges;
+import org.planit.graph.GraphEntitiesImpl;
+import org.planit.utils.graph.directed.DirectedEdge;
+import org.planit.utils.graph.directed.DirectedEdgeFactory;
+import org.planit.utils.graph.directed.DirectedEdges;
 import org.planit.utils.id.IdGroupingToken;
 
 /**

@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.planit.utils.graph.DirectedVertex;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.graph.modifier.RemoveDirectedSubGraphListener;
 import org.planit.utils.graph.modifier.RemoveSubGraphListenerImpl;
 import org.planit.utils.zoning.Connectoid;
