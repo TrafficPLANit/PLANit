@@ -40,7 +40,7 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    * @return id of this link segment
    */
   protected static long generateLinkSegmentId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, LinkSegment.class);
+    return IdGenerator.generateId(groupId, LINK_SEGMENT_ID_CLASS);
   }
 
   /**
@@ -50,6 +50,17 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    */
   protected void setLinkSegmentId(long linkSegmentId) {
     this.linkSegmentId = linkSegmentId;
+  }
+
+  /**
+   * recreate the internal link id and set it
+   * 
+   * @return
+   */
+  protected long recreateLinkSegmentId(IdGroupingToken tokenId) {
+    long newLinkId = generateLinkSegmentId(tokenId);
+    setLinkSegmentId(newLinkId);
+    return newLinkId;
   }
 
   /**
@@ -91,6 +102,17 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
   // Public
 
   // Public getters - setters
+
+  /**
+   * Recreate internal ids: id and link segment id
+   * 
+   * @return recreated id
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    recreateLinkSegmentId(tokenId);
+    return super.recreateManagedIds(tokenId);
+  }
 
   /**
    * {@inheritDoc}
@@ -138,8 +160,16 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    * {@inheritDoc}
    */
   @Override
+  public Link getParentEdge() {
+    return (Link) super.getParentEdge();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Link getParentLink() {
-    return (Link) getParentEdge();
+    return getParentEdge();
   }
 
   /**

@@ -30,8 +30,7 @@ public class LinkSegmentFactoryImpl extends GraphEntityFactoryImpl<LinkSegment> 
    */
   @Override
   public LinkSegment create(final Link parentLink, final boolean directionAB) throws PlanItException {
-    final LinkSegment edgeSegment = new LinkSegmentImpl(getIdGroupingToken(), directionAB);
-    edgeSegment.setParent(parentLink);
+    final LinkSegment edgeSegment = new LinkSegmentImpl(getIdGroupingToken(), parentLink, directionAB);
     return edgeSegment;
   }
 
@@ -40,7 +39,7 @@ public class LinkSegmentFactoryImpl extends GraphEntityFactoryImpl<LinkSegment> 
    */
   @Override
   public LinkSegment registerNew(final Link parentLink, final boolean directionAb, boolean registerOnNodeAndLink) throws PlanItException {
-    final LinkSegment edgeSegment = new LinkSegmentImpl(getIdGroupingToken(), parentLink, directionAb);
+    final LinkSegment edgeSegment = create(parentLink, directionAb);
     getGraphEntities().register(edgeSegment);
 
     if (registerOnNodeAndLink) {

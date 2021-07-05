@@ -1,7 +1,7 @@
 package org.planit.network.macroscopic;
 
 import org.planit.network.TopologicalLayersImpl;
-import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayer;
+import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayerImpl;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -10,7 +10,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class MacroscopicNetworkLayers extends TopologicalLayersImpl<MacroscopicPhysicalLayer> {
+public class MacroscopicNetworkLayers extends TopologicalLayersImpl<MacroscopicPhysicalLayerImpl> {
 
   /**
    * Constructor
@@ -25,8 +25,8 @@ public class MacroscopicNetworkLayers extends TopologicalLayersImpl<MacroscopicP
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicPhysicalLayer createAndRegisterNew() {
-    final MacroscopicPhysicalLayer networkLayer = new MacroscopicPhysicalLayer(this.getIdToken());
+  public MacroscopicPhysicalLayerImpl createAndRegisterNew() {
+    final MacroscopicPhysicalLayerImpl networkLayer = new MacroscopicPhysicalLayerImpl(this.getIdToken());
     register(networkLayer);
     return networkLayer;
   }

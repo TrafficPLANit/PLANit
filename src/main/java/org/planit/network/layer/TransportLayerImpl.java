@@ -3,7 +3,10 @@ package org.planit.network.layer;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
+import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
@@ -15,19 +18,13 @@ import org.planit.utils.network.layer.TransportLayer;
  * @author markr
  *
  */
-public abstract class TransportLayerImpl implements TransportLayer {
+public abstract class TransportLayerImpl extends ExternalIdAbleImpl implements TransportLayer {
 
-  /** unique id for this infrastructure layer */
-  protected long id;
-
-  /** xml id for this infrastructure layer */
-  protected String xmlId;
-
-  /** external id for this infrastructure layer (if any) */
-  protected String externalId;
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(TransportLayerImpl.class.getCanonicalName());
 
   /** the modes supported by this layer **/
-  protected final Map<Long, Mode> supportedModes = new TreeMap<Long, Mode>();
+  protected final Map<Long, Mode> supportedModes;
 
   /**
    * generate unique node id
@@ -40,24 +37,23 @@ public abstract class TransportLayerImpl implements TransportLayer {
   }
 
   /**
-   * Set id on vertex
-   * 
-   * @param id to set
-   */
-  protected void setId(Long id) {
-    this.id = id;
-  }
-
-  /**
    * Constructor
    * 
    * @param tokenId to generate id for this instance for
    */
-  public TransportLayerImpl(IdGroupingToken tokenId) {
-    setId(generateId(tokenId));
+  protected TransportLayerImpl(IdGroupingToken tokenId) {
+    super(generateId(tokenId));
+    this.supportedModes = new TreeMap<Long, Mode>();
+  }
 
-    this.xmlId = null;
-    this.externalId = null;
+  /**
+   * Copy constructor
+   * 
+   * @param transportLayerImpl to copy
+   */
+  protected TransportLayerImpl(TransportLayerImpl transportLayerImpl) {
+    super(transportLayerImpl);
+    this.supportedModes = new TreeMap<Long, Mode>(transportLayerImpl.supportedModes);
   }
 
   /**
@@ -96,53 +92,20 @@ public abstract class TransportLayerImpl implements TransportLayer {
    * 
    */
   @Override
-  public long getId() {
-    return id;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   */
-  @Override
-  public String getExternalId() {
-    return externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   */
-  @Override
-  public void setExternalId(String externalId) {
-    this.externalId = externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   */
-  @Override
-  public String getXmlId() {
-    return xmlId;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   */
-  @Override
-  public void setXmlId(String xmlId) {
-    this.xmlId = xmlId;
-  }
-
-  /**
-   * {@inheritDoc}
-   * 
-   */
-  @Override
   public final Collection<Mode> getSupportedModes() {
     return supportedModes.values();
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  public void logInfo(String prefix) {
+    /* log supported modes */
+    LOGGER.info(String.format("%s#supported modes: %s", prefix, getSupportedModes().stream().map((mode) -> {
+      return mode.getXmlId();
+    }).collect(Collectors.joining(", "))));
   }
 
   /**

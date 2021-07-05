@@ -90,7 +90,7 @@ public class UntypedGraphImpl<V extends GraphEntities<? extends Vertex>, E exten
    * {@inheritDoc}
    */
   @Override
-  public long recreateId(IdGroupingToken tokenId) {
+  public long recreateManagedIds(IdGroupingToken tokenId) {
     long newId = generatedGraphId(tokenId);
     setId(newId);
     return newId;

@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
@@ -17,24 +18,9 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicModeProperties;
  * @author markr
  *
  */
-public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentType {
+public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implements MacroscopicLinkSegmentType {
 
   // Protected
-
-  /**
-   * Unique segment type id
-   */
-  protected long id;
-
-  /**
-   * External reference number of link type
-   */
-  private String externalId;
-
-  /**
-   * xml Id of this link segment type
-   */
-  private String xmlId;
 
   /**
    * name of the link segment type
@@ -62,17 +48,17 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
    * @param id to set
    */
   protected void setId(long id) {
-    this.id = id;
+    super.setId(id);
   }
 
   /**
-   * Generate next id available
+   * Generate an id based on token
    * 
-   * @param groupId contiguous id generation within this group for instances of this class
-   * @return id of this link segment
+   * @param idGroupingToken to use
+   * @return created id
    */
-  protected static long generateMacroscopicLinkSegmentTypeId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, MacroscopicLinkSegmentType.class);
+  protected static long generateId(IdGroupingToken idGroupingToken) {
+    return IdGenerator.generateId(idGroupingToken, MACROSCOPIC_LINK_SEGMENT_TYPE_ID_CLASS);
   }
 
   // Public
@@ -86,7 +72,7 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
    * @param maximumDensityPerLane maximum density per lane of this link segment type
    */
   protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane) {
-    setId(generateMacroscopicLinkSegmentTypeId(groupId));
+    super(generateId(groupId));
     setName(name);
     this.capacityPerLane = capacityPerLane;
     this.maximumDensityPerLane = maximumDensityPerLane;
@@ -115,9 +101,7 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
    * @param other to copy from
    */
   protected MacroscopicLinkSegmentTypeImpl(final MacroscopicLinkSegmentTypeImpl other) {
-    setId(other.getId());
-    setXmlId(other.getXmlId());
-    setExternalId(other.getExternalId());
+    super(other);
     setName(other.getName());
     this.capacityPerLane = other.getCapacityPerLane();
     this.maximumDensityPerLane = other.getMaximumDensityPerLane();
@@ -126,31 +110,7 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
     other.modeProperties.forEach((mode, properties) -> modeProperties.put(mode, properties.clone()));
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int hashCode() {
-    return idHashCode();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean equals(Object obj) {
-    return idEquals(obj);
-  }
-
   // Getters - Setters
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return id;
-  }
 
   /**
    * {@inheritDoc}
@@ -182,38 +142,6 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
   @Override
   public double getMaximumDensityPerLane() {
     return maximumDensityPerLane;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getExternalId() {
-    return externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setExternalId(String externalId) {
-    this.externalId = externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getXmlId() {
-    return this.xmlId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setXmlId(String xmlId) {
-    this.xmlId = xmlId;
   }
 
   /**
@@ -266,7 +194,15 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentType clone() {
+  public MacroscopicModeProperties removeModeProperties(Mode toBeRemovedMode) {
+    return modeProperties.remove(toBeRemovedMode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegmentTypeImpl clone() {
     return new MacroscopicLinkSegmentTypeImpl(this);
   }
 
@@ -274,8 +210,10 @@ public class MacroscopicLinkSegmentTypeImpl implements MacroscopicLinkSegmentTyp
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicModeProperties removeModeProperties(Mode toBeRemovedMode) {
-    return modeProperties.remove(toBeRemovedMode);
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    long newId = generateId(tokenId);
+    setId(newId);
+    return newId;
   }
 
 }

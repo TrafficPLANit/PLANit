@@ -7,7 +7,7 @@ import org.planit.utils.network.layer.TopologicalLayer;
  *
  * @author markr
  */
-public interface PhysicalLayer<N extends Node, L extends Link, LS extends LinkSegment> extends TopologicalLayer {
+public interface PhysicalLayer extends TopologicalLayer {
 
   // PUBLIC
 
@@ -16,21 +16,21 @@ public interface PhysicalLayer<N extends Node, L extends Link, LS extends LinkSe
    * 
    * @return the links
    */
-  public abstract Links<L> getLinks();
+  public abstract Links getLinks();
 
   /**
    * Collect the link segments
    * 
    * @return the linkSegments
    */
-  public abstract LinkSegments<LS> getLinkSegments();
+  public abstract LinkSegments getLinkSegments();
 
   /**
    * Collect the nodes
    * 
    * @return the nodes
    */
-  public abstract Nodes<N> getNodes();
+  public abstract Nodes getNodes();
 
   /**
    * Number of nodes

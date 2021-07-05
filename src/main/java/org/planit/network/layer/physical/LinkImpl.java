@@ -38,7 +38,7 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * @return linkId created
    */
   protected static long generateLinkId(final IdGroupingToken tokenId) {
-    return IdGenerator.generateId(tokenId, Link.class);
+    return IdGenerator.generateId(tokenId, LINK_ID_CLASS);
   }
 
   /**
@@ -117,9 +117,9 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * @return created id (updated link Id is not returned)
    */
   @Override
-  public long recreateId(IdGroupingToken tokenId) {
+  public long recreateManagedIds(IdGroupingToken tokenId) {
     recreateLinkId(tokenId);
-    return super.recreateId(tokenId);
+    return super.recreateManagedIds(tokenId);
   }
 
   /**

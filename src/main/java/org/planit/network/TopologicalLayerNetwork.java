@@ -150,7 +150,7 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
    * @param listeners         to apply
    * @throws PlanItException thrown if error
    */
-  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener<?, ?>> listeners) throws PlanItException {
+  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener> listeners) throws PlanItException {
     for (TopologicalLayer infrastructureLayer : this.transportLayers) {
       infrastructureLayer.removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest, listeners);
     }

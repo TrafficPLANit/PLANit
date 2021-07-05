@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayer;
+import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayerImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
@@ -54,8 +54,8 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl<LS extends Macroscopi
   @Override
   public LinkSegments<LS> getPhysicalLinkSegments(long infrastructureLayerId) {
     TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().transportLayers.get(infrastructureLayerId);
-    if (networkLayer instanceof MacroscopicPhysicalLayer) {
-      return (LinkSegments<LS>) ((MacroscopicPhysicalLayer) networkLayer).linkSegments;
+    if (networkLayer instanceof MacroscopicPhysicalLayerImpl) {
+      return (LinkSegments<LS>) ((MacroscopicPhysicalLayerImpl) networkLayer).linkSegments;
     }
     LOGGER.warning(String.format("cannot collect macroscopic physical link segments from infrastructure layer %s, as it is not a macroscopic physical network layer",
         networkLayer.getXmlId()));

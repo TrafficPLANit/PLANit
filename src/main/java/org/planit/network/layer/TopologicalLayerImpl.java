@@ -21,6 +21,15 @@ public abstract class TopologicalLayerImpl extends TransportLayerImpl implements
   }
 
   /**
+   * Copy Constructor
+   * 
+   * @param topologicalLayerImpl to copy
+   */
+  public TopologicalLayerImpl(TopologicalLayerImpl topologicalLayerImpl) {
+    super(topologicalLayerImpl);
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override

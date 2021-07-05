@@ -55,7 +55,7 @@ public abstract class GraphEntitiesImpl<E extends GraphEntity> extends LongMapWr
     if (!isEmpty()) {
       /* remove gaps by simply resetting and recreating all entity ids */
       IdGenerator.reset(getFactory().getIdGroupingToken(), iterator().next().getIdClass() /* e.g. Edge.class, vertex.class etc. */);
-      forEach(entity -> entity.recreateId(getFactory().getIdGroupingToken()));
+      forEach(entity -> entity.recreateManagedIds(getFactory().getIdGroupingToken()));
       updateIdMapping();
     }
   }

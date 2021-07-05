@@ -25,9 +25,6 @@ public class MacroscopicLinkSegmentTypesImpl extends LongMapWrapperImpl<Macrosco
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentTypesImpl.class.getCanonicalName());
 
-  /** the builder to use for creating instances of macroscopic link segment types */
-  protected final MacroscopicPhysicalLayerBuilder<?, ?, MacroscopicLinkSegment> networkBuilder;
-
   /**
    * Constructor
    * 

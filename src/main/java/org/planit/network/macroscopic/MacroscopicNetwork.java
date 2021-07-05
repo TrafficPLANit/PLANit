@@ -3,7 +3,7 @@ package org.planit.network.macroscopic;
 import java.util.logging.Logger;
 
 import org.planit.network.TopologicalLayerNetwork;
-import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayer;
+import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayerImpl;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -12,7 +12,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class MacroscopicNetwork extends TopologicalLayerNetwork<MacroscopicPhysicalLayer, MacroscopicNetworkLayers> {
+public class MacroscopicNetwork extends TopologicalLayerNetwork<MacroscopicPhysicalLayerImpl, MacroscopicNetworkLayers> {
 
   /** the logger */
   @SuppressWarnings("unused")

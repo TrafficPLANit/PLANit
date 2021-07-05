@@ -15,7 +15,7 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkVolumeAccessee;
-import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayer;
+import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayerImpl;
 import org.planit.network.macroscopic.MacroscopicNetwork;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
@@ -71,7 +71,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   /**
    * the layer used for this assignment
    */
-  private MacroscopicPhysicalLayer networkLayer;
+  private MacroscopicPhysicalLayerImpl networkLayer;
   
   /** to generate paths we use a path builder that is configured to generate appropriate ids */
   private DirectedPathBuilder<DirectedPath> localPathBuilder;
@@ -99,13 +99,13 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     PlanItException.throwIf(macroscopicNetwork.transportLayers.size() != 1,
         "Traditional static assignment  is currently only compatible with networks using a single infrastructure layer");
     TransportLayer infrastructureLayer = macroscopicNetwork.transportLayers.getFirst();
-    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicPhysicalLayer),
+    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicPhysicalLayerImpl),
         "Traditional static assignment is only compatible with macroscopic physical network layers");
     if (transportNetwork.getInfrastructureNetwork().modes.size() != infrastructureLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by the single available layer, consider removing unused modes");
     }
     /* register the layer */
-    this.networkLayer = (MacroscopicPhysicalLayer) infrastructureLayer;
+    this.networkLayer = (MacroscopicPhysicalLayerImpl) infrastructureLayer;
   }
 
   /**

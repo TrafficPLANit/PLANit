@@ -4,6 +4,8 @@ import org.planit.utils.graph.GraphEntities;
 import org.planit.utils.graph.GraphEntity;
 import org.planit.utils.graph.GraphEntityFactory;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedId;
+import org.planit.utils.id.ManagedIdEntityFactoryImpl;
 
 /**
  * Base implementation for creating and registering graph entities on underlying container and conducting changes to ids based on the factory settings for egenrating ids.
@@ -12,10 +14,7 @@ import org.planit.utils.id.IdGroupingToken;
  *
  * @param <E> type of graph entity
  */
-public abstract class GraphEntityFactoryImpl<E extends GraphEntity> implements GraphEntityFactory<E> {
-
-  /** the id group token */
-  protected IdGroupingToken groupIdToken;
+public abstract class GraphEntityFactoryImpl<E extends GraphEntity> extends ManagedIdEntityFactoryImpl<E> implements GraphEntityFactory<E> {
 
   /** container on which newly created entities are to be registered */
   private final GraphEntities<E> graphEntities;
@@ -36,7 +35,7 @@ public abstract class GraphEntityFactoryImpl<E extends GraphEntity> implements G
    * @param graphEntities to register the created instances on
    */
   protected GraphEntityFactoryImpl(IdGroupingToken groupIdToken, GraphEntities<E> graphEntities) {
-    this.groupIdToken = groupIdToken;
+    super(groupIdToken);
     this.graphEntities = graphEntities;
   }
 
@@ -44,36 +43,7 @@ public abstract class GraphEntityFactoryImpl<E extends GraphEntity> implements G
    * {@inheritDoc}
    */
   @Override
-  public void setIdGroupingToken(IdGroupingToken groupIdToken) {
-    this.groupIdToken = groupIdToken;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public IdGroupingToken getIdGroupingToken() {
-    return this.groupIdToken;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public E createUniqueCopyOf(GraphEntity entityToCopy) {
-    /* shallow copy as is */
-    @SuppressWarnings("unchecked")
-    E copy = (E) entityToCopy.clone();
-    /* recreate id and register */
-    copy.recreateId(getIdGroupingToken());
-    return copy;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public E registerUniqueCopyOf(GraphEntity entityToCopy) {
+  public E registerUniqueCopyOf(ManagedId entityToCopy) {
     E copy = createUniqueCopyOf(entityToCopy);
     graphEntities.register(copy);
     return copy;

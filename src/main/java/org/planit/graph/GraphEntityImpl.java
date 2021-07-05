@@ -60,7 +60,7 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
    * {@inheritDoc}
    */
   @Override
-  public long recreateId(IdGroupingToken tokenId) {
+  public long recreateManagedIds(IdGroupingToken tokenId) {
     return generateAndSetId(tokenId);
   }
 }

@@ -14,7 +14,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.algorithms.shortestpath.AStarShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
-import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayer;
+import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayerImpl;
 import org.planit.network.macroscopic.MacroscopicNetwork;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.utils.id.IdGroupingToken;
@@ -38,7 +38,7 @@ public class ShortestPathTest {
 
   private TransportModelNetwork transportNetwork;
   private MacroscopicNetwork network;
-  private MacroscopicPhysicalLayer networkLayer;
+  private MacroscopicPhysicalLayerImpl networkLayer;
   private Zoning zoning;
 
   double[] linkSegmentCosts;
