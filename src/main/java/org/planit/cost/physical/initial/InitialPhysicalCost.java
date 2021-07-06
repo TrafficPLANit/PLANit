@@ -29,6 +29,15 @@ public abstract class InitialPhysicalCost extends TrafficAssignmentComponent<Ini
   }
 
   /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public InitialPhysicalCost(InitialPhysicalCost other) {
+    super(other);
+  }
+
+  /**
    * Set the initial cost for a specified mode and link segment
    * 
    * @param mode        the current mode

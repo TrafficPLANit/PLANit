@@ -19,12 +19,29 @@ public class ProjectZonings extends LongMapWrapperImpl<Zoning> {
   }
 
   /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  protected ProjectZonings(ProjectZonings other) {
+    super(other);
+  }
+
+  /**
    * Collect the first zonings that are registered (if any). Otherwise return null
    * 
    * @return first zonings that are registered if none return null
    */
   public Zoning getFirst() {
     return isEmpty() ? iterator().next() : null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ProjectZonings clone() {
+    return new ProjectZonings(this);
   }
 
 }

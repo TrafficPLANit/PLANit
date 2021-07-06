@@ -28,12 +28,23 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
    *
    * Constructor
    *
-   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param groupId contiguous id generation within this group for instances of this class
    */
   public FixedConnectoidTravelTimeCost(IdGroupingToken groupId) {
     super(groupId);
   }
-  
+
+  /**
+   *
+   * Copy Constructor
+   *
+   * @param other to copy
+   */
+  public FixedConnectoidTravelTimeCost(FixedConnectoidTravelTimeCost other) {
+    super(other);
+    this.fixedConnectoidCost = other.fixedConnectoidCost;
+  }
+
   /**
    * set the fixed cost used for all relevant link segments
    * 
@@ -41,7 +52,7 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
    */
   public void setFixedConnectoidCost(final double fixedConnectoidCost) {
     this.fixedConnectoidCost = fixedConnectoidCost;
-  }  
+  }
 
   /**
    *
@@ -70,9 +81,16 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
     // currently no specific initialization needed
   }
 
-
   @Override
   public void populateWithCost(Mode mode, double[] costToFill) throws PlanItException {
-    // TODO Auto-generated method stub    
+    // TODO Auto-generated method stub
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public FixedConnectoidTravelTimeCost clone() {
+    return new FixedConnectoidTravelTimeCost(this);
   }
 }

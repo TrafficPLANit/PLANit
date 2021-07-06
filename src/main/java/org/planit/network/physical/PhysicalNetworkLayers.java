@@ -1,12 +1,11 @@
 package org.planit.network.physical;
 
 import org.planit.network.TopologicalLayersImpl;
-import org.planit.network.layer.physical.PhysicalLayerBuilderImpl;
+import org.planit.network.layer.physical.LinkSegmentsImpl;
+import org.planit.network.layer.physical.LinksImpl;
+import org.planit.network.layer.physical.NodesImpl;
 import org.planit.network.layer.physical.PhysicalLayerImpl;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.layer.physical.Link;
-import org.planit.utils.network.layer.physical.LinkSegment;
-import org.planit.utils.network.layer.physical.Node;
 import org.planit.utils.network.layer.physical.PhysicalLayer;
 
 /**
@@ -15,7 +14,7 @@ import org.planit.utils.network.layer.physical.PhysicalLayer;
  * @author markr
  *
  */
-public class PhysicalNetworkLayers<N extends Node, L extends Link, LS extends LinkSegment> extends TopologicalLayersImpl<PhysicalLayer<N, L, LS>> {
+public class PhysicalNetworkLayers extends TopologicalLayersImpl<PhysicalLayer> {
 
   /**
    * Constructor
@@ -27,15 +26,32 @@ public class PhysicalNetworkLayers<N extends Node, L extends Link, LS extends Li
   }
 
   /**
+   * Constructor
+   * 
+   * @param other to copy
+   */
+  public PhysicalNetworkLayers(PhysicalNetworkLayers other) {
+    super(other);
+  }
+
+  /**
    * Create and register a new service network layer
    * 
    * @return created ServiceNetworkLayer
    */
   @Override
   public PhysicalLayer createAndRegisterNew() {
-    final PhysicalLayer serviceNetworkLayer = new PhysicalLayerImpl(getIdToken(), new PhysicalLayerBuilderImpl(getIdToken()));
+    final PhysicalLayer serviceNetworkLayer = new PhysicalLayerImpl(getIdToken(), new NodesImpl(getIdToken()), new LinksImpl(getIdToken()), new LinkSegmentsImpl(getIdToken()));
     register(serviceNetworkLayer);
     return serviceNetworkLayer;
+  }
+
+  /**
+   * {@inheritDoc}}
+   */
+  @Override
+  public PhysicalNetworkLayers clone() {
+    return new PhysicalNetworkLayers(this);
   }
 
 }

@@ -1,71 +1,78 @@
 package org.planit.zoning;
 
-import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.network.layer.physical.LinkSegment;
-import org.planit.utils.zoning.Connectoid;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.DirectedConnectoid;
+import org.planit.utils.zoning.DirectedConnectoidFactory;
 import org.planit.utils.zoning.DirectedConnectoids;
-import org.planit.utils.zoning.Zone;
 
 /**
- * Implementation of Connectoids class
+ * Implementation of directed connectoids class
  * 
  * @author markr
  *
  */
 public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid> implements DirectedConnectoids {
 
-  /** the zoning builder to use */
-  protected final ZoningBuilder zoningBuilder;
-  
+  /** factory to use */
+  private final DirectedConnectoidFactory directedConnectoidFactory;
+
   /**
    * Constructor
    * 
-   * @param zoningBuilder to use
+   * @param groupId to use for creating ids for instances
    */
-  public DirectedConnectoidsImpl(ZoningBuilder zoningBuilder) {
-    super();
-    this.zoningBuilder = zoningBuilder;
+  public DirectedConnectoidsImpl(final IdGroupingToken groupId) {
+    super(groupId);
+    this.directedConnectoidFactory = new DirectedConnectoidFactoryImpl(groupId, this);
   }
 
   /**
-   * register a directed connectoid using the connectoid id unqiue across all connectoids
-   *
-   * @param connectoid to register
+   * Constructor
+   * 
+   * @param groupId                   to use for creating ids for instances
+   * @param directedConnectoidFactory the factory to use
    */
-  @Override
-  public DirectedConnectoid register(DirectedConnectoid connectoid) {
-    return register(connectoid.getId(), connectoid);
+  public DirectedConnectoidsImpl(final IdGroupingToken groupId, DirectedConnectoidFactory directedConnectoidFactory) {
+    super(groupId);
+    this.directedConnectoidFactory = directedConnectoidFactory;
   }
 
   /**
-   * {@inheritDoc}
+   * Copy constructor
+   * 
+   * @param other to copy
    */
-  @Override
-  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment, Zone parentZone, double length) throws PlanItException {
-    DirectedConnectoid newConnectoid = registerNew(accessLinkSegment);
-    newConnectoid.addAccessZone(parentZone);
-    newConnectoid.setLength(parentZone, length);
-    register(newConnectoid);
-    return newConnectoid;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment, Zone parentZone) throws PlanItException {
-    return registerNew(accessLinkSegment, parentZone, Connectoid.DEFAULT_LENGTH_KM);
+  public DirectedConnectoidsImpl(DirectedConnectoidsImpl other) {
+    super(other);
+    this.directedConnectoidFactory = other.directedConnectoidFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public DirectedConnectoid registerNew(LinkSegment accessLinkSegment) throws PlanItException {
-    DirectedConnectoid newConnectoid = zoningBuilder.createDirectedConnectoid(accessLinkSegment);
-    register(newConnectoid);
-    return newConnectoid;
+  public DirectedConnectoidFactory getFactory() {
+    return directedConnectoidFactory;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(boolean reset) {
+    if (reset == true) {
+      IdGenerator.reset(getFactory().getIdGroupingToken(), DirectedConnectoid.DIRECTED_CONNECTOID_ID_CLASS);
+    }
+
+    super.recreateIds(reset);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedConnectoidsImpl clone() {
+    return new DirectedConnectoidsImpl(this);
+  }
 }

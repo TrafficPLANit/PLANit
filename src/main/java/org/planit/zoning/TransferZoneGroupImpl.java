@@ -52,21 +52,23 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
   }
 
   /**
-   * Set the transfer zone group id
-   * 
-   * @param id to set
-   */
-  protected void setId(long id) {
-    super.setId(id);
-  }
-
-  /**
    * Constructor
    * 
    * @param tokenId to use
    */
   protected TransferZoneGroupImpl(IdGroupingToken tokenId) {
     super(generateTransferZoneGroupId(tokenId));
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param transferZoneGroupImpl
+   */
+  public TransferZoneGroupImpl(TransferZoneGroupImpl transferZoneGroupImpl) {
+    super(transferZoneGroupImpl);
+    this.name = transferZoneGroupImpl.name;
+    this.transferZoneMap.putAll(transferZoneGroupImpl.transferZoneMap);
   }
 
   /**
@@ -137,6 +139,24 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
   @Override
   public Collection<TransferZone> getTransferZones() {
     return transferZoneMap.values();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    long newId = generateTransferZoneGroupId(tokenId);
+    setId(newId);
+    return newId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZoneGroupImpl clone() {
+    return new TransferZoneGroupImpl(this);
   }
 
 }

@@ -11,12 +11,12 @@ import org.planit.utils.zoning.Centroid;
 import org.planit.utils.zoning.Zone;
 
 /**
- * Represents a demand generating zone in the network.
+ * Represents a zone base class.
  * 
  * @author markr
  *
  */
-public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
+public abstract class ZoneImpl extends ExternalIdAbleImpl implements Zone {
 
   /**
    * name of the zone
@@ -45,7 +45,7 @@ public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
    * @return id for this zone
    */
   protected static long generateZoneId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, Zone.class);
+    return IdGenerator.generateId(groupId, Zone.ZONE_ID_CLASS);
   }
 
   /**
@@ -75,6 +75,21 @@ public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
    */
   public ZoneImpl(final IdGroupingToken tokenId) {
     super(generateZoneId(tokenId));
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param other to copy
+   */
+  public ZoneImpl(final ZoneImpl other) {
+    super(other);
+    this.name = other.name;
+    if (other.inputProperties != null) {
+      this.inputProperties = new HashMap<String, Object>(other.inputProperties);
+    }
+    this.centroid = other.centroid;
+    this.geometry = other.geometry;
   }
 
   /**
@@ -140,5 +155,21 @@ public class ZoneImpl extends ExternalIdAbleImpl implements Zone {
     }
     return null;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    long newId = generateZoneId(tokenId);
+    setId(newId);
+    return newId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ZoneImpl clone();
 
 }

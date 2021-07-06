@@ -11,11 +11,11 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class PathChoice extends TrafficAssignmentComponent<PathChoice> {
+public abstract class PathChoice extends TrafficAssignmentComponent<PathChoice> {
 
   /** generate UID */
   private static final long serialVersionUID = 6220514783786893944L;
-  
+
   /**
    * short for stochastic path choice type
    */
@@ -29,5 +29,20 @@ public class PathChoice extends TrafficAssignmentComponent<PathChoice> {
   protected PathChoice(IdGroupingToken groupId) {
     super(groupId, PathChoice.class);
   }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  protected PathChoice(final PathChoice other) {
+    super(other);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract PathChoice clone();
 
 }

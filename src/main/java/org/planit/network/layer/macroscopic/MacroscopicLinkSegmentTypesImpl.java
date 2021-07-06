@@ -1,17 +1,12 @@
 package org.planit.network.layer.macroscopic;
 
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.mode.Mode;
-import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypeFactory;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
-import org.planit.utils.network.layer.macroscopic.MacroscopicModeProperties;
-import org.planit.utils.network.layer.macroscopic.MacroscopicPhysicalLayerBuilder;
-import org.planit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * Implementation of the container interface
@@ -19,57 +14,48 @@ import org.planit.utils.wrapper.LongMapWrapperImpl;
  * @author markr
  *
  */
-public class MacroscopicLinkSegmentTypesImpl extends LongMapWrapperImpl<MacroscopicLinkSegmentType> implements MacroscopicLinkSegmentTypes {
+public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<MacroscopicLinkSegmentType> implements MacroscopicLinkSegmentTypes {
 
   /** the logger to use */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentTypesImpl.class.getCanonicalName());
 
+  /** factory to use */
+  private final MacroscopicLinkSegmentTypeFactory linkSegmentTypeFactory;
+
   /**
    * Constructor
    * 
-   * @param networkBuilder to use for delegating the creation of macroscopic link segment types to
+   * @param groupId to use for creating ids for instances
    */
-  public MacroscopicLinkSegmentTypesImpl(MacroscopicPhysicalLayerBuilder<?, ?, MacroscopicLinkSegment> networkBuilder) {
-    super(new TreeMap<Long, MacroscopicLinkSegmentType>(), MacroscopicLinkSegmentType::getId);
-    this.networkBuilder = networkBuilder;
+  public MacroscopicLinkSegmentTypesImpl(final IdGroupingToken groupId) {
+    super(MacroscopicLinkSegmentType::getId);
+    this.linkSegmentTypeFactory = new MacroscopicLinkSegmentTypeFactoryImpl(groupId, this);
   }
 
   /**
-   * {@inheritDoc}
+   * Constructor
+   * 
+   * @param groupId                to use for creating ids for instances
+   * @param linkSegmentTypeFactory the factory to use
    */
-  @Override
-  public MacroscopicLinkSegmentType createAndRegisterNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm, Map<Mode, MacroscopicModeProperties> modeProperties)
-      throws PlanItException {
-
-    MacroscopicLinkSegmentType linkSegmentType = networkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm, modeProperties);
-    register(linkSegmentType);
-    return linkSegmentType;
+  public MacroscopicLinkSegmentTypesImpl(final IdGroupingToken groupId, MacroscopicLinkSegmentTypeFactory linkSegmentTypeFactory) {
+    super(MacroscopicLinkSegmentType::getId);
+    this.linkSegmentTypeFactory = linkSegmentTypeFactory;
   }
 
   /**
-   * {@inheritDoc}
+   * Copy constructor
+   * 
+   * @param macroscopicLinkSegmentTypesImpl to copy
    */
-  @Override
-  public MacroscopicLinkSegmentType createAndRegisterNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm) throws PlanItException {
-
-    MacroscopicLinkSegmentType linkSegmentType = networkBuilder.createLinkSegmentType(name, capacityPcuPerHour, maximumDensityPcuPerKm);
-    register(linkSegmentType);
-    return linkSegmentType;
+  public MacroscopicLinkSegmentTypesImpl(final MacroscopicLinkSegmentTypesImpl macroscopicLinkSegmentTypesImpl) {
+    super(macroscopicLinkSegmentTypesImpl);
+    this.linkSegmentTypeFactory = macroscopicLinkSegmentTypesImpl.linkSegmentTypeFactory;
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public MacroscopicLinkSegmentType registerUniqueCopyOf(MacroscopicLinkSegmentType linkSegmentTypeToCopy) {
-    MacroscopicLinkSegmentType linkSegmentType = networkBuilder.createUniqueCopyOf(linkSegmentTypeToCopy);
-    register(linkSegmentType);
-    return linkSegmentType;
-  }
-
-  /**
-   * Retrieve a MacroscopicLinkSegmentType by its xml Id
+   * Retrieve a MacroscopicLinkSegmentType by its XML Id
    * 
    * This method is not efficient, since it loops through all the registered types in order to find the required entry. Use get whenever possible instead
    * 
@@ -87,6 +73,24 @@ public class MacroscopicLinkSegmentTypesImpl extends LongMapWrapperImpl<Macrosco
   @Override
   public MacroscopicLinkSegmentType getFirst() {
     return iterator().next();
+  }
+
+  /**
+   * Collect factory for creating (and registering on this container) of macroscopic link segment types
+   * 
+   * @return factory to use
+   */
+  @Override
+  public MacroscopicLinkSegmentTypeFactory getFactory() {
+    return linkSegmentTypeFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegmentTypesImpl clone() {
+    return new MacroscopicLinkSegmentTypesImpl(this);
   }
 
 }

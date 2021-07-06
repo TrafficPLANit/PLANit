@@ -1,6 +1,7 @@
 package org.planit.network.layer.physical;
 
 import org.planit.graph.GraphEntitiesImpl;
+import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.physical.Link;
 import org.planit.utils.network.layer.physical.LinkFactory;
@@ -63,6 +64,18 @@ public class LinksImpl extends GraphEntitiesImpl<Link> implements Links {
   @Override
   public LinksImpl clone() {
     return new LinksImpl(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(boolean reset) {
+    if (reset == true) {
+      IdGenerator.reset(getFactory().getIdGroupingToken(), Link.LINK_ID_CLASS);
+    }
+
+    super.recreateIds(reset);
   }
 
 }

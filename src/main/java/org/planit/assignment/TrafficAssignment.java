@@ -242,6 +242,25 @@ public abstract class TrafficAssignment extends NetworkLoading {
     initialLinkSegmentCostByTimePeriod = new HashMap<TimePeriod, InitialLinkSegmentCost>();
   }
 
+  /**
+   * Copy Constructor
+   * 
+   * @param trafficAssignment to copy
+   */
+  protected TrafficAssignment(TrafficAssignment trafficAssignment) {
+    super(trafficAssignment);
+    this.network = trafficAssignment.network;
+    this.transportNetwork = trafficAssignment.transportNetwork;
+    this.virtualCost = trafficAssignment.virtualCost;
+    this.numberOfNetworkSegments = trafficAssignment.numberOfNetworkSegments;
+    this.numberOfNetworkVertices = trafficAssignment.numberOfNetworkVertices;
+    this.smoothing = trafficAssignment.smoothing;
+    this.demands = trafficAssignment.demands;
+    this.initialLinkSegmentCost = trafficAssignment.initialLinkSegmentCost;
+    this.physicalCost = trafficAssignment.physicalCost;
+    this.initialLinkSegmentCostByTimePeriod = trafficAssignment.initialLinkSegmentCostByTimePeriod;
+  }
+
   // Public abstract methods
 
   /**

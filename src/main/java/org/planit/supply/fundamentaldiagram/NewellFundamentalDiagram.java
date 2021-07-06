@@ -22,4 +22,21 @@ public class NewellFundamentalDiagram extends FundamentalDiagram {
     super(groupId);
   }
 
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public NewellFundamentalDiagram(final NewellFundamentalDiagram other) {
+    super(other);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public NewellFundamentalDiagram clone() {
+    return new NewellFundamentalDiagram(this);
+  }
+
 }

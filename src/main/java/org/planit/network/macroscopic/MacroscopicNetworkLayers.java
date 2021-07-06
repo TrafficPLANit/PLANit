@@ -1,7 +1,7 @@
 package org.planit.network.macroscopic;
 
 import org.planit.network.TopologicalLayersImpl;
-import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayerImpl;
+import org.planit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -10,7 +10,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class MacroscopicNetworkLayers extends TopologicalLayersImpl<MacroscopicPhysicalLayerImpl> {
+public class MacroscopicNetworkLayers extends TopologicalLayersImpl<MacroscopicNetworkLayerImpl> {
 
   /**
    * Constructor
@@ -22,13 +22,30 @@ public class MacroscopicNetworkLayers extends TopologicalLayersImpl<MacroscopicP
   }
 
   /**
+   * Constructor
+   * 
+   * @param other to copy
+   */
+  public MacroscopicNetworkLayers(MacroscopicNetworkLayers other) {
+    super(other);
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicPhysicalLayerImpl createAndRegisterNew() {
-    final MacroscopicPhysicalLayerImpl networkLayer = new MacroscopicPhysicalLayerImpl(this.getIdToken());
+  public MacroscopicNetworkLayerImpl createAndRegisterNew() {
+    final MacroscopicNetworkLayerImpl networkLayer = new MacroscopicNetworkLayerImpl(this.getIdToken());
     register(networkLayer);
     return networkLayer;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicNetworkLayers clone() {
+    return new MacroscopicNetworkLayers(this);
   }
 
 }

@@ -29,6 +29,15 @@ public abstract class Smoothing extends TrafficAssignmentComponent<Smoothing> im
   }
 
   /**
+   * Constructor
+   * 
+   * @param other to copy
+   */
+  public Smoothing(Smoothing other) {
+    super(other);
+  }
+
+  /**
    * Determine the stepsize for the passed in iteraction
    *
    * @param iterationIndex index of current iteration
@@ -53,5 +62,11 @@ public abstract class Smoothing extends TrafficAssignmentComponent<Smoothing> im
    * @return smoothedValues array of smoothed values
    */
   public abstract double[] applySmoothing(double[] previousValues, double[] proposedValues, int numberOfValues);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract Smoothing clone();
 
 }

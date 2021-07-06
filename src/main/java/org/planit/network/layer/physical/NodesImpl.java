@@ -1,6 +1,7 @@
 package org.planit.network.layer.physical;
 
 import org.planit.graph.GraphEntitiesImpl;
+import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.physical.Node;
 import org.planit.utils.network.layer.physical.NodeFactory;
@@ -55,6 +56,18 @@ public class NodesImpl extends GraphEntitiesImpl<Node> implements Nodes {
   @Override
   public NodeFactory getFactory() {
     return nodeFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(boolean reset) {
+    if (reset == true) {
+      IdGenerator.reset(getFactory().getIdGroupingToken(), Node.NODE_ID_CLASS);
+    }
+
+    super.recreateIds(reset);
   }
 
   /**

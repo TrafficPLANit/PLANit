@@ -24,6 +24,15 @@ public class ManualInitialLinkSegmentCost extends InitialLinkSegmentCost {
   }
 
   /**
+   * Constructor
+   * 
+   * @param groupId, contiguous id generation within this group for instances of this class
+   */
+  public ManualInitialLinkSegmentCost(ManualInitialLinkSegmentCost other) {
+    super(other);
+  }
+
+  /**
    * Sets a given cost for all link segments for a given mode
    *
    * @param mode           the specified mode
@@ -34,5 +43,13 @@ public class ManualInitialLinkSegmentCost extends InitialLinkSegmentCost {
     for (long i = 0; i < noLinkSegments; i++) {
       setSegmentCost(mode, i, cost);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ManualInitialLinkSegmentCost clone() {
+    return new ManualInitialLinkSegmentCost(this);
   }
 }

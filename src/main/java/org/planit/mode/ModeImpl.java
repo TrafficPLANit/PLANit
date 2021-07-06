@@ -1,5 +1,6 @@
 package org.planit.mode;
 
+import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
@@ -11,24 +12,9 @@ import org.planit.utils.mode.UsabilityModeFeatures;
  * 
  * @author markr
  */
-public class ModeImpl implements Mode {
+public class ModeImpl extends ExternalIdAbleImpl implements Mode {
 
   public final static Long DEFAULT_EXTERNAL_ID = Long.valueOf(1);
-
-  /**
-   * Id value of this mode
-   */
-  private final long id;
-
-  /**
-   * External Id of this mode
-   */
-  private String externalId;
-
-  /**
-   * xml Id of this mode
-   */
-  private String xmlId;
 
   /**
    * Each mode has a maximum speed indicating the maximum speed this mode can take on in the context of the network. Typically this would be chosen as the maximum speed limit
@@ -53,6 +39,16 @@ public class ModeImpl implements Mode {
   private UsabilityModeFeatures usedToFeatures;
 
   /**
+   * Generate id for this instance
+   * 
+   * @param tokenId to use
+   * @return generated id
+   */
+  protected static long generateId(final IdGroupingToken tokenId) {
+    return IdGenerator.generateId(tokenId, Mode.MODE_ID_CLASS);
+  }
+
+  /**
    * Constructor, using all defaults for non-provided parameters
    * 
    * @param groupId, contiguous id generation within this group for instances of this class
@@ -74,9 +70,9 @@ public class ModeImpl implements Mode {
    * @param physicalFeatures  physical features of the mode
    * @param usabilityFeatures usability features of the mode
    */
-  protected ModeImpl(final IdGroupingToken groupId, final String name, final double maxSpeed, final double pcu, final PhysicalModeFeatures physicalFeatures,
+  protected ModeImpl(final IdGroupingToken tokenId, final String name, final double maxSpeed, final double pcu, final PhysicalModeFeatures physicalFeatures,
       final UsabilityModeFeatures usabilityFeatures) {
-    this.id = IdGenerator.generateId(groupId, Mode.class);
+    super(generateId(tokenId));
     this.name = name;
     this.maxSpeed = maxSpeed;
     this.pcu = pcu;
@@ -90,48 +86,10 @@ public class ModeImpl implements Mode {
    * {@inheritDoc}
    */
   @Override
-  public long getId() {
-    return id;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getExternalId() {
-    return externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setExternalId(String externalId) {
-    this.externalId = externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getXmlId() {
-    return xmlId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setXmlId(String xmlId) {
-    this.xmlId = xmlId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasExternalId() {
-    return (externalId != null);
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    long newId = generateId(tokenId);
+    setId(newId);
+    return newId;
   }
 
   /**
@@ -172,22 +130,6 @@ public class ModeImpl implements Mode {
   @Override
   public final UsabilityModeFeatures getUseFeatures() {
     return usedToFeatures;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int hashCode() {
-    return idHashCode();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean equals(Object o) {
-    return idEquals(o);
   }
 
 }

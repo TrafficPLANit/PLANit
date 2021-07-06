@@ -1,7 +1,10 @@
 package org.planit.zoning;
 
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.TransferZone;
-import org.planit.utils.zoning.Zones;
+import org.planit.utils.zoning.TransferZoneFactory;
+import org.planit.utils.zoning.TransferZones;
 
 /**
  * implementation of the Zones &lt;T&gt; interface for transfer zones
@@ -9,27 +12,68 @@ import org.planit.utils.zoning.Zones;
  * @author markr
  *
  */
-public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Zones<TransferZone> {
+public class TransferZonesImpl extends ZonesImpl<TransferZone> implements TransferZones {
 
-  /** the zoning builder to use */
-  protected final ZoningBuilder zoningBuilder;
-  
+  /** factory to use */
+  private final TransferZoneFactory transferZoneFactory;
+
   /**
    * Constructor
    * 
-   * @param zoningBuilder to use
+   * @param groupId to use for creating ids for instances
    */
-  public TransferZonesImpl(ZoningBuilder zoningBuilder) {
-    super();
-    this.zoningBuilder = zoningBuilder;
+  public TransferZonesImpl(final IdGroupingToken groupId) {
+    super(groupId);
+    this.transferZoneFactory = new TransferZoneFactoryImpl(groupId, this);
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param groupId             to use for creating ids for instances
+   * @param transferZoneFactory the factory to use
+   */
+  public TransferZonesImpl(final IdGroupingToken groupId, TransferZoneFactory transferZoneFactory) {
+    super(groupId);
+    this.transferZoneFactory = transferZoneFactory;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public TransferZonesImpl(TransferZonesImpl other) {
+    super(other);
+    this.transferZoneFactory = other.transferZoneFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public TransferZone createNew() {
-    return zoningBuilder.createTransferZone();
+  public TransferZoneFactory getFactory() {
+    return transferZoneFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(boolean reset) {
+    if (reset == true) {
+      IdGenerator.reset(getFactory().getIdGroupingToken(), TransferZone.TRANSFER_ZONE_ID_CLASS);
+    }
+
+    super.recreateIds(reset);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZonesImpl clone() {
+    return new TransferZonesImpl(this);
   }
 
 }

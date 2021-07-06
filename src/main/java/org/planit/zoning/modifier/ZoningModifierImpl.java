@@ -65,8 +65,11 @@ public class ZoningModifierImpl implements ZoningModifier {
    * {@inheritDoc}
    */
   @Override
-  public void recreateConnectoidIds() {
-    zoningBuilder.recreateConnectoidIds(zoning.odConnectoids, zoning.transferConnectoids);
+  public void recreateConnectoidIds() {   
+    DOES NOT WORK WITH RESET BECAUSE IT RESETS BOTH THE BASE INTERNAL ID AND ADDITIONAL ID SO BOTH OR NEITHER
+    WHEREAS INSTEAD WE SHOULD RESET INTERNAL ID ONCE AND THEN THE ADDITIONAL ID FOR BOTH SEPARATE
+    zoning.odConnectoids.recreateIds(true);
+    zoning.transferConnectoids.recreateIds(false);
   }
 
   /**
@@ -74,6 +77,7 @@ public class ZoningModifierImpl implements ZoningModifier {
    */
   @Override
   public void recreateZoneIds() {
+    zoning.odZones.recreateIds();
     zoningBuilder.recreateOdZoneIds(zoning.odZones, Collections.singleton(zoning.odConnectoids), true /* reset zone ids once... */);
     zoningBuilder.recreateTransferZoneIds(zoning.transferZones, zoning.transferZoneGroups, Collections.singleton(zoning.transferConnectoids), false /* ...but not again */);
   }

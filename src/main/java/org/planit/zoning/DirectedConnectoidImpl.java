@@ -45,7 +45,7 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    * @return id of directed connectoid
    */
   protected static long generateDirectedConnectoidId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, DirectedConnectoid.class);
+    return IdGenerator.generateId(groupId, DirectedConnectoid.DIRECTED_CONNECTOID_ID_CLASS);
   }
 
   /**
@@ -101,6 +101,7 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
     super(connectoidImpl);
     setDirectedConnectoidId(connectoidImpl.getDirectedConnectoidId());
     setAccessLinkSegment(connectoidImpl.getAccessLinkSegment());
+    setNodeAccessDownstream(connectoidImpl.isNodeAccessDownstream());
   }
 
   // Public
@@ -154,6 +155,23 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
   @Override
   public DirectedVertex getAccessVertex() {
     return isNodeAccessDownstream() ? getAccessLinkSegment().getDownstreamVertex() : getAccessLinkSegment().getUpstreamVertex();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    setDirectedConnectoidId(generateDirectedConnectoidId(tokenId));
+    return super.recreateManagedIds(tokenId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedConnectoidImpl clone() {
+    return new DirectedConnectoidImpl(this);
   }
 
 }

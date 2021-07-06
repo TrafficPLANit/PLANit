@@ -138,18 +138,6 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   }
 
   /**
-   * Copy constructor
-   * 
-   * @param connectoidImpl to copy
-   */
-  protected ConnectoidImpl(ConnectoidImpl connectoidImpl) {
-    super(connectoidImpl);
-    for (AccessZoneProperties entry : connectoidImpl.accessZones.values()) {
-      accessZones.put(entry.accessZone.getId(), new AccessZoneProperties(entry));
-    }
-  }
-
-  /**
    * Constructor
    *
    * @param idToken    contiguous id generation within this group for instances of this class
@@ -171,6 +159,20 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   protected ConnectoidImpl(final IdGroupingToken idToken, Zone accessZone) {
     this(idToken);
     addAccessZone(accessZone);
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param connectoidImpl to copy
+   */
+  protected ConnectoidImpl(ConnectoidImpl connectoidImpl) {
+    super(connectoidImpl);
+    for (AccessZoneProperties entry : connectoidImpl.accessZones.values()) {
+      accessZones.put(entry.accessZone.getId(), new AccessZoneProperties(entry));
+    }
+    this.name = connectoidImpl.name;
+    this.type = connectoidImpl.type;
   }
 
   // Public
@@ -353,5 +355,21 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
     };
     return it;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    long newId = generateId(tokenId);
+    setId(newId);
+    return newId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ConnectoidImpl clone();
 
 }

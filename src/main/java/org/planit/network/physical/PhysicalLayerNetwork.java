@@ -11,10 +11,13 @@ import org.planit.utils.network.physical.PhysicalNetworkLayers;
  * 
  * @author markr
  *
- * @param <L>
- * @param <LC>
  */
-public abstract class PhysicalLayerNetwork<L extends PhysicalLayer<?, ?, ?>, LC extends PhysicalNetworkLayers> extends TopologicalLayerNetwork<L, PhysicalNetworkLayers> {
+public abstract class PhysicalLayerNetwork extends TopologicalLayerNetwork<PhysicalLayer, PhysicalNetworkLayers> {
+
+  /**
+   * generated UID
+   */
+  private static final long serialVersionUID = 3909555719315844733L;
 
   /**
    * Default constructor

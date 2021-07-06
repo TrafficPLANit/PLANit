@@ -7,50 +7,6 @@ import org.planit.utils.network.layer.TopologicalLayer;
  *
  * @author markr
  */
-public interface PhysicalLayer extends TopologicalLayer {
-
-  // PUBLIC
-
-  /**
-   * Collect the links
-   * 
-   * @return the links
-   */
-  public abstract Links getLinks();
-
-  /**
-   * Collect the link segments
-   * 
-   * @return the linkSegments
-   */
-  public abstract LinkSegments getLinkSegments();
-
-  /**
-   * Collect the nodes
-   * 
-   * @return the nodes
-   */
-  public abstract Nodes getNodes();
-
-  /**
-   * Number of nodes
-   * 
-   * @return number of nodes
-   */
-  public abstract long getNumberOfNodes();
-
-  /**
-   * Number of links
-   * 
-   * @return number of links
-   */
-  public abstract long getNumberOfLinks();
-
-  /**
-   * Number of link segments
-   * 
-   * @return number of link segments
-   */
-  public abstract long getNumberOfLinkSegments();
+public interface PhysicalLayer extends TopologicalLayer, UntypedPhysicalLayer<Nodes, Links, LinkSegments> {
 
 }

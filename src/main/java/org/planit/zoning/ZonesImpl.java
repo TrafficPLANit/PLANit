@@ -1,10 +1,7 @@
 package org.planit.zoning;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
-
-import org.planit.utils.wrapper.MapWrapperImpl;
+import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.zoning.Zone;
 import org.planit.utils.zoning.Zones;
 
@@ -15,22 +12,30 @@ import org.planit.utils.zoning.Zones;
  *
  * @param <Z> zone type
  */
-public abstract class ZonesImpl<Z extends Zone> extends MapWrapperImpl<Long, Z> implements Zones<Z> {
-
-  /**
-   * recreate the mapping such that all the keys used for each zone reflect their internal id. To be called whenever the ids of zones are changed
-   */
-  protected void updateIdMapping() {
-    Map<Long, Z> updatedMap = new HashMap<Long, Z>(size());
-    getMap().forEach((oldId, zone) -> updatedMap.put(zone.getId(), zone));
-    setMap(updatedMap);
-  }
+public abstract class ZonesImpl<Z extends Zone> extends ManagedIdEntitiesImpl<Z> implements Zones<Z> {
 
   /**
    * Constructor
+   * 
+   * @param groupId to use for creating ids for instances
    */
-  public ZonesImpl() {
-    super(new TreeMap<Long, Z>(), Zone::getId);
+  public ZonesImpl(final IdGroupingToken groupId) {
+    super(Zone::getId);
   }
+
+  /**
+   * Copy constructor
+   * 
+   * @param zonesImpl to copy
+   */
+  public ZonesImpl(ZonesImpl<Z> zonesImpl) {
+    super(zonesImpl);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ZonesImpl<Z> clone();
 
 }

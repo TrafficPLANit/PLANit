@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.TransportLayerNetwork;
-import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayerImpl;
+import org.planit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.planit.network.macroscopic.MacroscopicNetwork;
 import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
@@ -82,7 +82,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   }
 
   /** the network layer the BPR is applied to */
-  protected MacroscopicPhysicalLayerImpl networkLayer;
+  protected MacroscopicNetworkLayerImpl networkLayer;
 
   /**
    * Link volume accessee object for this cost function
@@ -157,14 +157,33 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   /**
    * Constructor
    * 
-   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param groupId contiguous id generation within this group for instances of this class
    */
   public BPRLinkTravelTimeCost(IdGroupingToken groupId) {
     super(groupId);
-    parametersPerLinkSegmentAndMode = new HashMap<MacroscopicLinkSegment, BPRParameters>();
-    defaultParametersPerMode = new BPRParameters();
-    defaultParametersPerLinkSegmentTypeAndMode = new HashMap<MacroscopicLinkSegmentType, BPRParameters>();
-    defaultParameters = Pair.of(DEFAULT_ALPHA, DEFAULT_BETA);
+    this.parametersPerLinkSegmentAndMode = new HashMap<MacroscopicLinkSegment, BPRParameters>();
+    this.defaultParametersPerMode = new BPRParameters();
+    this.defaultParametersPerLinkSegmentTypeAndMode = new HashMap<MacroscopicLinkSegmentType, BPRParameters>();
+    this.defaultParameters = Pair.of(DEFAULT_ALPHA, DEFAULT_BETA);
+  }
+
+  /**
+   * Copy Constructor
+   * 
+   * @param bprLinkTravelTimeCost to use
+   */
+  public BPRLinkTravelTimeCost(BPRLinkTravelTimeCost bprLinkTravelTimeCost) {
+    super(bprLinkTravelTimeCost);
+    this.networkLayer = bprLinkTravelTimeCost.networkLayer;
+    this.linkVolumeAccessee = bprLinkTravelTimeCost.linkVolumeAccessee;
+
+    this.parametersPerLinkSegmentAndMode = bprLinkTravelTimeCost.parametersPerLinkSegmentAndMode;
+    this.defaultParametersPerMode = bprLinkTravelTimeCost.defaultParametersPerMode;
+    this.defaultParametersPerLinkSegmentTypeAndMode = bprLinkTravelTimeCost.defaultParametersPerLinkSegmentTypeAndMode;
+    this.defaultParameters = bprLinkTravelTimeCost.defaultParameters;
+
+    this.bprParametersPerLinkSegment = bprLinkTravelTimeCost.bprParametersPerLinkSegment;
+    this.freeFlowTravelTimePerLinkSegment = bprLinkTravelTimeCost.freeFlowTravelTimePerLinkSegment;
   }
 
   /**
@@ -264,8 +283,8 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.transportLayers.size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");
     TransportLayer infrastructureLayer = macroscopicNetwork.transportLayers.getFirst();
-    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicPhysicalLayerImpl), "BPR cost is only compatible with macroscopic physical network layers");
-    this.networkLayer = (MacroscopicPhysicalLayerImpl) infrastructureLayer;
+    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicNetworkLayerImpl), "BPR cost is only compatible with macroscopic physical network layers");
+    this.networkLayer = (MacroscopicNetworkLayerImpl) infrastructureLayer;
     if (network.modes.size() != networkLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by only layer, this makes the assignment less efficient, consider removing unused modes");
     }
@@ -307,6 +326,14 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   @Override
   public void setLinkVolumeAccessee(LinkVolumeAccessee linkVolumeAccessee) {
     this.linkVolumeAccessee = linkVolumeAccessee;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public BPRLinkTravelTimeCost clone() {
+    return new BPRLinkTravelTimeCost(this);
   }
 
 }

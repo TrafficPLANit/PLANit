@@ -42,7 +42,7 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
    * @return id of undirected connectoid
    */
   protected static long generateUndirectedConnectoidId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, UndirectedConnectoid.class);
+    return IdGenerator.generateId(groupId, UndirectedConnectoid.UNDIRECTED_CONNECTOID_ID_CLASS);
   }
 
   /**
@@ -132,6 +132,23 @@ public class UndirectedConnectoidImpl extends ConnectoidImpl implements Undirect
   @Override
   public DirectedVertex getAccessVertex() {
     return accessVertex;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    setUndirectedConnectoidId(generateUndirectedConnectoidId(tokenId));
+    return super.recreateManagedIds(tokenId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UndirectedConnectoidImpl clone() {
+    return new UndirectedConnectoidImpl(this);
   }
 
 }

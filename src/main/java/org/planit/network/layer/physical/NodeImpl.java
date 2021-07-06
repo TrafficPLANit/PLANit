@@ -42,7 +42,7 @@ public class NodeImpl extends DirectedVertexImpl implements Node {
    * @return nodeId
    */
   protected static long generateNodeId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, Node.class);
+    return IdGenerator.generateId(groupId, Node.NODE_ID_CLASS);
   }
 
   /**

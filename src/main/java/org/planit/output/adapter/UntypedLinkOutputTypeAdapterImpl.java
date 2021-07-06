@@ -4,13 +4,10 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.network.layer.physical.PhysicalLayerImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.network.layer.TransportLayer;
 import org.planit.utils.network.layer.physical.LinkSegment;
-import org.planit.utils.network.layer.physical.LinkSegments;
 
 /**
  * Top-level abstract class which defines the common methods required by Link output type adapters
@@ -18,10 +15,11 @@ import org.planit.utils.network.layer.physical.LinkSegments;
  * @author gman6028
  *
  */
-public abstract class LinkOutputTypeAdapterImpl<LS extends LinkSegment> extends OutputTypeAdapterImpl implements LinkOutputTypeAdapter<LS> {
+public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> extends OutputTypeAdapterImpl implements UntypedLinkOutputTypeAdapter<LS> {
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(LinkOutputTypeAdapterImpl.class.getCanonicalName());
+  @SuppressWarnings("unused")
+  private static final Logger LOGGER = Logger.getLogger(UntypedLinkOutputTypeAdapterImpl.class.getCanonicalName());
 
   /**
    * Constructor
@@ -29,34 +27,16 @@ public abstract class LinkOutputTypeAdapterImpl<LS extends LinkSegment> extends 
    * @param outputType        the OutputType this adapter corresponds to
    * @param trafficAssignment TrafficAssignment object which this adapter wraps
    */
-  public LinkOutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
+  public UntypedLinkOutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
     super(outputType, trafficAssignment);
   }
-
-
-  /**
-   * Provide access to the macroscopic link segments
-   * 
-   * @param infrastructureLayerId to use
-   */
-  @SuppressWarnings("unchecked")
-  @Override
-  public LinkSegments<LS> getPhysicalLinkSegments(long infrastructureLayerId) {
-    TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().transportLayers.get(infrastructureLayerId);
-    if (networkLayer instanceof PhysicalLayerImpl) {
-      return ((PhysicalLayerImpl<?,?,LS>) networkLayer).linkSegments;
-    }
-    LOGGER.warning(String.format("cannot collect physical link segments from infrastructure layer %s, as it is not a physical network layer", networkLayer.getXmlId()));
-    return null;
-  }
- 
 
   /**
    * Return the value of a specified output property of a link segment
    * 
    * 
-   * @param outputProperty     the specified output property
-   * @param linkSegment        the specified link segment
+   * @param outputProperty the specified output property
+   * @param linkSegment    the specified link segment
    * @return the value of the specified output property (or an Exception message if an error occurs)
    */
   @Override

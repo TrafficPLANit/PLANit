@@ -30,13 +30,13 @@ import org.planit.output.enums.OutputTypeEnum;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
-import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.math.Precision;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.output.OutputUtils;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Class containing common methods required by classes which write results to CSV output files
@@ -76,7 +76,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    * @param csvPrinter              CSVPrinter object to record results for this iteration
    * @return PlanItException thrown if the CSV file cannot be created or written to
    */
-  @SuppressWarnings("unchecked") 
+  @SuppressWarnings("unchecked")
   protected PlanItException writeOdResultsForCurrentTimePeriodToCsvPrinter(OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration,
       OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
     try {
@@ -98,12 +98,15 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
         for (ODMatrixIterator odMatrixIterator = odSkimMatrix.get().iterator(); odMatrixIterator.hasNext();) {
           odMatrixIterator.next();
-          Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getODOutputPropertyValue(OutputProperty.OD_COST, odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier());
-          cost.orElseThrow(() ->new PlanItException("cost could not be retrieved when persisting"));
-          
-          if (outputConfiguration.isPersistZeroFlow() ||  cost.get() > Precision.EPSILON_6) {
-            List<Object> rowValues = outputProperties.stream().map(outputProperty -> odOutputTypeAdapter.getODOutputPropertyValue(outputProperty.getOutputProperty(),
-                odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier()).get()).map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
+          Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getODOutputPropertyValue(OutputProperty.OD_COST, odMatrixIterator, mode, timePeriod,
+              outputTimeUnit.getMultiplier());
+          cost.orElseThrow(() -> new PlanItException("cost could not be retrieved when persisting"));
+
+          if (outputConfiguration.isPersistZeroFlow() || cost.get() > Precision.EPSILON_6) {
+            List<Object> rowValues = outputProperties.stream()
+                .map(outputProperty -> odOutputTypeAdapter
+                    .getODOutputPropertyValue(outputProperty.getOutputProperty(), odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier()).get())
+                .map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
             csvPrinter.printRecord(rowValues);
           }
         }
@@ -141,13 +144,15 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       for (Mode mode : modes) {
         Optional<ODPathMatrix> odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
         odPathMatrix.orElseThrow(() -> new PlanItException("od path matrix could not be retrieved when persisting"));
-        
+
         for (ODPathIterator odPathIterator = odPathMatrix.get().iterator(); odPathIterator.hasNext();) {
           odPathIterator.next();
           if (outputConfiguration.isPersistZeroFlow() || (odPathIterator.getCurrentValue() != null)) {
-            List<Object> rowValues = outputProperties.stream().map(outputProperty -> pathOutputTypeAdapter.getPathOutputPropertyValue(outputProperty.getOutputProperty(),
-                odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType()).get()).map(outValue -> OutputUtils.formatObject(outValue))
-                .collect(Collectors.toList());
+            List<Object> rowValues = outputProperties.stream()
+                .map(outputProperty -> pathOutputTypeAdapter
+                    .getPathOutputPropertyValue(outputProperty.getOutputProperty(), odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType())
+                    .get())
+                .map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
             csvPrinter.printRecord(rowValues);
           }
         }
@@ -179,24 +184,24 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       PlanItException.throwIf(!(currentOutputType instanceof OutputType), "currentOutputType not compatible with link output");
 
       OutputType outputType = (OutputType) currentOutputType;
-      
-      @SuppressWarnings("unchecked") 
-      MacroscopicLinkOutputTypeAdapter<MacroscopicLinkSegment> linkOutputTypeAdapter = 
-          (MacroscopicLinkOutputTypeAdapter<MacroscopicLinkSegment>) outputAdapter.getOutputTypeAdapter(outputType);
-      
+
+      MacroscopicLinkOutputTypeAdapter linkOutputTypeAdapter = (MacroscopicLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+
       SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
       for (Mode mode : modes) {
         Optional<Long> networkLayerId = linkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
         if (networkLayerId.isPresent()) {
           for (MacroscopicLinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments(networkLayerId.get())) {
-            
-            if(linkSegment.isModeAllowed(mode)) {
+
+            if (linkSegment.isModeAllowed(mode)) {
               Optional<Boolean> flowPositive = linkOutputTypeAdapter.isFlowPositive(linkSegment, mode);
               flowPositive.orElseThrow(() -> new PlanItException("unable to determine if flow is positive on link segment"));
-              
+
               if (outputConfiguration.isPersistZeroFlow() || flowPositive.get()) {
-                List<Object> rowValues = outputProperties.stream().map(outputProperty -> linkOutputTypeAdapter.getLinkSegmentOutputPropertyValue(outputProperty.getOutputProperty(),
-                    linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier()).get()).map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
+                List<Object> rowValues = outputProperties.stream()
+                    .map(outputProperty -> linkOutputTypeAdapter
+                        .getLinkSegmentOutputPropertyValue(outputProperty.getOutputProperty(), linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier()).get())
+                    .map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
                 csvPrinter.printRecord(rowValues);
               }
             }

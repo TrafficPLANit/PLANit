@@ -6,9 +6,9 @@ import org.locationtech.jts.geom.Point;
 import org.planit.output.formatter.OutputFormatter;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.GraphEntities;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.network.layer.physical.LinkSegment;
-import org.planit.utils.network.layer.physical.LinkSegments;
 
 /**
  * Interface defining the methods required for a link output adapter
@@ -16,8 +16,8 @@ import org.planit.utils.network.layer.physical.LinkSegments;
  * @author gman6028, markr
  *
  */
-public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputTypeAdapter {
-  
+public interface UntypedLinkOutputTypeAdapter<T extends LinkSegment> extends OutputTypeAdapter {
+
   /**
    * collect location as string representation from vertex
    * 
@@ -41,7 +41,7 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<String> getDownstreamNodeExternalId(T linkSegment) throws PlanItException {
-    return Optional.of(((Vertex) linkSegment.getDownstreamVertex()).getExternalId());
+    return Optional.of(linkSegment.getDownstreamVertex().getExternalId());
   }
 
   /**
@@ -52,7 +52,7 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<String> getDownstreamNodeXmlId(T linkSegment) throws PlanItException {
-    return Optional.of(((Vertex) linkSegment.getDownstreamVertex()).getXmlId());
+    return Optional.of(linkSegment.getDownstreamVertex().getXmlId());
   }
 
   /**
@@ -63,7 +63,7 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<Long> getDownstreamNodeId(T linkSegment) throws PlanItException {
-    return Optional.of(((Vertex) linkSegment.getDownstreamVertex()).getId());
+    return Optional.of(linkSegment.getDownstreamVertex().getId());
   }
 
   /**
@@ -129,7 +129,7 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
    * @return the number of lanes of the current link
    * @throws PlanItException thrown if there is an error
    */
-  public default  Optional<Integer> getNumberOfLanes(T linkSegment) throws PlanItException {
+  public default Optional<Integer> getNumberOfLanes(T linkSegment) throws PlanItException {
     return Optional.of(linkSegment.getNumberOfLanes());
   }
 
@@ -141,7 +141,7 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<String> getUpstreamNodeExternalId(T linkSegment) throws PlanItException {
-    return Optional.of(((Vertex) linkSegment.getUpstreamVertex()).getExternalId());
+    return Optional.of(linkSegment.getUpstreamVertex().getExternalId());
   }
 
   /**
@@ -152,7 +152,7 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<String> getUpstreamNodeXmlId(T linkSegment) throws PlanItException {
-    return Optional.of(((Vertex) linkSegment.getUpstreamVertex()).getXmlId());
+    return Optional.of(linkSegment.getUpstreamVertex().getXmlId());
   }
 
   /**
@@ -175,8 +175,8 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<Long> getUpstreamNodeId(T linkSegment) throws PlanItException {
-    return Optional.of(((Vertex) linkSegment.getUpstreamVertex()).getId());
-  }  
+    return Optional.of(linkSegment.getUpstreamVertex().getId());
+  }
 
   /**
    * Return the Link segments for this assignment
@@ -184,13 +184,13 @@ public interface LinkOutputTypeAdapter<T extends LinkSegment> extends OutputType
    * @param infrastructureLayerId to collect link segments for
    * @return a List of link segments for this assignment
    */
-  public abstract LinkSegments<T> getPhysicalLinkSegments(long infrastructureLayerId);
+  public abstract GraphEntities<T> getPhysicalLinkSegments(long infrastructureLayerId);
 
   /**
    * Return the value of a specified output property of a link segment
    * 
-   * @param outputProperty     the specified output property
-   * @param linkSegment        the specified link segment
+   * @param outputProperty the specified output property
+   * @param linkSegment    the specified link segment
    * @return the value of the specified output property (or an Exception if an error occurs)
    */
   public abstract Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, T linkSegment);

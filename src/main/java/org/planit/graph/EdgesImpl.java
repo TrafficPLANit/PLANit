@@ -28,7 +28,7 @@ public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
   /**
    * Constructor
    * 
-   * @param graphBuilder the builder for edge implementations
+   * @param edgeFactory to use
    */
   public EdgesImpl(EdgeFactory edgeFactory) {
     super(Edge::getId);

@@ -25,6 +25,15 @@ public abstract class AbstractPhysicalCost extends TrafficAssignmentComponent<Ab
   }
 
   /**
+   * Copy Constructor
+   * 
+   * @param abstractPhysicalCost to use
+   */
+  public AbstractPhysicalCost(AbstractPhysicalCost abstractPhysicalCost) {
+    super(abstractPhysicalCost);
+  }
+
+  /**
    * Invoker expects (mode specific ) costs in passed in array to be filled, where each entry signifies a link segment by its id. This allows for more efficient implementations
    * than having to revert to one by one updates. It does however rewuire network information hence its placement here where via the initialiseBeforeSimulation, the network is
    * provided
@@ -41,6 +50,6 @@ public abstract class AbstractPhysicalCost extends TrafficAssignmentComponent<Ab
    * @param network the network
    * @throws PlanItException thrown if error
    */
-  public abstract void initialiseBeforeSimulation(TransportLayerNetwork<?,?> network) throws PlanItException;
+  public abstract void initialiseBeforeSimulation(TransportLayerNetwork<?, ?> network) throws PlanItException;
 
 }

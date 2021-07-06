@@ -24,7 +24,7 @@ public class OdZoneImpl extends ZoneImpl implements OdZone {
    * @return odZoneId
    */
   protected static long generateOdZoneId(final IdGroupingToken tokenId) {
-    return IdGenerator.generateId(tokenId, OdZone.class);
+    return IdGenerator.generateId(tokenId, OdZone.OD_ZONE_ID_CLASS);
   }
 
   /**
@@ -47,11 +47,38 @@ public class OdZoneImpl extends ZoneImpl implements OdZone {
   }
 
   /**
+   * Copy constructor
+   * 
+   * @param odZoneImpl to copy
+   */
+  public OdZoneImpl(OdZoneImpl odZoneImpl) {
+    super(odZoneImpl);
+    this.odZoneId = odZoneImpl.odZoneId;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
   public long getOdZoneId() {
     return odZoneId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    setOdZoneId(generateOdZoneId(tokenId));
+    return super.recreateManagedIds(tokenId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdZoneImpl clone() {
+    return new OdZoneImpl(this);
   }
 
 }

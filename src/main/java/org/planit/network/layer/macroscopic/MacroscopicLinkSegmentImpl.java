@@ -59,22 +59,6 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int hashCode() {
-    return idHashCode();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean equals(Object obj) {
-    return idEquals(obj);
-  }
-
-  /**
    * Return the total capacity
    *
    * Compute the total capacity by multiplying the capacity per lane and number of lanes

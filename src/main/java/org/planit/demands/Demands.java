@@ -63,6 +63,15 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     }
 
     /**
+     * Copy constructor
+     * 
+     * @param other to copy
+     */
+    public TravelerTypes(TravelerTypes other) {
+      super(other);
+    }
+
+    /**
      * Factory method to create and register a new travel type on the demands
      * 
      * @param name the name of the travel type
@@ -95,6 +104,13 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
       return findFirst(travelerType -> xmlId.equals(((TravelerType) travelerType).getXmlId()));
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public TravelerTypes clone() {
+      return new TravelerTypes(this);
+    }
   }
 
   /**
@@ -110,6 +126,15 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      */
     public UserClasses() {
       super(new HashMap<Long, UserClass>(), UserClass::getId);
+    }
+
+    /**
+     * Copy constructor
+     * 
+     * @param other to copy
+     */
+    public UserClasses(UserClasses other) {
+      super(other);
     }
 
     /**
@@ -146,6 +171,14 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     public UserClass getUserClassByXmlId(String xmlId) {
       return findFirst(userClass -> xmlId.equals(((UserClass) userClass).getXmlId()));
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public UserClasses clone() {
+      return new UserClasses(this);
+    }
   }
 
   /**
@@ -161,6 +194,15 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
      */
     public TimePeriods() {
       super(new HashMap<Long, TimePeriod>(), TimePeriod::getId);
+    }
+
+    /**
+     * Copy constructor
+     * 
+     * @param other to copy
+     */
+    public TimePeriods(TimePeriods other) {
+      super(other);
     }
 
     /**
@@ -210,22 +252,29 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
       return findFirst(timePeriod -> xmlId.equals(((TimePeriod) timePeriod).getXmlId()));
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public TimePeriods clone() {
+      return new TimePeriods(this);
+    }
   }
 
   /**
    * internal class instance containing all time periods on this demand instance
    */
-  public final TimePeriods timePeriods = new TimePeriods();
+  public final TimePeriods timePeriods;
 
   /**
    * internal class instance containing all user classes on this demand instance
    */
-  public final UserClasses userClasses = new UserClasses();
+  public final UserClasses userClasses;
 
   /**
    * internal class instance containing all traveler types on this demand instance
    */
-  public final TravelerTypes travelerTypes = new TravelerTypes();
+  public final TravelerTypes travelerTypes;
 
   /**
    * Constructor
@@ -234,7 +283,30 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
    */
   public Demands(IdGroupingToken groupId) {
     super(groupId, Demands.class);
+    this.travelerTypes = new TravelerTypes();
+    this.userClasses = new UserClasses();
+    this.timePeriods = new TimePeriods();
     odDemands = new TreeMap<Long, TreeMap<Mode, ODDemandMatrix>>();
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public Demands(Demands other) {
+    super(other);
+    this.travelerTypes = other.travelerTypes.clone();
+    this.userClasses = other.userClasses.clone();
+    this.timePeriods = other.timePeriods.clone();
+    this.odDemands = new TreeMap<Long, TreeMap<Mode, ODDemandMatrix>>();
+    for (TimePeriod timePeriod : timePeriods) {
+      Set<Mode> modes = getRegisteredModesForTimePeriod(timePeriod);
+      for (Mode mode : modes) {
+        ODDemandMatrix odDemandMatrix = get(mode, timePeriod);
+        this.registerODDemand(timePeriod, mode, odDemandMatrix);
+      }
+    }
   }
 
   /**
@@ -280,6 +352,14 @@ public class Demands extends TrafficAssignmentComponent<Demands> implements Seri
     } else {
       return null;
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Demands clone() {
+    return new Demands(this);
   }
 
 }

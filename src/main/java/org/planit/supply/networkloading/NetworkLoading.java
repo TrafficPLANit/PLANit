@@ -25,4 +25,13 @@ public abstract class NetworkLoading extends TrafficAssignmentComponent<NetworkL
     super(groupId, NetworkLoading.class);
   }
 
+  /**
+   * Copy Constructor
+   * 
+   * @param networkLoading to copy
+   */
+  protected NetworkLoading(NetworkLoading networkLoading) {
+    super(networkLoading);
+  }
+
 }

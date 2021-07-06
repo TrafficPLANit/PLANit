@@ -4,12 +4,14 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.assignment.StaticTrafficAssignment;
+import org.planit.assignment.TrafficAssignmentComponent;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.enums.OutputType;
-import org.planit.utils.time.TimePeriod;
+import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Algorithm B implementation based on the work of Dial (2006). Due to a lack of explicit explanation for the implementation of the underlying algorithm, the implementation follows
@@ -41,6 +43,16 @@ public class AlgorithmB extends StaticTrafficAssignment {
     equilibration = new AlgorithmBEquilibration(this, this.getOutputManager());
   }
 
+  /**
+   * Constructor
+   * 
+   * @param groupId group the id generator will be using when genarting the id
+   */
+  public AlgorithmB(AlgorithmB algorithmB) {
+    super(algorithmB);
+    equilibration = algorithmB.equilibration;
+  }
+
   @Override
   public OutputTypeAdapter createOutputTypeAdapter(OutputType outputType) {
     // TODO Auto-generated method stub
@@ -70,6 +82,14 @@ public class AlgorithmB extends StaticTrafficAssignment {
    */
   public AlgorithmBSimulationData getIterationData() {
     return equilibration.getIterationData();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TrafficAssignmentComponent<NetworkLoading> clone() {
+    return new AlgorithmB(this);
   }
 
 }

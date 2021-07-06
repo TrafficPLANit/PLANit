@@ -22,4 +22,21 @@ public class TampereNodeModel extends NodeModel {
     super(groupId);
   }
 
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public TampereNodeModel(final TampereNodeModel other) {
+    super(other);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TampereNodeModel clone() {
+    return new TampereNodeModel(this);
+  }
+
 }

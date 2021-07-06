@@ -6,13 +6,10 @@ import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.zoning.Connectoids;
 import org.planit.utils.zoning.DirectedConnectoid;
-import org.planit.utils.zoning.DirectedConnectoids;
 import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.TransferZone;
-import org.planit.utils.zoning.TransferZoneGroup;
 import org.planit.utils.zoning.TransferZoneGroups;
 import org.planit.utils.zoning.UndirectedConnectoid;
-import org.planit.utils.zoning.UndirectedConnectoids;
 import org.planit.utils.zoning.Zones;
 
 /**
@@ -40,35 +37,6 @@ public interface ZoningBuilder {
   public abstract DirectedConnectoid createDirectedConnectoid(final LinkSegment accessLinkSegment);
 
   /**
-   * Create a new OdZone instance
-   * 
-   * @return created odZone
-   */
-  public abstract OdZone createOdZone();
-
-  /**
-   * Create a new OdZone instance
-   * 
-   * @return created odZone
-   */
-  public abstract TransferZone createTransferZone();
-
-  /**
-   * Create a new transfer zone group
-   * 
-   * @return created transfer zone group
-   */
-  public abstract TransferZoneGroup createTransferZoneGroup();
-
-  /**
-   * Recreate the ids for all passed in connectoids
-   * 
-   * @param undirectedConnectoids to recreate ids for
-   * @param directedConnectoids   to recreate ids for
-   */
-  public abstract void recreateConnectoidIds(UndirectedConnectoids undirectedConnectoids, DirectedConnectoids directedConnectoids);
-
-  /**
    * Recreate the ids for all passed in od zones
    * 
    * @param odZones      to recreate ids for
@@ -85,7 +53,8 @@ public interface ZoningBuilder {
    * @param connectoids        to consider
    * @param resetZoneIds       when true the zone ids of all zone implementations (OdZone, TransferZone) are reset upon commencing), false then not
    */
-  public abstract void recreateTransferZoneIds(Zones<TransferZone> transferZones, TransferZoneGroups transferZoneGroups, Collection<Connectoids<?>> connectoids, boolean resetZoneIds);
+  public abstract void recreateTransferZoneIds(Zones<TransferZone> transferZones, TransferZoneGroups transferZoneGroups, Collection<Connectoids<?>> connectoids,
+      boolean resetZoneIds);
 
   /**
    * Recreate the ids for all passed in transfer zone groups

@@ -1,7 +1,10 @@
 package org.planit.zoning;
 
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.OdZone;
-import org.planit.utils.zoning.Zones;
+import org.planit.utils.zoning.OdZoneFactory;
+import org.planit.utils.zoning.OdZones;
 
 /**
  * implementation of the Zones &lt;T&gt; interface for Od zones
@@ -9,27 +12,68 @@ import org.planit.utils.zoning.Zones;
  * @author markr
  *
  */
-public class OdZonesImpl extends ZonesImpl<OdZone> implements Zones<OdZone> {
+public class OdZonesImpl extends ZonesImpl<OdZone> implements OdZones {
 
-  /** the zoning builder to use */
-  protected final ZoningBuilder zoningBuilder;
+  /** factory to use */
+  private final OdZoneFactory odZoneFactory;
 
   /**
    * Constructor
    * 
-   * @param zoningBuilder to use
+   * @param groupId to use for creating ids for instances
    */
-  public OdZonesImpl(ZoningBuilder zoningBuilder) {
-    super();
-    this.zoningBuilder = zoningBuilder;
+  public OdZonesImpl(final IdGroupingToken groupId) {
+    super(groupId);
+    this.odZoneFactory = new OdZoneFactoryImpl(groupId, this);
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param groupId       to use for creating ids for instances
+   * @param odZoneFactory the factory to use
+   */
+  public OdZonesImpl(final IdGroupingToken groupId, OdZoneFactory odZoneFactory) {
+    super(groupId);
+    this.odZoneFactory = odZoneFactory;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public OdZonesImpl(OdZonesImpl other) {
+    super(other);
+    this.odZoneFactory = other.odZoneFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public OdZone createNew() {
-    return zoningBuilder.createOdZone();
+  public OdZoneFactory getFactory() {
+    return odZoneFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(boolean reset) {
+    if (reset == true) {
+      IdGenerator.reset(getFactory().getIdGroupingToken(), OdZone.OD_ZONE_ID_CLASS);
+    }
+
+    super.recreateIds(reset);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdZonesImpl clone() {
+    return new OdZonesImpl(this);
   }
 
 }

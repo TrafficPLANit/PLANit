@@ -10,12 +10,12 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.time.TimePeriod;
 
 /**
- * Interface defining the methods required for a link output adapter
+ * Interface defining the methods required for a macroscopic link (segment) output adapter
  * 
  * @author gman6028, markr
  *
  */
-public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegment> extends LinkOutputTypeAdapter<LS> {
+public interface MacroscopicLinkOutputTypeAdapter extends UntypedLinkOutputTypeAdapter<MacroscopicLinkSegment> {
 
   /**
    * Returns the value of the capacity per lane
@@ -24,7 +24,7 @@ public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegm
    * @return the capacity per lane across this link segment
    * @throws PlanItException thrown if there is an error
    */
-  public default Optional<Double> getCapacityPerLane(LS linkSegment) throws PlanItException {
+  public default Optional<Double> getCapacityPerLane(MacroscopicLinkSegment linkSegment) throws PlanItException {
     return Optional.of(linkSegment.getLinkSegmentType().getCapacityPerLane());
   }
 
@@ -35,7 +35,7 @@ public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegm
    * @return the link segment type name
    * @throws PlanItException thrown if there is an error
    */
-  public default Optional<String> getLinkSegmentTypeName(LS linkSegment) throws PlanItException {
+  public default Optional<String> getLinkSegmentTypeName(MacroscopicLinkSegment linkSegment) throws PlanItException {
     return Optional.of(linkSegment.getLinkSegmentType().getName());
   }
 
@@ -46,7 +46,7 @@ public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegm
    * @return the link segment type id
    * @throws PlanItException thrown if there is an error
    */
-  public default Optional<Long> getLinkSegmentTypeId(LS linkSegment) throws PlanItException {
+  public default Optional<Long> getLinkSegmentTypeId(MacroscopicLinkSegment linkSegment) throws PlanItException {
     return Optional.of(linkSegment.getLinkSegmentType().getId());
   }
 
@@ -57,7 +57,7 @@ public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegm
    * @return the link segment type xml id
    * @throws PlanItException thrown if there is an error
    */
-  public default Optional<String> getLinkSegmentTypeXmlId(LS linkSegment) throws PlanItException {
+  public default Optional<String> getLinkSegmentTypeXmlId(MacroscopicLinkSegment linkSegment) throws PlanItException {
     return Optional.of(linkSegment.getLinkSegmentType().getXmlId());
   }
 
@@ -68,7 +68,7 @@ public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegm
    * @return the flow density of the current link
    * @throws PlanItException thrown if there is an error
    */
-  public default Optional<Double> getMaximumDensity(LS linkSegment) throws PlanItException {
+  public default Optional<Double> getMaximumDensity(MacroscopicLinkSegment linkSegment) throws PlanItException {
     return Optional.of(linkSegment.getLinkSegmentType().getMaximumDensityPerLane());
   }
 
@@ -79,7 +79,7 @@ public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegm
    * @return he external Id of the downstream node
    * @throws PlanItException thrown if there is an error
    */
-  public default Optional<String> getDownstreamNodeExternalId(LS linkSegment) throws PlanItException {
+  public default Optional<String> getDownstreamNodeExternalId(MacroscopicLinkSegment linkSegment) throws PlanItException {
     return Optional.of(((Vertex) linkSegment.getDownstreamVertex()).getExternalId());
   }
 
@@ -91,7 +91,7 @@ public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegm
    * @return the maximum speed through the current link segment
    * @throws PlanItException thrown if there is an error
    */
-  public default Optional<Double> getMaximumSpeed(LS linkSegment, Mode mode) throws PlanItException {
+  public default Optional<Double> getMaximumSpeed(MacroscopicLinkSegment linkSegment, Mode mode) throws PlanItException {
     return Optional.of(linkSegment.getModelledSpeedLimitKmH(mode));
   }
 
@@ -110,7 +110,7 @@ public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegm
    * @param mode        specified mode
    * @return true is there is flow through this link segment, false if the flow is zero
    */
-  public abstract Optional<Boolean> isFlowPositive(LS linkSegment, Mode mode);
+  public abstract Optional<Boolean> isFlowPositive(MacroscopicLinkSegment linkSegment, Mode mode);
 
   /**
    * Return the value of a specified output property of a link segment
@@ -122,5 +122,6 @@ public interface MacroscopicLinkOutputTypeAdapter<LS extends MacroscopicLinkSegm
    * @param timeUnitMultiplier the multiplier for time units
    * @return the value of the specified output property (or an Exception if an error occurs)
    */
-  public abstract Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, LS linkSegment, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier);
+  public abstract Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode, TimePeriod timePeriod,
+      double timeUnitMultiplier);
 }

@@ -26,6 +26,16 @@ public abstract class DynamicTrafficAssignment extends CapacityConstrainedAssign
     super(groupId);
   }
 
+  /**
+   * Copy Constructor
+   * 
+   * @param dynamicTrafficAssignment to copy
+   */
+  public DynamicTrafficAssignment(DynamicTrafficAssignment dynamicTrafficAssignment) {
+    super(dynamicTrafficAssignment);
+    this.pathChoice = dynamicTrafficAssignment.pathChoice;
+  }
+
   // getters - setters
 
   /**

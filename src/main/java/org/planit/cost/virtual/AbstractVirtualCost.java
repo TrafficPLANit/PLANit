@@ -26,6 +26,15 @@ public abstract class AbstractVirtualCost extends TrafficAssignmentComponent<Abs
   }
 
   /**
+   * Copy Constructor
+   *
+   * @param other to copy
+   */
+  public AbstractVirtualCost(AbstractVirtualCost other) {
+    super(other);
+  }
+
+  /**
    * Initialize the virtual cost component
    *
    * @param virtualNetwork the virtual network

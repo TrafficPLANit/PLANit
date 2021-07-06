@@ -1,11 +1,10 @@
 package org.planit.zoning;
 
-import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.network.layer.physical.Node;
-import org.planit.utils.zoning.Connectoid;
+import org.planit.utils.id.IdGenerator;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.UndirectedConnectoid;
+import org.planit.utils.zoning.UndirectedConnectoidFactory;
 import org.planit.utils.zoning.UndirectedConnectoids;
-import org.planit.utils.zoning.Zone;
 
 /**
  * Implementation of Connectoids class
@@ -14,55 +13,66 @@ import org.planit.utils.zoning.Zone;
  *
  */
 public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnectoid> implements UndirectedConnectoids {
-  
-  /** the zoning builder to use */
-  protected final ZoningBuilder zoningBuilder;
+
+  /** factory to use */
+  private final UndirectedConnectoidFactory undirectedConnectoidFactory;
 
   /**
    * Constructor
    * 
-   * @param zoningBuilder to use
+   * @param groupId to use for creating ids for instances
    */
-  public UndirectedConnectoidsImpl(ZoningBuilder zoningBuilder) {
-    super();
-    this.zoningBuilder = zoningBuilder;
+  public UndirectedConnectoidsImpl(final IdGroupingToken groupId) {
+    super(groupId);
+    this.undirectedConnectoidFactory = new UndirectedConnectoidFactoryImpl(groupId, this);
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param groupId                     to use for creating ids for instances
+   * @param undirectedConnectoidFactory the factory to use
+   */
+  public UndirectedConnectoidsImpl(final IdGroupingToken groupId, UndirectedConnectoidFactory undirectedConnectoidFactory) {
+    super(groupId);
+    this.undirectedConnectoidFactory = undirectedConnectoidFactory;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public UndirectedConnectoidsImpl(UndirectedConnectoidsImpl other) {
+    super(other);
+    this.undirectedConnectoidFactory = other.undirectedConnectoidFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoid register(UndirectedConnectoid connectoid) {
-    return register(connectoid.getId(), connectoid);
+  public UndirectedConnectoidFactory getFactory() {
+    return undirectedConnectoidFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoid registerNew(Node accessNode, Zone parentZone, double length) throws PlanItException {
-    UndirectedConnectoid newConnectoid = registerNew(accessNode);
-    newConnectoid.addAccessZone(parentZone);
-    newConnectoid.setLength(parentZone, length);
-    return newConnectoid;
+  public void recreateIds(boolean reset) {
+    if (reset == true) {
+      IdGenerator.reset(getFactory().getIdGroupingToken(), UndirectedConnectoid.UNDIRECTED_CONNECTOID_ID_CLASS);
+    }
+
+    super.recreateIds(reset);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoid registerNew(Node accessNode, Zone parentZone) throws PlanItException {
-    return registerNew(accessNode, parentZone, Connectoid.DEFAULT_LENGTH_KM);
+  public UndirectedConnectoidsImpl clone() {
+    return new UndirectedConnectoidsImpl(this);
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public UndirectedConnectoid registerNew(Node accessNode) throws PlanItException {
-    UndirectedConnectoid newConnectoid = zoningBuilder.createUndirectedConnectoid(accessNode);
-    register(newConnectoid);
-    return newConnectoid;
-  }
-
 }

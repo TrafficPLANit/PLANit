@@ -13,7 +13,7 @@ public abstract class LogitChoiceModel extends TrafficAssignmentComponent<LogitC
 
   /** generated UID */
   private static final long serialVersionUID = -4578323513280128464L;
-  
+
   /**
    * short hand for MNL class type
    */
@@ -27,5 +27,20 @@ public abstract class LogitChoiceModel extends TrafficAssignmentComponent<LogitC
   protected LogitChoiceModel(IdGroupingToken groupId) {
     super(groupId, LogitChoiceModel.class);
   }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  protected LogitChoiceModel(LogitChoiceModel other) {
+    super(other);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract LogitChoiceModel clone();
 
 }

@@ -21,10 +21,20 @@ public class MSASmoothing extends Smoothing {
   /**
    * Constructor
    * 
-   * @param groupId contiguous id generation within this group for instances of this class
+   * @param @param other to copy
    */
   public MSASmoothing(IdGroupingToken groupId) {
     super(groupId);
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
+   */
+  public MSASmoothing(MSASmoothing other) {
+    super(other);
+    this.stepSize = other.stepSize;
   }
 
   /**
@@ -38,7 +48,7 @@ public class MSASmoothing extends Smoothing {
   }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public double applySmoothing(final double previousValue, final double proposedValue) {
@@ -46,7 +56,7 @@ public class MSASmoothing extends Smoothing {
   }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public double[] applySmoothing(final double[] previousValues, final double[] proposedValues, final int numberOfValues) {
@@ -55,6 +65,14 @@ public class MSASmoothing extends Smoothing {
       smoothedValues[i] = (1 - stepSize) * previousValues[i] + stepSize * proposedValues[i];
     }
     return smoothedValues;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MSASmoothing clone() {
+    return new MSASmoothing(this);
   }
 
 }

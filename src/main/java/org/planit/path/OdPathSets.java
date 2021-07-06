@@ -8,8 +8,8 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.zoning.Zoning;
 
 /**
- * Contains one or more origin-destination based path sets that can be used in assignment. For now each individual path set takes on the form of the already available
- * ODPathMatrix. In future versions more flexible implementation are planned
+ * Contains one or more origin-destination based path sets that can be used in assignment. For now each individual path set takes on the form of the already available ODPathMatrix.
+ * In future versions more flexible implementation are planned
  *
  * @author markr
  *
@@ -22,23 +22,37 @@ public class OdPathSets extends TrafficAssignmentComponent<OdPathSets> {
   /**
    * map holding all registered od path matrices by their unique id
    */
-  protected final TreeMap<Long, ODPathMatrix> odPathMatrices = new TreeMap<Long, ODPathMatrix>();
+  protected final TreeMap<Long, ODPathMatrix> odPathMatrices;
 
   /**
    * Constructor
    * 
-   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param groupId contiguous id generation within this group for instances of this class
    */
   public OdPathSets(IdGroupingToken groupId) {
     super(groupId, OdPathSets.class);
+    this.odPathMatrices = new TreeMap<Long, ODPathMatrix>();
+    ;
   }
-  
-  /** Collect the number of registered od path sets
+
+  /**
+   * Constructor
+   * 
+   * @param other to copy
+   */
+  public OdPathSets(OdPathSets other) {
+    super(other);
+    this.odPathMatrices = new TreeMap<Long, ODPathMatrix>(other.odPathMatrices);
+  }
+
+  /**
+   * Collect the number of registered od path sets
+   * 
    * @return number of od path sets
    */
   public int getNumberOfOdPathSets() {
     return odPathMatrices.size();
-  }  
+  }
 
   /**
    * Create an empty od path matrix and register it on this od path sets
@@ -77,5 +91,13 @@ public class OdPathSets extends TrafficAssignmentComponent<OdPathSets> {
    */
   public ODPathMatrix getFirstOdPathMatrix() {
     return hasRegisteredOdMatrices() ? odPathMatrices.firstEntry().getValue() : null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdPathSets clone() {
+    return new OdPathSets(this);
   }
 }

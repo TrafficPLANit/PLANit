@@ -38,6 +38,17 @@ public abstract class CapacityConstrainedAssignment extends TrafficAssignment {
     super(groupId);
   }
 
+  /**
+   * Copy Constructor
+   * 
+   * @param capacityConstrainedAssignment to copy
+   */
+  public CapacityConstrainedAssignment(CapacityConstrainedAssignment capacityConstrainedAssignment) {
+    super(capacityConstrainedAssignment);
+    this.fundamentalDiagram = capacityConstrainedAssignment.fundamentalDiagram;
+    this.nodeModel = capacityConstrainedAssignment.nodeModel;
+  }
+
   // Getters - Setters
 
   /**

@@ -32,12 +32,22 @@ public class DirectedPathImpl extends ExternalIdAbleImpl implements DirectedPath
   private final Deque<EdgeSegment> path;
 
   /**
+   * Generate an id for this instance
+   * 
+   * @param groupId to use
+   * @return created id
+   */
+  protected static long generateId(final IdGroupingToken groupId) {
+    return IdGenerator.generateId(groupId, DirectedPath.PATH_ID_CLASS);
+  }
+
+  /**
    * Constructor
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
   protected DirectedPathImpl(final IdGroupingToken groupId) {
-    super(IdGenerator.generateId(groupId, DirectedPath.class));
+    super(generateId(groupId));
     path = new LinkedList<EdgeSegment>();
   }
 
@@ -47,9 +57,10 @@ public class DirectedPathImpl extends ExternalIdAbleImpl implements DirectedPath
    * @param groupId          contiguous id generation within this group for instances of this class
    * @param pathEdgeSegments the path to set (not copied)
    */
-  protected DirectedPathImpl(final IdGroupingToken groupId, final Deque<EdgeSegment> pathEdgeSegments) {
-    super(IdGenerator.generateId(groupId, DirectedPath.class));
-    path = pathEdgeSegments;
+  @SuppressWarnings("unchecked")
+  protected DirectedPathImpl(final IdGroupingToken groupId, final Deque<? extends EdgeSegment> pathEdgeSegments) {
+    super(generateId(groupId));
+    path = (Deque<EdgeSegment>) pathEdgeSegments;
   }
 
   /**
@@ -66,6 +77,16 @@ public class DirectedPathImpl extends ExternalIdAbleImpl implements DirectedPath
   @Override
   public Iterator<EdgeSegment> iterator() {
     return path.iterator();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    long newId = generateId(tokenId);
+    setId(newId);
+    return newId;
   }
 
 }

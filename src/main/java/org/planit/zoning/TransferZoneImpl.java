@@ -39,7 +39,7 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
    * @return odZoneId
    */
   protected static long generateTransferZoneId(final IdGroupingToken tokenId) {
-    return IdGenerator.generateId(tokenId, TransferZone.class);
+    return IdGenerator.generateId(tokenId, TransferZone.TRANSFER_ZONE_ID_CLASS);
   }
 
   /**
@@ -59,6 +59,20 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
   public TransferZoneImpl(IdGroupingToken tokenId) {
     super(tokenId);
     setTransferZoneId(generateTransferZoneId(tokenId));
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param transferZoneImpl to copy
+   */
+  public TransferZoneImpl(TransferZoneImpl transferZoneImpl) {
+    super(transferZoneImpl);
+    this.transferZoneId = transferZoneImpl.transferZoneId;
+    this.type = transferZoneImpl.type;
+    if (transferZoneImpl.hasTransferZoneGroup()) {
+      this.transferZoneGroups = new HashSet<TransferZoneGroup>(transferZoneImpl.getTransferZoneGroups());
+    }
   }
 
   /**
@@ -166,6 +180,23 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
       return Collections.unmodifiableSet(transferZoneGroups);
     }
     return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    setTransferZoneId(generateTransferZoneId(tokenId));
+    return super.recreateManagedIds(tokenId);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZoneImpl clone() {
+    return new TransferZoneImpl(this);
   }
 
 }

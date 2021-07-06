@@ -46,6 +46,16 @@ public abstract class TransportLayersImpl<T extends TransportLayer> extends Long
   }
 
   /**
+   * Constructor
+   * 
+   * @param other to copy
+   */
+  public TransportLayersImpl(TransportLayersImpl<T> other) {
+    super(other);
+    this.idToken = other.idToken;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -68,5 +78,11 @@ public abstract class TransportLayersImpl<T extends TransportLayer> extends Long
 
     return null;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TransportLayersImpl<T> clone();
 
 }

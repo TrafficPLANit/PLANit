@@ -1,11 +1,9 @@
 package org.planit.zoning;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
-
+import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.zoning.TransferZoneGroup;
+import org.planit.utils.zoning.TransferZoneGroupFactory;
 import org.planit.utils.zoning.TransferZoneGroups;
 
 /**
@@ -15,99 +13,56 @@ import org.planit.utils.zoning.TransferZoneGroups;
  * @author markr
  *
  */
-public class TransferZoneGroupsImpl implements TransferZoneGroups {
+public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGroup> implements TransferZoneGroups {
+
+  /** factory to use */
+  private final TransferZoneGroupFactory transferZoneGroupFactory;
 
   /**
-   * Map storing all the transfer zone groups
+   * Constructor
+   * 
+   * @param groupId to use for creating ids for instances
    */
-  protected Map<Long, TransferZoneGroup> transferZoneGroupsMap = new TreeMap<Long, TransferZoneGroup>();
-
-  /** zoning builder to use */
-  protected final ZoningBuilder zoningBuilder;
-
-  /**
-   * recreate the mapping such that all the keys used for each transfer zone group reflect their internal id. To be called whenever the ids of transfer zone groups are changed
-   */
-  protected void updateIdMapping() {
-    Map<Long, TransferZoneGroup> updatedMap = new HashMap<Long, TransferZoneGroup>(transferZoneGroupsMap.size());
-    transferZoneGroupsMap.forEach((oldId, group) -> updatedMap.put(group.getId(), group));
-    transferZoneGroupsMap.clear();
-    transferZoneGroupsMap = updatedMap;
+  public TransferZoneGroupsImpl(final IdGroupingToken groupId) {
+    super(TransferZoneGroup::getId);
+    this.transferZoneGroupFactory = new TransferZoneGroupFactoryImpl(groupId, this);
   }
 
   /**
    * Constructor
    * 
-   * @param zoningBuilder to use
+   * @param groupId                  to use for creating ids for instances
+   * @param transferZoneGroupFactory the factory to use
    */
-  public TransferZoneGroupsImpl(ZoningBuilder zoningBuilder) {
-    this.zoningBuilder = zoningBuilder;
+  public TransferZoneGroupsImpl(final IdGroupingToken groupId, TransferZoneGroupFactory transferZoneGroupFactory) {
+    super(TransferZoneGroup::getId);
+    this.transferZoneGroupFactory = transferZoneGroupFactory;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public TransferZoneGroupsImpl(TransferZoneGroupsImpl other) {
+    super(other);
+    this.transferZoneGroupFactory = other.transferZoneGroupFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Iterator<TransferZoneGroup> iterator() {
-    return transferZoneGroupsMap.values().iterator();
+  public TransferZoneGroupFactory getFactory() {
+    return transferZoneGroupFactory;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public TransferZoneGroup register(TransferZoneGroup transferZoneGroup) {
-    return transferZoneGroupsMap.put(transferZoneGroup.getId(), transferZoneGroup);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public TransferZoneGroup registerNew() {
-    TransferZoneGroup transferZoneGroup = createNew();
-    register(transferZoneGroup);
-    return transferZoneGroup;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public TransferZoneGroup createNew() {
-    return zoningBuilder.createTransferZoneGroup();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public TransferZoneGroup remove(TransferZoneGroup transferZone) {
-    return transferZoneGroupsMap.remove(transferZone.getId());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean hasTransferZoneGroup(TransferZoneGroup transferZoneGroup) {
-    return transferZoneGroupsMap.containsKey(transferZoneGroup.getId());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public TransferZoneGroup get(long transferZoneGroupId) {
-    return transferZoneGroupsMap.get(transferZoneGroupId);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int size() {
-    return transferZoneGroupsMap.size();
+  public TransferZoneGroupsImpl clone() {
+    return new TransferZoneGroupsImpl(this);
   }
 
 }

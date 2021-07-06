@@ -15,7 +15,7 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkVolumeAccessee;
-import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayerImpl;
+import org.planit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.planit.network.macroscopic.MacroscopicNetwork;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
@@ -26,8 +26,6 @@ import org.planit.output.configuration.ODOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
-import org.planit.path.DirectedPathBuilder;
-import org.planit.path.DirectedPathBuilderImpl;
 import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
@@ -71,8 +69,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   /**
    * the layer used for this assignment
    */
-  private MacroscopicPhysicalLayerImpl networkLayer;
-  
+  private MacroscopicNetworkLayerImpl networkLayer;
+
   /** to generate paths we use a path builder that is configured to generate appropriate ids */
   private DirectedPathBuilder<DirectedPath> localPathBuilder;
 
@@ -99,13 +97,13 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     PlanItException.throwIf(macroscopicNetwork.transportLayers.size() != 1,
         "Traditional static assignment  is currently only compatible with networks using a single infrastructure layer");
     TransportLayer infrastructureLayer = macroscopicNetwork.transportLayers.getFirst();
-    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicPhysicalLayerImpl),
+    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicNetworkLayerImpl),
         "Traditional static assignment is only compatible with macroscopic physical network layers");
     if (transportNetwork.getInfrastructureNetwork().modes.size() != infrastructureLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by the single available layer, consider removing unused modes");
     }
     /* register the layer */
-    this.networkLayer = (MacroscopicPhysicalLayerImpl) infrastructureLayer;
+    this.networkLayer = (MacroscopicNetworkLayerImpl) infrastructureLayer;
   }
 
   /**
@@ -126,10 +124,12 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       final double[] modalLinkSegmentCosts = initialiseLinkSegmentCosts(mode, timePeriod);
       simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
     }
-    
-    /* paths ought to have unique ids (at least their XML ids) within the context of the network layer where they are used, 
-     * so we must use the network layer id grouping token to ensure this when creating paths based on the shortest path algorithm used */
-    if(this.localPathBuilder ==null ) {
+
+    /*
+     * paths ought to have unique ids (at least their XML ids) within the context of the network layer where they are used, so we must use the network layer id grouping token to
+     * ensure this when creating paths based on the shortest path algorithm used
+     */
+    if (this.localPathBuilder == null) {
       this.localPathBuilder = new DirectedPathBuilderImpl(networkLayer.getNetworkIdGroupingToken());
     }
   }
@@ -200,8 +200,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
           if ((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) {
             double odShortestPathCost = shortestPathResult.getCostToReach(currentDestinationZone.getCentroid());
             if (odShortestPathCost == Double.POSITIVE_INFINITY || odShortestPathCost == Double.MAX_VALUE) {
-              LOGGER.warning(String.format("%s impossible path from origin zone %s (id:%d) to destination zone %s (id:%d) for mode %s (id:%d)",
-                  createLoggingPrefix(),currentOriginZone.getXmlId(), currentOriginZone.getId(), currentDestinationZone.getXmlId(), currentDestinationZone.getId(), mode.getXmlId(), mode.getId()));
+              LOGGER.warning(String.format("%s impossible path from origin zone %s (id:%d) to destination zone %s (id:%d) for mode %s (id:%d)", createLoggingPrefix(),
+                  currentOriginZone.getXmlId(), currentOriginZone.getId(), currentDestinationZone.getXmlId(), currentDestinationZone.getId(), mode.getXmlId(), mode.getId()));
             } else {
               updateNetworkFlowsForPath(shortestPathResult, currentOriginZone, currentDestinationZone, odDemand, currentModeData);
               dualityGapFunction.increaseConvexityBound(odDemand * odShortestPathCost);
@@ -267,7 +267,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @return the path cost for the calculated minimum cost path
    * @throws PlanItException thrown if there is an error
    */
-  private void updateNetworkFlowsForPath(final ShortestPathResult shortestPathResult, final Zone origin, final Zone destination, final double odDemand, final ModeData currentModeData) throws PlanItException {
+  private void updateNetworkFlowsForPath(final ShortestPathResult shortestPathResult, final Zone origin, final Zone destination, final double odDemand,
+      final ModeData currentModeData) throws PlanItException {
 
     // prep
     EdgeSegment currentEdgeSegment = null;
@@ -316,21 +317,20 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   /**
    * Update the OD path matrix
    *
-   * @param mode                   the path is to be stored for (logging purposes only) 
-   * @param odpathMatrix           OD path matrix to add to
-   * @param origin                 origin zone
-   * @param destination            destination zone
-   * @param shortestPathResult     shortest path tree for given origin
+   * @param mode               the path is to be stored for (logging purposes only)
+   * @param odpathMatrix       OD path matrix to add to
+   * @param origin             origin zone
+   * @param destination        destination zone
+   * @param shortestPathResult shortest path tree for given origin
    */
   private void updatePathOutputData(Mode mode, ODPathMatrix odpathMatrix, Zone origin, Zone destination, ShortestPathResult shortestPathResult) {
 
     // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
     if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
       final DirectedPath path = shortestPathResult.createPath(localPathBuilder, origin.getCentroid(), destination.getCentroid());
-      if(path== null) {
-        LOGGER.fine(
-            String.format("Unable to create path from origin %s (id:%d) to destination %s (id:%d) for mode %s (id:%d)", origin.getXmlId(), origin.getId(), destination.getXmlId(),
-            destination.getId(), mode.getXmlId(), mode.getId()));
+      if (path == null) {
+        LOGGER.fine(String.format("Unable to create path from origin %s (id:%d) to destination %s (id:%d) for mode %s (id:%d)", origin.getXmlId(), origin.getId(),
+            destination.getXmlId(), destination.getId(), mode.getXmlId(), mode.getId()));
       }
       odpathMatrix.setValue(origin, destination, path);
     }
@@ -563,6 +563,18 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   }
 
   /**
+   * Copy Constructor
+   * 
+   * @param traditionalStaticAssignment to copy
+   */
+  public TraditionalStaticAssignment(TraditionalStaticAssignment traditionalStaticAssignment) {
+    super(traditionalStaticAssignment);
+    this.simulationData = traditionalStaticAssignment.simulationData;
+    this.localPathBuilder = traditionalStaticAssignment.localPathBuilder;
+    this.networkLayer = traditionalStaticAssignment.networkLayer;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -593,6 +605,14 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    */
   public TraditionalStaticAssignmentSimulationData getIterationData() {
     return simulationData;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TraditionalStaticAssignment clone() {
+    return new TraditionalStaticAssignment(this);
   }
 
 }

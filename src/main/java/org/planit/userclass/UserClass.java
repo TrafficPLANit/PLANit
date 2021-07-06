@@ -1,6 +1,6 @@
 package org.planit.userclass;
 
-import org.planit.utils.id.ExternalIdAble;
+import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
@@ -12,7 +12,7 @@ import org.planit.utils.mode.Mode;
  * @author markr
  *
  */
-public class UserClass implements ExternalIdAble {
+public class UserClass extends ExternalIdAbleImpl {
 
   /**
    * default name
@@ -20,24 +20,9 @@ public class UserClass implements ExternalIdAble {
   public static final String DEFAULT_NAME = "Default";
 
   /**
-   * Default external id
+   * Default XML id
    */
   public static final String DEFAULT_XML_ID = "1";
-
-  /**
-   * id of this user class
-   */
-  private final long id;
-
-  /**
-   * External Id of this user class
-   */
-  private String externalId;
-
-  /**
-   * xml Id
-   */
-  private String xmlId;
 
   /**
    * Name of this user class
@@ -63,10 +48,22 @@ public class UserClass implements ExternalIdAble {
    * @param travelerType the travelerType
    */
   public UserClass(final IdGroupingToken groupId, final String name, final Mode mode, final TravelerType travelerType) {
-    this.id = IdGenerator.generateId(groupId, UserClass.class);
+    super(IdGenerator.generateId(groupId, UserClass.class));
     this.name = name;
     this.travellerType = travelerType;
     this.mode = mode;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public UserClass(final UserClass other) {
+    super(other);
+    this.name = other.name;
+    this.travellerType = other.travellerType;
+    this.mode = other.mode;
   }
 
   /**
@@ -76,16 +73,6 @@ public class UserClass implements ExternalIdAble {
    */
   public TravelerType getTravelerType() {
     return travellerType;
-  }
-
-  /**
-   * Get the id of this user class
-   *
-   * @return id of this user class
-   */
-  @Override
-  public long getId() {
-    return id;
   }
 
   /**
@@ -110,32 +97,8 @@ public class UserClass implements ExternalIdAble {
    * {@inheritDoc}
    */
   @Override
-  public String getExternalId() {
-    return externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setExternalId(String externalId) {
-    this.externalId = externalId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String getXmlId() {
-    return this.xmlId;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setXmlId(String xmlId) {
-    this.xmlId = xmlId;
+  public UserClass clone() {
+    return new UserClass(this);
   }
 
 }

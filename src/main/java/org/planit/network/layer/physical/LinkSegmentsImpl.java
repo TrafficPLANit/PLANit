@@ -1,6 +1,7 @@
 package org.planit.network.layer.physical;
 
 import org.planit.graph.GraphEntitiesImpl;
+import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.layer.physical.LinkSegmentFactory;
@@ -55,6 +56,18 @@ public class LinkSegmentsImpl extends GraphEntitiesImpl<LinkSegment> implements 
   @Override
   public LinkSegmentFactory getFactory() {
     return linkSegmentFactory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void recreateIds(boolean reset) {
+    if (reset == true) {
+      IdGenerator.reset(getFactory().getIdGroupingToken(), LinkSegment.LINK_SEGMENT_ID_CLASS);
+    }
+
+    super.recreateIds(reset);
   }
 
   /**

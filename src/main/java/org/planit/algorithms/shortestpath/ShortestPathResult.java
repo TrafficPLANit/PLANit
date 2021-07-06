@@ -4,11 +4,8 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.logging.Logger;
 
-import org.planit.path.DirectedPathBuilder;
-import org.planit.path.DirectedPathImpl;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.path.DirectedPath;
 
 /**
@@ -46,8 +43,7 @@ public class ShortestPathResult {
   }
 
   /**
-   * Create the path from the provided origin to a specified destination vertex, using the results available. The path builder
-   * is used to create the instance of the path.
+   * Create the path from the provided origin to a specified destination vertex, using the results available. The path builder is used to create the instance of the path.
    * 
    * @param pathBuilder to use for creating path instances
    * @param origin      the specified origin vertex

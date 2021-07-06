@@ -21,4 +21,19 @@ public abstract class TopologicalLayersImpl<T extends TopologicalLayer> extends 
     super(groupingId);
   }
 
+  /**
+   * Constructor
+   * 
+   * @param other to copy
+   */
+  public TopologicalLayersImpl(TopologicalLayersImpl<T> other) {
+    super(other);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TopologicalLayersImpl<T> clone();
+
 }

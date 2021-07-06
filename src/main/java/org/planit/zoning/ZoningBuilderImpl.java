@@ -4,10 +4,8 @@ import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 
-import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.zoning.Centroid;
 import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.Connectoids;
@@ -122,21 +120,23 @@ public class ZoningBuilderImpl implements ZoningBuilder {
   protected Centroid createCentroid(Zone parentZone) {
     return new CentroidImpl(idToken, parentZone);
   }
-  
-  /** Recreate the zone id based index on connectoids provided whenever zone ids are recreated
+
+  /**
+   * Recreate the zone id based index on connectoids provided whenever zone ids are recreated
+   * 
    * @param connectoids to update
    */
   protected void recreateZoneIdReferencesInConnectoids(Collection<Connectoids<?>> connectoids) {
     /* update all connectoids access zones id mappings since the transfer zone index is used for this */
-    for (Connectoids<?> connectoidsEntry : connectoids) {        
-      for(Connectoid connectoid : connectoidsEntry) {
-        if(!(connectoid instanceof ConnectoidImpl)) {
-          LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of connectoids interface when attempting to update access zone references");  
+    for (Connectoids<?> connectoidsEntry : connectoids) {
+      for (Connectoid connectoid : connectoidsEntry) {
+        if (!(connectoid instanceof ConnectoidImpl)) {
+          LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of connectoids interface when attempting to update access zone references");
         }
-        ((ConnectoidImpl)connectoid).recreateAccessZoneIdMapping();
+        ((ConnectoidImpl) connectoid).recreateAccessZoneIdMapping();
       }
-    } 
-  }  
+    }
+  }
 
   /**
    * recreate the ids on the provided connectoids regarding their internal ids across all connectoids
@@ -229,74 +229,6 @@ public class ZoningBuilderImpl implements ZoningBuilder {
    * {@inheritDoc}
    */
   @Override
-  public UndirectedConnectoid createUndirectedConnectoid(final DirectedVertex accessVertex) {
-    return new UndirectedConnectoidImpl(idToken, accessVertex);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedConnectoid createDirectedConnectoid(final LinkSegment accessLinkSegment) {
-    return new DirectedConnectoidImpl(idToken, accessLinkSegment);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public OdZone createOdZone() {
-    OdZoneImpl OdZone = new OdZoneImpl(idToken);
-    OdZone.setCentroid(createCentroid(OdZone));
-    return OdZone;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public TransferZone createTransferZone() {
-    TransferZoneImpl transferZone = new TransferZoneImpl(idToken);
-    transferZone.setCentroid(createCentroid(transferZone));
-    return transferZone;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public TransferZoneGroup createTransferZoneGroup() {
-    return new TransferZoneGroupImpl(idToken);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void recreateConnectoidIds(UndirectedConnectoids undirectedConnectoids, DirectedConnectoids directedConnectoids) {
-
-    if (!undirectedConnectoids.isEmpty() || !directedConnectoids.isEmpty()) {
-      /* first reset the connectoid class ids using the base class signature and token */
-      IdGenerator.reset(idToken, Connectoid.class);
-      recreateConnectoidIds(undirectedConnectoids);
-      recreateConnectoidIds(directedConnectoids);
-
-      /* now do the same for the unique ids within the type */
-      if (!undirectedConnectoids.isEmpty()) {
-        IdGenerator.reset(idToken, UndirectedConnectoid.class);
-        recreateUndirectedConnectoidIds(undirectedConnectoids);
-      }
-      if (!directedConnectoids.isEmpty()) {
-        IdGenerator.reset(idToken, DirectedConnectoid.class);
-        recreateDirectedConnectoidIds(directedConnectoids);
-      }
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void recreateOdZoneIds(Zones<OdZone> odZones, Collection<Connectoids<?>> connectoids, boolean resetZoneIds) {
     if (resetZoneIds) {
       IdGenerator.reset(idToken, Zone.class);
@@ -309,7 +241,7 @@ public class ZoningBuilderImpl implements ZoningBuilder {
       IdGenerator.reset(idToken, OdZone.class);
       recreateOdZoneIds(odZones);
     }
-    
+
     /* recreate id based mapping for access zones of connecoids */
     recreateZoneIdReferencesInConnectoids(connectoids);
   }
@@ -337,7 +269,7 @@ public class ZoningBuilderImpl implements ZoningBuilder {
         }
         ((TransferZoneGroupImpl) group).recreateTransferZoneIdMapping();
       }
-      
+
       /* recreate id based mapping for access zones of connecoids */
       recreateZoneIdReferencesInConnectoids(connectoids);
     }

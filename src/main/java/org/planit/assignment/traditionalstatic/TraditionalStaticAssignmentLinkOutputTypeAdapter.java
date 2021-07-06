@@ -3,7 +3,7 @@ package org.planit.assignment.traditionalstatic;
 import java.util.Optional;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.output.adapter.LinkOutputTypeAdapter;
+import org.planit.output.adapter.PhysicalLinkOutputTypeAdapter;
 import org.planit.output.adapter.MacroscopicLinkOutputTypeAdapterImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
@@ -19,7 +19,7 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
  * @author markr
  *
  */
-public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAdapterImpl<MacroscopicLinkSegment> implements LinkOutputTypeAdapter<MacroscopicLinkSegment> {
+public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAdapterImpl<MacroscopicLinkSegment> implements PhysicalLinkOutputTypeAdapter<MacroscopicLinkSegment> {
 
   /**
    * track parent assignment as its actual class

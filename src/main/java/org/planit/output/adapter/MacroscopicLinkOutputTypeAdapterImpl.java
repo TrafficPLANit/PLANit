@@ -4,24 +4,24 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.network.layer.macroscopic.MacroscopicPhysicalLayerImpl;
+import org.planit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.TransportLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.planit.utils.network.layer.physical.LinkSegments;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.planit.utils.time.TimePeriod;
 
 /**
- * Top-level abstract class which defines the common methods required by Link output type adapters
+ * Top-level abstract class which defines the common methods required by macroscopic link output type adapters. Specifically designed for adoption of networks with macroscopic link
+ * segments.
  * 
  * @author gman6028, markr
  *
  */
-public abstract class MacroscopicLinkOutputTypeAdapterImpl<LS extends MacroscopicLinkSegment> extends LinkOutputTypeAdapterImpl<LS>
-    implements MacroscopicLinkOutputTypeAdapter<LS> {
+public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOutputTypeAdapterImpl<MacroscopicLinkSegment> implements MacroscopicLinkOutputTypeAdapter {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkOutputTypeAdapterImpl.class.getCanonicalName());
@@ -50,12 +50,11 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl<LS extends Macroscopi
    * 
    * @param infrastructureLayerId to use
    */
-  @SuppressWarnings("unchecked")
   @Override
-  public LinkSegments<LS> getPhysicalLinkSegments(long infrastructureLayerId) {
+  public MacroscopicLinkSegments getPhysicalLinkSegments(long infrastructureLayerId) {
     TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().transportLayers.get(infrastructureLayerId);
-    if (networkLayer instanceof MacroscopicPhysicalLayerImpl) {
-      return (LinkSegments<LS>) ((MacroscopicPhysicalLayerImpl) networkLayer).linkSegments;
+    if (networkLayer instanceof MacroscopicNetworkLayerImpl) {
+      return ((MacroscopicNetworkLayerImpl) networkLayer).linkSegments;
     }
     LOGGER.warning(String.format("cannot collect macroscopic physical link segments from infrastructure layer %s, as it is not a macroscopic physical network layer",
         networkLayer.getXmlId()));
@@ -75,7 +74,8 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl<LS extends Macroscopi
    * @return the value of the specified output property (or an Exception message if an error occurs)
    */
   @Override
-  public Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, LS linkSegment, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) {
+  public Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode, TimePeriod timePeriod,
+      double timeUnitMultiplier) {
     try {
       Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (value.isPresent()) {

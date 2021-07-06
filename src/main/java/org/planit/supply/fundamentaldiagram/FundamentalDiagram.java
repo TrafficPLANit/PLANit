@@ -15,7 +15,7 @@ public abstract class FundamentalDiagram extends TrafficAssignmentComponent<Fund
 
   /** generated UID */
   private static final long serialVersionUID = 5815100111048623093L;
-  
+
   /**
    * short hand for NEwell fundamental diagram class type
    */
@@ -29,5 +29,20 @@ public abstract class FundamentalDiagram extends TrafficAssignmentComponent<Fund
   public FundamentalDiagram(final IdGroupingToken groupId) {
     super(groupId, FundamentalDiagram.class);
   }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public FundamentalDiagram(final FundamentalDiagram other) {
+    super(other);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract FundamentalDiagram clone();
 
 }

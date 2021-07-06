@@ -59,6 +59,15 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
   }
 
   /**
+   * Copy Constructor
+   * 
+   * @param staticTrafficAssignment to copy
+   */
+  protected StaticTrafficAssignment(StaticTrafficAssignment staticTrafficAssignment) {
+    super(staticTrafficAssignment);
+  }
+
+  /**
    * Execute equilibration over all time periods and modes
    *
    * @throws PlanItException thrown if there is an error

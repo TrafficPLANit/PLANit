@@ -22,4 +22,21 @@ public class MultinomialLogit extends LogitChoiceModel {
     super(groupId);
   }
 
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  protected MultinomialLogit(MultinomialLogit other) {
+    super(other);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MultinomialLogit clone() {
+    return new MultinomialLogit(this);
+  }
+
 }

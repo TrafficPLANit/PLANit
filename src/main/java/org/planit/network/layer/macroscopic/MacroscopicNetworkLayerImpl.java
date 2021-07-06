@@ -18,12 +18,11 @@ import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
  * @author markr
  *
  */
-public class MacroscopicPhysicalLayerImpl extends UntypedPhysicalLayerImpl<Nodes, Links, MacroscopicLinkSegments>
+public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Nodes, Links, MacroscopicLinkSegments>
     implements UntypedPhysicalLayer<Nodes, Links, MacroscopicLinkSegments> {
 
   /** the logger */
-  @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(MacroscopicPhysicalLayerImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(MacroscopicNetworkLayerImpl.class.getCanonicalName());
 
   // Protected
 
@@ -37,7 +36,7 @@ public class MacroscopicPhysicalLayerImpl extends UntypedPhysicalLayerImpl<Nodes
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  public MacroscopicPhysicalLayerImpl(final IdGroupingToken groupId) {
+  public MacroscopicNetworkLayerImpl(final IdGroupingToken groupId) {
     this(groupId, new NodesImpl(groupId), new LinksImpl(groupId), new MacroscopicLinkSegmentsImpl(groupId));
   }
 
@@ -49,9 +48,9 @@ public class MacroscopicPhysicalLayerImpl extends UntypedPhysicalLayerImpl<Nodes
    * @param links        to use
    * @param linkSegments to use
    */
-  public MacroscopicPhysicalLayerImpl(final IdGroupingToken groupId, Nodes nodes, Links links, MacroscopicLinkSegments linkSegments) {
+  public MacroscopicNetworkLayerImpl(final IdGroupingToken groupId, Nodes nodes, Links links, MacroscopicLinkSegments linkSegments) {
     super(groupId, nodes, links, linkSegments);
-    linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl();
+    linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl(groupId);
   }
 
   /**

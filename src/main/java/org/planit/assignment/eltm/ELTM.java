@@ -26,6 +26,15 @@ public class ELTM extends DynamicTrafficAssignment {
     super(groupId);
   }
 
+  /**
+   * Copy Constructor
+   * 
+   * @param eltm to copy
+   */
+  public ELTM(ELTM eltm) {
+    super(eltm);
+  }
+
   @Override
   public OutputTypeAdapter createOutputTypeAdapter(OutputType outputType) {
     // TODO Auto-generated method stub
@@ -42,6 +51,14 @@ public class ELTM extends DynamicTrafficAssignment {
   public int getIterationIndex() {
     // TODO Auto-generated method stub
     return 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ELTM clone() {
+    return new ELTM(this);
   }
 
 }

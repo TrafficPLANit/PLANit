@@ -27,13 +27,23 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
   /**
    * Constructor
    * 
-   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param groupId contiguous id generation within this group for instances of this class
    */
   public SpeedConnectoidTravelTimeCost(IdGroupingToken groupId) {
     super(groupId);
     connectoidSpeed = DEFAULT_CONNECTOID_SPEED_KPH;
   }
-  
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public SpeedConnectoidTravelTimeCost(SpeedConnectoidTravelTimeCost other) {
+    super(other);
+    connectoidSpeed = other.connectoidSpeed;
+  }
+
   /**
    * set the connectoid speed
    * 
@@ -41,7 +51,7 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    */
   public void setConnectoidSpeed(final double connectoidSpeed) {
     this.connectoidSpeed = connectoidSpeed;
-  }  
+  }
 
   /**
    * Return the connectoid travel time using speed
@@ -54,19 +64,26 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
   public double getSegmentCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
     return connectoidSegment.getParentEdge().getLengthKm() / connectoidSpeed;
   }
-  
+
   @Override
   public void populateWithCost(Mode mode, double[] costToFill) throws PlanItException {
-    // TODO Auto-generated method stub   
-  }  
+    // TODO Auto-generated method stub
+  }
 
   /**
-   * #{@inheritDoc}
+   * {@inheritDoc}
    */
   @Override
   public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException {
     // currently no specific initialization needed
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SpeedConnectoidTravelTimeCost clone() {
+    return new SpeedConnectoidTravelTimeCost(this);
+  }
 
 }

@@ -13,7 +13,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class StochasticPathChoice extends PathChoice {
+public abstract class StochasticPathChoice extends PathChoice {
 
   /** generated UID */
   private static final long serialVersionUID = 6617920674217225019L;
@@ -42,6 +42,17 @@ public class StochasticPathChoice extends PathChoice {
   }
 
   /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  protected StochasticPathChoice(final StochasticPathChoice other) {
+    super(other);
+    this.logitChoiceModel = other.logitChoiceModel;
+    this.odPathSet = other.odPathSet;
+  }
+
+  /**
    * set the chosen logit model
    * 
    * @param logitChoiceModel chosen model
@@ -58,5 +69,11 @@ public class StochasticPathChoice extends PathChoice {
   public void setOdPathMatrix(final ODPathMatrix odPathSet) {
     this.odPathSet = odPathSet;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract StochasticPathChoice clone();
 
 }

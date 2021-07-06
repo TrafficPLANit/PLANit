@@ -29,11 +29,22 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   /**
    * Constructor
    * 
-   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param groupId contiguous id generation within this group for instances of this class
    */
   public InitialLinkSegmentCost(IdGroupingToken groupId) {
     super(groupId);
     costPerModeAndLinkSegment = new HashMap<Long, Map<Long, Double>>();
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public InitialLinkSegmentCost(InitialLinkSegmentCost other) {
+    super(other);
+    this.costPerModeAndLinkSegment = new HashMap<Long, Map<Long, Double>>(other.costPerModeAndLinkSegment.size());
+    other.costPerModeAndLinkSegment.forEach((k, v) -> costPerModeAndLinkSegment.put(k, new HashMap<Long, Double>(v)));
   }
 
   /**
@@ -63,7 +74,8 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
         initialCost = Double.POSITIVE_INFINITY;
       } else {
         initialCost = ((MacroscopicLinkSegment) linkSegment).computeFreeFlowTravelTime(mode);
-        LOGGER.warning(String.format("initial cost missing for link segment %s (id:%d), reverting to free flow travel time %.2f(h)", linkSegment.getXmlId(), linkSegment.getId(), initialCost));
+        LOGGER.warning(String.format("initial cost missing for link segment %s (id:%d), reverting to free flow travel time %.2f(h)", linkSegment.getXmlId(), linkSegment.getId(),
+            initialCost));
       }
     }
     return initialCost;
@@ -100,6 +112,14 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
       costPerModeAndLinkSegment.put(mode.getId(), new HashMap<Long, Double>());
     }
     costPerModeAndLinkSegment.get(mode.getId()).put(getId(), cost);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public InitialLinkSegmentCost clone() {
+    return new InitialLinkSegmentCost(this);
   }
 
 }
