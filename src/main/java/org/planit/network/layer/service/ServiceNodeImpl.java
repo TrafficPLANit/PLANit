@@ -1,21 +1,12 @@
 package org.planit.network.layer.service;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.locationtech.jts.geom.Point;
-import org.planit.utils.graph.Edge;
+import org.planit.graph.directed.DirectedVertexImpl;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.Vertex;
-import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.physical.Node;
-import org.planit.utils.network.layer.service.ServiceLeg;
 import org.planit.utils.network.layer.service.ServiceLegSegment;
 import org.planit.utils.network.layer.service.ServiceNode;
 
@@ -26,7 +17,7 @@ import org.planit.utils.network.layer.service.ServiceNode;
  * @author markr
  *
  */
-public class ServiceNodeImpl extends ExternalIdAbleImpl implements ServiceNode {
+public class ServiceNodeImpl extends DirectedVertexImpl implements ServiceNode {
 
   /** generated UID */
   private static final long serialVersionUID = 3704157577170156850L;
@@ -36,21 +27,6 @@ public class ServiceNodeImpl extends ExternalIdAbleImpl implements ServiceNode {
 
   /** underlying network node */
   protected Node networkNode;
-
-  /**
-   * legs of this service node
-   */
-  protected final Map<Long, ServiceLeg> legs = new TreeMap<Long, ServiceLeg>();
-
-  /**
-   * Entry leg segments which connect to this service node
-   */
-  protected final Set<ServiceLegSegment> entryLegSegments = new TreeSet<ServiceLegSegment>();
-
-  /**
-   * Exit leg segments which connect to this service node
-   */
-  protected final Set<ServiceLegSegment> exitLegSegments = new TreeSet<ServiceLegSegment>();
 
   /**
    * Set the network layer node this service node refers to
@@ -68,18 +44,8 @@ public class ServiceNodeImpl extends ExternalIdAbleImpl implements ServiceNode {
    * @param networkNode referenced by this service node
    */
   protected ServiceNodeImpl(final IdGroupingToken tokenId, final Node networkNode) {
-    super(Vertex.generateVertexId(tokenId));
+    super(tokenId);
     this.networkNode = networkNode;
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param tokenId     contiguous id generation within this group for instances of this class
-   * @param networkNode referenced by this service node
-   */
-  protected ServiceNodeImpl(final IdGroupingToken tokenId) {
-    this(tokenId, null);
   }
 
   /**
@@ -90,96 +56,22 @@ public class ServiceNodeImpl extends ExternalIdAbleImpl implements ServiceNode {
   protected ServiceNodeImpl(final ServiceNodeImpl serviceNode) {
     super(serviceNode);
     this.networkNode = serviceNode.getNetworkLayerNode();
-    legs.putAll(serviceNode.legs);
-    entryLegSegments.addAll(serviceNode.getEntryLegSegments());
-    exitLegSegments.addAll(serviceNode.getExitLegSegments());
+    edges.putAll(serviceNode.edges);
+    entryEdgeSegments.addAll(serviceNode.entryEdgeSegments);
+    exitEdgeSegments.addAll(serviceNode.exitEdgeSegments);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ServiceNodeImpl clone() {
-    return new ServiceNodeImpl(this);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean addEdgeSegment(EdgeSegment edgeSegment) {
-    if (!(edgeSegment instanceof ServiceLegSegment)) {
+  public boolean addEdgeSegment(EdgeSegment serviceLegSegment) {
+    if (!(serviceLegSegment instanceof ServiceLegSegment)) {
       LOGGER.warning("Unable to add, provided EdgeSegment no instance of ServiceLegSegment");
       return false;
     }
-
-    if (edgeSegment.getUpstreamVertex().getId() == getId()) {
-      return exitLegSegments.add((ServiceLegSegment) edgeSegment);
-    } else if (edgeSegment.getDownstreamVertex().getId() == getId()) {
-      return entryLegSegments.add((ServiceLegSegment) edgeSegment);
-    }
-    LOGGER.warning(String.format("Service leg segment %s (id:%d) does not have this service node %s (%d) on either end", edgeSegment.getExternalId(), edgeSegment.getId(),
-        getExternalId(), getId()));
-    return false;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean removeEntryEdgeSegment(EdgeSegment edgeSegment) {
-    return entryLegSegments.remove((ServiceLegSegment) edgeSegment);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean removeExitEdgeSegment(EdgeSegment edgeSegment) {
-    return exitLegSegments.remove(edgeSegment);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Set<EdgeSegment> getEntryEdgeSegments() {
-    return Collections.unmodifiableSet(this.entryLegSegments);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Set<EdgeSegment> getExitEdgeSegments() {
-    return Collections.unmodifiableSet(this.exitLegSegments);
-  }
-
-  /**
-   * Not available on service node
-   */
-  @Override
-  public void addInputProperty(String key, Object value) {
-    LOGGER.warning("Input properties of service node linked to underlying network node, not allowed to add");
-  }
-
-  /**
-   * Not available on service nodes
-   * 
-   * @return null
-   */
-  @Override
-  public Object getInputProperty(String key) {
-    LOGGER.warning("Input properties of service node linked to underlying network node, collect them from there instead");
-    return null;
-  }
-
-  /**
-   * Not possible, linked to underlying network node
-   */
-  @Override
-  public void setPosition(Point position) {
-    LOGGER.warning("Position of service node linked to underlying network node, unable to change position directly");
+    
+    return super.addEdgeSegment(serviceLegSegment);
   }
 
   /**
@@ -188,32 +80,13 @@ public class ServiceNodeImpl extends ExternalIdAbleImpl implements ServiceNode {
    * @return network node position
    */
   @Override
-  public Point getPosition() {
+  public final Point getPosition() {
     return networkNode.getPosition();
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean addEdge(Edge edge) {
-    return legs.put(edge.getId(), (ServiceLeg) edge) != null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean removeEdge(long edgeId) {
-    return legs.remove(edgeId) != null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Collection<ServiceLeg> getEdges() {
-    return Collections.unmodifiableCollection(legs.values());
+  
+  @Override  
+  public void setPosition(Point position) {
+    LOGGER.warning("Unable to modify position, network node determines position of service node indirectly");
   }
 
   /**
@@ -221,8 +94,17 @@ public class ServiceNodeImpl extends ExternalIdAbleImpl implements ServiceNode {
    * 
    * @return related network layer node
    */
-  public Node getNetworkLayerNode() {
+  @Override
+  public final Node getNetworkLayerNode() {
     return networkNode;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNodeImpl clone() {
+    return new ServiceNodeImpl(this);
   }
 
 }

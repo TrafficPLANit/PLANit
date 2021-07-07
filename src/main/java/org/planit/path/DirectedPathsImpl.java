@@ -3,7 +3,6 @@ package org.planit.path;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.path.DirectedPath;
-import org.planit.utils.path.DirectedPathFactory;
 import org.planit.utils.path.DirectedPaths;
 
 /**
@@ -14,7 +13,7 @@ import org.planit.utils.path.DirectedPaths;
 public class DirectedPathsImpl extends ManagedIdEntitiesImpl<DirectedPath> implements DirectedPaths {
 
   /** factory to use */
-  private final DirectedPathFactory directedPathFactory;
+  private final ContainerisedDirectedPathFactoryImpl directedPathFactory;
 
   /**
    * Constructor
@@ -23,7 +22,7 @@ public class DirectedPathsImpl extends ManagedIdEntitiesImpl<DirectedPath> imple
    */
   public DirectedPathsImpl(final IdGroupingToken groupId) {
     super(DirectedPath::getId);
-    this.directedPathFactory = new DirectedPathFactoryImpl(groupId, this);
+    this.directedPathFactory = new ContainerisedDirectedPathFactoryImpl(groupId, this);
   }
 
   /**
@@ -32,7 +31,7 @@ public class DirectedPathsImpl extends ManagedIdEntitiesImpl<DirectedPath> imple
    * @param groupId             to use for creating ids for instances
    * @param directedPathFactory the factory to use
    */
-  public DirectedPathsImpl(final IdGroupingToken groupId, DirectedPathFactory directedPathFactory) {
+  public DirectedPathsImpl(final IdGroupingToken groupId, ContainerisedDirectedPathFactoryImpl directedPathFactory) {
     super(DirectedPath::getId);
     this.directedPathFactory = directedPathFactory;
   }
@@ -51,7 +50,7 @@ public class DirectedPathsImpl extends ManagedIdEntitiesImpl<DirectedPath> imple
    * {@inheritDoc}
    */
   @Override
-  public DirectedPathFactory getFactory() {
+  public ContainerisedDirectedPathFactoryImpl getFactory() {
     return directedPathFactory;
   }
 

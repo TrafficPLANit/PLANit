@@ -22,12 +22,8 @@ import org.planit.zoning.Zoning;
  * allow this instance to update the connectoids, i.e., remove any affected connectoids that are no longer valid.
  * 
  * @author markr
- *
- * @param <V>  vertex type
- * @param <E>  edge type
- * @param <ES> edge segment type
  */
-public class UpdateConnectoidsOnSubGraphRemoval<V extends Vertex, E extends Edge, ES extends EdgeSegment> extends RemoveSubGraphListenerImpl<V, E> implements RemoveDirectedSubGraphListener<V, E, ES> {
+public class UpdateConnectoidsOnSubGraphRemoval extends RemoveSubGraphListenerImpl implements RemoveDirectedSubGraphListener {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(UpdateConnectoidsOnSubGraphRemoval.class.getCanonicalName());
@@ -72,17 +68,29 @@ public class UpdateConnectoidsOnSubGraphRemoval<V extends Vertex, E extends Edge
    * @param zoning to use
    */
   public UpdateConnectoidsOnSubGraphRemoval(Zoning zoning) {
+    super();
     this.zoning = zoning;
     
     /* to minimise lookups, we traverse all connectoids once and index them by their access node */
     initialiseIndices();
   }
 
+  
+  /** copy constructor 
+   * @param updateConnectoidsOnSubGraphRemoval to copy
+   */
+  public UpdateConnectoidsOnSubGraphRemoval(final UpdateConnectoidsOnSubGraphRemoval updateConnectoidsOnSubGraphRemoval) {
+    super(updateConnectoidsOnSubGraphRemoval);
+    this.connectoidsByAccessVertex = updateConnectoidsOnSubGraphRemoval.connectoidsByAccessVertex;
+    this.removedConnectoids = updateConnectoidsOnSubGraphRemoval.removedConnectoids;
+    this.zoning = updateConnectoidsOnSubGraphRemoval.zoning;
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
-  public void onRemoveSubGraphEdge(E edge) {
+  public void onRemoveSubGraphEdge(Edge edge) {
     /* no action needed, dealt with in vertex removal */
   }
 
@@ -90,7 +98,7 @@ public class UpdateConnectoidsOnSubGraphRemoval<V extends Vertex, E extends Edge
    * {@inheritDoc}
    */
   @Override
-  public void onRemoveSubGraphVertex(V vertex) {
+  public void onRemoveSubGraphVertex(Vertex vertex) {
     if (connectoidsByAccessVertex.containsKey(vertex)) {
       ArrayList<Connectoid> connectoids = connectoidsByAccessVertex.get(vertex);
       for (Connectoid connectoid : connectoids) {
@@ -113,7 +121,7 @@ public class UpdateConnectoidsOnSubGraphRemoval<V extends Vertex, E extends Edge
    * {@inheritDoc}
    */
   @Override
-  public void onRemoveSubGraphEdgeSegment(ES edgeSegment) {
+  public void onRemoveSubGraphEdgeSegment(EdgeSegment edgeSegment) {
     /* no action needed, dealt with in vertex removal */
   }
 
@@ -130,5 +138,13 @@ public class UpdateConnectoidsOnSubGraphRemoval<V extends Vertex, E extends Edge
     /* reset for next subgraph removal */
     removedConnectoids = false;
   }
+  
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public UpdateConnectoidsOnSubGraphRemoval clone() {
+    return new UpdateConnectoidsOnSubGraphRemoval(this);
+  }    
 
 }

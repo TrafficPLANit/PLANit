@@ -26,6 +26,7 @@ import org.planit.output.configuration.ODOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
+import org.planit.path.DirectedPathFactoryImpl;
 import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
@@ -38,6 +39,7 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.path.DirectedPath;
+import org.planit.utils.path.DirectedPathFactory;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.zoning.Centroid;
 import org.planit.utils.zoning.Zone;
@@ -71,8 +73,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    */
   private MacroscopicNetworkLayerImpl networkLayer;
 
-  /** to generate paths we use a path builder that is configured to generate appropriate ids */
-  private DirectedPathBuilder<DirectedPath> localPathBuilder;
+  /** to generate paths we use a path factory that is configured to generate appropriate ids */
+  private DirectedPathFactory localPathFactory;
 
   /**
    * create the logging prefix for logging statements during equilibration
@@ -129,8 +131,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
      * paths ought to have unique ids (at least their XML ids) within the context of the network layer where they are used, so we must use the network layer id grouping token to
      * ensure this when creating paths based on the shortest path algorithm used
      */
-    if (this.localPathBuilder == null) {
-      this.localPathBuilder = new DirectedPathBuilderImpl(networkLayer.getNetworkIdGroupingToken());
+    if (this.localPathFactory == null) {
+      this.localPathFactory = new DirectedPathFactoryImpl(networkLayer.getLayerIdGroupingToken());
     }
   }
 
@@ -327,7 +329,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
     if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
-      final DirectedPath path = shortestPathResult.createPath(localPathBuilder, origin.getCentroid(), destination.getCentroid());
+      final DirectedPath path = shortestPathResult.createPath(localPathFactory, origin.getCentroid(), destination.getCentroid());
       if (path == null) {
         LOGGER.fine(String.format("Unable to create path from origin %s (id:%d) to destination %s (id:%d) for mode %s (id:%d)", origin.getXmlId(), origin.getId(),
             destination.getXmlId(), destination.getId(), mode.getXmlId(), mode.getId()));
@@ -559,7 +561,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   public TraditionalStaticAssignment(IdGroupingToken groupId) {
     super(groupId);
     this.simulationData = null;
-    this.localPathBuilder = null;
+    this.localPathFactory = null;
   }
 
   /**
@@ -570,7 +572,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   public TraditionalStaticAssignment(TraditionalStaticAssignment traditionalStaticAssignment) {
     super(traditionalStaticAssignment);
     this.simulationData = traditionalStaticAssignment.simulationData;
-    this.localPathBuilder = traditionalStaticAssignment.localPathBuilder;
+    this.localPathFactory = traditionalStaticAssignment.localPathFactory;
     this.networkLayer = traditionalStaticAssignment.networkLayer;
   }
 

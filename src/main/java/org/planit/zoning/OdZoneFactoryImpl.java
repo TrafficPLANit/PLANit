@@ -2,29 +2,27 @@ package org.planit.zoning;
 
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.id.ManagedId;
-import org.planit.utils.id.ManagedIdEntityFactoryImpl;
-import org.planit.utils.zoning.Centroid;
 import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.OdZoneFactory;
-import org.planit.utils.zoning.Zones;
+import org.planit.utils.zoning.OdZones;
 
 /**
  * Factory for creating od zones (on container)
  * 
  * @author markr
  */
-public class OdZoneFactoryImpl extends ManagedIdEntityFactoryImpl<OdZone> implements OdZoneFactory {
+public class OdZoneFactoryImpl extends ZoneFactoryImpl<OdZone> implements OdZoneFactory {
 
   /** container to use */
-  protected final Zones<OdZone> odZones;
+  protected final OdZones odZones;
 
   /**
    * Constructor
    * 
    * @param groupId             to use
-   * @param directedConnectoids to use
+   * @param odZones to use
    */
-  protected OdZoneFactoryImpl(final IdGroupingToken groupId, final Zones<OdZone> odZones) {
+  protected OdZoneFactoryImpl(final IdGroupingToken groupId, final OdZones odZones) {
     super(groupId);
     this.odZones = odZones;
   }
@@ -43,8 +41,8 @@ public class OdZoneFactoryImpl extends ManagedIdEntityFactoryImpl<OdZone> implem
    * {@inheritDoc}
    */
   @Override
-  public OdZone registerNew(final Centroid centroid) {
-    OdZone newOdZone = createNew(centroid);
+  public OdZone registerNew() {   
+    OdZone newOdZone = createNew();
     odZones.register(newOdZone);
     return newOdZone;
   }
@@ -56,10 +54,10 @@ public class OdZoneFactoryImpl extends ManagedIdEntityFactoryImpl<OdZone> implem
    * @return created zone
    */
   @Override
-  public OdZone createNew(final Centroid centroid) {
-    OdZoneImpl OdZone = new OdZoneImpl(getIdGroupingToken());
-    OdZone.setCentroid(centroid);
-    return OdZone;
+  public OdZone createNew() {    
+    OdZoneImpl newOdZone = new OdZoneImpl(getIdGroupingToken());
+    newOdZone.setCentroid(getCentroidFactory().create(newOdZone));
+    return newOdZone;
   }
 
 }

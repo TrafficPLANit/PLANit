@@ -1,18 +1,21 @@
 package org.planit.zoning.modifier;
 
-import java.util.Collections;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.djutils.event.EventProducer;
+import org.djutils.event.EventType;
 import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.TransferZone;
 import org.planit.utils.zoning.TransferZoneGroup;
 import org.planit.utils.zoning.Zone;
 import org.planit.utils.zoning.modifier.ZoningModifier;
+import org.planit.zoning.ConnectoidsImpl;
+import org.planit.zoning.TransferZoneGroupsImpl;
 import org.planit.zoning.Zoning;
-import org.planit.zoning.ZoningBuilder;
 
 /**
  * Implementation of the zoningModifier interface
@@ -20,20 +23,32 @@ import org.planit.zoning.ZoningBuilder;
  * @author markr
  *
  */
-public class ZoningModifierImpl implements ZoningModifier {
+public class ZoningModifierImpl extends EventProducer implements ZoningModifier {
+
+  /**
+   * Generated UID
+   */
+  private static final long serialVersionUID = -7378175296694515636L;
 
   /** the logger to use */
   private static final Logger LOGGER = Logger.getLogger(ZoningModifierImpl.class.getCanonicalName());
+  
+  /** event type fired off when zone ids have been modified */
+  public static final EventType MODIFIED_ZONE_IDS = new EventType("ZONINGMODIFIER.MODIFIED_ZONE_IDS");
+
+  /**
+   * register listeners for the internally fired events on the internally known containers of the zoning
+   */
+  private void initialiseGraphEntitiesListeners() {
+    this.addListener((ConnectoidsImpl<?>)zoning.odConnectoids, MODIFIED_ZONE_IDS);
+    this.addListener((ConnectoidsImpl<?>)zoning.transferConnectoids, MODIFIED_ZONE_IDS);
+    this.addListener((TransferZoneGroupsImpl)zoning.transferZoneGroups, MODIFIED_ZONE_IDS);
+  }
 
   /**
    * The zoning instance to apply modifications on
    */
   protected final Zoning zoning;
-
-  /**
-   * The zoning builder instance to use for modifications
-   */
-  protected final ZoningBuilder zoningBuilder;
 
   /**
    * remove a zone from its container class (if applicable) without doing anything else
@@ -54,11 +69,10 @@ public class ZoningModifierImpl implements ZoningModifier {
    * constructor
    * 
    * @param zoning        instance to apply modifications on
-   * @param zoningBuilder instance to use to make modifications
    */
-  public ZoningModifierImpl(Zoning zoning, ZoningBuilder zoningBuilder) {
+  public ZoningModifierImpl(Zoning zoning) {
     this.zoning = zoning;
-    this.zoningBuilder = zoningBuilder;
+    initialiseGraphEntitiesListeners();
   }
 
   /**
@@ -66,10 +80,13 @@ public class ZoningModifierImpl implements ZoningModifier {
    */
   @Override
   public void recreateConnectoidIds() {   
-    DOES NOT WORK WITH RESET BECAUSE IT RESETS BOTH THE BASE INTERNAL ID AND ADDITIONAL ID SO BOTH OR NEITHER
-    WHEREAS INSTEAD WE SHOULD RESET INTERNAL ID ONCE AND THEN THE ADDITIONAL ID FOR BOTH SEPARATE
-    zoning.odConnectoids.recreateIds(true);
-    zoning.transferConnectoids.recreateIds(false);
+    /* both connectoids containers use the same underlying id generated for the connectoid managed id, so it is unique across the
+     * two containers. Hence, we should only reset it once, otherwise it is not longer unique across both when recreating the ids */
+    boolean recreateManagedIdClass = true;
+    zoning.odConnectoids.recreateIds(recreateManagedIdClass);
+    
+    recreateManagedIdClass = false;
+    zoning.transferConnectoids.recreateIds(recreateManagedIdClass);
   }
 
   /**
@@ -77,9 +94,16 @@ public class ZoningModifierImpl implements ZoningModifier {
    */
   @Override
   public void recreateZoneIds() {
-    zoning.odZones.recreateIds();
-    zoningBuilder.recreateOdZoneIds(zoning.odZones, Collections.singleton(zoning.odConnectoids), true /* reset zone ids once... */);
-    zoningBuilder.recreateTransferZoneIds(zoning.transferZones, zoning.transferZoneGroups, Collections.singleton(zoning.transferConnectoids), false /* ...but not again */);
+    /* both connectoids containers use the same underlying id generated for the zone managed id, so it is unique across the
+     * two containers. Hence, we should only reset it once, otherwise it is not longer unique across both when recreating the ids */
+    boolean resetManagedIdClass = true;
+    zoning.odZones.recreateIds(resetManagedIdClass);        
+    resetManagedIdClass = false;        
+    zoning.transferZones.recreateIds(resetManagedIdClass);
+    
+    /* notify all listeners registered for modified zone ids, e.g. container implementations with entities that have references to zones by their id which
+     * now require updating as well */
+    fireEvent(new org.djutils.event.Event(MODIFIED_ZONE_IDS, this, null));      
   }
 
   /**
@@ -87,7 +111,7 @@ public class ZoningModifierImpl implements ZoningModifier {
    */
   @Override
   public void recreateTransferZoneGroupIds() {
-    zoningBuilder.recreateTransferZoneGroupIds(zoning.transferZoneGroups);
+    zoning.transferZoneGroups.recreateIds();
   }
 
   /**
@@ -135,6 +159,14 @@ public class ZoningModifierImpl implements ZoningModifier {
     if (groupRemoved) {
       recreateTransferZoneGroupIds();
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Serializable getSourceId() {
+    return this;
   }
 
 }

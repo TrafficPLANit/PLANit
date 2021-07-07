@@ -94,4 +94,12 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
     return new ModesImpl(this);
   }
 
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public ModeFactory getFactory() {
+    return modeFactory;
+  }
+
 }

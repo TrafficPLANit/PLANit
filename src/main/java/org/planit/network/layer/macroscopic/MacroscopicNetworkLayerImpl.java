@@ -8,9 +8,9 @@ import org.planit.network.layer.physical.UntypedPhysicalLayerImpl;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
+import org.planit.utils.network.layer.macroscopic.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.physical.Links;
 import org.planit.utils.network.layer.physical.Nodes;
-import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
 
 /**
  * Macroscopic physical Network (layer) that supports one or more modes and link segment types, where the modes are registered on the network (Infrastructure network) level
@@ -18,8 +18,7 @@ import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
  * @author markr
  *
  */
-public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Nodes, Links, MacroscopicLinkSegments>
-    implements UntypedPhysicalLayer<Nodes, Links, MacroscopicLinkSegments> {
+public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Nodes, Links, MacroscopicLinkSegments> implements MacroscopicNetworkLayer {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicNetworkLayerImpl.class.getCanonicalName());
@@ -58,6 +57,7 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Nodes,
    * 
    * @return the link segment types
    */
+  @Override
   public MacroscopicLinkSegmentTypes getLinkSegmentTypes() {
     return this.linkSegmentTypes;
   }

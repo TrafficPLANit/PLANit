@@ -7,6 +7,8 @@ import org.locationtech.jts.geom.Point;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.graph.directed.DirectedEdge;
+import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.graph.modifier.BreakEdgeListener;
 import org.planit.utils.graph.modifier.BreakEdgeSegmentListener;
 import org.planit.utils.id.IdAbleImpl;
@@ -24,10 +26,8 @@ import org.planit.utils.zoning.DirectedConnectoid;
  * 
  * @author markr
  *
- * @param <V> type of vertex
- * @param <E> type of edge
  */
-public class UpdateConnectoidsOnBreakLink<V extends Vertex, E extends Edge, ES extends EdgeSegment> extends IdAbleImpl implements BreakEdgeSegmentListener<V, E, ES> {
+public class UpdateConnectoidsOnBreakLink extends IdAbleImpl implements BreakEdgeSegmentListener {
 
   private static final Logger LOGGER = Logger.getLogger(UpdateConnectoidsOnBreakLink.class.getCanonicalName());
 
@@ -45,11 +45,20 @@ public class UpdateConnectoidsOnBreakLink<V extends Vertex, E extends Edge, ES e
     this.connectoidsAccessNodeLocationBeforeBreakLink = connectoidsAccessNodeLocationBeforeBreakLink;
   }
 
+  /** Copy constructor
+   * 
+   * @param updateConnectoidsOnBreakLink to copy
+   */
+  public UpdateConnectoidsOnBreakLink(UpdateConnectoidsOnBreakLink updateConnectoidsOnBreakLink) {
+    super(updateConnectoidsOnBreakLink);
+    this.connectoidsAccessNodeLocationBeforeBreakLink = updateConnectoidsOnBreakLink.connectoidsAccessNodeLocationBeforeBreakLink;
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
-  public void onBreakEdge(V vertex, E aToBreak, E breakToB) {
+  public void onBreakEdge(Vertex vertex, Edge aToBreak, Edge breakToB) {
     /* do nothing, we deal with this per link segment */
   }
 
@@ -60,7 +69,7 @@ public class UpdateConnectoidsOnBreakLink<V extends Vertex, E extends Edge, ES e
    * 
    */
   @Override
-  public void onBreakEdgeSegment(V vertex, E brokenEdge, ES brokenEdgeSegment) {
+  public void onBreakEdgeSegment(DirectedVertex vertex, DirectedEdge brokenEdge, EdgeSegment brokenEdgeSegment) {
 
     /* determine if connectoid is related to this broken edge segment somehow */
     DirectedConnectoid connectoid = null;
@@ -87,6 +96,14 @@ public class UpdateConnectoidsOnBreakLink<V extends Vertex, E extends Edge, ES e
         connectoid.replaceAccessLinkSegment(brokenEdgeSegment);          
       }
     }  
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UpdateConnectoidsOnBreakLink clone() {
+    return new UpdateConnectoidsOnBreakLink(this);
   }
 
 }

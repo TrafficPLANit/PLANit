@@ -3,8 +3,8 @@ package org.planit.network.macroscopic;
 import java.util.logging.Logger;
 
 import org.planit.network.TopologicalLayerNetwork;
-import org.planit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.network.layer.macroscopic.MacroscopicNetworkLayer;
 
 /**
  * Macroscopic Network which stores one or more macroscopic network infrastructure layers that together form the complete (intermodal) network.
@@ -12,7 +12,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class MacroscopicNetwork extends TopologicalLayerNetwork<MacroscopicNetworkLayerImpl, MacroscopicNetworkLayers> {
+public class MacroscopicNetwork extends TopologicalLayerNetwork<MacroscopicNetworkLayer, MacroscopicNetworkLayers> {
 
   /** the logger */
   @SuppressWarnings("unused")

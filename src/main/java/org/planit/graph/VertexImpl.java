@@ -13,7 +13,7 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.CloneUtils;
 
 /**
- * vertex representation connected to one or more entry and exit edges
+ * Vertex representation connected to one or more entry and exit edges
  *
  * @author markr
  *

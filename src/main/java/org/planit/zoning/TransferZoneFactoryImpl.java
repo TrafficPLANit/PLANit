@@ -2,21 +2,19 @@ package org.planit.zoning;
 
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.id.ManagedId;
-import org.planit.utils.id.ManagedIdEntityFactoryImpl;
-import org.planit.utils.zoning.Centroid;
 import org.planit.utils.zoning.TransferZone;
 import org.planit.utils.zoning.TransferZoneFactory;
-import org.planit.utils.zoning.Zones;
+import org.planit.utils.zoning.TransferZones;
 
 /**
  * Factory for creating od zones (on container)
  * 
  * @author markr
  */
-public class TransferZoneFactoryImpl extends ManagedIdEntityFactoryImpl<TransferZone> implements TransferZoneFactory {
+public class TransferZoneFactoryImpl extends ZoneFactoryImpl<TransferZone> implements TransferZoneFactory {
 
   /** container to use */
-  protected final Zones<TransferZone> transferZones;
+  protected final TransferZones transferZones;
 
   /**
    * Constructor
@@ -24,7 +22,7 @@ public class TransferZoneFactoryImpl extends ManagedIdEntityFactoryImpl<Transfer
    * @param groupId             to use
    * @param directedConnectoids to use
    */
-  protected TransferZoneFactoryImpl(final IdGroupingToken groupId, final Zones<TransferZone> transferZones) {
+  protected TransferZoneFactoryImpl(final IdGroupingToken groupId, final TransferZones transferZones) {
     super(groupId);
     this.transferZones = transferZones;
   }
@@ -43,8 +41,8 @@ public class TransferZoneFactoryImpl extends ManagedIdEntityFactoryImpl<Transfer
    * {@inheritDoc}
    */
   @Override
-  public TransferZone registerNew(final Centroid centroid) {
-    TransferZone newOdZone = createNew(centroid);
+  public TransferZone registerNew() {
+    TransferZone newOdZone = createNew();
     transferZones.register(newOdZone);
     return newOdZone;
   }
@@ -52,13 +50,11 @@ public class TransferZoneFactoryImpl extends ManagedIdEntityFactoryImpl<Transfer
   /**
    * {@inheritDoc}
    * 
-   * @param centroid to use
-   * @return created zone
    */
   @Override
-  public TransferZone createNew(final Centroid centroid) {
+  public TransferZone createNew() {
     TransferZoneImpl transferZone = new TransferZoneImpl(getIdGroupingToken());
-    transferZone.setCentroid(centroid);
+    transferZone.setCentroid(getCentroidFactory().create(transferZone));
     return transferZone;
   }
 

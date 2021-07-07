@@ -42,28 +42,6 @@ public class ServiceNetworkLayerBuilderImpl implements ServiceNetworkLayerBuilde
   }
 
   /**
-   * Create a service node. Requires user to set the underlying network node afterwards before the service node can be regarded as valid
-   * 
-   * @return created empty service node instance
-   */
-  @Override
-  public ServiceNode createVertex() {
-    return new ServiceNodeImpl(getIdGroupingToken());
-  }
-
-  /**
-   * Create a service leg. Requires user to set the underlying network links that determine the actual leg before the leg can be regarded as valid
-   */
-  @Override
-  public ServiceLeg createEdge(Vertex nodeA, Vertex nodeB) throws PlanItException {
-    if (nodeA instanceof ServiceNode && nodeB instanceof ServiceNode) {
-      return new ServiceLegImpl(getIdGroupingToken(), (ServiceNode) nodeA, (ServiceNode) nodeB);
-    } else {
-      throw new PlanItException("unable to create service leg, vertices should be of type ServiceNode");
-    }
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override

@@ -70,12 +70,11 @@ public class LinksImpl extends GraphEntitiesImpl<Link> implements Links {
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(boolean reset) {
-    if (reset == true) {
-      IdGenerator.reset(getFactory().getIdGroupingToken(), Link.LINK_ID_CLASS);
-    }
-
-    super.recreateIds(reset);
+  public void recreateIds(boolean resetManagedIdClass) {
+    /* always reset the additional link id class */
+    IdGenerator.reset(getFactory().getIdGroupingToken(), Link.LINK_ID_CLASS);
+    
+    super.recreateIds(resetManagedIdClass);
   }
 
 }

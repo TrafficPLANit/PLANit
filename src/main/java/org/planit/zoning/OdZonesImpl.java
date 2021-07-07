@@ -60,12 +60,11 @@ public class OdZonesImpl extends ZonesImpl<OdZone> implements OdZones {
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(boolean reset) {
-    if (reset == true) {
-      IdGenerator.reset(getFactory().getIdGroupingToken(), OdZone.OD_ZONE_ID_CLASS);
-    }
+  public void recreateIds(boolean resetManagedIdClass) {
+    /* always reset the additional od zone id class */
+    IdGenerator.reset(getFactory().getIdGroupingToken(), OdZone.OD_ZONE_ID_CLASS);
 
-    super.recreateIds(reset);
+    super.recreateIds(resetManagedIdClass);
   }
 
   /**

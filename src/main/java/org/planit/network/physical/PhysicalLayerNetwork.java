@@ -12,7 +12,7 @@ import org.planit.utils.network.physical.PhysicalNetworkLayers;
  * @author markr
  *
  */
-public abstract class PhysicalLayerNetwork extends TopologicalLayerNetwork<PhysicalLayer, PhysicalNetworkLayers> {
+public abstract class PhysicalLayerNetwork extends TopologicalLayerNetwork<PhysicalLayer, PhysicalNetworkLayers<PhysicalLayer>> {
 
   /**
    * generated UID

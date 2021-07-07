@@ -34,12 +34,21 @@ public class CentroidImpl extends DirectedVertexImpl implements Centroid {
   protected void setParentzone(Zone parentZone) {
     this.parentZone = parentZone;
   }
+  
+  /**
+   * Constructor
+   *
+   * @param groupId    contiguous id generation within this group for instances of this class
+   */
+  protected CentroidImpl(final IdGroupingToken groupId) {
+    this(groupId, null);
+  }  
 
   /**
    * Constructor
    *
    * @param groupId    contiguous id generation within this group for instances of this class
-   * @param parentZone the parent zone of this Centroid
+   * @param parentZone The parent zone of this Centroid
    */
   protected CentroidImpl(final IdGroupingToken groupId, final Zone parentZone) {
     super(groupId);
@@ -51,7 +60,7 @@ public class CentroidImpl extends DirectedVertexImpl implements Centroid {
    * 
    * @param centroidImpl to copy
    */
-  protected CentroidImpl(CentroidImpl centroidImpl) {
+  protected CentroidImpl(final CentroidImpl centroidImpl) {
     super(centroidImpl);
     setParentzone(centroidImpl.getParentZone());
     setName(centroidImpl.getName());

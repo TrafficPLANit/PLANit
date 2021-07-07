@@ -1,7 +1,6 @@
 package org.planit.network.layer.physical;
 
 import org.planit.graph.GraphEntityFactoryImpl;
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.GraphEntities;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.physical.Link;
@@ -29,7 +28,7 @@ public class LinkFactoryImpl extends GraphEntityFactoryImpl<Link> implements Lin
    * {@inheritDoc}
    */
   @Override
-  public LinkImpl registerNew(Node nodeA, Node nodeB, double lengthKm, boolean registerOnNodes) throws PlanItException {
+  public LinkImpl registerNew(Node nodeA, Node nodeB, double lengthKm, boolean registerOnNodes){
     LinkImpl newLink = new LinkImpl(getIdGroupingToken(), nodeA, nodeB);
     newLink.setLengthKm(lengthKm);
     if (registerOnNodes) {

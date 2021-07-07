@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.path.DirectedPath;
+import org.planit.utils.path.DirectedPathFactory;
 
 /**
  * Class that stores the result of a shortest path execution allowing one to extract paths or cost information
@@ -51,7 +52,7 @@ public class ShortestPathResult {
    * @return the path that is created, when no path could be extracted null is returned
    * 
    */
-  public <T extends DirectedPath> T createPath(final DirectedPathBuilder<T> pathBuilder, Vertex origin, Vertex destination) {
+  public DirectedPath createPath(final DirectedPathFactory pathFactory, Vertex origin, Vertex destination) {
     // path edge segment container
     final Deque<EdgeSegment> pathEdgeSegments = new LinkedList<EdgeSegment>();
 
@@ -72,7 +73,7 @@ public class ShortestPathResult {
     }
 
     // create path
-    return pathBuilder.createPath(pathEdgeSegments);
+    return pathFactory.createNew(pathEdgeSegments);
   }
 
   /**

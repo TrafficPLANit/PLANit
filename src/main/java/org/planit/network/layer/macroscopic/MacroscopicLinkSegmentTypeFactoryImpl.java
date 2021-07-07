@@ -46,7 +46,7 @@ public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactor
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentType createAndRegisterNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm, Map<Mode, MacroscopicModeProperties> modeProperties)
+  public MacroscopicLinkSegmentType registerNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm, Map<Mode, MacroscopicModeProperties> modeProperties)
       throws PlanItException {
 
     MacroscopicLinkSegmentType linkSegmentType = new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacityPcuPerHour, maximumDensityPcuPerKm, modeProperties);
@@ -58,7 +58,7 @@ public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactor
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentType createAndRegisterNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm) throws PlanItException {
+  public MacroscopicLinkSegmentType registerNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm) throws PlanItException {
 
     MacroscopicLinkSegmentType linkSegmentType = new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacityPcuPerHour, maximumDensityPcuPerKm);
     linkSegmentTypes.register(linkSegmentType);

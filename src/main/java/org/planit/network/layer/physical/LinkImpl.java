@@ -79,7 +79,7 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * @param nodeB    the second node in the link
    * @throws PlanItException thrown if there is an error
    */
-  protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB) throws PlanItException {
+  protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB) {
     super(groupId, nodeA, nodeB);
     setLinkId(generateLinkId(groupId));
   }
@@ -93,7 +93,7 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * @param length   the length of the link
    * @throws PlanItException thrown if there is an error
    */
-  protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length) throws PlanItException {
+  protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length) {
     super(groupId, nodeA, nodeB, length);
     setLinkId(generateLinkId(groupId));
   }

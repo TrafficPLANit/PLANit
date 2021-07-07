@@ -45,7 +45,7 @@ public class PhysicalLayerImpl extends UntypedPhysicalLayerImpl<Nodes, Links, Li
    */
   @Override
   public PhysicalLayerImpl clone() {
-    return new PhysicalLayerImpl(getNetworkIdGroupingToken(), (Nodes) nodes.clone(), (Links) links.clone(), (LinkSegments) linkSegments.clone());
+    return new PhysicalLayerImpl(getLayerIdGroupingToken(), (Nodes) nodes.clone(), (Links) links.clone(), (LinkSegments) linkSegments.clone());
   }
 
 }

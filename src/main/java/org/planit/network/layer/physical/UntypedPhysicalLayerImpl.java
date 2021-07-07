@@ -64,40 +64,14 @@ public class UntypedPhysicalLayerImpl<N extends GraphEntities<? extends Node>, L
   public final L links;
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final L getLinks() {
-    return graph.getEdges();
-  }
-
-  /**
    * class instance containing all link segment specific functionality
    */
   public final LS linkSegments;
 
   /**
-   * alternative to using the linkSegments public member
-   * 
-   * @return the linkSegments
-   */
-  public final LS getLinkSegments() {
-    return graph.getEdgeSegments();
-  }
-
-  /**
    * class instance containing all nodes specific functionality
    */
   public final N nodes;
-
-  /**
-   * alternative to using the nodes public member
-   * 
-   * @return the nodes
-   */
-  public final N getNodes() {
-    return graph.getVertices();
-  }
 
   /**
    * Network Constructor
@@ -118,73 +92,6 @@ public class UntypedPhysicalLayerImpl<N extends GraphEntities<? extends Node>, L
   }
 
   // Getters - Setters
-
-  /**
-   * Collect the id grouping token used for all entities registered on the network, i.e., this network's specific identifier for generating ids unique and contiguous within this
-   * network and this network only
-   * 
-   * @return the network id grouping token
-   */
-  public IdGroupingToken getNetworkIdGroupingToken() {
-    return graph.getGraphIdGroupingToken();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void transform(CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException {
-    try {
-      getGraph().transformGeometries(PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
-    } catch (Exception e) {
-      PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
-      throw new PlanItException(String.format("%s error during transformation of physical network %s CRS", TransportLayer.createLayerLogPrefix(this), getXmlId()), e);
-    }
-  }
-
-  /**
-   * check if network is empty, meaning not a single link, node, or link segment is registered yet
-   * 
-   * @return true if empty fals otherwise
-   */
-  public boolean isEmpty() {
-    return nodes.isEmpty() && links.isEmpty() && linkSegments.isEmpty();
-  }
-
-  /**
-   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed. Also remove zoning entities that rely
-   * solely on removed dangling network entities
-   * 
-   * @param belowSize         remove subnetworks below the given size
-   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
-   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
-   * @param listeners         listeners to be invoked during removal of subgraphs, may be null
-   * @throws PlanItException thrown if error
-   */
-  @Override
-  public void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener> listeners) throws PlanItException {
-
-    /* check validity */
-    if (graphModifier == null) {
-      LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored",
-          TransportLayer.createLayerLogPrefix(this)));
-      return;
-    }
-
-    /* create callback for zoning */
-    if (listeners != null) {
-      listeners.forEach(listener -> graphModifier.registerRemoveSubGraphListener(listener));
-    }
-
-    /* perform removal */
-    graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest);
-
-    /* unregister call back for zoning */
-    if (listeners != null) {
-      listeners.forEach(listener -> graphModifier.unregisterRemoveSubGraphListener(listener));
-    }
-
-  }
 
   /**
    * Break the passed in link by inserting the passed in node in between. After completion the original links remain as (NodeA,NodeToBreakAt), and new links as inserted for
@@ -252,6 +159,97 @@ public class UntypedPhysicalLayerImpl<N extends GraphEntities<? extends Node>, L
     }
 
     return affectedLinks;
+  }
+
+  // Getters - Setters
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public IdGroupingToken getLayerIdGroupingToken() {
+    return graph.getGraphIdGroupingToken();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public final L getLinks() {
+    return graph.getEdges();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public final LS getLinkSegments() {
+    return graph.getEdgeSegments();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public final N getNodes() {
+    return graph.getVertices();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void transform(CoordinateReferenceSystem fromCoordinateReferenceSystem, CoordinateReferenceSystem toCoordinateReferenceSystem) throws PlanItException {
+    try {
+      getGraph().transformGeometries(PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem));
+    } catch (Exception e) {
+      PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
+      throw new PlanItException(String.format("%s error during transformation of physical network %s CRS", TransportLayer.createLayerLogPrefix(this), getXmlId()), e);
+    }
+  }
+
+  /**
+   * check if network is empty, meaning not a single link, node, or link segment is registered yet
+   * 
+   * @return true if empty fals otherwise
+   */
+  public boolean isEmpty() {
+    return nodes.isEmpty() && links.isEmpty() && linkSegments.isEmpty();
+  }
+
+  /**
+   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed. Also remove zoning entities that rely
+   * solely on removed dangling network entities
+   * 
+   * @param belowSize         remove subnetworks below the given size
+   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
+   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
+   * @param listeners         listeners to be invoked during removal of subgraphs, may be null
+   * @throws PlanItException thrown if error
+   */
+  @Override
+  public void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener> listeners) throws PlanItException {
+  
+    /* check validity */
+    if (graphModifier == null) {
+      LOGGER.severe(String.format("%s Dangling subnetworks can only be removed when network supports graph modifications, this is not the case, call ignored",
+          TransportLayer.createLayerLogPrefix(this)));
+      return;
+    }
+  
+    /* create callback for zoning */
+    if (listeners != null) {
+      listeners.forEach(listener -> graphModifier.registerRemoveSubGraphListener(listener));
+    }
+  
+    /* perform removal */
+    graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest);
+  
+    /* unregister call back for zoning */
+    if (listeners != null) {
+      listeners.forEach(listener -> graphModifier.unregisterRemoveSubGraphListener(listener));
+    }
+  
   }
 
   /**

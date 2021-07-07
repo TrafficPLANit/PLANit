@@ -67,10 +67,13 @@ public class ServiceLegImpl extends DirectedEdgeImpl implements ServiceLeg {
   }
 
   /**
-   * Sum of the underlying network layer link lengths
+   * Sum of the underlying network layer link lengths. If no links are registered 0 is returned
    */
   @Override
   public double getLengthKm() {
+    if(networkLayerLinks==null || networkLayerLinks.isEmpty()) {
+      return 0;
+    }
     return networkLayerLinks.stream().collect(Collectors.summingDouble(link -> link.getLengthKm()));
   }
 }

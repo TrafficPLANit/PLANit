@@ -60,12 +60,11 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Transf
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(boolean reset) {
-    if (reset == true) {
-      IdGenerator.reset(getFactory().getIdGroupingToken(), TransferZone.TRANSFER_ZONE_ID_CLASS);
-    }
+  public void recreateIds(boolean resetManagedIdClass) {
+    /* always reset the additional transfer zone id class */
+    IdGenerator.reset(getFactory().getIdGroupingToken(), TransferZone.TRANSFER_ZONE_ID_CLASS);
 
-    super.recreateIds(reset);
+    super.recreateIds(resetManagedIdClass);
   }
 
   /**

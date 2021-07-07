@@ -1,9 +1,15 @@
 package org.planit.zoning;
 
+import java.rmi.RemoteException;
+import java.util.logging.Logger;
+
+import org.djutils.event.EventInterface;
+import org.djutils.event.EventListenerInterface;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.Connectoids;
+import org.planit.zoning.modifier.ZoningModifierImpl;
 
 /**
  * Base implementation of Connectoids container and factory class
@@ -11,7 +17,27 @@ import org.planit.utils.zoning.Connectoids;
  * @author markr
  *
  */
-public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEntitiesImpl<T> implements Connectoids<T> {
+public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEntitiesImpl<T> implements Connectoids<T>, EventListenerInterface {
+
+  /**
+   * generated UID
+   */
+  private static final long serialVersionUID = -7710154947041263497L;
+  
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(ConnectoidsImpl.class.getCanonicalName());
+  
+  /**
+   * update the references to all access zones for all connectoids
+   */
+  protected void updateConnectoidAccessZoneIdReferences() {
+    for (Connectoid connectoid : this) {
+      if (!(connectoid instanceof ConnectoidImpl)) {
+        LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of connectoids interface when attempting to update access zone references");
+      }
+      ((ConnectoidImpl) connectoid).recreateAccessZoneIdMapping();
+    } 
+  }
 
   /**
    * Constructor
@@ -30,11 +56,24 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
   public ConnectoidsImpl(ConnectoidsImpl<T> connectoidsImpl) {
     super(connectoidsImpl);
   }
-
+  
   /**
    * {@inheritDoc}
    */
   @Override
   public abstract ConnectoidsImpl<T> clone();
+  
+  /**
+   * Support event callbacks that require changes on underlying connectoids
+   */
+  @Override
+  public void notify(EventInterface event) throws RemoteException {
+    org.djutils.event.EventType eventType = event.getType();
+        
+    /* update connectoid zone id references when zone ids have changed */
+    if(eventType.equals(ZoningModifierImpl.MODIFIED_ZONE_IDS)) {
+      updateConnectoidAccessZoneIdReferences();
+    }    
+  }
 
 }

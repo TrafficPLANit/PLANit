@@ -48,11 +48,6 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
    */
   protected final ZoningModifier zoningModifier;
 
-  /**
-   * the zoning builder, used to create all zoning entities and additional (hidden) functionality that can be used by the zoning modifier if needed
-   */
-  private final ZoningBuilder zoningBuilder;
-
   // Public
 
   /**
@@ -93,7 +88,6 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   public Zoning(IdGroupingToken groupId, IdGroupingToken networkGroupId) {
     super(groupId, Zoning.class);
     virtualNetwork = new VirtualNetwork(networkGroupId);
-    this.zoningBuilder = new ZoningBuilderImpl(networkGroupId);
 
     odConnectoids = new UndirectedConnectoidsImpl(networkGroupId);
     transferConnectoids = new DirectedConnectoidsImpl(networkGroupId);
@@ -101,7 +95,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
     transferZones = new TransferZonesImpl(networkGroupId);
     transferZoneGroups = new TransferZoneGroupsImpl(networkGroupId);
 
-    zoningModifier = new ZoningModifierImpl(this, zoningBuilder);
+    zoningModifier = new ZoningModifierImpl(this);
   }
 
   /**
@@ -112,14 +106,13 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   public Zoning(final Zoning other) {
     super(other);
     this.virtualNetwork = other.virtualNetwork;
-    this.zoningBuilder = other.zoningBuilder;
     this.odConnectoids = other.odConnectoids.clone();
     this.transferConnectoids = other.transferConnectoids.clone();
     this.odZones = other.odZones.clone();
     this.transferZones = other.transferZones.clone();
     this.transferZoneGroups = other.transferZoneGroups.clone();
 
-    this.zoningModifier = other.zoningModifier;
+    this.zoningModifier = new ZoningModifierImpl(this);
   }
 
   // Public - getters - setters
@@ -190,7 +183,7 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   }
 
   /**
-   * the zoning's modifier instance
+   * The zoning's modifier instance
    * 
    * @return the zoning modifier
    */

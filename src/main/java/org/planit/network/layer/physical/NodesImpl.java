@@ -62,12 +62,11 @@ public class NodesImpl extends GraphEntitiesImpl<Node> implements Nodes {
    * {@inheritDoc}
    */
   @Override
-  public void recreateIds(boolean reset) {
-    if (reset == true) {
-      IdGenerator.reset(getFactory().getIdGroupingToken(), Node.NODE_ID_CLASS);
-    }
+  public void recreateIds(boolean resetManagedIdClass) {
+    /* always reset the additional node id class */
+    IdGenerator.reset(getFactory().getIdGroupingToken(), Node.NODE_ID_CLASS);
 
-    super.recreateIds(reset);
+    super.recreateIds(resetManagedIdClass);
   }
 
   /**
