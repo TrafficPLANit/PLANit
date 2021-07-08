@@ -6,15 +6,14 @@ import java.util.logging.Logger;
 
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
+import org.planit.network.MacroscopicNetwork;
 import org.planit.network.TransportLayerNetwork;
-import org.planit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
-import org.planit.network.macroscopic.MacroscopicNetwork;
 import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.layer.TransportLayer;
+import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 
@@ -82,7 +81,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   }
 
   /** the network layer the BPR is applied to */
-  protected MacroscopicNetworkLayerImpl networkLayer;
+  protected MacroscopicNetworkLayer networkLayer;
 
   /**
    * Link volume accessee object for this cost function
@@ -263,7 +262,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   public void populateWithCost(Mode mode, double[] costToFill) throws PlanItException {
     double[] linkSegmentFlows = linkVolumeAccessee.getLinkSegmentFlows();
 
-    for (MacroscopicLinkSegment linkSegment : networkLayer.linkSegments) {
+    for (MacroscopicLinkSegment linkSegment : networkLayer.getLinkSegments()) {
       final int id = (int) linkSegment.getId();
       costToFill[id] = computeCostInHours(linkSegment, mode, linkSegmentFlows[id]);
     }
@@ -281,26 +280,24 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   public void initialiseBeforeSimulation(final TransportLayerNetwork<?, ?> network) throws PlanItException {
     PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "BPR cost is only compatible with macroscopic networks");
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
-    PlanItException.throwIf(macroscopicNetwork.transportLayers.size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");
-    TransportLayer infrastructureLayer = macroscopicNetwork.transportLayers.getFirst();
-    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicNetworkLayerImpl), "BPR cost is only compatible with macroscopic physical network layers");
-    this.networkLayer = (MacroscopicNetworkLayerImpl) infrastructureLayer;
-    if (network.modes.size() != networkLayer.getSupportedModes().size()) {
+    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");
+    this.networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
+    if (network.getModes().size() != networkLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by only layer, this makes the assignment less efficient, consider removing unused modes");
     }
 
     /* pre-compute the free flow travel times */
-    freeFlowTravelTimePerLinkSegment = new double[network.modes.size()][(int) networkLayer.linkSegments.size()];
-    ArrayUtils.loopAll(freeFlowTravelTimePerLinkSegment, (modeId, linkSegmentId) -> freeFlowTravelTimePerLinkSegment[modeId][linkSegmentId] = networkLayer.linkSegments
-        .get(linkSegmentId).computeFreeFlowTravelTime(network.modes.get(modeId)));
+    freeFlowTravelTimePerLinkSegment = new double[network.getModes().size()][(int) networkLayer.getLinkSegments().size()];
+    ArrayUtils.loopAll(freeFlowTravelTimePerLinkSegment, (modeId, linkSegmentId) -> freeFlowTravelTimePerLinkSegment[modeId][linkSegmentId] = networkLayer.getLinkSegments()
+        .get(linkSegmentId).computeFreeFlowTravelTime(network.getModes().get(modeId)));
 
     /* explicitly set bpr parameters for each mode/segment combination */
-    bprParametersPerLinkSegment = new BPRParameters[(int) networkLayer.linkSegments.size()];
-    for (final MacroscopicLinkSegment macroscopicLinkSegment : networkLayer.linkSegments) {
+    bprParametersPerLinkSegment = new BPRParameters[(int) networkLayer.getLinkSegments().size()];
+    for (final MacroscopicLinkSegment macroscopicLinkSegment : networkLayer.getLinkSegments()) {
       final int id = (int) macroscopicLinkSegment.getId();
       bprParametersPerLinkSegment[id] = new BPRParameters();
       final MacroscopicLinkSegmentType macroscopicLinkSegmentType = macroscopicLinkSegment.getLinkSegmentType();
-      for (final Mode mode : network.modes) {
+      for (final Mode mode : network.getModes()) {
         Pair<Double, Double> alphaBetaPair;
         if ((parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment) != null)
             && (parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode) != null)) {

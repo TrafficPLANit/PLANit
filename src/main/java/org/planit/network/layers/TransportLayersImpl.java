@@ -1,13 +1,12 @@
-package org.planit.network;
+package org.planit.network.layers;
 
-import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.TransportLayers;
 import org.planit.utils.network.layer.TransportLayer;
-import org.planit.utils.wrapper.LongMapWrapperImpl;
+import org.planit.utils.network.layers.TransportLayers;
 
 /**
  * Base implementation of the TransportLayer interface, without the createNew() method
@@ -15,7 +14,7 @@ import org.planit.utils.wrapper.LongMapWrapperImpl;
  * @author markr
  *
  */
-public abstract class TransportLayersImpl<T extends TransportLayer> extends LongMapWrapperImpl<T> implements TransportLayers<T> {
+public abstract class TransportLayersImpl<T extends TransportLayer> extends ManagedIdEntitiesImpl<T> implements TransportLayers<T> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -41,7 +40,7 @@ public abstract class TransportLayersImpl<T extends TransportLayer> extends Long
    * @param idToken to generated id's for infrastructure layers
    */
   public TransportLayersImpl(IdGroupingToken idToken) {
-    super(new TreeMap<Long, T>(), T::getId);
+    super(T::getId);
     this.idToken = idToken;
   }
 
@@ -53,16 +52,6 @@ public abstract class TransportLayersImpl<T extends TransportLayer> extends Long
   public TransportLayersImpl(TransportLayersImpl<T> other) {
     super(other);
     this.idToken = other.idToken;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public T registerNew() {
-    final T newLayer = createAndRegisterNew();
-    register(newLayer);
-    return newLayer;
   }
 
   /**

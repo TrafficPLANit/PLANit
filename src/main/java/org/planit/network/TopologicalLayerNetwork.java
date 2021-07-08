@@ -1,18 +1,15 @@
 package org.planit.network;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections4.map.HashedMap;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.geo.PlanitJtsCrsUtils;
 import org.planit.utils.graph.modifier.RemoveSubGraphListener;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.TopologicalLayers;
 import org.planit.utils.network.layer.TopologicalLayer;
-import org.planit.utils.network.layer.TransportLayer;
+import org.planit.utils.network.layers.TopologicalLayers;
 
 /**
  * A network with topological transport layers, meaning that apart from representing a physical reality the result is topologically meaningful, has nodes, links, and some
@@ -91,31 +88,6 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
     for (TopologicalLayer layer : transportLayers) {
       layer.transform(coordinateReferenceSystem, newCoordinateReferenceSystem);
     }
-  }
-
-  /**
-   * Tries to intialise and create/register infrastructure layers via a predefined configuration rather than letting the user do this manually via the infrastructure layers
-   * container. Only possible when the network is still empty and no layers are yet active
-   * 
-   * @param transportLayerConfiguration to use for configuration
-   */
-  public void initialiseTopologicalLayers(TransportLayersConfigurator transportLayerConfiguration) {
-    if (!transportLayers.isNoLayers()) {
-      LOGGER.warning("unable to initialise topological layers based on provided configuration, since network already has layers defined");
-      return;
-    }
-
-    /* register layers */
-    Map<String, Long> xmlIdToId = new HashedMap<String, Long>();
-    for (String layerXmlId : transportLayerConfiguration.transportLayersByXmlId) {
-      TransportLayer newLayer = transportLayers.createAndRegisterNew();
-      newLayer.setXmlId(layerXmlId);
-      xmlIdToId.put(layerXmlId, newLayer.getId());
-    }
-
-    /* register modes */
-    transportLayerConfiguration.modeToLayerXmlId.forEach((mode, layerXmlId) -> transportLayers.get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
-
   }
 
   /**

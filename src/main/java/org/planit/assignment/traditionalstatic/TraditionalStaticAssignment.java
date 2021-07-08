@@ -15,8 +15,8 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkVolumeAccessee;
-import org.planit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
-import org.planit.network.macroscopic.MacroscopicNetwork;
+import org.planit.network.MacroscopicNetwork;
+import org.planit.network.layer.MacroscopicNetworkLayerImpl;
 import org.planit.od.odmatrix.ODMatrixIterator;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.od.odmatrix.skim.ODSkimMatrix;
@@ -34,7 +34,7 @@ import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.layer.TransportLayer;
+import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.virtual.ConnectoidSegment;
@@ -96,12 +96,10 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     PlanItException.throwIf(!(transportNetwork.getInfrastructureNetwork() instanceof MacroscopicNetwork),
         "Traditional static assignment is only compatible with macroscopic networks");
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) transportNetwork.getInfrastructureNetwork();
-    PlanItException.throwIf(macroscopicNetwork.transportLayers.size() != 1,
+    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
         "Traditional static assignment  is currently only compatible with networks using a single infrastructure layer");
-    TransportLayer infrastructureLayer = macroscopicNetwork.transportLayers.getFirst();
-    PlanItException.throwIf(!(infrastructureLayer instanceof MacroscopicNetworkLayerImpl),
-        "Traditional static assignment is only compatible with macroscopic physical network layers");
-    if (transportNetwork.getInfrastructureNetwork().modes.size() != infrastructureLayer.getSupportedModes().size()) {
+    MacroscopicNetworkLayer infrastructureLayer = macroscopicNetwork.getTransportLayers().getFirst();
+    if (transportNetwork.getInfrastructureNetwork().getModes().size() != infrastructureLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by the single available layer, consider removing unused modes");
     }
     /* register the layer */
@@ -430,7 +428,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void populateCost(Cost<MacroscopicLinkSegment> cost, final Mode mode, final double[] costsToPopulate) throws PlanItException {
-    for (final MacroscopicLinkSegment linkSegment : networkLayer.linkSegments) {
+    for (final MacroscopicLinkSegment linkSegment : networkLayer.getLinkSegments()) {
       double currentSegmentCost = cost.getSegmentCost(mode, linkSegment);
       if (currentSegmentCost < 0.0) {
         throw new PlanItException(String.format("link segment cost is negative for link segment %d (id: %d)", linkSegment.getExternalId(), linkSegment.getId()));

@@ -19,8 +19,9 @@ import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.SpeedConnectoidTravelTimeCost;
 import org.planit.demands.Demands;
+import org.planit.network.MacroscopicNetwork;
 import org.planit.network.Network;
-import org.planit.network.macroscopic.MacroscopicNetwork;
+import org.planit.network.ServiceNetwork;
 import org.planit.path.OdPathSets;
 import org.planit.path.choice.PathChoice;
 import org.planit.path.choice.logit.LogitChoiceModel;
@@ -70,7 +71,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
     registeredTrafficAssignmentComponents.put(NetworkLoading.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(Smoothing.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(Demands.class.getCanonicalName(), new TreeSet<>());
-    registeredTrafficAssignmentComponents.put(RoutedServices.class.getCanonicalName(), new TreeSet<>());    
+    registeredTrafficAssignmentComponents.put(RoutedServices.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(Network.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(AbstractPhysicalCost.class.getCanonicalName(), new TreeSet<>());
     registeredTrafficAssignmentComponents.put(InitialPhysicalCost.class.getCanonicalName(), new TreeSet<>());
@@ -95,6 +96,7 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
       registerTrafficAssignmentComponentType(Demands.class);
       registerTrafficAssignmentComponentType(RoutedServices.class);
       registerTrafficAssignmentComponentType(MacroscopicNetwork.class);
+      registerTrafficAssignmentComponentType(ServiceNetwork.class);
       registerTrafficAssignmentComponentType(BPRLinkTravelTimeCost.class);
       registerTrafficAssignmentComponentType(InitialLinkSegmentCost.class);
       registerTrafficAssignmentComponentType(InitialLinkSegmentCostPeriod.class);
@@ -225,12 +227,12 @@ public class TrafficAssignmentComponentFactory<T extends Serializable> extends E
     dispatchTrafficComponentEvent(newTrafficComponent, eventParameters);
     return newTrafficComponent;
   }
-   
-  
-  /** Allows one to verify if this factory creates derived classes of the provided class super type. Usefull in case
-   * the generic type parameter is not available at run time for this factory
+
+  /**
+   * Allows one to verify if this factory creates derived classes of the provided class super type. Usefull in case the generic type parameter is not available at run time for this
+   * factory
    * 
-   * @param <U> type to verify
+   * @param <U>        type to verify
    * @param superClazz class of type
    * @return true when factory is compatible, false otherwise
    */

@@ -14,7 +14,9 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
+import org.planit.network.MacroscopicNetwork;
 import org.planit.network.Network;
+import org.planit.network.ServiceNetwork;
 import org.planit.network.TransportLayerNetwork;
 import org.planit.path.OdPathSets;
 import org.planit.service.routed.RoutedServices;
@@ -113,7 +115,7 @@ public class PlanItProjectInput {
   /**
    * The registered service networks
    */
-  protected final ProjectNetworks serviceNetworks = new ProjectNetworks();  
+  protected final ProjectServiceNetworks serviceNetworks = new ProjectServiceNetworks();  
   
   /**
    * The registered routed services
@@ -158,10 +160,10 @@ public class PlanItProjectInput {
 
     /* log info across layers */
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createNetworkPrefix(infrastructureNetwork.getId());
-    LOGGER.info(String.format("%s#modes: %d", prefix, infrastructureNetwork.modes.size()));    
+    LOGGER.info(String.format("%s#modes: %d", prefix, infrastructureNetwork.getModes().size()));    
     
     /* for each layer log information regarding contents */
-    for(TransportLayer networkLayer : infrastructureNetwork.transportLayers) {
+    for(TransportLayer networkLayer : infrastructureNetwork.getTransportLayers()) {
       networkLayer.logInfo(prefix);
     }
     
@@ -225,21 +227,53 @@ public class PlanItProjectInput {
   }
   
   /**
+   * Create and register service networks to the project inputs
+   *
+   * @param network     the network upon which the service network is built
+   * @return            the generated service network object
+   * @throws PlanItException thrown if there is an error
+   */
+  public ServiceNetwork createAndRegisterServiceNetwork(final MacroscopicNetwork network) throws PlanItException {
+    PlanItException.throwIf(network == null, "Physical network must be defined before definition of service network can begin");
+
+    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating service network");
+    final Network theNetwork = 
+        getComponentFactory(Network.class).create(
+            ServiceNetwork.class.getCanonicalName(), new Object[] { projectGroupId, network });
+        
+    /* for now we only support infrastructure based networks even though class heirarchy is more generic */
+    if(!(theNetwork instanceof ServiceNetwork)){
+      throw new PlanItException("we currently only service network derived classes when creating service networks");
+    }
+    ServiceNetwork serviceNetwork = (ServiceNetwork) theNetwork;    
+    
+    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createServiceNetworkPrefix(serviceNetwork.getId());
+    /* log info across layers */
+    LOGGER.info(String.format("%s#modes: %d", prefix, serviceNetwork.getModes().size()));    
+    
+    /* for each layer log information regarding contents */
+    for(TransportLayer networkLayer : serviceNetwork.getTransportLayers()) {
+      networkLayer.logInfo(prefix);
+    }
+    
+    this.serviceNetworks.register(serviceNetwork);
+    return serviceNetwork;
+  }   
+  
+  /**
    * Create and register routed services to the project inputs
    *
-   * @param zoning      zoning object which defines the connectoids used in the legs of the routed services
-   * @param network     the network which stores the modes and link segments used for the legs
+   * @param serviceNetwork     the service network upon which the service are defined
    * @return            the generated routed services object
    * @throws PlanItException thrown if there is an error
    */
-  public RoutedServices createAndRegisterRoutedServices(final Zoning zoning, final TransportLayerNetwork<?,?> network) throws PlanItException {
-    PlanItException.throwIf(zoning == null, "Zones must be defined before definition of routed services can begin");
-    PlanItException.throwIf(network == null, "network must be defined before definition of routed services can begin");
+  public RoutedServices createAndRegisterRoutedServices(final ServiceNetwork serviceNetwork) throws PlanItException {
+    PlanItException.throwIf(serviceNetwork == null, "serviceNetwork must be defined before definition of routed services can begin");
 
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating routed services");
     final RoutedServices routedServices = 
         getComponentFactory(RoutedServices.class).create(
-            RoutedServices.class.getCanonicalName(), new Object[] { projectGroupId }, zoning, network);  
+            RoutedServices.class.getCanonicalName(), new Object[] { projectGroupId, serviceNetwork});  
     
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createRoutedServicesPrefix(routedServices.getId());
     //TODO: add aggregate logging stats

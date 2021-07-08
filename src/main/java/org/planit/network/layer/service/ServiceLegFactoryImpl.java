@@ -17,16 +17,21 @@ import org.planit.utils.network.layer.service.ServiceNode;
  */
 public class ServiceLegFactoryImpl extends GraphEntityFactoryImpl<ServiceLeg> implements ServiceLegFactory {
 
+  /**
+   * Register the leg on its nodes
+   * 
+   * @param leg to register on nodes
+   */
   protected void registerOnNodes(ServiceLegImpl leg) {
     leg.getVertexA().addEdge(leg);
     leg.getVertexB().addEdge(leg);
   }
-  
+
   /**
    * Constructor
    * 
    * @param groupIdToken to use for creating element ids
-   * @param serviceLegs        to register the created instances on
+   * @param serviceLegs  to register the created instances on
    */
   public ServiceLegFactoryImpl(IdGroupingToken groupIdToken, GraphEntities<ServiceLeg> serviceLegs) {
     super(groupIdToken, serviceLegs);
@@ -44,10 +49,9 @@ public class ServiceLegFactoryImpl extends GraphEntityFactoryImpl<ServiceLeg> im
     return newServiceLeg;
   }
 
-
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public ServiceLeg registerNew(final ServiceNode nodeA, final ServiceNode nodeB, final List<Link> networkLayerLinks, boolean registerOnNodes) {
     ServiceLegImpl newServiceLeg = new ServiceLegImpl(getIdGroupingToken(), nodeA, nodeB, networkLayerLinks);

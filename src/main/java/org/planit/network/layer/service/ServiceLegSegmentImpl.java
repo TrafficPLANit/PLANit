@@ -1,7 +1,6 @@
 package org.planit.network.layer.service;
 
 import org.planit.graph.directed.EdgeSegmentImpl;
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.service.ServiceLeg;
 import org.planit.utils.network.layer.service.ServiceLegSegment;
@@ -25,9 +24,8 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl implements ServiceLeg
    * @param tokenId     contiguous id generation within this group for instances of this class
    * @param parentLeg   parent leg of segment
    * @param directionAB direction of travel
-   * @throws PlanItException thrown if error
    */
-  protected ServiceLegSegmentImpl(final IdGroupingToken tokenId, final ServiceLeg parentLeg, final boolean directionAB) throws PlanItException {
+  protected ServiceLegSegmentImpl(final IdGroupingToken tokenId, final ServiceLeg parentLeg, final boolean directionAB) {
     super(tokenId, parentLeg, directionAB);
   }
 

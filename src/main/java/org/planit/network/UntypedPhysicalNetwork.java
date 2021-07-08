@@ -1,10 +1,9 @@
-package org.planit.network.physical;
+package org.planit.network;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.planit.network.TopologicalLayerNetwork;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.layer.physical.PhysicalLayer;
-import org.planit.utils.network.physical.PhysicalNetworkLayers;
+import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
+import org.planit.utils.network.layers.UntypedPhysicalNetworkLayers;
 
 /**
  * A network that comprises physical topological transport network elements, i.e., roads, rail, etc.
@@ -12,7 +11,7 @@ import org.planit.utils.network.physical.PhysicalNetworkLayers;
  * @author markr
  *
  */
-public abstract class PhysicalLayerNetwork extends TopologicalLayerNetwork<PhysicalLayer, PhysicalNetworkLayers<PhysicalLayer>> {
+public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?, ?, ?, ?, ?>, LS extends UntypedPhysicalNetworkLayers<L>> extends TopologicalLayerNetwork<L, LS> {
 
   /**
    * generated UID
@@ -24,7 +23,7 @@ public abstract class PhysicalLayerNetwork extends TopologicalLayerNetwork<Physi
    * 
    * @param tokenId to use for id generation
    */
-  public PhysicalLayerNetwork(IdGroupingToken tokenId) {
+  public UntypedPhysicalNetwork(IdGroupingToken tokenId) {
     super(tokenId);
   }
 
@@ -34,7 +33,7 @@ public abstract class PhysicalLayerNetwork extends TopologicalLayerNetwork<Physi
    * @param tokenId                   to use for id generation
    * @param coordinateReferenceSystem preferred coordinate reference system to use
    */
-  public PhysicalLayerNetwork(IdGroupingToken tokenId, CoordinateReferenceSystem coordinateReferenceSystem) {
+  public UntypedPhysicalNetwork(IdGroupingToken tokenId, CoordinateReferenceSystem coordinateReferenceSystem) {
     super(tokenId, coordinateReferenceSystem);
   }
 }

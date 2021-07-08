@@ -1,8 +1,8 @@
-package org.planit.network;
+package org.planit.network.layers;
 
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.TopologicalLayers;
 import org.planit.utils.network.layer.TopologicalLayer;
+import org.planit.utils.network.layers.TopologicalLayers;
 
 /**
  * implementation of the transport layers interface, without the createNew() method, but now with base layer class of TopologicalLayer

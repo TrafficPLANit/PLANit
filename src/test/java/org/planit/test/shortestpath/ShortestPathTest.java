@@ -14,11 +14,11 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.algorithms.shortestpath.AStarShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
-import org.planit.network.macroscopic.MacroscopicNetwork;
+import org.planit.network.MacroscopicNetwork;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.math.Precision;
-import org.planit.utils.network.layer.macroscopic.MacroscopicNetworkLayer;
+import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.physical.Link;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.layer.physical.Node;
@@ -90,7 +90,7 @@ public class ShortestPathTest {
       
       int gridSize = 4;
       network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
-      networkLayer = network.transportLayers.createAndRegisterNew();
+      networkLayer = network.getTransportLayers().getFactory().registerNew();
       for(int nodeRowIndex = 0;nodeRowIndex<=gridSize;++nodeRowIndex) {
         for(int nodeColIndex = 0;nodeColIndex<=gridSize;++nodeColIndex) {
           String externalId = String.valueOf(nodeRowIndex*gridSize+nodeColIndex);

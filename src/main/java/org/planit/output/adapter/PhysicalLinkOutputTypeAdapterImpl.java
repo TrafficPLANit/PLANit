@@ -38,7 +38,7 @@ public abstract class PhysicalLinkOutputTypeAdapterImpl extends OutputTypeAdapte
    */
   @Override
   public GraphEntities<LinkSegment> getPhysicalLinkSegments(long infrastructureLayerId) {
-    TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().transportLayers.get(infrastructureLayerId);
+    TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
     if (networkLayer instanceof PhysicalLayer) {
       return ((PhysicalLayer) networkLayer).getLinkSegments();
     }

@@ -1,15 +1,13 @@
 package org.planit.network;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections4.map.HashedMap;
 import org.planit.mode.ModesImpl;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.Modes;
-import org.planit.utils.network.TransportLayers;
 import org.planit.utils.network.layer.TransportLayer;
+import org.planit.utils.network.layers.TransportLayers;
 
 /**
  * A transport network with one or more layers. One can choose the container for the different layers as a generic type that defines the container level operations available. Each
@@ -28,6 +26,7 @@ public abstract class TransportLayerNetwork<U extends TransportLayer, T extends 
   private static final long serialVersionUID = 2402806336978560448L;
 
   /** the logger to use */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(TransportLayerNetwork.class.getCanonicalName());
 
   // Protected
@@ -37,10 +36,10 @@ public abstract class TransportLayerNetwork<U extends TransportLayer, T extends 
   /**
    * class instance containing all modes specific functionality across the layers
    */
-  public final Modes modes;
+  protected final Modes modes;
 
   /** stores the various layers grouped by their supported modes of transport */
-  public final T transportLayers;
+  protected final T transportLayers;
 
   /**
    * Derived type is to provide the actual layer implementations
@@ -75,28 +74,21 @@ public abstract class TransportLayerNetwork<U extends TransportLayer, T extends 
   }
 
   /**
-   * Tries to initialise and create/register layers via a predefined configuration rather than letting the user do this manually via the infrastructure layers container. Only
-   * possible when the network is still empty and no layers are yet active
+   * Collect the modes
    * 
-   * @param layerConfiguration to use for configuration
+   * @return modes container
    */
-  public void initialiseLayers(TransportLayersConfigurator layerConfiguration) {
-    if (!transportLayers.isNoLayers()) {
-      LOGGER.warning("unable to initialise layers based on provided configuration, since network already has layers defined");
-      return;
-    }
+  public Modes getModes() {
+    return modes;
+  }
 
-    /* register layers */
-    Map<String, Long> xmlIdToId = new HashedMap<String, Long>();
-    for (String layerXmlId : layerConfiguration.transportLayersByXmlId) {
-      TransportLayer newLayer = transportLayers.createAndRegisterNew();
-      newLayer.setXmlId(layerXmlId);
-      xmlIdToId.put(layerXmlId, newLayer.getId());
-    }
-
-    /* register modes */
-    layerConfiguration.modeToLayerXmlId.forEach((mode, layerXmlId) -> transportLayers.get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
-
+  /**
+   * Collect the transport layers
+   * 
+   * @return transport layers container
+   */
+  public T getTransportLayers() {
+    return transportLayers;
   }
 
 }

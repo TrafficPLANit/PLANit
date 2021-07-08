@@ -3,7 +3,6 @@ package org.planit.graph.directed;
 import java.util.logging.Logger;
 
 import org.planit.graph.GraphEntityImpl;
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.directed.DirectedEdge;
 import org.planit.utils.graph.directed.DirectedVertex;
@@ -47,9 +46,8 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param parentEdge  parent edge of segment
    * @param directionAB direction of travel
-   * @throws PlanItException thrown when parent edge's vertices are incompatible with directional edge segments
    */
-  protected EdgeSegmentImpl(final IdGroupingToken groupId, final DirectedEdge parentEdge, final boolean directionAB) throws PlanItException {
+  protected EdgeSegmentImpl(final IdGroupingToken groupId, final DirectedEdge parentEdge, final boolean directionAB) {
     this(groupId, directionAB);
     setParent(parentEdge);
   }
@@ -59,16 +57,14 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    *
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param directionAB direction of travel
-   * @throws PlanItException thrown when parent edge's vertices are incompatible with directional edge segments
    */
-  protected EdgeSegmentImpl(final IdGroupingToken groupId, final boolean directionAB) throws PlanItException {
+  protected EdgeSegmentImpl(final IdGroupingToken groupId, final boolean directionAB) {
     super(groupId, EDGE_SEGMENT_ID_CLASS);
 
     if (!(parentEdge.getVertexA() instanceof DirectedVertex && parentEdge.getVertexB() instanceof DirectedVertex)) {
-      throw new PlanItException(String.format("parent edges (id:%d) vertices do not support directed edge segments, they must be of type DirectedVertex", parentEdge.getId()));
+      LOGGER.warning(String.format("parent edges (id:%d) vertices do not support directed edge segments, they must be of type DirectedVertex", parentEdge.getId()));
+      return;
     }
-    setUpstreamVertex((DirectedVertex) (directionAB ? parentEdge.getVertexA() : parentEdge.getVertexB()));
-    setDownstreamVertex((DirectedVertex) (directionAB ? parentEdge.getVertexB() : parentEdge.getVertexA()));
   }
 
   /**

@@ -1,7 +1,6 @@
 package org.planit.graph.directed;
 
 import org.planit.graph.GraphEntityFactoryImpl;
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.directed.DirectedEdge;
 import org.planit.utils.graph.directed.DirectedVertex;
@@ -30,7 +29,7 @@ public class EdgeSegmentFactoryImpl extends GraphEntityFactoryImpl<EdgeSegment> 
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment create(final DirectedEdge parentEdge, final boolean directionAB) throws PlanItException {
+  public EdgeSegment create(final DirectedEdge parentEdge, final boolean directionAB) {
     final EdgeSegment edgeSegment = new EdgeSegmentImpl(getIdGroupingToken(), directionAB);
     edgeSegment.setParent(parentEdge);
     return edgeSegment;
@@ -40,7 +39,7 @@ public class EdgeSegmentFactoryImpl extends GraphEntityFactoryImpl<EdgeSegment> 
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment registerNew(DirectedEdge parentEdge, boolean directionAb, boolean registerOnVertexAndEdge) throws PlanItException {
+  public EdgeSegment registerNew(DirectedEdge parentEdge, boolean directionAb, boolean registerOnVertexAndEdge) {
     final EdgeSegment edgeSegment = new EdgeSegmentImpl(getIdGroupingToken(), parentEdge, directionAb);
     getGraphEntities().register(edgeSegment);
 

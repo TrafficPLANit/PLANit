@@ -7,10 +7,10 @@ import org.planit.output.adapter.MacroscopicLinkOutputTypeAdapterImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
-import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Adapter providing access to the data of the TraditionalStaticAssignment class relevant for link outputs without exposing the internals of the traffic assignment class itself
@@ -92,7 +92,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
    */
   private Optional<Double> getVCRatio(final MacroscopicLinkSegment linkSegment) throws PlanItException {
     double totalFlow = 0.0;
-    for (final Mode mode : trafficAssignment.getTransportNetwork().getInfrastructureNetwork().modes) {
+    for (final Mode mode : trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getModes()) {
       totalFlow += getFlow(linkSegment, mode).get();
     }
     final double capacityPerLane = getCapacityPerLane(linkSegment).get();
@@ -140,12 +140,12 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
       if (value.isPresent()) {
         return value;
       }
-      
+
       value = super.getLinkSegmentOutputPropertyValue(outputProperty, linkSegment, mode, timePeriod, timeUnitMultiplier);
       if (value.isPresent()) {
         return value;
       }
-      
+
       switch (outputProperty) {
       case CALCULATED_SPEED:
         return getCalculatedSpeed(linkSegment, mode);
@@ -158,8 +158,8 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
       case COST_TIMES_FLOW:
         return getCostTimesFlow(linkSegment, mode, timeUnitMultiplier);
       default:
-        return Optional.of(String.format(
-            "Tried to find link property of %s which is not applicable for links", BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName() ));
+        return Optional
+            .of(String.format("Tried to find link property of %s which is not applicable for links", BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()));
       }
     } catch (final PlanItException e) {
       return Optional.of(e.getMessage());

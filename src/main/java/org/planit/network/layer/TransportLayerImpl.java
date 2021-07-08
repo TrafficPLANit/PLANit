@@ -33,7 +33,7 @@ public abstract class TransportLayerImpl extends ExternalIdAbleImpl implements T
    * @return nodeId
    */
   protected static long generateId(final IdGroupingToken tokenId) {
-    return IdGenerator.generateId(tokenId, TransportLayerImpl.class);
+    return IdGenerator.generateId(tokenId, TransportLayer.TRANSPORT_LAYER_ID_CLASS);
   }
 
   /**
@@ -106,6 +106,16 @@ public abstract class TransportLayerImpl extends ExternalIdAbleImpl implements T
     LOGGER.info(String.format("%s#supported modes: %s", prefix, getSupportedModes().stream().map((mode) -> {
       return mode.getXmlId();
     }).collect(Collectors.joining(", "))));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    long newId = generateId(tokenId);
+    setId(newId);
+    return newId;
   }
 
   /**

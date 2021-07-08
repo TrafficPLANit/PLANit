@@ -51,10 +51,10 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
       PlanItException.throwIf(demands == null, "demands in registerDemandZoningAndNetwork is null");
       PlanItException.throwIf(network == null, "network in registerDemandZoningAndNetwork is null");
     }
-    PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, network.modes),
+    PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, network.getModes()),
         "Zoning structure is incompatible with one or more of the demands, likely the number of zones does not match the number of origins and/or destinations");
 
-    for (final Mode mode : network.modes) {
+    for (final Mode mode : network.getModes()) {
       for (TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
         if (demands.get(mode, timePeriod) == null) {
           LOGGER.warning("no demand matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
@@ -97,10 +97,9 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
   protected T createTrafficAssignmentInstance() throws PlanItException {
     String trafficAssignmentClassName = getClassToBuild().getCanonicalName();
 
-    TrafficAssignmentComponentFactory<TrafficAssignment> assignmentFactory = 
-        new TrafficAssignmentComponentFactory<TrafficAssignment>(NetworkLoading.class.getCanonicalName());
+    TrafficAssignmentComponentFactory<TrafficAssignment> assignmentFactory = new TrafficAssignmentComponentFactory<TrafficAssignment>(NetworkLoading.class.getCanonicalName());
     assignmentFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
-    
+
     final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentClassName, new Object[] { groupId });
     PlanItException.throwIf(!(networkLoadingAndAssignment instanceof TrafficAssignment), "not a valid traffic assignment type");
     return (T) networkLoadingAndAssignment;

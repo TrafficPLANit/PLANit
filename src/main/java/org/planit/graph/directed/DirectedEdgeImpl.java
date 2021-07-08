@@ -3,7 +3,6 @@ package org.planit.graph.directed;
 import java.util.logging.Logger;
 
 import org.planit.graph.EdgeImpl;
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.directed.DirectedEdge;
 import org.planit.utils.graph.directed.DirectedVertex;
@@ -111,8 +110,15 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) throws PlanItException {
-    PlanItException.throwIf(edgeSegment.getParentEdge().getId() != getId(), "inconsistency between link segment parent link and link it is being registered on");
+  public EdgeSegment registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) {
+    if (edgeSegment.getParentEdge() == null) {
+      edgeSegment.setParent(this);
+    }
+
+    if (edgeSegment.getParentEdge().getId() != getId()) {
+      LOGGER.warning("Inconsistency between link segment's parent link and link it is being registered on");
+      return null;
+    }
 
     final EdgeSegment currentEdgeSegment = directionAB ? getEdgeSegmentAb() : getEdgeSegmentBa();
     if (directionAB) {

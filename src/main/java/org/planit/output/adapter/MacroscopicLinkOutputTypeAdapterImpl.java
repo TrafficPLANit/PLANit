@@ -4,11 +4,11 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.TransportLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
@@ -52,11 +52,11 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOu
    */
   @Override
   public MacroscopicLinkSegments getPhysicalLinkSegments(long infrastructureLayerId) {
-    TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().transportLayers.get(infrastructureLayerId);
-    if (networkLayer instanceof MacroscopicNetworkLayerImpl) {
-      return ((MacroscopicNetworkLayerImpl) networkLayer).linkSegments;
+    TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
+    if (networkLayer instanceof MacroscopicNetworkLayer) {
+      return ((MacroscopicNetworkLayer) networkLayer).getLinkSegments();
     }
-    LOGGER.warning(String.format("cannot collect macroscopic physical link segments from infrastructure layer %s, as it is not a macroscopic physical network layer",
+    LOGGER.warning(String.format("Cannot collect macroscopic physical link segments from infrastructure layer %s, as it is not a macroscopic physical network layer",
         networkLayer.getXmlId()));
     return null;
   }

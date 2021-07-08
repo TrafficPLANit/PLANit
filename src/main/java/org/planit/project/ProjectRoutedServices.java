@@ -28,15 +28,6 @@ public class ProjectRoutedServices extends LongMapWrapperImpl<RoutedServices> {
   }
 
   /**
-   * Collect the first registered entry (if any). Otherwise return null
-   * 
-   * @return first entry registered if none return null
-   */
-  public RoutedServices getFirst() {
-    return isEmpty() ? iterator().next() : null;
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override

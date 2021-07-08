@@ -3,7 +3,6 @@ package org.planit.network;
 import java.io.Serializable;
 
 import org.planit.assignment.TrafficAssignmentComponent;
-import org.planit.network.macroscopic.MacroscopicNetwork;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 

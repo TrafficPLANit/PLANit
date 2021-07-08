@@ -14,18 +14,18 @@ import org.planit.utils.mode.Modes;
 import org.planit.utils.mode.PredefinedMode;
 
 /**
- * Configurator class that allows one to create and modify a setup for the mapping of modes and transport layers without actually creating them yet. The final result can be used to
- * instantiate the transport layers on the actual transport network when the time is right.
+ * Configurator class that allows one to create and modify a setup for the mapping of modes and macroscopic network layers without actually creating them yet. The final result can
+ * be used to instantiate the layers on the actual network when the time is right.
  * 
  * We also provide some default suggestions for quick setups avoiding complicated manual configurations.
  * 
  * @author markr
  *
  */
-public class TransportLayersConfigurator {
+public class MacroscopicNetworkLayerConfigurator {
 
   /** the logger */
-  private static final Logger LOGGER = Logger.getLogger(TransportLayersConfigurator.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(MacroscopicNetworkLayerConfigurator.class.getCanonicalName());
 
   /** track unique proposed layers */
   protected final Set<String> transportLayersByXmlId = new HashSet<String>();
@@ -59,8 +59,8 @@ public class TransportLayersConfigurator {
    * @param modes to use for all in one layer configuration
    * @return configuration reflective of all-in-one approach
    */
-  public static TransportLayersConfigurator createAllInOneConfiguration(Modes modes) {
-    TransportLayersConfigurator allInOne = new TransportLayersConfigurator();
+  public static MacroscopicNetworkLayerConfigurator createAllInOneConfiguration(Modes modes) {
+    MacroscopicNetworkLayerConfigurator allInOne = new MacroscopicNetworkLayerConfigurator();
 
     allInOne.addLayer(ALL_IN_ONE_LAYER_ID);
     modes.forEach(mode -> allInOne.setModeToLayer(mode, ALL_IN_ONE_LAYER_ID));
@@ -105,8 +105,8 @@ public class TransportLayersConfigurator {
    * @param predefinedModes for multi-layer configuration
    * @return configuration reflective of all-in-one approach
    */
-  public static TransportLayersConfigurator createMultiLayerConfiguration(Collection<PredefinedMode> predefinedModes) {
-    TransportLayersConfigurator multiLayerConfiguration = new TransportLayersConfigurator();
+  public static MacroscopicNetworkLayerConfigurator createMultiLayerConfiguration(Collection<PredefinedMode> predefinedModes) {
+    MacroscopicNetworkLayerConfigurator multiLayerConfiguration = new MacroscopicNetworkLayerConfigurator();
 
     /* layers */
     multiLayerConfiguration.addLayer(ON_STREET_LAYER_XML_ID);

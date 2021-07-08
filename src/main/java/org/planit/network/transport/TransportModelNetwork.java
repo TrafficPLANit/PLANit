@@ -3,11 +3,12 @@ package org.planit.network.transport;
 import java.util.Collection;
 
 import org.planit.network.TransportLayerNetwork;
-import org.planit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
+import org.planit.network.layer.MacroscopicNetworkLayerImpl;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.planit.utils.network.virtual.ConnectoidEdge;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.zoning.DirectedConnectoid;
@@ -26,7 +27,7 @@ public class TransportModelNetwork {
   /**
    * Holds the infrastructure road network that is being modelled
    */
-  protected final TransportLayerNetwork<?,?> infrastructureNetwork;
+  protected final TransportLayerNetwork<?, ?> infrastructureNetwork;
 
   /**
    * Holds the zoning structure and virtual transport network interfacing with the physical network
@@ -79,8 +80,10 @@ public class TransportModelNetwork {
 
   // Public
 
-  /** create and register the edge segments for the passed in connectoid edges
-   * @param virtualNetwork to create and register on 
+  /**
+   * create and register the edge segments for the passed in connectoid edges
+   * 
+   * @param virtualNetwork  to create and register on
    * @param connectoidEdges to process
    * @throws PlanItException thrown if error
    */
@@ -98,7 +101,7 @@ public class TransportModelNetwork {
    * @param infrastructureNetwork the network used to generate this TransportNetwork
    * @param zoning                the Zoning used to generate this TransportNetwork
    */
-  public TransportModelNetwork(TransportLayerNetwork<?,?> infrastructureNetwork, Zoning zoning) {
+  public TransportModelNetwork(TransportLayerNetwork<?, ?> infrastructureNetwork, Zoning zoning) {
     this.infrastructureNetwork = infrastructureNetwork;
     this.zoning = zoning;
   }
@@ -119,8 +122,8 @@ public class TransportModelNetwork {
    */
   public int getTotalNumberOfPhysicalLinkSegments() {
     int totalPhysicalLinkSegments = 0;
-    Collection<MacroscopicNetworkLayerImpl> networkLayers = getInfrastructureNetwork().transportLayers.<MacroscopicNetworkLayerImpl>getLayersOfType();
-    for(MacroscopicNetworkLayerImpl layer :  networkLayers) {
+    Collection<MacroscopicNetworkLayerImpl> networkLayers = getInfrastructureNetwork().getTransportLayers().<MacroscopicNetworkLayerImpl>getLayersOfType();
+    for (MacroscopicNetworkLayerImpl layer : networkLayers) {
       totalPhysicalLinkSegments += layer.getNumberOfLinkSegments();
     }
     return totalPhysicalLinkSegments;
@@ -149,13 +152,13 @@ public class TransportModelNetwork {
    * 
    * @return the number of physical nodes in this network
    */
+  @SuppressWarnings("rawtypes")
   public int getTotalNumberOfPhysicalNodes() {
     int totalPhysicalNodes = 0;
-    Collection<MacroscopicNetworkLayerImpl> networkLayers = getInfrastructureNetwork().transportLayers.<MacroscopicNetworkLayerImpl>getLayersOfType();
-    for(MacroscopicNetworkLayerImpl layer :  networkLayers) {
+    Collection<UntypedPhysicalLayer> networkLayers = getInfrastructureNetwork().getTransportLayers().<UntypedPhysicalLayer>getLayersOfType();
+    for (UntypedPhysicalLayer layer : networkLayers) {
       totalPhysicalNodes += layer.getNumberOfNodes();
-    }    
-    
+    }
     return totalPhysicalNodes;
   }
 
@@ -167,16 +170,16 @@ public class TransportModelNetwork {
   public void integrateTransportNetworkViaConnectoids() throws PlanItException {
     VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
     for (UndirectedConnectoid undirectedConnectoid : zoning.odConnectoids) {
-      /* undirected connectoid (virtual) edge between zone centroid and access node*/
+      /* undirected connectoid (virtual) edge between zone centroid and access node */
       Collection<ConnectoidEdge> connectoidEdges = virtualNetwork.connectoidEdges.registerNew(undirectedConnectoid);
       createAndRegisterConectoidEdgeSegments(virtualNetwork, connectoidEdges);
 
     }
     for (DirectedConnectoid directedConnectoid : zoning.transferConnectoids) {
-      /* directed connectoid (virtual) edge between zone centroid and access link segment's downstream node*/
+      /* directed connectoid (virtual) edge between zone centroid and access link segment's downstream node */
       Collection<ConnectoidEdge> connectoidEdges = virtualNetwork.connectoidEdges.registerNew(directedConnectoid);
       createAndRegisterConectoidEdgeSegments(virtualNetwork, connectoidEdges);
-    }    
+    }
     for (ConnectoidSegment connectoidSegment : virtualNetwork.connectoidSegments) {
       connectVerticesToEdgeSegment(connectoidSegment);
     }
@@ -204,7 +207,7 @@ public class TransportModelNetwork {
    * 
    * @return physicalNetwork
    */
-  public TransportLayerNetwork<?,?> getInfrastructureNetwork() {
+  public TransportLayerNetwork<?, ?> getInfrastructureNetwork() {
     return infrastructureNetwork;
   }
 
