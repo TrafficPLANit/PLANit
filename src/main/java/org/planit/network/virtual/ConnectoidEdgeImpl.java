@@ -48,6 +48,17 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl implements ConnectoidEd
   }
 
   /**
+   * recreate the internal connectoid edge id and set it
+   * 
+   * @return updated id
+   */
+  protected long recreateConnectoidEdgeId(IdGroupingToken tokenId) {
+    long newConnectoidEdgeId = generateConnectoidEdgeId(tokenId);
+    setConnectoidEdgeId(newConnectoidEdgeId);
+    return newConnectoidEdgeId;
+  }
+
+  /**
    * Constructor
    *
    * @param groupId   contiguous id generation within this group for instances of this class
@@ -69,6 +80,17 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl implements ConnectoidEd
   protected ConnectoidEdgeImpl(ConnectoidEdgeImpl connectoidEdgeImpl) {
     super(connectoidEdgeImpl);
     setConnectoidEdgeId(connectoidEdgeImpl.getConnectoidEdgeId());
+  }
+
+  /**
+   * Recreate internal ids: id and connectoid edge id
+   * 
+   * @return recreated id
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    recreateConnectoidEdgeId(tokenId);
+    return super.recreateManagedIds(tokenId);
   }
 
   /**

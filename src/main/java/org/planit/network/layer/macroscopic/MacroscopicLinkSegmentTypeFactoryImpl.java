@@ -2,7 +2,6 @@ package org.planit.network.layer.macroscopic;
 
 import java.util.Map;
 
-import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
@@ -30,6 +29,7 @@ public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactor
    */
   protected MacroscopicLinkSegmentTypeFactoryImpl(final IdGroupingToken groupId, MacroscopicLinkSegmentTypes linkSegmentTypes) {
     super(groupId);
+    this.linkSegmentTypes = linkSegmentTypes;
   }
 
   /**
@@ -46,8 +46,7 @@ public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactor
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentType registerNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm, Map<Mode, MacroscopicModeProperties> modeProperties)
-      throws PlanItException {
+  public MacroscopicLinkSegmentType registerNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm, Map<Mode, MacroscopicModeProperties> modeProperties) {
 
     MacroscopicLinkSegmentType linkSegmentType = new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacityPcuPerHour, maximumDensityPcuPerKm, modeProperties);
     linkSegmentTypes.register(linkSegmentType);
@@ -58,7 +57,7 @@ public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactor
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegmentType registerNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm) throws PlanItException {
+  public MacroscopicLinkSegmentType registerNew(String name, double capacityPcuPerHour, double maximumDensityPcuPerKm) {
 
     MacroscopicLinkSegmentType linkSegmentType = new MacroscopicLinkSegmentTypeImpl(getIdGroupingToken(), name, capacityPcuPerHour, maximumDensityPcuPerKm);
     linkSegmentTypes.register(linkSegmentType);

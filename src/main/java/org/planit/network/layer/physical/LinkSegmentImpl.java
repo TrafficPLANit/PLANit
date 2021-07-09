@@ -53,14 +53,14 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
   }
 
   /**
-   * recreate the internal link id and set it
+   * recreate the internal link segment id and set it
    * 
-   * @return
+   * @return updated id
    */
   protected long recreateLinkSegmentId(IdGroupingToken tokenId) {
-    long newLinkId = generateLinkSegmentId(tokenId);
-    setLinkSegmentId(newLinkId);
-    return newLinkId;
+    long newLinkSegmentId = generateLinkSegmentId(tokenId);
+    setLinkSegmentId(newLinkSegmentId);
+    return newLinkSegmentId;
   }
 
   /**

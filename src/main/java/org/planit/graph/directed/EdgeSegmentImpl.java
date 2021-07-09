@@ -50,6 +50,13 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
   protected EdgeSegmentImpl(final IdGroupingToken groupId, final DirectedEdge parentEdge, final boolean directionAB) {
     this(groupId, directionAB);
     setParent(parentEdge);
+    if (directionAB == true) {
+      setUpstreamVertex(parentEdge.getVertexA());
+      setDownstreamVertex(parentEdge.getVertexB());
+    } else {
+      setUpstreamVertex(parentEdge.getVertexB());
+      setDownstreamVertex(parentEdge.getVertexA());
+    }
   }
 
   /**
@@ -60,11 +67,6 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    */
   protected EdgeSegmentImpl(final IdGroupingToken groupId, final boolean directionAB) {
     super(groupId, EDGE_SEGMENT_ID_CLASS);
-
-    if (!(parentEdge.getVertexA() instanceof DirectedVertex && parentEdge.getVertexB() instanceof DirectedVertex)) {
-      LOGGER.warning(String.format("parent edges (id:%d) vertices do not support directed edge segments, they must be of type DirectedVertex", parentEdge.getId()));
-      return;
-    }
   }
 
   /**
@@ -153,6 +155,10 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    */
   @Override
   public void setParent(DirectedEdge parentEdge) {
+    if (parentEdge == null) {
+      LOGGER.warning(String.format("Parent edge is null, unable to set on edge segment (id: %d)", getId()));
+      return;
+    }
     this.parentEdge = parentEdge;
   }
 

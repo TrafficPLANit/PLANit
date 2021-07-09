@@ -42,7 +42,9 @@ public class MacroscopicNetworkLayerFactoryImpl extends ManagedIdEntityFactoryIm
    */
   @Override
   public MacroscopicNetworkLayer registerNew() {
-    return new MacroscopicNetworkLayerImpl(this.getIdGroupingToken());
+    MacroscopicNetworkLayer newLayer = new MacroscopicNetworkLayerImpl(this.getIdGroupingToken());
+    container.register(newLayer);
+    return newLayer;
   }
 
 }

@@ -118,6 +118,21 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   // Public - getters - setters
 
   /**
+   * Log general information on this zoning to the user
+   * 
+   * @param prefix to use
+   */
+  public void logInfo(String prefix) {
+    LOGGER.info(String.format("%s#od zones: %d (#centroids: %d)", prefix, odZones.size(), odZones.getNumberOfCentroids()));
+    LOGGER.info(String.format("%s#od connectoids: %d", prefix, odConnectoids.size()));
+    if (!transferZones.isEmpty()) {
+      LOGGER.info(String.format("%s#transfer connectoids: %d", prefix, transferConnectoids.size()));
+      LOGGER.info(String.format("%s#transfer zones: %d (#centroids:", prefix, transferZones.size(), transferZones.getNumberOfCentroids()));
+      LOGGER.info(String.format("%s#transfer zone groups: %d", prefix, transferZoneGroups.size()));
+    }
+  }
+
+  /**
    * Get the virtual network for this zoning
    *
    * @return the virtual network for this zoning

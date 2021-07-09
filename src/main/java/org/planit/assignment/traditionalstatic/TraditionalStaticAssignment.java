@@ -359,7 +359,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void populateModalConnectoidCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
-    for (final ConnectoidSegment currentSegment : transportNetwork.getVirtualNetwork().connectoidSegments) {
+    for (final ConnectoidSegment currentSegment : transportNetwork.getVirtualNetwork().getConnectoidSegments()) {
       currentSegmentCosts[(int) currentSegment.getId()] = virtualCost.getSegmentCost(mode, currentSegment);
     }
   }

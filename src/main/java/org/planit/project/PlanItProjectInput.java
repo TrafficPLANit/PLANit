@@ -189,12 +189,7 @@ public class PlanItProjectInput {
             infrastructureNetwork);
     
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createZoningPrefix(zoning.getId());
-    LOGGER.info(String.format("%s#od zones: %d (#centroids: %d)", prefix, zoning.odZones.size(),zoning.odZones.getNumberOfCentroids()));
-    LOGGER.info(String.format("%s#connectoids: %d", prefix, zoning.getVirtualNetwork().connectoidEdges.size()));
-    LOGGER.info(String.format("%s#connectoid segments: %d", prefix, zoning.getVirtualNetwork().connectoidSegments.getNumberOfConnectoidSegments()));
-    if(!zoning.transferZones.isEmpty()) {
-      LOGGER.info(String.format("%s#transfer zones: %d (#centroids:", prefix, zoning.transferZones.size(),zoning.transferZones.getNumberOfCentroids()));
-    }
+    zoning.logInfo(prefix);
 
     zonings.register(zoning);
     return zoning;

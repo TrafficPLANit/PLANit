@@ -71,11 +71,6 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
   public void logInfo(String prefix) {
     super.logInfo(prefix);
 
-    /* log infrastructure components */
-    LOGGER.info(String.format("%s#links: %d", prefix, getLinks().size()));
-    LOGGER.info(String.format("%s#macroscopic link segments: %d", prefix, getLinkSegments().size()));
-    LOGGER.info(String.format("%s#nodes: %d", prefix, getNodes().size()));
-
     LOGGER.info(String.format("%s#link segment types: %d", prefix, linkSegmentTypes.size()));
   }
 

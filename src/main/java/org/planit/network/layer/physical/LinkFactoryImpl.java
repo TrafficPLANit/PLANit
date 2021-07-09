@@ -28,8 +28,9 @@ public class LinkFactoryImpl extends GraphEntityFactoryImpl<Link> implements Lin
    * {@inheritDoc}
    */
   @Override
-  public LinkImpl registerNew(Node nodeA, Node nodeB, double lengthKm, boolean registerOnNodes){
+  public LinkImpl registerNew(Node nodeA, Node nodeB, double lengthKm, boolean registerOnNodes) {
     LinkImpl newLink = new LinkImpl(getIdGroupingToken(), nodeA, nodeB);
+    getGraphEntities().register(newLink);
     newLink.setLengthKm(lengthKm);
     if (registerOnNodes) {
       nodeA.addEdge(newLink);

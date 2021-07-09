@@ -189,7 +189,7 @@ public class ShortestPathTest {
             
           };
       
-      assertEquals(networkLayer.getLinkSegments().size()+zoning.getVirtualNetwork().connectoidSegments.getNumberOfConnectoidSegments(), transportNetwork.getTotalNumberOfEdgeSegments());
+      assertEquals(networkLayer.getLinkSegments().size()+zoning.getVirtualNetwork().getConnectoidSegments().size(), transportNetwork.getTotalNumberOfEdgeSegments());
       
     }catch(Exception e) {
       e.printStackTrace();

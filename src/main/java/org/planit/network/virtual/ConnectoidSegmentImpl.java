@@ -37,7 +37,7 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
    * @return linkSegmentId
    */
   protected static long generateConnectoidSegmentId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, ConnectoidSegment.class);
+    return IdGenerator.generateId(groupId, ConnectoidSegment.CONNECTOID_SEGMENT_ID_CLASS);
   }
 
   /**
@@ -47,6 +47,17 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
    */
   protected void setConnectoidSegmentId(long connectoidSegmentId) {
     this.connectoidSegmentId = connectoidSegmentId;
+  }
+
+  /**
+   * recreate the internal connectoid segment id and set it
+   * 
+   * @return updated id
+   */
+  protected long recreateConnectoidSegmentId(IdGroupingToken tokenId) {
+    long newConnectoidSegmentId = generateConnectoidSegmentId(tokenId);
+    setConnectoidSegmentId(newConnectoidSegmentId);
+    return newConnectoidSegmentId;
   }
 
   /**
@@ -73,6 +84,17 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
   }
 
   // Public getters - setters
+
+  /**
+   * Recreate internal ids: id and connectoid segment id
+   * 
+   * @return recreated id
+   */
+  @Override
+  public long recreateManagedIds(IdGroupingToken tokenId) {
+    recreateConnectoidSegmentId(tokenId);
+    return super.recreateManagedIds(tokenId);
+  }
 
   /**
    * {@inheritDoc}
