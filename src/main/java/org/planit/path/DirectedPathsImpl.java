@@ -21,7 +21,7 @@ public class DirectedPathsImpl extends ManagedIdEntitiesImpl<DirectedPath> imple
    * @param groupId to use for creating ids for instances
    */
   public DirectedPathsImpl(final IdGroupingToken groupId) {
-    super(DirectedPath::getId);
+    super(DirectedPath::getId, DirectedPath.PATH_ID_CLASS);
     this.directedPathFactory = new ContainerisedDirectedPathFactoryImpl(groupId, this);
   }
 
@@ -32,7 +32,7 @@ public class DirectedPathsImpl extends ManagedIdEntitiesImpl<DirectedPath> imple
    * @param directedPathFactory the factory to use
    */
   public DirectedPathsImpl(final IdGroupingToken groupId, ContainerisedDirectedPathFactoryImpl directedPathFactory) {
-    super(DirectedPath::getId);
+    super(DirectedPath::getId, DirectedPath.PATH_ID_CLASS);
     this.directedPathFactory = directedPathFactory;
   }
 

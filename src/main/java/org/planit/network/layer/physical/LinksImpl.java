@@ -25,7 +25,7 @@ public class LinksImpl extends GraphEntitiesImpl<Link> implements Links {
    * @param groupId to use for creating ids for instances
    */
   public LinksImpl(final IdGroupingToken groupId) {
-    super(Link::getId);
+    super(Link::getId, Link.EDGE_ID_CLASS);
     this.linkFactory = new LinkFactoryImpl(groupId, this);
   }
 
@@ -36,7 +36,7 @@ public class LinksImpl extends GraphEntitiesImpl<Link> implements Links {
    * @param linkFactory the factory to use
    */
   public LinksImpl(final IdGroupingToken groupId, LinkFactory linkFactory) {
-    super(Link::getId);
+    super(Link::getId, Link.EDGE_ID_CLASS);
     this.linkFactory = linkFactory;
   }
 
@@ -73,7 +73,7 @@ public class LinksImpl extends GraphEntitiesImpl<Link> implements Links {
   public void recreateIds(boolean resetManagedIdClass) {
     /* always reset the additional link id class */
     IdGenerator.reset(getFactory().getIdGroupingToken(), Link.LINK_ID_CLASS);
-    
+
     super.recreateIds(resetManagedIdClass);
   }
 

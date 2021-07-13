@@ -21,7 +21,7 @@ public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
    * @param groupId to use for creating ids for instances
    */
   public EdgesImpl(final IdGroupingToken groupId) {
-    super(Edge::getId);
+    super(Edge::getId, Edge.EDGE_ID_CLASS);
     this.edgeFactory = new EdgeFactoryImpl(groupId, this);
   }
 
@@ -31,7 +31,7 @@ public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
    * @param edgeFactory to use
    */
   public EdgesImpl(EdgeFactory edgeFactory) {
-    super(Edge::getId);
+    super(Edge::getId, Edge.EDGE_ID_CLASS);
     this.edgeFactory = edgeFactory;
   }
 

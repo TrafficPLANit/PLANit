@@ -25,7 +25,7 @@ public class ConnectoidSegmentsImpl extends GraphEntitiesImpl<ConnectoidSegment>
    * @param groupId to use for creating ids for instances
    */
   public ConnectoidSegmentsImpl(final IdGroupingToken groupId) {
-    super(ConnectoidSegment::getId);
+    super(ConnectoidSegment::getId, ConnectoidSegment.EDGE_SEGMENT_ID_CLASS);
     this.connectoidSegmentFactory = new ConnectoidSegmentFactoryImpl(groupId, this);
   }
 
@@ -36,7 +36,7 @@ public class ConnectoidSegmentsImpl extends GraphEntitiesImpl<ConnectoidSegment>
    * @param connectoidSegmentFactory the factory to use
    */
   public ConnectoidSegmentsImpl(final IdGroupingToken groupId, ConnectoidSegmentFactory connectoidSegmentFactory) {
-    super(ConnectoidSegment::getId);
+    super(ConnectoidSegment::getId, ConnectoidSegment.EDGE_SEGMENT_ID_CLASS);
     this.connectoidSegmentFactory = connectoidSegmentFactory;
   }
 

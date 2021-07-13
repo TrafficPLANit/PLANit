@@ -23,10 +23,10 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
    * generated UID
    */
   private static final long serialVersionUID = -7710154947041263497L;
-  
+
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConnectoidsImpl.class.getCanonicalName());
-  
+
   /**
    * update the references to all access zones for all connectoids
    */
@@ -36,7 +36,7 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
         LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of connectoids interface when attempting to update access zone references");
       }
       ((ConnectoidImpl) connectoid).recreateAccessZoneIdMapping();
-    } 
+    }
   }
 
   /**
@@ -45,7 +45,7 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
    * @param groupId to use for creating ids for instances
    */
   public ConnectoidsImpl(final IdGroupingToken groupId) {
-    super(Connectoid::getId);
+    super(Connectoid::getId, Connectoid.CONNECTOID_ID_CLASS);
   }
 
   /**
@@ -56,24 +56,24 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
   public ConnectoidsImpl(ConnectoidsImpl<T> connectoidsImpl) {
     super(connectoidsImpl);
   }
-  
+
   /**
    * {@inheritDoc}
    */
   @Override
   public abstract ConnectoidsImpl<T> clone();
-  
+
   /**
    * Support event callbacks that require changes on underlying connectoids
    */
   @Override
   public void notify(EventInterface event) throws RemoteException {
     org.djutils.event.EventType eventType = event.getType();
-        
+
     /* update connectoid zone id references when zone ids have changed */
-    if(eventType.equals(ZoningModifierImpl.MODIFIED_ZONE_IDS)) {
+    if (eventType.equals(ZoningModifierImpl.MODIFIED_ZONE_IDS)) {
       updateConnectoidAccessZoneIdReferences();
-    }    
+    }
   }
 
 }

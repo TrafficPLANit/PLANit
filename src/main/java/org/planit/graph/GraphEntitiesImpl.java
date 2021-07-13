@@ -18,10 +18,12 @@ public abstract class GraphEntitiesImpl<E extends GraphEntity> extends ManagedId
   /**
    * Constructor
    * 
-   * @param valueToKey the mapping from key to value of the graph entity
+   * @param valueToKey         the mapping from key to value of the graph entity
+   * @param graphEntityIdClass should reflect the base class signature used for generating the graph entities internal id of this class when creating it via the factory of this
+   *                           container
    */
-  protected GraphEntitiesImpl(Function<E, Long> valueToKey) {
-    super(valueToKey);
+  protected GraphEntitiesImpl(Function<E, Long> valueToKey, final Class<? extends GraphEntity> graphEntityIdClass) {
+    super(valueToKey, graphEntityIdClass);
   }
 
   /**

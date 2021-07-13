@@ -29,7 +29,7 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
    * @param groupId to use for creating ids for instances
    */
   public MacroscopicLinkSegmentTypesImpl(final IdGroupingToken groupId) {
-    super(MacroscopicLinkSegmentType::getId);
+    super(MacroscopicLinkSegmentType::getId, MacroscopicLinkSegmentType.MACROSCOPIC_LINK_SEGMENT_TYPE_ID_CLASS);
     this.linkSegmentTypeFactory = new MacroscopicLinkSegmentTypeFactoryImpl(groupId, this);
   }
 
@@ -40,7 +40,7 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
    * @param linkSegmentTypeFactory the factory to use
    */
   public MacroscopicLinkSegmentTypesImpl(final IdGroupingToken groupId, MacroscopicLinkSegmentTypeFactory linkSegmentTypeFactory) {
-    super(MacroscopicLinkSegmentType::getId);
+    super(MacroscopicLinkSegmentType::getId, MacroscopicLinkSegmentType.MACROSCOPIC_LINK_SEGMENT_TYPE_ID_CLASS);
     this.linkSegmentTypeFactory = linkSegmentTypeFactory;
   }
 

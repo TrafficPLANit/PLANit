@@ -15,7 +15,6 @@ import org.planit.utils.network.layer.service.ServiceNodes;
  */
 public class ServiceNodesImpl extends GraphEntitiesImpl<ServiceNode> implements ServiceNodes {
 
-
   /** factory to use */
   private final ServiceNodeFactory serviceNodeFactory;
 
@@ -25,18 +24,18 @@ public class ServiceNodesImpl extends GraphEntitiesImpl<ServiceNode> implements 
    * @param groupId to use for creating ids for instances
    */
   public ServiceNodesImpl(final IdGroupingToken groupId) {
-    super(ServiceNode::getId);
+    super(ServiceNode::getId, ServiceNode.VERTEX_ID_CLASS);
     this.serviceNodeFactory = new ServiceNodeFactoryImpl(groupId, this);
   }
 
   /**
    * Constructor
    * 
-   * @param groupId     to use for creating ids for instances
+   * @param groupId            to use for creating ids for instances
    * @param serviceNodeFactory the factory to use
    */
   public ServiceNodesImpl(final IdGroupingToken groupId, ServiceNodeFactory serviceNodeFactory) {
-    super(ServiceNode::getId);
+    super(ServiceNode::getId, ServiceNode.VERTEX_ID_CLASS);
     this.serviceNodeFactory = serviceNodeFactory;
   }
 

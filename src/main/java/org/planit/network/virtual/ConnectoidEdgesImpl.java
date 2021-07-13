@@ -25,7 +25,7 @@ public class ConnectoidEdgesImpl extends GraphEntitiesImpl<ConnectoidEdge> imple
    * @param groupId to use for creating ids for instances
    */
   public ConnectoidEdgesImpl(final IdGroupingToken groupId) {
-    super(ConnectoidEdge::getId);
+    super(ConnectoidEdge::getId, ConnectoidEdge.EDGE_ID_CLASS);
     this.connectoidEdgeFactory = new ConnectoidEdgeFactoryImpl(groupId, this);
   }
 
@@ -36,7 +36,7 @@ public class ConnectoidEdgesImpl extends GraphEntitiesImpl<ConnectoidEdge> imple
    * @param connectoidEdgeFactory the factory to use
    */
   public ConnectoidEdgesImpl(final IdGroupingToken groupId, ConnectoidEdgeFactory connectoidEdgeFactory) {
-    super(ConnectoidEdge::getId);
+    super(ConnectoidEdge::getId, ConnectoidEdge.EDGE_ID_CLASS);
     this.connectoidEdgeFactory = connectoidEdgeFactory;
   }
 

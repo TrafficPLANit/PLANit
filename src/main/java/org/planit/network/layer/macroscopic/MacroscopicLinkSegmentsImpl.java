@@ -24,7 +24,7 @@ public class MacroscopicLinkSegmentsImpl extends GraphEntitiesImpl<MacroscopicLi
    * @param groupId to use for creating ids for instances
    */
   public MacroscopicLinkSegmentsImpl(final IdGroupingToken groupId) {
-    super(MacroscopicLinkSegment::getId);
+    super(MacroscopicLinkSegment::getId, MacroscopicLinkSegment.EDGE_SEGMENT_ID_CLASS);
     this.linkSegmentFactory = new MacroscopicLinkSegmentFactoryImpl(groupId, this);
   }
 
@@ -35,7 +35,7 @@ public class MacroscopicLinkSegmentsImpl extends GraphEntitiesImpl<MacroscopicLi
    * @param linkSegmentFactory the factory to use
    */
   public MacroscopicLinkSegmentsImpl(final IdGroupingToken groupId, MacroscopicLinkSegmentFactory linkSegmentFactory) {
-    super(MacroscopicLinkSegment::getId);
+    super(MacroscopicLinkSegment::getId, MacroscopicLinkSegment.EDGE_SEGMENT_ID_CLASS);
     this.linkSegmentFactory = linkSegmentFactory;
   }
 

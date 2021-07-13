@@ -40,7 +40,7 @@ public abstract class TransportLayersImpl<T extends TransportLayer> extends Mana
    * @param idToken to generated id's for infrastructure layers
    */
   public TransportLayersImpl(IdGroupingToken idToken) {
-    super(T::getId);
+    super(T::getId, TransportLayer.TRANSPORT_LAYER_ID_CLASS);
     this.idToken = idToken;
   }
 

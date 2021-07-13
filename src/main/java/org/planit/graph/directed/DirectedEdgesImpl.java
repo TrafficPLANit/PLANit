@@ -22,7 +22,7 @@ public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implement
    * @param groupId to use for creating ids for instances
    */
   public DirectedEdgesImpl(final IdGroupingToken groupId) {
-    super(DirectedEdge::getId);
+    super(DirectedEdge::getId, DirectedEdge.EDGE_ID_CLASS);
     this.directedEdgeFactory = new DirectedEdgeFactoryImpl(groupId, this);
   }
 
@@ -33,7 +33,7 @@ public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implement
    * @param directedEdgeFactory the factory to use
    */
   public DirectedEdgesImpl(final IdGroupingToken groupId, DirectedEdgeFactory directedEdgeFactory) {
-    super(DirectedEdge::getId);
+    super(DirectedEdge::getId, DirectedEdge.EDGE_ID_CLASS);
     this.directedEdgeFactory = directedEdgeFactory;
   }
 

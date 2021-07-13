@@ -25,7 +25,7 @@ public class LinkSegmentsImpl extends GraphEntitiesImpl<LinkSegment> implements 
    * @param groupId to use for creating ids for instances
    */
   public LinkSegmentsImpl(final IdGroupingToken groupId) {
-    super(LinkSegment::getId);
+    super(LinkSegment::getId, LinkSegment.EDGE_SEGMENT_ID_CLASS);
     this.linkSegmentFactory = new LinkSegmentFactoryImpl(groupId, this);
   }
 
@@ -36,7 +36,7 @@ public class LinkSegmentsImpl extends GraphEntitiesImpl<LinkSegment> implements 
    * @param linkSegmentFactory the factory to use
    */
   public LinkSegmentsImpl(final IdGroupingToken groupId, LinkSegmentFactory linkSegmentFactory) {
-    super(LinkSegment::getId);
+    super(LinkSegment::getId, LinkSegment.EDGE_SEGMENT_ID_CLASS);
     this.linkSegmentFactory = linkSegmentFactory;
   }
 
@@ -65,7 +65,7 @@ public class LinkSegmentsImpl extends GraphEntitiesImpl<LinkSegment> implements 
   public void recreateIds(boolean resetManagedIdClass) {
     /* always reset the additional link segment id class */
     IdGenerator.reset(getFactory().getIdGroupingToken(), LinkSegment.LINK_SEGMENT_ID_CLASS);
-    
+
     super.recreateIds(resetManagedIdClass);
   }
 

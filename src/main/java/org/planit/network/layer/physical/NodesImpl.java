@@ -25,7 +25,7 @@ public class NodesImpl extends GraphEntitiesImpl<Node> implements Nodes {
    * @param groupId to use for creating ids for instances
    */
   public NodesImpl(final IdGroupingToken groupId) {
-    super(Node::getId);
+    super(Node::getId, Node.VERTEX_ID_CLASS);
     this.nodeFactory = new NodeFactoryImpl(groupId, this);
   }
 
@@ -36,7 +36,7 @@ public class NodesImpl extends GraphEntitiesImpl<Node> implements Nodes {
    * @param nodeFactory the factory to use
    */
   public NodesImpl(final IdGroupingToken groupId, NodeFactory nodeFactory) {
-    super(Node::getId);
+    super(Node::getId, Node.VERTEX_ID_CLASS);
     this.nodeFactory = nodeFactory;
   }
 

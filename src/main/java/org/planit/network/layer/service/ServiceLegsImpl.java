@@ -23,18 +23,18 @@ public class ServiceLegsImpl extends GraphEntitiesImpl<ServiceLeg> implements Se
    * @param groupId to use for creating ids for instances
    */
   public ServiceLegsImpl(final IdGroupingToken groupId) {
-    super(ServiceLeg::getId);
+    super(ServiceLeg::getId, ServiceLeg.EDGE_ID_CLASS);
     this.serviceLegFactory = new ServiceLegFactoryImpl(groupId, this);
   }
 
   /**
    * Constructor
    * 
-   * @param groupId     to use for creating ids for instances
+   * @param groupId           to use for creating ids for instances
    * @param serviceLegFactory the factory to use
    */
   public ServiceLegsImpl(final IdGroupingToken groupId, ServiceLegFactory serviceLegFactory) {
-    super(ServiceLeg::getId);
+    super(ServiceLeg::getId, ServiceLeg.EDGE_ID_CLASS);
     this.serviceLegFactory = serviceLegFactory;
   }
 

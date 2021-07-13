@@ -23,7 +23,7 @@ public class ServiceLegSegmentsImpl extends GraphEntitiesImpl<ServiceLegSegment>
    * @param groupId to use for creating ids for instances
    */
   public ServiceLegSegmentsImpl(final IdGroupingToken groupId) {
-    super(ServiceLegSegment::getId);
+    super(ServiceLegSegment::getId, ServiceLegSegment.EDGE_SEGMENT_ID_CLASS);
     this.serviceLegSegmentFactory = new ServiceLegSegmentFactoryImpl(groupId, this);
   }
 
@@ -34,7 +34,7 @@ public class ServiceLegSegmentsImpl extends GraphEntitiesImpl<ServiceLegSegment>
    * @param serviceLegSegmentFactory the factory to use
    */
   public ServiceLegSegmentsImpl(final IdGroupingToken groupId, ServiceLegSegmentFactory serviceLegSegmentFactory) {
-    super(ServiceLegSegment::getId);
+    super(ServiceLegSegment::getId, ServiceLegSegment.EDGE_SEGMENT_ID_CLASS);
     this.serviceLegSegmentFactory = serviceLegSegmentFactory;
   }
 

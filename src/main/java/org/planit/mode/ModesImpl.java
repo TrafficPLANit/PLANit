@@ -30,7 +30,7 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    * @param groupId to use for creating ids for instances
    */
   public ModesImpl(final IdGroupingToken groupId) {
-    super(Mode::getId);
+    super(Mode::getId, Mode.MODE_ID_CLASS);
     this.modeFactory = new ModeFactoryImpl(groupId, this);
   }
 
@@ -40,7 +40,7 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    * @param modeFactory factory to use
    */
   public ModesImpl(ModeFactory modeFactory) {
-    super(Mode::getId);
+    super(Mode::getId, Mode.MODE_ID_CLASS);
     this.modeFactory = modeFactory;
   }
 
@@ -96,7 +96,7 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public ModeFactory getFactory() {
     return modeFactory;

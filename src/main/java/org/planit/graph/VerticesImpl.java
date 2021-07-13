@@ -23,7 +23,7 @@ public class VerticesImpl extends GraphEntitiesImpl<Vertex> implements Vertices 
    * @param groupId to use for creating ids for instances
    */
   public VerticesImpl(final IdGroupingToken groupId) {
-    super(Vertex::getId);
+    super(Vertex::getId, Vertex.VERTEX_ID_CLASS);
     this.vertexFactory = new VertexFactoryImpl(groupId, this);
   }
 
@@ -34,7 +34,7 @@ public class VerticesImpl extends GraphEntitiesImpl<Vertex> implements Vertices 
    * @param vertexFactory to use
    */
   public VerticesImpl(final IdGroupingToken groupId, final VertexFactory vertexFactory) {
-    super(Vertex::getId);
+    super(Vertex::getId, Vertex.VERTEX_ID_CLASS);
     this.vertexFactory = vertexFactory;
   }
 

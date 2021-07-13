@@ -28,14 +28,14 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
 
   /** factory to use */
   private final TransferZoneGroupFactory transferZoneGroupFactory;
-  
+
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(ConnectoidsImpl.class.getCanonicalName());  
+  private static final Logger LOGGER = Logger.getLogger(ConnectoidsImpl.class.getCanonicalName());
 
   /**
-   * Update all transfer zone groups' id mappings for underlying transfer zones since the transfer zone id might have changed 
+   * Update all transfer zone groups' id mappings for underlying transfer zones since the transfer zone id might have changed
    */
-  protected void recreateTransferZoneGroupsZoneIdMapping() {    
+  protected void recreateTransferZoneGroupsZoneIdMapping() {
     for (TransferZoneGroup group : this) {
       if (!(group instanceof TransferZoneGroupImpl)) {
         LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of TransferZoneGroup interface when attempting to update references");
@@ -50,7 +50,7 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
    * @param groupId to use for creating ids for instances
    */
   public TransferZoneGroupsImpl(final IdGroupingToken groupId) {
-    super(TransferZoneGroup::getId);
+    super(TransferZoneGroup::getId, TransferZoneGroup.TRANSFER_ZONE_GROUP_ID_CLASS);
     this.transferZoneGroupFactory = new TransferZoneGroupFactoryImpl(groupId, this);
   }
 
@@ -61,7 +61,7 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
    * @param transferZoneGroupFactory the factory to use
    */
   public TransferZoneGroupsImpl(final IdGroupingToken groupId, TransferZoneGroupFactory transferZoneGroupFactory) {
-    super(TransferZoneGroup::getId);
+    super(TransferZoneGroup::getId, TransferZoneGroup.TRANSFER_ZONE_GROUP_ID_CLASS);
     this.transferZoneGroupFactory = transferZoneGroupFactory;
   }
 
@@ -90,18 +90,18 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
   public TransferZoneGroupsImpl clone() {
     return new TransferZoneGroupsImpl(this);
   }
-  
+
   /**
    * Support event callbacks that require changes on underlying transfer zone groups
    */
   @Override
   public void notify(EventInterface event) throws RemoteException {
     org.djutils.event.EventType eventType = event.getType();
-        
+
     /* update connectoid zone id references when zone ids have changed */
-    if(eventType.equals(ZoningModifierImpl.MODIFIED_ZONE_IDS)) {
+    if (eventType.equals(ZoningModifierImpl.MODIFIED_ZONE_IDS)) {
       recreateTransferZoneGroupsZoneIdMapping();
-    }    
-  }  
+    }
+  }
 
 }

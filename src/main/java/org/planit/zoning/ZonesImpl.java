@@ -20,7 +20,7 @@ public abstract class ZonesImpl<Z extends Zone> extends ManagedIdEntitiesImpl<Z>
    * @param groupId to use for creating ids for instances
    */
   public ZonesImpl(final IdGroupingToken groupId) {
-    super(Zone::getId);
+    super(Zone::getId, Zone.ZONE_ID_CLASS);
   }
 
   /**
