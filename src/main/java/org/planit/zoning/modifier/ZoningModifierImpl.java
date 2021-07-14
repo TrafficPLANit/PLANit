@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.djutils.event.EventProducer;
-import org.djutils.event.EventType;
 import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.TransferZone;
 import org.planit.utils.zoning.TransferZoneGroup;
@@ -16,6 +15,7 @@ import org.planit.utils.zoning.modifier.ZoningModifier;
 import org.planit.zoning.ConnectoidsImpl;
 import org.planit.zoning.TransferZoneGroupsImpl;
 import org.planit.zoning.Zoning;
+import org.planit.zoning.modifier.event.ZoningEvent;
 
 /**
  * Implementation of the zoningModifier interface
@@ -32,17 +32,23 @@ public class ZoningModifierImpl extends EventProducer implements ZoningModifier 
 
   /** the logger to use */
   private static final Logger LOGGER = Logger.getLogger(ZoningModifierImpl.class.getCanonicalName());
-  
-  /** event type fired off when zone ids have been modified */
-  public static final EventType MODIFIED_ZONE_IDS = new EventType("ZONINGMODIFIER.MODIFIED_ZONE_IDS");
 
   /**
    * register listeners for the internally fired events on the internally known containers of the zoning
    */
-  private void initialiseGraphEntitiesListeners() {
-    this.addListener((ConnectoidsImpl<?>)zoning.odConnectoids, MODIFIED_ZONE_IDS);
-    this.addListener((ConnectoidsImpl<?>)zoning.transferConnectoids, MODIFIED_ZONE_IDS);
-    this.addListener((TransferZoneGroupsImpl)zoning.transferZoneGroups, MODIFIED_ZONE_IDS);
+  private void addInternalEventListeners() {
+    this.addListener((ConnectoidsImpl<?>) zoning.odConnectoids, ZoningEvent.MODIFIED_ZONE_IDS);
+    this.addListener((ConnectoidsImpl<?>) zoning.transferConnectoids, ZoningEvent.MODIFIED_ZONE_IDS);
+    this.addListener((TransferZoneGroupsImpl) zoning.transferZoneGroups, ZoningEvent.MODIFIED_ZONE_IDS);
+  }
+
+  /**
+   * unregister listeners for the internally fired events on the internally known containers of the zoning
+   */
+  private void removeInternalEventListeners() {
+    this.removeListener((ConnectoidsImpl<?>) zoning.odConnectoids, ZoningEvent.MODIFIED_ZONE_IDS);
+    this.removeListener((ConnectoidsImpl<?>) zoning.transferConnectoids, ZoningEvent.MODIFIED_ZONE_IDS);
+    this.removeListener((TransferZoneGroupsImpl) zoning.transferZoneGroups, ZoningEvent.MODIFIED_ZONE_IDS);
   }
 
   /**
@@ -68,23 +74,24 @@ public class ZoningModifierImpl extends EventProducer implements ZoningModifier 
   /**
    * constructor
    * 
-   * @param zoning        instance to apply modifications on
+   * @param zoning instance to apply modifications on
    */
   public ZoningModifierImpl(Zoning zoning) {
     this.zoning = zoning;
-    initialiseGraphEntitiesListeners();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void recreateConnectoidIds() {   
-    /* both connectoids containers use the same underlying id generated for the connectoid managed id, so it is unique across the
-     * two containers. Hence, we should only reset it once, otherwise it is not longer unique across both when recreating the ids */
+  public void recreateConnectoidIds() {
+    /*
+     * both connectoids containers use the same underlying id generated for the connectoid managed id, so it is unique across the two containers. Hence, we should only reset it
+     * once, otherwise it is not longer unique across both when recreating the ids
+     */
     boolean recreateManagedIdClass = true;
     zoning.odConnectoids.recreateIds(recreateManagedIdClass);
-    
+
     recreateManagedIdClass = false;
     zoning.transferConnectoids.recreateIds(recreateManagedIdClass);
   }
@@ -94,16 +101,24 @@ public class ZoningModifierImpl extends EventProducer implements ZoningModifier 
    */
   @Override
   public void recreateZoneIds() {
-    /* both connectoids containers use the same underlying id generated for the zone managed id, so it is unique across the
-     * two containers. Hence, we should only reset it once, otherwise it is not longer unique across both when recreating the ids */
+    /*
+     * both connectoids containers use the same underlying id generated for the zone managed id, so it is unique across the two containers. Hence, we should only reset it once,
+     * otherwise it is not longer unique across both when recreating the ids
+     */
     boolean resetManagedIdClass = true;
-    zoning.odZones.recreateIds(resetManagedIdClass);        
-    resetManagedIdClass = false;        
+    zoning.odZones.recreateIds(resetManagedIdClass);
+    resetManagedIdClass = false;
     zoning.transferZones.recreateIds(resetManagedIdClass);
-    
-    /* notify all listeners registered for modified zone ids, e.g. container implementations with entities that have references to zones by their id which
-     * now require updating as well */
-    fireEvent(new org.djutils.event.Event(MODIFIED_ZONE_IDS, this, null));      
+
+    /*
+     * notify all listeners registered for modified zone ids, e.g. container implementations with entities that have references to zones by their id which now require updating as
+     * well TODO: the event processing is not yet capable of registering listeners not only on type but also by source. Until this is sorted we have to add and remove the listeners
+     * around the event to avoid other instances of listeners in zoning modifiers to respond to this event. ---> solution create our own simple event manager in utils that does
+     * support this functionality
+     */
+    addInternalEventListeners();
+    fireEvent(new ZoningEvent(zoning, ZoningEvent.MODIFIED_ZONE_IDS));
+    removeInternalEventListeners();
   }
 
   /**

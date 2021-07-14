@@ -32,7 +32,6 @@ public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serial
   private static final long serialVersionUID = -2986366471146628179L;
 
   /** the logger */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(Zoning.class.getCanonicalName());
 
   // Protected

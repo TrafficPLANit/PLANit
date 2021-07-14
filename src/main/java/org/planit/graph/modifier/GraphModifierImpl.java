@@ -1,5 +1,6 @@
 package org.planit.graph.modifier;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import java.util.TreeSet;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
+import org.djutils.event.EventProducer;
 import org.locationtech.jts.geom.LineString;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.utils.exceptions.PlanItException;
@@ -31,7 +33,12 @@ import org.planit.utils.graph.modifier.RemoveSubGraphListener;
  * @author markr
  *
  */
-public class GraphModifierImpl implements GraphModifier<Vertex, Edge> {
+public class GraphModifierImpl extends EventProducer implements GraphModifier<Vertex, Edge> {
+
+  /**
+   * generated UID
+   */
+  private static final long serialVersionUID = -3354874978792212421L;
 
   /** the logger to use */
   private static final Logger LOGGER = Logger.getLogger(GraphModifierImpl.class.getCanonicalName());
@@ -281,6 +288,11 @@ public class GraphModifierImpl implements GraphModifier<Vertex, Edge> {
         brokenEdge.setLengthKm(geoUtils.getDistanceInKilometres(brokenEdge.getGeometry()));
       }
 
+      /* allow listeners to process this break edge occurrence */
+      // TODO: replace current listener approach with true event based approach. Requires our events to be able to be registered
+      // by source rather than globally as is currently the case to be able to localise the calls
+      // fireEvent(new BreakEdgeEvent(this, vertexToBreakAt, aToBreak, breakToB));
+
       if (!registeredBreakEdgeListeners.isEmpty()) {
         for (BreakEdgeListener listener : registeredBreakEdgeListeners) {
           listener.onBreakEdge(vertexToBreakAt, aToBreak, breakToB);
@@ -338,6 +350,14 @@ public class GraphModifierImpl implements GraphModifier<Vertex, Edge> {
   public void reset() {
     registeredRemoveSubGraphListeners.clear();
     registeredBreakEdgeListeners.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Serializable getSourceId() {
+    return this;
   }
 
 }

@@ -9,7 +9,7 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.Connectoids;
-import org.planit.zoning.modifier.ZoningModifierImpl;
+import org.planit.zoning.modifier.event.ZoningEvent;
 
 /**
  * Base implementation of Connectoids container and factory class
@@ -42,7 +42,8 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
   /**
    * Constructor
    * 
-   * @param groupId to use for creating ids for instances
+   * @param groupId      to use for creating ids for instances
+   * @param parentZoning
    */
   public ConnectoidsImpl(final IdGroupingToken groupId) {
     super(Connectoid::getId, Connectoid.CONNECTOID_ID_CLASS);
@@ -71,7 +72,7 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
     org.djutils.event.EventType eventType = event.getType();
 
     /* update connectoid zone id references when zone ids have changed */
-    if (eventType.equals(ZoningModifierImpl.MODIFIED_ZONE_IDS)) {
+    if (eventType.equals(ZoningEvent.MODIFIED_ZONE_IDS)) {
       updateConnectoidAccessZoneIdReferences();
     }
   }

@@ -10,7 +10,7 @@ import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.zoning.TransferZoneGroup;
 import org.planit.utils.zoning.TransferZoneGroupFactory;
 import org.planit.utils.zoning.TransferZoneGroups;
-import org.planit.zoning.modifier.ZoningModifierImpl;
+import org.planit.zoning.modifier.event.ZoningEvent;
 
 /**
  * Container for transfer zone groups where each transfer zone group logically groups multiple transfer zones together. Practically this can be used to represent public transport
@@ -99,7 +99,7 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
     org.djutils.event.EventType eventType = event.getType();
 
     /* update connectoid zone id references when zone ids have changed */
-    if (eventType.equals(ZoningModifierImpl.MODIFIED_ZONE_IDS)) {
+    if (eventType.equals(ZoningEvent.MODIFIED_ZONE_IDS)) {
       recreateTransferZoneGroupsZoneIdMapping();
     }
   }
