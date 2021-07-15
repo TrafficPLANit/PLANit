@@ -43,15 +43,6 @@ public class ZoningModifierImpl extends EventProducer implements ZoningModifier 
   }
 
   /**
-   * unregister listeners for the internally fired events on the internally known containers of the zoning
-   */
-  private void removeInternalEventListeners() {
-    this.removeListener((ConnectoidsImpl<?>) zoning.odConnectoids, ZoningEvent.MODIFIED_ZONE_IDS);
-    this.removeListener((ConnectoidsImpl<?>) zoning.transferConnectoids, ZoningEvent.MODIFIED_ZONE_IDS);
-    this.removeListener((TransferZoneGroupsImpl) zoning.transferZoneGroups, ZoningEvent.MODIFIED_ZONE_IDS);
-  }
-
-  /**
    * The zoning instance to apply modifications on
    */
   protected final Zoning zoning;
@@ -78,6 +69,7 @@ public class ZoningModifierImpl extends EventProducer implements ZoningModifier 
    */
   public ZoningModifierImpl(Zoning zoning) {
     this.zoning = zoning;
+    addInternalEventListeners();
   }
 
   /**
@@ -110,15 +102,7 @@ public class ZoningModifierImpl extends EventProducer implements ZoningModifier 
     resetManagedIdClass = false;
     zoning.transferZones.recreateIds(resetManagedIdClass);
 
-    /*
-     * notify all listeners registered for modified zone ids, e.g. container implementations with entities that have references to zones by their id which now require updating as
-     * well TODO: the event processing is not yet capable of registering listeners not only on type but also by source. Until this is sorted we have to add and remove the listeners
-     * around the event to avoid other instances of listeners in zoning modifiers to respond to this event. ---> solution create our own simple event manager in utils that does
-     * support this functionality
-     */
-    addInternalEventListeners();
     fireEvent(new ZoningEvent(zoning, ZoningEvent.MODIFIED_ZONE_IDS));
-    removeInternalEventListeners();
   }
 
   /**

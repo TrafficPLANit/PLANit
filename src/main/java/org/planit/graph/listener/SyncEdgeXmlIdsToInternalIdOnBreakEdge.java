@@ -9,19 +9,16 @@ import org.planit.utils.id.IdAble;
 import org.planit.utils.id.IdAbleImpl;
 
 /**
- * Whenever edges are broken, these edges' xml ids remain the same and are no longer unique. It is likely the user wants to keep the xml ids unique despite using internal ids in
- * the memory model. For example when the network is persisted to disk afterwards in which case the xml ids can be used to map ids. In this situation the xml ids need to remian
+ * Whenever edges are broken, these edges' XML ids remain the same and are no longer unique. It is likely the user wants to keep the XML ids unique despite using internal ids in
+ * the memory model. For example when the network is persisted to disk afterwards in which case the XML ids can be used to map ids. In this situation the XML ids need to remain
  * unique.
  * 
- * If it is known that the XML ids are initially synced with the internal ids, then this listener can be used to sync all broken links' xml id to the internal id of these links
+ * If it is known that the XML ids are initially synced with the internal ids, then this listener can be used to sync all broken links' XML id to the internal id of these links
  * ensuring uniqueness after performing a break link action.
  * 
  * Class specifically designed to be used in tandem with breakEdges method on graph modifier.
  * 
  * @author markr
- *
- * @param <V> type of vertex
- * @param <E> type of edge
  */
 public class SyncEdgeXmlIdsToInternalIdOnBreakEdge extends IdAbleImpl implements BreakEdgeListener {
 

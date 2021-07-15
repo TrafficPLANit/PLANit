@@ -289,8 +289,6 @@ public class GraphModifierImpl extends EventProducer implements GraphModifier<Ve
       }
 
       /* allow listeners to process this break edge occurrence */
-      // TODO: replace current listener approach with true event based approach. Requires our events to be able to be registered
-      // by source rather than globally as is currently the case to be able to localise the calls
       // fireEvent(new BreakEdgeEvent(this, vertexToBreakAt, aToBreak, breakToB));
 
       if (!registeredBreakEdgeListeners.isEmpty()) {
@@ -316,7 +314,7 @@ public class GraphModifierImpl extends EventProducer implements GraphModifier<Ve
    */
   @Override
   public void registerRemoveSubGraphListener(RemoveSubGraphListener listener) {
-    registeredRemoveSubGraphListeners.add(listener);
+    this.registeredRemoveSubGraphListeners.add(listener);
   }
 
   /**
