@@ -1,34 +1,32 @@
 package org.planit.zoning.modifier;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.djutils.event.EventProducer;
+import org.planit.utils.event.Event;
+import org.planit.utils.event.EventListener;
+import org.planit.utils.event.EventProducerImpl;
 import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.TransferZone;
 import org.planit.utils.zoning.TransferZoneGroup;
 import org.planit.utils.zoning.Zone;
 import org.planit.utils.zoning.modifier.ZoningModifier;
+import org.planit.utils.zoning.modifier.event.ZoningModificationEvent;
+import org.planit.utils.zoning.modifier.event.ZoningModifierEventType;
+import org.planit.utils.zoning.modifier.event.ZoningModifierListener;
 import org.planit.zoning.ConnectoidsImpl;
 import org.planit.zoning.TransferZoneGroupsImpl;
 import org.planit.zoning.Zoning;
-import org.planit.zoning.modifier.event.ZoningEvent;
+import org.planit.zoning.modifier.event.ModifiedZoneIdsEvent;
 
 /**
  * Implementation of the zoningModifier interface
  * 
  * @author markr
- *
  */
-public class ZoningModifierImpl extends EventProducer implements ZoningModifier {
-
-  /**
-   * Generated UID
-   */
-  private static final long serialVersionUID = -7378175296694515636L;
+public class ZoningModifierImpl extends EventProducerImpl implements ZoningModifier {
 
   /** the logger to use */
   private static final Logger LOGGER = Logger.getLogger(ZoningModifierImpl.class.getCanonicalName());
@@ -37,9 +35,17 @@ public class ZoningModifierImpl extends EventProducer implements ZoningModifier 
    * register listeners for the internally fired events on the internally known containers of the zoning
    */
   private void addInternalEventListeners() {
-    this.addListener((ConnectoidsImpl<?>) zoning.odConnectoids, ZoningEvent.MODIFIED_ZONE_IDS);
-    this.addListener((ConnectoidsImpl<?>) zoning.transferConnectoids, ZoningEvent.MODIFIED_ZONE_IDS);
-    this.addListener((TransferZoneGroupsImpl) zoning.transferZoneGroups, ZoningEvent.MODIFIED_ZONE_IDS);
+    this.addListener((ConnectoidsImpl<?>) zoning.odConnectoids);
+    this.addListener((ConnectoidsImpl<?>) zoning.transferConnectoids);
+    this.addListener((TransferZoneGroupsImpl) zoning.transferZoneGroups);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void fireEvent(EventListener eventListener, Event event) {
+    ((ZoningModifierListener) eventListener).onZoningModifierEvent((ZoningModificationEvent) event);
   }
 
   /**
@@ -102,7 +108,7 @@ public class ZoningModifierImpl extends EventProducer implements ZoningModifier 
     resetManagedIdClass = false;
     zoning.transferZones.recreateIds(resetManagedIdClass);
 
-    fireEvent(new ZoningEvent(zoning, ZoningEvent.MODIFIED_ZONE_IDS));
+    fireEvent(new ModifiedZoneIdsEvent(this, zoning));
   }
 
   /**
@@ -164,8 +170,25 @@ public class ZoningModifierImpl extends EventProducer implements ZoningModifier 
    * {@inheritDoc}
    */
   @Override
-  public Serializable getSourceId() {
-    return this;
+  public void addListener(ZoningModifierListener listener, ZoningModifierEventType eventType) {
+    super.addListener(listener, eventType);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeListener(ZoningModifierListener listener, ZoningModifierEventType eventType) {
+    super.removeListener(listener, eventType);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeListener(ZoningModifierListener listener) {
+    super.removeListener(listener);
+
   }
 
 }

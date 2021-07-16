@@ -1,16 +1,15 @@
 package org.planit.zoning;
 
-import java.rmi.RemoteException;
 import java.util.logging.Logger;
 
-import org.djutils.event.EventInterface;
-import org.djutils.event.EventListenerInterface;
+import org.planit.utils.event.EventType;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.zoning.TransferZoneGroup;
 import org.planit.utils.zoning.TransferZoneGroupFactory;
 import org.planit.utils.zoning.TransferZoneGroups;
-import org.planit.zoning.modifier.event.ZoningEvent;
+import org.planit.utils.zoning.modifier.event.ZoningModificationEvent;
+import org.planit.zoning.modifier.event.ModifiedZoneIdsEvent;
 
 /**
  * Container for transfer zone groups where each transfer zone group logically groups multiple transfer zones together. Practically this can be used to represent public transport
@@ -19,12 +18,7 @@ import org.planit.zoning.modifier.event.ZoningEvent;
  * @author markr
  *
  */
-public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGroup> implements TransferZoneGroups, EventListenerInterface {
-
-  /**
-   * Generated UID
-   */
-  private static final long serialVersionUID = 1L;
+public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGroup> implements TransferZoneGroups {
 
   /** factory to use */
   private final TransferZoneGroupFactory transferZoneGroupFactory;
@@ -92,14 +86,20 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
   }
 
   /**
-   * Support event callbacks that require changes on underlying transfer zone groups
+   * {@inheritDoc}
    */
   @Override
-  public void notify(EventInterface event) throws RemoteException {
-    org.djutils.event.EventType eventType = event.getType();
+  public EventType[] getKnownSupportedEventTypes() {
+    return new EventType[] { ModifiedZoneIdsEvent.EVENT_TYPE };
+  }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void onZoningModifierEvent(ZoningModificationEvent event) {
     /* update connectoid zone id references when zone ids have changed */
-    if (eventType.equals(ZoningEvent.MODIFIED_ZONE_IDS)) {
+    if (event.getType().equals(ModifiedZoneIdsEvent.EVENT_TYPE)) {
       recreateTransferZoneGroupsZoneIdMapping();
     }
   }

@@ -14,11 +14,6 @@ import org.planit.utils.zoning.DirectedConnectoids;
  */
 public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid> implements DirectedConnectoids {
 
-  /**
-   * Generated UID 
-   */
-  private static final long serialVersionUID = -8856019534988404914L;
-  
   /** factory to use */
   private final DirectedConnectoidFactory directedConnectoidFactory;
 
@@ -60,7 +55,7 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
   public DirectedConnectoidFactory getFactory() {
     return directedConnectoidFactory;
   }
-  
+
   /**
    * {@inheritDoc}
    */
@@ -68,9 +63,9 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
   public void recreateIds(boolean resetManagedIdClass) {
     /* always reset the additional directed connectoid id class */
     IdGenerator.reset(getFactory().getIdGroupingToken(), DirectedConnectoid.DIRECTED_CONNECTOID_ID_CLASS);
-    
+
     super.recreateIds(resetManagedIdClass);
-  }   
+  }
 
   /**
    * {@inheritDoc}
@@ -79,6 +74,5 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
   public DirectedConnectoidsImpl clone() {
     return new DirectedConnectoidsImpl(this);
   }
-
 
 }

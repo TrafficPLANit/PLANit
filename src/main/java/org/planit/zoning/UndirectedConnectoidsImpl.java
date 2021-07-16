@@ -14,11 +14,6 @@ import org.planit.utils.zoning.UndirectedConnectoids;
  */
 public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnectoid> implements UndirectedConnectoids {
 
-  /**
-   * Generated UID
-   */
-  private static final long serialVersionUID = 1232462118808441781L;
-  
   /** factory to use */
   private final UndirectedConnectoidFactory undirectedConnectoidFactory;
 
@@ -60,7 +55,7 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
   public UndirectedConnectoidFactory getFactory() {
     return undirectedConnectoidFactory;
   }
-  
+
   /**
    * {@inheritDoc}
    */
@@ -68,9 +63,9 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
   public void recreateIds(boolean resetManagedIdClass) {
     /* always reset the additional undirected connectoid id class */
     IdGenerator.reset(getFactory().getIdGroupingToken(), UndirectedConnectoid.UNDIRECTED_CONNECTOID_ID_CLASS);
-    
+
     super.recreateIds(resetManagedIdClass);
-  }   
+  }
 
   /**
    * {@inheritDoc}

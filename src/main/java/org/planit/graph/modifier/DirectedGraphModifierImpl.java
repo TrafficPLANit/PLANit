@@ -8,16 +8,21 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.planit.graph.modifier.event.BreakEdgeSegmentEvent;
+import org.planit.graph.modifier.event.RemoveSubGraphEdgeSegmentEvent;
+import org.planit.utils.event.Event;
+import org.planit.utils.event.EventListener;
+import org.planit.utils.event.EventProducerImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.UntypedDirectedGraph;
 import org.planit.utils.graph.directed.DirectedEdge;
 import org.planit.utils.graph.directed.DirectedVertex;
-import org.planit.utils.graph.modifier.BreakEdgeListener;
-import org.planit.utils.graph.modifier.BreakEdgeSegmentListener;
 import org.planit.utils.graph.modifier.DirectedGraphModifier;
-import org.planit.utils.graph.modifier.RemoveDirectedSubGraphListener;
-import org.planit.utils.graph.modifier.RemoveSubGraphListener;
+import org.planit.utils.graph.modifier.event.DirectedGraphModificationEvent;
+import org.planit.utils.graph.modifier.event.DirectedGraphModifierListener;
+import org.planit.utils.graph.modifier.event.GraphModifierEventType;
+import org.planit.utils.graph.modifier.event.GraphModifierListener;
 
 /**
  * Implementation of a directed graph modifier that supports making changes to any untyped directed graph. The benefit of using the untyped directed graph is that it does not rely
@@ -26,7 +31,7 @@ import org.planit.utils.graph.modifier.RemoveSubGraphListener;
  * @author markr
  *
  */
-public class DirectedGraphModifierImpl implements DirectedGraphModifier {
+public class DirectedGraphModifierImpl extends EventProducerImpl implements DirectedGraphModifier {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -36,6 +41,18 @@ public class DirectedGraphModifierImpl implements DirectedGraphModifier {
    * Reuse for non-directed modifications aspects while being able to override signatures and generic types for directed graph aspects
    */
   private final GraphModifierImpl graphModifier;
+
+  /**
+   * Depending on whether these are directed or undirected evens call the appropriate notification method
+   */
+  @Override
+  protected void fireEvent(EventListener eventListener, Event event) {
+    if (event.getType() instanceof DirectedGraphModifierListener) {
+      DirectedGraphModifierListener.class.cast(eventListener).onDirectedGraphModificationEvent(DirectedGraphModificationEvent.class.cast(event));
+    } else {
+      graphModifier.fireEvent(eventListener, event);
+    }
+  }
 
   /**
    * Access to directed graph we are modifying
@@ -86,18 +103,14 @@ public class DirectedGraphModifierImpl implements DirectedGraphModifier {
       /* remove edge segments from graph */
       for (EdgeSegment edgeSegment : entryEdgeSegments) {
         directedGraph.getEdgeSegments().remove(edgeSegment.getId());
-        if (!graphModifier.registeredRemoveSubGraphListeners.isEmpty()) {
-          for (RemoveSubGraphListener listener : graphModifier.registeredRemoveSubGraphListeners) {
-            ((RemoveDirectedSubGraphListener) listener).onRemoveSubGraphEdgeSegment(edgeSegment);
-          }
+        if (hasListener(RemoveSubGraphEdgeSegmentEvent.EVENT_TYPE)) {
+          fireEvent(new RemoveSubGraphEdgeSegmentEvent(this, edgeSegment));
         }
       }
       for (EdgeSegment edgeSegment : exitEdgeSegments) {
         directedGraph.getEdgeSegments().remove(edgeSegment.getId());
-        if (!graphModifier.registeredRemoveSubGraphListeners.isEmpty()) {
-          for (RemoveSubGraphListener listener : graphModifier.registeredRemoveSubGraphListeners) {
-            ((RemoveDirectedSubGraphListener) listener).onRemoveSubGraphEdgeSegment(edgeSegment);
-          }
+        if (hasListener(RemoveSubGraphEdgeSegmentEvent.EVENT_TYPE)) {
+          fireEvent(new RemoveSubGraphEdgeSegmentEvent(this, edgeSegment));
         }
       }
     }
@@ -161,12 +174,8 @@ public class DirectedGraphModifierImpl implements DirectedGraphModifier {
           newEdgeSegmentAb.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
           newEdgeSegmentAb.getDownstreamVertex().replaceEntrySegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
 
-          if (!graphModifier.registeredBreakEdgeListeners.isEmpty()) {
-            for (BreakEdgeListener listener : graphModifier.registeredBreakEdgeListeners) {
-              if (listener instanceof BreakEdgeSegmentListener) {
-                ((BreakEdgeSegmentListener) listener).onBreakEdgeSegment(vertexToBreakAt, brokenEdge, newEdgeSegmentAb);
-              }
-            }
+          if (graphModifier.hasListener(BreakEdgeSegmentEvent.EVENT_TYPE)) {
+            fireEvent(new BreakEdgeSegmentEvent(this, vertexToBreakAt, newEdgeSegmentAb));
           }
 
           /* useful for debugging */
@@ -197,12 +206,8 @@ public class DirectedGraphModifierImpl implements DirectedGraphModifier {
           newEdgeSegmentBa.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
           newEdgeSegmentBa.getDownstreamVertex().replaceEntrySegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
 
-          if (!graphModifier.registeredBreakEdgeListeners.isEmpty()) {
-            for (BreakEdgeListener listener : graphModifier.registeredBreakEdgeListeners) {
-              if (listener instanceof BreakEdgeSegmentListener) {
-                ((BreakEdgeSegmentListener) listener).onBreakEdgeSegment(vertexToBreakAt, brokenEdge, newEdgeSegmentBa);
-              }
-            }
+          if (graphModifier.hasListener(BreakEdgeSegmentEvent.EVENT_TYPE)) {
+            fireEvent(new BreakEdgeSegmentEvent(this, vertexToBreakAt, newEdgeSegmentBa));
           }
 
           /* useful for debugging */
@@ -216,14 +221,6 @@ public class DirectedGraphModifierImpl implements DirectedGraphModifier {
   }
 
   /* DELEGATED METHOD CALLS */
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void registerRemoveSubGraphListener(RemoveDirectedSubGraphListener subGraphRemovalListener) {
-    graphModifier.registerRemoveSubGraphListener(subGraphRemovalListener);
-  }
 
   /**
    * {@inheritDoc}
@@ -245,40 +242,57 @@ public class DirectedGraphModifierImpl implements DirectedGraphModifier {
    * {@inheritDoc}
    */
   @Override
-  public void registerRemoveSubGraphListener(RemoveSubGraphListener listener) {
-    graphModifier.registerRemoveSubGraphListener(listener);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void unregisterRemoveSubGraphListener(RemoveSubGraphListener listener) {
-    graphModifier.unregisterRemoveSubGraphListener(listener);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void unregisterBreakEdgeListener(BreakEdgeListener listener) {
-    graphModifier.unregisterBreakEdgeListener(listener);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void registerBreakEdgeListener(BreakEdgeListener listener) {
-    graphModifier.registerBreakEdgeListener(listener);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void reset() {
     graphModifier.reset();
+    removeAllListeners();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addListener(GraphModifierListener listener) {
+    if (listener instanceof DirectedGraphModifierListener) {
+      super.addListener(listener);
+    } else {
+      graphModifier.addListener(listener);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addListener(GraphModifierListener listener, GraphModifierEventType eventType) {
+    if (listener instanceof DirectedGraphModifierListener) {
+      super.addListener(listener, eventType);
+    } else {
+      graphModifier.addListener(listener, eventType);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeListener(GraphModifierListener listener, GraphModifierEventType eventType) {
+    if (listener instanceof DirectedGraphModifierListener) {
+      super.removeListener(listener, eventType);
+    } else {
+      graphModifier.removeListener(listener, eventType);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeListener(GraphModifierListener listener) {
+    if (listener instanceof DirectedGraphModifierListener) {
+      super.removeListener(listener);
+    } else {
+      graphModifier.removeListener(listener);
+    }
   }
 
 }

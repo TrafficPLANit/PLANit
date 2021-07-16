@@ -1,6 +1,7 @@
 package org.planit.network;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.planit.utils.network.layers.UntypedPhysicalNetworkLayers;
@@ -35,5 +36,29 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
    */
   public UntypedPhysicalNetwork(IdGroupingToken tokenId, CoordinateReferenceSystem coordinateReferenceSystem) {
     super(tokenId, coordinateReferenceSystem);
+  }
+
+  /**
+   * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the internal ids if needed
+   * 
+   * @throws PlanItException thrown if error
+   * 
+   */
+  public void removeDanglingSubnetworks() throws PlanItException {
+    removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
+  }
+
+  /**
+   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
+   * 
+   * @param belowSize         remove subnetworks below the given size
+   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
+   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
+   * @throws PlanItException thrown if error
+   */
+  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
+    for (L infrastructureLayer : this.transportLayers) {
+      infrastructureLayer.getLayerModifier().removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest);
+    }
   }
 }

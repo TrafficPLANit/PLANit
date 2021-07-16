@@ -1,15 +1,14 @@
 package org.planit.zoning;
 
-import java.rmi.RemoteException;
 import java.util.logging.Logger;
 
-import org.djutils.event.EventInterface;
-import org.djutils.event.EventListenerInterface;
+import org.planit.utils.event.EventType;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.zoning.Connectoid;
 import org.planit.utils.zoning.Connectoids;
-import org.planit.zoning.modifier.event.ZoningEvent;
+import org.planit.utils.zoning.modifier.event.ZoningModificationEvent;
+import org.planit.zoning.modifier.event.ModifiedZoneIdsEvent;
 
 /**
  * Base implementation of Connectoids container and factory class
@@ -17,12 +16,7 @@ import org.planit.zoning.modifier.event.ZoningEvent;
  * @author markr
  *
  */
-public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEntitiesImpl<T> implements Connectoids<T>, EventListenerInterface {
-
-  /**
-   * generated UID
-   */
-  private static final long serialVersionUID = -7710154947041263497L;
+public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEntitiesImpl<T> implements Connectoids<T> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConnectoidsImpl.class.getCanonicalName());
@@ -65,14 +59,21 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
   public abstract ConnectoidsImpl<T> clone();
 
   /**
-   * Support event callbacks that require changes on underlying connectoids
+   * {@inheritDoc}
    */
   @Override
-  public void notify(EventInterface event) throws RemoteException {
-    org.djutils.event.EventType eventType = event.getType();
+  public EventType[] getKnownSupportedEventTypes() {
+    return new EventType[] { ModifiedZoneIdsEvent.EVENT_TYPE };
+  }
+
+  /**
+   * Support event callbacks whenever zones have been modified
+   */
+  @Override
+  public void onZoningModifierEvent(ZoningModificationEvent event) {
 
     /* update connectoid zone id references when zone ids have changed */
-    if (eventType.equals(ZoningEvent.MODIFIED_ZONE_IDS)) {
+    if (event.getType().equals(ModifiedZoneIdsEvent.EVENT_TYPE)) {
       updateConnectoidAccessZoneIdReferences();
     }
   }

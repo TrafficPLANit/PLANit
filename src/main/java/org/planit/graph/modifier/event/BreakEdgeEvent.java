@@ -1,26 +1,22 @@
 package org.planit.graph.modifier.event;
 
-import java.io.Serializable;
-
-import org.djutils.event.EventType;
+import org.planit.utils.event.EventImpl;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Vertex;
+import org.planit.utils.graph.modifier.GraphModifier;
+import org.planit.utils.graph.modifier.event.GraphModificationEvent;
+import org.planit.utils.graph.modifier.event.GraphModifierEventType;
 
 /**
- * Wrapper around break edge event fired by graph modifier
+ * Wrapper around break edge event
  * 
  * @author markr
  *
  */
-public class BreakEdgeEvent extends org.djutils.event.Event {
-
-  /**
-   * Generated UID
-   */
-  private static final long serialVersionUID = -3141892625663948521L;
+public class BreakEdgeEvent extends EventImpl implements GraphModificationEvent {
 
   /** event type fired off when edge has been broken */
-  public static final EventType BREAK_EDGE = new EventType("GRAPHMODIFIER.BREAK_EDGE");
+  public static final GraphModifierEventType EVENT_TYPE = new GraphModifierEventType("GRAPHMODIFIER.BREAK_EDGE");
 
   /**
    * constructor
@@ -30,8 +26,8 @@ public class BreakEdgeEvent extends org.djutils.event.Event {
    * @param aToBreak        edge broken now from vertex a to break
    * @param breakToB        edge broken now from break to b vertex
    */
-  public BreakEdgeEvent(final Serializable sourceId, final Vertex vertexToBreakAt, Edge aToBreak, Edge breakToB) {
-    super(BREAK_EDGE, sourceId, new Object[] { vertexToBreakAt, aToBreak, breakToB });
+  public BreakEdgeEvent(final GraphModifier<?, ?> source, final Vertex vertexToBreakAt, Edge aToBreak, Edge breakToB) {
+    super(EVENT_TYPE, source, new Object[] { vertexToBreakAt, aToBreak, breakToB });
   }
 
   /**

@@ -1,6 +1,5 @@
 package org.planit.graph.modifier;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,22 +9,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
-import org.djutils.event.EventProducer;
 import org.locationtech.jts.geom.LineString;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.planit.graph.modifier.event.BreakEdgeEvent;
+import org.planit.graph.modifier.event.RemoveSubGraphEdgeEvent;
+import org.planit.graph.modifier.event.RemoveSubGraphEvent;
+import org.planit.graph.modifier.event.RemoveSubGraphVertexEvent;
+import org.planit.utils.event.Event;
+import org.planit.utils.event.EventListener;
+import org.planit.utils.event.EventProducerImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.geo.PlanitJtsCrsUtils;
 import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.UntypedGraph;
 import org.planit.utils.graph.Vertex;
-import org.planit.utils.graph.modifier.BreakEdgeListener;
 import org.planit.utils.graph.modifier.GraphModifier;
-import org.planit.utils.graph.modifier.RemoveSubGraphListener;
+import org.planit.utils.graph.modifier.event.GraphModificationEvent;
+import org.planit.utils.graph.modifier.event.GraphModifierEventType;
+import org.planit.utils.graph.modifier.event.GraphModifierListener;
 
 /**
  * Apply modifications to the graph in an integrated fashion
@@ -33,24 +38,13 @@ import org.planit.utils.graph.modifier.RemoveSubGraphListener;
  * @author markr
  *
  */
-public class GraphModifierImpl extends EventProducer implements GraphModifier<Vertex, Edge> {
-
-  /**
-   * generated UID
-   */
-  private static final long serialVersionUID = -3354874978792212421L;
+public class GraphModifierImpl extends EventProducerImpl implements GraphModifier<Vertex, Edge> {
 
   /** the logger to use */
   private static final Logger LOGGER = Logger.getLogger(GraphModifierImpl.class.getCanonicalName());
 
   /** the graph to modify */
   protected final UntypedGraph<?, ?> theGraph;
-
-  /** track removeSubGraphListeners */
-  protected final Set<RemoveSubGraphListener> registeredRemoveSubGraphListeners;
-
-  /** track breakEdgeListeners */
-  protected final Set<BreakEdgeListener> registeredBreakEdgeListeners;
 
   /**
    * update the geometry of the broken edge, knowing at what vertex it was broken from a previously longer edge
@@ -112,14 +106,21 @@ public class GraphModifierImpl extends EventProducer implements GraphModifier<Ve
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void fireEvent(EventListener eventListener, Event event) {
+    GraphModifierListener.class.cast(eventListener).onGraphModificationEvent(GraphModificationEvent.class.cast(event));
+  }
+
+  /**
    * Constructor
    * 
    * @param theGraph to use
    */
   public GraphModifierImpl(final UntypedGraph<?, ?> theGraph) {
+    super();
     this.theGraph = theGraph;
-    this.registeredRemoveSubGraphListeners = new TreeSet<RemoveSubGraphListener>();
-    this.registeredBreakEdgeListeners = new TreeSet<BreakEdgeListener>();
   }
 
   /**
@@ -203,32 +204,35 @@ public class GraphModifierImpl extends EventProducer implements GraphModifier<Ve
 
       /* remove vertex from graph */
       theGraph.getVertices().remove(vertex.getId());
-      if (!registeredRemoveSubGraphListeners.isEmpty()) {
-        for (RemoveSubGraphListener listener : registeredRemoveSubGraphListeners) {
-          listener.onRemoveSubGraphVertex(vertex);
-        }
+      if (hasListener(RemoveSubGraphVertexEvent.EVENT_TYPE)) {
+        fireEvent(new RemoveSubGraphVertexEvent(this, vertex));
       }
 
       /* remove vertex' edges from graph */
       for (Edge edge : vertexEdges) {
         theGraph.getEdges().remove(edge.getId());
-        if (!registeredRemoveSubGraphListeners.isEmpty()) {
-          for (RemoveSubGraphListener listener : registeredRemoveSubGraphListeners) {
-            listener.onRemoveSubGraphEdge(edge);
-          }
+        if (hasListener(RemoveSubGraphEdgeEvent.EVENT_TYPE)) {
+          fireEvent(new RemoveSubGraphEdgeEvent(this, edge));
         }
       }
-    }
 
-    if (recreateIds) {
-      /* ensure no id gaps remain after the removal of internal entities */
-      recreateIds();
-    }
-
-    if (!registeredRemoveSubGraphListeners.isEmpty()) {
-      for (RemoveSubGraphListener listener : registeredRemoveSubGraphListeners) {
-        listener.onCompletion();
+      if (recreateIds) {
+        /*
+         * ensure no id gaps remain after the removal of internal entities TODO: see if it can be removed to outside of this loop
+         */
+        recreateIds();
       }
+
+      if (hasListener(RemoveSubGraphEvent.EVENT_TYPE)) {
+        fireEvent(new RemoveSubGraphEvent(this));
+      }
+
+//      if (!registeredRemoveSubGraphListeners.isEmpty()) {
+//        for (RemoveSubGraphListener listener : registeredRemoveSubGraphListeners) {
+//          listener.onCompletion();
+//        }
+//      }      
+
     }
   }
 
@@ -289,12 +293,8 @@ public class GraphModifierImpl extends EventProducer implements GraphModifier<Ve
       }
 
       /* allow listeners to process this break edge occurrence */
-      // fireEvent(new BreakEdgeEvent(this, vertexToBreakAt, aToBreak, breakToB));
-
-      if (!registeredBreakEdgeListeners.isEmpty()) {
-        for (BreakEdgeListener listener : registeredBreakEdgeListeners) {
-          listener.onBreakEdge(vertexToBreakAt, aToBreak, breakToB);
-        }
+      if (hasListener(BreakEdgeEvent.EVENT_TYPE)) {
+        fireEvent(new BreakEdgeEvent(this, vertexToBreakAt, aToBreak, breakToB));
       }
     }
     return affectedEdges;
@@ -313,49 +313,40 @@ public class GraphModifierImpl extends EventProducer implements GraphModifier<Ve
    * {@inheritDoc}
    */
   @Override
-  public void registerRemoveSubGraphListener(RemoveSubGraphListener listener) {
-    this.registeredRemoveSubGraphListeners.add(listener);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void unregisterRemoveSubGraphListener(RemoveSubGraphListener listener) {
-    registeredRemoveSubGraphListeners.remove(listener);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void unregisterBreakEdgeListener(BreakEdgeListener listener) {
-    registeredBreakEdgeListeners.remove(listener);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void registerBreakEdgeListener(BreakEdgeListener listener) {
-    registeredBreakEdgeListeners.add(listener);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public void reset() {
-    registeredRemoveSubGraphListeners.clear();
-    registeredBreakEdgeListeners.clear();
+    super.removeAllListeners();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Serializable getSourceId() {
-    return this;
+  public void addListener(GraphModifierListener listener) {
+    super.addListener(listener);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addListener(GraphModifierListener listener, GraphModifierEventType eventType) {
+    super.addListener(listener, eventType);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeListener(GraphModifierListener listener, GraphModifierEventType eventType) {
+    super.removeListener(listener, eventType);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeListener(GraphModifierListener listener) {
+    super.removeListener(listener);
   }
 
 }

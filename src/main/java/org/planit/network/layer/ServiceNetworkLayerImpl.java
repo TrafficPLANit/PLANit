@@ -1,13 +1,10 @@
 package org.planit.network.layer;
 
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.network.layer.service.ServiceLegSegmentsImpl;
 import org.planit.network.layer.service.ServiceLegsImpl;
 import org.planit.network.layer.service.ServiceNodesImpl;
-import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.graph.modifier.RemoveSubGraphListener;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.ServiceNetworkLayer;
@@ -127,16 +124,6 @@ public class ServiceNetworkLayerImpl extends UntypedDirectedGraphLayerImpl<Servi
     LOGGER.info(String.format("%s#service legs: %d", prefix, getLegs().size()));
     LOGGER.info(String.format("%s#service leg segments: %d", prefix, getLegSegments().size()));
     LOGGER.info(String.format("%s#service nodes: %d", prefix, getServiceNodes().size()));
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, Set<RemoveSubGraphListener> listeners) throws PlanItException {
-    // TODO: all possible network modifications require each service layer to register itself onto the network for providing handlers to deal with any changes in the
-    // physical network that affect the service layer
-    LOGGER.warning("NOT YET IMPLEMENTED ON SERVICE NETWORK");
   }
 
   /**

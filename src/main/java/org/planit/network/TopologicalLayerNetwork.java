@@ -1,12 +1,10 @@
 package org.planit.network;
 
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.geo.PlanitJtsCrsUtils;
-import org.planit.utils.graph.modifier.RemoveSubGraphListener;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.TopologicalLayer;
 import org.planit.utils.network.layers.TopologicalLayers;
@@ -87,44 +85,6 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
   public void transform(final CoordinateReferenceSystem newCoordinateReferenceSystem) throws PlanItException {
     for (TopologicalLayer layer : transportLayers) {
       layer.transform(coordinateReferenceSystem, newCoordinateReferenceSystem);
-    }
-  }
-
-  /**
-   * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the internal ids if needed
-   * 
-   * @throws PlanItException thrown if error
-   * 
-   */
-  public void removeDanglingSubnetworks() throws PlanItException {
-    removeDanglingSubnetworks(Integer.MAX_VALUE, Integer.MAX_VALUE, true);
-  }
-
-  /**
-   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed
-   * 
-   * @param belowSize         remove subnetworks below the given size
-   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
-   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
-   * @throws PlanItException thrown if error
-   */
-  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
-    removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest, null);
-  }
-
-  /**
-   * remove any dangling subnetworks below a given size from the network if they exist and subsequently reorder the internal ids if needed. From the zoning remove any zones that
-   * rely on infrastructure that is deemed dangling
-   * 
-   * @param belowSize         remove subnetworks below the given size
-   * @param aboveSize         remove subnetworks above the given size (typically set to maximum value)
-   * @param alwaysKeepLargest when true the largest of the subnetworks is always kept, otherwise not
-   * @param listeners         to apply
-   * @throws PlanItException thrown if error
-   */
-  public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest, final Set<RemoveSubGraphListener> listeners) throws PlanItException {
-    for (TopologicalLayer infrastructureLayer : this.transportLayers) {
-      infrastructureLayer.removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest, listeners);
     }
   }
 
