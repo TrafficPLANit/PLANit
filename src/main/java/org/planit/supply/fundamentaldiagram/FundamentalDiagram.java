@@ -2,7 +2,7 @@ package org.planit.supply.fundamentaldiagram;
 
 import java.io.Serializable;
 
-import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.component.PlanitComponent;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -11,7 +11,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class FundamentalDiagram extends TrafficAssignmentComponent<FundamentalDiagram> implements Serializable {
+public abstract class FundamentalDiagram extends PlanitComponent<FundamentalDiagram> implements Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = 5815100111048623093L;

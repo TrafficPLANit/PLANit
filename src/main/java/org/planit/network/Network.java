@@ -2,7 +2,7 @@ package org.planit.network;
 
 import java.io.Serializable;
 
-import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.component.PlanitComponent;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
@@ -13,7 +13,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class Network extends TrafficAssignmentComponent<Network> implements Serializable {
+public class Network extends PlanitComponent<Network> implements Serializable {
 
   /** generated serial id */
   private static final long serialVersionUID = -1434577945513081778L;

@@ -2,8 +2,8 @@ package org.planit.path.choice;
 
 import java.util.logging.Logger;
 
-import org.planit.assignment.TrafficAssignmentComponentFactory;
-import org.planit.assignment.TrafficComponentBuilder;
+import org.planit.component.PlanitComponentBuilder;
+import org.planit.component.PlanitComponentFactory;
 import org.planit.input.InputBuilderListener;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
@@ -14,7 +14,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class PathChoiceBuilder<T extends PathChoice> extends TrafficComponentBuilder<T> {
+public abstract class PathChoiceBuilder<T extends PathChoice> extends PlanitComponentBuilder<T> {
 
   /** the logger */
   protected static final Logger LOGGER = Logger.getLogger(PathChoiceBuilder.class.getCanonicalName());
@@ -28,7 +28,7 @@ public abstract class PathChoiceBuilder<T extends PathChoice> extends TrafficCom
   @SuppressWarnings("unchecked")
   protected T createPathChoiceInstance() throws PlanItException {
     String pathChoiceClassName = getClassToBuild().getClass().getCanonicalName();
-    TrafficAssignmentComponentFactory<PathChoice> pathChoiceFactory = new TrafficAssignmentComponentFactory<PathChoice>(pathChoiceClassName);
+    PlanitComponentFactory<PathChoice> pathChoiceFactory = new PlanitComponentFactory<PathChoice>(pathChoiceClassName);
     final T pathChoice = (T) pathChoiceFactory.create(pathChoiceClassName, new Object[] { getGroupIdToken() });
     PlanItException.throwIf(!(pathChoice instanceof PathChoice), "not a valid path choice type");
     return pathChoice;

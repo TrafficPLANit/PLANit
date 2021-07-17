@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.assignment.StaticTrafficAssignment;
-import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.component.PlanitComponent;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.enums.OutputType;
 import org.planit.supply.networkloading.NetworkLoading;
@@ -88,7 +88,7 @@ public class AlgorithmB extends StaticTrafficAssignment {
    * {@inheritDoc}
    */
   @Override
-  public TrafficAssignmentComponent<NetworkLoading> clone() {
+  public PlanitComponent<NetworkLoading> clone() {
     return new AlgorithmB(this);
   }
 

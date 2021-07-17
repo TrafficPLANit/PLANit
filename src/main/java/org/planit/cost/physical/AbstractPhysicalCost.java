@@ -1,6 +1,6 @@
 package org.planit.cost.physical;
 
-import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.component.PlanitComponent;
 import org.planit.network.TransportLayerNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
@@ -12,7 +12,7 @@ import org.planit.utils.mode.Mode;
  * @author markr, gman6028
  *
  */
-public abstract class AbstractPhysicalCost extends TrafficAssignmentComponent<AbstractPhysicalCost> implements PhysicalCost {
+public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysicalCost> implements PhysicalCost {
 
   /** generated UID */
   private static final long serialVersionUID = 3657719270477537657L;

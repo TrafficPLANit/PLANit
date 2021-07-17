@@ -33,7 +33,7 @@ public class RemoveSubGraphEdgeEvent extends EventImpl implements GraphModificat
    * @return removed edge
    */
   public Edge getRemovedEdge() {
-    return (Edge) getContent();
+    return (Edge) getContent()[0];
   }
 
 }

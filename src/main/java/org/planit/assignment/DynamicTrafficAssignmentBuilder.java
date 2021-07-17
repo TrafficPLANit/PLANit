@@ -1,5 +1,6 @@
 package org.planit.assignment;
 
+import org.planit.component.PlanitComponentFactory;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.TransportLayerNetwork;
@@ -31,8 +32,8 @@ public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAs
    * @throws PlanItException thrown if error
    */
   protected PathChoice createPathChoiceInstance(DynamicAssignmentConfigurator<? extends DynamicTrafficAssignment> configurator) throws PlanItException {
-    TrafficAssignmentComponentFactory<PathChoice> pathChoiceFactory = new TrafficAssignmentComponentFactory<PathChoice>(PathChoice.class);
-    pathChoiceFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    PlanitComponentFactory<PathChoice> pathChoiceFactory = new PlanitComponentFactory<PathChoice>(PathChoice.class);
+    pathChoiceFactory.addListener(getInputBuilderListener());
     return pathChoiceFactory.create(configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 
@@ -69,7 +70,7 @@ public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAs
    * @throws PlanItException thrown if there is an exception
    */
   public DynamicTrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands,
-      final Zoning zoning, final TransportLayerNetwork<?,?> network) throws PlanItException {
+      final Zoning zoning, final TransportLayerNetwork<?, ?> network) throws PlanItException {
 
     super(trafficAssignmentClass, groupId, inputBuilderListener, demands, zoning, network);
     this.trafficComponentCreateListener = inputBuilderListener;

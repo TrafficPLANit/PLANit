@@ -9,9 +9,9 @@ import java.util.logging.Logger;
 import org.planit.assignment.TrafficAssignment;
 import org.planit.assignment.TrafficAssignmentBuilder;
 import org.planit.assignment.TrafficAssignmentBuilderFactory;
-import org.planit.assignment.TrafficAssignmentComponent;
-import org.planit.assignment.TrafficAssignmentComponentFactory;
 import org.planit.assignment.TrafficAssignmentConfigurator;
+import org.planit.component.PlanitComponent;
+import org.planit.component.PlanitComponentFactory;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.demands.Demands;
@@ -141,8 +141,8 @@ public class CustomPlanItProject {
    * @param theClazz the class that we want to mark as eligible from an outside source
    * @throws PlanItException thrown if class cannot be registered
    */
-  public void registerEligibleTrafficComponentClass(Class<? extends TrafficAssignmentComponent<?>> theClazz) throws PlanItException {
-    TrafficAssignmentComponentFactory.registerTrafficAssignmentComponentType(theClazz);
+  public void registerEligibleTrafficComponentClass(Class<? extends PlanitComponent<?>> theClazz) throws PlanItException {
+    PlanitComponentFactory.registerPlanitComponentType(theClazz);
   }
 
   /**

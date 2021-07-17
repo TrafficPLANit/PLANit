@@ -1,8 +1,9 @@
 package org.planit.path;
 
+import java.io.Serializable;
 import java.util.TreeMap;
 
-import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.component.PlanitComponent;
 import org.planit.od.odpath.ODPathMatrix;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.zoning.Zoning;
@@ -14,7 +15,7 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public class OdPathSets extends TrafficAssignmentComponent<OdPathSets> {
+public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = -8742549499023004121L;

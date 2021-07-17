@@ -33,7 +33,7 @@ public class ModifiedZoneIdsEvent extends EventImpl implements ZoningModificatio
    * @return modified zoning
    */
   public Zoning getModifiedZoning() {
-    return (Zoning) getContent();
+    return (Zoning) getContent()[0];
   }
 
 }

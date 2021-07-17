@@ -2,6 +2,8 @@ package org.planit.assignment;
 
 import java.util.logging.Logger;
 
+import org.planit.component.PlanitComponentBuilder;
+import org.planit.component.PlanitComponentFactory;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
@@ -32,7 +34,7 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> extends TrafficComponentBuilder<T> {
+public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> extends PlanitComponentBuilder<T> {
 
   /** the logger */
   protected static final Logger LOGGER = Logger.getLogger(TrafficAssignmentBuilder.class.getCanonicalName());
@@ -97,8 +99,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
   protected T createTrafficAssignmentInstance() throws PlanItException {
     String trafficAssignmentClassName = getClassToBuild().getCanonicalName();
 
-    TrafficAssignmentComponentFactory<TrafficAssignment> assignmentFactory = new TrafficAssignmentComponentFactory<TrafficAssignment>(NetworkLoading.class.getCanonicalName());
-    assignmentFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    PlanitComponentFactory<TrafficAssignment> assignmentFactory = new PlanitComponentFactory<TrafficAssignment>(NetworkLoading.class.getCanonicalName());
+    assignmentFactory.addListener(getInputBuilderListener());
 
     final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentClassName, new Object[] { groupId });
     PlanItException.throwIf(!(networkLoadingAndAssignment instanceof TrafficAssignment), "not a valid traffic assignment type");
@@ -113,8 +115,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected Smoothing createSmoothingInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
-    TrafficAssignmentComponentFactory<Smoothing> smoothingFactory = new TrafficAssignmentComponentFactory<Smoothing>(Smoothing.class);
-    smoothingFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    PlanitComponentFactory<Smoothing> smoothingFactory = new PlanitComponentFactory<Smoothing>(Smoothing.class);
+    smoothingFactory.addListener(getInputBuilderListener());
     return smoothingFactory.create(configurator.getSmoothing().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 
@@ -126,8 +128,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected AbstractPhysicalCost createPhysicalCostInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
-    TrafficAssignmentComponentFactory<AbstractPhysicalCost> physicalCostFactory = new TrafficAssignmentComponentFactory<AbstractPhysicalCost>(AbstractPhysicalCost.class);
-    physicalCostFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    PlanitComponentFactory<AbstractPhysicalCost> physicalCostFactory = new PlanitComponentFactory<AbstractPhysicalCost>(AbstractPhysicalCost.class);
+    physicalCostFactory.addListener(getInputBuilderListener());
     return physicalCostFactory.create(configurator.getPhysicalCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 
@@ -139,8 +141,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected AbstractVirtualCost createVirtualCostInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
-    TrafficAssignmentComponentFactory<AbstractVirtualCost> virtualCostFactory = new TrafficAssignmentComponentFactory<AbstractVirtualCost>(AbstractVirtualCost.class);
-    virtualCostFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    PlanitComponentFactory<AbstractVirtualCost> virtualCostFactory = new PlanitComponentFactory<AbstractVirtualCost>(AbstractVirtualCost.class);
+    virtualCostFactory.addListener(getInputBuilderListener());
     return virtualCostFactory.create(configurator.getVirtualCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 

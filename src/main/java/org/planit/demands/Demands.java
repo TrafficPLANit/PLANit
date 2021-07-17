@@ -8,7 +8,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
-import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.component.PlanitComponent;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
 import org.planit.time.TimePeriodImpl;
 import org.planit.userclass.TravelerType;
@@ -31,7 +31,7 @@ import org.planit.utils.wrapper.LongMapWrapperImpl;
  * @author markr
  *
  */
-public class Demands extends TrafficAssignmentComponent<Demands> implements Serializable {
+public class Demands extends PlanitComponent<Demands> implements Serializable {
 
   /** the logger */
   @SuppressWarnings("unused")

@@ -33,7 +33,7 @@ public class RemoveSubGraphEdgeSegmentEvent extends EventImpl implements GraphMo
    * @return removed edge segment
    */
   public EdgeSegment getRemovedEdgeSegment() {
-    return (EdgeSegment) getContent();
+    return (EdgeSegment) getContent()[0];
   }
 
 }

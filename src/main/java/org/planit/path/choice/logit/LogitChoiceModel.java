@@ -1,6 +1,8 @@
 package org.planit.path.choice.logit;
 
-import org.planit.assignment.TrafficAssignmentComponent;
+import java.io.Serializable;
+
+import org.planit.component.PlanitComponent;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -9,7 +11,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class LogitChoiceModel extends TrafficAssignmentComponent<LogitChoiceModel> {
+public abstract class LogitChoiceModel extends PlanitComponent<LogitChoiceModel> implements Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = -4578323513280128464L;

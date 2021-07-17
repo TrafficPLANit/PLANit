@@ -1,23 +1,19 @@
-package org.planit.assignment;
+package org.planit.component;
 
 import java.io.Serializable;
 
-import org.djutils.event.EventProducer;
 import org.planit.utils.id.ExternalIdAble;
 import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
- * Traffic assignment components are the main building blocks to conduct traffic assignment on
+ * PLANit components are the main building blocks to create PLANit applications with.
  *
  * @author markr
  *
  */
-public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComponent<T> & Serializable> extends EventProducer implements ExternalIdAble {
-
-  /** generated UID */
-  private static final long serialVersionUID = -3940841069228367177L;
+public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializable> implements ExternalIdAble {
 
   /** store id information */
   private final ExternalIdAbleImpl idImpl;
@@ -30,7 +26,7 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
   /**
    * Traffic component type used to identify the component uniquely. If not provided to the constructor the class name is used
    */
-  private final String trafficComponentType;
+  private final String planitComponentType;
 
   /**
    * Constructor
@@ -38,9 +34,9 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
    * @param tokenId,   contiguous id generation using this same token for instances of this class
    * @param classType, the class type this instance belongs to and we are generating an id for
    */
-  protected TrafficAssignmentComponent(IdGroupingToken tokenId, Class<?> classType) {
+  protected PlanitComponent(IdGroupingToken tokenId, Class<?> classType) {
     // actual instance class
-    this.trafficComponentType = this.getClass().getCanonicalName();
+    this.planitComponentType = this.getClass().getCanonicalName();
     // the groupId would generally be the token of the project or the assignment as it owns the components
     // the class type would be the super class of the all instances for which we want contiguous ids
     this.tokenId = tokenId;
@@ -52,8 +48,8 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
    * 
    * @param other, to copy
    */
-  protected TrafficAssignmentComponent(TrafficAssignmentComponent<T> other) {
-    this.trafficComponentType = other.trafficComponentType;
+  protected PlanitComponent(PlanitComponent<T> other) {
+    this.planitComponentType = other.planitComponentType;
     this.tokenId = other.tokenId;
     this.idImpl = other.idImpl.clone();
   }
@@ -116,24 +112,15 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
     idImpl.setXmlId(xmlId);
   }
 
-  /**
-   * not to be confused with the PLANit ids, only present since this is an event producer, delegates to getXmlId()
-   */
-  @Override
-  public Serializable getSourceId() {
-    return getXmlId();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public abstract TrafficAssignmentComponent<T> clone();
-
   // Public
 
-  public String getTrafficComponentType() {
-    return trafficComponentType;
+  /**
+   * Collect the component type of this instance
+   * 
+   * @return PLANit component type
+   */
+  public String getComponentType() {
+    return planitComponentType;
   }
 
   /**
@@ -144,4 +131,10 @@ public abstract class TrafficAssignmentComponent<T extends TrafficAssignmentComp
   public IdGroupingToken getIdGroupingToken() {
     return tokenId;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract PlanitComponent<T> clone();
 }

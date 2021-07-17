@@ -2,7 +2,7 @@ package org.planit.sdinteraction.smoothing;
 
 import java.io.Serializable;
 
-import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.component.PlanitComponent;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -11,7 +11,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class Smoothing extends TrafficAssignmentComponent<Smoothing> implements Serializable {
+public abstract class Smoothing extends PlanitComponent<Smoothing> implements Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = -3124652824035047922L;

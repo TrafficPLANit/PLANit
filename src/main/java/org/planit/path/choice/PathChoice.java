@@ -1,6 +1,8 @@
 package org.planit.path.choice;
 
-import org.planit.assignment.TrafficAssignmentComponent;
+import java.io.Serializable;
+
+import org.planit.component.PlanitComponent;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -11,7 +13,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class PathChoice extends TrafficAssignmentComponent<PathChoice> {
+public abstract class PathChoice extends PlanitComponent<PathChoice> implements Serializable {
 
   /** generate UID */
   private static final long serialVersionUID = 6220514783786893944L;

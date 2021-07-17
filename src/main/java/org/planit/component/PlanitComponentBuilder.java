@@ -1,4 +1,4 @@
-package org.planit.assignment;
+package org.planit.component;
 
 import org.planit.input.InputBuilderListener;
 import org.planit.utils.builder.Builder;
@@ -6,17 +6,17 @@ import org.planit.utils.id.IdGroupingToken;
 
 /**
  * 
- * Builder class to build something of type T which is a traffic component. As such the input builder listener is required to be notified when an instance is created, hence we
- * store this listener on this builder
+ * Builder class to build something of type T which is a PLANit component. As such the input builder listener is required to be notified when an instance is created, hence we store
+ * this listener on this builder
  * 
  * @author markr
  *
  * @param <T>class to build
  */
-public abstract class TrafficComponentBuilder<T> extends Builder<T> {
+public abstract class PlanitComponentBuilder<T> extends Builder<T> {
 
   /**
-   * the input builder listener that is triggered whenever traffic assignment components are created
+   * the input builder listener that is triggered whenever PLANit components are created
    */
   private final InputBuilderListener inputBuilder;
 
@@ -50,7 +50,7 @@ public abstract class TrafficComponentBuilder<T> extends Builder<T> {
    * @param groupId      to use for id generation
    * @param inputBuilder the inputBuilder to use
    */
-  protected TrafficComponentBuilder(Class<T> classToBuild, IdGroupingToken groupId, InputBuilderListener inputBuilder) {
+  protected PlanitComponentBuilder(Class<T> classToBuild, IdGroupingToken groupId, InputBuilderListener inputBuilder) {
     super(classToBuild);
     this.inputBuilder = inputBuilder;
     this.groupId = groupId;

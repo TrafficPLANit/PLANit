@@ -1,6 +1,6 @@
 package org.planit.cost.virtual;
 
-import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.component.PlanitComponent;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
@@ -11,7 +11,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class AbstractVirtualCost extends TrafficAssignmentComponent<AbstractVirtualCost> implements VirtualCost {
+public abstract class AbstractVirtualCost extends PlanitComponent<AbstractVirtualCost> implements VirtualCost {
 
   /** generated UID */
   private static final long serialVersionUID = -8278650865770286434L;

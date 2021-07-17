@@ -2,7 +2,7 @@ package org.planit.path.choice;
 
 import java.util.logging.Logger;
 
-import org.planit.assignment.TrafficAssignmentComponentFactory;
+import org.planit.component.PlanitComponentFactory;
 import org.planit.input.InputBuilderListener;
 import org.planit.path.choice.logit.LogitChoiceModel;
 import org.planit.utils.builder.Configurator;
@@ -21,7 +21,7 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
   protected static final Logger LOGGER = Logger.getLogger(StochasticPathChoiceBuilder.class.getCanonicalName());
 
   /**
-   * create the configurator that goes with this builder
+   * {@inheritDoc}
    */
   @Override
   protected Configurator<StochasticPathChoice> createConfigurator() throws PlanItException {
@@ -36,8 +36,8 @@ public class StochasticPathChoiceBuilder extends PathChoiceBuilder<StochasticPat
    * @throws PlanItException thrown if error
    */
   protected LogitChoiceModel createLogitChoiceModelInstance(StochasticPathChoiceConfigurator configurator) throws PlanItException {
-    TrafficAssignmentComponentFactory<LogitChoiceModel> logitChoiceModelFactory = new TrafficAssignmentComponentFactory<LogitChoiceModel>(LogitChoiceModel.class);
-    logitChoiceModelFactory.addListener(getInputBuilderListener(), TrafficAssignmentComponentFactory.TRAFFICCOMPONENT_CREATE);
+    PlanitComponentFactory<LogitChoiceModel> logitChoiceModelFactory = new PlanitComponentFactory<LogitChoiceModel>(LogitChoiceModel.class);
+    logitChoiceModelFactory.addListener(getInputBuilderListener());
     return logitChoiceModelFactory.create(configurator.getLogitModel().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 

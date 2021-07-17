@@ -33,7 +33,7 @@ public class RemoveSubGraphVertexEvent extends EventImpl implements GraphModific
    * @return removed vertex
    */
   public Vertex getRemovedVertex() {
-    return (Vertex) getContent();
+    return (Vertex) getContent()[0];
   }
 
 }

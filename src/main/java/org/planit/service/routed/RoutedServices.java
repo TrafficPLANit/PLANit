@@ -3,7 +3,7 @@ package org.planit.service.routed;
 import java.io.Serializable;
 import java.util.logging.Logger;
 
-import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.component.PlanitComponent;
 import org.planit.network.ServiceNetwork;
 import org.planit.utils.id.IdGroupingToken;
 
@@ -23,7 +23,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class RoutedServices extends TrafficAssignmentComponent<RoutedServices> implements Serializable {
+public class RoutedServices extends PlanitComponent<RoutedServices> implements Serializable {
 
   /**
    * generated UID
@@ -61,7 +61,7 @@ public class RoutedServices extends TrafficAssignmentComponent<RoutedServices> i
    * {@inheritDoc}
    */
   @Override
-  public TrafficAssignmentComponent<RoutedServices> clone() {
+  public PlanitComponent<RoutedServices> clone() {
     return new RoutedServices(this);
   }
 

@@ -3,7 +3,7 @@ package org.planit.zoning;
 import java.io.Serializable;
 import java.util.logging.Logger;
 
-import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.component.PlanitComponent;
 import org.planit.demands.Demands;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.od.odmatrix.demand.ODDemandMatrix;
@@ -26,7 +26,7 @@ import org.planit.zoning.modifier.ZoningModifierImpl;
  * @author markr
  *
  */
-public class Zoning extends TrafficAssignmentComponent<Zoning> implements Serializable {
+public class Zoning extends PlanitComponent<Zoning> implements Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = -2986366471146628179L;

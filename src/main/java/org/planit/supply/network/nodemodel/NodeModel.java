@@ -2,7 +2,7 @@ package org.planit.supply.network.nodemodel;
 
 import java.io.Serializable;
 
-import org.planit.assignment.TrafficAssignmentComponent;
+import org.planit.component.PlanitComponent;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -11,7 +11,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class NodeModel extends TrafficAssignmentComponent<NodeModel> implements Serializable {
+public abstract class NodeModel extends PlanitComponent<NodeModel> implements Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = -6966680588075724261L;
