@@ -12,7 +12,9 @@ import org.planit.component.event.PlanitComponentEvent;
 import org.planit.component.event.PlanitComponentEventType;
 import org.planit.component.event.PlanitComponentListener;
 import org.planit.component.event.PopulateComponentEvent;
+import org.planit.component.event.PopulateDemandsEvent;
 import org.planit.component.event.PopulateNetworkEvent;
+import org.planit.component.event.PopulateZoningEvent;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
@@ -144,10 +146,15 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    */
   private void dispatchPopulatePlanitComponentEvent(final T newPlanitComponent, final Object[] parameters) throws PlanItException {
     /* when possible use more specific event for user friendly access to event content on listeners */
+    /* TODO: type check parameters and issue message when not correct */
     if (newPlanitComponent instanceof MacroscopicNetwork) {
       fireEvent(new PopulateNetworkEvent(this, (MacroscopicNetwork) newPlanitComponent));
+    } else if (newPlanitComponent instanceof Zoning) {
+      fireEvent(new PopulateZoningEvent(this, (Zoning) newPlanitComponent, (MacroscopicNetwork) parameters[0]));
+    } else if (newPlanitComponent instanceof Demands) {
+      fireEvent(new PopulateDemandsEvent(this, (Demands) newPlanitComponent, (Zoning) parameters[0], (MacroscopicNetwork) parameters[1]));
     } else {
-      /* fire generic populate component event, likely thrid party class, or one that is likely not meant for user listeners to do anything with */
+      /* fire generic populate component event, likely third party class, or one that is likely not meant for user listeners to do anything with */
       fireEvent(new PopulateComponentEvent(this, newPlanitComponent, parameters));
     }
   }

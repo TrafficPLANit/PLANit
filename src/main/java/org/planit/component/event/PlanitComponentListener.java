@@ -1,6 +1,7 @@
 package org.planit.component.event;
 
 import org.planit.utils.event.EventListener;
+import org.planit.utils.exceptions.PlanItException;
 
 /**
  * To serve as base listener class for all PLANit component related events, where its onX method provides any graph modification event as parameter
@@ -15,7 +16,8 @@ public interface PlanitComponentListener extends EventListener {
    * types and events that are not derived or related to these core PLANit component events used for instantiating and populating PLANit components in a lossely coupled way.
    * 
    * @param event representing the graph modification event at hand
+   * @throws PlanItException thrown if error during processing of event
    */
-  public abstract void onPlanitComponentEvent(final PlanitComponentEvent event);
+  public abstract void onPlanitComponentEvent(final PlanitComponentEvent event) throws PlanItException;
 
 }
