@@ -22,8 +22,9 @@ public class PopulateZoningEvent extends PopulateUntypedComponentEvent {
    * 
    * @param source           of the event
    * @param zoningToPopulate zoning to populate
+   * @param network          used by this zoning
    */
-  public PopulateZoningEvent(final PlanitComponentFactory<?> source, Zoning zoningToPopulate, MacroscopicNetwork network) {
+  public PopulateZoningEvent(final PlanitComponentFactory<?> source, final Zoning zoningToPopulate, final MacroscopicNetwork network) {
     super(EVENT_TYPE, source, zoningToPopulate, new Object[] { network });
   }
 

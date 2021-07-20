@@ -13,6 +13,7 @@ import org.planit.component.event.PlanitComponentEventType;
 import org.planit.component.event.PlanitComponentListener;
 import org.planit.component.event.PopulateComponentEvent;
 import org.planit.component.event.PopulateDemandsEvent;
+import org.planit.component.event.PopulateInitialLinkSegmentCostEvent;
 import org.planit.component.event.PopulateNetworkEvent;
 import org.planit.component.event.PopulateZoningEvent;
 import org.planit.cost.physical.AbstractPhysicalCost;
@@ -94,27 +95,22 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * register all implementations that are by default available as they are provided in the PLANit core packages
    */
   private static void registerDefaultImplementations() {
-    try {
-      registerPlanitComponentType(Zoning.class);
-      registerPlanitComponentType(TraditionalStaticAssignment.class);
-      registerPlanitComponentType(MSASmoothing.class);
-      registerPlanitComponentType(Demands.class);
-      registerPlanitComponentType(RoutedServices.class);
-      registerPlanitComponentType(MacroscopicNetwork.class);
-      registerPlanitComponentType(ServiceNetwork.class);
-      registerPlanitComponentType(BPRLinkTravelTimeCost.class);
-      registerPlanitComponentType(InitialLinkSegmentCost.class);
-      registerPlanitComponentType(InitialLinkSegmentCostPeriod.class);
-      registerPlanitComponentType(FixedConnectoidTravelTimeCost.class);
-      registerPlanitComponentType(SpeedConnectoidTravelTimeCost.class);
-      registerPlanitComponentType(NewellFundamentalDiagram.class);
-      registerPlanitComponentType(TampereNodeModel.class);
-      registerPlanitComponentType(MultinomialLogit.class);
-      registerPlanitComponentType(OdPathSets.class);
-    } catch (final PlanItException e) {
-      LOGGER.severe(e.getMessage());
-      e.printStackTrace();
-    }
+    registerPlanitComponentType(Zoning.class);
+    registerPlanitComponentType(TraditionalStaticAssignment.class);
+    registerPlanitComponentType(MSASmoothing.class);
+    registerPlanitComponentType(Demands.class);
+    registerPlanitComponentType(RoutedServices.class);
+    registerPlanitComponentType(MacroscopicNetwork.class);
+    registerPlanitComponentType(ServiceNetwork.class);
+    registerPlanitComponentType(BPRLinkTravelTimeCost.class);
+    registerPlanitComponentType(InitialLinkSegmentCost.class);
+    registerPlanitComponentType(InitialLinkSegmentCostPeriod.class);
+    registerPlanitComponentType(FixedConnectoidTravelTimeCost.class);
+    registerPlanitComponentType(SpeedConnectoidTravelTimeCost.class);
+    registerPlanitComponentType(NewellFundamentalDiagram.class);
+    registerPlanitComponentType(TampereNodeModel.class);
+    registerPlanitComponentType(MultinomialLogit.class);
+    registerPlanitComponentType(OdPathSets.class);
   }
 
   /**
@@ -153,6 +149,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
       fireEvent(new PopulateZoningEvent(this, (Zoning) newPlanitComponent, (MacroscopicNetwork) parameters[0]));
     } else if (newPlanitComponent instanceof Demands) {
       fireEvent(new PopulateDemandsEvent(this, (Demands) newPlanitComponent, (Zoning) parameters[0], (MacroscopicNetwork) parameters[1]));
+    } else if (newPlanitComponent instanceof InitialLinkSegmentCost) {
+      fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1]));
     } else {
       /* fire generic populate component event, likely third party class, or one that is likely not meant for user listeners to do anything with */
       fireEvent(new PopulateComponentEvent(this, newPlanitComponent, parameters));
@@ -166,7 +164,12 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    */
   @Override
   protected void fireEvent(EventListener eventListener, Event event) {
-    PlanitComponentListener.class.cast(eventListener).onPlanitComponentEvent(PlanitComponentEvent.class.cast(event));
+    try {
+      PlanitComponentListener.class.cast(eventListener).onPlanitComponentEvent(PlanitComponentEvent.class.cast(event));
+    } catch (PlanItException e) {
+      LOGGER.severe(e.getMessage());
+      LOGGER.severe(String.format("Unable to complete fired event %s", event.toString()));
+    }
   }
 
   /**
@@ -197,9 +200,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * Register a component type that one can choose for the given PLANit component
    *
    * @param planitComponent PLANit component to be registered
-   * @throws PlanItException thrown if there is an error
    */
-  public static void registerPlanitComponentType(final Class<? extends PlanitComponent<?>> planitComponent) throws PlanItException {
+  public static void registerPlanitComponentType(final Class<? extends PlanitComponent<?>> planitComponent) {
     Class<?> currentClass = planitComponent;
     while (currentClass != null) {
       final Type currentSuperClass = currentClass.getGenericSuperclass();
@@ -207,7 +209,10 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
         // superclass is a PLANitComponent class, so the current class is the
         // class that we need register by collecting the component entry and placing the component
         final TreeSet<String> treeSet = registeredPlanitComponents.get(currentClass.getCanonicalName());
-        PlanItException.throwIf(treeSet == null, "Base class of PLANit component not registered as eligible on PLANit");
+        if (treeSet == null) {
+          LOGGER.severe("Base class of PLANit component not registered as eligible on PLANit, component not eligible and therefore ignored");
+          return;
+        }
 
         treeSet.add(planitComponent.getCanonicalName());
         registeredPlanitComponents.get(currentClass.getCanonicalName()).add(planitComponent.getCanonicalName());
@@ -216,7 +221,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
         currentClass = currentClass.getSuperclass(); // move
       }
     }
-    throw new PlanItException("PLANit component not eligible for registration");
+    LOGGER.severe("PLANit component not eligible for registration");
   }
 
   /**

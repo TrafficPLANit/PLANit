@@ -42,6 +42,19 @@ public abstract class PopulateUntypedComponentEvent extends EventImpl implements
    * @param additionalContent   for this component to be able to populate
    */
   protected PopulateUntypedComponentEvent(final PlanitComponentEventType type, final PlanitComponentFactory<?> source, PlanitComponent<?> componentToPopulate,
+      Object additionalContent) {
+    this(type, source, componentToPopulate, new Object[] { additionalContent });
+  }
+
+  /**
+   * Constructor
+   *
+   * @param type                of the populate component event
+   * @param source              of the event
+   * @param componentToPopulate to populate
+   * @param additionalContent   for this component to be able to populate
+   */
+  protected PopulateUntypedComponentEvent(final PlanitComponentEventType type, final PlanitComponentFactory<?> source, PlanitComponent<?> componentToPopulate,
       Object[] additionalContent) {
     super(type, source, new Object[] { componentToPopulate, additionalContent });
   }

@@ -302,7 +302,8 @@ public class PlanItProjectInput {
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file which we assume are available in the native xml/csv output format as provided in this project
+   * Create and register initial link segment costs from a (single) file which we assume are available in the native XML/CSV output format as provided in this project. This initial
+   * cost is not specifically tied to a particular time period and can be used as a fallback cost in case more specific costs (for a specific time period) are not available. 
    *
    * @param network  network the InitialLinkSegmentCost object will be registered for
    * @param fileName file containing the initial link segment cost values
@@ -319,14 +320,14 @@ public class PlanItProjectInput {
     LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating initial link segment costs");    
     final InitialLinkSegmentCost initialLinkSegmentCost = 
         (InitialLinkSegmentCost) getComponentFactory(InitialPhysicalCost.class).create(
-            InitialLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId }, network, fileName);
+            InitialLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId }, fileName, network);
 
     initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
     return initialLinkSegmentCost;
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file for each time period
+   * Create and register initial link segment costs from a (single) file for a specific time period
    *
    * @param network    network the InitialLinkSegmentCost object will be registered for
    * @param fileName   location of file containing the initial link segment cost values
@@ -346,15 +347,17 @@ public class PlanItProjectInput {
         LoggingUtils.createProjectPrefix(this.projectId)+
         LoggingUtils.createTimePeriodPrefix(timePeriod)+"populating initial link segment costs");
     
-    final InitialPhysicalCost initialLinkSegmentCostPeriod = 
+    /* note that the time period is hidden in the eventual event (although available via additional content) as it is generally not useful
+     * to the handler who's task it is to populate the component based on the file, regardless to what period it is mapped */
+    final InitialLinkSegmentCostPeriod initialLinkSegmentCostPeriod = 
         (InitialLinkSegmentCostPeriod) getComponentFactory(InitialPhysicalCost.class).create(
-            InitialLinkSegmentCostPeriod.class.getCanonicalName(), new Object[] { projectGroupId }, network, fileName, timePeriod);
+            InitialLinkSegmentCostPeriod.class.getCanonicalName(), new Object[] { projectGroupId }, fileName, network, timePeriod);
 
-    // explicitly register time period on the instance, since it is more specific than the regular initial cost without this information
-    ((InitialLinkSegmentCostPeriod) initialLinkSegmentCostPeriod).setTimePeriod(timePeriod);
+    /* explicitly register time period on the instance, since it is more specific than the regular initial cost without this information */
+    initialLinkSegmentCostPeriod.setTimePeriod(timePeriod);
 
-    initialLinkSegmentCosts.get(network).add((InitialLinkSegmentCost) initialLinkSegmentCostPeriod);
-    return (InitialLinkSegmentCostPeriod) initialLinkSegmentCostPeriod;
+    initialLinkSegmentCosts.get(network).add(initialLinkSegmentCostPeriod);
+    return initialLinkSegmentCostPeriod;
   }
 
   /**

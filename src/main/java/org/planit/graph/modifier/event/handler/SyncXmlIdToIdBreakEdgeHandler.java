@@ -1,4 +1,4 @@
-package org.planit.graph.listener;
+package org.planit.graph.modifier.event.handler;
 
 import java.util.logging.Logger;
 
@@ -20,10 +20,10 @@ import org.planit.utils.graph.modifier.event.GraphModifierListener;
  * 
  * @author markr
  */
-public class SyncXmlIdToInternalIdOnBreakEdge implements GraphModifierListener {
+public class SyncXmlIdToIdBreakEdgeHandler implements GraphModifierListener {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(SyncXmlIdToInternalIdOnBreakEdge.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(SyncXmlIdToIdBreakEdgeHandler.class.getCanonicalName());
 
   /**
    * Perform action by syncing XML ids to ids
@@ -39,7 +39,7 @@ public class SyncXmlIdToInternalIdOnBreakEdge implements GraphModifierListener {
   /**
    * Default constructor
    */
-  public SyncXmlIdToInternalIdOnBreakEdge() {
+  public SyncXmlIdToIdBreakEdgeHandler() {
     super();
   }
 
@@ -57,7 +57,7 @@ public class SyncXmlIdToInternalIdOnBreakEdge implements GraphModifierListener {
   @Override
   public void onGraphModificationEvent(GraphModificationEvent event) {
     if (!event.getType().equals(BreakEdgeEvent.EVENT_TYPE)) {
-      LOGGER.warning(String.format("%s only supports break edge events", SyncXmlIdToInternalIdOnBreakEdge.class.getName()));
+      LOGGER.warning(String.format("%s only supports break edge events", SyncXmlIdToIdBreakEdgeHandler.class.getName()));
       return;
     }
 

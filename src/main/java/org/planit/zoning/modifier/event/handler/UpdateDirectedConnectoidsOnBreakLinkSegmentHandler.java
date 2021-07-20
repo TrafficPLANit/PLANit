@@ -1,4 +1,4 @@
-package org.planit.zoning.listener;
+package org.planit.zoning.modifier.event.handler;
 
 import java.util.Map;
 import java.util.logging.Logger;
@@ -26,9 +26,9 @@ import org.planit.utils.zoning.DirectedConnectoid;
  * @author markr
  *
  */
-public class UpdateDirectedConnectoidsOnBreakLinkSegment implements DirectedGraphModifierListener {
+public class UpdateDirectedConnectoidsOnBreakLinkSegmentHandler implements DirectedGraphModifierListener {
 
-  private static final Logger LOGGER = Logger.getLogger(UpdateDirectedConnectoidsOnBreakLinkSegment.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(UpdateDirectedConnectoidsOnBreakLinkSegmentHandler.class.getCanonicalName());
 
   /** information on the connectoid's desired access node location (before the break link action) */
   private final Map<Point, DirectedConnectoid> connectoidsAccessNodeLocationBeforeBreakLink;
@@ -76,7 +76,7 @@ public class UpdateDirectedConnectoidsOnBreakLinkSegment implements DirectedGrap
    * 
    * @param connectoidsAccessNodeLocationBeforeBreakLink to consider
    */
-  public UpdateDirectedConnectoidsOnBreakLinkSegment(Map<Point, DirectedConnectoid> connectoidsAccessNodeLocationBeforeBreakLink) {
+  public UpdateDirectedConnectoidsOnBreakLinkSegmentHandler(Map<Point, DirectedConnectoid> connectoidsAccessNodeLocationBeforeBreakLink) {
     super();
     this.connectoidsAccessNodeLocationBeforeBreakLink = connectoidsAccessNodeLocationBeforeBreakLink;
   }
@@ -94,7 +94,7 @@ public class UpdateDirectedConnectoidsOnBreakLinkSegment implements DirectedGrap
    */
   @Override
   public void onGraphModificationEvent(GraphModificationEvent event) {
-    LOGGER.warning(String.format("%s only supports break edge segment events", UpdateDirectedConnectoidsOnBreakLinkSegment.class.getName()));
+    LOGGER.warning(String.format("%s only supports break edge segment events", UpdateDirectedConnectoidsOnBreakLinkSegmentHandler.class.getName()));
   }
 
   /**
@@ -103,7 +103,7 @@ public class UpdateDirectedConnectoidsOnBreakLinkSegment implements DirectedGrap
   @Override
   public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
     if (!event.getType().equals(BreakEdgeSegmentEvent.EVENT_TYPE)) {
-      LOGGER.warning(String.format("%s only supports break edge segment events", UpdateDirectedConnectoidsOnBreakLinkSegment.class.getName()));
+      LOGGER.warning(String.format("%s only supports break edge segment events", UpdateDirectedConnectoidsOnBreakLinkSegmentHandler.class.getName()));
       return;
     }
 

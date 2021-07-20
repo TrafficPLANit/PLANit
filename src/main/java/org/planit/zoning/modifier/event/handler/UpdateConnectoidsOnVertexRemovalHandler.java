@@ -1,4 +1,4 @@
-package org.planit.zoning.listener;
+package org.planit.zoning.modifier.event.handler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,10 +25,10 @@ import org.planit.zoning.Zoning;
  * 
  * @author markr
  */
-public class UpdateConnectoidsOnVertexRemoval implements DirectedGraphModifierListener {
+public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphModifierListener {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(UpdateConnectoidsOnVertexRemoval.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(UpdateConnectoidsOnVertexRemovalHandler.class.getCanonicalName());
 
   /**
    * zoning to update zoning components when needed
@@ -106,7 +106,7 @@ public class UpdateConnectoidsOnVertexRemoval implements DirectedGraphModifierLi
    * 
    * @param zoning to use
    */
-  public UpdateConnectoidsOnVertexRemoval(Zoning zoning) {
+  public UpdateConnectoidsOnVertexRemovalHandler(Zoning zoning) {
     super();
     this.zoning = zoning;
 
@@ -132,7 +132,7 @@ public class UpdateConnectoidsOnVertexRemoval implements DirectedGraphModifierLi
     } else if (event.getType().equals(RemoveSubGraphEvent.EVENT_TYPE)) {
       afterSubGraphRemovalComplete();
     } else {
-      LOGGER.warning(String.format("%s invoked for unsupported event", UpdateConnectoidsOnVertexRemoval.class.getName()));
+      LOGGER.warning(String.format("%s invoked for unsupported event", UpdateConnectoidsOnVertexRemovalHandler.class.getName()));
     }
   }
 
@@ -141,7 +141,7 @@ public class UpdateConnectoidsOnVertexRemoval implements DirectedGraphModifierLi
    */
   @Override
   public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
-    LOGGER.warning(String.format("%s only supports graph modification events", UpdateConnectoidsOnVertexRemoval.class.getName()));
+    LOGGER.warning(String.format("%s only supports graph modification events", UpdateConnectoidsOnVertexRemovalHandler.class.getName()));
   }
 
 }

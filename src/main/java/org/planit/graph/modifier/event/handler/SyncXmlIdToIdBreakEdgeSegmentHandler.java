@@ -1,4 +1,4 @@
-package org.planit.graph.listener;
+package org.planit.graph.modifier.event.handler;
 
 import java.util.logging.Logger;
 
@@ -20,15 +20,15 @@ import org.planit.utils.graph.modifier.event.GraphModificationEvent;
  * 
  * @author markr
  */
-public class SyncXmlIdToInternalIdOnBreakEdgeSegment implements DirectedGraphModifierListener {
+public class SyncXmlIdToIdBreakEdgeSegmentHandler implements DirectedGraphModifierListener {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(SyncXmlIdToInternalIdOnBreakEdgeSegment.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(SyncXmlIdToIdBreakEdgeSegmentHandler.class.getCanonicalName());
 
   /**
    * Default constructor
    */
-  public SyncXmlIdToInternalIdOnBreakEdgeSegment() {
+  public SyncXmlIdToIdBreakEdgeSegmentHandler() {
     super();
   }
 
@@ -45,13 +45,13 @@ public class SyncXmlIdToInternalIdOnBreakEdgeSegment implements DirectedGraphMod
    */
   @Override
   public void onGraphModificationEvent(GraphModificationEvent event) {
-    LOGGER.warning(String.format("%s only supports break edge segment events", SyncXmlIdToInternalIdOnBreakEdgeSegment.class.getName()));
+    LOGGER.warning(String.format("%s only supports break edge segment events", SyncXmlIdToIdBreakEdgeSegmentHandler.class.getName()));
   }
 
   @Override
   public void onDirectedGraphModificationEvent(DirectedGraphModificationEvent event) {
     if (!event.getType().equals(BreakEdgeSegmentEvent.EVENT_TYPE)) {
-      LOGGER.warning(String.format("%s only supports break edge segment events", SyncXmlIdToInternalIdOnBreakEdgeSegment.class.getName()));
+      LOGGER.warning(String.format("%s only supports break edge segment events", SyncXmlIdToIdBreakEdgeSegmentHandler.class.getName()));
       return;
     }
 
