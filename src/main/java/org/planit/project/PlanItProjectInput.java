@@ -351,10 +351,7 @@ public class PlanItProjectInput {
      * to the handler who's task it is to populate the component based on the file, regardless to what period it is mapped */
     final InitialLinkSegmentCostPeriod initialLinkSegmentCostPeriod = 
         (InitialLinkSegmentCostPeriod) getComponentFactory(InitialPhysicalCost.class).create(
-            InitialLinkSegmentCostPeriod.class.getCanonicalName(), new Object[] { projectGroupId }, fileName, network, timePeriod);
-
-    /* explicitly register time period on the instance, since it is more specific than the regular initial cost without this information */
-    initialLinkSegmentCostPeriod.setTimePeriod(timePeriod);
+            InitialLinkSegmentCostPeriod.class.getCanonicalName(), new Object[] { projectGroupId, timePeriod}, fileName, network, timePeriod);
 
     initialLinkSegmentCosts.get(network).add(initialLinkSegmentCostPeriod);
     return initialLinkSegmentCostPeriod;

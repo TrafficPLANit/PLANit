@@ -15,7 +15,7 @@ import org.planit.network.MacroscopicNetwork;
 public class PopulateInitialLinkSegmentCostEvent extends PopulateUntypedComponentEvent {
 
   /** event type fired off when initial costs (without specific time period) needs to be populated */
-  public static final PlanitComponentEventType EVENT_TYPE = new PlanitComponentEventType("PLANITCOMPONENT.INITIALCOST.POPULATE");
+  public static final PlanitComponentEventType EVENT_TYPE = new PlanitComponentEventType("PLANITCOMPONENT.COST.INITIAL.POPULATE");
 
   /**
    * Constructor

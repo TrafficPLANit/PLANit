@@ -15,6 +15,7 @@ import org.planit.component.event.PopulateComponentEvent;
 import org.planit.component.event.PopulateDemandsEvent;
 import org.planit.component.event.PopulateInitialLinkSegmentCostEvent;
 import org.planit.component.event.PopulateNetworkEvent;
+import org.planit.component.event.PopulatePhysicalCostEvent;
 import org.planit.component.event.PopulateZoningEvent;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
@@ -150,7 +151,10 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     } else if (newPlanitComponent instanceof Demands) {
       fireEvent(new PopulateDemandsEvent(this, (Demands) newPlanitComponent, (Zoning) parameters[0], (MacroscopicNetwork) parameters[1]));
     } else if (newPlanitComponent instanceof InitialLinkSegmentCost) {
+      // TODO: probably better if we generalise to initialCost event rather then specialise to link segment as we do now */
       fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1]));
+    } else if (newPlanitComponent instanceof AbstractPhysicalCost) {
+      fireEvent(new PopulatePhysicalCostEvent(this, (AbstractPhysicalCost) newPlanitComponent));
     } else {
       /* fire generic populate component event, likely third party class, or one that is likely not meant for user listeners to do anything with */
       fireEvent(new PopulateComponentEvent(this, newPlanitComponent, parameters));

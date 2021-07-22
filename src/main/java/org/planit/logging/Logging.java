@@ -3,6 +3,7 @@ package org.planit.logging;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.logging.FileHandler;
 import java.util.logging.Formatter;
@@ -25,7 +26,7 @@ public class Logging {
   private static final String DEFAULT_LOGGING_PROPERTIES_FILE_NAME = "logging.properties";
   private static final String LEVEL_PROPERTY = "java.util.logging.FileHandler.level";
   private static final Level DEFAULT_LEVEL = Level.INFO;
-
+    
   /**
    * Close the current logger
    *
@@ -39,15 +40,22 @@ public class Logging {
   }
 
   /**
-   * Create logger using default values in logging properties resource file
+   * Create logger using configuration. If no configuration exists, it is attempted to be reader from the
+   * available resources. If it does not exist, null is returned. Otherwise the logger is returned based
+   * on the configuration. Use this to inialise a PLANit application with a particular logging configuration
+   * and the ability to verify this has worked using the default configuration properties by checking for null
    * 
    * @param clazz class for which the logger is being created
    * @return the logger for this class
    * @throws Exception thrown if log file cannot be opened
    */
   public static Logger createLogger(Class<?> clazz) throws Exception {
-    Logger logger = createLogger(clazz, null);
-    return logger;
+    Optional<Logger> logger = createLogger(clazz, null);
+    if(logger.isEmpty()) {
+      System.out.println(String.format("Unable to create logger for class %s",clazz.getName()));
+      return null;
+    }
+    return logger.get();
   }
 
   /**
@@ -58,15 +66,15 @@ public class Logging {
    * 
    * @param clazz class for which the logger is being created
    * @param loggingFileName name of logging properties file
-   * @return the logger for this class
+   * @return the logger for this class, null if not able to configure based on properties file
    * @throws Exception thrown if log file cannot be opened
    */
-  public static Logger createLogger(Class<?> clazz, String loggingFileName) throws Exception {
+  public static Optional<Logger> createLogger(Class<?> clazz, String loggingFileName) throws Exception {
     Logger logger = Logger.getLogger("");
     if (loggingFileName != null) {
       
       /* TODO:
-       * markr: no idea what this is doing, condider refactoring along the lines of the else clause that I rewrote */
+       * markr: no idea what this is doing, consider refactoring along the lines of the else clause that I rewrote */
       Handler handler = new FileHandler(loggingFileName);
       Formatter formatter = new SimpleFormatter();
       handler.setFormatter(formatter);
@@ -85,16 +93,21 @@ public class Logging {
       logger.addHandler(handler);
     } else {
       
+      LogManager logManager = LogManager.getLogManager();
+      
       /* using uris we can deal with jar based resources, or simple files */
       URI resourceUri = ResourceUtils.getResourceUri(DEFAULT_LOGGING_PROPERTIES_FILE_NAME);
-      InputStream inputStream = ResourceUtils.getResourceAsInputStream(resourceUri);
-            
-      LogManager logManager = LogManager.getLogManager();
+      if(resourceUri==null) {
+        return Optional.empty();
+      }
+      InputStream inputStream = ResourceUtils.getResourceAsInputStream(resourceUri);                  
+			
+														 
       logManager.readConfiguration(inputStream);
       logManager.addLogger(logger);
     }
 
-    return logger;
+    return Optional.of(logger);
   }
 
 }

@@ -15,18 +15,17 @@ public class InitialLinkSegmentCostPeriod extends InitialLinkSegmentCost {
 
   /**
    * The time period which this initial cost object applies to.
-   *
-   * If this property is not set, this initial cost object applies to all time periods.
    */
-  protected TimePeriod timePeriod = null;
+  protected final TimePeriod timePeriod;
 
   /**
    * Constructor
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  public InitialLinkSegmentCostPeriod(IdGroupingToken groupId) {
+  public InitialLinkSegmentCostPeriod(IdGroupingToken groupId, final TimePeriod timePeriod) {
     super(groupId);
+    this.timePeriod = timePeriod;
   }
 
   /**
@@ -43,10 +42,6 @@ public class InitialLinkSegmentCostPeriod extends InitialLinkSegmentCost {
 
   public TimePeriod getTimePeriod() {
     return timePeriod;
-  }
-
-  public void setTimePeriod(final TimePeriod timePeriod) {
-    this.timePeriod = timePeriod;
   }
 
   /**
