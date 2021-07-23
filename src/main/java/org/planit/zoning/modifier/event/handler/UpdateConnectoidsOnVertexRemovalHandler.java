@@ -47,6 +47,9 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
    * initialise indices used
    */
   protected void initialiseIndices() {
+    if (zoning == null) {
+      LOGGER.severe(String.format("Zoning is null when initialising in %s, %s invalid", this.getClass().getName()));
+    }
     connectoidsByAccessVertex = new HashMap<DirectedVertex, ArrayList<Connectoid>>();
     for (UndirectedConnectoid connectoid : zoning.odConnectoids) {
       DirectedVertex accessVertex = connectoid.getAccessVertex();
@@ -96,7 +99,7 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
     if (removedConnectoids) {
       zoning.getZoningModifier().recreateConnectoidIds();
     }
-  
+
     /* reset for next subgraph removal */
     removedConnectoids = false;
   }
@@ -106,7 +109,7 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
    * 
    * @param zoning to use
    */
-  public UpdateConnectoidsOnVertexRemovalHandler(Zoning zoning) {
+  public UpdateConnectoidsOnVertexRemovalHandler(final Zoning zoning) {
     super();
     this.zoning = zoning;
 
