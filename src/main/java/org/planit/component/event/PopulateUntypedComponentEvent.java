@@ -3,7 +3,6 @@ package org.planit.component.event;
 import org.planit.component.PlanitComponent;
 import org.planit.component.PlanitComponentFactory;
 import org.planit.utils.event.EventImpl;
-import org.planit.utils.graph.modifier.event.GraphModificationEvent;
 
 /**
  * A Populate component event is fired when PLANit requests for a registered listener to populate the provided PLANit component instance. It is assumed only a single listener will
@@ -13,7 +12,7 @@ import org.planit.utils.graph.modifier.event.GraphModificationEvent;
  * @author markr
  *
  */
-public abstract class PopulateUntypedComponentEvent extends EventImpl implements GraphModificationEvent {
+public abstract class PopulateUntypedComponentEvent extends EventImpl implements PlanitComponentEvent {
 
   /**
    * collect PLANit component to populate

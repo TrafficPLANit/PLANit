@@ -1,5 +1,6 @@
 package org.planit.cost.physical.initial;
 
+import org.planit.time.TimePeriodImpl;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.time.TimePeriod;
 
@@ -19,11 +20,23 @@ public class InitialLinkSegmentCostPeriod extends InitialLinkSegmentCost {
   protected final TimePeriod timePeriod;
 
   /**
+   * Constructor. See https://github.com/TrafficPLANit/PLANitUtils/issues/7 for reason on why we have this constructor. Until fixed, we rely on this to ensure reflection based
+   * instantiation doesn't fail.
+   * 
+   * @param groupId    contiguous id generation within this group for instances of this class
+   * @param timePeriod to use
+   */
+  public InitialLinkSegmentCostPeriod(final IdGroupingToken groupId, final TimePeriodImpl timePeriod) {
+    this(groupId, (TimePeriod) timePeriod);
+  }
+
+  /**
    * Constructor
    * 
-   * @param groupId contiguous id generation within this group for instances of this class
+   * @param groupId    contiguous id generation within this group for instances of this class
+   * @param timePeriod to use
    */
-  public InitialLinkSegmentCostPeriod(IdGroupingToken groupId, final TimePeriod timePeriod) {
+  public InitialLinkSegmentCostPeriod(final IdGroupingToken groupId, final TimePeriod timePeriod) {
     super(groupId);
     this.timePeriod = timePeriod;
   }

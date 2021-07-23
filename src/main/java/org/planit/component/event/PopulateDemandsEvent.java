@@ -45,7 +45,7 @@ public class PopulateDemandsEvent extends PopulateUntypedComponentEvent {
    * @return zoning
    */
   public Zoning getParentZoning() {
-    return (Zoning) getAdditionalContent()[1];
+    return (Zoning) getAdditionalContent()[0];
   }
 
   /**

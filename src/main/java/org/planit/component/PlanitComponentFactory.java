@@ -171,8 +171,12 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     try {
       PlanitComponentListener.class.cast(eventListener).onPlanitComponentEvent(PlanitComponentEvent.class.cast(event));
     } catch (PlanItException e) {
+      /* log exception information and rethrow as run time exception to keep method signature clean */
+      if (e.getCause() != null) {
+        LOGGER.severe(e.getCause().getMessage());
+      }
       LOGGER.severe(e.getMessage());
-      LOGGER.severe(String.format("Unable to complete fired event %s", event.toString()));
+      throw new RuntimeException("Unable to complete fired event" + event.toString());
     }
   }
 

@@ -5,7 +5,11 @@ import java.util.logging.Logger;
 import org.planit.component.event.PlanitComponentEventType;
 import org.planit.component.event.PlanitComponentListener;
 import org.planit.component.event.PopulateComponentEvent;
+import org.planit.component.event.PopulateDemandsEvent;
+import org.planit.component.event.PopulateInitialLinkSegmentCostEvent;
 import org.planit.component.event.PopulateNetworkEvent;
+import org.planit.component.event.PopulatePhysicalCostEvent;
+import org.planit.component.event.PopulateZoningEvent;
 import org.planit.converter.demands.DemandsReader;
 import org.planit.converter.network.NetworkReader;
 import org.planit.converter.zoning.ZoningReader;
@@ -25,7 +29,10 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
    * 
    * <ul>
    * <li>PopulateNetworkEvent for populating a newly created empty network</li>
-   * <li>TODO: add others</li>
+   * <li>PopulateZoningEvent for populating a newly created empty zoning</li>
+   * <li>PopulateDemandsEvent for populating a newly created empty demands</li>
+   * <li>PopulatePhysicalCostEvent for populating a newly created empty physical costs</li>
+   * <li>PopulateInitialLinkSegmentCostEvent for populating a newly created empty initial link segment costs</li>
    * <li>PopulateComponentEvent for all events that can be intercepted byt no dedicated event exists for (likely only for internal platform use)</li>
    * </ul>
    * 
@@ -33,7 +40,8 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
    */
   @Override
   public PlanitComponentEventType[] getKnownSupportedEventTypes() {
-    return new PlanitComponentEventType[] { PopulateComponentEvent.EVENT_TYPE, PopulateNetworkEvent.EVENT_TYPE };
+    return new PlanitComponentEventType[] { PopulateComponentEvent.EVENT_TYPE, PopulateNetworkEvent.EVENT_TYPE, PopulateZoningEvent.EVENT_TYPE, PopulateDemandsEvent.EVENT_TYPE,
+        PopulatePhysicalCostEvent.EVENT_TYPE, PopulateInitialLinkSegmentCostEvent.EVENT_TYPE };
   }
 
   /** the logger */
