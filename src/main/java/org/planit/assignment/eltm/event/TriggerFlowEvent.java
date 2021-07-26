@@ -1,8 +1,8 @@
 package org.planit.assignment.eltm.event;
 
-import org.djutils.event.EventType;
 import org.planit.assignment.eltm.LinkSegmentBoundary;
 import org.planit.utils.cumulatives.CumulativePoint;
+import org.planit.utils.event.EventType;
 
 /**
  * A trigger flow event represents a flow rate that is being triggered exogenously, typically by a node on either side of the link segment. Hence, that the source of this event is
@@ -12,9 +12,6 @@ import org.planit.utils.cumulatives.CumulativePoint;
  *
  */
 public class TriggerFlowEvent extends TriggerEvent {
-
-  /** generated UID */
-  private static final long serialVersionUID = -913914782289041442L;
 
   /**
    * event type to identify ltm events representing a change in flow that is exogenously triggered

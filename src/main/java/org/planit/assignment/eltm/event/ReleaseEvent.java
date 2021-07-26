@@ -2,21 +2,18 @@ package org.planit.assignment.eltm.event;
 
 import java.io.Serializable;
 
-import org.djutils.event.EventType;
 import org.planit.assignment.eltm.LinkSegmentBoundary.Location;
 import org.planit.utils.cumulatives.CumulativePoint;
+import org.planit.utils.event.EventType;
 
 /**
  * A release event represents the arrival of a trigger event at the opposite link boundary from where it originated. Additional information with this event is to be provided by
- * sublassing it
+ * subclassing it
  * 
  * @author markr
  *
  */
 public class ReleaseEvent extends CumulativeEvent {
-
-  /** generated UID */
-  private static final long serialVersionUID = -5277263137883207592L;
 
   /**
    * Constructor
@@ -36,7 +33,7 @@ public class ReleaseEvent extends CumulativeEvent {
    * @return source trigger event
    */
   public TriggerEvent getSourceTriggerEvent() {
-    return (TriggerEvent) getSourceId();
+    return (TriggerEvent) getSource();
   }
 
   /**

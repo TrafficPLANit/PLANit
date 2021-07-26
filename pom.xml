@@ -39,12 +39,6 @@
 
 		<!-- version inherited from parent -->
 		<dependency>
-			<groupId>org.djutils</groupId>
-			<artifactId>djutils</artifactId>
-		</dependency>
-
-		<!-- version inherited from parent -->
-		<dependency>
 			<groupId>org.ojalgo</groupId>
 			<artifactId>ojalgo</artifactId>
 		</dependency>
