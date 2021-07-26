@@ -16,7 +16,7 @@ import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
  * @author markr
  */
 public abstract class UntypedPhysicalLayerImpl<N extends Node, NE extends GraphEntities<N>, L extends Link, LE extends GraphEntities<L>, LS extends LinkSegment, LSE extends GraphEntities<LS>>
-    extends UntypedDirectedGraphLayerImpl<N, NE, L, LE, LS, LSE> implements UntypedPhysicalLayer<N, NE, L, LE, LS, LSE> {
+    extends UntypedNetworkLayerImpl<N, NE, L, LE, LS, LSE> implements UntypedPhysicalLayer<N, NE, L, LE, LS, LSE> {
 
   // INNER CLASSES
 

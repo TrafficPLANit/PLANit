@@ -16,16 +16,16 @@ import org.planit.utils.network.layer.service.ServiceNode;
 import org.planit.utils.network.layer.service.ServiceNodes;
 
 /**
- * A service network layer is built on top of a physical network (layer). Its nodes (service nodes) and links (legs) contain references to the underlying network resulting in an
- * efficient use of memory while allowing one to treat the service layer as a normal network at the same time. Service Nodes are one-to-one matches to the underlying network nodes
- * and represent locations where services exist. Edges are represented by ServiceLegs, while edge segments are represented by ServiceLegSegments. A leg comprises of one or more
- * physical links in the underlying network and as long as the underlying links differ multiple legs can exist between service nodes. ServiceLegSegments have a direction in which
- * order they traverse the underlying links of the ServiceLeg.
+ * A service network layer is built on top of a physical network (layer). Its nodes (service nodes) and links (legs) contain references to the underlying physical network resulting
+ * in an efficient use of memory while allowing one to treat the service layer as a normal network at the same time. Service Nodes are one-to-one matches to the underlying network
+ * nodes and represent locations where services can be accessed/egressed. Edges are represented by ServiceLegs, while edge segments are represented by ServiceLegSegments. A leg
+ * comprises one or more physical links in the underlying network and as long as the underlying links differ, multiple legs can exist between the same service nodes.
+ * ServiceLegSegments have a direction which determines the order in which they traverse the underlying physical links of the ServiceLeg.
  *
  * @author markr
  *
  */
-public class ServiceNetworkLayerImpl extends UntypedDirectedGraphLayerImpl<ServiceNode, ServiceNodes, ServiceLeg, ServiceLegs, ServiceLegSegment, ServiceLegSegments>
+public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode, ServiceNodes, ServiceLeg, ServiceLegs, ServiceLegSegment, ServiceLegSegments>
     implements ServiceNetworkLayer {
 
   /** the logger */

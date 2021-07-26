@@ -4,7 +4,7 @@ import java.util.logging.Logger;
 
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.graph.UntypedDirectedGraphImpl;
-import org.planit.network.layer.modifier.UntypedDirectedGraphLayerModifierImpl;
+import org.planit.network.layer.modifier.UntypedNetworkLayerModifierImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.geo.PlanitJtsUtils;
 import org.planit.utils.graph.EdgeSegment;
@@ -23,12 +23,12 @@ import org.planit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier
  *
  * @author markr
  */
-public abstract class UntypedDirectedGraphLayerImpl<V extends DirectedVertex, VE extends GraphEntities<V>, E extends DirectedEdge, EE extends GraphEntities<E>, S extends EdgeSegment, SE extends GraphEntities<S>>
+public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, VE extends GraphEntities<V>, E extends DirectedEdge, EE extends GraphEntities<E>, S extends EdgeSegment, SE extends GraphEntities<S>>
     extends TopologicalLayerImpl implements UntypedDirectedGraphLayer<V, VE, E, EE, S, SE> {
 
   /** the logger */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(UntypedDirectedGraphLayerImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(UntypedNetworkLayerImpl.class.getCanonicalName());
 
   /**
    * The graph containing the vertices, edges, and edge segments (or derived implementations)
@@ -59,10 +59,10 @@ public abstract class UntypedDirectedGraphLayerImpl<V extends DirectedVertex, VE
    * @param edges        edges container to use
    * @param edgeSegments edge Segments container to use
    */
-  public UntypedDirectedGraphLayerImpl(final IdGroupingToken tokenId, final VE vertices, final EE edges, final SE edgeSegments) {
+  public UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final VE vertices, final EE edges, final SE edgeSegments) {
     super(tokenId);
     this.graph = new UntypedDirectedGraphImpl<VE, EE, SE>(tokenId, vertices, edges, edgeSegments);
-    this.layerModifier = new UntypedDirectedGraphLayerModifierImpl<V, VE, E, EE, S, SE>(this.graph);
+    this.layerModifier = new UntypedNetworkLayerModifierImpl<V, VE, E, EE, S, SE>(this.graph);
   }
 
   /**
@@ -74,7 +74,7 @@ public abstract class UntypedDirectedGraphLayerImpl<V extends DirectedVertex, VE
    * @param edgeSegments  edge Segments container to use
    * @param layerModifier to use for applying modifications to the graph
    */
-  public UntypedDirectedGraphLayerImpl(final IdGroupingToken tokenId, final VE vertices, final EE edges, final SE edgeSegments,
+  public UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final VE vertices, final EE edges, final SE edgeSegments,
       UntypedDirectedGraphLayerModifier<V, VE, E, EE, S, SE> layerModifier) {
     super(tokenId);
     this.graph = new UntypedDirectedGraphImpl<VE, EE, SE>(tokenId, vertices, edges, edgeSegments);
@@ -86,10 +86,10 @@ public abstract class UntypedDirectedGraphLayerImpl<V extends DirectedVertex, VE
    * 
    * @param untypedDirectedGraphLayerImpl to copy
    */
-  public UntypedDirectedGraphLayerImpl(UntypedDirectedGraphLayerImpl<V, VE, E, EE, S, SE> untypedDirectedGraphLayerImpl) {
+  public UntypedNetworkLayerImpl(UntypedNetworkLayerImpl<V, VE, E, EE, S, SE> untypedDirectedGraphLayerImpl) {
     super(untypedDirectedGraphLayerImpl);
     this.graph = untypedDirectedGraphLayerImpl.graph.clone();
-    this.layerModifier = new UntypedDirectedGraphLayerModifierImpl<V, VE, E, EE, S, SE>(graph);
+    this.layerModifier = new UntypedNetworkLayerModifierImpl<V, VE, E, EE, S, SE>(graph);
   }
 
   // Getters - Setters
@@ -144,6 +144,6 @@ public abstract class UntypedDirectedGraphLayerImpl<V extends DirectedVertex, VE
    * {@inheritDoc}
    */
   @Override
-  public abstract UntypedDirectedGraphLayerImpl<V, VE, E, EE, S, SE> clone();
+  public abstract UntypedNetworkLayerImpl<V, VE, E, EE, S, SE> clone();
 
 }

@@ -12,15 +12,15 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public class IntermodalConverter extends MultiConverter<TransportLayerNetwork<?,?>, Zoning> {
+public class IntermodalConverter extends MultiConverter<TransportLayerNetwork<?, ?>, Zoning> {
 
   /**
-   * constructor
+   * Constructor
    * 
    * @param reader for intermodal networks
    * @param writer for intermodal networks
    */
-  protected IntermodalConverter(MultiConverterReader<TransportLayerNetwork<?,?>, Zoning> reader, MultiConverterWriter<TransportLayerNetwork<?,?>, Zoning> writer) {
+  protected IntermodalConverter(MultiConverterReader<TransportLayerNetwork<?, ?>, Zoning> reader, MultiConverterWriter<TransportLayerNetwork<?, ?>, Zoning> writer) {
     super(reader, writer);
   }
 

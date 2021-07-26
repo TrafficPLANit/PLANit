@@ -19,19 +19,20 @@ import org.planit.utils.graph.modifier.event.GraphModifierListener;
 import org.planit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
 
 /**
- * Model free network layer consisting of containers for vertices, edges, and edge segments each of which can be typed separately. This network does not contain any transport
- * specific information, hence the qualification "model free".
+ * Modifier class for model free network layer, generics used to allow derived classes to provide typed versions for containers and content of containers. It wraps a directed graph
+ * modifier while allowing the methods to be typed in a more user friendly way and hide or add additional functionality compared to the raw modifications exposed by the underlying
+ * graph modifier.
  *
  * @author markr
  */
-public class UntypedDirectedGraphLayerModifierImpl<V extends DirectedVertex, VE extends GraphEntities<V>, E extends DirectedEdge, EE extends GraphEntities<E>, S extends EdgeSegment, SE extends GraphEntities<S>>
+public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, VE extends GraphEntities<V>, E extends DirectedEdge, EE extends GraphEntities<E>, S extends EdgeSegment, SE extends GraphEntities<S>>
     implements UntypedDirectedGraphLayerModifier<V, VE, E, EE, S, SE> {
 
   // INNER CLASSES
 
   /** the logger */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(UntypedDirectedGraphLayerModifierImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(UntypedNetworkLayerModifierImpl.class.getCanonicalName());
 
   /** the graph modifier to use to apply larger modifications */
   protected DirectedGraphModifier graphModifier;
@@ -44,7 +45,7 @@ public class UntypedDirectedGraphLayerModifierImpl<V extends DirectedVertex, VE 
    * @param graph         parent graph
    * @param graphModifier parent graph modifier
    */
-  public UntypedDirectedGraphLayerModifierImpl(final DirectedGraphModifier graphModifier) {
+  public UntypedNetworkLayerModifierImpl(final DirectedGraphModifier graphModifier) {
     this.graphModifier = graphModifier;
   }
 
@@ -53,7 +54,7 @@ public class UntypedDirectedGraphLayerModifierImpl<V extends DirectedVertex, VE 
    *
    * @param graph parent graph to abse modifier on
    */
-  public UntypedDirectedGraphLayerModifierImpl(UntypedDirectedGraphImpl<VE, EE, SE> graph) {
+  public UntypedNetworkLayerModifierImpl(UntypedDirectedGraphImpl<VE, EE, SE> graph) {
     this.graphModifier = new DirectedGraphModifierImpl(graph);
   }
 
