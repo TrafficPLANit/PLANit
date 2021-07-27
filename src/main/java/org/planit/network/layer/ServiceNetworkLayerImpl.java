@@ -117,6 +117,14 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    * {@inheritDoc}
    */
   @Override
+  public MacroscopicNetworkLayer getParentNetworkLayer() {
+    return parentNetworkLayer;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void logInfo(String prefix) {
     super.logInfo(prefix);
 

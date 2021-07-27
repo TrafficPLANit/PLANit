@@ -59,13 +59,15 @@ public abstract class TransportLayersImpl<T extends TransportLayer> extends Mana
    */
   @Override
   public T get(final Mode mode) {
-    for (T layer : this) {
-      if (layer.supports(mode)) {
-        return layer;
-      }
-    }
+    return findFirst(layer -> layer.supports(mode));
+  }
 
-    return null;
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public T getByXmlId(String xmlId) {
+    return findFirst(layer -> layer.getXmlId().equals(xmlId));
   }
 
   /**

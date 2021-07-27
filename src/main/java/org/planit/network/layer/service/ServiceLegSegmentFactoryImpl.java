@@ -28,8 +28,16 @@ public class ServiceLegSegmentFactoryImpl extends GraphEntityFactoryImpl<Service
    * {@inheritDoc}
    */
   @Override
-  public ServiceLegSegmentImpl registerNew(ServiceLeg parentLeg, boolean directionAB) {
-    return new ServiceLegSegmentImpl(getIdGroupingToken(), parentLeg, directionAB);
+  public ServiceLegSegmentImpl registerNew(final ServiceLeg parentLeg, final boolean directionAb, boolean registerOnServiceNodeAndLeg) {
+    final ServiceLegSegmentImpl legSegment = new ServiceLegSegmentImpl(getIdGroupingToken(), parentLeg, directionAb);
+    getGraphEntities().register(legSegment);
+
+    if (registerOnServiceNodeAndLeg) {
+      parentLeg.registerEdgeSegment(legSegment, directionAb);
+      parentLeg.getServiceNodeA().addEdgeSegment(legSegment);
+      parentLeg.getServiceNodeB().addEdgeSegment(legSegment);
+    }
+    return legSegment;
   }
 
 }
