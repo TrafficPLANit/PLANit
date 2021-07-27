@@ -1,16 +1,16 @@
 package org.planit.converter.intermodal;
 
 import org.planit.converter.MultiConverterReader;
-import org.planit.network.TransportLayerNetwork;
+import org.planit.network.MacroscopicNetwork;
 import org.planit.zoning.Zoning;
 
 /**
- * abstract base class implementation to parser an intermodal PLANit network
+ * Abstract base class implementation to parser an intermodal PLANit network
  * 
  * @author markr
  *
  */
-public interface IntermodalReader extends MultiConverterReader<TransportLayerNetwork<?,?>, Zoning> {
+public interface IntermodalReader extends MultiConverterReader<MacroscopicNetwork, Zoning> {
 
   /**
    * {@inheritDoc}
