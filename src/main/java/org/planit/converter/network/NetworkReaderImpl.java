@@ -16,7 +16,7 @@ import org.planit.utils.network.layer.physical.Node;
  * @author markr
  *
  */
-public abstract class NetworkReaderBase implements NetworkReader {
+public abstract class NetworkReaderImpl implements NetworkReader {
 
   /**
    * Map which stores which source node Ids corresponding to PLANit nodes
@@ -56,7 +56,7 @@ public abstract class NetworkReaderBase implements NetworkReader {
   /**
    * Constructor
    */
-  protected NetworkReaderBase() {
+  protected NetworkReaderImpl() {
     this.sourceIdNodeMap = new HashMap<String, Node>();
     this.sourceIdLinkSegmentTypeMap = new HashMap<String, MacroscopicLinkSegmentType>();
     this.sourceIdModeMap = new HashMap<String, Mode>();

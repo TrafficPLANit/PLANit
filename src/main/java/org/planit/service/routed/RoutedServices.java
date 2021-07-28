@@ -58,6 +58,15 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
   }
 
   /**
+   * Collect the parent service network on top of which these services are defined
+   * 
+   * @return parent service network
+   */
+  public ServiceNetwork getParentNetwork() {
+    return parentServiceNetwork;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
