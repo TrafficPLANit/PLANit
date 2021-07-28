@@ -84,10 +84,10 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    */
   protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB) {
     super(groupId, EDGE_ID_CLASS);
-    setVertexA(vertexA);
-    setVertexB(vertexB);
-    lengthInKm = null;
-    setGeometry(null);
+    this.vertexA = vertexA;
+    this.vertexB = vertexB;
+    this.lengthInKm = null;
+    this.lineGeometry = null;
   }
 
   /**
@@ -100,7 +100,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    */
   protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB, final double lengthKm) {
     this(groupId, vertexA, vertexB);
-    setLengthKm(lengthKm);
+    this.lengthInKm = lengthKm;
   }
 
   /**
@@ -113,10 +113,10 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
     if (edgeImpl.hasGeometry()) {
       setGeometry((LineString) edgeImpl.getGeometry().copy());
     }
-    setVertexA(edgeImpl.getVertexA());
-    setVertexB(edgeImpl.getVertexB());
-    setLengthKm(edgeImpl.getLengthKm());
-    setName(getName() != null ? edgeImpl.getName() : "");
+    this.vertexA = edgeImpl.vertexA;
+    this.vertexB = edgeImpl.vertexB;
+    this.lengthInKm = edgeImpl.lengthInKm;
+    this.name = edgeImpl.name;
     if (edgeImpl.inputProperties != null && !edgeImpl.inputProperties.isEmpty()) {
       for (Entry<String, Object> entry : edgeImpl.inputProperties.entrySet()) {
         addInputProperty(new String(entry.getKey()), CloneUtils.clone(entry.getValue()));

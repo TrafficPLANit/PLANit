@@ -68,7 +68,7 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
    * @param coordinateReferenceSystem to set
    */
   public void setCoordinateReferenceSystem(final CoordinateReferenceSystem coordinateReferenceSystem) {
-    if (transportLayers.isEachLayerEmpty()) {
+    if (getTransportLayers().isEachLayerEmpty()) {
       this.coordinateReferenceSystem = coordinateReferenceSystem;
     } else {
       LOGGER.warning("Coordinate Reference System is already set. To change the CRS after instantiation, use transform() method");
@@ -83,7 +83,7 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
    * @throws PlanItException thrown if error
    */
   public void transform(final CoordinateReferenceSystem newCoordinateReferenceSystem) throws PlanItException {
-    for (TopologicalLayer layer : transportLayers) {
+    for (TopologicalLayer layer : getTransportLayers()) {
       layer.transform(coordinateReferenceSystem, newCoordinateReferenceSystem);
     }
   }

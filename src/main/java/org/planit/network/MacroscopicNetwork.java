@@ -52,7 +52,7 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    * @param layerConfiguration to use for configuration
    */
   public void initialiseLayers(MacroscopicNetworkLayerConfigurator layerConfiguration) {
-    if (!transportLayers.isNoLayers()) {
+    if (!getTransportLayers().isNoLayers()) {
       LOGGER.warning("unable to initialise layers based on provided configuration, since network already has layers defined");
       return;
     }
@@ -60,13 +60,13 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
     /* register layers */
     Map<String, Long> xmlIdToId = new HashedMap<String, Long>();
     for (String layerXmlId : layerConfiguration.transportLayersByXmlId) {
-      TransportLayer newLayer = transportLayers.getFactory().registerNew();
+      TransportLayer newLayer = getTransportLayers().getFactory().registerNew();
       newLayer.setXmlId(layerXmlId);
       xmlIdToId.put(layerXmlId, newLayer.getId());
     }
 
     /* register modes */
-    layerConfiguration.modeToLayerXmlId.forEach((mode, layerXmlId) -> transportLayers.get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
+    layerConfiguration.modeToLayerXmlId.forEach((mode, layerXmlId) -> getTransportLayers().get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
 
   }
 

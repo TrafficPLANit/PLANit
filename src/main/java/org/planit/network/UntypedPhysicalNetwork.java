@@ -57,7 +57,7 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
    * @throws PlanItException thrown if error
    */
   public void removeDanglingSubnetworks(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
-    for (L infrastructureLayer : this.transportLayers) {
+    for (L infrastructureLayer : getTransportLayers()) {
       infrastructureLayer.getLayerModifier().removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest);
     }
   }

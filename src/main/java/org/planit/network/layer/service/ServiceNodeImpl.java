@@ -55,7 +55,7 @@ public class ServiceNodeImpl extends DirectedVertexImpl implements ServiceNode {
    */
   protected ServiceNodeImpl(final ServiceNodeImpl serviceNode) {
     super(serviceNode);
-    this.networkNode = serviceNode.getNetworkLayerNode();
+    this.networkNode = serviceNode.getParentNode();
     edges.putAll(serviceNode.edges);
     entryEdgeSegments.addAll(serviceNode.entryEdgeSegments);
     exitEdgeSegments.addAll(serviceNode.exitEdgeSegments);
@@ -95,7 +95,7 @@ public class ServiceNodeImpl extends DirectedVertexImpl implements ServiceNode {
    * @return related network layer node
    */
   @Override
-  public final Node getNetworkLayerNode() {
+  public final Node getParentNode() {
     return networkNode;
   }
 

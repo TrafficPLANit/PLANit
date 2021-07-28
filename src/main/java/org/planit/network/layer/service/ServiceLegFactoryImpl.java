@@ -43,6 +43,7 @@ public class ServiceLegFactoryImpl extends GraphEntityFactoryImpl<ServiceLeg> im
   @Override
   public ServiceLegImpl registerNew(final ServiceNode nodeA, final ServiceNode nodeB, boolean registerOnNodes) {
     ServiceLegImpl newServiceLeg = new ServiceLegImpl(getIdGroupingToken(), nodeA, nodeB);
+    getGraphEntities().register(newServiceLeg);
     if (registerOnNodes) {
       registerOnNodes(newServiceLeg);
     }
@@ -55,6 +56,7 @@ public class ServiceLegFactoryImpl extends GraphEntityFactoryImpl<ServiceLeg> im
   @Override
   public ServiceLeg registerNew(final ServiceNode nodeA, final ServiceNode nodeB, final List<Link> networkLayerLinks, boolean registerOnNodes) {
     ServiceLegImpl newServiceLeg = new ServiceLegImpl(getIdGroupingToken(), nodeA, nodeB, networkLayerLinks);
+    getGraphEntities().register(newServiceLeg);
     if (registerOnNodes) {
       registerOnNodes(newServiceLeg);
     }

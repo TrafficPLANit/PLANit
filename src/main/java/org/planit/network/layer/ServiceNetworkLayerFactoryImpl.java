@@ -48,10 +48,12 @@ public class ServiceNetworkLayerFactoryImpl extends ManagedIdEntityFactoryImpl<S
    */
   @Override
   public ServiceNetworkLayer registerNew(final MacroscopicNetworkLayer parentLayer) {
-    if (container.getParentNetwork().getTransportLayers().contains(parentLayer.getId())) {
+    if (!container.getParentNetwork().getTransportLayers().contains(parentLayer.getId())) {
       LOGGER.warning("IGNORED, unable to create service layer, provided parent layer not present on parent network");
     }
-    return new ServiceNetworkLayerImpl(this.getIdGroupingToken(), parentLayer);
+    ServiceNetworkLayerImpl newLayer = new ServiceNetworkLayerImpl(this.getIdGroupingToken(), parentLayer);
+    container.register(newLayer);
+    return newLayer;
   }
 
 }

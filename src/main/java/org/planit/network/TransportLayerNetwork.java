@@ -29,17 +29,15 @@ public abstract class TransportLayerNetwork<U extends TransportLayer, T extends 
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(TransportLayerNetwork.class.getCanonicalName());
 
-  // Protected
-
-  // Public
-
   /**
    * class instance containing all modes specific functionality across the layers
    */
-  protected final Modes modes;
+  private final Modes modes;
 
   /** stores the various layers grouped by their supported modes of transport */
-  protected final T transportLayers;
+  private T transportLayers;
+
+  // Protected
 
   /**
    * Derived type is to provide the actual layer implementations
@@ -59,8 +57,10 @@ public abstract class TransportLayerNetwork<U extends TransportLayer, T extends 
 
     /* for mode management */
     this.modes = new ModesImpl(tokenId);
-    /* for layer management */
-    this.transportLayers = createLayersContainer(getNetworkGroupingTokenId());
+
+    /* until accessed remaines null */
+    this.transportLayers = null;
+
   }
 
   /**
@@ -88,6 +88,10 @@ public abstract class TransportLayerNetwork<U extends TransportLayer, T extends 
    * @return transport layers container
    */
   public T getTransportLayers() {
+    if (transportLayers == null) {
+      /* delegate to let implementing class generate the correct instance for layer management */
+      this.transportLayers = createLayersContainer(getNetworkGroupingTokenId());
+    }
     return transportLayers;
   }
 

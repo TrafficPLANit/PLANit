@@ -173,4 +173,35 @@ public class ServiceLegImpl extends DirectedEdgeImpl implements ServiceLeg {
   public void setLengthKm(double lengthInKm) {
     LOGGER.warning("Not allowed to set length on service leg, do so on underlying links instead");
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<Link> getParentLinks() {
+    return this.networkLayerLinks;
+  }
+
+  /**
+   * Validate based on edge that it is, but also make sure that the references to parent network are consistent, i.e., the service nodes reside on the parent links in the right
+   * location as well
+   */
+  @Override
+  public boolean validate() {
+    boolean valid = super.validate();
+    if (valid) {
+      if (!(getServiceNodeA().getParentNode().equals(getFirstParentLink().getNodeA()))) {
+        LOGGER.severe(String.format("Service Node A its parent node (%s) on leg %s does not equate to node A (%s) of the first parent link (%s)",
+            getServiceNodeA().getParentNode().getXmlId(), getXmlId(), getFirstParentLink().getNodeA().getXmlId(), getFirstParentLink().getXmlId()));
+        valid = false;
+      }
+      if (!(getServiceNodeB().getParentNode().equals(getLastParentLink().getNodeB()))) {
+        LOGGER.severe(String.format("Service Node B its parent node (%s) on leg %s does not equate to node B (%s) of the last parent link (%s)",
+            getServiceNodeB().getParentNode().getXmlId(), getXmlId(), getLastParentLink().getNodeB().getXmlId(), getLastParentLink().getXmlId()));
+        valid = false;
+      }
+    }
+    return true;
+  }
+
 }

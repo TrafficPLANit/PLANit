@@ -3,7 +3,7 @@ package org.planit.converter.intermodal;
 import org.planit.converter.MultiConverter;
 import org.planit.converter.MultiConverterReader;
 import org.planit.converter.MultiConverterWriter;
-import org.planit.network.TransportLayerNetwork;
+import org.planit.network.MacroscopicNetwork;
 import org.planit.zoning.Zoning;
 
 /**
@@ -12,7 +12,7 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public class IntermodalConverter extends MultiConverter<TransportLayerNetwork<?, ?>, Zoning> {
+public class IntermodalConverter extends MultiConverter<MacroscopicNetwork, Zoning> {
 
   /**
    * Constructor
@@ -20,7 +20,7 @@ public class IntermodalConverter extends MultiConverter<TransportLayerNetwork<?,
    * @param reader for intermodal networks
    * @param writer for intermodal networks
    */
-  protected IntermodalConverter(MultiConverterReader<TransportLayerNetwork<?, ?>, Zoning> reader, MultiConverterWriter<TransportLayerNetwork<?, ?>, Zoning> writer) {
+  protected IntermodalConverter(MultiConverterReader<MacroscopicNetwork, Zoning> reader, MultiConverterWriter<MacroscopicNetwork, Zoning> writer) {
     super(reader, writer);
   }
 
