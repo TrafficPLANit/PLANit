@@ -37,6 +37,9 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
   /** the parent network these routed services are built upon */
   private ServiceNetwork parentServiceNetwork;
 
+  /** the layers providing access to the dedicated routed services per layer */
+  private final RoutedServicesLayers layers;
+
   /**
    * Constructor
    * 
@@ -45,6 +48,7 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
   public RoutedServices(IdGroupingToken tokenId, final ServiceNetwork parentServiceNetwork) {
     super(tokenId, RoutedServices.class);
     this.parentServiceNetwork = parentServiceNetwork;
+    this.layers = new RoutedServicesLayersImpl(tokenId);
   }
 
   /**
@@ -55,6 +59,15 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
   public RoutedServices(RoutedServices routedServices) {
     super(routedServices);
     this.parentServiceNetwork = routedServices.parentServiceNetwork;
+    this.layers = routedServices.layers.clone();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public PlanitComponent<RoutedServices> clone() {
+    return new RoutedServices(this);
   }
 
   /**
@@ -67,11 +80,12 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
   }
 
   /**
-   * {@inheritDoc}
+   * Provide access to the layer specific routed services
+   * 
+   * @return routed services layers container
    */
-  @Override
-  public PlanitComponent<RoutedServices> clone() {
-    return new RoutedServices(this);
+  public RoutedServicesLayers getLayers() {
+    return layers;
   }
 
 }

@@ -1,6 +1,5 @@
 package org.planit.zoning;
 
-import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.zoning.Zone;
 import org.planit.utils.zoning.Zones;
@@ -17,9 +16,9 @@ public abstract class ZonesImpl<Z extends Zone> extends ManagedIdEntitiesImpl<Z>
   /**
    * Constructor
    * 
-   * @param groupId to use for creating ids for instances
+   * @param tokenId to use for creating ids for instances
    */
-  public ZonesImpl(final IdGroupingToken groupId) {
+  public ZonesImpl() {
     super(Zone::getId, Zone.ZONE_ID_CLASS);
   }
 

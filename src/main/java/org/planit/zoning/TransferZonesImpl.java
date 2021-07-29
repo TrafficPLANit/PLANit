@@ -23,7 +23,7 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Transf
    * @param groupId to use for creating ids for instances
    */
   public TransferZonesImpl(final IdGroupingToken groupId) {
-    super(groupId);
+    super();
     this.transferZoneFactory = new TransferZoneFactoryImpl(groupId, this);
   }
 
@@ -33,8 +33,8 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Transf
    * @param groupId             to use for creating ids for instances
    * @param transferZoneFactory the factory to use
    */
-  public TransferZonesImpl(final IdGroupingToken groupId, TransferZoneFactory transferZoneFactory) {
-    super(groupId);
+  public TransferZonesImpl(TransferZoneFactory transferZoneFactory) {
+    super();
     this.transferZoneFactory = transferZoneFactory;
   }
 

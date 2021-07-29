@@ -23,18 +23,17 @@ public class OdZonesImpl extends ZonesImpl<OdZone> implements OdZones {
    * @param groupId to use for creating ids for instances
    */
   public OdZonesImpl(final IdGroupingToken groupId) {
-    super(groupId);
+    super();
     this.odZoneFactory = new OdZoneFactoryImpl(groupId, this);
   }
 
   /**
    * Constructor
    * 
-   * @param groupId       to use for creating ids for instances
    * @param odZoneFactory the factory to use
    */
-  public OdZonesImpl(final IdGroupingToken groupId, OdZoneFactory odZoneFactory) {
-    super(groupId);
+  public OdZonesImpl(OdZoneFactory odZoneFactory) {
+    super();
     this.odZoneFactory = odZoneFactory;
   }
 

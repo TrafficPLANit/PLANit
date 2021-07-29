@@ -19,7 +19,7 @@ public class OdZoneFactoryImpl extends ZoneFactoryImpl<OdZone> implements OdZone
   /**
    * Constructor
    * 
-   * @param groupId             to use
+   * @param groupId to use
    * @param odZones to use
    */
   protected OdZoneFactoryImpl(final IdGroupingToken groupId, final OdZones odZones) {
@@ -41,7 +41,7 @@ public class OdZoneFactoryImpl extends ZoneFactoryImpl<OdZone> implements OdZone
    * {@inheritDoc}
    */
   @Override
-  public OdZone registerNew() {   
+  public OdZone registerNew() {
     OdZone newOdZone = createNew();
     odZones.register(newOdZone);
     return newOdZone;
@@ -50,11 +50,9 @@ public class OdZoneFactoryImpl extends ZoneFactoryImpl<OdZone> implements OdZone
   /**
    * {@inheritDoc}
    * 
-   * @param centroid to use
-   * @return created zone
    */
   @Override
-  public OdZone createNew() {    
+  public OdZone createNew() {
     OdZoneImpl newOdZone = new OdZoneImpl(getIdGroupingToken());
     newOdZone.setCentroid(getCentroidFactory().create(newOdZone));
     return newOdZone;
