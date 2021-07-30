@@ -78,6 +78,6 @@ public interface RoutedService extends ManagedId, ExternalIdAble {
    * 
    * @return known routed service trips
    */
-  public abstract RoutedServiceTrips getTrips();
+  public abstract RoutedServiceTripInfo getTripInfo();
 
 }

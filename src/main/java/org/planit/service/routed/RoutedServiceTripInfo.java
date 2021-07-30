@@ -1,31 +1,50 @@
 package org.planit.service.routed;
 
-import org.planit.utils.id.ExternalIdAble;
-import org.planit.utils.id.ManagedId;
-
 /**
  * Interface to reflect one or more similar routed service trips by providing information on their route legs and schedule/frequencies.
  * 
  * @author markr
  *
  */
-public interface RoutedServiceTripInfo extends ManagedId, ExternalIdAble {
-
-  /** id class for generating ids */
-  public static final Class<RoutedServiceTripInfo> ROUTED_SERVICE_TRIP_INFO_ID_CLASS = RoutedServiceTripInfo.class;
+public interface RoutedServiceTripInfo extends Cloneable {
 
   /**
-   * {@inheritDoc}
+   * Be able to clone a RoutedServicetripInfo instance
+   * 
+   * @return shallow copy
    */
-  @Override
-  public default Class<RoutedServiceTripInfo> getIdClass() {
-    return ROUTED_SERVICE_TRIP_INFO_ID_CLASS;
+  public abstract RoutedServiceTripInfo clone();
+
+  /**
+   * Trips for a service can be frequency or schedule based, or have both. Via this method we collect only the frequency based trips
+   * 
+   * @return frequency based trips of the service
+   */
+  public abstract RoutedTripsFrequency getFrequencyBasedTrips();
+
+  /**
+   * Trips for a service can be frequency or schedule based, or have both. Via this method we collect only the schedule based trips
+   * 
+   * @return schedule based trips of the service
+   */
+  public abstract RoutedTripsSchedule getScheduleBasedTrips();
+
+  /**
+   * Verify if any frequency based trips exists
+   * 
+   * @return true when present, false otherwise
+   */
+  public default boolean hasFrequencyBasedTrips() {
+    return getFrequencyBasedTrips() != null && !getFrequencyBasedTrips().isEmpty();
   }
 
   /**
-   * {@inheritDoc}
+   * Verify if any schedule based trips exists
+   * 
+   * @return True when present, false otherwise
    */
-  @Override
-  public abstract RoutedServiceTripInfo clone();
+  public default boolean hasScheduleBasedTrips() {
+    return getFrequencyBasedTrips() != null && !getFrequencyBasedTrips().isEmpty();
+  }
 
 }

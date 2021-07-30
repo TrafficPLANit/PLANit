@@ -1,7 +1,5 @@
 package org.planit.service.routed;
 
-import org.planit.utils.id.ExternalIdAbleImpl;
-import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -9,17 +7,13 @@ import org.planit.utils.id.IdGroupingToken;
  * 
  * @author markr
  */
-public class RoutedServiceTripInfoImpl extends ExternalIdAbleImpl implements RoutedServiceTripInfo {
+public class RoutedServiceTripInfoImpl implements RoutedServiceTripInfo {
 
-  /**
-   * Generate id for instances of this class based on the token and class identifier
-   * 
-   * @param tokenId to use
-   * @return generated id
-   */
-  protected static long generateId(IdGroupingToken tokenId) {
-    return IdGenerator.generateId(tokenId, RoutedServiceTripInfo.ROUTED_SERVICE_TRIP_INFO_ID_CLASS);
-  }
+  /** container for frequency based trips of this service */
+  private final RoutedTripsFrequency frequencyBasedTrips;
+
+  /** container for schedule based trips of this service */
+  private final RoutedTripsSchedule scheduleBasedTrips;
 
   /**
    * Constructor
@@ -27,7 +21,8 @@ public class RoutedServiceTripInfoImpl extends ExternalIdAbleImpl implements Rou
    * @param tokenId to use for id generation
    */
   public RoutedServiceTripInfoImpl(final IdGroupingToken tokenId) {
-    super(generateId(tokenId));
+    this.frequencyBasedTrips = new RoutedTripsFrequencyImpl(tokenId);
+    this.scheduleBasedTrips = new RoutedTripsScheduleImpl(tokenId);
   }
 
   /**
@@ -36,17 +31,8 @@ public class RoutedServiceTripInfoImpl extends ExternalIdAbleImpl implements Rou
    * @param routedServiceTripInfoImpl to copy
    */
   public RoutedServiceTripInfoImpl(RoutedServiceTripInfoImpl routedServiceTripInfoImpl) {
-    super(routedServiceTripInfoImpl);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long recreateManagedIds(IdGroupingToken tokenId) {
-    long newId = generateId(tokenId);
-    setId(newId);
-    return newId;
+    this.frequencyBasedTrips = routedServiceTripInfoImpl.frequencyBasedTrips.clone();
+    this.scheduleBasedTrips = routedServiceTripInfoImpl.scheduleBasedTrips.clone();
   }
 
   /**
@@ -55,6 +41,22 @@ public class RoutedServiceTripInfoImpl extends ExternalIdAbleImpl implements Rou
   @Override
   public RoutedServiceTripInfoImpl clone() {
     return new RoutedServiceTripInfoImpl(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedTripsFrequency getFrequencyBasedTrips() {
+    return frequencyBasedTrips;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedTripsSchedule getScheduleBasedTrips() {
+    return scheduleBasedTrips;
   }
 
 }

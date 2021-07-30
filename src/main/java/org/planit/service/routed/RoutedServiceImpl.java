@@ -20,8 +20,8 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
   /** description of the service, often to contextualise the service, longer and not for end user */
   private String serviceDescription;
 
-  /** the trips for this service */
-  private final RoutedServiceTrips trips;
+  /** the trip information for this service */
+  private final RoutedServiceTripInfo trips;
 
   /**
    * Generate id for instances of this class based on the token and class identifier
@@ -43,7 +43,7 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
     this.name = null;
     this.nameDescription = null;
     this.serviceDescription = null;
-    this.trips = new RoutedServiceTripsImpl(tokenId);
+    this.trips = new RoutedServiceTripInfoImpl(tokenId);
   }
 
   /**
@@ -129,7 +129,7 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
    * {@inheritDoc}
    */
   @Override
-  public RoutedServiceTrips getTrips() {
+  public RoutedServiceTripInfo getTripInfo() {
     return trips;
   }
 
