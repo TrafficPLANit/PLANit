@@ -5,7 +5,7 @@ import java.time.LocalTime;
 import org.planit.utils.network.layer.service.ServiceLeg;
 
 /**
- * Simple DTO class that refers to a service leg and its duration and dwell time on a scheduled routed trip
+ * Simple POJO class that refers to a service leg and its duration and dwell time on a scheduled routed trip
  * 
  * @author markr
  *
