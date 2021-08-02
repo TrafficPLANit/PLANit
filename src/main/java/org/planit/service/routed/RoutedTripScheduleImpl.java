@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.layer.service.ServiceLeg;
+import org.planit.utils.network.layer.service.ServiceLegSegment;
 
 /**
  * Implementation of a RoutedTripSchedule interface.
@@ -83,8 +83,8 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
    * {@inheritDoc}
    */
   @Override
-  public RelativeLegTiming addRelativeLegTiming(ServiceLeg parentLeg, LocalTime duration, LocalTime dwellTime) {
-    RelativeLegTiming newEntry = new RelativeLegTiming(parentLeg, duration, dwellTime);
+  public RelativeLegTiming addRelativeLegSegmentTiming(ServiceLegSegment parentLegSegment, LocalTime duration, LocalTime dwellTime) {
+    RelativeLegTiming newEntry = new RelativeLegTiming(parentLegSegment, duration, dwellTime);
     relativeLegTimings.add(newEntry);
     return newEntry;
   }

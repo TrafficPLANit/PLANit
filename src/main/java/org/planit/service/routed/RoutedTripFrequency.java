@@ -1,6 +1,6 @@
 package org.planit.service.routed;
 
-import org.planit.utils.network.layer.service.ServiceLeg;
+import org.planit.utils.network.layer.service.ServiceLegSegment;
 
 /**
  * Interface for frequency based trips of a RoutedService. The route is defined based on legs on the parent ServiceNetwork the RoutedService - and therefore the trip - resides on.
@@ -18,11 +18,11 @@ public interface RoutedTripFrequency extends RoutedTrip {
   public abstract void clearLegs();
 
   /**
-   * Add a new leg to the end of the already registered legs.
+   * Add a new leg segment (directed leg) to the end of the already registered legs.
    * 
-   * @param leg to add to the trip's route
+   * @param leg segment to add to the trip's route
    */
-  public abstract void addLeg(ServiceLeg leg);
+  public abstract void addLegSegment(ServiceLegSegment legSegment);
 
   /**
    * Collect frequency per hour for this trip

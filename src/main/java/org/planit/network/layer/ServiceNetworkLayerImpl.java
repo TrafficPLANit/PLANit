@@ -1,11 +1,13 @@
 package org.planit.network.layer;
 
+import java.util.Collection;
 import java.util.logging.Logger;
 
 import org.planit.network.layer.service.ServiceLegSegmentsImpl;
 import org.planit.network.layer.service.ServiceLegsImpl;
 import org.planit.network.layer.service.ServiceNodesImpl;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.ServiceNetworkLayer;
 import org.planit.utils.network.layer.service.ServiceLeg;
@@ -140,6 +142,52 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   @Override
   public ServiceNetworkLayerImpl clone() {
     return new ServiceNetworkLayerImpl(this);
+  }
+
+  /**
+   * A service network does not allow for registering supported modes as the supported modes are defined by its parent network already. log warning and do nothing
+   * 
+   * @param supportedMode to register
+   * @return false
+   */
+  @Override
+  public boolean registerSupportedMode(Mode supportedMode) {
+    LOGGER.warning(String.format("Unable to register additional supported modes on service network layer %s, do so on parent network layer %sinstead", getXmlId(),
+        getParentNetworkLayer().getXmlId()));
+    return false;
+  }
+
+  /**
+   * A service network does not allow for registering supported modes as the supported modes are defined by its parent network already. log warning and do nothing
+   * 
+   * @param supportedMode to register
+   * @return false
+   */
+  @Override
+  public boolean registerSupportedModes(Collection<Mode> supportedModes) {
+    LOGGER.warning(String.format("Unable to register additional supported modes on service network layer %s, do so on parent network layer %sinstead", getXmlId(),
+        getParentNetworkLayer().getXmlId()));
+    return false;
+  }
+
+  /**
+   * Collect supported modes, obtained from parent layer
+   * 
+   * @return parent layer's supported modes
+   */
+  @Override
+  public Collection<Mode> getSupportedModes() {
+    return getParentNetworkLayer().getSupportedModes();
+  }
+
+  /**
+   * Result delegate from underlying parent layer
+   * 
+   * @return parent layer's result on verifying support for a mode
+   */
+  @Override
+  public boolean supports(Mode mode) {
+    return getParentNetworkLayer().supports(mode);
   }
 
 }

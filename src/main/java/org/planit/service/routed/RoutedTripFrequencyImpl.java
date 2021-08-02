@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.network.layer.service.ServiceLeg;
+import org.planit.utils.network.layer.service.ServiceLegSegment;
 
 /**
  * Implementation of a RoutedTripFrequency interface.
@@ -14,9 +14,9 @@ import org.planit.utils.network.layer.service.ServiceLeg;
 public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTripFrequency {
 
   /**
-   * Ordered list of legs for this trip from start to end
+   * Ordered list of leg segments for this trip from start to end
    */
-  public final List<ServiceLeg> orderedLegs;
+  public final List<ServiceLegSegment> orderedLegSegments;
 
   /** frequency of the routed trip per hour */
   public double frequencyPerHour;
@@ -28,7 +28,7 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
    */
   public RoutedTripFrequencyImpl(final IdGroupingToken tokenId) {
     super(tokenId);
-    this.orderedLegs = new ArrayList<ServiceLeg>(1);
+    this.orderedLegSegments = new ArrayList<ServiceLegSegment>(1);
     this.frequencyPerHour = -1;
   }
 
@@ -39,7 +39,7 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
    */
   public RoutedTripFrequencyImpl(RoutedTripFrequencyImpl routedTripFrequencyImpl) {
     super(routedTripFrequencyImpl);
-    this.orderedLegs = new ArrayList<ServiceLeg>(routedTripFrequencyImpl.orderedLegs);
+    this.orderedLegSegments = new ArrayList<ServiceLegSegment>(routedTripFrequencyImpl.orderedLegSegments);
     this.frequencyPerHour = -1;
   }
 
@@ -66,15 +66,15 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
    */
   @Override
   public void clearLegs() {
-    this.orderedLegs.clear();
+    this.orderedLegSegments.clear();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void addLeg(ServiceLeg leg) {
-    this.orderedLegs.add(leg);
+  public void addLegSegment(ServiceLegSegment legSegment) {
+    this.orderedLegSegments.add(legSegment);
   }
 
   /**

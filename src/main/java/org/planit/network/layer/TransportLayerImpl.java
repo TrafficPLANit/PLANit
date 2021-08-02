@@ -92,7 +92,7 @@ public abstract class TransportLayerImpl extends ExternalIdAbleImpl implements T
    * 
    */
   @Override
-  public final Collection<Mode> getSupportedModes() {
+  public Collection<Mode> getSupportedModes() {
     return supportedModes.values();
   }
 

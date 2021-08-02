@@ -2,7 +2,7 @@ package org.planit.service.routed;
 
 import java.time.LocalTime;
 
-import org.planit.utils.network.layer.service.ServiceLeg;
+import org.planit.utils.network.layer.service.ServiceLegSegment;
 
 /**
  * The schedule with on or more departures for a routed service as well as the relative timings of each leg for each departure. Each leg timing is in an ordered position, meaning
@@ -28,9 +28,9 @@ public interface RoutedTripSchedule extends RoutedTrip {
   /**
    * Add a new leg's timing to the end of the already registered leg timings.
    * 
-   * @param leg to add to the trip's route
+   * @param legsegment (directed leg) to add to the trip's route
    */
-  public abstract RelativeLegTiming addRelativeLegTiming(final ServiceLeg parentLeg, final LocalTime duration, final LocalTime dwellTime);
+  public abstract RelativeLegTiming addRelativeLegSegmentTiming(final ServiceLegSegment parentLeg, final LocalTime duration, final LocalTime dwellTime);
 
   /**
    * Collect a leg timing based on its index

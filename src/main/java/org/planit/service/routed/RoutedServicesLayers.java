@@ -21,4 +21,17 @@ public interface RoutedServicesLayers extends ManagedIdEntities<RoutedServicesLa
    */
   @Override
   public abstract RoutedServicesLayerFactory getFactory();
+
+  /**
+   * Collect the first available layer based on what the iterator would provide as its first entry (not necessarily sorted by key)
+   * 
+   * @return first available entry, null if layers are empty
+   */
+  public default RoutedServicesLayer getFirst() {
+    if (!isEmpty()) {
+      return null;
+    }
+    return iterator().next();
+  }
+
 }
