@@ -68,14 +68,6 @@ public class MacroscopicLinkSegmentTypesImpl extends ManagedIdEntitiesImpl<Macro
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public MacroscopicLinkSegmentType getFirst() {
-    return iterator().next();
-  }
-
-  /**
    * Collect factory for creating (and registering on this container) of macroscopic link segment types
    * 
    * @return factory to use

@@ -1,7 +1,9 @@
 package org.planit.service.routed;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.service.ServiceLegSegment;
@@ -12,6 +14,9 @@ import org.planit.utils.network.layer.service.ServiceLegSegment;
  * @author markr
  */
 public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTripFrequency {
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(RoutedTripFrequencyImpl.class.getCanonicalName());
 
   /**
    * Ordered list of leg segments for this trip from start to end
@@ -74,6 +79,13 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
    */
   @Override
   public void addLegSegment(ServiceLegSegment legSegment) {
+    if (hasLegSegments()) {
+      ServiceLegSegment lastSegment = getLastLegSegment();
+      if (!lastSegment.getDownstreamVertex().equals(legSegment.getUpstreamVertex())) {
+        LOGGER.warning("IGNORE: Unable to add leg segment that is not contiguous to current last leg segment");
+        return;
+      }
+    }
     this.orderedLegSegments.add(legSegment);
   }
 
@@ -91,6 +103,30 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
   @Override
   public void setFrequencyPerHour(double frequencyPerHour) {
     this.frequencyPerHour = frequencyPerHour;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Iterator<ServiceLegSegment> iterator() {
+    return this.orderedLegSegments.iterator();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int getNumberOfLegSegments() {
+    return this.orderedLegSegments.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegSegment getLegSegment(int index) {
+    return this.orderedLegSegments.get(index);
   }
 
 }

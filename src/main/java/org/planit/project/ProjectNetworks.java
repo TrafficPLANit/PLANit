@@ -28,15 +28,6 @@ public class ProjectNetworks extends LongMapWrapperImpl<TransportLayerNetwork<?,
   }
 
   /**
-   * Collect the first network that is registered (if any). Otherwise return null
-   * 
-   * @return first network that is registered if none return null
-   */
-  public TransportLayerNetwork<?, ?> getFirst() {
-    return isEmpty() ? iterator().next() : null;
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override

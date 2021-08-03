@@ -84,15 +84,6 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     }
 
     /**
-     * Collect the first registered traveler type.
-     * 
-     * @return first registered traveler type
-     */
-    public TravelerType getFirst() {
-      return get(0);
-    }
-
-    /**
      * Retrieve a TravelerType by its XML Id
      * 
      * This method is not efficient, since it loops through all the registered traveler type in order to find the required entry.
@@ -149,15 +140,6 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
       UserClass newUserClass = new UserClass(getIdGroupingToken(), name, mode, travellerType);
       register(newUserClass);
       return newUserClass;
-    }
-
-    /**
-     * Collect the first registered user class.
-     * 
-     * @return first registered user class
-     */
-    public UserClass getFirst() {
-      return get(0);
     }
 
     /**
@@ -218,15 +200,6 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
       TimePeriod newTimePeriod = new TimePeriodImpl(getIdGroupingToken(), description, startTimeSeconds, durationSeconds);
       register(newTimePeriod);
       return newTimePeriod;
-    }
-
-    /**
-     * Collect the first registered time period. This is not necessarily the earliest time period.
-     * 
-     * @return first registered time period
-     */
-    public TimePeriod getFirst() {
-      return get(0);
     }
 
     /**

@@ -10,7 +10,7 @@ import org.planit.utils.network.layer.service.ServiceLegSegment;
  * @author markr
  *
  */
-public interface RoutedTripFrequency extends RoutedTrip {
+public interface RoutedTripFrequency extends RoutedTrip, Iterable<ServiceLegSegment> {
 
   /**
    * Clear all legs from the trip
@@ -18,11 +18,25 @@ public interface RoutedTripFrequency extends RoutedTrip {
   public abstract void clearLegs();
 
   /**
+   * Collect the number of registered leg segments
+   * 
+   * @return number of registered leg segments
+   */
+  public abstract int getNumberOfLegSegments();
+
+  /**
    * Add a new leg segment (directed leg) to the end of the already registered legs.
    * 
    * @param leg segment to add to the trip's route
    */
   public abstract void addLegSegment(ServiceLegSegment legSegment);
+
+  /**
+   * Get a leg segment in a particular position of the routed trip
+   * 
+   * @param index to collect segment for
+   */
+  public abstract ServiceLegSegment getLegSegment(int index);
 
   /**
    * Collect frequency per hour for this trip
@@ -46,6 +60,36 @@ public interface RoutedTripFrequency extends RoutedTrip {
    */
   public default boolean hasValidFrequency() {
     return getFrequencyPerHour() > 0;
+  }
+
+  /**
+   * Verify if there are leg segments registered
+   * 
+   * @return true when leg segments are registered, false otherwise
+   */
+  public default boolean hasLegSegments() {
+    return getNumberOfLegSegments() > 0;
+  }
+
+  /**
+   * Get first leg segment of the routed trip
+   * 
+   * @param first leg segment
+   */
+  public default ServiceLegSegment getFirstLegSegment() {
+    return getLegSegment(0);
+  }
+
+  /**
+   * Get last leg segment of the routed trip
+   * 
+   * @param last leg segment, null if none present
+   */
+  public default ServiceLegSegment getLastLegSegment() {
+    if (!hasLegSegments()) {
+      return null;
+    }
+    return getLegSegment(getNumberOfLegSegments() - 1);
   }
 
 }

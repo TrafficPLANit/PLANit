@@ -28,15 +28,6 @@ public class ProjectZonings extends LongMapWrapperImpl<Zoning> {
   }
 
   /**
-   * Collect the first zonings that are registered (if any). Otherwise return null
-   * 
-   * @return first zonings that are registered if none return null
-   */
-  public Zoning getFirst() {
-    return isEmpty() ? iterator().next() : null;
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override

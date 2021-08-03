@@ -74,14 +74,6 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
    * {@inheritDoc}
    */
   @Override
-  public Mode getFirst() {
-    return get(0);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public Mode getByXmlId(String xmlId) {
     return findFirst(mode -> xmlId.equals(((Mode) mode).getXmlId()));
   }
