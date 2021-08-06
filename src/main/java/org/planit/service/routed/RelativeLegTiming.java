@@ -29,8 +29,8 @@ public class RelativeLegTiming implements Cloneable {
    * @param dwellTime        to use
    */
   protected RelativeLegTiming(final ServiceLegSegment parentLegSegment, final LocalTime duration, final LocalTime dwellTime) {
-    this.duration = dwellTime;
-    this.dwellTime = duration;
+    this.duration = duration;
+    this.dwellTime = dwellTime;
     this.parentLegSegment = parentLegSegment;
   }
 
