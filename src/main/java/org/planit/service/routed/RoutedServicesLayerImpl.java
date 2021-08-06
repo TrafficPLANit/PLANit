@@ -1,7 +1,9 @@
 package org.planit.service.routed;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
@@ -15,6 +17,9 @@ import org.planit.utils.network.layer.ServiceNetworkLayer;
  * @author markr
  */
 public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements RoutedServicesLayer {
+
+  /** the logger to use */
+  private static final Logger LOGGER = Logger.getLogger(RoutedServicesLayerImpl.class.getCanonicalName());
 
   /** token to use for id generation */
   private final IdGroupingToken tokenId;
@@ -109,4 +114,22 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
     return routedServicesByMode.get(mode);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Iterator<RoutedModeServices> iterator() {
+    return routedServicesByMode.values().iterator();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void logInfo(String prefix) {
+    LOGGER.info(String.format("%s [layer: %s]", prefix, getXmlId()));
+    for (RoutedModeServices modeServices : this) {
+      LOGGER.info(String.format("%s [layer: %s] [mode: %s] #routedServices: %d", prefix, getXmlId(), modeServices.getMode().getXmlId(), modeServices.size()));
+    }
+  }
 }

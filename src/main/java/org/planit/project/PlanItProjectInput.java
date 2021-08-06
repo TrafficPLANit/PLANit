@@ -20,6 +20,7 @@ import org.planit.network.ServiceNetwork;
 import org.planit.network.TransportLayerNetwork;
 import org.planit.path.OdPathSets;
 import org.planit.service.routed.RoutedServices;
+import org.planit.service.routed.RoutedServicesLayer;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
@@ -230,24 +231,29 @@ public class PlanItProjectInput {
   public ServiceNetwork createAndRegisterServiceNetwork(final MacroscopicNetwork network) throws PlanItException {
     PlanItException.throwIf(network == null, "Physical network must be defined before definition of service network can begin");
 
-    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating service network");
+    LOGGER.info(String.format("%spopulating service network with parent physical network %s", LoggingUtils.createProjectPrefix(this.projectId), network.getXmlId()));
     final Network theNetwork = 
         getComponentFactory(Network.class).create(
             ServiceNetwork.class.getCanonicalName(), new Object[] { projectGroupId, network });
         
     /* for now we only support infrastructure based networks even though class heirarchy is more generic */
     if(!(theNetwork instanceof ServiceNetwork)){
-      throw new PlanItException("we currently only service network derived classes when creating service networks");
+      throw new PlanItException(
+          "we currently only support ServiceNetwork derived classes when creating service networks");
     }
     ServiceNetwork serviceNetwork = (ServiceNetwork) theNetwork;    
     
-    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createServiceNetworkPrefix(serviceNetwork.getId());
-    /* log info across layers */
-    LOGGER.info(String.format("%s#modes: %d", prefix, serviceNetwork.getModes().size()));    
-    
-    /* for each layer log information regarding contents */
-    for(TransportLayer networkLayer : serviceNetwork.getTransportLayers()) {
-      networkLayer.logInfo(prefix);
+    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createServiceNetworkPrefix(serviceNetwork.getId());    
+    if(serviceNetwork.getTransportLayers().isEmpty()) {
+      LOGGER.warning(String.format("Created service network for parent network %s is empty",network.getXmlId()));
+    }else {
+      
+      /* log info across layers */
+      LOGGER.info(String.format("%s#modes: %d", prefix, serviceNetwork.getModes().size()));      
+      /* for each layer log information regarding contents */
+      for(TransportLayer networkLayer : serviceNetwork.getTransportLayers()) {
+        networkLayer.logInfo(prefix);
+      }
     }
     
     this.serviceNetworks.register(serviceNetwork);
@@ -262,15 +268,18 @@ public class PlanItProjectInput {
    * @throws PlanItException thrown if there is an error
    */
   public RoutedServices createAndRegisterRoutedServices(final ServiceNetwork serviceNetwork) throws PlanItException {
-    PlanItException.throwIf(serviceNetwork == null, "serviceNetwork must be defined before definition of routed services can begin");
+    PlanItException.throwIf(serviceNetwork == null, "Parent service network must be defined before definition of routed services can begin");
 
-    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating routed services");
+    LOGGER.info(String.format("%spopulating routed services with parent service network %s", LoggingUtils.createProjectPrefix(this.projectId), serviceNetwork.getXmlId()));
     final RoutedServices routedServices = 
         getComponentFactory(RoutedServices.class).create(
             RoutedServices.class.getCanonicalName(), new Object[] { projectGroupId, serviceNetwork});  
     
     String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createRoutedServicesPrefix(routedServices.getId());
-    //TODO: add aggregate logging stats
+    for(RoutedServicesLayer layer : routedServices.getLayers()) {
+      layer.logInfo(prefix);
+    }
+    
 
     this.routedServices.register(routedServices);
     return routedServices;

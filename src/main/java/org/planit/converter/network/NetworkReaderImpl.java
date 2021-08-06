@@ -7,11 +7,12 @@ import java.util.Map;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.network.layer.physical.Link;
 import org.planit.utils.network.layer.physical.Node;
 
 /**
- * A network reader implementation with built-in convenience containers that maps ids used by the external data source to relate entities to each other
- * to the created PLANit entries. 
+ * A network reader implementation with built-in convenience containers that maps ids used by the external data source to relate entities to each other to the created PLANit
+ * entries.
  * 
  * @author markr
  *
@@ -21,23 +22,28 @@ public abstract class NetworkReaderImpl implements NetworkReader {
   /**
    * Map which stores which source node Ids corresponding to PLANit nodes
    */
-  protected Map<String, Node> sourceIdNodeMap;
+  protected final Map<String, Node> sourceIdNodeMap;
+
+  /**
+   * Map which stores which source link Ids correspond to PLANit links
+   */
+  protected final Map<String, Link> sourceIdLinkMap;
 
   /**
    * Map which stores link segments by source Id
    */
-  protected Map<String, MacroscopicLinkSegment> sourceIdLinkSegmentMap;
+  protected final Map<String, MacroscopicLinkSegment> sourceIdLinkSegmentMap;
 
   /**
    * Map which stores source link segment type Ids corresponding to PLANit link segment types
    */
-  protected Map<String, MacroscopicLinkSegmentType> sourceIdLinkSegmentTypeMap;
+  protected final Map<String, MacroscopicLinkSegmentType> sourceIdLinkSegmentTypeMap;
 
   /**
    * Map which stores Mode source Ids corresponding to PLANit Modes
    */
-  protected Map<String, Mode> sourceIdModeMap;
-  
+  protected final Map<String, Mode> sourceIdModeMap;
+
   /**
    * Stores an object by its source Id, after checking whether the external Id is a duplicate
    * 
@@ -51,8 +57,8 @@ public abstract class NetworkReaderImpl implements NetworkReader {
     boolean containsDuplicates = map.containsKey(sourceId);
     map.put(sourceId, obj);
     return containsDuplicates;
-  }  
-  
+  }
+
   /**
    * Constructor
    */
@@ -60,9 +66,10 @@ public abstract class NetworkReaderImpl implements NetworkReader {
     this.sourceIdNodeMap = new HashMap<String, Node>();
     this.sourceIdLinkSegmentTypeMap = new HashMap<String, MacroscopicLinkSegmentType>();
     this.sourceIdModeMap = new HashMap<String, Mode>();
+    this.sourceIdLinkMap = new HashMap<String, Link>();
     this.sourceIdLinkSegmentMap = new HashMap<String, MacroscopicLinkSegment>();
   }
-  
+
   /**
    * Stores a node by its sourceId
    * 
@@ -75,6 +82,17 @@ public abstract class NetworkReaderImpl implements NetworkReader {
   }
 
   /**
+   * Stores a node by its sourceId
+   * 
+   * @param sourceId source Id of link
+   * @param link     Link to be stored
+   * @return true if this is a duplicate, false otherwise
+   */
+  public boolean addLinkToSourceIdMap(String sourceId, Link link) {
+    return addObjectToSourceIdMap(sourceId, link, sourceIdLinkMap);
+  }
+
+  /**
    * Stores a mode by its sourceId
    * 
    * @param sourceId of this mode
@@ -84,7 +102,7 @@ public abstract class NetworkReaderImpl implements NetworkReader {
   public boolean addModeToSourceIdMap(String sourceId, Mode mode) {
     return addObjectToSourceIdMap(sourceId, mode, sourceIdModeMap);
   }
-  
+
   /**
    * Stores a link segment by its sourceId
    * 
@@ -94,8 +112,8 @@ public abstract class NetworkReaderImpl implements NetworkReader {
    */
   public boolean addLinkSegmentToSourceIdMap(String sourceId, MacroscopicLinkSegment linkSegment) {
     return addObjectToSourceIdMap(sourceId, linkSegment, sourceIdLinkSegmentMap);
-  }   
-  
+  }
+
   /**
    * Stores a link segment type by its sourceId
    * 
@@ -106,8 +124,7 @@ public abstract class NetworkReaderImpl implements NetworkReader {
   public boolean addLinkSegmentTypeToSourceIdMap(String sourceId, MacroscopicLinkSegmentType macroscopicLinkSegmentType) {
     return addObjectToSourceIdMap(sourceId, macroscopicLinkSegmentType, sourceIdLinkSegmentTypeMap);
   }
-  
-  
+
   /**
    * Return a node for a specified sourceId
    * 
@@ -117,15 +134,24 @@ public abstract class NetworkReaderImpl implements NetworkReader {
   public Node getNodeBySourceId(String sourceId) {
     return sourceIdNodeMap.get(sourceId);
   }
-  
+
   /**
-   * Return all the registered nodes
+   * Return all the registered nodes (unmodifiable)
    * 
    * @return collection of registered nodes
-   */  
+   */
   public Map<String, Node> getAllNodesBySourceId() {
     return Collections.unmodifiableMap(sourceIdNodeMap);
-  }  
+  }
+
+  /**
+   * Return all the registered links by source id rather than internal id (unmodifiable)
+   * 
+   * @return collection of registered links
+   */
+  public Map<String, Link> getAllLinksBySourceId() {
+    return Collections.unmodifiableMap(sourceIdLinkMap);
+  }
 
   /**
    * Return the link segment type for a specified sourceId
@@ -148,14 +174,14 @@ public abstract class NetworkReaderImpl implements NetworkReader {
   }
 
   /**
-   * Return all the registered modes
+   * Return all the registered modes (unmodifiable)
    * 
    * @return collection of registered modes
    */
   public Map<String, Mode> getAllModesBySourceId() {
     return Collections.unmodifiableMap(sourceIdModeMap);
-  }  
-  
+  }
+
   /**
    * Returns the link segment for a given sourceId
    * 
@@ -164,16 +190,15 @@ public abstract class NetworkReaderImpl implements NetworkReader {
    */
   public MacroscopicLinkSegment getLinkSegmentBySourceId(String sourceId) {
     return sourceIdLinkSegmentMap.get(sourceId);
-  }  
-  
+  }
+
   /**
-   * Return all the registered link segments
+   * Return all the registered link segments (unmodifiable)
    * 
    * @return collection of registered link segments
-   */  
+   */
   public Map<String, MacroscopicLinkSegment> getAllLinkSegmentsBySourceId() {
     return Collections.unmodifiableMap(sourceIdLinkSegmentMap);
-  }  
-  
+  }
 
 }

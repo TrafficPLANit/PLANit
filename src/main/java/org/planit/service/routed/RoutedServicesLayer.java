@@ -12,7 +12,7 @@ import org.planit.utils.network.layer.ServiceNetworkLayer;
  * @author markr
  *
  */
-public interface RoutedServicesLayer extends ManagedId, ExternalIdAble {
+public interface RoutedServicesLayer extends ManagedId, ExternalIdAble, Iterable<RoutedModeServices> {
 
   /** id class for generating ids */
   public static final Class<RoutedServicesLayer> ROUTED_SERVICES_LAYER_ID_CLASS = RoutedServicesLayer.class;
@@ -24,6 +24,13 @@ public interface RoutedServicesLayer extends ManagedId, ExternalIdAble {
   public default Class<RoutedServicesLayer> getIdClass() {
     return ROUTED_SERVICES_LAYER_ID_CLASS;
   }
+
+  /**
+   * invoked by entities inquiring about general information about the layer to display to users
+   * 
+   * @param prefix optional prefix to include in each line of logging
+   */
+  public abstract void logInfo(final String prefix);
 
   /**
    * The parent service layer of this routed services layer
@@ -38,5 +45,5 @@ public interface RoutedServicesLayer extends ManagedId, ExternalIdAble {
    * @param mode to obtain services for
    * @return services by mode, empty instance if none have been registered yet
    */
-  public abstract RoutedModeServices getServicesByMode(Mode mode);
+  public abstract RoutedModeServices getServicesByMode(final Mode mode);
 }

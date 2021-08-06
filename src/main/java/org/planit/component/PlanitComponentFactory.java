@@ -16,6 +16,8 @@ import org.planit.component.event.PopulateDemandsEvent;
 import org.planit.component.event.PopulateInitialLinkSegmentCostEvent;
 import org.planit.component.event.PopulateNetworkEvent;
 import org.planit.component.event.PopulatePhysicalCostEvent;
+import org.planit.component.event.PopulateRoutedServicesEvent;
+import org.planit.component.event.PopulateServiceNetworkEvent;
 import org.planit.component.event.PopulateZoningEvent;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
@@ -150,6 +152,10 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
       fireEvent(new PopulateZoningEvent(this, (Zoning) newPlanitComponent, (MacroscopicNetwork) parameters[0]));
     } else if (newPlanitComponent instanceof Demands) {
       fireEvent(new PopulateDemandsEvent(this, (Demands) newPlanitComponent, (Zoning) parameters[0], (MacroscopicNetwork) parameters[1]));
+    } else if (newPlanitComponent instanceof ServiceNetwork) {
+      fireEvent(new PopulateServiceNetworkEvent(this, (ServiceNetwork) newPlanitComponent));
+    } else if (newPlanitComponent instanceof RoutedServices) {
+      fireEvent(new PopulateRoutedServicesEvent(this, (RoutedServices) newPlanitComponent));
     } else if (newPlanitComponent instanceof InitialLinkSegmentCost) {
       // TODO: probably better if we generalise to initialCost event rather then specialise to link segment as we do now */
       fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1]));

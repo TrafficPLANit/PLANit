@@ -9,9 +9,13 @@ import org.planit.component.event.PopulateDemandsEvent;
 import org.planit.component.event.PopulateInitialLinkSegmentCostEvent;
 import org.planit.component.event.PopulateNetworkEvent;
 import org.planit.component.event.PopulatePhysicalCostEvent;
+import org.planit.component.event.PopulateRoutedServicesEvent;
+import org.planit.component.event.PopulateServiceNetworkEvent;
 import org.planit.component.event.PopulateZoningEvent;
 import org.planit.converter.demands.DemandsReader;
 import org.planit.converter.network.NetworkReader;
+import org.planit.converter.service.RoutedServicesReader;
+import org.planit.converter.service.ServiceNetworkReader;
 import org.planit.converter.zoning.ZoningReader;
 
 /**
@@ -41,7 +45,7 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
   @Override
   public PlanitComponentEventType[] getKnownSupportedEventTypes() {
     return new PlanitComponentEventType[] { PopulateComponentEvent.EVENT_TYPE, PopulateNetworkEvent.EVENT_TYPE, PopulateZoningEvent.EVENT_TYPE, PopulateDemandsEvent.EVENT_TYPE,
-        PopulatePhysicalCostEvent.EVENT_TYPE, PopulateInitialLinkSegmentCostEvent.EVENT_TYPE };
+        PopulatePhysicalCostEvent.EVENT_TYPE, PopulateInitialLinkSegmentCostEvent.EVENT_TYPE, PopulateServiceNetworkEvent.EVENT_TYPE, PopulateRoutedServicesEvent.EVENT_TYPE };
   }
 
   /** the logger */
@@ -56,6 +60,12 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
 
   /** demands reader used */
   private DemandsReader demandsReader;
+
+  /** service network reader used */
+  private ServiceNetworkReader serviceNetworkReader;
+
+  /** service network reader used */
+  private RoutedServicesReader routedServicesReader;
 
   /**
    * Collect network reader
@@ -80,7 +90,7 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
    * 
    * @return zoning reader
    */
-  public ZoningReader getZoningReader() {
+  protected ZoningReader getZoningReader() {
     return zoningReader;
   }
 
@@ -89,7 +99,7 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
    * 
    * @param zoningReader to use
    */
-  public void setZoningReader(ZoningReader zoningReader) {
+  protected void setZoningReader(ZoningReader zoningReader) {
     this.zoningReader = zoningReader;
   }
 
@@ -98,7 +108,7 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
    * 
    * @return demands reader
    */
-  public DemandsReader getDemandsReader() {
+  protected DemandsReader getDemandsReader() {
     return demandsReader;
   }
 
@@ -107,8 +117,44 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
    * 
    * @param demandsReader to use
    */
-  public void setDemandsReader(DemandsReader demandsReader) {
+  protected void setDemandsReader(DemandsReader demandsReader) {
     this.demandsReader = demandsReader;
+  }
+
+  /**
+   * Collect service network reader
+   * 
+   * @return reader
+   */
+  protected ServiceNetworkReader getServiceNetworkReader() {
+    return serviceNetworkReader;
+  }
+
+  /**
+   * Set the service network reader to use
+   * 
+   * @param reader to use
+   */
+  protected void setServiceNetworkReader(ServiceNetworkReader serviceNetworkReader) {
+    this.serviceNetworkReader = serviceNetworkReader;
+  }
+
+  /**
+   * Collect routed services reader
+   * 
+   * @return reader
+   */
+  protected RoutedServicesReader getRoutedServicesReader() {
+    return routedServicesReader;
+  }
+
+  /**
+   * Set the routed services reader to use
+   * 
+   * @param reader to use
+   */
+  protected void setRoutedServicesReader(RoutedServicesReader routedServicesReader) {
+    this.routedServicesReader = routedServicesReader;
   }
 
   /**
