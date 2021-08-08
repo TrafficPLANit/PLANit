@@ -179,6 +179,24 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   }
 
   /**
+   * Access to the odZones container
+   * 
+   * @return odZones
+   */
+  public OdZones getOdZones() {
+    return odZones;
+  }
+
+  /**
+   * Access to the odZones container
+   * 
+   * @return odZones
+   */
+  public TransferZones getTransferZones() {
+    return transferZones;
+  }
+
+  /**
    * collect the number of centroids across all zones (od and transfer zones)
    * 
    * @return total number of centroids

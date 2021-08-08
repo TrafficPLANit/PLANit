@@ -12,11 +12,6 @@ import org.planit.component.event.PopulatePhysicalCostEvent;
 import org.planit.component.event.PopulateRoutedServicesEvent;
 import org.planit.component.event.PopulateServiceNetworkEvent;
 import org.planit.component.event.PopulateZoningEvent;
-import org.planit.converter.demands.DemandsReader;
-import org.planit.converter.network.NetworkReader;
-import org.planit.converter.service.RoutedServicesReader;
-import org.planit.converter.service.ServiceNetworkReader;
-import org.planit.converter.zoning.ZoningReader;
 
 /**
  * Base input builder class that gets notified whenever traffic assignment components are to be populated or configured. It also has readers for each of the main inputs (network,
@@ -51,111 +46,6 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
   /** the logger */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(InputBuilderListener.class.getCanonicalName());
-
-  /** network reader used */
-  private NetworkReader networkReader;
-
-  /** zoning reader used */
-  private ZoningReader zoningReader;
-
-  /** demands reader used */
-  private DemandsReader demandsReader;
-
-  /** service network reader used */
-  private ServiceNetworkReader serviceNetworkReader;
-
-  /** service network reader used */
-  private RoutedServicesReader routedServicesReader;
-
-  /**
-   * Collect network reader
-   * 
-   * @return network reader
-   */
-  protected NetworkReader getNetworkReader() {
-    return networkReader;
-  }
-
-  /**
-   * Set the network reader to use
-   * 
-   * @param networkReader to use
-   */
-  protected void setNetworkReader(NetworkReader networkReader) {
-    this.networkReader = networkReader;
-  }
-
-  /**
-   * Collect zoning reader
-   * 
-   * @return zoning reader
-   */
-  protected ZoningReader getZoningReader() {
-    return zoningReader;
-  }
-
-  /**
-   * Set the zoning reader to use
-   * 
-   * @param zoningReader to use
-   */
-  protected void setZoningReader(ZoningReader zoningReader) {
-    this.zoningReader = zoningReader;
-  }
-
-  /**
-   * Collect demands reader
-   * 
-   * @return demands reader
-   */
-  protected DemandsReader getDemandsReader() {
-    return demandsReader;
-  }
-
-  /**
-   * Set the demands reader to use
-   * 
-   * @param demandsReader to use
-   */
-  protected void setDemandsReader(DemandsReader demandsReader) {
-    this.demandsReader = demandsReader;
-  }
-
-  /**
-   * Collect service network reader
-   * 
-   * @return reader
-   */
-  protected ServiceNetworkReader getServiceNetworkReader() {
-    return serviceNetworkReader;
-  }
-
-  /**
-   * Set the service network reader to use
-   * 
-   * @param reader to use
-   */
-  protected void setServiceNetworkReader(ServiceNetworkReader serviceNetworkReader) {
-    this.serviceNetworkReader = serviceNetworkReader;
-  }
-
-  /**
-   * Collect routed services reader
-   * 
-   * @return reader
-   */
-  protected RoutedServicesReader getRoutedServicesReader() {
-    return routedServicesReader;
-  }
-
-  /**
-   * Set the routed services reader to use
-   * 
-   * @param reader to use
-   */
-  protected void setRoutedServicesReader(RoutedServicesReader routedServicesReader) {
-    this.routedServicesReader = routedServicesReader;
-  }
 
   /**
    * Constructor
