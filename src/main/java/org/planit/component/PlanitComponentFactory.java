@@ -48,6 +48,7 @@ import org.planit.utils.event.EventListener;
 import org.planit.utils.event.EventProducerImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.reflection.ReflectionUtils;
+import org.planit.utils.time.TimePeriod;
 import org.planit.zoning.Zoning;
 
 /**
@@ -158,7 +159,13 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
       fireEvent(new PopulateRoutedServicesEvent(this, (RoutedServices) newPlanitComponent));
     } else if (newPlanitComponent instanceof InitialLinkSegmentCost) {
       // TODO: probably better if we generalise to initialCost event rather then specialise to link segment as we do now */
-      fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1]));
+      if (newPlanitComponent instanceof InitialLinkSegmentCostPeriod) {
+        fireEvent(
+            new PopulateInitialLinkSegmentCostEvent(
+                this, (InitialLinkSegmentCostPeriod) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1],(TimePeriod) parameters[2]));
+      } else {
+        fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1]));
+      }
     } else if (newPlanitComponent instanceof AbstractPhysicalCost) {
       fireEvent(new PopulatePhysicalCostEvent(this, (AbstractPhysicalCost) newPlanitComponent));
     } else {

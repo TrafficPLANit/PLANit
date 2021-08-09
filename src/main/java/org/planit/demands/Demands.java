@@ -221,7 +221,7 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
      * @param xmlId the XML Id of the specified time period
      * @return the retrieved time period, or null if no time period was found
      */
-    public TimePeriod getTimePeriodByXmlId(final String xmlId) {
+    public TimePeriod getByXmlId(final String xmlId) {
       return findFirst(timePeriod -> xmlId.equals(((TimePeriod) timePeriod).getXmlId()));
     }
 

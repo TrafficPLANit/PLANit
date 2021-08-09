@@ -2,7 +2,9 @@ package org.planit.component.event;
 
 import org.planit.component.PlanitComponentFactory;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
+import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.network.MacroscopicNetwork;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * A Populate initial link segment cost event is fired when PLANit requests for a registered listener to populate these initial costs which relate to a specific network. It is
@@ -31,6 +33,18 @@ public class PopulateInitialLinkSegmentCostEvent extends PopulateUntypedComponen
   }
 
   /**
+   * @param source                           of the event
+   * @param initialLinkSegmentCostToPopulate cost to populate
+   * @param fileName                         with the location of the costs to use for populating the memory model
+   * @param network                          parent network of these costs
+   * @param timePeriod                       the initial costs will be used for (may be different than where they are parsed from)
+   */
+  public PopulateInitialLinkSegmentCostEvent(final PlanitComponentFactory<?> source, final InitialLinkSegmentCostPeriod initialLinkSegmentCostToPopulate, String fileName,
+      final MacroscopicNetwork network, final TimePeriod timePeriod) {
+    super(EVENT_TYPE, source, initialLinkSegmentCostToPopulate, new Object[] { fileName, network, timePeriod });
+  }
+
+  /**
    * Collect PLANit initial cost component to populate
    * 
    * @return zoning
@@ -55,6 +69,27 @@ public class PopulateInitialLinkSegmentCostEvent extends PopulateUntypedComponen
    */
   public MacroscopicNetwork getParentNetwork() {
     return (MacroscopicNetwork) getAdditionalContent()[1];
+  }
+
+  /**
+   * Verify if time period is set for this initial cost to populate
+   * 
+   * @return true when present, false otherwise
+   */
+  public boolean hasTimePeriod() {
+    return getAdditionalContent().length >= 3;
+  }
+
+  /**
+   * Collect time period for which the initial cost is meant (might not be set)
+   * 
+   * @return time period, null if not set for a specific time period
+   */
+  public TimePeriod getTimePeriod() {
+    if (!hasTimePeriod()) {
+      return null;
+    }
+    return (TimePeriod) getAdditionalContent()[2];
   }
 
 }
