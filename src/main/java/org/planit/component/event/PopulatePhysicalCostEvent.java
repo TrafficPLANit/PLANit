@@ -2,6 +2,7 @@ package org.planit.component.event;
 
 import org.planit.component.PlanitComponentFactory;
 import org.planit.cost.physical.AbstractPhysicalCost;
+import org.planit.network.MacroscopicNetwork;
 
 /**
  * A Populate physical cost event is fired when PLANit requests for a registered listener to populate the newly created physical cost component. It is assumed only a single
@@ -19,11 +20,11 @@ public class PopulatePhysicalCostEvent extends PopulateUntypedComponentEvent {
   /**
    * Constructor
    * 
-   * @param source            of the event
-   * @param networkToPopulate network to populate
+   * @param source                 of the event
+   * @param physicalCostToPopulate network to populate
    */
-  public PopulatePhysicalCostEvent(final PlanitComponentFactory<?> source, AbstractPhysicalCost physicalCostToPopulate) {
-    super(EVENT_TYPE, source, physicalCostToPopulate, null);
+  public PopulatePhysicalCostEvent(final PlanitComponentFactory<?> source, AbstractPhysicalCost physicalCostToPopulate, MacroscopicNetwork network) {
+    super(EVENT_TYPE, source, physicalCostToPopulate, network);
   }
 
   /**
@@ -33,6 +34,15 @@ public class PopulatePhysicalCostEvent extends PopulateUntypedComponentEvent {
    */
   public AbstractPhysicalCost getPhysicalCostToPopulate() {
     return (AbstractPhysicalCost) getComponentToPopulate();
+  }
+
+  /**
+   * the network on which to populate the physical cost
+   * 
+   * @return parent network
+   */
+  public MacroscopicNetwork getParentNetwork() {
+    return (MacroscopicNetwork) getAdditionalContent()[0];
   }
 
 }

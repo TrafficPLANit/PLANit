@@ -430,9 +430,25 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @param timePeriod     value of time period key
    * @param iterationIndex value of iteration index key
    * @param outputType     value of output type key
-   * @return map iterator storing the keys and values of this map
+   * @return map iterator storing the keys and values of this map, null when one or more inputs are invalid
    */
   public MemoryOutputIterator getIterator(final Mode mode, final TimePeriod timePeriod, final Integer iterationIndex, final OutputType outputType) {
+    if (mode == null) {
+      LOGGER.warning("IGNORE: mode null when obtaining memory output iterator");
+      return null;
+    }
+    if (timePeriod == null) {
+      LOGGER.warning("IGNORE: time period null when obtaining memory output iterator");
+      return null;
+    }
+    if (iterationIndex == null) {
+      LOGGER.warning("IGNORE: iteration null when obtaining memory output iterator");
+      return null;
+    }
+    if (outputType == null) {
+      LOGGER.warning("IGNORE: output type null when obtaining memory output iterator");
+      return null;
+    }
     MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
     MemoryOutputIterator memoryOutputIterator = new MemoryOutputIterator(multiKeyPlanItData);
     return memoryOutputIterator;

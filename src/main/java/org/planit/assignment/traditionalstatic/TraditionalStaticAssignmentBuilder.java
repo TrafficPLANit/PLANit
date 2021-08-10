@@ -1,10 +1,10 @@
 package org.planit.assignment.traditionalstatic;
 
 import org.planit.assignment.TrafficAssignmentBuilder;
+import org.planit.assignment.TrafficAssignmentConfigurator;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.TransportLayerNetwork;
-import org.planit.utils.builder.Configurator;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.zoning.Zoning;
@@ -32,7 +32,7 @@ public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder
    * @throws PlanItException thrown if error
    */
   @Override
-  protected Configurator<TraditionalStaticAssignment> createConfigurator() throws PlanItException {
+  protected TrafficAssignmentConfigurator<TraditionalStaticAssignment> createConfigurator() throws PlanItException {
     return new TraditionalStaticAssignmentConfigurator(TraditionalStaticAssignment.class);
   }
 
@@ -47,7 +47,7 @@ public class TraditionalStaticAssignmentBuilder extends TrafficAssignmentBuilder
    * @throws PlanItException thrown if there is an error
    */
   public TraditionalStaticAssignmentBuilder(final IdGroupingToken projectToken, final InputBuilderListener inputBuilder, final Demands demands, final Zoning zoning,
-      final TransportLayerNetwork<?,?> network) throws PlanItException {
+      final TransportLayerNetwork<?, ?> network) throws PlanItException {
     super(TraditionalStaticAssignment.class, projectToken, inputBuilder, demands, zoning, network);
   }
 }

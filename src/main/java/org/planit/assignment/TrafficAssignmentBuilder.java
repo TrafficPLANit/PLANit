@@ -65,18 +65,16 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     }
 
     // register on configurator
-    TrafficAssignmentConfigurator<? extends TrafficAssignment> configurator = ((TrafficAssignmentConfigurator<? extends TrafficAssignment>) getConfigurator());
-    configurator.setInfrastructureNetwork(network);
-    configurator.setZoning(zoning);
-    configurator.setDemands(demands);
+    getConfigurator().setInfrastructureNetwork(network);
+    getConfigurator().setZoning(zoning);
+    getConfigurator().setDemands(demands);
   }
 
   /**
    * create the output manager and register it on the configurator to activate it on assignment when built
    */
   private void createOutputManager() {
-    TrafficAssignmentConfigurator<? extends TrafficAssignment> configurator = ((TrafficAssignmentConfigurator<? extends TrafficAssignment>) getConfigurator());
-    configurator.setOutputManager(new OutputManager());
+    getConfigurator().setOutputManager(new OutputManager());
   }
 
   /**
@@ -85,9 +83,14 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @param trafficAssignment the assignment we are creating the adapters for
    */
   private void initialiseOutputAdapters(T trafficAssignment) {
-    TrafficAssignmentConfigurator<? extends TrafficAssignment> configurator = ((TrafficAssignmentConfigurator<? extends TrafficAssignment>) getConfigurator());
-    configurator.getOutputManager().initialiseOutputAdapters(trafficAssignment);
+    getConfigurator().getOutputManager().initialiseOutputAdapters(trafficAssignment);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected abstract TrafficAssignmentConfigurator<T> createConfigurator() throws PlanItException;
 
   /**
    * Factory method to create the instance of the desired type
@@ -110,52 +113,49 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
   /**
    * create a smoothing instance based on configuration
    * 
-   * @param configurator for smoothing instance
    * @return smoothing instance
    * @throws PlanItException thrown if error
    */
-  protected Smoothing createSmoothingInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
+  protected Smoothing createSmoothingInstance() throws PlanItException {
     PlanitComponentFactory<Smoothing> smoothingFactory = new PlanitComponentFactory<Smoothing>(Smoothing.class);
     smoothingFactory.addListener(getInputBuilderListener());
-    return smoothingFactory.create(configurator.getSmoothing().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
+    return smoothingFactory.create(getConfigurator().getSmoothing().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 
   /**
    * create a physical cost instance based on configuration
    *
-   * @param configurator for physical cost instance
    * @return physical cost instance
    * @throws PlanItException thrown if error
    */
-  protected AbstractPhysicalCost createPhysicalCostInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
+  protected AbstractPhysicalCost createPhysicalCostInstance() throws PlanItException {
     PlanitComponentFactory<AbstractPhysicalCost> physicalCostFactory = new PlanitComponentFactory<AbstractPhysicalCost>(AbstractPhysicalCost.class);
     physicalCostFactory.addListener(getInputBuilderListener());
-    return physicalCostFactory.create(configurator.getPhysicalCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
+    return physicalCostFactory.create(getConfigurator().getPhysicalCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() },
+        new Object[] { getConfigurator().getInfrastructureNetwork() });
   }
 
   /**
    * create a virtual cost instance based on configuration
    * 
-   * @param configurator for virtual cost instance
    * @return virtual cost instance
    * @throws PlanItException thrown if error
    */
-  protected AbstractVirtualCost createVirtualCostInstance(TrafficAssignmentConfigurator<?> configurator) throws PlanItException {
+  protected AbstractVirtualCost createVirtualCostInstance() throws PlanItException {
     PlanitComponentFactory<AbstractVirtualCost> virtualCostFactory = new PlanitComponentFactory<AbstractVirtualCost>(AbstractVirtualCost.class);
     virtualCostFactory.addListener(getInputBuilderListener());
-    return virtualCostFactory.create(configurator.getVirtualCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
+    return virtualCostFactory.create(getConfigurator().getVirtualCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
 
   /**
    * create a gap function instance based on configuration
    * 
-   * @param configurator  for gap function instance
    * @param stopCriterion to use
    * @return gap function instance
    * @throws PlanItException thrown if error
    */
-  protected GapFunction createGapFunctionInstance(TrafficAssignmentConfigurator<?> configurator, StopCriterion stopCriterion) throws PlanItException {
-    PlanItException.throwIf(!(configurator.getGapFunction() instanceof LinkBasedRelativeGapConfigurator), "invalid gap function chosen");
+  protected GapFunction createGapFunctionInstance(StopCriterion stopCriterion) throws PlanItException {
+    PlanItException.throwIf(!(getConfigurator().getGapFunction() instanceof LinkBasedRelativeGapConfigurator), "invalid gap function chosen");
     return new LinkBasedRelativeDualityGapFunction(stopCriterion);
   }
 
@@ -166,20 +166,19 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected void buildSubComponents(T trafficAssignmentInstance) throws PlanItException {
-    TrafficAssignmentConfigurator<?> configurator = ((TrafficAssignmentConfigurator<?>) getConfigurator());
     // build its subcomponents via their own builders
 
     // smoothing
-    if (configurator.getSmoothing() != null) {
-      Smoothing smoothing = createSmoothingInstance(configurator);
-      configurator.getSmoothing().configure(smoothing);
+    if (getConfigurator().getSmoothing() != null) {
+      Smoothing smoothing = createSmoothingInstance();
+      getConfigurator().getSmoothing().configure(smoothing);
       trafficAssignmentInstance.setSmoothing(smoothing);
     }
 
     // physical cost
-    if (configurator.getPhysicalCost() != null) {
-      AbstractPhysicalCost physicalCost = createPhysicalCostInstance(configurator);
-      configurator.getPhysicalCost().configure(physicalCost);
+    if (getConfigurator().getPhysicalCost() != null) {
+      AbstractPhysicalCost physicalCost = createPhysicalCostInstance();
+      getConfigurator().getPhysicalCost().configure(physicalCost);
       trafficAssignmentInstance.setPhysicalCost(physicalCost);
 
       /* Physical cost <-> assignment dependency */
@@ -195,9 +194,9 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     }
 
     // virtual cost
-    if (configurator.getVirtualCost() != null) {
-      AbstractVirtualCost virtualCost = createVirtualCostInstance(configurator);
-      configurator.getVirtualCost().configure(virtualCost);
+    if (getConfigurator().getVirtualCost() != null) {
+      AbstractVirtualCost virtualCost = createVirtualCostInstance();
+      getConfigurator().getVirtualCost().configure(virtualCost);
       trafficAssignmentInstance.setVirtualCost(virtualCost);
 
       /* virtual cost <-> assignment dependency (see physical cost above for rationale) */
@@ -209,7 +208,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     }
 
     // gap function
-    if (configurator.getGapFunction() != null) {
+    if (getConfigurator().getGapFunction() != null) {
 
       // stop criterion
       // TODO: technically should be handled by the gap function having a builder of its own
@@ -217,10 +216,10 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
       // also there is only one stop criterion available at present. Therefore, we construct
       // it here instead for now.
       StopCriterion stopCriterion = new StopCriterion();
-      configurator.getGapFunction().getStopCriterion().configure(stopCriterion);
+      getConfigurator().getGapFunction().getStopCriterion().configure(stopCriterion);
 
-      GapFunction gapFunction = createGapFunctionInstance(configurator, stopCriterion);
-      configurator.getGapFunction().configure(gapFunction);
+      GapFunction gapFunction = createGapFunctionInstance(stopCriterion);
+      getConfigurator().getGapFunction().configure(gapFunction);
       trafficAssignmentInstance.setGapFunction(gapFunction);
     }
 
@@ -233,7 +232,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected void createGapFunction() throws PlanItException {
-    TrafficAssignmentConfigurator<? extends TrafficAssignment> configurator = ((TrafficAssignmentConfigurator<? extends TrafficAssignment>) getConfigurator());
+    TrafficAssignmentConfigurator<?> configurator = getConfigurator();
     GapFunctionConfigurator<? extends GapFunction> gapFunctionConfigurator = GapFunctionConfiguratorFactory.createConfigurator(GapFunction.LINK_BASED_RELATIVE_GAP);
     configurator.setGapFunction(gapFunctionConfigurator);
   }
@@ -265,7 +264,15 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     createGapFunction();
 
     // By default, activate the link outputs (on configurator)
-    ((TrafficAssignmentConfigurator<?>) getConfigurator()).activateOutput(OutputType.LINK);
+    getConfigurator().activateOutput(OutputType.LINK);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TrafficAssignmentConfigurator<T> getConfigurator() {
+    return (TrafficAssignmentConfigurator<T>) super.getConfigurator();
   }
 
   /**

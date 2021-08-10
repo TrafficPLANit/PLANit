@@ -160,14 +160,13 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     } else if (newPlanitComponent instanceof InitialLinkSegmentCost) {
       // TODO: probably better if we generalise to initialCost event rather then specialise to link segment as we do now */
       if (newPlanitComponent instanceof InitialLinkSegmentCostPeriod) {
-        fireEvent(
-            new PopulateInitialLinkSegmentCostEvent(
-                this, (InitialLinkSegmentCostPeriod) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1],(TimePeriod) parameters[2]));
+        fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialLinkSegmentCostPeriod) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1],
+            (TimePeriod) parameters[2]));
       } else {
         fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1]));
       }
     } else if (newPlanitComponent instanceof AbstractPhysicalCost) {
-      fireEvent(new PopulatePhysicalCostEvent(this, (AbstractPhysicalCost) newPlanitComponent));
+      fireEvent(new PopulatePhysicalCostEvent(this, (AbstractPhysicalCost) newPlanitComponent, (MacroscopicNetwork) parameters[0]));
     } else {
       /* fire generic populate component event, likely third party class, or one that is likely not meant for user listeners to do anything with */
       fireEvent(new PopulateComponentEvent(this, newPlanitComponent, parameters));
