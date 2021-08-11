@@ -1,7 +1,6 @@
-package org.planit.assignment.sltm;
+package org.planit.assignment.ltm.sltm;
 
 import org.planit.assignment.TrafficAssignmentBuilder;
-import org.planit.assignment.TrafficAssignmentConfigurator;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.TransportLayerNetwork;
@@ -24,7 +23,7 @@ public class StaticLtmTrafficAssignmentBuilder extends TrafficAssignmentBuilder<
    * @return sLTM configurator
    */
   @Override
-  protected TrafficAssignmentConfigurator<StaticLtm> createConfigurator() throws PlanItException {
+  protected StaticLtmConfigurator createConfigurator() throws PlanItException {
     return new StaticLtmConfigurator();
   }
 

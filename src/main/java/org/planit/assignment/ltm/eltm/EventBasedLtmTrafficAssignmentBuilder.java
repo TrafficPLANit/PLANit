@@ -1,7 +1,6 @@
-package org.planit.assignment.eltm;
+package org.planit.assignment.ltm.eltm;
 
-import org.planit.assignment.DynamicTrafficAssignmentBuilder;
-import org.planit.assignment.TrafficAssignmentConfigurator;
+import org.planit.assignment.TrafficAssignmentBuilder;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.TransportLayerNetwork;
@@ -15,7 +14,7 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public class EventBasedLtmTrafficAssignmentBuilder extends DynamicTrafficAssignmentBuilder<EventBasedLtm> {
+public class EventBasedLtmTrafficAssignmentBuilder extends TrafficAssignmentBuilder<EventBasedLtm> {
 
   /**
    * create the configurator for ELTM
@@ -23,7 +22,7 @@ public class EventBasedLtmTrafficAssignmentBuilder extends DynamicTrafficAssignm
    * @return eLTM configurator
    */
   @Override
-  protected TrafficAssignmentConfigurator<EventBasedLtm> createConfigurator() throws PlanItException {
+  protected EventBasedLtmConfigurator createConfigurator() throws PlanItException {
     return new EventBasedLtmConfigurator();
   }
 

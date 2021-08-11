@@ -1,4 +1,4 @@
-package org.planit.assignment.eltm.event;
+package org.planit.assignment.ltm.eltm.event;
 
 import java.io.Serializable;
 

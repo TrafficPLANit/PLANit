@@ -1,18 +1,18 @@
-package org.planit.assignment.eltm;
+package org.planit.assignment.ltm.eltm;
 
-import org.planit.assignment.DynamicTrafficAssignment;
+import org.planit.assignment.ltm.LtmAssignment;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.enums.OutputType;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
- * event based Link Transmission Model implementation (eLTM) for network loading using a capacity constrained (Deterministic) assignment
+ * Event based Link Transmission Model implementation (eLTM) for network loading using a capacity constrained (Deterministic) assignment
  *
  * @author markr
  *
  */
-public class EventBasedLtm extends DynamicTrafficAssignment {
+public class EventBasedLtm extends LtmAssignment {
 
   /** generated UID */
   private static final long serialVersionUID = 994316948946768870L;

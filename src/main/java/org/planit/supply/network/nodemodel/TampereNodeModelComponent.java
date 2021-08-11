@@ -3,12 +3,13 @@ package org.planit.supply.network.nodemodel;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
- * Tampere node model traffic component
+ * Tampere node model traffic component singalling that the Tampere node model algorithm is to be used
+ * 
  *
  * @author markr
  *
  */
-public class TampereNodeModel extends NodeModel {
+public class TampereNodeModelComponent extends NodeModelComponent {
 
   /** generated UID */
   private static final long serialVersionUID = 624108273657030487L;
@@ -18,7 +19,7 @@ public class TampereNodeModel extends NodeModel {
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  public TampereNodeModel(final IdGroupingToken groupId) {
+  public TampereNodeModelComponent(final IdGroupingToken groupId) {
     super(groupId);
   }
 
@@ -27,7 +28,7 @@ public class TampereNodeModel extends NodeModel {
    * 
    * @param other to copy
    */
-  public TampereNodeModel(final TampereNodeModel other) {
+  public TampereNodeModelComponent(final TampereNodeModelComponent other) {
     super(other);
   }
 
@@ -35,8 +36,8 @@ public class TampereNodeModel extends NodeModel {
    * {@inheritDoc}
    */
   @Override
-  public TampereNodeModel clone() {
-    return new TampereNodeModel(this);
+  public TampereNodeModelComponent clone() {
+    return new TampereNodeModelComponent(this);
   }
 
 }

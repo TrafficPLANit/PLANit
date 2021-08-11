@@ -1,4 +1,4 @@
-package org.planit.assignment.eltm;
+package org.planit.assignment.ltm.eltm;
 
 import java.io.Serializable;
 

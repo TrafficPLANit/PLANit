@@ -1,31 +1,30 @@
-package org.planit.assignment.sltm;
+package org.planit.assignment.ltm;
 
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
 import org.planit.network.MacroscopicNetwork;
-import org.planit.output.adapter.OutputTypeAdapter;
-import org.planit.output.enums.OutputType;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
-import org.planit.supply.network.nodemodel.NodeModel;
+import org.planit.supply.network.nodemodel.NodeModelComponent;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 
 /**
- * static Link Transmission Model implementation (sLTM) for network loading based on solution method presented in Raadsen and Bliemer (2021) General solution scheme for the Static
- * Link Transmission Model .
+ * Link Transmission Model implementation base implementation for network loading based on LTM network loading paradigm.
  *
  * @author markr
  *
  */
-public class StaticLtm extends TrafficAssignment {
+public abstract class LtmAssignment extends TrafficAssignment {
 
-  /** generated UID */
-  private static final long serialVersionUID = 8485652038791612169L;
+  /**
+   * generated UID
+   */
+  private static final long serialVersionUID = -8595729519062817426L;
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(StaticLtm.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(LtmAssignment.class.getCanonicalName());
 
   /**
    * Fundamental diagram to use
@@ -35,7 +34,7 @@ public class StaticLtm extends TrafficAssignment {
   /**
    * Node model to use
    */
-  protected NodeModel nodeModel = null;
+  protected NodeModelComponent nodeModel = null;
 
   /**
    * Verify if the network contains a single compatible infrastructure layer because sLTM does not (yet) support multiple (or intermodal) network layers
@@ -60,7 +59,7 @@ public class StaticLtm extends TrafficAssignment {
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  protected StaticLtm(IdGroupingToken groupId) {
+  protected LtmAssignment(IdGroupingToken groupId) {
     super(groupId);
   }
 
@@ -69,7 +68,7 @@ public class StaticLtm extends TrafficAssignment {
    * 
    * @param sltm to copy
    */
-  protected StaticLtm(StaticLtm sltm) {
+  protected LtmAssignment(LtmAssignment sltm) {
     super(sltm);
     this.fundamentalDiagram = sltm.fundamentalDiagram.clone();
     this.nodeModel = sltm.nodeModel.clone();
@@ -79,36 +78,7 @@ public class StaticLtm extends TrafficAssignment {
    * {@inheritDoc}
    */
   @Override
-  public OutputTypeAdapter createOutputTypeAdapter(OutputType outputType) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void executeEquilibration() throws PlanItException {
-    // TODO Auto-generated method stub
-
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public int getIterationIndex() {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public StaticLtm clone() {
-    return new StaticLtm(this);
-  }
+  public abstract LtmAssignment clone();
 
   // Getters - Setters
 
@@ -126,7 +96,7 @@ public class StaticLtm extends TrafficAssignment {
    * 
    * @param nodeModel to use
    */
-  public void setNodeModel(final NodeModel nodeModel) {
+  public void setNodeModel(final NodeModelComponent nodeModel) {
     this.nodeModel = nodeModel;
   }
 

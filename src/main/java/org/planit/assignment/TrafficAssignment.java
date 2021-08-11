@@ -5,8 +5,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.planit.assignment.algorithmb.AlgorithmB;
-import org.planit.assignment.eltm.EventBasedLtm;
-import org.planit.assignment.sltm.StaticLtm;
+import org.planit.assignment.ltm.eltm.EventBasedLtm;
+import org.planit.assignment.ltm.sltm.StaticLtm;
 import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;

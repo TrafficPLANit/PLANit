@@ -11,23 +11,18 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class NodeModel extends PlanitComponent<NodeModel> implements Serializable {
+public abstract class NodeModelComponent extends PlanitComponent<NodeModelComponent> implements Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = -6966680588075724261L;
-
-  /**
-   * Short hand for Tampere node model calss type
-   */
-  public static final String TAMPERE = TampereNodeModel.class.getCanonicalName();
 
   /**
    * Base constructor
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  public NodeModel(final IdGroupingToken groupId) {
-    super(groupId, NodeModel.class);
+  protected NodeModelComponent(final IdGroupingToken groupId) {
+    super(groupId, NodeModelComponent.class);
   }
 
   /**
@@ -35,7 +30,7 @@ public abstract class NodeModel extends PlanitComponent<NodeModel> implements Se
    * 
    * @param other to copy
    */
-  public NodeModel(final NodeModel other) {
+  public NodeModelComponent(final NodeModelComponent other) {
     super(other);
   }
 
@@ -43,6 +38,6 @@ public abstract class NodeModel extends PlanitComponent<NodeModel> implements Se
    * {@inheritDoc}
    */
   @Override
-  public abstract NodeModel clone();
+  public abstract NodeModelComponent clone();
 
 }

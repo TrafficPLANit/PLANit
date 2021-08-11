@@ -40,8 +40,8 @@ import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.service.routed.RoutedServices;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.fundamentaldiagram.NewellFundamentalDiagram;
-import org.planit.supply.network.nodemodel.NodeModel;
-import org.planit.supply.network.nodemodel.TampereNodeModel;
+import org.planit.supply.network.nodemodel.NodeModelComponent;
+import org.planit.supply.network.nodemodel.TampereNodeModelComponent;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.utils.event.Event;
 import org.planit.utils.event.EventListener;
@@ -87,7 +87,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registeredPlanitComponents.put(InitialPhysicalCost.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(AbstractVirtualCost.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(FundamentalDiagram.class.getCanonicalName(), new TreeSet<>());
-    registeredPlanitComponents.put(NodeModel.class.getCanonicalName(), new TreeSet<>());
+    registeredPlanitComponents.put(NodeModelComponent.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(PathChoice.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(LogitChoiceModel.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(OdPathSets.class.getCanonicalName(), new TreeSet<>());
@@ -112,7 +112,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(FixedConnectoidTravelTimeCost.class);
     registerPlanitComponentType(SpeedConnectoidTravelTimeCost.class);
     registerPlanitComponentType(NewellFundamentalDiagram.class);
-    registerPlanitComponentType(TampereNodeModel.class);
+    registerPlanitComponentType(TampereNodeModelComponent.class);
     registerPlanitComponentType(MultinomialLogit.class);
     registerPlanitComponentType(OdPathSets.class);
   }

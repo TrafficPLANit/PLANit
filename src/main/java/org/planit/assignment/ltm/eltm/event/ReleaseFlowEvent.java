@@ -1,4 +1,4 @@
-package org.planit.assignment.eltm.event;
+package org.planit.assignment.ltm.eltm.event;
 
 import org.planit.utils.cumulatives.CumulativePoint;
 import org.planit.utils.event.EventType;

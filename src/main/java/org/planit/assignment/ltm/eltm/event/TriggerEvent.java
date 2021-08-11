@@ -1,8 +1,8 @@
-package org.planit.assignment.eltm.event;
+package org.planit.assignment.ltm.eltm.event;
 
 import java.io.Serializable;
 
-import org.planit.assignment.eltm.LinkSegmentBoundary;
+import org.planit.assignment.ltm.eltm.LinkSegmentBoundary;
 import org.planit.utils.cumulatives.CumulativePoint;
 import org.planit.utils.event.EventType;
 

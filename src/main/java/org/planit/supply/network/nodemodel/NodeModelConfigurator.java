@@ -10,7 +10,7 @@ import org.planit.utils.exceptions.PlanItException;
  *
  * @param <T> node model type
  */
-public class NodeModelConfigurator<T extends NodeModel> extends Configurator<T> {
+public class NodeModelConfigurator<T extends NodeModelComponent> extends Configurator<T> {
 
   /**
    * Constructor
@@ -28,7 +28,7 @@ public class NodeModelConfigurator<T extends NodeModel> extends Configurator<T> 
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void configure(NodeModel nodeModel) throws PlanItException {
+  public void configure(NodeModelComponent nodeModel) throws PlanItException {
     super.configure((T) nodeModel);
   }
 

@@ -5,14 +5,14 @@ package org.planit.supply.network.nodemodel;
  * 
  * @author markr
  */
-public class TampereNodeModelConfigurator extends NodeModelConfigurator<TampereNodeModel> {
+public class TampereNodeModelConfigurator extends NodeModelConfigurator<TampereNodeModelComponent> {
    
   /**
    * Constructor
    * 
    */
   protected TampereNodeModelConfigurator() {
-    super(TampereNodeModel.class);
+    super(TampereNodeModelComponent.class);
   }
   
 

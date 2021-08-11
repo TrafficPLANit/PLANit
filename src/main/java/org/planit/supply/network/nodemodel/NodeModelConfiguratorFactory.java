@@ -1,5 +1,6 @@
 package org.planit.supply.network.nodemodel;
 
+import org.planit.algorithms.nodemodel.NodeModel;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
@@ -17,11 +18,11 @@ public class NodeModelConfiguratorFactory {
    * @return the created configurator
    * @throws PlanItException thrown if error
    */
-  public static NodeModelConfigurator<? extends NodeModel> createConfigurator(final String nodeModelType) throws PlanItException {
+  public static NodeModelConfigurator<? extends NodeModelComponent> createConfigurator(final String nodeModelType) throws PlanItException {
 
     if (nodeModelType.equals(NodeModel.TAMPERE)) {
       return new TampereNodeModelConfigurator();
-    }else {
+    } else {
       throw new PlanItException(String.format("unable to construct configurator for given nodeModelType %s", nodeModelType));
     }
   }

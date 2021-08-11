@@ -1,10 +1,11 @@
-package org.planit.assignment.sltm;
+package org.planit.assignment.ltm;
 
+import org.planit.algorithms.nodemodel.NodeModel;
 import org.planit.assignment.TrafficAssignmentConfigurator;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagramConfigurator;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagramConfiguratorFactory;
-import org.planit.supply.network.nodemodel.NodeModel;
+import org.planit.supply.network.nodemodel.NodeModelComponent;
 import org.planit.supply.network.nodemodel.NodeModelConfigurator;
 import org.planit.supply.network.nodemodel.NodeModelConfiguratorFactory;
 import org.planit.utils.exceptions.PlanItException;
@@ -20,9 +21,7 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class StaticLtmConfigurator extends TrafficAssignmentConfigurator<StaticLtm> {
-
-  private static final String DISABLE_LINK_STORAGE_CONSTRAINTS = "disableLinkStorageConstraints";
+public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentConfigurator<T> {
 
   /**
    * Nested configurator for fundamental diagram within this assignment
@@ -32,26 +31,23 @@ public class StaticLtmConfigurator extends TrafficAssignmentConfigurator<StaticL
   /**
    * Nested configurator for node model within this assignment
    */
-  private NodeModelConfigurator<? extends NodeModel> nodeModelConfigurator = null;
+  private NodeModelConfigurator<? extends NodeModelComponent> nodeModelConfigurator = null;
 
   /**
    * Constructor
    * 
+   * @param ltmClass used
    * @throws PlanItException thrown when error
    */
-  public StaticLtmConfigurator() throws PlanItException {
-    super(StaticLtm.class);
+  public LtmConfigurator(Class<T> ltmClass) throws PlanItException {
+    super(ltmClass);
     createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
     createAndRegisterNodeModel(NodeModel.TAMPERE);
   }
 
-  /**
-   * Disable enforcing any storage constraints on link(segments)
-   * 
-   */
-  public void disableLinkStorageConstraints() {
-    registerDelayedMethodCall(DISABLE_LINK_STORAGE_CONSTRAINTS);
-  }
+  //
+  // Child component options
+  //
 
   /**
    * choose a particular fundamental diagram implementation
@@ -81,7 +77,7 @@ public class StaticLtmConfigurator extends TrafficAssignmentConfigurator<StaticL
    * @return configurator
    * @throws PlanItException thrown if error
    */
-  public NodeModelConfigurator<? extends NodeModel> createAndRegisterNodeModel(final String nodeModelType) throws PlanItException {
+  public NodeModelConfigurator<? extends NodeModelComponent> createAndRegisterNodeModel(final String nodeModelType) throws PlanItException {
     nodeModelConfigurator = NodeModelConfiguratorFactory.createConfigurator(nodeModelType);
     return nodeModelConfigurator;
   }
@@ -91,7 +87,7 @@ public class StaticLtmConfigurator extends TrafficAssignmentConfigurator<StaticL
    * 
    * @return configurator
    */
-  public NodeModelConfigurator<? extends NodeModel> getNodeModel() {
+  public NodeModelConfigurator<? extends NodeModelComponent> getNodeModel() {
     return nodeModelConfigurator;
   }
 
