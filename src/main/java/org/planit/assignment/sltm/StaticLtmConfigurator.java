@@ -1,5 +1,6 @@
-package org.planit.assignment;
+package org.planit.assignment.sltm;
 
+import org.planit.assignment.TrafficAssignmentConfigurator;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagramConfigurator;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagramConfiguratorFactory;
@@ -9,13 +10,19 @@ import org.planit.supply.network.nodemodel.NodeModelConfiguratorFactory;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
- * Configurator for capacity constrained assignment
+ * Configurator for sLTM. Adopting the following defaults:
+ * 
+ * <ul>
+ * <li>Fundamental diagram: NEWELL</li>
+ * <li>Node Model: TAMPERE</li>
+ * </ul>
  * 
  * @author markr
- * 
- * @param <T> capacity constrained traffic assignment type
+ *
  */
-public class CapacityConstrainedTrafficAssignmentConfigurator<T extends CapacityConstrainedAssignment> extends TrafficAssignmentConfigurator<T> {
+public class StaticLtmConfigurator extends TrafficAssignmentConfigurator<StaticLtm> {
+
+  private static final String DISABLE_LINK_STORAGE_CONSTRAINTS = "disableLinkStorageConstraints";
 
   /**
    * Nested configurator for fundamental diagram within this assignment
@@ -30,11 +37,20 @@ public class CapacityConstrainedTrafficAssignmentConfigurator<T extends Capacity
   /**
    * Constructor
    * 
-   * @param instanceType the type we are configuring for
-   * @throws PlanItException thrown if error
+   * @throws PlanItException thrown when error
    */
-  public CapacityConstrainedTrafficAssignmentConfigurator(Class<T> instanceType) throws PlanItException {
-    super(instanceType);
+  public StaticLtmConfigurator() throws PlanItException {
+    super(StaticLtm.class);
+    createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
+    createAndRegisterNodeModel(NodeModel.TAMPERE);
+  }
+
+  /**
+   * Disable enforcing any storage constraints on link(segments)
+   * 
+   */
+  public void disableLinkStorageConstraints() {
+    registerDelayedMethodCall(DISABLE_LINK_STORAGE_CONSTRAINTS);
   }
 
   /**

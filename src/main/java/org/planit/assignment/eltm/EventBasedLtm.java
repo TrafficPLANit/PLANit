@@ -12,7 +12,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class ELTM extends DynamicTrafficAssignment {
+public class EventBasedLtm extends DynamicTrafficAssignment {
 
   /** generated UID */
   private static final long serialVersionUID = 994316948946768870L;
@@ -22,7 +22,7 @@ public class ELTM extends DynamicTrafficAssignment {
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  public ELTM(IdGroupingToken groupId) {
+  public EventBasedLtm(IdGroupingToken groupId) {
     super(groupId);
   }
 
@@ -31,7 +31,7 @@ public class ELTM extends DynamicTrafficAssignment {
    * 
    * @param eltm to copy
    */
-  public ELTM(ELTM eltm) {
+  public EventBasedLtm(EventBasedLtm eltm) {
     super(eltm);
   }
 
@@ -57,8 +57,8 @@ public class ELTM extends DynamicTrafficAssignment {
    * {@inheritDoc}
    */
   @Override
-  public ELTM clone() {
-    return new ELTM(this);
+  public EventBasedLtm clone() {
+    return new EventBasedLtm(this);
   }
 
 }

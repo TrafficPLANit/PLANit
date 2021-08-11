@@ -9,15 +9,15 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class ELTMConfigurator extends DynamicAssignmentConfigurator<ELTM> {
+public class EventBasedLtmConfigurator extends DynamicAssignmentConfigurator<EventBasedLtm> {
 
   /**
    * Constructor
    * 
    * @throws PlanItException thrown when error
    */
-  public ELTMConfigurator() throws PlanItException {
-    super(ELTM.class);
+  public EventBasedLtmConfigurator() throws PlanItException {
+    super(EventBasedLtm.class);
   }
 
 }

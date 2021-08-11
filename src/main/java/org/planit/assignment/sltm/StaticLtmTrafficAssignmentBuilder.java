@@ -1,6 +1,6 @@
-package org.planit.assignment.eltm;
+package org.planit.assignment.sltm;
 
-import org.planit.assignment.DynamicTrafficAssignmentBuilder;
+import org.planit.assignment.TrafficAssignmentBuilder;
 import org.planit.assignment.TrafficAssignmentConfigurator;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
@@ -10,21 +10,22 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.zoning.Zoning;
 
 /**
- * The eLTM traffic assignment builder. This is a dynamic traffic assignment builder specifically for eLTM
+ * The sLTM traffic assignment builder. This is a capacity constrained traffic assignment builder specifically for sLTM. It user exposed options are made available through the
+ * {@code StaticLtmConfigurator}.
  *
  * @author markr
  *
  */
-public class ELTMTrafficAssignmentBuilder extends DynamicTrafficAssignmentBuilder<ELTM> {
+public class StaticLtmTrafficAssignmentBuilder extends TrafficAssignmentBuilder<StaticLtm> {
 
   /**
-   * create the configurator for ELTM
+   * create the configurator for sLTM
    * 
-   * @return eLTM configurator
+   * @return sLTM configurator
    */
   @Override
-  protected TrafficAssignmentConfigurator<ELTM> createConfigurator() throws PlanItException {
-    return new ELTMConfigurator();
+  protected TrafficAssignmentConfigurator<StaticLtm> createConfigurator() throws PlanItException {
+    return new StaticLtmConfigurator();
   }
 
   /**
@@ -37,9 +38,9 @@ public class ELTMTrafficAssignmentBuilder extends DynamicTrafficAssignmentBuilde
    * @param network              the network
    * @throws PlanItException when triangular fundamental diagram cannot be instantiated
    */
-  public ELTMTrafficAssignmentBuilder(IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands, final Zoning zoning,
+  public StaticLtmTrafficAssignmentBuilder(IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands, final Zoning zoning,
       final TransportLayerNetwork<?, ?> network) throws PlanItException {
-    super(ELTM.class, groupId, inputBuilderListener, demands, zoning, network);
+    super(StaticLtm.class, groupId, inputBuilderListener, demands, zoning, network);
   }
 
 }

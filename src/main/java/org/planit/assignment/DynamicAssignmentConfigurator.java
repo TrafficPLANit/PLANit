@@ -11,25 +11,26 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class DynamicAssignmentConfigurator<T extends DynamicTrafficAssignment> extends CapacityConstrainedTrafficAssignmentConfigurator<T> {
-  
+public class DynamicAssignmentConfigurator<T extends DynamicTrafficAssignment> extends TrafficAssignmentConfigurator<T> {
+
   /**
    * Nested configurator for path choice within this assignment
    */
-  private PathChoiceConfigurator<? extends PathChoice> pathChoiceConfigurator = null;  
+  private PathChoiceConfigurator<? extends PathChoice> pathChoiceConfigurator = null;
 
   /**
-   * Constructor 
+   * Constructor
    * 
    * @param instanceType the type we are configuring for
    * @throws PlanItException thrown if error
    */
   public DynamicAssignmentConfigurator(Class<T> instanceType) throws PlanItException {
-    super(instanceType);      
+    super(instanceType);
   }
-  
+
   /**
    * choose a particular path choice implementation
+   * 
    * @param pathChoiceType type to choose
    * @return path choice configurator
    * @throws PlanItException thrown if error
@@ -38,12 +39,13 @@ public class DynamicAssignmentConfigurator<T extends DynamicTrafficAssignment> e
     pathChoiceConfigurator = PathChoiceConfiguratorFactory.createConfigurator(pathChoiceType);
     return pathChoiceConfigurator;
   }
-  
+
   /**
    * Collect the path choice configurator
+   * 
    * @return path choice configurator
    */
-  public PathChoiceConfigurator<? extends PathChoice> getPathChoice(){
+  public PathChoiceConfigurator<? extends PathChoice> getPathChoice() {
     return pathChoiceConfigurator;
   }
 

@@ -1,11 +1,11 @@
 package org.planit.algorithms.nodemodel;
 
 /**
- * Node model algorithm base class
+ * Node model algorithm base interface
  * 
  * @author markr
  *
  */
-public abstract class NodeModel {
+public interface NodeModel {
 
 }

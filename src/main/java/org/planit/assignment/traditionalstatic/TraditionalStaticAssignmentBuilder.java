@@ -13,11 +13,11 @@ import org.planit.zoning.Zoning;
  * Builder for a traditional static assignment. It injects the following defaults into the underlying assignment instance:
  * 
  * <ul>
- * <li>Link based relative duality gap function</li>
- * <li>MSA smoothing</li>
- * <li>BPR function for physical cost</li>
- * <li>Fixed cost for virtual cost</li>
- * <li>Default StopCriterion implementation</li>
+ * <li>Link based relative duality gap function (default via base assignment implementation)</li>
+ * <li>MSA smoothing (via configurator)</li>
+ * <li>BPR function for physical cost (via configurator)</li>
+ * <li>Fixed cost for virtual cost (via configurator)</li>
+ * <li>Default StopCriterion implementation (default via base assignment implementation)</li>
  * </ul>
  *
  * @author markr

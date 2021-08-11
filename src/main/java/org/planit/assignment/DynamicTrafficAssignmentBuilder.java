@@ -18,7 +18,7 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAssignment> extends CapacityConstrainedTrafficAssignmentBuilder<T> {
+public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAssignment> extends TrafficAssignmentBuilder<T> {
 
   // needed to allow path choice to register inputbuilder listener on its traffic components
   @SuppressWarnings("unused")

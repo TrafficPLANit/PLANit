@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.planit.assignment.algorithmb.AlgorithmB;
+import org.planit.assignment.eltm.EventBasedLtm;
+import org.planit.assignment.sltm.StaticLtm;
 import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
@@ -230,7 +232,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
   public static String ALGORITHM_B = AlgorithmB.class.getCanonicalName();
 
   /** short hand to choose eLTM as assignment type */
-  public static String ELTM = org.planit.assignment.eltm.ELTM.class.getCanonicalName();
+  public static String ELTM = EventBasedLtm.class.getCanonicalName();
+
+  /** short hand to choose sLTM as assignment type */
+  public static String SLTM = StaticLtm.class.getCanonicalName();
 
   /**
    * Constructor. Note that defaults that partly depend on derived classes are assumed to be invoked by the calling method via this.initialiseDefaults()

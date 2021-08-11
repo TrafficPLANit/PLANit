@@ -22,14 +22,13 @@ import org.planit.utils.exceptions.PlanItException;
  * <li>LENGTH</li>
  * <li>CALCULATED_SPEED</li>
  * <li>DENSITY</li>
- * <li>LINK_SEGMENT_ID</li>
+ * <li>LINK_SEGMENT_XML_ID</li>
  * <li>UPSTREAM_NODE_XML_ID</li>
  * <li>UPSTREAM_NODE_LOCATION</li>
  * <li>DOWNSTREAM_NODE_XML_ID</li>
  * <li>DOWNSTREAM_NODE_LOCATION</li>
  * <li>CAPACITY_PER_LANE</li>
  * <li>LINK_COST</li>
- * <li>MODE_XML_ID</li>
  * <li>MAXIMUM_SPEED</li>
  * <li>TIME_PERIOD_XML_ID</li>
  * </ul>

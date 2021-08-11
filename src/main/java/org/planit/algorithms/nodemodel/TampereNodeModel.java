@@ -26,7 +26,7 @@ import org.planit.utils.misc.Pair;
  * 
  * @author markr
  */
-public class TampereNodeModel extends NodeModel {
+public class TampereNodeModel implements NodeModel {
 
   /** inputs for this node model instance */
   protected final TampereNodeModelInput inputs;

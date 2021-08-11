@@ -9,7 +9,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class DynamicTrafficAssignment extends CapacityConstrainedAssignment {
+public abstract class DynamicTrafficAssignment extends TrafficAssignment {
 
   /** generated UID */
   private static final long serialVersionUID = 5518351010500386771L;
