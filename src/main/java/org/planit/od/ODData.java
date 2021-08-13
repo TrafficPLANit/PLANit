@@ -1,5 +1,6 @@
 package org.planit.od;
 
+import org.planit.utils.id.IdAble;
 import org.planit.utils.zoning.Zone;
 
 /**
@@ -9,38 +10,47 @@ import org.planit.utils.zoning.Zone;
  *
  * @param <T> the type of data to be stored for each origin-destination cell
  */
-public interface ODData<T> {
+public interface OdData<T> extends IdAble, Iterable<T>, Cloneable {
 
   /**
    * Returns the value for a specified origin and destination
    * 
-   * @param origin specified origin
+   * @param origin      specified origin
    * @param destination specified destination
    * @return value at the specified cell
    */
   public T getValue(Zone origin, Zone destination);
 
   /**
+   * Returns the value for a specified origin and destination by their internal id
+   * 
+   * @param originId      specified origin
+   * @param destinationId specified destination
+   * @return value at the specified cell
+   */
+  public T getValue(long originId, long destinationId);
+
+  /**
    * Sets the value for a specified origin and destination
    * 
-   * @param origin specified origin
+   * @param origin      specified origin
    * @param destination specified destination
-   * @param t value at the specified cell
+   * @param value       value at the specified cell
    */
-  public void setValue(Zone origin, Zone destination, T t);
+  public void setValue(Zone origin, Zone destination, T value);
 
   /**
    * Returns the number of zones contained in the object
    * 
    * @return number of zones in the object
    */
-  public int getNumberOfTravelAnalysisZones();
+  public int getNumberOfOdZones();
 
   /**
    * Returns an iterator which can iterate through all the origin-destination cells
    * 
    * @return iterator through all the origin-destination cells
    */
-  public ODDataIterator<T> iterator();
+  public OdDataIterator<T> iterator();
 
 }

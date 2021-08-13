@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.TreeMap;
 
 import org.planit.component.PlanitComponent;
-import org.planit.od.odpath.ODPathMatrix;
+import org.planit.od.path.OdPathMatrix;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.zoning.Zoning;
 
@@ -23,7 +23,7 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
   /**
    * map holding all registered od path matrices by their unique id
    */
-  protected final TreeMap<Long, ODPathMatrix> odPathMatrices;
+  protected final TreeMap<Long, OdPathMatrix> odPathMatrices;
 
   /**
    * Constructor
@@ -32,7 +32,7 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    */
   public OdPathSets(IdGroupingToken groupId) {
     super(groupId, OdPathSets.class);
-    this.odPathMatrices = new TreeMap<Long, ODPathMatrix>();
+    this.odPathMatrices = new TreeMap<Long, OdPathMatrix>();
     ;
   }
 
@@ -43,7 +43,7 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    */
   public OdPathSets(OdPathSets other) {
     super(other);
-    this.odPathMatrices = new TreeMap<Long, ODPathMatrix>(other.odPathMatrices);
+    this.odPathMatrices = new TreeMap<Long, OdPathMatrix>(other.odPathMatrices);
   }
 
   /**
@@ -61,8 +61,8 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    * @param zoning used to derive the size of the aquare zone based matrix
    * @return newly created od path matrix
    */
-  public ODPathMatrix createAndRegisterOdPathMatrix(final Zoning zoning) {
-    final ODPathMatrix newOdPathMatrix = new ODPathMatrix(getIdGroupingToken(), zoning.odZones);
+  public OdPathMatrix createAndRegisterOdPathMatrix(final Zoning zoning) {
+    final OdPathMatrix newOdPathMatrix = new OdPathMatrix(getIdGroupingToken(), zoning.odZones);
     odPathMatrices.put(newOdPathMatrix.getId(), newOdPathMatrix);
     return newOdPathMatrix;
   }
@@ -72,7 +72,7 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    * 
    * @param odPathMatrix to register
    */
-  public void registerOdPathMatrix(final ODPathMatrix odPathMatrix) {
+  public void registerOdPathMatrix(final OdPathMatrix odPathMatrix) {
     odPathMatrices.put(odPathMatrix.getId(), odPathMatrix);
   }
 
@@ -90,7 +90,7 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    * 
    * @return the first od path matrix available, if not available null is returned
    */
-  public ODPathMatrix getFirstOdPathMatrix() {
+  public OdPathMatrix getFirstOdPathMatrix() {
     return hasRegisteredOdMatrices() ? odPathMatrices.firstEntry().getValue() : null;
   }
 

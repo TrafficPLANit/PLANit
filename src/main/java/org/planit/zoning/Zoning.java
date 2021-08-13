@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import org.planit.component.PlanitComponent;
 import org.planit.demands.Demands;
 import org.planit.network.virtual.VirtualNetwork;
-import org.planit.od.odmatrix.demand.ODDemandMatrix;
+import org.planit.od.demand.OdDemandMatrix;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.Modes;
@@ -152,9 +152,9 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     final int nofZones = odZones.size();
     for (final Mode mode : modes) {
       for (TimePeriod timePeriod : demands.timePeriods) {
-        final ODDemandMatrix odMatrix = demands.get(mode, timePeriod);
+        final OdDemandMatrix odMatrix = demands.get(mode, timePeriod);
         if (odMatrix != null) {
-          if (nofZones != odMatrix.getNumberOfTravelAnalysisZones()) {
+          if (nofZones != odMatrix.getNumberOfOdZones()) {
             // inconsistent number of zones found
             return false;
           }

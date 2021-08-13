@@ -1,16 +1,39 @@
 package org.planit.assignment.ltm.sltm;
 
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Set;
 import java.util.logging.Logger;
 
+import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
+import org.planit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
+import org.planit.algorithms.shortestpath.ShortestPathResult;
 import org.planit.assignment.ltm.LtmAssignment;
+import org.planit.od.demand.OdDemandMatrix;
+import org.planit.od.path.OdPaths;
+import org.planit.od.path.OdPathsHashed;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.enums.OutputType;
+import org.planit.path.DirectedPathFactoryImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.misc.LoggingUtils;
+import org.planit.utils.mode.Mode;
+import org.planit.utils.path.DirectedPath;
+import org.planit.utils.path.DirectedPathFactory;
+import org.planit.utils.time.TimePeriod;
+import org.planit.utils.zoning.OdZone;
+import org.planit.zoning.Zoning;
 
 /**
- * static Link Transmission Model implementation (sLTM) for network loading based on solution method presented in Raadsen and Bliemer (2021) General solution scheme for the Static
+ * Static Link Transmission Model implementation (sLTM) for network loading based on solution method presented in Raadsen and Bliemer (2021) General solution scheme for the Static
  * Link Transmission Model .
+ * <p>
+ * Defaults initiated via configurator:
+ * <ul>
+ * <li>Fundamental diagram: NEWELL</li>
+ * <li>Node Model: TAMPERE</li>
+ * </ul>
  *
  * @author markr
  *
@@ -21,8 +44,122 @@ public class StaticLtm extends LtmAssignment {
   private static final long serialVersionUID = 8485652038791612169L;
 
   /** logger to use */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtm.class.getCanonicalName());
+
+  /**
+   * Create the od paths based on provided costs. Only create paths for od pairs with non-zero flow.
+   * 
+   * @param currentSegmentCosts costs to use for the shortest path algorithm
+   * @param mode                to use
+   * @param timePeriod
+   * @return create odPaths
+   * @throws PlanItException thrown if error
+   */
+  private OdPaths createOdPaths(final double[] currentSegmentCosts, final Mode mode, final TimePeriod timePeriod) throws PlanItException {
+    final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(currentSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
+    DirectedPathFactory pathFactory = new DirectedPathFactoryImpl(getIdGroupingToken());
+    OdPaths odPaths = new OdPathsHashed(getIdGroupingToken(), getTransportNetwork().getZoning().getOdZones());
+
+    OdDemandMatrix odDemand = this.demands.get(mode, timePeriod);
+    Zoning zoning = this.transportNetwork.getZoning();
+    for (OdZone origin : zoning.getOdZones()) {
+      ShortestPathResult oneToAllResult = shortestPathAlgorithm.executeOneToAll(origin.getCentroid());
+      for (OdZone destination : zoning.getOdZones()) {
+        if (destination.idEquals(origin)) {
+          continue;
+        }
+
+        /* for positive demand on OD generate the shortest path under given costs */
+        Double currOdDemand = odDemand.getValue(origin, destination);
+        if (currOdDemand != null && currOdDemand > 0) {
+          DirectedPath path = oneToAllResult.createPath(pathFactory, origin.getCentroid(), destination.getCentroid());
+          odPaths.setValue(origin, destination, path);
+        }
+      }
+    }
+    return odPaths;
+  }
+
+  /**
+   * Initialize time period assigment and construct the network loading instance to use
+   *
+   * @param timePeriod the time period
+   * @param mode       covered by this time period
+   * @return network loading instance to use
+   * @throws PlanItException thrown if there is an error
+   */
+  private StaticLtmNetworkLoading initialiseTimePeriod(TimePeriod timePeriod, final Mode mode) throws PlanItException {
+
+    /* cost array across all segments, virtual and physical */
+    double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
+
+    /* virtual cost */
+    virtualCost.populateWithCost(mode, currentSegmentCosts);
+
+    /* physical cost */
+    getPhysicalCost().populateWithCost(mode, currentSegmentCosts);
+
+    // TODO no support for initial cost yet
+
+    OdPaths odPaths = createOdPaths(currentSegmentCosts, mode, timePeriod);
+
+    /** create the network loading algorithm components instance */
+    return new StaticLtmNetworkLoading(getTransportNetwork(), mode, odPaths);
+  }
+
+  /**
+   * Execute for a specific time period
+   * 
+   * @param timePeriod to execute traffic assignment for
+   * @param modes      used for time period
+   * @throws PlanItException thrown if error
+   */
+  private void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
+    /* for now, we only support a single mode to keep it simple */
+    if (modes.size() != 1) {
+      LOGGER.warning(String.format("sLTM only supports a single mode for now, found %s, aborting assignment for time period %s", timePeriod.getXmlId()));
+      return;
+    }
+    Mode theMode = modes.iterator().next();
+    StaticLtmNetworkLoading networkLoading = initialiseTimePeriod(timePeriod, theMode);
+
+    // CONTINUE HERE
+    // 1. network lodding has no demands yet, needed for loading
+    // 2. continue with initialisation (step 0)
+    // 3. add test for free flow physical cost component
+    // 4. add documentation for free flow physical cost + python support
+
+    /* for now we do not consider path choice, we conduct a one-shot all-or-nothing network loading */
+    boolean networkLoadingConverged = false;
+    while (!networkLoadingConverged) {
+      /* STEP 0 - Initialisation */
+      networkLoading.stepZeroInitialisation();
+
+      /* STEP 1 - Splitting rates update before sending flow update */
+      networkLoading.stepOneSplittingRatesUpdate();
+
+      /* STEP 2 - Sending flow update */
+      networkLoading.stepTwoSendingFlowUpdate();
+
+      /* STEP 3 - Splitting rates update before receiving flow update */
+      networkLoading.stepThreeSplittingRateUpdate();
+
+      /* STEP 4 - Receiving flow update */
+      networkLoading.stepFourReceivingFlowUpdate();
+
+      /* STEP 5 - Network loading convergence */
+      networkLoadingConverged = networkLoading.stepFiveCheckNetworkLoadingConvergence();
+    }
+  }
+
+  /**
+   * Initialise the network loading components before we start any assignment
+   */
+  @Override
+  protected void initialiseBeforeExecution() throws PlanItException {
+    super.initialiseBeforeExecution();
+
+  }
 
   /**
    * Constructor
@@ -56,8 +193,16 @@ public class StaticLtm extends LtmAssignment {
    */
   @Override
   public void executeEquilibration() throws PlanItException {
-    // TODO Auto-generated method stub
-
+    // perform assignment per period
+    final Collection<TimePeriod> timePeriods = demands.timePeriods.asSortedSetByStartTime();
+    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "total time periods: " + timePeriods.size());
+    for (final TimePeriod timePeriod : timePeriods) {
+      Calendar startTime = Calendar.getInstance();
+      final Calendar initialStartTime = startTime;
+      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createTimePeriodPrefix(timePeriod) + timePeriod.toString());
+      executeTimePeriod(timePeriod, demands.getRegisteredModesForTimePeriod(timePeriod));
+      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
+    }
   }
 
   /**

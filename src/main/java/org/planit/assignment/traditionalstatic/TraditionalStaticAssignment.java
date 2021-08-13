@@ -17,10 +17,10 @@ import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.network.layer.MacroscopicNetworkLayerImpl;
-import org.planit.od.odmatrix.ODMatrixIterator;
-import org.planit.od.odmatrix.demand.ODDemandMatrix;
-import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.od.odpath.ODPathMatrix;
+import org.planit.od.demand.OdDemandMatrix;
+import org.planit.od.odmatrix.OdPrimitiveMatrixIterator;
+import org.planit.od.path.OdPathMatrix;
+import org.planit.od.skim.OdSkimMatrix;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.configuration.ODOutputTypeConfiguration;
 import org.planit.output.enums.ODSkimSubOutputType;
@@ -161,18 +161,18 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       throws PlanItException {
 
     final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
-    final ODDemandMatrix odDemandMatrix = demands.get(mode, timePeriod);
+    final OdDemandMatrix odDemandMatrix = demands.get(mode, timePeriod);
 
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
-    final ODPathMatrix odpathMatrix = simulationData.getODPathMatrix(mode);
-    final Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
+    final OdPathMatrix odpathMatrix = simulationData.getODPathMatrix(mode);
+    final Map<ODSkimSubOutputType, OdSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
 
     // loop over all available OD demands
     long previousOriginZoneId = -1;
     // track the cost to reach each vertex in the network and the shortest path
     // segment used to get there
     ShortestPathResult shortestPathResult = null;
-    for (final ODMatrixIterator odDemandMatrixIter = odDemandMatrix.iterator(); odDemandMatrixIter.hasNext();) {
+    for (final OdPrimitiveMatrixIterator<Double> odDemandMatrixIter = odDemandMatrix.iterator(); odDemandMatrixIter.hasNext();) {
       final double odDemand = odDemandMatrixIter.next();
       final Zone currentOriginZone = odDemandMatrixIter.getCurrentOrigin();
       final Zone currentDestinationZone = odDemandMatrixIter.getCurrentDestination();
@@ -297,7 +297,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param odDemand               the odDemand
    * @param shortestPathResult     costs for the shortest path results for the specified mode and origin-any destination
    */
-  private void updateODOutputData(final Map<ODSkimSubOutputType, ODSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone,
+  private void updateODOutputData(final Map<ODSkimSubOutputType, OdSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone,
       final double odDemand, final ShortestPathResult shortestPathResult) {
 
     if (getOutputManager().isOutputTypeActive(OutputType.OD)) {
@@ -307,7 +307,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
           // Collect cost to get to vertex from shortest path ONE-TO-ALL information directly
           final double odGeneralisedCost = shortestPathResult.getCostToReach(currentDestinationZone.getCentroid());
-          final ODSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);
+          final OdSkimMatrix odSkimMatrix = skimMatrixMap.get(odSkimOutputType);
           odSkimMatrix.setValue(currentOriginZone, currentDestinationZone, odGeneralisedCost);
         }
       }
@@ -323,7 +323,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param destination        destination zone
    * @param shortestPathResult shortest path tree for given origin
    */
-  private void updatePathOutputData(Mode mode, ODPathMatrix odpathMatrix, Zone origin, Zone destination, ShortestPathResult shortestPathResult) {
+  private void updatePathOutputData(Mode mode, OdPathMatrix odpathMatrix, Zone origin, Zone destination, ShortestPathResult shortestPathResult) {
 
     // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
     if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
@@ -456,10 +456,10 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     /* physical component */
     if (populateToInitialCost(mode, timePeriod, currentSegmentCosts)) {
       return currentSegmentCosts;
+    } else {
+      calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
+      return currentSegmentCosts;
     }
-
-    calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
-    return currentSegmentCosts;
   }
 
   /**

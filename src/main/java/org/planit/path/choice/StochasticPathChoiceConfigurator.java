@@ -1,6 +1,6 @@
 package org.planit.path.choice;
 
-import org.planit.od.odpath.ODPathMatrix;
+import org.planit.od.path.OdPathMatrix;
 import org.planit.path.choice.logit.LogitChoiceModel;
 import org.planit.path.choice.logit.LogitChoiceModelConfigurator;
 import org.planit.path.choice.logit.LogitChoiceModelConfiguratorFactory;
@@ -54,7 +54,7 @@ public class StochasticPathChoiceConfigurator extends PathChoiceConfigurator<Sto
    *
    * @param odPathSet the fixed od path set in the shape of an od path matrix
    */
-  public void setOdPathMatrix(final ODPathMatrix odPathSet) {
+  public void setOdPathMatrix(final OdPathMatrix odPathSet) {
     registerDelayedMethodCall(SET_OD_PATH_MATRIX, odPathSet);
   }
 }

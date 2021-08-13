@@ -4,4 +4,4 @@
  * @author gman6028
  *
  */
-package org.planit.od.odmatrix.skim;
+package org.planit.od.skim;

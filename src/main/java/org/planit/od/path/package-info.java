@@ -4,4 +4,4 @@
  * @author gman6028
  *
  */
-package org.planit.od.odpath;
+package org.planit.od.path;
