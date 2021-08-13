@@ -4,15 +4,15 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.od.odmatrix.ODMatrixIterator;
+import org.planit.od.OdDataIterator;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
-import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Top-level abstract class which defines the common methods required by OD output type adapters
@@ -25,7 +25,6 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
   /** the logger */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ODOutputTypeAdapterImpl.class.getCanonicalName());
-
 
   /**
    * Constructor
@@ -47,32 +46,33 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
    * @param timeUnitMultiplier the multiplier for time units
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
+  @SuppressWarnings("unchecked")
   @Override
-  public Optional<?> getODOutputPropertyValue(OutputProperty outputProperty, ODMatrixIterator odMatrixIterator, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) {
+  public Optional<?> getODOutputPropertyValue(OutputProperty outputProperty, OdDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) {
     try {
       Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (value.isPresent()) {
         return value;
       }
-      
+
       switch (outputProperty) {
       case DESTINATION_ZONE_EXTERNAL_ID:
-        return ODOutputTypeAdapter.getDestinationZoneExternalId(odMatrixIterator);
+        return ODOutputTypeAdapter.getDestinationZoneExternalId(odIterator);
       case DESTINATION_ZONE_XML_ID:
-        return ODOutputTypeAdapter.getDestinationZoneXmlId(odMatrixIterator);        
+        return ODOutputTypeAdapter.getDestinationZoneXmlId(odIterator);
       case DESTINATION_ZONE_ID:
-        return ODOutputTypeAdapter.getDestinationZoneId(odMatrixIterator);
+        return ODOutputTypeAdapter.getDestinationZoneId(odIterator);
       case OD_COST:
-        return ODOutputTypeAdapter.getODCost(odMatrixIterator, timeUnitMultiplier);
+        return ODOutputTypeAdapter.getOdValueMultipliedWith((OdDataIterator<Double>) odIterator, timeUnitMultiplier);
       case ORIGIN_ZONE_EXTERNAL_ID:
-        return ODOutputTypeAdapter.getOriginZoneExternalId(odMatrixIterator);
+        return ODOutputTypeAdapter.getOriginZoneExternalId(odIterator);
       case ORIGIN_ZONE_XML_ID:
-        return ODOutputTypeAdapter.getOriginZoneXmlId(odMatrixIterator);        
+        return ODOutputTypeAdapter.getOriginZoneXmlId(odIterator);
       case ORIGIN_ZONE_ID:
-        return ODOutputTypeAdapter.getOriginZoneId(odMatrixIterator);
+        return ODOutputTypeAdapter.getOriginZoneId(odIterator);
       default:
-        return Optional.of(
-            String.format("Tried to find link property of %s which is not applicable for OD matrix",BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()));
+        return Optional
+            .of(String.format("Tried to find link property of %s which is not applicable for OD matrix", BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()));
       }
     } catch (PlanItException e) {
       return Optional.of(e.getMessage());

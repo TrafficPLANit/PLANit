@@ -13,10 +13,10 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.planit.od.odmatrix.ODMatrixIterator;
-import org.planit.od.odmatrix.skim.ODSkimMatrix;
-import org.planit.od.odpath.ODPathIterator;
-import org.planit.od.odpath.ODPathMatrix;
+import org.planit.od.path.OdPathMatrix;
+import org.planit.od.path.OdPathMatrix.OdPathMatrixIterator;
+import org.planit.od.skim.OdSkimMatrix;
+import org.planit.od.skim.OdSkimMatrix.OdSkimMatrixIterator;
 import org.planit.output.adapter.MacroscopicLinkOutputTypeAdapter;
 import org.planit.output.adapter.ODOutputTypeAdapter;
 import org.planit.output.adapter.OutputAdapter;
@@ -93,10 +93,10 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
       // perform actual persistence
       for (Mode mode : modes) {
-        Optional<ODSkimMatrix> odSkimMatrix = odOutputTypeAdapter.getODSkimMatrix(currentSubOutputType, mode);
+        Optional<OdSkimMatrix> odSkimMatrix = odOutputTypeAdapter.getODSkimMatrix(currentSubOutputType, mode);
         odSkimMatrix.orElseThrow(() -> new PlanItException("od skim matrix could not be retrieved when persisting"));
 
-        for (ODMatrixIterator odMatrixIterator = odSkimMatrix.get().iterator(); odMatrixIterator.hasNext();) {
+        for (OdSkimMatrixIterator odMatrixIterator = odSkimMatrix.get().iterator(); odMatrixIterator.hasNext();) {
           odMatrixIterator.next();
           Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getODOutputPropertyValue(OutputProperty.OD_COST, odMatrixIterator, mode, timePeriod,
               outputTimeUnit.getMultiplier());
@@ -142,10 +142,10 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
       SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
       for (Mode mode : modes) {
-        Optional<ODPathMatrix> odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
+        Optional<OdPathMatrix> odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
         odPathMatrix.orElseThrow(() -> new PlanItException("od path matrix could not be retrieved when persisting"));
 
-        for (ODPathIterator odPathIterator = odPathMatrix.get().iterator(); odPathIterator.hasNext();) {
+        for (OdPathMatrixIterator odPathIterator = odPathMatrix.get().iterator(); odPathIterator.hasNext();) {
           odPathIterator.next();
           if (outputConfiguration.isPersistZeroFlow() || (odPathIterator.getCurrentValue() != null)) {
             List<Object> rowValues = outputProperties.stream()

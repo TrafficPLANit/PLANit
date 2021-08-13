@@ -5,19 +5,17 @@ import org.planit.utils.zoning.OdZones;
 import org.planit.utils.zoning.Zone;
 
 /**
- * BAse matrix oriented Iterator which runs through rows and columns of some matrix type of container, making the value, row and column of each cell available
+ * Base Hash key oriented Iterator which runs through available ods that have non-zero values
  *
  * 
- * @param <T> type of values in matrix
- * @param <U> type of matrix container used
+ * @param <T> type of values
  * 
- * @author gman6028, markr
+ * @author markr
  *
  */
-public abstract class OdMatrixIterator<T, U> implements OdDataIterator<T> {
+public abstract class OdHashedIterator<T> implements OdDataIterator<T> {
 
-  /** the contents */
-  private U matrixContents;
+  private final OdHashed<T> container;
 
   /**
    * Id of the origin zone
@@ -40,33 +38,26 @@ public abstract class OdMatrixIterator<T, U> implements OdDataIterator<T> {
   protected OdZones zones;
 
   /**
-   * Increment the location cursor for the next iteration
+   * Increment the location cursor until we reach a non-empty entry
    */
   protected void updateCurrentLocation() {
-    originId = currentLocation / zones.size();
-    destinationId = currentLocation % zones.size();
-    currentLocation++;
-  }
-
-  /**
-   * Collect contents as type
-   * 
-   */
-  protected U getMatrixContent() {
-    return matrixContents;
+    do {
+      originId = currentLocation / container.getNumberOfOdZones();
+      destinationId = currentLocation % container.getNumberOfOdZones();
+      currentLocation++;
+    } while (getCurrentValue() == null && hasNext());
   }
 
   /**
    * Constructor
    * 
-   * @param matrixContents matrix object containing the data to be iterated through
-   * @param zones          Zones object defining the zones in the network
+   * @param container object containing the data to be iterated through
    */
-  public OdMatrixIterator(U matrixContents, OdZones zones) {
+  public OdHashedIterator(final OdHashed<T> container, OdZones zones) {
     super();
-    this.zones = zones;
     currentLocation = 0;
-    this.matrixContents = matrixContents;
+    this.container = container;
+    this.zones = zones;
   }
 
   /**
@@ -76,7 +67,7 @@ public abstract class OdMatrixIterator<T, U> implements OdDataIterator<T> {
    */
   @Override
   public boolean hasNext() {
-    return currentLocation < (zones.size() * zones.size());
+    return currentLocation < (container.getNumberOfOdZones() * container.getNumberOfOdZones());
   }
 
   /**
@@ -108,4 +99,11 @@ public abstract class OdMatrixIterator<T, U> implements OdDataIterator<T> {
     return getCurrentValue();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public T getCurrentValue() {
+    return container.getValue(originId, destinationId);
+  }
 }

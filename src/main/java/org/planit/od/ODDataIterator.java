@@ -11,7 +11,7 @@ import org.planit.utils.zoning.Zone;
  *
  * @param <T> the type of data stored for each origin-destination cell
  */
-public interface ODDataIterator<T> extends Iterator<T> {
+public interface OdDataIterator<T> extends Iterator<T> {
 
   /**
    * Returns the origin zone object for the current cell

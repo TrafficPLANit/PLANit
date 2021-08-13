@@ -2,7 +2,7 @@ package org.planit.path.choice;
 
 import java.util.logging.Logger;
 
-import org.planit.od.odpath.ODPathMatrix;
+import org.planit.od.path.OdPathMatrix;
 import org.planit.path.choice.logit.LogitChoiceModel;
 import org.planit.utils.id.IdGroupingToken;
 
@@ -30,7 +30,7 @@ public abstract class StochasticPathChoice extends PathChoice {
   /**
    * The registered od path set instance
    */
-  protected ODPathMatrix odPathSet = null;
+  protected OdPathMatrix odPathSet = null;
 
   /**
    * Constructor
@@ -66,7 +66,7 @@ public abstract class StochasticPathChoice extends PathChoice {
    *
    * @param odPathSet the fixed od path set in the shape of an od path matrix
    */
-  public void setOdPathMatrix(final ODPathMatrix odPathSet) {
+  public void setOdPathMatrix(final OdPathMatrix odPathSet) {
     this.odPathSet = odPathSet;
   }
 

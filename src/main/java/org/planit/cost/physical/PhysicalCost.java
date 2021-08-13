@@ -17,4 +17,7 @@ public interface PhysicalCost extends Cost<MacroscopicLinkSegment> {
   /** short hand for configuring physical cost with BPR function instance */
   public static final String BPR = BPRLinkTravelTimeCost.class.getCanonicalName();
 
+  /** short hand for configuring physical cost with free flow function instance */
+  public static final String FREEFLOW = FreeFlowLinkTravelTimeCost.class.getCanonicalName();
+
 }
