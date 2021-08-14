@@ -12,7 +12,7 @@ import org.planit.utils.zoning.OdZones;
  * @author gman6028, markr
  *
  */
-public class OdDemandMatrix extends OdPrimitiveMatrix<Double> {
+public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDemands {
 
   /**
    * Wrapper around primitive matrix iterator

@@ -1,9 +1,15 @@
 package org.planit.assignment.ltm.sltm;
 
 import org.planit.network.transport.TransportModelNetwork;
+import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPaths;
+import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
+import org.planit.utils.path.DirectedPath;
+import org.planit.utils.zoning.OdZone;
+import org.planit.utils.zoning.OdZones;
 
 /**
  * Class exposing the various sLTM network loading solution method components of sLTM (not considering path choice, this is assumed to be given). Network loading solution method
@@ -16,6 +22,9 @@ public class StaticLtmNetworkLoading {
 
   /** variables tracked for sending flow update step **/
   private final SendingFlowData sendingFlowData;
+
+  /** variables tracked for receiving flow update step **/
+  private final ReceivingFlowData receivingFlowData;
 
   /** variables tracked for splitting rate update step **/
   private final SplittingRateData splittingRateData;
@@ -31,6 +40,9 @@ public class StaticLtmNetworkLoading {
 
   /** odPaths to load */
   final OdPaths odPaths;
+
+  /** odDemands to load */
+  final OdDemands odDemands;
 
   /**
    * Validate provided constructor parameters
@@ -49,16 +61,57 @@ public class StaticLtmNetworkLoading {
   }
 
   /**
+   * Conduct a network loading to obtain updated in/outflow rates: Eq. (3)-(4) in paper
+   */
+  private void singleNetworkLoadingUpdate() {
+    OdZones odZones = network.getZoning().odZones;
+    double[] sendingFlows = this.sendingFlowData.getNextSendingFlows();
+    double[] receivingFlows = this.receivingFlowData.getNextReceivingFlows();
+
+    /* origin */
+    for (OdZone origin : odZones) {
+      /* destination */
+      for (OdZone destination : odZones) {
+        Double odDemand = odDemands.getValue(origin, destination);
+        if (odDemand != null && odDemand > 0) {
+          /* path */
+          DirectedPath odPath = odPaths.getValue(origin, destination);
+          for (EdgeSegment edgeSegment : odPath) {
+            /* link segment */
+
+            /* s_a: update sending flow for link segment */
+            sendingFlows[(int) edgeSegment.getId()] += odDemand;
+
+            /* r_a: update receiving flow for link segment */
+            receivingFlows[(int) edgeSegment.getId()] += odDemand;
+
+          }
+        }
+      }
+    }
+
+    MacroscopicLinkSegments linkSegments = ((MacroscopicNetworkLayer) this.network.getInfrastructureNetwork().getLayerByMode(mode)).getLinkSegments();
+
+    /* reduce sending flows to capacity */
+    this.sendingFlowData.limitNextSendingFlowsToCapacity(linkSegments);
+
+    /* reduce receiving flows to capacity */
+    this.receivingFlowData.limitNextSendingFlowsToCapacity(linkSegments);
+  }
+
+  /**
    * Constructor
    * 
-   * @param network to run on
-   * @param mode    to use
-   * @param odPaths that require loading
+   * @param network   to run on
+   * @param mode      to use
+   * @param odPaths   that require loading
+   * @param odDemands to apply for this loading, reflecting the total desired flows between the ODs for the given mode
    */
-  protected StaticLtmNetworkLoading(final TransportModelNetwork network, final Mode mode, final OdPaths odPaths) {
+  protected StaticLtmNetworkLoading(final TransportModelNetwork network, final Mode mode, final OdPaths odPaths, final OdDemands odDemands) {
     validate(network, mode);
     this.network = network;
     this.mode = mode;
+    this.odDemands = odDemands;
 
     MacroscopicNetworkLayer networkLayer = (MacroscopicNetworkLayer) network.getInfrastructureNetwork().getLayerByMode(mode);
     double[] referenceEmptyArray = new double[networkLayer.getLinkSegments().size()];
@@ -85,7 +138,7 @@ public class StaticLtmNetworkLoading {
     networkLoadingFactorData.initialiseAll(1.0);
     
     /* 2. Initial in/outflows via network loading Eq. (3)-(4) in paper: unconstrained network loading */
-    
+    singleNetworkLoadingUpdate();
   }
   
   //@formatter:off

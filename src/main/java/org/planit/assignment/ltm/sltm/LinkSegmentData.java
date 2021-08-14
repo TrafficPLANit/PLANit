@@ -1,5 +1,8 @@
 package org.planit.assignment.ltm.sltm;
 
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
+
 /**
  * POJO to store Link segment based variables by the link segment internal id for sLTM link segment based data.
  * 
@@ -20,6 +23,19 @@ public abstract class LinkSegmentData {
    */
   protected double[] createEmptyLinkSegmentDoubleArray() {
     return emptySegmentArray.clone();
+  }
+
+  /**
+   * Reduce all provided link segments' flows to capacity
+   * 
+   * @param flowPcuHArray    to apply limit on (pcuPerHour)
+   * @param linkSegments to use
+   */
+  protected void limitFlowsToCapacity(double[] flowPcuHArray, final MacroscopicLinkSegments linkSegments) {
+    for (MacroscopicLinkSegment linkSegment : linkSegments) {
+      int lsId = (int) linkSegment.getId();
+      flowPcuHArray[lsId] = Math.min(flowPcuHArray[lsId], linkSegment.computeCapacityPcuH());
+    }
   }
 
   /**

@@ -9,7 +9,7 @@ import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
 import org.planit.assignment.ltm.LtmAssignment;
-import org.planit.od.demand.OdDemandMatrix;
+import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPaths;
 import org.planit.od.path.OdPathsHashed;
 import org.planit.output.adapter.OutputTypeAdapter;
@@ -60,7 +60,7 @@ public class StaticLtm extends LtmAssignment {
     DirectedPathFactory pathFactory = new DirectedPathFactoryImpl(getIdGroupingToken());
     OdPaths odPaths = new OdPathsHashed(getIdGroupingToken(), getTransportNetwork().getZoning().getOdZones());
 
-    OdDemandMatrix odDemand = this.demands.get(mode, timePeriod);
+    OdDemands odDemand = this.demands.get(mode, timePeriod);
     Zoning zoning = this.transportNetwork.getZoning();
     for (OdZone origin : zoning.getOdZones()) {
       ShortestPathResult oneToAllResult = shortestPathAlgorithm.executeOneToAll(origin.getCentroid());
@@ -85,10 +85,11 @@ public class StaticLtm extends LtmAssignment {
    *
    * @param timePeriod the time period
    * @param mode       covered by this time period
+   * @param odDemands  to use duriung this loading
    * @return network loading instance to use
    * @throws PlanItException thrown if there is an error
    */
-  private StaticLtmNetworkLoading initialiseTimePeriod(TimePeriod timePeriod, final Mode mode) throws PlanItException {
+  private StaticLtmNetworkLoading initialiseTimePeriod(TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) throws PlanItException {
 
     /* cost array across all segments, virtual and physical */
     double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
@@ -104,7 +105,7 @@ public class StaticLtm extends LtmAssignment {
     OdPaths odPaths = createOdPaths(currentSegmentCosts, mode, timePeriod);
 
     /** create the network loading algorithm components instance */
-    return new StaticLtmNetworkLoading(getTransportNetwork(), mode, odPaths);
+    return new StaticLtmNetworkLoading(getTransportNetwork(), mode, odPaths, odDemands);
   }
 
   /**
@@ -121,19 +122,20 @@ public class StaticLtm extends LtmAssignment {
       return;
     }
     Mode theMode = modes.iterator().next();
-    StaticLtmNetworkLoading networkLoading = initialiseTimePeriod(timePeriod, theMode);
+    StaticLtmNetworkLoading networkLoading = initialiseTimePeriod(timePeriod, theMode, this.demands.get(theMode, timePeriod));
 
     // CONTINUE HERE
-    // 1. network lodding has no demands yet, needed for loading
+    // 1. network loading has no demands yet, needed for loading
     // 2. continue with initialisation (step 0)
     // 3. add test for free flow physical cost component
     // 4. add documentation for free flow physical cost + python support
 
+    /* STEP 0 - Initialisation */
+    networkLoading.stepZeroInitialisation();
+
     /* for now we do not consider path choice, we conduct a one-shot all-or-nothing network loading */
     boolean networkLoadingConverged = false;
     while (!networkLoadingConverged) {
-      /* STEP 0 - Initialisation */
-      networkLoading.stepZeroInitialisation();
 
       /* STEP 1 - Splitting rates update before sending flow update */
       networkLoading.stepOneSplittingRatesUpdate();

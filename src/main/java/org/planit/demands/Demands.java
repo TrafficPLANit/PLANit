@@ -9,7 +9,7 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.planit.component.PlanitComponent;
-import org.planit.od.demand.OdDemandMatrix;
+import org.planit.od.demand.OdDemands;
 import org.planit.time.TimePeriodImpl;
 import org.planit.userclass.TravelerType;
 import org.planit.userclass.UserClass;
@@ -45,7 +45,7 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
   /**
    * Trip demand matrices
    */
-  protected final TreeMap<Long, TreeMap<Mode, OdDemandMatrix>> odDemands;
+  protected final TreeMap<Long, TreeMap<Mode, OdDemands>> odDemandsByTimePeriodAndMode;
 
   /**
    * Inner class to register and store traveler types for the current demand object
@@ -259,7 +259,7 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     this.travelerTypes = new TravelerTypes();
     this.userClasses = new UserClasses();
     this.timePeriods = new TimePeriods();
-    odDemands = new TreeMap<Long, TreeMap<Mode, OdDemandMatrix>>();
+    odDemandsByTimePeriodAndMode = new TreeMap<Long, TreeMap<Mode, OdDemands>>();
   }
 
   /**
@@ -272,12 +272,12 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     this.travelerTypes = other.travelerTypes.clone();
     this.userClasses = other.userClasses.clone();
     this.timePeriods = other.timePeriods.clone();
-    this.odDemands = new TreeMap<Long, TreeMap<Mode, OdDemandMatrix>>();
+    this.odDemandsByTimePeriodAndMode = new TreeMap<Long, TreeMap<Mode, OdDemands>>();
     for (TimePeriod timePeriod : timePeriods) {
       Set<Mode> modes = getRegisteredModesForTimePeriod(timePeriod);
       for (Mode mode : modes) {
-        OdDemandMatrix odDemandMatrix = get(mode, timePeriod);
-        this.registerODDemand(timePeriod, mode, odDemandMatrix);
+        OdDemands odDemandMatrix = get(mode, timePeriod);
+        this.registerOdDemand(timePeriod, mode, odDemandMatrix);
       }
     }
   }
@@ -285,16 +285,16 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
   /**
    * Register provided odDemand
    *
-   * @param timePeriod     the time period for this origin-demand object
-   * @param mode           the mode for this origin-demand object
-   * @param odDemandMatrix the origin-demand object to be registered
-   * @return oldODDemand if there already existed an odDemand for the given mode and time period, the overwritten entry is returned
+   * @param timePeriod the time period for this origin-demand object
+   * @param mode       the mode for this origin-demand object
+   * @param odDemands  the origin-demand object to be registered
+   * @return oldOdDemand if there already existed an odDemand for the given mode and time period, the overwritten entry is returned
    */
-  public OdDemandMatrix registerODDemand(final TimePeriod timePeriod, final Mode mode, final OdDemandMatrix odDemandMatrix) {
-    if (!odDemands.containsKey(timePeriod.getId())) {
-      odDemands.put(timePeriod.getId(), new TreeMap<Mode, OdDemandMatrix>());
+  public OdDemands registerOdDemand(final TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) {
+    if (!odDemandsByTimePeriodAndMode.containsKey(timePeriod.getId())) {
+      odDemandsByTimePeriodAndMode.put(timePeriod.getId(), new TreeMap<Mode, OdDemands>());
     }
-    return odDemands.get(timePeriod.getId()).put(mode, odDemandMatrix);
+    return odDemandsByTimePeriodAndMode.get(timePeriod.getId()).put(mode, odDemands);
   }
 
   /**
@@ -305,9 +305,9 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    * @return ODDemand object if found, otherwise null
    */
 
-  public OdDemandMatrix get(final Mode mode, final TimePeriod timePeriod) {
-    if (odDemands.containsKey(timePeriod.getId()) && odDemands.get(timePeriod.getId()).containsKey(mode)) {
-      return odDemands.get(timePeriod.getId()).get(mode);
+  public OdDemands get(final Mode mode, final TimePeriod timePeriod) {
+    if (odDemandsByTimePeriodAndMode.containsKey(timePeriod.getId()) && odDemandsByTimePeriodAndMode.get(timePeriod.getId()).containsKey(mode)) {
+      return odDemandsByTimePeriodAndMode.get(timePeriod.getId()).get(mode);
     } else {
       return null;
     }
@@ -320,8 +320,8 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    * @return Set of modes for this time period
    */
   public Set<Mode> getRegisteredModesForTimePeriod(final TimePeriod timePeriod) {
-    if (odDemands.containsKey(timePeriod.getId())) {
-      return odDemands.get(timePeriod.getId()).keySet();
+    if (odDemandsByTimePeriodAndMode.containsKey(timePeriod.getId())) {
+      return odDemandsByTimePeriodAndMode.get(timePeriod.getId()).keySet();
     } else {
       return null;
     }

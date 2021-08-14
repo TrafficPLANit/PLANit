@@ -1,5 +1,7 @@
 package org.planit.assignment.ltm.sltm;
 
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
+
 /**
  * POJO to store the sLTM variables used for sending flow updates (Step 2) in network loading
  * 
@@ -11,12 +13,12 @@ public class SendingFlowData extends LinkSegmentData {
   /**
    * Sending flows for all link segments by internal id
    */
-  private double[] currentSendingFlows = null;
+  private double[] currentSendingFlowsPcuH = null;
 
   /**
    * Newly computed flows for all link segments by internal id
    */
-  private double[] nextSendingFlows = null;
+  private double[] nextSendingFlowsPcuH = null;
 
   /**
    * Constructor
@@ -33,14 +35,14 @@ public class SendingFlowData extends LinkSegmentData {
    * Reset the segment flows for the coming iteration
    */
   public void resetNextSendingFlows() {
-    nextSendingFlows = this.createEmptyLinkSegmentDoubleArray();
+    nextSendingFlowsPcuH = this.createEmptyLinkSegmentDoubleArray();
   }
 
   /**
    * Reset current network segment flows
    */
   public void resetCurrentSendingFlows() {
-    currentSendingFlows = this.createEmptyLinkSegmentDoubleArray();
+    currentSendingFlowsPcuH = this.createEmptyLinkSegmentDoubleArray();
   }
 
   /**
@@ -49,7 +51,7 @@ public class SendingFlowData extends LinkSegmentData {
    * @return next sending flows
    */
   public double[] getNextSendingFlows() {
-    return nextSendingFlows;
+    return nextSendingFlowsPcuH;
   }
 
   /**
@@ -58,7 +60,7 @@ public class SendingFlowData extends LinkSegmentData {
    * @return current sending flows
    */
   public double[] getCurrentSendingFlows() {
-    return currentSendingFlows;
+    return currentSendingFlowsPcuH;
   }
 
   /**
@@ -68,7 +70,16 @@ public class SendingFlowData extends LinkSegmentData {
    * @param flowPcuPerHour to add
    */
   public void addToNextSendingFlows(long edgeSegmentId, double flowPcuPerHour) {
-    nextSendingFlows[(int) edgeSegmentId] += flowPcuPerHour;
+    nextSendingFlowsPcuH[(int) edgeSegmentId] += flowPcuPerHour;
+  }
+
+  /**
+   * Reduce all provided link segments' sending flows to capacity in case they exceed it
+   * 
+   * @param linkSegments to use
+   */
+  public void limitNextSendingFlowsToCapacity(MacroscopicLinkSegments linkSegments) {
+    limitFlowsToCapacity(nextSendingFlowsPcuH, linkSegments);
   }
 
 }
