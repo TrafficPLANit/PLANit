@@ -6,8 +6,13 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.ojalgo.array.Array1D;
+import org.ojalgo.array.Array2D;
 import org.ojalgo.function.PrimitiveFunction;
 import org.ojalgo.function.aggregator.Aggregator;
+import org.ojalgo.structure.Access1D;
+import org.planit.algorithms.nodemodel.TampereNodeModel;
+import org.planit.algorithms.nodemodel.TampereNodeModelFixedInput;
+import org.planit.algorithms.nodemodel.TampereNodeModelInput;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPaths;
@@ -203,15 +208,67 @@ public class StaticLtmNetworkLoading {
 
   /**
    * for all potentially blocking nodes: perform a node model update based on: 1) sending flows, 2) receiving flows, 3) splitting rates resulting in newly accepted local outflows
-   * and inflows
+   * and inflows. In addition update the next sending flows based on the resulting accepted flows
    */
-  private void performNodeModelUpdate() {
-    for (DirectedVertex potentiallyBlockingNode : splittingRateData.getPotentiallyBlockingNodes()) {
+  private void performNodeModelUpdateForNextSendingFlows() {
+    double[] sendingFlows = this.sendingFlowData.getCurrentSendingFlows();
 
-      // work on node model input/storing of node model instances
-      // TampereNodeModelInput nodeModelInput = new TampereNodeModelFixedInput(incomingLinkSegmentCapacities, outgoingLinkSegmentReceivingFlows)
-      // nodeModelInput.
-      // TampereNodeModel nodeModel = new TampereNodeModel(tampereNodeModelInput)
+    this.sendingFlowData.resetNextSendingFlows();
+    double[] nextSendingFlows = this.sendingFlowData.getNextSendingFlows();
+
+    /* For each potentially blocking node */
+    for (DirectedVertex potentiallyBlockingNode : splittingRateData.getPotentiallyBlockingNodes()) {
+      // TODO: not computationally efficient, capacities are recomputed every time and construction of
+      // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
+
+      /* C_a : in Array1D form */
+      Array1D<Double> inCapacities = Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.sizeOfEntryEdgeSegments());
+      int index = 0;
+      for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
+        inCapacities.set(index++, ((MacroscopicLinkSegment) entryEdgeSegment).computeCapacityPcuH());
+      }
+
+      /* r_a : in Array1D form */
+      Array1D<Double> outReceivingFlows = Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.sizeOfExitEdgeSegments());
+      index = 0;
+      for (EdgeSegment exitEdgeSegment : potentiallyBlockingNode.getExitEdgeSegments()) {
+        outReceivingFlows.set(index++, ((MacroscopicLinkSegment) exitEdgeSegment).computeCapacityPcuH());
+      }
+
+      /* s_ab : turn sending flows in Array2D form */
+      @SuppressWarnings("unchecked")
+      Access1D<Double>[] tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[potentiallyBlockingNode.sizeOfExitEdgeSegments()];
+      int entryIndex = 0;
+      for (Iterator<EdgeSegment> iter = potentiallyBlockingNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++index) {
+        EdgeSegment entryEdgeSegment = iter.next();
+        /* s_ab = s_a*phi_ab */
+        double sendingFlow = sendingFlows[(int) entryEdgeSegment.getId()];
+        Array1D<Double> localTurnSendingFlows = this.splittingRateData.getSplittingRates(potentiallyBlockingNode, entryEdgeSegment).copy();
+        localTurnSendingFlows.modifyAll(PrimitiveFunction.MULTIPLY.by(sendingFlow));
+        tunSendingFlowsByEntryLinkSegment[entryIndex] = localTurnSendingFlows;
+      }
+      Array2D<Double> turnSendingFlows = Array2D.PRIMITIVE64.rows(tunSendingFlowsByEntryLinkSegment);
+
+      /* Kappa(s,r,phi) : node model update */
+      TampereNodeModelFixedInput nodeModelInputFixed = new TampereNodeModelFixedInput(inCapacities, outReceivingFlows);
+      try {
+        TampereNodeModel nodeModel = new TampereNodeModel(new TampereNodeModelInput(nodeModelInputFixed, turnSendingFlows));
+        Array1D<Double> localFlowAcceptanceFactor = nodeModel.run();
+
+        /* v_ab = s_ab*alpha_a: Convert turn sending flows to turn accepted flows (to avoid duplication we reuse sending flow 2d array) */
+        for (entryIndex = 0; entryIndex < localFlowAcceptanceFactor.length; ++entryIndex) {
+          turnSendingFlows.modifyRow(entryIndex, PrimitiveFunction.MULTIPLY.by(localFlowAcceptanceFactor.get(entryIndex)));
+        }
+        /* s^tilde_b = SUM(v_ab): set next sending flow */
+        int exitIndex = 0;
+        for (EdgeSegment exitEdgeSegment : potentiallyBlockingNode.getExitEdgeSegments()) {
+          nextSendingFlows[(int) exitEdgeSegment.getId()] = turnSendingFlows.aggregateColumn(exitIndex++, Aggregator.SUM);
+        }
+
+      } catch (Exception e) {
+        LOGGER.severe(e.getMessage());
+        LOGGER.severe(String.format("Unable to run Tampere node model on potentially blocking node %s", potentiallyBlockingNode.getXmlId()));
+      }
     }
   }
 
@@ -301,13 +358,16 @@ public class StaticLtmNetworkLoading {
    * 1. Update node model to compute new inflows, Eq. (5)
    * 2. Update next sending flows via inflows, Eq. (7)
    * 3. Compute gap,  then update sending flows to next sending flows
-   * 4. If converged containue, otherwise continue go back to Step 2-(1).
+   * 4. If converged continue, otherwise continue go back to Step 2-(1).
    * 5. Update storage capacity factors, Eq. (11)
    * (Extension B)
    * 6. Update smoothed storage capacity factors, Eq. (14)
    */
   public void stepTwoSendingFlowUpdate() {
-    performNodeModelUpdate();
+    /* 1. Update node model to compute new inflows, Eq. (5)
+     * 2. Update next sending flows via inflows, Eq. (7) */
+    performNodeModelUpdateForNextSendingFlows();
+    
   }   
   
   //@formatter:off

@@ -249,4 +249,13 @@ public class TampereNodeModel implements NodeModel {
     return incomingLinkSegmentFlowAcceptanceFactors;
   }
 
+  /**
+   * Provide access to the inputs used
+   * 
+   * @return inputs used
+   */
+  public TampereNodeModelInput getInputs() {
+    return inputs;
+  }
+
 }

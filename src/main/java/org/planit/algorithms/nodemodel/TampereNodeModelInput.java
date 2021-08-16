@@ -98,4 +98,31 @@ public class TampereNodeModelInput {
   public Array1D<Double> getCapacityScalingFactors() {
     return capacityScalingFactors;
   }
+
+  /**
+   * Provide access to the fixed input
+   * 
+   * @return fixed input used
+   */
+  public TampereNodeModelFixedInput getFixedInput() {
+    return fixedInput;
+  }
+
+  /**
+   * Access to the used turn sending flows
+   * 
+   * @return turn sending flows
+   */
+  public Array2D<Double> getTurnSendingFlows() {
+    return turnSendingFlows;
+  }
+
+  /**
+   * The receiving flows used
+   * 
+   * @return receiving flows used
+   */
+  public Array1D<Double> getUsedReceivingFlows() {
+    return outgoingLinkSegmentReceivingFlows;
+  }
 }

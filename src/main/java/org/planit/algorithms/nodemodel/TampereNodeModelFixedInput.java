@@ -141,9 +141,8 @@ public class TampereNodeModelFixedInput {
    * 
    * @param incomingLinkSegmentCapacities     to use
    * @param outgoingLinkSegmentReceivingFlows to use
-   * @throws PlanItException thrown when error occurs
    */
-  public TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities, Array1D<Double> outgoingLinkSegmentReceivingFlows) throws PlanItException {
+  public TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities, Array1D<Double> outgoingLinkSegmentReceivingFlows) {
     this.incomingLinkSegmentCapacities = incomingLinkSegmentCapacities.copy();
     this.outgoingLinkSegmentReceivingFlows = outgoingLinkSegmentReceivingFlows.copy();
   }
@@ -152,9 +151,8 @@ public class TampereNodeModelFixedInput {
    * Constructor. Using this constructor does not require any dependency on PLANit network infrastructure
    * 
    * @param incomingLinkSegmentCapacities to use
-   * @throws PlanItException thrown when error occurs
    */
-  public TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities) throws PlanItException {
+  public TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities) {
     this.incomingLinkSegmentCapacities = incomingLinkSegmentCapacities.copy();
     this.outgoingLinkSegmentReceivingFlows = null;
   }
