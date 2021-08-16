@@ -1,11 +1,23 @@
 package org.planit.assignment.ltm.sltm;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.logging.Logger;
+
+import org.ojalgo.array.Array1D;
+import org.ojalgo.function.PrimitiveFunction;
+import org.ojalgo.function.aggregator.Aggregator;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPaths;
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.directed.DirectedVertex;
+import org.planit.utils.math.Precision;
+import org.planit.utils.misc.HashUtils;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.zoning.OdZone;
@@ -19,6 +31,9 @@ import org.planit.utils.zoning.OdZones;
  *
  */
 public class StaticLtmNetworkLoading {
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(StaticLtmNetworkLoading.class.getCanonicalName());
 
   /** variables tracked for sending flow update step **/
   private final SendingFlowData sendingFlowData;
@@ -44,6 +59,9 @@ public class StaticLtmNetworkLoading {
   /** odDemands to load */
   final OdDemands odDemands;
 
+  /** internal iteration index for network loading */
+  int networkLoadingIterationIndex;
+
   /**
    * Validate provided constructor parameters
    * 
@@ -61,12 +79,11 @@ public class StaticLtmNetworkLoading {
   }
 
   /**
-   * Conduct a network loading to obtain updated in/outflow rates: Eq. (3)-(4) in paper
+   * Conduct a network loading to compute updated inflow rates (without tracking turn flows): Eq. (3)-(4) in paper
    */
-  private void singleNetworkLoadingUpdate() {
+  private void networkLoadingLinkSegmentInflowUpdate(final double[] linkSegmentFlowArrayToFill) {
     OdZones odZones = network.getZoning().odZones;
-    double[] sendingFlows = this.sendingFlowData.getNextSendingFlows();
-    double[] receivingFlows = this.receivingFlowData.getNextReceivingFlows();
+    double[] flowAcceptanceFactors = this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
 
     /* origin */
     for (OdZone origin : odZones) {
@@ -76,27 +93,126 @@ public class StaticLtmNetworkLoading {
         if (odDemand != null && odDemand > 0) {
           /* path */
           DirectedPath odPath = odPaths.getValue(origin, destination);
+          double acceptedPathFlowRate = odDemand;
           for (EdgeSegment edgeSegment : odPath) {
             /* link segment */
 
-            /* s_a: update sending flow for link segment */
-            sendingFlows[(int) edgeSegment.getId()] += odDemand;
-
-            /* r_a: update receiving flow for link segment */
-            receivingFlows[(int) edgeSegment.getId()] += odDemand;
-
+            /* u_a: update inflow for link segment */
+            linkSegmentFlowArrayToFill[(int) edgeSegment.getId()] += acceptedPathFlowRate;
+            acceptedPathFlowRate *= flowAcceptanceFactors[(int) edgeSegment.getId()];
           }
         }
       }
     }
+  }
 
-    MacroscopicLinkSegments linkSegments = ((MacroscopicNetworkLayer) this.network.getInfrastructureNetwork().getLayerByMode(mode)).getLinkSegments();
+  /**
+   * Conduct after unconstrained loading, all nodes where for any outgoing link b it holds that s_b>c_b (sending flow > capacity) is potentially restrictive, i.e., reduces sending
+   * flow to meet capacity requirements, therefore it should be registered on the splitting rates data as we require tracking of splitting rates during the loading for these nodes
+   * 
+   * @param linkSegments to extract capacity from
+   */
+  private void initialisePotentiallyBlockingNodes(MacroscopicLinkSegments linkSegments) {
+    double[] sendingFlows = this.sendingFlowData.getCurrentSendingFlows();
+    for (MacroscopicLinkSegment linkSegment : linkSegments) {
+      double capacity = linkSegment.computeCapacityPcuH();
+      if (Precision.isGreater(sendingFlows[(int) linkSegment.getId()], capacity)) {
+        this.splittingRateData.registerPotentiallyBlockingNode(linkSegment.getUpstreamNode());
+      }
+    }
+  }
 
-    /* reduce sending flows to capacity */
-    this.sendingFlowData.limitNextSendingFlowsToCapacity(linkSegments);
+  /**
+   * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns on nodes that are potentially blocking to reduce
+   * computational overhead.
+   * 
+   * @return acceptedTurnFlows (on potentially blocking nodes) where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
+   */
+  private HashMap<Integer, Double> networkLoadingTurnInflowUpdate() {
+    OdZones odZones = network.getZoning().odZones;
+    double[] flowAcceptanceFactors = this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
 
-    /* reduce receiving flows to capacity */
-    this.receivingFlowData.limitNextSendingFlowsToCapacity(linkSegments);
+    HashMap<Integer, Double> acceptedTurnFlows = new HashMap<Integer, Double>();
+    /* origin */
+    for (OdZone origin : odZones) {
+      /* destination */
+      for (OdZone destination : odZones) {
+        Double odDemand = odDemands.getValue(origin, destination);
+        if (odDemand != null && odDemand > 0) {
+          /* path */
+          DirectedPath odPath = odPaths.getValue(origin, destination);
+          double acceptedPathFlowRate = odDemand;
+          if (odPath.isEmpty()) {
+            LOGGER.warning(String.format("IGNORE: encountered empty path %s", odPath.getXmlId()));
+            continue;
+          }
+
+          /* turn */
+          Iterator<EdgeSegment> edgeSegmentIter = odPath.iterator();
+          EdgeSegment previousEdgeSegment = edgeSegmentIter.next();
+          while (edgeSegmentIter.hasNext()) {
+            EdgeSegment currEdgeSegment = edgeSegmentIter.next();
+
+            if (this.splittingRateData.isPotentiallyBlocking(currEdgeSegment.getUpstreamVertex())) {
+              /* v_ap = u_bp = alpha_a*...*f_p where we consider all preceding alphas (flow acceptance factors) up to now */
+              acceptedPathFlowRate *= flowAcceptanceFactors[(int) previousEdgeSegment.getId()];
+              acceptedTurnFlows.put(HashUtils.createCombinedHashCode(previousEdgeSegment.getId(), currEdgeSegment.getId()), acceptedPathFlowRate);
+            }
+
+            previousEdgeSegment = currEdgeSegment;
+          }
+        }
+      }
+    }
+    return acceptedTurnFlows;
+  }
+
+  /**
+   * Update the splitting rates based on the provided accepted turn flows
+   * 
+   * @param acceptedTurnFlows to use to determine splitting rates
+   */
+  private void updateNextSplittingRates(final HashMap<Integer, Double> acceptedTurnFlows) {
+    Set<DirectedVertex> potentiallyBlockingNodes = splittingRateData.getPotentiallyBlockingNodes();
+    for (DirectedVertex node : potentiallyBlockingNodes) {
+      for (EdgeSegment entrySegment : node.getEntryEdgeSegments()) {
+
+        /* construct splitting rates by first imposing absolute turn flows */
+        Array1D<Double> nextSplittingRates = splittingRateData.getSplittingRates(node, entrySegment);
+        nextSplittingRates.reset();
+        int index = 0;
+        for (EdgeSegment exitSegment : node.getExitEdgeSegments()) {
+          /* assume no uturn flow allowed */
+          if (entrySegment.idEquals(exitSegment)) {
+            continue;
+          }
+          nextSplittingRates.set(index++, acceptedTurnFlows.getOrDefault(HashUtils.createCombinedHashCode(entrySegment.getId(), exitSegment.getId()), 0.0));
+        }
+
+        /* sum all flows and then divide by this sum to obtain splitting rates */
+        double totalEntryFlow = nextSplittingRates.aggregateAll(Aggregator.SUM);
+        if (totalEntryFlow > Precision.EPSILON_6) {
+          nextSplittingRates.modifyAll(PrimitiveFunction.DIVIDE.by(totalEntryFlow));
+        } else {
+          nextSplittingRates.fillAll(1.0);
+        }
+      }
+    }
+
+  }
+
+  /**
+   * for all potentially blocking nodes: perform a node model update based on: 1) sending flows, 2) receiving flows, 3) splitting rates resulting in newly accepted local outflows
+   * and inflows
+   */
+  private void performNodeModelUpdate() {
+    for (DirectedVertex potentiallyBlockingNode : splittingRateData.getPotentiallyBlockingNodes()) {
+
+      // work on node model input/storing of node model instances
+      // TampereNodeModelInput nodeModelInput = new TampereNodeModelFixedInput(incomingLinkSegmentCapacities, outgoingLinkSegmentReceivingFlows)
+      // nodeModelInput.
+      // TampereNodeModel nodeModel = new TampereNodeModel(tampereNodeModelInput)
+    }
   }
 
   /**
@@ -107,6 +223,7 @@ public class StaticLtmNetworkLoading {
    * @param odPaths   that require loading
    * @param odDemands to apply for this loading, reflecting the total desired flows between the ODs for the given mode
    */
+
   protected StaticLtmNetworkLoading(final TransportModelNetwork network, final Mode mode, final OdPaths odPaths, final OdDemands odDemands) {
     validate(network, mode);
     this.network = network;
@@ -116,6 +233,7 @@ public class StaticLtmNetworkLoading {
     MacroscopicNetworkLayer networkLayer = (MacroscopicNetworkLayer) network.getInfrastructureNetwork().getLayerByMode(mode);
     double[] referenceEmptyArray = new double[networkLayer.getLinkSegments().size()];
     this.sendingFlowData = new SendingFlowData(referenceEmptyArray);
+    this.receivingFlowData = new ReceivingFlowData(referenceEmptyArray);
     this.splittingRateData = new SplittingRateData();
     this.networkLoadingFactorData = new NetworkLoadingFactorData(referenceEmptyArray);
     this.odPaths = odPaths;
@@ -133,12 +251,26 @@ public class StaticLtmNetworkLoading {
    * 5. Restrict receiving flows to storage capacity Eq. (8) - only relevant when storage capacity is activated
    */
   public void stepZeroInitialisation() {
+    MacroscopicLinkSegments linkSegments = ((MacroscopicNetworkLayer) this.network.getInfrastructureNetwork().getLayerByMode(mode)).getLinkSegments();
+  
     
     /* 1. Initial acceptance flow, capacity, and storage factors, all set to one */
     networkLoadingFactorData.initialiseAll(1.0);
     
-    /* 2. Initial in/outflows via network loading Eq. (3)-(4) in paper: unconstrained network loading */
-    singleNetworkLoadingUpdate();
+    /* 2. Initial sending and receiving outflows via network loading Eq. (3)-(4) in paper: unconstrained network loading */
+    networkLoadingLinkSegmentInflowUpdate(this.sendingFlowData.getCurrentSendingFlows());
+    
+    /* identify all potentially blocking nodes, i.e., all nodes where unconstrained sending flow exceeds link segment capacity */
+    initialisePotentiallyBlockingNodes(linkSegments);
+    
+    /* 3. limit flows to capacity s_a=r_a=min(u_a,cap_a) */
+    /* reduce sending flows to capacity */
+    this.sendingFlowData.limitCurrentSendingFlowsToCapacity(linkSegments);
+    /* s=r */
+    LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), receivingFlowData.getCurrentReceivingFlows());   
+    
+    /* 4. Initialise iteration index */
+    this.networkLoadingIterationIndex = 0;
   }
   
   //@formatter:off
@@ -151,7 +283,15 @@ public class StaticLtmNetworkLoading {
    * 3. If not first iteration then update splitting rates, Eq. (13)
    */
   public void stepOneSplittingRatesUpdate() {
-    //TODO
+    /* 1. Update turn inflows via network loading Eq. (3) */
+    HashMap<Integer, Double> acceptedTurnFlows = networkLoadingTurnInflowUpdate();
+    /* update splitting rates Eq. (6),(4) */
+    updateNextSplittingRates(acceptedTurnFlows);
+    /* TODO:
+     * in case we do smoothing, it can be applied directly to the splitting rates per node such that
+     * there is no need for a full copy of the entire splitting rate data (create per node/entry link local copy
+     * of existing splitting rates, then compute new ones, and apply smoothing on the two, before moving to the next
+     * entry link */
   }  
   
   //@formatter:off
@@ -167,7 +307,7 @@ public class StaticLtmNetworkLoading {
    * 6. Update smoothed storage capacity factors, Eq. (14)
    */
   public void stepTwoSendingFlowUpdate() {
-    //TODO
+    performNodeModelUpdate();
   }   
   
   //@formatter:off

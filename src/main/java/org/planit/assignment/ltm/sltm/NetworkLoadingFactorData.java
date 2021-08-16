@@ -116,4 +116,13 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
     Arrays.fill(this.nextStorageCapacityFactors, value);
   }
 
+  /**
+   * Access to the current flow acceptance factors
+   * 
+   * @return flow acceptance factors
+   */
+  public double[] getCurrentFlowAcceptanceFactors() {
+    return currentFlowAcceptanceFactors;
+  }
+
 }

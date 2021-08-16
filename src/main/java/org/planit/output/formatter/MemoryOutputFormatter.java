@@ -9,7 +9,6 @@ import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.planit.data.MultiKeyPlanItData;
 import org.planit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
-import org.planit.od.OdDataIterator;
 import org.planit.od.path.OdPathMatrix;
 import org.planit.od.path.OdPathMatrix.OdPathMatrixIterator;
 import org.planit.od.skim.OdSkimMatrix;
@@ -32,6 +31,7 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.math.Precision;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.od.OdDataIterator;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.time.TimePeriod;
 

@@ -74,12 +74,12 @@ public class SendingFlowData extends LinkSegmentData {
   }
 
   /**
-   * Reduce all provided link segments' sending flows to capacity in case they exceed it
+   * Reduce all current link segments' sending flows to capacity in case they exceed it
    * 
    * @param linkSegments to use
    */
-  public void limitNextSendingFlowsToCapacity(MacroscopicLinkSegments linkSegments) {
-    limitFlowsToCapacity(nextSendingFlowsPcuH, linkSegments);
+  public void limitCurrentSendingFlowsToCapacity(MacroscopicLinkSegments linkSegments) {
+    limitFlowsToCapacity(currentSendingFlowsPcuH, linkSegments);
   }
 
 }

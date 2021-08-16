@@ -17,8 +17,7 @@ import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.network.layer.MacroscopicNetworkLayerImpl;
-import org.planit.od.demand.OdDemandMatrix;
-import org.planit.od.odmatrix.OdPrimitiveMatrixIterator;
+import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPathMatrix;
 import org.planit.od.skim.OdSkimMatrix;
 import org.planit.output.adapter.OutputTypeAdapter;
@@ -38,6 +37,7 @@ import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.virtual.ConnectoidSegment;
+import org.planit.utils.od.OdDataIterator;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.path.DirectedPathFactory;
 import org.planit.utils.time.TimePeriod;
@@ -161,7 +161,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       throws PlanItException {
 
     final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
-    final OdDemandMatrix odDemandMatrix = demands.get(mode, timePeriod);
+    final OdDemands odDemands = demands.get(mode, timePeriod);
 
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
     final OdPathMatrix odpathMatrix = simulationData.getODPathMatrix(mode);
@@ -172,7 +172,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     // track the cost to reach each vertex in the network and the shortest path
     // segment used to get there
     ShortestPathResult shortestPathResult = null;
-    for (final OdPrimitiveMatrixIterator<Double> odDemandMatrixIter = odDemandMatrix.iterator(); odDemandMatrixIter.hasNext();) {
+    for (final OdDataIterator<Double> odDemandMatrixIter = odDemands.iterator(); odDemandMatrixIter.hasNext();) {
       final double odDemand = odDemandMatrixIter.next();
       final Zone currentOriginZone = odDemandMatrixIter.getCurrentOrigin();
       final Zone currentDestinationZone = odDemandMatrixIter.getCurrentDestination();

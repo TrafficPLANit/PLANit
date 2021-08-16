@@ -2,12 +2,12 @@ package org.planit.output.adapter;
 
 import java.util.Optional;
 
-import org.planit.od.OdDataIterator;
 import org.planit.od.skim.OdSkimMatrix;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.od.OdDataIterator;
 import org.planit.utils.time.TimePeriod;
 
 /**

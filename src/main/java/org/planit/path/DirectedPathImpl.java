@@ -16,7 +16,7 @@ import org.planit.utils.path.DirectedPath;
  *
  * The path creation makes use of the fact that the origin pair will have a null EdgeSegment, so there is no need to specify the origin.
  *
- * @author gman6028
+ * @author gman6028, markr
  *
  */
 public class DirectedPathImpl extends ExternalIdAbleImpl implements DirectedPath {
@@ -87,6 +87,14 @@ public class DirectedPathImpl extends ExternalIdAbleImpl implements DirectedPath
     long newId = generateId(tokenId);
     setId(newId);
     return newId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long size() {
+    return path.size();
   }
 
 }

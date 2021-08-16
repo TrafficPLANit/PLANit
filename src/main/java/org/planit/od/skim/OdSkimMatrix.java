@@ -1,10 +1,10 @@
 package org.planit.od.skim;
 
 import org.ojalgo.array.Array2D;
-import org.planit.od.odmatrix.OdPrimitiveMatrix;
-import org.planit.od.odmatrix.OdPrimitiveMatrixIterator;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.od.OdPrimitiveMatrix;
+import org.planit.utils.od.OdPrimitiveMatrixIterator;
 import org.planit.utils.zoning.OdZones;
 
 /**

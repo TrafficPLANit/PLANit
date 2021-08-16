@@ -31,6 +31,7 @@ public class TamperNodeModelTest {
     inCapacities = Array1D.PRIMITIVE64.copy(new double[] { 1000, 2000, 1000, 2000 });
     outReceivingFlows = Array1D.PRIMITIVE64.copy(new double[] { 1000, 2000, 1000, 2000 });
 
+    // rows: from, columns: to
     turnSendingflows = Array2D.PRIMITIVE64.rows(
         new double[] { 0, 50, 150, 300 }, 
         new double[] { 100, 0, 300, 1600 }, 

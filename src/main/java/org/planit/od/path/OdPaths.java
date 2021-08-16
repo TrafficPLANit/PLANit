@@ -1,6 +1,6 @@
 package org.planit.od.path;
 
-import org.planit.od.OdData;
+import org.planit.utils.od.OdData;
 import org.planit.utils.path.DirectedPath;
 
 /**

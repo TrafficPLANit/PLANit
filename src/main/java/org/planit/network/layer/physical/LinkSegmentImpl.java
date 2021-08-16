@@ -6,6 +6,7 @@ import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.physical.Link;
 import org.planit.utils.network.layer.physical.LinkSegment;
+import org.planit.utils.network.layer.physical.Node;
 
 /**
  * Link segment object representing physical links in the network and storing their properties
@@ -122,6 +123,34 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
     return linkSegmentId;
   }
 
+  // Public
+  
+  // Public getters - setters
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Link getParentEdge() {
+    return (Link) super.getParentEdge();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Node getDownstreamVertex() {
+    return (Node) super.getDownstreamVertex();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Node getUpstreamVertex() {
+    return (Node) super.getUpstreamVertex();
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -154,22 +183,6 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    */
   public double getPhysicalSpeedLimitKmH() {
     return this.physicalSpeedLinkKmh;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Link getParentEdge() {
-    return (Link) super.getParentEdge();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Link getParentLink() {
-    return getParentEdge();
   }
 
   /**

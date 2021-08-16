@@ -2,7 +2,6 @@ package org.planit.output.adapter;
 
 import java.util.Optional;
 
-import org.planit.od.OdDataIterator;
 import org.planit.od.path.OdPathMatrix;
 import org.planit.output.enums.PathOutputIdentificationType;
 import org.planit.output.property.OutputProperty;
@@ -10,6 +9,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.od.OdDataIterator;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.path.PathUtils;
 import org.planit.utils.time.TimePeriod;

@@ -4,7 +4,6 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.od.OdDataIterator;
 import org.planit.output.enums.ODSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
@@ -12,6 +11,7 @@ import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.od.OdDataIterator;
 import org.planit.utils.time.TimePeriod;
 
 /**

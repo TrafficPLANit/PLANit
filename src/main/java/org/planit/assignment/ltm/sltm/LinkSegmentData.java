@@ -28,8 +28,8 @@ public abstract class LinkSegmentData {
   /**
    * Reduce all provided link segments' flows to capacity
    * 
-   * @param flowPcuHArray    to apply limit on (pcuPerHour)
-   * @param linkSegments to use
+   * @param flowPcuHArray to apply limit on (pcuPerHour)
+   * @param linkSegments  to use
    */
   protected void limitFlowsToCapacity(double[] flowPcuHArray, final MacroscopicLinkSegments linkSegments) {
     for (MacroscopicLinkSegment linkSegment : linkSegments) {
@@ -45,6 +45,16 @@ public abstract class LinkSegmentData {
    */
   public LinkSegmentData(double[] emptySegmentArray) {
     this.emptySegmentArray = emptySegmentArray;
+  }
+
+  /**
+   * copy from origin to destination assuming entire array is to be copied and both arrays are of equal size
+   * 
+   * @param originArray      copy from
+   * @param destinationArray copy to
+   */
+  public static void copyTo(double[] originArray, double[] destinationArray) {
+    System.arraycopy(originArray, 0, destinationArray, 0, originArray.length);
   }
 
 }

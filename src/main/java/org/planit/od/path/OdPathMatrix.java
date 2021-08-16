@@ -1,8 +1,8 @@
 package org.planit.od.path;
 
-import org.planit.od.odmatrix.OdNonPrimitiveMatrix;
-import org.planit.od.odmatrix.OdNonPrimitiveMatrixIterator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.od.OdNonPrimitiveMatrix;
+import org.planit.utils.od.OdNonPrimitiveMatrixIterator;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.zoning.OdZones;
 

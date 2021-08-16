@@ -3,13 +3,13 @@ package org.planit.output.adapter;
 import java.util.Optional;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.od.OdDataIterator;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.PathOutputIdentificationType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.od.OdDataIterator;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.time.TimePeriod;
 
