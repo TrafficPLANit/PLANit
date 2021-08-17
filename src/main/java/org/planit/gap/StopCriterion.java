@@ -1,13 +1,12 @@
 package org.planit.gap;
 
 /**
- * StopCriterion class. In its base form we only provide an epsilon value.
- * However by deriving from this class additional citeria can be added
+ * StopCriterion class. In its base form we only provide an epsilon value. However by deriving from this class additional citeria can be added
  * 
  * @author markr
  *
  */
-public class StopCriterion {
+public class StopCriterion implements Cloneable {
 
   /**
    * Default Epsilon in case it is not set by user
@@ -30,12 +29,24 @@ public class StopCriterion {
   private double epsilon = DEFAULT_EPSILON;
 
   /**
+   * Default constructor
+   */
+  public StopCriterion() {
+  }
+
+  /**
+   * @param other to copy
+   */
+  public StopCriterion(StopCriterion other) {
+    this.epsilon = other.epsilon;
+    this.maxIterations = other.maxIterations;
+  }
+
+  /**
    * Check if converged based on the gap and the internal information
    * 
-   * @param gap
-   *          gap for the current iteration
-   * @param iterationIndex
-   *          index of current iteration
+   * @param gap            gap for the current iteration
+   * @param iterationIndex index of current iteration
    * @return true if gap is smaller than criterion, false otherwise
    */
   public boolean hasConverged(double gap, int iterationIndex) {
@@ -56,8 +67,7 @@ public class StopCriterion {
   /**
    * Set the maximum allowable number of iterations
    * 
-   * @param maxIterations
-   *          the maximum allowable number of iterations
+   * @param maxIterations the maximum allowable number of iterations
    */
   public void setMaxIterations(int maxIterations) {
     this.maxIterations = maxIterations;
@@ -75,10 +85,16 @@ public class StopCriterion {
   /**
    * Set the epsilon of this stopping criterion
    * 
-   * @param epsilon
-   *          the epsilon of this stopping criterion
+   * @param epsilon the epsilon of this stopping criterion
    */
   public void setEpsilon(double epsilon) {
     this.epsilon = epsilon;
+  }
+
+  /**
+   * clone this instance
+   */
+  public StopCriterion clone() {
+    return new StopCriterion(this);
   }
 }

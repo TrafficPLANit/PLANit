@@ -1,5 +1,7 @@
 package org.planit.gap;
 
+import org.planit.utils.id.IdGroupingToken;
+
 /**
  * Gap function based on the work of Bovy and Jansen (1983) who take the different between the current system travel time and the system travel time if all flow were to be assigned
  * to the shortest paths, divided by the system travel time
@@ -9,13 +11,29 @@ package org.planit.gap;
  */
 public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 
+  /** Generated UID */
+  private static final long serialVersionUID = 7202275902172315983L;
+
   /**
    * Constructor
    * 
+   * @param idToken       to use for the generation of its id
    * @param stopCriterion StopCriterion object being used
    */
-  public LinkBasedRelativeDualityGapFunction(StopCriterion stopCriterion) {
-    super(stopCriterion);
+  public LinkBasedRelativeDualityGapFunction(final IdGroupingToken idToken, final StopCriterion stopCriterion) {
+    super(idToken, stopCriterion);
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public LinkBasedRelativeDualityGapFunction(LinkBasedRelativeDualityGapFunction other) {
+    super(other);
+    this.measuredNetworkCost = other.measuredNetworkCost;
+    this.gap = other.gap;
+    this.minimumNetworkCost = other.minimumNetworkCost;
   }
 
   /**
@@ -24,7 +42,7 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
   protected double measuredNetworkCost = 0;
 
   /**
-   * Represents the total cost if all flow were to be diverted to the shortest paths for all origin-destination pairs
+   * Represents the total minimum cost possible
    */
   protected double minimumNetworkCost = 0;
 
@@ -44,9 +62,9 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
   }
 
   /**
-   * Return the actual system travel time
+   * Return the measured cost
    * 
-   * @return the actual system travel time
+   * @return the measured cost
    */
   public double getMeasuredNetworkCost() {
     return measuredNetworkCost;
@@ -55,37 +73,44 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
   /**
    * Increase system cost, i.e. compute it exogenously
    * 
-   * @param increaseValue increase in actualSystemTravelTime for this iteration
+   * @param value increase
    */
-  public void increaseMeasuredNetworkCost(double increaseValue) {
-    measuredNetworkCost += increaseValue;
+  public void increaseMeasuredNetworkCost(double value) {
+    measuredNetworkCost += value;
   }
 
   /**
    * Increase convexity bound cost, i.e. compute it exogenously
    * 
-   * @param increaseMinimumSystemCost the increase in minimum system cost
+   * @param value the increase
    */
-  public void increaseConvexityBound(double increaseMinimumSystemCost) {
-    minimumNetworkCost += increaseMinimumSystemCost;
+  public void increaseConvexityBound(double value) {
+    minimumNetworkCost += value;
   }
 
   /**
-   * Reset system travel time and convexity bound to zero
+   * {@inheritDoc}
    */
+  @Override
   public void reset() {
     this.measuredNetworkCost = 0;
     this.minimumNetworkCost = 0;
   }
 
   /**
-   * Return the gap for the current iteration
-   * 
-   * @return the gap for the current iteration
+   * {@inheritDoc}
    */
   @Override
   public double getGap() {
     return gap;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinkBasedRelativeDualityGapFunction clone() {
+    return new LinkBasedRelativeDualityGapFunction(this);
   }
 
 }

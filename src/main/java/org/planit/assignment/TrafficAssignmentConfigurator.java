@@ -14,6 +14,7 @@ import org.planit.cost.virtual.VirtualCostConfiguratorFactory;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
 import org.planit.gap.GapFunctionConfigurator;
+import org.planit.gap.GapFunctionConfiguratorFactory;
 import org.planit.network.TransportLayerNetwork;
 import org.planit.output.OutputManager;
 import org.planit.output.configuration.OutputConfiguration;
@@ -76,15 +77,6 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * Nested configurator for vgap function within this assignment
    */
   private GapFunctionConfigurator<? extends GapFunction> gapFunctionConfigurator = null;
-
-  /**
-   * Set the gap function configurator for this assignment
-   * 
-   * @param gapFunctionConfigurator to use
-   */
-  protected void setGapFunction(GapFunctionConfigurator<? extends GapFunction> gapFunctionConfigurator) {
-    this.gapFunctionConfigurator = gapFunctionConfigurator;
-  }
 
   /**
    * Set the network
@@ -165,6 +157,18 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    */
   public Demands getDemands() {
     return (Demands) getFirstParameterOfDelayedMethodCall(SET_DEMANDS);
+  }
+
+  /**
+   * Create and Register gapFunction component
+   *
+   * @param gapFunctionType the type of gap function component to be created
+   * @return gap function configuration object
+   * @throws PlanItException thrown if there is an error
+   */
+  public GapFunctionConfigurator<? extends GapFunction> createAndRegisterGapFunction(final String gapFunctionType) throws PlanItException {
+    gapFunctionConfigurator = GapFunctionConfiguratorFactory.createConfigurator(gapFunctionType);
+    return gapFunctionConfigurator;
   }
 
   /**

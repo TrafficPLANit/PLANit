@@ -1,5 +1,6 @@
 package org.planit.assignment;
 
+import org.planit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
 import org.planit.assignment.traditionalstatic.TraditionalStaticAssignmentBuilder;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
@@ -29,10 +30,13 @@ public class TrafficAssignmentBuilderFactory {
    * @throws PlanItException thrown if error
    */
   public static TrafficAssignmentBuilder<?> createBuilder(final String trafficAssignmentType, IdGroupingToken projectToken, InputBuilderListener inputBuilder, Demands theDemands,
-      Zoning theZoning, TransportLayerNetwork<?,?> theNetwork) throws PlanItException {
+      Zoning theZoning, TransportLayerNetwork<?, ?> theNetwork) throws PlanItException {
 
     if (trafficAssignmentType.equals(TrafficAssignment.TRADITIONAL_STATIC_ASSIGNMENT)) {
       return new TraditionalStaticAssignmentBuilder(projectToken, inputBuilder, theDemands, theZoning, theNetwork);
+    } else if (trafficAssignmentType.equals(TrafficAssignment.SLTM)) {
+      return new StaticLtmTrafficAssignmentBuilder(projectToken, inputBuilder, theDemands, theZoning, theNetwork);
+
     } else {
       throw new PlanItException(String.format("Unable to construct builder for given trafficAssignmentType %s", trafficAssignmentType));
     }

@@ -8,10 +8,6 @@ import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
-import org.planit.gap.GapFunctionConfigurator;
-import org.planit.gap.GapFunctionConfiguratorFactory;
-import org.planit.gap.LinkBasedRelativeDualityGapFunction;
-import org.planit.gap.LinkBasedRelativeGapConfigurator;
 import org.planit.gap.StopCriterion;
 import org.planit.input.InputBuilderListener;
 import org.planit.interactor.LinkVolumeAccessee;
@@ -155,8 +151,9 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected GapFunction createGapFunctionInstance(StopCriterion stopCriterion) throws PlanItException {
-    PlanItException.throwIf(!(getConfigurator().getGapFunction() instanceof LinkBasedRelativeGapConfigurator), "invalid gap function chosen");
-    return new LinkBasedRelativeDualityGapFunction(stopCriterion);
+    PlanitComponentFactory<GapFunction> gapFunctionFactory = new PlanitComponentFactory<GapFunction>(GapFunction.class);
+    gapFunctionFactory.addListener(getInputBuilderListener());
+    return gapFunctionFactory.create(getConfigurator().getGapFunction().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken(), stopCriterion });
   }
 
   /**
@@ -225,18 +222,6 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
 
   }
 
-  /**
-   * Currently, there exists only a single gap function (link based relative duality gap) that is created via this factory method. It should be injected by each traffic assignment
-   * method until we have multiple gap functions, in which case, it becomes an option like other components.
-   * 
-   * @throws PlanItException thrown if error
-   */
-  protected void createGapFunction() throws PlanItException {
-    TrafficAssignmentConfigurator<?> configurator = getConfigurator();
-    GapFunctionConfigurator<? extends GapFunction> gapFunctionConfigurator = GapFunctionConfiguratorFactory.createConfigurator(GapFunction.LINK_BASED_RELATIVE_GAP);
-    configurator.setGapFunction(gapFunctionConfigurator);
-  }
-
   // PUBLIC
 
   /**
@@ -259,9 +244,6 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
 
     /* create an output manager for this assignment */
     createOutputManager();
-
-    /* register gap function (on configurator) */
-    createGapFunction();
 
     // By default, activate the link outputs (on configurator)
     getConfigurator().activateOutput(OutputType.LINK);

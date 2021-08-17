@@ -1,6 +1,6 @@
 package org.planit.assignment.ltm.sltm;
 
-import org.planit.assignment.TrafficAssignmentBuilder;
+import org.planit.assignment.ltm.LtmTrafficAssignmentBuilder;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.TransportLayerNetwork;
@@ -15,7 +15,7 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public class StaticLtmTrafficAssignmentBuilder extends TrafficAssignmentBuilder<StaticLtm> {
+public class StaticLtmTrafficAssignmentBuilder extends LtmTrafficAssignmentBuilder<StaticLtm> {
 
   /**
    * create the configurator for sLTM

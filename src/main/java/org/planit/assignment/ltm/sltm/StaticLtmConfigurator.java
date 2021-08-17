@@ -2,6 +2,7 @@ package org.planit.assignment.ltm.sltm;
 
 import org.planit.algorithms.nodemodel.NodeModel;
 import org.planit.assignment.ltm.LtmConfigurator;
+import org.planit.gap.GapFunction;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.utils.exceptions.PlanItException;
 
@@ -11,6 +12,7 @@ import org.planit.utils.exceptions.PlanItException;
  * <ul>
  * <li>Fundamental diagram: NEWELL</li>
  * <li>Node Model: TAMPERE</li>
+ * <li>Gap function: NORM BASED (defaults: 1 norm + averaged))</li>
  * </ul>
  * 
  * @author markr
@@ -29,6 +31,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
     super(StaticLtm.class);
     createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
     createAndRegisterNodeModel(NodeModel.TAMPERE);
+    createAndRegisterGapFunction(GapFunction.NORM_BASED_GAP);
   }
 
   //

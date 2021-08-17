@@ -8,6 +8,7 @@ import org.planit.assignment.algorithmb.AlgorithmB;
 import org.planit.assignment.ltm.eltm.EventBasedLtm;
 import org.planit.assignment.ltm.sltm.StaticLtm;
 import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
+import org.planit.component.PlanitComponent;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.virtual.AbstractVirtualCost;
@@ -153,6 +154,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
     /*
      * allow derived classes to verify if the chosen components are valid before proceeding, not mandatory
      */
+  }
+
+  /**
+   * Set a sub component that is created via the builder and known on the base traffic assignment class
+   * 
+   * @param assignmentSubComponent
+   */
+  protected void setSubComponent(final PlanitComponent<?> assignmentSubComponent) {
+
   }
 
   /**

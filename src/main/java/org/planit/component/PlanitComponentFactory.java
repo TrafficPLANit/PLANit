@@ -7,12 +7,14 @@ import java.util.HashMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
+import org.planit.assignment.ltm.sltm.StaticLtm;
 import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.component.event.PlanitComponentEvent;
 import org.planit.component.event.PlanitComponentEventType;
 import org.planit.component.event.PlanitComponentListener;
 import org.planit.component.event.PopulateComponentEvent;
 import org.planit.component.event.PopulateDemandsEvent;
+import org.planit.component.event.PopulateGapFunctionEvent;
 import org.planit.component.event.PopulateInitialLinkSegmentCostEvent;
 import org.planit.component.event.PopulateNetworkEvent;
 import org.planit.component.event.PopulatePhysicalCostEvent;
@@ -28,6 +30,9 @@ import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
 import org.planit.cost.virtual.SpeedConnectoidTravelTimeCost;
 import org.planit.demands.Demands;
+import org.planit.gap.GapFunction;
+import org.planit.gap.LinkBasedRelativeDualityGapFunction;
+import org.planit.gap.NormBasedGapFunction;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.network.Network;
 import org.planit.network.ServiceNetwork;
@@ -91,6 +96,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registeredPlanitComponents.put(PathChoice.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(LogitChoiceModel.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(OdPathSets.class.getCanonicalName(), new TreeSet<>());
+    registeredPlanitComponents.put(GapFunction.class.getCanonicalName(), new TreeSet<>());
 
     registerDefaultImplementations();
   }
@@ -101,6 +107,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
   private static void registerDefaultImplementations() {
     registerPlanitComponentType(Zoning.class);
     registerPlanitComponentType(TraditionalStaticAssignment.class);
+    registerPlanitComponentType(StaticLtm.class);
     registerPlanitComponentType(MSASmoothing.class);
     registerPlanitComponentType(Demands.class);
     registerPlanitComponentType(RoutedServices.class);
@@ -115,6 +122,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(TampereNodeModelComponent.class);
     registerPlanitComponentType(MultinomialLogit.class);
     registerPlanitComponentType(OdPathSets.class);
+    registerPlanitComponentType(LinkBasedRelativeDualityGapFunction.class);
+    registerPlanitComponentType(NormBasedGapFunction.class);
   }
 
   /**
@@ -157,6 +166,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
       fireEvent(new PopulateServiceNetworkEvent(this, (ServiceNetwork) newPlanitComponent));
     } else if (newPlanitComponent instanceof RoutedServices) {
       fireEvent(new PopulateRoutedServicesEvent(this, (RoutedServices) newPlanitComponent));
+    } else if (newPlanitComponent instanceof GapFunction) {
+      fireEvent(new PopulateGapFunctionEvent(this, (GapFunction) newPlanitComponent));
     } else if (newPlanitComponent instanceof InitialLinkSegmentCost) {
       // TODO: probably better if we generalise to initialCost event rather then specialise to link segment as we do now */
       if (newPlanitComponent instanceof InitialLinkSegmentCostPeriod) {

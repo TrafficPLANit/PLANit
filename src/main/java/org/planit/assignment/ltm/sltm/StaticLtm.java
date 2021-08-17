@@ -9,6 +9,7 @@ import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
 import org.planit.assignment.ltm.LtmAssignment;
+import org.planit.gap.NormBasedGapFunction;
 import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPaths;
 import org.planit.od.path.OdPathsHashed;
@@ -123,6 +124,9 @@ public class StaticLtm extends LtmAssignment {
     }
     Mode theMode = modes.iterator().next();
     StaticLtmNetworkLoading networkLoading = initialiseTimePeriod(timePeriod, theMode, this.demands.get(theMode, timePeriod));
+    networkLoading.setSendingFlowGapFunction(getGapFunction().clone());
+    networkLoading.setReceivingFlowGapFunction(getGapFunction().clone());
+    // TODO: normal gap function is for alphas! CONTINUE WITH THIS
 
     // CONTINUE HERE
     // 1. network loading has no demands yet, needed for loading
@@ -155,12 +159,23 @@ public class StaticLtm extends LtmAssignment {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void verifyComponentCompatibility() throws PlanItException {
+    super.verifyComponentCompatibility();
+
+    /* gap function check */
+    PlanItException.throwIf(!(getGapFunction() instanceof NormBasedGapFunction), "static LTM only supports a norm based gap function at the moment, but found %s",
+        getGapFunction().getClass().getCanonicalName());
+  }
+
+  /**
    * Initialise the network loading components before we start any assignment
    */
   @Override
   protected void initialiseBeforeExecution() throws PlanItException {
     super.initialiseBeforeExecution();
-
   }
 
   /**

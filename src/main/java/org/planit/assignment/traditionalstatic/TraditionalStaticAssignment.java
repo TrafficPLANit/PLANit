@@ -92,6 +92,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    */
   @Override
   protected void verifyComponentCompatibility() throws PlanItException {
+    super.verifyComponentCompatibility();
+
     /* network compatibility */
     PlanItException.throwIf(!(transportNetwork.getInfrastructureNetwork() instanceof MacroscopicNetwork),
         "Traditional static assignment is only compatible with macroscopic networks");
@@ -102,8 +104,14 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     if (transportNetwork.getInfrastructureNetwork().getModes().size() != infrastructureLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by the single available layer, consider removing unused modes");
     }
+
+    /* gap function check */
+    PlanItException.throwIf(!(getGapFunction() instanceof LinkBasedRelativeDualityGapFunction),
+        "Traditional static assignment only supports link based relative duality gap function at the moment, but found %s", getGapFunction().getClass().getCanonicalName());
+
     /* register the layer */
     this.networkLayer = (MacroscopicNetworkLayerImpl) infrastructureLayer;
+
   }
 
   /**

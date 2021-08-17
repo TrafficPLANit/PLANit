@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
 import org.planit.network.MacroscopicNetwork;
+import org.planit.path.choice.PathChoice;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.network.nodemodel.NodeModelComponent;
 import org.planit.utils.exceptions.PlanItException;
@@ -35,6 +36,11 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * Node model to use
    */
   protected NodeModelComponent nodeModel = null;
+
+  /**
+   * the path choice to use
+   */
+  protected PathChoice pathChoice = null;
 
   /**
    * Verify if the network contains a single compatible infrastructure layer because sLTM does not (yet) support multiple (or intermodal) network layers
@@ -98,6 +104,24 @@ public abstract class LtmAssignment extends TrafficAssignment {
    */
   public void setNodeModel(final NodeModelComponent nodeModel) {
     this.nodeModel = nodeModel;
+  }
+
+  /**
+   * The path choice model to use
+   * 
+   * @return path choice model used
+   */
+  public PathChoice getPathChoice() {
+    return pathChoice;
+  }
+
+  /**
+   * The path choice model to use
+   * 
+   * @param pathChoice model used
+   */
+  public void setPathChoice(PathChoice pathChoice) {
+    this.pathChoice = pathChoice;
   }
 
 }

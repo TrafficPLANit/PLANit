@@ -2,6 +2,9 @@ package org.planit.assignment.ltm;
 
 import org.planit.algorithms.nodemodel.NodeModel;
 import org.planit.assignment.TrafficAssignmentConfigurator;
+import org.planit.path.choice.PathChoice;
+import org.planit.path.choice.PathChoiceConfigurator;
+import org.planit.path.choice.PathChoiceConfiguratorFactory;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagramConfigurator;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagramConfiguratorFactory;
@@ -16,6 +19,7 @@ import org.planit.utils.exceptions.PlanItException;
  * <ul>
  * <li>Fundamental diagram: NEWELL</li>
  * <li>Node Model: TAMPERE</li>
+ * <li>Path Choice: not implemented yet</li>
  * </ul>
  * 
  * @author markr
@@ -32,6 +36,11 @@ public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentC
    * Nested configurator for node model within this assignment
    */
   private NodeModelConfigurator<? extends NodeModelComponent> nodeModelConfigurator = null;
+
+  /**
+   * Nested configurator for path choice within this assignment
+   */
+  private PathChoiceConfigurator<? extends PathChoice> pathChoiceConfigurator = null;
 
   /**
    * Constructor
@@ -89,6 +98,27 @@ public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentC
    */
   public NodeModelConfigurator<? extends NodeModelComponent> getNodeModel() {
     return nodeModelConfigurator;
+  }
+
+  /**
+   * choose a particular path choice implementation
+   * 
+   * @param pathChoiceType type to choose
+   * @return path choice configurator
+   * @throws PlanItException thrown if error
+   */
+  public PathChoiceConfigurator<? extends PathChoice> createAndRegisterPathChoice(final String pathChoiceType) throws PlanItException {
+    pathChoiceConfigurator = PathChoiceConfiguratorFactory.createConfigurator(pathChoiceType);
+    return pathChoiceConfigurator;
+  }
+
+  /**
+   * Collect the path choice configurator
+   * 
+   * @return path choice configurator
+   */
+  public PathChoiceConfigurator<? extends PathChoice> getPathChoice() {
+    return pathChoiceConfigurator;
   }
 
 }

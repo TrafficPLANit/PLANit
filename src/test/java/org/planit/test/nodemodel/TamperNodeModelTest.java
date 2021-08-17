@@ -42,13 +42,9 @@ public class TamperNodeModelTest {
 
   @Test
   public void TampereNodeModelFixedInputTest() {
-    try {
-      TampereNodeModelFixedInput fixedInput = new TampereNodeModelFixedInput(inCapacities, outReceivingFlows);
-      assertEquals(4, fixedInput.getNumberOfIncomingLinkSegments());
-      assertEquals(4, fixedInput.getNumberOfOutgoingLinkSegments());
-    } catch (PlanItException e) {
-      fail("Error when constructing fixed input for Tampere node model");
-    }
+    TampereNodeModelFixedInput fixedInput = new TampereNodeModelFixedInput(inCapacities, outReceivingFlows);
+    assertEquals(4, fixedInput.getNumberOfIncomingLinkSegments());
+    assertEquals(4, fixedInput.getNumberOfOutgoingLinkSegments());
   }
 
   @Test

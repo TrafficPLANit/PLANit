@@ -1,5 +1,6 @@
-package org.planit.assignment;
+package org.planit.assignment.ltm;
 
+import org.planit.assignment.TrafficAssignmentBuilder;
 import org.planit.component.PlanitComponentFactory;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
@@ -12,17 +13,13 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.zoning.Zoning;
 
 /**
- * A dynamic traffic assignment builder is assumed to only support capacity constrained traffic assignment instances. It is used to build the traffic assignment instance with the
- * proper configuration settings
+ * An LTM traffic assignment builder is assumed to only support Link Transmission Model (LTM) traffic assignment instances. It is used to build the traffic assignment instance with
+ * the proper configuration settings
  *
  * @author markr
  *
  */
-public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAssignment> extends TrafficAssignmentBuilder<T> {
-
-  // needed to allow path choice to register inputbuilder listener on its traffic components
-  @SuppressWarnings("unused")
-  private final InputBuilderListener trafficComponentCreateListener;
+public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> extends TrafficAssignmentBuilder<T> {
 
   /**
    * create a path choice instance based on configuration
@@ -31,7 +28,7 @@ public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAs
    * @return path choice instance
    * @throws PlanItException thrown if error
    */
-  protected PathChoice createPathChoiceInstance(DynamicAssignmentConfigurator<? extends DynamicTrafficAssignment> configurator) throws PlanItException {
+  protected PathChoice createPathChoiceInstance(LtmConfigurator<? extends LtmAssignment> configurator) throws PlanItException {
     PlanitComponentFactory<PathChoice> pathChoiceFactory = new PlanitComponentFactory<PathChoice>(PathChoice.class);
     pathChoiceFactory.addListener(getInputBuilderListener());
     return pathChoiceFactory.create(configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
@@ -40,12 +37,14 @@ public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAs
   /**
    * In addition to the super class sub components, we also construct the subcomponents specific to dynamic traffic assignment
    * 
-   * @param trafficAssignmentInstance the instance to build on
+   * @param ltmAssignmentInstance the instance to build on
    */
-  protected void buildSubComponents(T trafficAssignmentInstance) throws PlanItException {
-    super.buildSubComponents(trafficAssignmentInstance);
+  protected void buildSubComponents(T ltmAssignmentInstance) throws PlanItException {
+    /* delegate to super class for base sub components */
+    super.buildSubComponents(ltmAssignmentInstance);
 
-    DynamicAssignmentConfigurator<? extends DynamicTrafficAssignment> configurator = (DynamicAssignmentConfigurator<? extends DynamicTrafficAssignment>) getConfigurator();
+    /* path choice is added in all LTM assignments */
+    LtmConfigurator<T> configurator = (LtmConfigurator<T>) getConfigurator();
 
     /*
      * path choice sub component... ...because it has sub components of its own, we must construct a builder for it instead of instantiating it directly here
@@ -54,7 +53,7 @@ public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAs
       PathChoiceBuilder<? extends PathChoice> pathChoiceBuilder = PathChoiceBuilderFactory.createBuilder(configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(),
           getGroupIdToken(), getInputBuilderListener());
       PathChoice pathChoice = pathChoiceBuilder.build();
-      trafficAssignmentInstance.setPathChoice(pathChoice);
+      ltmAssignmentInstance.setPathChoice(pathChoice);
     }
   }
 
@@ -69,11 +68,9 @@ public abstract class DynamicTrafficAssignmentBuilder<T extends DynamicTrafficAs
    * @param network                the network
    * @throws PlanItException thrown if there is an exception
    */
-  public DynamicTrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands,
+  public LtmTrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands,
       final Zoning zoning, final TransportLayerNetwork<?, ?> network) throws PlanItException {
-
     super(trafficAssignmentClass, groupId, inputBuilderListener, demands, zoning, network);
-    this.trafficComponentCreateListener = inputBuilderListener;
   }
 
 }

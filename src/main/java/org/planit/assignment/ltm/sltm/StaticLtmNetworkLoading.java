@@ -207,14 +207,13 @@ public class StaticLtmNetworkLoading {
   }
 
   /**
-   * for all potentially blocking nodes: perform a node model update based on: 1) sending flows, 2) receiving flows, 3) splitting rates resulting in newly accepted local outflows
-   * and inflows. In addition update the next sending flows based on the resulting accepted flows
+   * For all potentially blocking nodes: perform a node model update based on: 1) sending flows, 2) receiving flows, 3) splitting rates resulting in newly accepted local outflows
+   * and inflows.
+   * 
+   * @param consumer to apply to the result of each node model update of the considered nodes, may be null then ignored
    */
-  private void performNodeModelUpdateForNextSendingFlows() {
+  private void performNodeModelUpdate(final ApplyToNodeModelResult consumer) {
     double[] sendingFlows = this.sendingFlowData.getCurrentSendingFlows();
-
-    this.sendingFlowData.resetNextSendingFlows();
-    double[] nextSendingFlows = this.sendingFlowData.getNextSendingFlows();
 
     /* For each potentially blocking node */
     for (DirectedVertex potentiallyBlockingNode : splittingRateData.getPotentiallyBlockingNodes()) {
@@ -255,14 +254,9 @@ public class StaticLtmNetworkLoading {
         TampereNodeModel nodeModel = new TampereNodeModel(new TampereNodeModelInput(nodeModelInputFixed, turnSendingFlows));
         Array1D<Double> localFlowAcceptanceFactor = nodeModel.run();
 
-        /* v_ab = s_ab*alpha_a: Convert turn sending flows to turn accepted flows (to avoid duplication we reuse sending flow 2d array) */
-        for (entryIndex = 0; entryIndex < localFlowAcceptanceFactor.length; ++entryIndex) {
-          turnSendingFlows.modifyRow(entryIndex, PrimitiveFunction.MULTIPLY.by(localFlowAcceptanceFactor.get(entryIndex)));
-        }
-        /* s^tilde_b = SUM(v_ab): set next sending flow */
-        int exitIndex = 0;
-        for (EdgeSegment exitEdgeSegment : potentiallyBlockingNode.getExitEdgeSegments()) {
-          nextSendingFlows[(int) exitEdgeSegment.getId()] = turnSendingFlows.aggregateColumn(exitIndex++, Aggregator.SUM);
+        /* delegate to consumer if any */
+        if (consumer != null) {
+          consumer.accept(potentiallyBlockingNode, localFlowAcceptanceFactor, nodeModel);
         }
 
       } catch (Exception e) {
@@ -366,7 +360,10 @@ public class StaticLtmNetworkLoading {
   public void stepTwoSendingFlowUpdate() {
     /* 1. Update node model to compute new inflows, Eq. (5)
      * 2. Update next sending flows via inflows, Eq. (7) */
-    performNodeModelUpdateForNextSendingFlows();
+    this.sendingFlowData.resetNextSendingFlows();
+    performNodeModelUpdate(new UpdateNextSendingFlowsConsumer(this.sendingFlowData.getNextSendingFlows()));
+    
+    /*3. Compute gap between current and next sending flows, then update sending flows to next sending flows */
     
   }   
   

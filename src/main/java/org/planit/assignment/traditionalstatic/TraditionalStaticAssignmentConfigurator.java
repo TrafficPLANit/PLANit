@@ -3,6 +3,7 @@ package org.planit.assignment.traditionalstatic;
 import org.planit.assignment.TrafficAssignmentConfigurator;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
+import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.sdinteraction.smoothing.MSASmoothing;
 import org.planit.utils.exceptions.PlanItException;
 
@@ -13,6 +14,7 @@ import org.planit.utils.exceptions.PlanItException;
  * <li>MSA smoothing (via configurator)</li>
  * <li>BPR function for physical cost (via configurator)</li>
  * <li>Fixed cost for virtual cost (via configurator)</li>
+ * <li>Link absed relative gap function (via configurator)</li>
  * </ul>
  * 
  * @author markr
@@ -33,6 +35,7 @@ public class TraditionalStaticAssignmentConfigurator extends TrafficAssignmentCo
     this.createAndRegisterPhysicalCost(BPRLinkTravelTimeCost.class.getCanonicalName());
     this.createAndRegisterVirtualCost(FixedConnectoidTravelTimeCost.class.getCanonicalName());
     this.createAndRegisterSmoothing(MSASmoothing.class.getCanonicalName());
+    this.createAndRegisterGapFunction(LinkBasedRelativeDualityGapFunction.class.getCanonicalName());
   }
 
 }
