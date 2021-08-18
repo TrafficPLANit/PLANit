@@ -106,7 +106,7 @@ public class StaticLtm extends LtmAssignment {
     OdPaths odPaths = createOdPaths(currentSegmentCosts, mode, timePeriod);
 
     /** create the network loading algorithm components instance */
-    return new StaticLtmNetworkLoading(getTransportNetwork(), mode, odPaths, odDemands);
+    return new StaticLtmNetworkLoading(getIdGroupingToken(), getTransportNetwork(), mode, odPaths, odDemands);
   }
 
   /**
@@ -124,8 +124,6 @@ public class StaticLtm extends LtmAssignment {
     }
     Mode theMode = modes.iterator().next();
     StaticLtmNetworkLoading networkLoading = initialiseTimePeriod(timePeriod, theMode, this.demands.get(theMode, timePeriod));
-    networkLoading.setSendingFlowGapFunction(getGapFunction().clone());
-    networkLoading.setReceivingFlowGapFunction(getGapFunction().clone());
     // TODO: normal gap function is for alphas! CONTINUE WITH THIS
 
     // CONTINUE HERE

@@ -125,4 +125,20 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
     return currentFlowAcceptanceFactors;
   }
 
+  /**
+   * Access to the next storage capacity factors
+   * 
+   * @return storage capacity factors
+   */
+  public double[] getNextStorageCapacityFactors() {
+    return nextStorageCapacityFactors;
+  }
+
+  /**
+   * equate the current capacity factors to the next (reference update, no copy)
+   */
+  public void setCurrentStorageCapacityFactorsToNext() {
+    this.currentStorageCapacityFactors = nextStorageCapacityFactors;
+  }
+
 }

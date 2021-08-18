@@ -82,4 +82,11 @@ public class SendingFlowData extends LinkSegmentData {
     limitFlowsToCapacity(currentSendingFlowsPcuH, linkSegments);
   }
 
+  /**
+   * replace current sending flows by the next sending flows
+   */
+  public void setCurrentSendingFlowsToNext() {
+    this.currentSendingFlowsPcuH = this.nextSendingFlowsPcuH;
+  }
+
 }

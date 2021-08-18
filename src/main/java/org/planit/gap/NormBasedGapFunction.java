@@ -32,7 +32,7 @@ public class NormBasedGapFunction extends GapFunction {
    * @param idToken       to use for the generation of its id
    * @param stopCriterion StopCriterion object being used
    */
-  protected NormBasedGapFunction(final IdGroupingToken idToken, final StopCriterion stopCriterion) {
+  public NormBasedGapFunction(final IdGroupingToken idToken, final StopCriterion stopCriterion) {
     this(idToken, stopCriterion, DEFAULT_NORM, DEFAULT_AVERAGED);
   }
 
@@ -43,7 +43,7 @@ public class NormBasedGapFunction extends GapFunction {
    * @param stopCriterion StopCriterion object being used
    * @param norm          to use
    */
-  protected NormBasedGapFunction(final IdGroupingToken idToken, final StopCriterion stopCriterion, final int norm) {
+  public NormBasedGapFunction(final IdGroupingToken idToken, final StopCriterion stopCriterion, final int norm) {
     this(idToken, stopCriterion, norm, DEFAULT_AVERAGED);
   }
 
@@ -55,7 +55,7 @@ public class NormBasedGapFunction extends GapFunction {
    * @param norm          to use
    * @param averaged      to use
    */
-  protected NormBasedGapFunction(final IdGroupingToken idToken, final StopCriterion stopCriterion, final int norm, final boolean averaged) {
+  public NormBasedGapFunction(final IdGroupingToken idToken, final StopCriterion stopCriterion, final int norm, final boolean averaged) {
     super(idToken, stopCriterion);
     if (norm <= 1) {
       LOGGER.warning(String.format("Invalid norm, reset to default %d", norm));
@@ -111,9 +111,11 @@ public class NormBasedGapFunction extends GapFunction {
    */
   public double computeGap() {
     if (count <= 0) {
-      return MAX_GAP;
+      gap = MAX_GAP;
+    } else {
+      gap = (1.0 / count) * Math.pow(measuredValue, 1.0 / norm);
     }
-    return (1.0 / count) * Math.pow(measuredValue, 1.0 / norm);
+    return getGap();
   }
 
   /**
@@ -126,7 +128,30 @@ public class NormBasedGapFunction extends GapFunction {
   }
 
   /**
-   * Increase value by abs(value1-value2)^p. Note that every call to this method also increases the count
+   * Increase value by abs(value1-value2)^p, where p is the norm set. Note that every call to this method also increases the count
+   * 
+   * @param vector1 first value vector
+   * @param vector2 second value vector
+   */
+  public void increaseMeasuredValue(final double[] vector1, final double[] vector2) {
+    if (vector1.length != vector2.length) {
+      LOGGER.warning("Cannot compute increasedMEaseredValue of NormBasedGapFunction for two vectors when they are of different size");
+      return;
+    }
+
+    int length = vector1.length;
+    for (int index = 0; index < length; ++index) {
+      if (norm == 1) {
+        measuredValue += Math.abs(vector1[index] - vector2[index]);
+      } else {
+        measuredValue += Math.pow(vector1[index] - vector2[index], norm);
+      }
+    }
+    count += length;
+  }
+
+  /**
+   * Increase value by abs(value1-value2)^p, where p is the norm set. Note that every call to this method also increases the count
    * 
    * @param value1 first value
    * @param value2 second value
@@ -146,6 +171,7 @@ public class NormBasedGapFunction extends GapFunction {
   public void reset() {
     this.measuredValue = 0;
     this.count = 0;
+    this.gap = MAX_GAP;
   }
 
   /**

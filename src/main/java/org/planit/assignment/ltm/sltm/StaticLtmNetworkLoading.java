@@ -13,11 +13,14 @@ import org.ojalgo.structure.Access1D;
 import org.planit.algorithms.nodemodel.TampereNodeModel;
 import org.planit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.planit.algorithms.nodemodel.TampereNodeModelInput;
+import org.planit.gap.NormBasedGapFunction;
+import org.planit.gap.StopCriterion;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPaths;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.directed.DirectedVertex;
+import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.math.Precision;
 import org.planit.utils.misc.HashUtils;
 import org.planit.utils.mode.Mode;
@@ -66,6 +69,15 @@ public class StaticLtmNetworkLoading {
 
   /** internal iteration index for network loading */
   int networkLoadingIterationIndex;
+
+  /** the gap function to apply on global convergence update */
+  private final NormBasedGapFunction flowAcceptanceFapFunction;
+
+  /** the gap function to apply on sending flow update step */
+  private final NormBasedGapFunction sendingFlowGapFunction;
+
+  /** the gap function to apply on receiving flow update step */
+  private final NormBasedGapFunction receivingFlowGapFunction;
 
   /**
    * Validate provided constructor parameters
@@ -133,7 +145,7 @@ public class StaticLtmNetworkLoading {
    * 
    * @return acceptedTurnFlows (on potentially blocking nodes) where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
    */
-  private HashMap<Integer, Double> networkLoadingTurnInflowUpdate() {
+  private HashMap<Integer, Double> networkLoadingTurnFlowUpdate() {
     OdZones odZones = network.getZoning().odZones;
     double[] flowAcceptanceFactors = this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
 
@@ -203,7 +215,6 @@ public class StaticLtmNetworkLoading {
         }
       }
     }
-
   }
 
   /**
@@ -267,15 +278,38 @@ public class StaticLtmNetworkLoading {
   }
 
   /**
+   * Update (next) storage capacity factors, Eq. (11) using the next sending flows (representing the current inflows) and the current receiving flows.
+   * 
+   * We only update the factors for incoming links of potentially blocking nodes, because if the node is not potentially blocking the storage capacity factor multiplied by the flow
+   * capacity factor results in inflow divided by outflow which always equals to one, so no need to actively track it (do note that this requires to also apply this to the updates
+   * of flow capacity and flow acceptance factors, otherwise the combined result is inconsistent and can lead to serious issues in the outcomes)
+   */
+  private void updateNextStorageCapacityFactors() {
+    double[] nextStorageCapacityFactor = this.networkLoadingFactorData.getNextStorageCapacityFactors();
+    double[] inflows = this.sendingFlowData.getNextSendingFlows();
+    double[] receivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
+
+    int currentLinkSegmentId = -1;
+    for (DirectedVertex potentiallyBlockingNode : this.splittingRateData.getPotentiallyBlockingNodes()) {
+      for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
+        currentLinkSegmentId = (int) entryEdgeSegment.getId();
+        /* gamma_a = u_a/r_a */
+        nextStorageCapacityFactor[currentLinkSegmentId] = inflows[currentLinkSegmentId] / receivingFlows[currentLinkSegmentId];
+      }
+    }
+  }
+
+  /**
    * Constructor
    * 
+   * @param idToken   for id generation of internal entities
    * @param network   to run on
    * @param mode      to use
    * @param odPaths   that require loading
    * @param odDemands to apply for this loading, reflecting the total desired flows between the ODs for the given mode
    */
 
-  protected StaticLtmNetworkLoading(final TransportModelNetwork network, final Mode mode, final OdPaths odPaths, final OdDemands odDemands) {
+  protected StaticLtmNetworkLoading(IdGroupingToken idToken, final TransportModelNetwork network, final Mode mode, final OdPaths odPaths, final OdDemands odDemands) {
     validate(network, mode);
     this.network = network;
     this.mode = mode;
@@ -288,6 +322,10 @@ public class StaticLtmNetworkLoading {
     this.splittingRateData = new SplittingRateData();
     this.networkLoadingFactorData = new NetworkLoadingFactorData(referenceEmptyArray);
     this.odPaths = odPaths;
+
+    this.flowAcceptanceFapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
+    this.sendingFlowGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
+    this.receivingFlowGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
   }
 
   //@formatter:off
@@ -335,14 +373,15 @@ public class StaticLtmNetworkLoading {
    */
   public void stepOneSplittingRatesUpdate() {
     /* 1. Update turn inflows via network loading Eq. (3) */
-    HashMap<Integer, Double> acceptedTurnFlows = networkLoadingTurnInflowUpdate();
+    HashMap<Integer, Double> acceptedTurnFlows = networkLoadingTurnFlowUpdate();
     /* update splitting rates Eq. (6),(4) */
     updateNextSplittingRates(acceptedTurnFlows);
+    
     /* TODO:
      * in case we do smoothing, it can be applied directly to the splitting rates per node such that
      * there is no need for a full copy of the entire splitting rate data (create per node/entry link local copy
      * of existing splitting rates, then compute new ones, and apply smoothing on the two, before moving to the next
-     * entry link */
+     * entry link */    
   }  
   
   //@formatter:off
@@ -358,13 +397,35 @@ public class StaticLtmNetworkLoading {
    * 6. Update smoothed storage capacity factors, Eq. (14)
    */
   public void stepTwoSendingFlowUpdate() {
-    /* 1. Update node model to compute new inflows, Eq. (5)
-     * 2. Update next sending flows via inflows, Eq. (7) */
-    this.sendingFlowData.resetNextSendingFlows();
-    performNodeModelUpdate(new UpdateNextSendingFlowsConsumer(this.sendingFlowData.getNextSendingFlows()));
+    int sendingFlowIterationIndex = 0;
+    double sendingFlowGap = this.sendingFlowGapFunction.getGap();
     
-    /*3. Compute gap between current and next sending flows, then update sending flows to next sending flows */
+    do {
+      /* 4b, when not converged update current sending flows to next sending flows */
+      this.sendingFlowData.setCurrentSendingFlowsToNext();
+      this.sendingFlowData.resetNextSendingFlows();
+      
+      /* 1. Update node model to compute new inflows, Eq. (5)
+       * 2. Update next sending flows via inflows, Eq. (7) */
+      performNodeModelUpdate(new UpdateNextSendingFlowsConsumer(this.sendingFlowData.getNextSendingFlows()));
+      
+      /*3. Compute gap between current and next sending flows, then update sending flows to next sending flows */
+      this.sendingFlowGapFunction.reset();
+      this.sendingFlowGapFunction.increaseMeasuredValue(this.sendingFlowData.getNextSendingFlows(), this.sendingFlowData.getCurrentSendingFlows());
+      sendingFlowGap = this.sendingFlowGapFunction.computeGap();
+      
+      /* 4 If converged continue, otherwise continue go back to Step 2-(1). */
+    }while(!this.sendingFlowGapFunction.getStopCriterion().hasConverged(sendingFlowGap, sendingFlowIterationIndex++));
+    this.sendingFlowGapFunction.reset();
     
+    /* Update storage capacity factors, Eq. (11) */
+    updateNextStorageCapacityFactors();
+    
+    /* TODO:
+     * in case we do smoothing, it can be applied directly to the capacity factor per node such that
+     * there is no need for a full copy of the entire factor data (create per node/entry link local copy)*/
+    this.networkLoadingFactorData.setCurrentStorageCapacityFactorsToNext();
+    this.networkLoadingFactorData.resetNextStorageCapacityFactors();    
   }   
   
   //@formatter:off
