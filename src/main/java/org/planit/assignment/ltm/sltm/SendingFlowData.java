@@ -85,7 +85,7 @@ public class SendingFlowData extends LinkSegmentData {
   /**
    * replace current sending flows by the next sending flows
    */
-  public void setCurrentSendingFlowsToNext() {
+  public void setNextSendingFlowsAsCurrent() {
     this.currentSendingFlowsPcuH = this.nextSendingFlowsPcuH;
   }
 

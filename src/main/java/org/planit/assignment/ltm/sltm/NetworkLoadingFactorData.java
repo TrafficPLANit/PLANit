@@ -126,6 +126,24 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
   }
 
   /**
+   * Access to the current flow capacity factors
+   * 
+   * @return flow capacity factors
+   */
+  public double[] getCurrentFlowCapacityFactors() {
+    return this.currentFlowCapacityFactors;
+  }
+
+  /**
+   * Access to the current storage capacity factors
+   * 
+   * @return storage capacity factors
+   */
+  public double[] getCurrentStorageCapacityFactors() {
+    return this.currentStorageCapacityFactors;
+  }
+
+  /**
    * Access to the next storage capacity factors
    * 
    * @return storage capacity factors
@@ -135,10 +153,35 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
   }
 
   /**
-   * equate the current capacity factors to the next (reference update, no copy)
+   * Access to the next flow acceptance factors
+   * 
+   * @return flow acceptance factors
    */
-  public void setCurrentStorageCapacityFactorsToNext() {
+  public double[] getNextFlowAcceptanceFactors() {
+    return this.nextFlowAcceptanceFactors;
+  }
+
+  /**
+   * Access to the next flow capacity factors
+   * 
+   * @return flow capacity factors
+   */
+  public double[] getNextFlowCapacityFactors() {
+    return this.nextFlowCapacityFactors;
+  }
+
+  /**
+   * equate the current storage capacity factors to the next (reference update, no copy)
+   */
+  public void setNextStorageCapacityFactorsAsCurrent() {
     this.currentStorageCapacityFactors = nextStorageCapacityFactors;
+  }
+
+  /**
+   * equate the current flow capacity factors to the next (reference update, no copy)
+   */
+  public void setNextFlowCapacityFactorsAsCurrent() {
+    this.currentFlowCapacityFactors = nextFlowCapacityFactors;
   }
 
 }

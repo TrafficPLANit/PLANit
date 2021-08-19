@@ -82,4 +82,11 @@ public class ReceivingFlowData extends LinkSegmentData {
     limitFlowsToCapacity(nextReceivingFlowsPcuH, linkSegments);
   }
 
+  /**
+   * Set the current receiving flows to be the next receiving flows (Reference update)
+   */
+  public void setNextReceivingFlowsAsCurrent() {
+    this.currentReceivingFlowsPcuH = this.nextReceivingFlowsPcuH;
+  }
+
 }

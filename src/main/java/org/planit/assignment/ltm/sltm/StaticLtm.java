@@ -47,6 +47,9 @@ public class StaticLtm extends LtmAssignment {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtm.class.getCanonicalName());
 
+  /** flag indicating whether or not to take link storage constraints into consideration, i.e. have a point queue or a physical queuing model */
+  private boolean disableLinkStorageConstraints;
+
   /**
    * Create the od paths based on provided costs. Only create paths for od pairs with non-zero flow.
    * 
@@ -122,22 +125,15 @@ public class StaticLtm extends LtmAssignment {
       LOGGER.warning(String.format("sLTM only supports a single mode for now, found %s, aborting assignment for time period %s", timePeriod.getXmlId()));
       return;
     }
+    int iterationIndex = 0;
     Mode theMode = modes.iterator().next();
     StaticLtmNetworkLoading networkLoading = initialiseTimePeriod(timePeriod, theMode, this.demands.get(theMode, timePeriod));
-    // TODO: normal gap function is for alphas! CONTINUE WITH THIS
-
-    // CONTINUE HERE
-    // 1. network loading has no demands yet, needed for loading
-    // 2. continue with initialisation (step 0)
-    // 3. add test for free flow physical cost component
-    // 4. add documentation for free flow physical cost + python support
 
     /* STEP 0 - Initialisation */
     networkLoading.stepZeroInitialisation();
 
     /* for now we do not consider path choice, we conduct a one-shot all-or-nothing network loading */
-    boolean networkLoadingConverged = false;
-    while (!networkLoadingConverged) {
+    do {
 
       /* STEP 1 - Splitting rates update before sending flow update */
       networkLoading.stepOneSplittingRatesUpdate();
@@ -152,8 +148,7 @@ public class StaticLtm extends LtmAssignment {
       networkLoading.stepFourReceivingFlowUpdate();
 
       /* STEP 5 - Network loading convergence */
-      networkLoadingConverged = networkLoading.stepFiveCheckNetworkLoadingConvergence();
-    }
+    } while (!networkLoading.stepFiveCheckNetworkLoadingConvergence(iterationIndex++));
   }
 
   /**
@@ -235,6 +230,26 @@ public class StaticLtm extends LtmAssignment {
   @Override
   public StaticLtm clone() {
     return new StaticLtm(this);
+  }
+
+  // GETTERS/SETTERS
+
+  /**
+   * Verify to enable link storage constraints or not
+   * 
+   * @return true when enabled, false otherwise
+   */
+  public boolean isDisableLinkStorageConstraints() {
+    return disableLinkStorageConstraints;
+  }
+
+  /**
+   * Set the flag indicating link storage constraints are active or not
+   * 
+   * @param flag when true activate, when false disable
+   */
+  public void setDisableLinkStorageConstraints(boolean flag) {
+    this.disableLinkStorageConstraints = flag;
   }
 
 }

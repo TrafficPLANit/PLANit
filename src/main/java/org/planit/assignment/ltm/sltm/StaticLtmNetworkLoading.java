@@ -27,6 +27,7 @@ import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
+import org.planit.utils.network.layer.physical.Node;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.OdZones;
@@ -267,7 +268,7 @@ public class StaticLtmNetworkLoading {
 
         /* delegate to consumer if any */
         if (consumer != null) {
-          consumer.accept(potentiallyBlockingNode, localFlowAcceptanceFactor, nodeModel);
+          consumer.accept((Node) potentiallyBlockingNode, localFlowAcceptanceFactor, nodeModel);
         }
 
       } catch (Exception e) {
@@ -285,6 +286,7 @@ public class StaticLtmNetworkLoading {
    * of flow capacity and flow acceptance factors, otherwise the combined result is inconsistent and can lead to serious issues in the outcomes)
    */
   private void updateNextStorageCapacityFactors() {
+    this.networkLoadingFactorData.resetNextStorageCapacityFactors();
     double[] nextStorageCapacityFactor = this.networkLoadingFactorData.getNextStorageCapacityFactors();
     double[] inflows = this.sendingFlowData.getNextSendingFlows();
     double[] receivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
@@ -295,6 +297,52 @@ public class StaticLtmNetworkLoading {
         currentLinkSegmentId = (int) entryEdgeSegment.getId();
         /* gamma_a = u_a/r_a */
         nextStorageCapacityFactor[currentLinkSegmentId] = inflows[currentLinkSegmentId] / receivingFlows[currentLinkSegmentId];
+      }
+    }
+  }
+
+  /**
+   * Update (next) flow acceptance factors, Eq. (9) using the current storage capacity and current flow capacity factors.
+   * 
+   * We only update the factors for incoming links of potentially blocking nodes, because if the node is not potentially blocking the flow acceptance factor is known to be 1 and
+   * won't change throughout the loading
+   */
+  private void updateNextFlowAcceptanceFactors() {
+    this.networkLoadingFactorData.resetNextFlowAcceptanceFactors();
+    double[] nextFlowAcceptanceFactors = this.networkLoadingFactorData.getNextFlowAcceptanceFactors();
+    double[] currentFlowCapacityFactors = this.networkLoadingFactorData.getCurrentFlowCapacityFactors();
+    double[] currentStorageCapacityFactors = this.networkLoadingFactorData.getCurrentStorageCapacityFactors();
+
+    int currentLinkSegmentId = -1;
+    for (DirectedVertex potentiallyBlockingNode : this.splittingRateData.getPotentiallyBlockingNodes()) {
+      for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
+        currentLinkSegmentId = (int) entryEdgeSegment.getId();
+        /* alpha_a = beta_a^i-1 / gamma_a^i */
+        nextFlowAcceptanceFactors[currentLinkSegmentId] = currentFlowCapacityFactors[currentLinkSegmentId] / currentStorageCapacityFactors[currentLinkSegmentId];
+      }
+    }
+  }
+
+  /**
+   * Update (next) flow capacity factors, Eq. (10) using the next receiving flows and the current accepted outflows.
+   * 
+   * We only update the factors for incoming links of potentially blocking nodes, because if the node is not potentially blocking the storage capacity factor multiplied by the flow
+   * capacity factor results in inflow divided by outflow which always equals to one, so no need to actively track it (do note that this requires to also apply this to the updates
+   * of storage capacity and flow acceptance factors, otherwise the combined result is inconsistent and can lead to serious issues in the outcomes)
+   * 
+   * @param linkSegmentOutFlows to use, e.g. v_a.
+   */
+  private void updateNextFlowCapacityFactors(final double[] linkSegmentOutFlows) {
+    this.networkLoadingFactorData.resetNextFlowCapacityFactors();
+    double[] nextFlowCapacityFactors = this.networkLoadingFactorData.getNextFlowCapacityFactors();
+    double[] receivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
+
+    int currentLinkSegmentId = -1;
+    for (DirectedVertex potentiallyBlockingNode : this.splittingRateData.getPotentiallyBlockingNodes()) {
+      for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
+        currentLinkSegmentId = (int) entryEdgeSegment.getId();
+        /* beta_a = v_a/r_a */
+        nextFlowCapacityFactors[currentLinkSegmentId] = linkSegmentOutFlows[currentLinkSegmentId] / receivingFlows[currentLinkSegmentId];
       }
     }
   }
@@ -341,8 +389,7 @@ public class StaticLtmNetworkLoading {
    */
   public void stepZeroInitialisation() {
     MacroscopicLinkSegments linkSegments = ((MacroscopicNetworkLayer) this.network.getInfrastructureNetwork().getLayerByMode(mode)).getLinkSegments();
-  
-    
+      
     /* 1. Initial acceptance flow, capacity, and storage factors, all set to one */
     networkLoadingFactorData.initialiseAll(1.0);
     
@@ -381,7 +428,7 @@ public class StaticLtmNetworkLoading {
      * in case we do smoothing, it can be applied directly to the splitting rates per node such that
      * there is no need for a full copy of the entire splitting rate data (create per node/entry link local copy
      * of existing splitting rates, then compute new ones, and apply smoothing on the two, before moving to the next
-     * entry link */    
+     * entry link -> SEE NOTE IN PAPER ON TRACKING PREVIOUS SPLITTING RATES PER TYPE OF UPDATE*/    
   }  
   
   //@formatter:off
@@ -402,7 +449,7 @@ public class StaticLtmNetworkLoading {
     
     do {
       /* 4b, when not converged update current sending flows to next sending flows */
-      this.sendingFlowData.setCurrentSendingFlowsToNext();
+      this.sendingFlowData.setNextSendingFlowsAsCurrent();
       this.sendingFlowData.resetNextSendingFlows();
       
       /* 1. Update node model to compute new inflows, Eq. (5)
@@ -424,8 +471,7 @@ public class StaticLtmNetworkLoading {
     /* TODO:
      * in case we do smoothing, it can be applied directly to the capacity factor per node such that
      * there is no need for a full copy of the entire factor data (create per node/entry link local copy)*/
-    this.networkLoadingFactorData.setCurrentStorageCapacityFactorsToNext();
-    this.networkLoadingFactorData.resetNextStorageCapacityFactors();    
+    this.networkLoadingFactorData.setNextStorageCapacityFactorsAsCurrent();    
   }   
   
   //@formatter:off
@@ -441,7 +487,21 @@ public class StaticLtmNetworkLoading {
    * 5. Estimate new multiplication factor used in Step 4, Eq. (16),(17)
    */
   public void stepThreeSplittingRateUpdate() {
-    //TODO
+    
+    /* 1. Update intermediate flow acceptance factors, Eq. (9) */
+    updateNextFlowAcceptanceFactors();
+    
+    /* 2. Update inflows via network loading, Eq. (3) */
+    HashMap<Integer, Double> acceptedTurnFlows = networkLoadingTurnFlowUpdate();
+    
+    /* 3. update splitting rates Eq. (6),(4) */
+    updateNextSplittingRates(acceptedTurnFlows);    
+    
+    /* TODO:
+     * in case we do smoothing, it can be applied directly to the splitting rates per node such that
+     * there is no need for a full copy of the entire splitting rate data (create per node/entry link local copy
+     * of existing splitting rates, then compute new ones, and apply smoothing on the two, before moving to the next
+     * entry link  -> SEE NOTE IN PAPER ON TRACKING PREVIOUS SPLITTING RATES PER TYPE OF UPDATE*/    
   }  
   
   /**
@@ -450,26 +510,64 @@ public class StaticLtmNetworkLoading {
    * (Extension B)
    * 3. Transform to nudged receiving flows using multiplication factor, Eq. (18)
    * (end Extension B)
-   * 4. Compute gap then set next receicing flows to current receiving flows   
+   * 4. Compute gap then set next receiving flows to current receiving flows   
    * 5. If converged continue, else go back to Step 4-(1).
-   * 6. Update link capacity factors, Eq. (10)
+   * 6. Update flow capacity factors, Eq. (10)
    * (Extension C)
-   * 7. Update smoothed link capacity factors, Eq. (14)
+   * 7. Update smoothed flow capacity factors, Eq. (14)
    */
   public void stepFourReceivingFlowUpdate() {
-    //TODO
+    int receivingFlowIterationIndex = 0;
+    double receivingFlowGap = this.receivingFlowGapFunction.getGap();
+    
+    /* track v_a to be able to compute step 4.6 when converged */
+    double[] acceptedOutflows = new double[this.network.getTotalNumberOfEdgeSegments()];
+    do {
+      /* 4b, when not converged update r^i-1 = r^i */
+      this.receivingFlowData.setNextReceivingFlowsAsCurrent();
+      this.receivingFlowData.resetNextReceivingFlows();
+      
+      /* 1. Update node model to compute new inflows, Eq. (5)
+       * 2. Update next receiving flows via inflows, Eq. (7) + track accepted outflows as well */
+      performNodeModelUpdate(new UpdateNextReceivingFlowsConsumer(this.receivingFlowData.getNextReceivingFlows(), acceptedOutflows));
+      
+      /*3. Compute gap between current and next sending receiving flows, then update receiving flows to next receiving flows */
+      this.receivingFlowGapFunction.reset();
+      this.receivingFlowGapFunction.increaseMeasuredValue(this.receivingFlowData.getNextReceivingFlows(), this.receivingFlowData.getCurrentReceivingFlows());
+      receivingFlowGap = this.receivingFlowGapFunction.computeGap();
+      
+      /* 4 If converged continue, otherwise continue go back to Step 4-(1). */
+    }while(!this.receivingFlowGapFunction.getStopCriterion().hasConverged(receivingFlowGap, receivingFlowIterationIndex++));
+    this.receivingFlowGapFunction.reset();
+    
+    /* 6. Update flow capacity factors, beta_a = v_a/r_a as per Eq. (10) */
+    updateNextFlowCapacityFactors(acceptedOutflows);
+    
+    /* TODO:
+     * in case we do smoothing, it can be applied directly to the capacity factor per node such that
+     * there is no need for a full copy of the entire factor data (create per node/entry link local copy)*/
+    this.networkLoadingFactorData.setNextFlowCapacityFactorsAsCurrent();  
   }
 
   /**
    * 1. Update flow acceptance factors, Eq. (9)
    * 2. Compute gap using flow acceptance factors,  
-   * 3. Increment iteration index,  
-   * 4. If converged done, else go back to Step 1.
+   * 3. Increment iteration index,  (to be done by caller)
+   * 4. If converged done, else go back to Step 1. (to be done by caller)
    * 
+   * @param networkLoadingIteration at hand
    * @return true when converged, false otherwise
    */
-  public boolean stepFiveCheckNetworkLoadingConvergence() {
-    //TODO
-    return false;
+  public boolean stepFiveCheckNetworkLoadingConvergence(int networkLoadingIteration) {
+    
+    /* 1. Update flow acceptance factors, Eq. (9) */
+    updateNextFlowAcceptanceFactors();
+    
+    /*3. Compute gap between current and next flow acceptance factors*/
+    this.flowAcceptanceFapFunction.reset();
+    this.flowAcceptanceFapFunction.increaseMeasuredValue(this.networkLoadingFactorData.getNextFlowAcceptanceFactors(), this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors());
+    double globalGap = this.flowAcceptanceFapFunction.computeGap();    
+    
+    return this.flowAcceptanceFapFunction.getStopCriterion().hasConverged(globalGap, networkLoadingIteration);
   }
 }
