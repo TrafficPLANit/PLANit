@@ -23,6 +23,7 @@ import org.planit.component.event.PopulateServiceNetworkEvent;
 import org.planit.component.event.PopulateZoningEvent;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
+import org.planit.cost.physical.FreeFlowLinkTravelTimeCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
@@ -114,6 +115,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(MacroscopicNetwork.class);
     registerPlanitComponentType(ServiceNetwork.class);
     registerPlanitComponentType(BPRLinkTravelTimeCost.class);
+    registerPlanitComponentType(FreeFlowLinkTravelTimeCost.class);
     registerPlanitComponentType(InitialLinkSegmentCost.class);
     registerPlanitComponentType(InitialLinkSegmentCostPeriod.class);
     registerPlanitComponentType(FixedConnectoidTravelTimeCost.class);
@@ -138,7 +140,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
   private T createTrafficComponent(final String planitComponentClassName, final Object[] constructorParameters) throws PlanItException {
     final TreeSet<String> eligibleComponentTypes = registeredPlanitComponents.get(componentSuperTypeCanonicalName);
     PlanItException.throwIf(eligibleComponentTypes == null || !eligibleComponentTypes.contains(planitComponentClassName),
-        "provided PLANit Component class is not eligible for construction");
+        "Provided PLANit Component class %s is not eligible for construction", planitComponentClassName != null ? planitComponentClassName : "");
 
     Object instance = ReflectionUtils.createInstance(planitComponentClassName, constructorParameters);
     PlanItException.throwIf(!(instance instanceof PlanitComponent<?>), "provided factory class is not eligible for construction since it is not derived from PLANitComponent<?>");
@@ -309,9 +311,12 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
   /**
    * Add a listener for all its known supported PLANit component event types
    * 
-   * @param listener to register
+   * @param listener to register, when null nothing is registered
    */
   public void addListener(PlanitComponentListener listener) {
+    if (listener == null) {
+      return;
+    }
     super.addListener(listener);
   }
 

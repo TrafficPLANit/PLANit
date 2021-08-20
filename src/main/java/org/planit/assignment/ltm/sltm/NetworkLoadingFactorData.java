@@ -92,14 +92,14 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
    * Reset the storage capacity factors for the coming iteration (gammas)
    */
   public void resetNextStorageCapacityFactors() {
-    nextFlowCapacityFactors = this.createEmptyLinkSegmentDoubleArray();
+    nextStorageCapacityFactors = this.createEmptyLinkSegmentDoubleArray();
   }
 
   /**
    * Reset current storage capacity factors (gammas)
    */
   public void resetCurrentStorageCapacityFactors() {
-    currentFlowCapacityFactors = this.createEmptyLinkSegmentDoubleArray();
+    currentStorageCapacityFactors = this.createEmptyLinkSegmentDoubleArray();
   }
 
   /**

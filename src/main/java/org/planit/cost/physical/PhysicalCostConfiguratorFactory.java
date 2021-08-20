@@ -13,7 +13,7 @@ public class PhysicalCostConfiguratorFactory {
   /**
    * Create a configurator for given physical cost type
    * 
-   * @param physicalCostType   type of assignment the builder is created for
+   * @param physicalCostType type of assignment the builder is created for
    * @return the created configurator
    * @throws PlanItException thrown if error
    */
@@ -21,8 +21,11 @@ public class PhysicalCostConfiguratorFactory {
 
     if (physicalCostType.equals(AbstractPhysicalCost.BPR)) {
       return new BPRConfigurator();
+    } else if (physicalCostType.equals(AbstractPhysicalCost.FREEFLOW)) {
+      return new FreeFlowLinkTravelTimeConfigurator();
     } else {
-      throw new PlanItException(String.format("unable to construct configurator for given physicalCostType %s", physicalCostType));
+      // TODO when not explicitly available try to instantiate using passed in string and reflection instead
+      throw new PlanItException(String.format("Unable to construct configurator for given physicalCostType %s", physicalCostType));
     }
   }
 }

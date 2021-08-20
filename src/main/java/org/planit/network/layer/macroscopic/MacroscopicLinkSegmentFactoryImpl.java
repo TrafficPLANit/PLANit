@@ -5,6 +5,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentFactory;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.planit.utils.network.layer.physical.Link;
 
@@ -48,6 +49,16 @@ public class MacroscopicLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<Ma
       parentLink.getVertexB().addEdgeSegment(macroscopicLinkSegment);
     }
     return macroscopicLinkSegment;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegment registerNew(Link parentLink, MacroscopicLinkSegmentType type, boolean directionAb, boolean registerOnNodeAndLink) throws PlanItException {
+    MacroscopicLinkSegment linkSegment = registerNew(parentLink, directionAb, registerOnNodeAndLink);
+    linkSegment.setLinkSegmentType(type);
+    return linkSegment;
   }
 
 }

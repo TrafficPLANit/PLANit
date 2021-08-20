@@ -271,8 +271,6 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   /**
    * Register the BPR cost parameter values on the PhysicalNetwork
    *
-   * Call this method after all the calls to set the cost parameters have been made
-   *
    * @param network network object containing the updated parameter values
    * @throws PlanItException thrown if error
    */
@@ -291,7 +289,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     ArrayUtils.loopAll(freeFlowTravelTimePerLinkSegment, (modeId, linkSegmentId) -> freeFlowTravelTimePerLinkSegment[modeId][linkSegmentId] = networkLayer.getLinkSegments()
         .get(linkSegmentId).computeFreeFlowTravelTime(network.getModes().get(modeId)));
 
-    /* explicitly set bpr parameters for each mode/segment combination */
+    /* explicitly set BPR parameters for each mode/segment combination */
     bprParametersPerLinkSegment = new BPRParameters[(int) networkLayer.getLinkSegments().size()];
     for (final MacroscopicLinkSegment macroscopicLinkSegment : networkLayer.getLinkSegments()) {
       final int id = (int) macroscopicLinkSegment.getId();

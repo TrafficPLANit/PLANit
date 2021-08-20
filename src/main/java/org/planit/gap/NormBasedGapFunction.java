@@ -57,7 +57,7 @@ public class NormBasedGapFunction extends GapFunction {
    */
   public NormBasedGapFunction(final IdGroupingToken idToken, final StopCriterion stopCriterion, final int norm, final boolean averaged) {
     super(idToken, stopCriterion);
-    if (norm <= 1) {
+    if (norm < 1) {
       LOGGER.warning(String.format("Invalid norm, reset to default %d", norm));
       this.norm = DEFAULT_NORM;
     } else {

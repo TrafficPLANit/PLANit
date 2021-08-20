@@ -141,8 +141,11 @@ public abstract class TrafficAssignment extends NetworkLoading {
   protected void checkForEmptyComponents() throws PlanItException {
     PlanItException.throwIf(demands == null, "Demand is null");
     PlanItException.throwIf(network == null, "Network is null");
-    PlanItException.throwIf(smoothing == null, "Smoothing is null");
     PlanItException.throwIf(zoning == null, "Zoning is null");
+    PlanItException.throwIf(smoothing == null, "Smoothing is null");
+    PlanItException.throwIf(gapFunction == null, "GapFunction is null");
+    PlanItException.throwIf(physicalCost == null, "PhysicalCost is null");
+    PlanItException.throwIf(virtualCost == null, "VirtualCost is null");
   }
 
   /**
@@ -183,6 +186,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
     this.numberOfNetworkVertices = (int) getTransportNetwork().getTotalNumberOfVertices();
   }
 
+  // Public
+
+  // Public abstract methods
+
   /**
    * detach the virtual and physical transport network again
    * 
@@ -213,6 +220,13 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
+   * Run equilibration after resources initialized, including saving results
+   *
+   * @throws PlanItException thrown if there is an error
+   */
+  protected abstract void executeEquilibration() throws PlanItException;
+
+  /**
    * Finalize all relevant traffic assignment components after execution of the assignment has ended
    * 
    * @throws PlanItException thrown if there is an error
@@ -234,6 +248,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   // Public
+
+  // Public abstract methods
 
   /** short hand to choose traditional static assignment as assignment type */
   public static String TRADITIONAL_STATIC_ASSIGNMENT = TraditionalStaticAssignment.class.getCanonicalName();
@@ -278,6 +294,10 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
   // Public abstract methods
 
+  // Public
+
+  // Public abstract methods
+
   /**
    * Create the output type adapter for the current output type, specifically tailored towards the assignment type that we are builing
    *
@@ -285,13 +305,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @return the output type adapter corresponding to the current traffic assignment and output type
    */
   public abstract OutputTypeAdapter createOutputTypeAdapter(OutputType outputType);
-
-  /**
-   * Run equilibration after resources initialized, including saving results
-   *
-   * @throws PlanItException thrown if there is an error
-   */
-  public abstract void executeEquilibration() throws PlanItException;
 
   /**
    * Collect the current iteration index of the simulation

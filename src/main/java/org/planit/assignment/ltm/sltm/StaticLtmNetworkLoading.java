@@ -81,18 +81,28 @@ public class StaticLtmNetworkLoading {
   private final NormBasedGapFunction receivingFlowGapFunction;
 
   /**
-   * Validate provided constructor parameters
+   * Validate all constructor parameters
    * 
-   * @param network to validate
-   * @param mode    to validate
    */
-  private void validate(TransportModelNetwork network, Mode mode) {
+  private void validate() {
+    if (mode == null) {
+      throw new IllegalArgumentException("Mode for sLTM network loading is null");
+    }
+
     if (network == null || network.getInfrastructureNetwork() == null || network.getInfrastructureNetwork().getLayerByMode(mode) == null) {
       throw new IllegalArgumentException(" network or network layer or mode of network layer not available for static LTM network loading");
     }
 
     if (!(network.getInfrastructureNetwork().getLayerByMode(mode) instanceof MacroscopicNetworkLayer)) {
       throw new IllegalArgumentException(String.format("Network layer for mode %s not of compatible type, expected MacroscopicNetworkLayer", mode.getXmlId()));
+    }
+
+    if (odDemands == null) {
+      throw new IllegalArgumentException("OdDemands for sLTM network loading are null");
+    }
+
+    if (odPaths == null) {
+      throw new IllegalArgumentException("OdPaths for sLTM network loading are null");
     }
   }
 
@@ -358,10 +368,11 @@ public class StaticLtmNetworkLoading {
    */
 
   protected StaticLtmNetworkLoading(IdGroupingToken idToken, final TransportModelNetwork network, final Mode mode, final OdPaths odPaths, final OdDemands odDemands) {
-    validate(network, mode);
     this.network = network;
     this.mode = mode;
     this.odDemands = odDemands;
+    this.odPaths = odPaths;
+    validate();
 
     MacroscopicNetworkLayer networkLayer = (MacroscopicNetworkLayer) network.getInfrastructureNetwork().getLayerByMode(mode);
     double[] referenceEmptyArray = new double[networkLayer.getLinkSegments().size()];
@@ -369,7 +380,6 @@ public class StaticLtmNetworkLoading {
     this.receivingFlowData = new ReceivingFlowData(referenceEmptyArray);
     this.splittingRateData = new SplittingRateData();
     this.networkLoadingFactorData = new NetworkLoadingFactorData(referenceEmptyArray);
-    this.odPaths = odPaths;
 
     this.flowAcceptanceFapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
     this.sendingFlowGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());

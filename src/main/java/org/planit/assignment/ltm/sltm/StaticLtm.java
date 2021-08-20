@@ -77,6 +77,10 @@ public class StaticLtm extends LtmAssignment {
         Double currOdDemand = odDemand.getValue(origin, destination);
         if (currOdDemand != null && currOdDemand > 0) {
           DirectedPath path = oneToAllResult.createPath(pathFactory, origin.getCentroid(), destination.getCentroid());
+          if (path == null) {
+            LOGGER.warning(String.format("Unable to create path for OD (%s,%s) with non-zero demand (%.2f)", origin.getXmlId(), destination.getXmlId(), currOdDemand));
+            continue;
+          }
           odPaths.setValue(origin, destination, path);
         }
       }
@@ -172,37 +176,10 @@ public class StaticLtm extends LtmAssignment {
   }
 
   /**
-   * Constructor
-   * 
-   * @param groupId contiguous id generation within this group for instances of this class
-   */
-  protected StaticLtm(IdGroupingToken groupId) {
-    super(groupId);
-  }
-
-  /**
-   * Copy Constructor
-   * 
-   * @param sltm to copy
-   */
-  protected StaticLtm(StaticLtm sltm) {
-    super(sltm);
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
-  public OutputTypeAdapter createOutputTypeAdapter(OutputType outputType) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void executeEquilibration() throws PlanItException {
+  protected void executeEquilibration() throws PlanItException {
     // perform assignment per period
     final Collection<TimePeriod> timePeriods = demands.timePeriods.asSortedSetByStartTime();
     LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "total time periods: " + timePeriods.size());
@@ -213,6 +190,33 @@ public class StaticLtm extends LtmAssignment {
       executeTimePeriod(timePeriod, demands.getRegisteredModesForTimePeriod(timePeriod));
       LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
     }
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
+   */
+  public StaticLtm(IdGroupingToken groupId) {
+    super(groupId);
+  }
+
+  /**
+   * Copy Constructor
+   * 
+   * @param sltm to copy
+   */
+  public StaticLtm(StaticLtm sltm) {
+    super(sltm);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OutputTypeAdapter createOutputTypeAdapter(OutputType outputType) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
   /**

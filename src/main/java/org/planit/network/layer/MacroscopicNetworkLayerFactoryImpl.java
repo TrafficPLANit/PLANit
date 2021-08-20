@@ -1,8 +1,11 @@
 package org.planit.network.layer;
 
+import java.util.Arrays;
+
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layers.MacroscopicNetworkLayerFactory;
 import org.planit.utils.network.layers.MacroscopicNetworkLayers;
@@ -44,6 +47,16 @@ public class MacroscopicNetworkLayerFactoryImpl extends ManagedIdEntityFactoryIm
   public MacroscopicNetworkLayer registerNew() {
     MacroscopicNetworkLayer newLayer = new MacroscopicNetworkLayerImpl(this.getIdGroupingToken());
     container.register(newLayer);
+    return newLayer;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicNetworkLayer registerNew(Mode... supportedModes) {
+    MacroscopicNetworkLayer newLayer = registerNew();
+    newLayer.registerSupportedModes(Arrays.asList(supportedModes));
     return newLayer;
   }
 

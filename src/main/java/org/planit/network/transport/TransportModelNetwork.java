@@ -128,8 +128,8 @@ public class TransportModelNetwork {
    * @throws PlanItException thrown if there is an error
    */
   public void integrateTransportNetworkViaConnectoids() throws PlanItException {
-    LOGGER.info(String.format("Integrating physical network %d (xml id %s) with zoning %d (XML id %s)", infrastructureNetwork.getId(), infrastructureNetwork.getXmlId(),
-        zoning.getId(), zoning.getXmlId()));
+    LOGGER.info(String.format("Integrating physical network %d (xml id %s) with zoning %d (XML id %s)", infrastructureNetwork.getId(),
+        infrastructureNetwork.getXmlId() != null ? infrastructureNetwork.getXmlId() : "N/A", zoning.getId(), zoning.getXmlId() != null ? zoning.getXmlId() : "N/A"));
 
     VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
     ConnectoidEdgeFactory connectoidEdgeFactory = virtualNetwork.getConnectoidEdges().getFactory();

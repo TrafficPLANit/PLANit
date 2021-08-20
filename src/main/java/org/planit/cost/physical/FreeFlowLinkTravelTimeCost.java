@@ -1,5 +1,6 @@
 package org.planit.cost.physical;
 
+import org.planit.network.MacroscopicNetwork;
 import org.planit.network.TransportLayerNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
@@ -56,7 +57,7 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
   }
 
   /**
-   * populate the cost array with the BPR link travel times for all link segments for the specified mode
+   * Populate the cost array with the free flow link travel times for all link segments for the specified mode
    * 
    * @param mode       the mode to use
    * @param costToFill the cost to populate (in hours)
@@ -82,7 +83,10 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
    */
   @Override
   public void initialiseBeforeSimulation(TransportLayerNetwork<?, ?> network) throws PlanItException {
-    // do nothing
+    PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "Free flow  travel time cost is only compatible with macroscopic networks");
+    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
+    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1, "Free flow travel time cost is currently only compatible with networks using a single infrastructure layer");
+    this.networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
   }
 
 }

@@ -13,9 +13,9 @@ import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.enums.OutputType;
 import org.planit.output.formatter.OutputFormatter;
-import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Base class for output writers containing basic functionality regarding all things output
@@ -123,11 +123,11 @@ public class OutputManager {
    */
   public void registerOutputTypeAdapter(OutputTypeAdapter outputTypeAdapter) {
     if (outputAdapter == null) {
-      LOGGER.warning(String.format("output adapter not available to register type on, ignored regeistration of %s instance", outputTypeAdapter.getClass().getCanonicalName()));
+      LOGGER.warning(String.format("Output adapter not available to register type on, ignored regeistration of %s instance", outputTypeAdapter.getClass().getCanonicalName()));
       return;
     }
     if (outputTypeAdapter == null) {
-      LOGGER.warning("output type adapter that is registered is null, ignored");
+      LOGGER.warning("Output type adapter that is registered is null, ignored");
       return;
     }
     outputAdapter.registerOutputTypeAdapter(outputTypeAdapter.getOutputType(), outputTypeAdapter);

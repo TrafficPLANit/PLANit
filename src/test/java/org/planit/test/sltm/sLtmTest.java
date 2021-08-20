@@ -3,19 +3,30 @@ package org.planit.test.sltm;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
+import java.util.logging.Logger;
+
 import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
+import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
+import org.planit.assignment.ltm.sltm.StaticLtm;
+import org.planit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
+import org.planit.demands.Demands;
+import org.planit.logging.Logging;
 import org.planit.network.MacroscopicNetwork;
-import org.planit.network.transport.TransportModelNetwork;
+import org.planit.od.demand.OdDemandMatrix;
+import org.planit.od.demand.OdDemands;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.mode.PredefinedModeType;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
+import org.planit.utils.network.layer.physical.Links;
 import org.planit.utils.network.layer.physical.Node;
-import org.planit.utils.zoning.Centroid;
+import org.planit.utils.network.layer.physical.Nodes;
+import org.planit.utils.zoning.OdZones;
 import org.planit.zoning.Zoning;
 
 /**
@@ -26,17 +37,30 @@ import org.planit.zoning.Zoning;
  */
 public class sLtmTest {
 
-  private static final CoordinateReferenceSystem crs = CartesianAuthorityFactory.GENERIC_2D;
-
-  private TransportModelNetwork transportNetwork;
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
   private Zoning zoning;
 
-  private Centroid centroidA;
-  private Centroid centroidB;
-  private Centroid centroidC;
-  private Centroid centroidD;
+  /** the logger */
+  private static Logger LOGGER = null;
+
+  /**
+   * {@inheritDoc}
+   */
+  @BeforeClass
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(sLtmTest.class);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @After
+  public void tearDown() {
+    Logging.closeLogger(LOGGER);
+  }
 
   //@formatter:off
   @Before
@@ -60,10 +84,12 @@ public class sLtmTest {
       GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
       
       network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
-      networkLayer = network.getTransportLayers().getFactory().registerNew();
+      network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
+      networkLayer = network.getTransportLayers().getFactory().registerNew(network.getModes().get(PredefinedModeType.CAR));
+      int index=0;
       for(int nodeRowIndex = 0;nodeRowIndex<=1;++nodeRowIndex) {
-        for(int nodeColIndex = 0;nodeColIndex<=3;++nodeColIndex) {
-          String xmlId = String.valueOf(nodeRowIndex*3+nodeColIndex);
+        for(int nodeColIndex = 0;nodeColIndex<=3;++nodeColIndex,++index) {
+          String xmlId = String.valueOf(index);
           Node node = networkLayer.getNodes().getFactory().registerNew();
           node.setXmlId(xmlId);
           // all nodes are spaced 1 km apart
@@ -71,43 +97,43 @@ public class sLtmTest {
         }
       }
       
+      Nodes nodes = networkLayer.getNodes();
+      Links links = networkLayer.getLinks();
       //links
-//      Node nodeA = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex-1);
-//      Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex);
-//      // all links are 1 km in length          
-//      Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1);
-//      nodeA.addEdge(link);
-//      nodeB.addEdge(link);
-//      LinkSegment linkSegmentAb = networkLayer.getLinkSegments().getFactory().create(link, true);
-//      LinkSegment linkSegmentBa = networkLayer.getLinkSegments().getFactory().create(link, false);
-//      nodeB.addEdgeSegment(linkSegmentAb);
-//      nodeB.addEdgeSegment(linkSegmentBa);
-//      nodeA.addEdgeSegment(linkSegmentAb);
-//      nodeA.addEdgeSegment(linkSegmentBa);       
-              
-//      zoning = new Zoning(IdGroupingToken.collectGlobalToken(), networkLayer.getLayerIdGroupingToken());
-//      Zone zoneA = zoning.odZones.getFactory().registerNew();
-//      zoneA.setExternalId("A");
-//      Zone zoneB = zoning.odZones.getFactory().registerNew();
-//      zoneB.setExternalId("B");
-//      Zone zoneC = zoning.odZones.getFactory().registerNew();
-//      zoneC.setExternalId("C");
-//      Zone zoneD = zoning.odZones.getFactory().registerNew();
-//      zoneD.setExternalId("D");
-//      Zone zoneE = zoning.odZones.getFactory().registerNew();
-//      zoneE.setExternalId("E");
+      links.getFactory().registerNew(nodes.getByXmlId("0"), nodes.getByXmlId("1"), 1, true).setXmlId("0");;
+      links.getFactory().registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("2"), 1, true).setXmlId("1");
+      links.getFactory().registerNew(nodes.getByXmlId("2"), nodes.getByXmlId("3"), 1, true).setXmlId("2");     
+      links.getFactory().registerNew(nodes.getByXmlId("2"), nodes.getByXmlId("6"), 1, true).setXmlId("3");
+      links.getFactory().registerNew(nodes.getByXmlId("7"), nodes.getByXmlId("6"), 1, true).setXmlId("4");      
+      links.getFactory().registerNew(nodes.getByXmlId("6"), nodes.getByXmlId("5"), 1, true).setXmlId("5");
+      links.getFactory().registerNew(nodes.getByXmlId("5"), nodes.getByXmlId("4"), 1, true).setXmlId("6");         
+      links.getFactory().registerNew(nodes.getByXmlId("5"), nodes.getByXmlId("1"), 1, true).setXmlId("7");
       
-//      centroidA = zoneA.getCentroid();
-//      centroidA.setPosition(geoFactory.createPoint(new Coordinate(0, 0)));
-//      centroidB = zoneB.getCentroid();
-//      centroidB.setPosition(geoFactory.createPoint(new Coordinate(1*1000, 4*1000)));
-//      
-//      zoning.odConnectoids.getFactory().registerNew(networkLayer.getNodes().get(0),  zoneA, 0);
-//      zoning.odConnectoids.getFactory().registerNew(networkLayer.getNodes().get(21), zoneB, 0);
-//      
-//      transportNetwork = new TransportModelNetwork(network, zoning);
-//      transportNetwork.integrateTransportNetworkViaConnectoids();
-                
+      
+      MacroscopicLinkSegmentTypes linkTypes = networkLayer.getLinkSegmentTypes();
+      linkTypes.getFactory().registerNew("MainType", 1000, 180).setXmlId("MainType");
+      linkTypes.getFactory().registerNew("BottleNeckType", 500, 180).setXmlId("BottleNeckType");
+      
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("MainType"), true, true);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("1"), linkTypes.getByXmlId("MainType"), true, true);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("2"), linkTypes.getByXmlId("BottleNeckType"), true, true);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("3"), linkTypes.getByXmlId("MainType"), true, true);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("4"), linkTypes.getByXmlId("MainType"), true, true);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("5"), linkTypes.getByXmlId("MainType"), true, true);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("6"), linkTypes.getByXmlId("BottleNeckType"), true, true);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("MainType"), true, true);        
+              
+      zoning = new Zoning(IdGroupingToken.collectGlobalToken(), networkLayer.getLayerIdGroupingToken());
+      zoning.odZones.getFactory().registerNew().setXmlId("A");
+      zoning.odZones.getFactory().registerNew().setXmlId("B");
+      zoning.odZones.getFactory().registerNew().setXmlId("C");
+      zoning.odZones.getFactory().registerNew().setXmlId("D");
+           
+      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("7"),  zoning.getOdZones().getByXmlId("A"), 0);
+      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("4"),  zoning.getOdZones().getByXmlId("B"), 0);
+      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("C"), 0);
+      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("3"),  zoning.getOdZones().getByXmlId("D"), 0);
+                      
     }catch(Exception e) {
       e.printStackTrace();
       assertFalse(true);
@@ -122,7 +148,22 @@ public class sLtmTest {
   public void sLtmNetworkLoadingTest() {
     try {
 
-      // TODO
+      Demands demands = new Demands(network.getIdGroupingToken());
+      demands.timePeriods.createAndRegisterNewTimePeriod("dummyTimePeriod", 0, 3600);
+      demands.travelerTypes.createAndRegisterNew("dummyTravellerType");
+      demands.userClasses.createAndRegisterNewUserClass("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
+
+      /* OD DEMANDS 1000 A->C, 1000 C->B */
+      OdZones odZones = zoning.getOdZones();
+      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
+      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("D"), 1000.0);
+      odDemands.setValue(odZones.getByXmlId("C"), odZones.getByXmlId("B"), 1000.0);
+      demands.registerOdDemand(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
+
+      /* sLTM */
+      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+      StaticLtm sLTM = sLTMBuilder.build();
+      sLTM.execute();
 
     } catch (Exception e) {
       e.printStackTrace();

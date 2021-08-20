@@ -1,15 +1,18 @@
 package org.planit.network.layer.macroscopic;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.logging.Logger;
 
 import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.network.layer.macroscopic.AccessGroupProperties;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
-import org.planit.utils.network.layer.macroscopic.MacroscopicModeProperties;
 
 /**
  * Each macroscopic link segment is of a particular type reflecting segment specific properties. On top of the segment specific properties each segment can have user class specific
@@ -19,6 +22,9 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicModeProperties;
  *
  */
 public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implements MacroscopicLinkSegmentType {
+
+  /** the logger to use */
+  private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentTypeImpl.class.getCanonicalName());
 
   // Protected
 
@@ -38,9 +44,9 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   protected final double maximumDensityPerLane;
 
   /**
-   * Map of mode properties for each mode for this link segment
+   * Track access properties for each of the modes it supports for quick lookups
    */
-  protected Map<Mode, MacroscopicModeProperties> modeProperties;
+  protected Map<Mode, AccessGroupProperties> modeAccessProperties;
 
   /**
    * set the id on this link segment type
@@ -76,7 +82,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     setName(name);
     this.capacityPerLane = capacityPerLane;
     this.maximumDensityPerLane = maximumDensityPerLane;
-    this.modeProperties = new TreeMap<Mode, MacroscopicModeProperties>();
+    this.modeAccessProperties = new TreeMap<Mode, AccessGroupProperties>();
   }
 
   /**
@@ -84,18 +90,33 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * @param name                  name of this link segment type
    * @param capacityPerLane       capacity per lane of this link segment type
    * @param maximumDensityPerLane maximum density per lane of this link segment type
-   * @param modeProperties        mode properties
+   * @param accessGroupProperties mode specific access properties
    */
   protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane,
-      Map<Mode, MacroscopicModeProperties> modeProperties) {
+      final Collection<AccessGroupProperties> accessGroupProperties) {
     this(groupId, name, capacityPerLane, maximumDensityPerLane);
-    if (modeProperties != null) {
-      setModeProperties(modeProperties);
+    if (accessGroupProperties != null) {
+      setAccessProperties(accessGroupProperties);
     }
   }
 
   /**
-   * Copy constructor. Use carefully since ids are also copied causing non-unique ids. Note that the mode propertoes are owned by each instance so they are deep copied, everything
+   * @param groupId               contiguous id generation within this group for instances of this class
+   * @param name                  name of this link segment type
+   * @param capacityPerLane       capacity per lane of this link segment type
+   * @param maximumDensityPerLane maximum density per lane of this link segment type
+   * @param accessGroupProperties mode specific access properties
+   */
+  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane,
+      final AccessGroupProperties accessGroupProperties) {
+    this(groupId, name, capacityPerLane, maximumDensityPerLane);
+    if (accessGroupProperties != null) {
+      setAccessProperties(accessGroupProperties);
+    }
+  }
+
+  /**
+   * Copy constructor. Use carefully since ids are also copied causing non-unique ids. Note that the mode properties are owned by each instance so they are deep copied, everything
    * else is not
    * 
    * @param other to copy from
@@ -106,8 +127,15 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     this.capacityPerLane = other.getCapacityPerLane();
     this.maximumDensityPerLane = other.getMaximumDensityPerLane();
 
-    this.modeProperties = new TreeMap<Mode, MacroscopicModeProperties>();
-    other.modeProperties.forEach((mode, properties) -> modeProperties.put(mode, properties.clone()));
+    this.modeAccessProperties = new TreeMap<Mode, AccessGroupProperties>();
+    Set<Mode> modesDone = new TreeSet<Mode>();
+    for (Mode mode : other.getAvailableModes()) {
+      if (!modesDone.contains(mode)) {
+        AccessGroupProperties clonedEntry = other.getAccessProperties(mode).clone();
+        setAccessProperties(clonedEntry);
+        modesDone.addAll(clonedEntry.getAccessModes());
+      }
+    }
   }
 
   // Getters - Setters
@@ -151,9 +179,9 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * @return the mode properties for this link and mode
    */
   @Override
-  public MacroscopicModeProperties getModeProperties(Mode mode) {
-    if (modeProperties.containsKey(mode)) {
-      return modeProperties.get(mode);
+  public AccessGroupProperties getAccessProperties(Mode mode) {
+    if (modeAccessProperties.containsKey(mode)) {
+      return modeAccessProperties.get(mode);
     }
     return null;
   }
@@ -162,24 +190,8 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
-  public void setModeProperties(Map<Mode, MacroscopicModeProperties> modeProperties) {
-    this.modeProperties = modeProperties;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public MacroscopicModeProperties addModeProperties(Mode mode, MacroscopicModeProperties properties) {
-    return modeProperties.put(mode, properties);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public boolean isModeAvailable(Mode mode) {
-    return modeProperties.containsKey(mode);
+    return modeAccessProperties.containsKey(mode);
   }
 
   /**
@@ -187,15 +199,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    */
   @Override
   public Set<Mode> getAvailableModes() {
-    return modeProperties.keySet();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public MacroscopicModeProperties removeModeProperties(Mode toBeRemovedMode) {
-    return modeProperties.remove(toBeRemovedMode);
+    return modeAccessProperties.keySet();
   }
 
   /**
@@ -214,6 +218,45 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     long newId = generateId(tokenId);
     setId(newId);
     return newId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setAccessProperties(final Collection<AccessGroupProperties> accessProperties) {
+    Set<Mode> processedModes = new TreeSet<Mode>();
+    for (AccessGroupProperties entry : accessProperties) {
+      for (Mode mode : entry.getAccessModes()) {
+        if (processedModes.contains(mode)) {
+          LOGGER.warning(String.format("Multiple provided access proprties on link segment type define the same mode (%s), ignoring all but first encountered", mode.getXmlId()));
+        }
+        this.modeAccessProperties.put(mode, entry);
+      }
+      processedModes.addAll(entry.getAccessModes());
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setAccessProperties(final AccessGroupProperties accessProperties) {
+    for (Mode mode : accessProperties.getAccessModes()) {
+      this.modeAccessProperties.put(mode, accessProperties);
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean removeModeAccess(final Mode toBeRemovedMode) {
+    AccessGroupProperties accessProperties = getAccessProperties(toBeRemovedMode);
+    if (accessProperties == null) {
+      return false;
+    }
+    return accessProperties.removeAccessMode(toBeRemovedMode);
   }
 
 }
