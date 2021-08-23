@@ -26,6 +26,15 @@ public abstract class LinkSegmentData {
   }
 
   /**
+   * swap the two 2Darray references
+   */
+  protected static void swap(int index, int index2, double[][] array2d) {
+    double[] dummy = array2d[index];
+    array2d[index] = array2d[index2];
+    array2d[index2] = dummy;
+  }
+
+  /**
    * Reduce all provided link segments' flows to capacity
    * 
    * @param flowPcuHArray to apply limit on (pcuPerHour)

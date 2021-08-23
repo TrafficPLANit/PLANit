@@ -12,7 +12,7 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
  * @author markr
  *
  */
-public class LinkSegmentTypeAccessPropertiesFactory {
+public class AccessGroupPropertiesFactory {
 
   /**
    * Factory method
@@ -89,7 +89,7 @@ public class LinkSegmentTypeAccessPropertiesFactory {
    * @param maxSpeedKmH     maxSpeed to set
    */
   public static void createOnLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType, final double maxSpeedKmH, final Collection<Mode> modesToAdd) {
-    linkSegmentType.setAccessProperties(create(maxSpeedKmH, modesToAdd));
+    linkSegmentType.setAccessGroupProperties(create(maxSpeedKmH, modesToAdd));
   }
 
   /**
@@ -103,7 +103,7 @@ public class LinkSegmentTypeAccessPropertiesFactory {
   public static void createOnLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType, final Mode modeToAdd, final double maxSpeedKmH) {
     /* apply the way type's maximum speed to all modes, but for clarity already cap it to the mode's max speed if needed */
     double cappedMaxSpeed = Math.min(maxSpeedKmH, modeToAdd.getMaximumSpeedKmH());
-    linkSegmentType.setAccessProperties(create(cappedMaxSpeed, cappedMaxSpeed, modeToAdd));
+    linkSegmentType.setAccessGroupProperties(create(cappedMaxSpeed, cappedMaxSpeed, modeToAdd));
   }
 
 }

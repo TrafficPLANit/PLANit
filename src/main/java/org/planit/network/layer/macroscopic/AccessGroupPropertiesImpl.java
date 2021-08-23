@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.planit.utils.math.Precision;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.AccessGroupProperties;
 
@@ -123,6 +124,25 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
   @Override
   public boolean removeAccessMode(Mode toBeRemovedMode) {
     return this.supportedModes.remove(toBeRemovedMode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isEqualExceptForModes(AccessGroupProperties accessProperties) {
+    return Precision.isEqual(getMaximumSpeedKmH(), accessProperties.getMaximumSpeedKmH()) && Precision.isEqual(getCriticalSpeedKmH(), accessProperties.getCriticalSpeedKmH());
+  }
+
+  /**
+   * Add mode to access group.
+   * 
+   * Use with caution if registered on a link segment type, in which case adding the mode here is not sufficient since it also requires mode based indexing on the type. Better to
+   * use the link segment type methods to properly update the group access instead
+   */
+  @Override
+  public void addAccessMode(Mode mode) {
+    this.supportedModes.add(mode);
   }
 
 }

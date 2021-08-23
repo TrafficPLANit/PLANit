@@ -29,6 +29,7 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.planit.utils.network.layer.physical.Node;
 import org.planit.utils.path.DirectedPath;
+import org.planit.utils.pcu.PcuCapacitated;
 import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.OdZones;
 
@@ -44,6 +45,8 @@ public class StaticLtmNetworkLoading {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmNetworkLoading.class.getCanonicalName());
 
+  // SIMULATION DATA //
+
   /** variables tracked for sending flow update step **/
   private final SendingFlowData sendingFlowData;
 
@@ -56,20 +59,8 @@ public class StaticLtmNetworkLoading {
   /** tracks flow acceptance factors as well as its two related other factors, storage and capacity factors */
   private final NetworkLoadingFactorData networkLoadingFactorData;
 
-  /** transport network used */
-  private final TransportModelNetwork network;
-
-  /** mode used */
-  private final Mode mode;
-
-  /** odPaths to load */
-  final OdPaths odPaths;
-
-  /** odDemands to load */
-  final OdDemands odDemands;
-
-  /** internal iteration index for network loading */
-  int networkLoadingIterationIndex;
+  /** variables tracked for temporary inflow outflow tracking within sub algorithms **/
+  private final InflowOutflowData inFlowOutflowData;
 
   /** the gap function to apply on global convergence update */
   private final NormBasedGapFunction flowAcceptanceFapFunction;
@@ -79,6 +70,25 @@ public class StaticLtmNetworkLoading {
 
   /** the gap function to apply on receiving flow update step */
   private final NormBasedGapFunction receivingFlowGapFunction;
+
+  // INPUTS //
+
+  /** transport network used */
+  private final TransportModelNetwork network;
+
+  /** mode used */
+  private final Mode mode;
+
+  /** odPaths to load */
+  private final OdPaths odPaths;
+
+  /** odDemands to load */
+  private final OdDemands odDemands;
+
+  // SETTINGS //
+
+  /** settings used regarding how to run the loading */
+  private final StaticLtmNetworkLoadingSettings settings;
 
   /**
    * Validate all constructor parameters
@@ -117,6 +127,10 @@ public class StaticLtmNetworkLoading {
     for (OdZone origin : odZones) {
       /* destination */
       for (OdZone destination : odZones) {
+        if (origin.equals(destination)) {
+          continue;
+        }
+
         Double odDemand = odDemands.getValue(origin, destination);
         if (odDemand != null && odDemand > 0) {
           /* path */
@@ -160,6 +174,9 @@ public class StaticLtmNetworkLoading {
     OdZones odZones = network.getZoning().odZones;
     double[] flowAcceptanceFactors = this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
 
+    this.inFlowOutflowData.resetOutflows();
+    double[] linkSegmentOutflows = this.inFlowOutflowData.getOutflows();
+
     HashMap<Integer, Double> acceptedTurnFlows = new HashMap<Integer, Double>();
     /* origin */
     for (OdZone origin : odZones) {
@@ -185,6 +202,12 @@ public class StaticLtmNetworkLoading {
               /* v_ap = u_bp = alpha_a*...*f_p where we consider all preceding alphas (flow acceptance factors) up to now */
               acceptedPathFlowRate *= flowAcceptanceFactors[(int) previousEdgeSegment.getId()];
               acceptedTurnFlows.put(HashUtils.createCombinedHashCode(previousEdgeSegment.getId(), currEdgeSegment.getId()), acceptedPathFlowRate);
+
+              /*
+               * v_a update so we have outflows available after every loading, needed in case we have no physical queues and compute flow capacity factors of receiving flow update
+               * without updating receiving flow -> POINT QUEUE MODE
+               */
+              linkSegmentOutflows[(int) previousEdgeSegment.getId()] += acceptedPathFlowRate;
             }
 
             previousEdgeSegment = currEdgeSegment;
@@ -246,21 +269,21 @@ public class StaticLtmNetworkLoading {
       Array1D<Double> inCapacities = Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.sizeOfEntryEdgeSegments());
       int index = 0;
       for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
-        inCapacities.set(index++, ((MacroscopicLinkSegment) entryEdgeSegment).computeCapacityPcuH());
+        inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).computeCapacityPcuH());
       }
 
       /* r_a : in Array1D form */
       Array1D<Double> outReceivingFlows = Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.sizeOfExitEdgeSegments());
       index = 0;
       for (EdgeSegment exitEdgeSegment : potentiallyBlockingNode.getExitEdgeSegments()) {
-        outReceivingFlows.set(index++, ((MacroscopicLinkSegment) exitEdgeSegment).computeCapacityPcuH());
+        outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).computeCapacityPcuH());
       }
 
-      /* s_ab : turn sending flows in Array2D form */
+      /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
       @SuppressWarnings("unchecked")
-      Access1D<Double>[] tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[potentiallyBlockingNode.sizeOfExitEdgeSegments()];
+      Access1D<Double>[] tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[potentiallyBlockingNode.sizeOfEntryEdgeSegments()];
       int entryIndex = 0;
-      for (Iterator<EdgeSegment> iter = potentiallyBlockingNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++index) {
+      for (Iterator<EdgeSegment> iter = potentiallyBlockingNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
         EdgeSegment entryEdgeSegment = iter.next();
         /* s_ab = s_a*phi_ab */
         double sendingFlow = sendingFlows[(int) entryEdgeSegment.getId()];
@@ -298,7 +321,7 @@ public class StaticLtmNetworkLoading {
   private void updateNextStorageCapacityFactors() {
     this.networkLoadingFactorData.resetNextStorageCapacityFactors();
     double[] nextStorageCapacityFactor = this.networkLoadingFactorData.getNextStorageCapacityFactors();
-    double[] inflows = this.sendingFlowData.getNextSendingFlows();
+    double[] inflows = this.inFlowOutflowData.getInflows();
     double[] receivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
 
     int currentLinkSegmentId = -1;
@@ -342,9 +365,10 @@ public class StaticLtmNetworkLoading {
    * 
    * @param linkSegmentOutFlows to use, e.g. v_a.
    */
-  private void updateNextFlowCapacityFactors(final double[] linkSegmentOutFlows) {
+  private void updateNextFlowCapacityFactors() {
     this.networkLoadingFactorData.resetNextFlowCapacityFactors();
     double[] nextFlowCapacityFactors = this.networkLoadingFactorData.getNextFlowCapacityFactors();
+    double[] outflows = this.inFlowOutflowData.getOutflows();
     double[] receivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
 
     int currentLinkSegmentId = -1;
@@ -352,7 +376,7 @@ public class StaticLtmNetworkLoading {
       for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
         currentLinkSegmentId = (int) entryEdgeSegment.getId();
         /* beta_a = v_a/r_a */
-        nextFlowCapacityFactors[currentLinkSegmentId] = linkSegmentOutFlows[currentLinkSegmentId] / receivingFlows[currentLinkSegmentId];
+        nextFlowCapacityFactors[currentLinkSegmentId] = Math.min(1, outflows[currentLinkSegmentId] / receivingFlows[currentLinkSegmentId]);
       }
     }
   }
@@ -374,28 +398,32 @@ public class StaticLtmNetworkLoading {
     this.odPaths = odPaths;
     validate();
 
-    MacroscopicNetworkLayer networkLayer = (MacroscopicNetworkLayer) network.getInfrastructureNetwork().getLayerByMode(mode);
-    double[] referenceEmptyArray = new double[networkLayer.getLinkSegments().size()];
+    /* sLTM only uses a single layer */
+    double[] referenceEmptyArray = new double[network.getNumberOfEdgeSegmentsAllLayers()];
     this.sendingFlowData = new SendingFlowData(referenceEmptyArray);
     this.receivingFlowData = new ReceivingFlowData(referenceEmptyArray);
     this.splittingRateData = new SplittingRateData();
     this.networkLoadingFactorData = new NetworkLoadingFactorData(referenceEmptyArray);
+    this.inFlowOutflowData = new InflowOutflowData(referenceEmptyArray);
 
     this.flowAcceptanceFapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
     this.sendingFlowGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
     this.receivingFlowGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
+
+    this.settings = new StaticLtmNetworkLoadingSettings();
   }
 
   //@formatter:off
   /**
-   * Perform initialisation of the network loading:
+   * Perform initialisation of the network loading. This method can only be called once.
    * 
    * 1. Initial acceptance flow, capacity, and storage factors, all set to one  
    * 2. Initial in/outflows via network loading Eq. (3)-(4) in paper: unconstrained network loading
    * 3. Initial sending and receiving flows: s_a=u_a, r_a=capacity_a for all link segments a
-   * 4. Set iteration number to one
+   * 4. Set iteration number to one (to be done exogneously)
    * (Extension A):  
    * 5. Restrict receiving flows to storage capacity Eq. (8) - only relevant when storage capacity is activated
+   *   
    */
   public void stepZeroInitialisation() {
     MacroscopicLinkSegments linkSegments = ((MacroscopicNetworkLayer) this.network.getInfrastructureNetwork().getLayerByMode(mode)).getLinkSegments();
@@ -405,18 +433,30 @@ public class StaticLtmNetworkLoading {
     
     /* 2. Initial sending and receiving outflows via network loading Eq. (3)-(4) in paper: unconstrained network loading */
     networkLoadingLinkSegmentInflowUpdate(this.sendingFlowData.getCurrentSendingFlows());
+    LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), this.sendingFlowData.getNextSendingFlows());
     
-    /* identify all potentially blocking nodes, i.e., all nodes where unconstrained sending flow exceeds link segment capacity */
-    initialisePotentiallyBlockingNodes(linkSegments);
+    /* identify all potentially blocking nodes, i.e., all nodes where unconstrained sending flow exceeds link segment capacity,
+     * when considering physical queues, all nodes are potentially blocking, so no need to identify them */
+    if(getSettings().isDisableStorageConstraints()) {
+      initialisePotentiallyBlockingNodes(linkSegments);
+    }
     
     /* 3. limit flows to capacity s_a=r_a=min(u_a,cap_a) */
     /* reduce sending flows to capacity */
     this.sendingFlowData.limitCurrentSendingFlowsToCapacity(linkSegments);
-    /* s=r */
-    LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), receivingFlowData.getCurrentReceivingFlows());   
     
-    /* 4. Initialise iteration index */
-    this.networkLoadingIterationIndex = 0;
+    /* POINT QUEUE:*/
+    if(getSettings().isDisableStorageConstraints()) {
+          
+      /* s=r */ 
+      LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), receivingFlowData.getCurrentReceivingFlows());
+     
+      /* not all nodes are potentially blocking, reduce to potentially blocking nodes for efficiency */
+      initialisePotentiallyBlockingNodes(linkSegments);
+    }else {
+      LOGGER.severe("sLTM with physical queues is not yet implemented, please disable storage constraints and try again");
+    }
+    
   }
   
   //@formatter:off
@@ -429,6 +469,10 @@ public class StaticLtmNetworkLoading {
    * 3. If not first iteration then update splitting rates, Eq. (13)
    */
   public void stepOneSplittingRatesUpdate() {
+    if(!getSettings().isDisableStorageConstraints()) {
+      LOGGER.severe("sLTM with physical queues is not yet implemented, please disable storage constraints and try again");
+    }
+    
     /* 1. Update turn inflows via network loading Eq. (3) */
     HashMap<Integer, Double> acceptedTurnFlows = networkLoadingTurnFlowUpdate();
     /* update splitting rates Eq. (6),(4) */
@@ -454,25 +498,40 @@ public class StaticLtmNetworkLoading {
    * 6. Update smoothed storage capacity factors, Eq. (14)
    */
   public void stepTwoSendingFlowUpdate() {
+    if(!getSettings().isDisableStorageConstraints()) {
+      LOGGER.severe("sLTM with physical queues is not yet implemented, please disable storage constraints and try again");
+      return;
+    }
+    
     int sendingFlowIterationIndex = 0;
     double sendingFlowGap = this.sendingFlowGapFunction.getGap();
     
     do {
-      /* 4b, when not converged update current sending flows to next sending flows */
-      this.sendingFlowData.setNextSendingFlowsAsCurrent();
-      this.sendingFlowData.resetNextSendingFlows();
+      /* 4b, when not converged update current sending flows s_a = s_a^tilde to next sending flows */
+      this.sendingFlowData.swapCurrentAndNextSendingFlows();
+      LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), this.inFlowOutflowData.getInflows());
       
       /* 1. Update node model to compute new inflows, Eq. (5)
        * 2. Update next sending flows via inflows, Eq. (7) */
-      performNodeModelUpdate(new UpdateNextSendingFlowsConsumer(this.sendingFlowData.getNextSendingFlows()));
+      performNodeModelUpdate(new UpdateExitLinkInflowsConsumer(this.inFlowOutflowData.getInflows()));
+      /* s_a^tilde = u_a */
+      LinkSegmentData.copyTo(this.inFlowOutflowData.getInflows(), this.sendingFlowData.getNextSendingFlows());
+      
+      /* POINT QUEUE -> only run update once unless indicated otherwise */  
+      if(getSettings().isDisableStorageConstraints()) {
+        break;
+      }
       
       /*3. Compute gap between current and next sending flows, then update sending flows to next sending flows */
       this.sendingFlowGapFunction.reset();
       this.sendingFlowGapFunction.increaseMeasuredValue(this.sendingFlowData.getNextSendingFlows(), this.sendingFlowData.getCurrentSendingFlows());
       sendingFlowGap = this.sendingFlowGapFunction.computeGap();
       
-      /* 4 If converged continue, otherwise continue go back to Step 2-(1). */
+      /* 4 If converged continue, otherwise go back to Step 2-(1). */
     }while(!this.sendingFlowGapFunction.getStopCriterion().hasConverged(sendingFlowGap, sendingFlowIterationIndex++));
+    /* 4b, final update of current sending flows to next sending flows */
+    this.sendingFlowData.swapCurrentAndNextSendingFlows();
+        
     this.sendingFlowGapFunction.reset();
     
     /* Update storage capacity factors, Eq. (11) */
@@ -481,7 +540,7 @@ public class StaticLtmNetworkLoading {
     /* TODO:
      * in case we do smoothing, it can be applied directly to the capacity factor per node such that
      * there is no need for a full copy of the entire factor data (create per node/entry link local copy)*/
-    this.networkLoadingFactorData.setNextStorageCapacityFactorsAsCurrent();    
+    this.networkLoadingFactorData.swapCurrentAndNextStorageCapacityFactors();    
   }   
   
   //@formatter:off
@@ -497,6 +556,15 @@ public class StaticLtmNetworkLoading {
    * 5. Estimate new multiplication factor used in Step 4, Eq. (16),(17)
    */
   public void stepThreeSplittingRateUpdate() {
+    if(getSettings().isDisableStorageConstraints()) {
+      /* ignored when not considering physical queues */
+      return;
+    }    
+    
+    if(!getSettings().isDisableStorageConstraints()) {
+      LOGGER.severe("sLTM with physical queues is not yet implemented, please disable storage constraints and try again");
+      return;
+    }    
     
     /* 1. Update intermediate flow acceptance factors, Eq. (9) */
     updateNextFlowAcceptanceFactors();
@@ -527,36 +595,60 @@ public class StaticLtmNetworkLoading {
    * 7. Update smoothed flow capacity factors, Eq. (14)
    */
   public void stepFourReceivingFlowUpdate() {
-    int receivingFlowIterationIndex = 0;
-    double receivingFlowGap = this.receivingFlowGapFunction.getGap();
+    if(!getSettings().isDisableStorageConstraints()) {
+      /* update the receiving flows */      
+
+      /* for now */
+      if(!getSettings().isDisableStorageConstraints()) {
+        LOGGER.severe("sLTM with physical queues is not yet implemented, please disable storage constraints and try again");
+        return;
+      }
+       
+      int receivingFlowIterationIndex = 0;
+      double receivingFlowGap = this.receivingFlowGapFunction.getGap();    
+      do {
+        /* 4b, when not converged update r^i-1 = r^i */
+        this.receivingFlowData.swapCurrentAndNextReceivingFlows();
+        
+        /* 1. Update node model to compute new outflows, Eq. (5) */
+        performNodeModelUpdate(new UpdateEntryLinksOutflowConsumer(this.inFlowOutflowData.getOutflows()));
+        
+        /* 2. Update next receiving flows via inflows, Eq. (7)*/
+        double[] outflows = this.inFlowOutflowData.getOutflows();
+        double[] nextReceivingFlows = this.receivingFlowData.getNextReceivingFlows();
+        for(DirectedVertex node : this.splittingRateData.getPotentiallyBlockingNodes()) {
+          for (Iterator<EdgeSegment> iter = node.getEntryEdgeSegments().iterator(); iter.hasNext();) {
+            EdgeSegment entryEdgeSegment = iter.next();
+            int index = (int)entryEdgeSegment.getId();
+          
+            /* storage_capacity_a = (L*FD^-1(v_a))/T) */
+            double storageCapacity = Double.POSITIVE_INFINITY; // TODO: entryLinkSegment.getParentLink().getLengthKm() * etc.;
+            /* r_a = min(C_a, v_a + storage_Capacity_a) */
+            double receivingFlow = Math.min(((PcuCapacitated)entryEdgeSegment).computeCapacityPcuH(), outflows[index] + storageCapacity);
+            nextReceivingFlows[index] = receivingFlow;
+          }
+        }
+        
+        /*3. Compute gap between current and next sending receiving flows, then update receiving flows to next receiving flows */
+        this.receivingFlowGapFunction.reset();
+        this.receivingFlowGapFunction.increaseMeasuredValue(this.receivingFlowData.getNextReceivingFlows(), this.receivingFlowData.getCurrentReceivingFlows());
+        receivingFlowGap = this.receivingFlowGapFunction.computeGap();
+        
+        /* 4 If converged continue, otherwise continue go back to Step 4-(1). */
+      }while(!this.receivingFlowGapFunction.getStopCriterion().hasConverged(receivingFlowGap, receivingFlowIterationIndex++));
+      /* 4b, final update r^i-1 = r^i */
+      this.receivingFlowData.swapCurrentAndNextReceivingFlows();
     
-    /* track v_a to be able to compute step 4.6 when converged */
-    double[] acceptedOutflows = new double[this.network.getTotalNumberOfEdgeSegments()];
-    do {
-      /* 4b, when not converged update r^i-1 = r^i */
-      this.receivingFlowData.setNextReceivingFlowsAsCurrent();
-      this.receivingFlowData.resetNextReceivingFlows();
-      
-      /* 1. Update node model to compute new inflows, Eq. (5)
-       * 2. Update next receiving flows via inflows, Eq. (7) + track accepted outflows as well */
-      performNodeModelUpdate(new UpdateNextReceivingFlowsConsumer(this.receivingFlowData.getNextReceivingFlows(), acceptedOutflows));
-      
-      /*3. Compute gap between current and next sending receiving flows, then update receiving flows to next receiving flows */
       this.receivingFlowGapFunction.reset();
-      this.receivingFlowGapFunction.increaseMeasuredValue(this.receivingFlowData.getNextReceivingFlows(), this.receivingFlowData.getCurrentReceivingFlows());
-      receivingFlowGap = this.receivingFlowGapFunction.computeGap();
-      
-      /* 4 If converged continue, otherwise continue go back to Step 4-(1). */
-    }while(!this.receivingFlowGapFunction.getStopCriterion().hasConverged(receivingFlowGap, receivingFlowIterationIndex++));
-    this.receivingFlowGapFunction.reset();
+    }
     
     /* 6. Update flow capacity factors, beta_a = v_a/r_a as per Eq. (10) */
-    updateNextFlowCapacityFactors(acceptedOutflows);
+    updateNextFlowCapacityFactors();
     
     /* TODO:
      * in case we do smoothing, it can be applied directly to the capacity factor per node such that
      * there is no need for a full copy of the entire factor data (create per node/entry link local copy)*/
-    this.networkLoadingFactorData.setNextFlowCapacityFactorsAsCurrent();  
+    this.networkLoadingFactorData.swapCurrentAndNextFlowCapacityFactors();  
   }
 
   /**
@@ -569,6 +661,10 @@ public class StaticLtmNetworkLoading {
    * @return true when converged, false otherwise
    */
   public boolean stepFiveCheckNetworkLoadingConvergence(int networkLoadingIteration) {
+    if(!getSettings().isDisableStorageConstraints()) {
+      LOGGER.severe("sLTM with physical queues is not yet implemented, please disable storage constraints and try again");
+      return true;
+    }
     
     /* 1. Update flow acceptance factors, Eq. (9) */
     updateNextFlowAcceptanceFactors();
@@ -578,6 +674,18 @@ public class StaticLtmNetworkLoading {
     this.flowAcceptanceFapFunction.increaseMeasuredValue(this.networkLoadingFactorData.getNextFlowAcceptanceFactors(), this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors());
     double globalGap = this.flowAcceptanceFapFunction.computeGap();    
     
+    /* set next to current */
+    this.networkLoadingFactorData.swapCurrentAndNextFlowAcceptanceFactors();
+    
     return this.flowAcceptanceFapFunction.getStopCriterion().hasConverged(globalGap, networkLoadingIteration);
+  }
+
+  /** Collect the settings. Only make changes before running any of the loading steps, otherwise risk undefined 
+   * behaviour by the loading.
+   * 
+   * @return settings of this loading
+   */
+  public StaticLtmNetworkLoadingSettings getSettings() {
+    return settings;
   }
 }

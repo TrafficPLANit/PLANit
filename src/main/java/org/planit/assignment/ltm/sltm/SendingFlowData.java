@@ -11,14 +11,9 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 public class SendingFlowData extends LinkSegmentData {
 
   /**
-   * Sending flows for all link segments by internal id
+   * Sending flows for all link segments by internal id (current and next)
    */
-  private double[] currentSendingFlowsPcuH = null;
-
-  /**
-   * Newly computed flows for all link segments by internal id
-   */
-  private double[] nextSendingFlowsPcuH = null;
+  private double[][] sendingFlowsPcuH = null;
 
   /**
    * Constructor
@@ -27,6 +22,7 @@ public class SendingFlowData extends LinkSegmentData {
    */
   public SendingFlowData(double[] emptySegmentArray) {
     super(emptySegmentArray);
+    sendingFlowsPcuH = new double[2][emptySegmentArray.length];
     resetCurrentSendingFlows();
     resetNextSendingFlows();
   }
@@ -35,14 +31,14 @@ public class SendingFlowData extends LinkSegmentData {
    * Reset the segment flows for the coming iteration
    */
   public void resetNextSendingFlows() {
-    nextSendingFlowsPcuH = this.createEmptyLinkSegmentDoubleArray();
+    sendingFlowsPcuH[1] = this.createEmptyLinkSegmentDoubleArray();
   }
 
   /**
    * Reset current network segment flows
    */
   public void resetCurrentSendingFlows() {
-    currentSendingFlowsPcuH = this.createEmptyLinkSegmentDoubleArray();
+    sendingFlowsPcuH[0] = this.createEmptyLinkSegmentDoubleArray();
   }
 
   /**
@@ -51,7 +47,7 @@ public class SendingFlowData extends LinkSegmentData {
    * @return next sending flows
    */
   public double[] getNextSendingFlows() {
-    return nextSendingFlowsPcuH;
+    return sendingFlowsPcuH[1];
   }
 
   /**
@@ -60,17 +56,7 @@ public class SendingFlowData extends LinkSegmentData {
    * @return current sending flows
    */
   public double[] getCurrentSendingFlows() {
-    return currentSendingFlowsPcuH;
-  }
-
-  /**
-   * add passed in flow to next segment flows for given id
-   * 
-   * @param edgeSegmentId  segment to add flow to
-   * @param flowPcuPerHour to add
-   */
-  public void addToNextSendingFlows(long edgeSegmentId, double flowPcuPerHour) {
-    nextSendingFlowsPcuH[(int) edgeSegmentId] += flowPcuPerHour;
+    return sendingFlowsPcuH[0];
   }
 
   /**
@@ -79,14 +65,14 @@ public class SendingFlowData extends LinkSegmentData {
    * @param linkSegments to use
    */
   public void limitCurrentSendingFlowsToCapacity(MacroscopicLinkSegments linkSegments) {
-    limitFlowsToCapacity(currentSendingFlowsPcuH, linkSegments);
+    limitFlowsToCapacity(sendingFlowsPcuH[0], linkSegments);
   }
 
   /**
    * replace current sending flows by the next sending flows
    */
-  public void setNextSendingFlowsAsCurrent() {
-    this.currentSendingFlowsPcuH = this.nextSendingFlowsPcuH;
+  public void swapCurrentAndNextSendingFlows() {
+    swap(0, 1, sendingFlowsPcuH);
   }
 
 }

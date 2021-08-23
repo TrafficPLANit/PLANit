@@ -1,6 +1,7 @@
 package org.planit.network.layer.macroscopic;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -96,7 +97,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
       final Collection<AccessGroupProperties> accessGroupProperties) {
     this(groupId, name, capacityPerLane, maximumDensityPerLane);
     if (accessGroupProperties != null) {
-      setAccessProperties(accessGroupProperties);
+      setAccessGroupProperties(accessGroupProperties);
     }
   }
 
@@ -111,7 +112,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
       final AccessGroupProperties accessGroupProperties) {
     this(groupId, name, capacityPerLane, maximumDensityPerLane);
     if (accessGroupProperties != null) {
-      setAccessProperties(accessGroupProperties);
+      setAccessGroupProperties(accessGroupProperties);
     }
   }
 
@@ -132,7 +133,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     for (Mode mode : other.getAvailableModes()) {
       if (!modesDone.contains(mode)) {
         AccessGroupProperties clonedEntry = other.getAccessProperties(mode).clone();
-        setAccessProperties(clonedEntry);
+        setAccessGroupProperties(clonedEntry);
         modesDone.addAll(clonedEntry.getAccessModes());
       }
     }
@@ -224,7 +225,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
-  public void setAccessProperties(final Collection<AccessGroupProperties> accessProperties) {
+  public void setAccessGroupProperties(final Collection<AccessGroupProperties> accessProperties) {
     Set<Mode> processedModes = new TreeSet<Mode>();
     for (AccessGroupProperties entry : accessProperties) {
       for (Mode mode : entry.getAccessModes()) {
@@ -241,10 +242,21 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
-  public void setAccessProperties(final AccessGroupProperties accessProperties) {
+  public void setAccessGroupProperties(final AccessGroupProperties accessProperties) {
     for (Mode mode : accessProperties.getAccessModes()) {
       this.modeAccessProperties.put(mode, accessProperties);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addAccessGroupProperties(AccessGroupProperties accessProperties) {
+    if (findEqualAccessPropertiesForAnyMode(accessProperties) != null) {
+      LOGGER.warning(String.format("IGNORE: Unable to register new access properties on link segment type %s, identical group already exist", getXmlId()));
+    }
+    setAccessGroupProperties(accessProperties);
   }
 
   /**
@@ -257,6 +269,25 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
       return false;
     }
     return accessProperties.removeAccessMode(toBeRemovedMode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public AccessGroupProperties findEqualAccessPropertiesForAnyMode(AccessGroupProperties accessProperties) {
+    Set<Mode> processedModes = new HashSet<Mode>();
+    for (AccessGroupProperties properties : this.modeAccessProperties.values()) {
+      if (processedModes.contains(properties.getAccessModes().iterator().next())) {
+        continue;
+      }
+      /* check if equal except for modes */
+      if (properties.isEqualExceptForModes(accessProperties)) {
+        return properties;
+      }
+      processedModes.addAll(properties.getAccessModes());
+    }
+    return null;
   }
 
 }

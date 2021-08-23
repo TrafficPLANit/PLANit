@@ -26,7 +26,7 @@ import org.planit.utils.exceptions.PlanItException;
  */
 public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
-  private static final String DISABLE_LINK_STORAGE_CONSTRAINTS = "disableLinkStorageConstraints";
+  private static final String DISABLE_LINK_STORAGE_CONSTRAINTS = "setDisableLinkStorageConstraints";
 
   /**
    * Constructor
@@ -52,7 +52,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
    * 
    */
   public void disableLinkStorageConstraints() {
-    registerDelayedMethodCall(DISABLE_LINK_STORAGE_CONSTRAINTS);
+    registerDelayedMethodCall(DISABLE_LINK_STORAGE_CONSTRAINTS, true);
   }
 
 }

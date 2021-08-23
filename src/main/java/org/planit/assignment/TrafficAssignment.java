@@ -176,14 +176,14 @@ public abstract class TrafficAssignment extends NetworkLoading {
   protected void createTransportNetwork() throws PlanItException {
     transportNetwork = new TransportModelNetwork(network, zoning);
     transportNetwork.integrateTransportNetworkViaConnectoids();
-    if (getTransportNetwork().getTotalNumberOfEdgeSegments() > Integer.MAX_VALUE) {
+    if (getTransportNetwork().getNumberOfEdgeSegmentsAllLayers() > Integer.MAX_VALUE) {
       throw new PlanItException("currently assignment internals expect to be castable to int, but max value is exceeded for link segments");
     }
-    if (getTransportNetwork().getTotalNumberOfVertices() > Integer.MAX_VALUE) {
+    if (getTransportNetwork().getNumberOfVerticesAllLayers() > Integer.MAX_VALUE) {
       throw new PlanItException("currently assignment internals expect to be castable to int, but max value is exceeded for vertices");
     }
-    this.numberOfNetworkSegments = (int) getTransportNetwork().getTotalNumberOfEdgeSegments();
-    this.numberOfNetworkVertices = (int) getTransportNetwork().getTotalNumberOfVertices();
+    this.numberOfNetworkSegments = (int) getTransportNetwork().getNumberOfEdgeSegmentsAllLayers();
+    this.numberOfNetworkVertices = (int) getTransportNetwork().getNumberOfVerticesAllLayers();
   }
 
   // Public

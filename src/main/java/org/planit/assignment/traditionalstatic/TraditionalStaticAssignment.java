@@ -456,7 +456,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private double[] initialiseLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
-    final double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
+    final double[] currentSegmentCosts = new double[transportNetwork.getNumberOfEdgeSegmentsAllLayers()];
 
     /* virtual component */
     populateModalConnectoidCosts(mode, currentSegmentCosts);
@@ -479,7 +479,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private double[] recalculateModalLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
-    final double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
+    final double[] currentSegmentCosts = new double[transportNetwork.getNumberOfEdgeSegmentsAllLayers()];
     populateModalConnectoidCosts(mode, currentSegmentCosts);
     calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
     return currentSegmentCosts;

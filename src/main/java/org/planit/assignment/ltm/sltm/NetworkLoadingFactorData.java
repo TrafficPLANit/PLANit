@@ -16,34 +16,19 @@ import java.util.Arrays;
 public class NetworkLoadingFactorData extends LinkSegmentData {
 
   /**
-   * Flow acceptance factors for all link segments by internal id
+   * Flow acceptance factors (current and next) for all link segments by internal id
    */
-  private double[] currentFlowAcceptanceFactors = null;
+  private double[][] flowAcceptanceFactors = null;
 
   /**
-   * Newly computed flow acceptance factors for all link segments by internal id
+   * storage capacity factors (current and next) for all link segments by internal id
    */
-  private double[] nextFlowAcceptanceFactors = null;
+  private double[][] storageCapacityFactors = null;
 
   /**
-   * storage capacity factors for all link segments by internal id
+   * Flow capacity factors (current and next) for all link segments by internal id
    */
-  private double[] currentStorageCapacityFactors = null;
-
-  /**
-   * Newly computed storage capacity factors for all link segments by internal id
-   */
-  private double[] nextStorageCapacityFactors = null;
-
-  /**
-   * Flow capacity factors for all link segments by internal id
-   */
-  private double[] currentFlowCapacityFactors = null;
-
-  /**
-   * Newly computed flow capacity factors for all link segments by internal id
-   */
-  private double[] nextFlowCapacityFactors = null;
+  private double[][] flowCapacityFactors = null;
 
   /**
    * Constructor
@@ -52,10 +37,13 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
    */
   public NetworkLoadingFactorData(double[] emptySegmentArray) {
     super(emptySegmentArray);
+    flowAcceptanceFactors = new double[2][emptySegmentArray.length];
     resetCurrentFlowAcceptanceFactors();
     resetNextFlowAcceptanceFactors();
+    flowCapacityFactors = new double[2][emptySegmentArray.length];
     resetCurrentFlowCapacityFactors();
     resetNextFlowCapacityFactors();
+    storageCapacityFactors = new double[2][emptySegmentArray.length];
     resetCurrentStorageCapacityFactors();
     resetNextStorageCapacityFactors();
   }
@@ -64,42 +52,42 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
    * Reset the flow acceptance factors for the coming iteration (alphas)
    */
   public void resetNextFlowAcceptanceFactors() {
-    nextFlowAcceptanceFactors = this.createEmptyLinkSegmentDoubleArray();
+    flowAcceptanceFactors[1] = this.createEmptyLinkSegmentDoubleArray();
   }
 
   /**
    * Reset current flow acceptance factors (alphas)
    */
   public void resetCurrentFlowAcceptanceFactors() {
-    currentFlowAcceptanceFactors = this.createEmptyLinkSegmentDoubleArray();
+    flowAcceptanceFactors[0] = this.createEmptyLinkSegmentDoubleArray();
   }
 
   /**
    * Reset the flow capacity factors for the coming iteration (betas)
    */
   public void resetNextFlowCapacityFactors() {
-    nextFlowCapacityFactors = this.createEmptyLinkSegmentDoubleArray();
+    flowCapacityFactors[1] = this.createEmptyLinkSegmentDoubleArray();
   }
 
   /**
    * Reset current flow capacity factors (betas)
    */
   public void resetCurrentFlowCapacityFactors() {
-    currentFlowCapacityFactors = this.createEmptyLinkSegmentDoubleArray();
+    flowCapacityFactors[0] = this.createEmptyLinkSegmentDoubleArray();
   }
 
   /**
    * Reset the storage capacity factors for the coming iteration (gammas)
    */
   public void resetNextStorageCapacityFactors() {
-    nextStorageCapacityFactors = this.createEmptyLinkSegmentDoubleArray();
+    storageCapacityFactors[1] = this.createEmptyLinkSegmentDoubleArray();
   }
 
   /**
    * Reset current storage capacity factors (gammas)
    */
   public void resetCurrentStorageCapacityFactors() {
-    currentStorageCapacityFactors = this.createEmptyLinkSegmentDoubleArray();
+    storageCapacityFactors[0] = this.createEmptyLinkSegmentDoubleArray();
   }
 
   /**
@@ -108,12 +96,12 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
    * @param value to use
    */
   public void initialiseAll(double value) {
-    Arrays.fill(this.currentFlowAcceptanceFactors, value);
-    Arrays.fill(this.currentFlowCapacityFactors, value);
-    Arrays.fill(this.currentStorageCapacityFactors, value);
-    Arrays.fill(this.nextFlowAcceptanceFactors, value);
-    Arrays.fill(this.nextFlowCapacityFactors, value);
-    Arrays.fill(this.nextStorageCapacityFactors, value);
+    Arrays.fill(this.flowAcceptanceFactors[0], value);
+    Arrays.fill(this.flowCapacityFactors[0], value);
+    Arrays.fill(this.storageCapacityFactors[0], value);
+    Arrays.fill(this.flowAcceptanceFactors[1], value);
+    Arrays.fill(this.flowCapacityFactors[1], value);
+    Arrays.fill(this.storageCapacityFactors[1], value);
   }
 
   /**
@@ -122,7 +110,7 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
    * @return flow acceptance factors
    */
   public double[] getCurrentFlowAcceptanceFactors() {
-    return currentFlowAcceptanceFactors;
+    return flowAcceptanceFactors[0];
   }
 
   /**
@@ -131,7 +119,7 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
    * @return flow capacity factors
    */
   public double[] getCurrentFlowCapacityFactors() {
-    return this.currentFlowCapacityFactors;
+    return this.flowCapacityFactors[0];
   }
 
   /**
@@ -140,7 +128,7 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
    * @return storage capacity factors
    */
   public double[] getCurrentStorageCapacityFactors() {
-    return this.currentStorageCapacityFactors;
+    return this.storageCapacityFactors[0];
   }
 
   /**
@@ -149,7 +137,7 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
    * @return storage capacity factors
    */
   public double[] getNextStorageCapacityFactors() {
-    return nextStorageCapacityFactors;
+    return storageCapacityFactors[1];
   }
 
   /**
@@ -158,7 +146,7 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
    * @return flow acceptance factors
    */
   public double[] getNextFlowAcceptanceFactors() {
-    return this.nextFlowAcceptanceFactors;
+    return flowAcceptanceFactors[1];
   }
 
   /**
@@ -167,21 +155,28 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
    * @return flow capacity factors
    */
   public double[] getNextFlowCapacityFactors() {
-    return this.nextFlowCapacityFactors;
+    return this.flowCapacityFactors[1];
   }
 
   /**
    * equate the current storage capacity factors to the next (reference update, no copy)
    */
-  public void setNextStorageCapacityFactorsAsCurrent() {
-    this.currentStorageCapacityFactors = nextStorageCapacityFactors;
+  public void swapCurrentAndNextStorageCapacityFactors() {
+    swap(0, 1, this.storageCapacityFactors);
   }
 
   /**
    * equate the current flow capacity factors to the next (reference update, no copy)
    */
-  public void setNextFlowCapacityFactorsAsCurrent() {
-    this.currentFlowCapacityFactors = nextFlowCapacityFactors;
+  public void swapCurrentAndNextFlowCapacityFactors() {
+    swap(0, 1, this.flowCapacityFactors);
+  }
+
+  /**
+   * equate the current flow acceptance factors to the next (reference update, no copy)
+   */
+  public void swapCurrentAndNextFlowAcceptanceFactors() {
+    swap(0, 1, flowAcceptanceFactors);
   }
 
 }

@@ -35,8 +35,8 @@ public class AlgorithmBEquilibration {
     double[] edgeSegmentCosts = null; // <-- to do
 
     @SuppressWarnings("unused")
-    DijkstraShortestPathAlgorithm dijkstra = new DijkstraShortestPathAlgorithm(edgeSegmentCosts, transportNetwork.getTotalNumberOfEdgeSegments(),
-        transportNetwork.getTotalNumberOfVertices());
+    DijkstraShortestPathAlgorithm dijkstra = new DijkstraShortestPathAlgorithm(edgeSegmentCosts, transportNetwork.getNumberOfEdgeSegmentsAllLayers(),
+        transportNetwork.getNumberOfVerticesAllLayers());
 
     for (@SuppressWarnings("unused")
     Zone zone : assignment.getTransportNetwork().getZoning().odZones) {

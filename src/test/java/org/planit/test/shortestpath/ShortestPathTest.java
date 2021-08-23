@@ -189,7 +189,7 @@ public class ShortestPathTest {
             
           };
       
-      assertEquals(networkLayer.getLinkSegments().size()+zoning.getVirtualNetwork().getConnectoidSegments().size(), transportNetwork.getTotalNumberOfEdgeSegments());
+      assertEquals(networkLayer.getLinkSegments().size()+zoning.getVirtualNetwork().getConnectoidSegments().size(), transportNetwork.getNumberOfEdgeSegmentsAllLayers());
       
     }catch(Exception e) {
       e.printStackTrace();
@@ -205,8 +205,8 @@ public class ShortestPathTest {
   public void dijkstraTest() {
     try {
 
-      DijkstraShortestPathAlgorithm dijkstra = new DijkstraShortestPathAlgorithm(linkSegmentCosts, transportNetwork.getTotalNumberOfEdgeSegments(),
-          transportNetwork.getTotalNumberOfVertices());
+      DijkstraShortestPathAlgorithm dijkstra = new DijkstraShortestPathAlgorithm(linkSegmentCosts, transportNetwork.getNumberOfEdgeSegmentsAllLayers(),
+          transportNetwork.getNumberOfVerticesAllLayers());
 
       ShortestPathResult result = dijkstra.executeOneToAll(centroidA);
 
@@ -250,7 +250,7 @@ public class ShortestPathTest {
       // each link is 1 km long. Yet smallest cost for a link is 3 in the network, so the minimum cost multiplier per km is 3
       double multiplier = 3;
 
-      AStarShortestPathAlgorithm aStar = new AStarShortestPathAlgorithm(linkSegmentCosts, transportNetwork.getTotalNumberOfVertices(), crs, multiplier);
+      AStarShortestPathAlgorithm aStar = new AStarShortestPathAlgorithm(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers(), crs, multiplier);
 
       ShortestPathResult result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(1));
       double costAto1 = result.getCostToReach(networkLayer.getNodes().get(1));

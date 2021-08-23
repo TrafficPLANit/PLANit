@@ -89,6 +89,16 @@ public class StaticLtm extends LtmAssignment {
   }
 
   /**
+   * Apply the relevant network loading settings on the passed in network loading based on the configuration of this assignment
+   * 
+   * @param networkLoading to configure before running it
+   */
+  private void configureNetworkLoadingSettings(final StaticLtmNetworkLoading networkLoading) {
+    /* point queue or physical queue */
+    networkLoading.getSettings().setDisableStorageConstraints(this.disableLinkStorageConstraints);
+  }
+
+  /**
    * Initialize time period assigment and construct the network loading instance to use
    *
    * @param timePeriod the time period
@@ -100,7 +110,7 @@ public class StaticLtm extends LtmAssignment {
   private StaticLtmNetworkLoading initialiseTimePeriod(TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) throws PlanItException {
 
     /* cost array across all segments, virtual and physical */
-    double[] currentSegmentCosts = new double[transportNetwork.getTotalNumberOfEdgeSegments()];
+    double[] currentSegmentCosts = new double[transportNetwork.getNumberOfEdgeSegmentsAllLayers()];
 
     /* virtual cost */
     virtualCost.populateWithCost(mode, currentSegmentCosts);
@@ -129,12 +139,21 @@ public class StaticLtm extends LtmAssignment {
       LOGGER.warning(String.format("sLTM only supports a single mode for now, found %s, aborting assignment for time period %s", timePeriod.getXmlId()));
       return;
     }
-    int iterationIndex = 0;
+
+    /* prep */
     Mode theMode = modes.iterator().next();
     StaticLtmNetworkLoading networkLoading = initialiseTimePeriod(timePeriod, theMode, this.demands.get(theMode, timePeriod));
+    configureNetworkLoadingSettings(networkLoading);
+
+    /* temporary check until supported */
+    if (!networkLoading.getSettings().isDisableStorageConstraints()) {
+      LOGGER.severe("IGNORE: sLTM with physical queues is not yet implemented, please disable storage constraints and try again");
+      return;
+    }
 
     /* STEP 0 - Initialisation */
     networkLoading.stepZeroInitialisation();
+    int networkLoadingIterationIndex = 0;
 
     /* for now we do not consider path choice, we conduct a one-shot all-or-nothing network loading */
     do {
@@ -152,7 +171,7 @@ public class StaticLtm extends LtmAssignment {
       networkLoading.stepFourReceivingFlowUpdate();
 
       /* STEP 5 - Network loading convergence */
-    } while (!networkLoading.stepFiveCheckNetworkLoadingConvergence(iterationIndex++));
+    } while (!networkLoading.stepFiveCheckNetworkLoadingConvergence(networkLoadingIterationIndex++));
   }
 
   /**

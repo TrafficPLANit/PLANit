@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.planit.assignment.ltm.sltm.StaticLtm;
+import org.planit.assignment.ltm.sltm.StaticLtmConfigurator;
 import org.planit.assignment.ltm.sltm.StaticLtmTrafficAssignmentBuilder;
 import org.planit.demands.Demands;
 import org.planit.logging.Logging;
@@ -111,8 +112,8 @@ public class sLtmTest {
       
       
       MacroscopicLinkSegmentTypes linkTypes = networkLayer.getLinkSegmentTypes();
-      linkTypes.getFactory().registerNew("MainType", 1000, 180).setXmlId("MainType");
-      linkTypes.getFactory().registerNew("BottleNeckType", 500, 180).setXmlId("BottleNeckType");
+      linkTypes.getFactory().registerNew("MainType", 1000, 180, network.getModes().getFirst()).setXmlId("MainType");
+      linkTypes.getFactory().registerNew("BottleNeckType", 500, 180, network.getModes().getFirst()).setXmlId("BottleNeckType");
       
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("MainType"), true, true);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("1"), linkTypes.getByXmlId("MainType"), true, true);
@@ -145,7 +146,7 @@ public class sLtmTest {
    * Test sLTM network loading on above network
    */
   @Test
-  public void sLtmNetworkLoadingTest() {
+  public void sLtmPointQueueNetworkLoadingTest() {
     try {
 
       Demands demands = new Demands(network.getIdGroupingToken());
@@ -160,8 +161,9 @@ public class sLtmTest {
       odDemands.setValue(odZones.getByXmlId("C"), odZones.getByXmlId("B"), 1000.0);
       demands.registerOdDemand(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
 
-      /* sLTM */
+      /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints();
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.execute();
 

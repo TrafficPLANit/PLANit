@@ -156,8 +156,8 @@ public class TransportModelNetwork {
    * 
    * @return total number of physical and virtual edge segments
    */
-  public int getTotalNumberOfEdgeSegments() {
-    return getTotalNumberOfPhysicalLinkSegments() + getTotalNumberOfConnectoidSegments();
+  public int getNumberOfEdgeSegmentsAllLayers() {
+    return getNumberOfPhysicalLinkSegmentsAllLayers() + getNumberOfConnectoidSegments();
   }
 
   /**
@@ -165,7 +165,7 @@ public class TransportModelNetwork {
    * 
    * @return the number of physical link segments in this network
    */
-  public int getTotalNumberOfPhysicalLinkSegments() {
+  public int getNumberOfPhysicalLinkSegmentsAllLayers() {
     int totalPhysicalLinkSegments = 0;
     Collection<MacroscopicNetworkLayerImpl> networkLayers = getInfrastructureNetwork().getTransportLayers().<MacroscopicNetworkLayerImpl>getLayersOfType();
     for (MacroscopicNetworkLayerImpl layer : networkLayers) {
@@ -179,7 +179,7 @@ public class TransportModelNetwork {
    * 
    * @return the number of connectoid segments in this network
    */
-  public int getTotalNumberOfConnectoidSegments() {
+  public int getNumberOfConnectoidSegments() {
     return zoning.getVirtualNetwork().getConnectoidSegments().size();
   }
 
@@ -188,8 +188,8 @@ public class TransportModelNetwork {
    * 
    * @return the total number of vertices
    */
-  public int getTotalNumberOfVertices() {
-    return zoning.odZones.getNumberOfCentroids() + zoning.transferZones.getNumberOfCentroids() + getTotalNumberOfPhysicalNodes();
+  public int getNumberOfVerticesAllLayers() {
+    return zoning.odZones.getNumberOfCentroids() + zoning.transferZones.getNumberOfCentroids() + getNumberOfPhysicalNodesAllLayers();
   }
 
   /**
@@ -198,7 +198,7 @@ public class TransportModelNetwork {
    * @return the number of physical nodes in this network
    */
   @SuppressWarnings("rawtypes")
-  public int getTotalNumberOfPhysicalNodes() {
+  public int getNumberOfPhysicalNodesAllLayers() {
     int totalPhysicalNodes = 0;
     Collection<UntypedPhysicalLayer> networkLayers = getInfrastructureNetwork().getTransportLayers().<UntypedPhysicalLayer>getLayersOfType();
     for (UntypedPhysicalLayer layer : networkLayers) {

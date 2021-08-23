@@ -10,23 +10,23 @@ import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.network.layer.physical.Node;
 
 /**
- * A functional class that consumes the result of a node model update in order to update the next sending flows of all the outgoing links of the node in question.
+ * A functional class that consumes the result of a node model update in order to update the inflows of all the outgoing links of the nodes it is applied to *
  * 
  * @author markr
  *
  */
-public class UpdateNextSendingFlowsConsumer implements ApplyToNodeModelResult {
+public class UpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult {
 
   /** the next sending flows to update based on the found accepted in flows on outgoing links of the node */
-  private double[] nextSendingFlows;
+  private double[] inFlowsToUpdate;
 
   /**
    * Constructor
    * 
-   * @param nextSendingFlows to use
+   * @param inFlowsToUpdate to use
    */
-  public UpdateNextSendingFlowsConsumer(final double[] nextSendingFlows) {
-    this.nextSendingFlows = nextSendingFlows;
+  public UpdateExitLinkInflowsConsumer(final double[] inFlowsToUpdate) {
+    this.inFlowsToUpdate = inFlowsToUpdate;
   }
 
   /**
@@ -40,10 +40,10 @@ public class UpdateNextSendingFlowsConsumer implements ApplyToNodeModelResult {
     for (int entryIndex = 0; entryIndex < localFlowAcceptanceFactor.length; ++entryIndex) {
       turnSendingFlows.modifyRow(entryIndex, PrimitiveFunction.MULTIPLY.by(localFlowAcceptanceFactor.get(entryIndex)));
     }
-    /* s^tilde_b = SUM(v_ab): set next sending flow */
+    /* u_b = SUM_a(v_ab): set inflow */
     int exitIndex = 0;
     for (EdgeSegment exitLinkSegment : potentiallyBlockingNode.getExitLinkSegments()) {
-      nextSendingFlows[(int) exitLinkSegment.getId()] = turnSendingFlows.aggregateColumn(exitIndex++, Aggregator.SUM);
+      inFlowsToUpdate[(int) exitLinkSegment.getId()] = turnSendingFlows.aggregateColumn(exitIndex++, Aggregator.SUM);
     }
   }
 
