@@ -20,6 +20,11 @@ import org.planit.utils.exceptions.PlanItException;
  * <li>Physical Cost: FREEFLOW</li>
  * <li>Virtual Cost: FIXED</li>
  * </ul>
+ * Further the following other settings have the defaults:
+ * <ul>
+ * <li>disableLinkStorageConstraints: true</li>
+ * <li>activateDetailedLogging: false</li>
+ * </ul>
  * 
  * @author markr
  *
@@ -27,6 +32,8 @@ import org.planit.utils.exceptions.PlanItException;
 public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
   private static final String DISABLE_LINK_STORAGE_CONSTRAINTS = "setDisableLinkStorageConstraints";
+
+  private static final String ACTIVATE_DETAILED_LOGGING = "setActivateDetailedLogging";
 
   /**
    * Constructor
@@ -41,18 +48,37 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
     createAndRegisterSmoothing(Smoothing.MSA);
     createAndRegisterPhysicalCost(PhysicalCost.FREEFLOW); // TODO: change into STATIC_EXITFLOW (which would allow for either path or link based setting)
     createAndRegisterVirtualCost(VirtualCost.FIXED);
+
+    disableLinkStorageConstraints(DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+    activateDetailedLogging(DEFAULT_ACTIVATE_DETAILED_LOGGING);
   }
+
+  /** default value used */
+  public static boolean DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS = true;
+
+  /** default value used */
+  public static boolean DEFAULT_ACTIVATE_DETAILED_LOGGING = false;
 
   //
   // Directly configurable options
   //
 
   /**
-   * Disable enforcing any storage constraints on link(segments)
-   * 
+   * Dis or enable enforcing any storage constraints on link(segments)
+   *
+   * @param flag to set
    */
-  public void disableLinkStorageConstraints() {
-    registerDelayedMethodCall(DISABLE_LINK_STORAGE_CONSTRAINTS, true);
+  public void disableLinkStorageConstraints(boolean flag) {
+    registerDelayedMethodCall(DISABLE_LINK_STORAGE_CONSTRAINTS, flag);
+  }
+
+  /**
+   * (De)Activate additional detailed logging specifically for the sLTM assignment procedure
+   * 
+   * @param flag to set
+   */
+  public void activateDetailedLogging(boolean flag) {
+    registerDelayedMethodCall(ACTIVATE_DETAILED_LOGGING, flag);
   }
 
 }

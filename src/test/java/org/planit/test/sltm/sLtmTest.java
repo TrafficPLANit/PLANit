@@ -77,8 +77,7 @@ public class sLtmTest {
     //              ^            V
     //     4       5|           6|        7
     //  B  *---<----*-----<------*----<---* A
-    //
-    
+    //    
     
     try {
       // local CRS in meters
@@ -112,8 +111,8 @@ public class sLtmTest {
       
       
       MacroscopicLinkSegmentTypes linkTypes = networkLayer.getLinkSegmentTypes();
-      linkTypes.getFactory().registerNew("MainType", 1000, 180, network.getModes().getFirst()).setXmlId("MainType");
-      linkTypes.getFactory().registerNew("BottleNeckType", 500, 180, network.getModes().getFirst()).setXmlId("BottleNeckType");
+      linkTypes.getFactory().registerNew("MainType", 2000, 180, network.getModes().getFirst()).setXmlId("MainType");
+      linkTypes.getFactory().registerNew("BottleNeckType", 250, 180, network.getModes().getFirst()).setXmlId("BottleNeckType");
       
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("MainType"), true, true);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("1"), linkTypes.getByXmlId("MainType"), true, true);
@@ -163,7 +162,9 @@ public class sLtmTest {
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints();
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(true);
+
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.execute();
 

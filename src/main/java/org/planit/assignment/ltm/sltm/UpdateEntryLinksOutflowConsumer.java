@@ -41,7 +41,7 @@ public class UpdateEntryLinksOutflowConsumer implements ApplyToNodeModelResult {
     for (MacroscopicLinkSegment entryLinkSegment : potentiallyBlockingNode.<MacroscopicLinkSegment>getEntryLinkSegments()) {
       int linkSegmentId = (int) entryLinkSegment.getId();
       /* s_a = Sum_b(s_ab) */
-      double sendingFlow = turnSendingFlows.aggregateRow(entryIndex++, Aggregator.SUM);
+      double sendingFlow = turnSendingFlows.aggregateRow(entryIndex, Aggregator.SUM);
       /* v_a = s_a * alpha_a */
       double acceptedOutflow = sendingFlow * localFlowAcceptanceFactor.get(entryIndex);
       outflowsToPopulate[linkSegmentId] = acceptedOutflow;

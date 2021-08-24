@@ -50,6 +50,9 @@ public class StaticLtm extends LtmAssignment {
   /** flag indicating whether or not to take link storage constraints into consideration, i.e. have a point queue or a physical queuing model */
   private boolean disableLinkStorageConstraints;
 
+  /** flag indicating whether or not to activate additional detailed logging during the sLTM assignment */
+  private boolean activateDetailedLogging;
+
   /**
    * Create the od paths based on provided costs. Only create paths for od pairs with non-zero flow.
    * 
@@ -96,6 +99,8 @@ public class StaticLtm extends LtmAssignment {
   private void configureNetworkLoadingSettings(final StaticLtmNetworkLoading networkLoading) {
     /* point queue or physical queue */
     networkLoading.getSettings().setDisableStorageConstraints(this.disableLinkStorageConstraints);
+    /* detailed logging */
+    networkLoading.getSettings().setDetailedLogging(isActivateDetailedLogging());
   }
 
   /**
@@ -152,23 +157,36 @@ public class StaticLtm extends LtmAssignment {
     }
 
     /* STEP 0 - Initialisation */
-    networkLoading.stepZeroInitialisation();
-    int networkLoadingIterationIndex = 0;
+    if (!networkLoading.stepZeroInitialisation()) {
+      LOGGER.severe(String.format("Aborting sLTM assignment %s, unable to continue", this.getId()));
+    }
 
     /* for now we do not consider path choice, we conduct a one-shot all-or-nothing network loading */
+    int networkLoadingIterationIndex = 0;
     do {
+
+      /*
+       * whenever the current form of the solution method does not suffice, we move to the next extension which attempts to be more cautious and has a higher likelihood of finding
+       * a solution at the cost of slower convergence, so whenever we are not yet stuck, we try to avoid activating these extensions.
+       */
+      if (networkLoading.isConverging()) {
+        // dependent on whether or not we are modelling physical queues or not and where we started with settings
+        // so bug if/else situation, therefore cleaner this way
+        LOGGER.info("Detected network loading internal convergence anomaly, activating extension to mitigate");
+        networkLoading.activateNextExtension();
+      }
 
       /* STEP 1 - Splitting rates update before sending flow update */
       networkLoading.stepOneSplittingRatesUpdate();
 
       /* STEP 2 - Sending flow update */
-      networkLoading.stepTwoSendingFlowUpdate();
+      networkLoading.stepTwoInflowSendingFlowUpdate();
 
       /* STEP 3 - Splitting rates update before receiving flow update */
       networkLoading.stepThreeSplittingRateUpdate();
 
       /* STEP 4 - Receiving flow update */
-      networkLoading.stepFourReceivingFlowUpdate();
+      networkLoading.stepFourOutflowReceivingFlowUpdate();
 
       /* STEP 5 - Network loading convergence */
     } while (!networkLoading.stepFiveCheckNetworkLoadingConvergence(networkLoadingIterationIndex++));
@@ -273,6 +291,24 @@ public class StaticLtm extends LtmAssignment {
    */
   public void setDisableLinkStorageConstraints(boolean flag) {
     this.disableLinkStorageConstraints = flag;
+  }
+
+  /**
+   * Set the flag indicating link storage constraints are active or not
+   * 
+   * @param flag when true activate, when false disable
+   */
+  public void setActivateDetailedLogging(boolean flag) {
+    this.activateDetailedLogging = flag;
+  }
+
+  /**
+   * Set the flag indicating link storage constraints are active or not
+   * 
+   * @param flag when true activate, when false disable
+   */
+  public boolean isActivateDetailedLogging() {
+    return this.activateDetailedLogging;
   }
 
 }
