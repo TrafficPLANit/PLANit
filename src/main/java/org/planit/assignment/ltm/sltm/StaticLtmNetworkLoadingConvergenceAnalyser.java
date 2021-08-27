@@ -72,7 +72,7 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
     /* check if average gap over iterations is not improving by the minimum requirement */
     double gapDelta = gapsByIteration.get(iterationOffset) - gapsByIteration.get(getRegisteredIterations());
     double averagePerIterationGapImprovement = gapDelta / (getRegisteredIterations() - iterationOffset);
-    if (Precision.isSmallerEqual(minAverageImprovingGapThreshold, averagePerIterationGapImprovement)) {
+    if (Precision.isSmallerEqual(averagePerIterationGapImprovement, minAverageImprovingGapThreshold)) {
       return false;
     }
 

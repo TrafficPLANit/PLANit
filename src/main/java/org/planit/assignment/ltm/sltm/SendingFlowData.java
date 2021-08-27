@@ -23,8 +23,7 @@ public class SendingFlowData extends LinkSegmentData {
   public SendingFlowData(double[] emptySegmentArray) {
     super(emptySegmentArray);
     sendingFlowsPcuH = new double[2][emptySegmentArray.length];
-    resetCurrentSendingFlows();
-    resetNextSendingFlows();
+    resetAllSendingFlows();
   }
 
   /**
@@ -39,6 +38,14 @@ public class SendingFlowData extends LinkSegmentData {
    */
   public void resetCurrentSendingFlows() {
     sendingFlowsPcuH[0] = this.createEmptyLinkSegmentDoubleArray();
+  }
+
+  /**
+   * Reset all sending flows
+   */
+  public void resetAllSendingFlows() {
+    resetCurrentSendingFlows();
+    resetNextSendingFlows();
   }
 
   /**
@@ -74,5 +81,4 @@ public class SendingFlowData extends LinkSegmentData {
   public void swapCurrentAndNextSendingFlows() {
     swap(0, 1, sendingFlowsPcuH);
   }
-
 }

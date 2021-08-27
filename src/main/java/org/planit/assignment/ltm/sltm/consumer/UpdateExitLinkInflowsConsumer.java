@@ -1,11 +1,11 @@
-package org.planit.assignment.ltm.sltm;
+package org.planit.assignment.ltm.sltm.consumer;
 
 import org.ojalgo.array.Array1D;
 import org.ojalgo.array.Array2D;
 import org.ojalgo.function.PrimitiveFunction;
 import org.ojalgo.function.aggregator.Aggregator;
 import org.planit.algorithms.nodemodel.TampereNodeModel;
-import org.planit.utils.exceptions.PlanItException;
+import org.planit.assignment.ltm.sltm.ApplyToNodeModelResult;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.network.layer.physical.Node;
 
@@ -33,7 +33,7 @@ public class UpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult {
    * {@inheritDoc}
    */
   @Override
-  public void accept(final Node potentiallyBlockingNode, final Array1D<Double> localFlowAcceptanceFactor, final TampereNodeModel nodeModel) throws PlanItException {
+  public void accept(final Node potentiallyBlockingNode, final Array1D<Double> localFlowAcceptanceFactor, final TampereNodeModel nodeModel) {
     Array2D<Double> turnSendingFlows = nodeModel.getInputs().getTurnSendingFlows();
 
     /* v_ab = s_ab*alpha_a: Convert turn sending flows to turn accepted flows (to avoid duplication we reuse sending flow 2d array) */

@@ -169,10 +169,11 @@ public class StaticLtm extends LtmAssignment {
        * whenever the current form of the solution method does not suffice, we move to the next extension which attempts to be more cautious and has a higher likelihood of finding
        * a solution at the cost of slower convergence, so whenever we are not yet stuck, we try to avoid activating these extensions.
        */
-      if (networkLoading.isConverging()) {
+      if (!networkLoading.isConverging()) {
         // dependent on whether or not we are modelling physical queues or not and where we started with settings
         // so bug if/else situation, therefore cleaner this way
-        LOGGER.info("Detected network loading internal convergence anomaly, activating extension to mitigate");
+        LOGGER.info(
+            String.format("Detected network loading internal convergence anomaly (internal loading iteration %d), activating extension to mitigate", networkLoadingIterationIndex));
         networkLoading.activateNextExtension();
       }
 
