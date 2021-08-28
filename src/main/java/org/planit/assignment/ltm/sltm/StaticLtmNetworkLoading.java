@@ -34,6 +34,7 @@ import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.planit.utils.network.layer.physical.Node;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.pcu.PcuCapacitated;
 import org.planit.utils.zoning.OdZones;
 
@@ -177,6 +178,32 @@ public class StaticLtmNetworkLoading {
   private void initialiseSendingFlows() {
     networkLoadingLinkSegmentInflowUpdate(this.sendingFlowData.getCurrentSendingFlows());
     LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), this.sendingFlowData.getNextSendingFlows());
+  }
+
+  /**
+   * Initialise receiving flows:
+   * <p>
+   * POINT QUEUE: r_a=C_a for all link segments
+   * <p>
+   * PHYSICAL QUEUE: r= storage capacity (not yet implemented)
+   */
+  private void initialiseReceivingFlows() {
+    /* POINT QUEUE: */
+    if (this.solutionScheme.isPointQueue()) {
+
+      /* r_a = q_a */
+      double[] currReceivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
+      for (MacroscopicLinkSegment linkSegment : getUsedNetworkLayer().getLinkSegments()) {
+        currReceivingFlows[(int) linkSegment.getId()] = linkSegment.computeCapacityPcuH();
+      }
+      for (ConnectoidSegment connectoidSegment : network.getVirtualNetwork().getConnectoidSegments()) {
+        currReceivingFlows[(int) connectoidSegment.getId()] = connectoidSegment.computeCapacityPcuH();
+      }
+      LinkSegmentData.copyTo(currReceivingFlows, receivingFlowData.getNextReceivingFlows());
+
+    } else {
+      LOGGER.severe("sLTM with physical queues is not yet implemented, please disable storage constraints and try again");
+    }
   }
 
   /**
@@ -366,6 +393,7 @@ public class StaticLtmNetworkLoading {
    */
   private void updateNextFlowAcceptanceFactors() {
     this.networkLoadingFactorData.resetNextFlowAcceptanceFactors();
+    double[] inflows = this.inFlowOutflowData.getInflows();
     double[] nextFlowAcceptanceFactors = this.networkLoadingFactorData.getNextFlowAcceptanceFactors();
     double[] currentFlowCapacityFactors = this.networkLoadingFactorData.getCurrentFlowCapacityFactors();
     double[] currentStorageCapacityFactors = this.networkLoadingFactorData.getCurrentStorageCapacityFactors();
@@ -375,7 +403,12 @@ public class StaticLtmNetworkLoading {
       for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
         currentLinkSegmentId = (int) entryEdgeSegment.getId();
         /* alpha_a = beta_a^i-1 / gamma_a^i */
-        nextFlowAcceptanceFactors[currentLinkSegmentId] = currentFlowCapacityFactors[currentLinkSegmentId] / currentStorageCapacityFactors[currentLinkSegmentId];
+        if(inflows[currentLinkSegmentId] <= Precision.EPSILON_6) {
+          /* special case: no inflow -> no restriction, set to 1 */
+          nextFlowAcceptanceFactors[currentLinkSegmentId] = 1;
+        }else {
+          nextFlowAcceptanceFactors[currentLinkSegmentId] = currentFlowCapacityFactors[currentLinkSegmentId] / currentStorageCapacityFactors[currentLinkSegmentId];
+        }
       }
     }
   }
@@ -396,8 +429,8 @@ public class StaticLtmNetworkLoading {
     double[] receivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
 
     int currentLinkSegmentId = -1;
-    for (DirectedVertex potentiallyBlockingNode : this.splittingRateData.getTrackedNodes()) {
-      for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
+    for (DirectedVertex trackedNode : this.splittingRateData.getTrackedNodes()) {
+      for (EdgeSegment entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
         currentLinkSegmentId = (int) entryEdgeSegment.getId();
         /* beta_a = v_a/r_a */
         nextFlowCapacityFactors[currentLinkSegmentId] = Math.min(1, outflows[currentLinkSegmentId] / receivingFlows[currentLinkSegmentId]);
@@ -482,18 +515,7 @@ public class StaticLtmNetworkLoading {
     this.sendingFlowData.limitCurrentSendingFlowsToCapacity(getUsedNetworkLayer().getLinkSegments());
     
     /* initialise receiving flows */
-    {
-      /* POINT QUEUE:*/
-      if(this.solutionScheme.isPointQueue()) {
-            
-        /* s=r */ 
-        LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), receivingFlowData.getCurrentReceivingFlows());
-       
-      }else {
-        LOGGER.severe("sLTM with physical queues is not yet implemented, please disable storage constraints and try again");
-        return false;
-      } 
-    }
+    initialiseReceivingFlows();
     
     return true;
   }
@@ -736,8 +758,14 @@ public class StaticLtmNetworkLoading {
    * Given the current extension status and type of sLTM that we are conducting, activate the next extension in loading to
    * improve the likelihood of network loading convergence. Each additional extension that is activated will slow down convergence,, so only
    * do this when it is clear the current scheme does not suffice
+   * 
+   * @param logRecentGaps when true log all gaps in the period the most recent solution scheme method was active, when false do not
+   * @return true when scheme changed, false if no longer possible to change any further  
    */
-  public void activateNextExtension() {
+  public boolean activateNextExtension(boolean logRecentGaps) {
+    if(logRecentGaps) {
+      convergenceAnalyser.logGapsSince(convergenceAnalyser.getIterationOffset());
+    }
     convergenceAnalyser.setIterationOffset(convergenceAnalyser.getRegisteredIterations());
     boolean solutionSchemeChanged = true;
 
@@ -771,6 +799,8 @@ public class StaticLtmNetworkLoading {
     if(solutionSchemeChanged) {
       LOGGER.info(String.format("Switching network loading scheme to %s", solutionScheme.getValue()));
     }
+    
+    return solutionSchemeChanged;
   }
 
   /** Collect the settings. Only make changes before running any of the loading steps, otherwise risk undefined 

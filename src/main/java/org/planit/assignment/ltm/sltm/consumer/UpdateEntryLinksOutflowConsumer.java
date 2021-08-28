@@ -5,7 +5,7 @@ import org.ojalgo.array.Array2D;
 import org.ojalgo.function.aggregator.Aggregator;
 import org.planit.algorithms.nodemodel.TampereNodeModel;
 import org.planit.assignment.ltm.sltm.ApplyToNodeModelResult;
-import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.network.layer.physical.Node;
 
 /**
@@ -38,7 +38,7 @@ public class UpdateEntryLinksOutflowConsumer implements ApplyToNodeModelResult {
     Array2D<Double> turnSendingFlows = nodeModel.getInputs().getTurnSendingFlows();
 
     int entryIndex = 0;
-    for (MacroscopicLinkSegment entryLinkSegment : potentiallyBlockingNode.<MacroscopicLinkSegment>getEntryLinkSegments()) {
+    for (EdgeSegment entryLinkSegment : potentiallyBlockingNode.getEntryLinkSegments()) {
       int linkSegmentId = (int) entryLinkSegment.getId();
       /* s_a = Sum_b(s_ab) */
       double sendingFlow = turnSendingFlows.aggregateRow(entryIndex, Aggregator.SUM);

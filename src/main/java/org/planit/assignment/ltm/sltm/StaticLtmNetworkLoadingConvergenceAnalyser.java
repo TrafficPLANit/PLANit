@@ -1,6 +1,7 @@
 package org.planit.assignment.ltm.sltm;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import org.planit.utils.math.Precision;
 
@@ -12,7 +13,13 @@ import org.planit.utils.math.Precision;
  */
 public class StaticLtmNetworkLoadingConvergenceAnalyser {
 
-  private ArrayList<Double> gapsByIteration;
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(StaticLtmNetworkLoadingConvergenceAnalyser.class.getCanonicalName());
+
+  /**
+   * Tracked iteration gaps
+   */
+  private final ArrayList<Double> gapsByIteration;
 
   // SETTINGS
 
@@ -31,7 +38,8 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
    */
   private final double maxSingleIterationWorseningGapThreshold = 0.1;
 
-  private final double minAverageImprovingGapThreshold = 0.1;
+  /** There should be some improvement on average, once it turns negative on average we have a problem */
+  private final double minAverageImprovingGapThreshold = 0.0;
 
   /**
    * iteration offset to use in applying iteration based thresholds, e.g. when iteration=10, but offset is 8, then we are working with an actual iteration of 2.
@@ -100,6 +108,11 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
     return Math.max(0, gapsByIteration.size() - 1);
   }
 
+  /**
+   * Currently set iteration offset beyond which the analyser is applied
+   * 
+   * @return iteration offset index
+   */
   public int getIterationOffset() {
     return iterationOffset;
   }
@@ -129,5 +142,14 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
    */
   public void setMinIterationThreshold(int minIterationThreshold) {
     this.minIterationThreshold = minIterationThreshold;
+  }
+
+  /**
+   * Log gaps since iteration provided
+   * 
+   * @param referenceIteration starting iteration to log until most recent
+   */
+  public void logGapsSince(int referenceIteration) {
+    LOGGER.info(String.format("Gaps for iteration %d-%d: %s", referenceIteration, getRegisteredIterations(), this.gapsByIteration.toString()));
   }
 }

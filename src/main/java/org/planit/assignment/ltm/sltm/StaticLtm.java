@@ -132,6 +132,32 @@ public class StaticLtm extends LtmAssignment {
   }
 
   /**
+   * Verify convergence progress and if insufficient attempt to activate one or more extensions to overcome convergence difficulties
+   * 
+   * @param networkLoading               to verify progress on
+   * @param networkLoadingIterationIndex we are at
+   */
+  private void verifyConvergenceProgress(StaticLtmNetworkLoading networkLoading, int networkLoadingIterationIndex) {
+    /*
+     * whenever the current form of the solution method does not suffice, we move to the next extension which attempts to be more cautious and has a higher likelihood of finding a
+     * solution at the cost of slower convergence, so whenever we are not yet stuck, we try to avoid activating these extensions.
+     */
+    if (!networkLoading.isConverging()) {
+      // dependent on whether or not we are modelling physical queues or not and where we started with settings
+      // so bug if/else situation, therefore cleaner this way
+      boolean changedScheme = networkLoading.activateNextExtension(true);
+      if (changedScheme) {
+        LOGGER.info(String.format("Detected network loading is not convergencing as expected (internal loading iteration %d), activating extension to mitigate",
+            networkLoadingIterationIndex));
+      } else {
+        LOGGER.warning(
+            String.format("Detected network loading is not convergencing as expected (internal loading iteration %d) - unable to activate further extensions, consider aborting",
+                networkLoadingIterationIndex));
+      }
+    }
+  }
+
+  /**
    * Execute for a specific time period
    * 
    * @param timePeriod to execute traffic assignment for
@@ -165,17 +191,8 @@ public class StaticLtm extends LtmAssignment {
     int networkLoadingIterationIndex = 0;
     do {
 
-      /*
-       * whenever the current form of the solution method does not suffice, we move to the next extension which attempts to be more cautious and has a higher likelihood of finding
-       * a solution at the cost of slower convergence, so whenever we are not yet stuck, we try to avoid activating these extensions.
-       */
-      if (!networkLoading.isConverging()) {
-        // dependent on whether or not we are modelling physical queues or not and where we started with settings
-        // so bug if/else situation, therefore cleaner this way
-        LOGGER.info(String.format("Detected network loading is not convergencing as expected (internal loading iteration %d), activating extension to mitigate",
-            networkLoadingIterationIndex));
-        networkLoading.activateNextExtension();
-      }
+      /* verify if progress is being made and if not activate extensions as deemed adequate */
+      verifyConvergenceProgress(networkLoading, networkLoadingIterationIndex);
 
       /* STEP 1 - Splitting rates update before sending flow update */
       networkLoading.stepOneSplittingRatesUpdate();
