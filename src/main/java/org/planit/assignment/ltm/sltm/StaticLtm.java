@@ -172,8 +172,8 @@ public class StaticLtm extends LtmAssignment {
       if (!networkLoading.isConverging()) {
         // dependent on whether or not we are modelling physical queues or not and where we started with settings
         // so bug if/else situation, therefore cleaner this way
-        LOGGER.info(
-            String.format("Detected network loading internal convergence anomaly (internal loading iteration %d), activating extension to mitigate", networkLoadingIterationIndex));
+        LOGGER.info(String.format("Detected network loading is not convergencing as expected (internal loading iteration %d), activating extension to mitigate",
+            networkLoadingIterationIndex));
         networkLoading.activateNextExtension();
       }
 

@@ -15,6 +15,7 @@ import org.planit.algorithms.nodemodel.TampereNodeModel;
 import org.planit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.planit.algorithms.nodemodel.TampereNodeModelInput;
 import org.planit.assignment.ltm.sltm.consumer.ActivateSplittingRatesUsedNodesConsumer;
+import org.planit.assignment.ltm.sltm.consumer.PathLinkInflowUpdateConsumer;
 import org.planit.assignment.ltm.sltm.consumer.PathTurnFlowUpdateConsumer;
 import org.planit.assignment.ltm.sltm.consumer.UpdateEntryLinksOutflowConsumer;
 import org.planit.assignment.ltm.sltm.consumer.UpdateExitLinkInflowsConsumer;
@@ -33,9 +34,7 @@ import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.planit.utils.network.layer.physical.Node;
-import org.planit.utils.path.DirectedPath;
 import org.planit.utils.pcu.PcuCapacitated;
-import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.OdZones;
 
 /**
@@ -142,6 +141,8 @@ public class StaticLtmNetworkLoading {
     } else {
       solutionScheme = StaticLtmSolutionScheme.PHYSICAL_QUEUE_BASIC;
     }
+
+    LOGGER.info(String.format("sLTM network loading scheme set to %s", solutionScheme.getValue()));
   }
 
   /**
@@ -155,34 +156,27 @@ public class StaticLtmNetworkLoading {
 
   /**
    * Conduct a network loading to compute updated inflow rates (without tracking turn flows): Eq. (3)-(4) in paper
+   * 
+   * @param linkSegmentFlowArrayToFill the inflows (u_a) to update
    */
   private void networkLoadingLinkSegmentInflowUpdate(final double[] linkSegmentFlowArrayToFill) {
     OdZones odZones = network.getZoning().odZones;
     double[] flowAcceptanceFactors = this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
 
-    /* origin */
-    for (OdZone origin : odZones) {
-      /* destination */
-      for (OdZone destination : odZones) {
-        if (origin.equals(destination)) {
-          continue;
-        }
+    /* update path turn flows (and sending flows if POINT_QUEUE_BASIC) */
+    PathLinkInflowUpdateConsumer pathLinkInflowUpdateConsumer = new PathLinkInflowUpdateConsumer(odPaths, flowAcceptanceFactors, linkSegmentFlowArrayToFill);
+    odDemands.forEachNonZeroOdDemand(odZones, pathLinkInflowUpdateConsumer);
+  }
 
-        Double odDemand = odDemands.getValue(origin, destination);
-        if (odDemand != null && odDemand > 0) {
-          /* path */
-          DirectedPath odPath = odPaths.getValue(origin, destination);
-          double acceptedPathFlowRate = odDemand;
-          for (EdgeSegment edgeSegment : odPath) {
-            /* link segment */
-
-            /* u_a: update inflow for link segment */
-            linkSegmentFlowArrayToFill[(int) edgeSegment.getId()] += acceptedPathFlowRate;
-            acceptedPathFlowRate *= flowAcceptanceFactors[(int) edgeSegment.getId()];
-          }
-        }
-      }
-    }
+  /**
+   * Initialise sending flows via
+   * 
+   * update link in/outflows via network loading Eq. (3)-(4) in paper Initial sending flows: s_a=u_a for all link segments a
+   * 
+   */
+  private void initialiseSendingFlows() {
+    networkLoadingLinkSegmentInflowUpdate(this.sendingFlowData.getCurrentSendingFlows());
+    LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), this.sendingFlowData.getNextSendingFlows());
   }
 
   /**
@@ -476,9 +470,8 @@ public class StaticLtmNetworkLoading {
     /* 1. Initial acceptance flow, capacity, and storage factors, all set to one */
     networkLoadingFactorData.initialiseAll(1.0);
     
-    /* 2. Initial sending and receiving outflows via network loading Eq. (3)-(4) in paper: unconstrained network loading */
-    networkLoadingLinkSegmentInflowUpdate(this.sendingFlowData.getCurrentSendingFlows());
-    LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), this.sendingFlowData.getNextSendingFlows());
+    /* 2. Initial sending flows via network loading Eq. (3)-(4) in paper: unconstrained network loading */
+    initialiseSendingFlows();
     
     /* Depending on the solution scheme we either track all used nodes in the network, or a subset. Either way these need to be 
      * activated/initialised before commencing the loading. This is done here. */
@@ -488,15 +481,18 @@ public class StaticLtmNetworkLoading {
     /* reduce sending flows to capacity */
     this.sendingFlowData.limitCurrentSendingFlowsToCapacity(getUsedNetworkLayer().getLinkSegments());
     
-    /* POINT QUEUE:*/
-    if(this.solutionScheme.isPointQueue()) {
-          
-      /* s=r */ 
-      LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), receivingFlowData.getCurrentReceivingFlows());
-     
-    }else {
-      LOGGER.severe("sLTM with physical queues is not yet implemented, please disable storage constraints and try again");
-      return false;
+    /* initialise receiving flows */
+    {
+      /* POINT QUEUE:*/
+      if(this.solutionScheme.isPointQueue()) {
+            
+        /* s=r */ 
+        LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), receivingFlowData.getCurrentReceivingFlows());
+       
+      }else {
+        LOGGER.severe("sLTM with physical queues is not yet implemented, please disable storage constraints and try again");
+        return false;
+      } 
     }
     
     return true;
@@ -750,16 +746,13 @@ public class StaticLtmNetworkLoading {
       if(this.solutionScheme.equals(StaticLtmSolutionScheme.POINT_QUEUE_BASIC)) {
         /* BASIC -> ADVANCED, e.g., activate local iterative updates of sending flows */
         this.solutionScheme = StaticLtmSolutionScheme.POINT_QUEUE_ADVANCED;
-        //TODO -> we must call StepZeroInitialisation but NOT DO the setting of the solution scheme
-        //        that is in there (not sure how to avoid this as for the real initialisation we do want it there)
-        //        this then should replace the below call which is part of this method already (this is needed because too much of the
-        //        other variables are incomplete due to the extension to more splitting rates (inflows, outflows, sending flows etc)
-        //        +
-        //        BEFORE making this call collect the latest splitting rate data of the basic point queue to reuse -> copy this to the new
-        //        splitting rates whenever it is <1 and larger than 0. This way already converged parts of the network do not need to
-        //        start from scratch
         
-        /* Splitting rates must be re-initialised in this approach: 
+        /* sending flows must be re-initialised since otherwise the sending flows of earlier non-tracked nodes have been rest to zero 
+         * during earlier loading iterations, now they must be available for all tracked nodes, so we reinitialise by conducting a full initialisation based
+         * on paths and most recent flow acceptance factors*/
+        initialiseSendingFlows();
+                
+        /* Splitting rates must be re-initialised in this approach as well (happens automatically in called method via changed solution scheme): 
          * Change from using only a small subset of nodes with splitting rates to tracking splitting rates for all used nodes */
         initialiseSplittingRateData(getUsedNetworkLayer().getLinkSegments());        
       }else {

@@ -68,11 +68,12 @@ public class TampereNodeModel implements NodeModel {
   /**
    * Find most restricted unprocessed outgoing link segment based on the scaled sending flows
    * 
-   * @return a pair of the restriction factor and outlinkSegmentIndex for the most restricted out link segment
+   * @return a pair of the restriction factor and outlinkSegmentIndex for the most restricted out link segment, null if no such out link could be found
    */
   protected Pair<Double, Integer> findMostRestrictingOutLinkSegmentIndex() {
+    Integer foundOutLinkSegmentIndex = null;
+
     double foundRestrictionFactor = Double.POSITIVE_INFINITY;
-    int foundOutLinkSegmentIndex = -1;
     int numberOfOutLinkSegments = inputs.fixedInput.getNumberOfOutgoingLinkSegments();
     for (int outLinkSegmentIndex = 0; outLinkSegmentIndex < numberOfOutLinkSegments; ++outLinkSegmentIndex) {
       double remainingReceivingFlow = remainingReceivingFlows.get(outLinkSegmentIndex);
@@ -88,6 +89,10 @@ public class TampereNodeModel implements NodeModel {
           foundOutLinkSegmentIndex = outLinkSegmentIndex;
         }
       }
+    }
+
+    if (foundOutLinkSegmentIndex == null) {
+      return null;
     }
     return Pair.of(foundRestrictionFactor, foundOutLinkSegmentIndex);
   }
@@ -110,22 +115,36 @@ public class TampereNodeModel implements NodeModel {
    * @return true if demand constrained in link(s) is/are found, false otherwise
    */
   protected boolean updateDemandConstrainedInLinkSegments(Pair<Double, Integer> mostRestrictingOutLinkSegmentData) {
-    final int mostRestrictedOutLinkIndex = mostRestrictingOutLinkSegmentData.second();
-    final double outLinkSegmentScalingFactorBeta = mostRestrictingOutLinkSegmentData.first();
-
     ArrayList<Long> demandConstrainedInLinksY = new ArrayList<Long>();
-    // Y(m) = { a of unprocessed in-links | t_ab_topbar > 0, lambda_a * beta_b > 1}
-    scaledRemainingTurnSendingFlows.loopColumn(mostRestrictedOutLinkIndex, (inLinkSegmentIndex, outLinkSegmentIndex) -> {
-      final double turnSendingFlow = scaledRemainingTurnSendingFlows.get(inLinkSegmentIndex, outLinkSegmentIndex);
-      // t_ab_topbar > 0 && a is unprocessed in link segment
-      if (Precision.isGreater(turnSendingFlow, Precision.EPSILON_6) && !isInLinkSegmentProcessed((int) inLinkSegmentIndex)) {
-        // lambda_a * beta_b
-        final double requiredScalingFactor = inputs.capacityScalingFactors.get(inLinkSegmentIndex) * outLinkSegmentScalingFactorBeta;
-        if (Precision.isGreaterEqual(requiredScalingFactor, 1)) {
-          demandConstrainedInLinksY.add(inLinkSegmentIndex);
+
+    /* ALL REMAINING DEMAND CONSTRAINED */
+    if (mostRestrictingOutLinkSegmentData == null) {
+
+      for (long index = 0; index < this.inputs.getFixedInput().getNumberOfIncomingLinkSegments(); ++index) {
+        if (!isInLinkSegmentProcessed((int) index)) {
+          demandConstrainedInLinksY.add(index);
         }
       }
-    });
+
+    }
+    /* POSSIBLE DEMAND CONSTRAINED IN-LINKS OF MOST RESTRICTING OUT_LINK */
+    else {
+      final int mostRestrictedOutLinkIndex = mostRestrictingOutLinkSegmentData.second();
+      final double outLinkSegmentScalingFactorBeta = mostRestrictingOutLinkSegmentData.first();
+
+      // Y(m) = { a of unprocessed in-links | t_ab_topbar > 0, lambda_a * beta_b > 1}
+      scaledRemainingTurnSendingFlows.loopColumn(mostRestrictedOutLinkIndex, (inLinkSegmentIndex, outLinkSegmentIndex) -> {
+        final double turnSendingFlow = scaledRemainingTurnSendingFlows.get(inLinkSegmentIndex, outLinkSegmentIndex);
+        // t_ab_topbar > 0 && a is unprocessed in link segment
+        if (Precision.isGreater(turnSendingFlow, Precision.EPSILON_6) && !isInLinkSegmentProcessed((int) inLinkSegmentIndex)) {
+          // lambda_a * beta_b
+          final double requiredScalingFactor = inputs.capacityScalingFactors.get(inLinkSegmentIndex) * outLinkSegmentScalingFactorBeta;
+          if (Precision.isGreaterEqual(requiredScalingFactor, 1)) {
+            demandConstrainedInLinksY.add(inLinkSegmentIndex);
+          }
+        }
+      });
+    }
 
     // update data based on identified demand constrained links
     demandConstrainedInLinksY.forEach((inLinkSegmentIndex) -> {
