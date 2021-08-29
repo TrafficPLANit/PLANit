@@ -348,14 +348,14 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * Record the time an iteration took
    *
    * @param startTime           the original start time of the iteration
-   * @param measuredNetworkCost the measured system wirde cost
+   * @param measuredNetworkCost the measured system wide cost
    * @param dualityGap          the duality gap at the end of the iteration
    * @return the time (in ms) at the end of the iteration for profiling purposes only
    */
-  private Calendar logIterationInformation(final Calendar startTime, final double measuredNetworkCost, final double dualityGap) {
+  private Calendar logBasicIterationInformation(final Calendar startTime, final double measuredNetworkCost, final double dualityGap) {
     final Calendar currentTime = Calendar.getInstance();
-    LOGGER.info(createLoggingPrefix() + String.format("network travel time: %f", measuredNetworkCost));
-    LOGGER.info(createLoggingPrefix() + String.format("duality gap: %.6f (%d ms)", dualityGap, currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
+    LOGGER.info(createLoggingPrefix() + String.format("Network cost: %f", measuredNetworkCost));
+    LOGGER.info(createLoggingPrefix() + String.format("Gap: %.10f (%d ms)", dualityGap, currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
     return currentTime;
   }
 
@@ -381,7 +381,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param currentSegmentCosts array to store the current segment costs
    * @throws PlanItException thrown if there is an error
    */
-  private void calculateModalLinkSegmentCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
+  private void populateModalLinkSegmentCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
     getPhysicalCost().populateWithCost(mode, currentSegmentCosts);
   }
 
@@ -465,23 +465,23 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     if (populateToInitialCost(mode, timePeriod, currentSegmentCosts)) {
       return currentSegmentCosts;
     } else {
-      calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
+      populateModalLinkSegmentCosts(mode, currentSegmentCosts);
       return currentSegmentCosts;
     }
   }
 
   /**
-   * Recalculate the modal link segment costs after each iteration
+   * Collect the modal link and connectoid segment costs based on the current state of the cost components
    *
    * @param mode       current mode
    * @param timePeriod current time period
-   * @return array containing link costs for each link segment
+   * @return array containing costs for each link segment
    * @throws PlanItException thrown if there is an error
    */
-  private double[] recalculateModalLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
+  private double[] collectModalLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
     final double[] currentSegmentCosts = new double[transportNetwork.getNumberOfEdgeSegmentsAllLayers()];
     populateModalConnectoidCosts(mode, currentSegmentCosts);
-    calculateModalLinkSegmentCosts(mode, currentSegmentCosts);
+    populateModalLinkSegmentCosts(mode, currentSegmentCosts);
     return currentSegmentCosts;
   }
 
@@ -522,11 +522,14 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
         executeAndSmoothTimePeriodAndMode(timePeriod, mode);
       }
 
+      // TODO: questionable if we should update iteration index before logging/persistence/convergence check... see if we can change this
+      // which would seem more logical
       dualityGapFunction.computeGap();
       simulationData.incrementIterationIndex();
-      iterationStartTime = logIterationInformation(iterationStartTime, dualityGapFunction.getMeasuredNetworkCost(), dualityGapFunction.getGap());
+      iterationStartTime = logBasicIterationInformation(iterationStartTime, dualityGapFunction.getMeasuredNetworkCost(), dualityGapFunction.getGap());
+
       for (final Mode mode : modes) {
-        final double[] modalLinkSegmentCosts = recalculateModalLinkSegmentCosts(mode, timePeriod);
+        final double[] modalLinkSegmentCosts = collectModalLinkSegmentCosts(mode, timePeriod);
         simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
       }
       converged = dualityGapFunction.hasConverged(simulationData.getIterationIndex());

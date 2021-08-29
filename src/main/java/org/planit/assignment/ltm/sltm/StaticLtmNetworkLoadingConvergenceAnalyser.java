@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import org.planit.utils.math.Precision;
+import org.planit.utils.misc.LoggingUtils;
 
 /**
  * Analyser that based on various inputs such as the iteration and previous gaps determines if the loading is converging or not using its configurable criteria
@@ -147,9 +148,11 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
   /**
    * Log gaps since iteration provided
    * 
+   * @param runId              to log for
    * @param referenceIteration starting iteration to log until most recent
    */
-  public void logGapsSince(int referenceIteration) {
-    LOGGER.info(String.format("Gaps for iteration %d-%d: %s", referenceIteration, getRegisteredIterations(), this.gapsByIteration.toString()));
+  public void logGapsSince(long runId, int referenceIteration) {
+    LOGGER.info(
+        String.format("%sGaps for iteration %d-%d: %s", LoggingUtils.createRunIdPrefix(runId), referenceIteration, getRegisteredIterations(), this.gapsByIteration.toString()));
   }
 }

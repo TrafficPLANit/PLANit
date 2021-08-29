@@ -72,9 +72,16 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
   }
 
   /**
-   * Returns the gap for the current iteration
+   * Compute the gap and return it
    * 
-   * @return gap for current iteration
+   * @return the gap for the current iteration
+   */
+  public abstract double computeGap();
+
+  /**
+   * Returns the last computed gap
+   * 
+   * @return latest gap
    */
   public abstract double getGap();
 

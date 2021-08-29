@@ -52,16 +52,6 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
   protected double gap = Double.POSITIVE_INFINITY;
 
   /**
-   * Compute the gap
-   * 
-   * @return the gap for the current iteration
-   */
-  public double computeGap() {
-    gap = (measuredNetworkCost - minimumNetworkCost) / measuredNetworkCost;
-    return gap;
-  }
-
-  /**
    * Return the measured cost
    * 
    * @return the measured cost
@@ -95,6 +85,15 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
   public void reset() {
     this.measuredNetworkCost = 0;
     this.minimumNetworkCost = 0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double computeGap() {
+    gap = (measuredNetworkCost - minimumNetworkCost) / measuredNetworkCost;
+    return gap;
   }
 
   /**

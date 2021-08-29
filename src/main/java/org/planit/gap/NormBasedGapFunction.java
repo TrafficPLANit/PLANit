@@ -105,20 +105,6 @@ public class NormBasedGapFunction extends GapFunction {
   public static final boolean DEFAULT_AVERAGED = true;
 
   /**
-   * Compute the gap
-   * 
-   * @return the gap for the current iteration
-   */
-  public double computeGap() {
-    if (count <= 0) {
-      gap = MAX_GAP;
-    } else {
-      gap = (1.0 / count) * Math.pow(measuredValue, 1.0 / norm);
-    }
-    return getGap();
-  }
-
-  /**
    * Return the actual system travel time
    * 
    * @return the actual system travel time
@@ -172,6 +158,22 @@ public class NormBasedGapFunction extends GapFunction {
     this.measuredValue = 0;
     this.count = 0;
     this.gap = MAX_GAP;
+  }
+
+  /**
+   * Compute the gap
+   * 
+   * @return the gap for the current iteration
+   */
+  @Override
+  public double computeGap() {
+    if (count <= 0) {
+      gap = MAX_GAP;
+    } else {
+      double multiplicationFactor = isAveraged() ? (1.0 / count) : 1;
+      gap = multiplicationFactor * Math.pow(measuredValue, 1.0 / norm);
+    }
+    return getGap();
   }
 
   /**

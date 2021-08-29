@@ -53,6 +53,24 @@ public class StaticLtm extends LtmAssignment {
   /** flag indicating whether or not to activate additional detailed logging during the sLTM assignment */
   private boolean activateDetailedLogging;
 
+  /** the tracked simulation data during assignment */
+  private StaticLtmSimulationData simulationData;
+
+  /**
+   * Record some basic iteration information such as duration and gap
+   *
+   * @param startTime  the original start time of the iteration
+   * @param dualityGap the duality gap at the end of the iteration
+   * @return the time (in ms) at the end of the iteration for profiling purposes only
+   */
+  private Calendar logBasicIterationInformation(final Calendar startTime, final double dualityGap) {
+    final Calendar currentTime = Calendar.getInstance();
+    LOGGER.info(createLoggingPrefix(simulationData.getIterationIndex()) + String.format("Network cost: N/A (yet)"));
+    LOGGER.info(
+        createLoggingPrefix(simulationData.getIterationIndex()) + String.format("Gap: %.10f (%d ms)", dualityGap, currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
+    return currentTime;
+  }
+
   /**
    * Create the od paths based on provided costs. Only create paths for od pairs with non-zero flow.
    * 
@@ -81,7 +99,8 @@ public class StaticLtm extends LtmAssignment {
         if (currOdDemand != null && currOdDemand > 0) {
           DirectedPath path = oneToAllResult.createPath(pathFactory, origin.getCentroid(), destination.getCentroid());
           if (path == null) {
-            LOGGER.warning(String.format("Unable to create path for OD (%s,%s) with non-zero demand (%.2f)", origin.getXmlId(), destination.getXmlId(), currOdDemand));
+            LOGGER.warning(String.format("%sUnable to create path for OD (%s,%s) with non-zero demand (%.2f)", LoggingUtils.createRunIdPrefix(getId()), origin.getXmlId(),
+                destination.getXmlId(), currOdDemand));
             continue;
           }
           odPaths.setValue(origin, destination, path);
@@ -101,6 +120,13 @@ public class StaticLtm extends LtmAssignment {
     networkLoading.getSettings().setDisableStorageConstraints(this.disableLinkStorageConstraints);
     /* detailed logging */
     networkLoading.getSettings().setDetailedLogging(isActivateDetailedLogging());
+
+    /* temporary check until supported */
+    if (!networkLoading.getSettings().isDisableStorageConstraints()) {
+      LOGGER.severe(
+          String.format("%sIGNORE: sLTM with physical queues is not yet implemented, please disable storage constraints and try again", LoggingUtils.createRunIdPrefix(getId())));
+      return;
+    }
   }
 
   /**
@@ -109,10 +135,10 @@ public class StaticLtm extends LtmAssignment {
    * @param timePeriod the time period
    * @param mode       covered by this time period
    * @param odDemands  to use duriung this loading
-   * @return network loading instance to use
+   * @return simulationData initialised for time period
    * @throws PlanItException thrown if there is an error
    */
-  private StaticLtmNetworkLoading initialiseTimePeriod(TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) throws PlanItException {
+  private StaticLtmSimulationData initialiseTimePeriod(TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) throws PlanItException {
 
     /* cost array across all segments, virtual and physical */
     double[] currentSegmentCosts = new double[transportNetwork.getNumberOfEdgeSegmentsAllLayers()];
@@ -128,7 +154,9 @@ public class StaticLtm extends LtmAssignment {
     OdPaths odPaths = createOdPaths(currentSegmentCosts, mode, timePeriod);
 
     /** create the network loading algorithm components instance */
-    return new StaticLtmNetworkLoading(getIdGroupingToken(), getTransportNetwork(), mode, odPaths, odDemands);
+    StaticLtmNetworkLoading networkLoading = new StaticLtmNetworkLoading(getIdGroupingToken(), getId(), getTransportNetwork(), mode, odPaths, odDemands);
+
+    return new StaticLtmSimulationData(networkLoading);
   }
 
   /**
@@ -137,7 +165,7 @@ public class StaticLtm extends LtmAssignment {
    * @param networkLoading               to verify progress on
    * @param networkLoadingIterationIndex we are at
    */
-  private void verifyConvergenceProgress(StaticLtmNetworkLoading networkLoading, int networkLoadingIterationIndex) {
+  private void verifyNetworkLoadingConvergenceProgress(StaticLtmNetworkLoading networkLoading, int networkLoadingIterationIndex) {
     /*
      * whenever the current form of the solution method does not suffice, we move to the next extension which attempts to be more cautious and has a higher likelihood of finding a
      * solution at the cost of slower convergence, so whenever we are not yet stuck, we try to avoid activating these extensions.
@@ -146,13 +174,10 @@ public class StaticLtm extends LtmAssignment {
       // dependent on whether or not we are modelling physical queues or not and where we started with settings
       // so bug if/else situation, therefore cleaner this way
       boolean changedScheme = networkLoading.activateNextExtension(true);
-      if (changedScheme) {
-        LOGGER.info(String.format("Detected network loading is not convergencing as expected (internal loading iteration %d), activating extension to mitigate",
-            networkLoadingIterationIndex));
-      } else {
+      if (!changedScheme) {
         LOGGER.warning(
-            String.format("Detected network loading is not convergencing as expected (internal loading iteration %d) - unable to activate further extensions, consider aborting",
-                networkLoadingIterationIndex));
+            String.format("%sDetected network loading is not converging as expected (internal loading iteration %d) - unable to activate further extensions, consider aborting",
+                LoggingUtils.createRunIdPrefix(getId()), networkLoadingIterationIndex));
       }
     }
   }
@@ -165,26 +190,68 @@ public class StaticLtm extends LtmAssignment {
    * @throws PlanItException thrown if error
    */
   private void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
-    /* for now, we only support a single mode to keep it simple */
+
     if (modes.size() != 1) {
-      LOGGER.warning(String.format("sLTM only supports a single mode for now, found %s, aborting assignment for time period %s", timePeriod.getXmlId()));
+      LOGGER.warning(String.format("%ssLTM only supports a single mode for now, found %s, aborting assignment for time period %s", LoggingUtils.createRunIdPrefix(getId()),
+          timePeriod.getXmlId()));
       return;
     }
 
     /* prep */
     Mode theMode = modes.iterator().next();
-    StaticLtmNetworkLoading networkLoading = initialiseTimePeriod(timePeriod, theMode, this.demands.get(theMode, timePeriod));
-    configureNetworkLoadingSettings(networkLoading);
+    this.simulationData = initialiseTimePeriod(timePeriod, theMode, this.demands.get(theMode, timePeriod));
+    configureNetworkLoadingSettings(simulationData.getNetworkLoading());
 
-    /* temporary check until supported */
-    if (!networkLoading.getSettings().isDisableStorageConstraints()) {
-      LOGGER.severe("IGNORE: sLTM with physical queues is not yet implemented, please disable storage constraints and try again");
-      return;
-    }
+    boolean converged = false;
+    Calendar iterationStartTime = Calendar.getInstance();
+
+    /* ASSIGNMENT LOOP */
+    do {
+      // NETWORK LOADING - MODE AGNOSTIC FOR NOW
+      {
+        executeNetworkLoading();
+      }
+
+      // COST UPDATE
+      executeCostsUpdate();
+
+      // PERSIST
+      getOutputManager().persistOutputData(timePeriod, modes, converged);
+
+      // CONVERGENCE CHECK
+      getGapFunction().computeGap();
+      converged = getGapFunction().hasConverged(simulationData.getIterationIndex());
+
+      // SMOOTHING
+      getGapFunction().reset(); // different location from traditional static (more logical location) -- careful changing this
+      smoothing.update(simulationData.getIterationIndex()); // different from traditional static (more logical location) -- careful changing this
+
+      simulationData.incrementIterationIndex(); // different location from traditional static (more logical location) -- careful changing this
+      iterationStartTime = logBasicIterationInformation(iterationStartTime, getGapFunction().getGap());
+    } while (!converged);
+
+  }
+
+  /**
+   * Update the costs based on the network loading solution found
+   */
+  private void executeCostsUpdate() {
+    // TODO
+
+    // final double[] modalLinkSegmentCosts = recalculateModalLinkSegmentCosts(mode, timePeriod);
+    // simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
+  }
+
+  /**
+   * Perform a network loading based on the current assignment state
+   * 
+   */
+  private void executeNetworkLoading() {
+    StaticLtmNetworkLoading sLtmLoading = simulationData.getNetworkLoading();
 
     /* STEP 0 - Initialisation */
-    if (!networkLoading.stepZeroInitialisation()) {
-      LOGGER.severe(String.format("Aborting sLTM assignment %s, unable to continue", this.getId()));
+    if (!sLtmLoading.stepZeroInitialisation()) {
+      LOGGER.severe(String.format("%sAborting sLTM assignment %s, unable to continue", LoggingUtils.createRunIdPrefix(getId())));
     }
 
     /* for now we do not consider path choice, we conduct a one-shot all-or-nothing network loading */
@@ -192,22 +259,22 @@ public class StaticLtm extends LtmAssignment {
     do {
 
       /* verify if progress is being made and if not activate extensions as deemed adequate */
-      verifyConvergenceProgress(networkLoading, networkLoadingIterationIndex);
+      verifyNetworkLoadingConvergenceProgress(sLtmLoading, networkLoadingIterationIndex);
 
       /* STEP 1 - Splitting rates update before sending flow update */
-      networkLoading.stepOneSplittingRatesUpdate();
+      sLtmLoading.stepOneSplittingRatesUpdate();
 
       /* STEP 2 - Sending flow update */
-      networkLoading.stepTwoInflowSendingFlowUpdate();
+      sLtmLoading.stepTwoInflowSendingFlowUpdate();
 
       /* STEP 3 - Splitting rates update before receiving flow update */
-      networkLoading.stepThreeSplittingRateUpdate();
+      sLtmLoading.stepThreeSplittingRateUpdate();
 
       /* STEP 4 - Receiving flow update */
-      networkLoading.stepFourOutflowReceivingFlowUpdate();
+      sLtmLoading.stepFourOutflowReceivingFlowUpdate();
 
       /* STEP 5 - Network loading convergence */
-    } while (!networkLoading.stepFiveCheckNetworkLoadingConvergence(networkLoadingIterationIndex++));
+    } while (!sLtmLoading.stepFiveCheckNetworkLoadingConvergence(networkLoadingIterationIndex++));
   }
 
   /**
@@ -218,8 +285,8 @@ public class StaticLtm extends LtmAssignment {
     super.verifyComponentCompatibility();
 
     /* gap function check */
-    PlanItException.throwIf(!(getGapFunction() instanceof NormBasedGapFunction), "static LTM only supports a norm based gap function at the moment, but found %s",
-        getGapFunction().getClass().getCanonicalName());
+    PlanItException.throwIf(!(getGapFunction() instanceof NormBasedGapFunction), "%sStatic LTM only supports a norm based gap function at the moment, but found %s",
+        LoggingUtils.createRunIdPrefix(getId()), getGapFunction().getClass().getCanonicalName());
   }
 
   /**
