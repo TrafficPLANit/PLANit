@@ -90,7 +90,7 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
   public Optional<Integer> getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) throws PlanItException {
     PlanItException.throwIf(!(outputTypeEnum instanceof ODSkimSubOutputType), "Incorrect outputType enum found when collecting iteration index");
 
-    int iterationIndex = trafficAssignment.getIterationIndex();
+    int iterationIndex = getAssignment().getIterationIndex();
     switch ((ODSkimSubOutputType) outputTypeEnum) {
     case COST:
       // cost is collected through the shortest path in iteration i based on the link costs of

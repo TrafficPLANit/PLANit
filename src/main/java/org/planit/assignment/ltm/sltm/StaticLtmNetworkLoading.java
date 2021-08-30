@@ -1,6 +1,9 @@
 package org.planit.assignment.ltm.sltm;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -824,5 +827,30 @@ public class StaticLtmNetworkLoading {
     return settings;
   }
 
+  /** The supported modes of this loading
+   * 
+   * @return supported modes
+   */
+  public Collection<Mode> getSupportedModes(){
+    return new ArrayList<Mode>(Collections.singleton(this.mode));
+  }
+  
+  /**
+   * Collect the most recently calculate total inflows by the loading
+   * 
+   * @return inflows in Pcu per hour
+   */
+  public double[] getCurrentInflowsPcuH() {
+    return this.inFlowOutflowData.getInflows();
+  }
+  
+  /**
+   * Collect the most recently calculate total outflows by the loading
+   * 
+   * @return outflows in Pcu per hour
+   */
+  public double[] getCurrentOutflowsPcuH() {
+    return this.inFlowOutflowData.getOutflows();
+  }  
 
 }

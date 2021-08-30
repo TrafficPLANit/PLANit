@@ -12,15 +12,16 @@ import org.planit.utils.exceptions.PlanItException;
  */
 public enum OutputProperty {
 
+  // @Formatter:off
   DENSITY("org.planit.output.property.DensityOutputProperty"), LINK_SEGMENT_ID("org.planit.output.property.LinkSegmentIdOutputProperty"),
   LINK_SEGMENT_XML_ID("org.planit.output.property.LinkSegmentXmlIdOutputProperty"), LINK_SEGMENT_EXTERNAL_ID("org.planit.output.property.LinkSegmentExternalIdOutputProperty"),
   MODE_ID("org.planit.output.property.ModeIdOutputProperty"), MODE_EXTERNAL_ID("org.planit.output.property.ModeExternalIdOutputProperty"),
   MODE_XML_ID("org.planit.output.property.ModeXmlIdOutputProperty"), MAXIMUM_DENSITY("org.planit.output.property.MaximumDensityOutputProperty"),
   MAXIMUM_SPEED("org.planit.output.property.MaximumSpeedOutputProperty"), CALCULATED_SPEED("org.planit.output.property.CalculatedSpeedOutputProperty"),
-  FLOW("org.planit.output.property.FlowOutputProperty"), LENGTH("org.planit.output.property.LengthOutputProperty"),
-  UPSTREAM_NODE_ID("org.planit.output.property.UpstreamNodeIdOutputProperty"), UPSTREAM_NODE_EXTERNAL_ID("org.planit.output.property.UpstreamNodeExternalIdOutputProperty"),
-  UPSTREAM_NODE_XML_ID("org.planit.output.property.UpstreamNodeXmlIdOutputProperty"), DOWNSTREAM_NODE_ID("org.planit.output.property.DownstreamNodeIdOutputProperty"),
-  DOWNSTREAM_NODE_EXTERNAL_ID("org.planit.output.property.DownstreamNodeExternalIdOutputProperty"),
+  FLOW("org.planit.output.property.FlowOutputProperty"), INFLOW("org.planit.output.property.InflowOutputProperty"), OUTFLOW("org.planit.output.property.OutflowOutputProperty"),
+  LENGTH("org.planit.output.property.LengthOutputProperty"), UPSTREAM_NODE_ID("org.planit.output.property.UpstreamNodeIdOutputProperty"),
+  UPSTREAM_NODE_EXTERNAL_ID("org.planit.output.property.UpstreamNodeExternalIdOutputProperty"), UPSTREAM_NODE_XML_ID("org.planit.output.property.UpstreamNodeXmlIdOutputProperty"),
+  DOWNSTREAM_NODE_ID("org.planit.output.property.DownstreamNodeIdOutputProperty"), DOWNSTREAM_NODE_EXTERNAL_ID("org.planit.output.property.DownstreamNodeExternalIdOutputProperty"),
   DOWNSTREAM_NODE_XML_ID("org.planit.output.property.DownstreamNodeXmlIdOutputProperty"), CAPACITY_PER_LANE("org.planit.output.property.CapacityPerLaneOutputProperty"),
   NUMBER_OF_LANES("org.planit.output.property.NumberOfLanesOutputProperty"), LINK_SEGMENT_COST("org.planit.output.property.LinkSegmentCostOutputProperty"),
   OD_COST("org.planit.output.property.ODCostOutputProperty"), DOWNSTREAM_NODE_LOCATION("org.planit.output.property.DownstreamNodeLocationOutputProperty"),

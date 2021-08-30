@@ -19,6 +19,14 @@ import org.planit.utils.mode.Mode;
 public class TraditionalStaticAssignmentODOutputTypeAdapter extends ODOutputTypeAdapterImpl {
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected TraditionalStaticAssignment getAssignment() {
+    return (TraditionalStaticAssignment) super.getAssignment();
+  }
+
+  /**
    * Constructor
    * 
    * @param outputType        the output type for the current persistence
@@ -36,7 +44,7 @@ public class TraditionalStaticAssignmentODOutputTypeAdapter extends ODOutputType
    * @return the OD skim matrix
    */
   public Optional<OdSkimMatrix> getODSkimMatrix(ODSkimSubOutputType odSkimOutputType, Mode mode) {
-    return Optional.of(((TraditionalStaticAssignment) trafficAssignment).getIterationData().getODSkimMatrix(odSkimOutputType, mode));
+    return Optional.of(getAssignment().getIterationData().getODSkimMatrix(odSkimOutputType, mode));
   }
 
 }

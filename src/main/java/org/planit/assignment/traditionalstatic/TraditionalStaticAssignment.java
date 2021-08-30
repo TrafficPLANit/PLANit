@@ -570,10 +570,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   }
 
   /**
-   * Create the output type adapter for the current output type
-   *
-   * @param outputType the current output type
-   * @return the output type adapter corresponding to the current traffic assignment and output type
+   * {@inheritDoc}
    */
   @Override
   public OutputTypeAdapter createOutputTypeAdapter(final OutputType outputType) {

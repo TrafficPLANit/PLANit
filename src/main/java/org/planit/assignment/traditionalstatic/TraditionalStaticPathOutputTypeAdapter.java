@@ -17,6 +17,14 @@ import org.planit.utils.mode.Mode;
 public class TraditionalStaticPathOutputTypeAdapter extends PathOutputTypeAdapterImpl {
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected TraditionalStaticAssignment getAssignment() {
+    return (TraditionalStaticAssignment) super.getAssignment();
+  }
+
+  /**
    * Constructor
    * 
    * @param outputType        the output type for the current persistence
@@ -34,7 +42,7 @@ public class TraditionalStaticPathOutputTypeAdapter extends PathOutputTypeAdapte
    */
   @Override
   public Optional<OdPathMatrix> getODPathMatrix(Mode mode) {
-    return Optional.of(((TraditionalStaticAssignment) trafficAssignment).getIterationData().getODPathMatrix(mode));
+    return Optional.of(getAssignment().getIterationData().getODPathMatrix(mode));
   }
 
 }

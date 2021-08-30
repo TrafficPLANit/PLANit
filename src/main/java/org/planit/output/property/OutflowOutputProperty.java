@@ -4,18 +4,17 @@ import org.planit.output.enums.Type;
 import org.planit.utils.unit.Units;
 
 /**
- * Property to provide the Flow rate in PCU/hour. This property is only to be used when both the inflow rate and outflow rate are guaranteed to be the same. If not, then it depends
- * on the assignment method what this property represents (inflow rate or outflow rate)
+ * Property to provide the Outflow rate in PCU/hour.
  * 
  * @author markr
  *
  */
-public final class FlowOutputProperty extends BaseOutputProperty {
+public final class OutflowOutputProperty extends BaseOutputProperty {
 
   /**
    * Name of the property
    */
-  public static final String NAME = "Flow";
+  public static final String NAME = "Outflow";
 
   /**
    * {@inheritDoc}
@@ -46,7 +45,7 @@ public final class FlowOutputProperty extends BaseOutputProperty {
    */
   @Override
   public OutputProperty getOutputProperty() {
-    return OutputProperty.FLOW;
+    return OutputProperty.OUTFLOW;
   }
 
   /**

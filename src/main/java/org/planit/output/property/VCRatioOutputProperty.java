@@ -9,30 +9,45 @@ import org.planit.utils.unit.Units;
  * @author gman6028
  *
  */
-public final class VCRatioOutputProperty extends BaseOutputProperty {
+public final class VcRatioOutputProperty extends BaseOutputProperty {
 
   public static final String NAME = "VC Ratio";
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String getName() {
     return NAME;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Units getUnits() {
     return Units.NONE;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Type getType() {
     return Type.DOUBLE;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public OutputProperty getOutputProperty() {
     return OutputProperty.VC_RATIO;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public OutputPropertyPriority getColumnPriority() {
     return OutputPropertyPriority.RESULT_PRIORITY;

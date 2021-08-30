@@ -38,11 +38,11 @@ public abstract class PhysicalLinkOutputTypeAdapterImpl extends OutputTypeAdapte
    */
   @Override
   public GraphEntities<LinkSegment> getPhysicalLinkSegments(long infrastructureLayerId) {
-    TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
+    TransportLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
     if (networkLayer instanceof PhysicalLayer) {
       return ((PhysicalLayer) networkLayer).getLinkSegments();
     }
-    LOGGER.warning(String.format("cannot collect physical link segments from infrastructure layer %s, as it is not a physical network layer", networkLayer.getXmlId()));
+    LOGGER.warning(String.format("Cannot collect physical link segments from infrastructure layer %s, as it is not a physical network layer", networkLayer.getXmlId()));
     return null;
   }
 

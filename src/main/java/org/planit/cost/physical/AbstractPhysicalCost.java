@@ -35,7 +35,7 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
 
   /**
    * Invoker expects (mode specific ) costs in passed in array to be filled, where each entry signifies a link segment by its id. This allows for more efficient implementations
-   * than having to revert to one by one updates. It does however rewuire network information hence its placement here where via the initialiseBeforeSimulation, the network is
+   * than having to revert to one by one updates. It does however require network information hence its placement here where via the initialiseBeforeSimulation, the network is
    * provided
    * 
    * @param mode       the mode these costs pertain to

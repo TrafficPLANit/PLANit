@@ -14,9 +14,9 @@ import org.planit.output.property.RunIdOutputProperty;
 import org.planit.output.property.TimePeriodExternalIdOutputProperty;
 import org.planit.output.property.TimePeriodIdOutputProperty;
 import org.planit.output.property.TimePeriodXmlIdOutputProperty;
-import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Top-level abstract class which defines the common methods required by all output type adapters
@@ -29,12 +29,21 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
   /**
    * the traffic assignment this output adapter is drawing from
    */
-  protected TrafficAssignment trafficAssignment;
+  private TrafficAssignment trafficAssignment;
 
   /**
    * The OutputType this OutputTypeAdapter is used for
    */
   protected OutputType outputType;
+
+  /**
+   * Access the assignment
+   * 
+   * @return the assignment
+   */
+  protected TrafficAssignment getAssignment() {
+    return trafficAssignment;
+  }
 
   /**
    * Returns the value of properties which are common to all output type adapters
@@ -50,7 +59,7 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
       case MODE_EXTERNAL_ID:
         return ModeExternalIdOutputProperty.getModeExternalId(mode);
       case MODE_XML_ID:
-        return ModeXmlIdOutputProperty.getModeXmlId(mode);                
+        return ModeXmlIdOutputProperty.getModeXmlId(mode);
       case MODE_ID:
         return ModeIdOutputProperty.getModeId(mode);
       case RUN_ID:
@@ -58,9 +67,9 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
       case TIME_PERIOD_EXTERNAL_ID:
         return TimePeriodExternalIdOutputProperty.getTimePeriodExternalId(timePeriod);
       case TIME_PERIOD_XML_ID:
-        return TimePeriodXmlIdOutputProperty.getTimePeriodXmlId(timePeriod);        
+        return TimePeriodXmlIdOutputProperty.getTimePeriodXmlId(timePeriod);
       case TIME_PERIOD_ID:
-        return TimePeriodIdOutputProperty.getTimePeriodId(timePeriod);        
+        return TimePeriodIdOutputProperty.getTimePeriodId(timePeriod);
       case ITERATION_INDEX:
         return IterationIndexOutputProperty.getIterationIndex(trafficAssignment);
       default:

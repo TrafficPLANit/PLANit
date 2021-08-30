@@ -140,23 +140,18 @@ public class StaticLtm extends LtmAssignment {
    */
   private StaticLtmSimulationData initialiseTimePeriod(TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) throws PlanItException {
 
-    /* cost array across all segments, virtual and physical */
-    double[] currentSegmentCosts = new double[transportNetwork.getNumberOfEdgeSegmentsAllLayers()];
-
-    /* virtual cost */
-    virtualCost.populateWithCost(mode, currentSegmentCosts);
-
-    /* physical cost */
-    getPhysicalCost().populateWithCost(mode, currentSegmentCosts);
+    /* compute costs to start with */
+    double[] currentSegmentCosts = executeCostsUpdate(mode);
 
     // TODO no support for initial cost yet
 
+    /* initial paths based on costs */
     OdPaths odPaths = createOdPaths(currentSegmentCosts, mode, timePeriod);
 
-    /** create the network loading algorithm components instance */
+    /* create the network loading algorithm components instance */
     StaticLtmNetworkLoading networkLoading = new StaticLtmNetworkLoading(getIdGroupingToken(), getId(), getTransportNetwork(), mode, odPaths, odDemands);
 
-    return new StaticLtmSimulationData(networkLoading);
+    return new StaticLtmSimulationData(networkLoading, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
   }
 
   /**
@@ -172,7 +167,6 @@ public class StaticLtm extends LtmAssignment {
      */
     if (!networkLoading.isConverging()) {
       // dependent on whether or not we are modelling physical queues or not and where we started with settings
-      // so bug if/else situation, therefore cleaner this way
       boolean changedScheme = networkLoading.activateNextExtension(true);
       if (!changedScheme) {
         LOGGER.warning(
@@ -213,7 +207,7 @@ public class StaticLtm extends LtmAssignment {
       }
 
       // COST UPDATE
-      executeCostsUpdate();
+      getIterationData().setLinkSegmentTravelTimeHour(theMode, executeCostsUpdate(theMode));
 
       // PERSIST
       getOutputManager().persistOutputData(timePeriod, modes, converged);
@@ -233,13 +227,23 @@ public class StaticLtm extends LtmAssignment {
   }
 
   /**
-   * Update the costs based on the network loading solution found
+   * Update the costs based on the network loading solution found.
+   * 
+   * @param mode to collect costs for
+   * @return computed costs for all edge segments in the network
+   * @throws PlanItException thrown if error
    */
-  private void executeCostsUpdate() {
-    // TODO
+  private double[] executeCostsUpdate(Mode mode) throws PlanItException {
+    /* cost array across all segments, virtual and physical */
+    double[] currentSegmentCosts = new double[transportNetwork.getNumberOfEdgeSegmentsAllLayers()];
 
-    // final double[] modalLinkSegmentCosts = recalculateModalLinkSegmentCosts(mode, timePeriod);
-    // simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
+    /* virtual cost */
+    virtualCost.populateWithCost(mode, currentSegmentCosts);
+
+    /* physical cost */
+    getPhysicalCost().populateWithCost(mode, currentSegmentCosts);
+
+    return currentSegmentCosts;
   }
 
   /**
@@ -315,6 +319,15 @@ public class StaticLtm extends LtmAssignment {
   }
 
   /**
+   * Return the simulation data for the current iteration
+   *
+   * @return simulation data
+   */
+  protected StaticLtmSimulationData getIterationData() {
+    return simulationData;
+  }
+
+  /**
    * Constructor
    * 
    * @param groupId contiguous id generation within this group for instances of this class
@@ -337,8 +350,21 @@ public class StaticLtm extends LtmAssignment {
    */
   @Override
   public OutputTypeAdapter createOutputTypeAdapter(OutputType outputType) {
-    // TODO Auto-generated method stub
-    return null;
+    OutputTypeAdapter outputTypeAdapter = null;
+    switch (outputType) {
+    case LINK:
+      outputTypeAdapter = new StaticLtmLinkOutputTypeAdapter(outputType, this);
+      break;
+    case OD:
+      // NOT YET SUPPORTED
+      break;
+    case PATH:
+      // NOT YET SUPPORTED
+      break;
+    default:
+      LOGGER.warning(String.format("%s%s is not supported yet", LoggingUtils.createRunIdPrefix(getId()), outputType.value()));
+    }
+    return outputTypeAdapter;
   }
 
   /**

@@ -21,9 +21,12 @@ import org.planit.utils.time.TimePeriod;
 public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAdapterImpl {
 
   /**
-   * track parent assignment as its actual class
+   * {@inheritDoc}
    */
-  protected TraditionalStaticAssignment theAssignment;
+  @Override
+  protected TraditionalStaticAssignment getAssignment() {
+    return (TraditionalStaticAssignment) super.getAssignment();
+  }
 
   /**
    * Returns the value of the calculated speed
@@ -35,7 +38,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
    */
   private Optional<Double> getCalculatedSpeed(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
     final int id = (int) linkSegment.getId();
-    final double[] modalNetworkSegmentCosts = theAssignment.getIterationData().getModalLinkSegmentCosts(mode);
+    final double[] modalNetworkSegmentCosts = getAssignment().getIterationData().getModalLinkSegmentCosts(mode);
     final double travelTime = modalNetworkSegmentCosts[id];
     final double length = linkSegment.getParentLink().getLengthKm();
     return Optional.of(length / travelTime);
@@ -51,7 +54,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
    */
   private Optional<Double> getFlow(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
     final int id = (int) linkSegment.getId();
-    final double[] modalNetworkSegmentFlows = theAssignment.getIterationData().getModeSpecificData().get(mode).getCurrentSegmentFlows();
+    final double[] modalNetworkSegmentFlows = getAssignment().getIterationData().getModeSpecificData().get(mode).getCurrentSegmentFlows();
     return Optional.of(modalNetworkSegmentFlows[id]);
   }
 
@@ -66,7 +69,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
    */
   private Optional<Double> getLinkCost(final MacroscopicLinkSegment linkSegment, final Mode mode, final double timeUnitMultiplier) throws PlanItException {
     final int id = (int) linkSegment.getId();
-    final double[] modalNetworkSegmentCosts = theAssignment.getIterationData().getModalLinkSegmentCosts(mode);
+    final double[] modalNetworkSegmentCosts = getAssignment().getIterationData().getModalLinkSegmentCosts(mode);
     return Optional.of(modalNetworkSegmentCosts[id] * timeUnitMultiplier);
   }
 
@@ -92,7 +95,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
    */
   private Optional<Double> getVCRatio(final MacroscopicLinkSegment linkSegment) throws PlanItException {
     double totalFlow = 0.0;
-    for (final Mode mode : trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getModes()) {
+    for (final Mode mode : getAssignment().getTransportNetwork().getInfrastructureNetwork().getModes()) {
       totalFlow += getFlow(linkSegment, mode).get();
     }
     final double capacityPerLane = getCapacityPerLane(linkSegment).get();
@@ -107,7 +110,6 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
    */
   public TraditionalStaticAssignmentLinkOutputTypeAdapter(final OutputType outputType, final TrafficAssignment trafficAssignment) {
     super(outputType, trafficAssignment);
-    this.theAssignment = (TraditionalStaticAssignment) this.trafficAssignment;
   }
 
   /**
@@ -119,7 +121,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
    */
   @Override
   public Optional<Boolean> isFlowPositive(final MacroscopicLinkSegment linkSegment, final Mode mode) {
-    return Optional.of(theAssignment.getIterationData().getModeSpecificData().get(mode).getCurrentSegmentFlows()[(int) linkSegment.getId()] > 0.0);
+    return Optional.of(getAssignment().getIterationData().getModeSpecificData().get(mode).getCurrentSegmentFlows()[(int) linkSegment.getId()] > 0.0);
   }
 
   /**
@@ -150,6 +152,10 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
       case CALCULATED_SPEED:
         return getCalculatedSpeed(linkSegment, mode);
       case FLOW:
+        return getFlow(linkSegment, mode);
+      case INFLOW:
+        return getFlow(linkSegment, mode);
+      case OUTFLOW:
         return getFlow(linkSegment, mode);
       case LINK_SEGMENT_COST:
         return getLinkCost(linkSegment, mode, timeUnitMultiplier);

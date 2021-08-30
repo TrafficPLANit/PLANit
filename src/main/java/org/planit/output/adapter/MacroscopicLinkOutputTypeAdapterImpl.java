@@ -41,7 +41,7 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOu
    */
   @Override
   public Optional<Long> getInfrastructureLayerIdForMode(Mode mode) {
-    TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode);
+    TransportLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getLayerByMode(mode);
     return Optional.of(networkLayer != null ? networkLayer.getId() : null);
   }
 
@@ -52,7 +52,7 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOu
    */
   @Override
   public MacroscopicLinkSegments getPhysicalLinkSegments(long infrastructureLayerId) {
-    TransportLayer networkLayer = this.trafficAssignment.getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
+    TransportLayer networkLayer = getAssignment().getTransportNetwork().getInfrastructureNetwork().getTransportLayers().get(infrastructureLayerId);
     if (networkLayer instanceof MacroscopicNetworkLayer) {
       return ((MacroscopicNetworkLayer) networkLayer).getLinkSegments();
     }
@@ -77,12 +77,12 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOu
   public Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode, TimePeriod timePeriod,
       double timeUnitMultiplier) {
     try {
-      Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
+      Optional<?> value = super.getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (value.isPresent()) {
         return value;
       }
 
-      value = getLinkSegmentOutputPropertyValue(outputProperty, linkSegment);
+      value = super.getLinkSegmentOutputPropertyValue(outputProperty, linkSegment);
       if (value.isPresent()) {
         return value;
       }
