@@ -9,16 +9,16 @@ import java.util.logging.Logger;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
-import org.planit.output.enums.OutputTimeUnit;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.OutputTypeEnum;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.OutputProperty;
-import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.time.TimePeriod;
+import org.planit.utils.unit.Units;
 
 /**
  * Base class for all formatters of output data, i.e. persistence of certain types of data into a particular format
@@ -35,7 +35,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   /**
    * default time unit used
    */
-  private static final OutputTimeUnit DEFAULT_TIME_UNIT = OutputTimeUnit.HOURS;
+  private static final Units DEFAULT_TIME_UNIT = Units.HOUR;
 
   /**
    * Map of OutputProperty types of keys for each OutputType
@@ -67,7 +67,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   /**
    * Time unit to be used in outputs
    */
-  protected OutputTimeUnit outputTimeUnit;
+  protected Units outputTimeUnit;
 
   /**
    * List of registered OutputTypes
@@ -210,6 +210,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   @Override
   public void persist(TimePeriod timePeriod, Set<Mode> modes, OutputConfiguration outputConfiguration, OutputTypeConfiguration outputTypeConfiguration, OutputAdapter outputAdapter)
       throws PlanItException {
+
     OutputType outputType = outputTypeConfiguration.getOutputType();
     OutputProperty[] outputValuePropertyArray = outputTypeConfiguration.getOutputValueProperties();
     if (!outputTypeValuesLocked.get(outputType)) {
@@ -240,7 +241,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
       Set<SubOutputTypeEnum> subOutputTypes = outputTypeConfiguration.getActiveSubOutputTypes();
       for (SubOutputTypeEnum subOutputTypeEnum : subOutputTypes) {
         Optional<Integer> iterationIndex = outputAdapter.getOutputTypeAdapter(outputType).getIterationIndexForSubOutputType(subOutputTypeEnum);
-        if(iterationIndex.isEmpty()) {
+        if (iterationIndex.isEmpty()) {
           throw new PlanItException("iteration index could not be retrieved when persisting");
         }
         outputTypeIterationInformation.put(subOutputTypeEnum, iterationIndex.get());
@@ -248,7 +249,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
     } else {
       // regular approach, single outputtype with single iteration reference
       Optional<Integer> iterationIndex = outputAdapter.getOutputTypeAdapter(outputType).getIterationIndexForSubOutputType(null);
-      if(iterationIndex.isEmpty()) {
+      if (iterationIndex.isEmpty()) {
         throw new PlanItException("iteration index could not be retrieved when persisting");
       }
       outputTypeIterationInformation.put(outputType, iterationIndex.get());
@@ -287,20 +288,18 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   }
 
   /**
-   * Returns the current time units
-   * 
-   * @return the current time units
+   * {@inheritDoc}
    */
-  public OutputTimeUnit getOutputTimeUnit() {
+  @Override
+  public Units getOutputTimeUnit() {
     return outputTimeUnit;
   }
 
   /**
-   * Sets the current time units
-   * 
-   * @param outputTimeUnit the specified time units
+   * {@inheritDoc}
    */
-  public void setOutputTimeUnit(OutputTimeUnit outputTimeUnit) {
+  @Override
+  public void setOutputTimeUnit(Units outputTimeUnit) {
     this.outputTimeUnit = outputTimeUnit;
   }
 

@@ -18,13 +18,13 @@ import org.planit.od.path.OdPathMatrix.OdPathMatrixIterator;
 import org.planit.od.skim.OdSkimMatrix;
 import org.planit.od.skim.OdSkimMatrix.OdSkimMatrixIterator;
 import org.planit.output.adapter.MacroscopicLinkOutputTypeAdapter;
-import org.planit.output.adapter.ODOutputTypeAdapter;
+import org.planit.output.adapter.OdOutputTypeAdapter;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.PathOutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.configuration.PathOutputTypeConfiguration;
-import org.planit.output.enums.ODSkimSubOutputType;
+import org.planit.output.enums.OdSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.OutputTypeEnum;
 import org.planit.output.enums.SubOutputTypeEnum;
@@ -81,31 +81,29 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       OutputTypeEnum currentOutputType, OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, CSVPrinter csvPrinter) {
     try {
       // main type information
-      ODOutputTypeAdapter odOutputTypeAdapter = (ODOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputTypeConfiguration.getOutputType());
+      OdOutputTypeAdapter odOutputTypeAdapter = (OdOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputTypeConfiguration.getOutputType());
       SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
 
       // verify if current suboutput type is compatible with the provided output
-      PlanItException.throwIf(!(currentOutputType instanceof SubOutputTypeEnum && ((SubOutputTypeEnum) currentOutputType) instanceof ODSkimSubOutputType),
+      PlanItException.throwIf(!(currentOutputType instanceof SubOutputTypeEnum && ((SubOutputTypeEnum) currentOutputType) instanceof OdSkimSubOutputType),
           "currentOutputType is not compatible with od results");
 
       // sub-type information
-      ODSkimSubOutputType currentSubOutputType = (ODSkimSubOutputType) currentOutputType;
+      OdSkimSubOutputType currentSubOutputType = (OdSkimSubOutputType) currentOutputType;
 
       // perform actual persistence
       for (Mode mode : modes) {
-        Optional<OdSkimMatrix> odSkimMatrix = odOutputTypeAdapter.getODSkimMatrix(currentSubOutputType, mode);
+        Optional<OdSkimMatrix> odSkimMatrix = odOutputTypeAdapter.getOdSkimMatrix(currentSubOutputType, mode);
         odSkimMatrix.orElseThrow(() -> new PlanItException("od skim matrix could not be retrieved when persisting"));
 
         for (OdSkimMatrixIterator odMatrixIterator = odSkimMatrix.get().iterator(); odMatrixIterator.hasNext();) {
           odMatrixIterator.next();
-          Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getODOutputPropertyValue(OutputProperty.OD_COST, odMatrixIterator, mode, timePeriod,
-              outputTimeUnit.getMultiplier());
+          Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getOdOutputPropertyValue(OutputProperty.OD_COST, odMatrixIterator, mode, timePeriod);
           cost.orElseThrow(() -> new PlanItException("cost could not be retrieved when persisting"));
 
           if (outputConfiguration.isPersistZeroFlow() || cost.get() > Precision.EPSILON_6) {
             List<Object> rowValues = outputProperties.stream()
-                .map(outputProperty -> odOutputTypeAdapter
-                    .getODOutputPropertyValue(outputProperty.getOutputProperty(), odMatrixIterator, mode, timePeriod, outputTimeUnit.getMultiplier()).get())
+                .map(outputProperty -> odOutputTypeAdapter.getOdOutputPropertyValue(outputProperty.getOutputProperty(), odMatrixIterator, mode, timePeriod).get())
                 .map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
             csvPrinter.printRecord(rowValues);
           }
@@ -199,8 +197,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
               if (outputConfiguration.isPersistZeroFlow() || flowPositive.get()) {
                 List<Object> rowValues = outputProperties.stream()
-                    .map(outputProperty -> linkOutputTypeAdapter
-                        .getLinkSegmentOutputPropertyValue(outputProperty.getOutputProperty(), linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier()).get())
+                    .map(outputProperty -> linkOutputTypeAdapter.getLinkSegmentOutputPropertyValue(outputProperty.getOutputProperty(), linkSegment, mode, timePeriod).get())
                     .map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
                 csvPrinter.printRecord(rowValues);
               }

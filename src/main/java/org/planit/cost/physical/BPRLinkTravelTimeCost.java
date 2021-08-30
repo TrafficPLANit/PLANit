@@ -16,6 +16,8 @@ import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.network.layer.physical.LinkSegment;
+import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
 
 /**
  * Well known BPR link performance function to compute travel time cost on link segment based on flow and configuration parameters. An instance of this class is compatible with a
@@ -79,9 +81,6 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
       return parametersMap.get(mode);
     }
   }
-
-  /** the network layer the BPR is applied to */
-  protected MacroscopicNetworkLayer networkLayer;
 
   /**
    * Link volume accessee object for this cost function
@@ -173,7 +172,6 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    */
   public BPRLinkTravelTimeCost(BPRLinkTravelTimeCost bprLinkTravelTimeCost) {
     super(bprLinkTravelTimeCost);
-    this.networkLayer = bprLinkTravelTimeCost.networkLayer;
     this.linkVolumeAccessee = bprLinkTravelTimeCost.linkVolumeAccessee;
 
     this.parametersPerLinkSegmentAndMode = bprLinkTravelTimeCost.parametersPerLinkSegmentAndMode;
@@ -259,12 +257,12 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @param costToFill the cost to populate (in hours)
    */
   @Override
-  public void populateWithCost(Mode mode, double[] costToFill) throws PlanItException {
+  public void populateWithCost(UntypedPhysicalLayer<?, ?, ?, ?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
     double[] linkSegmentFlows = linkVolumeAccessee.getLinkSegmentFlows();
 
-    for (MacroscopicLinkSegment linkSegment : networkLayer.getLinkSegments()) {
+    for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
       final int id = (int) linkSegment.getId();
-      costToFill[id] = computeCostInHours(linkSegment, mode, linkSegmentFlows[id]);
+      costToFill[id] = computeCostInHours((MacroscopicLinkSegment) linkSegment, mode, linkSegmentFlows[id]);
     }
   }
 
@@ -279,7 +277,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "BPR cost is only compatible with macroscopic networks");
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");
-    this.networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
+    MacroscopicNetworkLayer networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
     if (network.getModes().size() != networkLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by only layer, this makes the assignment less efficient, consider removing unused modes");
     }

@@ -156,15 +156,6 @@ public class StaticLtmNetworkLoading {
   }
 
   /**
-   * Convenience method to collect the used layer for this loading
-   * 
-   * @return layer used
-   */
-  private MacroscopicNetworkLayer getUsedNetworkLayer() {
-    return ((MacroscopicNetworkLayer) this.network.getInfrastructureNetwork().getLayerByMode(mode));
-  }
-
-  /**
    * Conduct a network loading to compute updated inflow rates (without tracking turn flows): Eq. (3)-(4) in paper
    * 
    * @param linkSegmentFlowArrayToFill the inflows (u_a) to update
@@ -445,6 +436,15 @@ public class StaticLtmNetworkLoading {
         nextFlowCapacityFactors[currentLinkSegmentId] = Math.min(1, outflows[currentLinkSegmentId] / receivingFlows[currentLinkSegmentId]);
       }
     }
+  }
+
+  /**
+   * Convenience method to collect the used layer for this loading
+   * 
+   * @return layer used
+   */
+  protected MacroscopicNetworkLayer getUsedNetworkLayer() {
+    return ((MacroscopicNetworkLayer) this.network.getInfrastructureNetwork().getLayerByMode(mode));
   }
 
   /**

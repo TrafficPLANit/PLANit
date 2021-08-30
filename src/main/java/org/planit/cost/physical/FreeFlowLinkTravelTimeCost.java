@@ -7,6 +7,8 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.physical.LinkSegment;
+import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
 
 /**
  * Simplest possible travel time cost, namely fixed to free flow travel time regardless of the flows measured.
@@ -59,14 +61,15 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
   /**
    * Populate the cost array with the free flow link travel times for all link segments for the specified mode
    * 
-   * @param mode       the mode to use
-   * @param costToFill the cost to populate (in hours)
+   * @param physicalLayer to use
+   * @param mode          the mode to use
+   * @param costToFill    the cost to populate (in hours)
    */
   @Override
-  public void populateWithCost(Mode mode, double[] costToFill) throws PlanItException {
-    for (MacroscopicLinkSegment linkSegment : networkLayer.getLinkSegments()) {
+  public void populateWithCost(UntypedPhysicalLayer<?, ?, ?, ?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
+    for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
       final int id = (int) linkSegment.getId();
-      costToFill[id] = linkSegment.computeFreeFlowTravelTime(mode);
+      costToFill[id] = MacroscopicLinkSegment.class.cast(linkSegment).computeFreeFlowTravelTime(mode);
     }
   }
 
@@ -85,8 +88,8 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
   public void initialiseBeforeSimulation(TransportLayerNetwork<?, ?> network) throws PlanItException {
     PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "Free flow  travel time cost is only compatible with macroscopic networks");
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
-    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1, "Free flow travel time cost is currently only compatible with networks using a single infrastructure layer");
-    this.networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
+    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
+        "Free flow travel time cost is currently only compatible with networks using a single infrastructure layer");
   }
 
 }

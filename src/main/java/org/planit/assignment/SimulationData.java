@@ -4,12 +4,27 @@ package org.planit.assignment;
  * General simulation data that only are available during simulation
  * 
  */
-public abstract class SimulationData {
+public class SimulationData implements Cloneable {
 
   /**
    * Iteration index, tracking the iteration during execution
    */
-  private int iterationIndex = 0; // general
+  private int iterationIndex;
+
+  /**
+   * Constructor
+   */
+  public SimulationData() {
+    this.iterationIndex = 0;
+  }
+
+  /**
+   * Copy constructor
+   */
+  protected SimulationData(final SimulationData simulationData) {
+    super();
+    this.iterationIndex = simulationData.iterationIndex;
+  }
 
   /**
    * Increment iteration index by one
@@ -36,6 +51,14 @@ public abstract class SimulationData {
    */
   public void setIterationIndex(int iterationIndex) {
     this.iterationIndex = iterationIndex;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SimulationData clone() {
+    return new SimulationData(this);
   }
 
 }

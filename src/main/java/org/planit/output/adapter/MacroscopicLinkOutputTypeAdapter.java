@@ -115,13 +115,11 @@ public interface MacroscopicLinkOutputTypeAdapter extends UntypedLinkOutputTypeA
   /**
    * Return the value of a specified output property of a link segment
    * 
-   * @param outputProperty     the specified output property
-   * @param linkSegment        the specified link segment
-   * @param mode               the current mode
-   * @param timePeriod         the current time period
-   * @param timeUnitMultiplier the multiplier for time units
+   * @param outputProperty the specified output property
+   * @param linkSegment    the specified link segment
+   * @param mode           the current mode
+   * @param timePeriod     the current time period
    * @return the value of the specified output property (or an Exception if an error occurs)
    */
-  public abstract Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode, TimePeriod timePeriod,
-      double timeUnitMultiplier);
+  public abstract Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode, TimePeriod timePeriod);
 }

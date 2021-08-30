@@ -50,12 +50,12 @@ public abstract class LtmAssignment extends TrafficAssignment {
   @Override
   protected void verifyComponentCompatibility() throws PlanItException {
     /* network compatibility */
-    PlanItException.throwIf(!(transportNetwork.getInfrastructureNetwork() instanceof MacroscopicNetwork), "sLTM is only compatible with macroscopic networks");
-    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) transportNetwork.getInfrastructureNetwork();
+    PlanItException.throwIf(!(getInfrastructureNetwork() instanceof MacroscopicNetwork), "sLTM is only compatible with macroscopic networks");
+    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) getInfrastructureNetwork();
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
         "sLTM is currently only compatible with networks using a single transport layer in its physical network");
     MacroscopicNetworkLayer networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
-    if (transportNetwork.getInfrastructureNetwork().getModes().size() != networkLayer.getSupportedModes().size()) {
+    if (getInfrastructureNetwork().getModes().size() != networkLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by the single available layer, consider removing unused modes");
     }
   }

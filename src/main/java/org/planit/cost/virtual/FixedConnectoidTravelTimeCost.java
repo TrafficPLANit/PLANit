@@ -2,6 +2,7 @@ package org.planit.cost.virtual;
 
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.virtual.ConnectoidSegment;
@@ -55,13 +56,7 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
   }
 
   /**
-   *
-   * Calculates the connectoid segment cost using a fixed travel time
-   *
-   *
-   * @param mode              mode of travel
-   * @param connectoidSegment the connectoid segment
-   * @return the travel time for the specified connectoid segment
+   * {@inheritDoc}
    */
   @Override
   public double getSegmentCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
@@ -69,21 +64,21 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
   }
 
   /**
-   *
-   * Initialize the virtual cost component
-   *
-   *
-   * @param virtualNetwork the virtual network
-   * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
+   * {@inheritDoc}
    */
   @Override
   public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException {
-    // currently no specific initialization needed
+    // do nothing
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void populateWithCost(Mode mode, double[] costToFill) throws PlanItException {
-    // TODO Auto-generated method stub
+  public void populateWithCost(final VirtualNetwork virtualNetwork, final Mode mode, double[] costToFill) throws PlanItException {
+    for (EdgeSegment virtualSegment : virtualNetwork.getConnectoidSegments()) {
+      costToFill[(int) virtualSegment.getId()] = fixedConnectoidCost;
+    }
   }
 
   /**

@@ -10,6 +10,7 @@ import org.planit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
 import org.planit.assignment.ltm.LtmAssignment;
 import org.planit.gap.NormBasedGapFunction;
+import org.planit.network.MacroscopicNetwork;
 import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPaths;
 import org.planit.od.path.OdPathsHashed;
@@ -86,7 +87,7 @@ public class StaticLtm extends LtmAssignment {
     OdPaths odPaths = new OdPathsHashed(getIdGroupingToken(), getTransportNetwork().getZoning().getOdZones());
 
     OdDemands odDemand = this.demands.get(mode, timePeriod);
-    Zoning zoning = this.transportNetwork.getZoning();
+    Zoning zoning = getTransportNetwork().getZoning();
     for (OdZone origin : zoning.getOdZones()) {
       ShortestPathResult oneToAllResult = shortestPathAlgorithm.executeOneToAll(origin.getCentroid());
       for (OdZone destination : zoning.getOdZones()) {
@@ -235,13 +236,13 @@ public class StaticLtm extends LtmAssignment {
    */
   private double[] executeCostsUpdate(Mode mode) throws PlanItException {
     /* cost array across all segments, virtual and physical */
-    double[] currentSegmentCosts = new double[transportNetwork.getNumberOfEdgeSegmentsAllLayers()];
+    double[] currentSegmentCosts = new double[getTransportNetwork().getNumberOfEdgeSegmentsAllLayers()];
 
     /* virtual cost */
-    virtualCost.populateWithCost(mode, currentSegmentCosts);
+    virtualCost.populateWithCost(getTransportNetwork().getVirtualNetwork(), mode, currentSegmentCosts);
 
     /* physical cost */
-    getPhysicalCost().populateWithCost(mode, currentSegmentCosts);
+    getPhysicalCost().populateWithCost(getInfrastructureNetwork().getLayerByMode(mode), mode, currentSegmentCosts);
 
     return currentSegmentCosts;
   }
@@ -343,6 +344,17 @@ public class StaticLtm extends LtmAssignment {
    */
   public StaticLtm(StaticLtm sltm) {
     super(sltm);
+    this.activateDetailedLogging = sltm.activateDetailedLogging;
+    this.disableLinkStorageConstraints = sltm.disableLinkStorageConstraints;
+    this.simulationData = sltm.simulationData.clone();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicNetwork getInfrastructureNetwork() {
+    return (MacroscopicNetwork) super.getInfrastructureNetwork();
   }
 
   /**

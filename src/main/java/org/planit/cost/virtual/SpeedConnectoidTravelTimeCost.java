@@ -17,6 +17,7 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
   /** generated UID */
   private static final long serialVersionUID = 2813935702895030693L;
 
+  /** default to apply */
   public static final double DEFAULT_CONNECTOID_SPEED_KPH = 25.0;
 
   /**
@@ -65,9 +66,14 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
     return connectoidSegment.getParentEdge().getLengthKm() / connectoidSpeed;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void populateWithCost(Mode mode, double[] costToFill) throws PlanItException {
-    // TODO Auto-generated method stub
+  public void populateWithCost(final VirtualNetwork virtualNetwork, final Mode mode, double[] costToFill) throws PlanItException {
+    for (ConnectoidSegment virtualSegment : virtualNetwork.getConnectoidSegments()) {
+      costToFill[(int) virtualSegment.getId()] = getSegmentCost(mode, virtualSegment);
+    }
   }
 
   /**

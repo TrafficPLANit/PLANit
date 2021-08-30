@@ -3,7 +3,7 @@ package org.planit.output.adapter;
 import java.util.Optional;
 
 import org.planit.od.skim.OdSkimMatrix;
-import org.planit.output.enums.ODSkimSubOutputType;
+import org.planit.output.enums.OdSkimSubOutputType;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
@@ -16,7 +16,7 @@ import org.planit.utils.time.TimePeriod;
  * @author gman6028, markr
  *
  */
-public interface ODOutputTypeAdapter extends OutputTypeAdapter {
+public interface OdOutputTypeAdapter extends OutputTypeAdapter {
 
   /**
    * Returns the external Id of the destination zone for the current OD
@@ -85,15 +85,14 @@ public interface ODOutputTypeAdapter extends OutputTypeAdapter {
   }
 
   /**
-   * Returns the OD value (double) multiplied with the given multiplier
+   * Returns the Od value
    * 
-   * @param odIterator      OdIterator object containing the current value
-   * @param valueMultiplier multiplier to apply to value found
+   * @param odIterator OdIterator object containing the current value
    * @return the OD travel cost for the current cell in the OD skim matrix
    * @throws PlanItException thrown if there is an error
    */
-  public static Optional<Double> getOdValueMultipliedWith(final OdDataIterator<Double> odIterator, double valueMultiplier) throws PlanItException {
-    return Optional.of(odIterator.getCurrentValue() * valueMultiplier);
+  public static <T> Optional<T> getOdValue(final OdDataIterator<T> odIterator) throws PlanItException {
+    return Optional.of(odIterator.getCurrentValue());
   }
 
   /**
@@ -103,19 +102,17 @@ public interface ODOutputTypeAdapter extends OutputTypeAdapter {
    * @param mode             the specified mode
    * @return the OD skim matrix
    */
-  public abstract Optional<OdSkimMatrix> getODSkimMatrix(ODSkimSubOutputType odSkimOutputType, Mode mode);
+  public abstract Optional<OdSkimMatrix> getOdSkimMatrix(OdSkimSubOutputType odSkimOutputType, Mode mode);
 
   /**
    * Returns the specified output property values for the current cell in the OD Matrix Iterator
    * 
-   * @param outputProperty     the specified output property
-   * @param odMatrixIterator   the iterator through the current OD Matrix
-   * @param mode               the current mode
-   * @param timePeriod         the current time period
-   * @param timeUnitMultiplier the multiplier for time units
+   * @param outputProperty   the specified output property
+   * @param odMatrixIterator the iterator through the current OD Matrix
+   * @param mode             the current mode
+   * @param timePeriod       the current time period
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
-  public abstract Optional<?> getODOutputPropertyValue(OutputProperty outputProperty, final OdDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod,
-      double timeUnitMultiplier);
+  public abstract Optional<?> getOdOutputPropertyValue(OutputProperty outputProperty, final OdDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod);
 
 }

@@ -5,9 +5,10 @@ import java.util.Set;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
-import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.time.TimePeriod;
+import org.planit.utils.unit.Units;
 
 /**
  * Interface for persisting output data in a particular format
@@ -78,5 +79,19 @@ public interface OutputFormatter {
    * @return flag to indicate whether the OutputFormatter can handle multiple iterations
    */
   public boolean canHandleMultipleIterations();
+
+  /**
+   * Returns the current time units to be used for the output
+   * 
+   * @return the current time units
+   */
+  public abstract Units getOutputTimeUnit();
+
+  /**
+   * Sets the current time units used for the output
+   * 
+   * @param outputTimeUnit the specified time units
+   */
+  public abstract void setOutputTimeUnit(Units outputTimeUnit);
 
 }

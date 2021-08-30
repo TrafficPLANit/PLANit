@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.output.enums.ODSkimSubOutputType;
+import org.planit.output.enums.OdSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.BaseOutputProperty;
@@ -13,6 +13,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.od.OdDataIterator;
 import org.planit.utils.time.TimePeriod;
+import org.planit.utils.unit.UnitUtils;
 
 /**
  * Top-level abstract class which defines the common methods required by OD output type adapters
@@ -20,11 +21,11 @@ import org.planit.utils.time.TimePeriod;
  * @author gman6028
  *
  */
-public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements ODOutputTypeAdapter {
+public abstract class OdOutputTypeAdapterImpl extends OutputTypeAdapterImpl implements OdOutputTypeAdapter {
 
   /** the logger */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(ODOutputTypeAdapterImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(OdOutputTypeAdapterImpl.class.getCanonicalName());
 
   /**
    * Constructor
@@ -32,7 +33,7 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
    * @param outputType        the output type for the current persistence
    * @param trafficAssignment the traffic assignment used to provide the data
    */
-  public ODOutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
+  public OdOutputTypeAdapterImpl(OutputType outputType, TrafficAssignment trafficAssignment) {
     super(outputType, trafficAssignment);
   }
 
@@ -46,9 +47,8 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
    * @param timeUnitMultiplier the multiplier for time units
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
-  @SuppressWarnings("unchecked")
   @Override
-  public Optional<?> getODOutputPropertyValue(OutputProperty outputProperty, OdDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod, double timeUnitMultiplier) {
+  public Optional<?> getOdOutputPropertyValue(OutputProperty outputProperty, OdDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod) {
     try {
       Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (value.isPresent()) {
@@ -57,19 +57,19 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
 
       switch (outputProperty) {
       case DESTINATION_ZONE_EXTERNAL_ID:
-        return ODOutputTypeAdapter.getDestinationZoneExternalId(odIterator);
+        return OdOutputTypeAdapter.getDestinationZoneExternalId(odIterator);
       case DESTINATION_ZONE_XML_ID:
-        return ODOutputTypeAdapter.getDestinationZoneXmlId(odIterator);
+        return OdOutputTypeAdapter.getDestinationZoneXmlId(odIterator);
       case DESTINATION_ZONE_ID:
-        return ODOutputTypeAdapter.getDestinationZoneId(odIterator);
+        return OdOutputTypeAdapter.getDestinationZoneId(odIterator);
       case OD_COST:
-        return ODOutputTypeAdapter.getOdValueMultipliedWith((OdDataIterator<Double>) odIterator, timeUnitMultiplier);
+        return Optional.of(UnitUtils.convertHourTo(getOutputTimeUnit(), (double) OdOutputTypeAdapter.getOdValue(odIterator).get()));
       case ORIGIN_ZONE_EXTERNAL_ID:
-        return ODOutputTypeAdapter.getOriginZoneExternalId(odIterator);
+        return OdOutputTypeAdapter.getOriginZoneExternalId(odIterator);
       case ORIGIN_ZONE_XML_ID:
-        return ODOutputTypeAdapter.getOriginZoneXmlId(odIterator);
+        return OdOutputTypeAdapter.getOriginZoneXmlId(odIterator);
       case ORIGIN_ZONE_ID:
-        return ODOutputTypeAdapter.getOriginZoneId(odIterator);
+        return OdOutputTypeAdapter.getOriginZoneId(odIterator);
       default:
         return Optional
             .of(String.format("Tried to find link property of %s which is not applicable for OD matrix", BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()));
@@ -88,10 +88,10 @@ public abstract class ODOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
    */
   @Override
   public Optional<Integer> getIterationIndexForSubOutputType(SubOutputTypeEnum outputTypeEnum) throws PlanItException {
-    PlanItException.throwIf(!(outputTypeEnum instanceof ODSkimSubOutputType), "Incorrect outputType enum found when collecting iteration index");
+    PlanItException.throwIf(!(outputTypeEnum instanceof OdSkimSubOutputType), "Incorrect outputType enum found when collecting iteration index");
 
     int iterationIndex = getAssignment().getIterationIndex();
-    switch ((ODSkimSubOutputType) outputTypeEnum) {
+    switch ((OdSkimSubOutputType) outputTypeEnum) {
     case COST:
       // cost is collected through the shortest path in iteration i based on the link costs of
       // iteration i-1, so the od cost

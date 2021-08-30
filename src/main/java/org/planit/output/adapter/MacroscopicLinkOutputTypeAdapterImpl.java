@@ -66,16 +66,14 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOu
    * 
    * The DENSITY case should never be called for TraditionalStaticAssignment.
    * 
-   * @param outputProperty     the specified output property
-   * @param linkSegment        the specified link segment
-   * @param mode               the current mode
-   * @param timePeriod         the current time period
-   * @param timeUnitMultiplier the multiplier for time units
+   * @param outputProperty the specified output property
+   * @param linkSegment    the specified link segment
+   * @param mode           the current mode
+   * @param timePeriod     the current time period
    * @return the value of the specified output property (or an Exception message if an error occurs)
    */
   @Override
-  public Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode, TimePeriod timePeriod,
-      double timeUnitMultiplier) {
+  public Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, MacroscopicLinkSegment linkSegment, Mode mode, TimePeriod timePeriod) {
     try {
       Optional<?> value = super.getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (value.isPresent()) {

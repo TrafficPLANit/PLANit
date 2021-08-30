@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.planit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
-import org.planit.output.enums.ODSkimSubOutputType;
+import org.planit.output.enums.OdSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
@@ -29,7 +29,7 @@ import org.planit.utils.exceptions.PlanItException;
  * @author markr
  *
  */
-public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
+public class OdOutputTypeConfiguration extends OutputTypeConfiguration {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());
@@ -70,10 +70,10 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
    * 
    * @throws PlanItException thrown if there is an error adding the default properties
    */
-  public ODOutputTypeConfiguration() throws PlanItException {
+  public OdOutputTypeConfiguration() throws PlanItException {
     super(OutputType.OD);
     // add default sub output types (OD - SKIM - COST);
-    activeSubOutputTypes.add(ODSkimSubOutputType.COST);
+    activeSubOutputTypes.add(OdSkimSubOutputType.COST);
     // add default output properties
     addProperty(OutputProperty.TIME_PERIOD_XML_ID);
     addProperty(OutputProperty.MODE_XML_ID);
@@ -93,19 +93,19 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
     OutputProperty[] outputKeyPropertiesArray = null;
     boolean valid = false;
     switch (findIdentificationMethod(outputKeyProperties)) {
-    case ODOutputTypeConfiguration.ORIGIN_DESTINATION_ID_IDENTIFICATION:
+    case OdOutputTypeConfiguration.ORIGIN_DESTINATION_ID_IDENTIFICATION:
       outputKeyPropertiesArray = new OutputProperty[2];
       outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_ID;
       outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_ID;
       valid = true;
       break;
-    case ODOutputTypeConfiguration.ORIGIN_DESTINATION_XML_ID_IDENTIFICATION:
+    case OdOutputTypeConfiguration.ORIGIN_DESTINATION_XML_ID_IDENTIFICATION:
       outputKeyPropertiesArray = new OutputProperty[2];
       outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_XML_ID;
       outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_XML_ID;
       valid = true;
       break;
-    case ODOutputTypeConfiguration.ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION:
+    case OdOutputTypeConfiguration.ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION:
       outputKeyPropertiesArray = new OutputProperty[2];
       outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_EXTERNAL_ID;
       outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_EXTERNAL_ID;
@@ -125,7 +125,7 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
    * 
    * @param odSkimOutputType ODSkimOutputType to be activated
    */
-  public void activateOdSkimOutputType(ODSkimSubOutputType odSkimOutputType) {
+  public void activateOdSkimOutputType(OdSkimSubOutputType odSkimOutputType) {
     activateSubOutputType(odSkimOutputType);
   }
 
@@ -134,7 +134,7 @@ public class ODOutputTypeConfiguration extends OutputTypeConfiguration {
    * 
    * @param odSkimOutputType ODSkimOutputType to be deactivated
    */
-  public void deactivateOdSkimOutputType(ODSkimSubOutputType odSkimOutputType) {
+  public void deactivateOdSkimOutputType(OdSkimSubOutputType odSkimOutputType) {
     deactivateSubOutputType(odSkimOutputType);
   }
 

@@ -6,14 +6,14 @@ package org.planit.output.enums;
  * @author gman6028
  *
  */
-public enum ODSkimSubOutputType implements SubOutputTypeEnum {
+public enum OdSkimSubOutputType implements SubOutputTypeEnum {
 
   NONE("None"),
   COST("Cost");
 
   private final String value;
 
-  ODSkimSubOutputType(String v) {
+  OdSkimSubOutputType(String v) {
     value = v;
   }
 

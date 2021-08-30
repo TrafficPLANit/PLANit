@@ -1,7 +1,7 @@
 package org.planit.od.skim;
 
 import org.ojalgo.array.Array2D;
-import org.planit.output.enums.ODSkimSubOutputType;
+import org.planit.output.enums.OdSkimSubOutputType;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.od.OdPrimitiveMatrix;
 import org.planit.utils.od.OdPrimitiveMatrixIterator;
@@ -34,7 +34,7 @@ public class OdSkimMatrix extends OdPrimitiveMatrix<Double> {
   /**
    * The ODSkimOutputType for this ODSkimMatrix
    */
-  private final ODSkimSubOutputType odSkimOutputType;
+  private final OdSkimSubOutputType odSkimOutputType;
 
   /**
    * Constructor
@@ -42,7 +42,7 @@ public class OdSkimMatrix extends OdPrimitiveMatrix<Double> {
    * @param zones            holding the zones in the network
    * @param odSkimOutputType the skim output type for this OD skim matrix
    */
-  public OdSkimMatrix(OdZones zones, ODSkimSubOutputType odSkimOutputType) {
+  public OdSkimMatrix(OdZones zones, OdSkimSubOutputType odSkimOutputType) {
     super(OdSkimMatrix.class, IdGroupingToken.collectGlobalToken(), zones, Array2D.PRIMITIVE32.makeZero(zones.size(), zones.size()));
     this.odSkimOutputType = odSkimOutputType;
   }
@@ -62,7 +62,7 @@ public class OdSkimMatrix extends OdPrimitiveMatrix<Double> {
    * 
    * @return the OD skim matrix type for the current OD skim matrix
    */
-  public ODSkimSubOutputType getOdSkimOutputType() {
+  public OdSkimSubOutputType getOdSkimOutputType() {
     return odSkimOutputType;
   }
 

@@ -113,7 +113,7 @@ public class OutputConfiguration {
       createdOutputTypeConfiguration = new LinkOutputTypeConfiguration();
       break;
     case OD:
-      createdOutputTypeConfiguration = new ODOutputTypeConfiguration();
+      createdOutputTypeConfiguration = new OdOutputTypeConfiguration();
       break;
     case PATH:
       createdOutputTypeConfiguration = new PathOutputTypeConfiguration();

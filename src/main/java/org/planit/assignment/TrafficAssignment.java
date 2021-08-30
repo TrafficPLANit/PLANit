@@ -74,12 +74,12 @@ public abstract class TrafficAssignment extends NetworkLoading {
   /**
    * network to use
    */
-  private TransportLayerNetwork<?, ?> network;
+  private TransportLayerNetwork<?, ?> physicalNetwork;
 
   /**
    * The transport network to use which is an adaptor around the physical network and the zoning
    */
-  protected TransportModelNetwork transportNetwork = null;
+  private TransportModelNetwork transportNetwork = null;
 
   /**
    * The virtual cost function
@@ -140,7 +140,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   protected void checkForEmptyComponents() throws PlanItException {
     PlanItException.throwIf(demands == null, "Demand is null");
-    PlanItException.throwIf(network == null, "Network is null");
+    PlanItException.throwIf(physicalNetwork == null, "Network is null");
     PlanItException.throwIf(zoning == null, "Zoning is null");
     PlanItException.throwIf(smoothing == null, "Smoothing is null");
     PlanItException.throwIf(gapFunction == null, "GapFunction is null");
@@ -174,7 +174,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @throws PlanItException thrown if there is an error
    */
   protected void createTransportNetwork() throws PlanItException {
-    transportNetwork = new TransportModelNetwork(network, zoning);
+    transportNetwork = new TransportModelNetwork(physicalNetwork, zoning);
     transportNetwork.integrateTransportNetworkViaConnectoids();
     if (getTransportNetwork().getNumberOfEdgeSegmentsAllLayers() > Integer.MAX_VALUE) {
       throw new PlanItException("currently assignment internals expect to be castable to int, but max value is exceeded for link segments");
@@ -215,7 +215,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
     outputManager.initialiseBeforeSimulation(getId());
 
-    physicalCost.initialiseBeforeSimulation(network);
+    physicalCost.initialiseBeforeSimulation(physicalNetwork);
     virtualCost.initialiseBeforeSimulation(zoning.getVirtualNetwork());
   }
 
@@ -280,7 +280,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   protected TrafficAssignment(TrafficAssignment trafficAssignment) {
     super(trafficAssignment);
-    this.network = trafficAssignment.network;
+    this.physicalNetwork = trafficAssignment.physicalNetwork;
     this.transportNetwork = trafficAssignment.transportNetwork;
     this.virtualCost = trafficAssignment.virtualCost;
     this.numberOfNetworkSegments = trafficAssignment.numberOfNetworkSegments;
@@ -383,13 +383,22 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Set the network for the current assignment
+   * Set the physicalNetwork for the current assignment
    *
-   * @param network the network object for the current assignment
+   * @param physicalNetwork the network object for the current assignment
    */
-  public void setInfrastructureNetwork(final TransportLayerNetwork<?, ?> network) {
-    logRegisteredComponent(network, true);
-    this.network = network;
+  public void setInfrastructureNetwork(final TransportLayerNetwork<?, ?> physicalNetwork) {
+    logRegisteredComponent(physicalNetwork, true);
+    this.physicalNetwork = physicalNetwork;
+  }
+
+  /**
+   * Get the physical network for the current assignment
+   *
+   * @return physical network for the current assignment
+   */
+  public TransportLayerNetwork<?, ?> getInfrastructureNetwork() {
+    return this.physicalNetwork;
   }
 
   /**

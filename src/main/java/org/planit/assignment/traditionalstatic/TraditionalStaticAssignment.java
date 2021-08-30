@@ -21,8 +21,8 @@ import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPathMatrix;
 import org.planit.od.skim.OdSkimMatrix;
 import org.planit.output.adapter.OutputTypeAdapter;
-import org.planit.output.configuration.ODOutputTypeConfiguration;
-import org.planit.output.enums.ODSkimSubOutputType;
+import org.planit.output.configuration.OdOutputTypeConfiguration;
+import org.planit.output.enums.OdSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.path.DirectedPathFactoryImpl;
@@ -95,13 +95,12 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     super.verifyComponentCompatibility();
 
     /* network compatibility */
-    PlanItException.throwIf(!(transportNetwork.getInfrastructureNetwork() instanceof MacroscopicNetwork),
-        "Traditional static assignment is only compatible with macroscopic networks");
-    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) transportNetwork.getInfrastructureNetwork();
+    PlanItException.throwIf(!(getInfrastructureNetwork() instanceof MacroscopicNetwork), "Traditional static assignment is only compatible with macroscopic networks");
+    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) getInfrastructureNetwork();
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
         "Traditional static assignment  is currently only compatible with networks using a single infrastructure layer");
     MacroscopicNetworkLayer infrastructureLayer = macroscopicNetwork.getTransportLayers().getFirst();
-    if (transportNetwork.getInfrastructureNetwork().getModes().size() != infrastructureLayer.getSupportedModes().size()) {
+    if (getInfrastructureNetwork().getModes().size() != infrastructureLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by the single available layer, consider removing unused modes");
     }
 
@@ -173,7 +172,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
     final OdPathMatrix odpathMatrix = simulationData.getODPathMatrix(mode);
-    final Map<ODSkimSubOutputType, OdSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
+    final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
 
     // loop over all available OD demands
     long previousOriginZoneId = -1;
@@ -305,13 +304,13 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param odDemand               the odDemand
    * @param shortestPathResult     costs for the shortest path results for the specified mode and origin-any destination
    */
-  private void updateODOutputData(final Map<ODSkimSubOutputType, OdSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone,
+  private void updateODOutputData(final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone,
       final double odDemand, final ShortestPathResult shortestPathResult) {
 
     if (getOutputManager().isOutputTypeActive(OutputType.OD)) {
-      Set<SubOutputTypeEnum> activeSubOutputTypes = ((ODOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD)).getActiveSubOutputTypes();
+      Set<SubOutputTypeEnum> activeSubOutputTypes = ((OdOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD)).getActiveSubOutputTypes();
       for (final SubOutputTypeEnum odSkimOutputType : activeSubOutputTypes) {
-        if (odSkimOutputType.equals(ODSkimSubOutputType.COST)) {
+        if (odSkimOutputType.equals(OdSkimSubOutputType.COST)) {
 
           // Collect cost to get to vertex from shortest path ONE-TO-ALL information directly
           final double odGeneralisedCost = shortestPathResult.getCostToReach(currentDestinationZone.getCentroid());
@@ -367,7 +366,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void populateModalConnectoidCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
-    for (final ConnectoidSegment currentSegment : transportNetwork.getVirtualNetwork().getConnectoidSegments()) {
+    for (final ConnectoidSegment currentSegment : getTransportNetwork().getVirtualNetwork().getConnectoidSegments()) {
       currentSegmentCosts[(int) currentSegment.getId()] = virtualCost.getSegmentCost(mode, currentSegment);
     }
   }
@@ -382,7 +381,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void populateModalLinkSegmentCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
-    getPhysicalCost().populateWithCost(mode, currentSegmentCosts);
+    getPhysicalCost().populateWithCost(getInfrastructureNetwork().getLayerByMode(mode), mode, currentSegmentCosts);
   }
 
   /**
@@ -456,7 +455,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private double[] initialiseLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
-    final double[] currentSegmentCosts = new double[transportNetwork.getNumberOfEdgeSegmentsAllLayers()];
+    final double[] currentSegmentCosts = new double[getTransportNetwork().getNumberOfEdgeSegmentsAllLayers()];
 
     /* virtual component */
     populateModalConnectoidCosts(mode, currentSegmentCosts);
@@ -479,7 +478,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private double[] collectModalLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
-    final double[] currentSegmentCosts = new double[transportNetwork.getNumberOfEdgeSegmentsAllLayers()];
+    final double[] currentSegmentCosts = new double[getTransportNetwork().getNumberOfEdgeSegmentsAllLayers()];
     populateModalConnectoidCosts(mode, currentSegmentCosts);
     populateModalLinkSegmentCosts(mode, currentSegmentCosts);
     return currentSegmentCosts;
@@ -511,7 +510,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
         // :TODO ugly -> you are not resetting 1 matrix but multiple, NAMES ARE WRONG
         // :TODO: slow -> only reset or do something when it is stored in the first place, this is not checked
         if (getOutputManager().isOutputTypeActive(OutputType.OD)) {
-          simulationData.resetSkimMatrix(mode, getTransportNetwork().getZoning().odZones, (ODOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD));
+          simulationData.resetSkimMatrix(mode, getTransportNetwork().getZoning().odZones, (OdOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD));
         }
         if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
           simulationData.resetPathMatrix(mode, getTransportNetwork().getZoning().odZones);
@@ -567,6 +566,14 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     this.simulationData = traditionalStaticAssignment.simulationData;
     this.localPathFactory = traditionalStaticAssignment.localPathFactory;
     this.networkLayer = traditionalStaticAssignment.networkLayer;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicNetwork getInfrastructureNetwork() {
+    return (MacroscopicNetwork) super.getInfrastructureNetwork();
   }
 
   /**

@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.planit.assignment.TrafficAssignment;
 import org.planit.od.skim.OdSkimMatrix;
-import org.planit.output.adapter.ODOutputTypeAdapterImpl;
-import org.planit.output.enums.ODSkimSubOutputType;
+import org.planit.output.adapter.OdOutputTypeAdapterImpl;
+import org.planit.output.enums.OdSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.utils.mode.Mode;
 
@@ -16,7 +16,7 @@ import org.planit.utils.mode.Mode;
  * @author gman6028
  *
  */
-public class TraditionalStaticAssignmentODOutputTypeAdapter extends ODOutputTypeAdapterImpl {
+public class TraditionalStaticAssignmentODOutputTypeAdapter extends OdOutputTypeAdapterImpl {
 
   /**
    * {@inheritDoc}
@@ -43,7 +43,7 @@ public class TraditionalStaticAssignmentODOutputTypeAdapter extends ODOutputType
    * @param mode             the specified mode
    * @return the OD skim matrix
    */
-  public Optional<OdSkimMatrix> getODSkimMatrix(ODSkimSubOutputType odSkimOutputType, Mode mode) {
+  public Optional<OdSkimMatrix> getOdSkimMatrix(OdSkimSubOutputType odSkimOutputType, Mode mode) {
     return Optional.of(getAssignment().getIterationData().getODSkimMatrix(odSkimOutputType, mode));
   }
 

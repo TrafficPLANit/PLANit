@@ -5,6 +5,7 @@ import org.planit.network.TransportLayerNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
 
 /**
  * Class for dynamic cost functions, which calculate link segment costs for each iteration
@@ -38,11 +39,12 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
    * than having to revert to one by one updates. It does however require network information hence its placement here where via the initialiseBeforeSimulation, the network is
    * provided
    * 
-   * @param mode       the mode these costs pertain to
-   * @param costToFill array of link segment costs identified by the link segment's internal id
+   * @param physicalLayer these cost pertain to
+   * @param mode          the mode these costs pertain to
+   * @param costToFill    array of link segment costs identified by the link segment's internal id
    * @throws PlanItException thrown if error
    */
-  public abstract void populateWithCost(Mode mode, double[] costToFill) throws PlanItException;
+  public abstract void populateWithCost(final UntypedPhysicalLayer<?, ?, ?, ?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException;
 
   /**
    * Initialize the cost parameter values in the network

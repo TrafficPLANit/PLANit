@@ -1,5 +1,7 @@
 package org.planit.assignment.ltm.sltm;
 
+import java.util.Arrays;
+
 import org.planit.assignment.SimulationData;
 import org.planit.utils.mode.Mode;
 
@@ -34,6 +36,24 @@ public class StaticLtmSimulationData extends SimulationData {
   }
 
   /**
+   * Copy Constructor
+   * 
+   * @param simulationData to copy
+   */
+  public StaticLtmSimulationData(final StaticLtmSimulationData simulationData) {
+    super(simulationData);
+    this.networkLoading = simulationData.networkLoading;
+    if (networkLoading.getSupportedModes().size() > 0) {
+      this.modeLinkSegmentCost = new double[networkLoading.getSupportedModes().size()][simulationData.modeLinkSegmentCost[0].length];
+      for (int index = 0; index < networkLoading.getSupportedModes().size(); ++index) {
+        this.modeLinkSegmentCost[index] = Arrays.copyOf(simulationData.modeLinkSegmentCost[index], simulationData.modeLinkSegmentCost[index].length);
+      }
+    } else {
+      this.modeLinkSegmentCost = null;
+    }
+  }
+
+  /**
    * Access to network loading instance
    * 
    * @return network loading
@@ -62,6 +82,14 @@ public class StaticLtmSimulationData extends SimulationData {
    */
   public double[] getLinkSegmentTravelTimeHour(Mode theMode) {
     return modeLinkSegmentCost[(int) theMode.getId()];
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public StaticLtmSimulationData clone() {
+    return new StaticLtmSimulationData(this);
   }
 
 }

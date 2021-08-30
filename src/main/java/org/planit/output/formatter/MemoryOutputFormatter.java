@@ -14,13 +14,13 @@ import org.planit.od.path.OdPathMatrix.OdPathMatrixIterator;
 import org.planit.od.skim.OdSkimMatrix;
 import org.planit.od.skim.OdSkimMatrix.OdSkimMatrixIterator;
 import org.planit.output.adapter.MacroscopicLinkOutputTypeAdapter;
-import org.planit.output.adapter.ODOutputTypeAdapter;
+import org.planit.output.adapter.OdOutputTypeAdapter;
 import org.planit.output.adapter.OutputAdapter;
 import org.planit.output.adapter.PathOutputTypeAdapter;
 import org.planit.output.configuration.OutputConfiguration;
 import org.planit.output.configuration.OutputTypeConfiguration;
 import org.planit.output.configuration.PathOutputTypeConfiguration;
-import org.planit.output.enums.ODSkimSubOutputType;
+import org.planit.output.enums.OdSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.OutputTypeEnum;
 import org.planit.output.enums.PathOutputIdentificationType;
@@ -111,7 +111,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 
     if (flowPositive.get()) {
       updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-        return linkOutputTypeAdapter.getLinkSegmentOutputPropertyValue(label, linkSegment, mode, timePeriod, outputTimeUnit.getMultiplier()).get();
+        return linkOutputTypeAdapter.getLinkSegmentOutputPropertyValue(label, linkSegment, mode, timePeriod).get();
       });
     }
   }
@@ -129,9 +129,9 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @throws PlanItException thrown if there is an error
    */
   private void updateOutputAndKeyValuesForOd(MultiKeyPlanItData multiKeyPlanItData, OutputProperty[] outputProperties, OutputProperty[] outputKeys,
-      OdDataIterator<?> odDataIterator, ODOutputTypeAdapter odOutputTypeAdapter, Mode mode, TimePeriod timePeriod) throws PlanItException {
+      OdDataIterator<?> odDataIterator, OdOutputTypeAdapter odOutputTypeAdapter, Mode mode, TimePeriod timePeriod) throws PlanItException {
     updateOutputAndKeyValues(multiKeyPlanItData, outputProperties, outputKeys, (label) -> {
-      return odOutputTypeAdapter.getODOutputPropertyValue(label, odDataIterator, mode, timePeriod, outputTimeUnit.getMultiplier()).get();
+      return odOutputTypeAdapter.getOdOutputPropertyValue(label, odDataIterator, mode, timePeriod).get();
     });
   }
 
@@ -254,26 +254,25 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 
     // for od data we assume all data is classified into sub output types of type
     // ODSkimSubOutputType, hence this check to make sure we can cast safely
-    PlanItException.throwIf(!(currentOutputType instanceof SubOutputTypeEnum && ((SubOutputTypeEnum) currentOutputType) instanceof ODSkimSubOutputType),
+    PlanItException.throwIf(!(currentOutputType instanceof SubOutputTypeEnum && ((SubOutputTypeEnum) currentOutputType) instanceof OdSkimSubOutputType),
         "currentOutputTypeEnum is not compatible with outputTypeconfiguration");
 
     // current sub output type
-    ODSkimSubOutputType subOutputType = (ODSkimSubOutputType) currentOutputType;
+    OdSkimSubOutputType subOutputType = (OdSkimSubOutputType) currentOutputType;
     // top level output type
     OutputType outputType = outputTypeConfiguration.getOutputType();
 
     OutputProperty[] outputProperties = outputValueProperties.get(outputType);
     OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
-    ODOutputTypeAdapter odOutputTypeAdapter = (ODOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
+    OdOutputTypeAdapter odOutputTypeAdapter = (OdOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
     for (Mode mode : modes) {
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
-      Optional<OdSkimMatrix> odSkimMatrix = odOutputTypeAdapter.getODSkimMatrix(subOutputType, mode);
+      Optional<OdSkimMatrix> odSkimMatrix = odOutputTypeAdapter.getOdSkimMatrix(subOutputType, mode);
       odSkimMatrix.orElseThrow(() -> new PlanItException("unable to retrieve od skim matrix"));
 
       for (OdSkimMatrixIterator odIterator = odSkimMatrix.get().iterator(); odIterator.hasNext();) {
         odIterator.next();
-        Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getODOutputPropertyValue(OutputProperty.OD_COST, odIterator, mode, timePeriod,
-            outputTimeUnit.getMultiplier());
+        Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getOdOutputPropertyValue(OutputProperty.OD_COST, odIterator, mode, timePeriod);
         cost.orElseThrow(() -> new PlanItException("cost could not be retrieved when persisting"));
 
         if (outputConfiguration.isPersistZeroFlow() || cost.get() > Precision.EPSILON_6) {

@@ -11,6 +11,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.time.TimePeriod;
+import org.planit.utils.unit.UnitUtils;
 
 /**
  * Adapter providing access to the data of the StaticLtm class relevant for link outputs without exposing the internals of the traffic assignment class itself
@@ -68,29 +69,27 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
   /**
    * Returns the travel cost (time) through the current link segment
    *
-   * @param linkSegment        LinkSegment object containing the required data
-   * @param mode               current mode
-   * @param timeUnitMultiplier multiplier to convert time durations to hours, minutes or seconds
+   * @param linkSegment LinkSegment object containing the required data
+   * @param mode        current mode
    * @return the travel cost (time) through the current link segment
    * @throws PlanItException thrown if there is an error
    */
-  private Optional<Double> getLinkCost(final MacroscopicLinkSegment linkSegment, final Mode mode, final double timeUnitMultiplier) throws PlanItException {
+  private Optional<Double> getLinkTravelTime(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
     final int id = (int) linkSegment.getId();
-    final double[] modalNetworkSegmentCosts = getAssignment().getIterationData().getModalLinkSegmentCosts(mode);
-    return Optional.of(modalNetworkSegmentCosts[id] * timeUnitMultiplier);
+    final double[] modalLinkSegmentTravelTimes = getAssignment().getIterationData().getLinkSegmentTravelTimeHour(mode);
+    return Optional.of(UnitUtils.convertHourTo(getOutputTimeUnit(), modalLinkSegmentTravelTimes[id]));
   }
 
   /**
    * Returns the (out)flow multiplied by travel cost (time) through the current link segment
    *
-   * @param linkSegment        LinkSegment object containing the required data
-   * @param mode               current mode
-   * @param timeUnitMultiplier multiplier to convert time durations to hours, minutes or seconds
+   * @param linkSegment LinkSegment object containing the required data
+   * @param mode        current mode
    * @return the travel cost (time) through the current link segment
    * @throws PlanItException thrown if there is an error
    */
-  private Optional<Double> getCostTimesFlow(final MacroscopicLinkSegment linkSegment, final Mode mode, final double timeUnitMultiplier) throws PlanItException {
-    return Optional.of(getLinkCost(linkSegment, mode, timeUnitMultiplier).get() * getOutFlow(linkSegment, mode).get());
+  private Optional<Double> getCostTimesFlow(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
+    return Optional.of(getLinkTravelTime(linkSegment, mode).get() * getOutFlow(linkSegment, mode).get());
   }
 
   /**
@@ -121,11 +120,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
   }
 
   /**
-   * Returns true if there is a flow through the current specified link segment for the specified mode
-   *
-   * @param linkSegment specified link segment
-   * @param mode        specified mode
-   * @return true if there is flow through this link segment, false if the flow is zero
+   * {@inheritDoc}
    */
   @Override
   public Optional<Boolean> isFlowPositive(final MacroscopicLinkSegment linkSegment, final Mode mode) {
@@ -133,25 +128,18 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
   }
 
   /**
-   * Return the value of a specified output property of a link segment
-   *
-   * @param outputProperty     the specified output property
-   * @param linkSegment        the specified link segment
-   * @param mode               the current mode
-   * @param timePeriod         the current time period
-   * @param timeUnitMultiplier the multiplier for time units
-   * @return the value of the specified output property (or an Exception if an error occurs)
+   * {@inheritDoc}
    */
   @Override
-  public Optional<?> getLinkSegmentOutputPropertyValue(final OutputProperty outputProperty, final MacroscopicLinkSegment linkSegment, final Mode mode, final TimePeriod timePeriod,
-      final double timeUnitMultiplier) {
+  public Optional<?> getLinkSegmentOutputPropertyValue(final OutputProperty outputProperty, final MacroscopicLinkSegment linkSegment, final Mode mode,
+      final TimePeriod timePeriod) {
     try {
       Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (value.isPresent()) {
         return value;
       }
 
-      value = super.getLinkSegmentOutputPropertyValue(outputProperty, linkSegment, mode, timePeriod, timeUnitMultiplier);
+      value = super.getLinkSegmentOutputPropertyValue(outputProperty, linkSegment, mode, timePeriod);
       if (value.isPresent()) {
         return value;
       }
@@ -167,11 +155,11 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
       case INFLOW:
         return getInFlow(linkSegment, mode);
       case LINK_SEGMENT_COST:
-        return getLinkCost(linkSegment, mode, timeUnitMultiplier);
+        return getLinkTravelTime(linkSegment, mode);
       case VC_RATIO:
         return getVcRatio(linkSegment);
       case COST_TIMES_FLOW:
-        return getCostTimesFlow(linkSegment, mode, timeUnitMultiplier);
+        return getCostTimesFlow(linkSegment, mode);
       default:
         return Optional
             .of(String.format("Tried to find link property of %s which is not applicable for links", BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()));

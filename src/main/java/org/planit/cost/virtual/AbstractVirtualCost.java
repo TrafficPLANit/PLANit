@@ -30,7 +30,7 @@ public abstract class AbstractVirtualCost extends PlanitComponent<AbstractVirtua
    *
    * @param other to copy
    */
-  public AbstractVirtualCost(AbstractVirtualCost other) {
+  public AbstractVirtualCost(final AbstractVirtualCost other) {
     super(other);
   }
 
@@ -40,6 +40,6 @@ public abstract class AbstractVirtualCost extends PlanitComponent<AbstractVirtua
    * @param virtualNetwork the virtual network
    * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
    */
-  public abstract void initialiseBeforeSimulation(VirtualNetwork virtualNetwork) throws PlanItException;
+  public abstract void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException;
 
 }
