@@ -202,6 +202,9 @@ public class StaticLtm extends LtmAssignment {
 
     /* ASSIGNMENT LOOP */
     do {
+      getGapFunction().reset();
+      smoothing.updateStep(simulationData.getIterationIndex());
+
       // NETWORK LOADING - MODE AGNOSTIC FOR NOW
       {
         executeNetworkLoading();
@@ -218,8 +221,7 @@ public class StaticLtm extends LtmAssignment {
       converged = getGapFunction().hasConverged(simulationData.getIterationIndex());
 
       // SMOOTHING
-      getGapFunction().reset(); // different location from traditional static (more logical location) -- careful changing this
-      smoothing.update(simulationData.getIterationIndex()); // different from traditional static (more logical location) -- careful changing this
+      // TODO smoothing.execute()
 
       simulationData.incrementIterationIndex(); // different location from traditional static (more logical location) -- careful changing this
       iterationStartTime = logBasicIterationInformation(iterationStartTime, getGapFunction().getGap());

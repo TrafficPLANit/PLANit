@@ -149,7 +149,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param modeData data for the current mode
    */
   private void applySmoothing(Mode mode, final ModeData modeData) {
-    final double[] smoothedSegmentFlows = smoothing.applySmoothing(modeData.getCurrentSegmentFlows(), modeData.getNextSegmentFlows(), numberOfNetworkSegments);
+    final double[] smoothedSegmentFlows = smoothing.execute(modeData.getCurrentSegmentFlows(), modeData.getNextSegmentFlows(), numberOfNetworkSegments);
     // update flow arrays for next iteration
     modeData.setCurrentSegmentFlows(smoothedSegmentFlows);
     simulationData.getModeSpecificData().put(mode, modeData);
@@ -502,7 +502,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     while (!converged) {
       dualityGapFunction.reset();
-      smoothing.update(simulationData.getIterationIndex());
+      smoothing.updateStep(simulationData.getIterationIndex());
 
       // NETWORK LOADING - PER MODE
       for (final Mode mode : modes) {
@@ -610,7 +610,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * #{@inheritDoc}
    */
   @Override
-  public double getLinkSegmentFlow(final LinkSegment linkSegment) {
+  public double getLinkSegmentVolume(final LinkSegment linkSegment) {
     return simulationData.collectTotalNetworkSegmentFlow(linkSegment);
   }
 
@@ -618,7 +618,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * #{@inheritDoc}
    */
   @Override
-  public double[] getLinkSegmentFlows() {
+  public double[] getLinkSegmentVolumes() {
     return simulationData.collectTotalNetworkSegmentFlows();
   }
 

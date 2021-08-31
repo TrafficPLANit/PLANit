@@ -6,22 +6,14 @@ package org.planit.interactor;
  * @author markr
  *
  */
-public interface LinkVolumeAccessor extends InteractorAccessor {
-
+public interface LinkVolumeAccessor extends InteractorAccessor<LinkVolumeAccessee> {
 
   /**
    * {@inheritDoc}
    */
   @Override
-  default Class<? extends InteractorAccessee> getCompatibleAccessee() {
+  default Class<LinkVolumeAccessee> getCompatibleAccessee() {
     return LinkVolumeAccessee.class;
   }
-
-  /**
-   * provide the accessee instance for this accessort to use
-   * 
-   * @param accessee the instance being accessed
-   */
-  void setLinkVolumeAccessee(LinkVolumeAccessee accessee);
 
 }

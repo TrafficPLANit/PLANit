@@ -22,30 +22,55 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
    */
   private final ArrayList<Double> gapsByIteration;
 
+  /**
+   * iteration offset to use in applying iteration based thresholds, e.g. when iteration=10, but offset is 8, then we are working with an actual iteration of 2.
+   */
+  private int iterationOffset = DEFAULT_ITERATION_OFFSET;
+
   // SETTINGS
 
   /**
    * only after exceeding this threshold convergence can be classified as non-improving
    */
-  private int minIterationThreshold = 2;
+  private int minIterationThreshold = DEFAULT_MIN_ITERATION_THRESHOLD;
 
   /**
    * only before exceeding this threshold convergence can be classified as improving
    */
-  private int maxIterationThreshold = 5;
+  private int maxIterationThreshold = DEFAULT_MAX_ITERATION_THRESHOLD;
 
   /**
    * Whenever a change in gap is detected worse than this value, we consider the network non-convergent conditional on the min iteration threshold to be satisfied
    */
-  private final double maxSingleIterationWorseningGapThreshold = 0.1;
+  private final double maxSingleIterationWorseningGapThreshold = DEFAULT_MAX_SINGLE_WORSENING_THRESHOLD;
 
   /** There should be some improvement on average, once it turns negative on average we have a problem */
-  private final double minAverageImprovingGapThreshold = 0.0;
+  private final double minAverageImprovingGapThreshold = DEFAULT_MIN_AVERAGE_IMPROVEMENT_THRESHOLD;
 
   /**
-   * iteration offset to use in applying iteration based thresholds, e.g. when iteration=10, but offset is 8, then we are working with an actual iteration of 2.
+   * Default value to use
    */
-  private int iterationOffset = 0;
+  public static int DEFAULT_ITERATION_OFFSET = 0;
+
+  /**
+   * Default value to use
+   */
+  public static int DEFAULT_MIN_ITERATION_THRESHOLD = 2;
+
+  /**
+   * Default value to use
+   */
+  public static int DEFAULT_MAX_ITERATION_THRESHOLD = 5;
+
+  /**
+   * Default value to use
+   */
+  public static double DEFAULT_MIN_AVERAGE_IMPROVEMENT_THRESHOLD = 0.0;
+
+  /**
+   * Default value to use
+   */
+  public static double DEFAULT_MAX_SINGLE_WORSENING_THRESHOLD = 0.1;
 
   /**
    * Default constructor
@@ -154,5 +179,13 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
   public void logGapsSince(long runId, int referenceIteration) {
     LOGGER.info(
         String.format("%sGaps for iteration %d-%d: %s", LoggingUtils.createRunIdPrefix(runId), referenceIteration, getRegisteredIterations(), this.gapsByIteration.toString()));
+  }
+
+  /**
+   * Reset to initial state
+   */
+  public void reset() {
+    this.gapsByIteration.clear();
+    this.iterationOffset = DEFAULT_ITERATION_OFFSET;
   }
 }

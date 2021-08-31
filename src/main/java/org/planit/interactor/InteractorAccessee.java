@@ -8,12 +8,12 @@ package org.planit.interactor;
  *
  */
 public interface InteractorAccessee {
-  
+
   /**
-   * this accessee provides access to this accesseor 
+   * this accessee provides access to this accessor
    * 
    * @return class that accessee provides to
    */
-  Class<? extends InteractorAccessor> getCompatibleAccessor();
+  Class<? extends InteractorAccessor<?>> getCompatibleAccessor();
 
 }

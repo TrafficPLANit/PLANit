@@ -42,7 +42,7 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
    *
    * @param iterationIndex index of current iteration
    */
-  public abstract void update(int iterationIndex);
+  public abstract void updateStep(int iterationIndex);
 
   /**
    * Apply smoothing based on the current step size
@@ -51,7 +51,7 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
    * @param proposedValue proposed value
    * @return smoothedValue smoothed value
    */
-  public abstract double applySmoothing(double previousValue, double proposedValue);
+  public abstract double execute(double previousValue, double proposedValue);
 
   /**
    * Apply smoothing based on the current step size
@@ -61,7 +61,7 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
    * @param numberOfValues number of proposed values
    * @return smoothedValues array of smoothed values
    */
-  public abstract double[] applySmoothing(double[] previousValues, double[] proposedValues, int numberOfValues);
+  public abstract double[] execute(double[] previousValues, double[] proposedValues, int numberOfValues);
 
   /**
    * {@inheritDoc}

@@ -142,10 +142,6 @@ public class StaticLtmNetworkLoading {
    * activating various extensions see also {@link #activateNextExtension()}
    */
   private void initialiseStaticLtmSolutionSchemeApproach() {
-    if (!solutionScheme.equals(StaticLtmSolutionScheme.NONE)) {
-      LOGGER.severe("sLTM solution method can only be initialised once");
-      return;
-    }
     if (getSettings().isDisableStorageConstraints()) {
       solutionScheme = StaticLtmSolutionScheme.POINT_QUEUE_BASIC;
     } else {
@@ -176,6 +172,7 @@ public class StaticLtmNetworkLoading {
    * 
    */
   private void initialiseSendingFlows() {
+    this.sendingFlowData.resetCurrentSendingFlows();
     networkLoadingLinkSegmentInflowUpdate(this.sendingFlowData.getCurrentSendingFlows());
     LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), this.sendingFlowData.getNextSendingFlows());
   }
@@ -508,6 +505,9 @@ public class StaticLtmNetworkLoading {
       LOGGER.severe(String.format("%sUnable to use sLTM settings, aborting initialisation of sLTM",LoggingUtils.createRunIdPrefix(runId)));
       return false;
     }
+    /* reset convergence analyser*/
+    convergenceAnalyser.reset();
+    
     /* activate the correct configuration of the initial solution scheme */
     initialiseStaticLtmSolutionSchemeApproach(); 
             
@@ -527,7 +527,7 @@ public class StaticLtmNetworkLoading {
     
     /* initialise receiving flows */
     initialiseReceivingFlows();
-    
+        
     return true;
   }
   

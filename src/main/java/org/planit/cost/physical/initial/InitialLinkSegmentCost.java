@@ -73,7 +73,7 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
       if (!linkSegment.isModeAllowed(mode)) {
         initialCost = Double.POSITIVE_INFINITY;
       } else {
-        initialCost = ((MacroscopicLinkSegment) linkSegment).computeFreeFlowTravelTime(mode);
+        initialCost = ((MacroscopicLinkSegment) linkSegment).computeFreeFlowTravelTimeHour(mode);
         LOGGER.warning(String.format("initial cost missing for link segment %s (id:%d), reverting to free flow travel time %.2f(h)", linkSegment.getXmlId(), linkSegment.getId(),
             initialCost));
       }

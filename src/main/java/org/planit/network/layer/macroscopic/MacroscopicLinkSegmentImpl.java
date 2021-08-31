@@ -74,7 +74,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    * {@inheritDoc}
    */
   @Override
-  public double computeFreeFlowTravelTime(final Mode mode) {
+  public double computeFreeFlowTravelTimeHour(final Mode mode) {
     if (!isModeAllowed(mode)) {
       return Double.MAX_VALUE;
     }

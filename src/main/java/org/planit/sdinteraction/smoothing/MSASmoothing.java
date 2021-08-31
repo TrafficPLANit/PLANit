@@ -40,10 +40,10 @@ public class MSASmoothing extends Smoothing {
   /**
    * Update stepSize to 1/iterationIndex
    *
-   * @see org.planit.sdinteraction.smoothing.Smoothing#update(int)
+   * @see org.planit.sdinteraction.smoothing.Smoothing#updateStep(int)
    */
   @Override
-  public void update(final int iterationIndex) {
+  public void updateStep(final int iterationIndex) {
     this.stepSize = 1.0 / (iterationIndex + 1);
   }
 
@@ -51,7 +51,7 @@ public class MSASmoothing extends Smoothing {
    * {@inheritDoc}
    */
   @Override
-  public double applySmoothing(final double previousValue, final double proposedValue) {
+  public double execute(final double previousValue, final double proposedValue) {
     return (1 - stepSize) * previousValue + stepSize * proposedValue;
   }
 
@@ -59,7 +59,7 @@ public class MSASmoothing extends Smoothing {
    * {@inheritDoc}
    */
   @Override
-  public double[] applySmoothing(final double[] previousValues, final double[] proposedValues, final int numberOfValues) {
+  public double[] execute(final double[] previousValues, final double[] proposedValues, final int numberOfValues) {
     final double[] smoothedValues = new double[numberOfValues];
     for (int i = 0; i < numberOfValues; ++i) {
       smoothedValues[i] = (1 - stepSize) * previousValues[i] + stepSize * proposedValues[i];

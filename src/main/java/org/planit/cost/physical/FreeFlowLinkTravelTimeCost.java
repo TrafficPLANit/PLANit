@@ -5,10 +5,7 @@ import org.planit.network.TransportLayerNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.planit.utils.network.layer.physical.LinkSegment;
-import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
 
 /**
  * Simplest possible travel time cost, namely fixed to free flow travel time regardless of the flows measured.
@@ -19,9 +16,6 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
 
   /** use generated UID */
   private static final long serialVersionUID = 4465724624295866542L;
-
-  /** the network layer the cost is applied to */
-  protected MacroscopicNetworkLayer networkLayer;
 
   /**
    * Constructor
@@ -39,7 +33,6 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
    */
   public FreeFlowLinkTravelTimeCost(FreeFlowLinkTravelTimeCost other) {
     super(other);
-    this.networkLayer = other.networkLayer;
   }
 
   /**
@@ -55,22 +48,7 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
    */
   @Override
   public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) throws PlanItException {
-    return linkSegment.computeFreeFlowTravelTime(mode);
-  }
-
-  /**
-   * Populate the cost array with the free flow link travel times for all link segments for the specified mode
-   * 
-   * @param physicalLayer to use
-   * @param mode          the mode to use
-   * @param costToFill    the cost to populate (in hours)
-   */
-  @Override
-  public void populateWithCost(UntypedPhysicalLayer<?, ?, ?, ?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
-    for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
-      final int id = (int) linkSegment.getId();
-      costToFill[id] = MacroscopicLinkSegment.class.cast(linkSegment).computeFreeFlowTravelTime(mode);
-    }
+    return linkSegment.computeFreeFlowTravelTimeHour(mode);
   }
 
   /**

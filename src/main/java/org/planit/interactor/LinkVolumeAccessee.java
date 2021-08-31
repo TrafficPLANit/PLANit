@@ -14,7 +14,7 @@ public interface LinkVolumeAccessee extends InteractorAccessee {
    * {@inheritDoc}
    */
   @Override
-  default Class<? extends InteractorAccessor> getCompatibleAccessor() {
+  default Class<LinkVolumeAccessor> getCompatibleAccessor() {
     return LinkVolumeAccessor.class;
   }
 
@@ -24,13 +24,13 @@ public interface LinkVolumeAccessee extends InteractorAccessee {
    * @param linkSegment the specified link segment
    * @return the total flow across this link segment
    */
-  public double getLinkSegmentFlow(LinkSegment linkSegment);
+  public double getLinkSegmentVolume(LinkSegment linkSegment);
 
   /**
    * Get total link segment flows for all link segments
    * 
    * @return link segment flows for all modes
    */
-  public double[] getLinkSegmentFlows();
+  public double[] getLinkSegmentVolumes();
 
 }

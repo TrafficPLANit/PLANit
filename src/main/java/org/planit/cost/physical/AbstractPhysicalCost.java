@@ -5,6 +5,8 @@ import org.planit.network.TransportLayerNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
 
 /**
@@ -44,7 +46,11 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
    * @param costToFill    array of link segment costs identified by the link segment's internal id
    * @throws PlanItException thrown if error
    */
-  public abstract void populateWithCost(final UntypedPhysicalLayer<?, ?, ?, ?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException;
+  public void populateWithCost(final UntypedPhysicalLayer<?, ?, ?, ?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
+    for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
+      costToFill[(int) linkSegment.getId()] = getSegmentCost(mode, (MacroscopicLinkSegment) linkSegment);
+    }
+  }
 
   /**
    * Initialize the cost parameter values in the network

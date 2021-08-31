@@ -10,8 +10,7 @@ import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
 import org.planit.gap.StopCriterion;
 import org.planit.input.InputBuilderListener;
-import org.planit.interactor.LinkVolumeAccessee;
-import org.planit.interactor.LinkVolumeAccessor;
+import org.planit.interactor.InteractorAccessor;
 import org.planit.network.TransportLayerNetwork;
 import org.planit.output.OutputManager;
 import org.planit.output.enums.OutputType;
@@ -179,14 +178,12 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
       trafficAssignmentInstance.setPhysicalCost(physicalCost);
 
       /* Physical cost <-> assignment dependency */
-      if (physicalCost instanceof LinkVolumeAccessor) {
-        PlanItException.throwIf(!(trafficAssignmentInstance instanceof LinkVolumeAccessee),
-            "traffic assignment instance is expected to provide link volumes for physical cost by implementing the LinkVolumeAccessee interface");
+      if (physicalCost instanceof InteractorAccessor) {
         /*
          * by decoupling cost and assignment from the link volume dependency, we make it possible to have future cost components that do not require link volumes, or we have other
          * classes providing the link volumes, not necessarily the assignment. For now however, this is a hard match, until we need something more flexible
          */
-        ((LinkVolumeAccessor) physicalCost).setLinkVolumeAccessee((LinkVolumeAccessee) trafficAssignmentInstance);
+        ((InteractorAccessor<?>) physicalCost).setAccessee(trafficAssignmentInstance);
       }
     }
 
@@ -197,10 +194,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
       trafficAssignmentInstance.setVirtualCost(virtualCost);
 
       /* virtual cost <-> assignment dependency (see physical cost above for rationale) */
-      if (virtualCost instanceof LinkVolumeAccessor && trafficAssignmentInstance instanceof LinkVolumeAccessee) {
-        PlanItException.throwIf(!(trafficAssignmentInstance instanceof LinkVolumeAccessee),
-            "traffic assignment instance is expected to provide link volumes for virtual cost by implementing the LinkVolumeAccessee interface");
-        ((LinkVolumeAccessor) virtualCost).setLinkVolumeAccessee((LinkVolumeAccessee) trafficAssignmentInstance);
+      if (virtualCost instanceof InteractorAccessor) {
+        ((InteractorAccessor<?>) virtualCost).setAccessee(trafficAssignmentInstance);
       }
     }
 

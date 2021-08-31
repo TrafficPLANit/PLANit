@@ -247,7 +247,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    */
   @Override
   public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) throws PlanItException {
-    return computeCostInHours((MacroscopicLinkSegment) linkSegment, mode, linkVolumeAccessee.getLinkSegmentFlow(linkSegment));
+    return computeCostInHours((MacroscopicLinkSegment) linkSegment, mode, linkVolumeAccessee.getLinkSegmentVolume(linkSegment));
   }
 
   /**
@@ -258,7 +258,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    */
   @Override
   public void populateWithCost(UntypedPhysicalLayer<?, ?, ?, ?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
-    double[] linkSegmentFlows = linkVolumeAccessee.getLinkSegmentFlows();
+    double[] linkSegmentFlows = linkVolumeAccessee.getLinkSegmentVolumes();
 
     for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
       final int id = (int) linkSegment.getId();
@@ -285,7 +285,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     /* pre-compute the free flow travel times */
     freeFlowTravelTimePerLinkSegment = new double[network.getModes().size()][(int) networkLayer.getLinkSegments().size()];
     ArrayUtils.loopAll(freeFlowTravelTimePerLinkSegment, (modeId, linkSegmentId) -> freeFlowTravelTimePerLinkSegment[modeId][linkSegmentId] = networkLayer.getLinkSegments()
-        .get(linkSegmentId).computeFreeFlowTravelTime(network.getModes().get(modeId)));
+        .get(linkSegmentId).computeFreeFlowTravelTimeHour(network.getModes().get(modeId)));
 
     /* explicitly set BPR parameters for each mode/segment combination */
     bprParametersPerLinkSegment = new BPRParameters[(int) networkLayer.getLinkSegments().size()];
@@ -317,7 +317,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @param linkVolumeAccessee the accessee to extract link volumes from
    */
   @Override
-  public void setLinkVolumeAccessee(LinkVolumeAccessee linkVolumeAccessee) {
+  public void setAccessee(LinkVolumeAccessee linkVolumeAccessee) {
     this.linkVolumeAccessee = linkVolumeAccessee;
   }
 
