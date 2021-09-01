@@ -6,6 +6,7 @@ import org.planit.path.choice.PathChoice;
 import org.planit.path.choice.PathChoiceConfigurator;
 import org.planit.path.choice.PathChoiceConfiguratorFactory;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
+import org.planit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagramConfigurator;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagramConfiguratorFactory;
 import org.planit.supply.network.nodemodel.NodeModelComponent;
@@ -30,7 +31,7 @@ public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentC
   /**
    * Nested configurator for fundamental diagram within this assignment
    */
-  private FundamentalDiagramConfigurator<? extends FundamentalDiagram> fundamentalDiagramConfigurator = null;
+  private FundamentalDiagramConfigurator<? extends FundamentalDiagramComponent> fundamentalDiagramConfigurator = null;
 
   /**
    * Nested configurator for node model within this assignment
@@ -65,7 +66,7 @@ public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentC
    * @return configurator
    * @throws PlanItException thrown if error
    */
-  public FundamentalDiagramConfigurator<? extends FundamentalDiagram> createAndRegisterFundamentalDiagram(final String fundamentalDiagramType) throws PlanItException {
+  public FundamentalDiagramConfigurator<? extends FundamentalDiagramComponent> createAndRegisterFundamentalDiagram(final String fundamentalDiagramType) throws PlanItException {
     fundamentalDiagramConfigurator = FundamentalDiagramConfiguratorFactory.createConfigurator(fundamentalDiagramType);
     return fundamentalDiagramConfigurator;
   }
@@ -75,7 +76,7 @@ public class LtmConfigurator<T extends LtmAssignment> extends TrafficAssignmentC
    * 
    * @return configurator
    */
-  public FundamentalDiagramConfigurator<? extends FundamentalDiagram> getFundamentalDiagram() {
+  public FundamentalDiagramConfigurator<? extends FundamentalDiagramComponent> getFundamentalDiagram() {
     return fundamentalDiagramConfigurator;
   }
 

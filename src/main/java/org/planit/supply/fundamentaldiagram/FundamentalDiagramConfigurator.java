@@ -10,7 +10,7 @@ import org.planit.utils.exceptions.PlanItException;
  *
  * @param <T> fundamental diagram type
  */
-public class FundamentalDiagramConfigurator<T extends FundamentalDiagram> extends Configurator<T> {
+public class FundamentalDiagramConfigurator<T extends FundamentalDiagramComponent> extends Configurator<T> {
 
   /**
    * Constructor
@@ -28,7 +28,7 @@ public class FundamentalDiagramConfigurator<T extends FundamentalDiagram> extend
    */
   @SuppressWarnings("unchecked")
   @Override
-  public void configure(FundamentalDiagram fundamentalDiagram) throws PlanItException {
+  public void configure(FundamentalDiagramComponent fundamentalDiagram) throws PlanItException {
     super.configure((T) fundamentalDiagram);
   }
 

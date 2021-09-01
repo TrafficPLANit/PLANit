@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import org.planit.assignment.TrafficAssignment;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.path.choice.PathChoice;
-import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
+import org.planit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.planit.supply.network.nodemodel.NodeModelComponent;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
@@ -30,7 +30,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
   /**
    * Fundamental diagram to use
    */
-  protected FundamentalDiagram fundamentalDiagram = null;
+  protected FundamentalDiagramComponent fundamentalDiagram = null;
 
   /**
    * Node model to use
@@ -93,7 +93,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * 
    * @param fundamentalDiagram the fundamental diagram
    */
-  public void setFundamentalDiagram(final FundamentalDiagram fundamentalDiagram) {
+  public void setFundamentalDiagram(final FundamentalDiagramComponent fundamentalDiagram) {
     this.fundamentalDiagram = fundamentalDiagram;
   }
 

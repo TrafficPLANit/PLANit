@@ -1,19 +1,18 @@
 package org.planit.supply.fundamentaldiagram;
 
 /**
- * Configurator for FixedConnectoidTravelTimeCost implementation
+ * Configurator for Newell Fundamental diagram implementation
  * 
  * @author markr
  */
-public class NewellFundamentalDiagramConfigurator extends FundamentalDiagramConfigurator<NewellFundamentalDiagram> {
-   
+public class NewellFundamentalDiagramConfigurator extends FundamentalDiagramConfigurator<NewellFundamentalDiagramComponent> {
+
   /**
    * Constructor
    * 
    */
   protected NewellFundamentalDiagramConfigurator() {
-    super(NewellFundamentalDiagram.class);
+    super(NewellFundamentalDiagramComponent.class);
   }
-  
 
 }

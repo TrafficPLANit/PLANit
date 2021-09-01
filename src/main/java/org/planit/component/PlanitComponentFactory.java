@@ -44,8 +44,8 @@ import org.planit.path.choice.logit.MultinomialLogit;
 import org.planit.sdinteraction.smoothing.MSASmoothing;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.service.routed.RoutedServices;
-import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
-import org.planit.supply.fundamentaldiagram.NewellFundamentalDiagram;
+import org.planit.supply.fundamentaldiagram.FundamentalDiagramComponent;
+import org.planit.supply.fundamentaldiagram.NewellFundamentalDiagramComponent;
 import org.planit.supply.network.nodemodel.NodeModelComponent;
 import org.planit.supply.network.nodemodel.TampereNodeModelComponent;
 import org.planit.supply.networkloading.NetworkLoading;
@@ -92,7 +92,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registeredPlanitComponents.put(AbstractPhysicalCost.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(InitialPhysicalCost.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(AbstractVirtualCost.class.getCanonicalName(), new TreeSet<>());
-    registeredPlanitComponents.put(FundamentalDiagram.class.getCanonicalName(), new TreeSet<>());
+    registeredPlanitComponents.put(FundamentalDiagramComponent.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(NodeModelComponent.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(PathChoice.class.getCanonicalName(), new TreeSet<>());
     registeredPlanitComponents.put(LogitChoiceModel.class.getCanonicalName(), new TreeSet<>());
@@ -120,7 +120,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(InitialLinkSegmentCostPeriod.class);
     registerPlanitComponentType(FixedConnectoidTravelTimeCost.class);
     registerPlanitComponentType(SpeedConnectoidTravelTimeCost.class);
-    registerPlanitComponentType(NewellFundamentalDiagram.class);
+    registerPlanitComponentType(NewellFundamentalDiagramComponent.class);
     registerPlanitComponentType(TampereNodeModelComponent.class);
     registerPlanitComponentType(MultinomialLogit.class);
     registerPlanitComponentType(OdPathSets.class);
