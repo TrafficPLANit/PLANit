@@ -6,7 +6,7 @@ package org.planit.supply.fundamentaldiagram;
  * @author markr
  *
  */
-public interface FundamentalDiagramBranch {
+public interface FundamentalDiagramBranch extends Cloneable {
 
   /** Default jam density */
   public static double DEFAULT_JAM_DENSITY_PCU_HOUR = 180.0;
@@ -82,5 +82,12 @@ public interface FundamentalDiagramBranch {
    * @param scale indicating how many decimals to consider, e.g., 2 considers 2 decimals for precision
    */
   public abstract int relaxedHashCode(int scale);
+
+  /**
+   * Clone a branch
+   * 
+   * @return cloned branch
+   */
+  public abstract FundamentalDiagramBranch clone();
 
 }

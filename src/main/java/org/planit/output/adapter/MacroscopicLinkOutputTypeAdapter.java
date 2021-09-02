@@ -25,7 +25,7 @@ public interface MacroscopicLinkOutputTypeAdapter extends UntypedLinkOutputTypeA
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<Double> getCapacityPerLane(MacroscopicLinkSegment linkSegment) throws PlanItException {
-    return Optional.of(linkSegment.getLinkSegmentType().getCapacityPerLane());
+    return Optional.of(linkSegment.getLinkSegmentType().getCapacityPerLaneOrDefault());
   }
 
   /**
@@ -69,7 +69,7 @@ public interface MacroscopicLinkOutputTypeAdapter extends UntypedLinkOutputTypeA
    * @throws PlanItException thrown if there is an error
    */
   public default Optional<Double> getMaximumDensity(MacroscopicLinkSegment linkSegment) throws PlanItException {
-    return Optional.of(linkSegment.getLinkSegmentType().getMaximumDensityPerLane());
+    return Optional.of(linkSegment.getLinkSegmentType().getMaximumDensityPerLaneOrDefault());
   }
 
   /**

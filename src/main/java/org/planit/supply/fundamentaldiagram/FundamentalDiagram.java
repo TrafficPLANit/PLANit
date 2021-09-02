@@ -7,7 +7,7 @@ package org.planit.supply.fundamentaldiagram;
  * @author markr
  *
  */
-public interface FundamentalDiagram {
+public interface FundamentalDiagram extends Cloneable {
 
   /**
    * short hand for Newell fundamental diagram class type
@@ -60,5 +60,26 @@ public interface FundamentalDiagram {
    * @param scale indicating how many decimals to consider, e.g., 2 considers 2 decimals for precision
    */
   public abstract int relaxedHashCode(int scale);
+
+  /**
+   * Clone the fundamental diagram
+   * 
+   * @return cloned instance
+   */
+  public abstract FundamentalDiagram clone();
+
+  /**
+   * Change the capacity to the new value
+   * 
+   * @param capacityPcuHour to use
+   */
+  public abstract void setCapacityPcuHour(double capacityPcuHour);
+
+  /**
+   * Change the maximum density to the new value
+   * 
+   * @param maxDensityPcuKm to use
+   */
+  public abstract void setMaximumDensityPcuKmHour(double maxDensityPcuKm);
 
 }

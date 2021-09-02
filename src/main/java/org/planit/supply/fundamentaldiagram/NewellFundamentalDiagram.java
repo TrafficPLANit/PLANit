@@ -27,6 +27,15 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
   }
 
   /**
+   * Copy constructor
+   * 
+   * @param newellFundamentalDiagram to copy
+   */
+  public NewellFundamentalDiagram(NewellFundamentalDiagram newellFundamentalDiagram) {
+    super(newellFundamentalDiagram);
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -65,5 +74,37 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
                     maxSpeed;
     return kCrit * maxSpeed;
   }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public NewellFundamentalDiagram clone() {
+    return new NewellFundamentalDiagram(this);
+  }
+
+  /**
+   * For the Newell FD this means that all remains the same except for the congested wave speed to ensure the FD remains viable since
+   * the capacity is derived and not explicitly set. By chaning the backward wave speed to the adjusted value we ensure we obtain the
+   * desired capacity
+   */   
+  @Override
+  public void setCapacityPcuHour(double capacityPcuHour) {
+    /* capacity = (k_crit-k_jam)*backwardwavespeed 
+     * backwardwavespeed = (k_crit-k_jam)/capacity 
+     */
+    double newCriticalDensity = getFreeFlowBranch().getDensityPcuKm(capacityPcuHour);
+    double jamDensity = getCongestedBranch().getDensityPcuKm(0);
+    getCongestedBranch().setCharacteristicWaveSpeedKmHour((newCriticalDensity - jamDensity)/capacityPcuHour);    
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setMaximumDensityPcuKmHour(double maxDensityPcuKm) {
+    getCongestedBranch().setDensityAtZeroFlow(maxDensityPcuKm);
+  }
+
 
 }

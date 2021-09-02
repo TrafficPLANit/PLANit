@@ -35,14 +35,14 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   protected String name;
 
   /**
-   * Maximum flow, i.e. capacity in veh/h/lane
+   * Maximum flow, i.e. capacity in pcu/h/lane
    */
-  protected final double capacityPerLane;
+  protected final Double capacityPerLanePcuHourLane;
 
   /**
-   * Maximum density in veh/km/lane
+   * Maximum density in pcu/km/lane
    */
-  protected final double maximumDensityPerLane;
+  protected final Double maximumDensityPerLanePcuKmLane;
 
   /**
    * Track access properties for each of the modes it supports for quick lookups
@@ -71,6 +71,27 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   // Public
 
   /**
+   * Constructor with no value for capacity and max density, so when collected they will provide the default instead
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
+   * @param name    name of this link segment type
+   */
+  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name) {
+    this(groupId, name, null, null);
+  }
+
+  /**
+   * Constructor with no value for capacity and max density, so when collected they will provide the default instead
+   * 
+   * @param groupId         contiguous id generation within this group for instances of this class
+   * @param name            name of this link segment type
+   * @param capacityPerLane capacity per lane of this link segment type
+   */
+  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final Double capacityPerLane) {
+    this(groupId, name, capacityPerLane, null);
+  }
+
+  /**
    * Constructor
    * 
    * @param groupId               contiguous id generation within this group for instances of this class
@@ -78,11 +99,11 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * @param capacityPerLane       capacity per lane of this link segment type
    * @param maximumDensityPerLane maximum density per lane of this link segment type
    */
-  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane) {
+  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final Double capacityPerLane, final Double maximumDensityPerLane) {
     super(generateId(groupId));
     setName(name);
-    this.capacityPerLane = capacityPerLane;
-    this.maximumDensityPerLane = maximumDensityPerLane;
+    this.capacityPerLanePcuHourLane = capacityPerLane;
+    this.maximumDensityPerLanePcuKmLane = maximumDensityPerLane;
     this.modeAccessProperties = new TreeMap<Mode, AccessGroupProperties>();
   }
 
@@ -93,7 +114,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * @param maximumDensityPerLane maximum density per lane of this link segment type
    * @param accessGroupProperties mode specific access properties
    */
-  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane,
+  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final Double capacityPerLane, final Double maximumDensityPerLane,
       final Collection<AccessGroupProperties> accessGroupProperties) {
     this(groupId, name, capacityPerLane, maximumDensityPerLane);
     if (accessGroupProperties != null) {
@@ -108,7 +129,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * @param maximumDensityPerLane maximum density per lane of this link segment type
    * @param accessGroupProperties mode specific access properties
    */
-  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final double capacityPerLane, final double maximumDensityPerLane,
+  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final Double capacityPerLane, final Double maximumDensityPerLane,
       final AccessGroupProperties accessGroupProperties) {
     this(groupId, name, capacityPerLane, maximumDensityPerLane);
     if (accessGroupProperties != null) {
@@ -125,8 +146,8 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   protected MacroscopicLinkSegmentTypeImpl(final MacroscopicLinkSegmentTypeImpl other) {
     super(other);
     setName(other.getName());
-    this.capacityPerLane = other.getCapacityPerLane();
-    this.maximumDensityPerLane = other.getMaximumDensityPerLane();
+    this.capacityPerLanePcuHourLane = other.getCapacityPerLane();
+    this.maximumDensityPerLanePcuKmLane = other.getMaximumDensityPerLane();
 
     this.modeAccessProperties = new TreeMap<Mode, AccessGroupProperties>();
     Set<Mode> modesDone = new TreeSet<Mode>();
@@ -161,16 +182,16 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
-  public double getCapacityPerLane() {
-    return capacityPerLane;
+  public Double getCapacityPerLane() {
+    return this.capacityPerLanePcuHourLane;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public double getMaximumDensityPerLane() {
-    return maximumDensityPerLane;
+  public Double getMaximumDensityPerLane() {
+    return this.maximumDensityPerLanePcuKmLane;
   }
 
   /**

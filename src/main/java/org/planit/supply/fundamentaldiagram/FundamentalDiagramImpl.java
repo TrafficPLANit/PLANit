@@ -32,6 +32,16 @@ public abstract class FundamentalDiagramImpl implements FundamentalDiagram {
   }
 
   /**
+   * Copy Constructor
+   * 
+   * @param fundamentalDiagramImpl to copy
+   */
+  public FundamentalDiagramImpl(final FundamentalDiagramImpl fundamentalDiagramImpl) {
+    this.freeFlowBranch = fundamentalDiagramImpl.freeFlowBranch.clone();
+    this.congestedBranch = fundamentalDiagramImpl.congestedBranch.clone();
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -54,4 +64,10 @@ public abstract class FundamentalDiagramImpl implements FundamentalDiagram {
   public int relaxedHashCode(int scale) {
     return HashUtils.createCombinedHashCode(freeFlowBranch.relaxedHashCode(scale), congestedBranch.relaxedHashCode(scale));
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract FundamentalDiagram clone();
 }

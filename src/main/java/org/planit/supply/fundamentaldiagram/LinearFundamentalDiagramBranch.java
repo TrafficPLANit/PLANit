@@ -21,6 +21,24 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
   double densityAtZeroFlowPcuKm;
 
   /**
+   * Set the characteristic wave speed in km/h
+   * 
+   * @param characteristicWaveSpeedKmHour to set
+   */
+  protected void setCharacteristicWaveSpeedKmHour(double characteristicWaveSpeedKmHour) {
+    this.characteristicWaveSpeedKmHour = characteristicWaveSpeedKmHour;
+  }
+
+  /**
+   * Set the density at zero flow in Pcu/km
+   * 
+   * @param densityAtZeroFlowPcuKm to set
+   */
+  protected void setDensityAtZeroFlow(double densityAtZeroFlowPcuKm) {
+    this.densityAtZeroFlowPcuKm = densityAtZeroFlowPcuKm;
+  }
+
+  /**
    * Constructor
    * 
    * @param characteristicWaveSpeedKmHour to use (either free flow speed to use or backward wave speed)
@@ -29,6 +47,16 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
   public LinearFundamentalDiagramBranch(double characteristicWaveSpeedKmHour, double densityAtZeroFlowPcuKm) {
     this.characteristicWaveSpeedKmHour = characteristicWaveSpeedKmHour;
     this.densityAtZeroFlowPcuKm = densityAtZeroFlowPcuKm;
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param linearFundamentalDiagramBranch to copy
+   */
+  public LinearFundamentalDiagramBranch(LinearFundamentalDiagramBranch linearFundamentalDiagramBranch) {
+    this.characteristicWaveSpeedKmHour = linearFundamentalDiagramBranch.characteristicWaveSpeedKmHour;
+    this.densityAtZeroFlowPcuKm = linearFundamentalDiagramBranch.densityAtZeroFlowPcuKm;
   }
 
   /**
@@ -72,6 +100,14 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
     NumberFormat nf = NumberFormat.getInstance();
     nf.setMaximumFractionDigits(scale);
     return HashUtils.createCombinedHashCode(nf.format(this.characteristicWaveSpeedKmHour), nf.format(this.densityAtZeroFlowPcuKm));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinearFundamentalDiagramBranch clone() {
+    return new LinearFundamentalDiagramBranch(this);
   }
 
 }

@@ -59,15 +59,11 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
   }
 
   /**
-   * Return the total capacity
-   *
-   * Compute the total capacity by multiplying the capacity per lane and number of lanes
-   *
-   * @return linkSegmentCapacity in PCU/h
+   * {@inheritDoc}
    */
   @Override
   public double computeCapacityPcuH() {
-    return getLinkSegmentType().getCapacityPerLane() * getNumberOfLanes();
+    return getLinkSegmentType().getCapacityPerLaneOrDefault() * getNumberOfLanes();
   }
 
   /**
