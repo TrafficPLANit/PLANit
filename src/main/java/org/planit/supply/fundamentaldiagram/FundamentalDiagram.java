@@ -82,4 +82,11 @@ public interface FundamentalDiagram extends Cloneable {
    */
   public abstract void setMaximumDensityPcuKmHour(double maxDensityPcuKm);
 
+  /**
+   * Change the maximum speed to the new value
+   * 
+   * @param maxSpeedKmHour to use
+   */
+  public abstract void setMaximumSpeedKmHour(double maxSpeedKmHour);
+
 }

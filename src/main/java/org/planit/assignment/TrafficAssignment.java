@@ -149,15 +149,21 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Verify if the traffic assignment components are compatible and nonnull
+   * Verify if the create traffic assignment (sbu)components are compatible with each other and the created transport network. Called before starting the simulation and after the
+   * transport network has been generated from physical and virtual network. So this is called after the build of the assignment instance
    *
    * @throws PlanItException thrown if the components are not compatible
    */
-  protected void verifyComponentCompatibility() throws PlanItException {
-    /*
-     * allow derived classes to verify if the chosen components are valid before proceeding, not mandatory
-     */
-  }
+  protected abstract void verifyComponentCompatibility() throws PlanItException;
+
+  /**
+   * Verify if the traffic assignment inputs (components which are provided upon creation and not subcomponents that are created as part of the build process of the assignment are
+   * compatible). Called after creation of the assignment instance by the builder, but before the traffic assignment's (sub)components have been created. So this is invoked during
+   * the build of the assignment instance, not after.
+   *
+   * @throws PlanItException thrown if the components are not compatible
+   */
+  protected abstract void verifyNetworkDemandZoningCompatibility() throws PlanItException;
 
   /**
    * Set a sub component that is created via the builder and known on the base traffic assignment class

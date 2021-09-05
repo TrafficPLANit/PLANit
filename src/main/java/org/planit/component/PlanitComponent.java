@@ -2,6 +2,9 @@ package org.planit.component;
 
 import java.io.Serializable;
 
+import org.planit.component.event.PlanitComponentEvent;
+import org.planit.component.event.PlanitComponentListener;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.ExternalIdAble;
 import org.planit.utils.id.ExternalIdAbleImpl;
 import org.planit.utils.id.IdGenerator;
@@ -9,11 +12,16 @@ import org.planit.utils.id.IdGroupingToken;
 
 /**
  * PLANit components are the main building blocks to create PLANit applications with.
+ * <p>
+ * Each component is also a listener for PlanitComponentEvents, upon creation by the component factory each component is automatically registered for these events (at high
+ * priority). This allows each component to initialise itself in a flexible way before any user or builder would make changes to its default configuration via the same or other
+ * events. It is not mandatory to implement any actions upon receiving such events. Therefore this base class implements an empty notify method which may be overridden by derived
+ * implementations if desired.
  *
  * @author markr
  *
  */
-public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializable> implements ExternalIdAble {
+public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializable> implements ExternalIdAble, PlanitComponentListener {
 
   /** store id information */
   private final ExternalIdAbleImpl idImpl;
@@ -130,6 +138,16 @@ public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializabl
    */
   public IdGroupingToken getIdGroupingToken() {
     return tokenId;
+  }
+
+  /**
+   * Act upon the provided event. In this base class an empty implementation is provided indicating that it is not madnatory to act upon these events.
+   * 
+   * @param event the component is registered for
+   */
+  @Override
+  public void onPlanitComponentEvent(PlanitComponentEvent event) throws PlanItException {
+    // DO NOTHING IN BASE IMPLEMENTATION - OPTIONAL FOR DERIVED IMPLEMENTATIONS
   }
 
   /**

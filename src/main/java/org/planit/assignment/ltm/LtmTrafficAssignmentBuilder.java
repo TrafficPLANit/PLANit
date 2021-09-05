@@ -8,8 +8,10 @@ import org.planit.network.TransportLayerNetwork;
 import org.planit.path.choice.PathChoice;
 import org.planit.path.choice.PathChoiceBuilder;
 import org.planit.path.choice.PathChoiceBuilderFactory;
+import org.planit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.zoning.Zoning;
 
 /**
@@ -20,6 +22,21 @@ import org.planit.zoning.Zoning;
  *
  */
 public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> extends TrafficAssignmentBuilder<T> {
+
+  /**
+   * create a fundamental diagram component instance based on configuration
+   * 
+   * @param macroscopicNetworkLayer the fundamental diagram is to be applied on
+   * @return fundamental diagram instance
+   * @throws PlanItException thrown if error
+   */
+  protected FundamentalDiagramComponent createFundamentalDiagramComponentInstance(final MacroscopicNetworkLayer macroscopicNetworkLayer) throws PlanItException {
+    PlanitComponentFactory<FundamentalDiagramComponent> fundamentalDiagramComponentFactory = new PlanitComponentFactory<FundamentalDiagramComponent>(
+        FundamentalDiagramComponent.class);
+    fundamentalDiagramComponentFactory.addListener(getInputBuilderListener());
+    return fundamentalDiagramComponentFactory.create(getConfigurator().getFundamentalDiagram().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() },
+        new Object[] { macroscopicNetworkLayer });
+  }
 
   /**
    * create a path choice instance based on configuration
@@ -43,15 +60,19 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
     /* delegate to super class for base sub components */
     super.buildSubComponents(ltmAssignmentInstance);
 
-    /* path choice is added in all LTM assignments */
-    LtmConfigurator<T> configurator = (LtmConfigurator<T>) getConfigurator();
+    /* Fundamental diagram sub component */
+    if (getConfigurator().getFundamentalDiagram() != null) {
+      FundamentalDiagramComponent fundamentalDiagramComponent = createFundamentalDiagramComponentInstance(ltmAssignmentInstance.getUsedNetworkLayer());
+      getConfigurator().getFundamentalDiagram().configure(fundamentalDiagramComponent);
+      ltmAssignmentInstance.setFundamentalDiagram(fundamentalDiagramComponent);
+    }
 
     /*
      * path choice sub component... ...because it has sub components of its own, we must construct a builder for it instead of instantiating it directly here
      */
-    if (configurator.getPathChoice() != null) {
-      PathChoiceBuilder<? extends PathChoice> pathChoiceBuilder = PathChoiceBuilderFactory.createBuilder(configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(),
-          getGroupIdToken(), getInputBuilderListener());
+    if (getConfigurator().getPathChoice() != null) {
+      PathChoiceBuilder<? extends PathChoice> pathChoiceBuilder = PathChoiceBuilderFactory
+          .createBuilder(getConfigurator().getPathChoice().getClassTypeToConfigure().getCanonicalName(), getGroupIdToken(), getInputBuilderListener());
       PathChoice pathChoice = pathChoiceBuilder.build();
       ltmAssignmentInstance.setPathChoice(pathChoice);
     }
@@ -71,6 +92,14 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
   public LtmTrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands,
       final Zoning zoning, final TransportLayerNetwork<?, ?> network) throws PlanItException {
     super(trafficAssignmentClass, groupId, inputBuilderListener, demands, zoning, network);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LtmConfigurator<T> getConfigurator() {
+    return (LtmConfigurator<T>) super.getConfigurator();
   }
 
 }

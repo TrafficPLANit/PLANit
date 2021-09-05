@@ -11,18 +11,19 @@ import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.AccessGroupProperties;
 
 /**
- * Group of modes with specific properties for the macroscopic perspective on the supply side, i.e. on a link segment of a particular type
+ * Group of modes with specific properties for the macroscopic perspective on the supply side, i.e. on a link segment of a particular type. While the group specifies the allowed
+ * modes, it is not compulsory to define restricted maximum and or critical speeds. When absent context of the mode and links is to be used to determine the applied maximum speeds.
  * 
  * @author markr
  *
  */
 public class AccessGroupPropertiesImpl implements AccessGroupProperties {
 
-  /** Maximum speed of mode (tied to a road segment) in km/h */
-  protected double maxSpeedKmH;
+  /** Maximum speed of mode (tied to a road segment type) in km/h */
+  protected Double maxSpeedKmH;
 
-  /** Maximum speed of mode (tied to a road segment) in km/h */
-  protected double criticalSpeedKmH;
+  /** Maximum speed of mode (tied to a road segment type) in km/h */
+  protected Double criticalSpeedKmH;
 
   /** modes supported by this access group */
   protected final Set<Mode> supportedModes;
@@ -57,6 +58,43 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
     this.supportedModes = new TreeSet<Mode>(Arrays.asList(accessModes));
   }
 
+  /**
+   * Constructor
+   * 
+   * @param maxSpeedKmH maximum speed for this mode in this context
+   * @param accessModes supported by these properties
+   */
+  AccessGroupPropertiesImpl(final double maxSpeedKmH, final Collection<Mode> accessModes) {
+    super();
+    this.maxSpeedKmH = maxSpeedKmH;
+    this.criticalSpeedKmH = null;
+    this.supportedModes = new TreeSet<Mode>(accessModes);
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param maxSpeedKmH maximum speed for this mode in this context
+   * @param accessModes supported by these properties
+   */
+  AccessGroupPropertiesImpl(final double maxSpeedKmH, final Mode... accessModes) {
+    super();
+    this.maxSpeedKmH = maxSpeedKmH;
+    this.criticalSpeedKmH = null;
+    this.supportedModes = new TreeSet<Mode>(Arrays.asList(accessModes));
+  }
+
+  /**
+   * access properties with only defining allowed modes without setting any restrictive speeds compared to the physical speed on the links it is applied on
+   * 
+   * @param accessModes to allow
+   */
+  public AccessGroupPropertiesImpl(Mode... accessModes) {
+    this.criticalSpeedKmH = null;
+    this.maxSpeedKmH = null;
+    this.supportedModes = new TreeSet<Mode>(Arrays.asList(accessModes));
+  }
+
   // Getter - setters
 
   /**
@@ -74,7 +112,7 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
    * {@inheritDoc}
    */
   @Override
-  public double getMaximumSpeedKmH() {
+  public Double getMaximumSpeedKmH() {
     return maxSpeedKmH;
   }
 
@@ -82,7 +120,7 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
    * {@inheritDoc}
    */
   @Override
-  public double getCriticalSpeedKmH() {
+  public Double getCriticalSpeedKmH() {
     return criticalSpeedKmH;
   }
 
@@ -90,7 +128,7 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
    * {@inheritDoc}
    */
   @Override
-  public void setMaximumSpeedKmH(final double maxSpeedKmH) {
+  public void setMaximumSpeedKmH(final Double maxSpeedKmH) {
     this.maxSpeedKmH = maxSpeedKmH;
   }
 
@@ -98,7 +136,7 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
    * {@inheritDoc}
    */
   @Override
-  public void setCriticalSpeedKmH(final double criticalSpeed) {
+  public void setCriticalSpeedKmH(final Double criticalSpeed) {
     this.criticalSpeedKmH = criticalSpeed;
   }
 

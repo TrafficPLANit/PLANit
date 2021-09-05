@@ -6,7 +6,12 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.planit.component.PlanitComponent;
+import org.planit.component.event.PlanitComponentEvent;
+import org.planit.component.event.PopulateFundamentalDiagramEvent;
+import org.planit.utils.event.EventType;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 
@@ -65,7 +70,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    * @param linkSegment to validate
    * @return fundamentalDiagram found (if any), otherwise null
    */
-  private FundamentalDiagram validateFundamentalDiagramPresence(final MacroscopicLinkSegment linkSegment) {
+  private FundamentalDiagram getOrWarning(final MacroscopicLinkSegment linkSegment) {
     FundamentalDiagram foundFd = get(linkSegment);
     if (foundFd == null) {
       LOGGER.warning(String.format("IGNORE: Fundamental diagram absent for link segment %s to %.2f", linkSegment.getXmlId()));
@@ -79,13 +84,21 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    * @param linkSegmentType to validate
    * @return fundamentalDiagram found (if any), otherwise null
    */
-  private FundamentalDiagram validateFundamentalDiagramPresence(final MacroscopicLinkSegmentType linkSegmentType) {
+  private FundamentalDiagram getOrWarning(final MacroscopicLinkSegmentType linkSegmentType) {
     FundamentalDiagram foundFd = get(linkSegmentType);
     if (foundFd == null) {
       LOGGER.warning(String.format("IGNORE: Fundamental diagram absent for link segment type %s to %.2f", linkSegmentType.getXmlId()));
     }
     return foundFd;
   }
+
+  /**
+   * Initialise the default available fundamental diagrams for the layer the component is registered on. This includes the fundamental diagrams for the link segment types and
+   * possible anomalies for links where the physical link segment characteristics would overrule the link segment type defaults
+   * 
+   * @param parentNetworkLayer to initialise default fundamental diagrams for
+   */
+  protected abstract void initialiseDefaultFundamentalDiagramsForLayer(MacroscopicNetworkLayer parentNetworkLayer);
 
   /**
    * Register the given fundamental diagram for the link segment. This overrules the fundamental diagram that would be used based on the link segment's type. In case there already
@@ -164,6 +177,38 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
+   * The fundamental diagram component registers for the PopulateFundamentalDiagramEvent in order to initialise its default fundamental diagrams based on the network layer that it
+   * is created for. Further user or builder overrides, can alter these subsequently at a later stage
+   */
+  @Override
+  public EventType[] getKnownSupportedEventTypes() {
+    return new EventType[] { PopulateFundamentalDiagramEvent.EVENT_TYPE };
+  }
+
+  /**
+   * Registered for PopulateFundamentalDiagramEvent which allows the component to initialise all the default available Fds based on the network layer it is registered for.
+   * Delegates to {@link #initialiseDefaultFundamentalDiagramsForLayer(MacroscopicNetworkLayer)} for concrete derived implementations to execute
+   * 
+   */
+  @Override
+  public void onPlanitComponentEvent(PlanitComponentEvent event) throws PlanItException {
+    if (!(event.getType().equals(PopulateFundamentalDiagramEvent.EVENT_TYPE))) {
+      return;
+    }
+    PopulateFundamentalDiagramEvent populateFdEvent = (PopulateFundamentalDiagramEvent) event;
+    if (populateFdEvent.getFundamentalDiagramToPopulate() != this) {
+      return;
+    }
+    initialiseDefaultFundamentalDiagramsForLayer(populateFdEvent.getParentNetworkLayer());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract FundamentalDiagramComponent clone();
+
+  /**
    * Collect the fundamental diagram for the given link segment.
    * 
    * @param linkSegment to collect fundamental diagram for
@@ -194,7 +239,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    * @param capacityPcuHourLane to use
    */
   public void setCapacityLinkSegmentPcuHourLane(final MacroscopicLinkSegment linkSegment, final double capacityPcuHourLane) {
-    FundamentalDiagram foundFd = validateFundamentalDiagramPresence(linkSegment);
+    FundamentalDiagram foundFd = getOrWarning(linkSegment);
     FundamentalDiagram newFd = foundFd.clone();
     newFd.setCapacityPcuHour(capacityPcuHourLane);
     register(linkSegment, newFd);
@@ -208,7 +253,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    * @param maxDensityPcuKmLane to use
    */
   public void setMaximumDensityLinkSegmentPcuKmLane(final MacroscopicLinkSegment linkSegment, final double maxDensityPcuKmLane) {
-    FundamentalDiagram foundFd = validateFundamentalDiagramPresence(linkSegment);
+    FundamentalDiagram foundFd = getOrWarning(linkSegment);
     FundamentalDiagram newFd = foundFd.clone();
     newFd.setMaximumDensityPcuKmHour(maxDensityPcuKmLane);
     register(linkSegment, newFd);
@@ -221,7 +266,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    * @param capacityPcuHourLane to use
    */
   public void setCapacityLinkSegmentTypePcuHourLane(final MacroscopicLinkSegmentType linkSegmentType, final double capacityPcuHourLane) {
-    FundamentalDiagram foundFd = validateFundamentalDiagramPresence(linkSegmentType);
+    FundamentalDiagram foundFd = getOrWarning(linkSegmentType);
     FundamentalDiagram newFd = foundFd.clone();
     newFd.setCapacityPcuHour(capacityPcuHourLane);
     register(linkSegmentType, newFd);
@@ -235,16 +280,10 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    * @param maxDensityPcuKmLane to use
    */
   public void setMaximumDensityLinkSegmentTypePcuKmLane(final MacroscopicLinkSegmentType linkSegmentType, final double maxDensityPcuKmLane) {
-    FundamentalDiagram foundFd = validateFundamentalDiagramPresence(linkSegmentType);
+    FundamentalDiagram foundFd = getOrWarning(linkSegmentType);
     FundamentalDiagram newFd = foundFd.clone();
     newFd.setMaximumDensityPcuKmHour(maxDensityPcuKmLane);
     register(linkSegmentType, newFd);
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public abstract FundamentalDiagramComponent clone();
 
 }

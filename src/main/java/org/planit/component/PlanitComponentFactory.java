@@ -14,6 +14,7 @@ import org.planit.component.event.PlanitComponentEventType;
 import org.planit.component.event.PlanitComponentListener;
 import org.planit.component.event.PopulateComponentEvent;
 import org.planit.component.event.PopulateDemandsEvent;
+import org.planit.component.event.PopulateFundamentalDiagramEvent;
 import org.planit.component.event.PopulateGapFunctionEvent;
 import org.planit.component.event.PopulateInitialLinkSegmentCostEvent;
 import org.planit.component.event.PopulateNetworkEvent;
@@ -51,8 +52,10 @@ import org.planit.supply.network.nodemodel.TampereNodeModelComponent;
 import org.planit.supply.networkloading.NetworkLoading;
 import org.planit.utils.event.Event;
 import org.planit.utils.event.EventListener;
+import org.planit.utils.event.EventListenerPriority;
 import org.planit.utils.event.EventProducerImpl;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.reflection.ReflectionUtils;
 import org.planit.utils.time.TimePeriod;
 import org.planit.zoning.Zoning;
@@ -144,8 +147,11 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
 
     Object instance = ReflectionUtils.createInstance(planitComponentClassName, constructorParameters);
     PlanItException.throwIf(!(instance instanceof PlanitComponent<?>), "provided factory class is not eligible for construction since it is not derived from PLANitComponent<?>");
+    T typedInstance = (T) instance;
 
-    return (T) instance;
+    /* register as listener for PLANit component events, so it can act upon them before other registered listeners */
+    addListener(typedInstance, EventListenerPriority.HIGH);
+    return typedInstance;
   }
 
   /**
@@ -156,6 +162,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @throws PlanItException thrown if there is an exception
    */
   private void dispatchPopulatePlanitComponentEvent(final T newPlanitComponent, final Object[] parameters) throws PlanItException {
+
     /* when possible use more specific event for user friendly access to event content on listeners */
     /* TODO: type check parameters and issue message when not correct */
     if (newPlanitComponent instanceof MacroscopicNetwork) {
@@ -170,6 +177,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
       fireEvent(new PopulateRoutedServicesEvent(this, (RoutedServices) newPlanitComponent));
     } else if (newPlanitComponent instanceof GapFunction) {
       fireEvent(new PopulateGapFunctionEvent(this, (GapFunction) newPlanitComponent));
+    } else if (newPlanitComponent instanceof FundamentalDiagramComponent) {
+      fireEvent(new PopulateFundamentalDiagramEvent(this, (FundamentalDiagramComponent) newPlanitComponent, (MacroscopicNetworkLayer) parameters[0]));
     } else if (newPlanitComponent instanceof InitialLinkSegmentCost) {
       // TODO: probably better if we generalise to initialCost event rather then specialise to link segment as we do now */
       if (newPlanitComponent instanceof InitialLinkSegmentCostPeriod) {
@@ -276,7 +285,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    *
    * @param planitComponentClassName the derived class name of the PLANit component (without packages)
    * @param constructorParameters    parameters to pass to the constructor
-   * @param eventParameters          object array which contains any data required to create the component
+   * @param eventParameters          object array which contains any additional data that might be required to populate the component
    * @return the created component
    * @throws PlanItException thrown if there is an error
    */

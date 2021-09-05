@@ -30,17 +30,26 @@ public abstract class LtmAssignment extends TrafficAssignment {
   /**
    * Fundamental diagram to use
    */
-  protected FundamentalDiagramComponent fundamentalDiagram = null;
+  private FundamentalDiagramComponent fundamentalDiagram = null;
 
   /**
    * Node model to use
    */
-  protected NodeModelComponent nodeModel = null;
+  private NodeModelComponent nodeModel = null;
 
   /**
    * the path choice to use
    */
-  protected PathChoice pathChoice = null;
+  private PathChoice pathChoice = null;
+
+  /**
+   * The used network layer
+   * 
+   * @return network layer used
+   */
+  protected MacroscopicNetworkLayer getUsedNetworkLayer() {
+    return ((MacroscopicNetwork) getInfrastructureNetwork()).getTransportLayers().getFirst();
+  }
 
   /**
    * Verify if the network contains a single compatible infrastructure layer because sLTM does not (yet) support multiple (or intermodal) network layers
@@ -48,16 +57,26 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * @throws PlanItException thrown if the components are not compatible
    */
   @Override
-  protected void verifyComponentCompatibility() throws PlanItException {
-    /* network compatibility */
+  protected void verifyNetworkDemandZoningCompatibility() throws PlanItException {
     PlanItException.throwIf(!(getInfrastructureNetwork() instanceof MacroscopicNetwork), "sLTM is only compatible with macroscopic networks");
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) getInfrastructureNetwork();
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
-        "sLTM is currently only compatible with networks using a single transport layer in its physical network");
+        "LTM is currently only compatible with networks using a single transport layer in its physical network");
     MacroscopicNetworkLayer networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
     if (getInfrastructureNetwork().getModes().size() != networkLayer.getSupportedModes().size()) {
-      LOGGER.warning("network wide modes do not match modes supported by the single available layer, consider removing unused modes");
+      LOGGER.warning("LTM network wide modes do not match modes supported by the single available layer, consider removing unused modes");
     }
+    if (getInfrastructureNetwork().getModes().size() != 1) {
+      LOGGER.warning(String.format("LTM currently only supports a single mode but found %d", getInfrastructureNetwork().getModes().size()));
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void verifyComponentCompatibility() throws PlanItException {
+    // not implemented yet
   }
 
   /**
@@ -78,6 +97,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
     super(sltm);
     this.fundamentalDiagram = sltm.fundamentalDiagram.clone();
     this.nodeModel = sltm.nodeModel.clone();
+    this.pathChoice = sltm.pathChoice.clone();
   }
 
   /**

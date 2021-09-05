@@ -13,7 +13,7 @@ import org.planit.gap.GapFunction;
  */
 public class PopulateGapFunctionEvent extends PopulateUntypedComponentEvent {
 
-  /** event type fired off when network needs to be populated */
+  /** event type fired off when gap function needs to be populated */
   public static final PlanitComponentEventType EVENT_TYPE = new PlanitComponentEventType("PLANITCOMPONENT.GAPFUNCTION.POPULATE");
 
   /**

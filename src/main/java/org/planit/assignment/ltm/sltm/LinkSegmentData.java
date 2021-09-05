@@ -43,7 +43,7 @@ public abstract class LinkSegmentData {
   protected void limitFlowsToCapacity(double[] flowPcuHArray, final MacroscopicLinkSegments linkSegments) {
     for (MacroscopicLinkSegment linkSegment : linkSegments) {
       int lsId = (int) linkSegment.getId();
-      flowPcuHArray[lsId] = Math.min(flowPcuHArray[lsId], linkSegment.computeCapacityPcuH());
+      flowPcuHArray[lsId] = Math.min(flowPcuHArray[lsId], linkSegment.getCapacityOrDefaultPcuH());
     }
   }
 

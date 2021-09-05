@@ -191,10 +191,10 @@ public class StaticLtmNetworkLoading {
       /* r_a = q_a */
       double[] currReceivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
       for (MacroscopicLinkSegment linkSegment : getUsedNetworkLayer().getLinkSegments()) {
-        currReceivingFlows[(int) linkSegment.getId()] = linkSegment.computeCapacityPcuH();
+        currReceivingFlows[(int) linkSegment.getId()] = linkSegment.getCapacityOrDefaultPcuH();
       }
       for (ConnectoidSegment connectoidSegment : network.getVirtualNetwork().getConnectoidSegments()) {
-        currReceivingFlows[(int) connectoidSegment.getId()] = connectoidSegment.computeCapacityPcuH();
+        currReceivingFlows[(int) connectoidSegment.getId()] = connectoidSegment.getCapacityOrDefaultPcuH();
       }
       LinkSegmentData.copyTo(currReceivingFlows, receivingFlowData.getNextReceivingFlows());
 
@@ -226,7 +226,7 @@ public class StaticLtmNetworkLoading {
       SplittingRateDataPartial pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.splittingRateData;
       double[] sendingFlows = this.sendingFlowData.getCurrentSendingFlows();
       for (MacroscopicLinkSegment linkSegment : linkSegments) {
-        double capacity = linkSegment.computeCapacityPcuH();
+        double capacity = linkSegment.getCapacityOrDefaultPcuH();
 
         /* register if unconstrained flow exceeds capacity */
         if (Precision.isGreater(sendingFlows[(int) linkSegment.getId()], capacity)) {
@@ -317,14 +317,14 @@ public class StaticLtmNetworkLoading {
       Array1D<Double> inCapacities = Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.sizeOfEntryEdgeSegments());
       int index = 0;
       for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
-        inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).computeCapacityPcuH());
+        inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH());
       }
 
       /* r_a : in Array1D form */
       Array1D<Double> outReceivingFlows = Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.sizeOfExitEdgeSegments());
       index = 0;
       for (EdgeSegment exitEdgeSegment : potentiallyBlockingNode.getExitEdgeSegments()) {
-        outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).computeCapacityPcuH());
+        outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).getCapacityOrDefaultPcuH());
       }
 
       /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
@@ -697,7 +697,7 @@ public class StaticLtmNetworkLoading {
           /* storage_capacity_a = (L*FD^-1(v_a))/T) */
           double storageCapacity = Double.POSITIVE_INFINITY; // TODO: entryLinkSegment.getParentLink().getLengthKm() * etc.;
           /* r_a = min(C_a, v_a + storage_Capacity_a) */
-          double receivingFlow = Math.min(((PcuCapacitated)entryEdgeSegment).computeCapacityPcuH(), outflows[index] + storageCapacity);
+          double receivingFlow = Math.min(((PcuCapacitated)entryEdgeSegment).getCapacityOrDefaultPcuH(), outflows[index] + storageCapacity);
           nextReceivingFlows[index] = receivingFlow;
         }
       }

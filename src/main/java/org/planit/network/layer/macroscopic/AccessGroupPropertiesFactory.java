@@ -2,6 +2,7 @@ package org.planit.network.layer.macroscopic;
 
 import java.util.Collection;
 
+import org.planit.utils.math.Precision;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.AccessGroupProperties;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
@@ -46,38 +47,38 @@ public class AccessGroupPropertiesFactory {
    * @return created properties
    */
   public static AccessGroupProperties create(final double maxSpeedKmH, final Mode... accessModes) {
-    return create(maxSpeedKmH, AccessGroupProperties.DEFAULT_CRITICAL_SPEED_KMH, accessModes);
+    return new AccessGroupPropertiesImpl(maxSpeedKmH, accessModes);
   }
 
   /**
-   * Factory method adopting default value for critical speed
+   * Factory method adopting saem value for maximum and critical speed
    * 
    * @param maxSpeedKmH maximum speed for this mode in this context
    * @param accessModes these properties relate to
    * @return created properties
    */
   public static AccessGroupProperties create(final double maxSpeedKmH, final Collection<Mode> accessModes) {
-    return create(maxSpeedKmH, AccessGroupProperties.DEFAULT_CRITICAL_SPEED_KMH, accessModes);
+    return new AccessGroupPropertiesImpl(maxSpeedKmH, accessModes);
   }
 
   /**
-   * Factory method adopting default values
+   * Factory method allowing access for given modes without any further specification on their speeds
    * 
    * @param accessModes these properties relate to
    * @return created properties
    */
   public static AccessGroupProperties create(final Mode... accessModes) {
-    return create(Mode.GLOBAL_DEFAULT_MAXIMUM_SPEED_KMH, AccessGroupProperties.DEFAULT_CRITICAL_SPEED_KMH, accessModes);
+    return new AccessGroupPropertiesImpl(accessModes);
   }
 
   /**
-   * Factory method adopting default values
+   * Factory method allowing access for given modes without any further specification on their speeds
    * 
    * @param accessModes these properties relate to
    * @return created properties
    */
   public static AccessGroupProperties create(final Collection<Mode> accessModes) {
-    return create(Mode.GLOBAL_DEFAULT_MAXIMUM_SPEED_KMH, AccessGroupProperties.DEFAULT_CRITICAL_SPEED_KMH, accessModes);
+    return create(accessModes);
   }
 
   /**
@@ -98,12 +99,15 @@ public class AccessGroupPropertiesFactory {
    * 
    * @param linkSegmentType to populate for
    * @param modeToAdd       to add
-   * @param maxSpeedKmH     maxSpeed to set
+   * @param maxSpeedKmH     maxSpeed to set, if exceeding mode maximum speed, only access for the mode is registered as the provided speed is not a restriction compared to the
+   *                        physical restriction
    */
   public static void createOnLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType, final Mode modeToAdd, final double maxSpeedKmH) {
-    /* apply the way type's maximum speed to all modes, but for clarity already cap it to the mode's max speed if needed */
-    double cappedMaxSpeed = Math.min(maxSpeedKmH, modeToAdd.getMaximumSpeedKmH());
-    linkSegmentType.setAccessGroupProperties(create(cappedMaxSpeed, cappedMaxSpeed, modeToAdd));
+    if (Precision.isGreater(maxSpeedKmH, modeToAdd.getMaximumSpeedKmH())) {
+      create(modeToAdd);
+    } else {
+      linkSegmentType.setAccessGroupProperties(create(maxSpeedKmH, modeToAdd));
+    }
   }
 
 }

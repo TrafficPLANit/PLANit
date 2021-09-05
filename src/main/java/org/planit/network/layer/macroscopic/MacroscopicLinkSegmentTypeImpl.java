@@ -146,12 +146,12 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   protected MacroscopicLinkSegmentTypeImpl(final MacroscopicLinkSegmentTypeImpl other) {
     super(other);
     setName(other.getName());
-    this.capacityPerLanePcuHourLane = other.getCapacityPerLane();
-    this.maximumDensityPerLanePcuKmLane = other.getMaximumDensityPerLane();
+    this.capacityPerLanePcuHourLane = other.getExplicitCapacityPerLane();
+    this.maximumDensityPerLanePcuKmLane = other.getExplicitMaximumDensityPerLane();
 
     this.modeAccessProperties = new TreeMap<Mode, AccessGroupProperties>();
     Set<Mode> modesDone = new TreeSet<Mode>();
-    for (Mode mode : other.getAvailableModes()) {
+    for (Mode mode : other.getAllowedModes()) {
       if (!modesDone.contains(mode)) {
         AccessGroupProperties clonedEntry = other.getAccessProperties(mode).clone();
         setAccessGroupProperties(clonedEntry);
@@ -182,7 +182,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
-  public Double getCapacityPerLane() {
+  public Double getExplicitCapacityPerLane() {
     return this.capacityPerLanePcuHourLane;
   }
 
@@ -190,7 +190,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
-  public Double getMaximumDensityPerLane() {
+  public Double getExplicitMaximumDensityPerLane() {
     return this.maximumDensityPerLanePcuKmLane;
   }
 
@@ -212,7 +212,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
-  public boolean isModeAvailable(Mode mode) {
+  public boolean isModeAllowed(Mode mode) {
     return modeAccessProperties.containsKey(mode);
   }
 
@@ -220,7 +220,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    * {@inheritDoc}
    */
   @Override
-  public Set<Mode> getAvailableModes() {
+  public Set<Mode> getAllowedModes() {
     return modeAccessProperties.keySet();
   }
 

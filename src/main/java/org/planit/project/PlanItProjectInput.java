@@ -21,6 +21,7 @@ import org.planit.network.TransportLayerNetwork;
 import org.planit.path.OdPathSets;
 import org.planit.service.routed.RoutedServices;
 import org.planit.service.routed.RoutedServicesLayer;
+import org.planit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
@@ -62,9 +63,11 @@ public class PlanItProjectInput {
     
     planitComponentFactories.add(new PlanitComponentFactory<Zoning>(Zoning.class));
     
-    planitComponentFactories.add(new PlanitComponentFactory<Demands>(Demands.class));       
+    planitComponentFactories.add(new PlanitComponentFactory<Demands>(Demands.class));        
     
-    planitComponentFactories.add(new PlanitComponentFactory<RoutedServices>(RoutedServices.class));    
+    planitComponentFactories.add(new PlanitComponentFactory<RoutedServices>(RoutedServices.class));
+    
+    planitComponentFactories.add(new PlanitComponentFactory<FundamentalDiagramComponent>(FundamentalDiagramComponent.class));
     
     /* register input builder as listener whenever an instance is created */
     planitComponentFactories.forEach( (factory) -> factory.addListener(inputBuilderListener));

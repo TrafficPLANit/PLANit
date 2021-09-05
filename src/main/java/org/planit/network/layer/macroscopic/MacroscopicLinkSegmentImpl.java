@@ -62,14 +62,6 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    * {@inheritDoc}
    */
   @Override
-  public double computeCapacityPcuH() {
-    return getLinkSegmentType().getCapacityPerLaneOrDefault() * getNumberOfLanes();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public double computeFreeFlowTravelTimeHour(final Mode mode) {
     if (!isModeAllowed(mode)) {
       return Double.MAX_VALUE;
@@ -82,21 +74,8 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    * {@inheritDoc}
    */
   @Override
-  public double getModelledSpeedLimitKmH(Mode mode) {
-    if (!isModeAllowed(mode)) {
-      return 0.0;
-    }
-    final double modeSpeedLimit = mode.getMaximumSpeedKmH();
-    final double segmentTypeMaximumSpeed = getLinkSegmentType().getAccessProperties(mode).getMaximumSpeedKmH();
-    return Math.min(getPhysicalSpeedLimitKmH(), Math.min(modeSpeedLimit, segmentTypeMaximumSpeed));
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public boolean isModeAllowed(Mode mode) {
-    return linkSegmentType.isModeAvailable(mode);
+    return linkSegmentType.isModeAllowed(mode);
   }
 
   /**
@@ -104,7 +83,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements Macro
    */
   @Override
   public Set<Mode> getAllowedModes() {
-    return linkSegmentType.getAvailableModes();
+    return linkSegmentType.getAllowedModes();
   }
 
   // getters - setters

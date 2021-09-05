@@ -8,18 +8,6 @@ package org.planit.supply.fundamentaldiagram;
  */
 public interface FundamentalDiagramBranch extends Cloneable {
 
-  /** Default jam density */
-  public static double DEFAULT_JAM_DENSITY_PCU_HOUR = 180.0;
-
-  /** Default density at zero flow in free flow */
-  public static double DEFAULT_EMPTY_DENSITY_PCU_HOUR = 0.0;
-
-  /** Default free flow speed */
-  public static double DEFAULT_FREEFLOW_SPEED_KM_HOUR = 80.0;
-
-  /** Default backward wave speed speed */
-  public static double DEFAULT_BACKWARD_WAVE_SPEED_KM_HOUR = -13.0;
-
   /**
    * The flow at a given density
    * 

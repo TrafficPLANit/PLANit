@@ -34,6 +34,30 @@ public class AlgorithmB extends StaticTrafficAssignment {
   private final AlgorithmBEquilibration equilibration;
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void verifyComponentCompatibility() throws PlanItException {
+    // TODO Auto-generated method stub
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void verifyNetworkDemandZoningCompatibility() {
+    // TODO Auto-generated method stub
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
+    equilibration.executeTimePeriod(timePeriod, modes);
+  }
+
+  /**
    * Constructor
    * 
    * @param groupId group the id generator will be using when genarting the id
@@ -57,14 +81,6 @@ public class AlgorithmB extends StaticTrafficAssignment {
   public OutputTypeAdapter createOutputTypeAdapter(OutputType outputType) {
     // TODO Auto-generated method stub
     return null;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
-    equilibration.executeTimePeriod(timePeriod, modes);
   }
 
   /**

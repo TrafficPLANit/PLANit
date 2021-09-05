@@ -111,4 +111,5 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
   public ConnectoidSegmentImpl clone() {
     return new ConnectoidSegmentImpl(this);
   }
+
 }

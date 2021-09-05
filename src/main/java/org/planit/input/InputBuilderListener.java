@@ -6,6 +6,7 @@ import org.planit.component.event.PlanitComponentEventType;
 import org.planit.component.event.PlanitComponentListener;
 import org.planit.component.event.PopulateComponentEvent;
 import org.planit.component.event.PopulateDemandsEvent;
+import org.planit.component.event.PopulateFundamentalDiagramEvent;
 import org.planit.component.event.PopulateInitialLinkSegmentCostEvent;
 import org.planit.component.event.PopulateNetworkEvent;
 import org.planit.component.event.PopulatePhysicalCostEvent;
@@ -22,6 +23,7 @@ import org.planit.component.event.PopulateZoningEvent;
  */
 public abstract class InputBuilderListener implements PlanitComponentListener {
 
+  //@formatter:off
   /**
    * Each input builder listener should be able to deal with at least the following Events and as such is automatically registered to listen for them when providing a derived
    * instance to a PLANit project by providing them here:
@@ -39,8 +41,16 @@ public abstract class InputBuilderListener implements PlanitComponentListener {
    */
   @Override
   public PlanitComponentEventType[] getKnownSupportedEventTypes() {
-    return new PlanitComponentEventType[] { PopulateComponentEvent.EVENT_TYPE, PopulateNetworkEvent.EVENT_TYPE, PopulateZoningEvent.EVENT_TYPE, PopulateDemandsEvent.EVENT_TYPE,
-        PopulatePhysicalCostEvent.EVENT_TYPE, PopulateInitialLinkSegmentCostEvent.EVENT_TYPE, PopulateServiceNetworkEvent.EVENT_TYPE, PopulateRoutedServicesEvent.EVENT_TYPE };
+    return new PlanitComponentEventType[] { 
+        PopulateComponentEvent.EVENT_TYPE, 
+        PopulateNetworkEvent.EVENT_TYPE, 
+        PopulateZoningEvent.EVENT_TYPE, 
+        PopulateDemandsEvent.EVENT_TYPE,
+        PopulatePhysicalCostEvent.EVENT_TYPE,
+        PopulateFundamentalDiagramEvent.EVENT_TYPE,
+        PopulateInitialLinkSegmentCostEvent.EVENT_TYPE, 
+        PopulateServiceNetworkEvent.EVENT_TYPE, 
+        PopulateRoutedServicesEvent.EVENT_TYPE };
   }
 
   /** the logger */

@@ -1,5 +1,7 @@
 package org.planit.supply.fundamentaldiagram;
 
+import org.planit.utils.macroscopic.MacroscopicConstants;
+
 /**
  * Implementation of a Newell (triangular) fundamental diagram for a road section (link segment)
  * 
@@ -7,14 +9,53 @@ package org.planit.supply.fundamentaldiagram;
  */
 public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
 
+  //@formatter:off
+  /**
+   * Compute the backward wave speed that goes with a given capacity keeping all other variables the same
+   * 
+   * @param capacityPcuHour to compute backward wave speed for ceteris paribus
+   * @return proposed backward wave speed
+   */
+  protected double computeBackwardWaveSpeedForCapacity(double capacityPcuHour) {
+    /*
+     * capacity = (k_crit-k_jam)*backwardwavespeed 
+     * backwardwavespeed = (k_crit-k_jam)/capacity
+     */
+    double newCriticalDensity = getFreeFlowBranch().getDensityPcuKm(capacityPcuHour);
+    double jamDensity = getCongestedBranch().getDensityPcuKm(0);
+    return (newCriticalDensity - jamDensity) / capacityPcuHour;
+  }
+
+  /**
+   * Constructor using all defaults except for the free speed to apply
+   * 
+   * @param freeSpeedKmHour 
+   */
+  public NewellFundamentalDiagram(double freeSpeedKmHour) {
+    this(freeSpeedKmHour, MacroscopicConstants.DEFAULT_MAX_DENSITY_PCU_KM_LANE);
+  }
+
   /**
    * Constructor using all defaults except for the free speed to apply
    * 
    * @param freeSpeedKmHour
+   * @param jamDensityPcuKm maximum density allowed
    */
-  public NewellFundamentalDiagram(double freeSpeedKmHour) {
-    super(new LinearFundamentalDiagramBranch(freeSpeedKmHour, FundamentalDiagramBranch.DEFAULT_EMPTY_DENSITY_PCU_HOUR),
-        new LinearFundamentalDiagramBranch(FundamentalDiagramBranch.DEFAULT_BACKWARD_WAVE_SPEED_KM_HOUR, FundamentalDiagramBranch.DEFAULT_JAM_DENSITY_PCU_HOUR));
+  public NewellFundamentalDiagram(double freeSpeedKmHour, double jamDensityPcuKm) {
+    super(new LinearFundamentalDiagramBranch(freeSpeedKmHour, MacroscopicConstants.DEFAULT_EMPTY_DENSITY_PCU_HOUR_LANE),
+        new LinearFundamentalDiagramBranch(MacroscopicConstants.DEFAULT_BACKWARD_WAVE_SPEED_KM_HOUR, jamDensityPcuKm));
+  }
+
+  /**
+   * Constructor using all defaults except for the free speed to apply
+   * 
+   * @param freeSpeedKmHour
+   * @param capacityPcuHour to allow
+   * @param jamDensityPcuKm maximum density allowed
+   */
+  public NewellFundamentalDiagram(double freeSpeedKmHour, double capacityPcuHour, double jamDensityPcuKm) {
+    this(freeSpeedKmHour, jamDensityPcuKm);
+    setCapacityPcuHour(capacityPcuHour);
   }
 
   /**
@@ -51,7 +92,6 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
     return (LinearFundamentalDiagramBranch) super.getCongestedBranch();
   }
 
-  //@formatter:off
   /**
    * {@inheritDoc}
    */
@@ -70,7 +110,7 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
     double kCrit = ((getJamDensityPcuKm()*backwardWaveSpeed)
                     / 
                     (maxSpeed - backwardWaveSpeed))
-                    *
+                    * 
                     maxSpeed;
     return kCrit * maxSpeed;
   }
@@ -93,9 +133,8 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
     /* capacity = (k_crit-k_jam)*backwardwavespeed 
      * backwardwavespeed = (k_crit-k_jam)/capacity 
      */
-    double newCriticalDensity = getFreeFlowBranch().getDensityPcuKm(capacityPcuHour);
-    double jamDensity = getCongestedBranch().getDensityPcuKm(0);
-    getCongestedBranch().setCharacteristicWaveSpeedKmHour((newCriticalDensity - jamDensity)/capacityPcuHour);    
+    double backwardWaveSpeedForCapacity = computeBackwardWaveSpeedForCapacity(capacityPcuHour);
+    getCongestedBranch().setCharacteristicWaveSpeedKmHour(backwardWaveSpeedForCapacity);    
   }
 
   /**
@@ -104,6 +143,14 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
   @Override
   public void setMaximumDensityPcuKmHour(double maxDensityPcuKm) {
     getCongestedBranch().setDensityAtZeroFlow(maxDensityPcuKm);
+  }
+
+  /**
+   * {@inheritDoc}
+   */  
+  @Override
+  public void setMaximumSpeedKmHour(double maxSpeedKmHour) {
+    getFreeFlowBranch().setCharacteristicWaveSpeedKmHour(maxSpeedKmHour);
   }
 
 
