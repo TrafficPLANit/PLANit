@@ -23,7 +23,7 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
      */
     double newCriticalDensity = getFreeFlowBranch().getDensityPcuKm(capacityPcuHour);
     double jamDensity = getCongestedBranch().getDensityPcuKm(0);
-    return (newCriticalDensity - jamDensity) / capacityPcuHour;
+    return capacityPcuHour/(newCriticalDensity - jamDensity);
   }
 
   /**
@@ -101,17 +101,15 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
      * capacity = (k_crit-k_jam)*backwardwavespeed
      * so:
      * (k_crit-0)*maxspeed = (k_crit-k_jam)*backwardwavespeed
-     * k_crit(maxspeed -backwardwavespeed) = k_jam *backwardwavespeed
-     * k_crit = (k_jam *backwardwavespeed)/(maxspeed -backwardwavespeed)
-     * capacity = ((k_jam *backwardwavespeed)/(maxspeed -backwardwavespeed)) * maxspeed  
+     * k_crit(maxspeed -backwardwavespeed) = -k_jam *backwardwavespeed
+     * k_crit = -(k_jam *backwardwavespeed)/(maxspeed -backwardwavespeed)
+     * capacity = k_crit * maxspeed  
      */
     double maxSpeed = getMaximumSpeedKmHour();
     double backwardWaveSpeed = getCongestedBranch().getCharateristicWaveSpeedKmHour();
-    double kCrit = ((getJamDensityPcuKm()*backwardWaveSpeed)
+    double kCrit = -((getMaximumDensityPcuKm()*backwardWaveSpeed)
                     / 
-                    (maxSpeed - backwardWaveSpeed))
-                    * 
-                    maxSpeed;
+                    (maxSpeed - backwardWaveSpeed));
     return kCrit * maxSpeed;
   }
 

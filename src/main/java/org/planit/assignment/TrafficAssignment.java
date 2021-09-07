@@ -14,6 +14,7 @@ import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
+import org.planit.interactor.TrafficAssignmentComponentAccessee;
 import org.planit.network.TransportLayerNetwork;
 import org.planit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.network.transport.TransportModelNetwork;
@@ -34,7 +35,7 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public abstract class TrafficAssignment extends NetworkLoading {
+public abstract class TrafficAssignment extends NetworkLoading implements TrafficAssignmentComponentAccessee {
 
   // Private
 
@@ -43,16 +44,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicLinkSegmentImpl.class.getCanonicalName());
-
-  /**
-   * The zoning to use
-   */
-  private Zoning zoning;
-
-  /**
-   * Gap function instance containing functionality to compute the gap between equilibrium and the current state gap
-   */
-  private GapFunction gapFunction;
 
   /**
    * Output manager deals with all the output configurations for the registered traffic assignments
@@ -69,12 +60,12 @@ public abstract class TrafficAssignment extends NetworkLoading {
     LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.logActiveStateByClassName(item, register));
   }
 
-  // Protected
+  /* INPUT COMPONENTS */
 
   /**
    * network to use
    */
-  private TransportLayerNetwork<?, ?> physicalNetwork;
+  private TransportLayerNetwork<?, ?> physicalNetwork = null;
 
   /**
    * The transport network to use which is an adaptor around the physical network and the zoning
@@ -82,39 +73,26 @@ public abstract class TrafficAssignment extends NetworkLoading {
   private TransportModelNetwork transportNetwork = null;
 
   /**
-   * The virtual cost function
+   * The zoning to use
    */
-  protected AbstractVirtualCost virtualCost;
-
-  /**
-   * holds the count of all link segments in the transport network
-   */
-  protected int numberOfNetworkSegments;
-
-  /**
-   * holds the count of all vertices in the transport network
-   */
-  protected int numberOfNetworkVertices;
-
-  /**
-   * the smoothing to use
-   */
-  protected Smoothing smoothing = null;
+  private Zoning zoning = null;
 
   /**
    * The demand to use
    */
-  protected Demands demands = null;
+  private Demands demands = null;
+
+  /* TRAFFIC ASSIGNMENT COMPONENTS */
+
+  /**
+   * track the registered traffic assignment components, including the standard components (except initial cost) expected to be available on each assignment
+   */
+  private final Map<Class<? extends PlanitComponent<?>>, PlanitComponent<?>> trafficAssignmentComponents;
 
   /**
    * The initial link segment cost
    */
   protected InitialLinkSegmentCost initialLinkSegmentCost;
-
-  /**
-   * The physical generalized cost approach
-   */
-  protected AbstractPhysicalCost physicalCost;
 
   /**
    * Map storing InitialLinkSegmentCost objects for each time period
@@ -139,13 +117,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @throws PlanItException thrown if any components are undefined
    */
   protected void checkForEmptyComponents() throws PlanItException {
+    // input components
     PlanItException.throwIf(demands == null, "Demand is null");
     PlanItException.throwIf(physicalNetwork == null, "Network is null");
     PlanItException.throwIf(zoning == null, "Zoning is null");
-    PlanItException.throwIf(smoothing == null, "Smoothing is null");
-    PlanItException.throwIf(gapFunction == null, "GapFunction is null");
-    PlanItException.throwIf(physicalCost == null, "PhysicalCost is null");
-    PlanItException.throwIf(virtualCost == null, "VirtualCost is null");
+    // traffic assignment components
+    PlanItException.throwIf(getSmoothing() == null, "Smoothing is null");
+    PlanItException.throwIf(getGapFunction() == null, "GapFunction is null");
+    PlanItException.throwIf(getPhysicalCost() == null, "PhysicalCost is null");
+    PlanItException.throwIf(getVirtualCost() == null, "VirtualCost is null");
   }
 
   /**
@@ -166,15 +146,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
   protected abstract void verifyNetworkDemandZoningCompatibility() throws PlanItException;
 
   /**
-   * Set a sub component that is created via the builder and known on the base traffic assignment class
-   * 
-   * @param assignmentSubComponent
-   */
-  protected void setSubComponent(final PlanitComponent<?> assignmentSubComponent) {
-
-  }
-
-  /**
    * Initialize the transport network by combining the physical and virtual components
    * 
    * @throws PlanItException thrown if there is an error
@@ -188,8 +159,24 @@ public abstract class TrafficAssignment extends NetworkLoading {
     if (getTransportNetwork().getNumberOfVerticesAllLayers() > Integer.MAX_VALUE) {
       throw new PlanItException("currently assignment internals expect to be castable to int, but max value is exceeded for vertices");
     }
-    this.numberOfNetworkSegments = (int) getTransportNetwork().getNumberOfEdgeSegmentsAllLayers();
-    this.numberOfNetworkVertices = (int) getTransportNetwork().getNumberOfVerticesAllLayers();
+  }
+
+  /**
+   * Total number of edge segments across the entire network and all layers (physical and virtual)
+   * 
+   * @return Total number of edge segments across the entire network and all layers
+   */
+  protected int getTotalNumberOfNetworkSegments() {
+    return getTransportNetwork().getNumberOfEdgeSegmentsAllLayers();
+  }
+
+  /**
+   * Total number of vertices across the entire network (physical and virtual) and all layers
+   * 
+   * @return Total number of vertices across the entire network and all layers
+   */
+  protected int getTotalNumberOfNetworkVertices() {
+    return getTransportNetwork().getNumberOfVerticesAllLayers();
   }
 
   // Public
@@ -221,8 +208,8 @@ public abstract class TrafficAssignment extends NetworkLoading {
 
     outputManager.initialiseBeforeSimulation(getId());
 
-    physicalCost.initialiseBeforeSimulation(physicalNetwork);
-    virtualCost.initialiseBeforeSimulation(zoning.getVirtualNetwork());
+    getPhysicalCost().initialiseBeforeSimulation(physicalNetwork);
+    getVirtualCost().initialiseBeforeSimulation(zoning.getVirtualNetwork());
   }
 
   /**
@@ -276,6 +263,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   public TrafficAssignment(IdGroupingToken groupId) {
     super(groupId);
+    trafficAssignmentComponents = new HashMap<Class<? extends PlanitComponent<?>>, PlanitComponent<?>>();
     initialLinkSegmentCostByTimePeriod = new HashMap<TimePeriod, InitialLinkSegmentCost>();
   }
 
@@ -286,23 +274,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   protected TrafficAssignment(TrafficAssignment trafficAssignment) {
     super(trafficAssignment);
-    this.physicalNetwork = trafficAssignment.physicalNetwork;
-    this.transportNetwork = trafficAssignment.transportNetwork;
-    this.virtualCost = trafficAssignment.virtualCost;
-    this.numberOfNetworkSegments = trafficAssignment.numberOfNetworkSegments;
-    this.numberOfNetworkVertices = trafficAssignment.numberOfNetworkVertices;
-    this.smoothing = trafficAssignment.smoothing;
     this.demands = trafficAssignment.demands;
+    this.physicalNetwork = trafficAssignment.physicalNetwork;
+    this.zoning = trafficAssignment.zoning;
+
+    this.trafficAssignmentComponents = new HashMap<Class<? extends PlanitComponent<?>>, PlanitComponent<?>>(trafficAssignment.trafficAssignmentComponents);
+
     this.initialLinkSegmentCost = trafficAssignment.initialLinkSegmentCost;
-    this.physicalCost = trafficAssignment.physicalCost;
     this.initialLinkSegmentCostByTimePeriod = trafficAssignment.initialLinkSegmentCostByTimePeriod;
   }
-
-  // Public abstract methods
-
-  // Public
-
-  // Public abstract methods
 
   /**
    * Create the output type adapter for the current output type, specifically tailored towards the assignment type that we are builing
@@ -351,44 +331,6 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
-   * Set the Smoothing object for the current assignment
-   *
-   * @param smoothing Smoothing object for the current assignment
-   */
-  public void setSmoothing(final Smoothing smoothing) {
-    logRegisteredComponent(smoothing, true);
-    this.smoothing = smoothing;
-  }
-
-  /**
-   * Collect the smoothing object for the current traffic assignment
-   * 
-   * @return smoothing
-   */
-  public Smoothing getSmoothing() {
-    return this.smoothing;
-  }
-
-  /**
-   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults() right after construction
-   *
-   * @param gapfunction the gap function to set
-   */
-  public void setGapFunction(final GapFunction gapfunction) {
-    logRegisteredComponent(gapfunction, true);
-    this.gapFunction = gapfunction;
-  }
-
-  /**
-   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults() right after construction
-   *
-   * @return gapFunction
-   */
-  public GapFunction getGapFunction() {
-    return gapFunction;
-  }
-
-  /**
    * Set the physicalNetwork for the current assignment
    *
    * @param physicalNetwork the network object for the current assignment
@@ -408,6 +350,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
+   * Get the demands for the current assignment
+   *
+   * @return demands for the current assignment
+   */
+  public Demands getDemands() {
+    return this.demands;
+  }
+
+  /**
    * Set the Demands object for the current assignment
    *
    * @param demands the Demands object for the current assignment
@@ -418,6 +369,15 @@ public abstract class TrafficAssignment extends NetworkLoading {
   }
 
   /**
+   * Get the zoning for the current assignment
+   *
+   * @return zoning for the current assignment
+   */
+  public Zoning getZoning() {
+    return this.zoning;
+  }
+
+  /**
    * Set the zoning object for the current assignment
    *
    * @param zoning the Zoning object for the current assignment
@@ -425,6 +385,44 @@ public abstract class TrafficAssignment extends NetworkLoading {
   public void setZoning(final Zoning zoning) {
     logRegisteredComponent(zoning, true);
     this.zoning = zoning;
+  }
+
+  /**
+   * Set the Smoothing object for the current assignment
+   *
+   * @param smoothing Smoothing object for the current assignment
+   */
+  public void setSmoothing(final Smoothing smoothing) {
+    logRegisteredComponent(smoothing, true);
+    trafficAssignmentComponents.put(Smoothing.class, smoothing);
+  }
+
+  /**
+   * Collect the smoothing object for the current traffic assignment
+   * 
+   * @return smoothing
+   */
+  public Smoothing getSmoothing() {
+    return getTrafficAssignmentComponent(Smoothing.class);
+  }
+
+  /**
+   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults() right after construction
+   *
+   * @param gapfunction the gap function to set
+   */
+  public void setGapFunction(final GapFunction gapfunction) {
+    logRegisteredComponent(gapfunction, true);
+    trafficAssignmentComponents.put(GapFunction.class, gapfunction);
+  }
+
+  /**
+   * Collect the gap function which is to be set by a derived class of TrafficAssignment via the initialiseDefaults() right after construction
+   *
+   * @return gapFunction
+   */
+  public GapFunction getGapFunction() {
+    return getTrafficAssignmentComponent(GapFunction.class);
   }
 
   /**
@@ -454,7 +452,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   public void setPhysicalCost(final AbstractPhysicalCost physicalCost) throws PlanItException {
     logRegisteredComponent(physicalCost, true);
-    this.physicalCost = physicalCost;
+    trafficAssignmentComponents.put(AbstractPhysicalCost.class, physicalCost);
   }
 
   /**
@@ -463,7 +461,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @return the physical cost object for the current assignment
    */
   public AbstractPhysicalCost getPhysicalCost() {
-    return physicalCost;
+    return getTrafficAssignmentComponent(AbstractPhysicalCost.class);
   }
 
   /**
@@ -472,7 +470,7 @@ public abstract class TrafficAssignment extends NetworkLoading {
    * @return the virtual cost object for the current assignments
    */
   public AbstractVirtualCost getVirtualCost() {
-    return virtualCost;
+    return getTrafficAssignmentComponent(AbstractVirtualCost.class);
   }
 
   /**
@@ -483,7 +481,22 @@ public abstract class TrafficAssignment extends NetworkLoading {
    */
   public void setVirtualCost(final AbstractVirtualCost virtualCost) throws PlanItException {
     logRegisteredComponent(virtualCost, true);
-    this.virtualCost = virtualCost;
+    trafficAssignmentComponents.put(AbstractVirtualCost.class, virtualCost);
+  }
+
+  /**
+   * Collect the desired traffic assignment component by its class assuming it is available on the assignment. These are traffic assignment components that are created and
+   * registered upon the assignment, so not component inputs that are readily available upon creation, but components specific to the assignment itself. Derived assignments might
+   * also register additional components as well beyond the standard components registered here on the base class (gapfunction, smoothing, physical, virtual cost).
+   * 
+   * @param <T>                  component type
+   * @param planitComponentClass to collect of type T
+   * @return component, null if not available
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> T getTrafficAssignmentComponent(final Class<T> planitComponentClass) {
+    return (T) trafficAssignmentComponents.get(planitComponentClass);
   }
 
   /**
@@ -496,6 +509,24 @@ public abstract class TrafficAssignment extends NetworkLoading {
     // TODO: move all logging of components to one central place instead of in setters
     outputManager.getOutputFormatters().forEach(of -> logRegisteredComponent(of, false));
     outputManager.getRegisteredOutputTypeConfigurations().forEach(oc -> LOGGER.info(LoggingUtils.createRunIdPrefix(this.getId()) + "activated: OutputType." + oc.getOutputType()));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public void reset() {
+    // do not reset input components because they are considered configuration, not internal state. Also, initial cost is not reset since
+    // this is considered a fixed input as well without an internal state
+
+    // disband the transport network, this is considered internal state
+    try {
+      disbandTransportNetwork();
+    } catch (PlanItException e) {
+      LOGGER.severe(String.format("Unable to reset assignment %s, transport network could not be disbanded", getXmlId()));
+    }
+
+    // do reset internal traffic assignment components, they are considered internal state.
+    this.trafficAssignmentComponents.forEach((clazz, component) -> component.reset());
   }
 
 }

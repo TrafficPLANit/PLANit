@@ -1,7 +1,6 @@
 package org.planit.assignment.ltm.sltm;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -471,10 +470,7 @@ public class StaticLtmNetworkLoading {
     this.receivingFlowData = new ReceivingFlowData(referenceEmptyArray);       
     this.inFlowOutflowData = new InflowOutflowData(referenceEmptyArray);
     
-    /* factor data defaults to 1 if reset, so provide this as the reference empty array */
-    double[] referenceOneArray =  new double[referenceEmptyArray.length];
-    Arrays.fill(referenceOneArray, 1.0);
-    this.networkLoadingFactorData = new NetworkLoadingFactorData(referenceOneArray);
+    this.networkLoadingFactorData = new NetworkLoadingFactorData(network.getNumberOfEdgeSegmentsAllLayers());
 
     /* gap functions used */
     this.flowAcceptanceFapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
@@ -512,7 +508,7 @@ public class StaticLtmNetworkLoading {
     initialiseStaticLtmSolutionSchemeApproach(); 
             
     /* 1. Initial acceptance flow, capacity, and storage factors, all set to one */
-    networkLoadingFactorData.initialiseAll(1.0);
+    // already done upon creation of the data
     
     /* 2. Initial sending flows via network loading Eq. (3)-(4) in paper: unconstrained network loading */
     initialiseSendingFlows();
@@ -851,6 +847,25 @@ public class StaticLtmNetworkLoading {
    */
   public double[] getCurrentOutflowsPcuH() {
     return this.inFlowOutflowData.getOutflows();
+  }
+
+  /**
+   * Reset the network loading
+   */
+  public void reset() {
+    /* flow data defaults to zero unless explicitly set */
+    this.sendingFlowData.reset();
+    this.receivingFlowData.reset();       
+    this.inFlowOutflowData.reset();        
+    this.networkLoadingFactorData.reset();
+
+    /* gap functions used */
+    this.flowAcceptanceFapFunction.reset();
+    this.sendingFlowGapFunction.reset();
+    this.receivingFlowGapFunction.reset();
+
+    this.convergenceAnalyser.reset();
+    this.solutionScheme = StaticLtmSolutionScheme.NONE;
   }  
 
 }

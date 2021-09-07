@@ -4,12 +4,16 @@ import org.planit.interactor.LinkInflowOutflowAccessee;
 import org.planit.interactor.LinkInflowOutflowAccessor;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.network.TransportLayerNetwork;
+import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
+import org.planit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Cost computation for travel times based on the work of Raadsen and Bliemer (2019), Steady-state link travel time methods: Formulation, derivation, classification, and
@@ -30,6 +34,46 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
 
   /** accessee to use to obtain inflow and outflows to derive costs for */
   private LinkInflowOutflowAccessee accessee;
+
+  /** the time period for which we are computing costs. In case of steady state costs it is the duration of the period that is of interest */
+  private TimePeriod currentTimePeriod;
+
+  /**
+   * 2d Array to store (fixed) free flow travel times for each link segment to be used in calculateSegmentCost()
+   */
+  private double[] freeFlowTravelTimePerLinkSegment = null;
+
+  /** tracking fundamental diagrams per link segment for performance reasons */
+  private FundamentalDiagram[] linkSegmentFundamentalDiagrams = null;
+
+  /**
+   * Collect the fundamental diagram component from the accessee
+   * 
+   * @return fundamental diagram component
+   */
+  private FundamentalDiagramComponent getFundamentalDiagramComponent() {
+    return accessee.getTrafficAssignmentComponent(FundamentalDiagramComponent.class);
+  }
+
+  /**
+   * To speed up the computations we create the mapping between link segment and free flow travel times once and reuse it throughout the lifespan of this cost component. This
+   * avoids repeating the same computations albeit at the cost of increased memory usage
+   * 
+   * @param linkSegments to create free flow travel time mapping for
+   */
+  private void initialiseFreeFlowTravelTimesPerLinkSegment(Mode mode, MacroscopicLinkSegments linkSegments) {
+    this.freeFlowTravelTimePerLinkSegment = linkSegments.getFreeFlowTravelTimeHourPerLinkSegment(mode);
+  }
+
+  /**
+   * To speed up the computations we create the mapping between link segment and fundamental diagram once and reuse it throughout the lifespan of this cost component. This avoids
+   * repeating the same costly lookups via the component albeit at the cost of increased memory usage
+   * 
+   * @param linkSegments to create FD mapping for
+   */
+  private void initialiseFundamentalDiagramsPerLinkSegment(MacroscopicLinkSegments linkSegments) {
+    linkSegmentFundamentalDiagrams = getFundamentalDiagramComponent().getFundamentalDiagramsPerLinkSegment(linkSegments);
+  }
 
   /**
    * Constructor
@@ -52,6 +96,32 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void initialiseBeforeSimulation(TransportLayerNetwork<?, ?> network) throws PlanItException {
+    PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "Steady state travel time cost is only compatible with macroscopic networks");
+    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
+    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
+        "Steady state travel time cost is currently only compatible with networks using a single infrastructure layer");
+    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1, "Steady state travel time cost is currently only compatible with a single mode, found %d",
+        network.getModes().size());
+
+    Mode mode = network.getModes().getFirst();
+    MacroscopicLinkSegments linkSegments = ((MacroscopicNetwork) network).getLayerByMode(mode).getLinkSegments();
+    initialiseFreeFlowTravelTimesPerLinkSegment(mode, linkSegments);
+    initialiseFundamentalDiagramsPerLinkSegment(linkSegments);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void updateTimePeriod(final TimePeriod timePeriod) {
+    this.currentTimePeriod = timePeriod;
+  }
+
+  /**
    * Return the average travel time for the current link segment for a given mode
    *
    * @param mode        the current Mode of travel
@@ -65,11 +135,22 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double inflow = accessee.getLinkSegmentInflowPcuHour(linkSegment);
     double outflow = accessee.getLinkSegmentOutflowPcuHour(linkSegment);
 
+    int linkSegmentId = (int) linkSegment.getLinkSegmentId();
+    FundamentalDiagram fd = linkSegmentFundamentalDiagrams[linkSegmentId];
+
+    /* minimum travel time */
+    double freeFlowTravelTime = freeFlowTravelTimePerLinkSegment[linkSegmentId];
+
+    /* hypo critical delay */
     double hypoCriticalDelay = 0;
+    if (!fd.getFreeFlowBranch().isLinear()) {
+      hypoCriticalDelay = linkSegment.getParentLink().getLengthKm() / fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflow) - freeFlowTravelTime;
+    }
+
     double hyperCriticalDelay = 0;
 
     /* min travel time + hypo critical delay + hypercritical delay */
-    return linkSegment.computeFreeFlowTravelTimeHour(mode) + hypoCriticalDelay + hyperCriticalDelay;
+    return freeFlowTravelTime + hypoCriticalDelay + hyperCriticalDelay;
   }
 
   /**
@@ -104,19 +185,17 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * {@inheritDoc}
    */
   @Override
-  public void initialiseBeforeSimulation(TransportLayerNetwork<?, ?> network) throws PlanItException {
-    PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "Steady state travel time cost is only compatible with macroscopic networks");
-    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
-    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
-        "Steady state travel time cost is currently only compatible with networks using a single infrastructure layer");
+  public void setAccessee(final LinkInflowOutflowAccessee accessee) {
+    this.accessee = accessee;
   }
 
   /**
-   * {@inheritDoc}
+   * Full reset returns to pre-{@link #initialiseBeforeSimulation(TransportLayerNetwork)} state.
    */
   @Override
-  public void setAccessee(final LinkInflowOutflowAccessee accessee) {
-    this.accessee = accessee;
+  public void reset() {
+    this.freeFlowTravelTimePerLinkSegment = null;
+    this.linkSegmentFundamentalDiagrams = null;
   }
 
 }

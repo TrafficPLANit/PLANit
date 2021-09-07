@@ -116,4 +116,22 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
     return new MacroscopicNetworkLayerImpl(this);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    super.reset();
+    this.resetChildManagedIdEntities();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void resetChildManagedIdEntities() {
+    super.resetChildManagedIdEntities();
+    this.linkSegmentTypes.reset();
+  }
+
 }

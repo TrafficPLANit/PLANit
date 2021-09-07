@@ -39,4 +39,12 @@ public class MultinomialLogit extends LogitChoiceModel {
     return new MultinomialLogit(this);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    // No internal state (yet), do nothing
+  }
+
 }

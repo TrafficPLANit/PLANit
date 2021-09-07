@@ -88,4 +88,12 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
     return layers;
   }
 
+  /**
+   * reset by removing all layers and what is in them
+   */
+  @Override
+  public void reset() {
+    layers.reset();
+  }
+
 }

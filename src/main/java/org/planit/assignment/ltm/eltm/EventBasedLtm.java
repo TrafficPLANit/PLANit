@@ -1,6 +1,7 @@
 package org.planit.assignment.ltm.eltm;
 
 import org.planit.assignment.ltm.LtmAssignment;
+import org.planit.interactor.InteractorAccessor;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.enums.OutputType;
 import org.planit.utils.exceptions.PlanItException;
@@ -59,6 +60,20 @@ public class EventBasedLtm extends LtmAssignment {
   @Override
   public EventBasedLtm clone() {
     return new EventBasedLtm(this);
+  }
+
+  @Override
+  public Class<? extends InteractorAccessor<?>> getCompatibleAccessor() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    // TODO Auto-generated method stub
   }
 
 }

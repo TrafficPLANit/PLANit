@@ -14,7 +14,7 @@ import org.planit.utils.zoning.OdZones;
 public interface OdDemands extends OdData<Double> {
 
   /**
-   * Apply the provided consumer to each origin-destinatino combination found that has non zero demands
+   * Apply the provided consumer to each origin-destination combination found that has non zero demands
    * 
    * @param odZones  to loop over
    * @param consumer to apply
@@ -27,4 +27,5 @@ public interface OdDemands extends OdData<Double> {
       }
     });
   }
+
 }

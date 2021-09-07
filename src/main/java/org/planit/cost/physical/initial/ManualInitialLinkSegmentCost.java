@@ -52,4 +52,12 @@ public class ManualInitialLinkSegmentCost extends InitialLinkSegmentCost {
   public ManualInitialLinkSegmentCost clone() {
     return new ManualInitialLinkSegmentCost(this);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    super.reset();
+  }
 }

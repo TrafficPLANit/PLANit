@@ -14,6 +14,7 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 
 /**
  * Fundamental diagram traffic component. Here we track the relation between a macroscopic link segment and its fundamental diagram. To minimise memory usage only unique
@@ -284,6 +285,33 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
     FundamentalDiagram newFd = foundFd.clone();
     newFd.setMaximumDensityPcuKmHour(maxDensityPcuKmLane);
     register(linkSegmentType, newFd);
+  }
+
+  /**
+   * Method to collect all fundamental diagrams for the given link segments in a 1:1 fashion in a raw array based on the current setup of this component. The returned array is
+   * indexed by the link segments linkSegmentId (not id). The returned array is a newly created array yet the fundamental diagrams contained in it are references to the fundamental
+   * diagrams registered on this component. Further, it is also assumed that the provided link segments are indeed the segments (and types) on which the registered fundamental
+   * diagrams on this component are based. If not, then this would result in undefined behaviour.
+   * 
+   * @param linkSegments to collect fundamental diagrams for
+   * @return fundamental diagrams per link segment by linkSegmentId, if no fd is present, the entry remains null
+   */
+  public FundamentalDiagram[] getFundamentalDiagramsPerLinkSegment(MacroscopicLinkSegments linkSegments) {
+    FundamentalDiagram[] linkSegmentFundamentalDiagrams = new FundamentalDiagram[linkSegments.size()];
+    for (MacroscopicLinkSegment linkSegment : linkSegments) {
+      linkSegmentFundamentalDiagrams[(int) linkSegment.getLinkSegmentId()] = get(linkSegment);
+    }
+    return linkSegmentFundamentalDiagrams;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    this.linkSegmentFundamentalDiagrams.clear();
+    this.linkSegmentTypeFundamentalDiagrams.clear();
+    this.uniqueFundamentalDiagrams.clear();
   }
 
 }

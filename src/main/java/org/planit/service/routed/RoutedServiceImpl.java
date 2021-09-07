@@ -133,4 +133,12 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
     return trips;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void resetChildManagedIdEntities() {
+    this.trips.reset();
+  }
+
 }

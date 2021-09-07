@@ -46,4 +46,13 @@ public interface RoutedServicesLayer extends ManagedId, ExternalIdAble, Iterable
    * @return services by mode, empty instance if none have been registered yet
    */
   public abstract RoutedModeServices getServicesByMode(final Mode mode);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default void resetChildManagedIdEntities() {
+    forEach(routedModeServices -> routedModeServices.reset());
+  }
+
 }

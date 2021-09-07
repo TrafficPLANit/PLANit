@@ -47,4 +47,9 @@ public interface RoutedServiceTripInfo extends Cloneable {
     return getFrequencyBasedTrips() != null && !getFrequencyBasedTrips().isEmpty();
   }
 
+  /**
+   * Remove all registered frequency and schedule based trips
+   */
+  public abstract void reset();
+
 }

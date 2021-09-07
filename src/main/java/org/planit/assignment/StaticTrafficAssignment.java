@@ -45,7 +45,7 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
   protected void executeTimePeriod(final TimePeriod timePeriod) throws PlanItException {
     Calendar startTime = Calendar.getInstance();
     final Calendar initialStartTime = startTime;
-    executeTimePeriod(timePeriod, demands.getRegisteredModesForTimePeriod(timePeriod));
+    executeTimePeriod(timePeriod, getDemands().getRegisteredModesForTimePeriod(timePeriod));
     LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
   }
 
@@ -75,7 +75,7 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
   @Override
   public void executeEquilibration() throws PlanItException {
     // perform assignment per period - per mode
-    final Collection<TimePeriod> timePeriods = demands.timePeriods.asSortedSetByStartTime();
+    final Collection<TimePeriod> timePeriods = getDemands().timePeriods.asSortedSetByStartTime();
     LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "total time periods: " + timePeriods.size());
     for (final TimePeriod timePeriod : timePeriods) {
       LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createTimePeriodPrefix(timePeriod) + timePeriod.toString());

@@ -155,4 +155,9 @@ public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializabl
    */
   @Override
   public abstract PlanitComponent<T> clone();
+
+  /**
+   * All components should be able to reset going back to some representative initial state
+   */
+  public abstract void reset();
 }

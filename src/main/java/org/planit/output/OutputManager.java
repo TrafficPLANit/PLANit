@@ -238,4 +238,12 @@ public class OutputManager {
     }
   }
 
+  /**
+   * Remove all registered formatters and adapters, only retain the configuration
+   */
+  public void reset() {
+    this.outputAdapter.reset();
+    this.outputFormatters.clear();
+  }
+
 }

@@ -235,4 +235,5 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
 
     return true;
   }
+
 }

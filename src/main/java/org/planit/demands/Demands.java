@@ -14,6 +14,7 @@ import org.planit.time.TimePeriodImpl;
 import org.planit.userclass.TravelerType;
 import org.planit.userclass.UserClass;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.time.TimePeriod;
@@ -102,6 +103,15 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     public TravelerTypes clone() {
       return new TravelerTypes(this);
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void clear() {
+      super.clear();
+      IdGenerator.reset(getIdGroupingToken(), TravelerType.class);
+    }
   }
 
   /**
@@ -160,6 +170,15 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     @Override
     public UserClasses clone() {
       return new UserClasses(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void clear() {
+      super.clear();
+      IdGenerator.reset(getIdGroupingToken(), UserClass.class);
     }
   }
 
@@ -231,6 +250,15 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     @Override
     public TimePeriods clone() {
       return new TimePeriods(this);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void clear() {
+      super.clear();
+      IdGenerator.reset(getIdGroupingToken(), TimePeriod.class);
     }
   }
 
@@ -333,6 +361,16 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
   @Override
   public Demands clone() {
     return new Demands(this);
+  }
+
+  /**
+   * reset all demands, traveler types, time periods and user classes
+   */
+  public void reset() {
+    travelerTypes.clear();
+    userClasses.clear();
+    timePeriods.clear();
+    odDemandsByTimePeriodAndMode.clear();
   }
 
 }

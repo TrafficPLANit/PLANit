@@ -59,6 +59,15 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
    * {@inheritDoc}
    */
   @Override
+  public void resetChildManagedIdEntities() {
+    super.resetChildManagedIdEntities();
+    this.departures.reset();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public RoutedTripScheduleImpl clone() {
     return new RoutedTripScheduleImpl(this);
   }

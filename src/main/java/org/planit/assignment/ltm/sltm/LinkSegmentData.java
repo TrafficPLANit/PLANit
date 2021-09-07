@@ -1,5 +1,7 @@
 package org.planit.assignment.ltm.sltm;
 
+import java.util.Arrays;
+
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 
@@ -14,15 +16,15 @@ public abstract class LinkSegmentData {
   /**
    * Empty array for quick memory based copying of doubles
    */
-  private double[] emptySegmentArray;
+  private double[] initialStateSegmentArray;
 
   /**
-   * create a copy of the empty doubles array
+   * create a copy of the initial state doubles array
    * 
-   * @return empty doubles array the size of the emptySegmentArray provided to the constructor
+   * @return initial state doubles array the size of the emptySegmentArray provided to the constructor
    */
-  protected double[] createEmptyLinkSegmentDoubleArray() {
-    return emptySegmentArray.clone();
+  protected double[] createinitialStateLinkSegmentDoubleArray() {
+    return initialStateSegmentArray.clone();
   }
 
   /**
@@ -50,10 +52,21 @@ public abstract class LinkSegmentData {
   /**
    * Constructor
    * 
-   * @param emptySegmentArray empty array used to initialize data stores
+   * @param initialStateSegmentArray empty array used to initialize data stores
    */
-  public LinkSegmentData(double[] emptySegmentArray) {
-    this.emptySegmentArray = emptySegmentArray;
+  public LinkSegmentData(double[] initialStateSegmentArray) {
+    this.initialStateSegmentArray = initialStateSegmentArray;
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param linkSegmentsSize to use for initial state array
+   * @param initialValue     to use for the initial state arrays entries
+   */
+  public LinkSegmentData(int linkSegmentsSize, double initialValue) {
+    this.initialStateSegmentArray = new double[linkSegmentsSize];
+    Arrays.fill(initialStateSegmentArray, initialValue);
   }
 
   /**

@@ -3,7 +3,7 @@ package org.planit.supply.network.nodemodel;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
- * Tampere node model traffic component singalling that the Tampere node model algorithm is to be used
+ * Tampere node model traffic component signalling that the Tampere node model algorithm is to be used
  * 
  *
  * @author markr
@@ -38,6 +38,14 @@ public class TampereNodeModelComponent extends NodeModelComponent {
   @Override
   public TampereNodeModelComponent clone() {
     return new TampereNodeModelComponent(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    // nothing to reset
   }
 
 }

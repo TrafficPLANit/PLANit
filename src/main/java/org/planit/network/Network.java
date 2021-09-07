@@ -61,4 +61,12 @@ public class Network extends PlanitComponent<Network> implements Serializable {
   public Network clone() {
     return new Network(this);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    // nothing to reset at this level
+  }
 }

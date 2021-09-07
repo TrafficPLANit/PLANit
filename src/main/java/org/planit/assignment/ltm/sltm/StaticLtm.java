@@ -10,6 +10,7 @@ import org.planit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
 import org.planit.assignment.ltm.LtmAssignment;
 import org.planit.gap.NormBasedGapFunction;
+import org.planit.interactor.LinkInflowOutflowAccessee;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPaths;
@@ -40,7 +41,7 @@ import org.planit.zoning.Zoning;
  * @author markr
  *
  */
-public class StaticLtm extends LtmAssignment {
+public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccessee {
 
   /** generated UID */
   private static final long serialVersionUID = 8485652038791612169L;
@@ -82,11 +83,12 @@ public class StaticLtm extends LtmAssignment {
    * @throws PlanItException thrown if error
    */
   private OdPaths createOdPaths(final double[] currentSegmentCosts, final Mode mode, final TimePeriod timePeriod) throws PlanItException {
-    final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(currentSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
+    final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(currentSegmentCosts, getTotalNumberOfNetworkSegments(),
+        getTotalNumberOfNetworkVertices());
     DirectedPathFactory pathFactory = new DirectedPathFactoryImpl(getIdGroupingToken());
     OdPaths odPaths = new OdPathsHashed(getIdGroupingToken(), getTransportNetwork().getZoning().getOdZones());
 
-    OdDemands odDemand = this.demands.get(mode, timePeriod);
+    OdDemands odDemand = getDemands().get(mode, timePeriod);
     Zoning zoning = getTransportNetwork().getZoning();
     for (OdZone origin : zoning.getOdZones()) {
       ShortestPathResult oneToAllResult = shortestPathAlgorithm.executeOneToAll(origin.getCentroid());
@@ -141,6 +143,10 @@ public class StaticLtm extends LtmAssignment {
    */
   private StaticLtmSimulationData initialiseTimePeriod(TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) throws PlanItException {
 
+    /* register new time period on costs */
+    getPhysicalCost().updateTimePeriod(timePeriod);
+    getVirtualCost().updateTimePeriod(timePeriod);
+
     /* compute costs to start with */
     double[] currentSegmentCosts = executeCostsUpdate(mode);
 
@@ -194,7 +200,7 @@ public class StaticLtm extends LtmAssignment {
 
     /* prep */
     Mode theMode = modes.iterator().next();
-    this.simulationData = initialiseTimePeriod(timePeriod, theMode, this.demands.get(theMode, timePeriod));
+    this.simulationData = initialiseTimePeriod(timePeriod, theMode, getDemands().get(theMode, timePeriod));
     configureNetworkLoadingSettings(simulationData.getNetworkLoading());
 
     boolean converged = false;
@@ -203,7 +209,7 @@ public class StaticLtm extends LtmAssignment {
     /* ASSIGNMENT LOOP */
     do {
       getGapFunction().reset();
-      smoothing.updateStep(simulationData.getIterationIndex());
+      getSmoothing().updateStep(simulationData.getIterationIndex());
 
       // NETWORK LOADING - MODE AGNOSTIC FOR NOW
       {
@@ -241,7 +247,7 @@ public class StaticLtm extends LtmAssignment {
     double[] currentSegmentCosts = new double[getTransportNetwork().getNumberOfEdgeSegmentsAllLayers()];
 
     /* virtual cost */
-    virtualCost.populateWithCost(getTransportNetwork().getVirtualNetwork(), mode, currentSegmentCosts);
+    getVirtualCost().populateWithCost(getTransportNetwork().getVirtualNetwork(), mode, currentSegmentCosts);
 
     /* physical cost */
     getPhysicalCost().populateWithCost(getInfrastructureNetwork().getLayerByMode(mode), mode, currentSegmentCosts);
@@ -310,13 +316,13 @@ public class StaticLtm extends LtmAssignment {
   @Override
   protected void executeEquilibration() throws PlanItException {
     // perform assignment per period
-    final Collection<TimePeriod> timePeriods = demands.timePeriods.asSortedSetByStartTime();
+    final Collection<TimePeriod> timePeriods = getDemands().timePeriods.asSortedSetByStartTime();
     LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "total time periods: " + timePeriods.size());
     for (final TimePeriod timePeriod : timePeriods) {
       Calendar startTime = Calendar.getInstance();
       final Calendar initialStartTime = startTime;
       LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createTimePeriodPrefix(timePeriod) + timePeriod.toString());
-      executeTimePeriod(timePeriod, demands.getRegisteredModesForTimePeriod(timePeriod));
+      executeTimePeriod(timePeriod, getDemands().getRegisteredModesForTimePeriod(timePeriod));
       LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
     }
   }
@@ -434,6 +440,31 @@ public class StaticLtm extends LtmAssignment {
    */
   public boolean isActivateDetailedLogging() {
     return this.activateDetailedLogging;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double[] getLinkSegmentInflowsPcuHour() {
+    return simulationData.getNetworkLoading().getCurrentInflowsPcuH();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double[] getLinkSegmentOutflowsPcuHour() {
+    return simulationData.getNetworkLoading().getCurrentInflowsPcuH();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    super.reset();
+    this.simulationData.reset();
   }
 
 }

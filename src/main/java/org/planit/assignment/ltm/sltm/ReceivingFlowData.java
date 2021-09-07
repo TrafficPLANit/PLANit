@@ -31,14 +31,14 @@ public class ReceivingFlowData extends LinkSegmentData {
    * Reset the segment flows for the coming iteration
    */
   public void resetNextReceivingFlows() {
-    receivingFlowsPcuH[1] = this.createEmptyLinkSegmentDoubleArray();
+    receivingFlowsPcuH[1] = this.createinitialStateLinkSegmentDoubleArray();
   }
 
   /**
    * Reset current network segment flows
    */
   public void resetCurrentReceivingFlows() {
-    receivingFlowsPcuH[0] = this.createEmptyLinkSegmentDoubleArray();
+    receivingFlowsPcuH[0] = this.createinitialStateLinkSegmentDoubleArray();
   }
 
   /**
@@ -73,6 +73,14 @@ public class ReceivingFlowData extends LinkSegmentData {
    */
   public void swapCurrentAndNextReceivingFlows() {
     swap(0, 1, this.receivingFlowsPcuH);
+  }
+
+  /**
+   * Reset to initial state
+   */
+  public void reset() {
+    resetCurrentReceivingFlows();
+    resetNextReceivingFlows();
   }
 
 }

@@ -95,4 +95,14 @@ public abstract class TransportLayerNetwork<U extends TransportLayer, T extends 
     return transportLayers;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    super.reset();
+    modes.reset();
+    transportLayers.reset();
+  }
+
 }

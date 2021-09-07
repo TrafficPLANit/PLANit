@@ -15,7 +15,7 @@ public class SimulationData implements Cloneable {
    * Constructor
    */
   public SimulationData() {
-    this.iterationIndex = 0;
+    reset();
   }
 
   /**
@@ -59,6 +59,13 @@ public class SimulationData implements Cloneable {
   @Override
   public SimulationData clone() {
     return new SimulationData(this);
+  }
+
+  /**
+   * reset to initial state
+   */
+  public void reset() {
+    this.iterationIndex = 0;
   }
 
 }

@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.planit.assignment.StaticTrafficAssignment;
 import org.planit.component.PlanitComponent;
+import org.planit.interactor.InteractorAccessor;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.enums.OutputType;
 import org.planit.supply.networkloading.NetworkLoading;
@@ -106,6 +107,23 @@ public class AlgorithmB extends StaticTrafficAssignment {
   @Override
   public PlanitComponent<NetworkLoading> clone() {
     return new AlgorithmB(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Class<? extends InteractorAccessor<?>> getCompatibleAccessor() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    // TODO Auto-generated method stub
   }
 
 }

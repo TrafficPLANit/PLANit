@@ -110,4 +110,28 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
     return new LinearFundamentalDiagramBranch(this);
   }
 
+  /**
+   * speed at zero flow is the same as the characteristic wave speed
+   */
+  @Override
+  public double getSpeedKmHourAtZeroFlow() {
+    return getCharateristicWaveSpeedKmHour();
+  }
+
+  /**
+   * speed at zero density is the same as the characteristic wave speed
+   */
+  @Override
+  public double getSpeedKmHourAtZeroDensity() {
+    return getCharateristicWaveSpeedKmHour();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isLinear() {
+    return true;
+  }
+
 }

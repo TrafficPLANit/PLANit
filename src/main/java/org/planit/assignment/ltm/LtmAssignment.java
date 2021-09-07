@@ -144,4 +144,15 @@ public abstract class LtmAssignment extends TrafficAssignment {
     this.pathChoice = pathChoice;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    super.reset();
+    fundamentalDiagram.reset();
+    nodeModel.reset();
+    pathChoice.reset();
+  }
+
 }

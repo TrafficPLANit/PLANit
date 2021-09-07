@@ -8,7 +8,6 @@ import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.interactor.LinkVolumeAccessor;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.network.TransportLayerNetwork;
-import org.planit.utils.arrays.ArrayUtils;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.Pair;
@@ -18,6 +17,7 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Well known BPR link performance function to compute travel time cost on link segment based on flow and configuration parameters. An instance of this class is compatible with a
@@ -110,12 +110,12 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   /**
    * Array to store BPRParameters objects for each link segment to be used in calculateSegmentCost()
    */
-  protected BPRParameters[] bprParametersPerLinkSegment;
+  protected BPRParameters[] bprParametersPerLinkSegment = null;
 
   /**
    * 2d Array to store free flow travel time for each [mode][link segment] to be used in calculateSegmentCost()
    */
-  protected double[][] freeFlowTravelTimePerLinkSegment;
+  protected double[][] freeFlowTravelTimePerLinkSegment = null;
 
   /**
    * BPR function computation for. In case mode is nto allowed Double.MAX_VALUE is returned
@@ -235,6 +235,60 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   }
 
   /**
+   * Register the BPR cost parameter values on the PhysicalNetwork
+   *
+   * @param network network object containing the updated parameter values
+   * @throws PlanItException thrown if error
+   */
+  @Override
+  public void initialiseBeforeSimulation(final TransportLayerNetwork<?, ?> network) throws PlanItException {
+    PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "BPR cost is only compatible with macroscopic networks");
+    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
+    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");
+    MacroscopicNetworkLayer networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
+    if (network.getModes().size() != networkLayer.getSupportedModes().size()) {
+      LOGGER.warning("network wide modes do not match modes supported by only layer, this makes the assignment less efficient, consider removing unused modes");
+    }
+  
+    /* pre-compute the free flow travel times */
+    freeFlowTravelTimePerLinkSegment = new double[network.getModes().size()][(int) networkLayer.getLinkSegments().size()];
+    for (Mode mode : network.getModes()) {
+      freeFlowTravelTimePerLinkSegment[(int) mode.getId()] = networkLayer.getLinkSegments().getFreeFlowTravelTimeHourPerLinkSegment(mode);
+    }
+  
+    /* explicitly set BPR parameters for each mode/segment combination */
+    bprParametersPerLinkSegment = new BPRParameters[(int) networkLayer.getLinkSegments().size()];
+    for (final MacroscopicLinkSegment macroscopicLinkSegment : networkLayer.getLinkSegments()) {
+      final int id = (int) macroscopicLinkSegment.getLinkSegmentId(); // changed 7/9/21, see comment in #populateWithCost
+      bprParametersPerLinkSegment[id] = new BPRParameters();
+      final MacroscopicLinkSegmentType macroscopicLinkSegmentType = macroscopicLinkSegment.getLinkSegmentType();
+      for (final Mode mode : network.getModes()) {
+        Pair<Double, Double> alphaBetaPair;
+        if ((parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment) != null)
+            && (parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode) != null)) {
+          alphaBetaPair = parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode);
+        } else if ((defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) != null)
+            && (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).getAlphaBetaParameters(mode) != null)) {
+          alphaBetaPair = defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).getAlphaBetaParameters(mode);
+        } else if (defaultParametersPerMode.getAlphaBetaParameters(mode) != null) {
+          alphaBetaPair = defaultParametersPerMode.getAlphaBetaParameters(mode);
+        } else {
+          alphaBetaPair = defaultParameters;
+        }
+        bprParametersPerLinkSegment[id].registerParameters(mode, alphaBetaPair);
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void updateTimePeriod(TimePeriod timePeriod) {
+    // currently the settings for the BPR travel time are time period agnostic, so do nothing
+  }
+
+  /**
    * Return the travel time for the current link for a given mode
    *
    * If the input data are invalid, this method returns a negative value.
@@ -261,53 +315,11 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     double[] linkSegmentFlows = linkVolumeAccessee.getLinkSegmentVolumes();
 
     for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
-      final int id = (int) linkSegment.getId();
+      // changed from id to link segment id 7/9/2021 since we array is created based on linksegments only, not all edge segments (so excluding connectoid segments). Therefore
+      // we should not be using the id that is unique across both, just the one for physical link segments. By accident this did work so far due to connectoid segments being
+      // created after the link segments. Verify if tests still succeed. IF so, remove this comment
+      final int id = (int) linkSegment.getLinkSegmentId();
       costToFill[id] = computeCostInHours((MacroscopicLinkSegment) linkSegment, mode, linkSegmentFlows[id]);
-    }
-  }
-
-  /**
-   * Register the BPR cost parameter values on the PhysicalNetwork
-   *
-   * @param network network object containing the updated parameter values
-   * @throws PlanItException thrown if error
-   */
-  @Override
-  public void initialiseBeforeSimulation(final TransportLayerNetwork<?, ?> network) throws PlanItException {
-    PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "BPR cost is only compatible with macroscopic networks");
-    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
-    PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");
-    MacroscopicNetworkLayer networkLayer = macroscopicNetwork.getTransportLayers().getFirst();
-    if (network.getModes().size() != networkLayer.getSupportedModes().size()) {
-      LOGGER.warning("network wide modes do not match modes supported by only layer, this makes the assignment less efficient, consider removing unused modes");
-    }
-
-    /* pre-compute the free flow travel times */
-    freeFlowTravelTimePerLinkSegment = new double[network.getModes().size()][(int) networkLayer.getLinkSegments().size()];
-    ArrayUtils.loopAll(freeFlowTravelTimePerLinkSegment, (modeId, linkSegmentId) -> freeFlowTravelTimePerLinkSegment[modeId][linkSegmentId] = networkLayer.getLinkSegments()
-        .get(linkSegmentId).computeFreeFlowTravelTimeHour(network.getModes().get(modeId)));
-
-    /* explicitly set BPR parameters for each mode/segment combination */
-    bprParametersPerLinkSegment = new BPRParameters[(int) networkLayer.getLinkSegments().size()];
-    for (final MacroscopicLinkSegment macroscopicLinkSegment : networkLayer.getLinkSegments()) {
-      final int id = (int) macroscopicLinkSegment.getId();
-      bprParametersPerLinkSegment[id] = new BPRParameters();
-      final MacroscopicLinkSegmentType macroscopicLinkSegmentType = macroscopicLinkSegment.getLinkSegmentType();
-      for (final Mode mode : network.getModes()) {
-        Pair<Double, Double> alphaBetaPair;
-        if ((parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment) != null)
-            && (parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode) != null)) {
-          alphaBetaPair = parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode);
-        } else if ((defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) != null)
-            && (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).getAlphaBetaParameters(mode) != null)) {
-          alphaBetaPair = defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).getAlphaBetaParameters(mode);
-        } else if (defaultParametersPerMode.getAlphaBetaParameters(mode) != null) {
-          alphaBetaPair = defaultParametersPerMode.getAlphaBetaParameters(mode);
-        } else {
-          alphaBetaPair = defaultParameters;
-        }
-        bprParametersPerLinkSegment[id].registerParameters(mode, alphaBetaPair);
-      }
     }
   }
 
@@ -327,6 +339,16 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   @Override
   public BPRLinkTravelTimeCost clone() {
     return new BPRLinkTravelTimeCost(this);
+  }
+
+  /**
+   * return to pre-{@link #initialiseBeforeSimulation(TransportLayerNetwork)} state
+   */
+  @Override
+  public void reset() {
+    // keep configuration, reset internal state
+    this.freeFlowTravelTimePerLinkSegment = null;
+    this.bprParametersPerLinkSegment = null;
   }
 
 }

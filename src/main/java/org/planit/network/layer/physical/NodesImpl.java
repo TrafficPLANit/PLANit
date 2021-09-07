@@ -76,4 +76,13 @@ public class NodesImpl extends GraphEntitiesImpl<Node> implements Nodes {
   public NodesImpl clone() {
     return new NodesImpl(this);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    IdGenerator.reset(getFactory().getIdGroupingToken(), Node.NODE_ID_CLASS);
+    super.reset();
+  }
 }

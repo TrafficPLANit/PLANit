@@ -21,7 +21,7 @@ public class StaticLtmSimulationData extends SimulationData {
   /**
    * Track the mode link segment costs in a 2d raw array where the first dimension is based on mode id while the second uses the link segment id to place the cost
    */
-  private final double[][] modeLinkSegmentCost;
+  private double[][] modeLinkSegmentCost;
 
   /**
    * Constructor
@@ -90,6 +90,19 @@ public class StaticLtmSimulationData extends SimulationData {
   @Override
   public StaticLtmSimulationData clone() {
     return new StaticLtmSimulationData(this);
+  }
+
+  /**
+   * Reset the data
+   */
+  public void reset() {
+    super.reset();
+    networkLoading.reset();
+
+    if (modeLinkSegmentCost.length > 0 && modeLinkSegmentCost[0] != null) {
+      int numLinkSegments = modeLinkSegmentCost[0].length;
+      modeLinkSegmentCost = new double[networkLoading.getSupportedModes().size()][numLinkSegments];
+    }
   }
 
 }

@@ -40,7 +40,7 @@ public interface FundamentalDiagram extends Cloneable {
    * 
    * @return jam density pcu/km
    */
-  public default double getJamDensityPcuKm() {
+  public default double getMaximumDensityPcuKm() {
     return getCongestedBranch().getDensityPcuKm(0);
   }
 

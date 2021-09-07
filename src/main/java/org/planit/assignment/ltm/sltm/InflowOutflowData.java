@@ -34,14 +34,14 @@ public class InflowOutflowData extends LinkSegmentData {
    * Reset the inflows
    */
   public void resetInflows() {
-    inflowsFlowsPcuH = this.createEmptyLinkSegmentDoubleArray();
+    inflowsFlowsPcuH = this.createinitialStateLinkSegmentDoubleArray();
   }
 
   /**
    * Reset the outflows
    */
   public void resetOutflows() {
-    outflowsFlowsPcuH = this.createEmptyLinkSegmentDoubleArray();
+    outflowsFlowsPcuH = this.createinitialStateLinkSegmentDoubleArray();
   }
 
   /**
@@ -60,5 +60,13 @@ public class InflowOutflowData extends LinkSegmentData {
    */
   public double[] getOutflows() {
     return this.outflowsFlowsPcuH;
+  }
+
+  /**
+   * Reset to initial state
+   */
+  public void reset() {
+    resetInflows();
+    resetOutflows();
   }
 }

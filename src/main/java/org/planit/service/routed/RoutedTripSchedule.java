@@ -45,4 +45,5 @@ public interface RoutedTripSchedule extends RoutedTrip {
    * @return number of relative leg timings registered
    */
   public abstract int getRelativeLegTimingsSize();
+
 }

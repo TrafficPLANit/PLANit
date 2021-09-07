@@ -1,5 +1,7 @@
 package org.planit.supply.fundamentaldiagram;
 
+import org.planit.utils.math.Precision;
+
 /**
  * A fundamental diagram has two branches each one can have a particular shape. Each branch is to be derived from this interface
  * 
@@ -25,24 +27,45 @@ public interface FundamentalDiagramBranch extends Cloneable {
   public abstract double getDensityPcuKm(double flowPcuHour);
 
   /**
-   * The speed at a given flow
+   * The speed at a given flow. If flow is zero, the speed at zero flow is returned
    * 
    * @param flowPcuHour to use
    * @return speedKmHour
    */
   public default double getSpeedKmHourByFlow(double flowPcuHour) {
-    return flowPcuHour / getDensityPcuKm(flowPcuHour);
+    if (Precision.isGreater(flowPcuHour, 0)) {
+      return flowPcuHour / getDensityPcuKm(flowPcuHour);
+    }
+    return getSpeedKmHourAtZeroFlow();
   }
 
   /**
-   * The speed at a given density
+   * Collect the speed at zero flow when flow/density is either not feasible to compute or might not be representative, i.e., when there is no flow, the speed likely should not be
+   * zero, but instead reflect the maximum allowed speed instead
+   * 
+   * @return speedKmHour
+   */
+  public abstract double getSpeedKmHourAtZeroFlow();
+
+  /**
+   * The speed at a given density. If density is zero, the speed at zero density is returned
    * 
    * @param densityPcuKm to use
    * @return speedKmHour
    */
   public default double getSpeedKmHourByDensity(double densityPcuKm) {
-    return getFlowPcuHour(densityPcuKm) / densityPcuKm;
+    if (Precision.isGreater(densityPcuKm, 0)) {
+      return getFlowPcuHour(densityPcuKm) / densityPcuKm;
+    }
+    return getSpeedKmHourAtZeroDensity();
   }
+
+  /**
+   * Collect the speed at zero density when flow/density cannot be computed.
+   * 
+   * @return speedKmHour
+   */
+  public abstract double getSpeedKmHourAtZeroDensity();
 
   /**
    * The derivative of flow towards a change in density given a particualr flow
@@ -77,5 +100,12 @@ public interface FundamentalDiagramBranch extends Cloneable {
    * @return cloned branch
    */
   public abstract FundamentalDiagramBranch clone();
+
+  /**
+   * Verify if the branch is linear or not
+   * 
+   * @return true when linear, false otherwise
+   */
+  public abstract boolean isLinear();
 
 }

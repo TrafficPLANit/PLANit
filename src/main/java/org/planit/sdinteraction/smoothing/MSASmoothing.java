@@ -16,7 +16,12 @@ public class MSASmoothing extends Smoothing {
   /**
    * Step size
    */
-  protected double stepSize = 1;
+  protected double stepSize = DEFAULT_INITIAL_STEP_SIZE;
+
+  /**
+   * The default initial step size to use
+   */
+  public static final double DEFAULT_INITIAL_STEP_SIZE = 1.0;
 
   /**
    * Constructor
@@ -73,6 +78,14 @@ public class MSASmoothing extends Smoothing {
   @Override
   public MSASmoothing clone() {
     return new MSASmoothing(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    this.stepSize = DEFAULT_INITIAL_STEP_SIZE;
   }
 
 }

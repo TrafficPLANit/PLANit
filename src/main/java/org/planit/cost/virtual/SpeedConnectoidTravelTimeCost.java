@@ -5,6 +5,7 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.virtual.ConnectoidSegment;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Class to calculate the connectoid travel time using connectoid speed
@@ -55,6 +56,22 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException {
+    // currently no specific initialization needed
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void updateTimePeriod(TimePeriod timePeriod) {
+    // not supported that we have different fixed costs per period yet
+  }
+
+  /**
    * Return the connectoid travel time using speed
    *
    * @param mode              the mode of travel
@@ -80,16 +97,16 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * {@inheritDoc}
    */
   @Override
-  public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException {
-    // currently no specific initialization needed
+  public SpeedConnectoidTravelTimeCost clone() {
+    return new SpeedConnectoidTravelTimeCost(this);
   }
 
   /**
-   * {@inheritDoc}
+   * Chosen speed is considered configuration not internal state, so upon resetting the chosen speed remains in tact
    */
   @Override
-  public SpeedConnectoidTravelTimeCost clone() {
-    return new SpeedConnectoidTravelTimeCost(this);
+  public void reset() {
+    // Chosen speed is considered configuration not internal state, so upon resetting the chosen speed remains in tact
   }
 
 }

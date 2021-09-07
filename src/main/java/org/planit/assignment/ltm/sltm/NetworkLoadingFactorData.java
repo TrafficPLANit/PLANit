@@ -1,7 +1,5 @@
 package org.planit.assignment.ltm.sltm;
 
-import java.util.Arrays;
-
 /**
  * Track the sLTM variables representing the various factors used:
  * <ul>
@@ -35,73 +33,54 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
    * 
    * @param emptySegmentArray empty array used to initialize data stores
    */
-  public NetworkLoadingFactorData(double[] emptySegmentArray) {
-    super(emptySegmentArray);
-    flowAcceptanceFactors = new double[2][emptySegmentArray.length];
-    resetCurrentFlowAcceptanceFactors();
-    resetNextFlowAcceptanceFactors();
-    flowCapacityFactors = new double[2][emptySegmentArray.length];
-    resetCurrentFlowCapacityFactors();
-    resetNextFlowCapacityFactors();
-    storageCapacityFactors = new double[2][emptySegmentArray.length];
-    resetCurrentStorageCapacityFactors();
-    resetNextStorageCapacityFactors();
+  public NetworkLoadingFactorData(int numberOfLinkSegments) {
+    super(numberOfLinkSegments, 1.0);
+    flowAcceptanceFactors = new double[2][numberOfLinkSegments];
+    flowCapacityFactors = new double[2][numberOfLinkSegments];
+    storageCapacityFactors = new double[2][numberOfLinkSegments];
+    reset();
   }
 
   /**
    * Reset the flow acceptance factors for the coming iteration (alphas)
    */
   public void resetNextFlowAcceptanceFactors() {
-    flowAcceptanceFactors[1] = this.createEmptyLinkSegmentDoubleArray();
+    flowAcceptanceFactors[1] = this.createinitialStateLinkSegmentDoubleArray();
   }
 
   /**
    * Reset current flow acceptance factors (alphas)
    */
   public void resetCurrentFlowAcceptanceFactors() {
-    flowAcceptanceFactors[0] = this.createEmptyLinkSegmentDoubleArray();
+    flowAcceptanceFactors[0] = this.createinitialStateLinkSegmentDoubleArray();
   }
 
   /**
    * Reset the flow capacity factors for the coming iteration (betas)
    */
   public void resetNextFlowCapacityFactors() {
-    flowCapacityFactors[1] = this.createEmptyLinkSegmentDoubleArray();
+    flowCapacityFactors[1] = this.createinitialStateLinkSegmentDoubleArray();
   }
 
   /**
    * Reset current flow capacity factors (betas)
    */
   public void resetCurrentFlowCapacityFactors() {
-    flowCapacityFactors[0] = this.createEmptyLinkSegmentDoubleArray();
+    flowCapacityFactors[0] = this.createinitialStateLinkSegmentDoubleArray();
   }
 
   /**
    * Reset the storage capacity factors for the coming iteration (gammas)
    */
   public void resetNextStorageCapacityFactors() {
-    storageCapacityFactors[1] = this.createEmptyLinkSegmentDoubleArray();
+    storageCapacityFactors[1] = this.createinitialStateLinkSegmentDoubleArray();
   }
 
   /**
    * Reset current storage capacity factors (gammas)
    */
   public void resetCurrentStorageCapacityFactors() {
-    storageCapacityFactors[0] = this.createEmptyLinkSegmentDoubleArray();
-  }
-
-  /**
-   * Initialise all factor arrays with the given value
-   * 
-   * @param value to use
-   */
-  public void initialiseAll(double value) {
-    Arrays.fill(this.flowAcceptanceFactors[0], value);
-    Arrays.fill(this.flowCapacityFactors[0], value);
-    Arrays.fill(this.storageCapacityFactors[0], value);
-    Arrays.fill(this.flowAcceptanceFactors[1], value);
-    Arrays.fill(this.flowCapacityFactors[1], value);
-    Arrays.fill(this.storageCapacityFactors[1], value);
+    storageCapacityFactors[0] = this.createinitialStateLinkSegmentDoubleArray();
   }
 
   /**
@@ -177,6 +156,18 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
    */
   public void swapCurrentAndNextFlowAcceptanceFactors() {
     swap(0, 1, flowAcceptanceFactors);
+  }
+
+  /**
+   * Reset to initial state
+   */
+  public void reset() {
+    resetCurrentFlowAcceptanceFactors();
+    resetNextFlowAcceptanceFactors();
+    resetCurrentFlowCapacityFactors();
+    resetNextFlowCapacityFactors();
+    resetCurrentStorageCapacityFactors();
+    resetNextStorageCapacityFactors();
   }
 
 }

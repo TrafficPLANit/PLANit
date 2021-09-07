@@ -6,6 +6,7 @@ import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.virtual.ConnectoidSegment;
+import org.planit.utils.time.TimePeriod;
 
 /**
  *
@@ -21,9 +22,14 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
   private static final long serialVersionUID = 4907231205390412202L;
 
   /**
-   * Fixed connectoid cost for connectoid segments - defaults to zero
+   * Fixed connectoid cost for connectoid segments
    */
-  protected double fixedConnectoidCost = 0.0;
+  protected double fixedConnectoidCost = DEFAULT_FIXED_COST;
+
+  /**
+   * Default fixed cost
+   */
+  public static final double DEFAULT_FIXED_COST = 0.0;
 
   /**
    *
@@ -59,16 +65,24 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * {@inheritDoc}
    */
   @Override
-  public double getSegmentCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
-    return fixedConnectoidCost;
+  public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException {
+    // do nothing
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException {
-    // do nothing
+  public void updateTimePeriod(TimePeriod timePeriod) {
+    // not supported that we have different fixed costs per period yet
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getSegmentCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
+    return fixedConnectoidCost;
   }
 
   /**
@@ -87,5 +101,13 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
   @Override
   public FixedConnectoidTravelTimeCost clone() {
     return new FixedConnectoidTravelTimeCost(this);
+  }
+
+  /**
+   * Chosen cost is considered configuration not internal state, so upon resetting the chosen cost remains in tact
+   */
+  @Override
+  public void reset() {
+    // Chosen cost is considered configuration not internal state, so do nothing
   }
 }

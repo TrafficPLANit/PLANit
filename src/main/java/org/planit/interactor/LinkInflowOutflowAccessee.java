@@ -9,13 +9,13 @@ import org.planit.utils.network.layer.physical.LinkSegment;
  * @author markr
  *
  */
-public interface LinkInflowOutflowAccessee extends InteractorAccessee {
+public interface LinkInflowOutflowAccessee extends TrafficAssignmentComponentAccessee {
 
   /**
    * {@inheritDoc}
    */
   @Override
-  default Class<LinkInflowOutflowAccessor> getCompatibleAccessor() {
+  public default Class<LinkInflowOutflowAccessor> getCompatibleAccessor() {
     return LinkInflowOutflowAccessor.class;
   }
 
@@ -25,7 +25,9 @@ public interface LinkInflowOutflowAccessee extends InteractorAccessee {
    * @param linkSegment the specified link segment
    * @return the inflow rate of this link segment
    */
-  public double getLinkSegmentInflowPcuHour(LinkSegment linkSegment);
+  public default double getLinkSegmentInflowPcuHour(LinkSegment linkSegment) {
+    return getLinkSegmentOutflowsPcuHour()[(int) linkSegment.getId()];
+  }
 
   /**
    * Get the outflow rate of a link segment over all modes
@@ -33,20 +35,22 @@ public interface LinkInflowOutflowAccessee extends InteractorAccessee {
    * @param linkSegment the specified link segment
    * @return the outflow rate of this link segment
    */
-  public double getLinkSegmentOutflowPcuHour(LinkSegment linkSegment);
+  public default double getLinkSegmentOutflowPcuHour(LinkSegment linkSegment) {
+    return getLinkSegmentInflowsPcuHour()[(int) linkSegment.getId()];
+  }
 
   /**
-   * Get link segment inflow rates for all link segments
+   * Get link segment inflow rates for all link segments, where index is based on id of the link segment.
    * 
    * @return link segment inflows for all modes
    */
-  public double[] getLinkSegmentInflowsPcuHour();
+  public abstract double[] getLinkSegmentInflowsPcuHour();
 
   /**
-   * Get link segment inflow rates for all link segments
+   * Get link segment outflow rates for all link segments, where index is based on id of the link segment.
    * 
    * @return link segment inflows for all modes
    */
-  public double[] getLinkSegmentOutflowsPcuHour();
+  public abstract double[] getLinkSegmentOutflowsPcuHour();
 
 }

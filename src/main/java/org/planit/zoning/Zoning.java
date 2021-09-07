@@ -231,4 +231,18 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     return new Zoning(this);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    this.virtualNetwork.reset();
+    this.odConnectoids.reset();
+    this.odZones.reset();
+    this.transferConnectoids.reset();
+    this.odConnectoids.reset();
+    this.transferZoneGroups.reset();
+    this.transferZones.reset();
+  }
+
 }

@@ -8,7 +8,7 @@ import org.planit.utils.network.layer.physical.LinkSegment;
  * @author markr
  *
  */
-public interface LinkVolumeAccessee extends InteractorAccessee {
+public interface LinkVolumeAccessee extends TrafficAssignmentComponentAccessee {
 
   /**
    * {@inheritDoc}

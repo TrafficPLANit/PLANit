@@ -31,12 +31,12 @@ import org.planit.utils.zoning.OdZones;
 import org.planit.zoning.Zoning;
 
 /**
- * Test the sLTM assignment algorithms basic functionality
+ * Test the sLTM network loading algorithms basic functionality (no route choice)
  * 
  * @author markr
  *
  */
-public class sLtmTest {
+public class sLtmNetworkLoadingTest {
 
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
@@ -51,7 +51,7 @@ public class sLtmTest {
   @BeforeClass
   public static void setUp() throws Exception {
     if (LOGGER == null) {
-      LOGGER = Logging.createLogger(sLtmTest.class);
+      LOGGER = Logging.createLogger(sLtmNetworkLoadingTest.class);
     }
   }
 

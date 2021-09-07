@@ -64,4 +64,12 @@ public class InitialLinkSegmentCostPeriod extends InitialLinkSegmentCost {
   public InitialLinkSegmentCostPeriod clone() {
     return new InitialLinkSegmentCostPeriod(this);
   }
+
+  /**
+   * 
+   * {@inheritDoc}
+   */
+  public void reset() {
+    super.reset();
+  }
 }

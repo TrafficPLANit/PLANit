@@ -59,4 +59,13 @@ public class RoutedServiceTripInfoImpl implements RoutedServiceTripInfo {
     return scheduleBasedTrips;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    this.frequencyBasedTrips.reset();
+    this.scheduleBasedTrips.reset();
+  }
+
 }

@@ -149,4 +149,11 @@ public class OutputAdapter {
     outputTypeAdapters.values().forEach(adapter -> adapter.setOutputTimeUnit(outputTimeUnit));
   }
 
+  /**
+   * remove all registered output type adapters
+   */
+  public void reset() {
+    this.outputTypeAdapters.clear();
+  }
+
 }

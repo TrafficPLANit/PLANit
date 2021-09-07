@@ -21,4 +21,5 @@ public interface RoutedTrip extends ExternalIdAble, ManagedId {
   public default Class<RoutedTrip> getIdClass() {
     return ROUTED_TRIP_ID_CLASS;
   }
+
 }

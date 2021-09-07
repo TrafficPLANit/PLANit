@@ -122,6 +122,14 @@ public abstract class TransportLayerImpl extends ExternalIdAbleImpl implements T
    * {@inheritDoc}
    */
   @Override
+  public void reset() {
+    this.supportedModes.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public abstract TransportLayerImpl clone();
 
 }

@@ -122,4 +122,12 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
     return new InitialLinkSegmentCost(this);
   }
 
+  /**
+   * Resetting initial cost will cause all intial costs to be removed
+   */
+  @Override
+  public void reset() {
+    costPerModeAndLinkSegment.clear();
+  }
+
 }

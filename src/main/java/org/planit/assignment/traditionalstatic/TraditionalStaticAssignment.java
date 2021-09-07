@@ -133,7 +133,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     simulationData.getModeSpecificData().clear();
     for (final Mode mode : modes) {
       // flow initialisation
-      simulationData.getModeSpecificData().put(mode, new ModeData(new double[numberOfNetworkSegments]));
+      simulationData.getModeSpecificData().put(mode, new ModeData(new double[getTotalNumberOfNetworkSegments()]));
       // cost initialisation
       final double[] modalLinkSegmentCosts = initialiseLinkSegmentCosts(mode, timePeriod);
       simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
@@ -146,6 +146,10 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     if (this.localPathFactory == null) {
       this.localPathFactory = new DirectedPathFactoryImpl(networkLayer.getLayerIdGroupingToken());
     }
+
+    /* register new time period on costs */
+    getPhysicalCost().updateTimePeriod(timePeriod);
+    getVirtualCost().updateTimePeriod(timePeriod);
   }
 
   /**
@@ -156,7 +160,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param modeData data for the current mode
    */
   private void applySmoothing(Mode mode, final ModeData modeData) {
-    final double[] smoothedSegmentFlows = smoothing.execute(modeData.getCurrentSegmentFlows(), modeData.getNextSegmentFlows(), numberOfNetworkSegments);
+    final double[] smoothedSegmentFlows = getSmoothing().execute(modeData.getCurrentSegmentFlows(), modeData.getNextSegmentFlows(), getTotalNumberOfNetworkSegments());
     // update flow arrays for next iteration
     modeData.setCurrentSegmentFlows(smoothedSegmentFlows);
     simulationData.getModeSpecificData().put(mode, modeData);
@@ -174,8 +178,9 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   private void executeTimePeriodAndMode(final Mode mode, final TimePeriod timePeriod, final ModeData currentModeData, final double[] modalNetworkSegmentCosts)
       throws PlanItException {
 
-    final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, numberOfNetworkSegments, numberOfNetworkVertices);
-    final OdDemands odDemands = demands.get(mode, timePeriod);
+    final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, getTotalNumberOfNetworkSegments(),
+        getTotalNumberOfNetworkVertices());
+    final OdDemands odDemands = getDemands().get(mode, timePeriod);
 
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
     final OdPathMatrix odpathMatrix = simulationData.getODPathMatrix(mode);
@@ -241,7 +246,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param modalNetworkSegmentCosts segment costs for the network
    */
   private void smoothTimePeriodAndMode(final Mode mode, final TimePeriod timePeriod, final ModeData currentModeData, final double[] modalNetworkSegmentCosts) {
-    final double totalModeSystemTravelTime = ArrayUtils.dotProduct(currentModeData.getCurrentSegmentFlows(), modalNetworkSegmentCosts, numberOfNetworkSegments);
+    final double totalModeSystemTravelTime = ArrayUtils.dotProduct(currentModeData.getCurrentSegmentFlows(), modalNetworkSegmentCosts, getTotalNumberOfNetworkSegments());
 
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
     dualityGapFunction.increaseMeasuredNetworkCost(totalModeSystemTravelTime);
@@ -374,7 +379,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    */
   private void populateModalConnectoidCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
     for (final ConnectoidSegment currentSegment : getTransportNetwork().getVirtualNetwork().getConnectoidSegments()) {
-      currentSegmentCosts[(int) currentSegment.getId()] = virtualCost.getSegmentCost(mode, currentSegment);
+      currentSegmentCosts[(int) currentSegment.getId()] = getVirtualCost().getSegmentCost(mode, currentSegment);
     }
   }
 
@@ -509,7 +514,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     while (!converged) {
       dualityGapFunction.reset();
-      smoothing.updateStep(simulationData.getIterationIndex());
+      getSmoothing().updateStep(simulationData.getIterationIndex());
 
       // NETWORK LOADING - PER MODE
       for (final Mode mode : modes) {

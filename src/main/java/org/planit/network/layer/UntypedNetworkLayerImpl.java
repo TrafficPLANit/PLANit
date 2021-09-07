@@ -146,4 +146,12 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, VE exten
   @Override
   public abstract UntypedNetworkLayerImpl<V, VE, E, EE, S, SE> clone();
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    super.reset();
+    this.graph.reset();
+  }
 }

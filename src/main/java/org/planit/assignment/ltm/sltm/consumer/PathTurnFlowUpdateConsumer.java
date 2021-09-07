@@ -93,7 +93,7 @@ public class PathTurnFlowUpdateConsumer implements TriConsumer<OdZone, OdZone, D
     this.trackAllNodeTurnFlows = !solutionScheme.equals(StaticLtmSolutionScheme.POINT_QUEUE_BASIC);
     this.updateSendingFlow = solutionScheme.equals(StaticLtmSolutionScheme.POINT_QUEUE_BASIC);
     if (updateSendingFlow) {
-      sendingFlowData.resetAllSendingFlows();
+      sendingFlowData.reset();
     }
     this.sendingFlows = sendingFlowData.getCurrentSendingFlows();
 

@@ -77,4 +77,13 @@ public class LinkSegmentsImpl extends GraphEntitiesImpl<LinkSegment> implements 
     return new LinkSegmentsImpl(this);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void reset() {
+    IdGenerator.reset(getFactory().getIdGroupingToken(), LinkSegment.LINK_SEGMENT_ID_CLASS);
+    super.reset();
+  }
+
 }

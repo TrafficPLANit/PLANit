@@ -180,8 +180,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
       /* Physical cost <-> assignment dependency */
       if (physicalCost instanceof InteractorAccessor) {
         /*
-         * by decoupling cost and assignment from the link volume dependency, we make it possible to have future cost components that do not require link volumes, or we have other
-         * classes providing the link volumes, not necessarily the assignment. For now however, this is a hard match, until we need something more flexible
+         * by decoupling cost and assignment, we make it possible to mix and match the way we compute costs and on which assignments these are used. Assignments can possibly
+         * support more than a single cost computation as long as they implement the required interactor interfaces
          */
         ((InteractorAccessor<?>) physicalCost).setAccessee(trafficAssignmentInstance);
       }

@@ -101,4 +101,12 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
   public OdPathSets clone() {
     return new OdPathSets(this);
   }
+
+  /**
+   * remove all registered path sets. Note that this does not reset the path ids since this component does not own or represents the managed paths container
+   */
+  @Override
+  public void reset() {
+    odPathMatrices.clear();
+  }
 }
