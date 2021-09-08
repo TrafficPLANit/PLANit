@@ -108,36 +108,6 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   }
 
   /**
-   * @param groupId               contiguous id generation within this group for instances of this class
-   * @param name                  name of this link segment type
-   * @param capacityPerLane       capacity per lane of this link segment type
-   * @param maximumDensityPerLane maximum density per lane of this link segment type
-   * @param accessGroupProperties mode specific access properties
-   */
-  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final Double capacityPerLane, final Double maximumDensityPerLane,
-      final Collection<AccessGroupProperties> accessGroupProperties) {
-    this(groupId, name, capacityPerLane, maximumDensityPerLane);
-    if (accessGroupProperties != null) {
-      setAccessGroupProperties(accessGroupProperties);
-    }
-  }
-
-  /**
-   * @param groupId               contiguous id generation within this group for instances of this class
-   * @param name                  name of this link segment type
-   * @param capacityPerLane       capacity per lane of this link segment type
-   * @param maximumDensityPerLane maximum density per lane of this link segment type
-   * @param accessGroupProperties mode specific access properties
-   */
-  protected MacroscopicLinkSegmentTypeImpl(final IdGroupingToken groupId, final String name, final Double capacityPerLane, final Double maximumDensityPerLane,
-      final AccessGroupProperties accessGroupProperties) {
-    this(groupId, name, capacityPerLane, maximumDensityPerLane);
-    if (accessGroupProperties != null) {
-      setAccessGroupProperties(accessGroupProperties);
-    }
-  }
-
-  /**
    * Copy constructor. Use carefully since ids are also copied causing non-unique ids. Note that the mode properties are owned by each instance so they are deep copied, everything
    * else is not
    * 

@@ -7,8 +7,8 @@ import java.util.logging.Logger;
 
 import org.planit.component.PlanitComponent;
 import org.planit.component.event.PlanitComponentEvent;
+import org.planit.component.event.PlanitComponentEventType;
 import org.planit.component.event.PopulateFundamentalDiagramEvent;
-import org.planit.utils.event.EventType;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
@@ -182,8 +182,8 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    * is created for. Further user or builder overrides, can alter these subsequently at a later stage
    */
   @Override
-  public EventType[] getKnownSupportedEventTypes() {
-    return new EventType[] { PopulateFundamentalDiagramEvent.EVENT_TYPE };
+  public PlanitComponentEventType[] getKnownSupportedEventTypes() {
+    return new PlanitComponentEventType[] { PopulateFundamentalDiagramEvent.EVENT_TYPE };
   }
 
   /**

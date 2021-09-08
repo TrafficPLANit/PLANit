@@ -3,6 +3,7 @@ package org.planit.component;
 import java.io.Serializable;
 
 import org.planit.component.event.PlanitComponentEvent;
+import org.planit.component.event.PlanitComponentEventType;
 import org.planit.component.event.PlanitComponentListener;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.ExternalIdAble;
@@ -60,6 +61,17 @@ public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializabl
     this.planitComponentType = other.planitComponentType;
     this.tokenId = other.tokenId;
     this.idImpl = other.idImpl.clone();
+  }
+
+  /**
+   * Each component may override this default which indicates it does not support any events, meaning that the component is not notified on any planitcomponent events. Derived
+   * classes may override to register for specific events if needed
+   * 
+   * @return default supported event types (none)
+   */
+  @Override
+  public PlanitComponentEventType[] getKnownSupportedEventTypes() {
+    return new PlanitComponentEventType[] {};
   }
 
   /**

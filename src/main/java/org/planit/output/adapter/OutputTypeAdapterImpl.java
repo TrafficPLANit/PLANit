@@ -119,7 +119,7 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
    */
   @Override
   public Units setOutputTimeUnit(Units outputTimeUnit) {
-    return outputTimeUnit;
+    return this.outputTimeUnit = outputTimeUnit;
   }
 
   /**

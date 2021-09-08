@@ -32,11 +32,10 @@ public interface InteractorAccessor<T extends InteractorAccessee> {
    * 
    * @param accessee to use
    */
-  @SuppressWarnings("unchecked")
   public default void setAccessee(final Object accessee) {
-    if (accessee.getClass().equals(getCompatibleAccessee())) {
-      setAccessee((T) accessee);
-    } else {
+    try {
+      setAccessee((T) getCompatibleAccessee().cast(accessee));
+    } catch (ClassCastException e) {
       LOGGER.warning(String.format("IGNORED: Provided Interactor accessee %s is not compatible with this accessor %s", accessee.getClass().getCanonicalName(),
           this.getClass().getCanonicalName()));
     }

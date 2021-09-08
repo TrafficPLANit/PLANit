@@ -8,12 +8,15 @@ import org.planit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.planit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.math.Precision;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.planit.utils.time.TimePeriod;
+import org.planit.utils.unit.UnitUtils;
+import org.planit.utils.unit.Units;
 
 /**
  * Cost computation for travel times based on the work of Raadsen and Bliemer (2019), Steady-state link travel time methods: Formulation, derivation, classification, and
@@ -73,6 +76,37 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    */
   private void initialiseFundamentalDiagramsPerLinkSegment(MacroscopicLinkSegments linkSegments) {
     linkSegmentFundamentalDiagrams = getFundamentalDiagramComponent().getFundamentalDiagramsPerLinkSegment(linkSegments);
+  }
+
+  /**
+   * Compute travel time based on static functional - longitudinal perspective as per Raadsen and Bliemer (2019)
+   * 
+   * @param linkSegment        to use
+   * @param fd                 to use
+   * @param inflowRatePcuHour  to use
+   * @param outflowRatePcuHour to use
+   * @throws PlanItException throws if error
+   */
+  private double computeTravelTime(LinkSegment linkSegment, FundamentalDiagram fd, double inflowRatePcuHour, double outflowRatePcuHour) throws PlanItException {
+    /* minimum travel time */
+    double freeFlowTravelTime = freeFlowTravelTimePerLinkSegment[(int) linkSegment.getLinkSegmentId()];
+
+    /* hypo critical delay */
+    double hypoCriticalDelay = 0;
+    if (!fd.getFreeFlowBranch().isLinear()) {
+      // hypocritical delay = hypocritical travel time - minimum travel time
+      hypoCriticalDelay = (linkSegment.getParentLink().getLengthKm() / fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflowRatePcuHour)) - freeFlowTravelTime;
+    }
+
+    /* hyper critical delay */
+    double hyperCriticalDelay = 0;
+    if (Precision.isSmaller(outflowRatePcuHour, inflowRatePcuHour)) {
+      // hyperCriticalDelay = (excess inflow rate * duration)/outflow rate
+      hyperCriticalDelay = ((inflowRatePcuHour - outflowRatePcuHour) * UnitUtils.convertSecondTo(Units.HOUR, currentTimePeriod.getDurationSeconds()) / outflowRatePcuHour);
+    }
+
+    /* min travel time + hypo critical delay + hypercritical delay */
+    return freeFlowTravelTime + hypoCriticalDelay + hyperCriticalDelay;
   }
 
   /**
@@ -136,21 +170,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double outflow = accessee.getLinkSegmentOutflowPcuHour(linkSegment);
 
     int linkSegmentId = (int) linkSegment.getLinkSegmentId();
-    FundamentalDiagram fd = linkSegmentFundamentalDiagrams[linkSegmentId];
-
-    /* minimum travel time */
-    double freeFlowTravelTime = freeFlowTravelTimePerLinkSegment[linkSegmentId];
-
-    /* hypo critical delay */
-    double hypoCriticalDelay = 0;
-    if (!fd.getFreeFlowBranch().isLinear()) {
-      hypoCriticalDelay = linkSegment.getParentLink().getLengthKm() / fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflow) - freeFlowTravelTime;
-    }
-
-    double hyperCriticalDelay = 0;
-
-    /* min travel time + hypo critical delay + hypercritical delay */
-    return freeFlowTravelTime + hypoCriticalDelay + hyperCriticalDelay;
+    return computeTravelTime(linkSegment, linkSegmentFundamentalDiagrams[linkSegmentId], inflow, outflow);
   }
 
   /**
@@ -165,11 +185,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double[] inflows = accessee.getLinkSegmentInflowsPcuHour();
     double[] outflows = accessee.getLinkSegmentOutflowsPcuHour();
     for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
-      double hypoCriticalDelay = 0;
-      double hyperCriticalDelay = 0;
-
-      /* min travel time + hypo critical delay + hypercritical delay */
-      costToFill[(int) linkSegment.getId()] = ((MacroscopicLinkSegment) linkSegment).computeFreeFlowTravelTimeHour(mode) + hypoCriticalDelay + hyperCriticalDelay;
+      int linkSegmentId = (int) linkSegment.getLinkSegmentId();
+      costToFill[linkSegmentId] = computeTravelTime(linkSegment, linkSegmentFundamentalDiagrams[linkSegmentId], inflows[linkSegmentId], outflows[linkSegmentId]);
     }
   }
 

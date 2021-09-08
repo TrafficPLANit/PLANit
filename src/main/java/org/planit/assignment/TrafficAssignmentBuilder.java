@@ -263,14 +263,14 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     // Build the assignment
     T trafficAssignment = createTrafficAssignmentInstance();
 
+    // perform all delayed calls on the assignment to finalise the build
+    getConfigurator().configure(trafficAssignment);
+
     // Allow derived classes to verify if the chosen inputs are compatible before proceeding, not mandatory
     trafficAssignment.verifyNetworkDemandZoningCompatibility();
 
     // build the sub components of the assignment as well
     buildSubComponents(trafficAssignment);
-
-    // perform all delayed calls on the assignment to finalise the build
-    getConfigurator().configure(trafficAssignment);
 
     /* information is now present to generate appropriate output type adapters (requires output manager which now has been set */
     initialiseOutputAdapters(trafficAssignment);

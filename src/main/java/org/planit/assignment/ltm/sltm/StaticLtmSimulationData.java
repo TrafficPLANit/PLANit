@@ -97,9 +97,11 @@ public class StaticLtmSimulationData extends SimulationData {
    */
   public void reset() {
     super.reset();
-    networkLoading.reset();
+    if (networkLoading != null) {
+      networkLoading.reset();
+    }
 
-    if (modeLinkSegmentCost.length > 0 && modeLinkSegmentCost[0] != null) {
+    if (modeLinkSegmentCost != null && modeLinkSegmentCost.length > 0 && modeLinkSegmentCost[0] != null) {
       int numLinkSegments = modeLinkSegmentCost[0].length;
       modeLinkSegmentCost = new double[networkLoading.getSupportedModes().size()][numLinkSegments];
     }

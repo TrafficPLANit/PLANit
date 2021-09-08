@@ -20,6 +20,7 @@ import org.planit.logging.Logging;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.od.demand.OdDemandMatrix;
 import org.planit.od.demand.OdDemands;
+import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.PredefinedModeType;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
@@ -41,6 +42,8 @@ public class sLtmAssignmentTest {
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
   private Zoning zoning;
+
+  private final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("sLtmAssignmentTest");
 
   /** the logger */
   private static Logger LOGGER = null;
@@ -88,7 +91,7 @@ public class sLtmAssignmentTest {
       // local CRS in meters
       GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
       
-      network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
+      network = new MacroscopicNetwork(testToken);
       network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
       networkLayer = network.getTransportLayers().getFactory().registerNew(network.getModes().get(PredefinedModeType.CAR));
 
@@ -156,7 +159,7 @@ public class sLtmAssignmentTest {
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("6"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4);        
               
-      zoning = new Zoning(IdGroupingToken.collectGlobalToken(), networkLayer.getLayerIdGroupingToken());
+      zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
       zoning.odZones.getFactory().registerNew().setXmlId("A");
       zoning.odZones.getFactory().registerNew().setXmlId("A`");
            
@@ -177,7 +180,7 @@ public class sLtmAssignmentTest {
   public void sLtmPointQueueAssignmentTest() {
     try {
 
-      Demands demands = new Demands(network.getIdGroupingToken());
+      Demands demands = new Demands(testToken);
       demands.timePeriods.createAndRegisterNewTimePeriod("dummyTimePeriod", 0, 3600);
       demands.travelerTypes.createAndRegisterNew("dummyTravellerType");
       demands.userClasses.createAndRegisterNewUserClass("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
