@@ -1,12 +1,15 @@
 package org.planit.cost.physical.initial;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Initial Link Segment Costs stored by mode
@@ -22,54 +25,33 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   private static final long serialVersionUID = 2164407379859550420L;
 
   /**
-   * Map to store initial cost for each mode and link segment
+   * Store initial cost for each mode and link segment, not linked to a particular time period
    */
-  protected Map<Long, Map<Long, Double>> costPerModeAndLinkSegment;
+  protected final InitialLinkSegmentCostMode timePeriodAgnosticCosts;
 
   /**
-   * Constructor
-   * 
-   * @param groupId contiguous id generation within this group for instances of this class
+   * Map to store initial cost for each mode and link segment, linked to a particular time period
    */
-  public InitialLinkSegmentCost(IdGroupingToken groupId) {
-    super(groupId);
-    costPerModeAndLinkSegment = new HashMap<Long, Map<Long, Double>>();
-  }
+  protected Map<TimePeriod, InitialLinkSegmentCostMode> timePeriodCosts;
 
   /**
-   * Copy constructor
-   * 
-   * @param other to copy
-   */
-  public InitialLinkSegmentCost(InitialLinkSegmentCost other) {
-    super(other);
-    this.costPerModeAndLinkSegment = new HashMap<Long, Map<Long, Double>>(other.costPerModeAndLinkSegment.size());
-    other.costPerModeAndLinkSegment.forEach((k, v) -> costPerModeAndLinkSegment.put(k, new HashMap<Long, Double>(v)));
-  }
-
-  /**
-   * Are link segment costs available for the given mode
-   * 
-   * @param mode the mode
-   * @return true when available, false otherwise
-   */
-  public boolean isSegmentCostsSetForMode(final Mode mode) {
-    return costPerModeAndLinkSegment.containsKey(mode.getId());
-  }
-
-  /**
-   * Returns the initial cost for each link segment and mode. When absent but mode is not allowed, positive infinity is used, otherwise we revert to free flow travel time and a
-   * warning is logged.
+   * Returns the initial cost. When absent but mode is not allowed on link segment, positive infinity is used, otherwise we revert to free flow travel time and a warning is logged.
    *
-   * @param mode        the current mode
-   * @param linkSegment the current link segment
+   * @param initialCostsByMode to use
+   * @param mode               the current mode
+   * @param linkSegment        the current link segment
    * @return the cost for this link segment and mode
    */
-  @Override
-  public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
-    final Map<Long, Double> costPerLinkSegment = costPerModeAndLinkSegment.get(mode.getId());
-    Double initialCost = costPerLinkSegment.get(linkSegment.getId());
-    if (initialCost == null) {
+  protected double getSegmentCost(InitialLinkSegmentCostMode initialCostsByMode, Mode mode, MacroscopicLinkSegment linkSegment) {
+    boolean present = (initialCostsByMode != null);
+
+    double initialCost = Double.POSITIVE_INFINITY;
+    if (present) {
+      initialCost = initialCostsByMode.getSegmentCost(mode, linkSegment);
+      present = (initialCost != Double.POSITIVE_INFINITY);
+    }
+
+    if (!present) {
       if (!linkSegment.isModeAllowed(mode)) {
         initialCost = Double.POSITIVE_INFINITY;
       } else {
@@ -82,36 +64,133 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   }
 
   /**
-   * Sets the initial cost for each link segment and mode
-   *
-   * @param mode        the current mode
-   * @param linkSegment the current link segment
-   * @param cost        the initial cost for this link segment and mode
+   * Constructor
+   * 
+   * @param groupId contiguous id generation within this group for instances of this class
    */
-  @Override
-  public void setSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment, final double cost) {
-
-    if (!costPerModeAndLinkSegment.containsKey(mode.getId())) {
-      costPerModeAndLinkSegment.put(mode.getId(), new HashMap<Long, Double>());
-    }
-    costPerModeAndLinkSegment.get(mode.getId()).put(linkSegment.getId(), cost);
+  public InitialLinkSegmentCost(IdGroupingToken groupId) {
+    super(groupId);
+    timePeriodAgnosticCosts = new InitialLinkSegmentCostMode();
+    timePeriodCosts = new HashMap<TimePeriod, InitialLinkSegmentCostMode>();
   }
 
   /**
-   * Sets the initial cost for each link segment and mode
+   * Copy constructor
+   * 
+   * @param other to copy
+   */
+  public InitialLinkSegmentCost(InitialLinkSegmentCost other) {
+    super(other);
+    this.timePeriodAgnosticCosts = other.timePeriodAgnosticCosts.clone();
+    this.timePeriodCosts = new HashMap<TimePeriod, InitialLinkSegmentCostMode>();
+    other.timePeriodCosts.forEach((k, v) -> timePeriodCosts.put(k, v.clone()));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isSegmentCostsSetForMode(final Mode mode) {
+    return timePeriodAgnosticCosts.isSegmentCostsSetForMode(mode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isSegmentCostsSetForTimePeriod(final TimePeriod timePeriod) {
+    return timePeriodCosts.containsKey(timePeriod);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isSegmentCostsSetForMode(final TimePeriod timePeriod, final Mode mode) {
+    return isSegmentCostsSetForTimePeriod(timePeriod) ? this.timePeriodCosts.containsKey(timePeriod) : timePeriodCosts.get(timePeriod).isSegmentCostsSetForMode(mode);
+  }
+
+  /**
+   * Returns the initial cost for each link segment and mode for time period agnostic registrations. When absent but mode is not allowed on link segment, positive infinity is used,
+   * otherwise we revert to free flow travel time and a warning is logged.
    *
-   * @param mode          the current mode
-   * @param linkSegmentId the id of the current link segment
-   * @param cost          the initial cost for this link segment and mode
+   * @param mode        the current mode
+   * @param linkSegment the current link segment
+   * @return the cost for this link segment and mode
+   */
+  @Override
+  public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
+    return getSegmentCost(timePeriodAgnosticCosts, mode, linkSegment);
+  }
+
+  /**
+   * Returns the initial cost for each link segment and mode for time period specific registrations. When absent but mode is not allowed on link segment, positive infinity is used,
+   * otherwise we revert to free flow travel time and a warning is logged.
    *
-   *                      At present this method is only used in unit tests.
+   * @param timePeriod  the time period
+   * @param mode        the current mode
+   * @param linkSegment the current link segment
+   * @return the cost for this link segment and mode
+   */
+  @Override
+  public double getSegmentCost(final TimePeriod timePeriod, final Mode mode, final MacroscopicLinkSegment linkSegment) {
+    return getSegmentCost(timePeriodCosts.get(timePeriod), mode, linkSegment);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment, final double cost) {
+    timePeriodAgnosticCosts.setSegmentCost(mode, linkSegment, cost);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setSegmentCost(final TimePeriod timePeriod, final Mode mode, final MacroscopicLinkSegment linkSegment, final double cost) {
+    InitialLinkSegmentCostMode initialCosts = timePeriodCosts.get(timePeriod);
+    if (initialCosts == null) {
+      initialCosts = new InitialLinkSegmentCostMode();
+      timePeriodCosts.put(timePeriod, initialCosts);
+    }
+    initialCosts.setSegmentCost(mode, linkSegment, cost);
+  }
+
+  /**
+   * same as {@link #setSegmentCost(Mode, MacroscopicLinkSegment, double)} only based on link segment's id
    */
   public void setSegmentCost(final Mode mode, final long linkSegmentId, final double cost) {
+    timePeriodAgnosticCosts.setSegmentCost(mode, linkSegmentId, cost);
+  }
 
-    if (!costPerModeAndLinkSegment.containsKey(mode.getId())) {
-      costPerModeAndLinkSegment.put(mode.getId(), new HashMap<Long, Double>());
-    }
-    costPerModeAndLinkSegment.get(mode.getId()).put(getId(), cost);
+  /**
+   * Provide the time period agnostic costs
+   * 
+   * @return time period agnostic costs
+   */
+  public InitialLinkSegmentCostMode getTimePeriodAgnosticCosts() {
+    return timePeriodAgnosticCosts;
+  }
+
+  /**
+   * The time period specific costs available
+   * 
+   * @param timePeriod to collect for
+   * @return costs registered, null if not present
+   */
+  public InitialLinkSegmentCostMode getTimePeriodCosts(final TimePeriod timePeriod) {
+    return timePeriodCosts.get(timePeriod);
+  }
+
+  /**
+   * The registered time periods that have initial costs
+   * 
+   * @return time periods
+   */
+  public Set<TimePeriod> getTimePeriods() {
+    return Collections.unmodifiableSet(timePeriodCosts.keySet());
   }
 
   /**
@@ -123,11 +202,12 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   }
 
   /**
-   * Resetting initial cost will cause all intial costs to be removed
+   * {@inheritDoc}
    */
   @Override
   public void reset() {
-    costPerModeAndLinkSegment.clear();
+    timePeriodAgnosticCosts.reset();
+    timePeriodCosts.forEach((k, v) -> v.reset());
   }
 
 }

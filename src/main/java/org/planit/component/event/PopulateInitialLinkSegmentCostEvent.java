@@ -1,8 +1,9 @@
 package org.planit.component.event;
 
+import java.util.Set;
+
 import org.planit.component.PlanitComponentFactory;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.utils.time.TimePeriod;
 
@@ -26,22 +27,11 @@ public class PopulateInitialLinkSegmentCostEvent extends PopulateUntypedComponen
    * @param initialLinkSegmentCostToPopulate cost to populate
    * @param fileName                         with the location of the costs to use for populating the memory model
    * @param network                          parent network of these costs
+   * @param timePeriods                      the time periods for which to populate, may be null in which case it is time period agnostic
    */
   public PopulateInitialLinkSegmentCostEvent(final PlanitComponentFactory<?> source, final InitialLinkSegmentCost initialLinkSegmentCostToPopulate, String fileName,
-      final MacroscopicNetwork network) {
-    super(EVENT_TYPE, source, initialLinkSegmentCostToPopulate, new Object[] { fileName, network });
-  }
-
-  /**
-   * @param source                           of the event
-   * @param initialLinkSegmentCostToPopulate cost to populate
-   * @param fileName                         with the location of the costs to use for populating the memory model
-   * @param network                          parent network of these costs
-   * @param timePeriod                       the initial costs will be used for (may be different than where they are parsed from)
-   */
-  public PopulateInitialLinkSegmentCostEvent(final PlanitComponentFactory<?> source, final InitialLinkSegmentCostPeriod initialLinkSegmentCostToPopulate, String fileName,
-      final MacroscopicNetwork network, final TimePeriod timePeriod) {
-    super(EVENT_TYPE, source, initialLinkSegmentCostToPopulate, new Object[] { fileName, network, timePeriod });
+      final MacroscopicNetwork network, Set<TimePeriod> timePeriods) {
+    super(EVENT_TYPE, source, initialLinkSegmentCostToPopulate, new Object[] { fileName, network, timePeriods });
   }
 
   /**
@@ -77,19 +67,29 @@ public class PopulateInitialLinkSegmentCostEvent extends PopulateUntypedComponen
    * @return true when present, false otherwise
    */
   public boolean hasTimePeriod() {
-    return getAdditionalContent().length >= 3;
+    return getAdditionalContent()[2] != null;
   }
 
   /**
-   * Collect time period for which the initial cost is meant (might not be set)
+   * Verify if time period is set for this initial cost to populate
    * 
-   * @return time period, null if not set for a specific time period
+   * @return true when present, false otherwise
    */
-  public TimePeriod getTimePeriod() {
+  public int getNumberOfTimePeriods() {
+    return hasTimePeriod() ? getTimePeriods().size() : 0;
+  }
+
+  /**
+   * Collect time periods for which the initial costs are meant (might not be set)
+   * 
+   * @return time periods, null if not set for a specific time period
+   */
+  @SuppressWarnings("unchecked")
+  public Set<TimePeriod> getTimePeriods() {
     if (!hasTimePeriod()) {
       return null;
     }
-    return (TimePeriod) getAdditionalContent()[2];
+    return (Set<TimePeriod>) getAdditionalContent()[2];
   }
 
 }

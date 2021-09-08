@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
@@ -26,7 +27,6 @@ import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.physical.FreeFlowLinkTravelTimeCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.cost.virtual.FixedConnectoidTravelTimeCost;
@@ -120,7 +120,6 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(BPRLinkTravelTimeCost.class);
     registerPlanitComponentType(FreeFlowLinkTravelTimeCost.class);
     registerPlanitComponentType(InitialLinkSegmentCost.class);
-    registerPlanitComponentType(InitialLinkSegmentCostPeriod.class);
     registerPlanitComponentType(FixedConnectoidTravelTimeCost.class);
     registerPlanitComponentType(SpeedConnectoidTravelTimeCost.class);
     registerPlanitComponentType(NewellFundamentalDiagramComponent.class);
@@ -161,6 +160,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @param parameters         parameter object array to be used by the event
    * @throws PlanItException thrown if there is an exception
    */
+  @SuppressWarnings("unchecked")
   private void dispatchPopulatePlanitComponentEvent(final T newPlanitComponent, final Object[] parameters) throws PlanItException {
 
     /* when possible use more specific event for user friendly access to event content on listeners */
@@ -180,13 +180,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     } else if (newPlanitComponent instanceof FundamentalDiagramComponent) {
       fireEvent(new PopulateFundamentalDiagramEvent(this, (FundamentalDiagramComponent) newPlanitComponent, (MacroscopicNetworkLayer) parameters[0]));
     } else if (newPlanitComponent instanceof InitialLinkSegmentCost) {
-      // TODO: probably better if we generalise to initialCost event rather then specialise to link segment as we do now */
-      if (newPlanitComponent instanceof InitialLinkSegmentCostPeriod) {
-        fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialLinkSegmentCostPeriod) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1],
-            (TimePeriod) parameters[2]));
-      } else {
-        fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1]));
-      }
+      fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1],
+          (Set<TimePeriod>) parameters[2]));
     } else if (newPlanitComponent instanceof AbstractPhysicalCost) {
       fireEvent(new PopulatePhysicalCostEvent(this, (AbstractPhysicalCost) newPlanitComponent, (MacroscopicNetwork) parameters[0]));
     } else {

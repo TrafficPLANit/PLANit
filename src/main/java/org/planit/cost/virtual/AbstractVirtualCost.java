@@ -1,9 +1,12 @@
 package org.planit.cost.virtual;
 
+import java.io.Serializable;
+
 import org.planit.component.PlanitComponent;
 import org.planit.network.virtual.VirtualNetwork;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Object to handle the travel time cost of a virtual link
@@ -11,7 +14,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public abstract class AbstractVirtualCost extends PlanitComponent<AbstractVirtualCost> implements VirtualCost {
+public abstract class AbstractVirtualCost extends PlanitComponent<AbstractVirtualCost> implements VirtualCost, Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = -8278650865770286434L;
@@ -41,5 +44,12 @@ public abstract class AbstractVirtualCost extends PlanitComponent<AbstractVirtua
    * @throws PlanItException thrown if a link/mode combination exists for which no cost parameters have been set
    */
   public abstract void initialiseBeforeSimulation(final VirtualNetwork virtualNetwork) throws PlanItException;
+
+  /**
+   * Provide the cost calculation with information regarding the time period for which the cost is to be calculated
+   * 
+   * @param timePeriod to apply
+   */
+  public abstract void updateTimePeriod(final TimePeriod timePeriod);
 
 }

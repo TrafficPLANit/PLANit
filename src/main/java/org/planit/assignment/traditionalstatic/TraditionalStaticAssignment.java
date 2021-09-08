@@ -11,8 +11,7 @@ import org.planit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
 import org.planit.assignment.StaticTrafficAssignment;
 import org.planit.cost.Cost;
-import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.cost.physical.initial.InitialPhysicalCost;
+import org.planit.cost.physical.initial.InitialLinkSegmentCostMode;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.network.MacroscopicNetwork;
@@ -407,10 +406,10 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private boolean populateToInitialCost(final Mode mode, final double[] segmentCostToPopulate) throws PlanItException {
-    if (initialLinkSegmentCost == null || !initialLinkSegmentCost.isSegmentCostsSetForMode(mode)) {
+    if (this.initialLinkSegmentCostTimePeriodAgnostic == null || !this.initialLinkSegmentCostTimePeriodAgnostic.isSegmentCostsSetForMode(mode)) {
       return false;
     }
-    populateCost(initialLinkSegmentCost, mode, segmentCostToPopulate);
+    populateCost(this.initialLinkSegmentCostTimePeriodAgnostic, mode, segmentCostToPopulate);
     return true;
   }
 
@@ -427,12 +426,11 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private boolean populateToInitialCost(final Mode mode, final TimePeriod timePeriod, final double[] segmentCostToPopulate) throws PlanItException {
-    final InitialLinkSegmentCost initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod);
+    final InitialLinkSegmentCostMode initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod);
     if (initialLinkSegmentCostForTimePeriod == null || !initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
       return populateToInitialCost(mode, segmentCostToPopulate);
     }
-    InitialPhysicalCost initialTimePeriodCost = initialLinkSegmentCostByTimePeriod.get(timePeriod);
-    populateCost(initialTimePeriodCost, mode, segmentCostToPopulate);
+    populateCost(initialLinkSegmentCostForTimePeriod, mode, segmentCostToPopulate);
     return true;
   }
 

@@ -13,7 +13,6 @@ import org.planit.assignment.TrafficAssignmentConfigurator;
 import org.planit.component.PlanitComponent;
 import org.planit.component.PlanitComponentFactory;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
 import org.planit.network.MacroscopicNetwork;
@@ -272,7 +271,7 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCostPeriod object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?, ?> network, final String fileName, final TimePeriod timePeriod)
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?, ?> network, final String fileName, final TimePeriod timePeriod)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
   }
@@ -283,12 +282,12 @@ public class CustomPlanItProject {
    * @param network  network the InitialLinkSegmentCost object will be registered for
    * @param fileName location of file containing the initial link segment cost values
    * @param demands  the Demands object to extract all eligible time periods from
-   * @return the InitialLinkSegmentCostPeriod objects
+   * @return the populated InitialLinkSegmentCost
    * @throws PlanItException thrown if there is an error
    */
-  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?, ?> network, final String fileName, final Demands demands)
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?, ?> network, final String fileName, final Demands.TimePeriods timePeriods)
       throws PlanItException {
-    return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, demands);
+    return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriods);
   }
 
   /**

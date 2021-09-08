@@ -1,11 +1,8 @@
 package org.planit.cost;
 
-import java.io.Serializable;
-
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.mode.Mode;
-import org.planit.utils.time.TimePeriod;
 
 /**
  * Cost of an EdgeSegment
@@ -13,14 +10,7 @@ import org.planit.utils.time.TimePeriod;
  * @author markr
  *
  */
-public interface Cost<T extends EdgeSegment> extends Serializable {
-
-  /**
-   * Provide the cost calculation with information regarding the time period for which the cost is to be calculated
-   * 
-   * @param timePeriod to apply
-   */
-  public abstract void updateTimePeriod(final TimePeriod timePeriod);
+public interface Cost<T extends EdgeSegment> {
 
   /**
    * Returns the cost of travel along an edge segment for a specified mode
@@ -30,6 +20,6 @@ public interface Cost<T extends EdgeSegment> extends Serializable {
    * @return the cost of travel along the specified segment
    * @throws PlanItException the exception thrown when not available
    */
-  public abstract double getSegmentCost(Mode mode, T edgeSegment) throws PlanItException;
+  public abstract double getSegmentCost(final Mode mode, final T edgeSegment) throws PlanItException;
 
 }

@@ -7,7 +7,7 @@ import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.PhysicalCostConfigurator;
 import org.planit.cost.physical.PhysicalCostConfiguratorFactory;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
+import org.planit.cost.physical.initial.InitialLinkSegmentCostMode;
 import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.cost.virtual.VirtualCostConfigurator;
 import org.planit.cost.virtual.VirtualCostConfiguratorFactory;
@@ -239,23 +239,27 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   }
 
   /**
+   * Register all available initial costs, both time period agnostic and time period specific, 1:1 on the assignment
+   *
+   * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
+   */
+  public void registerInitialLinkSegmentCost(InitialLinkSegmentCost initialLinkSegmentCost) {
+    registerInitialLinkSegmentCost(initialLinkSegmentCost.getTimePeriodAgnosticCosts());
+    if (initialLinkSegmentCost.getTimePeriods() != null) {
+      for (TimePeriod timePeriod : initialLinkSegmentCost.getTimePeriods()) {
+        registerInitialLinkSegmentCost(initialLinkSegmentCost.getTimePeriodCosts(timePeriod));
+      }
+    }
+  }
+
+  /**
    * Register the initial link segment cost without relating it to a particular period, meaning that it is applied to all time periods that do not have a specified initial link
    * segment costs registered for them
    *
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    */
-  public void registerInitialLinkSegmentCost(final InitialLinkSegmentCost initialLinkSegmentCost) {
+  public void registerInitialLinkSegmentCost(final InitialLinkSegmentCostMode initialLinkSegmentCost) {
     registerDelayedMethodCall(SET_INITIAL_LINK_SEGMENT_COST, initialLinkSegmentCost);
-  }
-
-  /**
-   * Register the initial link segment cost for the time period embedded in it
-   *
-   * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
-   * @throws PlanItException thrown if time period in initial costs is null
-   */
-  public void registerInitialLinkSegmentCost(final InitialLinkSegmentCostPeriod initialLinkSegmentCost) throws PlanItException {
-    registerInitialLinkSegmentCost(initialLinkSegmentCost.getTimePeriod(), initialLinkSegmentCost);
   }
 
   /**
@@ -265,7 +269,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    * @throws PlanItException thrown if time period is null
    */
-  public void registerInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCost initialLinkSegmentCost) throws PlanItException {
+  public void registerInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCostMode initialLinkSegmentCost) throws PlanItException {
     PlanItException.throwIf(timePeriod == null, "time period null when registering initial link segment costs");
     registerDelayedMethodCall(SET_INITIAL_LINK_SEGMENT_COST, timePeriod, initialLinkSegmentCost);
   }

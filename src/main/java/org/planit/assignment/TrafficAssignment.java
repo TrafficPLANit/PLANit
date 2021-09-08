@@ -11,6 +11,7 @@ import org.planit.assignment.traditionalstatic.TraditionalStaticAssignment;
 import org.planit.component.PlanitComponent;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
+import org.planit.cost.physical.initial.InitialLinkSegmentCostMode;
 import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.demands.Demands;
 import org.planit.gap.GapFunction;
@@ -90,14 +91,16 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   private final Map<Class<? extends PlanitComponent<?>>, PlanitComponent<?>> trafficAssignmentComponents;
 
   /**
-   * The initial link segment cost
+   * The initial link segment cost to use where the mapping is based on the user provided time period. Note that the registered InitialLinkSegmentCostMode is part of another
+   * registered initialCost that is present on the project. However, a user might have decided that while they were parsed under one time period, to apply them on the assignment in
+   * another time period. Hence, we only track the initialcosts themselves and not their original parsed time periods nor their umbrella instance
    */
-  protected InitialLinkSegmentCost initialLinkSegmentCost;
+  protected Map<TimePeriod, InitialLinkSegmentCostMode> initialLinkSegmentCostByTimePeriod;
 
   /**
-   * Map storing InitialLinkSegmentCost objects for each time period
+   * Default initial costs to apply in case no time period specific costs are provided
    */
-  protected Map<TimePeriod, InitialLinkSegmentCost> initialLinkSegmentCostByTimePeriod;
+  protected InitialLinkSegmentCostMode initialLinkSegmentCostTimePeriodAgnostic;
 
   // Protected methods
 
@@ -264,7 +267,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   public TrafficAssignment(IdGroupingToken groupId) {
     super(groupId);
     trafficAssignmentComponents = new HashMap<Class<? extends PlanitComponent<?>>, PlanitComponent<?>>();
-    initialLinkSegmentCostByTimePeriod = new HashMap<TimePeriod, InitialLinkSegmentCost>();
+    initialLinkSegmentCostByTimePeriod = new HashMap<TimePeriod, InitialLinkSegmentCostMode>();
   }
 
   /**
@@ -280,8 +283,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
 
     this.trafficAssignmentComponents = new HashMap<Class<? extends PlanitComponent<?>>, PlanitComponent<?>>(trafficAssignment.trafficAssignmentComponents);
 
-    this.initialLinkSegmentCost = trafficAssignment.initialLinkSegmentCost;
-    this.initialLinkSegmentCostByTimePeriod = trafficAssignment.initialLinkSegmentCostByTimePeriod;
+    this.initialLinkSegmentCostTimePeriodAgnostic = trafficAssignment.initialLinkSegmentCostTimePeriodAgnostic;
+    this.initialLinkSegmentCostByTimePeriod = new HashMap<TimePeriod, InitialLinkSegmentCostMode>(trafficAssignment.initialLinkSegmentCostByTimePeriod);
   }
 
   /**
@@ -426,21 +429,27 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   }
 
   /**
-   * Set the initial link segment cost unrelated to any particular time period, i.e., used for all time periods that do not have designated initial costs specified for them
+   * Set the initial link segment cost by mapping all contents 1:1 to the assignment, both the time period specific and time period agnostic costs
    *
    * @param initialLinkSegmentCost the initial link segment cost
    */
   public void setInitialLinkSegmentCost(final InitialLinkSegmentCost initialLinkSegmentCost) {
-    this.initialLinkSegmentCost = initialLinkSegmentCost;
+    this.initialLinkSegmentCostTimePeriodAgnostic = initialLinkSegmentCost.getTimePeriodAgnosticCosts();
+    this.initialLinkSegmentCostByTimePeriod = new HashMap<TimePeriod, InitialLinkSegmentCostMode>();
+    for (TimePeriod timePeriod : initialLinkSegmentCost.getTimePeriods()) {
+      initialLinkSegmentCostByTimePeriod.put(timePeriod, initialLinkSegmentCost.getTimePeriodCosts(timePeriod));
+    }
+
   }
 
   /**
-   * Set the initial link segment cost for a specified time period, otherwise revert to the general initial link segment cost (if any)
+   * Set the initial link segment cost for a specified time period on the assignment, otherwise revert to the general initial link segment cost (if any). Note thta the provided
+   * time period might differ from the how the provided initial costs were parsed on the project if so desired.
    *
    * @param timePeriod             the specified time period
-   * @param initialLinkSegmentCost the initial link segment cost
+   * @param initialLinkSegmentCost the initial link segment cost to apply for the assignment time period
    */
-  public void setInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCost initialLinkSegmentCost) {
+  public void setInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCostMode initialLinkSegmentCost) {
     initialLinkSegmentCostByTimePeriod.put(timePeriod, initialLinkSegmentCost);
   }
 
@@ -516,7 +525,9 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    */
   public void reset() {
     // do not reset input components because they are considered configuration, not internal state. Also, initial cost is not reset since
-    // this is considered a fixed input as well without an internal state
+    // this is considered a fixed input as well without an internal state, we only remove them
+    this.initialLinkSegmentCostByTimePeriod.clear();
+    this.initialLinkSegmentCostTimePeriodAgnostic = null;
 
     // disband the transport network, this is considered internal state
     try {

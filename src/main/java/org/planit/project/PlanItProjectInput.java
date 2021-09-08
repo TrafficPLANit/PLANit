@@ -5,12 +5,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.component.PlanitComponent;
 import org.planit.component.PlanitComponentFactory;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.cost.physical.initial.InitialLinkSegmentCostPeriod;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.demands.Demands;
 import org.planit.input.InputBuilderListener;
@@ -86,6 +86,38 @@ public class PlanItProjectInput {
   private <T extends PlanitComponent<?>> PlanitComponentFactory<T> getComponentFactory(Class<T> clazz) throws PlanItException {
     return (PlanitComponentFactory<T>) planitComponentFactories.stream().filter(
         factory -> factory.isFactoryForDerivedClassesOf(clazz)).findFirst().orElseThrow(() -> new PlanItException("component factory unavailable for %s", clazz.getCanonicalName()));
+  }
+
+  /**
+   * Create and register initial link segment costs from a (single) file for all time periods (which are assumed are sorted by start time)
+   *
+   * @param network  network the InitialLinkSegmentCost object will be registered for
+   * @param fileName location of file containing the initial link segment cost values
+   * @param timePeriods  to use (may be null, in which case the data is assumed to be time period agnostic)
+   * @return the InitialLinkSegmentCost object
+   * @throws PlanItException thrown if there is an error
+   */
+  private InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(TransportLayerNetwork<?, ?> network, String fileName, final Set<TimePeriod> timePeriods) throws PlanItException {
+    PlanItException.throwIf(network == null, "Physical network must be read in before initial costs can be read");
+
+    if (!initialLinkSegmentCosts.containsKey(network)) {
+      initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
+    }
+        
+    /* note that the time period(s) are hidden in the eventual event (although available via additional content) as it is generally not useful
+     * to the handler who's task it is to populate the component based on the file, regardless to what period it is mapped */
+    final InitialLinkSegmentCost initialLinkSegmentCost = 
+        (InitialLinkSegmentCost) getComponentFactory(InitialPhysicalCost.class).create(
+            InitialLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId}, fileName, network, timePeriods);
+    
+    for (final TimePeriod timePeriod : timePeriods) {    
+      LOGGER.info(
+          LoggingUtils.createProjectPrefix(this.projectId)+
+          LoggingUtils.createTimePeriodPrefix(timePeriod)+"populated initial link segment costs");
+    }    
+    
+    initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
+    return initialLinkSegmentCost;
   }
 
   /**
@@ -323,19 +355,7 @@ public class PlanItProjectInput {
    * @throws PlanItException thrown if there is an error
    */
   public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?,?> network, final String fileName) throws PlanItException {
-    PlanItException.throwIf(network == null, "Physical network must be read in before initial costs can be read");
-
-    if (!initialLinkSegmentCosts.containsKey(network)) {
-      initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
-    }
-
-    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating initial link segment costs");    
-    final InitialLinkSegmentCost initialLinkSegmentCost = 
-        (InitialLinkSegmentCost) getComponentFactory(InitialPhysicalCost.class).create(
-            InitialLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId }, fileName, network);
-
-    initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
-    return initialLinkSegmentCost;
+    return createAndRegisterInitialLinkSegmentCost(network, fileName, (Set<TimePeriod>)null);
   }
 
   /**
@@ -347,48 +367,23 @@ public class PlanItProjectInput {
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCostPeriod createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?,?> network, final String fileName, final TimePeriod timePeriod)
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?,?> network, final String fileName, final TimePeriod timePeriod)
       throws PlanItException {
-    PlanItException.throwIf(network == null, "Physical network must be read in before initial costs can be read");
-
-    if (!initialLinkSegmentCosts.containsKey(network)) {
-      initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
-    }
-
-    LOGGER.info(
-        LoggingUtils.createProjectPrefix(this.projectId)+
-        LoggingUtils.createTimePeriodPrefix(timePeriod)+"populating initial link segment costs");
-    
-    /* note that the time period is hidden in the eventual event (although available via additional content) as it is generally not useful
-     * to the handler who's task it is to populate the component based on the file, regardless to what period it is mapped */
-    final InitialLinkSegmentCostPeriod initialLinkSegmentCostPeriod = 
-        (InitialLinkSegmentCostPeriod) getComponentFactory(InitialPhysicalCost.class).create(
-            InitialLinkSegmentCostPeriod.class.getCanonicalName(), new Object[] { projectGroupId, timePeriod}, fileName, network, timePeriod);
-
-    initialLinkSegmentCosts.get(network).add(initialLinkSegmentCostPeriod);
-    return initialLinkSegmentCostPeriod;
+    return createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod!=null ? Set.of(timePeriod) : null);
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file for all time periods in Demands object
+   * Create and register initial link segment costs from a (single) file for all time periods
    *
    * @param network  network the InitialLinkSegmentCost object will be registered for
    * @param fileName location of file containing the initial link segment cost values
-   * @param demands  the Demands object
+   * @param timePeriods  to use
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public List<InitialLinkSegmentCostPeriod> createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?,?> network, final String fileName, final Demands demands)
-      throws PlanItException {
-
-    PlanItException.throwIf(network == null, "Physical network must be read in before initial costs can be read");
-
-    final List<InitialLinkSegmentCostPeriod> initialCostsList = new ArrayList<InitialLinkSegmentCostPeriod>();
-    for (final TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
-      final InitialLinkSegmentCostPeriod initialLinkSegmentCostPeriod = createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
-      initialCostsList.add(initialLinkSegmentCostPeriod);
-    }
-    return initialCostsList;
+  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?,?> network, final String fileName, final Demands.TimePeriods timePeriods)
+      throws PlanItException {    
+    return createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriods!=null ? timePeriods.asSortedSetByStartTime() : null);
   }
 
   /**

@@ -1,5 +1,7 @@
 package org.planit.cost.physical;
 
+import java.io.Serializable;
+
 import org.planit.component.PlanitComponent;
 import org.planit.network.TransportLayerNetwork;
 import org.planit.utils.exceptions.PlanItException;
@@ -8,6 +10,7 @@ import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Class for dynamic cost functions, which calculate link segment costs for each iteration
@@ -15,7 +18,7 @@ import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
  * @author markr, gman6028
  *
  */
-public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysicalCost> implements PhysicalCost {
+public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysicalCost> implements PhysicalCost, Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = 3657719270477537657L;
@@ -59,5 +62,12 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
    * @throws PlanItException thrown if error
    */
   public abstract void initialiseBeforeSimulation(TransportLayerNetwork<?, ?> network) throws PlanItException;
+
+  /**
+   * Provide the cost calculation with information regarding the time period for which the cost is to be calculated
+   * 
+   * @param timePeriod to apply
+   */
+  public abstract void updateTimePeriod(final TimePeriod timePeriod);
 
 }
