@@ -86,7 +86,7 @@ public abstract class MacroscopicLinkOutputTypeAdapterImpl extends UntypedLinkOu
       }
 
       /* specific to macroscopic link segment */
-      switch (outputProperty) {
+      switch (outputProperty.getOutputPropertyType()) {
       case CAPACITY_PER_LANE:
         return getCapacityPerLane(linkSegment);
       case MAXIMUM_DENSITY:

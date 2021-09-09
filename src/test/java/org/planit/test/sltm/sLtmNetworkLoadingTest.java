@@ -161,7 +161,7 @@ public class sLtmNetworkLoadingTest {
       OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
       odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("D"), 1000.0);
       odDemands.setValue(odZones.getByXmlId("C"), odZones.getByXmlId("B"), 1000.0);
-      demands.registerOdDemand(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
+      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);

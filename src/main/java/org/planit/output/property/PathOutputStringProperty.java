@@ -1,9 +1,9 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
-public final class PathOutputStringProperty extends BaseOutputProperty {
+public final class PathOutputStringProperty extends OutputProperty {
 
   public static final String NAME = "Path";
 
@@ -13,18 +13,18 @@ public final class PathOutputStringProperty extends BaseOutputProperty {
   }
 
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.NONE;
   }
 
   @Override
-  public Type getType() {
-    return Type.STRING;
+  public DataType getDataType() {
+    return DataType.STRING;
   }
 
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.PATH_STRING;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.PATH_STRING;
   }
 
   @Override

@@ -5,7 +5,6 @@ import java.util.Optional;
 import org.planit.assignment.TrafficAssignment;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.PathOutputIdentificationType;
-import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
@@ -51,7 +50,7 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
         return value;
       }
 
-      switch (outputProperty) {
+      switch (outputProperty.getOutputPropertyType()) {
       case DESTINATION_ZONE_EXTERNAL_ID:
         return PathOutputTypeAdapter.getDestinationZoneExternalId(odPathIterator);
       case DESTINATION_ZONE_XML_ID:
@@ -69,9 +68,10 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
       case ORIGIN_ZONE_ID:
         return PathOutputTypeAdapter.getOriginZoneId(odPathIterator);
       default:
-        return Optional
-            .of(String.format("Tried to find link property of %s which is not applicable for OD path", BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()));
+        return Optional.of(String.format("Tried to find link property of %s which is not applicable for OD path", outputProperty.getName()));
       }
+
+      // no unit convertable types here, so do not verify if conversion is needed
     } catch (PlanItException e) {
       return Optional.of(e.getMessage());
     }

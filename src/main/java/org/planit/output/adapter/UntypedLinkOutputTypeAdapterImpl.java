@@ -41,41 +41,58 @@ public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> e
    */
   @Override
   public Optional<?> getLinkSegmentOutputPropertyValue(OutputProperty outputProperty, LS linkSegment) {
+    Optional<?> result = Optional.empty();
     try {
-
-      switch (outputProperty) {
+      switch (outputProperty.getOutputPropertyType()) {
       case DOWNSTREAM_NODE_EXTERNAL_ID:
-        return getDownstreamNodeExternalId(linkSegment);
+        result = getDownstreamNodeExternalId(linkSegment);
+        break;
       case DOWNSTREAM_NODE_XML_ID:
-        return getDownstreamNodeXmlId(linkSegment);
+        result = getDownstreamNodeXmlId(linkSegment);
+        break;
       case DOWNSTREAM_NODE_ID:
-        return getDownstreamNodeId(linkSegment);
+        result = getDownstreamNodeId(linkSegment);
+        break;
       case DOWNSTREAM_NODE_LOCATION:
-        return getDownstreamNodeLocation(linkSegment);
+        result = getDownstreamNodeLocation(linkSegment);
+        break;
       case LENGTH:
-        return getLength(linkSegment);
+        result = getLength(linkSegment);
+        break;
       case LINK_SEGMENT_EXTERNAL_ID:
-        return getLinkSegmentExternalId(linkSegment);
+        result = getLinkSegmentExternalId(linkSegment);
+        break;
       case LINK_SEGMENT_XML_ID:
-        return getLinkSegmentXmlId(linkSegment);
+        result = getLinkSegmentXmlId(linkSegment);
+        break;
       case LINK_SEGMENT_ID:
-        return getLinkSegmentId(linkSegment);
+        result = getLinkSegmentId(linkSegment);
+        break;
       case NUMBER_OF_LANES:
-        return getNumberOfLanes(linkSegment);
+        result = getNumberOfLanes(linkSegment);
+        break;
       case UPSTREAM_NODE_EXTERNAL_ID:
-        return getUpstreamNodeExternalId(linkSegment);
+        result = getUpstreamNodeExternalId(linkSegment);
+        break;
       case UPSTREAM_NODE_XML_ID:
-        return getUpstreamNodeXmlId(linkSegment);
+        result = getUpstreamNodeXmlId(linkSegment);
+        break;
       case UPSTREAM_NODE_ID:
-        return getUpstreamNodeId(linkSegment);
+        result = getUpstreamNodeId(linkSegment);
+        break;
       case UPSTREAM_NODE_LOCATION:
-        return getUpstreamNodeLocation(linkSegment);
+        result = getUpstreamNodeLocation(linkSegment);
+        break;
       default:
-        return Optional.empty();
+      }
+
+      if (outputProperty.supportsUnitsOverride() && outputProperty.isUnitsOverride()) {
+        result = createConvertedUnitsValue(outputProperty, result);
       }
     } catch (PlanItException e) {
-      return Optional.of(e.getMessage());
+      result = Optional.of(e.getMessage());
     }
+    return result;
   }
 
 }

@@ -3,11 +3,11 @@ package org.planit.output.property;
 import java.util.Optional;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.unit.Units;
 
-public final class RunIdOutputProperty extends BaseOutputProperty {
+public final class RunIdOutputProperty extends OutputProperty {
 
   public static final String NAME = "Run Id";
 
@@ -17,18 +17,18 @@ public final class RunIdOutputProperty extends BaseOutputProperty {
   }
 
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.NONE;
   }
 
   @Override
-  public Type getType() {
-    return Type.LONG;
+  public DataType getDataType() {
+    return DataType.LONG;
   }
 
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.RUN_ID;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.RUN_ID;
   }
 
   @Override

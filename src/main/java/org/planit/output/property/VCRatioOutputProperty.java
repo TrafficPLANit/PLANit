@@ -1,6 +1,6 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
 /**
@@ -9,7 +9,7 @@ import org.planit.utils.unit.Units;
  * @author gman6028
  *
  */
-public final class VcRatioOutputProperty extends BaseOutputProperty {
+public final class VcRatioOutputProperty extends OutputProperty {
 
   public static final String NAME = "VC Ratio";
 
@@ -25,7 +25,7 @@ public final class VcRatioOutputProperty extends BaseOutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.NONE;
   }
 
@@ -33,16 +33,16 @@ public final class VcRatioOutputProperty extends BaseOutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Type getType() {
-    return Type.DOUBLE;
+  public DataType getDataType() {
+    return DataType.DOUBLE;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.VC_RATIO;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.VC_RATIO;
   }
 
   /**

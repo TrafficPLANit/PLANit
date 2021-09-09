@@ -17,6 +17,7 @@ import org.planit.output.property.TimePeriodXmlIdOutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.time.TimePeriod;
+import org.planit.utils.unit.UnitUtils;
 import org.planit.utils.unit.Units;
 
 /**
@@ -52,6 +53,21 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
   }
 
   /**
+   * Convert the output property value that is assumed to be in the properties default units in the desired units indicated on the property
+   * 
+   * @param outputProperty   to base conversion on
+   * @param unconvertedValue original value in default units
+   * @return converted value as optional
+   * @throws PlanItException thrown if error
+   */
+  protected static Optional<?> createConvertedUnitsValue(OutputProperty outputProperty, Optional<?> unconvertedValue) throws PlanItException {
+    if (unconvertedValue.isPresent()) {
+      return Optional.of(UnitUtils.convert(outputProperty.getDefaultUnits(), outputProperty.getOverrideUnits(), (double) unconvertedValue.get()));
+    }
+    return unconvertedValue;
+  }
+
+  /**
    * Returns the value of properties which are common to all output type adapters
    * 
    * @param outputProperty the specified output property
@@ -61,7 +77,7 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
    */
   protected Optional<?> getOutputTypeIndependentPropertyValue(OutputProperty outputProperty, Mode mode, TimePeriod timePeriod) {
     try {
-      switch (outputProperty) {
+      switch (outputProperty.getOutputPropertyType()) {
       case MODE_EXTERNAL_ID:
         return ModeExternalIdOutputProperty.getModeExternalId(mode);
       case MODE_XML_ID:
@@ -84,6 +100,7 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
     } catch (PlanItException e) {
       return Optional.of(e.getMessage());
     }
+
   }
 
   /**

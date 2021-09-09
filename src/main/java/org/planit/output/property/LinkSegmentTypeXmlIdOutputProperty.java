@@ -1,9 +1,9 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
-public final class LinkSegmentTypeXmlIdOutputProperty extends BaseOutputProperty {
+public final class LinkSegmentTypeXmlIdOutputProperty extends OutputProperty {
 
   public static final String NAME = "Link Segment Type XML Id";
 
@@ -13,18 +13,18 @@ public final class LinkSegmentTypeXmlIdOutputProperty extends BaseOutputProperty
   }
 
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.NONE;
   }
 
   @Override
-  public Type getType() {
-    return Type.STRING;
+  public DataType getDataType() {
+    return DataType.STRING;
   }
 
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.LINK_SEGMENT_TYPE_XML_ID;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.LINK_SEGMENT_TYPE_XML_ID;
   }
 
   @Override

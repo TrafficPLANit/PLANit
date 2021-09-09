@@ -7,7 +7,6 @@ import org.planit.assignment.TrafficAssignment;
 import org.planit.output.enums.OdSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
-import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
@@ -49,34 +48,48 @@ public abstract class OdOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
    */
   @Override
   public Optional<?> getOdOutputPropertyValue(OutputProperty outputProperty, OdDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod) {
+    Optional<?> value = Optional.empty();
+
     try {
-      Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
+      value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (value.isPresent()) {
         return value;
       }
 
-      switch (outputProperty) {
+      switch (outputProperty.getOutputPropertyType()) {
       case DESTINATION_ZONE_EXTERNAL_ID:
-        return OdOutputTypeAdapter.getDestinationZoneExternalId(odIterator);
+        value = OdOutputTypeAdapter.getDestinationZoneExternalId(odIterator);
+        break;
       case DESTINATION_ZONE_XML_ID:
-        return OdOutputTypeAdapter.getDestinationZoneXmlId(odIterator);
+        value = OdOutputTypeAdapter.getDestinationZoneXmlId(odIterator);
+        break;
       case DESTINATION_ZONE_ID:
-        return OdOutputTypeAdapter.getDestinationZoneId(odIterator);
+        value = OdOutputTypeAdapter.getDestinationZoneId(odIterator);
+        break;
       case OD_COST:
-        return Optional.of(UnitUtils.convertHourTo(getOutputTimeUnit(), (double) OdOutputTypeAdapter.getOdValue(odIterator).get()));
+        value = Optional.of(UnitUtils.convertHourTo(getOutputTimeUnit(), (double) OdOutputTypeAdapter.getOdValue(odIterator).get()));
+        break;
       case ORIGIN_ZONE_EXTERNAL_ID:
-        return OdOutputTypeAdapter.getOriginZoneExternalId(odIterator);
+        value = OdOutputTypeAdapter.getOriginZoneExternalId(odIterator);
+        break;
       case ORIGIN_ZONE_XML_ID:
-        return OdOutputTypeAdapter.getOriginZoneXmlId(odIterator);
+        value = OdOutputTypeAdapter.getOriginZoneXmlId(odIterator);
+        break;
       case ORIGIN_ZONE_ID:
-        return OdOutputTypeAdapter.getOriginZoneId(odIterator);
+        value = OdOutputTypeAdapter.getOriginZoneId(odIterator);
+        break;
       default:
-        return Optional
-            .of(String.format("Tried to find link property of %s which is not applicable for OD matrix", BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()));
+        throw new PlanItException("Tried to find link property of %s which is not applicable for OD matrix", outputProperty.getName());
+      }
+
+      if (outputProperty.supportsUnitsOverride() && outputProperty.isUnitsOverride()) {
+        value = createConvertedUnitsValue(outputProperty, value);
       }
     } catch (PlanItException e) {
-      return Optional.of(e.getMessage());
+      value = Optional.of(e.getMessage());
     }
+
+    return value;
   }
 
   /**

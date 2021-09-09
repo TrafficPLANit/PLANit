@@ -1,32 +1,47 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
-public final class LinkSegmentCostOutputProperty extends BaseOutputProperty {
+public final class LinkSegmentCostOutputProperty extends OutputProperty {
 
   public static final String NAME = "Cost";
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String getName() {
     return NAME;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.HOUR;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public Type getType() {
-    return Type.DOUBLE;
+  public DataType getDataType() {
+    return DataType.DOUBLE;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.LINK_SEGMENT_COST;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.LINK_SEGMENT_COST;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public OutputPropertyPriority getColumnPriority() {
     return OutputPropertyPriority.RESULT_PRIORITY;

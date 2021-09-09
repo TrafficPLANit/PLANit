@@ -5,7 +5,6 @@ import java.util.Optional;
 import org.planit.assignment.TrafficAssignment;
 import org.planit.output.adapter.MacroscopicLinkOutputTypeAdapterImpl;
 import org.planit.output.enums.OutputType;
-import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
@@ -144,7 +143,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
         return value;
       }
 
-      switch (outputProperty) {
+      switch (outputProperty.getOutputPropertyType()) {
       case CALCULATED_SPEED:
         return getCalculatedSpeed(linkSegment, mode);
       case FLOW:
@@ -161,8 +160,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
       case COST_TIMES_FLOW:
         return getCostTimesFlow(linkSegment, mode);
       default:
-        return Optional
-            .of(String.format("Tried to find link property of %s which is not applicable for links", BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()));
+        return Optional.of(String.format("Tried to find link property of %s which is not applicable for links", outputProperty.getName()));
       }
     } catch (final PlanItException e) {
       return Optional.of(e.getMessage());

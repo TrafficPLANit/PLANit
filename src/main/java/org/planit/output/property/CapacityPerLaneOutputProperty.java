@@ -1,6 +1,6 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
 /**
@@ -9,7 +9,15 @@ import org.planit.utils.unit.Units;
  * @author markr
  *
  */
-public final class CapacityPerLaneOutputProperty extends BaseOutputProperty {
+public final class CapacityPerLaneOutputProperty extends OutputProperty {
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean supportsUnitsOverride() {
+    return true;
+  }
 
   public static final String NAME = "Capacity per Lane";
 
@@ -25,7 +33,7 @@ public final class CapacityPerLaneOutputProperty extends BaseOutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.PCU_HOUR;
   }
 
@@ -33,16 +41,16 @@ public final class CapacityPerLaneOutputProperty extends BaseOutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Type getType() {
-    return Type.DOUBLE;
+  public DataType getDataType() {
+    return DataType.DOUBLE;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.CAPACITY_PER_LANE;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.CAPACITY_PER_LANE;
   }
 
   /**

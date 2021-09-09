@@ -2,12 +2,12 @@ package org.planit.output.property;
 
 import java.util.Optional;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.unit.Units;
 
-public final class ModeIdOutputProperty extends BaseOutputProperty {
+public final class ModeIdOutputProperty extends OutputProperty {
 
   public static final String NAME = "Mode Id";
 
@@ -17,18 +17,18 @@ public final class ModeIdOutputProperty extends BaseOutputProperty {
   }
 
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.NONE;
   }
 
   @Override
-  public Type getType() {
-    return Type.LONG;
+  public DataType getDataType() {
+    return DataType.LONG;
   }
 
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.MODE_ID;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.MODE_ID;
   }
 
   @Override

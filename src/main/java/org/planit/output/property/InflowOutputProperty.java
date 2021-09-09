@@ -1,6 +1,6 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
 /**
@@ -9,7 +9,7 @@ import org.planit.utils.unit.Units;
  * @author markr
  *
  */
-public final class InflowOutputProperty extends BaseOutputProperty {
+public final class InflowOutputProperty extends OutputProperty {
 
   /**
    * Name of the property
@@ -28,7 +28,7 @@ public final class InflowOutputProperty extends BaseOutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.PCU_HOUR;
   }
 
@@ -36,16 +36,16 @@ public final class InflowOutputProperty extends BaseOutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Type getType() {
-    return Type.DOUBLE;
+  public DataType getDataType() {
+    return DataType.DOUBLE;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.INFLOW;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.INFLOW;
   }
 
   /**

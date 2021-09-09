@@ -26,6 +26,7 @@ import org.planit.output.enums.OutputTypeEnum;
 import org.planit.output.enums.PathOutputIdentificationType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.output.property.OutputProperty;
+import org.planit.output.property.OutputPropertyType;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.math.Precision;
@@ -59,15 +60,15 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
   /**
    * Returns an array of values (key or values)
    * 
-   * @param labels              OutputProperty array to specify which values are to be returns
-   * @param getValueFromAdapter lambda function to find the output value for each label
+   * @param outputPropertiesArray OutputProperty array to specify which values are to be returns
+   * @param getValueFromAdapter   lambda function to find the output value for each label
    * @return array of output values
    * @throws PlanItException thrown if there is an error
    */
-  private Object[] getValues(OutputProperty[] labels, Function<OutputProperty, Object> getValueFromAdapter) throws PlanItException {
-    Object[] values = new Object[labels.length];
-    for (int i = 0; i < labels.length; i++) {
-      values[i] = getValueFromAdapter.apply(labels[i]);
+  private Object[] getValues(OutputProperty[] outputPropertiesArray, Function<OutputProperty, Object> getValueFromAdapter) throws PlanItException {
+    Object[] values = new Object[outputPropertiesArray.length];
+    for (int i = 0; i < outputPropertiesArray.length; i++) {
+      values[i] = getValueFromAdapter.apply(outputPropertiesArray[i]);
       if (values[i] instanceof PlanItException) {
         throw (PlanItException) values[i];
       }
@@ -261,6 +262,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     OdSkimSubOutputType subOutputType = (OdSkimSubOutputType) currentOutputType;
     // top level output type
     OutputType outputType = outputTypeConfiguration.getOutputType();
+    final OutputProperty OD_COST_PROPERTY = OutputProperty.of(OutputPropertyType.OD_COST);
 
     OutputProperty[] outputProperties = outputValueProperties.get(outputType);
     OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
@@ -272,7 +274,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
 
       for (OdSkimMatrixIterator odIterator = odSkimMatrix.get().iterator(); odIterator.hasNext();) {
         odIterator.next();
-        Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getOdOutputPropertyValue(OutputProperty.OD_COST, odIterator, mode, timePeriod);
+        Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getOdOutputPropertyValue(OD_COST_PROPERTY, odIterator, mode, timePeriod);
         cost.orElseThrow(() -> new PlanItException("cost could not be retrieved when persisting"));
 
         if (outputConfiguration.isPersistZeroFlow() || cost.get() > Precision.EPSILON_6) {
@@ -310,7 +312,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
     for (Mode mode : modes) {
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
-      Optional<OdPathMatrix> odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
+      Optional<OdPathMatrix> odPathMatrix = pathOutputTypeAdapter.getOdPathMatrix(mode);
       odPathMatrix.orElseThrow(() -> new PlanItException("od path matrix could not be retrieved when persisting"));
 
       for (OdPathMatrixIterator odPathIterator = odPathMatrix.get().iterator(); odPathIterator.hasNext();) {
@@ -345,7 +347,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @return data map for the specified keys
    * @throws PlanItException thrown if there is an error
    */
-  public Object getOutputDataValue(Mode mode, TimePeriod timePeriod, Integer iterationIndex, OutputType outputType, OutputProperty outputProperty, Object[] keyValues)
+  public Object getOutputDataValue(Mode mode, TimePeriod timePeriod, Integer iterationIndex, OutputType outputType, OutputPropertyType outputProperty, Object[] keyValues)
       throws PlanItException {
     MultiKeyPlanItData multiKeyPlanItData = (MultiKeyPlanItData) timeModeOutputTypeIterationDataMap.get(mode, timePeriod, iterationIndex, outputType);
     return multiKeyPlanItData.getRowValue(outputProperty, keyValues);
@@ -463,7 +465,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @return the position of the output value property
    * @throws PlanItException thrown if the output property type is not in the output value property array
    */
-  public int getPositionOfOutputValueProperty(final OutputType outputType, final OutputProperty outputValueProperty) throws PlanItException {
+  public int getPositionOfOutputValueProperty(final OutputType outputType, final OutputPropertyType outputValueProperty) throws PlanItException {
     Set<MultiKey<? extends Object>> keySet = (Set<MultiKey<? extends Object>>) timeModeOutputTypeIterationDataMap.keySet();
     for (MultiKey<? extends Object> multiKey : keySet) {
       Object[] keys = multiKey.getKeys();
@@ -487,7 +489,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
    * @return the position of the output key property
    * @throws PlanItException thrown if the output property type is not in the output key property array
    */
-  public int getPositionOfOutputKeyProperty(final OutputType outputType, final OutputProperty outputKeyProperty) throws PlanItException {
+  public int getPositionOfOutputKeyProperty(final OutputType outputType, final OutputPropertyType outputKeyProperty) throws PlanItException {
     Set<MultiKey<? extends Object>> keySet = (Set<MultiKey<? extends Object>>) timeModeOutputTypeIterationDataMap.keySet();
     for (MultiKey<? extends Object> multiKey : keySet) {
       Object[] keys = multiKey.getKeys();

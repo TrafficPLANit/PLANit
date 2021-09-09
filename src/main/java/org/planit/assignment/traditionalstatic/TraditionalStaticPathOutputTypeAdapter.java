@@ -41,8 +41,8 @@ public class TraditionalStaticPathOutputTypeAdapter extends PathOutputTypeAdapte
    * @return the OD path object
    */
   @Override
-  public Optional<OdPathMatrix> getODPathMatrix(Mode mode) {
-    return Optional.of(getAssignment().getIterationData().getODPathMatrix(mode));
+  public Optional<OdPathMatrix> getOdPathMatrix(Mode mode) {
+    return Optional.of(getAssignment().getIterationData().getOdPathMatrix(mode));
   }
 
 }

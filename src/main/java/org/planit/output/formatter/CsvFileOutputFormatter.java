@@ -28,8 +28,8 @@ import org.planit.output.enums.OdSkimSubOutputType;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.OutputTypeEnum;
 import org.planit.output.enums.SubOutputTypeEnum;
-import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
+import org.planit.output.property.OutputPropertyType;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.math.Precision;
@@ -82,7 +82,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
     try {
       // main type information
       OdOutputTypeAdapter odOutputTypeAdapter = (OdOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputTypeConfiguration.getOutputType());
-      SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
+      SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
 
       // verify if current suboutput type is compatible with the provided output
       PlanItException.throwIf(!(currentOutputType instanceof SubOutputTypeEnum && ((SubOutputTypeEnum) currentOutputType) instanceof OdSkimSubOutputType),
@@ -92,18 +92,19 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       OdSkimSubOutputType currentSubOutputType = (OdSkimSubOutputType) currentOutputType;
 
       // perform actual persistence
+      final OutputProperty odCostProperty = OutputProperty.of(OutputPropertyType.OD_COST);
       for (Mode mode : modes) {
         Optional<OdSkimMatrix> odSkimMatrix = odOutputTypeAdapter.getOdSkimMatrix(currentSubOutputType, mode);
         odSkimMatrix.orElseThrow(() -> new PlanItException("od skim matrix could not be retrieved when persisting"));
 
         for (OdSkimMatrixIterator odMatrixIterator = odSkimMatrix.get().iterator(); odMatrixIterator.hasNext();) {
           odMatrixIterator.next();
-          Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getOdOutputPropertyValue(OutputProperty.OD_COST, odMatrixIterator, mode, timePeriod);
+          Optional<Double> cost = (Optional<Double>) odOutputTypeAdapter.getOdOutputPropertyValue(odCostProperty, odMatrixIterator, mode, timePeriod);
           cost.orElseThrow(() -> new PlanItException("cost could not be retrieved when persisting"));
 
           if (outputConfiguration.isPersistZeroFlow() || cost.get() > Precision.EPSILON_6) {
             List<Object> rowValues = outputProperties.stream()
-                .map(outputProperty -> odOutputTypeAdapter.getOdOutputPropertyValue(outputProperty.getOutputProperty(), odMatrixIterator, mode, timePeriod).get())
+                .map(outputProperty -> odOutputTypeAdapter.getOdOutputPropertyValue(outputProperty, odMatrixIterator, mode, timePeriod).get())
                 .map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
             csvPrinter.printRecord(rowValues);
           }
@@ -138,9 +139,9 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       OutputType outputType = (OutputType) currentOutputType;
       PathOutputTypeAdapter pathOutputTypeAdapter = (PathOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
       PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
-      SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
+      SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
       for (Mode mode : modes) {
-        Optional<OdPathMatrix> odPathMatrix = pathOutputTypeAdapter.getODPathMatrix(mode);
+        Optional<OdPathMatrix> odPathMatrix = pathOutputTypeAdapter.getOdPathMatrix(mode);
         odPathMatrix.orElseThrow(() -> new PlanItException("od path matrix could not be retrieved when persisting"));
 
         for (OdPathMatrixIterator odPathIterator = odPathMatrix.get().iterator(); odPathIterator.hasNext();) {
@@ -148,8 +149,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
           if (outputConfiguration.isPersistZeroFlow() || (odPathIterator.getCurrentValue() != null)) {
             List<Object> rowValues = outputProperties.stream()
                 .map(outputProperty -> pathOutputTypeAdapter
-                    .getPathOutputPropertyValue(outputProperty.getOutputProperty(), odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType())
-                    .get())
+                    .getPathOutputPropertyValue(outputProperty, odPathIterator, mode, timePeriod, pathOutputTypeConfiguration.getPathIdentificationType()).get())
                 .map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
             csvPrinter.printRecord(rowValues);
           }
@@ -185,7 +185,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
       MacroscopicLinkOutputTypeAdapter linkOutputTypeAdapter = (MacroscopicLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
 
-      SortedSet<BaseOutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
+      SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
       for (Mode mode : modes) {
         Optional<Long> networkLayerId = linkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
         if (networkLayerId.isPresent()) {
@@ -197,7 +197,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
               if (outputConfiguration.isPersistZeroFlow() || flowPositive.get()) {
                 List<Object> rowValues = outputProperties.stream()
-                    .map(outputProperty -> linkOutputTypeAdapter.getLinkSegmentOutputPropertyValue(outputProperty.getOutputProperty(), linkSegment, mode, timePeriod).get())
+                    .map(outputProperty -> linkOutputTypeAdapter.getLinkSegmentOutputPropertyValue(outputProperty, linkSegment, mode, timePeriod).get())
                     .map(outValue -> OutputUtils.formatObject(outValue)).collect(Collectors.toList());
                 csvPrinter.printRecord(rowValues);
               }
@@ -226,7 +226,7 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
    */
   protected CSVPrinter openCsvFileAndWriteHeaders(OutputTypeConfiguration outputTypeConfiguration, String csvFileName) throws Exception {
     CSVPrinter csvPrinter = new CSVPrinter(new FileWriter(csvFileName), CSVFormat.DEFAULT.withIgnoreSurroundingSpaces());
-    List<String> headerValues = outputTypeConfiguration.getOutputProperties().stream().map(BaseOutputProperty::getName).collect(Collectors.toList());
+    List<String> headerValues = outputTypeConfiguration.getOutputProperties().stream().map(OutputProperty::getName).collect(Collectors.toList());
     csvPrinter.printRecord(headerValues);
     return csvPrinter;
   }

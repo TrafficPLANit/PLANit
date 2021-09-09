@@ -140,7 +140,7 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @param mode the specified mode
    * @return the OD path object
    */
-  public abstract Optional<OdPathMatrix> getODPathMatrix(Mode mode);
+  public abstract Optional<OdPathMatrix> getOdPathMatrix(Mode mode);
 
   /**
    * Returns the specified output property values for the current cell in the ODPathIterator

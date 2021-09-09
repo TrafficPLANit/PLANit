@@ -38,12 +38,12 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   private static final Units DEFAULT_TIME_UNIT = Units.HOUR;
 
   /**
-   * Map of OutputProperty types of keys for each OutputType
+   * Map of OutputProperties of keys for each OutputType
    */
   protected Map<OutputType, OutputProperty[]> outputKeyProperties;
 
   /**
-   * Map of OutputProperty types for values for each OutputType
+   * Map of OutputProperties for values for each OutputType
    */
   protected Map<OutputType, OutputProperty[]> outputValueProperties;
 

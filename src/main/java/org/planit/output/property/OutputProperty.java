@@ -2,122 +2,174 @@ package org.planit.output.property;
 
 import java.util.logging.Logger;
 
+import org.planit.output.enums.DataType;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.unit.UnitUtils;
+import org.planit.utils.unit.Units;
 
 /**
- * Enumeration of possible output properties
+ * Template for output property classes which can be included in the output files.
+ * 
+ * All concrete output property classes must be final and extend this class.
  * 
  * @author gman6028
  *
  */
-public enum OutputProperty {
-
-  // @formatter:off
-  DENSITY("org.planit.output.property.DensityOutputProperty"), 
-  LINK_SEGMENT_ID("org.planit.output.property.LinkSegmentIdOutputProperty"),
-  LINK_SEGMENT_XML_ID("org.planit.output.property.LinkSegmentXmlIdOutputProperty"), 
-  LINK_SEGMENT_EXTERNAL_ID("org.planit.output.property.LinkSegmentExternalIdOutputProperty"),
-  MODE_ID("org.planit.output.property.ModeIdOutputProperty"), 
-  MODE_EXTERNAL_ID("org.planit.output.property.ModeExternalIdOutputProperty"),
-  MODE_XML_ID("org.planit.output.property.ModeXmlIdOutputProperty"), 
-  MAXIMUM_DENSITY("org.planit.output.property.MaximumDensityOutputProperty"),
-  MAXIMUM_SPEED("org.planit.output.property.MaximumSpeedOutputProperty"), 
-  CALCULATED_SPEED("org.planit.output.property.CalculatedSpeedOutputProperty"),
-  FLOW("org.planit.output.property.FlowOutputProperty"), 
-  INFLOW("org.planit.output.property.InflowOutputProperty"), 
-  OUTFLOW("org.planit.output.property.OutflowOutputProperty"),
-  LENGTH("org.planit.output.property.LengthOutputProperty"), 
-  UPSTREAM_NODE_ID("org.planit.output.property.UpstreamNodeIdOutputProperty"),
-  UPSTREAM_NODE_EXTERNAL_ID("org.planit.output.property.UpstreamNodeExternalIdOutputProperty"), 
-  UPSTREAM_NODE_XML_ID("org.planit.output.property.UpstreamNodeXmlIdOutputProperty"),
-  DOWNSTREAM_NODE_ID("org.planit.output.property.DownstreamNodeIdOutputProperty"), 
-  DOWNSTREAM_NODE_EXTERNAL_ID("org.planit.output.property.DownstreamNodeExternalIdOutputProperty"),
-  DOWNSTREAM_NODE_XML_ID("org.planit.output.property.DownstreamNodeXmlIdOutputProperty"), 
-  CAPACITY_PER_LANE("org.planit.output.property.CapacityPerLaneOutputProperty"),
-  NUMBER_OF_LANES("org.planit.output.property.NumberOfLanesOutputProperty"), 
-  LINK_SEGMENT_COST("org.planit.output.property.LinkSegmentCostOutputProperty"),
-  OD_COST("org.planit.output.property.OdCostOutputProperty"), 
-  DOWNSTREAM_NODE_LOCATION("org.planit.output.property.DownstreamNodeLocationOutputProperty"),
-  UPSTREAM_NODE_LOCATION("org.planit.output.property.UpstreamNodeLocationOutputProperty"),
-  ITERATION_INDEX("org.planit.output.property.IterationIndexOutputProperty"),
-  ORIGIN_ZONE_ID("org.planit.output.property.OriginZoneIdOutputProperty"), 
-  ORIGIN_ZONE_EXTERNAL_ID("org.planit.output.property.OriginZoneExternalIdOutputProperty"),
-  ORIGIN_ZONE_XML_ID("org.planit.output.property.OriginZoneXmlIdOutputProperty"), 
-  DESTINATION_ZONE_ID("org.planit.output.property.DestinationZoneIdOutputProperty"),
-  DESTINATION_ZONE_XML_ID("org.planit.output.property.DestinationZoneXmlIdOutputProperty"),
-  DESTINATION_ZONE_EXTERNAL_ID("org.planit.output.property.DestinationZoneExternalIdOutputProperty"), 
-  TIME_PERIOD_ID("org.planit.output.property.TimePeriodIdOutputProperty"),
-  TIME_PERIOD_XML_ID("org.planit.output.property.TimePeriodXmlIdOutputProperty"), 
-  TIME_PERIOD_EXTERNAL_ID("org.planit.output.property.TimePeriodExternalIdOutputProperty"),
-  RUN_ID("org.planit.output.property.RunIdOutputProperty"), 
-  PATH_STRING("org.planit.output.property.PathOutputStringProperty"),
-  PATH_ID("org.planit.output.property.PathIdOutputProperty"), 
-  VC_RATIO("org.planit.output.property.VCRatioOutputProperty"),
-  COST_TIMES_FLOW("org.planit.output.property.CostTimesFlowOutputProperty"), 
-  LINK_SEGMENT_TYPE_ID("org.planit.output.property.LinkSegmentTypeIdOutputProperty"),
-  LINK_SEGMENT_TYPE_NAME("org.planit.output.property.LinkSegmentTypeNameOutputProperty"), 
-  LINK_SEGMENT_TYPE_XML_ID("org.planit.output.property.LinkSegmentTypeXmlIdOutputProperty");
+public abstract class OutputProperty implements Comparable<OutputProperty> {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(OutputProperty.class.getCanonicalName());
 
-  private final String value;
+  /** the override units */
+  private Units overrideUnits = null;
 
   /**
-   * Constructor
+   * Returns the name of the output property
    * 
-   * @param v value string
+   * @return name of the output property
    */
-  OutputProperty(String v) {
-    value = v;
+  public abstract String getName();
+
+  /**
+   * Returns the units of the output property
+   * 
+   * @return units of the output property
+   */
+  public abstract Units getDefaultUnits();
+
+  /**
+   * An output property can be allowed to deviate from its default unit. In which case an override unit is to be made available. By default an output property is not allowed to
+   * deviate. So derived implementations must override this method to ensure it returns true if it does support this feature.
+   * 
+   * @return true when allowed, false otherwise
+   */
+  public boolean supportsUnitsOverride() {
+    return false;
   }
 
   /**
-   * Return the String value associated with this enumeration value (the fully qualified class name)
+   * Indicates if default units are overridden or not.
    * 
-   * @return the class name associated with this enumeration value
+   * @return true when overridden, false otherwise
    */
-  public String value() {
-    return value;
+  public boolean isUnitsOverride() {
+    return overrideUnits != null;
   }
 
   /**
-   * Returns the enumeration value associated with the specified class name
+   * set the units to use for overriding the defaults
    * 
-   * @param value the specified class name
-   * @return the enumeration value associated with this class name
+   * @param overrideUnits units to use
    */
-  public static OutputProperty fromValue(String value) {
-    for (OutputProperty outputProperty : OutputProperty.values()) {
-      if (outputProperty.value.equals(value)) {
-        return outputProperty;
+  public void setUnitsOverride(Units overrideUnits) {
+    if (!supportsUnitsOverride()) {
+      LOGGER.warning(String.format("IGNORE: overriding default units for output property %s, not allowed", this.getClass().getCanonicalName()));
+    }
+    if (!UnitUtils.isConversionSupported(getDefaultUnits(), overrideUnits)) {
+      LOGGER.warning(String.format("IGNORE: overriding units %s yield unsupported conversion from default units %s for output ptoperty %s", getDefaultUnits().toString(),
+          overrideUnits.toString(), this.getClass().getCanonicalName()));
+    }
+    this.overrideUnits = overrideUnits;
+  }
+
+  /**
+   * Only when the property allows a unit override and an override is set this method returns the proposed alternative unit to use. These units are required to be convertible from
+   * the original default unit to the proposed unit
+   * 
+   * @return proposed unit, original unit if none is set
+   */
+  public Units getOverrideUnits() {
+    return isUnitsOverride() ? overrideUnits : getDefaultUnits();
+  }
+
+  /**
+   * Returns the data type of the output property
+   * 
+   * @return data type of the output property
+   */
+  public abstract DataType getDataType();
+
+  /**
+   * Return the value of the OutputProperty enumeration for this property
+   * 
+   * @return the value of the OutputProperty enumeration for this property
+   */
+  public abstract OutputPropertyType getOutputPropertyType();
+
+  /**
+   * Gets the column priority of the output property in output files
+   * 
+   * The lower the column priority value of a property, the further to the left it is placed in the output file
+   * 
+   * @return the column priority
+   */
+  public abstract OutputPropertyPriority getColumnPriority();
+
+  /**
+   * Overridden equals() method
+   * 
+   * This method is needed to allow output properties to be removed from the output list if required.
+   * 
+   * @param otherProperty output property to be compared to this one
+   * 
+   */
+  public boolean equals(Object otherProperty) {
+    return this.getClass().getCanonicalName().equals(otherProperty.getClass().getCanonicalName());
+  }
+
+  /**
+   * Overridden hashCode() method
+   * 
+   * This method is needed to allow output properties to be removed from the output list if required.
+   * 
+   */
+  public int hashCode() {
+    return getDefaultUnits().hashCode() + getDataType().hashCode() + getName().hashCode();
+  }
+
+  /**
+   * compareTo method used to order the output columns when output is being written
+   * 
+   * @param otherProperty output property which is being compared to the current one
+   */
+  public int compareTo(OutputProperty otherProperty) {
+    if (getColumnPriority().equals(otherProperty.getColumnPriority())) {
+      if (getName().equals(otherProperty.getName())) {
+        return getOutputPropertyType().compareTo(otherProperty.getOutputPropertyType());
+      } else {
+        return getName().compareTo(otherProperty.getName());
       }
     }
-    throw new IllegalArgumentException(value);
+    return getColumnPriority().value() - otherProperty.getColumnPriority().value();
   }
 
   /**
-   * Returns the enumeration value associated with a specified header name (the header name in input and output files)
+   * Generate the appropriate BaseOutputProperty object from a specified class name
    * 
-   * @param name the header name
-   * @return the enumeration associated with the specified header name
-   * @throws PlanItException if the name is not associated with any output property
+   * @param propertyClassName the class name of the specified output property
+   * @return the BaseOutputProperty object corresponding to the specified enumeration value
+   * @throws PlanItException thrown if there is an error creating the object
    */
-  public static OutputProperty fromHeaderName(final String name) throws PlanItException {
-    String strippedName = name.stripLeading().stripTrailing();
+  public static OutputProperty of(String propertyClassName) throws PlanItException {
     try {
-      for (OutputProperty outputProperty : OutputProperty.values()) {
-        Class<?> entityClass = Class.forName(outputProperty.value);
-        BaseOutputProperty baseOutputProperty = (BaseOutputProperty) entityClass.getDeclaredConstructor().newInstance();
-        if (baseOutputProperty.getName().equals(strippedName)) {
-          return outputProperty;
-        }
-      }
+      Class<?> entityClass = Class.forName(propertyClassName);
+      OutputProperty outputProperty = (OutputProperty) entityClass.getDeclaredConstructor().newInstance();
+      return outputProperty;
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());
-      throw new PlanItException(e);
+      throw new PlanItException(String.format("Error when converting base output property %s", propertyClassName), e);
     }
-    throw new PlanItException("The header name " + strippedName + " is not associated with any output property");
+  }
+
+  /**
+   * Generate the appropriate BaseOutputProperty object from a specified enumeration value
+   * 
+   * @param outputProperty the enumeration value of the specified output property
+   * @return the BaseOutputProperty object corresponding to the specified enumeration value
+   * @throws PlanItException thrown if there is an error creating the object
+   */
+  public static OutputProperty of(OutputPropertyType outputProperty) throws PlanItException {
+    return of(outputProperty.value());
   }
 
 }

@@ -5,17 +5,16 @@ import java.util.logging.Logger;
 import org.apache.commons.collections4.IterableMap;
 import org.apache.commons.collections4.map.HashedMap;
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.output.formatter.OutputFormatter;
-import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
+import org.planit.output.property.OutputPropertyType;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
  * Class which holds arrays of output property values, identified by arrays of output keys
  * 
- * This class is a wrapper for the MultiKeyMap object which is a Map with multiple keys. This class has input and output
- * methods which are specific to PlanIt output properties.
+ * This class is a wrapper for the MultiKeyMap object which is a Map with multiple keys. This class has input and output methods which are specific to PlanIt output properties.
  * 
  * @author gman6028
  *
@@ -28,8 +27,6 @@ public class MultiKeyPlanItData {
   private IterableMap<Object, Object[]> singleKeyMap;
   private OutputProperty[] outputKeyProperties;
   private OutputProperty[] outputValueProperties;
-  private Type[] valueTypes;
-  private Type[] keyTypes;
 
   /**
    * Get the position of a property type in an output property array
@@ -39,30 +36,14 @@ public class MultiKeyPlanItData {
    * @return the position of the output property in the output property array
    * @throws PlanItException thrown if the output property type is not in the output property array
    */
-  private int getPositionOfOutputProperty(final OutputProperty[] outputProperties, final OutputProperty outputProperty) throws PlanItException {
+  private int getPositionOfOutputProperty(final OutputProperty[] outputProperties, final OutputPropertyType outputProperty) throws PlanItException {
     for (int i = 0; i < outputProperties.length; i++) {
-      if (outputProperties[i].equals(outputProperty)) {
+      if (outputProperties[i].getOutputPropertyType().equals(outputProperty)) {
         return i;
       }
     }
     throw new PlanItException(
-        "Tried to locate a property of type " + BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName() + " which has not been registered in MultiKeyPlanItData");
-  }
-
-  /**
-   * Gets an array of Types from a corresponding array of output properties
-   *
-   * @param outputProperties array of OutputProperty objects
-   * @return array of Types
-   * @throws PlanItException thrown if a Type cannot be derived from an OuputProperty object
-   */
-  private Type[] getTypes(final OutputProperty[] outputProperties) throws PlanItException {
-    final Type[] types = new Type[outputProperties.length];
-    for (int i = 0; i < outputProperties.length; i++) {
-      final BaseOutputProperty property = BaseOutputProperty.convertToBaseOutputProperty(outputProperties[i].value());
-      types[i] = property.getType();
-    }
-    return types;
+        "Tried to locate a property of type " + OutputProperty.of(outputProperty).getName() + " which has not been registered in MultiKeyPlanItData");
   }
 
   /**
@@ -72,7 +53,7 @@ public class MultiKeyPlanItData {
    * @param type the required type of the key object
    * @return true if the key is valid, false otherwise
    */
-  private boolean isValueTypeCorrect(final Object key, final Type type) {
+  private boolean isValueTypeCorrect(final Object key, final DataType type) {
     switch (type) {
     case DOUBLE:
       return (key instanceof Double);
@@ -105,7 +86,7 @@ public class MultiKeyPlanItData {
       return false;
     }
     for (int i = 0; i < outputKeyProperties.length; i++) {
-      if (!isValueTypeCorrect(keyValues[i], keyTypes[i])) {
+      if (!isValueTypeCorrect(keyValues[i], outputKeyProperties[i].getDataType())) {
         LOGGER.warning("output key in position " + (i + 1) + " is of the wrong type.");
         return false;
       }
@@ -127,9 +108,7 @@ public class MultiKeyPlanItData {
     singleKeyMap = new HashedMap<Object, Object[]>();
 
     this.outputKeyProperties = outputKeyProperties;
-    keyTypes = getTypes(outputKeyProperties);
     this.outputValueProperties = outputValueProperties;
-    valueTypes = getTypes(outputValueProperties);
   }
 
   /**
@@ -226,7 +205,7 @@ public class MultiKeyPlanItData {
    * @return the value of the specified cell
    * @throws PlanItException thrown if there is an error
    */
-  public Object getRowValue(final OutputProperty outputProperty, final Object... keyValues) throws PlanItException {
+  public Object getRowValue(final OutputPropertyType outputProperty, final Object... keyValues) throws PlanItException {
     final Object[] rowValues = getRowValues(keyValues);
     final int pos = getPositionOfOutputValueProperty(outputProperty);
     return rowValues[pos];
@@ -244,8 +223,8 @@ public class MultiKeyPlanItData {
     PlanItException.throwIf(outputValues.length != outputValueProperties.length, "Wrong number of property values used in call to MultiKeyPlanItData");
 
     for (int i = 0; i < outputValueProperties.length; i++) {
-      PlanItException.throwIf((!isValueTypeCorrect(outputValues[i], valueTypes[i])) && (!outputValues[i].equals(OutputFormatter.NOT_SPECIFIED)),
-          String.format("Property in position %d in setRowValues() is of the wrong type",i));
+      PlanItException.throwIf((!isValueTypeCorrect(outputValues[i], outputValueProperties[i].getDataType())) && (!outputValues[i].equals(OutputFormatter.NOT_SPECIFIED)),
+          String.format("Property in position %d in setRowValues() is of the wrong type", i));
     }
     PlanItException.throwIf(!isKeyValuesValid(keyValues), "Call to setRowValues() with one or more keys of the wrong type");
 
@@ -276,7 +255,7 @@ public class MultiKeyPlanItData {
    * @param keyValues      array of key values specifying the row
    * @throws PlanItException thrown if there is an error
    */
-  public void putRowValue(final OutputProperty outputProperty, final Object value, final Object... keyValues) throws PlanItException {
+  public void putRowValue(final OutputPropertyType outputProperty, final Object value, final Object... keyValues) throws PlanItException {
     PlanItException.throwIf(keyValues.length != outputKeyProperties.length, "Wrong number of keys used in call to MultiKeyPlanItData");
 
     Object[] outputValues = null;
@@ -322,7 +301,7 @@ public class MultiKeyPlanItData {
    * @return the position of the output value property in the output values property array
    * @throws PlanItException thrown if the output property type is not in the output values property array
    */
-  public int getPositionOfOutputValueProperty(final OutputProperty outputValueProperty) throws PlanItException {
+  public int getPositionOfOutputValueProperty(final OutputPropertyType outputValueProperty) throws PlanItException {
     return getPositionOfOutputProperty(outputValueProperties, outputValueProperty);
   }
 
@@ -333,7 +312,7 @@ public class MultiKeyPlanItData {
    * @return the position of the output key property in the output keys property array
    * @throws PlanItException thrown if the output property type is not in the output keys property array
    */
-  public int getPositionOfOutputKeyProperty(final OutputProperty outputKeyProperty) throws PlanItException {
+  public int getPositionOfOutputKeyProperty(final OutputPropertyType outputKeyProperty) throws PlanItException {
     return getPositionOfOutputProperty(outputKeyProperties, outputKeyProperty);
   }
 

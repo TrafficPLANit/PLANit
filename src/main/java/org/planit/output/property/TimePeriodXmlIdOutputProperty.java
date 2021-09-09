@@ -2,12 +2,12 @@ package org.planit.output.property;
 
 import java.util.Optional;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.unit.Units;
 
-public final class TimePeriodXmlIdOutputProperty extends BaseOutputProperty {
+public final class TimePeriodXmlIdOutputProperty extends OutputProperty {
 
   public static final String NAME = "Time Period Xml Id";
 
@@ -17,18 +17,18 @@ public final class TimePeriodXmlIdOutputProperty extends BaseOutputProperty {
   }
 
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.NONE;
   }
 
   @Override
-  public Type getType() {
-    return Type.STRING;
+  public DataType getDataType() {
+    return DataType.STRING;
   }
 
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.TIME_PERIOD_XML_ID;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.TIME_PERIOD_XML_ID;
   }
 
   @Override

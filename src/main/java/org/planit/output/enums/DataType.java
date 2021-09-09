@@ -6,7 +6,7 @@ package org.planit.output.enums;
  * @author gman6028
  *
  */
-public enum Type {
+public enum DataType {
 
   DOUBLE("DOUBLE"),
   FLOAT("FLOAT"),
@@ -18,7 +18,7 @@ public enum Type {
   
   private final String value;
 
-  Type(String v) {
+  DataType(String v) {
     value = v;
   }
 

@@ -51,7 +51,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
   /**
    * Stores the current OD Path for each mode
    */
-  private Map<Mode, OdPathMatrix> modalODPathMatrixMap;
+  private Map<Mode, OdPathMatrix> modalOdPathMatrixMap;
 
   /**
    * Constructor
@@ -64,7 +64,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
     this.modeSpecificData = new TreeMap<Mode, ModeData>();
     this.modalNetworkSegmentCostsMap = new HashMap<Mode, double[]>();
     this.modalSkimMatrixMap = new HashMap<Mode, Map<OdSkimSubOutputType, OdSkimMatrix>>();
-    this.modalODPathMatrixMap = new HashMap<Mode, OdPathMatrix>();
+    this.modalOdPathMatrixMap = new HashMap<Mode, OdPathMatrix>();
   }
 
   /**
@@ -147,7 +147,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param zones Zones object containing all the origin and destination zones
    */
   public void resetPathMatrix(Mode mode, OdZones zones) {
-    modalODPathMatrixMap.put(mode, new OdPathMatrix(groupId, zones));
+    modalOdPathMatrixMap.put(mode, new OdPathMatrix(groupId, zones));
   }
 
   /**
@@ -157,7 +157,7 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param mode             the specified mode
    * @return the skim matrix for the specified mode
    */
-  public OdSkimMatrix getODSkimMatrix(OdSkimSubOutputType odSkimOutputType, Mode mode) {
+  public OdSkimMatrix getOdSkimMatrix(OdSkimSubOutputType odSkimOutputType, Mode mode) {
     if (modalSkimMatrixMap.containsKey(mode)) {
       Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap = modalSkimMatrixMap.get(mode);
       if (skimMatrixMap.containsKey(odSkimOutputType)) {
@@ -173,8 +173,8 @@ public class TraditionalStaticAssignmentSimulationData extends SimulationData {
    * @param mode the specified mode
    * @return the OD path for this mode
    */
-  public OdPathMatrix getODPathMatrix(Mode mode) {
-    return modalODPathMatrixMap.get(mode);
+  public OdPathMatrix getOdPathMatrix(Mode mode) {
+    return modalOdPathMatrixMap.get(mode);
   }
 
   /**

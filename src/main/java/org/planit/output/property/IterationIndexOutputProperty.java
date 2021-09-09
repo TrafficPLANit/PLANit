@@ -3,11 +3,11 @@ package org.planit.output.property;
 import java.util.Optional;
 
 import org.planit.assignment.TrafficAssignment;
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.unit.Units;
 
-public final class IterationIndexOutputProperty extends BaseOutputProperty {
+public final class IterationIndexOutputProperty extends OutputProperty {
 
   public static final String NAME = "Iteration Index";
 
@@ -17,18 +17,18 @@ public final class IterationIndexOutputProperty extends BaseOutputProperty {
   }
 
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.NONE;
   }
 
   @Override
-  public Type getType() {
-    return Type.INTEGER;
+  public DataType getDataType() {
+    return DataType.INTEGER;
   }
 
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.ITERATION_INDEX;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.ITERATION_INDEX;
   }
 
   @Override

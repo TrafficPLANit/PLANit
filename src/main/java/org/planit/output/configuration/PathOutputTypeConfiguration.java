@@ -1,14 +1,15 @@
 package org.planit.output.configuration;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.planit.network.layer.macroscopic.MacroscopicLinkSegmentImpl;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.PathOutputIdentificationType;
-import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
+import org.planit.output.property.OutputPropertyType;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
@@ -51,14 +52,14 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    * @return the value of the identification type determined
    */
   private int findIdentificationMethod(OutputProperty[] outputKeyProperties) {
-    List<OutputProperty> outputKeyPropertyList = Arrays.asList(outputKeyProperties);
-    if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_ID)) {
+    Set<OutputPropertyType> outputKeyPropertyList = Arrays.stream(outputKeyProperties).map(op -> op.getOutputPropertyType()).collect(Collectors.toSet());
+    if (outputKeyPropertyList.contains(OutputPropertyType.ORIGIN_ZONE_ID) && outputKeyPropertyList.contains(OutputPropertyType.DESTINATION_ZONE_ID)) {
       return ORIGIN_DESTINATION_ID_IDENTIFICATION;
     }
-    if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_XML_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_XML_ID)) {
+    if (outputKeyPropertyList.contains(OutputPropertyType.ORIGIN_ZONE_XML_ID) && outputKeyPropertyList.contains(OutputPropertyType.DESTINATION_ZONE_XML_ID)) {
       return ORIGIN_DESTINATION_XML_ID_IDENTIFICATION;
     }
-    if (outputKeyPropertyList.contains(OutputProperty.ORIGIN_ZONE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputProperty.DESTINATION_ZONE_EXTERNAL_ID)) {
+    if (outputKeyPropertyList.contains(OutputPropertyType.ORIGIN_ZONE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputPropertyType.DESTINATION_ZONE_EXTERNAL_ID)) {
       return ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION;
     }
     return ORIGIN_DESTINATION_NOT_IDENTIFIED;
@@ -74,12 +75,12 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
   public PathOutputTypeConfiguration() throws PlanItException {
     super(OutputType.PATH);
     // add default output properties
-    addProperty(OutputProperty.PATH_ID);
-    addProperty(OutputProperty.TIME_PERIOD_XML_ID);
-    addProperty(OutputProperty.MODE_XML_ID);
-    addProperty(OutputProperty.ORIGIN_ZONE_XML_ID);
-    addProperty(OutputProperty.DESTINATION_ZONE_XML_ID);
-    addProperty(OutputProperty.PATH_STRING);
+    addProperty(OutputPropertyType.PATH_ID);
+    addProperty(OutputPropertyType.TIME_PERIOD_XML_ID);
+    addProperty(OutputPropertyType.MODE_XML_ID);
+    addProperty(OutputPropertyType.ORIGIN_ZONE_XML_ID);
+    addProperty(OutputPropertyType.DESTINATION_ZONE_XML_ID);
+    addProperty(OutputPropertyType.PATH_STRING);
     pathIdType = PathOutputIdentificationType.LINK_SEGMENT_XML_ID;
   }
 
@@ -93,27 +94,32 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
   public OutputProperty[] validateAndFilterKeyProperties(OutputProperty[] outputKeyProperties) {
     OutputProperty[] outputKeyPropertiesArray = null;
     boolean valid = false;
-    switch (findIdentificationMethod(outputKeyProperties)) {
-    case ORIGIN_DESTINATION_ID_IDENTIFICATION:
-      outputKeyPropertiesArray = new OutputProperty[2];
-      outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_ID;
-      outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_ID;
-      valid = true;
-      break;
-    case ORIGIN_DESTINATION_XML_ID_IDENTIFICATION:
-      outputKeyPropertiesArray = new OutputProperty[2];
-      outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_XML_ID;
-      outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_XML_ID;
-      valid = true;
-      break;
-    case ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION:
-      outputKeyPropertiesArray = new OutputProperty[2];
-      outputKeyPropertiesArray[0] = OutputProperty.ORIGIN_ZONE_EXTERNAL_ID;
-      outputKeyPropertiesArray[1] = OutputProperty.DESTINATION_ZONE_EXTERNAL_ID;
-      valid = true;
-      break;
-    default:
-      LOGGER.warning("configured keys cannot identify origin-destination cell in the skim matrix");
+    try {
+      switch (findIdentificationMethod(outputKeyProperties)) {
+      case ORIGIN_DESTINATION_ID_IDENTIFICATION:
+        outputKeyPropertiesArray = new OutputProperty[2];
+        outputKeyPropertiesArray[0] = OutputProperty.of(OutputPropertyType.ORIGIN_ZONE_ID);
+        outputKeyPropertiesArray[1] = OutputProperty.of(OutputPropertyType.DESTINATION_ZONE_ID);
+        valid = true;
+        break;
+      case ORIGIN_DESTINATION_XML_ID_IDENTIFICATION:
+        outputKeyPropertiesArray = new OutputProperty[2];
+        outputKeyPropertiesArray[0] = OutputProperty.of(OutputPropertyType.ORIGIN_ZONE_XML_ID);
+        outputKeyPropertiesArray[1] = OutputProperty.of(OutputPropertyType.DESTINATION_ZONE_XML_ID);
+        valid = true;
+        break;
+      case ORIGIN_DESTINATION_EXTERNAL_ID_IDENTIFICATION:
+        outputKeyPropertiesArray = new OutputProperty[2];
+        outputKeyPropertiesArray[0] = OutputProperty.of(OutputPropertyType.ORIGIN_ZONE_EXTERNAL_ID);
+        outputKeyPropertiesArray[1] = OutputProperty.of(OutputPropertyType.DESTINATION_ZONE_EXTERNAL_ID);
+        valid = true;
+        break;
+      default:
+        LOGGER.warning("configured keys cannot identify origin-destination cell in the skim matrix");
+      }
+    } catch (Exception e) {
+      LOGGER.warning(e.getMessage());
+      LOGGER.warning("Invalid keys encountered for identifying path data");
     }
     if (valid) {
       return outputKeyPropertiesArray;
@@ -147,8 +153,8 @@ public class PathOutputTypeConfiguration extends OutputTypeConfiguration {
    * @return true if the output property is valid, false otherwise
    */
   @Override
-  public boolean isOutputPropertyValid(BaseOutputProperty baseOutputProperty) {
-    switch (baseOutputProperty.getOutputProperty()) {
+  public boolean isOutputPropertyValid(OutputProperty baseOutputProperty) {
+    switch (baseOutputProperty.getOutputPropertyType()) {
 
     case DESTINATION_ZONE_XML_ID:
       return true;

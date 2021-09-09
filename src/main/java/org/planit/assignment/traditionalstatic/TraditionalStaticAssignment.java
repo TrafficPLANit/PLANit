@@ -182,7 +182,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     final OdDemands odDemands = getDemands().get(mode, timePeriod);
 
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
-    final OdPathMatrix odpathMatrix = simulationData.getODPathMatrix(mode);
+    final OdPathMatrix odpathMatrix = simulationData.getOdPathMatrix(mode);
     final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
 
     // loop over all available OD demands
@@ -597,7 +597,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       outputTypeAdapter = new TraditionalStaticAssignmentLinkOutputTypeAdapter(outputType, this);
       break;
     case OD:
-      outputTypeAdapter = new TraditionalStaticAssignmentODOutputTypeAdapter(outputType, this);
+      outputTypeAdapter = new TraditionalStaticAssignmentOdOutputTypeAdapter(outputType, this);
       break;
     case PATH:
       outputTypeAdapter = new TraditionalStaticPathOutputTypeAdapter(outputType, this);

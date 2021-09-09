@@ -1,9 +1,9 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
-public final class UpstreamNodeExternalIdOutputProperty extends BaseOutputProperty {
+public final class UpstreamNodeExternalIdOutputProperty extends OutputProperty {
 
   public static final String NAME = "Upstream Node External Id";
 
@@ -13,18 +13,18 @@ public final class UpstreamNodeExternalIdOutputProperty extends BaseOutputProper
   }
 
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.NONE;
   }
 
   @Override
-  public Type getType() {
-    return Type.STRING;
+  public DataType getDataType() {
+    return DataType.STRING;
   }
 
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.UPSTREAM_NODE_EXTERNAL_ID;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.UPSTREAM_NODE_EXTERNAL_ID;
   }
 
   @Override

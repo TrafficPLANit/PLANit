@@ -1,6 +1,6 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
 /**
@@ -9,7 +9,7 @@ import org.planit.utils.unit.Units;
  * @author markr
  *
  */
-public class LinkSegmentXmlIdOutputProperty extends BaseOutputProperty {
+public class LinkSegmentXmlIdOutputProperty extends OutputProperty {
 
   public final static String NAME = "Link Segment Xml Id";
 
@@ -25,7 +25,7 @@ public class LinkSegmentXmlIdOutputProperty extends BaseOutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.NONE;
   }
 
@@ -33,16 +33,16 @@ public class LinkSegmentXmlIdOutputProperty extends BaseOutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Type getType() {
-    return Type.STRING;
+  public DataType getDataType() {
+    return DataType.STRING;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.LINK_SEGMENT_XML_ID;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.LINK_SEGMENT_XML_ID;
   }
 
   /**

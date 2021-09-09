@@ -1,9 +1,9 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
-public final class OdCostOutputProperty extends BaseOutputProperty {
+public final class OdCostOutputProperty extends OutputProperty {
 
   public static final String NAME = "Cost";
 
@@ -13,18 +13,18 @@ public final class OdCostOutputProperty extends BaseOutputProperty {
   }
 
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.HOUR;
   }
 
   @Override
-  public Type getType() {
-    return Type.DOUBLE;
+  public DataType getDataType() {
+    return DataType.DOUBLE;
   }
 
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.OD_COST;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.OD_COST;
   }
 
   @Override

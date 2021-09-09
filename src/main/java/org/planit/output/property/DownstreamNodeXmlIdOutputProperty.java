@@ -1,9 +1,9 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
-public final class DownstreamNodeXmlIdOutputProperty extends BaseOutputProperty {
+public final class DownstreamNodeXmlIdOutputProperty extends OutputProperty {
 
   public static final String NAME = "Downstream Node Xml Id";
 
@@ -13,18 +13,18 @@ public final class DownstreamNodeXmlIdOutputProperty extends BaseOutputProperty 
   }
 
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.NONE;
   }
 
   @Override
-  public Type getType() {
-    return Type.STRING;
+  public DataType getDataType() {
+    return DataType.STRING;
   }
 
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.DOWNSTREAM_NODE_XML_ID;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.DOWNSTREAM_NODE_XML_ID;
   }
 
   @Override

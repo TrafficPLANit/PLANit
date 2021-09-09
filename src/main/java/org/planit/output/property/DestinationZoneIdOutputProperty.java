@@ -1,9 +1,9 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
-public final class DestinationZoneIdOutputProperty extends BaseOutputProperty {
+public final class DestinationZoneIdOutputProperty extends OutputProperty {
 
   public static final String NAME = "Destination Zone Id";
 
@@ -13,18 +13,18 @@ public final class DestinationZoneIdOutputProperty extends BaseOutputProperty {
   }
 
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.NONE;
   }
 
   @Override
-  public Type getType() {
-    return Type.LONG;
+  public DataType getDataType() {
+    return DataType.LONG;
   }
 
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.DESTINATION_ZONE_ID;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.DESTINATION_ZONE_ID;
   }
 
   @Override

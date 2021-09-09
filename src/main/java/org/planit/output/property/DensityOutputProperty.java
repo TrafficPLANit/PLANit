@@ -1,6 +1,6 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
 /**
@@ -9,7 +9,7 @@ import org.planit.utils.unit.Units;
  * @author markr
  *
  */
-public final class DensityOutputProperty extends BaseOutputProperty {
+public final class DensityOutputProperty extends OutputProperty {
 
   public static final String NAME = "Density";
 
@@ -25,7 +25,7 @@ public final class DensityOutputProperty extends BaseOutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.PCU_KM;
   }
 
@@ -33,16 +33,16 @@ public final class DensityOutputProperty extends BaseOutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Type getType() {
-    return Type.DOUBLE;
+  public DataType getDataType() {
+    return DataType.DOUBLE;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.DENSITY;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.DENSITY;
   }
 
   /**

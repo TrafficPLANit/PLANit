@@ -1,12 +1,13 @@
 package org.planit.output.configuration;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.planit.output.enums.OutputType;
-import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
+import org.planit.output.property.OutputPropertyType;
 import org.planit.utils.exceptions.PlanItException;
 
 /**
@@ -56,20 +57,20 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
    * @return the value of the identification type determined
    */
   private int findIdentificationMethod(OutputProperty[] outputKeyProperties) {
-    List<OutputProperty> outputKeyPropertyList = Arrays.asList(outputKeyProperties);
-    if (outputKeyPropertyList.contains(OutputProperty.DOWNSTREAM_NODE_XML_ID) && outputKeyPropertyList.contains(OutputProperty.UPSTREAM_NODE_XML_ID)) {
+    Set<OutputPropertyType> outputKeyPropertyList = Arrays.stream(outputKeyProperties).map(op -> op.getOutputPropertyType()).collect(Collectors.toSet());
+    if (outputKeyPropertyList.contains(OutputPropertyType.DOWNSTREAM_NODE_XML_ID) && outputKeyPropertyList.contains(OutputPropertyType.UPSTREAM_NODE_XML_ID)) {
       return LINK_SEGMENT_IDENTIFICATION_BY_NODE_XML_ID;
     }
-    if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_ID)) {
+    if (outputKeyPropertyList.contains(OutputPropertyType.LINK_SEGMENT_ID)) {
       return LINK_SEGMENT_IDENTIFICATION_BY_ID;
     }
-    if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_XML_ID)) {
+    if (outputKeyPropertyList.contains(OutputPropertyType.LINK_SEGMENT_XML_ID)) {
       return LINK_SEGMENT_IDENTIFICATION_BY_XML_ID;
     }
-    if (outputKeyPropertyList.contains(OutputProperty.LINK_SEGMENT_EXTERNAL_ID)) {
+    if (outputKeyPropertyList.contains(OutputPropertyType.LINK_SEGMENT_EXTERNAL_ID)) {
       return LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID;
     }
-    if (outputKeyPropertyList.contains(OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputProperty.UPSTREAM_NODE_EXTERNAL_ID)) {
+    if (outputKeyPropertyList.contains(OutputPropertyType.DOWNSTREAM_NODE_EXTERNAL_ID) && outputKeyPropertyList.contains(OutputPropertyType.UPSTREAM_NODE_EXTERNAL_ID)) {
       return LINK_SEGMENT_IDENTIFICATION_BY_NODE_EXTERNAL_ID;
     }
     return LINK_SEGMENT_NOT_IDENTIFIED;
@@ -84,15 +85,15 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
    */
   public LinkOutputTypeConfiguration() throws PlanItException {
     super(OutputType.LINK);
-    addProperty(OutputProperty.LINK_SEGMENT_XML_ID);
-    addProperty(OutputProperty.UPSTREAM_NODE_XML_ID);
-    addProperty(OutputProperty.DOWNSTREAM_NODE_XML_ID);
-    addProperty(OutputProperty.FLOW);
-    addProperty(OutputProperty.CALCULATED_SPEED);
-    addProperty(OutputProperty.LINK_SEGMENT_COST);
-    addProperty(OutputProperty.MODE_XML_ID);
-    addProperty(OutputProperty.MAXIMUM_SPEED);
-    addProperty(OutputProperty.TIME_PERIOD_XML_ID);
+    addProperty(OutputPropertyType.LINK_SEGMENT_XML_ID);
+    addProperty(OutputPropertyType.UPSTREAM_NODE_XML_ID);
+    addProperty(OutputPropertyType.DOWNSTREAM_NODE_XML_ID);
+    addProperty(OutputPropertyType.FLOW);
+    addProperty(OutputPropertyType.CALCULATED_SPEED);
+    addProperty(OutputPropertyType.LINK_SEGMENT_COST);
+    addProperty(OutputPropertyType.MODE_XML_ID);
+    addProperty(OutputPropertyType.MAXIMUM_SPEED);
+    addProperty(OutputPropertyType.TIME_PERIOD_XML_ID);
   }
 
   /**
@@ -105,36 +106,41 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
   public OutputProperty[] validateAndFilterKeyProperties(OutputProperty[] outputKeyProperties) {
     OutputProperty[] outputKeyPropertiesArray = null;
     boolean valid = false;
-    switch (findIdentificationMethod(outputKeyProperties)) {
-    case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_NODE_XML_ID:
-      outputKeyPropertiesArray = new OutputProperty[2];
-      outputKeyPropertiesArray[0] = OutputProperty.DOWNSTREAM_NODE_XML_ID;
-      outputKeyPropertiesArray[1] = OutputProperty.UPSTREAM_NODE_XML_ID;
-      valid = true;
-      break;
-    case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_NODE_EXTERNAL_ID:
-      outputKeyPropertiesArray = new OutputProperty[2];
-      outputKeyPropertiesArray[0] = OutputProperty.DOWNSTREAM_NODE_EXTERNAL_ID;
-      outputKeyPropertiesArray[1] = OutputProperty.UPSTREAM_NODE_EXTERNAL_ID;
-      valid = true;
-      break;
-    case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_ID:
-      outputKeyPropertiesArray = new OutputProperty[1];
-      outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_ID;
-      valid = true;
-      break;
-    case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_XML_ID:
-      outputKeyPropertiesArray = new OutputProperty[1];
-      outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_XML_ID;
-      valid = true;
-      break;
-    case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID:
-      outputKeyPropertiesArray = new OutputProperty[1];
-      outputKeyPropertiesArray[0] = OutputProperty.LINK_SEGMENT_EXTERNAL_ID;
-      valid = true;
-      break;
-    default:
-      LOGGER.warning("configured keys cannot identify link segments");
+    try {
+      switch (findIdentificationMethod(outputKeyProperties)) {
+      case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_NODE_XML_ID:
+        outputKeyPropertiesArray = new OutputProperty[2];
+        outputKeyPropertiesArray[0] = OutputProperty.of(OutputPropertyType.DOWNSTREAM_NODE_XML_ID);
+        outputKeyPropertiesArray[1] = OutputProperty.of(OutputPropertyType.UPSTREAM_NODE_XML_ID);
+        valid = true;
+        break;
+      case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_NODE_EXTERNAL_ID:
+        outputKeyPropertiesArray = new OutputProperty[2];
+        outputKeyPropertiesArray[0] = OutputProperty.of(OutputPropertyType.DOWNSTREAM_NODE_EXTERNAL_ID);
+        outputKeyPropertiesArray[1] = OutputProperty.of(OutputPropertyType.UPSTREAM_NODE_EXTERNAL_ID);
+        valid = true;
+        break;
+      case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_ID:
+        outputKeyPropertiesArray = new OutputProperty[1];
+        outputKeyPropertiesArray[0] = OutputProperty.of(OutputPropertyType.LINK_SEGMENT_ID);
+        valid = true;
+        break;
+      case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_XML_ID:
+        outputKeyPropertiesArray = new OutputProperty[1];
+        outputKeyPropertiesArray[0] = OutputProperty.of(OutputPropertyType.LINK_SEGMENT_XML_ID);
+        valid = true;
+        break;
+      case LinkOutputTypeConfiguration.LINK_SEGMENT_IDENTIFICATION_BY_EXTERNAL_ID:
+        outputKeyPropertiesArray = new OutputProperty[1];
+        outputKeyPropertiesArray[0] = OutputProperty.of(OutputPropertyType.LINK_SEGMENT_EXTERNAL_ID);
+        valid = true;
+        break;
+      default:
+        LOGGER.warning("configured keys cannot identify link segments");
+      }
+    } catch (Exception e) {
+      LOGGER.warning(e.getMessage());
+      LOGGER.warning("Invalid keys encountered for identifying link segments");
     }
     if (valid) {
       return outputKeyPropertiesArray;
@@ -149,8 +155,8 @@ public class LinkOutputTypeConfiguration extends OutputTypeConfiguration {
    * @return true if the output property is valid, false otherwise
    */
   @Override
-  public boolean isOutputPropertyValid(BaseOutputProperty baseOutputProperty) {
-    switch (baseOutputProperty.getOutputProperty()) {
+  public boolean isOutputPropertyValid(OutputProperty baseOutputProperty) {
+    switch (baseOutputProperty.getOutputPropertyType()) {
     case CALCULATED_SPEED:
       return true;
     case CAPACITY_PER_LANE:

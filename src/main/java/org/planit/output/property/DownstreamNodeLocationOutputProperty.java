@@ -1,9 +1,9 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
-public final class DownstreamNodeLocationOutputProperty extends BaseOutputProperty {
+public final class DownstreamNodeLocationOutputProperty extends OutputProperty {
 
   public static final String NAME = "Downstream Node Location";
 
@@ -13,18 +13,18 @@ public final class DownstreamNodeLocationOutputProperty extends BaseOutputProper
   }
 
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.SRS;
   }
 
   @Override
-  public Type getType() {
-    return Type.SRSNAME;
+  public DataType getDataType() {
+    return DataType.SRSNAME;
   }
 
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.DOWNSTREAM_NODE_LOCATION;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.DOWNSTREAM_NODE_LOCATION;
   }
 
   @Override

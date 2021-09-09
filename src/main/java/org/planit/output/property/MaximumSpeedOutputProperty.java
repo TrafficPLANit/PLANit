@@ -1,9 +1,9 @@
 package org.planit.output.property;
 
-import org.planit.output.enums.Type;
+import org.planit.output.enums.DataType;
 import org.planit.utils.unit.Units;
 
-public final class MaximumSpeedOutputProperty extends BaseOutputProperty {
+public final class MaximumSpeedOutputProperty extends OutputProperty {
 
   public static final String NAME = "Maximum Speed";
 
@@ -13,18 +13,18 @@ public final class MaximumSpeedOutputProperty extends BaseOutputProperty {
   }
 
   @Override
-  public Units getUnits() {
+  public Units getDefaultUnits() {
     return Units.KM_HOUR;
   }
 
   @Override
-  public Type getType() {
-    return Type.DOUBLE;
+  public DataType getDataType() {
+    return DataType.DOUBLE;
   }
 
   @Override
-  public OutputProperty getOutputProperty() {
-    return OutputProperty.MAXIMUM_SPEED;
+  public OutputPropertyType getOutputPropertyType() {
+    return OutputPropertyType.MAXIMUM_SPEED;
   }
 
   @Override

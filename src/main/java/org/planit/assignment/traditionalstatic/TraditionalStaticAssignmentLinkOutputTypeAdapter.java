@@ -5,7 +5,6 @@ import java.util.Optional;
 import org.planit.assignment.TrafficAssignment;
 import org.planit.output.adapter.MacroscopicLinkOutputTypeAdapterImpl;
 import org.planit.output.enums.OutputType;
-import org.planit.output.property.BaseOutputProperty;
 import org.planit.output.property.OutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
@@ -136,8 +135,10 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
   @Override
   public Optional<?> getLinkSegmentOutputPropertyValue(final OutputProperty outputProperty, final MacroscopicLinkSegment linkSegment, final Mode mode,
       final TimePeriod timePeriod) {
+
+    Optional<?> value = Optional.empty();
     try {
-      Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
+      value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (value.isPresent()) {
         return value;
       }
@@ -147,28 +148,39 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
         return value;
       }
 
-      switch (outputProperty) {
+      switch (outputProperty.getOutputPropertyType()) {
       case CALCULATED_SPEED:
-        return getCalculatedSpeed(linkSegment, mode);
+        value = getCalculatedSpeed(linkSegment, mode);
+        break;
       case FLOW:
-        return getFlow(linkSegment, mode);
+        value = getFlow(linkSegment, mode);
+        break;
       case INFLOW:
-        return getFlow(linkSegment, mode);
+        value = getFlow(linkSegment, mode);
+        break;
       case OUTFLOW:
-        return getFlow(linkSegment, mode);
+        value = getFlow(linkSegment, mode);
+        break;
       case LINK_SEGMENT_COST:
-        return getLinkCost(linkSegment, mode);
+        value = getLinkCost(linkSegment, mode);
+        break;
       case VC_RATIO:
-        return getVCRatio(linkSegment);
+        value = getVCRatio(linkSegment);
+        break;
       case COST_TIMES_FLOW:
-        return getCostTimesFlow(linkSegment, mode);
+        value = getCostTimesFlow(linkSegment, mode);
+        break;
       default:
-        return Optional
-            .of(String.format("Tried to find link property of %s which is not applicable for links", BaseOutputProperty.convertToBaseOutputProperty(outputProperty).getName()));
+        throw new PlanItException("Tried to find link property of %s which is not applicable for links", outputProperty.getName());
+      }
+
+      if (outputProperty.supportsUnitsOverride() && outputProperty.isUnitsOverride()) {
+        value = createConvertedUnitsValue(outputProperty, value);
       }
     } catch (final PlanItException e) {
-      return Optional.of(e.getMessage());
+      value = Optional.of(e.getMessage());
     }
+    return value;
   }
 
 }
