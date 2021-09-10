@@ -37,6 +37,7 @@ import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.output.OutputUtils;
 import org.planit.utils.time.TimePeriod;
+import org.planit.utils.unit.VehiclesUnit;
 
 /**
  * Class containing common methods required by classes which write results to CSV output files
@@ -94,6 +95,11 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       // perform actual persistence
       final OutputProperty odCostProperty = OutputProperty.of(OutputPropertyType.OD_COST);
       for (Mode mode : modes) {
+
+        // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+        // the current mode's conversion factor
+        VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
+
         Optional<OdSkimMatrix> odSkimMatrix = odOutputTypeAdapter.getOdSkimMatrix(currentSubOutputType, mode);
         odSkimMatrix.orElseThrow(() -> new PlanItException("od skim matrix could not be retrieved when persisting"));
 
@@ -141,6 +147,10 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
       PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
       SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
       for (Mode mode : modes) {
+        // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+        // the current mode's conversion factor
+        VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
+
         Optional<OdPathMatrix> odPathMatrix = pathOutputTypeAdapter.getOdPathMatrix(mode);
         odPathMatrix.orElseThrow(() -> new PlanItException("od path matrix could not be retrieved when persisting"));
 
@@ -187,6 +197,10 @@ public abstract class CsvFileOutputFormatter extends FileOutputFormatter {
 
       SortedSet<OutputProperty> outputProperties = outputTypeConfiguration.getOutputProperties();
       for (Mode mode : modes) {
+        // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+        // the current mode's conversion factor
+        VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
+
         Optional<Long> networkLayerId = linkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
         if (networkLayerId.isPresent()) {
           for (MacroscopicLinkSegment linkSegment : linkOutputTypeAdapter.getPhysicalLinkSegments(networkLayerId.get())) {

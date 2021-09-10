@@ -1,7 +1,7 @@
 package org.planit.output.property;
 
 import org.planit.output.enums.DataType;
-import org.planit.utils.unit.Units;
+import org.planit.utils.unit.Unit;
 
 /**
  * Calculate speed output property class
@@ -13,26 +13,49 @@ public final class CalculatedSpeedOutputProperty extends OutputProperty {
 
   public static final String NAME = "Calculated Speed";
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean supportsUnitOverride() {
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String getName() {
     return NAME;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public Units getDefaultUnits() {
-    return Units.KM_HOUR;
+  public Unit getDefaultUnit() {
+    return Unit.KM_HOUR;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public DataType getDataType() {
     return DataType.DOUBLE;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public OutputPropertyType getOutputPropertyType() {
     return OutputPropertyType.CALCULATED_SPEED;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public OutputPropertyPriority getColumnPriority() {
     return OutputPropertyPriority.RESULT_PRIORITY;

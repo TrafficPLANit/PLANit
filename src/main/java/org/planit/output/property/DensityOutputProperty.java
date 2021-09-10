@@ -1,7 +1,7 @@
 package org.planit.output.property;
 
 import org.planit.output.enums.DataType;
-import org.planit.utils.unit.Units;
+import org.planit.utils.unit.Unit;
 
 /**
  * Density output property in pcu/km
@@ -17,6 +17,14 @@ public final class DensityOutputProperty extends OutputProperty {
    * {@inheritDoc}
    */
   @Override
+  public boolean supportsUnitOverride() {
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public String getName() {
     return NAME;
   }
@@ -25,8 +33,8 @@ public final class DensityOutputProperty extends OutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Units getDefaultUnits() {
-    return Units.PCU_KM;
+  public Unit getDefaultUnit() {
+    return Unit.PCU_KM;
   }
 
   /**

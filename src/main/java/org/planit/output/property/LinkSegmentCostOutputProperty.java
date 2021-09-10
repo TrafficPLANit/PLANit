@@ -1,11 +1,25 @@
 package org.planit.output.property;
 
 import org.planit.output.enums.DataType;
-import org.planit.utils.unit.Units;
+import org.planit.utils.unit.Unit;
 
+/**
+ * Link segment cost property. For now the cost is expressed in hours by default.
+ * 
+ * @author markr
+ *
+ */
 public final class LinkSegmentCostOutputProperty extends OutputProperty {
 
   public static final String NAME = "Cost";
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean supportsUnitOverride() {
+    return true;
+  }
 
   /**
    * {@inheritDoc}
@@ -19,8 +33,8 @@ public final class LinkSegmentCostOutputProperty extends OutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Units getDefaultUnits() {
-    return Units.HOUR;
+  public Unit getDefaultUnit() {
+    return Unit.HOUR;
   }
 
   /**

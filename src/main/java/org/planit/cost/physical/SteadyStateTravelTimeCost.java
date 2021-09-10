@@ -15,8 +15,7 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.planit.utils.time.TimePeriod;
-import org.planit.utils.unit.UnitUtils;
-import org.planit.utils.unit.Units;
+import org.planit.utils.unit.Unit;
 
 /**
  * Cost computation for travel times based on the work of Raadsen and Bliemer (2019), Steady-state link travel time methods: Formulation, derivation, classification, and
@@ -102,7 +101,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double hyperCriticalDelay = 0;
     if (Precision.isSmaller(outflowRatePcuHour, inflowRatePcuHour)) {
       // hyperCriticalDelay = (excess inflow rate * duration)/outflow rate
-      hyperCriticalDelay = ((inflowRatePcuHour - outflowRatePcuHour) * UnitUtils.convertSecondTo(Units.HOUR, currentTimePeriod.getDurationSeconds()) / outflowRatePcuHour);
+      hyperCriticalDelay = ((inflowRatePcuHour - outflowRatePcuHour) * Unit.SECOND.convertTo(Unit.HOUR, currentTimePeriod.getDurationSeconds()) / outflowRatePcuHour);
     }
 
     /* min travel time + hypo critical delay + hypercritical delay */

@@ -11,7 +11,7 @@ import org.planit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
 import org.planit.assignment.StaticTrafficAssignment;
 import org.planit.cost.Cost;
-import org.planit.cost.physical.initial.InitialLinkSegmentCostMode;
+import org.planit.cost.physical.initial.InitialModesLinkSegmentCost;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkVolumeAccessee;
 import org.planit.network.MacroscopicNetwork;
@@ -426,7 +426,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private boolean populateToInitialCost(final Mode mode, final TimePeriod timePeriod, final double[] segmentCostToPopulate) throws PlanItException {
-    final InitialLinkSegmentCostMode initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod);
+    final InitialModesLinkSegmentCost initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod);
     if (initialLinkSegmentCostForTimePeriod == null || !initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
       return populateToInitialCost(mode, segmentCostToPopulate);
     }

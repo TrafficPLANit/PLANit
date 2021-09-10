@@ -12,7 +12,6 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.od.OdDataIterator;
 import org.planit.utils.time.TimePeriod;
-import org.planit.utils.unit.UnitUtils;
 
 /**
  * Top-level abstract class which defines the common methods required by OD output type adapters
@@ -67,7 +66,7 @@ public abstract class OdOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
         value = OdOutputTypeAdapter.getDestinationZoneId(odIterator);
         break;
       case OD_COST:
-        value = Optional.of(UnitUtils.convertHourTo(getOutputTimeUnit(), (double) OdOutputTypeAdapter.getOdValue(odIterator).get()));
+        value = OdOutputTypeAdapter.getOdValue(odIterator);
         break;
       case ORIGIN_ZONE_EXTERNAL_ID:
         value = OdOutputTypeAdapter.getOriginZoneExternalId(odIterator);
@@ -82,7 +81,7 @@ public abstract class OdOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
         throw new PlanItException("Tried to find link property of %s which is not applicable for OD matrix", outputProperty.getName());
       }
 
-      if (outputProperty.supportsUnitsOverride() && outputProperty.isUnitsOverride()) {
+      if (outputProperty.supportsUnitOverride() && outputProperty.isUnitOverride()) {
         value = createConvertedUnitsValue(outputProperty, value);
       }
     } catch (PlanItException e) {

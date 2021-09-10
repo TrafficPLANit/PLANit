@@ -12,7 +12,7 @@ import org.planit.output.property.OutputProperty;
 import org.planit.output.property.OutputPropertyPriority;
 import org.planit.output.property.OutputPropertyType;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.unit.Units;
+import org.planit.utils.unit.Unit;
 
 /**
  * Configuration for a specific output type including the adapter allowing access to the underlying raw data
@@ -222,14 +222,14 @@ public abstract class OutputTypeConfiguration {
    * @param outputPropertyType to alter units for
    * @param overrideUnits      the to be applied units
    */
-  public void overrideOutputPropertyUnits(OutputPropertyType outputPropertyType, Units overrideUnits) {
+  public void overrideOutputPropertyUnits(OutputPropertyType outputPropertyType, Unit overrideUnits) {
     OutputProperty outputProperty = getOutputProperty(outputPropertyType);
     if (outputProperty != null) {
-      if (!outputProperty.supportsUnitsOverride()) {
+      if (!outputProperty.supportsUnitOverride()) {
         LOGGER.warning(String.format("IGNORE: Output property %s does not (yet) support overriding its units", outputProperty.getName()));
         return;
       }
-      outputProperty.setUnitsOverride(overrideUnits);
+      outputProperty.setUnitOverride(overrideUnits);
     }
   }
 

@@ -4,7 +4,6 @@ import java.io.Serializable;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
@@ -160,7 +159,6 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @param parameters         parameter object array to be used by the event
    * @throws PlanItException thrown if there is an exception
    */
-  @SuppressWarnings("unchecked")
   private void dispatchPopulatePlanitComponentEvent(final T newPlanitComponent, final Object[] parameters) throws PlanItException {
 
     /* when possible use more specific event for user friendly access to event content on listeners */
@@ -181,7 +179,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
       fireEvent(new PopulateFundamentalDiagramEvent(this, (FundamentalDiagramComponent) newPlanitComponent, (MacroscopicNetworkLayer) parameters[0]));
     } else if (newPlanitComponent instanceof InitialLinkSegmentCost) {
       fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1],
-          (Set<TimePeriod>) parameters[2]));
+          (TimePeriod) parameters[2]));
     } else if (newPlanitComponent instanceof AbstractPhysicalCost) {
       fireEvent(new PopulatePhysicalCostEvent(this, (AbstractPhysicalCost) newPlanitComponent, (MacroscopicNetwork) parameters[0]));
     } else {

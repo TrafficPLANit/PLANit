@@ -27,12 +27,12 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   /**
    * Store initial cost for each mode and link segment, not linked to a particular time period
    */
-  protected final InitialLinkSegmentCostMode timePeriodAgnosticCosts;
+  protected final InitialModesLinkSegmentCost timePeriodAgnosticCosts;
 
   /**
    * Map to store initial cost for each mode and link segment, linked to a particular time period
    */
-  protected Map<TimePeriod, InitialLinkSegmentCostMode> timePeriodCosts;
+  protected Map<TimePeriod, InitialModesLinkSegmentCost> timePeriodCosts;
 
   /**
    * Returns the initial cost. When absent but mode is not allowed on link segment, positive infinity is used, otherwise we revert to free flow travel time and a warning is logged.
@@ -42,7 +42,7 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
    * @param linkSegment        the current link segment
    * @return the cost for this link segment and mode
    */
-  protected double getSegmentCost(InitialLinkSegmentCostMode initialCostsByMode, Mode mode, MacroscopicLinkSegment linkSegment) {
+  protected double getSegmentCost(InitialModesLinkSegmentCost initialCostsByMode, Mode mode, MacroscopicLinkSegment linkSegment) {
     boolean present = (initialCostsByMode != null);
 
     double initialCost = Double.POSITIVE_INFINITY;
@@ -70,8 +70,8 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
    */
   public InitialLinkSegmentCost(IdGroupingToken groupId) {
     super(groupId);
-    timePeriodAgnosticCosts = new InitialLinkSegmentCostMode();
-    timePeriodCosts = new HashMap<TimePeriod, InitialLinkSegmentCostMode>();
+    timePeriodAgnosticCosts = new InitialModesLinkSegmentCost();
+    timePeriodCosts = new HashMap<TimePeriod, InitialModesLinkSegmentCost>();
   }
 
   /**
@@ -82,7 +82,7 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   public InitialLinkSegmentCost(InitialLinkSegmentCost other) {
     super(other);
     this.timePeriodAgnosticCosts = other.timePeriodAgnosticCosts.clone();
-    this.timePeriodCosts = new HashMap<TimePeriod, InitialLinkSegmentCostMode>();
+    this.timePeriodCosts = new HashMap<TimePeriod, InitialModesLinkSegmentCost>();
     other.timePeriodCosts.forEach((k, v) -> timePeriodCosts.put(k, v.clone()));
   }
 
@@ -150,9 +150,9 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
    */
   @Override
   public void setSegmentCost(final TimePeriod timePeriod, final Mode mode, final MacroscopicLinkSegment linkSegment, final double cost) {
-    InitialLinkSegmentCostMode initialCosts = timePeriodCosts.get(timePeriod);
+    InitialModesLinkSegmentCost initialCosts = timePeriodCosts.get(timePeriod);
     if (initialCosts == null) {
-      initialCosts = new InitialLinkSegmentCostMode();
+      initialCosts = new InitialModesLinkSegmentCost();
       timePeriodCosts.put(timePeriod, initialCosts);
     }
     initialCosts.setSegmentCost(mode, linkSegment, cost);
@@ -170,7 +170,7 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
    * 
    * @return time period agnostic costs
    */
-  public InitialLinkSegmentCostMode getTimePeriodAgnosticCosts() {
+  public InitialModesLinkSegmentCost getTimePeriodAgnosticCosts() {
     return timePeriodAgnosticCosts;
   }
 
@@ -180,7 +180,7 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
    * @param timePeriod to collect for
    * @return costs registered, null if not present
    */
-  public InitialLinkSegmentCostMode getTimePeriodCosts(final TimePeriod timePeriod) {
+  public InitialModesLinkSegmentCost getTimePeriodCosts(final TimePeriod timePeriod) {
     return timePeriodCosts.get(timePeriod);
   }
 

@@ -86,7 +86,7 @@ public abstract class UntypedLinkOutputTypeAdapterImpl<LS extends LinkSegment> e
       default:
       }
 
-      if (outputProperty.supportsUnitsOverride() && outputProperty.isUnitsOverride()) {
+      if (outputProperty.supportsUnitOverride() && outputProperty.isUnitOverride()) {
         result = createConvertedUnitsValue(outputProperty, result);
       }
     } catch (PlanItException e) {

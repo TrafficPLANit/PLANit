@@ -4,8 +4,7 @@ import java.util.logging.Logger;
 
 import org.planit.output.enums.DataType;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.unit.UnitUtils;
-import org.planit.utils.unit.Units;
+import org.planit.utils.unit.Unit;
 
 /**
  * Template for output property classes which can be included in the output files.
@@ -21,7 +20,7 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
   private static final Logger LOGGER = Logger.getLogger(OutputProperty.class.getCanonicalName());
 
   /** the override units */
-  private Units overrideUnits = null;
+  private Unit overrideUnits = null;
 
   /**
    * Returns the name of the output property
@@ -35,7 +34,7 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
    * 
    * @return units of the output property
    */
-  public abstract Units getDefaultUnits();
+  public abstract Unit getDefaultUnit();
 
   /**
    * An output property can be allowed to deviate from its default unit. In which case an override unit is to be made available. By default an output property is not allowed to
@@ -43,7 +42,7 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
    * 
    * @return true when allowed, false otherwise
    */
-  public boolean supportsUnitsOverride() {
+  public boolean supportsUnitOverride() {
     return false;
   }
 
@@ -52,24 +51,24 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
    * 
    * @return true when overridden, false otherwise
    */
-  public boolean isUnitsOverride() {
+  public boolean isUnitOverride() {
     return overrideUnits != null;
   }
 
   /**
    * set the units to use for overriding the defaults
    * 
-   * @param overrideUnits units to use
+   * @param overrideUnit units to use
    */
-  public void setUnitsOverride(Units overrideUnits) {
-    if (!supportsUnitsOverride()) {
+  public void setUnitOverride(Unit overrideUnit) {
+    if (!supportsUnitOverride()) {
       LOGGER.warning(String.format("IGNORE: overriding default units for output property %s, not allowed", this.getClass().getCanonicalName()));
     }
-    if (!UnitUtils.isConversionSupported(getDefaultUnits(), overrideUnits)) {
-      LOGGER.warning(String.format("IGNORE: overriding units %s yield unsupported conversion from default units %s for output ptoperty %s", getDefaultUnits().toString(),
-          overrideUnits.toString(), this.getClass().getCanonicalName()));
+    if (!getDefaultUnit().canConvertTo(overrideUnit)) {
+      LOGGER.warning(String.format("IGNORE: overriding units %s yield unsupported conversion from default units %s for output ptoperty %s", getDefaultUnit().toString(),
+          overrideUnit.toString(), this.getClass().getCanonicalName()));
     }
-    this.overrideUnits = overrideUnits;
+    this.overrideUnits = overrideUnit;
   }
 
   /**
@@ -78,8 +77,8 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
    * 
    * @return proposed unit, original unit if none is set
    */
-  public Units getOverrideUnits() {
-    return isUnitsOverride() ? overrideUnits : getDefaultUnits();
+  public Unit getOverrideUnit() {
+    return isUnitOverride() ? overrideUnits : getDefaultUnit();
   }
 
   /**
@@ -124,7 +123,7 @@ public abstract class OutputProperty implements Comparable<OutputProperty> {
    * 
    */
   public int hashCode() {
-    return getDefaultUnits().hashCode() + getDataType().hashCode() + getName().hashCode();
+    return getDefaultUnit().hashCode() + getDataType().hashCode() + getName().hashCode();
   }
 
   /**

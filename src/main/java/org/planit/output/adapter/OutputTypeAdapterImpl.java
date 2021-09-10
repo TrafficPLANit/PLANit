@@ -17,8 +17,6 @@ import org.planit.output.property.TimePeriodXmlIdOutputProperty;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.time.TimePeriod;
-import org.planit.utils.unit.UnitUtils;
-import org.planit.utils.unit.Units;
 
 /**
  * Top-level abstract class which defines the common methods required by all output type adapters
@@ -32,11 +30,6 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
    * the traffic assignment this output adapter is drawing from
    */
   private TrafficAssignment trafficAssignment;
-
-  /**
-   * Output time unit to use
-   */
-  private Units outputTimeUnit;
 
   /**
    * The OutputType this OutputTypeAdapter is used for
@@ -62,7 +55,7 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
    */
   protected static Optional<?> createConvertedUnitsValue(OutputProperty outputProperty, Optional<?> unconvertedValue) throws PlanItException {
     if (unconvertedValue.isPresent()) {
-      return Optional.of(UnitUtils.convert(outputProperty.getDefaultUnits(), outputProperty.getOverrideUnits(), (double) unconvertedValue.get()));
+      return Optional.of(outputProperty.getDefaultUnit().convertTo(outputProperty.getOverrideUnit(), (double) unconvertedValue.get()));
     }
     return unconvertedValue;
   }
@@ -121,22 +114,6 @@ public abstract class OutputTypeAdapterImpl implements OutputTypeAdapter {
    */
   public OutputType getOutputType() {
     return outputType;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Units getOutputTimeUnit() {
-    return outputTimeUnit;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Units setOutputTimeUnit(Units outputTimeUnit) {
-    return this.outputTimeUnit = outputTimeUnit;
   }
 
   /**

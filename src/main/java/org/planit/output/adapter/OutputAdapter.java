@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.planit.assignment.TrafficAssignment;
 import org.planit.output.enums.OutputType;
-import org.planit.utils.unit.Units;
 
 /**
  * Output Adapter which stores output type adapters for each Output Manager and defines top-level method which apply to all output types
@@ -137,16 +136,6 @@ public class OutputAdapter {
    */
   public OutputTypeAdapter getOutputTypeAdapter(OutputType outputType) {
     return outputTypeAdapters.get(outputType);
-  }
-
-  /**
-   * for all registered adapters set the output time unit to use. When it differs from the unit used by the assignment the resulting values are adapted to match the desired output
-   * time unit
-   * 
-   * @param outputTimeUnit to use
-   */
-  public void setOutputTimeUnitOnRegisteredAdapters(final Units outputTimeUnit) {
-    outputTypeAdapters.values().forEach(adapter -> adapter.setOutputTimeUnit(outputTimeUnit));
   }
 
   /**

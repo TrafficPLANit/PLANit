@@ -10,7 +10,6 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.time.TimePeriod;
-import org.planit.utils.unit.UnitUtils;
 
 /**
  * Adapter providing access to the data of the TraditionalStaticAssignment class relevant for link outputs without exposing the internals of the traffic assignment class itself
@@ -66,10 +65,10 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
    * @return the travel cost (time) through the current link segment
    * @throws PlanItException thrown if there is an error
    */
-  private Optional<Double> getLinkCost(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
+  private Optional<Double> getLinkCostTravelTime(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
     final int id = (int) linkSegment.getId();
     final double[] modalNetworkSegmentCosts = getAssignment().getIterationData().getModalLinkSegmentCosts(mode);
-    return Optional.of(UnitUtils.convertHourTo(getOutputTimeUnit(), modalNetworkSegmentCosts[id]));
+    return Optional.of(modalNetworkSegmentCosts[id]);
   }
 
   /**
@@ -81,7 +80,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
    * @throws PlanItException thrown if there is an error
    */
   private Optional<Double> getCostTimesFlow(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
-    return Optional.of(getLinkCost(linkSegment, mode).get() * getFlow(linkSegment, mode).get());
+    return Optional.of(getLinkCostTravelTime(linkSegment, mode).get() * getFlow(linkSegment, mode).get());
   }
 
   /**
@@ -96,7 +95,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
     for (final Mode mode : getAssignment().getTransportNetwork().getInfrastructureNetwork().getModes()) {
       totalFlow += getFlow(linkSegment, mode).get();
     }
-    final double capacityPerLane = getCapacityPerLane(linkSegment).get();
+    final double capacityPerLane = getCapacityPerLanePcuHour(linkSegment).get();
     return Optional.of(totalFlow / (linkSegment.getNumberOfLanes() * capacityPerLane));
   }
 
@@ -162,7 +161,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
         value = getFlow(linkSegment, mode);
         break;
       case LINK_SEGMENT_COST:
-        value = getLinkCost(linkSegment, mode);
+        value = getLinkCostTravelTime(linkSegment, mode);
         break;
       case VC_RATIO:
         value = getVCRatio(linkSegment);
@@ -174,7 +173,7 @@ public class TraditionalStaticAssignmentLinkOutputTypeAdapter extends Macroscopi
         throw new PlanItException("Tried to find link property of %s which is not applicable for links", outputProperty.getName());
       }
 
-      if (outputProperty.supportsUnitsOverride() && outputProperty.isUnitsOverride()) {
+      if (outputProperty.supportsUnitOverride() && outputProperty.isUnitOverride()) {
         value = createConvertedUnitsValue(outputProperty, value);
       }
     } catch (final PlanItException e) {

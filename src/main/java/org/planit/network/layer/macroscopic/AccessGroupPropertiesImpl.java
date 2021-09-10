@@ -89,10 +89,10 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
    * 
    * @param accessModes to allow
    */
-  public AccessGroupPropertiesImpl(Mode... accessModes) {
+  public AccessGroupPropertiesImpl(Collection<Mode> accessModes) {
     this.criticalSpeedKmH = null;
     this.maxSpeedKmH = null;
-    this.supportedModes = new TreeSet<Mode>(Arrays.asList(accessModes));
+    this.supportedModes = new TreeSet<Mode>(accessModes);
   }
 
   // Getter - setters

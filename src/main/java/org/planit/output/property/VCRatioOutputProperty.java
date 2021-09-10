@@ -1,7 +1,7 @@
 package org.planit.output.property;
 
 import org.planit.output.enums.DataType;
-import org.planit.utils.unit.Units;
+import org.planit.utils.unit.Unit;
 
 /**
  * Calculate V/C ratio output property class
@@ -25,8 +25,8 @@ public final class VcRatioOutputProperty extends OutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Units getDefaultUnits() {
-    return Units.NONE;
+  public Unit getDefaultUnit() {
+    return Unit.NONE;
   }
 
   /**

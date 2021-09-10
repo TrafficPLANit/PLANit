@@ -1,5 +1,6 @@
 package org.planit.network.layer.macroscopic;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.planit.utils.math.Precision;
@@ -68,7 +69,7 @@ public class AccessGroupPropertiesFactory {
    * @return created properties
    */
   public static AccessGroupProperties create(final Mode... accessModes) {
-    return new AccessGroupPropertiesImpl(accessModes);
+    return create(Arrays.asList(accessModes));
   }
 
   /**
@@ -78,7 +79,7 @@ public class AccessGroupPropertiesFactory {
    * @return created properties
    */
   public static AccessGroupProperties create(final Collection<Mode> accessModes) {
-    return create(accessModes);
+    return new AccessGroupPropertiesImpl(accessModes);
   }
 
   /**

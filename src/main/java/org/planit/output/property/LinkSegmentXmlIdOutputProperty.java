@@ -1,7 +1,7 @@
 package org.planit.output.property;
 
 import org.planit.output.enums.DataType;
-import org.planit.utils.unit.Units;
+import org.planit.utils.unit.Unit;
 
 /**
  * Property reflecting the input xml id used when parsing the link segment in native PLANit format.
@@ -25,8 +25,8 @@ public class LinkSegmentXmlIdOutputProperty extends OutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Units getDefaultUnits() {
-    return Units.NONE;
+  public Unit getDefaultUnit() {
+    return Unit.NONE;
   }
 
   /**

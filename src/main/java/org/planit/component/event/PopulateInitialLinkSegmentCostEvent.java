@@ -1,7 +1,5 @@
 package org.planit.component.event;
 
-import java.util.Set;
-
 import org.planit.component.PlanitComponentFactory;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.network.MacroscopicNetwork;
@@ -27,11 +25,11 @@ public class PopulateInitialLinkSegmentCostEvent extends PopulateUntypedComponen
    * @param initialLinkSegmentCostToPopulate cost to populate
    * @param fileName                         with the location of the costs to use for populating the memory model
    * @param network                          parent network of these costs
-   * @param timePeriods                      the time periods for which to populate, may be null in which case it is time period agnostic
+   * @param timePeriod                       Optional time periods for which to populate, may be null in which case it is time period agnostic
    */
   public PopulateInitialLinkSegmentCostEvent(final PlanitComponentFactory<?> source, final InitialLinkSegmentCost initialLinkSegmentCostToPopulate, String fileName,
-      final MacroscopicNetwork network, Set<TimePeriod> timePeriods) {
-    super(EVENT_TYPE, source, initialLinkSegmentCostToPopulate, new Object[] { fileName, network, timePeriods });
+      final MacroscopicNetwork network, TimePeriod timePeriod) {
+    super(EVENT_TYPE, source, initialLinkSegmentCostToPopulate, new Object[] { fileName, network, timePeriod });
   }
 
   /**
@@ -71,25 +69,12 @@ public class PopulateInitialLinkSegmentCostEvent extends PopulateUntypedComponen
   }
 
   /**
-   * Verify if time period is set for this initial cost to populate
+   * Collect time period for which the initial costs are meant (might not be set)
    * 
-   * @return true when present, false otherwise
+   * @return time period, null if not set for a specific time period
    */
-  public int getNumberOfTimePeriods() {
-    return hasTimePeriod() ? getTimePeriods().size() : 0;
-  }
-
-  /**
-   * Collect time periods for which the initial costs are meant (might not be set)
-   * 
-   * @return time periods, null if not set for a specific time period
-   */
-  @SuppressWarnings("unchecked")
-  public Set<TimePeriod> getTimePeriods() {
-    if (!hasTimePeriod()) {
-      return null;
-    }
-    return (Set<TimePeriod>) getAdditionalContent()[2];
+  public TimePeriod getTimePeriod() {
+    return (TimePeriod) getAdditionalContent()[2];
   }
 
 }

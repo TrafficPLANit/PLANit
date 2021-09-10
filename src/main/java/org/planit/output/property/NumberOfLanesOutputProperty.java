@@ -1,7 +1,7 @@
 package org.planit.output.property;
 
 import org.planit.output.enums.DataType;
-import org.planit.utils.unit.Units;
+import org.planit.utils.unit.Unit;
 
 public final class NumberOfLanesOutputProperty extends OutputProperty {
 
@@ -13,8 +13,8 @@ public final class NumberOfLanesOutputProperty extends OutputProperty {
   }
 
   @Override
-  public Units getDefaultUnits() {
-    return Units.NONE;
+  public Unit getDefaultUnit() {
+    return Unit.NONE;
   }
 
   @Override

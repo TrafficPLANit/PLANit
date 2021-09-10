@@ -24,7 +24,7 @@ public interface MacroscopicLinkOutputTypeAdapter extends UntypedLinkOutputTypeA
    * @return the capacity per lane across this link segment
    * @throws PlanItException thrown if there is an error
    */
-  public default Optional<Double> getCapacityPerLane(MacroscopicLinkSegment linkSegment) throws PlanItException {
+  public default Optional<Double> getCapacityPerLanePcuHour(MacroscopicLinkSegment linkSegment) throws PlanItException {
     return Optional.of(linkSegment.getLinkSegmentType().getExplicitCapacityPerLaneOrDefault());
   }
 

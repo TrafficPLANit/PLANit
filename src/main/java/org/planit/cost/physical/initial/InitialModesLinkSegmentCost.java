@@ -13,11 +13,11 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
  * 
  * @author markr
  */
-public class InitialLinkSegmentCostMode implements Cloneable, Cost<MacroscopicLinkSegment> {
+public class InitialModesLinkSegmentCost implements Cloneable, Cost<MacroscopicLinkSegment> {
 
   /** Logger to use */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(InitialLinkSegmentCostMode.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(InitialModesLinkSegmentCost.class.getCanonicalName());
 
   /**
    * Map to store initial cost for each mode and link segment, not linked to a particular time period
@@ -27,7 +27,7 @@ public class InitialLinkSegmentCostMode implements Cloneable, Cost<MacroscopicLi
   /**
    * Constructor
    */
-  protected InitialLinkSegmentCostMode() {
+  protected InitialModesLinkSegmentCost() {
     this.costPerModeAndLinkSegment = new HashMap<Mode, Map<Long, Double>>();
   }
 
@@ -36,7 +36,7 @@ public class InitialLinkSegmentCostMode implements Cloneable, Cost<MacroscopicLi
    * 
    * @param initialLinkSegmentCostMode to copy
    */
-  protected InitialLinkSegmentCostMode(InitialLinkSegmentCostMode initialLinkSegmentCostMode) {
+  protected InitialModesLinkSegmentCost(InitialModesLinkSegmentCost initialLinkSegmentCostMode) {
     this();
     initialLinkSegmentCostMode.costPerModeAndLinkSegment.forEach((mode, map) -> costPerModeAndLinkSegment.put(mode, new HashMap<Long, Double>(map)));
   }
@@ -64,7 +64,11 @@ public class InitialLinkSegmentCostMode implements Cloneable, Cost<MacroscopicLi
     if (costPerLinkSegment == null) {
       return Double.POSITIVE_INFINITY;
     }
-    return costPerLinkSegment.get(linkSegment.getId());
+    Double foundCost = costPerLinkSegment.get(linkSegment.getId());
+    if (foundCost == null) {
+      return Double.POSITIVE_INFINITY;
+    }
+    return foundCost;
   }
 
   /**
@@ -103,8 +107,8 @@ public class InitialLinkSegmentCostMode implements Cloneable, Cost<MacroscopicLi
    * {@inheritDoc}
    */
   @Override
-  public InitialLinkSegmentCostMode clone() {
-    return new InitialLinkSegmentCostMode(this);
+  public InitialModesLinkSegmentCost clone() {
+    return new InitialModesLinkSegmentCost(this);
   }
 
   /**

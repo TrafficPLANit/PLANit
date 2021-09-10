@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.planit.assignment.TrafficAssignment;
 import org.planit.output.enums.DataType;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.unit.Units;
+import org.planit.utils.unit.Unit;
 
 public final class IterationIndexOutputProperty extends OutputProperty {
 
@@ -17,8 +17,8 @@ public final class IterationIndexOutputProperty extends OutputProperty {
   }
 
   @Override
-  public Units getDefaultUnits() {
-    return Units.NONE;
+  public Unit getDefaultUnit() {
+    return Unit.NONE;
   }
 
   @Override

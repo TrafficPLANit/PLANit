@@ -277,20 +277,6 @@ public class CustomPlanItProject {
   }
 
   /**
-   * Create and register initial link segment costs from a (single) file for all time periods in Demands object
-   *
-   * @param network  network the InitialLinkSegmentCost object will be registered for
-   * @param fileName location of file containing the initial link segment cost values
-   * @param demands  the Demands object to extract all eligible time periods from
-   * @return the populated InitialLinkSegmentCost
-   * @throws PlanItException thrown if there is an error
-   */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final TransportLayerNetwork<?, ?> network, final String fileName, final Demands.TimePeriods timePeriods)
-      throws PlanItException {
-    return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriods);
-  }
-
-  /**
    * Create and register an output formatter instance of a given type
    *
    * @param outputFormatterType the class name of the output formatter type object to be created

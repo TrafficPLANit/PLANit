@@ -18,7 +18,7 @@ import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.time.TimePeriod;
-import org.planit.utils.unit.Units;
+import org.planit.utils.unit.Unit;
 
 /**
  * Base class for all formatters of output data, i.e. persistence of certain types of data into a particular format
@@ -35,7 +35,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   /**
    * default time unit used
    */
-  private static final Units DEFAULT_TIME_UNIT = Units.HOUR;
+  private static final Unit DEFAULT_TIME_UNIT = Unit.HOUR;
 
   /**
    * Map of OutputProperties of keys for each OutputType
@@ -67,7 +67,7 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
   /**
    * Time unit to be used in outputs
    */
-  protected Units outputTimeUnit;
+  protected Unit outputTimeUnit;
 
   /**
    * List of registered OutputTypes
@@ -285,31 +285,6 @@ public abstract class BaseOutputFormatter implements OutputFormatter {
 
   public long getId() {
     return id;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Units getOutputTimeUnit() {
-    return outputTimeUnit;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setOutputTimeUnit(Units outputTimeUnit) {
-    this.outputTimeUnit = outputTimeUnit;
-  }
-
-  /**
-   * Returns the current time units as a String
-   * 
-   * @return the current time units as a String
-   */
-  public String getOutputTimeUnitString() {
-    return outputTimeUnit.value();
   }
 
 }

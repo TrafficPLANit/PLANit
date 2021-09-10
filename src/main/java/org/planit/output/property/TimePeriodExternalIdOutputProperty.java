@@ -3,22 +3,28 @@ package org.planit.output.property;
 import java.util.Optional;
 
 import org.planit.output.enums.DataType;
-import org.planit.utils.time.TimePeriod;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.unit.Units;
+import org.planit.utils.time.TimePeriod;
+import org.planit.utils.unit.Unit;
 
 public final class TimePeriodExternalIdOutputProperty extends OutputProperty {
 
   public static final String NAME = "Time Period External Id";
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String getName() {
     return NAME;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public Units getDefaultUnits() {
-    return Units.NONE;
+  public Unit getDefaultUnit() {
+    return Unit.NONE;
   }
 
   @Override
@@ -26,11 +32,17 @@ public final class TimePeriodExternalIdOutputProperty extends OutputProperty {
     return DataType.STRING;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public OutputPropertyType getOutputPropertyType() {
     return OutputPropertyType.TIME_PERIOD_EXTERNAL_ID;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public OutputPropertyPriority getColumnPriority() {
     return OutputPropertyPriority.ID_PRIORITY;

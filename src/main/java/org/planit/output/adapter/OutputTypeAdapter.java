@@ -5,7 +5,6 @@ import java.util.Optional;
 import org.planit.output.enums.OutputType;
 import org.planit.output.enums.SubOutputTypeEnum;
 import org.planit.utils.exceptions.PlanItException;
-import org.planit.utils.unit.Units;
 
 /**
  * Top-level interface for all output type adapters
@@ -21,20 +20,6 @@ public interface OutputTypeAdapter {
    * @return the output type corresponding to this output adapter
    */
   public abstract OutputType getOutputType();
-
-  /**
-   * Collect the unit to use for the time units
-   * 
-   * @return output time unit
-   */
-  public abstract Units getOutputTimeUnit();
-
-  /**
-   * Set the output time unit to use
-   * 
-   * @return outputTimeUnit to use
-   */
-  public abstract Units setOutputTimeUnit(Units outputTimeUnit);
 
   /**
    * Determine the iteration index that is relevant for the data related to the provided output type enum Generally, this equates to the actual current iteration index, but if the

@@ -1,7 +1,7 @@
 package org.planit.output.property;
 
 import org.planit.output.enums.DataType;
-import org.planit.utils.unit.Units;
+import org.planit.utils.unit.Unit;
 
 /**
  * Capacity per lane in pcu/h
@@ -15,7 +15,7 @@ public final class CapacityPerLaneOutputProperty extends OutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public boolean supportsUnitsOverride() {
+  public boolean supportsUnitOverride() {
     return true;
   }
 
@@ -33,8 +33,8 @@ public final class CapacityPerLaneOutputProperty extends OutputProperty {
    * {@inheritDoc}
    */
   @Override
-  public Units getDefaultUnits() {
-    return Units.PCU_HOUR;
+  public Unit getDefaultUnit() {
+    return Unit.PCU_HOUR;
   }
 
   /**

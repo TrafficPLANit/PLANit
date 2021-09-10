@@ -10,7 +10,6 @@ import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.time.TimePeriod;
-import org.planit.utils.unit.UnitUtils;
 
 /**
  * Adapter providing access to the data of the StaticLtm class relevant for link outputs without exposing the internals of the traffic assignment class itself
@@ -50,7 +49,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    * @param mode        current mode
    * @return the inflow through the current link segment
    */
-  private Optional<Double> getInFlow(final MacroscopicLinkSegment linkSegment, final Mode mode) {
+  private Optional<Double> getInFlowPcuHour(final MacroscopicLinkSegment linkSegment, final Mode mode) {
     return Optional.of(getAssignment().getIterationData().getNetworkLoading().getCurrentInflowsPcuH()[(int) linkSegment.getId()]);
   }
 
@@ -61,7 +60,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    * @param mode        current mode
    * @return the outflow through the current link segment
    */
-  private Optional<Double> getOutFlow(final MacroscopicLinkSegment linkSegment, final Mode mode) {
+  private Optional<Double> getOutFlowPcuHour(final MacroscopicLinkSegment linkSegment, final Mode mode) {
     return Optional.of(getAssignment().getIterationData().getNetworkLoading().getCurrentOutflowsPcuH()[(int) linkSegment.getId()]);
   }
 
@@ -73,10 +72,10 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    * @return the travel cost (time) through the current link segment
    * @throws PlanItException thrown if there is an error
    */
-  private Optional<Double> getLinkTravelTime(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
+  private Optional<Double> getLinkTravelTimeHour(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
     final int id = (int) linkSegment.getId();
     final double[] modalLinkSegmentTravelTimes = getAssignment().getIterationData().getLinkSegmentTravelTimeHour(mode);
-    return Optional.of(UnitUtils.convertHourTo(getOutputTimeUnit(), modalLinkSegmentTravelTimes[id]));
+    return Optional.of(modalLinkSegmentTravelTimes[id]);
   }
 
   /**
@@ -88,7 +87,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    * @throws PlanItException thrown if there is an error
    */
   private Optional<Double> getCostTimesFlow(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
-    return Optional.of(getLinkTravelTime(linkSegment, mode).get() * getOutFlow(linkSegment, mode).get());
+    return Optional.of(getLinkTravelTimeHour(linkSegment, mode).get() * getOutFlowPcuHour(linkSegment, mode).get());
   }
 
   /**
@@ -102,9 +101,9 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
   private Optional<Double> getVcRatio(final MacroscopicLinkSegment linkSegment) throws PlanItException {
     double totalFlow = 0.0;
     for (final Mode mode : getAssignment().getIterationData().getNetworkLoading().getSupportedModes()) {
-      totalFlow += getInFlow(linkSegment, mode).get();
+      totalFlow += getInFlowPcuHour(linkSegment, mode).get();
     }
-    final double capacityPerLane = getCapacityPerLane(linkSegment).get();
+    final double capacityPerLane = getCapacityPerLanePcuHour(linkSegment).get();
     return Optional.of(totalFlow / (linkSegment.getNumberOfLanes() * capacityPerLane));
   }
 
@@ -123,7 +122,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    */
   @Override
   public Optional<Boolean> isFlowPositive(final MacroscopicLinkSegment linkSegment, final Mode mode) {
-    return Optional.of(getOutFlow(linkSegment, mode).get() > 0.0);
+    return Optional.of(getOutFlowPcuHour(linkSegment, mode).get() > 0.0);
   }
 
   /**
@@ -132,8 +131,10 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
   @Override
   public Optional<?> getLinkSegmentOutputPropertyValue(final OutputProperty outputProperty, final MacroscopicLinkSegment linkSegment, final Mode mode,
       final TimePeriod timePeriod) {
+
+    Optional<?> value = Optional.empty();
     try {
-      Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
+      value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);
       if (value.isPresent()) {
         return value;
       }
@@ -145,26 +146,39 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
 
       switch (outputProperty.getOutputPropertyType()) {
       case CALCULATED_SPEED:
-        return getCalculatedSpeed(linkSegment, mode);
+        value = getCalculatedSpeed(linkSegment, mode);
+        break;
       case FLOW:
         // not ideal, but if someone uses flow property, we provide the outflow rate
-        return getOutFlow(linkSegment, mode);
+        value = getOutFlowPcuHour(linkSegment, mode);
+        break;
       case OUTFLOW:
-        return getOutFlow(linkSegment, mode);
+        value = getOutFlowPcuHour(linkSegment, mode);
+        break;
       case INFLOW:
-        return getInFlow(linkSegment, mode);
+        value = getInFlowPcuHour(linkSegment, mode);
+        break;
       case LINK_SEGMENT_COST:
-        return getLinkTravelTime(linkSegment, mode);
+        value = getLinkTravelTimeHour(linkSegment, mode);
+        break;
       case VC_RATIO:
-        return getVcRatio(linkSegment);
+        value = getVcRatio(linkSegment);
+        break;
       case COST_TIMES_FLOW:
-        return getCostTimesFlow(linkSegment, mode);
+        value = getCostTimesFlow(linkSegment, mode);
+        break;
       default:
-        return Optional.of(String.format("Tried to find link property of %s which is not applicable for links", outputProperty.getName()));
+        throw new PlanItException("Tried to find link property of %s which is not applicable for links", outputProperty.getName());
+      }
+
+      if (outputProperty.supportsUnitOverride() && outputProperty.isUnitOverride()) {
+        value = createConvertedUnitsValue(outputProperty, value);
       }
     } catch (final PlanItException e) {
       return Optional.of(e.getMessage());
     }
+
+    return value;
   }
 
 }

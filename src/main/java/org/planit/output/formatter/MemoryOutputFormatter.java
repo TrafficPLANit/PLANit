@@ -35,6 +35,7 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.od.OdDataIterator;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.time.TimePeriod;
+import org.planit.utils.unit.VehiclesUnit;
 
 /**
  * OutputFormatter which stores data in memory, using specified keys and output properties.
@@ -219,6 +220,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     MacroscopicLinkOutputTypeAdapter linkOutputTypeAdapter = (MacroscopicLinkOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
 
     for (Mode mode : modes) {
+      // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+      // the current mode's conversion factor
+      VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
+
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
 
       Optional<Long> networkLayerId = linkOutputTypeAdapter.getInfrastructureLayerIdForMode(mode);
@@ -268,6 +273,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     OutputProperty[] outputKeys = outputKeyProperties.get(outputType);
     OdOutputTypeAdapter odOutputTypeAdapter = (OdOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
     for (Mode mode : modes) {
+      // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+      // the current mode's conversion factor
+      VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
+
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
       Optional<OdSkimMatrix> odSkimMatrix = odOutputTypeAdapter.getOdSkimMatrix(subOutputType, mode);
       odSkimMatrix.orElseThrow(() -> new PlanItException("unable to retrieve od skim matrix"));
@@ -311,6 +320,10 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
     PathOutputTypeAdapter pathOutputTypeAdapter = (PathOutputTypeAdapter) outputAdapter.getOutputTypeAdapter(outputType);
     PathOutputTypeConfiguration pathOutputTypeConfiguration = (PathOutputTypeConfiguration) outputTypeConfiguration;
     for (Mode mode : modes) {
+      // ensure that if vehicles are used as the output unit rather than pcu, the correct conversion factor is applied, namely
+      // the current mode's conversion factor
+      VehiclesUnit.updatePcuToVehicleFactor(1 / mode.getPcu());
+
       MultiKeyPlanItData multiKeyPlanItData = new MultiKeyPlanItData(outputKeys, outputProperties);
       Optional<OdPathMatrix> odPathMatrix = pathOutputTypeAdapter.getOdPathMatrix(mode);
       odPathMatrix.orElseThrow(() -> new PlanItException("od path matrix could not be retrieved when persisting"));

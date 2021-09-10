@@ -7,7 +7,7 @@ import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.PhysicalCostConfigurator;
 import org.planit.cost.physical.PhysicalCostConfiguratorFactory;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
-import org.planit.cost.physical.initial.InitialLinkSegmentCostMode;
+import org.planit.cost.physical.initial.InitialModesLinkSegmentCost;
 import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.cost.virtual.VirtualCostConfigurator;
 import org.planit.cost.virtual.VirtualCostConfiguratorFactory;
@@ -258,7 +258,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    *
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    */
-  public void registerInitialLinkSegmentCost(final InitialLinkSegmentCostMode initialLinkSegmentCost) {
+  public void registerInitialLinkSegmentCost(final InitialModesLinkSegmentCost initialLinkSegmentCost) {
     registerDelayedMethodCall(SET_INITIAL_LINK_SEGMENT_COST, initialLinkSegmentCost);
   }
 
@@ -269,7 +269,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    * @throws PlanItException thrown if time period is null
    */
-  public void registerInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialLinkSegmentCostMode initialLinkSegmentCost) throws PlanItException {
+  public void registerInitialLinkSegmentCost(final TimePeriod timePeriod, final InitialModesLinkSegmentCost initialLinkSegmentCost) throws PlanItException {
     PlanItException.throwIf(timePeriod == null, "time period null when registering initial link segment costs");
     registerDelayedMethodCall(SET_INITIAL_LINK_SEGMENT_COST, timePeriod, initialLinkSegmentCost);
   }
