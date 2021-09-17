@@ -22,6 +22,9 @@ import org.planit.utils.misc.Pair;
  * 
  * Whenever edge segments are added it is verified that no cycles are created. Also each edge segment that is added must connect to the existing subgraph's contents
  * 
+ * <p>
+ * <b>INCOMPLETE IMPLEMENTATION</b>
+ * 
  * @author markr
  *
  */

@@ -259,7 +259,7 @@ public class MemoryOutputFormatter extends BaseOutputFormatter {
       OutputAdapter outputAdapter, Set<Mode> modes, TimePeriod timePeriod, int iterationIndex) throws PlanItException {
 
     // for od data we assume all data is classified into sub output types of type
-    // ODSkimSubOutputType, hence this check to make sure we can cast safely
+    // OdSkimSubOutputType, hence this check to make sure we can cast safely
     PlanItException.throwIf(!(currentOutputType instanceof SubOutputTypeEnum && ((SubOutputTypeEnum) currentOutputType) instanceof OdSkimSubOutputType),
         "currentOutputTypeEnum is not compatible with outputTypeconfiguration");
 
