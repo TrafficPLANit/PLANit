@@ -10,8 +10,7 @@ import org.planit.utils.network.layers.UntypedPhysicalNetworkLayers;
  * @author markr
  *
  */
-public abstract class UntypedPhysicalNetworkLayersImpl<L extends UntypedPhysicalLayer<?, ?, ?, ?, ?, ?>> extends TopologicalLayersImpl<L>
-    implements UntypedPhysicalNetworkLayers<L> {
+public abstract class UntypedPhysicalNetworkLayersImpl<L extends UntypedPhysicalLayer<?, ?, ?>> extends TopologicalLayersImpl<L> implements UntypedPhysicalNetworkLayers<L> {
 
   /**
    * Constructor

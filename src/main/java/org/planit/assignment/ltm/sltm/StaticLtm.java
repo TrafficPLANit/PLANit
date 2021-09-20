@@ -137,7 +137,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    *
    * @param timePeriod the time period
    * @param mode       covered by this time period
-   * @param odDemands  to use duriung this loading
+   * @param odDemands  to use during this loading
    * @return simulationData initialised for time period
    * @throws PlanItException thrown if there is an error
    */
@@ -154,6 +154,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
     /* initial paths based on costs */
     OdPaths odPaths = createOdPaths(currentSegmentCosts, mode, timePeriod);
+    // for path based -> odmultipath option
+    // for bush based -> originbased bushes option
+    // both to be supported by network loading...
 
     /* create the network loading algorithm components instance */
     StaticLtmNetworkLoading networkLoading = new StaticLtmNetworkLoading(getIdGroupingToken(), getId(), getTransportNetwork(), mode, odPaths, odDemands);
@@ -303,7 +306,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   }
 
   /**
-   * Initialise the network loading components before we start any assignment
+   * Initialise the components before we start any assignment
    */
   @Override
   protected void initialiseBeforeExecution() throws PlanItException {

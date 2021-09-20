@@ -3,8 +3,8 @@ package org.planit.graph;
 import java.util.logging.Logger;
 
 import org.planit.utils.graph.Edge;
-import org.planit.utils.graph.UntypedGraph;
 import org.planit.utils.graph.GraphEntities;
+import org.planit.utils.graph.UntypedGraph;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdAbleImpl;
 import org.planit.utils.id.IdGenerator;
@@ -17,7 +17,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class UntypedGraphImpl<V extends GraphEntities<? extends Vertex>, E extends GraphEntities<? extends Edge>> extends IdAbleImpl implements UntypedGraph<V, E> {
+public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleImpl implements UntypedGraph<V, E> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -31,12 +31,12 @@ public class UntypedGraphImpl<V extends GraphEntities<? extends Vertex>, E exten
   /**
    * class instance containing all edges
    */
-  protected final E edges;
+  protected final GraphEntities<E> edges;
 
   /**
    * class instance containing all vertices
    */
-  protected final V vertices;
+  protected final GraphEntities<V> vertices;
 
   /**
    * Generate a graph id
@@ -54,7 +54,7 @@ public class UntypedGraphImpl<V extends GraphEntities<? extends Vertex>, E exten
    * @param vertices to use
    * @param edges    to use
    */
-  public UntypedGraphImpl(final IdGroupingToken groupId, final V vertices, final E edges) {
+  public UntypedGraphImpl(final IdGroupingToken groupId, final GraphEntities<V> vertices, final GraphEntities<E> edges) {
     super(generatedGraphId(groupId));
     this.groupId = groupId;
     this.edges = edges;
@@ -68,11 +68,10 @@ public class UntypedGraphImpl<V extends GraphEntities<? extends Vertex>, E exten
    * 
    * @param graphImpl to copy
    */
-  @SuppressWarnings("unchecked")
   public UntypedGraphImpl(final UntypedGraphImpl<V, E> graphImpl) {
     super(graphImpl);
-    this.edges = (E) graphImpl.getEdges().clone();
-    this.vertices = (V) graphImpl.getVertices().clone();
+    this.edges = (GraphEntities<E>) graphImpl.getEdges().clone();
+    this.vertices = (GraphEntities<V>) graphImpl.getVertices().clone();
     this.groupId = graphImpl.groupId;
   }
 
@@ -117,7 +116,7 @@ public class UntypedGraphImpl<V extends GraphEntities<? extends Vertex>, E exten
    * {@inheritDoc}
    */
   @Override
-  public V getVertices() {
+  public GraphEntities<V> getVertices() {
     return vertices;
   }
 
@@ -125,7 +124,7 @@ public class UntypedGraphImpl<V extends GraphEntities<? extends Vertex>, E exten
    * {@inheritDoc}
    */
   @Override
-  public E getEdges() {
+  public GraphEntities<E> getEdges() {
     return edges;
   }
 

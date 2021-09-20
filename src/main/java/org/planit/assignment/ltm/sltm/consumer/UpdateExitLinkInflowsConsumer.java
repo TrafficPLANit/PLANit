@@ -5,7 +5,6 @@ import org.ojalgo.array.Array2D;
 import org.ojalgo.function.PrimitiveFunction;
 import org.ojalgo.function.aggregator.Aggregator;
 import org.planit.algorithms.nodemodel.TampereNodeModel;
-import org.planit.assignment.ltm.sltm.ApplyToNodeModelResult;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.network.layer.physical.Node;
 

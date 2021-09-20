@@ -49,7 +49,7 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
    * @param costToFill    array of link segment costs identified by the link segment's internal id
    * @throws PlanItException thrown if error
    */
-  public void populateWithCost(final UntypedPhysicalLayer<?, ?, ?, ?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
+  public void populateWithCost(final UntypedPhysicalLayer<?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
     for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
       costToFill[(int) linkSegment.getId()] = getSegmentCost(mode, (MacroscopicLinkSegment) linkSegment);
     }

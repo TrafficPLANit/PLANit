@@ -16,8 +16,8 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class UntypedDirectedGraphImpl<V extends GraphEntities<? extends DirectedVertex>, E extends GraphEntities<? extends DirectedEdge>, ES extends GraphEntities<? extends EdgeSegment>>
-    extends UntypedGraphImpl<V, E> implements UntypedDirectedGraph<V, E, ES> {
+public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> extends UntypedGraphImpl<V, E>
+    implements UntypedDirectedGraph<V, E, ES> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -28,7 +28,7 @@ public class UntypedDirectedGraphImpl<V extends GraphEntities<? extends Directed
   /**
    * class instance containing all edge segments
    */
-  protected final ES edgeSegments;
+  protected final GraphEntities<ES> edgeSegments;
 
   /**
    * DirectedGraph Constructor
@@ -36,7 +36,7 @@ public class UntypedDirectedGraphImpl<V extends GraphEntities<? extends Directed
    * @param groupToken   contiguous id generation within this group for instances of this class
    * @param graphBuilder the builder to be used to create this network
    */
-  public UntypedDirectedGraphImpl(final IdGroupingToken groupToken, V vertices, E edges, ES edgeSegments) {
+  public UntypedDirectedGraphImpl(final IdGroupingToken groupToken, GraphEntities<V> vertices, GraphEntities<E> edges, GraphEntities<ES> edgeSegments) {
     super(groupToken, vertices, edges);
     this.edgeSegments = edgeSegments;
   }
@@ -46,10 +46,9 @@ public class UntypedDirectedGraphImpl<V extends GraphEntities<? extends Directed
    * 
    * @param directedGraphImpl to copy
    */
-  @SuppressWarnings("unchecked")
   public UntypedDirectedGraphImpl(final UntypedDirectedGraphImpl<V, E, ES> directedGraphImpl) {
     super(directedGraphImpl);
-    this.edgeSegments = (ES) directedGraphImpl.getEdgeSegments().clone();
+    this.edgeSegments = (GraphEntities<ES>) directedGraphImpl.getEdgeSegments().clone();
   }
 
   // Getters - Setters
@@ -58,7 +57,7 @@ public class UntypedDirectedGraphImpl<V extends GraphEntities<? extends Directed
    * {@inheritDoc}
    */
   @Override
-  public ES getEdgeSegments() {
+  public GraphEntities<ES> getEdgeSegments() {
     return edgeSegments;
   }
 

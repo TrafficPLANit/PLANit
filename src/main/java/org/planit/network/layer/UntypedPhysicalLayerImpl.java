@@ -15,8 +15,8 @@ import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
  *
  * @author markr
  */
-public abstract class UntypedPhysicalLayerImpl<N extends Node, NE extends GraphEntities<N>, L extends Link, LE extends GraphEntities<L>, LS extends LinkSegment, LSE extends GraphEntities<LS>>
-    extends UntypedNetworkLayerImpl<N, NE, L, LE, LS, LSE> implements UntypedPhysicalLayer<N, NE, L, LE, LS, LSE> {
+public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, LS extends LinkSegment> extends UntypedNetworkLayerImpl<N, L, LS>
+    implements UntypedPhysicalLayer<N, L, LS> {
 
   // INNER CLASSES
 
@@ -35,7 +35,7 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, NE extends GraphE
    * @param links        links container to use
    * @param linkSegments linkSegments container to use
    */
-  public UntypedPhysicalLayerImpl(final IdGroupingToken tokenId, final NE nodes, final LE links, final LSE linkSegments) {
+  public UntypedPhysicalLayerImpl(final IdGroupingToken tokenId, final GraphEntities<N> nodes, final GraphEntities<L> links, final GraphEntities<LS> linkSegments) {
     super(tokenId, nodes, links, linkSegments);
   }
 
@@ -69,30 +69,6 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, NE extends GraphE
    * {@inheritDoc}
    */
   @Override
-  public LE getLinks() {
-    return getGraph().getEdges();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public LSE getLinkSegments() {
-    return getGraph().getEdgeSegments();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public NE getNodes() {
-    return getGraph().getVertices();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public abstract UntypedPhysicalLayerImpl<N, NE, L, LE, LS, LSE> clone();
+  public abstract UntypedPhysicalLayerImpl<N, L, LS> clone();
 
 }

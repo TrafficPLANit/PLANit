@@ -2,9 +2,10 @@ package org.planit.graph;
 
 import java.util.logging.Logger;
 
-import org.planit.utils.graph.Edges;
+import org.planit.utils.graph.Edge;
 import org.planit.utils.graph.Graph;
-import org.planit.utils.graph.Vertices;
+import org.planit.utils.graph.GraphEntities;
+import org.planit.utils.graph.Vertex;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -14,7 +15,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class GraphImpl<V extends Vertices, E extends Edges> extends UntypedGraphImpl<V, E> implements Graph<V, E> {
+public class GraphImpl<V extends Vertex, E extends Edge> extends UntypedGraphImpl<V, E> implements Graph<V, E> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -29,7 +30,7 @@ public class GraphImpl<V extends Vertices, E extends Edges> extends UntypedGraph
    * @param vertices to use
    * @param edges    to use
    */
-  public GraphImpl(final IdGroupingToken groupId, final V vertices, final E edges) {
+  public GraphImpl(final IdGroupingToken groupId, final GraphEntities<V> vertices, final GraphEntities<E> edges) {
     super(groupId, vertices, edges);
   }
 

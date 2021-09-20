@@ -22,8 +22,7 @@ import org.planit.utils.network.layer.physical.Nodes;
  * @author markr
  *
  */
-public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, Nodes, Link, Links, MacroscopicLinkSegment, MacroscopicLinkSegments>
-    implements MacroscopicNetworkLayer {
+public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, Link, MacroscopicLinkSegment> implements MacroscopicNetworkLayer {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicNetworkLayerImpl.class.getCanonicalName());
@@ -89,7 +88,7 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    */
   @Override
   public Links getLinks() {
-    return getGraph().getEdges();
+    return (Links) getGraph().getEdges();
   }
 
   /**
@@ -97,7 +96,7 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    */
   @Override
   public MacroscopicLinkSegments getLinkSegments() {
-    return getGraph().getEdgeSegments();
+    return (MacroscopicLinkSegments) getGraph().getEdgeSegments();
   }
 
   /**
@@ -105,7 +104,7 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    */
   @Override
   public Nodes getNodes() {
-    return getGraph().getVertices();
+    return (Nodes) getGraph().getVertices();
   }
 
   /**

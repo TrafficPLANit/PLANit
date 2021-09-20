@@ -3,10 +3,11 @@ package org.planit.graph.directed;
 import java.util.logging.Logger;
 
 import org.planit.graph.UntypedDirectedGraphImpl;
-import org.planit.utils.graph.directed.DirectedEdges;
+import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.graph.GraphEntities;
+import org.planit.utils.graph.directed.DirectedEdge;
 import org.planit.utils.graph.directed.DirectedGraph;
-import org.planit.utils.graph.directed.DirectedVertices;
-import org.planit.utils.graph.directed.EdgeSegments;
+import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.id.IdGroupingToken;
 
 /**
@@ -16,7 +17,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class DirectedGraphImpl<V extends DirectedVertices, E extends DirectedEdges, ES extends EdgeSegments> extends UntypedDirectedGraphImpl<V, E, ES>
+public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> extends UntypedDirectedGraphImpl<V, E, ES>
     implements DirectedGraph<V, E, ES> {
 
   /** the logger */
@@ -31,7 +32,7 @@ public class DirectedGraphImpl<V extends DirectedVertices, E extends DirectedEdg
    * @param groupToken   contiguous id generation within this group for instances of this class
    * @param graphBuilder the builder to be used to create this network
    */
-  public DirectedGraphImpl(final IdGroupingToken groupToken, V vertices, E edges, ES edgeSegments) {
+  public DirectedGraphImpl(final IdGroupingToken groupToken, GraphEntities<V> vertices, GraphEntities<E> edges, GraphEntities<ES> edgeSegments) {
     super(groupToken, vertices, edges, edgeSegments);
   }
 

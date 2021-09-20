@@ -27,8 +27,7 @@ import org.planit.utils.network.layer.service.ServiceNodes;
  * @author markr
  *
  */
-public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode, ServiceNodes, ServiceLeg, ServiceLegs, ServiceLegSegment, ServiceLegSegments>
-    implements ServiceNetworkLayer {
+public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode, ServiceLeg, ServiceLegSegment> implements ServiceNetworkLayer {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(ServiceNetworkLayerImpl.class.getCanonicalName());
@@ -96,7 +95,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    */
   @Override
   public final ServiceLegs getLegs() {
-    return getGraph().getEdges();
+    return (ServiceLegs) getGraph().getEdges();
   }
 
   /**
@@ -104,7 +103,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    */
   @Override
   public final ServiceLegSegments getLegSegments() {
-    return getGraph().getEdgeSegments();
+    return (ServiceLegSegments) getGraph().getEdgeSegments();
   }
 
   /**
@@ -112,7 +111,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    */
   @Override
   public final ServiceNodes getServiceNodes() {
-    return getGraph().getVertices();
+    return (ServiceNodes) getGraph().getVertices();
   }
 
   /**

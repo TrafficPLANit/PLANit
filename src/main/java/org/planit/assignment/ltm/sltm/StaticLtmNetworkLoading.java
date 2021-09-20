@@ -17,6 +17,7 @@ import org.planit.algorithms.nodemodel.TampereNodeModel;
 import org.planit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.planit.algorithms.nodemodel.TampereNodeModelInput;
 import org.planit.assignment.ltm.sltm.consumer.ActivateSplittingRatesUsedNodesConsumer;
+import org.planit.assignment.ltm.sltm.consumer.ApplyToNodeModelResult;
 import org.planit.assignment.ltm.sltm.consumer.PathLinkInflowUpdateConsumer;
 import org.planit.assignment.ltm.sltm.consumer.PathTurnFlowUpdateConsumer;
 import org.planit.assignment.ltm.sltm.consumer.UpdateEntryLinksOutflowConsumer;

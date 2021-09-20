@@ -249,13 +249,13 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     if (network.getModes().size() != networkLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by only layer, this makes the assignment less efficient, consider removing unused modes");
     }
-  
+
     /* pre-compute the free flow travel times */
     freeFlowTravelTimePerLinkSegment = new double[network.getModes().size()][(int) networkLayer.getLinkSegments().size()];
     for (Mode mode : network.getModes()) {
       freeFlowTravelTimePerLinkSegment[(int) mode.getId()] = networkLayer.getLinkSegments().getFreeFlowTravelTimeHourPerLinkSegment(mode);
     }
-  
+
     /* explicitly set BPR parameters for each mode/segment combination */
     bprParametersPerLinkSegment = new BPRParameters[(int) networkLayer.getLinkSegments().size()];
     for (final MacroscopicLinkSegment macroscopicLinkSegment : networkLayer.getLinkSegments()) {
@@ -311,7 +311,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @param costToFill the cost to populate (in hours)
    */
   @Override
-  public void populateWithCost(UntypedPhysicalLayer<?, ?, ?, ?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
+  public void populateWithCost(UntypedPhysicalLayer<?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
     double[] linkSegmentFlows = linkVolumeAccessee.getLinkSegmentVolumes();
 
     for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {

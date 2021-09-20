@@ -5,6 +5,6 @@ package org.planit.utils.network.layer.physical;
  *
  * @author markr
  */
-public interface PhysicalLayer extends UntypedPhysicalLayer<Node, Nodes, Link, Links, LinkSegment, LinkSegments> {
+public interface PhysicalLayer extends UntypedPhysicalLayer<Node, Link, LinkSegment> {
 
 }

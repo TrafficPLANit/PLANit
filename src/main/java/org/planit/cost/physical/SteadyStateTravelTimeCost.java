@@ -180,7 +180,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * @param costToFill    the cost to populate (in hours)
    */
   @Override
-  public void populateWithCost(UntypedPhysicalLayer<?, ?, ?, ?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
+  public void populateWithCost(UntypedPhysicalLayer<?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
     double[] inflows = accessee.getLinkSegmentInflowsPcuHour();
     double[] outflows = accessee.getLinkSegmentOutflowsPcuHour();
     for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {

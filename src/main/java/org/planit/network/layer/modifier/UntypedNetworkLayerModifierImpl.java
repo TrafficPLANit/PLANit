@@ -10,7 +10,6 @@ import org.planit.graph.UntypedDirectedGraphImpl;
 import org.planit.graph.modifier.DirectedGraphModifierImpl;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.GraphEntities;
 import org.planit.utils.graph.directed.DirectedEdge;
 import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.graph.modifier.DirectedGraphModifier;
@@ -25,8 +24,7 @@ import org.planit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier
  *
  * @author markr
  */
-public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, VE extends GraphEntities<V>, E extends DirectedEdge, EE extends GraphEntities<E>, S extends EdgeSegment, SE extends GraphEntities<S>>
-    implements UntypedDirectedGraphLayerModifier<V, VE, E, EE, S, SE> {
+public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends DirectedEdge, S extends EdgeSegment> implements UntypedDirectedGraphLayerModifier<V, E, S> {
 
   // INNER CLASSES
 
@@ -54,7 +52,7 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, VE extend
    *
    * @param graph parent graph to abse modifier on
    */
-  public UntypedNetworkLayerModifierImpl(UntypedDirectedGraphImpl<VE, EE, SE> graph) {
+  public UntypedNetworkLayerModifierImpl(UntypedDirectedGraphImpl<V, E, S> graph) {
     this.graphModifier = new DirectedGraphModifierImpl(graph);
   }
 

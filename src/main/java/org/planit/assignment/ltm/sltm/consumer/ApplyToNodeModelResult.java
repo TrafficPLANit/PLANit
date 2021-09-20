@@ -1,4 +1,4 @@
-package org.planit.assignment.ltm.sltm;
+package org.planit.assignment.ltm.sltm.consumer;
 
 import org.ojalgo.array.Array1D;
 import org.planit.algorithms.nodemodel.TampereNodeModel;

@@ -12,7 +12,7 @@ import org.planit.utils.network.layers.UntypedPhysicalNetworkLayers;
  * @author markr
  *
  */
-public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?, ?, ?, ?, ?>, LS extends UntypedPhysicalNetworkLayers<L>> extends TopologicalLayerNetwork<L, LS> {
+public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?, ?>, LS extends UntypedPhysicalNetworkLayers<L>> extends TopologicalLayerNetwork<L, LS> {
 
   /**
    * generated UID

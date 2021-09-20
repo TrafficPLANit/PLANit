@@ -24,6 +24,7 @@ import org.planit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
+import org.planit.utils.network.layer.ServiceNetworkLayer;
 import org.planit.utils.network.layer.TransportLayer;
 import org.planit.utils.time.TimePeriod;
 import org.planit.zoning.Zoning;
@@ -285,7 +286,7 @@ public class PlanItProjectInput {
       /* log info across layers */
       LOGGER.info(String.format("%s#modes: %d", prefix, serviceNetwork.getModes().size()));      
       /* for each layer log information regarding contents */
-      for(TransportLayer networkLayer : serviceNetwork.getTransportLayers()) {
+      for(ServiceNetworkLayer networkLayer : serviceNetwork.getTransportLayers()) {
         networkLayer.logInfo(prefix);
       }
     }

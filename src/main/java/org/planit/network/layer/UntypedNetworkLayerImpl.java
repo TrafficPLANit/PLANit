@@ -23,8 +23,8 @@ import org.planit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier
  *
  * @author markr
  */
-public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, VE extends GraphEntities<V>, E extends DirectedEdge, EE extends GraphEntities<E>, S extends EdgeSegment, SE extends GraphEntities<S>>
-    extends TopologicalLayerImpl implements UntypedDirectedGraphLayer<V, VE, E, EE, S, SE> {
+public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extends DirectedEdge, S extends EdgeSegment> extends TopologicalLayerImpl
+    implements UntypedDirectedGraphLayer<V, E, S> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -33,10 +33,10 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, VE exten
   /**
    * The graph containing the vertices, edges, and edge segments (or derived implementations)
    */
-  private final UntypedDirectedGraphImpl<VE, EE, SE> graph;
+  private final UntypedDirectedGraphImpl<V, E, S> graph;
 
   /** the modifier to use to apply larger modifications */
-  protected UntypedDirectedGraphLayerModifier<V, VE, E, EE, S, SE> layerModifier;
+  protected UntypedDirectedGraphLayerModifier<V, E, S> layerModifier;
 
   // Protected
 
@@ -45,7 +45,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, VE exten
    * 
    * @return graph
    */
-  protected UntypedDirectedGraph<VE, EE, SE> getGraph() {
+  protected UntypedDirectedGraph<V, E, S> getGraph() {
     return graph;
   }
 
@@ -59,10 +59,10 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, VE exten
    * @param edges        edges container to use
    * @param edgeSegments edge Segments container to use
    */
-  public UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final VE vertices, final EE edges, final SE edgeSegments) {
+  public UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final GraphEntities<V> vertices, final GraphEntities<E> edges, final GraphEntities<S> edgeSegments) {
     super(tokenId);
-    this.graph = new UntypedDirectedGraphImpl<VE, EE, SE>(tokenId, vertices, edges, edgeSegments);
-    this.layerModifier = new UntypedNetworkLayerModifierImpl<V, VE, E, EE, S, SE>(this.graph);
+    this.graph = new UntypedDirectedGraphImpl<V, E, S>(tokenId, vertices, edges, edgeSegments);
+    this.layerModifier = new UntypedNetworkLayerModifierImpl<V, E, S>(this.graph);
   }
 
   /**
@@ -74,10 +74,10 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, VE exten
    * @param edgeSegments  edge Segments container to use
    * @param layerModifier to use for applying modifications to the graph
    */
-  public UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final VE vertices, final EE edges, final SE edgeSegments,
-      UntypedDirectedGraphLayerModifier<V, VE, E, EE, S, SE> layerModifier) {
+  public UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final GraphEntities<V> vertices, final GraphEntities<E> edges, final GraphEntities<S> edgeSegments,
+      UntypedDirectedGraphLayerModifier<V, E, S> layerModifier) {
     super(tokenId);
-    this.graph = new UntypedDirectedGraphImpl<VE, EE, SE>(tokenId, vertices, edges, edgeSegments);
+    this.graph = new UntypedDirectedGraphImpl<V, E, S>(tokenId, vertices, edges, edgeSegments);
     this.layerModifier = layerModifier;
   }
 
@@ -86,10 +86,10 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, VE exten
    * 
    * @param untypedDirectedGraphLayerImpl to copy
    */
-  public UntypedNetworkLayerImpl(UntypedNetworkLayerImpl<V, VE, E, EE, S, SE> untypedDirectedGraphLayerImpl) {
+  public UntypedNetworkLayerImpl(UntypedNetworkLayerImpl<V, E, S> untypedDirectedGraphLayerImpl) {
     super(untypedDirectedGraphLayerImpl);
     this.graph = untypedDirectedGraphLayerImpl.graph.clone();
-    this.layerModifier = new UntypedNetworkLayerModifierImpl<V, VE, E, EE, S, SE>(graph);
+    this.layerModifier = new UntypedNetworkLayerModifierImpl<V, E, S>(graph);
   }
 
   // Getters - Setters
@@ -136,7 +136,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, VE exten
    * {@inheritDoc}
    */
   @Override
-  public UntypedDirectedGraphLayerModifier<V, VE, E, EE, S, SE> getLayerModifier() {
+  public UntypedDirectedGraphLayerModifier<V, E, S> getLayerModifier() {
     return layerModifier;
   }
 
@@ -144,7 +144,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, VE exten
    * {@inheritDoc}
    */
   @Override
-  public abstract UntypedNetworkLayerImpl<V, VE, E, EE, S, SE> clone();
+  public abstract UntypedNetworkLayerImpl<V, E, S> clone();
 
   /**
    * {@inheritDoc}
