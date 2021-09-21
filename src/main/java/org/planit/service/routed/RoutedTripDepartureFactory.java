@@ -2,9 +2,7 @@ package org.planit.service.routed;
 
 import java.time.LocalTime;
 
-import org.planit.utils.id.ContainerisedManagedIdEntityFactory;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
 
 /**
@@ -12,7 +10,7 @@ import org.planit.utils.id.ManagedIdEntityFactoryImpl;
  * 
  * @author markr
  */
-public class RoutedTripDepartureFactory extends ManagedIdEntityFactoryImpl<RoutedTripDeparture> implements ContainerisedManagedIdEntityFactory<RoutedTripDeparture> {
+public class RoutedTripDepartureFactory extends ManagedIdEntityFactoryImpl<RoutedTripDeparture> {
 
   /** container to use */
   protected final RoutedTripDepartures routedTripDepartures;
@@ -36,16 +34,6 @@ public class RoutedTripDepartureFactory extends ManagedIdEntityFactoryImpl<Route
   protected RoutedTripDepartureFactory(final IdGroupingToken tokenId, final RoutedTripDepartures routedTripDepartures) {
     super(tokenId);
     this.routedTripDepartures = routedTripDepartures;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RoutedTripDeparture registerUniqueCopyOf(ManagedId routedTripDeparture) {
-    RoutedTripDeparture copy = createUniqueCopyOf(routedTripDeparture);
-    routedTripDepartures.register(copy);
-    return copy;
   }
 
   /**

@@ -4,7 +4,6 @@ import java.util.logging.Logger;
 
 import org.planit.network.layers.ServiceNetworkLayersImpl;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.ServiceNetworkLayer;
@@ -37,18 +36,8 @@ public class ServiceNetworkLayerFactoryImpl extends ManagedIdEntityFactoryImpl<S
    * {@inheritDoc}
    */
   @Override
-  public ServiceNetworkLayer registerUniqueCopyOf(ManagedId entityToCopy) {
-    ServiceNetworkLayer copy = createUniqueCopyOf(entityToCopy);
-    container.register(copy);
-    return copy;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public ServiceNetworkLayer registerNew(final MacroscopicNetworkLayer parentLayer) {
-    if (!container.getParentNetwork().getTransportLayers().contains(parentLayer.getId())) {
+    if (!container.getParentNetwork().getTransportLayers().containsKey(parentLayer.getId())) {
       LOGGER.warning("IGNORED, unable to create service layer, provided parent layer not present on parent network");
     }
     ServiceNetworkLayerImpl newLayer = new ServiceNetworkLayerImpl(this.getIdGroupingToken(), parentLayer);

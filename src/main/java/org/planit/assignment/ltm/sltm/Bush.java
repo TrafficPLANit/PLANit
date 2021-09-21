@@ -8,7 +8,6 @@ package org.planit.assignment.ltm.sltm;
  * The vertices in the bush represent link segments in the physical network, whereas each edge represents a turn from one link to another. This way each splitting rate uniquely
  * relates to a single turn and all outgoing edges of a vertex represent all turns of a node's incoming link
  * 
- * 
  * @author markr
  *
  */

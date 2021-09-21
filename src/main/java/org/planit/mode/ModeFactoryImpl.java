@@ -2,7 +2,6 @@ package org.planit.mode;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.mode.ModeFactory;
@@ -70,16 +69,6 @@ public class ModeFactoryImpl extends ManagedIdEntityFactoryImpl<Mode> implements
     default:
       throw new PlanItException(String.format("mode type %s unknown", modeType));
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Mode registerUniqueCopyOf(ManagedId mode) {
-    Mode copy = createUniqueCopyOf(mode);
-    modes.register(copy);
-    return copy;
   }
 
   /**

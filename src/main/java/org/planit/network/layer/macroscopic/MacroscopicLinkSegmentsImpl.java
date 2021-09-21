@@ -1,7 +1,7 @@
 package org.planit.network.layer.macroscopic;
 
-import org.planit.graph.GraphEntitiesImpl;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentFactory;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
@@ -13,7 +13,7 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
  * @author markr
  *
  */
-public class MacroscopicLinkSegmentsImpl extends GraphEntitiesImpl<MacroscopicLinkSegment> implements MacroscopicLinkSegments {
+public class MacroscopicLinkSegmentsImpl extends ManagedIdEntitiesImpl<MacroscopicLinkSegment> implements MacroscopicLinkSegments {
 
   /** factory to use */
   private final MacroscopicLinkSegmentFactory linkSegmentFactory;

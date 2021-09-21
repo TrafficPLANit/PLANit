@@ -4,14 +4,15 @@ import java.util.logging.Logger;
 
 import org.planit.utils.graph.GraphEntities;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntities;
 import org.planit.utils.network.layer.physical.Link;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.layer.physical.Node;
 import org.planit.utils.network.layer.physical.UntypedPhysicalLayer;
 
 /**
- * Model free Network consisting of nodes and links, each of which can be iterated over. This network does not contain any transport specific information, hence the qualification
- * "model free".
+ * Model free Network consisting of managed nodes, links, and link segments, each of which can be iterated over. This network does not contain any transport specific information,
+ * hence the qualification "model free".
  *
  * @author markr
  */
@@ -31,11 +32,12 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
    * Constructor
    *
    * @param tokenId      contiguous id generation within this group for instances of this class
-   * @param nodes        nodes container to use
-   * @param links        links container to use
-   * @param linkSegments linkSegments container to use
+   * @param nodes        managed nodes container to use
+   * @param links        managed links container to use
+   * @param linkSegments managed linkSegments container to use
    */
-  public UntypedPhysicalLayerImpl(final IdGroupingToken tokenId, final GraphEntities<N> nodes, final GraphEntities<L> links, final GraphEntities<LS> linkSegments) {
+  public <Nx extends GraphEntities<N> & ManagedIdEntities<N>, Lx extends GraphEntities<L> & ManagedIdEntities<L>, Sx extends GraphEntities<LS> & ManagedIdEntities<LS>> UntypedPhysicalLayerImpl(
+      final IdGroupingToken tokenId, final Nx nodes, final Lx links, final Sx linkSegments) {
     super(tokenId, nodes, links, linkSegments);
   }
 

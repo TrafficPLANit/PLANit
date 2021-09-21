@@ -3,7 +3,6 @@ package org.planit.network.layer;
 import java.util.Arrays;
 
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
@@ -28,16 +27,6 @@ public class MacroscopicNetworkLayerFactoryImpl extends ManagedIdEntityFactoryIm
   public MacroscopicNetworkLayerFactoryImpl(IdGroupingToken groupIdToken, MacroscopicNetworkLayers container) {
     super(groupIdToken);
     this.container = container;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public MacroscopicNetworkLayer registerUniqueCopyOf(ManagedId entityToCopy) {
-    MacroscopicNetworkLayer copy = createUniqueCopyOf(entityToCopy);
-    container.register(copy);
-    return copy;
   }
 
   /**

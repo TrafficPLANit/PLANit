@@ -1,8 +1,6 @@
 package org.planit.service.routed;
 
-import org.planit.utils.id.ContainerisedManagedIdEntityFactory;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
 
 /**
@@ -12,7 +10,7 @@ import org.planit.utils.id.ManagedIdEntityFactoryImpl;
  * 
  * @author markr
  */
-public abstract class RoutedTripFactory<T extends RoutedTrip> extends ManagedIdEntityFactoryImpl<T> implements ContainerisedManagedIdEntityFactory<T> {
+public abstract class RoutedTripFactory<T extends RoutedTrip> extends ManagedIdEntityFactoryImpl<T> {
 
   /** container to use */
   protected final RoutedTrips<T> routedTrips;
@@ -33,16 +31,6 @@ public abstract class RoutedTripFactory<T extends RoutedTrip> extends ManagedIdE
   protected RoutedTripFactory(final IdGroupingToken tokenId, final RoutedTrips<T> routedTrips) {
     super(tokenId);
     this.routedTrips = routedTrips;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public T registerUniqueCopyOf(ManagedId routedTrip) {
-    T copy = createUniqueCopyOf(routedTrip);
-    routedTrips.register(copy);
-    return copy;
   }
 
   /**

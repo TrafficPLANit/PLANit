@@ -1,7 +1,6 @@
 package org.planit.network.layer.macroscopic;
 
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
@@ -27,16 +26,6 @@ public class MacroscopicLinkSegmentTypeFactoryImpl extends ManagedIdEntityFactor
   protected MacroscopicLinkSegmentTypeFactoryImpl(final IdGroupingToken groupId, MacroscopicLinkSegmentTypes linkSegmentTypes) {
     super(groupId);
     this.linkSegmentTypes = linkSegmentTypes;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public MacroscopicLinkSegmentType registerUniqueCopyOf(ManagedId entityToCopy) {
-    MacroscopicLinkSegmentType newType = createUniqueCopyOf(entityToCopy);
-    linkSegmentTypes.register(newType);
-    return newType;
   }
 
   /**

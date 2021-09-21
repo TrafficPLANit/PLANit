@@ -17,25 +17,24 @@ public class ServiceNodeFactoryImpl extends GraphEntityFactoryImpl<ServiceNode> 
   /**
    * Constructor
    * 
-   * @param groupId  to use
+   * @param groupId      to use
    * @param serviceNodes to use
    */
   protected ServiceNodeFactoryImpl(final IdGroupingToken groupId, final ServiceNodes serviceNodes) {
     super(groupId, serviceNodes);
   }
 
-  
   /**
    * {@inheritDoc}
    */
   @Override
   public ServiceNodeImpl createNew(Node networkNode) {
     return new ServiceNodeImpl(getIdGroupingToken(), networkNode);
-  }  
+  }
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public ServiceNode registerNew(Node networkNode) {
     final ServiceNodeImpl newServiceNode = createNew(networkNode);

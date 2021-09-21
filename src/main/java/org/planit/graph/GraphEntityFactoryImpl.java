@@ -4,7 +4,6 @@ import org.planit.utils.graph.GraphEntities;
 import org.planit.utils.graph.GraphEntity;
 import org.planit.utils.graph.GraphEntityFactory;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
 
 /**
@@ -39,13 +38,4 @@ public abstract class GraphEntityFactoryImpl<E extends GraphEntity> extends Mana
     this.graphEntities = graphEntities;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public E registerUniqueCopyOf(ManagedId entityToCopy) {
-    E copy = createUniqueCopyOf(entityToCopy);
-    graphEntities.register(copy);
-    return copy;
-  }
 }

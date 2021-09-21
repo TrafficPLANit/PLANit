@@ -4,7 +4,6 @@ import java.util.Deque;
 
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.path.ContainerisedDirectedPathFactory;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.path.DirectedPaths;
@@ -46,16 +45,6 @@ public class ContainerisedDirectedPathFactoryImpl extends DirectedPathFactoryImp
   @Override
   public DirectedPath registerNew(Deque<? extends EdgeSegment> edgeSegments) {
     DirectedPath newPath = createNew(edgeSegments);
-    directedPaths.register(newPath);
-    return newPath;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedPath registerUniqueCopyOf(ManagedId entityToCopy) {
-    DirectedPath newPath = createUniqueCopyOf(entityToCopy);
     directedPaths.register(newPath);
     return newPath;
   }

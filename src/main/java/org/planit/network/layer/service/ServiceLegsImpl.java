@@ -1,7 +1,7 @@
 package org.planit.network.layer.service;
 
-import org.planit.graph.GraphEntitiesImpl;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.network.layer.service.ServiceLeg;
 import org.planit.utils.network.layer.service.ServiceLegFactory;
 import org.planit.utils.network.layer.service.ServiceLegs;
@@ -12,7 +12,7 @@ import org.planit.utils.network.layer.service.ServiceLegs;
  * @author markr
  *
  */
-public class ServiceLegsImpl extends GraphEntitiesImpl<ServiceLeg> implements ServiceLegs {
+public class ServiceLegsImpl extends ManagedIdEntitiesImpl<ServiceLeg> implements ServiceLegs {
 
   /** factory to use */
   private final ServiceLegFactory serviceLegFactory;

@@ -25,7 +25,7 @@ public class DirectedVerticesImpl extends GraphEntitiesImpl<DirectedVertex> impl
    * @param groupId to use for creating ids for instances
    */
   public DirectedVerticesImpl(final IdGroupingToken groupId) {
-    super(DirectedVertex::getId, DirectedVertex.VERTEX_ID_CLASS);
+    super(DirectedVertex::getId);
     this.directedVertexFactory = new DirectedVertexFactoryImpl(groupId, this);
   }
 
@@ -36,7 +36,7 @@ public class DirectedVerticesImpl extends GraphEntitiesImpl<DirectedVertex> impl
    * @param directedVertexFactory to use
    */
   public DirectedVerticesImpl(final IdGroupingToken groupId, final DirectedVertexFactory directedVertexFactory) {
-    super(Vertex::getId, DirectedVertex.VERTEX_ID_CLASS);
+    super(Vertex::getId);
     this.directedVertexFactory = directedVertexFactory;
   }
 

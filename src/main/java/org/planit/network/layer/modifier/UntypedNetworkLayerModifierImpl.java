@@ -88,6 +88,7 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   public void removeDanglingSubnetworks(final Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
     /* perform removal */
     graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest);
+    graphModifier.recreateManagedEntitiesIds();
   }
 
   /**

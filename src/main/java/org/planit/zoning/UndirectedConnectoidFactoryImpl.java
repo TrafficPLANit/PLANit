@@ -2,7 +2,6 @@ package org.planit.zoning;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
 import org.planit.utils.network.layer.physical.Node;
 import org.planit.utils.zoning.Connectoid;
@@ -59,16 +58,6 @@ public class UndirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<
     UndirectedConnectoid newConnectoid = new UndirectedConnectoidImpl(getIdGroupingToken(), accessNode);
     undirectedConnectoids.register(newConnectoid);
     return newConnectoid;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public UndirectedConnectoid registerUniqueCopyOf(ManagedId undirectedConnectoid) {
-    UndirectedConnectoid newCopy = createUniqueCopyOf(undirectedConnectoid);
-    undirectedConnectoids.register(newCopy);
-    return newCopy;
   }
 
 }

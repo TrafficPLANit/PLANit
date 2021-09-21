@@ -1,8 +1,8 @@
 package org.planit.network.virtual;
 
-import org.planit.graph.GraphEntitiesImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.network.virtual.ConnectoidSegmentFactory;
 import org.planit.utils.network.virtual.ConnectoidSegments;
@@ -14,7 +14,7 @@ import org.planit.utils.network.virtual.ConnectoidSegments;
  * @author markr
  *
  */
-public class ConnectoidSegmentsImpl extends GraphEntitiesImpl<ConnectoidSegment> implements ConnectoidSegments {
+public class ConnectoidSegmentsImpl extends ManagedIdEntitiesImpl<ConnectoidSegment> implements ConnectoidSegments {
 
   /** factory to use */
   private final ConnectoidSegmentFactory connectoidSegmentFactory;

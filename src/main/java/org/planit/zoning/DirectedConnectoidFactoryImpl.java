@@ -2,7 +2,6 @@ package org.planit.zoning;
 
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.zoning.Connectoid;
@@ -62,13 +61,4 @@ public class DirectedConnectoidFactoryImpl extends ManagedIdEntityFactoryImpl<Di
     return newConnectoid;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedConnectoid registerUniqueCopyOf(ManagedId directedConnectoid) {
-    DirectedConnectoid copy = createUniqueCopyOf(directedConnectoid);
-    directedConnectoids.register(copy);
-    return copy;
-  }
 }

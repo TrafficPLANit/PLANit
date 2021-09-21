@@ -1,7 +1,6 @@
 package org.planit.zoning;
 
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
 import org.planit.utils.zoning.TransferZoneGroup;
 import org.planit.utils.zoning.TransferZoneGroupFactory;
@@ -44,16 +43,6 @@ public class TransferZoneGroupFactoryImpl extends ManagedIdEntityFactoryImpl<Tra
   @Override
   public TransferZoneGroup createNew() {
     return new TransferZoneGroupImpl(getIdGroupingToken());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public TransferZoneGroup registerUniqueCopyOf(ManagedId transferZoneGroup) {
-    TransferZoneGroup copy = createUniqueCopyOf(transferZoneGroup);
-    transferZoneGroups.register(copy);
-    return copy;
   }
 
 }

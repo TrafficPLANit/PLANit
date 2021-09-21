@@ -1,20 +1,20 @@
 package org.planit.network.layer.physical;
 
-import org.planit.graph.GraphEntitiesImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.network.layer.physical.Node;
 import org.planit.utils.network.layer.physical.NodeFactory;
 import org.planit.utils.network.layer.physical.Nodes;
 
 /**
  * 
- * Nodes implementation
+ * Nodes primary managed container implementation
  * 
  * @author markr
  *
  */
-public class NodesImpl extends GraphEntitiesImpl<Node> implements Nodes {
+public class NodesImpl extends ManagedIdEntitiesImpl<Node> implements Nodes {
 
   /** factory to use */
   private final NodeFactory nodeFactory;

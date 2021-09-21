@@ -1,7 +1,7 @@
 package org.planit.network.layer.service;
 
-import org.planit.graph.GraphEntitiesImpl;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.network.layer.service.ServiceNode;
 import org.planit.utils.network.layer.service.ServiceNodeFactory;
 import org.planit.utils.network.layer.service.ServiceNodes;
@@ -13,7 +13,7 @@ import org.planit.utils.network.layer.service.ServiceNodes;
  * @author markr
  *
  */
-public class ServiceNodesImpl extends GraphEntitiesImpl<ServiceNode> implements ServiceNodes {
+public class ServiceNodesImpl extends ManagedIdEntitiesImpl<ServiceNode> implements ServiceNodes {
 
   /** factory to use */
   private final ServiceNodeFactory serviceNodeFactory;

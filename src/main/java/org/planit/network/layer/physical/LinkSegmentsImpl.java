@@ -1,20 +1,21 @@
 package org.planit.network.layer.physical;
 
-import org.planit.graph.GraphEntitiesImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntities;
+import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.network.layer.physical.LinkSegment;
 import org.planit.utils.network.layer.physical.LinkSegmentFactory;
 import org.planit.utils.network.layer.physical.LinkSegments;
 
 /**
  * 
- * Link segments container implementation
+ * Link segments primary managed container implementation
  * 
  * @author markr
  *
  */
-public class LinkSegmentsImpl extends GraphEntitiesImpl<LinkSegment> implements LinkSegments {
+public class LinkSegmentsImpl extends ManagedIdEntitiesImpl<LinkSegment> implements LinkSegments, ManagedIdEntities<LinkSegment> {
 
   /** factory to use */
   private final LinkSegmentFactory linkSegmentFactory;

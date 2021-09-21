@@ -1,20 +1,20 @@
 package org.planit.network.layer.physical;
 
-import org.planit.graph.GraphEntitiesImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.network.layer.physical.Link;
 import org.planit.utils.network.layer.physical.LinkFactory;
 import org.planit.utils.network.layer.physical.Links;
 
 /**
  * 
- * Links implementation
+ * Links primary managed container implementation
  * 
  * @author markr
  * 
  */
-public class LinksImpl extends GraphEntitiesImpl<Link> implements Links {
+public class LinksImpl extends ManagedIdEntitiesImpl<Link> implements Links {
 
   /** factory to use */
   private final LinkFactory linkFactory;

@@ -1,7 +1,6 @@
 package org.planit.zoning;
 
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.zoning.OdZone;
 import org.planit.utils.zoning.OdZoneFactory;
 import org.planit.utils.zoning.OdZones;
@@ -25,16 +24,6 @@ public class OdZoneFactoryImpl extends ZoneFactoryImpl<OdZone> implements OdZone
   protected OdZoneFactoryImpl(final IdGroupingToken groupId, final OdZones odZones) {
     super(groupId);
     this.odZones = odZones;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public OdZone registerUniqueCopyOf(ManagedId odZone) {
-    OdZone copy = createUniqueCopyOf(odZone);
-    odZones.register(copy);
-    return copy;
   }
 
   /**

@@ -31,7 +31,7 @@ public class EdgeSegmentsImpl extends GraphEntitiesImpl<EdgeSegment> implements 
    * @param groupId to use for creating ids for instances
    */
   public EdgeSegmentsImpl(final IdGroupingToken groupId) {
-    super(EdgeSegment::getId, EdgeSegment.EDGE_SEGMENT_ID_CLASS);
+    super(EdgeSegment::getId);
     this.edgeSegmentFactory = new EdgeSegmentFactoryImpl(groupId, this);
   }
 
@@ -42,7 +42,7 @@ public class EdgeSegmentsImpl extends GraphEntitiesImpl<EdgeSegment> implements 
    * @param edgeSegmentFactory to use
    */
   public EdgeSegmentsImpl(final IdGroupingToken groupId, final EdgeSegmentFactory edgeSegmentFactory) {
-    super(EdgeSegment::getId, EdgeSegment.EDGE_SEGMENT_ID_CLASS);
+    super(EdgeSegment::getId);
     this.edgeSegmentFactory = edgeSegmentFactory;
   }
 

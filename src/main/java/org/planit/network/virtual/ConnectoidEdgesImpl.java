@@ -1,8 +1,8 @@
 package org.planit.network.virtual;
 
-import org.planit.graph.GraphEntitiesImpl;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntitiesImpl;
 import org.planit.utils.network.virtual.ConnectoidEdge;
 import org.planit.utils.network.virtual.ConnectoidEdgeFactory;
 import org.planit.utils.network.virtual.ConnectoidEdges;
@@ -14,7 +14,7 @@ import org.planit.utils.network.virtual.ConnectoidEdges;
  * @author markr
  *
  */
-public class ConnectoidEdgesImpl extends GraphEntitiesImpl<ConnectoidEdge> implements ConnectoidEdges {
+public class ConnectoidEdgesImpl extends ManagedIdEntitiesImpl<ConnectoidEdge> implements ConnectoidEdges {
 
   /** factory to use */
   private final ConnectoidEdgeFactory connectoidEdgeFactory;

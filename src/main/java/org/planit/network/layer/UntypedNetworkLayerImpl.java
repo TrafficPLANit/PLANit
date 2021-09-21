@@ -13,6 +13,7 @@ import org.planit.utils.graph.UntypedDirectedGraph;
 import org.planit.utils.graph.directed.DirectedEdge;
 import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.id.ManagedIdEntities;
 import org.planit.utils.network.layer.TransportLayer;
 import org.planit.utils.network.layer.UntypedDirectedGraphLayer;
 import org.planit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
@@ -51,15 +52,17 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
 
   // PUBLIC
 
+  // @formatter:off
   /**
    * Network Constructor
    *
    * @param tokenId      contiguous id generation within this group for instances of this class
-   * @param vertices     vertices container to use
-   * @param edges        edges container to use
-   * @param edgeSegments edge Segments container to use
+   * @param vertices     managed vertices container to use
+   * @param edges        managed edges container to use
+   * @param edgeSegments managed edge Segments container to use
    */
-  public UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final GraphEntities<V> vertices, final GraphEntities<E> edges, final GraphEntities<S> edgeSegments) {
+  public <Vx extends GraphEntities<V> & ManagedIdEntities<V>, Ex extends GraphEntities<E> & ManagedIdEntities<E>, Sx extends GraphEntities<S> & ManagedIdEntities<S>> 
+      UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final Vx vertices, final Ex edges, final Sx edgeSegments) {
     super(tokenId);
     this.graph = new UntypedDirectedGraphImpl<V, E, S>(tokenId, vertices, edges, edgeSegments);
     this.layerModifier = new UntypedNetworkLayerModifierImpl<V, E, S>(this.graph);
@@ -74,8 +77,8 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
    * @param edgeSegments  edge Segments container to use
    * @param layerModifier to use for applying modifications to the graph
    */
-  public UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final GraphEntities<V> vertices, final GraphEntities<E> edges, final GraphEntities<S> edgeSegments,
-      UntypedDirectedGraphLayerModifier<V, E, S> layerModifier) {
+  public <Vx extends GraphEntities<V> & ManagedIdEntities<V>, Ex extends GraphEntities<E> & ManagedIdEntities<E>, Sx extends GraphEntities<S> & ManagedIdEntities<S>>
+      UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final Vx vertices, final Ex edges, final Sx edgeSegments, UntypedDirectedGraphLayerModifier<V, E, S> layerModifier) {
     super(tokenId);
     this.graph = new UntypedDirectedGraphImpl<V, E, S>(tokenId, vertices, edges, edgeSegments);
     this.layerModifier = layerModifier;
@@ -149,9 +152,12 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
   public void reset() {
     super.reset();
-    this.graph.reset();
+    ((ManagedIdEntities<V>) this.graph.getVertices()).reset();
+    ((ManagedIdEntities<V>) this.graph.getEdges()).reset();
+    ((ManagedIdEntities<V>) this.graph.getEdgeSegments()).reset();
   }
 }

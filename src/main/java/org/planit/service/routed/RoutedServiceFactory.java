@@ -1,8 +1,6 @@
 package org.planit.service.routed;
 
-import org.planit.utils.id.ContainerisedManagedIdEntityFactory;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.id.ManagedId;
 import org.planit.utils.id.ManagedIdEntityFactoryImpl;
 
 /**
@@ -10,7 +8,7 @@ import org.planit.utils.id.ManagedIdEntityFactoryImpl;
  * 
  * @author markr
  */
-public class RoutedServiceFactory extends ManagedIdEntityFactoryImpl<RoutedService> implements ContainerisedManagedIdEntityFactory<RoutedService> {
+public class RoutedServiceFactory extends ManagedIdEntityFactoryImpl<RoutedService> {
 
   /** container to use */
   protected final RoutedModeServices routedModeServices;
@@ -33,16 +31,6 @@ public class RoutedServiceFactory extends ManagedIdEntityFactoryImpl<RoutedServi
   protected RoutedServiceFactory(final IdGroupingToken tokenId, final RoutedModeServices routedModeServices) {
     super(tokenId);
     this.routedModeServices = routedModeServices;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RoutedService registerUniqueCopyOf(ManagedId routedService) {
-    RoutedService copy = createUniqueCopyOf(routedService);
-    routedModeServices.register(copy);
-    return copy;
   }
 
   /**
