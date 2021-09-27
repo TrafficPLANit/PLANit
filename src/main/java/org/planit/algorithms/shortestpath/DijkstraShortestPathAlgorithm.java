@@ -13,13 +13,10 @@ import org.planit.utils.misc.Pair;
 /**
  * Dijkstra's shortest path algorithm
  * 
- * Dijkstra's shortest path is a one-to-all implementation of the shortest path
- * algorithm based on the generalized costs on each link segment (edge). The
- * costs should be provided upon instantiation and are reused whenever a
- * One-To-All execution conditional on the chosen source node is performed.
+ * Dijkstra's shortest path is a one-to-all implementation of the shortest path algorithm based on the generalized costs on each link segment (edge). The costs should be provided
+ * upon instantiation and are reused whenever a One-To-All execution conditional on the chosen source node is performed.
  * 
- * In its current form, it assumes a macroscopic network and macroscopic link
- * segments to operate on
+ * In its current form, it assumes a macroscopic network and macroscopic link segments to operate on
  * 
  * @author markr
  *
@@ -27,8 +24,7 @@ import org.planit.utils.misc.Pair;
 public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgorithm {
 
   /**
-   * Reference to current origin for which we have collected shortest paths on a
-   * ONE-TO-ALL basis
+   * Reference to current origin for which we have collected shortest paths on a ONE-TO-ALL basis
    */
   protected Vertex currentOrigin = null;
 
@@ -46,31 +42,27 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
    * The number of vertices in the network
    */
   protected final int numberOfVertices;
-  
+
   /** Comparator to sort based on the second elements minimum value (ascending order) */
-  protected static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator =
-      Comparator.comparing(Pair<DirectedVertex, Double>::second, (f1, f2) -> {
-        return f1.compareTo(f2);
-      });  
+  protected static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator = Comparator.comparing(Pair<DirectedVertex, Double>::second, (f1, f2) -> {
+    return f1.compareTo(f2);
+  });
 
   /**
-   * Constructor for an edge cost based Dijkstra algorithm for finding shortest
-   * paths.
+   * Constructor for an edge cost based Dijkstra algorithm for finding shortest paths.
    * 
-   * @param edgeSegmentCosts Edge segment costs
+   * @param edgeSegmentCosts     Edge segment costs
    * @param numberOfEdgeSegments Edge segments, both physical and connectoid
-   * @param numberOfVertices Vertices, both nodes and centroids
+   * @param numberOfVertices     Vertices, both nodes and centroids
    */
-  public DijkstraShortestPathAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments,
-      int numberOfVertices) {
+  public DijkstraShortestPathAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
     this.edgeSegmentCosts = edgeSegmentCosts;
     this.numberOfVertices = numberOfVertices;
     this.numberOfEdgeSegments = numberOfEdgeSegments;
   }
 
   /**
-   * Construct shortest paths from source node to all other nodes in the network
-   * based on directed LinkSegment edges
+   * Construct shortest paths from source node to all other nodes in the network based on directed LinkSegment edges
    * 
    * @param currentOrigin origin vertex of source node
    * @return shortest path result that can be used to extract paths
@@ -80,11 +72,11 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
   public ShortestPathResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException {
     boolean[] vertexVisited = new boolean[numberOfVertices];
     this.currentOrigin = currentOrigin;
-    
+
     // track measured cost for each vertex
-    double[] vertexMeasuredCost = new double[numberOfVertices];    
+    double[] vertexMeasuredCost = new double[numberOfVertices];
     Arrays.fill(vertexMeasuredCost, Double.MAX_VALUE);
-    vertexMeasuredCost[(int)currentOrigin.getId()] = 0.0;
+    vertexMeasuredCost[(int) currentOrigin.getId()] = 0.0;
     // precedingVertex for each vertex (used to reconstruct path)
     EdgeSegment[] incomingEdgeSegment = new EdgeSegment[numberOfVertices];
     Arrays.fill(incomingEdgeSegment, null);
@@ -111,24 +103,24 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
       for (EdgeSegment adjacentEdgeSegment : currentVertex.getExitEdgeSegments()) {
         double currentEdgeSegmentCost = edgeSegmentCosts[(int) adjacentEdgeSegment.getId()];
         if (currentEdgeSegmentCost < Double.MAX_VALUE) {
-          
+
           DirectedVertex adjacentVertex = adjacentEdgeSegment.getDownstreamVertex();
           int adjacentVertexId = (int) adjacentVertex.getId();
           if (!vertexVisited[adjacentVertexId]) {
             double adjacentVertexCost = vertexMeasuredCost[adjacentVertexId];
             double computedCostToReachAdjacentVertex = currentCost + currentEdgeSegmentCost;
-            
+
             // Whenever the adjacent vertex can be reached in less cost than currently is
             // the case, place it on the queue for expanding and update its cost
             if (adjacentVertexCost > computedCostToReachAdjacentVertex) {
               vertexMeasuredCost[adjacentVertexId] = computedCostToReachAdjacentVertex;
               incomingEdgeSegment[adjacentVertexId] = adjacentEdgeSegment;
               openVertices.add(Pair.of(adjacentVertex, computedCostToReachAdjacentVertex)); // place on queue
-            }            
+            }
           }
         }
       }
     }
-    return new ShortestPathResult(vertexMeasuredCost, incomingEdgeSegment);
+    return new ShortestPathResultImpl(vertexMeasuredCost, incomingEdgeSegment);
   }
 }
