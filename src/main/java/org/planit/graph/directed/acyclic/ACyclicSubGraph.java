@@ -38,4 +38,10 @@ public interface ACyclicSubGraph extends DirectedSubGraph {
    */
   public abstract Collection<DirectedVertex> topologicalSort();
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ACyclicSubGraph clone();
+
 }

@@ -49,6 +49,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtm.class.getCanonicalName());
 
+  /** flag indicating to apply bush based assignment, or path based, default is true meaning bush based */
+  private boolean bushBased = BUSH_BASED_DEFAULT;
+
   /** flag indicating whether or not to take link storage constraints into consideration, i.e. have a point queue or a physical queuing model */
   private boolean disableLinkStorageConstraints;
 
@@ -152,16 +155,22 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
     // TODO no support for initial cost yet
 
-    /* initial paths based on costs */
-    OdPaths odPaths = createOdPaths(currentSegmentCosts, mode, timePeriod);
-    // for path based -> odmultipath option
-    // for bush based -> originbased bushes option
-    // both to be supported by network loading...
+    /* BUSH BASED - PATH BASED */
+    StaticLtmSimulationData simulationData = null;
+    if (!bushBased) {
+      /* initial paths based on costs */
+      OdPaths odPaths = createOdPaths(currentSegmentCosts, mode, timePeriod);
+      // TODO for path based -> odmultipath option
 
-    /* create the network loading algorithm components instance */
-    StaticLtmNetworkLoading networkLoading = new StaticLtmNetworkLoading(getIdGroupingToken(), getId(), getTransportNetwork(), mode, odPaths, odDemands);
+      /* create the network loading algorithm components instance */
+      StaticLtmNetworkLoading networkLoading = new StaticLtmNetworkLoading(getIdGroupingToken(), getId(), getTransportNetwork(), mode, odPaths, odDemands);
+      simulationData = new StaticLtmSimulationData(networkLoading, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
+    } else {
+      // for bush based -> originbased bushes option
+      // both to be supported by network loading...
+    }
 
-    return new StaticLtmSimulationData(networkLoading, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
+    return simulationData;
   }
 
   /**
@@ -338,6 +347,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   protected StaticLtmSimulationData getIterationData() {
     return simulationData;
   }
+
+  /** default setting for assignment is to apply a bush-based type of implementation over a path based one */
+  public static boolean BUSH_BASED_DEFAULT = true;
 
   /**
    * Constructor

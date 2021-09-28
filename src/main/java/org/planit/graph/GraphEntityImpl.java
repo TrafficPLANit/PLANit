@@ -22,6 +22,7 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
    * @return created and set id
    */
   protected long generateAndSetId(IdGroupingToken tokenId) {
+    // TODO: likely best replaced by methods already present in IdAble(Impl)
     long newId = generateId(tokenId, getIdClass());
     setId(newId);
     return newId;

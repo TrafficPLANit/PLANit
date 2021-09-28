@@ -186,6 +186,19 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
   }
 
   /**
+   * Copy constructor
+   * 
+   * @param aCyclicSubGraphImpl to copy
+   */
+  public ACyclicSubGraphImpl(ACyclicSubGraphImpl aCyclicSubGraphImpl) {
+    this.id = aCyclicSubGraphImpl.getId();
+    this.root = aCyclicSubGraphImpl.getRootVertex();
+    this.registeredLinkSegments = BitSet.valueOf(aCyclicSubGraphImpl.registeredLinkSegments.toByteArray());
+    this.vertexData = new HashMap<DirectedVertex, AcyclicVertexData>();
+    aCyclicSubGraphImpl.vertexData.forEach((v, d) -> this.vertexData.put(v, d.clone()));
+  }
+
+  /**
    * Perform topological sorting from root, based on Gupta et al. 2008.
    * 
    * @return Topologically sorted list of vertices, null when graph is not acyclic, or disconnected
@@ -275,6 +288,14 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
       removeVertexData(edgeSegment.getUpstreamVertex());
     }
 
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ACyclicSubGraphImpl clone() {
+    return new ACyclicSubGraphImpl(this);
   }
 
 }
