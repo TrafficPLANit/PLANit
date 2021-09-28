@@ -4,9 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
+import java.util.logging.Logger;
+
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -14,6 +18,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.planit.algorithms.shortestpath.AStarShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
+import org.planit.logging.Logging;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.utils.id.IdGroupingToken;
@@ -34,6 +39,9 @@ import org.planit.zoning.Zoning;
  */
 public class ShortestPathTest {
 
+  /** the logger */
+  private static Logger LOGGER = null;
+
   private static final CoordinateReferenceSystem crs = CartesianAuthorityFactory.GENERIC_2D;
 
   private TransportModelNetwork transportNetwork;
@@ -48,6 +56,18 @@ public class ShortestPathTest {
   private Centroid centroidC;
   private Centroid centroidD;
   private Centroid centroidE;
+
+  @BeforeClass
+  public static void setUp() throws Exception {
+    if (LOGGER == null) {
+      LOGGER = Logging.createLogger(ShortestPathTest.class);
+    }
+  }
+
+  @AfterClass
+  public static void tearDown() {
+    Logging.closeLogger(LOGGER);
+  }
 
   //@formatter:off
   @Before

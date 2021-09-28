@@ -17,6 +17,6 @@ public interface MinMaxPathResult extends ShortestPathResult {
    * 
    * @param flag when true switch to minimum paths, otherwise switch to maximum paths. Default is minimum paths
    */
-  public abstract void switchToMinPaths(boolean flag);
+  public abstract void setMinPathState(boolean flag);
 
 }

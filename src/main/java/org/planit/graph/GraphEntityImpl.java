@@ -63,4 +63,12 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
   public long recreateManagedIds(IdGroupingToken tokenId) {
     return generateAndSetId(tokenId);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return String.format("[ %d %s]", getId(), getXmlId() == null ? "" : getXmlId());
+  }
 }

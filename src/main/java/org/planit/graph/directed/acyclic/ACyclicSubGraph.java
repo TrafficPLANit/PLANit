@@ -2,8 +2,6 @@ package org.planit.graph.directed.acyclic;
 
 import java.util.Collection;
 
-import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.directed.DirectedEdge;
 import org.planit.utils.graph.directed.DirectedSubGraph;
 import org.planit.utils.graph.directed.DirectedVertex;
 
@@ -23,7 +21,7 @@ import org.planit.utils.graph.directed.DirectedVertex;
  * @author markr
  *
  */
-public interface ACyclicSubGraph<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> extends DirectedSubGraph<V, E, ES> {
+public interface ACyclicSubGraph extends DirectedSubGraph {
 
   /**
    * Collect the root vertex of this acyclic subgraph
@@ -38,6 +36,6 @@ public interface ACyclicSubGraph<V extends DirectedVertex, E extends DirectedEdg
    * 
    * @return return topological sorting found, null when it was found not to be possible to create a topological sorting
    */
-  public abstract Collection<V> topologicalSort();
+  public abstract Collection<DirectedVertex> topologicalSort();
 
 }

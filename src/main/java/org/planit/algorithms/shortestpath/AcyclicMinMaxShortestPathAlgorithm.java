@@ -1,7 +1,7 @@
 package org.planit.algorithms.shortestpath;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 
 import org.planit.graph.directed.acyclic.ACyclicSubGraph;
 import org.planit.utils.exceptions.PlanItException;
@@ -20,10 +20,10 @@ import org.planit.utils.graph.directed.DirectedVertex;
 public class AcyclicMinMaxShortestPathAlgorithm implements OneToAllShortestPathAlgorithm {
 
   /** topological ordering to use, which is assumed to be based on the given origin vertex */
-  private final List<? extends DirectedVertex> topologicalOrder;
+  private final Collection<? extends DirectedVertex> topologicalOrder;
 
   /** the acyclic graph to operate on */
-  private final ACyclicSubGraph<?, ?, ?> acyclicSubGraph;
+  private final ACyclicSubGraph acyclicSubGraph;
 
   /** costs of all edge segments known, index reflects id of the graph entity */
   private final double[] edgeSegmentCosts;
@@ -38,8 +38,7 @@ public class AcyclicMinMaxShortestPathAlgorithm implements OneToAllShortestPathA
    * @param topologicalOrder to use for constructing the min max paths
    * @param edgeSegmentCosts for all edge segments
    */
-  public AcyclicMinMaxShortestPathAlgorithm(final ACyclicSubGraph<?, ?, ?> acyclicSubGraph, final List<? extends DirectedVertex> topologicalOrder,
-      final double[] edgeSegmentCosts) {
+  public AcyclicMinMaxShortestPathAlgorithm(final ACyclicSubGraph acyclicSubGraph, final Collection<? extends DirectedVertex> topologicalOrder, final double[] edgeSegmentCosts) {
     this.acyclicSubGraph = acyclicSubGraph;
     this.topologicalOrder = topologicalOrder;
     this.edgeSegmentCosts = edgeSegmentCosts;
@@ -52,7 +51,7 @@ public class AcyclicMinMaxShortestPathAlgorithm implements OneToAllShortestPathA
    * @param currentOrigin to conduct search for
    */
   @Override
-  public ShortestPathResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException {
+  public MinMaxPathResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException {
     long numberOfVertices = acyclicSubGraph.getNumberOfVertices();
 
     /* prep cost arrays */

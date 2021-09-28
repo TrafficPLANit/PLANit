@@ -11,7 +11,6 @@ import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.graph.directed.DirectedEdge;
 import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
@@ -27,7 +26,7 @@ import org.planit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class ACyclicSubGraphImpl<V extends DirectedVertex, E extends DirectedEdge, ES extends EdgeSegment> implements ACyclicSubGraph<V, E, ES> {
+public class ACyclicSubGraphImpl implements ACyclicSubGraph {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ACyclicSubGraphImpl.class.getCanonicalName());
@@ -40,7 +39,7 @@ public class ACyclicSubGraphImpl<V extends DirectedVertex, E extends DirectedEdg
   /**
    * root of the sub graph
    */
-  V root;
+  DirectedVertex root;
 
   /**
    * track data for the vertices used in this acyclic graph, mainly used to enable topological sorting
@@ -48,7 +47,7 @@ public class ACyclicSubGraphImpl<V extends DirectedVertex, E extends DirectedEdg
    * TODO: candidate to be generated based on registered link segments and provide as parameter to methods requiring it. This would allow one the option to not store this but
    * generate on-the-fly trading-off memory vs computational speed. Now we always have this in memory which is costly
    */
-  private Map<V, AcyclicVertexData> vertexData;
+  private Map<DirectedVertex, AcyclicVertexData> vertexData;
 
   /** track the link segments used via a bit set, where 1 at index indicates the link segment with id=index is included */
   private BitSet registeredLinkSegments;
@@ -64,6 +63,35 @@ public class ACyclicSubGraphImpl<V extends DirectedVertex, E extends DirectedEdg
   }
 
   /**
+   * Remove from registered vertices
+   * 
+   * @param vertex to remove data for
+   */
+  private void removeVertexData(DirectedVertex vertex) {
+    vertexData.remove(vertex);
+  }
+
+  /**
+   * Check if vertex is connected to any edge segment registered on this subgraph
+   * 
+   * @param vertex to check
+   * @return true when connected, false otherwise
+   */
+  private boolean isConnectedToAnySubgraphEdgeSegment(DirectedVertex vertex) {
+    for (EdgeSegment edgeSegment : vertex.getExitEdgeSegments()) {
+      if (containsEdgeSegment(edgeSegment)) {
+        return true;
+      }
+    }
+    for (EdgeSegment edgeSegment : vertex.getEntryEdgeSegments()) {
+      if (containsEdgeSegment(edgeSegment)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Traverse the graph recursively with the purposes of sorting it topologically
    * 
    * @param vertexIndex      current index we are at
@@ -72,8 +100,7 @@ public class ACyclicSubGraphImpl<V extends DirectedVertex, E extends DirectedEdg
    * 
    * @return true when acyclic, false otherwise
    */
-  @SuppressWarnings("unchecked")
-  private boolean traverseRecursively(V vertex, BitSet visited, LongAdder counter, Deque<V> topologicalOrder) {
+  private boolean traverseRecursively(DirectedVertex vertex, BitSet visited, LongAdder counter, Deque<DirectedVertex> topologicalOrder) {
     visited.set((int) vertex.getId());
 
     AcyclicVertexData vertexData = getVertexData(vertex);
@@ -82,7 +109,7 @@ public class ACyclicSubGraphImpl<V extends DirectedVertex, E extends DirectedEdg
     boolean isAcyclic = true;
     for (EdgeSegment exitEdgeSegment : vertex.getExitEdgeSegments()) {
       if (containsEdgeSegment(exitEdgeSegment)) {
-        V downstreamVertex = (V) exitEdgeSegment.getDownstreamVertex();
+        DirectedVertex downstreamVertex = exitEdgeSegment.getDownstreamVertex();
         AcyclicVertexData downstreamVertexData = getVertexData(downstreamVertex);
         if (downstreamVertexData.preVisitIndex == 0) {
           /* valid so far, not yet explored at all, proceed */
@@ -140,7 +167,7 @@ public class ACyclicSubGraphImpl<V extends DirectedVertex, E extends DirectedEdg
    * @param vertex to collect for
    * @return vertex data
    */
-  protected AcyclicVertexData getVertexData(V vertex) {
+  protected AcyclicVertexData getVertexData(DirectedVertex vertex) {
     return this.vertexData.get(vertex);
   }
 
@@ -151,34 +178,38 @@ public class ACyclicSubGraphImpl<V extends DirectedVertex, E extends DirectedEdg
    * @param numberOfParentEdgeSegments number of directed edge segments of the parent this subgraph is a subset from
    * @param root                       (initial) root of the subgraph
    */
-  public ACyclicSubGraphImpl(final IdGroupingToken groupId, int numberOfParentEdgeSegments, V root) {
+  public ACyclicSubGraphImpl(final IdGroupingToken groupId, int numberOfParentEdgeSegments, DirectedVertex root) {
     this.id = IdGenerator.generateId(groupId, ACyclicSubGraph.class);
     this.root = root;
-    this.vertexData = new HashMap<V, AcyclicVertexData>();
+    this.vertexData = new HashMap<DirectedVertex, AcyclicVertexData>();
     this.registeredLinkSegments = new BitSet(numberOfParentEdgeSegments);
   }
 
   /**
    * Perform topological sorting from root, based on Gupta et al. 2008.
    * 
-   * @return Topologically sorted list of vertices, null when graph is not acyclic.
+   * @return Topologically sorted list of vertices, null when graph is not acyclic, or disconnected
    */
   @Override
-  public Collection<V> topologicalSort() {
+  public Collection<DirectedVertex> topologicalSort() {
 
-    ArrayDeque<V> topologicalOrder = new ArrayDeque<V>(vertexData.size());
+    ArrayDeque<DirectedVertex> topologicalOrder = new ArrayDeque<DirectedVertex>(vertexData.size());
     resetVertexData();
 
     BitSet visited = new BitSet(vertexData.size());
     LongAdder counter = new LongAdder();
     counter.increment();
-    traverseRecursively(root, visited, counter, topologicalOrder);
+    boolean isAcyclic = traverseRecursively(root, visited, counter, topologicalOrder);
 
-    for (Entry<V, AcyclicVertexData> vertexEntry : this.vertexData.entrySet()) {
-      if (!visited.get((int) vertexEntry.getKey().getId())) {
-        LOGGER.warning(String.format("Topological sort applied, but some vertices not connected to the root (%s) of the acyclic graph (%d), unable to determine sorting order",
-            root.getXmlId(), getId()));
-        return null;
+    if (!isAcyclic) {
+      return null;
+    } else {
+      for (Entry<DirectedVertex, AcyclicVertexData> vertexEntry : this.vertexData.entrySet()) {
+        if (!visited.get((int) vertexEntry.getKey().getId())) {
+          LOGGER.warning(String.format("Topological sort applied, but some vertices not connected to the root (%s) of the acyclic graph (%d), unable to determine sorting order",
+              root.getXmlId(), getId()));
+          return null;
+        }
       }
     }
 
@@ -204,15 +235,14 @@ public class ACyclicSubGraphImpl<V extends DirectedVertex, E extends DirectedEdg
   /**
    * {@inheritDoc}
    */
-  @SuppressWarnings("unchecked")
   @Override
   public void addEdgeSegment(EdgeSegment edgeSegment) {
     registeredLinkSegments.set((int) edgeSegment.getId());
     if (!vertexData.containsKey(edgeSegment.getUpstreamVertex())) {
-      vertexData.put((V) edgeSegment.getUpstreamVertex(), new AcyclicVertexData());
+      vertexData.put(edgeSegment.getUpstreamVertex(), new AcyclicVertexData());
     }
     if (!vertexData.containsKey(edgeSegment.getDownstreamVertex())) {
-      vertexData.put((V) edgeSegment.getDownstreamVertex(), new AcyclicVertexData());
+      vertexData.put(edgeSegment.getDownstreamVertex(), new AcyclicVertexData());
     }
   }
 
@@ -230,6 +260,21 @@ public class ACyclicSubGraphImpl<V extends DirectedVertex, E extends DirectedEdg
   @Override
   public long getNumberOfVertices() {
     return vertexData.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeEdgeSegment(EdgeSegment edgeSegment) {
+    registeredLinkSegments.set((int) edgeSegment.getId(), false);
+    if (!isConnectedToAnySubgraphEdgeSegment(edgeSegment.getDownstreamVertex())) {
+      removeVertexData(edgeSegment.getDownstreamVertex());
+    }
+    if (!isConnectedToAnySubgraphEdgeSegment(edgeSegment.getUpstreamVertex())) {
+      removeVertexData(edgeSegment.getUpstreamVertex());
+    }
+
   }
 
 }

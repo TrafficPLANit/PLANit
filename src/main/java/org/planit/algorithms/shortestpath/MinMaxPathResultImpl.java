@@ -70,7 +70,7 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    * {@inheritDoc}
    */
   @Override
-  public void switchToMinPaths(boolean flag) {
+  public void setMinPathState(boolean flag) {
     this.minPathState = flag;
   }
 

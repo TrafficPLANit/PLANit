@@ -1,8 +1,9 @@
 package org.planit.path;
 
+import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.logging.Logger;
 
 import org.planit.utils.graph.EdgeSegment;
@@ -48,7 +49,7 @@ public class DirectedPathImpl extends ExternalIdAbleImpl implements DirectedPath
    */
   protected DirectedPathImpl(final IdGroupingToken groupId) {
     super(generateId(groupId));
-    path = new LinkedList<EdgeSegment>();
+    path = new ArrayDeque<EdgeSegment>();
   }
 
   /**
@@ -61,14 +62,6 @@ public class DirectedPathImpl extends ExternalIdAbleImpl implements DirectedPath
   protected DirectedPathImpl(final IdGroupingToken groupId, final Deque<? extends EdgeSegment> pathEdgeSegments) {
     super(generateId(groupId));
     path = (Deque<EdgeSegment>) pathEdgeSegments;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-//  @Override
-  public Boolean addEdgeSegment(final EdgeSegment edgeSegment) {
-    return path.add(edgeSegment);
   }
 
   /**
@@ -95,6 +88,33 @@ public class DirectedPathImpl extends ExternalIdAbleImpl implements DirectedPath
   @Override
   public long size() {
     return path.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean containsSubPath(Collection<? extends EdgeSegment> subPath) {
+    if (subPath == null || subPath.isEmpty()) {
+      return false;
+    }
+
+    Iterator<? extends EdgeSegment> subPathIter = subPath.iterator();
+    EdgeSegment subPathSegment = subPathIter.next();
+    boolean started = false;
+    for (EdgeSegment edgeSegment : path) {
+      if (edgeSegment.idEquals(subPathSegment)) {
+        started = true;
+        if (!subPathIter.hasNext()) {
+          break;
+        }
+        subPathSegment = subPathIter.next();
+      } else if (started && subPathIter.hasNext()) {
+        return false;
+      }
+    }
+
+    return started;
   }
 
 }
