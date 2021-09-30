@@ -8,14 +8,34 @@ import java.util.logging.Logger;
  * 
  * @author markr
  */
-public class StaticLtmNetworkLoadingSettings {
+public class StaticLtmSettings implements Cloneable {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(StaticLtmNetworkLoadingSettings.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(StaticLtmSettings.class.getCanonicalName());
 
   private Boolean disableStorageConstraints = null;
 
   private Boolean detailedLogging = null;
+
+  /** flag indicating to apply bush based assignment, or path based, default is true meaning bush based */
+  private Boolean bushBased = BUSH_BASED_DEFAULT;
+
+  /**
+   * Constructor
+   */
+  public StaticLtmSettings() {
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param staticLtmSettings
+   */
+  public StaticLtmSettings(StaticLtmSettings staticLtmSettings) {
+    this.bushBased = staticLtmSettings.bushBased.booleanValue();
+    this.detailedLogging = staticLtmSettings.detailedLogging.booleanValue();
+    this.disableStorageConstraints = staticLtmSettings.disableStorageConstraints.booleanValue();
+  }
 
   public Boolean isDisableStorageConstraints() {
     return disableStorageConstraints;
@@ -32,6 +52,17 @@ public class StaticLtmNetworkLoadingSettings {
   public void setDetailedLogging(Boolean detailedLogging) {
     this.detailedLogging = detailedLogging;
   }
+
+  public Boolean isBushBased() {
+    return bushBased;
+  }
+
+  public void setBushBased(Boolean flag) {
+    this.bushBased = flag;
+  }
+
+  /** default setting for assignment is to apply a bush-based type of implementation over a path based one */
+  public static boolean BUSH_BASED_DEFAULT = true;
 
   /**
    * Validate if all settings have been properly set and log found issues
@@ -56,5 +87,13 @@ public class StaticLtmNetworkLoadingSettings {
       }
     }
     return valid;
+  }
+
+  /**
+   * {@inhericDoc}
+   */
+  @Override
+  public StaticLtmSettings clone() {
+    return new StaticLtmSettings(this);
   }
 }

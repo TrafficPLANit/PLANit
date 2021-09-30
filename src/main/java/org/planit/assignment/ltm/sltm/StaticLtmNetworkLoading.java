@@ -1,8 +1,5 @@
 package org.planit.assignment.ltm.sltm;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -16,17 +13,13 @@ import org.ojalgo.structure.Access1D;
 import org.planit.algorithms.nodemodel.TampereNodeModel;
 import org.planit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.planit.algorithms.nodemodel.TampereNodeModelInput;
-import org.planit.assignment.ltm.sltm.consumer.ActivateSplittingRatesUsedNodesConsumer;
 import org.planit.assignment.ltm.sltm.consumer.ApplyToNodeModelResult;
-import org.planit.assignment.ltm.sltm.consumer.PathLinkInflowUpdateConsumer;
-import org.planit.assignment.ltm.sltm.consumer.PathTurnFlowUpdateConsumer;
 import org.planit.assignment.ltm.sltm.consumer.UpdateEntryLinksOutflowConsumer;
 import org.planit.assignment.ltm.sltm.consumer.UpdateExitLinkInflowsConsumer;
 import org.planit.gap.NormBasedGapFunction;
 import org.planit.gap.StopCriterion;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.od.demand.OdDemands;
-import org.planit.od.path.OdPaths;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.id.IdGroupingToken;
@@ -40,7 +33,6 @@ import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.planit.utils.network.layer.physical.Node;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.pcu.PcuCapacitated;
-import org.planit.utils.zoning.OdZones;
 
 /**
  * Class exposing the various sLTM network loading solution method components of sLTM (not considering path choice, this is assumed to be given). Network loading solution method
@@ -49,92 +41,31 @@ import org.planit.utils.zoning.OdZones;
  * @author markr
  *
  */
-public class StaticLtmNetworkLoading {
+public abstract class StaticLtmNetworkLoading {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmNetworkLoading.class.getCanonicalName());
+
+  // INPUTS //
+
+  /** to use */
+  private final IdGroupingToken idToken;
 
   /**
    * run Id of the loading's parent asignment
    */
   private final long runId;
 
-  // SIMULATION DATA //
-
-  /** variables tracked for sending flow update step **/
-  private final SendingFlowData sendingFlowData;
-
-  /** variables tracked for receiving flow update step **/
-  private final ReceivingFlowData receivingFlowData;
-
-  /** variables tracked for splitting rate update step **/
-  private SplittingRateData splittingRateData;
-
-  /** tracks flow acceptance factors as well as its two related other factors, storage and capacity factors */
-  private final NetworkLoadingFactorData networkLoadingFactorData;
-
-  /** variables tracked for temporary inflow outflow tracking within sub algorithms **/
-  private final InflowOutflowData inFlowOutflowData;
-
-  /** the gap function to apply on global convergence update */
-  private final NormBasedGapFunction flowAcceptanceFapFunction;
-
-  /** the gap function to apply on sending flow update step */
-  private final NormBasedGapFunction sendingFlowGapFunction;
-
-  /** the gap function to apply on receiving flow update step */
-  private final NormBasedGapFunction receivingFlowGapFunction;
-
-  // INPUTS //
-
   /** transport network used */
-  private final TransportModelNetwork network;
+  private TransportModelNetwork network;
 
   /** mode used */
-  private final Mode mode;
-
-  /** odPaths to load */
-  private final OdPaths odPaths;
+  private Mode mode;
 
   /** odDemands to load */
-  private final OdDemands odDemands;
+  private OdDemands odDemands;
 
-  // SETTINGS //
-
-  /** user settings used regarding how to run the loading */
-  private final StaticLtmNetworkLoadingSettings settings;
-
-  /** analyser to track if loading is converging as expected based on its settings */
-  private final StaticLtmNetworkLoadingConvergenceAnalyser convergenceAnalyser;
-
-  /** track the approach of how the solution scheme is applied based on this type */
-  private StaticLtmSolutionScheme solutionScheme;
-
-  /**
-   * Validate all constructor parameters
-   * 
-   */
-  private void validateInputs() {
-    if (mode == null) {
-      throw new IllegalArgumentException("Mode for sLTM network loading is null");
-    }
-
-    if (network == null || network.getInfrastructureNetwork() == null || network.getInfrastructureNetwork().getLayerByMode(mode) == null) {
-      throw new IllegalArgumentException(" network or network layer or mode of network layer not available for static LTM network loading");
-    }
-
-    if (!(network.getInfrastructureNetwork().getLayerByMode(mode) instanceof MacroscopicNetworkLayer)) {
-      throw new IllegalArgumentException(String.format("Network layer for mode %s not of compatible type, expected MacroscopicNetworkLayer", mode.getXmlId()));
-    }
-
-    if (odDemands == null) {
-      throw new IllegalArgumentException("OdDemands for sLTM network loading are null");
-    }
-
-    if (odPaths == null) {
-      throw new IllegalArgumentException("OdPaths for sLTM network loading are null");
-    }
-  }
+  // SIMULATION DATA //
 
   /**
    * initialise the way the solution scheme is applied. Which in case of storage constraints is the basic decomposition scheme described in Raadsen and Bliemer (2021), and if
@@ -143,26 +74,12 @@ public class StaticLtmNetworkLoading {
    */
   private void initialiseStaticLtmSolutionSchemeApproach() {
     if (getSettings().isDisableStorageConstraints()) {
-      solutionScheme = StaticLtmSolutionScheme.POINT_QUEUE_BASIC;
+      solutionScheme = StaticLtmLoadingScheme.POINT_QUEUE_BASIC;
     } else {
-      solutionScheme = StaticLtmSolutionScheme.PHYSICAL_QUEUE_BASIC;
+      solutionScheme = StaticLtmLoadingScheme.PHYSICAL_QUEUE_BASIC;
     }
 
     LOGGER.info(String.format("sLTM network loading scheme set to %s", solutionScheme.getValue()));
-  }
-
-  /**
-   * Conduct a network loading to compute updated inflow rates (without tracking turn flows): Eq. (3)-(4) in paper
-   * 
-   * @param linkSegmentFlowArrayToFill the inflows (u_a) to update
-   */
-  private void networkLoadingLinkSegmentInflowUpdate(final double[] linkSegmentFlowArrayToFill) {
-    OdZones odZones = network.getZoning().odZones;
-    double[] flowAcceptanceFactors = this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
-
-    /* update path turn flows (and sending flows if POINT_QUEUE_BASIC) */
-    PathLinkInflowUpdateConsumer pathLinkInflowUpdateConsumer = new PathLinkInflowUpdateConsumer(odPaths, flowAcceptanceFactors, linkSegmentFlowArrayToFill);
-    odDemands.forEachNonZeroOdDemand(odZones, pathLinkInflowUpdateConsumer);
   }
 
   /**
@@ -219,7 +136,7 @@ public class StaticLtmNetworkLoading {
   private void initialiseSplittingRateData(MacroscopicLinkSegments linkSegments) {
 
     /* POINT QUEUE BASIC */
-    if (this.solutionScheme.equals(StaticLtmSolutionScheme.POINT_QUEUE_BASIC)) {
+    if (this.solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC)) {
       /* create */
       this.splittingRateData = new SplittingRateDataPartial();
       /* initialise */
@@ -235,35 +152,15 @@ public class StaticLtmNetworkLoading {
       }
     }
     /* OTHER, e.g. physical queues and advanced point queue model */
-    else if (!this.solutionScheme.equals(StaticLtmSolutionScheme.NONE)) {
+    else if (!this.solutionScheme.equals(StaticLtmLoadingScheme.NONE)) {
       /* create */
       this.splittingRateData = new SplittingRateDataComplete(this.inFlowOutflowData.getInflows().length);
-      /* initialise */
+      /* initialise, where we simply activate all link-to-link combinations. To be replaced with turns at some point */
       SplittingRateDataComplete extendedSplittingRates = (SplittingRateDataComplete) this.splittingRateData;
-      ActivateSplittingRatesUsedNodesConsumer activateSplittingRateExtended = new ActivateSplittingRatesUsedNodesConsumer(extendedSplittingRates, odPaths);
-      this.odDemands.forEachNonZeroOdDemand(this.network.getZoning().getOdZones(), activateSplittingRateExtended);
+      for (MacroscopicLinkSegment linkSegment : linkSegments) {
+        extendedSplittingRates.activateTrackedNode(linkSegment.getUpstreamNode());
+      }
     }
-  }
-
-  //@formatter:off
-  /**
-   * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns on nodes that are potentially blocking to reduce
-   * computational overhead.
-   * 
-   * @return acceptedTurnFlows (on potentially blocking nodes) where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
-   */
-  private Map<Integer, Double> networkLoadingTurnFlowUpdate() {
-
-    /* update path turn flows (and sending flows if POINT_QUEUE_BASIC)*/
-    PathTurnFlowUpdateConsumer pathTurnFlowUpdateConsumer = 
-        new PathTurnFlowUpdateConsumer(
-            solutionScheme, 
-            sendingFlowData, 
-            splittingRateData, 
-            networkLoadingFactorData, 
-            odPaths);
-    odDemands.forEachNonZeroOdDemand(network.getZoning().odZones, pathTurnFlowUpdateConsumer);
-    return pathTurnFlowUpdateConsumer.getAcceptedTurnFlows();
   }
 
   /**
@@ -400,10 +297,10 @@ public class StaticLtmNetworkLoading {
       for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
         currentLinkSegmentId = (int) entryEdgeSegment.getId();
         /* alpha_a = beta_a^i-1 / gamma_a^i */
-        if(inflows[currentLinkSegmentId] <= Precision.EPSILON_6) {
+        if (inflows[currentLinkSegmentId] <= Precision.EPSILON_6) {
           /* special case: no inflow -> no restriction, set to 1 */
           nextFlowAcceptanceFactors[currentLinkSegmentId] = 1;
-        }else {
+        } else {
           nextFlowAcceptanceFactors[currentLinkSegmentId] = currentFlowCapacityFactors[currentLinkSegmentId] / currentStorageCapacityFactors[currentLinkSegmentId];
         }
       }
@@ -435,6 +332,90 @@ public class StaticLtmNetworkLoading {
     }
   }
 
+  /** variables tracked for sending flow update step **/
+  protected SendingFlowData sendingFlowData;
+
+  /** variables tracked for receiving flow update step **/
+  protected ReceivingFlowData receivingFlowData;
+
+  /** variables tracked for splitting rate update step **/
+  protected SplittingRateData splittingRateData;
+
+  /** tracks flow acceptance factors as well as its two related other factors, storage and capacity factors */
+  protected NetworkLoadingFactorData networkLoadingFactorData;
+
+  /** variables tracked for temporary inflow outflow tracking within sub algorithms **/
+  protected InflowOutflowData inFlowOutflowData;
+
+  /** the gap function to apply on global convergence update */
+  protected NormBasedGapFunction flowAcceptanceFapFunction;
+
+  /** the gap function to apply on sending flow update step */
+  protected NormBasedGapFunction sendingFlowGapFunction;
+
+  /** the gap function to apply on receiving flow update step */
+  protected NormBasedGapFunction receivingFlowGapFunction;
+
+  // SETTINGS //
+
+  /** user settings used regarding how to run the loading */
+  protected final StaticLtmSettings settings;
+
+  /** analyser to track if loading is converging as expected based on its settings */
+  protected final StaticLtmNetworkLoadingConvergenceAnalyser convergenceAnalyser;
+
+  /** track the approach of how the solution scheme is applied based on this type */
+  protected StaticLtmLoadingScheme solutionScheme;
+
+  /**
+   * Validate all constructor parameters
+   * 
+   */
+  protected boolean validateInputs() {
+    if (!getSettings().validate()) {
+      LOGGER.severe(String.format("%sUnable to use sLTM settings, aborting initialisation of sLTM", LoggingUtils.createRunIdPrefix(runId)));
+      return false;
+    }
+
+    if (mode == null) {
+      LOGGER.severe("Mode for sLTM network loading is null");
+      return false;
+    }
+
+    if (network == null || network.getInfrastructureNetwork() == null || network.getInfrastructureNetwork().getLayerByMode(mode) == null) {
+      LOGGER.severe("Network or network layer or mode of network layer not available for static LTM network loading");
+      return false;
+    }
+
+    if (!(network.getInfrastructureNetwork().getLayerByMode(mode) instanceof MacroscopicNetworkLayer)) {
+      LOGGER.severe(String.format("Network layer for mode %s not of compatible type, expected MacroscopicNetworkLayer", mode.getXmlId()));
+      return false;
+    }
+
+    if (odDemands == null) {
+      LOGGER.severe("OdDemands for sLTM network loading are null");
+      return false;
+    }
+
+    return true;
+  }
+
+  //@formatter:off
+  /**
+   * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns on nodes that are potentially blocking to reduce
+   * computational overhead.
+   * 
+   * @return acceptedTurnFlows (on potentially blocking nodes) where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
+   */
+  protected abstract Map<Integer, Double> networkLoadingTurnFlowUpdate();
+
+  /**
+   * Conduct a network loading to compute updated inflow rates (without tracking turn flows): Eq. (3)-(4) in paper
+   * 
+   * @param linkSegmentFlowArrayToFill the inflows (u_a) to update
+   */
+  protected abstract void networkLoadingLinkSegmentInflowUpdate(final double[] linkSegmentFlowArrayToFill);
+
   /**
    * Convenience method to collect the used layer for this loading
    * 
@@ -443,26 +424,53 @@ public class StaticLtmNetworkLoading {
   protected MacroscopicNetworkLayer getUsedNetworkLayer() {
     return ((MacroscopicNetworkLayer) this.network.getInfrastructureNetwork().getLayerByMode(mode));
   }
+  
+  /** Get the transport model network
+   * 
+   * @return transport model network
+   */
+  protected TransportModelNetwork getTransportNetwork() {
+    return network;
+  }
+  
+  /** access to od demands for loading
+   * 
+   * @return odDemands
+   */
+  protected OdDemands getOdDemands() {
+    return odDemands;
+  }
 
   /**
    * Constructor
    * 
    * @param idToken   for id generation of internal entities
    * @param runId run id the loading is applied for
-   * @param network   to run on
-   * @param mode      to use
-   * @param odPaths   that require loading
-   * @param odDemands to apply for this loading, reflecting the total desired flows between the ODs for the given mode
+   * @param settings to use
    */
 
-  protected StaticLtmNetworkLoading(final IdGroupingToken idToken, long runId, final TransportModelNetwork network, final Mode mode, final OdPaths odPaths, final OdDemands odDemands) {
+  protected StaticLtmNetworkLoading(final IdGroupingToken idToken, long runId, StaticLtmSettings settings) {
     this.runId = runId;
-    this.network = network;
+    this.idToken = idToken;
+    this.settings = settings;
+    
+    /* state trackers */    
+    this.convergenceAnalyser = new StaticLtmNetworkLoadingConvergenceAnalyser();
+    this.solutionScheme = StaticLtmLoadingScheme.NONE;    
+  }
+
+  /** Initialise the loading with the given inputs
+   * 
+   * @param mode to use
+   * @param odDemands to use
+   * @param network to use
+   */
+  protected void initialiseInputs(final Mode mode, final OdDemands odDemands, final TransportModelNetwork network) {
     this.mode = mode;
     this.odDemands = odDemands;
-    this.odPaths = odPaths;    
+    this.network = network;    
     validateInputs();
-
+    
     /* sLTM only uses a single layer */
     double[] referenceEmptyArray = new double[network.getNumberOfEdgeSegmentsAllLayers()];
     
@@ -477,11 +485,7 @@ public class StaticLtmNetworkLoading {
     this.flowAcceptanceFapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
     this.sendingFlowGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
     this.receivingFlowGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
-
-    /* settings and state trackers */
-    this.settings = new StaticLtmNetworkLoadingSettings();
-    this.convergenceAnalyser = new StaticLtmNetworkLoadingConvergenceAnalyser();
-    this.solutionScheme = StaticLtmSolutionScheme.NONE;
+   
   }
 
   //@formatter:off
@@ -495,13 +499,17 @@ public class StaticLtmNetworkLoading {
    * (Extension A):  
    * 5. Restrict receiving flows to storage capacity Eq. (8) - only relevant when storage capacity is activated
    *   
-   * @return true when successfull, false otherwise 
+   * @return true when successful, false otherwise 
    */
   public boolean stepZeroInitialisation() {
-    if(!getSettings().validate()) {
-      LOGGER.severe(String.format("%sUnable to use sLTM settings, aborting initialisation of sLTM",LoggingUtils.createRunIdPrefix(runId)));
+    
+    /* temporary check until supported */
+    if (!getSettings().isDisableStorageConstraints()) {
+      LOGGER.severe(
+          String.format("%sIGNORE: sLTM with physical queues is not yet implemented, please disable storage constraints and try again", LoggingUtils.createRunIdPrefix(this.runId)));
       return false;
-    }
+    }    
+    
     /* reset convergence analyser*/
     convergenceAnalyser.reset();
     
@@ -593,7 +601,7 @@ public class StaticLtmNetworkLoading {
       this.sendingFlowData.swapCurrentAndNextSendingFlows();
       
       /* Only run as iterative procedure with physical queues or when using advanced point queue */
-      if(this.solutionScheme.equals(StaticLtmSolutionScheme.POINT_QUEUE_BASIC)) {
+      if(this.solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC)) {
         break;
       }      
       
@@ -783,9 +791,9 @@ public class StaticLtmNetworkLoading {
 
     /* POINT - QUEUE */
     if(this.solutionScheme.isPointQueue()) {
-      if(this.solutionScheme.equals(StaticLtmSolutionScheme.POINT_QUEUE_BASIC)) {
+      if(this.solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC)) {
         /* BASIC -> ADVANCED, e.g., activate local iterative updates of sending flows */
-        this.solutionScheme = StaticLtmSolutionScheme.POINT_QUEUE_ADVANCED;
+        this.solutionScheme = StaticLtmLoadingScheme.POINT_QUEUE_ADVANCED;
         
         /* sending flows must be re-initialised since otherwise the sending flows of earlier non-tracked nodes have been rest to zero 
          * during earlier loading iterations, now they must be available for all tracked nodes, so we reinitialise by conducting a full initialisation based
@@ -820,7 +828,7 @@ public class StaticLtmNetworkLoading {
    * 
    * @return settings of this loading
    */
-  public StaticLtmNetworkLoadingSettings getSettings() {
+  public StaticLtmSettings getSettings() {
     return settings;
   }
 
@@ -828,10 +836,10 @@ public class StaticLtmNetworkLoading {
    * 
    * @return supported modes
    */
-  public Collection<Mode> getSupportedModes(){
-    return new ArrayList<Mode>(Collections.singleton(this.mode));
+  public Mode getSupportedMode(){
+    return this.mode;
   }
-  
+    
   /**
    * Collect the most recently calculate total inflows by the loading
    * 
@@ -866,7 +874,8 @@ public class StaticLtmNetworkLoading {
     this.receivingFlowGapFunction.reset();
 
     this.convergenceAnalyser.reset();
-    this.solutionScheme = StaticLtmSolutionScheme.NONE;
-  }  
+    this.solutionScheme = StaticLtmLoadingScheme.NONE;
+  }
+  
 
 }

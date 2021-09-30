@@ -35,6 +35,8 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
   private static final String ACTIVATE_DETAILED_LOGGING = "setActivateDetailedLogging";
 
+  private static final String ACTIVATE_BUSH_BASED = "setActivateBushBased";
+
   /**
    * Constructor
    * 
@@ -51,6 +53,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
     disableLinkStorageConstraints(DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
     activateDetailedLogging(DEFAULT_ACTIVATE_DETAILED_LOGGING);
+    activateBushBased(DEFAULT_ACTIVATE_BUSH_BASED);
   }
 
   /** default value used */
@@ -58,6 +61,9 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
 
   /** default value used */
   public static boolean DEFAULT_ACTIVATE_DETAILED_LOGGING = false;
+
+  /** default value used */
+  public static boolean DEFAULT_ACTIVATE_BUSH_BASED = true;
 
   //
   // Directly configurable options
@@ -79,6 +85,15 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
    */
   public void activateDetailedLogging(boolean flag) {
     registerDelayedMethodCall(ACTIVATE_DETAILED_LOGGING, flag);
+  }
+
+  /**
+   * (De)Activate the bush based assignment strategy. If switched off, a apth absed approach is applied
+   * 
+   * @param flag to set
+   */
+  public void activateBushBased(boolean flag) {
+    registerDelayedMethodCall(ACTIVATE_BUSH_BASED, flag);
   }
 
 }

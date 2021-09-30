@@ -145,10 +145,10 @@ public class sLtmNetworkLoadingTest {
   //@formatter:on
 
   /**
-   * Test sLTM network loading on above network
+   * Test sLTM network loading on above network using a path absed approach
    */
   @Test
-  public void sLtmPointQueueNetworkLoadingTest() {
+  public void sLtmPointQueueNetworkLoadingPathTest() {
     try {
 
       Demands demands = new Demands(testToken);
@@ -167,6 +167,7 @@ public class sLtmNetworkLoadingTest {
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(true);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateBushBased(false);
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.execute();

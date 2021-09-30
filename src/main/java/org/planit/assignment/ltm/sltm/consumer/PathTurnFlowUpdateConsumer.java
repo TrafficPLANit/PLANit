@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 import org.planit.assignment.ltm.sltm.NetworkLoadingFactorData;
 import org.planit.assignment.ltm.sltm.SendingFlowData;
 import org.planit.assignment.ltm.sltm.SplittingRateData;
-import org.planit.assignment.ltm.sltm.StaticLtmSolutionScheme;
+import org.planit.assignment.ltm.sltm.StaticLtmLoadingScheme;
 import org.planit.od.path.OdPaths;
 import org.planit.utils.functionalinterface.TriConsumer;
 import org.planit.utils.graph.EdgeSegment;
@@ -82,7 +82,7 @@ public class PathTurnFlowUpdateConsumer implements TriConsumer<OdZone, OdZone, D
    * @param solutionScheme           to apply
    * @param networkLoadingFactorData to use
    */
-  public PathTurnFlowUpdateConsumer(final StaticLtmSolutionScheme solutionScheme, final SendingFlowData sendingFlowData, final SplittingRateData splittingRateData,
+  public PathTurnFlowUpdateConsumer(final StaticLtmLoadingScheme solutionScheme, final SendingFlowData sendingFlowData, final SplittingRateData splittingRateData,
       NetworkLoadingFactorData networkLoadingFactorData, final OdPaths odPaths) {
     this.acceptedTurnFlows = new HashMap<Integer, Double>();
 
@@ -90,8 +90,8 @@ public class PathTurnFlowUpdateConsumer implements TriConsumer<OdZone, OdZone, D
     this.splittingRateData = splittingRateData;
 
     /* see class description on why we use these flags */
-    this.trackAllNodeTurnFlows = !solutionScheme.equals(StaticLtmSolutionScheme.POINT_QUEUE_BASIC);
-    this.updateSendingFlow = solutionScheme.equals(StaticLtmSolutionScheme.POINT_QUEUE_BASIC);
+    this.trackAllNodeTurnFlows = !solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
+    this.updateSendingFlow = solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
     if (updateSendingFlow) {
       sendingFlowData.reset();
     }

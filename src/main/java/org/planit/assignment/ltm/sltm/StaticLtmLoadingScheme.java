@@ -6,7 +6,7 @@ package org.planit.assignment.ltm.sltm;
  * @author markr
  *
  */
-public enum StaticLtmSolutionScheme {
+public enum StaticLtmLoadingScheme {
 
   //@formatter:off
   NONE("NONE"), 
@@ -25,7 +25,7 @@ public enum StaticLtmSolutionScheme {
    * 
    * @param value of the type referring to the paper it is proposed and/or the extension type
    */
-  StaticLtmSolutionScheme(final String value) {
+  StaticLtmLoadingScheme(final String value) {
     this.value = value;
   }
   

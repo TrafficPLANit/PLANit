@@ -177,7 +177,7 @@ public class sLtmAssignmentTest {
    * Test sLTM assignment on above network for a point queue model
    */
   @Test
-  public void sLtmPointQueueAssignmentTest() {
+  public void sLtmPointQueuePathBasedAssignmentTest() {
     try {
 
       Demands demands = new Demands(testToken);
@@ -195,6 +195,7 @@ public class sLtmAssignmentTest {
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(true);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateBushBased(false);
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.execute();

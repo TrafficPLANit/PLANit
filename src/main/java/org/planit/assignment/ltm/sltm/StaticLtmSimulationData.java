@@ -1,9 +1,11 @@
 package org.planit.assignment.ltm.sltm;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 import org.planit.assignment.SimulationData;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.time.TimePeriod;
 
 /**
  * Class to hold variables specific to running an sLTM assignment
@@ -14,25 +16,24 @@ import org.planit.utils.mode.Mode;
 public class StaticLtmSimulationData extends SimulationData {
 
   /**
-   * Network loading to use
-   */
-  private final StaticLtmNetworkLoading networkLoading;
-
-  /**
    * Track the mode link segment costs in a 2d raw array where the first dimension is based on mode id while the second uses the link segment id to place the cost
    */
   private double[][] modeLinkSegmentCost;
 
+  /** the currently active time period */
+  private TimePeriod timePeriod;
+
   /**
    * Constructor
    * 
-   * @param networkLoading            used by the simulation
+   * @param timePeriod                currently in action
+   * @param supportedModes            used by the simulation
    * @param numberOfTotalLinkSegments used to correctly initialise the size of the internal data arrays for link segment data
    */
-  public StaticLtmSimulationData(final StaticLtmNetworkLoading networkLoading, long numberOfTotalLinkSegments) {
+  public StaticLtmSimulationData(final TimePeriod timePeriod, Collection<Mode> supportedModes, long numberOfTotalLinkSegments) {
     super();
-    this.networkLoading = networkLoading;
-    this.modeLinkSegmentCost = new double[networkLoading.getSupportedModes().size()][(int) numberOfTotalLinkSegments];
+    this.timePeriod = timePeriod;
+    this.modeLinkSegmentCost = new double[supportedModes.size()][(int) numberOfTotalLinkSegments];
   }
 
   /**
@@ -42,24 +43,14 @@ public class StaticLtmSimulationData extends SimulationData {
    */
   public StaticLtmSimulationData(final StaticLtmSimulationData simulationData) {
     super(simulationData);
-    this.networkLoading = simulationData.networkLoading;
-    if (networkLoading.getSupportedModes().size() > 0) {
-      this.modeLinkSegmentCost = new double[networkLoading.getSupportedModes().size()][simulationData.modeLinkSegmentCost[0].length];
-      for (int index = 0; index < networkLoading.getSupportedModes().size(); ++index) {
+    if (simulationData.modeLinkSegmentCost.length > 0) {
+      this.modeLinkSegmentCost = new double[simulationData.modeLinkSegmentCost.length][simulationData.modeLinkSegmentCost[0].length];
+      for (int index = 0; index < simulationData.modeLinkSegmentCost.length; ++index) {
         this.modeLinkSegmentCost[index] = Arrays.copyOf(simulationData.modeLinkSegmentCost[index], simulationData.modeLinkSegmentCost[index].length);
       }
     } else {
       this.modeLinkSegmentCost = null;
     }
-  }
-
-  /**
-   * Access to network loading instance
-   * 
-   * @return network loading
-   */
-  public StaticLtmNetworkLoading getNetworkLoading() {
-    return networkLoading;
   }
 
   // GETTERS/SETTERS
@@ -85,6 +76,24 @@ public class StaticLtmSimulationData extends SimulationData {
   }
 
   /**
+   * Active time period
+   * 
+   * @return active time period
+   */
+  public TimePeriod getTimePeriod() {
+    return timePeriod;
+  }
+
+  /**
+   * Active time period
+   * 
+   * @param active time period
+   */
+  public void setTimePeriod(TimePeriod timePeriod) {
+    this.timePeriod = timePeriod;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -97,13 +106,10 @@ public class StaticLtmSimulationData extends SimulationData {
    */
   public void reset() {
     super.reset();
-    if (networkLoading != null) {
-      networkLoading.reset();
-    }
 
     if (modeLinkSegmentCost != null && modeLinkSegmentCost.length > 0 && modeLinkSegmentCost[0] != null) {
       int numLinkSegments = modeLinkSegmentCost[0].length;
-      modeLinkSegmentCost = new double[networkLoading.getSupportedModes().size()][numLinkSegments];
+      modeLinkSegmentCost = new double[modeLinkSegmentCost.length][numLinkSegments];
     }
   }
 

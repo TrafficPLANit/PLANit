@@ -1,5 +1,6 @@
 package org.planit.assignment.ltm.sltm;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.planit.assignment.TrafficAssignment;
@@ -50,7 +51,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    * @return the inflow through the current link segment
    */
   private Optional<Double> getInFlowPcuHour(final MacroscopicLinkSegment linkSegment, final Mode mode) {
-    return Optional.of(getAssignment().getIterationData().getNetworkLoading().getCurrentInflowsPcuH()[(int) linkSegment.getId()]);
+    return Optional.of(getAssignment().getLinkSegmentInflowPcuHour(linkSegment));
   }
 
   /**
@@ -61,7 +62,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    * @return the outflow through the current link segment
    */
   private Optional<Double> getOutFlowPcuHour(final MacroscopicLinkSegment linkSegment, final Mode mode) {
-    return Optional.of(getAssignment().getIterationData().getNetworkLoading().getCurrentOutflowsPcuH()[(int) linkSegment.getId()]);
+    return Optional.of(getAssignment().getLinkSegmentOutflowPcuHour(linkSegment));
   }
 
   /**
@@ -91,8 +92,8 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
   }
 
   /**
-   * Returns the Vc ratio for the link over all modes. HEre we use the inflow rate as it is a better indicator of the busyness. Generally though the Vc ratio is quite meaningless,
-   * especially in a capacity constrained asssignment such as sLTM.
+   * Returns the Vc ratio for the link over all modes. Here we use the inflow rate as it is a better indicator of the busyness. Generally though the Vc ratio is quite meaningless,
+   * especially in a capacity constrained assignment such as sLTM.
    *
    * @param linkSegment LinkSegment object containing the required data
    * @return VC ratio for the link segment
@@ -100,7 +101,8 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    */
   private Optional<Double> getVcRatio(final MacroscopicLinkSegment linkSegment) throws PlanItException {
     double totalFlow = 0.0;
-    for (final Mode mode : getAssignment().getIterationData().getNetworkLoading().getSupportedModes()) {
+    // future implementation might support more than one mode
+    for (final Mode mode : List.of(getAssignment().getStrategy().getLoading().getSupportedMode())) {
       totalFlow += getInFlowPcuHour(linkSegment, mode).get();
     }
     final double capacityPerLane = getCapacityPerLanePcuHour(linkSegment).get();
