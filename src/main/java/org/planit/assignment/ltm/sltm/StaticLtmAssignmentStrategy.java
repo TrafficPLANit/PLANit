@@ -2,6 +2,7 @@ package org.planit.assignment.ltm.sltm;
 
 import java.util.logging.Logger;
 
+import org.planit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.od.demand.OdDemands;
 import org.planit.utils.id.IdGroupingToken;

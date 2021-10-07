@@ -1,8 +1,9 @@
-package org.planit.assignment.ltm.sltm;
+package org.planit.assignment.ltm.sltm.loading;
 
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.planit.assignment.ltm.sltm.StaticLtmSettings;
 import org.planit.assignment.ltm.sltm.consumer.PathLinkInflowUpdateConsumer;
 import org.planit.assignment.ltm.sltm.consumer.PathTurnFlowUpdateConsumer;
 import org.planit.od.path.OdPaths;
@@ -10,16 +11,16 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.zoning.OdZones;
 
 /**
- * The path absed network loading scheme for sLTM
+ * The path based network loading scheme for sLTM
  * 
  * @author markr
  *
  */
-public class StaticLtmPathLoading extends StaticLtmNetworkLoading {
+public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
 
   /** logger to use */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(StaticLtmPathLoading.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingPath.class.getCanonicalName());
 
   /**
    * Od Paths to use
@@ -27,15 +28,14 @@ public class StaticLtmPathLoading extends StaticLtmNetworkLoading {
   private OdPaths odPaths;
 
   //@formatter:off
+
   /**
-   * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns on nodes that are potentially blocking to reduce
-   * computational overhead.
-   * 
-   * @return acceptedTurnFlows (on potentially blocking nodes) where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
+   * {@inheritDoc}
    */
   @Override
   protected Map<Integer, Double> networkLoadingTurnFlowUpdate() {
-
+    /* path based update using the known od paths */
+    
     /* update path turn flows (and sending flows if POINT_QUEUE_BASIC)*/
     PathTurnFlowUpdateConsumer pathTurnFlowUpdateConsumer = 
         new PathTurnFlowUpdateConsumer(
@@ -49,12 +49,12 @@ public class StaticLtmPathLoading extends StaticLtmNetworkLoading {
   }
   
   /**
-   * Conduct a network loading to compute updated inflow rates (without tracking turn flows): Eq. (3)-(4) in paper
-   * 
-   * @param linkSegmentFlowArrayToFill the inflows (u_a) to update
+   * {@inheritDoc}
    */
   @Override
   protected void networkLoadingLinkSegmentInflowUpdate(final double[] linkSegmentFlowArrayToFill) {
+    /* path based update using the known od paths */
+    
     OdZones odZones = getTransportNetwork().getZoning().odZones;
     double[] flowAcceptanceFactors = this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
 
@@ -70,7 +70,7 @@ public class StaticLtmPathLoading extends StaticLtmNetworkLoading {
    * @param assignmentId to use
    * @param settings to use
    */
-  public StaticLtmPathLoading(IdGroupingToken idToken, long assignmentId, final StaticLtmSettings settings) {
+  public StaticLtmLoadingPath(IdGroupingToken idToken, long assignmentId, final StaticLtmSettings settings) {
     super(idToken, assignmentId, settings);
     this.odPaths = null;
   }

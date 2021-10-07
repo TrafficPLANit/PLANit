@@ -1,4 +1,4 @@
-package org.planit.assignment.ltm.sltm;
+package org.planit.assignment.ltm.sltm.loading;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -13,6 +13,8 @@ import org.ojalgo.structure.Access1D;
 import org.planit.algorithms.nodemodel.TampereNodeModel;
 import org.planit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.planit.algorithms.nodemodel.TampereNodeModelInput;
+import org.planit.assignment.ltm.sltm.LinkSegmentData;
+import org.planit.assignment.ltm.sltm.StaticLtmSettings;
 import org.planit.assignment.ltm.sltm.consumer.ApplyToNodeModelResult;
 import org.planit.assignment.ltm.sltm.consumer.UpdateEntryLinksOutflowConsumer;
 import org.planit.assignment.ltm.sltm.consumer.UpdateExitLinkInflowsConsumer;
@@ -465,7 +467,7 @@ public abstract class StaticLtmNetworkLoading {
    * @param odDemands to use
    * @param network to use
    */
-  protected void initialiseInputs(final Mode mode, final OdDemands odDemands, final TransportModelNetwork network) {
+  public void initialiseInputs(final Mode mode, final OdDemands odDemands, final TransportModelNetwork network) {
     this.mode = mode;
     this.odDemands = odDemands;
     this.network = network;    

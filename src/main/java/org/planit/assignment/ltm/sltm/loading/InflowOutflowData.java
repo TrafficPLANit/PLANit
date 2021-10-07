@@ -1,4 +1,6 @@
-package org.planit.assignment.ltm.sltm;
+package org.planit.assignment.ltm.sltm.loading;
+
+import org.planit.assignment.ltm.sltm.LinkSegmentData;
 
 /**
  * During sLTM loading we use temporary inflow and outflow rates resulting from node model updates. These flows are then used to determine the factors for the relevant algorithm

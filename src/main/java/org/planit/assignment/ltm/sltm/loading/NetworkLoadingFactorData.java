@@ -1,4 +1,6 @@
-package org.planit.assignment.ltm.sltm;
+package org.planit.assignment.ltm.sltm.loading;
+
+import org.planit.assignment.ltm.sltm.LinkSegmentData;
 
 /**
  * Track the sLTM variables representing the various factors used:

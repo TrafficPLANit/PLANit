@@ -1,5 +1,6 @@
-package org.planit.assignment.ltm.sltm;
+package org.planit.assignment.ltm.sltm.loading;
 
+import org.planit.assignment.ltm.sltm.LinkSegmentData;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 
 /**

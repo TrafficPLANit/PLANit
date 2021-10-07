@@ -5,10 +5,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.planit.assignment.ltm.sltm.NetworkLoadingFactorData;
-import org.planit.assignment.ltm.sltm.SendingFlowData;
-import org.planit.assignment.ltm.sltm.SplittingRateData;
-import org.planit.assignment.ltm.sltm.StaticLtmLoadingScheme;
+import org.planit.assignment.ltm.sltm.loading.NetworkLoadingFactorData;
+import org.planit.assignment.ltm.sltm.loading.SendingFlowData;
+import org.planit.assignment.ltm.sltm.loading.SplittingRateData;
+import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.planit.od.path.OdPaths;
 import org.planit.utils.functionalinterface.TriConsumer;
 import org.planit.utils.graph.EdgeSegment;

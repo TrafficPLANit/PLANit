@@ -1,4 +1,4 @@
-package org.planit.assignment.ltm.sltm;
+package org.planit.assignment.ltm.sltm.loading;
 
 /**
  * Defines the different types of solution scheme variations that exist and can be applied (progressively) during an sLTM network loading approach

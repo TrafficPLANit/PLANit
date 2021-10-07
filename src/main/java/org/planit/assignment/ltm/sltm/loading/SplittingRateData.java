@@ -1,4 +1,4 @@
-package org.planit.assignment.ltm.sltm;
+package org.planit.assignment.ltm.sltm.loading;
 
 import java.util.Set;
 

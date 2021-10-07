@@ -1,5 +1,7 @@
 package org.planit.algorithms.shortestpath;
 
+import java.util.function.Consumer;
+
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.Vertex;
 import org.planit.utils.path.DirectedPath;
@@ -23,6 +25,27 @@ public interface ShortestPathResult {
    * 
    */
   public abstract DirectedPath createPath(final DirectedPathFactory pathFactory, Vertex origin, Vertex destination);
+
+  /**
+   * apply consumer to each edge segment on backward path from destination to origin. If path does not lead to origin, the loop terminates when no backward edge segment is found
+   * anymore
+   * 
+   * @param origin                      to end loop
+   * @param destination                 to start backward loop
+   * @param backwardEdgeSegmentConsumer to apply to each segment on the backward path from destination to origin
+   */
+  public default void forEachBackwardEdgeSegment(Vertex origin, Vertex destination, Consumer<EdgeSegment> backwardEdgeSegmentConsumer) {
+    EdgeSegment backwardEdgeSegment = null;
+    Vertex currentVertex = destination;
+    do {
+      backwardEdgeSegment = getIncomingEdgeSegmentForVertex(currentVertex);
+      if (backwardEdgeSegment == null) {
+        break;
+      }
+      backwardEdgeSegmentConsumer.accept(backwardEdgeSegment);
+      currentVertex = backwardEdgeSegment.getUpstreamVertex();
+    } while (!currentVertex.idEquals(origin.getId()));
+  }
 
   /**
    * Find the incoming edge segment for a given vertex

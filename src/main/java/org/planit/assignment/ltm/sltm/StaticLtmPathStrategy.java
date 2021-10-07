@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
+import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPaths;
@@ -74,28 +75,16 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
   /** create a path based network loading for this solution scheme */
   @Override
-  protected StaticLtmPathLoading createNetworkLoading() {
-    return new StaticLtmPathLoading(getIdGroupingToken(), getAssignmentId(), getSettings());
+  protected StaticLtmLoadingPath createNetworkLoading() {
+    return new StaticLtmLoadingPath(getIdGroupingToken(), getAssignmentId(), getSettings());
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  protected StaticLtmPathLoading getLoading() {
-    return (StaticLtmPathLoading) super.getLoading();
-  }
-
-  /** create initial solution based on generating shortest paths */
-  @Override
-  protected void createInitialSolution(TimePeriod timePeriod, OdDemands odDemands, double[] initialLinkSegmentCosts) {
-    try {
-      /* create shortest paths for each OD and place on loading */
-      this.odPaths = createOdPaths(odDemands, initialLinkSegmentCosts);
-      getLoading().updateOdPaths(odPaths);
-    } catch (Exception e) {
-      LOGGER.severe(String.format("Unable to create paths for initial solution of path-based sLTM %s", getAssignmentId()));
-    }
+  protected StaticLtmLoadingPath getLoading() {
+    return (StaticLtmLoadingPath) super.getLoading();
   }
 
   /**
@@ -110,6 +99,18 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings);
   }
 
+  /** create initial solution based on generating shortest paths */
+  @Override
+  public void createInitialSolution(TimePeriod timePeriod, OdDemands odDemands, double[] initialLinkSegmentCosts) {
+    try {
+      /* create shortest paths for each OD and place on loading */
+      this.odPaths = createOdPaths(odDemands, initialLinkSegmentCosts);
+      getLoading().updateOdPaths(odPaths);
+    } catch (Exception e) {
+      LOGGER.severe(String.format("Unable to create paths for initial solution of path-based sLTM %s", getAssignmentId()));
+    }
+  }
+
   /**
    * {@inheritDoc}
    */
@@ -117,9 +118,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
   public void performIteration() {
 
     // NETWORK LOADING - MODE AGNOSTIC FOR NOW
-    {
-      executeNetworkLoading();
-    }
+    executeNetworkLoading();
 
     // PATH CHOICE NOT YET SUPPORTED
   }
