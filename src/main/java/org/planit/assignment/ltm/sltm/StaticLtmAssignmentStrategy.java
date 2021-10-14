@@ -3,8 +3,12 @@ package org.planit.assignment.ltm.sltm;
 import java.util.logging.Logger;
 
 import org.planit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
+import org.planit.cost.physical.AbstractPhysicalCost;
+import org.planit.cost.virtual.VirtualCost;
+import org.planit.network.MacroscopicNetwork;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.od.demand.OdDemands;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.mode.Mode;
@@ -52,6 +56,13 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   protected TransportModelNetwork getTransportNetwork() {
     return transportModelNetwork;
+  }
+
+  /**
+   * The physical network used
+   */
+  protected MacroscopicNetwork getInfrastructureNetwork() {
+    return (MacroscopicNetwork) getTransportNetwork().getInfrastructureNetwork();
   }
 
   /**
@@ -190,7 +201,31 @@ public abstract class StaticLtmAssignmentStrategy {
 
   /**
    * Perform a single iteration based on the current available network costs
+   * 
+   * @param linkSegmentCosts to use
    */
-  public abstract void performIteration();
+  public abstract void performIteration(final double[] linkSegmentCosts);
+
+  /**
+   * Perform an update of the network wide costs.
+   * 
+   * @param theMode      to perform the update for
+   * @param virtualCost  component
+   * @param physicalCost component
+   * @return network wide costs based on currently prevailing flows
+   * @throws PlanItException thrown if error
+   */
+  public double[] executeNetworkCostsUpdate(Mode theMode, final VirtualCost virtualCost, final AbstractPhysicalCost physicalCost) throws PlanItException {
+    /* cost array across all segments, virtual and physical */
+    double[] segmentCostsToPopulate = new double[getTransportNetwork().getNumberOfEdgeSegmentsAllLayers()];
+
+    /* virtual cost */
+    virtualCost.populateWithCost(getTransportNetwork().getVirtualNetwork(), theMode, segmentCostsToPopulate);
+
+    /* physical cost */
+    physicalCost.populateWithCost(getInfrastructureNetwork().getLayerByMode(theMode), theMode, segmentCostsToPopulate);
+
+    return segmentCostsToPopulate;
+  }
 
 }

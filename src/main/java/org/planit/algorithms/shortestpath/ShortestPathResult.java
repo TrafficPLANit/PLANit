@@ -44,7 +44,7 @@ public interface ShortestPathResult {
       }
       backwardEdgeSegmentConsumer.accept(backwardEdgeSegment);
       currentVertex = backwardEdgeSegment.getUpstreamVertex();
-    } while (!currentVertex.idEquals(origin.getId()));
+    } while (!currentVertex.idEquals(origin));
   }
 
   /**

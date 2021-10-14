@@ -115,7 +115,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * {@inheritDoc}
    */
   @Override
-  public void performIteration() {
+  public void performIteration(final double[] linkSegmentCosts) {
 
     // NETWORK LOADING - MODE AGNOSTIC FOR NOW
     executeNetworkLoading();

@@ -174,7 +174,7 @@ public class sLtmAssignmentTest {
   //@formatter:on
 
   /**
-   * Test sLTM assignment on above network for a point queue model
+   * Test sLTM path-based assignment on above network for a point queue model
    */
   @Test
   public void sLtmPointQueuePathBasedAssignmentTest() {
@@ -196,6 +196,39 @@ public class sLtmAssignmentTest {
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(true);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateBushBased(false);
+
+      StaticLtm sLTM = sLTMBuilder.build();
+      sLTM.execute();
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      fail("Error when testing sLTM network loading");
+    }
+  }
+
+  /**
+   * Test sLTM bush-based assignment on above network for a point queue model
+   */
+  @Test
+  public void sLtmPointQueueBushBasedAssignmentTest() {
+    try {
+
+      Demands demands = new Demands(testToken);
+      demands.timePeriods.createAndRegisterNewTimePeriod("dummyTimePeriod", 0, 3600);
+      demands.travelerTypes.createAndRegisterNew("dummyTravellerType");
+      demands.userClasses.createAndRegisterNewUserClass("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
+
+      /* OD DEMANDS 8000 A->A` */
+      OdZones odZones = zoning.getOdZones();
+      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
+      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), 8000.0);
+      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
+
+      /* sLTM - POINT QUEUE */
+      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(true);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateBushBased(true);
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.execute();

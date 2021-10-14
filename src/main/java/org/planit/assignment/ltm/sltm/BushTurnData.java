@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import org.planit.graph.directed.acyclic.ACyclicSubGraph;
 import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.math.Precision;
 import org.planit.utils.misc.HashUtils;
 
 /**
@@ -57,7 +57,7 @@ public class BushTurnData implements Cloneable {
    */
   public void addTurnSendingFlow(final EdgeSegment fromSegment, final EdgeSegment toSegment, final double turnSendingFlow) {
     int hashId = HashUtils.createCombinedHashCode(fromSegment, toSegment);
-    turnSendingFlows.put(hashId, turnSendingFlows.get(hashId) + turnSendingFlow);
+    turnSendingFlows.put(hashId, turnSendingFlows.getOrDefault(hashId, 0.0) + turnSendingFlow);
   }
 
   /**
@@ -77,8 +77,22 @@ public class BushTurnData implements Cloneable {
    * @param toSegment   to of turn
    * @return turn sending flow, 0 if not present
    */
-  public double getTurnSendingFlow(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
+  public double getTurnSendingFlowPcuH(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
     return turnSendingFlows.getOrDefault(HashUtils.createCombinedHashCode(fromSegment, toSegment), 0.0);
+  }
+
+  /**
+   * Total sending flows s_a from given segment
+   * 
+   * @return sending flow s_a
+   */
+  public double getTotalSendingFlowPcuH(final EdgeSegment fromSegment) {
+    double totalSendingFlow = 0;
+    for (EdgeSegment exitSegment : fromSegment.getDownstreamVertex().getExitEdgeSegments()) {
+      double s_ab = getTurnSendingFlowPcuH(fromSegment, exitSegment);
+      totalSendingFlow += s_ab;
+    }
+    return totalSendingFlow;
   }
 
   /**
@@ -96,17 +110,16 @@ public class BushTurnData implements Cloneable {
    * Collect the splitting rates for a given link segment. Splitting rates are based on the current turn sending flows s_ab.
    * 
    * @param fromSegment to collect bush splitting rates for
-   * @param dag         contains information on which downstream exit segments are used
    * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the downstream from segment vertex
    */
-  public double[] getSplittingRates(final EdgeSegment fromSegment, final ACyclicSubGraph dag) {
+  public double[] getSplittingRates(final EdgeSegment fromSegment) {
     Set<EdgeSegment> exitEdgeSegments = fromSegment.getDownstreamVertex().getExitEdgeSegments();
     double[] splittingRates = new double[exitEdgeSegments.size()];
 
     double totalSendingFlow = 0;
     int index = 0;
     for (EdgeSegment exitSegment : exitEdgeSegments) {
-      double s_ab = getTurnSendingFlow(fromSegment, exitSegment);
+      double s_ab = getTurnSendingFlowPcuH(fromSegment, exitSegment);
       splittingRates[index++] = s_ab;
       totalSendingFlow += s_ab;
     }
@@ -114,6 +127,22 @@ public class BushTurnData implements Cloneable {
       splittingRates[index] /= totalSendingFlow;
     }
     return splittingRates;
+  }
+
+  /**
+   * Collect the splitting rates for a given link segment. Splitting rates are based on the current turn sending flows s_ab.
+   * 
+   * @param fromSegment of turn to collect splitting rate for
+   * @param toSegment   of turn to collect splitting rate for
+   * @return splitting rate
+   */
+  public double getSplittingRate(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
+    double turnSendingFlow = getTurnSendingFlowPcuH(fromSegment, toSegment);
+    if (Precision.isPositive(turnSendingFlow)) {
+      return getTotalSendingFlowPcuH(fromSegment) / turnSendingFlow;
+    } else {
+      return 0;
+    }
   }
 
   /**

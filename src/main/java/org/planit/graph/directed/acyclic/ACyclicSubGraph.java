@@ -21,7 +21,7 @@ import org.planit.utils.graph.directed.DirectedVertex;
  * @author markr
  *
  */
-public interface ACyclicSubGraph extends DirectedSubGraph {
+public interface ACyclicSubGraph extends DirectedSubGraph, Iterable<DirectedVertex> {
 
   /**
    * Collect the root vertex of this acyclic subgraph
@@ -34,9 +34,10 @@ public interface ACyclicSubGraph extends DirectedSubGraph {
    * Perform a topological sort on this graph. It is expected that this is conducted before any operations that require this sorting to be in place are invoked, e.g., min-max path
    * tree for example.
    * 
+   * @param update when true the topological sort is conducted based on the current state of the subgraph, when false the most recent (if any) result is returned
    * @return return topological sorting found, null when it was found not to be possible to create a topological sorting
    */
-  public abstract Collection<DirectedVertex> topologicalSort();
+  public abstract Collection<DirectedVertex> topologicalSort(boolean update);
 
   /**
    * {@inheritDoc}

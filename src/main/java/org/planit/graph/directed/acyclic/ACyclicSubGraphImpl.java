@@ -3,8 +3,10 @@ package org.planit.graph.directed.acyclic;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.LongAdder;
@@ -48,6 +50,9 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * generate on-the-fly trading-off memory vs computational speed. Now we always have this in memory which is costly
    */
   private Map<DirectedVertex, AcyclicVertexData> vertexData;
+
+  /** track most recent topological order available */
+  private ArrayDeque<DirectedVertex> topologicalOrder;
 
   /** track the link segments used via a bit set, where 1 at index indicates the link segment with id=index is included */
   private BitSet registeredLinkSegments;
@@ -183,6 +188,7 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
     this.root = root;
     this.vertexData = new HashMap<DirectedVertex, AcyclicVertexData>();
     this.registeredLinkSegments = new BitSet(numberOfParentEdgeSegments);
+    this.topologicalOrder = null;
   }
 
   /**
@@ -194,19 +200,27 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
     this.id = aCyclicSubGraphImpl.getId();
     this.root = aCyclicSubGraphImpl.getRootVertex();
     this.registeredLinkSegments = BitSet.valueOf(aCyclicSubGraphImpl.registeredLinkSegments.toByteArray());
+
     this.vertexData = new HashMap<DirectedVertex, AcyclicVertexData>();
     aCyclicSubGraphImpl.vertexData.forEach((v, d) -> this.vertexData.put(v, d.clone()));
+
+    this.topologicalOrder = aCyclicSubGraphImpl.topologicalOrder != null ? new ArrayDeque<DirectedVertex>(aCyclicSubGraphImpl.topologicalOrder) : null;
   }
 
   /**
    * Perform topological sorting from root, based on Gupta et al. 2008.
    * 
+   * @param update when true we force an update, when false we return the most recent result without performing an update
    * @return Topologically sorted list of vertices, null when graph is not acyclic, or disconnected
    */
   @Override
-  public Collection<DirectedVertex> topologicalSort() {
+  public Collection<DirectedVertex> topologicalSort(boolean update) {
 
-    ArrayDeque<DirectedVertex> topologicalOrder = new ArrayDeque<DirectedVertex>(vertexData.size());
+    if (!update) {
+      return topologicalOrder;
+    }
+
+    topologicalOrder = new ArrayDeque<DirectedVertex>(vertexData.size());
     resetVertexData();
 
     BitSet visited = new BitSet(vertexData.size());
@@ -273,6 +287,14 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
   @Override
   public long getNumberOfVertices() {
     return vertexData.size();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Iterator<DirectedVertex> iterator() {
+    return Collections.unmodifiableSet(this.vertexData.keySet()).iterator();
   }
 
   /**

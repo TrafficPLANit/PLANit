@@ -350,7 +350,7 @@ public abstract class StaticLtmNetworkLoading {
   protected InflowOutflowData inFlowOutflowData;
 
   /** the gap function to apply on global convergence update */
-  protected NormBasedGapFunction flowAcceptanceFapFunction;
+  protected NormBasedGapFunction flowAcceptanceGapFunction;
 
   /** the gap function to apply on sending flow update step */
   protected NormBasedGapFunction sendingFlowGapFunction;
@@ -484,7 +484,7 @@ public abstract class StaticLtmNetworkLoading {
     this.networkLoadingFactorData = new NetworkLoadingFactorData(network.getNumberOfEdgeSegmentsAllLayers());
 
     /* gap functions used */
-    this.flowAcceptanceFapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
+    this.flowAcceptanceGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
     this.sendingFlowGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
     this.receivingFlowGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
    
@@ -749,9 +749,9 @@ public abstract class StaticLtmNetworkLoading {
     updateNextFlowAcceptanceFactors();
     
     /*3. Compute gap between current and next flow acceptance factors*/
-    this.flowAcceptanceFapFunction.reset();
-    this.flowAcceptanceFapFunction.increaseMeasuredValue(this.networkLoadingFactorData.getNextFlowAcceptanceFactors(), this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors());
-    double globalGap = this.flowAcceptanceFapFunction.computeGap();
+    this.flowAcceptanceGapFunction.reset();
+    this.flowAcceptanceGapFunction.increaseMeasuredValue(this.networkLoadingFactorData.getNextFlowAcceptanceFactors(), this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors());
+    double globalGap = this.flowAcceptanceGapFunction.computeGap();
     this.convergenceAnalyser.registerIterationGap(globalGap);
     
     if(getSettings().isDetailedLogging()) {
@@ -761,7 +761,7 @@ public abstract class StaticLtmNetworkLoading {
     /* set next to current */
     this.networkLoadingFactorData.swapCurrentAndNextFlowAcceptanceFactors();
     
-    boolean converged = this.flowAcceptanceFapFunction.getStopCriterion().hasConverged(globalGap, networkLoadingIteration);        
+    boolean converged = this.flowAcceptanceGapFunction.getStopCriterion().hasConverged(globalGap, networkLoadingIteration);        
     if(converged) {
       LOGGER.info(String.format("%ssLTM network loading converged in %d iterations (remaining gap: %.10f)",LoggingUtils.createRunIdPrefix(runId), networkLoadingIteration, globalGap));
     }
@@ -871,7 +871,7 @@ public abstract class StaticLtmNetworkLoading {
     this.networkLoadingFactorData.reset();
 
     /* gap functions used */
-    this.flowAcceptanceFapFunction.reset();
+    this.flowAcceptanceGapFunction.reset();
     this.sendingFlowGapFunction.reset();
     this.receivingFlowGapFunction.reset();
 
@@ -879,5 +879,13 @@ public abstract class StaticLtmNetworkLoading {
     this.solutionScheme = StaticLtmLoadingScheme.NONE;
   }
   
+  
+  /** Access to most recent flow acceptance factors (alphas)
+   * 
+   * @return flow acceptance factors
+   */
+  public final double[] getCurrentFlowAcceptanceFactors(){
+    return this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
+  }
 
 }

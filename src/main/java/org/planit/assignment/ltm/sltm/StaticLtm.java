@@ -80,13 +80,14 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     getVirtualCost().updateTimePeriod(timePeriod);
 
     /* compute costs to start with */
-    double[] currentSegmentCosts = executeCostsUpdate(mode);
+    double[] currentSegmentCosts = assignmentStrategy.executeNetworkCostsUpdate(mode, getVirtualCost(), getPhysicalCost());
     StaticLtmSimulationData simulationData = new StaticLtmSimulationData(timePeriod, List.of(mode), currentSegmentCosts.length);
+    simulationData.setLinkSegmentTravelTimeHour(mode, currentSegmentCosts);
 
     // TODO no support for initial cost yet
 
     /* initialise solution (bush based, link based) implementation to use */
-    assignmentStrategy.initialiseTimePeriod(timePeriod, mode, getDemands().get(mode, timePeriod), currentSegmentCosts);
+    assignmentStrategy.initialiseTimePeriod(timePeriod, mode, odDemands, currentSegmentCosts);
 
     return simulationData;
   }
@@ -118,10 +119,12 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       getGapFunction().reset();
       getSmoothing().updateStep(simulationData.getIterationIndex());
 
-      assignmentStrategy.performIteration();
+      /* PATH CHOICE + LOADING UPDATE */
+      assignmentStrategy.performIteration(simulationData.getLinkSegmentTravelTimeHour(theMode));
 
       // COST UPDATE
-      getIterationData().setLinkSegmentTravelTimeHour(theMode, executeCostsUpdate(theMode));
+      double[] updatedNetworkLinkSegmentCosts = assignmentStrategy.executeNetworkCostsUpdate(theMode, getVirtualCost(), getPhysicalCost());
+      getIterationData().setLinkSegmentTravelTimeHour(theMode, updatedNetworkLinkSegmentCosts);
 
       // PERSIST
       getOutputManager().persistOutputData(timePeriod, modes, converged);
