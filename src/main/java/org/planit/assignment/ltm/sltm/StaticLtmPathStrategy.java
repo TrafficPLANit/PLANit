@@ -11,6 +11,7 @@ import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPaths;
 import org.planit.od.path.OdPathsHashed;
 import org.planit.path.DirectedPathFactoryImpl;
+import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
@@ -94,9 +95,11 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * @param assignmentId          to use
    * @param transportModelNetwork to use
    * @param settings              to use
+   * @param smoothing             to use
    */
-  public StaticLtmPathStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings) {
-    super(idGroupingToken, assignmentId, transportModelNetwork, settings);
+  public StaticLtmPathStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
+      Smoothing smoothing) {
+    super(idGroupingToken, assignmentId, transportModelNetwork, settings, smoothing);
   }
 
   /** create initial solution based on generating shortest paths */

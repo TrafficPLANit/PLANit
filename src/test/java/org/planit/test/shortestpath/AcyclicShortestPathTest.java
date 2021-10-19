@@ -203,7 +203,7 @@ public class AcyclicShortestPathTest {
   public void topologicalSortingTest() {
     try {
 
-      Collection<DirectedVertex> topologicalOrder = acyclicSubGraph.topologicalSort();
+      Collection<DirectedVertex> topologicalOrder = acyclicSubGraph.topologicalSort(true /*update*/);
       assertNotNull(topologicalOrder);
 
       Set<Long> processed = new HashSet<Long>();
@@ -249,13 +249,13 @@ public class AcyclicShortestPathTest {
       MacroscopicLinkSegment cyclicSegment = networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
       acyclicSubGraph.addEdgeSegment(cyclicSegment);
 
-      topologicalOrder = acyclicSubGraph.topologicalSort();
+      topologicalOrder = acyclicSubGraph.topologicalSort(true /*update*/);
       assertNull(topologicalOrder);
 
       acyclicSubGraph.removeEdgeSegment(cyclicSegment);
       
       // removed, so same result should apply again
-      topologicalOrder = acyclicSubGraph.topologicalSort();
+      topologicalOrder = acyclicSubGraph.topologicalSort(true /*update*/);
       assertNotNull(topologicalOrder);
 
       processed.clear();
@@ -307,7 +307,7 @@ public class AcyclicShortestPathTest {
   public void minMaxPathTest() {
     try {
       
-      AcyclicMinMaxShortestPathAlgorithm minMaxPathAlgo = new AcyclicMinMaxShortestPathAlgorithm(acyclicSubGraph, acyclicSubGraph.topologicalSort(), linkSegmentCosts);
+      AcyclicMinMaxShortestPathAlgorithm minMaxPathAlgo = new AcyclicMinMaxShortestPathAlgorithm(acyclicSubGraph, acyclicSubGraph.topologicalSort(true /*update*/), linkSegmentCosts);
       MinMaxPathResult minMaxResult = minMaxPathAlgo.executeOneToAll(centroidA);
       
       // MIN PATH RESULT

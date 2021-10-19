@@ -13,6 +13,7 @@ import org.planit.network.MacroscopicNetwork;
 import org.planit.od.demand.OdDemands;
 import org.planit.output.adapter.OutputTypeAdapter;
 import org.planit.output.enums.OutputType;
+import org.planit.sdinteraction.smoothing.MSASmoothing;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
@@ -48,6 +49,20 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
   /** the tracked simulation data containing link costs and iteration */
   private StaticLtmSimulationData simulationData;
+
+  /**
+   * Factory method to create the desired assignment strategy to use
+   * 
+   * @return created strategy
+   */
+  private StaticLtmAssignmentStrategy createAssignmentStrategy() {
+    /* create the assignment solution to apply */
+    if (settings.isBushBased()) {
+      return new StaticLtmBushStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, getSmoothing());
+    } else {
+      return new StaticLtmPathStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, getSmoothing());
+    }
+  }
 
   /**
    * Record some basic iteration information such as duration and gap
@@ -172,22 +187,19 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* gap function check */
     PlanItException.throwIf(!(getGapFunction() instanceof NormBasedGapFunction), "%sStatic LTM only supports a norm based gap function at the moment, but found %s",
         LoggingUtils.createRunIdPrefix(getId()), getGapFunction().getClass().getCanonicalName());
+
+    /* smoothing check */
+    PlanItException.throwIf(!(getSmoothing() instanceof MSASmoothing), "%sStatic LTM only supports MSA smoothing at the moment, but found %s",
+        LoggingUtils.createRunIdPrefix(getId()), getSmoothing().getClass().getCanonicalName());
   }
 
   /**
-   * Initialise the components before we start any assignment
+   * Initialise the components before we start any assignment + create the assignment strategy (bush or path based)
    */
   @Override
   protected void initialiseBeforeExecution() throws PlanItException {
     super.initialiseBeforeExecution();
-
-    /* create the assignment solution to apply */
-    if (settings.isBushBased()) {
-      assignmentStrategy = new StaticLtmBushStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings);
-    } else {
-      assignmentStrategy = new StaticLtmPathStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings);
-    }
-
+    this.assignmentStrategy = createAssignmentStrategy();
   }
 
   /**

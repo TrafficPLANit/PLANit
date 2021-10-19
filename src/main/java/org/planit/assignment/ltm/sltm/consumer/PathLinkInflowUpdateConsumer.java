@@ -33,18 +33,18 @@ public class PathLinkInflowUpdateConsumer implements TriConsumer<OdZone, OdZone,
   /**
    * Link segment inflows to populate
    */
-  private final double[] linkSegmentInflows;
+  private final double[] linkSegmentSendingFlows;
 
   /**
    * constructor
    * 
    * @param odPaths                          to use
    * @param linkSegmentFlowAcceptanceFactors flow acceptance factors to apply to path flows while traversing the path
-   * @param linkSegmentInflows               to populate
+   * @param linkSegmentSendingFlows          to populate
    */
-  public PathLinkInflowUpdateConsumer(final OdPaths odPaths, final double[] linkSegmentFlowAcceptanceFactors, final double[] linkSegmentInflows) {
+  public PathLinkInflowUpdateConsumer(final OdPaths odPaths, final double[] linkSegmentFlowAcceptanceFactors, final double[] linkSegmentSendingFlows) {
     this.odPaths = odPaths;
-    this.linkSegmentInflows = linkSegmentInflows;
+    this.linkSegmentSendingFlows = linkSegmentSendingFlows;
     this.linkSegmentFlowAcceptanceFactors = linkSegmentFlowAcceptanceFactors;
   }
 
@@ -61,7 +61,7 @@ public class PathLinkInflowUpdateConsumer implements TriConsumer<OdZone, OdZone,
       /* link segment */
       segmentId = (int) edgeSegment.getId();
       /* u_a: update inflow for link segment */
-      linkSegmentInflows[segmentId] += acceptedPathFlowRate;
+      linkSegmentSendingFlows[segmentId] += acceptedPathFlowRate;
       acceptedPathFlowRate *= linkSegmentFlowAcceptanceFactors[segmentId];
     }
   }

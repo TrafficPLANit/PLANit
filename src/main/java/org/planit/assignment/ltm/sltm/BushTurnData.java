@@ -3,6 +3,7 @@ package org.planit.assignment.ltm.sltm;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.math.Precision;
@@ -17,6 +18,9 @@ import org.planit.utils.misc.HashUtils;
  *
  */
 public class BushTurnData implements Cloneable {
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(BushTurnData.class.getCanonicalName());
 
   /** track known bush turn sending flows s_ab by the combined hash code of incoming and outgoing link segment */
   private final Map<Integer, Double> turnSendingFlows;
@@ -57,7 +61,15 @@ public class BushTurnData implements Cloneable {
    */
   public void addTurnSendingFlow(final EdgeSegment fromSegment, final EdgeSegment toSegment, final double turnSendingFlow) {
     int hashId = HashUtils.createCombinedHashCode(fromSegment, toSegment);
-    turnSendingFlows.put(hashId, turnSendingFlows.getOrDefault(hashId, 0.0) + turnSendingFlow);
+
+    double newSendingFlow = turnSendingFlows.getOrDefault(hashId, 0.0) + turnSendingFlow;
+    if (!Precision.isPositive(newSendingFlow)) {
+      LOGGER.warning(String.format("Turn (%s to %s) sending flow negative (%.2f) after adding %.2f flow, reset to 0.0", fromSegment.getXmlId(), toSegment.getXmlId(),
+          newSendingFlow, turnSendingFlow));
+      newSendingFlow = 0;
+    }
+
+    turnSendingFlows.put(hashId, newSendingFlow);
   }
 
   /**
@@ -134,7 +146,7 @@ public class BushTurnData implements Cloneable {
    * 
    * @param fromSegment of turn to collect splitting rate for
    * @param toSegment   of turn to collect splitting rate for
-   * @return splitting rate
+   * @return splitting rate, when turn is not present or not used, zero is returned
    */
   public double getSplittingRate(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
     double turnSendingFlow = getTurnSendingFlowPcuH(fromSegment, toSegment);

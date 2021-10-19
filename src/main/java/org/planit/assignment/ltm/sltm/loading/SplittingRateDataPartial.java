@@ -82,8 +82,8 @@ public class SplittingRateDataPartial implements SplittingRateData {
    * {@inheritDoc}
    */
   @Override
-  public Array1D<Double> getSplittingRates(DirectedVertex node, EdgeSegment entrySegment) {
-    return splittingRates.get(HashUtils.createCombinedHashCode(node.getId(), entrySegment.getId()));
+  public Array1D<Double> getSplittingRates(EdgeSegment entrySegment) {
+    return splittingRates.get(HashUtils.createCombinedHashCode(entrySegment.getDownstreamVertex().getId(), entrySegment.getId()));
   }
 
 }

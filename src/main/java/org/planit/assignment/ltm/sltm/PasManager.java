@@ -1,9 +1,15 @@
 package org.planit.assignment.ltm.sltm;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
+import org.planit.algorithms.shortestpath.ShortestPathResult;
+import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingBush;
+import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.math.Precision;
@@ -15,6 +21,9 @@ import org.planit.utils.math.Precision;
  *
  */
 public class PasManager {
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(PasManager.class.getCanonicalName());
 
   /**
    * reduced cost multiplier, empirical calibrated value to use as threshold to consider shifting flow on an origin matching with a PAS, such that reducedCost_max_bush_PAS_path -
@@ -54,7 +63,7 @@ public class PasManager {
    * representative. So instead we use the portion of the total flow on the final segment that belongs to the high-cost sub-path present on the bush instead.
    * <p>
    * the rationale here is that we should only consider the PAS as effective for this bush, i.e., consider it for inclusion - if a decent amount of flow leading to the end point of
-   * this pas comes from the high cost segment of this PAS which would allow for a decent chunk of the flow to be shifted to the low cost segment. If not, it would not improve this
+   * this PAS comes from the high cost segment of this PAS which would allow for a decent chunk of the flow to be shifted to the low cost segment. If not, it would not improve this
    * bush much if we would consider it.
    * 
    * @param pas                   under consideration for a bush
@@ -75,7 +84,7 @@ public class PasManager {
   }
 
   /**
-   * Verify if PAS is considered effective (anough) to improve the provided bush. This is verified by being both {@link #isCostEffective(Pas, double)} and
+   * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both {@link #isCostEffective(Pas, double)} and
    * {@link #isFlowEffective(Pas, Bush, double[])}
    * 
    * @param pas                   to use
@@ -90,10 +99,90 @@ public class PasManager {
   }
 
   /**
+   * Remove the PAS from the manager
+   * 
+   * @param pas to remove
+   */
+  private void removePas(final Pas pas) {
+    passByMergeVertex.get(pas.getMergeVertex()).remove(pas);
+  }
+
+  /**
+   * Extract a subpath in the form of a raw edge segment array from start to end vertex based on the shortest path result provided. Since the path tree is in reverse direction, the
+   * array is filled from the back, i.e.,if there is spare cpacity the front of the array would be empty.
+   * 
+   * @param start       start vertex upstream
+   * @param end         end vertex downstream
+   * @param pathTree    to extract path from, tree is in upstream direction
+   * @param arrayLength to use for the to be created array which should be at least as long as the path that is to be extracted
+   * @return created array, null if no path could be found
+   */
+  public static EdgeSegment[] createSubpathArrayFrom(final DirectedVertex start, final DirectedVertex end, final ShortestPathResult pathTree, int arrayLength) {
+    EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
+    DirectedVertex currVertex = end;
+    EdgeSegment currEdgeSegment = null;
+    int index = edgeSegmentArray.length - 1;
+    do {
+      currEdgeSegment = pathTree.getIncomingEdgeSegmentForVertex(currVertex);
+      edgeSegmentArray[index--] = currEdgeSegment;
+      if (currEdgeSegment == null) {
+        LOGGER.warning(String.format("Unable to extract subpath from start vertex %s to end vertex %s, no incoming edge segment available at intermediate vertex %s",
+            start.getXmlId(), end.getXmlId(), currVertex.getXmlId()));
+        return null;
+      }
+      currVertex = currEdgeSegment.getUpstreamVertex();
+    } while (!currVertex.idEquals(start));
+    return edgeSegmentArray;
+  }
+
+  /**
+   * Extract a subpath in the form of a raw edge segment array from start to end vertex based on a map representing a tree with succeeding edge segments for each vertex
+   * 
+   * @param start       start vertex upstream
+   * @param end         end vertex downstream
+   * @param pathTree    to extract path from, tree is in downstream direction
+   * @param arrayLength to use for the to be created array which should be at least as long as the path that is to be extracted
+   * @return created array, null if no path could be found
+   */
+  public static EdgeSegment[] createSubpathArrayFrom(DirectedVertex start, DirectedVertex end, Map<DirectedVertex, EdgeSegment> pathTree, int arrayLength) {
+    EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
+    DirectedVertex currVertex = start;
+    EdgeSegment currEdgeSegment = null;
+    int index = 0;
+    do {
+      currEdgeSegment = pathTree.get(currVertex);
+      edgeSegmentArray[index++] = currEdgeSegment;
+      if (currEdgeSegment == null) {
+        LOGGER.warning(String.format("Unable to extract subpath from start vertex %s to end vertex %s, no outgoing edge segment available at intermediate vertex %s",
+            start.getXmlId(), end.getXmlId(), currVertex.getXmlId()));
+        return null;
+      }
+      currVertex = currEdgeSegment.getDownstreamVertex();
+    } while (!currVertex.idEquals(end));
+    return edgeSegmentArray;
+  }
+
+  /**
    * Constructor
    */
   public PasManager() {
     this.passByMergeVertex = new HashMap<DirectedVertex, Collection<Pas>>();
+  }
+
+  /**
+   * create a new PAS for the given cheap and expensive paired alternative segments (subpaths) and register the origin bush on it that was responsible for creating it
+   * 
+   * @param originBush responsible for triggering the creation of this PAS
+   * @param s1         cheap alternative segment
+   * @param s2         expensive alternative segment
+   * @return createdPas
+   */
+  public Pas createNewPas(final Bush originBush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
+    Pas newPas = Pas.create(s1, s2);
+    newPas.registerOrigin(originBush);
+    passByMergeVertex.putIfAbsent(newPas.getMergeVertex(), new ArrayList<Pas>());
+    passByMergeVertex.get(newPas.getMergeVertex()).add(newPas);
+    return newPas;
   }
 
   /**
@@ -141,6 +230,49 @@ public class PasManager {
       }
     }
     return matchedPas;
+  }
+
+  /**
+   * Shift flows based on the registered PASs, their origins, and the currently known link segment costs
+   * 
+   * @param linkSegmentCosts to use
+   * @return true when at least some flows were shifted, false otherwise
+   */
+  public void updateCosts(final double[] linkSegmentCosts) {
+    for (Collection<Pas> pass : passByMergeVertex.values()) {
+      for (Pas pas : pass) {
+        pas.updateCost(linkSegmentCosts);
+      }
+    }
+  }
+
+  /**
+   * Shift flows based on the registered PASs and their origins
+   * 
+   * @param staticLtmNetworkLoading to obtain current flows on high cost PAS segments from
+   * @param smoothing               to use when determining the desired flow shift to apply
+   * @return true when at least some flows were shifted, false otherwise
+   */
+  public boolean shiftFlows(final StaticLtmLoadingBush networkLoading, final Smoothing smoothing) {
+    boolean flowShifted = false;
+    List<Pas> passWithoutOrigins = new ArrayList<Pas>();
+    for (Collection<Pas> pass : passByMergeVertex.values()) {
+      for (Pas pas : pass) {
+        /* determine the network flow on the high cost subpath */
+        double subPathTotalShiftableFlow = networkLoading.computeSubPathSendingFlow(pas.getDivergeVertex(), pas.getMergeVertex(), pas.getAlternative(true /* highCost */));
+        /* DUMB approach -> shift all of it smoothed by MSA */
+        double flowshift = smoothing.execute(subPathTotalShiftableFlow, 0);
+        flowShifted |= pas.executeFlowShift(subPathTotalShiftableFlow, flowshift, networkLoading.getCurrentFlowAcceptanceFactors());
+        if (!pas.hasOrigins()) {
+          passWithoutOrigins.add(pas);
+        }
+      }
+    }
+
+    if (!passWithoutOrigins.isEmpty()) {
+      passWithoutOrigins.forEach((pas) -> removePas(pas));
+    }
+    return flowShifted;
   }
 
 }

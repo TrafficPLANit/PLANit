@@ -88,7 +88,7 @@ public class SplittingRateDataComplete implements SplittingRateData {
    */
   @Override
   @SuppressWarnings("unchecked")
-  public Array1D<Double> getSplittingRates(DirectedVertex node, EdgeSegment entrySegment) {
+  public Array1D<Double> getSplittingRates(final EdgeSegment entrySegment) {
     return (Array1D<Double>) splittingRates[(int) entrySegment.getId()];
   }
 

@@ -8,6 +8,7 @@ import org.planit.cost.virtual.VirtualCost;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.od.demand.OdDemands;
+import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
@@ -48,6 +49,9 @@ public abstract class StaticLtmAssignmentStrategy {
    * settings to use
    */
   private final StaticLtmSettings settings;
+
+  /** smoothing to be used for path choice */
+  private Smoothing smoothing;
 
   /**
    * The transport model network used
@@ -99,6 +103,15 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   protected StaticLtmSettings getSettings() {
     return settings;
+  }
+
+  /**
+   * The smoothing
+   * 
+   * @return smoothing
+   */
+  protected Smoothing getSmoothing() {
+    return smoothing;
   }
 
   /**
@@ -177,13 +190,15 @@ public abstract class StaticLtmAssignmentStrategy {
    * Constructor
    * 
    * @param assignmentId of the parent assignment
+   * @param smoothing    to use
    */
-  public StaticLtmAssignmentStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork,
-      final StaticLtmSettings settings) {
+  public StaticLtmAssignmentStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
+      final Smoothing smoothing) {
     this.transportModelNetwork = transportModelNetwork;
     this.assignmentId = assignmentId;
     this.idGroupingToken = idGroupingToken;
     this.settings = settings;
+    this.smoothing = smoothing;
   }
 
   /**

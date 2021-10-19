@@ -176,7 +176,7 @@ public abstract class StaticLtmNetworkLoading {
       for (EdgeSegment entrySegment : node.getEntryEdgeSegments()) {
 
         /* construct splitting rates by first imposing absolute turn flows */
-        Array1D<Double> nextSplittingRates = splittingRateData.getSplittingRates(node, entrySegment);
+        Array1D<Double> nextSplittingRates = splittingRateData.getSplittingRates(entrySegment);
         nextSplittingRates.reset();
         int index = 0;
         for (EdgeSegment exitSegment : node.getExitEdgeSegments()) {
@@ -234,7 +234,7 @@ public abstract class StaticLtmNetworkLoading {
         EdgeSegment entryEdgeSegment = iter.next();
         /* s_ab = s_a*phi_ab */
         double sendingFlow = sendingFlows[(int) entryEdgeSegment.getId()];
-        Array1D<Double> localTurnSendingFlows = this.splittingRateData.getSplittingRates(potentiallyBlockingNode, entryEdgeSegment).copy();
+        Array1D<Double> localTurnSendingFlows = this.splittingRateData.getSplittingRates(entryEdgeSegment).copy();
         localTurnSendingFlows.modifyAll(PrimitiveFunction.MULTIPLY.by(sendingFlow));
         tunSendingFlowsByEntryLinkSegment[entryIndex] = localTurnSendingFlows;
       }
@@ -797,7 +797,7 @@ public abstract class StaticLtmNetworkLoading {
         /* BASIC -> ADVANCED, e.g., activate local iterative updates of sending flows */
         this.solutionScheme = StaticLtmLoadingScheme.POINT_QUEUE_ADVANCED;
         
-        /* sending flows must be re-initialised since otherwise the sending flows of earlier non-tracked nodes have been rest to zero 
+        /* sending flows must be re-initialised since otherwise the sending flows of earlier non-tracked nodes have been reset to zero 
          * during earlier loading iterations, now they must be available for all tracked nodes, so we reinitialise by conducting a full initialisation based
          * on paths and most recent flow acceptance factors*/
         initialiseSendingFlows();
@@ -887,5 +887,21 @@ public abstract class StaticLtmNetworkLoading {
   public final double[] getCurrentFlowAcceptanceFactors(){
     return this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
   }
+  
+  /** Collect the network's current splitting rate data
+   * 
+   * @return splitting rate data
+   */
+  public final SplittingRateData getSplittingRateData(){
+    return this.splittingRateData;
+  }
+  
+  /** Currently active sLTM solution scheme
+   * 
+   * @return active solution scheme
+   */
+  public StaticLtmLoadingScheme getActivatedSolutionScheme() {
+    return this.solutionScheme;
+  }  
 
 }

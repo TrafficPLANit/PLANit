@@ -1,8 +1,6 @@
 package org.planit.assignment.ltm.sltm.consumer;
 
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.planit.assignment.ltm.sltm.loading.NetworkLoadingFactorData;
@@ -12,7 +10,6 @@ import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.planit.od.path.OdPaths;
 import org.planit.utils.functionalinterface.TriConsumer;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.misc.HashUtils;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.zoning.OdZone;
 
@@ -33,7 +30,7 @@ import org.planit.utils.zoning.OdZone;
  * @author markr
  *
  */
-public class PathTurnFlowUpdateConsumer implements TriConsumer<OdZone, OdZone, Double> {
+public class PathTurnFlowUpdateConsumer extends NetworkTurnFlowUpdate implements TriConsumer<OdZone, OdZone, Double> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(PathTurnFlowUpdateConsumer.class.getCanonicalName());
@@ -42,36 +39,6 @@ public class PathTurnFlowUpdateConsumer implements TriConsumer<OdZone, OdZone, D
    * Od Paths to use
    */
   private final OdPaths odPaths;
-
-  /**
-   * Splitting rate data to use
-   */
-  private final SplittingRateData splittingRateData;
-
-  /**
-   * Flow acceptance factors to use
-   */
-  double[] flowAcceptanceFactors;
-
-  /**
-   * Flag indicating if we are tracking all (used) node turn flows or not
-   */
-  private final boolean trackAllNodeTurnFlows;
-
-  /**
-   * Flag indicating if we are updating sending flows in addition to the turn flows
-   */
-  private final boolean updateSendingFlow;
-
-  /**
-   * The sending flows to update in case the applied solution scheme is the POINT_QUEUE_BASIC scheme
-   */
-  private final double[] sendingFlows;
-
-  /**
-   * The output of this update that can be collected after execution
-   */
-  private final Map<Integer, Double> acceptedTurnFlows;
 
   /**
    * constructor
@@ -84,20 +51,9 @@ public class PathTurnFlowUpdateConsumer implements TriConsumer<OdZone, OdZone, D
    */
   public PathTurnFlowUpdateConsumer(final StaticLtmLoadingScheme solutionScheme, final SendingFlowData sendingFlowData, final SplittingRateData splittingRateData,
       NetworkLoadingFactorData networkLoadingFactorData, final OdPaths odPaths) {
-    this.acceptedTurnFlows = new HashMap<Integer, Double>();
+    super(solutionScheme, sendingFlowData, splittingRateData, networkLoadingFactorData);
 
     this.odPaths = odPaths;
-    this.splittingRateData = splittingRateData;
-
-    /* see class description on why we use these flags */
-    this.trackAllNodeTurnFlows = !solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-    this.updateSendingFlow = solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-    if (updateSendingFlow) {
-      sendingFlowData.reset();
-    }
-    this.sendingFlows = sendingFlowData.getCurrentSendingFlows();
-
-    this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
   }
 
   /**
@@ -121,28 +77,19 @@ public class PathTurnFlowUpdateConsumer implements TriConsumer<OdZone, OdZone, D
       EdgeSegment currEdgeSegment = edgeSegmentIter.next();
       currentEdgeSegmentId = (int) currEdgeSegment.getId();
 
-      if (trackAllNodeTurnFlows || this.splittingRateData.isTracked(currEdgeSegment.getUpstreamVertex())) {
+      /* s_a = u_a */
+      if (isUpdateSendingFlow()) {
+        getSendingFlows()[previousEdgeSegmentId] += acceptedPathFlowRate;
+      }
 
-        /* s_a = u_a */
-        if (updateSendingFlow) {
-          sendingFlows[previousEdgeSegmentId] += acceptedPathFlowRate;
-        }
+      if (isTrackAllNodeTurnFlows() || getSplittingRateData().isTracked(currEdgeSegment.getUpstreamVertex())) {
 
         /* v_ap = u_bp = alpha_a*...*f_p where we consider all preceding alphas (flow acceptance factors) up to now */
         acceptedPathFlowRate *= flowAcceptanceFactors[previousEdgeSegmentId];
-        acceptedTurnFlows.put(HashUtils.createCombinedHashCode(previousEdgeSegmentId, currentEdgeSegmentId), acceptedPathFlowRate);
+        addToAcceptedTurnFlows(createTurnHashCode(previousEdgeSegmentId, currentEdgeSegmentId), acceptedPathFlowRate);
       }
 
       previousEdgeSegmentId = currentEdgeSegmentId;
     }
-  }
-
-  /**
-   * Access to the result, the accepted turn flows, where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
-   * 
-   * @return accepted turn flows
-   */
-  public Map<Integer, Double> getAcceptedTurnFlows() {
-    return this.acceptedTurnFlows;
   }
 }

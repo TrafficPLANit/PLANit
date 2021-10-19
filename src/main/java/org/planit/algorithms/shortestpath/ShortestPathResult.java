@@ -33,10 +33,12 @@ public interface ShortestPathResult {
    * @param origin                      to end loop
    * @param destination                 to start backward loop
    * @param backwardEdgeSegmentConsumer to apply to each segment on the backward path from destination to origin
+   * @return number of edge segments traversed on the path
    */
-  public default void forEachBackwardEdgeSegment(Vertex origin, Vertex destination, Consumer<EdgeSegment> backwardEdgeSegmentConsumer) {
+  public default int forEachBackwardEdgeSegment(Vertex origin, Vertex destination, Consumer<EdgeSegment> backwardEdgeSegmentConsumer) {
     EdgeSegment backwardEdgeSegment = null;
     Vertex currentVertex = destination;
+    int count = 0;
     do {
       backwardEdgeSegment = getIncomingEdgeSegmentForVertex(currentVertex);
       if (backwardEdgeSegment == null) {
@@ -44,7 +46,9 @@ public interface ShortestPathResult {
       }
       backwardEdgeSegmentConsumer.accept(backwardEdgeSegment);
       currentVertex = backwardEdgeSegment.getUpstreamVertex();
+      ++count;
     } while (!currentVertex.idEquals(origin));
+    return count;
   }
 
   /**

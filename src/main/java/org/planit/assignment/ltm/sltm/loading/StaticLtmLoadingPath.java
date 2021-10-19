@@ -37,6 +37,10 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     /* path based update using the known od paths */
     
     /* update path turn flows (and sending flows if POINT_QUEUE_BASIC)*/
+    
+    TODO COMBINE WITH TURN FLOW UPDATE -> PASS IN CONFIGURATION ON WHETHER OT UPDATE LINK SENDING FLOWS, TURN SENDING FLOWS OR BOTH
+    NOW WE HAVE SEPARATE CONSUMERS WITH BASE CLASS THAT DETERMINES THESE FLAGS --> UGLY --> THEN PROCEED BY DOING THE SAME FOR THE BUSH
+    
     PathTurnFlowUpdateConsumer pathTurnFlowUpdateConsumer = 
         new PathTurnFlowUpdateConsumer(
             solutionScheme, 
@@ -82,5 +86,6 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
   public void updateOdPaths(final OdPaths odPaths) {
     this.odPaths = odPaths;
   }
+
 
 }

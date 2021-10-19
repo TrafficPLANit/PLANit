@@ -30,11 +30,29 @@ public interface SplittingRateData {
   public abstract Set<DirectedVertex> getTrackedNodes();
 
   /**
-   * Obtain the splitting rates (can be modified)
+   * Obtain the downstream splitting rates of given node entry segment (can be modified)
    * 
-   * @param node         to obtain for
    * @param entrySegment to obtain for
    * @return currently set next splitting rates
    */
-  public abstract Array1D<Double> getSplittingRates(DirectedVertex node, EdgeSegment entrySegment);
+  public abstract Array1D<Double> getSplittingRates(EdgeSegment entrySegment);
+
+  /**
+   * Obtain the splitting rate of a given turn (non-modifiable)
+   * 
+   * @param entrySegment to obtain for
+   * @param exitSegment  to obtain for
+   * @return currently set next splitting rates, 0 if no information present
+   */
+  public default double getSplittingRate(EdgeSegment entrySegment, EdgeSegment exitSegment) {
+    Array1D<Double> vertexSplittingRates = getSplittingRates(entrySegment);
+    int index = 0;
+    for (EdgeSegment currExitSegment : entrySegment.getDownstreamVertex().getExitEdgeSegments()) {
+      if (currExitSegment.idEquals(exitSegment)) {
+        return vertexSplittingRates.get(index);
+      }
+      ++index;
+    }
+    return 0;
+  }
 }

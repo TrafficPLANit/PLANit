@@ -34,7 +34,6 @@ import org.planit.utils.zoning.OdZone;
 public class Bush implements IdAble {
 
   /** Logger to use */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(Bush.class.getCanonicalName());
 
   /** the origin of the bush */
@@ -48,6 +47,9 @@ public class Bush implements IdAble {
 
   /** track bush specific data */
   protected final BushTurnData bushData;
+
+  /** track if underlying acyclic graph is modified, if so, an update of the topological sort is required flagged by this member */
+  boolean requireTopologicalSortUpdate = false;
 
   /**
    * Constructor
@@ -71,19 +73,20 @@ public class Bush implements IdAble {
     this.origin = bush.getOrigin();
     this.dag = bush.dag.clone();
     this.bushData = bush.bushData.clone();
+    this.requireTopologicalSortUpdate = bush.requireTopologicalSortUpdate;
   }
 
   /**
    * Compute the min-max path tree rooted at the origin and given the provided (network wide) costs. The provided costs are at the network level so should contain all the segments
    * active in the bush
    * 
-   * @param linkSegmentCosts      to use.
-   * @param updateTopologicalSort flag indicating if an update of the topological sort is to be conducted beforehand
+   * @param linkSegmentCosts to use
    * @return minMaxPathResult, null if unable to complete
    */
-  public MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, boolean updateTopologicalSort) {
+  public MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts) {
     /* update topological ordering if needed - Always done for now, should be optimised */
-    Collection<DirectedVertex> topologicalOrder = dag.topologicalSort(updateTopologicalSort);
+    Collection<DirectedVertex> topologicalOrder = getTopologicallySortedVertices();
+    requireTopologicalSortUpdate = false;
 
     /* build min/max path tree */
     AcyclicMinMaxShortestPathAlgorithm minMaxBushPaths = new AcyclicMinMaxShortestPathAlgorithm(dag, topologicalOrder, linkSegmentCosts);
@@ -110,6 +113,7 @@ public class Bush implements IdAble {
             fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId(), fromEdgeSegment.getXmlId()));
       }
       dag.addEdgeSegment(fromEdgeSegment);
+      requireTopologicalSortUpdate = true;
     }
     if (!containsEdgeSegment(toEdgeSegment)) {
       if (containsAnyEdgeSegmentOf(toEdgeSegment.getParentEdge())) {
@@ -117,8 +121,20 @@ public class Bush implements IdAble {
             fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId(), toEdgeSegment.getXmlId()));
       }
       dag.addEdgeSegment(toEdgeSegment);
+      requireTopologicalSortUpdate = true;
     }
     bushData.addTurnSendingFlow(fromEdgeSegment, toEdgeSegment, turnSendingflowPcuH);
+  }
+
+  /**
+   * Collect bush turn sending flow (if any)
+   * 
+   * @param fromEdgeSegment to use
+   * @param toEdgeSegment   to use
+   * @return sending flow, zero if unknown
+   */
+  public double getTurnSendingFlow(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
+    return bushData.getTurnSendingFlowPcuH(fromEdgeSegment, toEdgeSegment);
   }
 
   /**
@@ -143,6 +159,55 @@ public class Bush implements IdAble {
   }
 
   /**
+   * Collect the bush splitting rate on the given turn
+   * 
+   * @param entrySegment to use
+   * @param exitSegment  to use
+   * @return found splitting rate, in case the turn is not used, 0 is returned
+   */
+  public double getSplittingRate(EdgeSegment entrySegment, EdgeSegment exitSegment) {
+    return bushData.getSplittingRate(entrySegment, exitSegment);
+  }
+
+  /**
+   * Collect the bush splitting rates for a given incoming edge segment
+   * 
+   * @param entrySegment to use
+   * @param exitSegment  to use
+   * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the downstream from segment vertex
+   */
+  public double[] getSplittingRates(EdgeSegment entrySegment) {
+    return bushData.getSplittingRates(entrySegment);
+  }
+
+  /**
+   * Collect the splitting rates for the root vertex (which do not have an entry segment). Result has an entry for each outgoing segment regardless if it is part of the bush in the
+   * order of looping through the outgoing edge segments on the root vertex
+   * 
+   * @return splitting rates for the root vertex exit segments.
+   */
+  public double[] getRootVertexSplittingRates() {
+    double[] splittingRates = new double[this.dag.getRootVertex().getExitEdgeSegments().size()];
+    int index = 0;
+    double foundRootDemandPcuH = 0;
+    for (EdgeSegment exitSegment : this.dag.getRootVertex().getExitEdgeSegments()) {
+      if (containsEdgeSegment(exitSegment)) {
+        double rootExitDemandPcuH = bushData.getTotalSendingFlowPcuH(exitSegment);
+        splittingRates[index] = rootExitDemandPcuH / originDemandPcuH;
+        foundRootDemandPcuH += rootExitDemandPcuH;
+      }
+      ++index;
+    }
+
+    /* make sure the total of demand found exiting matches the originally registered total root demand */
+    if (!Precision.isEqual(foundRootDemandPcuH, originDemandPcuH)) {
+      LOGGER.severe(String.format("Combined flows (%.2f) on bush root for origin %s do not add up to the origin's travel demand (%.2f)", foundRootDemandPcuH,
+          getOrigin().getXmlId(), originDemandPcuH));
+    }
+    return splittingRates;
+  }
+
+  /**
    * Remove a turn from the bush by removing it from the acyclic graph and removing any data associated with it
    * 
    * @param fromEdgeSegment of the turn
@@ -152,6 +217,7 @@ public class Bush implements IdAble {
     dag.removeEdgeSegment(fromEdgeSegment);
     dag.removeEdgeSegment(toEdgeSegment);
     bushData.removeTurn(fromEdgeSegment, toEdgeSegment);
+    requireTopologicalSortUpdate = true;
   }
 
   /**
@@ -189,9 +255,9 @@ public class Bush implements IdAble {
   }
 
   /**
-   * The shortest path of the proposed alternative segment (not in this bush) is provided as link segment labels of value -1. The point at which they merge with the bush is
-   * indicated with label 1 at the downstream bush vertex (passed in). Here we do a breadth-first search on the bush in the upstream direction to find a location the alternative
-   * path diverged from the bush, which, at the latest, should be at the origin and at the earliest directly upstream of the provided vertex.
+   * The alternative subpath (not in this bush) is provided as link segment labels of value -1. The end point at which they merge with the bush is indicated with label 1 at the
+   * downstream bush vertex (passed in). Here we do a breadth-first search on the bush in the upstream direction to find a location the alternative path diverged from the bush,
+   * which, at the latest, should be at the origin and at the earliest directly upstream of the provided vertex.
    * <p>
    * Note that the breadth-first approach is a choice not a necessity but the underlying idea is that a shorter PAS (which is likely to be found) is used by more origins and
    * therefore more useful to explore than a really long PAS. This is preferred - in the original TAPAS - over simply backtracking along either the shortest or longest path of the
@@ -202,52 +268,53 @@ public class Bush implements IdAble {
    * The returned map contains the outgoing edge segment for each vertex, from the diverge to the merge node where for the merge node the edge segment remains null
    * 
    * @param mergeVertex                    to start backward breadth first search from as it is the point of merging between alternative path (via labelled vertices) and bush
-   * @param alternativeSegmentVertexLabels indicating the shortest (network) path merging at the bush vertex but not part of the bush's path to the merge vertex for some part of
+   * @param alternativeSubpathVertexLabels indicating the shortest (network) path merging at the bush vertex but not part of the bush's path to the merge vertex for some part of
    *                                       its path prior to merging
    * @return vertex at which the two paths diverged upstream and the map to extract the path from the diverge vertex to the merge vertex that was found using the breadth-first
    *         method
    */
-  public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findAlternativeHigherCostSegment(DirectedVertex mergeVertex, final short[] alternativeSegmentVertexLabels) {
+  public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpath(DirectedVertex mergeVertex, final short[] alternativeSubpathVertexLabels) {
     ArrayDeque<Pair<DirectedVertex, EdgeSegment>> openVertexQueue = new ArrayDeque<Pair<DirectedVertex, EdgeSegment>>(30);
     Map<DirectedVertex, EdgeSegment> processedVertices = new TreeMap<DirectedVertex, EdgeSegment>();
 
     /* start with incoming edge segments of merge vertex except alternative labelled segment */
     processedVertices.put(mergeVertex, null);
     for (EdgeSegment entrySegment : mergeVertex.getEntryEdgeSegments()) {
-      if (containsEdgeSegment(entrySegment) && alternativeSegmentVertexLabels[(int) mergeVertex.getId()] != -1) {
+      if (containsEdgeSegment(entrySegment) && alternativeSubpathVertexLabels[(int) mergeVertex.getId()] != -1) {
         openVertexQueue.add(Pair.of(entrySegment.getUpstreamVertex(), entrySegment));
       }
     }
 
     while (!openVertexQueue.isEmpty()) {
       Pair<DirectedVertex, EdgeSegment> current = openVertexQueue.pop();
-      if (processedVertices.containsKey(current.first())) {
+      DirectedVertex currentVertex = current.first();
+      if (processedVertices.containsKey(currentVertex)) {
         continue;
       }
 
-      if (alternativeSegmentVertexLabels[(int) current.first().getId()] != -1) {
+      if (alternativeSubpathVertexLabels[(int) currentVertex.getId()] != -1) {
         /* first point of coincidence with alternative labelled path */
         return Pair.of(current.first(), processedVertices);
       }
 
       /* breadth-first loop for used turns that not yet have been processed */
-      for (EdgeSegment entrySegment : current.first().getEntryEdgeSegments()) {
+      for (EdgeSegment entrySegment : currentVertex.getEntryEdgeSegments()) {
         if (containsEdgeSegment(entrySegment) && bushData.containsTurnSendingFlow(entrySegment, current.second())) {
           if (!processedVertices.containsKey(entrySegment.getUpstreamVertex())) {
             openVertexQueue.add(Pair.of(entrySegment.getUpstreamVertex(), entrySegment));
-          } else {
-            /*
-             * Already processed, may indicate a cycle is detected if this upstream vertex is on the path between current vertex and merge vertex According to Xie & Xie this should
-             * be checked, but I presently fail to see how this could happen as long as our bushes DAG remains a DAG. for now simply ignore this situation and we can come back to
-             * it if needed
-             */
           }
         }
       }
 
-      processedVertices.put(current.first(), current.second());
+      processedVertices.put(currentVertex, current.second());
     }
 
+    /*
+     * no result could be found, only possible when cycle is detected before reaching origin Not sure this will actually happen, so created warning to check, when it does happen
+     * investigate and see if this expected behaviour (if so remove statement). this would equate to finding a vertex marked with a '1' in Xie & Xie, which I do not do because I
+     * don't think it is needed, but I might be wrong.
+     */
+    LOGGER.warning(String.format("Cycle found when finding alternative subpath on bush for origin zone %s merging at vertex %s", getOrigin().getXmlId(), mergeVertex.getXmlId()));
     return null;
   }
 
@@ -285,10 +352,36 @@ public class Bush implements IdAble {
    * @param endVertex                    to use
    * @param subPathArray                 to extract path from
    * @param linkSegmentAcceptanceFactors the acceptance factor to apply along the path, indexed by link segment id
-   * @return sendingFlowPcuH between start and end vertex following the sub-path
+   * @return acceptedFlowPcuH between start and end vertex following the sub-path
    */
   public double computeSubPathAcceptedFlow(final DirectedVertex startVertex, final DirectedVertex endVertex, final EdgeSegment[] subPathArray,
       final double[] linkSegmentAcceptanceFactors) {
+
+    int index = 0;
+    EdgeSegment currEdgeSegment = subPathArray[index++];
+    double subPathAcceptedFlowPcuH = bushData.getTotalSendingFlowPcuH(currEdgeSegment);
+
+    EdgeSegment nextEdgeSegment = currEdgeSegment;
+    while (index < subPathArray.length && Precision.isPositive(subPathAcceptedFlowPcuH)) {
+      currEdgeSegment = nextEdgeSegment;
+      nextEdgeSegment = subPathArray[index++];
+      subPathAcceptedFlowPcuH *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment) * linkSegmentAcceptanceFactors[(int) currEdgeSegment.getId()];
+    }
+    subPathAcceptedFlowPcuH *= linkSegmentAcceptanceFactors[(int) nextEdgeSegment.getId()];
+
+    return subPathAcceptedFlowPcuH;
+  }
+
+  /**
+   * Determine the sending flow between origin,destination vertex using the subpath given by the subPathArray in order from start to finish. We utilise the initial sending flow on
+   * the first segment as the base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
+   * 
+   * @param startVertex  to use
+   * @param endVertex    to use
+   * @param subPathArray to extract path from
+   * @return sendingFlowPcuH between start and end vertex following the sub-path
+   */
+  public double computeSubPathSendingFlow(final DirectedVertex startVertex, final DirectedVertex endVertex, final EdgeSegment[] subPathArray) {
 
     int index = 0;
     EdgeSegment currEdgeSegment = subPathArray[index++];
@@ -298,11 +391,19 @@ public class Bush implements IdAble {
     while (index < subPathArray.length && Precision.isPositive(subPathSendingFlow)) {
       currEdgeSegment = nextEdgeSegment;
       nextEdgeSegment = subPathArray[index++];
-      subPathSendingFlow *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment) * linkSegmentAcceptanceFactors[(int) currEdgeSegment.getId()];
+      subPathSendingFlow *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
     }
-    subPathSendingFlow *= linkSegmentAcceptanceFactors[(int) nextEdgeSegment.getId()];
 
     return subPathSendingFlow;
+  }
+
+  /**
+   * Topologically sorted vertices of the bush
+   * 
+   * @return vertices
+   */
+  public Collection<DirectedVertex> getTopologicallySortedVertices() {
+    return dag.topologicalSort(requireTopologicalSortUpdate);
   }
 
   /**
@@ -312,6 +413,15 @@ public class Bush implements IdAble {
    */
   public OdZone getOrigin() {
     return origin;
+  }
+
+  /**
+   * Collect the total travel demand for this origin bush
+   * 
+   * @return travel demand
+   */
+  public double getTravelDemandPcuH() {
+    return originDemandPcuH;
   }
 
   /**

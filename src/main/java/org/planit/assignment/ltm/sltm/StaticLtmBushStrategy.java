@@ -12,6 +12,7 @@ import org.planit.assignment.ltm.sltm.consumer.InitialiseBushEdgeSegmentDemandCo
 import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingBush;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.od.demand.OdDemands;
+import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.directed.DirectedVertex;
@@ -45,7 +46,7 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
    * <li>The expensive alternative overlaps with the bush (has non-zero flow)</li>
    * <li>It is considered an improvement, i.e., effective based on the settings in terms of cost and flow</li>
    * 
-   * when this holds, accept this PAS as a decent enough alternative to the true shortest path (which its cheaper segment might or might not overlap with, as long as it is close
+   * When this holds, accept this PAS as a decent enough alternative to the true shortest path (which its cheaper segment might or might not overlap with, as long as it is close
    * enough to the potential reduced cost we'll take it to avoid exponential growth of PASs)
    * 
    * @param originBush  to consider
@@ -70,7 +71,7 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
     }
 
     if (!bushFlowThroughMergeVertex) {
-      // TODO: when we find this never happens (it shouldn't, remove the above checks as they are costly)
+      // TODO: when we find this condition never occurs (and it shouldn't, remove the above checks as they are costly)
       LOGGER.warning(String.format("Explored vertex %s for existing PAS match even though bush has not flow passing through it. This should not happen", mergeVertex.getXmlId()));
       return false;
     }
@@ -85,7 +86,7 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
      * found -> register origin, shifting of flow occurs when updating pas, extending bush with low cost segment occurs automatically when shifting flow later (flow is added to low
      * cost link segments which will be created if non-existent on bush)
      */
-    effectivePas.registerOrigin(originBush.getOrigin());
+    effectivePas.registerOrigin(originBush);
     return true;
   }
 
@@ -101,20 +102,33 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
   private boolean extendBushWithNewPas(Bush originBush, DirectedVertex mergeVertex, ShortestPathResult networkMinPaths) {
     // TODO: below is not entirely correct yet, but the way to identify a new PAS
 
-    /* Label all vertices on shortest path origin-bushVertex as -1, and bushVertex itself as 1 */
+    /* Label all vertices on shortest path origin-bushVertex as -1, and PAS merge Vertex itself as 1 */
     final short[] alternativeSegmentVertexLabels = new short[getTransportNetwork().getNumberOfVerticesAllLayers()];
     alternativeSegmentVertexLabels[(int) mergeVertex.getId()] = 1;
-    networkMinPaths.forEachBackwardEdgeSegment(originBush.getOrigin().getCentroid(), mergeVertex,
+    int shortestPathLength = networkMinPaths.forEachBackwardEdgeSegment(originBush.getOrigin().getCentroid(), mergeVertex,
         (edgeSegment) -> alternativeSegmentVertexLabels[(int) edgeSegment.getUpstreamVertex().getId()] = -1);
 
     /* Use labels to identify when it merges again with bush (at upstream diverge point) */
-    Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> highCostSegment = originBush.findAlternativeHigherCostSegment(mergeVertex, alternativeSegmentVertexLabels);
+    Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> highCostSegment = originBush.findBushAlternativeSubpath(mergeVertex, alternativeSegmentVertexLabels);
+    if (highCostSegment == null) {
+      /* likely cycle detected on bush for merge vertex, unable to identify higher cost segment for NEW PAS, log issue */
+      LOGGER.info(String.format("Unable to create new PAS for origin zone %s, despite shorter path found on network to vertex %s", originBush.getOrigin().getXmlId(),
+          mergeVertex.getXmlId()));
+      return false;
+    }
+
+    /* create the PAS and register origin bush on it */
+    EdgeSegment[] s1 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, networkMinPaths, shortestPathLength);
+    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, highCostSegment.second(), shortestPathLength);
+    pasManager.createNewPas(originBush, s1, s2);
+
+    /* TODO: Not needed (yet) if we postpone the shifting of flow to the PAS update. Instead simply register the origin after creating the PAS */
     double highCostSegmentFlow = originBush.computeSubPathSendingFlow(highCostSegment.first(), mergeVertex, highCostSegment.second());
 
     /* IF -1 -> potential NEW PAS, when 1 cycle */
     // TODO:CONTINUE
 
-    return false;
+    return true;
   }
 
   /**
@@ -175,13 +189,12 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
   }
 
   /**
-   * Match (new) PAto improve existing bushes (origin) at hand.
+   * Match (new) PASs to improve existing bushes (origin) at hand.
    * 
    * @param linkSegmentCosts to use to construct min-max path three rooted at each bush's origin
-   * @return true when at least one new PAS was found, false otherwise
    * @throws PlanItException thrown if error
    */
-  private boolean extendBushes(final double[] linkSegmentCosts) throws PlanItException {
+  private void extendBushes(final double[] linkSegmentCosts) throws PlanItException {
 
     OneToAllShortestPathAlgorithm networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
     for (int index = 0; index < originBushes.length; ++index) {
@@ -189,13 +202,12 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
       if (originBush != null) {
 
         /* within-bush min/max-paths */
-        boolean updateTopologicalSort = true;
-        MinMaxPathResult minMaxPaths = originBush.computeMinMaxShortestPaths(linkSegmentCosts, updateTopologicalSort);
+        MinMaxPathResult minMaxPaths = originBush.computeMinMaxShortestPaths(linkSegmentCosts);
 
         /* network min-paths */
         ShortestPathResult networkMinPaths = networkShortestPathAlgo.executeOneToAll(originBush.getOrigin().getCentroid());
 
-        /* find new PASs */
+        /* find (new) matching PASs */
         for (Iterator<DirectedVertex> bushVertexIter = originBush.getDirectedVertexIterator(); bushVertexIter.hasNext();) {
           DirectedVertex bushVertex = bushVertexIter.next();
 
@@ -216,15 +228,20 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
               continue;
             }
 
-            /* no PAS could be created, do a branch shift */
-            // TODO
+            // BRANCH SHIFT
+            {
+              // NOTE: since we will perform an update on all PASs it seems illogical to also explicitly register the required branch shifts
+              // since they will be carried out regardless. Hence we do not log a warning nor implement the branch shift until it appears necessary
+
+              /* no suitable new or existing PAS could be found given the conditions applied, do a branch shift instead */
+              // LOGGER.info("No existing/new PAS found that satisifes flow/cost effective conditions for origin bush %s, consider branch shift - not yet implemented");
+              // TODO: currently not implemented yet -> requires shifting flow on existing bush with the given vertex as the end point
+            }
 
           }
         }
       }
     }
-
-    return false;
   }
 
   /**
@@ -249,12 +266,21 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected StaticLtmLoadingBush getLoading() {
+    return (StaticLtmLoadingBush) super.getLoading();
+  }
+
+  /**
    * Create initial bushes, where for each origin the bush is initialised with the shortest path only
    */
   @Override
   protected void createInitialSolution(TimePeriod timePeriod, OdDemands odDemands, double[] initialLinkSegmentCosts) {
     try {
       initialiseBushes(odDemands, initialLinkSegmentCosts);
+      getLoading().setBushes(originBushes);
     } catch (PlanItException e) {
       LOGGER.severe(String.format("Unable to create initial bushes for sLTM %d", getAssignmentId()));
     }
@@ -267,9 +293,11 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
    * @param assignmentId          of parent assignment
    * @param transportModelNetwork to use
    * @param settings              to use
+   * @param smoothing             to use
    */
-  public StaticLtmBushStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings) {
-    super(idGroupingToken, assignmentId, transportModelNetwork, settings);
+  public StaticLtmBushStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
+      final Smoothing smoothing) {
+    super(idGroupingToken, assignmentId, transportModelNetwork, settings, smoothing);
     this.originBushes = new Bush[transportModelNetwork.getZoning().getOdZones().size()];
     this.pasManager = new PasManager();
   }
@@ -289,17 +317,15 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
   public void performIteration(final double[] linkSegmentCosts) {
 
     try {
+            
+      /* update PAS costs */
+      pasManager.updateCosts(linkSegmentCosts);
     
-      /* (NEW) PAS matching + shift flow */
-      boolean bushExtended = extendBushes(linkSegmentCosts);
-      if(bushExtended) {
-        //NETWORK LOADING - MODE AGNOSTIC FOR NOW
-        executeNetworkLoading();  
-        //TODO: update to obtain intermediate network costs for next part of loading as well
-      }
+      /* (NEW) PAS matching for bushes */
+      extendBushes(linkSegmentCosts);
       
-      /* update existing PASs shift flow */
-      boolean flowShifted = updatePairedAlternativeSegments(linkSegmentCosts);
+      /* shift flows*/
+      boolean flowShifted = pasManager.shiftFlows(getLoading(), getSmoothing());
       
       if(flowShifted) {
         // NETWORK LOADING - MODE AGNOSTIC FOR NOW
