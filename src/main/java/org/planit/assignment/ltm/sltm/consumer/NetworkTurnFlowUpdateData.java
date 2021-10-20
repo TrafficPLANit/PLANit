@@ -7,7 +7,6 @@ import java.util.logging.Logger;
 import org.planit.assignment.ltm.sltm.loading.NetworkLoadingFactorData;
 import org.planit.assignment.ltm.sltm.loading.SendingFlowData;
 import org.planit.assignment.ltm.sltm.loading.SplittingRateData;
-import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.planit.utils.misc.HashUtils;
 
 /**
@@ -29,77 +28,26 @@ import org.planit.utils.misc.HashUtils;
  * @author markr
  *
  */
-public class NetworkTurnFlowUpdate {
+public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
 
   /** logger to use */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(NetworkTurnFlowUpdate.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(NetworkTurnFlowUpdateData.class.getCanonicalName());
 
   /**
    * Splitting rate data to use
    */
-  private final SplittingRateData splittingRateData;
-
-  /**
-   * Flow acceptance factors to use
-   */
-  double[] flowAcceptanceFactors;
+  protected final SplittingRateData splittingRateData;
 
   /**
    * Flag indicating if we are tracking all (used) node turn flows or not
    */
-  private final boolean trackAllNodeTurnFlows;
-
-  /**
-   * Flag indicating if we are updating sending flows in addition to the turn flows
-   */
-  private final boolean updateSendingFlow;
-
-  /**
-   * The sending flows to update in case the applied solution scheme is the POINT_QUEUE_BASIC scheme
-   */
-  private final double[] sendingFlows;
+  protected final boolean trackAllNodeTurnFlows;
 
   /**
    * The output of this update that can be collected after execution
    */
-  private final Map<Integer, Double> acceptedTurnFlows;
-
-  /**
-   * Network wide splitting rate information
-   * 
-   * @return data
-   */
-  protected SplittingRateData getSplittingRateData() {
-    return splittingRateData;
-  }
-
-  /**
-   * Verify if all node turn flows are tracked or not
-   * 
-   * @return true when all are tracked, false otherwise
-   */
-  protected boolean isTrackAllNodeTurnFlows() {
-    return trackAllNodeTurnFlows;
-  }
-
-  /**
-   * Verify if we are supposed to update the sending flows or not
-   * 
-   * @return true when updating, false otherwise
-   */
-  protected boolean isUpdateSendingFlow() {
-    return updateSendingFlow;
-  }
-
-  /**
-   * the network wide sending flows
-   * 
-   * @return sending flows
-   */
-  protected double[] getSendingFlows() {
-    return sendingFlows;
-  }
+  protected final Map<Integer, Double> acceptedTurnFlows;
 
   /**
    * create hash code used for turn flow map
@@ -125,24 +73,35 @@ public class NetworkTurnFlowUpdate {
   /**
    * constructor
    * 
-   * @param splittingRateData        to use
+   * @param trackAllNodeTurnFlows    to apply
    * @param sendingFlowData          to use
+   * @param splittingRateData        to use
+   * @param networkLoadingFactorData to use
+   */
+  public NetworkTurnFlowUpdateData(final boolean trackAllNodeTurnFlows, SendingFlowData sendingFlowData, final SplittingRateData splittingRateData,
+      NetworkLoadingFactorData networkLoadingFactorData) {
+    super(sendingFlowData, networkLoadingFactorData);
+    this.acceptedTurnFlows = new HashMap<Integer, Double>();
+    this.splittingRateData = splittingRateData;
+
+    /* see class description on why we use these flags */
+    this.trackAllNodeTurnFlows = trackAllNodeTurnFlows;
+  }
+
+  /**
+   * constructor where sending flows are not to be updated
+   * 
+   * @param splittingRateData        to use
    * @param solutionScheme           to apply
    * @param networkLoadingFactorData to use
    */
-  public NetworkTurnFlowUpdate(final StaticLtmLoadingScheme solutionScheme, final SendingFlowData sendingFlowData, final SplittingRateData splittingRateData,
-      NetworkLoadingFactorData networkLoadingFactorData) {
+  public NetworkTurnFlowUpdateData(final boolean trackAllNodeTurnFlows, final SplittingRateData splittingRateData, NetworkLoadingFactorData networkLoadingFactorData) {
+    super(networkLoadingFactorData);
     this.acceptedTurnFlows = new HashMap<Integer, Double>();
     this.splittingRateData = splittingRateData;
-    this.flowAcceptanceFactors = networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
 
     /* see class description on why we use these flags */
-    this.trackAllNodeTurnFlows = !solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-    this.updateSendingFlow = solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-    if (updateSendingFlow) {
-      sendingFlowData.reset();
-    }
-    this.sendingFlows = sendingFlowData.getCurrentSendingFlows();
+    this.trackAllNodeTurnFlows = trackAllNodeTurnFlows;
   }
 
   /**

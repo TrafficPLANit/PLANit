@@ -442,6 +442,24 @@ public abstract class StaticLtmNetworkLoading {
   protected OdDemands getOdDemands() {
     return odDemands;
   }
+  
+  /** Verify if the sending flows are updated iteratively and locally in the Step 2 sending flow update.
+   * when not updated iteratively, only a single update is performed before doing another loading consistent with Bliemer et al. (2014).
+   * When updated iteratively, the solution scheme presented in Raadsen and Bliemer (2021) is active. 
+   * 
+   * @return true when not in POINT_QUEUE_BASIC scheme, false otherwise
+   */
+  protected boolean isIterativeSendingFlowUpdateActivated() {
+    return !solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
+  }
+
+  /** Verify if all turn flows are to be tracked during loading. 
+   * 
+   * @return false when POINT_QUEUE_BASIC solution scheme is active, true otherwise 
+   */
+  protected boolean isTrackAllNodeTurnFlows() {
+    return !solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
+  }  
 
   /**
    * Constructor
@@ -603,7 +621,7 @@ public abstract class StaticLtmNetworkLoading {
       this.sendingFlowData.swapCurrentAndNextSendingFlows();
       
       /* Only run as iterative procedure with physical queues or when using advanced point queue */
-      if(this.solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC)) {
+      if(!isIterativeSendingFlowUpdateActivated()) {
         break;
       }      
       

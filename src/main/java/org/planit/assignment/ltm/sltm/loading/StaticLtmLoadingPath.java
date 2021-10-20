@@ -4,11 +4,13 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.planit.assignment.ltm.sltm.StaticLtmSettings;
-import org.planit.assignment.ltm.sltm.consumer.PathLinkInflowUpdateConsumer;
+import org.planit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
+import org.planit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
+import org.planit.assignment.ltm.sltm.consumer.PathFlowUpdateConsumer;
+import org.planit.assignment.ltm.sltm.consumer.PathLinkSendingFlowUpdateConsumer;
 import org.planit.assignment.ltm.sltm.consumer.PathTurnFlowUpdateConsumer;
 import org.planit.od.path.OdPaths;
 import org.planit.utils.id.IdGroupingToken;
-import org.planit.utils.zoning.OdZones;
 
 /**
  * The path based network loading scheme for sLTM
@@ -29,25 +31,51 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
 
   //@formatter:off
 
+  /** Factory method to create the right flow update consumer to use when conducting a path based flow update. We either create one that updates
+   * turn accepted flows (and possibly also sending flows), or one that only updates link sending flows. The latter is to be used for initialisation purposes only where
+   * the former is the one used during the iterative loading procedure.
+   * 
+   * @param updateturnAcceptedFlows flag indicating if the turn accepted flows are to be updated by this consumer
+   * @param updateLinkSendingFlows flag indicating if the link sending flow are to be updated by this consumer
+   * @return created flow update consumer
+   */
+  private PathFlowUpdateConsumer<?> createPathFlowUpdateconsumer(boolean updateTurnAcceptedFlows, boolean updateLinkSendingFlows) {
+    
+    if(updateTurnAcceptedFlows) {
+      if (updateLinkSendingFlows) {
+        sendingFlowData.reset();                
+        return new PathTurnFlowUpdateConsumer(
+            new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), sendingFlowData, splittingRateData, networkLoadingFactorData),
+            odPaths);
+      }else {
+        return new PathTurnFlowUpdateConsumer(
+            new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), splittingRateData, networkLoadingFactorData), 
+            odPaths);
+      }
+    }else {
+      if(!updateLinkSendingFlows) {
+        return null;
+      }else {
+        return new PathLinkSendingFlowUpdateConsumer(
+            new NetworkFlowUpdateData(sendingFlowData, networkLoadingFactorData), 
+            odPaths);
+      }
+    }
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
   protected Map<Integer, Double> networkLoadingTurnFlowUpdate() {
-    /* path based update using the known od paths */
     
-    /* update path turn flows (and sending flows if POINT_QUEUE_BASIC)*/
+    /* when one-shot sending flow update in step-2 of the algorithm is active, the sending flows are to be updated during the update here, 
+     * otherwise not. In the latter case it is taken care of by step-2 in the solution algorithm via the iterative procedure */
+    boolean updateTurnAcceptedFlows = true;
+    boolean updateSendingFlows = !isIterativeSendingFlowUpdateActivated();    
+    PathTurnFlowUpdateConsumer pathTurnFlowUpdateConsumer = (PathTurnFlowUpdateConsumer) createPathFlowUpdateconsumer(updateTurnAcceptedFlows, updateSendingFlows);
     
-    TODO COMBINE WITH TURN FLOW UPDATE -> PASS IN CONFIGURATION ON WHETHER OT UPDATE LINK SENDING FLOWS, TURN SENDING FLOWS OR BOTH
-    NOW WE HAVE SEPARATE CONSUMERS WITH BASE CLASS THAT DETERMINES THESE FLAGS --> UGLY --> THEN PROCEED BY DOING THE SAME FOR THE BUSH
-    
-    PathTurnFlowUpdateConsumer pathTurnFlowUpdateConsumer = 
-        new PathTurnFlowUpdateConsumer(
-            solutionScheme, 
-            sendingFlowData, 
-            splittingRateData, 
-            networkLoadingFactorData, 
-            odPaths);
+    /* execute */
     getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().odZones, pathTurnFlowUpdateConsumer);
     return pathTurnFlowUpdateConsumer.getAcceptedTurnFlows();
   }
@@ -57,14 +85,14 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    */
   @Override
   protected void networkLoadingLinkSegmentInflowUpdate(final double[] linkSegmentFlowArrayToFill) {
-    /* path based update using the known od paths */
-    
-    OdZones odZones = getTransportNetwork().getZoning().odZones;
-    double[] flowAcceptanceFactors = this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
 
-    /* update path turn flows (and sending flows if POINT_QUEUE_BASIC) */
-    PathLinkInflowUpdateConsumer pathLinkInflowUpdateConsumer = new PathLinkInflowUpdateConsumer(odPaths, flowAcceptanceFactors, linkSegmentFlowArrayToFill);
-    getOdDemands().forEachNonZeroOdDemand(odZones, pathLinkInflowUpdateConsumer);
+    /* only update link sending flows */
+    boolean updateTurnAcceptedFlows = false;
+    boolean updateSendingFlows = true;    
+    PathLinkSendingFlowUpdateConsumer pathLinkFlowUpdateConsumer = (PathLinkSendingFlowUpdateConsumer) createPathFlowUpdateconsumer(updateTurnAcceptedFlows, updateSendingFlows); 
+    
+    /* execute */
+    getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().odZones, pathLinkFlowUpdateConsumer);
   }   
 
   /**

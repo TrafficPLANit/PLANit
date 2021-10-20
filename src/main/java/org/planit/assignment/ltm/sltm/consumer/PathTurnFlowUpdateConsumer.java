@@ -1,22 +1,15 @@
 package org.planit.assignment.ltm.sltm.consumer;
 
-import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Logger;
 
-import org.planit.assignment.ltm.sltm.loading.NetworkLoadingFactorData;
-import org.planit.assignment.ltm.sltm.loading.SendingFlowData;
-import org.planit.assignment.ltm.sltm.loading.SplittingRateData;
-import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.planit.od.path.OdPaths;
-import org.planit.utils.functionalinterface.TriConsumer;
 import org.planit.utils.graph.EdgeSegment;
-import org.planit.utils.path.DirectedPath;
-import org.planit.utils.zoning.OdZone;
 
 /**
  * Consumer to apply during path based turn flow update for each combination of origin, destination, and demand
  * <p>
- * Depending on the applied solution scheme a slightly different approach is taken to this update where:
+ * Depending on the configuration which in turn depends on the active solution scheme a slightly different approach is taken to this update where:
  * <p>
  * POINT QUEUE BASIC: Also update the current sending flow. Only during basic point queue solution scheme, sending flows are NOT locally updated in the sending flow update step.
  * Therefore sending flows of most links are not updated during this sending flow update because it only updates the sending flows of outgoing links of potentially blocking nodes.
@@ -30,66 +23,67 @@ import org.planit.utils.zoning.OdZone;
  * @author markr
  *
  */
-public class PathTurnFlowUpdateConsumer extends NetworkTurnFlowUpdate implements TriConsumer<OdZone, OdZone, Double> {
+public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTurnFlowUpdateData> {
 
   /** logger to use */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(PathTurnFlowUpdateConsumer.class.getCanonicalName());
 
   /**
-   * Od Paths to use
-   */
-  private final OdPaths odPaths;
-
-  /**
-   * constructor
+   * Apply the flow to the turn (and update link sending flow if required)
    * 
-   * @param odPaths                  to use
-   * @param splittingRateData        to use
-   * @param sendingFlowData          to use
-   * @param solutionScheme           to apply
-   * @param networkLoadingFactorData to use
-   */
-  public PathTurnFlowUpdateConsumer(final StaticLtmLoadingScheme solutionScheme, final SendingFlowData sendingFlowData, final SplittingRateData splittingRateData,
-      NetworkLoadingFactorData networkLoadingFactorData, final OdPaths odPaths) {
-    super(solutionScheme, sendingFlowData, splittingRateData, networkLoadingFactorData);
-
-    this.odPaths = odPaths;
-  }
-
-  /**
-   * Update the turn flow for the path of the given origin,destination,demand combination
+   * @param prevSegmentId       of turn
+   * @param currentSegment      of turn
+   * @param turnSendingFlowPcuH sending flow rate of turn
+   * @return accepted flow rate of turn after applying link acceptance factor
    */
   @Override
-  public void accept(OdZone origin, OdZone destination, Double odDemand) {
-    /* path */
-    DirectedPath odPath = odPaths.getValue(origin, destination);
-    double acceptedPathFlowRate = odDemand;
-    if (odPath.isEmpty()) {
-      LOGGER.warning(String.format("IGNORE: encountered empty path %s", odPath.getXmlId()));
-      return;
-    }
+  protected double applySingleFlowUpdate(final int prevSegmentId, final EdgeSegment currentSegment, final double turnSendingFlowPcuH) {
 
-    /* turn */
-    Iterator<EdgeSegment> edgeSegmentIter = odPath.iterator();
-    int previousEdgeSegmentId = (int) edgeSegmentIter.next().getId();
-    int currentEdgeSegmentId = previousEdgeSegmentId;
-    while (edgeSegmentIter.hasNext()) {
-      EdgeSegment currEdgeSegment = edgeSegmentIter.next();
-      currentEdgeSegmentId = (int) currEdgeSegment.getId();
-
-      /* s_a = u_a */
-      if (isUpdateSendingFlow()) {
-        getSendingFlows()[previousEdgeSegmentId] += acceptedPathFlowRate;
+    if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(currentSegment.getUpstreamVertex())) {
+      /* s_a = u_a where we only need to update the sending flows of tracked turns */
+      if (dataConfig.updateLinkSendingFlows) {
+        dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
       }
 
-      if (isTrackAllNodeTurnFlows() || getSplittingRateData().isTracked(currEdgeSegment.getUpstreamVertex())) {
-
-        /* v_ap = u_bp = alpha_a*...*f_p where we consider all preceding alphas (flow acceptance factors) up to now */
-        acceptedPathFlowRate *= flowAcceptanceFactors[previousEdgeSegmentId];
-        addToAcceptedTurnFlows(createTurnHashCode(previousEdgeSegmentId, currentEdgeSegmentId), acceptedPathFlowRate);
-      }
-
-      previousEdgeSegmentId = currentEdgeSegmentId;
+      /* v_ap = u_bp = alpha_a*...*f_p where we implicitly consider all preceding alphas (flow acceptance factors) up to now */
+      double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
+      dataConfig.addToAcceptedTurnFlows(NetworkTurnFlowUpdateData.createTurnHashCode(prevSegmentId, (int) currentSegment.getId()), acceptedTurnFlowPcuH);
+      return acceptedTurnFlowPcuH;
+    } else {
+      return turnSendingFlowPcuH;
     }
   }
+
+  /**
+   * DO NOTHING - since this is a turn update and the final turn has no outgoing edge segment it is never tracked (because it does not exist), therefore, we can disregard updating
+   * the final segment flow in a turn flow update setting, even when tracking link segment sending flows (since this sending flow is never required as input to a node model update
+   * 
+   * @param lastEdgeSegment      to use
+   * @param acceptedPathFlowRate to use
+   */
+  @Override
+  protected void applyPathFinalSegmentFlowUpdate(final EdgeSegment lastEdgeSegment, double acceptedPathFlowRate) {
+    // do nothing
+  }
+
+  /**
+   * Constructor, where sending flows are not to be updated, only turn flows
+   * 
+   * @param dataConfig to use
+   * @param odPaths    to use
+   */
+  public PathTurnFlowUpdateConsumer(final NetworkTurnFlowUpdateData dataConfig, final OdPaths odPaths) {
+    super(dataConfig, odPaths);
+  }
+
+  /**
+   * The found accepted turn flows by the combined entry-exit segment hash code
+   * 
+   * @return accepted turn flows
+   */
+  public Map<Integer, Double> getAcceptedTurnFlows() {
+    return dataConfig.getAcceptedTurnFlows();
+  }
+
 }

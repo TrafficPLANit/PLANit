@@ -5,7 +5,10 @@ import java.util.logging.Logger;
 
 import org.planit.assignment.ltm.sltm.Bush;
 import org.planit.assignment.ltm.sltm.StaticLtmSettings;
+import org.planit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.planit.assignment.ltm.sltm.consumer.BushTurnFlowUpdateConsumer;
+import org.planit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
+import org.planit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.id.IdGroupingToken;
@@ -26,6 +29,50 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
   /** the bushes managed by the bush strategy but provided to be able to conduct a network loading based on the current state (bush splitting rates) of each bush */
   private Bush[] originBushes;
 
+  /**
+   * Factory method to create the right flow update consumer to use when conducting a bush based flow update. We either create one that updates turn accepted flows (and possibly
+   * also sending flows), or one that only updates link sending flows. The latter is to be used for initialisation purposes only where the former is the one used during the
+   * iterative loading procedure.
+   * 
+   * @param updateturnAcceptedFlows flag indicating if the turn accepted flows are to be updated by this consumer
+   * @param updateLinkSendingFlows  flag indicating if the link sending flow are to be updated by this consumer
+   * @return created flow update consumer
+   */
+  private BushFlowUpdateConsumer<?> createBushFlowUpdateconsumer(boolean updateTurnAcceptedFlows, boolean updateLinkSendingFlows) {
+
+    if (updateTurnAcceptedFlows) {
+      NetworkTurnFlowUpdateData dataConfig = null;
+      if (updateLinkSendingFlows) {
+        sendingFlowData.reset();
+        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), sendingFlowData, splittingRateData, networkLoadingFactorData);
+      } else {
+        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), splittingRateData, networkLoadingFactorData);
+      }
+      return new BushTurnFlowUpdateConsumer(dataConfig);
+    } else {
+      if (!updateLinkSendingFlows) {
+        LOGGER.warning("network flow updates using bushes must either updating link sending flows or turn accepted flows, neither are selected");
+        return null;
+      }
+      return new BushFlowUpdateConsumer<NetworkFlowUpdateData>(new NetworkFlowUpdateData(sendingFlowData, networkLoadingFactorData));
+    }
+  }
+
+  /**
+   * Conduct a loading update based on the provided consumer functionality
+   * 
+   * @param bushFlowUpdateConsumer to use
+   */
+  private void executeNetworkLoadingUpdate(final BushFlowUpdateConsumer<?> bushFlowUpdateConsumer) {
+    Bush originBush = null;
+    for (int index = 0; index < originBushes.length; ++index) {
+      originBush = originBushes[index];
+      if (originBush != null) {
+        bushFlowUpdateConsumer.accept(originBush);
+      }
+    }
+  }
+
   //@formatter:off
   /**
    * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns on nodes that are potentially blocking to reduce
@@ -40,22 +87,14 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
      * on all bushes using the bush-splitting rates (and updating the bush turn sending flows in the process so they remain consistent
      * with the loading)
      */
+    boolean updateTurnAcceptedFlows = true;
+    boolean updateSendingFlowDuringLoading = !isIterativeSendingFlowUpdateActivated();     
+    BushTurnFlowUpdateConsumer bushTurnFlowUpdateConsumer = (BushTurnFlowUpdateConsumer) createBushFlowUpdateconsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading);    
     
-    BushTurnFlowUpdateConsumer bushTurnFlowUpdateConsumer = 
-        new BushTurnFlowUpdateConsumer(
-            solutionScheme, 
-            sendingFlowData, 
-            splittingRateData, 
-            networkLoadingFactorData);    
-    
-    Bush originBush = null;
-    for(int index=0;index<originBushes.length;++index) {
-      originBush = originBushes[index];
-      if(originBush != null) {
-        bushTurnFlowUpdateConsumer.accept(originBush);
-      }
-    }
+    /* execute */
+    executeNetworkLoadingUpdate(bushTurnFlowUpdateConsumer);
 
+    /* result */
     return bushTurnFlowUpdateConsumer.getAcceptedTurnFlows();
   }
   
@@ -66,15 +105,14 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
    */
   @Override
   protected void networkLoadingLinkSegmentInflowUpdate(final double[] linkSegmentFlowArrayToFill) {
+        
+    /* configure to only update all link segment sending flows */
+    boolean updateTurnAcceptedFlows = false;
+    boolean updateSendingFlowDuringLoading = true;     
+    BushFlowUpdateConsumer<?> bushFlowUpdateConsumer = createBushFlowUpdateconsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading);
     
-    //TODO
-    
-//    OdZones odZones = getTransportNetwork().getZoning().odZones;
-//    double[] flowAcceptanceFactors = this.networkLoadingFactorData.getCurrentFlowAcceptanceFactors();
-//
-//    /* update path turn flows (and sending flows if POINT_QUEUE_BASIC) */
-//    PathLinkInflowUpdateConsumer pathLinkInflowUpdateConsumer = new PathLinkInflowUpdateConsumer(odPaths, flowAcceptanceFactors, linkSegmentFlowArrayToFill);
-//    getOdDemands().forEachNonZeroOdDemand(odZones, pathLinkInflowUpdateConsumer);
+    /* execute */
+    executeNetworkLoadingUpdate(bushFlowUpdateConsumer);
   }   
 
   /**

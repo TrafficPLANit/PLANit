@@ -1,0 +1,89 @@
+package org.planit.assignment.ltm.sltm.consumer;
+
+import java.util.Iterator;
+import java.util.logging.Logger;
+
+import org.planit.od.path.OdPaths;
+import org.planit.utils.functionalinterface.TriConsumer;
+import org.planit.utils.graph.EdgeSegment;
+import org.planit.utils.path.DirectedPath;
+import org.planit.utils.zoning.OdZone;
+
+/**
+ * Base Consumer to apply during path based flow update for each combination of origin, destination, and demand
+ * <p>
+ * Derived implementation can apply different changes to each of the (turn/link) flows on the known paths by providing different single flow update implementations that are applied
+ * to each turn on each path with non-zero demand.
+ * 
+ * @author markr
+ *
+ */
+public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements TriConsumer<OdZone, OdZone, Double> {
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(PathFlowUpdateConsumer.class.getCanonicalName());
+
+  /** data and configuration used for a flow update by derived classes */
+  protected T dataConfig;
+
+  /**
+   * Od Paths to use
+   */
+  private final OdPaths odPaths;
+
+  /**
+   * Apply the flow to the turn (and update link sending flow if required)
+   * 
+   * @param prevSegmentId       of turn
+   * @param currentSegment      of turn
+   * @param turnSendingFlowPcuH sending flow rate of turn
+   * @return accepted flow rate of turn after applying link acceptance factor
+   */
+  protected abstract double applySingleFlowUpdate(final int prevSegmentId, final EdgeSegment currentSegment, final double turnSendingFlowPcuH);
+
+  /**
+   * Apply the flow to a final path segment (and update link sending flow if required) which has no outgoing edge segment on the turn
+   * 
+   * @param lastEdgeSegment      of path
+   * @param acceptedPathFlowRate sending flow rate on last edge segment
+   */
+  protected abstract void applyPathFinalSegmentFlowUpdate(final EdgeSegment lastEdgeSegment, double acceptedPathFlowRate);
+
+  /**
+   * Constructor
+   * 
+   * @param dataConfig to use
+   * @param odPaths    to use
+   */
+  public PathFlowUpdateConsumer(final T dataConfig, final OdPaths odPaths) {
+    this.dataConfig = dataConfig;
+    this.odPaths = odPaths;
+  }
+
+  /**
+   * Update the turn flows for the path of the given origin,destination,demand combination
+   */
+  @Override
+  public void accept(OdZone origin, OdZone destination, Double odDemand) {
+    /* path */
+    DirectedPath odPath = odPaths.getValue(origin, destination);
+    double acceptedPathFlowRate = odDemand;
+    if (odPath.isEmpty()) {
+      LOGGER.warning(String.format("IGNORE: encountered empty path %s", odPath.getXmlId()));
+      return;
+    }
+
+    /* turn */
+    Iterator<EdgeSegment> edgeSegmentIter = odPath.iterator();
+    int previousEdgeSegmentId = (int) edgeSegmentIter.next().getId();
+    EdgeSegment currEdgeSegment = null;
+    while (edgeSegmentIter.hasNext()) {
+      currEdgeSegment = edgeSegmentIter.next();
+      acceptedPathFlowRate = applySingleFlowUpdate(previousEdgeSegmentId, currEdgeSegment, acceptedPathFlowRate);
+      previousEdgeSegmentId = (int) currEdgeSegment.getId();
+    }
+
+    applyPathFinalSegmentFlowUpdate(currEdgeSegment, acceptedPathFlowRate);
+  }
+
+}
