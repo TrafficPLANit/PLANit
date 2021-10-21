@@ -4,6 +4,7 @@ import java.util.logging.Logger;
 
 import org.planit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.planit.cost.physical.AbstractPhysicalCost;
+import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.cost.virtual.VirtualCost;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.network.transport.TransportModelNetwork;
@@ -178,15 +179,6 @@ public abstract class StaticLtmAssignmentStrategy {
   protected abstract StaticLtmNetworkLoading createNetworkLoading();
 
   /**
-   * Create the initial solution to start the equilibration process with
-   * 
-   * @param timePeriod              to apply
-   * @param odDemands               to use
-   * @param initialLinkSegmentCosts to use
-   */
-  protected abstract void createInitialSolution(TimePeriod timePeriod, OdDemands odDemands, double[] initialLinkSegmentCosts);
-
-  /**
    * Constructor
    * 
    * @param assignmentId of the parent assignment
@@ -204,22 +196,32 @@ public abstract class StaticLtmAssignmentStrategy {
   /**
    * Invoked before start of equilibrating a new time period
    * 
-   * @param timePeriod              to initialise for
-   * @param odDemands               to use
-   * @param initialLinkSegmentCosts to use in unit hour
+   * @param timePeriod to initialise for
+   * @param odDemands  to use
    */
-  public void initialiseTimePeriod(final TimePeriod timePeriod, final Mode mode, final OdDemands odDemands, final double[] initialLinkSegmentCosts) {
+  public void initialiseTimePeriod(final TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) {
     this.networkLoading = createNetworkLoading();
     this.networkLoading.initialiseInputs(mode, odDemands, getTransportNetwork());
-    createInitialSolution(timePeriod, odDemands, initialLinkSegmentCosts);
   }
 
   /**
-   * Perform a single iteration based on the current available network costs
+   * Create the initial solution to start the equilibration process with
    * 
-   * @param linkSegmentCosts to use
+   * @param timePeriod              to apply
+   * @param odDemands               to use
+   * @param initialLinkSegmentCosts to use
    */
-  public abstract void performIteration(final double[] linkSegmentCosts);
+  public abstract void createInitialSolution(TimePeriod timePeriod, OdDemands odDemands, double[] initialLinkSegmentCosts);
+
+  /**
+   * Perform a single iteration where we perform a loading and then an equilibration step resulting in updated costs
+   * 
+   * @param mode         to use
+   * @param virtualCost  to use
+   * @param physicalCost to use
+   * @return updated edge segment costs
+   */
+  public abstract double[] performIteration(final Mode theMode, final AbstractVirtualCost virtualCost, final AbstractPhysicalCost physicalCost);
 
   /**
    * Perform an update of the network wide costs.
@@ -242,5 +244,12 @@ public abstract class StaticLtmAssignmentStrategy {
 
     return segmentCostsToPopulate;
   }
+
+  /**
+   * Description of the chosen sLTM strategy for equilibration
+   * 
+   * @return String
+   */
+  public abstract String getDescription();
 
 }

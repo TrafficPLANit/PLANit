@@ -26,7 +26,7 @@ public class InitialiseBushEdgeSegmentDemandConsumer implements Consumer<EdgeSeg
   private DirectedVertex currentDestination;
 
   /** od demand to apply to all edge segments */
-  Double originDestinationDemandPcuH;
+  private Double originDestinationDemandPcuH;
 
   private EdgeSegment succeedingEdgeSegment;
 
@@ -70,6 +70,7 @@ public class InitialiseBushEdgeSegmentDemandConsumer implements Consumer<EdgeSeg
     reset();
     this.currentDestination = destination;
     this.originDestinationDemandPcuH = originDestinationDemandPcuH;
+    this.originBush.addOriginDemandPcuH(originDestinationDemandPcuH);
   }
 
 }

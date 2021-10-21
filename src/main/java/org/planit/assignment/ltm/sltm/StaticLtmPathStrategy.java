@@ -6,6 +6,8 @@ import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.ShortestPathResult;
 import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
+import org.planit.cost.physical.AbstractPhysicalCost;
+import org.planit.cost.virtual.AbstractVirtualCost;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.od.demand.OdDemands;
 import org.planit.od.path.OdPaths;
@@ -15,6 +17,7 @@ import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
+import org.planit.utils.mode.Mode;
 import org.planit.utils.path.DirectedPath;
 import org.planit.utils.path.DirectedPathFactory;
 import org.planit.utils.time.TimePeriod;
@@ -118,12 +121,28 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * {@inheritDoc}
    */
   @Override
-  public void performIteration(final double[] linkSegmentCosts) {
+  public double[] performIteration(final Mode theMode, final AbstractVirtualCost virtualCost, final AbstractPhysicalCost physicalCost) {
 
-    // NETWORK LOADING - MODE AGNOSTIC FOR NOW
-    executeNetworkLoading();
+    double[] updatedEdgeSegmentCosts = null;
+    try {
+      // NETWORK LOADING - MODE AGNOSTIC FOR NOW
+      executeNetworkLoading();
 
-    // PATH CHOICE NOT YET SUPPORTED
+      /* COST UPDATE */
+      updatedEdgeSegmentCosts = this.executeNetworkCostsUpdate(theMode, virtualCost, physicalCost);
+    } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
+      LOGGER.severe("Unable to complete sLTM iteration");
+    }
+    return updatedEdgeSegmentCosts;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getDescription() {
+    return "{Path-based";
   }
 
 }

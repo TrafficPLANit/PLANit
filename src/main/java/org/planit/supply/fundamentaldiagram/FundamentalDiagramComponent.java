@@ -178,38 +178,6 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
   }
 
   /**
-   * The fundamental diagram component registers for the PopulateFundamentalDiagramEvent in order to initialise its default fundamental diagrams based on the network layer that it
-   * is created for. Further user or builder overrides, can alter these subsequently at a later stage
-   */
-  @Override
-  public PlanitComponentEventType[] getKnownSupportedEventTypes() {
-    return new PlanitComponentEventType[] { PopulateFundamentalDiagramEvent.EVENT_TYPE };
-  }
-
-  /**
-   * Registered for PopulateFundamentalDiagramEvent which allows the component to initialise all the default available Fds based on the network layer it is registered for.
-   * Delegates to {@link #initialiseDefaultFundamentalDiagramsForLayer(MacroscopicNetworkLayer)} for concrete derived implementations to execute
-   * 
-   */
-  @Override
-  public void onPlanitComponentEvent(PlanitComponentEvent event) throws PlanItException {
-    if (!(event.getType().equals(PopulateFundamentalDiagramEvent.EVENT_TYPE))) {
-      return;
-    }
-    PopulateFundamentalDiagramEvent populateFdEvent = (PopulateFundamentalDiagramEvent) event;
-    if (populateFdEvent.getFundamentalDiagramToPopulate() != this) {
-      return;
-    }
-    initialiseDefaultFundamentalDiagramsForLayer(populateFdEvent.getParentNetworkLayer());
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public abstract FundamentalDiagramComponent clone();
-
-  /**
    * Collect the fundamental diagram for the given link segment.
    * 
    * @param linkSegment to collect fundamental diagram for
@@ -296,7 +264,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    * @param linkSegments to collect fundamental diagrams for
    * @return fundamental diagrams per link segment by linkSegmentId, if no fd is present, the entry remains null
    */
-  public FundamentalDiagram[] getFundamentalDiagramsPerLinkSegment(MacroscopicLinkSegments linkSegments) {
+  public FundamentalDiagram[] asLinkSegmentIndexedArray(MacroscopicLinkSegments linkSegments) {
     FundamentalDiagram[] linkSegmentFundamentalDiagrams = new FundamentalDiagram[linkSegments.size()];
     for (MacroscopicLinkSegment linkSegment : linkSegments) {
       linkSegmentFundamentalDiagrams[(int) linkSegment.getLinkSegmentId()] = get(linkSegment);
@@ -313,5 +281,37 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
     this.linkSegmentTypeFundamentalDiagrams.clear();
     this.uniqueFundamentalDiagrams.clear();
   }
+
+  /**
+   * The fundamental diagram component registers for the PopulateFundamentalDiagramEvent in order to initialise its default fundamental diagrams based on the network layer that it
+   * is created for. Further user or builder overrides, can alter these subsequently at a later stage
+   */
+  @Override
+  public PlanitComponentEventType[] getKnownSupportedEventTypes() {
+    return new PlanitComponentEventType[] { PopulateFundamentalDiagramEvent.EVENT_TYPE };
+  }
+
+  /**
+   * Registered for PopulateFundamentalDiagramEvent which allows the component to initialise all the default available Fds based on the network layer it is registered for.
+   * Delegates to {@link #initialiseDefaultFundamentalDiagramsForLayer(MacroscopicNetworkLayer)} for concrete derived implementations to execute
+   * 
+   */
+  @Override
+  public void onPlanitComponentEvent(PlanitComponentEvent event) throws PlanItException {
+    if (!(event.getType().equals(PopulateFundamentalDiagramEvent.EVENT_TYPE))) {
+      return;
+    }
+    PopulateFundamentalDiagramEvent populateFdEvent = (PopulateFundamentalDiagramEvent) event;
+    if (populateFdEvent.getFundamentalDiagramToPopulate() != this) {
+      return;
+    }
+    initialiseDefaultFundamentalDiagramsForLayer(populateFdEvent.getParentNetworkLayer());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract FundamentalDiagramComponent clone();
 
 }

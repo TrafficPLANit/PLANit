@@ -28,20 +28,26 @@ public class AcyclicMinMaxShortestPathAlgorithm implements OneToAllShortestPathA
   /** costs of all edge segments known, index reflects id of the graph entity */
   private final double[] edgeSegmentCosts;
 
+  /** number of vertices in parent network, required to create raw result array by contiguous vertex id without the need for any mapping */
+  private final int numParentNetworkVertices;
+
   /**
    * Constructor
    * <p>
    * The edge segment costs should be set for all registered segments on the subgraph while the array itself is expected to match the ids of the edge segments which in turn are
-   * based on the number of edge segments on the overarching network.
+   * based on the number of edge segments on the over-arching network.
    * 
-   * @param acyclicSubGraph  the subgraph we are conducting this search on
-   * @param topologicalOrder to use for constructing the min max paths
-   * @param edgeSegmentCosts for all edge segments
+   * @param acyclicSubGraph       the subgraph we are conducting this search on
+   * @param topologicalOrder      to use for constructing the min max paths
+   * @param edgeSegmentCosts      for all edge segments
+   * @param parentNetworkVertices number of vertices in parent network, required to create raw result array by contiguous vertex id without the need for any mapping
    */
-  public AcyclicMinMaxShortestPathAlgorithm(final ACyclicSubGraph acyclicSubGraph, final Collection<? extends DirectedVertex> topologicalOrder, final double[] edgeSegmentCosts) {
+  public AcyclicMinMaxShortestPathAlgorithm(final ACyclicSubGraph acyclicSubGraph, final Collection<? extends DirectedVertex> topologicalOrder, final double[] edgeSegmentCosts,
+      final int parentNetworkVertices) {
     this.acyclicSubGraph = acyclicSubGraph;
     this.topologicalOrder = topologicalOrder;
     this.edgeSegmentCosts = edgeSegmentCosts;
+    this.numParentNetworkVertices = parentNetworkVertices;
   }
 
   /**
@@ -51,17 +57,16 @@ public class AcyclicMinMaxShortestPathAlgorithm implements OneToAllShortestPathA
    * @param currentOrigin to conduct search for
    */
   @Override
-  public MinMaxPathResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException {
-    long numberOfVertices = acyclicSubGraph.getNumberOfVertices();
-
+  public MinMaxPathResult executeOneToAll(final DirectedVertex currentOrigin) throws PlanItException {
     /* prep cost arrays */
-    double[] minCost = new double[(int) numberOfVertices];
-    double[] maxCost = new double[(int) numberOfVertices];
+    double[] minCost = new double[numParentNetworkVertices];
+    double[] maxCost = new double[numParentNetworkVertices];
     Arrays.fill(minCost, Double.POSITIVE_INFINITY);
+    Arrays.fill(maxCost, Double.NEGATIVE_INFINITY);
 
     /* prep backward link reference arrays */
-    EdgeSegment[] minBackwardEdgeSegments = new EdgeSegment[(int) numberOfVertices];
-    EdgeSegment[] maxBackwardEdgeSegments = new EdgeSegment[(int) numberOfVertices];
+    EdgeSegment[] minBackwardEdgeSegments = new EdgeSegment[numParentNetworkVertices];
+    EdgeSegment[] maxBackwardEdgeSegments = new EdgeSegment[numParentNetworkVertices];
 
     /* prep starting point */
     minCost[(int) currentOrigin.getId()] = 0.0;

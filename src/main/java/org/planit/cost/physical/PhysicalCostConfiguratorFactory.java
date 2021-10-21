@@ -23,9 +23,11 @@ public class PhysicalCostConfiguratorFactory {
       return new BPRConfigurator();
     } else if (physicalCostType.equals(AbstractPhysicalCost.FREEFLOW)) {
       return new FreeFlowLinkTravelTimeConfigurator();
+    } else if (physicalCostType.equals(AbstractPhysicalCost.STEADY_STATE)) {
+      return new SteadyStateTravelTimeConfigurator();
     } else {
       // TODO when not explicitly available try to instantiate using passed in string and reflection instead
-      throw new PlanItException(String.format("Unable to construct configurator for given physicalCostType %s", physicalCostType));
+      throw new PlanItException(String.format("Unable to construct configurator for given PhysicalCostType %s", physicalCostType));
     }
   }
 }

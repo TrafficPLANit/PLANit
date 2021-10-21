@@ -20,6 +20,7 @@ import org.planit.logging.Logging;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.od.demand.OdDemandMatrix;
 import org.planit.od.demand.OdDemands;
+import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.mode.PredefinedModeType;
@@ -47,6 +48,27 @@ public class sLtmAssignmentTest {
 
   /** the logger */
   private static Logger LOGGER = null;
+
+  /**
+   * Create demands an populate with OD DEMANDS 8000 A->A`
+   * 
+   * @return created demands
+   * @throws PlanItException thrown if error
+   */
+  private Demands createDemands() throws PlanItException {
+    Demands demands = new Demands(testToken);
+    demands.timePeriods.createAndRegisterNewTimePeriod("dummyTimePeriod", 0, 3600);
+    demands.travelerTypes.createAndRegisterNew("dummyTravellerType");
+    demands.userClasses.createAndRegisterNewUserClass("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
+
+    /* OD DEMANDS 8000 A->A` */
+    OdZones odZones = zoning.getOdZones();
+    OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
+    odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), 8000.0);
+    demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
+
+    return demands;
+  }
 
   /**
    * {@inheritDoc}
@@ -150,14 +172,15 @@ public class sLtmAssignmentTest {
       linkTypes.getFactory().registerNew("MainType", 2000, 180, network.getModes().getFirst()).setXmlId("MainType");
       linkTypes.getFactory().registerNew("BottleNeckType", 7000/4.0, 180, network.getModes().getFirst()).setXmlId("BottleNeckType");
       
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(1);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("1"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("2"), linkTypes.getByXmlId("BottleNeckType"), true, true).setNumberOfLanes(4);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("3"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("4"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("5"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("6"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4);        
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("8"), linkTypes.getByXmlId("MainType"), true, true).setNumberOfLanes(4);
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
       zoning.odZones.getFactory().registerNew().setXmlId("A");
@@ -180,16 +203,8 @@ public class sLtmAssignmentTest {
   public void sLtmPointQueuePathBasedAssignmentTest() {
     try {
 
-      Demands demands = new Demands(testToken);
-      demands.timePeriods.createAndRegisterNewTimePeriod("dummyTimePeriod", 0, 3600);
-      demands.travelerTypes.createAndRegisterNew("dummyTravellerType");
-      demands.userClasses.createAndRegisterNewUserClass("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
-
       /* OD DEMANDS 8000 A->A` */
-      OdZones odZones = zoning.getOdZones();
-      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
-      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), 8000.0);
-      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
+      Demands demands = createDemands();
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
@@ -213,16 +228,8 @@ public class sLtmAssignmentTest {
   public void sLtmPointQueueBushBasedAssignmentTest() {
     try {
 
-      Demands demands = new Demands(testToken);
-      demands.timePeriods.createAndRegisterNewTimePeriod("dummyTimePeriod", 0, 3600);
-      demands.travelerTypes.createAndRegisterNew("dummyTravellerType");
-      demands.userClasses.createAndRegisterNewUserClass("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
-
       /* OD DEMANDS 8000 A->A` */
-      OdZones odZones = zoning.getOdZones();
-      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
-      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), 8000.0);
-      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
+      Demands demands = createDemands();
 
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);

@@ -80,22 +80,32 @@ public class Bush implements IdAble {
    * Compute the min-max path tree rooted at the origin and given the provided (network wide) costs. The provided costs are at the network level so should contain all the segments
    * active in the bush
    * 
-   * @param linkSegmentCosts to use
+   * @param linkSegmentCosts              to use
+   * @param totalTransportNetworkVertices needed to be able to create primitive array recording the (partial) subgraph backward link segment results (efficiently)
    * @return minMaxPathResult, null if unable to complete
    */
-  public MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts) {
+  public MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
     /* update topological ordering if needed - Always done for now, should be optimised */
     Collection<DirectedVertex> topologicalOrder = getTopologicallySortedVertices();
     requireTopologicalSortUpdate = false;
 
     /* build min/max path tree */
-    AcyclicMinMaxShortestPathAlgorithm minMaxBushPaths = new AcyclicMinMaxShortestPathAlgorithm(dag, topologicalOrder, linkSegmentCosts);
+    AcyclicMinMaxShortestPathAlgorithm minMaxBushPaths = new AcyclicMinMaxShortestPathAlgorithm(dag, topologicalOrder, linkSegmentCosts, totalTransportNetworkVertices);
     try {
       return minMaxBushPaths.executeOneToAll(dag.getRootVertex());
     } catch (Exception e) {
       LOGGER.severe(String.format("Unable to complete minmax path three for bush rooted at origin %s", dag.getRootVertex().getXmlId()));
     }
     return null;
+  }
+
+  /**
+   * Add additional demand to the bush's root
+   * 
+   * @param originDemandPcuH to add
+   */
+  public void addOriginDemandPcuH(double originDemandPcuH) {
+    this.originDemandPcuH += originDemandPcuH;
   }
 
   /**

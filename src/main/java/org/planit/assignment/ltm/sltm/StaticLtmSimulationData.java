@@ -61,7 +61,7 @@ public class StaticLtmSimulationData extends SimulationData {
    * @param theMode            to set it for
    * @param travelTimeCostHour travel time cost in hours per link segment by link segment id
    */
-  public void setLinkSegmentTravelTimeHour(Mode theMode, double[] travelTimeCostHour) {
+  public void setLinkSegmentTravelTimePcuH(Mode theMode, double[] travelTimeCostHour) {
     modeLinkSegmentCost[(int) theMode.getId()] = travelTimeCostHour;
   }
 
@@ -71,7 +71,7 @@ public class StaticLtmSimulationData extends SimulationData {
    * @param theMode to set it for
    * @return travelTimeCostHour travel time cost in hours per link segment by link segment id
    */
-  public double[] getLinkSegmentTravelTimeHour(Mode theMode) {
+  public double[] getLinkSegmentTravelTimePcuH(Mode theMode) {
     return modeLinkSegmentCost[(int) theMode.getId()];
   }
 

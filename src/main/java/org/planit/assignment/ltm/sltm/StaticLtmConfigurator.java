@@ -17,7 +17,7 @@ import org.planit.utils.exceptions.PlanItException;
  * <li>Node Model: TAMPERE</li>
  * <li>Smoothing: MSA</li>
  * <li>Gap function: NORM BASED (defaults: 1 norm + averaged))</li>
- * <li>Physical Cost: FREEFLOW</li>
+ * <li>Physical Cost: STEADY_STATE</li>
  * <li>Virtual Cost: FIXED</li>
  * </ul>
  * Further the following other settings have the defaults:
@@ -48,7 +48,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
     createAndRegisterNodeModel(NodeModel.TAMPERE);
     createAndRegisterGapFunction(GapFunction.NORM_BASED_GAP);
     createAndRegisterSmoothing(Smoothing.MSA);
-    createAndRegisterPhysicalCost(PhysicalCost.FREEFLOW); // TODO: change into STATIC_EXITFLOW (which would allow for either path or link based setting)
+    createAndRegisterPhysicalCost(PhysicalCost.STEADY_STATE);
     createAndRegisterVirtualCost(VirtualCost.FIXED);
 
     disableLinkStorageConstraints(DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);

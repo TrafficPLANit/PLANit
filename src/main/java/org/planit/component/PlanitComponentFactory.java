@@ -25,6 +25,7 @@ import org.planit.component.event.PopulateZoningEvent;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.physical.BPRLinkTravelTimeCost;
 import org.planit.cost.physical.FreeFlowLinkTravelTimeCost;
+import org.planit.cost.physical.SteadyStateTravelTimeCost;
 import org.planit.cost.physical.initial.InitialLinkSegmentCost;
 import org.planit.cost.physical.initial.InitialPhysicalCost;
 import org.planit.cost.virtual.AbstractVirtualCost;
@@ -118,6 +119,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(ServiceNetwork.class);
     registerPlanitComponentType(BPRLinkTravelTimeCost.class);
     registerPlanitComponentType(FreeFlowLinkTravelTimeCost.class);
+    registerPlanitComponentType(SteadyStateTravelTimeCost.class);
     registerPlanitComponentType(InitialLinkSegmentCost.class);
     registerPlanitComponentType(FixedConnectoidTravelTimeCost.class);
     registerPlanitComponentType(SpeedConnectoidTravelTimeCost.class);

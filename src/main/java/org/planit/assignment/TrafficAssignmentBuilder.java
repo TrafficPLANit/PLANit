@@ -54,7 +54,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     for (final Mode mode : network.getModes()) {
       for (TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
         if (demands.get(mode, timePeriod) == null) {
-          LOGGER.warning("no demand matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
+          LOGGER.warning("No demand matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
         }
       }
     }

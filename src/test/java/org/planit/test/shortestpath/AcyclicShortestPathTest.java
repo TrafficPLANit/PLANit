@@ -307,7 +307,7 @@ public class AcyclicShortestPathTest {
   public void minMaxPathTest() {
     try {
       
-      AcyclicMinMaxShortestPathAlgorithm minMaxPathAlgo = new AcyclicMinMaxShortestPathAlgorithm(acyclicSubGraph, acyclicSubGraph.topologicalSort(true /*update*/), linkSegmentCosts);
+      AcyclicMinMaxShortestPathAlgorithm minMaxPathAlgo = new AcyclicMinMaxShortestPathAlgorithm(acyclicSubGraph, acyclicSubGraph.topologicalSort(true /*update*/), linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
       MinMaxPathResult minMaxResult = minMaxPathAlgo.executeOneToAll(centroidA);
       
       // MIN PATH RESULT

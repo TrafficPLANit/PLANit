@@ -37,12 +37,12 @@ public class TampereNodeModelInput {
 
     for (int inIndex = 0; inIndex < fixedInput.getNumberOfIncomingLinkSegments(); ++inIndex) {
       double inLinkSegmentCapacity = fixedInput.incomingLinkSegmentCapacities.get(inIndex);
-      // Sum_b(t_ab)
+      // Sum_b(s_ab)
       double inLinkSendingFlow = turnSendingFlows.aggregateRow(inIndex, Aggregator.SUM).doubleValue();
-      // lambda_a = C_a/Sum_b(t_ab)
-      double lambdaIncomingLinkScalingFactor = Double.POSITIVE_INFINITY;
-      if (Precision.isGreaterEqual(inLinkSendingFlow, 0)) {
-        lambdaIncomingLinkScalingFactor = inLinkSegmentCapacity / turnSendingFlows.aggregateRow(inIndex, Aggregator.SUM).doubleValue();
+      // lambda_a = C_a/Sum_b(s_ab)
+      double lambdaIncomingLinkScalingFactor = 0.0;
+      if (Precision.isPositive(inLinkSendingFlow)) {
+        lambdaIncomingLinkScalingFactor = inLinkSegmentCapacity / inLinkSendingFlow;
       }
       capacityScalingFactors.set(inIndex, lambdaIncomingLinkScalingFactor);
     }

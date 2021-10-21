@@ -281,4 +281,12 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     return null;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return String.format("[%d,%s,%s]", getId(), getXmlId(), getName());
+  }
+
 }

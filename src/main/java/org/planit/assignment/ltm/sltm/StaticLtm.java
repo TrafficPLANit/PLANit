@@ -94,15 +94,18 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     getPhysicalCost().updateTimePeriod(timePeriod);
     getVirtualCost().updateTimePeriod(timePeriod);
 
-    /* compute costs to start with */
-    double[] currentSegmentCosts = assignmentStrategy.executeNetworkCostsUpdate(mode, getVirtualCost(), getPhysicalCost());
-    StaticLtmSimulationData simulationData = new StaticLtmSimulationData(timePeriod, List.of(mode), currentSegmentCosts.length);
-    simulationData.setLinkSegmentTravelTimeHour(mode, currentSegmentCosts);
-
     // TODO no support for initial cost yet
 
-    /* initialise solution (bush based, link based) implementation to use */
-    assignmentStrategy.initialiseTimePeriod(timePeriod, mode, odDemands, currentSegmentCosts);
+    /* prepare for new time period */
+    assignmentStrategy.initialiseTimePeriod(timePeriod, mode, odDemands);
+
+    /* compute costs to start with */
+    double[] initialLinkSegmentCosts = assignmentStrategy.executeNetworkCostsUpdate(mode, getVirtualCost(), getPhysicalCost());
+    StaticLtmSimulationData simulationData = new StaticLtmSimulationData(timePeriod, List.of(mode), initialLinkSegmentCosts.length);
+    simulationData.setLinkSegmentTravelTimePcuH(mode, initialLinkSegmentCosts);
+
+    /* create initial solution as starting point for equilibration */
+    assignmentStrategy.createInitialSolution(timePeriod, odDemands, initialLinkSegmentCosts);
 
     return simulationData;
   }
@@ -134,12 +137,10 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       getGapFunction().reset();
       getSmoothing().updateStep(simulationData.getIterationIndex());
 
-      /* PATH CHOICE + LOADING UPDATE */
-      assignmentStrategy.performIteration(simulationData.getLinkSegmentTravelTimeHour(theMode));
-
+      /* LOADING UPDATE + PATH/BUSH UPDATE */
+      double[] updatedNetworkLinkSegmentCosts = assignmentStrategy.performIteration(theMode, getVirtualCost(), getPhysicalCost());
       // COST UPDATE
-      double[] updatedNetworkLinkSegmentCosts = assignmentStrategy.executeNetworkCostsUpdate(theMode, getVirtualCost(), getPhysicalCost());
-      getIterationData().setLinkSegmentTravelTimeHour(theMode, updatedNetworkLinkSegmentCosts);
+      getIterationData().setLinkSegmentTravelTimePcuH(theMode, updatedNetworkLinkSegmentCosts);
 
       // PERSIST
       getOutputManager().persistOutputData(timePeriod, modes, converged);
@@ -155,26 +156,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       iterationStartTime = logBasicIterationInformation(iterationStartTime, getGapFunction().getGap());
     } while (!converged);
 
-  }
-
-  /**
-   * Update the costs based on the network loading solution found.
-   * 
-   * @param mode to collect costs for
-   * @return computed costs for all edge segments in the network
-   * @throws PlanItException thrown if error
-   */
-  private double[] executeCostsUpdate(Mode mode) throws PlanItException {
-    /* cost array across all segments, virtual and physical */
-    double[] segmentCostsToPopulate = new double[getTransportNetwork().getNumberOfEdgeSegmentsAllLayers()];
-
-    /* virtual cost */
-    getVirtualCost().populateWithCost(getTransportNetwork().getVirtualNetwork(), mode, segmentCostsToPopulate);
-
-    /* physical cost */
-    getPhysicalCost().populateWithCost(getInfrastructureNetwork().getLayerByMode(mode), mode, segmentCostsToPopulate);
-
-    return segmentCostsToPopulate;
   }
 
   /**
@@ -200,6 +181,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   protected void initialiseBeforeExecution() throws PlanItException {
     super.initialiseBeforeExecution();
     this.assignmentStrategy = createAssignmentStrategy();
+    LOGGER.info(String.format("%sstrategy: %s", LoggingUtils.createRunIdPrefix(getId()), assignmentStrategy.getDescription()));
   }
 
   /**

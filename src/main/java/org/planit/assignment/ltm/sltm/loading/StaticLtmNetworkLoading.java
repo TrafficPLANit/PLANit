@@ -693,7 +693,7 @@ public abstract class StaticLtmNetworkLoading {
     /* update the outflows and receiving flows */      
 
     /* for now */
-    if(!getSettings().isDisableStorageConstraints()) {
+    if(this.solutionScheme.isPhysicalQueue()) {
       LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.createRunIdPrefix(runId)));
       return;
     }

@@ -74,7 +74,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * @param linkSegments to create FD mapping for
    */
   private void initialiseFundamentalDiagramsPerLinkSegment(MacroscopicLinkSegments linkSegments) {
-    linkSegmentFundamentalDiagrams = getFundamentalDiagramComponent().getFundamentalDiagramsPerLinkSegment(linkSegments);
+    linkSegmentFundamentalDiagrams = getFundamentalDiagramComponent().asLinkSegmentIndexedArray(linkSegments);
   }
 
   /**

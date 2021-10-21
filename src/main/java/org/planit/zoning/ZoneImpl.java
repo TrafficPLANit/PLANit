@@ -172,4 +172,12 @@ public abstract class ZoneImpl extends ExternalIdAbleImpl implements Zone {
   @Override
   public abstract ZoneImpl clone();
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return String.format("id: %d, Xmlid: %s name:%s", getId(), getXmlId(), getName());
+  }
+
 }

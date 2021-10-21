@@ -28,21 +28,6 @@ public abstract class LtmAssignment extends TrafficAssignment {
   private static final Logger LOGGER = Logger.getLogger(LtmAssignment.class.getCanonicalName());
 
   /**
-   * Fundamental diagram to use
-   */
-  private FundamentalDiagramComponent fundamentalDiagram = null;
-
-  /**
-   * Node model to use
-   */
-  private NodeModelComponent nodeModel = null;
-
-  /**
-   * the path choice to use
-   */
-  private PathChoice pathChoice = null;
-
-  /**
    * The used network layer
    * 
    * @return network layer used
@@ -93,11 +78,8 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * 
    * @param sltm to copy
    */
-  protected LtmAssignment(LtmAssignment sltm) {
+  protected LtmAssignment(final LtmAssignment sltm) {
     super(sltm);
-    this.fundamentalDiagram = sltm.fundamentalDiagram.clone();
-    this.nodeModel = sltm.nodeModel.clone();
-    this.pathChoice = sltm.pathChoice.clone();
   }
 
   /**
@@ -114,7 +96,8 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * @param fundamentalDiagram the fundamental diagram
    */
   public void setFundamentalDiagram(final FundamentalDiagramComponent fundamentalDiagram) {
-    this.fundamentalDiagram = fundamentalDiagram;
+    logRegisteredComponent(fundamentalDiagram, true);
+    registerComponent(FundamentalDiagramComponent.class, fundamentalDiagram);
   }
 
   /**
@@ -123,7 +106,8 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * @param nodeModel to use
    */
   public void setNodeModel(final NodeModelComponent nodeModel) {
-    this.nodeModel = nodeModel;
+    logRegisteredComponent(nodeModel, true);
+    registerComponent(NodeModelComponent.class, nodeModel);
   }
 
   /**
@@ -132,7 +116,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * @return path choice model used
    */
   public PathChoice getPathChoice() {
-    return pathChoice;
+    return getTrafficAssignmentComponent(PathChoice.class);
   }
 
   /**
@@ -141,7 +125,8 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * @param pathChoice model used
    */
   public void setPathChoice(PathChoice pathChoice) {
-    this.pathChoice = pathChoice;
+    logRegisteredComponent(pathChoice, true);
+    registerComponent(PathChoice.class, pathChoice);
   }
 
   /**
@@ -150,9 +135,6 @@ public abstract class LtmAssignment extends TrafficAssignment {
   @Override
   public void reset() {
     super.reset();
-    fundamentalDiagram.reset();
-    nodeModel.reset();
-    pathChoice.reset();
   }
 
 }

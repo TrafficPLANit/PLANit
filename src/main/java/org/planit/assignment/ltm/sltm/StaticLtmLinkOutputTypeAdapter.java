@@ -37,7 +37,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    */
   private Optional<Double> getCalculatedSpeed(final MacroscopicLinkSegment linkSegment, final Mode mode) {
     final int id = (int) linkSegment.getId();
-    final double[] modalLinkSegmentsTravelTimeHour = getAssignment().getIterationData().getLinkSegmentTravelTimeHour(mode);
+    final double[] modalLinkSegmentsTravelTimeHour = getAssignment().getIterationData().getLinkSegmentTravelTimePcuH(mode);
     final double travelTimeHour = modalLinkSegmentsTravelTimeHour[id];
     final double length = linkSegment.getParentLink().getLengthKm();
     return Optional.of(length / travelTimeHour);
@@ -75,7 +75,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
    */
   private Optional<Double> getLinkTravelTimeHour(final MacroscopicLinkSegment linkSegment, final Mode mode) throws PlanItException {
     final int id = (int) linkSegment.getId();
-    final double[] modalLinkSegmentTravelTimes = getAssignment().getIterationData().getLinkSegmentTravelTimeHour(mode);
+    final double[] modalLinkSegmentTravelTimes = getAssignment().getIterationData().getLinkSegmentTravelTimePcuH(mode);
     return Optional.of(modalLinkSegmentTravelTimes[id]);
   }
 

@@ -50,15 +50,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    */
   private OutputManager outputManager;
 
-  /**
-   * log registering an item on this traffic assignment
-   * 
-   * @param item     to (un)register
-   * @param register when true it signals activate, otherwise deactive
-   */
-  private void logRegisteredComponent(Object item, boolean register) {
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.logActiveStateByClassName(item, register));
-  }
+  
 
   /* INPUT COMPONENTS */
 
@@ -242,6 +234,26 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
     return outputManager;
   }
 
+  /**
+   * log registering an item on this traffic assignment
+   * 
+   * @param item     to (un)register
+   * @param register when true it signals activate, otherwise deactive
+   */
+  protected void logRegisteredComponent(Object item, boolean register) {
+    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.logActiveStateByClassName(item, register));
+  }
+
+  /**
+   * Register a PLANit component on this assignment
+   * 
+   * @param componentKey to use
+   * @param component    to register
+   */
+  protected void registerComponent(Class<? extends PlanitComponent<?>> componentKey, PlanitComponent<?> component) {
+    trafficAssignmentComponents.put(componentKey, component);
+  }
+
   // Public
 
   // Public abstract methods
@@ -396,7 +408,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    */
   public void setSmoothing(final Smoothing smoothing) {
     logRegisteredComponent(smoothing, true);
-    trafficAssignmentComponents.put(Smoothing.class, smoothing);
+    registerComponent(Smoothing.class, smoothing);
   }
 
   /**
@@ -415,7 +427,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    */
   public void setGapFunction(final GapFunction gapfunction) {
     logRegisteredComponent(gapfunction, true);
-    trafficAssignmentComponents.put(GapFunction.class, gapfunction);
+    registerComponent(GapFunction.class, gapfunction);
   }
 
   /**
@@ -455,7 +467,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    */
   public void setPhysicalCost(final AbstractPhysicalCost physicalCost) throws PlanItException {
     logRegisteredComponent(physicalCost, true);
-    trafficAssignmentComponents.put(AbstractPhysicalCost.class, physicalCost);
+    registerComponent(AbstractPhysicalCost.class, physicalCost);
   }
 
   /**
@@ -484,7 +496,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    */
   public void setVirtualCost(final AbstractVirtualCost virtualCost) throws PlanItException {
     logRegisteredComponent(virtualCost, true);
-    trafficAssignmentComponents.put(AbstractVirtualCost.class, virtualCost);
+    registerComponent(AbstractVirtualCost.class, virtualCost);
   }
 
   /**
@@ -499,7 +511,11 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   @SuppressWarnings("unchecked")
   @Override
   public <T> T getTrafficAssignmentComponent(final Class<T> planitComponentClass) {
-    return (T) trafficAssignmentComponents.get(planitComponentClass);
+    T component = (T) trafficAssignmentComponents.get(planitComponentClass);
+    if (component == null) {
+      LOGGER.warning(String.format("Unable to access component supposed to be registered under %s, consider registering it first", planitComponentClass.getName()));
+    }
+    return component;
   }
 
   /**

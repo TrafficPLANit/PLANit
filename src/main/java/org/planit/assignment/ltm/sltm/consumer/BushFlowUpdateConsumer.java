@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import org.planit.assignment.ltm.sltm.Bush;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.directed.DirectedVertex;
+import org.planit.utils.math.Precision;
 
 /**
  * Base Consumer to apply during bush based network flow update for each origin bush
@@ -107,7 +108,7 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
           double[] splittingRates = originBush.getSplittingRates(entrySegment);
           int index = 0;
           for (EdgeSegment exitSegment : currVertex.getExitEdgeSegments()) {
-            if (originBush.containsEdgeSegment(exitSegment)) {
+            if (Precision.isPositive(splittingRates[index])) {
               int exitSegmentId = (int) exitSegment.getId();
 
               /* v_ab = v_a * phi_ab */
