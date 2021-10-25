@@ -70,6 +70,6 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
    */
   @Override
   public String toString() {
-    return String.format("[ %d %s]", getId(), getXmlId() == null ? "" : getXmlId());
+    return String.format("%s [%d %s]", getClass().getSimpleName(), getId(), getXmlId() == null ? "" : getXmlId());
   }
 }

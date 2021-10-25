@@ -2,18 +2,25 @@ package org.planit.assignment.ltm.sltm;
 
 import java.util.logging.Logger;
 
+import org.planit.assignment.ltm.sltm.loading.SplittingRateData;
 import org.planit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.virtual.AbstractVirtualCost;
-import org.planit.cost.virtual.VirtualCost;
+import org.planit.gap.GapFunction;
+import org.planit.gap.LinkBasedRelativeDualityGapFunction;
+import org.planit.interactor.TrafficAssignmentComponentAccessee;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.network.transport.TransportModelNetwork;
+import org.planit.network.virtual.VirtualNetwork;
 import org.planit.od.demand.OdDemands;
-import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.utils.exceptions.PlanItException;
+import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.network.layer.MacroscopicNetworkLayer;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.time.TimePeriod;
 
 /**
@@ -46,13 +53,33 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   private StaticLtmNetworkLoading networkLoading;
 
-  /**
-   * settings to use
-   */
+  /** OD demands used */
+  private OdDemands odDemands;
+
+  /** static LTM specific settings to use */
   private final StaticLtmSettings settings;
 
-  /** smoothing to be used for path choice */
-  private Smoothing smoothing;
+  /** the user configured traffic assignment components used */
+  private final TrafficAssignmentComponentAccessee taComponents;
+
+  /**
+   * Based on the provided costs we update the network costs portion on the gap function. This is agnostic to the the applied strategy as it is simply a multiplication of the link
+   * segment costs with the demand traversing the link
+   * 
+   * @param theMode                 these costs apply to
+   * @param networkLinkSegmentCosts
+   */
+  private void executeGapNetworkCostsUpdate(final Mode theMode, final double[] networkLinkSegmentCosts) {
+    LinkBasedRelativeDualityGapFunction gapFunction = ((LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class));
+    double[] inflowsPcuH = getLoading().getCurrentInflowsPcuH();
+
+    /* flows and costs structured in array, simply use synchronised index, no need to relate to link segments explicitly */
+    int numberOfEdgeSegments = networkLinkSegmentCosts.length;
+    for (int index = 0; index < numberOfEdgeSegments; ++index) {
+      gapFunction.increaseMeasuredNetworkCost(networkLinkSegmentCosts[index] * inflowsPcuH[index]);
+    }
+
+  }
 
   /**
    * The transport model network used
@@ -107,12 +134,32 @@ public abstract class StaticLtmAssignmentStrategy {
   }
 
   /**
-   * The smoothing
+   * Get od demands used
    * 
-   * @return smoothing
+   * @return odDemands used
    */
-  protected Smoothing getSmoothing() {
-    return smoothing;
+  protected OdDemands getOdDemands() {
+    return this.odDemands;
+  }
+
+  /**
+   * set od demand used
+   * 
+   * @param odDemands to use
+   */
+  protected void setOdDemands(final OdDemands odDemands) {
+    this.odDemands = odDemands;
+  }
+
+  /**
+   * collect a component based on its class component signature key
+   * 
+   * @param <T>                 key type of component
+   * @param taComponentClassKey class of component
+   * @return found component, if any
+   */
+  protected <T> T getTrafficAssignmentComponent(final Class<T> taComponentClassKey) {
+    return taComponents.getTrafficAssignmentComponent(taComponentClassKey);
   }
 
   /**
@@ -181,16 +228,19 @@ public abstract class StaticLtmAssignmentStrategy {
   /**
    * Constructor
    * 
-   * @param assignmentId of the parent assignment
-   * @param smoothing    to use
+   * @param idGroupingToken       to use for id generation
+   * @param assignmentId          id of the parent assignment
+   * @param transportModelNetwork the transport model network
+   * @param settings              the sLTM settings to use
+   * @param taComponents          to use
    */
   public StaticLtmAssignmentStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
-      final Smoothing smoothing) {
+      final TrafficAssignmentComponentAccessee taComponents) {
     this.transportModelNetwork = transportModelNetwork;
     this.assignmentId = assignmentId;
     this.idGroupingToken = idGroupingToken;
     this.settings = settings;
-    this.smoothing = smoothing;
+    this.taComponents = taComponents;
   }
 
   /**
@@ -202,47 +252,69 @@ public abstract class StaticLtmAssignmentStrategy {
   public void initialiseTimePeriod(final TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) {
     this.networkLoading = createNetworkLoading();
     this.networkLoading.initialiseInputs(mode, odDemands, getTransportNetwork());
+    setOdDemands(odDemands);
   }
 
   /**
    * Create the initial solution to start the equilibration process with
    * 
-   * @param timePeriod              to apply
-   * @param odDemands               to use
    * @param initialLinkSegmentCosts to use
    */
-  public abstract void createInitialSolution(TimePeriod timePeriod, OdDemands odDemands, double[] initialLinkSegmentCosts);
+  public abstract void createInitialSolution(double[] initialLinkSegmentCosts);
 
   /**
    * Perform a single iteration where we perform a loading and then an equilibration step resulting in updated costs
-   * 
-   * @param mode         to use
-   * @param virtualCost  to use
-   * @param physicalCost to use
-   * @return updated edge segment costs
+   *
+   * @param mode          to use
+   * @param costsToUpdate the link segment costs we are updating (possibly partially for all link segments that might have been affected by a loading
+   * @return true when iteration could be successfully completed, false otherwise
    */
-  public abstract double[] performIteration(final Mode theMode, final AbstractVirtualCost virtualCost, final AbstractPhysicalCost physicalCost);
+  public abstract boolean performIteration(final Mode theMode, final double[] costsToUpdate);
 
   /**
-   * Perform an update of the network wide costs.
+   * Perform an update of the network wide costs where a partial update is applied in case only potentially blocking nodes are updated during the loading
    * 
-   * @param theMode      to perform the update for
-   * @param virtualCost  component
-   * @param physicalCost component
-   * @return network wide costs based on currently prevailing flows
+   * @param theMode                    to perform the update for
+   * @param updateOnlyTrackedNodeCosts flag indicating if only the costs of the entry link segments of tracked nodes are to be updated, or all link segment costs are to be updated
+   * @param costsToUpdate              the network wide costs to update (fully or partially), this is an output
    * @throws PlanItException thrown if error
    */
-  public double[] executeNetworkCostsUpdate(Mode theMode, final VirtualCost virtualCost, final AbstractPhysicalCost physicalCost) throws PlanItException {
-    /* cost array across all segments, virtual and physical */
-    double[] segmentCostsToPopulate = new double[getTransportNetwork().getNumberOfEdgeSegmentsAllLayers()];
+  public void executeNetworkCostsUpdate(Mode theMode, boolean updateOnlyTrackedNodeCosts, double[] costsToUpdate) throws PlanItException {
 
-    /* virtual cost */
-    virtualCost.populateWithCost(getTransportNetwork().getVirtualNetwork(), theMode, segmentCostsToPopulate);
+    final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
+    final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
+    SplittingRateData splittingRateData = getLoading().getSplittingRateData();
+    if (updateOnlyTrackedNodeCosts) {
 
-    /* physical cost */
-    physicalCost.populateWithCost(getInfrastructureNetwork().getLayerByMode(theMode), theMode, segmentCostsToPopulate);
+      MacroscopicNetworkLayer networkLayer = getInfrastructureNetwork().getLayerByMode(theMode);
+      VirtualNetwork virtualLayer = getTransportNetwork().getZoning().getVirtualNetwork();
 
-    return segmentCostsToPopulate;
+      /* only update when node is both (flow) tracked as well as potentially blocking */
+      for (DirectedVertex trackedFlowNode : splittingRateData.getTrackedNodes()) {
+        if (!splittingRateData.isPotentiallyBlocking(trackedFlowNode)) {
+          continue;
+        }
+
+        /* entry segments */
+        networkLayer.getLinkSegments().forEachMatchingIdIn(trackedFlowNode.getEntryEdgeSegments(),
+            (es) -> costsToUpdate[(int) es.getId()] = physicalCost.getSegmentCost(theMode, (MacroscopicLinkSegment) es));
+        virtualLayer.getConnectoidSegments().forEachMatchingIdIn(trackedFlowNode.getEntryEdgeSegments(),
+            (es) -> costsToUpdate[(int) es.getId()] = virtualCost.getSegmentCost(theMode, (ConnectoidSegment) es));
+      }
+    }
+    /* OTHER -> all nodes (and attached links) are updated, update all costs */
+    else {
+
+      /* virtual cost */
+      virtualCost.populateWithCost(getTransportNetwork().getVirtualNetwork(), theMode, costsToUpdate);
+
+      /* physical cost */
+      physicalCost.populateWithCost(getInfrastructureNetwork().getLayerByMode(theMode), theMode, costsToUpdate);
+
+    }
+
+    /* use the provided costs to update the current state of the network costs to compare against the potential min costs for the gap */
+    executeGapNetworkCostsUpdate(theMode, costsToUpdate);
   }
 
   /**

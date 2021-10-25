@@ -37,8 +37,8 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   /** accessee to use to obtain inflow and outflows to derive costs for */
   private LinkInflowOutflowAccessee accessee;
 
-  /** the time period for which we are computing costs. In case of steady state costs it is the duration of the period that is of interest */
-  private TimePeriod currentTimePeriod;
+  /** the time period in hours for which we are computing costs. In case of steady state costs it is the duration of the period that is of interest */
+  private double currentTimePeriodHours;
 
   /**
    * 2d Array to store (fixed) free flow travel times for each link segment to be used in calculateSegmentCost()
@@ -84,24 +84,26 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * @param fd                 to use
    * @param inflowRatePcuHour  to use
    * @param outflowRatePcuHour to use
-   * @throws PlanItException throws if error
    */
-  private double computeTravelTime(LinkSegment linkSegment, FundamentalDiagram fd, double inflowRatePcuHour, double outflowRatePcuHour) throws PlanItException {
+  private double computeTravelTime(LinkSegment linkSegment, FundamentalDiagram fd, double inflowRatePcuHour, double outflowRatePcuHour) {
     /* minimum travel time */
     double freeFlowTravelTime = freeFlowTravelTimePerLinkSegment[(int) linkSegment.getLinkSegmentId()];
 
-    /* hypo critical delay */
     double hypoCriticalDelay = 0;
-    if (!fd.getFreeFlowBranch().isLinear()) {
-      // hypocritical delay = hypocritical travel time - minimum travel time
-      hypoCriticalDelay = (linkSegment.getParentLink().getLengthKm() / fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflowRatePcuHour)) - freeFlowTravelTime;
-    }
-
-    /* hyper critical delay */
     double hyperCriticalDelay = 0;
-    if (Precision.isSmaller(outflowRatePcuHour, inflowRatePcuHour)) {
-      // hyperCriticalDelay = (excess inflow rate * duration)/outflow rate
-      hyperCriticalDelay = ((inflowRatePcuHour - outflowRatePcuHour) * Unit.SECOND.convertTo(Unit.HOUR, currentTimePeriod.getDurationSeconds()) / outflowRatePcuHour);
+
+    if (Precision.isPositive(inflowRatePcuHour)) {
+      /* hypo critical delay */
+      if (!fd.getFreeFlowBranch().isLinear()) {
+        // hypocritical delay = hypocritical travel time - minimum travel time
+        hypoCriticalDelay = (linkSegment.getParentLink().getLengthKm() / fd.getFreeFlowBranch().getSpeedKmHourByFlow(inflowRatePcuHour)) - freeFlowTravelTime;
+      }
+
+      /* average hyper critical delay */
+      if (Precision.isSmaller(outflowRatePcuHour, inflowRatePcuHour)) {
+        // hyperCriticalDelay = (excess inflow rate * 1/2* duration)/outflow rate)
+        hyperCriticalDelay = ((inflowRatePcuHour - outflowRatePcuHour) * 0.5 * currentTimePeriodHours / outflowRatePcuHour);
+      }
     }
 
     /* min travel time + hypo critical delay + hypercritical delay */
@@ -151,7 +153,11 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    */
   @Override
   public void updateTimePeriod(final TimePeriod timePeriod) {
-    this.currentTimePeriod = timePeriod;
+    try {
+      this.currentTimePeriodHours = Unit.SECOND.convertTo(Unit.HOUR, timePeriod.getDurationSeconds());
+    } catch (Exception e) {
+      LOGGER.severe(String.format("Unable to convert seconds to hours for time period %s in steady-state travel time cost", timePeriod.getXmlId()));
+    }
   }
 
   /**
@@ -160,11 +166,10 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * @param mode        the current Mode of travel
    * @param linkSegment the current link segment
    * @return the travel time for the current link (in hours)
-   * @throws PlanItException when cost cannot be computed
    *
    */
   @Override
-  public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) throws PlanItException {
+  public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
     double inflow = accessee.getLinkSegmentInflowPcuHour(linkSegment);
     double outflow = accessee.getLinkSegmentOutflowPcuHour(linkSegment);
 

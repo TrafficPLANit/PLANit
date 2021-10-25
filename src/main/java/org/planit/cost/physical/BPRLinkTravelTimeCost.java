@@ -296,11 +296,9 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @param mode        the current Mode of travel
    * @param linkSegment the current link segment
    * @return the travel time for the current link (in hours)
-   * @throws PlanItException when cost cannot be computed
-   *
    */
   @Override
-  public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) throws PlanItException {
+  public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
     return computeCostInHours((MacroscopicLinkSegment) linkSegment, mode, linkVolumeAccessee.getLinkSegmentVolume(linkSegment));
   }
 

@@ -13,8 +13,10 @@ public class StaticLtmSettings implements Cloneable {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmSettings.class.getCanonicalName());
 
+  /** flag indicating of storage constraints (spillback) are disabled */
   private Boolean disableStorageConstraints = null;
 
+  /** flag indicating if detailed logging is enabled */
   private Boolean detailedLogging = null;
 
   /** flag indicating to apply bush based assignment, or path based, default is true meaning bush based */

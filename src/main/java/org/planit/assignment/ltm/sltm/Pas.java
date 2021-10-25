@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.planit.algorithms.shortestpath.ShortestPathResult;
@@ -49,15 +50,16 @@ public class Pas {
   }
 
   /**
-   * Execute a flow shift on a given bush for the given PAS segment.
+   * Execute a flow shift on a given bush for the given PAS segment. This does not move flow through the final merge vertex nor the initial diverge vertex.
    * 
    * @param origin                bush at hand
    * @param flowShiftPcuH         to execute (assumed to be correctly proportioned in relation to other bushes for this PAS
    * @param pasSegment            to update on bush
    * @param flowAcceptanceFactors to use when updating the flows
    * @param potentialBushPruning  when true verify if the flow shift has caused the bush turn sending flows to become non-positive, if so remove (prune) the turn from the bush
+   * @return sending flow on last edge segment of the PAS alternative after the flow shift (considering encountered reductions)
    */
-  private void executeBushFlowShift(Bush origin, double flowShiftPcuH, EdgeSegment[] pasSegment, double[] flowAcceptanceFactors, boolean potentialBushPruning) {
+  private double executeBushFlowShift(Bush origin, double flowShiftPcuH, EdgeSegment[] pasSegment, double[] flowAcceptanceFactors, boolean potentialBushPruning) {
     int index = 0;
     EdgeSegment currentSegment = null;
     EdgeSegment nextSegment = pasSegment[index];
@@ -73,20 +75,7 @@ public class Pas {
       flowShiftPcuH *= flowAcceptanceFactors[(int) nextSegment.getId()];
     }
 
-    /* for the turn sending flow through the merge end vertex, we simply use the existing splitting rates of the bush (if it is not a destination) */
-    currentSegment = nextSegment;
-    for (EdgeSegment exitSegment : currentSegment.getDownstreamVertex().getExitEdgeSegments()) {
-      if (origin.containsEdgeSegment(exitSegment)) {
-        double splittingRate = origin.getSplittingRate(currentSegment, exitSegment);
-        double turnFlowShiftPcuH = flowShiftPcuH * splittingRate;
-        if (potentialBushPruning && Precision.isSmallerEqual(origin.getTurnSendingFlow(currentSegment, nextSegment), turnFlowShiftPcuH)) {
-          /* no remaining flow at all after flow shift, remove turn from bush entirely */
-          origin.removeTurn(currentSegment, nextSegment);
-        } else {
-          origin.addTurnSendingFlow(currentSegment, nextSegment, turnFlowShiftPcuH);
-        }
-      }
-    }
+    return flowShiftPcuH;
   }
 
   /**
@@ -133,40 +122,48 @@ public class Pas {
 
     List<Bush> originsWithoutRemainingPasFlow = new ArrayList<Bush>();
     for (Bush origin : originBushes) {
-      /*
-       * for each incoming edgeSegment into the diverge we must obtain its portion of flow contributing to the total subpath flow on the high cost segment. This we then use to
-       * determine how to spread the flow shift across the turns into the PAS segment for this bush
-       */
-      double bushSpecificFlow = 0;
-      double[] bushEntrySegmentSpecificFlow = null;
+
+      double bushS2Flow = 0;
+      double[] bushEntryTurnFlows = null;
+      double totalBushEntryTurnFlows = 0;
       int numberOfUsedEntrySegments = 0;
-      if (!getDivergeVertex().hasEntryEdgeSegments()) {
-        bushSpecificFlow = origin.computeSubPathSendingFlow(getDivergeVertex(), getMergeVertex(), s2);
-      } else {
-        bushEntrySegmentSpecificFlow = new double[getDivergeVertex().getEntryEdgeSegments().size()];
+
+      bushS2Flow = origin.computeSubPathSendingFlow(getDivergeVertex(), getMergeVertex(), s2);
+      if (getDivergeVertex().hasEntryEdgeSegments()) {
+        /*
+         * for each incoming edgeSegment into the diverge we must obtain its portion of flow contributing to the total subpath flow on the high cost segment. This we then use to
+         * determine how to spread the flow shift across the turns into the PAS segment for this bush
+         */
+
+        /* total turn accepted flow into PAS s2 from bush */
+        bushEntryTurnFlows = new double[getDivergeVertex().getEntryEdgeSegments().size()];
         int index = 0;
         for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
-          double bushEntrySegmentSubPathFlow = 0;
           if (origin.containsEdgeSegment(entrySegment)) {
-            bushEntrySegmentSubPathFlow = origin.computeSubPathSendingFlow(entrySegment.getUpstreamVertex(), getMergeVertex(), s2);
-            bushEntrySegmentSubPathFlow *= flowAcceptanceFactors[(int) entrySegment.getId()]; // convert to sending flow on exit segment
-            bushEntrySegmentSpecificFlow[index] = bushEntrySegmentSubPathFlow;
-            bushSpecificFlow += bushEntrySegmentSubPathFlow;
+            double turnSendingFlow = origin.getTurnSendingFlow(entrySegment, getFirstEdgeSegment(false /* high cost */));
+            double turnAcceptedFlow = turnSendingFlow * flowAcceptanceFactors[(int) entrySegment.getId()];
+            bushEntryTurnFlows[index] = turnAcceptedFlow;
+            totalBushEntryTurnFlows += turnAcceptedFlow;
             ++numberOfUsedEntrySegments;
           }
           ++index;
+        }
+        /* scale to portion attributed to PAS s2 */
+        double pasPortionScalingFactor = bushS2Flow / totalBushEntryTurnFlows;
+        for (index = 0; index < bushEntryTurnFlows.length; ++index) {
+          bushEntryTurnFlows[index] *= pasPortionScalingFactor;
         }
       }
 
       /* Bush flow portion */
       boolean potentialBushPruning = false;
-      double bushPortion = bushSpecificFlow / currentHighCostFlowPcuH;
+      double bushPortion = bushS2Flow / currentHighCostFlowPcuH;
       double bushFlowShift = flowShiftPcuH * bushPortion;
-      if (Precision.isGreaterEqual(bushFlowShift, bushSpecificFlow)) {
+      if (Precision.isGreaterEqual(bushFlowShift, bushS2Flow)) {
         /* remove this origin from the PAS when done as no flow remains on high cost segment */
         originsWithoutRemainingPasFlow.add(origin);
         /* remove what we can */
-        bushFlowShift = bushSpecificFlow;
+        bushFlowShift = bushS2Flow;
         /* possibility that bush along path s2 has no more flow */
         potentialBushPruning = true;
       }
@@ -180,9 +177,9 @@ public class Pas {
         EdgeSegment firstS2EdgeSegment = getFirstEdgeSegment(false /* high cost segment */);
         EdgeSegment firstS1EdgeSegment = getFirstEdgeSegment(true /* low cost segment */);
         for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
-          double entryEdgeSegmentFlowPcuH = bushEntrySegmentSpecificFlow[index++];
+          double entryEdgeSegmentFlowPcuH = bushEntryTurnFlows[index++];
           if (Precision.isPositive(entryEdgeSegmentFlowPcuH)) {
-            double entryPortion = entryEdgeSegmentFlowPcuH / bushFlowShift;
+            double entryPortion = entryEdgeSegmentFlowPcuH / totalBushEntryTurnFlows;
             /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s2 segment */
             double bushEntrySegmentFlowShift = bushFlowShift * entryPortion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
 
@@ -200,17 +197,40 @@ public class Pas {
       /* now update s2/s1 with the flow shift */
       {
         /* origin-bush high cost segment: -delta flow */
-        executeBushFlowShift(origin, -bushFlowShift, s2, flowAcceptanceFactors, potentialBushPruning);
+        double s2FinalShiftedFlow = executeBushFlowShift(origin, -bushFlowShift, s2, flowAcceptanceFactors, potentialBushPruning);
         /* origin-bush low cost segment: +delta flow */
-        executeBushFlowShift(origin, bushFlowShift, s1, flowAcceptanceFactors, false);
-      }
+        double s1FinalSendingFlow = executeBushFlowShift(origin, bushFlowShift, s1, flowAcceptanceFactors, false);
+        EdgeSegment lastS1Segment = getLastEdgeSegment(true /* low cost */);
+        EdgeSegment lastS2Segment = getLastEdgeSegment(false /* high cost */);
 
+        /*
+         * for the turn sending flow shift through the final merge vertex, we use the splitting rates of the bush S2 segment and transfer them to the s1 segment, i.e. the
+         * percentage of flow using each exit segment is applied to the s1 segment
+         */
+        if (getMergeVertex().hasExitEdgeSegments()) {
+          for (EdgeSegment exitSegment : getMergeVertex().getExitEdgeSegments()) {
+            double splittingRate = origin.getSplittingRate(lastS2Segment, exitSegment);
+
+            /* remove flow for s2 */
+            double s2FlowShift = s2FinalShiftedFlow * splittingRate;
+            if (potentialBushPruning && Precision.isSmallerEqual(origin.getTurnSendingFlow(lastS2Segment, exitSegment), s2FlowShift)) {
+              /* no remaining flow at all after flow shift, remove turn from bush entirely */
+              origin.removeTurn(lastS2Segment, exitSegment);
+            } else {
+              origin.addTurnSendingFlow(lastS2Segment, exitSegment, s2FlowShift);
+            }
+
+            /* add flow for s1 */
+            origin.addTurnSendingFlow(lastS1Segment, exitSegment, s1FinalSendingFlow * splittingRate);
+          }
+        }
+      }
     }
 
     /* remove irrelevant bushes */
     removeOrigins(originsWithoutRemainingPasFlow);
 
-    return false;
+    return true;
   }
 
   /**
@@ -231,7 +251,7 @@ public class Pas {
    * @return end vertex
    */
   public DirectedVertex getMergeVertex() {
-    return s2[s2.length].getDownstreamVertex();
+    return s2[s2.length - 1].getDownstreamVertex();
   }
 
   /**
@@ -317,6 +337,20 @@ public class Pas {
       return true;
     }
     return false;
+  }
+
+  /**
+   * Apply consumer to each vertex on one of the cost segments
+   * 
+   * @param lowCostSegment when true applied to low cost segment, when false the high cost segment
+   * @param vertexConsumer to apply
+   */
+  public void forEachVertex(boolean lowCostSegment, Consumer<DirectedVertex> vertexConsumer) {
+    EdgeSegment[] alternative = getAlternative(lowCostSegment);
+    for (int index = 0; index < alternative.length; ++index) {
+      vertexConsumer.accept(alternative[index].getUpstreamVertex());
+    }
+    vertexConsumer.accept(alternative[alternative.length - 1].getDownstreamVertex());
   }
 
   /**

@@ -1,5 +1,6 @@
 package org.planit.assignment.ltm.sltm.loading;
 
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -20,9 +21,14 @@ import org.planit.utils.misc.HashUtils;
 public class SplittingRateDataPartial implements SplittingRateData {
 
   /**
-   * track potentially blocking nodes for which splitting rates must be tracked
+   * Nodes that are tracked to maintain their splitting rates available which might or might not be also potentially blocking
    */
-  private final Set<DirectedVertex> potentiallyBlockingNodes = new HashSet<DirectedVertex>();
+  private final Set<DirectedVertex> trackedNodes;
+
+  /**
+   * tracked nodes that are also marked as potentially blocking
+   */
+  private final BitSet potentiallyBlockingNodes;
 
   /**
    * Splitting rates per potentially blocking node, entry, exit link combination where the key is the combined hash of the node and entry edge segment ids
@@ -44,20 +50,36 @@ public class SplittingRateDataPartial implements SplittingRateData {
    * Constructor
    * 
    */
-  public SplittingRateDataPartial() {
+  public SplittingRateDataPartial(int numberOfVertices) {
     super();
+    this.trackedNodes = new HashSet<DirectedVertex>();
+    this.potentiallyBlockingNodes = new BitSet(numberOfVertices);
   }
 
   /**
-   * Register a potentially blocking node so we are able to track its splitting rates (and turn flows) during loading
+   * Register a potentially blocking node so we not only track its splitting rates but also mark it as potentially blocking. This see to it that it is considered for node model
+   * updates which in turn might impact its splitting rates in a network setting
    * 
-   * @param potentiallyBlockingNode to start tracking turn flows and splitting rates for
+   * @param potentiallyBlockingNode mark as potentially blocking (and track it if not already done so)
    */
   public void registerPotentiallyBlockingNode(DirectedVertex potentiallyBlockingNode) {
-    if (!potentiallyBlockingNodes.contains(potentiallyBlockingNode)) {
-      potentiallyBlockingNodes.add(potentiallyBlockingNode);
-      for (EdgeSegment entrySegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
-        registerSplittingRates(potentiallyBlockingNode, entrySegment);
+    int id = (int) potentiallyBlockingNode.getId();
+    if (!potentiallyBlockingNodes.get(id)) {
+      potentiallyBlockingNodes.set(id);
+      registerTrackedNode(potentiallyBlockingNode); // in case not already done so
+    }
+  }
+
+  /**
+   * Register a node so we are able to track its splitting rates (and turn flows) during loading
+   * 
+   * @param trackNode node to track splitting rates and (turn) sending flows for
+   */
+  public void registerTrackedNode(DirectedVertex trackNode) {
+    if (!trackedNodes.contains(trackNode)) {
+      trackedNodes.add(trackNode);
+      for (EdgeSegment entrySegment : trackNode.getEntryEdgeSegments()) {
+        registerSplittingRates(trackNode, entrySegment);
       }
     }
   }
@@ -67,7 +89,15 @@ public class SplittingRateDataPartial implements SplittingRateData {
    */
   @Override
   public boolean isTracked(DirectedVertex nodeToVerify) {
-    return potentiallyBlockingNodes.contains(nodeToVerify);
+    return trackedNodes.contains(nodeToVerify);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isPotentiallyBlocking(DirectedVertex nodeToVerify) {
+    return potentiallyBlockingNodes.get((int) nodeToVerify.getId());
   }
 
   /**
@@ -75,7 +105,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
    */
   @Override
   public Set<DirectedVertex> getTrackedNodes() {
-    return potentiallyBlockingNodes;
+    return trackedNodes;
   }
 
   /**

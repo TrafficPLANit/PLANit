@@ -26,7 +26,7 @@ public interface LinkInflowOutflowAccessee extends TrafficAssignmentComponentAcc
    * @return the inflow rate of this link segment
    */
   public default double getLinkSegmentInflowPcuHour(LinkSegment linkSegment) {
-    return getLinkSegmentOutflowsPcuHour()[(int) linkSegment.getId()];
+    return getLinkSegmentInflowsPcuHour()[(int) linkSegment.getId()];
   }
 
   /**
@@ -36,7 +36,7 @@ public interface LinkInflowOutflowAccessee extends TrafficAssignmentComponentAcc
    * @return the outflow rate of this link segment
    */
   public default double getLinkSegmentOutflowPcuHour(LinkSegment linkSegment) {
-    return getLinkSegmentInflowsPcuHour()[(int) linkSegment.getId()];
+    return getLinkSegmentOutflowsPcuHour()[(int) linkSegment.getId()];
   }
 
   /**

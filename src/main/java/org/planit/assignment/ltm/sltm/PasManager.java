@@ -1,6 +1,7 @@
 package org.planit.assignment.ltm.sltm;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -109,15 +110,17 @@ public class PasManager {
 
   /**
    * Extract a subpath in the form of a raw edge segment array from start to end vertex based on the shortest path result provided. Since the path tree is in reverse direction, the
-   * array is filled from the back, i.e.,if there is spare cpacity the front of the array would be empty.
+   * array is filled from the back, i.e.,if there is spare capacity the front of the array would be empty.
    * 
-   * @param start       start vertex upstream
-   * @param end         end vertex downstream
-   * @param pathTree    to extract path from, tree is in upstream direction
-   * @param arrayLength to use for the to be created array which should be at least as long as the path that is to be extracted
+   * @param start         start vertex upstream
+   * @param end           end vertex downstream
+   * @param pathTree      to extract path from, tree is in upstream direction
+   * @param arrayLength   to use for the to be created array which should be at least as long as the path that is to be extracted
+   * @param truncateArray flag indicating to truncate the subpath array in case the front of the array is not fully used due to the existence of spare capacity
    * @return created array, null if no path could be found
    */
-  public static EdgeSegment[] createSubpathArrayFrom(final DirectedVertex start, final DirectedVertex end, final ShortestPathResult pathTree, int arrayLength) {
+  public static EdgeSegment[] createSubpathArrayFrom(final DirectedVertex start, final DirectedVertex end, final ShortestPathResult pathTree, int arrayLength,
+      boolean truncateArray) {
     EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
     DirectedVertex currVertex = end;
     EdgeSegment currEdgeSegment = null;
@@ -132,19 +135,24 @@ public class PasManager {
       }
       currVertex = currEdgeSegment.getUpstreamVertex();
     } while (!currVertex.idEquals(start));
+
+    if (truncateArray && index > 0) {
+      return Arrays.copyOfRange(edgeSegmentArray, index + 1, edgeSegmentArray.length);
+    }
     return edgeSegmentArray;
   }
 
   /**
    * Extract a subpath in the form of a raw edge segment array from start to end vertex based on a map representing a tree with succeeding edge segments for each vertex
    * 
-   * @param start       start vertex upstream
-   * @param end         end vertex downstream
-   * @param pathTree    to extract path from, tree is in downstream direction
-   * @param arrayLength to use for the to be created array which should be at least as long as the path that is to be extracted
+   * @param start         start vertex upstream
+   * @param end           end vertex downstream
+   * @param pathTree      to extract path from, tree is in downstream direction
+   * @param arrayLength   to use for the to be created array which should be at least as long as the path that is to be extracted
+   * @param truncateArray flag indicating to truncate the subpath array in case the back of the array is not fully used due to the existence of spare capacity
    * @return created array, null if no path could be found
    */
-  public static EdgeSegment[] createSubpathArrayFrom(DirectedVertex start, DirectedVertex end, Map<DirectedVertex, EdgeSegment> pathTree, int arrayLength) {
+  public static EdgeSegment[] createSubpathArrayFrom(DirectedVertex start, DirectedVertex end, Map<DirectedVertex, EdgeSegment> pathTree, int arrayLength, boolean truncateArray) {
     EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
     DirectedVertex currVertex = start;
     EdgeSegment currEdgeSegment = null;
@@ -159,6 +167,11 @@ public class PasManager {
       }
       currVertex = currEdgeSegment.getDownstreamVertex();
     } while (!currVertex.idEquals(end));
+
+    if (truncateArray && index < (arrayLength - 1)) {
+      return Arrays.copyOfRange(edgeSegmentArray, 0, index);
+    }
+
     return edgeSegmentArray;
   }
 
@@ -210,8 +223,13 @@ public class PasManager {
   public Pas findFirstSuitableExistingPas(final Bush originBush, final DirectedVertex mergeVertex, double[] flowAcceptanceFactors, double reducedCost) {
 
     /* verify potential PASs */
+    Collection<Pas> potentialPass = getPassByMergeVertex(mergeVertex);
+    if (potentialPass == null) {
+      return null;
+    }
+
     Pas matchedPas = null;
-    for (Pas pas : getPassByMergeVertex(mergeVertex)) {
+    for (Pas pas : potentialPass) {
       boolean pasPotentialMatch = false;
       for (EdgeSegment pasFirstExitSegment : pas.getDivergeVertex().getExitEdgeSegments()) {
         if (originBush.containsEdgeSegment(pasFirstExitSegment)) {
@@ -259,7 +277,7 @@ public class PasManager {
     for (Collection<Pas> pass : passByMergeVertex.values()) {
       for (Pas pas : pass) {
         /* determine the network flow on the high cost subpath */
-        double subPathTotalShiftableFlow = networkLoading.computeSubPathSendingFlow(pas.getDivergeVertex(), pas.getMergeVertex(), pas.getAlternative(true /* highCost */));
+        double subPathTotalShiftableFlow = networkLoading.computeSubPathSendingFlow(pas.getDivergeVertex(), pas.getMergeVertex(), pas.getAlternative(false /* highCost */));
         /* DUMB approach -> shift all of it smoothed by MSA */
         double flowshift = smoothing.execute(subPathTotalShiftableFlow, 0);
         flowShifted |= pas.executeFlowShift(subPathTotalShiftableFlow, flowshift, networkLoading.getCurrentFlowAcceptanceFactors());

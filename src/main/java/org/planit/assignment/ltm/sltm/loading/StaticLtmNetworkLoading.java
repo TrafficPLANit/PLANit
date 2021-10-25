@@ -31,7 +31,6 @@ import org.planit.utils.misc.LoggingUtils;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.planit.utils.network.layer.physical.Node;
 import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.pcu.PcuCapacitated;
@@ -135,33 +134,23 @@ public abstract class StaticLtmNetworkLoading {
    *
    * @param linkSegments to extract capacity from
    */
-  private void initialiseSplittingRateData(MacroscopicLinkSegments linkSegments) {
+  private void initialiseSplittingRateData() {
 
     /* POINT QUEUE BASIC */
-    if (this.solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC)) {
-      /* create */
-      this.splittingRateData = new SplittingRateDataPartial();
-      /* initialise */
-      SplittingRateDataPartial pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.splittingRateData;
-      double[] sendingFlows = this.sendingFlowData.getCurrentSendingFlows();
-      for (MacroscopicLinkSegment linkSegment : linkSegments) {
-        double capacity = linkSegment.getCapacityOrDefaultPcuH();
 
-        /* register if unconstrained flow exceeds capacity */
-        if (Precision.isGreater(sendingFlows[(int) linkSegment.getId()], capacity)) {
-          pointQueueBasicSplittingRates.registerPotentiallyBlockingNode(linkSegment.getUpstreamNode());
-        }
-      }
+    if (!isTrackAllNodeTurnFlows()) {
+      /* create */
+      this.splittingRateData = new SplittingRateDataPartial(getTransportNetwork().getNumberOfVerticesAllLayers());
+      updatePotentiallyBlockingNodes(this.sendingFlowData.getCurrentSendingFlows());
+      /* initialise */
+
     }
     /* OTHER, e.g. physical queues and advanced point queue model */
     else if (!this.solutionScheme.equals(StaticLtmLoadingScheme.NONE)) {
       /* create */
       this.splittingRateData = new SplittingRateDataComplete(this.inFlowOutflowData.getInflows().length);
-      /* initialise, where we simply activate all link-to-link combinations. To be replaced with turns at some point */
-      SplittingRateDataComplete extendedSplittingRates = (SplittingRateDataComplete) this.splittingRateData;
-      for (MacroscopicLinkSegment linkSegment : linkSegments) {
-        extendedSplittingRates.activateTrackedNode(linkSegment.getUpstreamNode());
-      }
+      /* initialise, where we simply activate all link-to-link combinations that are used. To be replaced with turns at some point */
+      updateTrackAllUsedNodes(this.sendingFlowData.getCurrentSendingFlows());
     }
   }
 
@@ -208,29 +197,33 @@ public abstract class StaticLtmNetworkLoading {
     double[] sendingFlows = this.sendingFlowData.getCurrentSendingFlows();
 
     /* For each potentially blocking node */
-    for (DirectedVertex potentiallyBlockingNode : splittingRateData.getTrackedNodes()) {
+    for (DirectedVertex trackedNode : splittingRateData.getTrackedNodes()) {
+      if (!splittingRateData.isPotentiallyBlocking(trackedNode)) {
+        continue;
+      }
+
       // TODO: not computationally efficient, capacities are recomputed every time and construction of
       // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
 
       /* C_a : in Array1D form */
-      Array1D<Double> inCapacities = Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.sizeOfEntryEdgeSegments());
+      Array1D<Double> inCapacities = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfEntryEdgeSegments());
       int index = 0;
-      for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
+      for (EdgeSegment entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
         inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH());
       }
 
       /* r_a : in Array1D form */
-      Array1D<Double> outReceivingFlows = Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.sizeOfExitEdgeSegments());
+      Array1D<Double> outReceivingFlows = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfExitEdgeSegments());
       index = 0;
-      for (EdgeSegment exitEdgeSegment : potentiallyBlockingNode.getExitEdgeSegments()) {
+      for (EdgeSegment exitEdgeSegment : trackedNode.getExitEdgeSegments()) {
         outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).getCapacityOrDefaultPcuH());
       }
 
       /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
       @SuppressWarnings("unchecked")
-      Access1D<Double>[] tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[potentiallyBlockingNode.sizeOfEntryEdgeSegments()];
+      Access1D<Double>[] tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[trackedNode.sizeOfEntryEdgeSegments()];
       int entryIndex = 0;
-      for (Iterator<EdgeSegment> iter = potentiallyBlockingNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
+      for (Iterator<EdgeSegment> iter = trackedNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
         EdgeSegment entryEdgeSegment = iter.next();
         /* s_ab = s_a*phi_ab */
         double sendingFlow = sendingFlows[(int) entryEdgeSegment.getId()];
@@ -248,12 +241,12 @@ public abstract class StaticLtmNetworkLoading {
 
         /* delegate to consumer if any */
         if (consumer != null) {
-          consumer.accept((Node) potentiallyBlockingNode, localFlowAcceptanceFactor, nodeModel);
+          consumer.accept((Node) trackedNode, localFlowAcceptanceFactor, nodeModel);
         }
 
       } catch (Exception e) {
         LOGGER.severe(e.getMessage());
-        LOGGER.severe(String.format("Unable to run Tampere node model on potentially blocking node %s", potentiallyBlockingNode.getXmlId()));
+        LOGGER.severe(String.format("Unable to run Tampere node model on potentially blocking node %s", trackedNode.getXmlId()));
       }
     }
   }
@@ -272,8 +265,12 @@ public abstract class StaticLtmNetworkLoading {
     double[] receivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
 
     int currentLinkSegmentId = -1;
-    for (DirectedVertex potentiallyBlockingNode : this.splittingRateData.getTrackedNodes()) {
-      for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
+    for (DirectedVertex trackedNode : this.splittingRateData.getTrackedNodes()) {
+      if (!this.splittingRateData.isPotentiallyBlocking(trackedNode)) {
+        continue;
+      }
+
+      for (EdgeSegment entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
         currentLinkSegmentId = (int) entryEdgeSegment.getId();
         /* gamma_a = u_a/r_a */
         nextStorageCapacityFactor[currentLinkSegmentId] = inflows[currentLinkSegmentId] / receivingFlows[currentLinkSegmentId];
@@ -295,8 +292,12 @@ public abstract class StaticLtmNetworkLoading {
     double[] currentStorageCapacityFactors = this.networkLoadingFactorData.getCurrentStorageCapacityFactors();
 
     int currentLinkSegmentId = -1;
-    for (DirectedVertex potentiallyBlockingNode : this.splittingRateData.getTrackedNodes()) {
-      for (EdgeSegment entryEdgeSegment : potentiallyBlockingNode.getEntryEdgeSegments()) {
+    for (DirectedVertex trackedNode : this.splittingRateData.getTrackedNodes()) {
+      if (!this.splittingRateData.isPotentiallyBlocking(trackedNode)) {
+        continue;
+      }
+
+      for (EdgeSegment entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
         currentLinkSegmentId = (int) entryEdgeSegment.getId();
         /* alpha_a = beta_a^i-1 / gamma_a^i */
         if (inflows[currentLinkSegmentId] <= Precision.EPSILON_6) {
@@ -326,6 +327,10 @@ public abstract class StaticLtmNetworkLoading {
 
     int currentLinkSegmentId = -1;
     for (DirectedVertex trackedNode : this.splittingRateData.getTrackedNodes()) {
+      if (!this.splittingRateData.isPotentiallyBlocking(trackedNode)) {
+        continue;
+      }
+
       for (EdgeSegment entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
         currentLinkSegmentId = (int) entryEdgeSegment.getId();
         /* beta_a = v_a/r_a */
@@ -462,6 +467,40 @@ public abstract class StaticLtmNetworkLoading {
   }  
 
   /**
+   * For all nodes that have downstream link segments with sending flows that exceed their capacity, ensure they are registered as potentially blocking (if not already)
+   * 
+   * @param sendingFlowsPcuH to use
+   */
+  protected void updatePotentiallyBlockingNodes(final double[] sendingFlowsPcuH) {
+    SplittingRateDataPartial pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.splittingRateData;
+    for (MacroscopicLinkSegment linkSegment : getUsedNetworkLayer().getLinkSegments()) {
+      if(!pointQueueBasicSplittingRates.isPotentiallyBlocking(linkSegment.getUpstreamNode())){
+        double capacity = linkSegment.getCapacityOrDefaultPcuH();
+        /* register if unconstrained flow exceeds capacity */
+        if (Precision.isGreater(sendingFlowsPcuH[(int) linkSegment.getId()], capacity)) {
+          pointQueueBasicSplittingRates.registerPotentiallyBlockingNode(linkSegment.getUpstreamNode());
+        }
+      }
+    }  
+  }
+
+  /**
+   * For all nodes that have downstream link segments with positive sending flows, 
+   * ensure they are tracked (if not already). To be used when we consider spillback or when we performing iterative local sending flow
+   * updates to propagate flows locally.
+   * 
+   * @param sendingFlowsPcuH to use
+   */  
+  protected void updateTrackAllUsedNodes(double[] sendingFlowsPcuH) {
+    SplittingRateDataComplete extendedSplittingRates = (SplittingRateDataComplete) this.splittingRateData;
+    for (MacroscopicLinkSegment linkSegment : getUsedNetworkLayer().getLinkSegments()) {
+      if(Precision.isPositive(sendingFlowsPcuH[(int) linkSegment.getId()])){
+        extendedSplittingRates.activateTrackedNode(linkSegment.getUpstreamNode());
+      }
+    }    
+  }
+
+  /**
    * Constructor
    * 
    * @param idToken   for id generation of internal entities
@@ -544,7 +583,7 @@ public abstract class StaticLtmNetworkLoading {
     
     /* Depending on the solution scheme we either track all used nodes in the network, or a subset. Either way these need to be 
      * activated/initialised before commencing the loading. This is done here. */
-    initialiseSplittingRateData(getUsedNetworkLayer().getLinkSegments());
+    initialiseSplittingRateData();
     
     /* 3. limit flows to capacity s_a=r_a=min(u_a,cap_a) */
     /* reduce sending flows to capacity */
@@ -822,7 +861,7 @@ public abstract class StaticLtmNetworkLoading {
                 
         /* Splitting rates must be re-initialised in this approach as well (happens automatically in called method via changed solution scheme): 
          * Change from using only a small subset of nodes with splitting rates to tracking splitting rates for all used nodes */
-        initialiseSplittingRateData(getUsedNetworkLayer().getLinkSegments());        
+        initialiseSplittingRateData();        
       }else {
         /* no other extensions available, so deactivate any further extensions by maximising the offset */
         convergenceAnalyser.setMinIterationThreshold(Integer.MAX_VALUE);

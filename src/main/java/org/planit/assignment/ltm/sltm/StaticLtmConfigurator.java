@@ -46,7 +46,7 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
     super(StaticLtm.class);
     createAndRegisterFundamentalDiagram(FundamentalDiagram.NEWELL);
     createAndRegisterNodeModel(NodeModel.TAMPERE);
-    createAndRegisterGapFunction(GapFunction.NORM_BASED_GAP);
+    createAndRegisterGapFunction(GapFunction.LINK_BASED_RELATIVE_GAP);
     createAndRegisterSmoothing(Smoothing.MSA);
     createAndRegisterPhysicalCost(PhysicalCost.STEADY_STATE);
     createAndRegisterVirtualCost(VirtualCost.FIXED);

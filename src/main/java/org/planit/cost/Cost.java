@@ -20,6 +20,6 @@ public interface Cost<T extends EdgeSegment> {
    * @return the cost of travel along the specified segment
    * @throws PlanItException the exception thrown when not available
    */
-  public abstract double getSegmentCost(final Mode mode, final T edgeSegment) throws PlanItException;
+  public abstract double getSegmentCost(final Mode mode, final T edgeSegment);
 
 }

@@ -9,10 +9,10 @@ import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.directed.DirectedVertex;
 
 /**
- * Store the splitting rates used during sLTM loading updates (Step 1 and 5). In this implementation we track all splitting rates of turns that are used by a path. this
- * implementation explicitly requires registering tracked nodes (not all nodes might be used in loading) but the way the information is stored is different to reduce the memory
- * footprint. All nodes of used paths are tracked providing a complete picture of the network. This requires more memory compared to the partial implementation. This way of
- * tracking is compatible with the PhysicalQueue solution methods as well as the Advanced PointQueue solution method.
+ * Store the splitting rates used during sLTM loading updates (Step 1 and 5). In this implementation we track all splitting rates of turns that are used by a path and assumed they
+ * are potentially blocking. This implementation explicitly requires registering tracked nodes (not all nodes might be used in loading) but the way the information is stored is
+ * different to reduce the memory footprint. All nodes of used paths are tracked providing a complete picture of the network. This requires more memory compared to the partial
+ * implementation. This way of tracking is compatible with the PhysicalQueue solution methods as well as the Advanced PointQueue solution method.
  * 
  * @author markr
  *
@@ -65,6 +65,14 @@ public class SplittingRateDataComplete implements SplittingRateData {
     for (EdgeSegment entrySegment : trackedNode.getEntryEdgeSegments()) {
       initialiseSplittingRates(entrySegment, numberOfExitLinkSegments);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isPotentiallyBlocking(DirectedVertex nodeToVerify) {
+    return activatedNodes.contains(nodeToVerify); // when tracked assumed potentially blocking
   }
 
   /**

@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.planit.assignment.ltm.sltm.Bush;
+import org.planit.assignment.ltm.sltm.Pas;
 import org.planit.assignment.ltm.sltm.StaticLtmSettings;
 import org.planit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.planit.assignment.ltm.sltm.consumer.BushTurnFlowUpdateConsumer;
@@ -71,6 +72,13 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
         bushFlowUpdateConsumer.accept(originBush);
       }
     }
+
+    /*
+     * if any link segments - due to PAS flow shifting - now exhibit sending flows that exceed the link segment capacity their upstream nodes are to be marked as potentially
+     * blocking rather than just being tracked. Since we did not know these PASs when starting the assignment, we must add these nodes on-the-fly by checking after each loading
+     */
+    updatePotentiallyBlockingNodes(getCurrentInflowsPcuH());
+
   }
 
   //@formatter:off
@@ -128,7 +136,7 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
   
   /**
    * Determine the sending flow between origin,destination vertex using the subpath given by the subPathArray in order from start to finish. We utilise the initial sending flow on
-   * the first segment as the base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
+   * the first segment as the base flow which is then followed along the subpath through the network splitting rates up to the final link segment
    * 
    * @param startVertex  to use
    * @param endVertex    to use
@@ -157,6 +165,30 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
    */
   public void setBushes(final Bush[] originBushes) {
     this.originBushes = originBushes;    
+  }
+
+  /** For each PAS we must be able to determine the network level flows along the segments, see {@link #computeSubPathSendingFlow(DirectedVertex, DirectedVertex, EdgeSegment[])}. 
+   * This requires knowing the network level splitting rates on the network level as well as the sending flows and acceptance factors, otherwise we cannot determine this. 
+   * Therefore, for each newly identified PAS we activate node tracking for all (eligible) nodes along the segments of this PAS, if not already done so 
+   *
+   *@param newPas to activate nodes on segments for
+   */
+  public void activateNodeTrackingFor(final Pas newPas) {
+    /* only when not all turn flows are tracked, we must expand the tracked nodes, otherwise they are already available */
+    if(!isTrackAllNodeTurnFlows()) {
+      SplittingRateDataPartial pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.getSplittingRateData();
+      boolean lowCostSegment = true;
+      newPas.forEachVertex(lowCostSegment, (v) -> {
+        if(!pointQueueBasicSplittingRates.isTracked(v)) 
+          pointQueueBasicSplittingRates.registerTrackedNode(v); 
+        });
+      lowCostSegment = false;
+      newPas.forEachVertex(lowCostSegment, (v) -> {
+        if(!pointQueueBasicSplittingRates.isTracked(v)) 
+          pointQueueBasicSplittingRates.registerTrackedNode(v); 
+        });      
+    }
+    
   } 
 
 }

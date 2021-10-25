@@ -1,5 +1,6 @@
 package org.planit.assignment.ltm.sltm;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.planit.assignment.ltm.LtmAssignment;
-import org.planit.gap.NormBasedGapFunction;
+import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.LinkInflowOutflowAccessee;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.od.demand.OdDemands;
@@ -58,9 +59,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   private StaticLtmAssignmentStrategy createAssignmentStrategy() {
     /* create the assignment solution to apply */
     if (settings.isBushBased()) {
-      return new StaticLtmBushStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, getSmoothing());
+      return new StaticLtmBushStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
     } else {
-      return new StaticLtmPathStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, getSmoothing());
+      return new StaticLtmPathStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
     }
   }
 
@@ -94,18 +95,20 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     getPhysicalCost().updateTimePeriod(timePeriod);
     getVirtualCost().updateTimePeriod(timePeriod);
 
-    // TODO no support for initial cost yet
+    // TODO no support for exogenous initial cost yet
 
     /* prepare for new time period */
     assignmentStrategy.initialiseTimePeriod(timePeriod, mode, odDemands);
 
-    /* compute costs to start with */
-    double[] initialLinkSegmentCosts = assignmentStrategy.executeNetworkCostsUpdate(mode, getVirtualCost(), getPhysicalCost());
-    StaticLtmSimulationData simulationData = new StaticLtmSimulationData(timePeriod, List.of(mode), initialLinkSegmentCosts.length);
+    /* compute costs on all link segments to start with */
+    boolean updateOnlyTrackedNodeCosts = false;
+    double[] initialLinkSegmentCosts = new double[getTotalNumberOfNetworkSegments()];
+    assignmentStrategy.executeNetworkCostsUpdate(mode, updateOnlyTrackedNodeCosts, initialLinkSegmentCosts);
+    StaticLtmSimulationData simulationData = new StaticLtmSimulationData(timePeriod, List.of(mode), getTotalNumberOfNetworkSegments());
     simulationData.setLinkSegmentTravelTimePcuH(mode, initialLinkSegmentCosts);
 
     /* create initial solution as starting point for equilibration */
-    assignmentStrategy.createInitialSolution(timePeriod, odDemands, initialLinkSegmentCosts);
+    assignmentStrategy.createInitialSolution(initialLinkSegmentCosts);
 
     return simulationData;
   }
@@ -135,24 +138,27 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* ASSIGNMENT LOOP */
     do {
       getGapFunction().reset();
+      simulationData.incrementIterationIndex();
       getSmoothing().updateStep(simulationData.getIterationIndex());
 
       /* LOADING UPDATE + PATH/BUSH UPDATE */
-      double[] updatedNetworkLinkSegmentCosts = assignmentStrategy.performIteration(theMode, getVirtualCost(), getPhysicalCost());
+      double[] prevCosts = getIterationData().getLinkSegmentTravelTimePcuH(theMode);
+      double[] costsToUpdate = Arrays.copyOf(prevCosts, prevCosts.length);
+      boolean success = assignmentStrategy.performIteration(theMode, costsToUpdate);
+      if (!success) {
+        LOGGER.severe("Unable to continue PLANit sLTM run, aborting");
+        break;
+      }
       // COST UPDATE
-      getIterationData().setLinkSegmentTravelTimePcuH(theMode, updatedNetworkLinkSegmentCosts);
-
-      // PERSIST
-      getOutputManager().persistOutputData(timePeriod, modes, converged);
+      getIterationData().setLinkSegmentTravelTimePcuH(theMode, costsToUpdate);
 
       // CONVERGENCE CHECK
       getGapFunction().computeGap();
       converged = getGapFunction().hasConverged(simulationData.getIterationIndex());
 
-      // SMOOTHING
-      // TODO smoothing.execute()
+      // PERSIST
+      getOutputManager().persistOutputData(timePeriod, modes, converged);
 
-      simulationData.incrementIterationIndex(); // different location from traditional static (more logical location) -- careful changing this
       iterationStartTime = logBasicIterationInformation(iterationStartTime, getGapFunction().getGap());
     } while (!converged);
 
@@ -166,8 +172,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     super.verifyComponentCompatibility();
 
     /* gap function check */
-    PlanItException.throwIf(!(getGapFunction() instanceof NormBasedGapFunction), "%sStatic LTM only supports a norm based gap function at the moment, but found %s",
-        LoggingUtils.createRunIdPrefix(getId()), getGapFunction().getClass().getCanonicalName());
+    PlanItException.throwIf(!(getGapFunction() instanceof LinkBasedRelativeDualityGapFunction),
+        "%sStatic LTM only supports a link based relative gap function (for equilibration) at the moment, but found %s", LoggingUtils.createRunIdPrefix(getId()),
+        getGapFunction().getClass().getCanonicalName());
 
     /* smoothing check */
     PlanItException.throwIf(!(getSmoothing() instanceof MSASmoothing), "%sStatic LTM only supports MSA smoothing at the moment, but found %s",

@@ -1,5 +1,7 @@
 package org.planit.od.demand;
 
+import java.util.function.BiConsumer;
+
 import org.planit.utils.functionalinterface.TriConsumer;
 import org.planit.utils.od.OdData;
 import org.planit.utils.zoning.OdZone;
@@ -19,11 +21,27 @@ public interface OdDemands extends OdData<Double> {
    * @param odZones  to loop over
    * @param consumer to apply
    */
-  public default void forEachNonZeroOdDemand(OdZones odZones, TriConsumer<OdZone, OdZone, Double> consumer) {
+  public default void forEachNonZeroOdDemand(final OdZones odZones, final TriConsumer<OdZone, OdZone, Double> consumer) {
     odZones.forEachOriginDestination((o, d) -> {
       Double odDemand = getValue(o, d);
       if (odDemand != null && odDemand > 0) {
         consumer.accept(o, d, odDemand);
+      }
+    });
+  }
+
+  /**
+   * Apply the provided consumer to each destination of the origin provided that has non zero demands
+   * 
+   * @param origin   to consider destinations for
+   * @param odZones  to loop destinations over
+   * @param consumer to apply
+   */
+  public default void forEachNonZeroDestinationDemand(final OdZones odZones, final OdZone origin, final BiConsumer<OdZone, Double> consumer) {
+    odZones.forEach((d) -> {
+      Double odDemand = getValue(origin, d);
+      if (odDemand != null && odDemand > 0) {
+        consumer.accept(d, odDemand);
       }
     });
   }

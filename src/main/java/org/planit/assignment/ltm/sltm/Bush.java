@@ -302,8 +302,9 @@ public class Bush implements IdAble {
         continue;
       }
 
-      if (alternativeSubpathVertexLabels[(int) currentVertex.getId()] != -1) {
+      if (alternativeSubpathVertexLabels[(int) currentVertex.getId()] == -1) {
         /* first point of coincidence with alternative labelled path */
+        processedVertices.put(currentVertex, current.second());
         return Pair.of(current.first(), processedVertices);
       }
 
