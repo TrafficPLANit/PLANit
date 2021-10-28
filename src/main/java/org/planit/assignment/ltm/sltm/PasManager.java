@@ -2,10 +2,14 @@ package org.planit.assignment.ltm.sltm;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.planit.algorithms.shortestpath.ShortestPathResult;
@@ -42,6 +46,9 @@ public class PasManager {
    * Map storing all PASs by their merge vertex
    */
   private Map<DirectedVertex, Collection<Pas>> passByMergeVertex;
+
+  /** a comparator to compare PASs based on the reduced cost between their high and low cost segments */
+  private final Comparator<Pas> pasReducedCostComparator;
 
   /**
    * Verify if extending a bush with the given PAS given the reduced cost found, it would be effective in improving the bush. This is verified by
@@ -180,6 +187,20 @@ public class PasManager {
    */
   public PasManager() {
     this.passByMergeVertex = new HashMap<DirectedVertex, Collection<Pas>>();
+
+    /* compare by reduced cost in descending order (from high reduced cost to low reduced cost */
+    this.pasReducedCostComparator = new Comparator<Pas>() {
+      @Override
+      public int compare(Pas p1, Pas p2) {
+        if (Precision.isGreater(p1.getReducedCost(), p2.getReducedCost())) {
+          return -1;
+        } else if (Precision.isSmaller(p1.getReducedCost(), p2.getReducedCost())) {
+          return 1;
+        } else {
+          return 0;
+        }
+      }
+    };
   }
 
   /**
@@ -251,17 +272,38 @@ public class PasManager {
   }
 
   /**
-   * Shift flows based on the registered PASs, their origins, and the currently known link segment costs
+   * Update costs on all registered PASs
    * 
    * @param linkSegmentCosts to use
    * @return true when at least some flows were shifted, false otherwise
    */
   public void updateCosts(final double[] linkSegmentCosts) {
     for (Collection<Pas> pass : passByMergeVertex.values()) {
-      for (Pas pas : pass) {
-        pas.updateCost(linkSegmentCosts);
-      }
+      updateCosts(pass, linkSegmentCosts);
     }
+  }
+
+  /**
+   * Update cost for a selection of PASs only
+   * 
+   * @param pass             collection of specific PASs to update
+   * @param linkSegmentCosts to use
+   */
+  public void updateCosts(Collection<Pas> pass, double[] linkSegmentCosts) {
+    for (Pas pas : pass) {
+      pas.updateCost(linkSegmentCosts);
+    }
+  }
+
+  /**
+   * Construct a priority queue based on the PASs reduced cost, i.e., difference between their high and low cost segments in descending order.
+   * 
+   * @return sorted PAS queue
+   */
+  public PriorityQueue<Pas> getPassSortedByReducedCost() {
+    PriorityQueue<Pas> passOrderedByReducedCost = new PriorityQueue<Pas>(pasReducedCostComparator);
+    forEachPas((pas) -> passOrderedByReducedCost.add(pas));
+    return passOrderedByReducedCost;
   }
 
   /**
@@ -274,16 +316,32 @@ public class PasManager {
   public boolean shiftFlows(final StaticLtmLoadingBush networkLoading, final Smoothing smoothing) {
     boolean flowShifted = false;
     List<Pas> passWithoutOrigins = new ArrayList<Pas>();
-    for (Collection<Pas> pass : passByMergeVertex.values()) {
-      for (Pas pas : pass) {
-        /* determine the network flow on the high cost subpath */
-        double subPathTotalShiftableFlow = networkLoading.computeSubPathSendingFlow(pas.getDivergeVertex(), pas.getMergeVertex(), pas.getAlternative(false /* highCost */));
-        /* DUMB approach -> shift all of it smoothed by MSA */
-        double flowshift = smoothing.execute(subPathTotalShiftableFlow, 0);
-        flowShifted |= pas.executeFlowShift(subPathTotalShiftableFlow, flowshift, networkLoading.getCurrentFlowAcceptanceFactors());
-        if (!pas.hasOrigins()) {
-          passWithoutOrigins.add(pas);
-        }
+
+    /**
+     * Sort all PAss by their reduced cost ensuring we shift flows from the most attractive shift towards the least where we exclude all link segments of a processed PAS such that
+     * no other PASs are allowed to shift flows if they overlap to avoid using inconsistent costs after a flow shift to or from a link segment
+     */
+    BitSet linkSegmentsUsed = new BitSet(networkLoading.getCurrentInflowsPcuH().length);
+    PriorityQueue<Pas> sortedPass = getPassSortedByReducedCost();
+    for (Pas pas : sortedPass) {
+      if (pas.containsAny(linkSegmentsUsed)) {
+        continue;
+      }
+      /* unused PAS (no flows shifted yet) in this iteration */
+
+      /* determine the network flow on the high cost subpath */
+      double subPathTotalShiftableFlow = networkLoading.computeSubPathSendingFlow(pas.getDivergeVertex(), pas.getMergeVertex(), pas.getAlternative(false /* highCost */));
+      /* DUMB approach -> shift all of it smoothed by MSA */
+      double flowshift = smoothing.execute(0, subPathTotalShiftableFlow);
+      boolean pasFlowShifted = pas.executeFlowShift(subPathTotalShiftableFlow, flowshift, networkLoading.getCurrentFlowAcceptanceFactors());
+      if (!pas.hasOrigins()) {
+        passWithoutOrigins.add(pas);
+      }
+
+      if (pasFlowShifted) {
+        pas.forEachEdgeSegment(true, (es) -> linkSegmentsUsed.set((int) es.getId()));
+        pas.forEachEdgeSegment(false, (es) -> linkSegmentsUsed.set((int) es.getId()));
+        flowShifted = true;
       }
     }
 
@@ -291,6 +349,17 @@ public class PasManager {
       passWithoutOrigins.forEach((pas) -> removePas(pas));
     }
     return flowShifted;
+  }
+
+  /**
+   * Loop over all Pass
+   * 
+   * @param pasConsumer to apply
+   */
+  public void forEachPas(Consumer<Pas> pasConsumer) {
+    passByMergeVertex.forEach((v, pc) -> {
+      pc.forEach(pasConsumer);
+    });
   }
 
 }

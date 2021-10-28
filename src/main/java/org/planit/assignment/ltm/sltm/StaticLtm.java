@@ -72,11 +72,10 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * @param dualityGap the duality gap at the end of the iteration
    * @return the time (in ms) at the end of the iteration for profiling purposes only
    */
-  private Calendar logBasicIterationInformation(final Calendar startTime, final double dualityGap) {
+  private Calendar logBasicIterationInformation(final Calendar startTime, final LinkBasedRelativeDualityGapFunction gapFunction) {
     final Calendar currentTime = Calendar.getInstance();
-    LOGGER.info(createLoggingPrefix(simulationData.getIterationIndex()) + String.format("Network cost: N/A (yet)"));
-    LOGGER.info(
-        createLoggingPrefix(simulationData.getIterationIndex()) + String.format("Gap: %.10f (%d ms)", dualityGap, currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
+    LOGGER.info(String.format("%sNetwork cost: %.2f (pcu-hours)", createLoggingPrefix(getIterationIndex()), gapFunction.getMeasuredNetworkCost()));
+    LOGGER.info(String.format("%sGap: %.10f (%d ms)", createLoggingPrefix(getIterationIndex()), gapFunction.getGap(), currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
     return currentTime;
   }
 
@@ -97,13 +96,12 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
     // TODO no support for exogenous initial cost yet
 
-    /* prepare for new time period */
-    assignmentStrategy.initialiseTimePeriod(timePeriod, mode, odDemands);
+    assignmentStrategy.updateTimePeriod(timePeriod, mode, odDemands);
 
     /* compute costs on all link segments to start with */
-    boolean updateOnlyTrackedNodeCosts = false;
+    boolean updateOnlyPotentiallyBlockingNodeCosts = false;
     double[] initialLinkSegmentCosts = new double[getTotalNumberOfNetworkSegments()];
-    assignmentStrategy.executeNetworkCostsUpdate(mode, updateOnlyTrackedNodeCosts, initialLinkSegmentCosts);
+    assignmentStrategy.executeNetworkCostsUpdate(mode, updateOnlyPotentiallyBlockingNodeCosts, initialLinkSegmentCosts);
     StaticLtmSimulationData simulationData = new StaticLtmSimulationData(timePeriod, List.of(mode), getTotalNumberOfNetworkSegments());
     simulationData.setLinkSegmentTravelTimePcuH(mode, initialLinkSegmentCosts);
 
@@ -144,7 +142,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       /* LOADING UPDATE + PATH/BUSH UPDATE */
       double[] prevCosts = getIterationData().getLinkSegmentTravelTimePcuH(theMode);
       double[] costsToUpdate = Arrays.copyOf(prevCosts, prevCosts.length);
-      boolean success = assignmentStrategy.performIteration(theMode, costsToUpdate);
+      boolean success = assignmentStrategy.performIteration(theMode, costsToUpdate, simulationData.getIterationIndex());
       if (!success) {
         LOGGER.severe("Unable to continue PLANit sLTM run, aborting");
         break;
@@ -159,7 +157,8 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       // PERSIST
       getOutputManager().persistOutputData(timePeriod, modes, converged);
 
-      iterationStartTime = logBasicIterationInformation(iterationStartTime, getGapFunction().getGap());
+      iterationStartTime = logBasicIterationInformation(iterationStartTime, (LinkBasedRelativeDualityGapFunction) getGapFunction());
+      assignmentStrategy.getLoading().resetIteration();
     } while (!converged);
 
   }
@@ -282,8 +281,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    */
   @Override
   public int getIterationIndex() {
-    // TODO Auto-generated method stub
-    return 0;
+    return simulationData.getIterationIndex();
   }
 
   /**

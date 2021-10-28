@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import org.planit.assignment.ltm.sltm.Bush;
 import org.planit.assignment.ltm.sltm.Pas;
+import org.planit.assignment.ltm.sltm.PasManager;
 import org.planit.assignment.ltm.sltm.StaticLtmSettings;
 import org.planit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.planit.assignment.ltm.sltm.consumer.BushTurnFlowUpdateConsumer;
@@ -29,6 +30,12 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
 
   /** the bushes managed by the bush strategy but provided to be able to conduct a network loading based on the current state (bush splitting rates) of each bush */
   private Bush[] originBushes;
+
+  /**
+   * the PAS manager with all the currently active PASs, used to determine which nodes to track flows and splitting rates for during network loading, namely all links and nodes
+   * present in the active PASs
+   */
+  private PasManager pasManager;
 
   /**
    * Factory method to create the right flow update consumer to use when conducting a bush based flow update. We either create one that updates turn accepted flows (and possibly
@@ -72,13 +79,6 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
         bushFlowUpdateConsumer.accept(originBush);
       }
     }
-
-    /*
-     * if any link segments - due to PAS flow shifting - now exhibit sending flows that exceed the link segment capacity their upstream nodes are to be marked as potentially
-     * blocking rather than just being tracked. Since we did not know these PASs when starting the assignment, we must add these nodes on-the-fly by checking after each loading
-     */
-    updatePotentiallyBlockingNodes(getCurrentInflowsPcuH());
-
   }
 
   //@formatter:off
@@ -124,6 +124,16 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
   }   
 
   /**
+   * Initialise tracking of splitting rates and network flows on all nodes that are used by any currently
+   * active PAS. This way we are able to ascertain how much total network flow runs through each PAS which in turn
+   * is used to determine how much flow we can shift between segments.
+   */
+  @Override
+  protected void activateEligibleSplittingRateTrackedNodes() {
+    this.pasManager.forEachPas( (pas) -> activateNodeTrackingFor(pas));
+  }
+
+  /**
    * Constructor
    * 
    * @param idToken      to use
@@ -166,6 +176,15 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
   public void setBushes(final Bush[] originBushes) {
     this.originBushes = originBushes;    
   }
+  
+  /** The PasManager to use when we must initialise the tracked network nodes (namely all nodes
+   * that are part of a PAS, since we need to know the network flow that passes through them)
+   * 
+   * @param pasManager to use
+   */
+  public void setPasManager(final PasManager pasManager) {
+    this.pasManager = pasManager;
+  } 
 
   /** For each PAS we must be able to determine the network level flows along the segments, see {@link #computeSubPathSendingFlow(DirectedVertex, DirectedVertex, EdgeSegment[])}. 
    * This requires knowing the network level splitting rates on the network level as well as the sending flows and acceptance factors, otherwise we cannot determine this. 
@@ -189,6 +208,6 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
         });      
     }
     
-  } 
+  }
 
 }

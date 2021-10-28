@@ -95,6 +95,14 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().odZones, pathLinkFlowUpdateConsumer);
   }   
 
+  /** In a path based implementation, tracked nodes overlap with potentially blocking nodes. Since potentially blocking nodes
+   * are identified by the base class, there is no need for additional work in this implementation. Empty implementation
+   */
+  @Override
+  protected void activateEligibleSplittingRateTrackedNodes() {
+    // do nothing
+  }
+
   /**
    * constructor
    * 

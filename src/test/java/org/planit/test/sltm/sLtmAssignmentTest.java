@@ -23,6 +23,7 @@ import org.planit.od.demand.OdDemands;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.id.IdGenerator;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.math.Precision;
 import org.planit.utils.mode.PredefinedModeType;
 import org.planit.utils.network.layer.MacroscopicNetworkLayer;
 import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
@@ -234,10 +235,11 @@ public class sLtmAssignmentTest {
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(true);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(false);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateBushBased(true);
 
       StaticLtm sLTM = sLTMBuilder.build();
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_6);
       sLTM.execute();
 
     } catch (Exception e) {

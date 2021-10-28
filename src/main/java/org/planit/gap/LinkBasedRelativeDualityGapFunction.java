@@ -1,6 +1,9 @@
 package org.planit.gap;
 
+import java.util.logging.Logger;
+
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.math.Precision;
 
 /**
  * Gap function based on the work of Bovy and Jansen (1983) who take the different between the current system travel time and the system travel time if all flow were to be assigned
@@ -13,6 +16,9 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
 
   /** Generated UID */
   private static final long serialVersionUID = 7202275902172315983L;
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(LinkBasedRelativeDualityGapFunction.class.getCanonicalName());
 
   /**
    * Constructor
@@ -92,6 +98,13 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    */
   @Override
   public double computeGap() {
+    if (!Precision.isPositive(measuredNetworkCost)) {
+      LOGGER.severe(String.format("Measured network cost (%.2f) needs to be positive to compute gap, this is not the case", measuredNetworkCost));
+      return -1;
+    }
+    if (Precision.isSmaller(measuredNetworkCost, minimumNetworkCost)) {
+      LOGGER.severe(String.format("Minimum network cost (%.2f) exceeds measured network cost (%.2f), this should not happen", minimumNetworkCost, measuredNetworkCost));
+    }
     gap = (measuredNetworkCost - minimumNetworkCost) / measuredNetworkCost;
     return gap;
   }

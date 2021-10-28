@@ -1,6 +1,9 @@
 package org.planit.assignment.ltm.sltm;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -103,9 +106,11 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
    * @param originBush      to identify new PAS for
    * @param mergeVertex     at which the PAS is supposed to terminate
    * @param networkMinPaths the current network shortest path tree
-   * @return true when a new PAS was successfully created, false otherwise
+   * @return new created PAS if successfully created, null otherwise
    */
-  private boolean extendBushWithNewPas(final Bush originBush, final DirectedVertex mergeVertex, final ShortestPathResult networkMinPaths) {
+  private Pas extendBushWithNewPas(final Bush originBush, final DirectedVertex mergeVertex, final ShortestPathResult networkMinPaths) {
+
+    Pas newPas = null;
 
     /* Label all vertices on shortest path origin-bushVertex as -1, and PAS merge Vertex itself as 1 */
     final short[] alternativeSegmentVertexLabels = new short[getTransportNetwork().getNumberOfVerticesAllLayers()];
@@ -119,19 +124,19 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
       /* likely cycle detected on bush for merge vertex, unable to identify higher cost segment for NEW PAS, log issue */
       LOGGER.info(String.format("Unable to create new PAS for origin zone %s, despite shorter path found on network to vertex %s", originBush.getOrigin().getXmlId(),
           mergeVertex.getXmlId()));
-      return false;
+      return null;
     }
 
     /* create the PAS and register origin bush on it */
     boolean truncateSpareArrayCapacity = true;
     EdgeSegment[] s1 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, networkMinPaths, shortestPathLength, truncateSpareArrayCapacity);
     EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, highCostSegment.second(), shortestPathLength, truncateSpareArrayCapacity);
-    Pas newPas = pasManager.createNewPas(originBush, s1, s2);
+    newPas = pasManager.createNewPas(originBush, s1, s2);
 
-    /* make sure all nodes laong the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
+    /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
     getLoading().activateNodeTrackingFor(newPas);
 
-    return true;
+    return newPas;
   }
 
   /**
@@ -199,12 +204,14 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
    * elsewhere
    * 
    * @param linkSegmentCosts to use to construct min-max path three rooted at each bush's origin
+   * @return newly created PASs (empty if no new PASs were created)
    * @throws PlanItException thrown if error
    */
-  private void extendBushes(final double[] linkSegmentCosts) throws PlanItException {
+  private Collection<Pas> extendBushes(final double[] linkSegmentCosts) throws PlanItException {
+
+    List<Pas> newPass = new ArrayList<Pas>();
 
     final OneToAllShortestPathAlgorithm networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
-
     final OdZones odZones = this.getTransportNetwork().getZoning().getOdZones();
     final LinkBasedRelativeGapMinCostUpdate minGapUpdateConsumer = new LinkBasedRelativeGapMinCostUpdate(
         (LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class));
@@ -239,8 +246,9 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
             }
 
             /* no suitable match, attempt creating an entirely new PAS */
-            boolean newPasCreated = extendBushWithNewPas(originBush, bushVertex, networkMinPaths);
-            if (newPasCreated) {
+            Pas newPas = extendBushWithNewPas(originBush, bushVertex, networkMinPaths);
+            if (newPas != null) {
+              newPass.add(newPas);
               continue;
             }
 
@@ -258,6 +266,7 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
         }
       }
     }
+    return newPass;
   }
 
   /**
@@ -288,6 +297,7 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
     try {
       initialiseBushes(initialLinkSegmentCosts);
       getLoading().setBushes(originBushes);
+      getLoading().setPasManager(this.pasManager);
 
     } catch (PlanItException e) {
       LOGGER.severe(String.format("Unable to create initial bushes for sLTM %d", getAssignmentId()));
@@ -320,27 +330,27 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
    * 4. Conducting a loading to obtain network costs 
    * 
    * @param theMode to use
-   * @param virtualCost to obtain cost for connectoids for
-   * @param physicalCost to obtain cost for physical link segments for
    * @param linkSegmentCosts to place updated costs in (output)
+   * @param iterationIndex we're at
    * @return true when iteration could be successfully completed, false otherwise
    */
   @Override
-  public boolean performIteration(final Mode theMode, double[] costsToUpdate) {
+  public boolean performIteration(final Mode theMode, double[] costsToUpdate, int iterationIndex) {
     try {
       
       /* NETWORK LOADING - MODE AGNOSTIC FOR NOW */
       executeNetworkLoading();
       
       /* NETWORK COST UPDATE + UPDATE NETWORK REALISED COST GAP */
-      boolean updateOnlyTrackedNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-      this.executeNetworkCostsUpdate(theMode, updateOnlyTrackedNodeCosts, costsToUpdate);
+      boolean updateOnlyPotentiallyBlockingNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
+      this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
             
       /* PAS COST UPDATE*/
       pasManager.updateCosts(costsToUpdate);
     
       /* (NEW) PAS MATCHING FOR BUSHES + UPDATE MIN COST GAP*/
-      extendBushes(costsToUpdate);
+      Collection<Pas> newPass = extendBushes(costsToUpdate);      
+      pasManager.updateCosts(newPass, costsToUpdate);      
             
       /* PAS/BUSH FLOW SHIFTS */
       final Smoothing smoothing = getTrafficAssignmentComponent(Smoothing.class);

@@ -118,15 +118,15 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * {@inheritDoc}
    */
   @Override
-  public boolean performIteration(final Mode theMode, final double[] costsToUpdate) {
+  public boolean performIteration(final Mode theMode, final double[] costsToUpdate, int iterationIndex) {
 
     try {
       // NETWORK LOADING - MODE AGNOSTIC FOR NOW
       executeNetworkLoading();
 
       /* COST UPDATE */
-      boolean updateOnlyTrackedNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-      this.executeNetworkCostsUpdate(theMode, updateOnlyTrackedNodeCosts, costsToUpdate);
+      boolean updateOnlyPotentiallyBlockingNodeCosts = getLoading().getActivatedSolutionScheme().equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
+      this.executeNetworkCostsUpdate(theMode, updateOnlyPotentiallyBlockingNodeCosts, costsToUpdate);
 
     } catch (Exception e) {
       LOGGER.severe(e.getMessage());

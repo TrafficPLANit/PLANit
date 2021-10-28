@@ -69,4 +69,28 @@ public interface SplittingRateData {
     }
     return 0;
   }
+
+  /**
+   * Reset registered tracked nodes
+   */
+  public abstract void resetTrackedNodes();
+
+  /**
+   * Reset registered potentially blocking nodes
+   */
+  public abstract void resetPotentiallyBlockingNodes();
+
+  /**
+   * Reset splitting rate data
+   */
+  public abstract void resetSplittingRates();
+
+  /**
+   * Reset all splitting rate data
+   */
+  public default void reset() {
+    resetTrackedNodes();
+    resetPotentiallyBlockingNodes();
+    resetSplittingRates();
+  }
 }

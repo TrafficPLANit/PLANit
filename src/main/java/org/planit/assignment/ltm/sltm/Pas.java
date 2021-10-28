@@ -1,6 +1,7 @@
 package org.planit.assignment.ltm.sltm;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -72,7 +73,7 @@ public class Pas {
       } else {
         origin.addTurnSendingFlow(currentSegment, nextSegment, flowShiftPcuH);
       }
-      flowShiftPcuH *= flowAcceptanceFactors[(int) nextSegment.getId()];
+      flowShiftPcuH *= flowAcceptanceFactors[(int) currentSegment.getId()];
     }
 
     return flowShiftPcuH;
@@ -113,12 +114,12 @@ public class Pas {
   /**
    * Shift flows for this PAS given the currently known costs and smoothing procedure to apply
    * 
-   * @param currentHighCostFlowPcuH total flow currently using the high cost alternative
-   * @param flowShiftPcuH           amount to shift
-   * @param flowAcceptanceFactors   to use
+   * @param networkS2FlowPcuH     total flow currently using the high cost alternative
+   * @param flowShiftPcuH         amount to shift
+   * @param flowAcceptanceFactors to use
    * @return true when flow shifted, false otherwise
    */
-  protected boolean executeFlowShift(double currentHighCostFlowPcuH, double flowShiftPcuH, final double[] flowAcceptanceFactors) {
+  protected boolean executeFlowShift(double networkS2FlowPcuH, double flowShiftPcuH, final double[] flowAcceptanceFactors) {
 
     List<Bush> originsWithoutRemainingPasFlow = new ArrayList<Bush>();
     for (Bush origin : originBushes) {
@@ -157,7 +158,7 @@ public class Pas {
 
       /* Bush flow portion */
       boolean potentialBushPruning = false;
-      double bushPortion = bushS2Flow / currentHighCostFlowPcuH;
+      double bushPortion = Math.min(bushS2Flow / networkS2FlowPcuH, 1); // bush portion >1 when earlier other overlapping PAS flow shifts added flow to S2
       double bushFlowShift = flowShiftPcuH * bushPortion;
       if (Precision.isGreaterEqual(bushFlowShift, bushS2Flow)) {
         /* remove this origin from the PAS when done as no flow remains on high cost segment */
@@ -317,6 +318,35 @@ public class Pas {
   }
 
   /**
+   * Check if any of the set link segments is present on the indicated alternative
+   * 
+   * @param linkSegments where we verify against set link segments
+   * @param lowCost      when true check with low cost alternative otherwise high cost
+   * @return true when overlapping, false otherwise
+   */
+  public boolean containsAny(final BitSet linkSegments, boolean lowCost) {
+    EdgeSegment[] alternative = lowCost ? s1 : s2;
+    EdgeSegment currEdgeSegment = null;
+    for (int index = alternative.length - 1; index >= 0; --index) {
+      currEdgeSegment = alternative[index];
+      if (linkSegments.get((int) currEdgeSegment.getId())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Check if any of the set link segments is present on either alternative
+   * 
+   * @param linkSegments where we verify against set link segments
+   * @return true when overlapping, false otherwise
+   */
+  public boolean containsAny(final BitSet linkSegments) {
+    return containsAny(linkSegments, true) || containsAny(linkSegments, false);
+  }
+
+  /**
    * update costs of both paths. In case the low cost path is no longer the low cost path, switch it with the high cost path
    * 
    * @param edgeSegmentCosts to use
@@ -351,6 +381,19 @@ public class Pas {
       vertexConsumer.accept(alternative[index].getUpstreamVertex());
     }
     vertexConsumer.accept(alternative[alternative.length - 1].getDownstreamVertex());
+  }
+
+  /**
+   * Apply consumer to each edgeSegment on one of the cost segments
+   * 
+   * @param lowCostSegment      when true applied to low cost segment, when false the high cost segment
+   * @param edgeSegmentConsumer to apply
+   */
+  public void forEachEdgeSegment(boolean lowCostSegment, Consumer<EdgeSegment> edgeSegmentConsumer) {
+    EdgeSegment[] alternative = getAlternative(lowCostSegment);
+    for (int index = 0; index < alternative.length; ++index) {
+      edgeSegmentConsumer.accept(alternative[index]);
+    }
   }
 
   /**
@@ -399,6 +442,16 @@ public class Pas {
    */
   public EdgeSegment[] getAlternative(boolean lowCostSegment) {
     return lowCostSegment ? s1 : s2;
+  }
+
+  /**
+   * Returns the difference between the cost of the high cost and the low cost segment. Should always be larger than zero assuming an {@link #updateCost(double[])} has been
+   * conducted to ensure the segments are labelled correctly regarding which one is high and which one is low cost
+   * 
+   * @return s2Cost - s2Cost
+   */
+  public double getReducedCost() {
+    return s2Cost - s1Cost;
   }
 
 }

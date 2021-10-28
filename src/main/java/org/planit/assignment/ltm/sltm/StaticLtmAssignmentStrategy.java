@@ -190,13 +190,9 @@ public abstract class StaticLtmAssignmentStrategy {
    */
   protected void executeNetworkLoading() {
 
-    /* STEP 0 - Initialisation */
-    if (!getLoading().stepZeroInitialisation()) {
-      LOGGER.severe(String.format("%sAborting sLTM assignment %s, unable to continue", LoggingUtils.createRunIdPrefix(getAssignmentId())));
-    }
-
     /* for now we do not consider path choice, we conduct a one-shot all-or-nothing network loading */
     int networkLoadingIterationIndex = 0;
+    getLoading().stepZeroIterationInitialisation(true);
     do {
 
       /* verify if progress is being made and if not activate extensions as deemed adequate */
@@ -249,7 +245,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param timePeriod to initialise for
    * @param odDemands  to use
    */
-  public void initialiseTimePeriod(final TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) {
+  public void updateTimePeriod(final TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) {
     this.networkLoading = createNetworkLoading();
     this.networkLoading.initialiseInputs(mode, odDemands, getTransportNetwork());
     setOdDemands(odDemands);
@@ -265,26 +261,28 @@ public abstract class StaticLtmAssignmentStrategy {
   /**
    * Perform a single iteration where we perform a loading and then an equilibration step resulting in updated costs
    *
-   * @param mode          to use
-   * @param costsToUpdate the link segment costs we are updating (possibly partially for all link segments that might have been affected by a loading
+   * @param mode           to use
+   * @param costsToUpdate  the link segment costs we are updating (possibly partially for all link segments that might have been affected by a loading
+   * @param iterationIndex we're at
    * @return true when iteration could be successfully completed, false otherwise
    */
-  public abstract boolean performIteration(final Mode theMode, final double[] costsToUpdate);
+  public abstract boolean performIteration(final Mode theMode, final double[] costsToUpdate, int iterationIndex);
 
   /**
    * Perform an update of the network wide costs where a partial update is applied in case only potentially blocking nodes are updated during the loading
    * 
-   * @param theMode                    to perform the update for
-   * @param updateOnlyTrackedNodeCosts flag indicating if only the costs of the entry link segments of tracked nodes are to be updated, or all link segment costs are to be updated
-   * @param costsToUpdate              the network wide costs to update (fully or partially), this is an output
+   * @param theMode                                to perform the update for
+   * @param updateOnlyPotentiallyBlockingNodeCosts flag indicating if only the costs of the entry link segments of potentially blocking nodes are to be updated, or all link segment
+   *                                               costs are to be updated
+   * @param costsToUpdate                          the network wide costs to update (fully or partially), this is an output
    * @throws PlanItException thrown if error
    */
-  public void executeNetworkCostsUpdate(Mode theMode, boolean updateOnlyTrackedNodeCosts, double[] costsToUpdate) throws PlanItException {
+  public void executeNetworkCostsUpdate(Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts, double[] costsToUpdate) throws PlanItException {
 
     final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
     SplittingRateData splittingRateData = getLoading().getSplittingRateData();
-    if (updateOnlyTrackedNodeCosts) {
+    if (updateOnlyPotentiallyBlockingNodeCosts) {
 
       MacroscopicNetworkLayer networkLayer = getInfrastructureNetwork().getLayerByMode(theMode);
       VirtualNetwork virtualLayer = getTransportNetwork().getZoning().getVirtualNetwork();

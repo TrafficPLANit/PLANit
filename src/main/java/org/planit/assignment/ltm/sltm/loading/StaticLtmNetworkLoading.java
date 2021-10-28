@@ -72,15 +72,19 @@ public abstract class StaticLtmNetworkLoading {
    * initialise the way the solution scheme is applied. Which in case of storage constraints is the basic decomposition scheme described in Raadsen and Bliemer (2021), and if
    * storage constraints are disabled, it the basic point queue model described in Bliemer et al (2014). Both solution schemes can be altered in case they do not converge by
    * activating various extensions see also {@link #activateNextExtension()}
+   * 
+   * @boolean logSolutionScheme when true log the set solution scheme, when false do not
    */
-  private void initialiseStaticLtmSolutionSchemeApproach() {
+  private void initialiseStaticLtmSolutionSchemeApproach(boolean logSolutionScheme) {
     if (getSettings().isDisableStorageConstraints()) {
       solutionScheme = StaticLtmLoadingScheme.POINT_QUEUE_BASIC;
     } else {
       solutionScheme = StaticLtmLoadingScheme.PHYSICAL_QUEUE_BASIC;
     }
 
-    LOGGER.info(String.format("sLTM network loading scheme set to %s", solutionScheme.getValue()));
+    if (logSolutionScheme) {
+      LOGGER.info(String.format("sLTM network loading scheme set to %s", solutionScheme.getValue()));
+    }
   }
 
   /**
@@ -132,25 +136,65 @@ public abstract class StaticLtmNetworkLoading {
    * the entire used network needs to be tracked, otherwise flows cannot propagate. Therefore, in this case we initialise the tracked nodes by considering all paths with non-zero
    * flows and activate the entry links of nodes passed.
    *
-   * @param linkSegments to extract capacity from
+   * @return created splittingRateData class
    */
-  private void initialiseSplittingRateData() {
+  private SplittingRateData createSplittingRateData() {
 
     /* POINT QUEUE BASIC */
-
     if (!isTrackAllNodeTurnFlows()) {
-      /* create */
-      this.splittingRateData = new SplittingRateDataPartial(getTransportNetwork().getNumberOfVerticesAllLayers());
-      updatePotentiallyBlockingNodes(this.sendingFlowData.getCurrentSendingFlows());
-      /* initialise */
-
+      return new SplittingRateDataPartial(getTransportNetwork().getNumberOfVerticesAllLayers());
     }
     /* OTHER, e.g. physical queues and advanced point queue model */
     else if (!this.solutionScheme.equals(StaticLtmLoadingScheme.NONE)) {
-      /* create */
-      this.splittingRateData = new SplittingRateDataComplete(this.inFlowOutflowData.getInflows().length);
-      /* initialise, where we simply activate all link-to-link combinations that are used. To be replaced with turns at some point */
-      updateTrackAllUsedNodes(this.sendingFlowData.getCurrentSendingFlows());
+      return new SplittingRateDataComplete(this.inFlowOutflowData.getInflows().length);
+    }
+
+    LOGGER.severe("Unable to create correct splitting rate tracking data class");
+    return null;
+  }
+
+  /**
+   * Initialise the status of the nodes regarding (tracked and/or potentially blocking) which determines if network splitting rates will be tracked during loading
+   */
+  private void initialiseNodeSplittingRateStatus() {
+    // TODO -> the way this is configured depends on the assignment strategy and therefore
+    // this functionality should probably not be here but in the assignment strategy...
+
+    if (this.solutionScheme.equals(StaticLtmLoadingScheme.NONE)) {
+      LOGGER.severe("Unable to initialise node splitting rate data");
+      return;
+    }
+
+    /*
+     * if we changed our approach during the last iteration -> we replaced the splitting rate data as well. When we start the new iteration with another approach, we first recreate
+     * the appropriate splitting rate data consistent with the current approach again and activate the correct tracked, potentially blocking nodes in the process
+     */
+    boolean initialiseTrackedNodes = false;
+    if (!prevIterationFinalSolutionScheme.equals(getActivatedSolutionScheme())) {
+      this.splittingRateData = createSplittingRateData();
+      initialiseTrackedNodes = true;
+    }
+
+    if (initialiseTrackedNodes) {
+      if (isTrackAllNodeTurnFlows()) {
+        /*
+         * OTHER, e.g. physical queues and advanced point queue model all nodes are to be considered so we must activate them all (track and mark potentially blocking)
+         */
+        activateAllUsedNodeSplittingRates(this.sendingFlowData.getCurrentSendingFlows());
+      } else {
+        /*
+         * POINT QUEUE BASIC only track nodes that are needed. Eligibility depends on approach, so to be implemented by derived implementation
+         */
+        activateEligibleSplittingRateTrackedNodes();
+      }
+    }
+
+    /*
+     * When not all nodes are already activated, i.e. marked tracked and potentially blocking, identify which ones of the currently tracked nodes are also potentially blocking (not
+     * all tracked nodes need to be potentially blocking)
+     */
+    if (!isTrackAllNodeTurnFlows()) {
+      updatePotentiallyBlockingNodes(this.sendingFlowData.getCurrentSendingFlows());
     }
   }
 
@@ -374,6 +418,9 @@ public abstract class StaticLtmNetworkLoading {
   /** track the approach of how the solution scheme is applied based on this type */
   protected StaticLtmLoadingScheme solutionScheme;
 
+  /** track the solution scheme applied before the current */
+  protected StaticLtmLoadingScheme prevIterationFinalSolutionScheme;
+
   /**
    * Validate all constructor parameters
    * 
@@ -473,6 +520,8 @@ public abstract class StaticLtmNetworkLoading {
    */
   protected void updatePotentiallyBlockingNodes(final double[] sendingFlowsPcuH) {
     SplittingRateDataPartial pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.splittingRateData;
+    pointQueueBasicSplittingRates.resetPotentiallyBlockingNodes();
+    
     for (MacroscopicLinkSegment linkSegment : getUsedNetworkLayer().getLinkSegments()) {
       if(!pointQueueBasicSplittingRates.isPotentiallyBlocking(linkSegment.getUpstreamNode())){
         double capacity = linkSegment.getCapacityOrDefaultPcuH();
@@ -483,22 +532,30 @@ public abstract class StaticLtmNetworkLoading {
       }
     }  
   }
-
+  
   /**
    * For all nodes that have downstream link segments with positive sending flows, 
-   * ensure they are tracked (if not already). To be used when we consider spillback or when we performing iterative local sending flow
-   * updates to propagate flows locally.
+   * ensure they are activated for splitting rates (activation implies tracking and potentially blocking) if not already. 
+   * To be used when we consider spillback or when we performing iterative local sending flow updates to propagate flows locally.
    * 
    * @param sendingFlowsPcuH to use
    */  
-  protected void updateTrackAllUsedNodes(double[] sendingFlowsPcuH) {
+  protected void activateAllUsedNodeSplittingRates(double[] sendingFlowsPcuH) {
+    //TODO: not great that we cast to implementation, would be better to use polymorphism to solve this by adding a register option on interface
     SplittingRateDataComplete extendedSplittingRates = (SplittingRateDataComplete) this.splittingRateData;
     for (MacroscopicLinkSegment linkSegment : getUsedNetworkLayer().getLinkSegments()) {
       if(Precision.isPositive(sendingFlowsPcuH[(int) linkSegment.getId()])){
-        extendedSplittingRates.activateTrackedNode(linkSegment.getUpstreamNode());
+        extendedSplittingRates.activateNode(linkSegment.getUpstreamNode());
       }
     }    
   }
+
+  /**
+   * Let derived loading implementation initialise which nodes are to be tracked for network splitting rates, e.g.
+   * a bush-based implementation requires all nodes along PASs to be tracked (Regardless if they are potentially blocking), 
+   * whereas a path based implementation only requires potentially blocking node to be tracked.
+   */
+  protected abstract void activateEligibleSplittingRateTrackedNodes();
 
   /**
    * Constructor
@@ -516,6 +573,7 @@ public abstract class StaticLtmNetworkLoading {
     /* state trackers */    
     this.convergenceAnalyser = new StaticLtmNetworkLoadingConvergenceAnalyser();
     this.solutionScheme = StaticLtmLoadingScheme.NONE;    
+    this.prevIterationFinalSolutionScheme = solutionScheme;
   }
 
   /** Initialise the loading with the given inputs
@@ -546,7 +604,7 @@ public abstract class StaticLtmNetworkLoading {
     this.receivingFlowGapFunction = new NormBasedGapFunction(idToken, new StopCriterion());
    
   }
-
+  
   //@formatter:off
   /**
    * Perform initialisation of the network loading. This method can only be called once.
@@ -560,30 +618,17 @@ public abstract class StaticLtmNetworkLoading {
    *   
    * @return true when successful, false otherwise 
    */
-  public boolean stepZeroInitialisation() {
-    
-    /* temporary check until supported */
-    if (!getSettings().isDisableStorageConstraints()) {
-      LOGGER.severe(
-          String.format("%sIGNORE: sLTM with physical queues is not yet implemented, please disable storage constraints and try again", LoggingUtils.createRunIdPrefix(this.runId)));
-      return false;
-    }    
-    
-    /* reset convergence analyser*/
-    convergenceAnalyser.reset();
-    
+  public boolean stepZeroIterationInitialisation(boolean logSolutionScheme) {    
+        
     /* activate the correct configuration of the initial solution scheme */
-    initialiseStaticLtmSolutionSchemeApproach(); 
-            
-    /* 1. Initial acceptance flow, capacity, and storage factors, all set to one */
-    // already done upon creation of the data
-    
+    initialiseStaticLtmSolutionSchemeApproach(logSolutionScheme); 
+                
     /* 2. Initial sending flows via network loading Eq. (3)-(4) in paper: unconstrained network loading */
     initialiseSendingFlows();
     
     /* Depending on the solution scheme we either track all used nodes in the network, or a subset. Either way these need to be 
      * activated/initialised before commencing the loading. This is done here. */
-    initialiseSplittingRateData();
+    initialiseNodeSplittingRateStatus();
     
     /* 3. limit flows to capacity s_a=r_a=min(u_a,cap_a) */
     /* reduce sending flows to capacity */
@@ -592,7 +637,7 @@ public abstract class StaticLtmNetworkLoading {
     /* initialise receiving flows */
     initialiseReceivingFlows();
         
-    return true;
+    return true;    
   }
   
   //@formatter:off
@@ -854,14 +899,15 @@ public abstract class StaticLtmNetworkLoading {
         /* BASIC -> ADVANCED, e.g., activate local iterative updates of sending flows */
         this.solutionScheme = StaticLtmLoadingScheme.POINT_QUEUE_ADVANCED;
         
+        
         /* sending flows must be re-initialised since otherwise the sending flows of earlier non-tracked nodes have been reset to zero 
          * during earlier loading iterations, now they must be available for all tracked nodes, so we reinitialise by conducting a full initialisation based
          * on paths and most recent flow acceptance factors*/
         initialiseSendingFlows();
                 
-        /* Splitting rates must be re-initialised in this approach as well (happens automatically in called method via changed solution scheme): 
+        /* Splitting rates must be re-initialised in this approach as well, a different splitting rate data is created based on updated solution scheme 
          * Change from using only a small subset of nodes with splitting rates to tracking splitting rates for all used nodes */
-        initialiseSplittingRateData();        
+        initialiseNodeSplittingRateStatus();
       }else {
         /* no other extensions available, so deactivate any further extensions by maximising the offset */
         convergenceAnalyser.setMinIterationThreshold(Integer.MAX_VALUE);
@@ -921,6 +967,15 @@ public abstract class StaticLtmNetworkLoading {
    * Reset the network loading
    */
   public void reset() {
+    resetIteration();
+    this.splittingRateData.reset();    
+    this.prevIterationFinalSolutionScheme = solutionScheme;
+  }
+  
+  /**
+   * Reset the network loading for the next iteration
+   */
+  public void resetIteration() {
     /* flow data defaults to zero unless explicitly set */
     this.sendingFlowData.reset();
     this.receivingFlowData.reset();       
@@ -931,10 +986,13 @@ public abstract class StaticLtmNetworkLoading {
     this.flowAcceptanceGapFunction.reset();
     this.sendingFlowGapFunction.reset();
     this.receivingFlowGapFunction.reset();
-
+    
     this.convergenceAnalyser.reset();
-    this.solutionScheme = StaticLtmLoadingScheme.NONE;
-  }
+    
+    /* reset of solution scheme means updating the prevIteration solution scheme to the most recent solution scheme */
+    this.prevIterationFinalSolutionScheme = this.solutionScheme;
+    this.solutionScheme = StaticLtmLoadingScheme.NONE;    
+  }  
   
   
   /** Access to most recent flow acceptance factors (alphas)

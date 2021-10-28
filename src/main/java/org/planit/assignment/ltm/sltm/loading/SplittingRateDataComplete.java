@@ -30,7 +30,7 @@ public class SplittingRateDataComplete implements SplittingRateData {
    * Splitting rates per link segment (as different lengths Array1D), only activated link segments will have an actual instantiation of the splitting rate array to minimise memory
    * use. Also, we cannot have a typed array because Array1D has no public default constructor
    */
-  private final Object[] splittingRates;
+  private Object[] splittingRates;
 
   /**
    * Register splitting rates for entry segment
@@ -55,11 +55,11 @@ public class SplittingRateDataComplete implements SplittingRateData {
   }
 
   /**
-   * Activate a node so we are able to track its splitting rates (and turn flows) during loading
+   * Activate a node so we are able to track its splitting rates (and turn flows) during loading. It is regarded as both tracked and potentially blocking
    * 
    * @param trackedNode to start tracking turn flows and splitting rates for
    */
-  public void activateTrackedNode(DirectedVertex trackedNode) {
+  public void activateNode(DirectedVertex trackedNode) {
     int numberOfExitLinkSegments = trackedNode.getExitEdgeSegments().size();
     activatedNodes.add(trackedNode);
     for (EdgeSegment entrySegment : trackedNode.getEntryEdgeSegments()) {
@@ -98,6 +98,30 @@ public class SplittingRateDataComplete implements SplittingRateData {
   @SuppressWarnings("unchecked")
   public Array1D<Double> getSplittingRates(final EdgeSegment entrySegment) {
     return (Array1D<Double>) splittingRates[(int) entrySegment.getId()];
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void resetTrackedNodes() {
+    this.activatedNodes.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void resetPotentiallyBlockingNodes() {
+    resetTrackedNodes();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void resetSplittingRates() {
+    this.splittingRates = new Object[splittingRates.length];
   }
 
 }

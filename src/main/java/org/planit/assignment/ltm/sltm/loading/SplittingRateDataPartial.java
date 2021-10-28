@@ -62,7 +62,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
    * 
    * @param potentiallyBlockingNode mark as potentially blocking (and track it if not already done so)
    */
-  public void registerPotentiallyBlockingNode(DirectedVertex potentiallyBlockingNode) {
+  public void registerPotentiallyBlockingNode(final DirectedVertex potentiallyBlockingNode) {
     int id = (int) potentiallyBlockingNode.getId();
     if (!potentiallyBlockingNodes.get(id)) {
       potentiallyBlockingNodes.set(id);
@@ -75,7 +75,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
    * 
    * @param trackNode node to track splitting rates and (turn) sending flows for
    */
-  public void registerTrackedNode(DirectedVertex trackNode) {
+  public void registerTrackedNode(final DirectedVertex trackNode) {
     if (!trackedNodes.contains(trackNode)) {
       trackedNodes.add(trackNode);
       for (EdgeSegment entrySegment : trackNode.getEntryEdgeSegments()) {
@@ -88,7 +88,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
    * {@inheritDoc}
    */
   @Override
-  public boolean isTracked(DirectedVertex nodeToVerify) {
+  public boolean isTracked(final DirectedVertex nodeToVerify) {
     return trackedNodes.contains(nodeToVerify);
   }
 
@@ -96,7 +96,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
    * {@inheritDoc}
    */
   @Override
-  public boolean isPotentiallyBlocking(DirectedVertex nodeToVerify) {
+  public boolean isPotentiallyBlocking(final DirectedVertex nodeToVerify) {
     return potentiallyBlockingNodes.get((int) nodeToVerify.getId());
   }
 
@@ -112,8 +112,32 @@ public class SplittingRateDataPartial implements SplittingRateData {
    * {@inheritDoc}
    */
   @Override
-  public Array1D<Double> getSplittingRates(EdgeSegment entrySegment) {
+  public Array1D<Double> getSplittingRates(final EdgeSegment entrySegment) {
     return splittingRates.get(HashUtils.createCombinedHashCode(entrySegment.getDownstreamVertex().getId(), entrySegment.getId()));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void resetTrackedNodes() {
+    trackedNodes.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void resetPotentiallyBlockingNodes() {
+    potentiallyBlockingNodes.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void resetSplittingRates() {
+    splittingRates.clear();
   }
 
 }
