@@ -248,7 +248,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     final double totalModeSystemTravelTime = ArrayUtils.dotProduct(currentModeData.getCurrentSegmentFlows(), modalNetworkSegmentCosts, getTotalNumberOfNetworkSegments());
 
     final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
-    dualityGapFunction.increaseMeasuredNetworkCost(totalModeSystemTravelTime);
+    dualityGapFunction.increaseMeasuredCost(totalModeSystemTravelTime);
     applySmoothing(mode, currentModeData);
   }
 

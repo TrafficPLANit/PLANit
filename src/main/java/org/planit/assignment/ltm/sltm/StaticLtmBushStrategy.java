@@ -16,7 +16,6 @@ import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingBush;
 import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.planit.gap.GapFunction;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
-import org.planit.gap.consumer.LinkBasedRelativeGapMinCostUpdate;
 import org.planit.interactor.TrafficAssignmentComponentAccessee;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.od.demand.OdDemands;
@@ -28,7 +27,6 @@ import org.planit.utils.id.IdGroupingToken;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.mode.Mode;
 import org.planit.utils.zoning.OdZone;
-import org.planit.utils.zoning.OdZones;
 import org.planit.zoning.Zoning;
 
 /**
@@ -212,9 +210,6 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
     List<Pas> newPass = new ArrayList<Pas>();
 
     final OneToAllShortestPathAlgorithm networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
-    final OdZones odZones = this.getTransportNetwork().getZoning().getOdZones();
-    final LinkBasedRelativeGapMinCostUpdate minGapUpdateConsumer = new LinkBasedRelativeGapMinCostUpdate(
-        (LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class));
 
     for (int index = 0; index < originBushes.length; ++index) {
       Bush originBush = originBushes[index];
@@ -225,10 +220,6 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
 
         /* network min-paths */
         ShortestPathResult networkMinPaths = networkShortestPathAlgo.executeOneToAll(originBush.getOrigin().getCentroid());
-
-        /* update min-cost OD convexity bound on gap function */
-        minGapUpdateConsumer.updateOrigin(originBush.getOrigin(), networkMinPaths);
-        getOdDemands().forEachNonZeroDestinationDemand(odZones, originBush.getOrigin(), minGapUpdateConsumer);
 
         /* find (new) matching PASs */
         for (Iterator<DirectedVertex> bushVertexIter = originBush.getDirectedVertexIterator(); bushVertexIter.hasNext();) {
@@ -348,13 +339,14 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
       /* PAS COST UPDATE*/
       pasManager.updateCosts(costsToUpdate);
     
-      /* (NEW) PAS MATCHING FOR BUSHES + UPDATE MIN COST GAP*/
+      /* (NEW) PAS MATCHING FOR BUSHES */
       Collection<Pas> newPass = extendBushes(costsToUpdate);      
       pasManager.updateCosts(newPass, costsToUpdate);      
             
-      /* PAS/BUSH FLOW SHIFTS */
+      /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
       final Smoothing smoothing = getTrafficAssignmentComponent(Smoothing.class);
-      pasManager.shiftFlows(getLoading(), smoothing);      
+      LinkBasedRelativeDualityGapFunction gapfunction = (LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class);
+      pasManager.shiftFlows(getLoading(), smoothing, gapfunction);      
       
     }catch(Exception e) {
       LOGGER.severe(e.getMessage());

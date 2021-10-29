@@ -10,10 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.planit.algorithms.shortestpath.ShortestPathResult;
 import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingBush;
+import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.directed.DirectedVertex;
@@ -113,6 +115,25 @@ public class PasManager {
    */
   private void removePas(final Pas pas) {
     passByMergeVertex.get(pas.getMergeVertex()).remove(pas);
+  }
+
+  /**
+   * Update gap. Unconventional gap function where we update the GAP based on PAS cost discrepancy. This is due to the impossibility of efficiently determining the network and
+   * minimum path costs in a capacity constrained bush based setting. Instead we:
+   * <p>
+   * minimumCost PAS : s1 cost * SUM(s1 sending flow, s2 sending flow) measuredCost PAS: s1 sending flow * s1 cost + s2 sending flow * s2 cost
+   * <p>
+   * Sum the above over all PASs. Note that PASs can (partially) overlap, so the measured cost does likely not add up to the network cost
+   * 
+   * @param gapFunction   to use
+   * @param pas           to compute for
+   * @param s1SendingFlow of the PAS s1 segment
+   * @param s2SendingFlow of the PAS s2 segment
+   */
+  private void updateGap(final LinkBasedRelativeDualityGapFunction gapFunction, final Pas pas, double s1SendingFlow, double s2SendingFlow) {
+    gapFunction.increaseConvexityBound(pas.getAlternativeLowCost() * (s1SendingFlow + s2SendingFlow));
+    gapFunction.increaseMeasuredCost(s1SendingFlow * pas.getAlternativeLowCost());
+    gapFunction.increaseMeasuredCost(s2SendingFlow * pas.getAlternativeHighCost());
   }
 
   /**
@@ -307,15 +328,18 @@ public class PasManager {
   }
 
   /**
-   * Shift flows based on the registered PASs and their origins
+   * Shift flows based on the registered PASs and their origins.
    * 
    * @param staticLtmNetworkLoading to obtain current flows on high cost PAS segments from
    * @param smoothing               to use when determining the desired flow shift to apply
+   * @param gapFunction             to use to update the gap information in this iteration based on PAS high and low cost segments
    * @return true when at least some flows were shifted, false otherwise
    */
-  public boolean shiftFlows(final StaticLtmLoadingBush networkLoading, final Smoothing smoothing) {
+  public boolean shiftFlows(final StaticLtmLoadingBush networkLoading, final Smoothing smoothing, final LinkBasedRelativeDualityGapFunction gapFunction) {
     boolean flowShifted = false;
     List<Pas> passWithoutOrigins = new ArrayList<Pas>();
+
+    Predicate<EdgeSegment> firstCongestedLinkSegment = es -> networkLoading.getCurrentFlowAcceptanceFactors()[(int) es.getId()] < 1;
 
     /**
      * Sort all PAss by their reduced cost ensuring we shift flows from the most attractive shift towards the least where we exclude all link segments of a processed PAS such that
@@ -324,16 +348,50 @@ public class PasManager {
     BitSet linkSegmentsUsed = new BitSet(networkLoading.getCurrentInflowsPcuH().length);
     PriorityQueue<Pas> sortedPass = getPassSortedByReducedCost();
     for (Pas pas : sortedPass) {
+
+      /* determine the network flow on the high cost subpath */
+      double s2ShiftableFlow = networkLoading.computeSubPathSendingFlow(pas.getDivergeVertex(), pas.getMergeVertex(), pas.getAlternative(false /* highCost */));
+
+      { // gap function update
+        double s1SendingFlow = networkLoading.computeSubPathSendingFlow(pas.getDivergeVertex(), pas.getMergeVertex(), pas.getAlternative(true /* low cost */));
+        updateGap(gapFunction, pas, s1SendingFlow, s2ShiftableFlow);
+      }
+
       if (pas.containsAny(linkSegmentsUsed)) {
         continue;
       }
-      /* unused PAS (no flows shifted yet) in this iteration */
+      /* untouched PAS (no flows shifted yet) in this iteration */
 
-      /* determine the network flow on the high cost subpath */
-      double subPathTotalShiftableFlow = networkLoading.computeSubPathSendingFlow(pas.getDivergeVertex(), pas.getMergeVertex(), pas.getAlternative(false /* highCost */));
       /* DUMB approach -> shift all of it smoothed by MSA */
-      double flowshift = smoothing.execute(0, subPathTotalShiftableFlow);
-      boolean pasFlowShifted = pas.executeFlowShift(subPathTotalShiftableFlow, flowshift, networkLoading.getCurrentFlowAcceptanceFactors());
+      double flowshift = smoothing.execute(0, s2ShiftableFlow);
+
+      // BELOW IS EXPERIMENTAL --> WHEN IT WORKS -> CREATE DEDICATED SMOOTHING FOR IT
+
+      // since we are looking for: tauw_s1 + dtauw_s1/ds_1 * (delta_s) = tauw_s2 + dtauw_s2/ds_2 * (delta_s)
+      // we find:
+      // delta_s = tauw_s2-tauw_s1/(1/v_s2_first_bottleneck - 1/v_s1_first_bottleneck))
+
+      // TODO: 1) run it like this, it seems to trigger a never ending loop in the node model, fix that first
+      // 2) 1 should probably be 1/2*T and not hard coded (in h)
+      // 3) when one of the alternatives has no blockage, we should move a fixed amount, possibly based on MSA
+      // OR we move all of it and run local node updates to at least see if it fits. If it does not, use the new
+      // alpha on the now congested segment to do one more step and then stop?
+      double numerator = pas.getAlternativeHighCost() - pas.getAlternativeLowCost();
+      EdgeSegment firstS2CongestedLinkSegment = pas.matchFirst(false /* high cost */, firstCongestedLinkSegment);
+      EdgeSegment firstS1CongestedLinkSegment = pas.matchFirst(true, /* low cost */ firstCongestedLinkSegment);
+      double denominatorS2 = 0;
+      if (firstS2CongestedLinkSegment != null) {
+        denominatorS2 = 1 / networkLoading.getCurrentOutflowsPcuH()[(int) firstS2CongestedLinkSegment.getId()];
+      }
+      double denominatorS1 = 0;
+      if (firstS1CongestedLinkSegment != null) {
+        denominatorS1 = 1 / networkLoading.getCurrentOutflowsPcuH()[(int) firstS1CongestedLinkSegment.getId()];
+      }
+      flowshift = numerator / (denominatorS2 - denominatorS1);
+
+      double diff = (pas.getAlternativeLowCost() + denominatorS1 * flowshift) - (pas.getAlternativeHighCost() + denominatorS2 * -flowshift);
+
+      boolean pasFlowShifted = pas.executeFlowShift(s2ShiftableFlow, flowshift, networkLoading.getCurrentFlowAcceptanceFactors());
       if (!pas.hasOrigins()) {
         passWithoutOrigins.add(pas);
       }

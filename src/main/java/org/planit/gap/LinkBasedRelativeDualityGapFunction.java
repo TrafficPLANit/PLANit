@@ -71,7 +71,7 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    * 
    * @param value increase
    */
-  public void increaseMeasuredNetworkCost(double value) {
+  public void increaseMeasuredCost(double value) {
     measuredNetworkCost += value;
   }
 

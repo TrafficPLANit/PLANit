@@ -74,7 +74,6 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    */
   private Calendar logBasicIterationInformation(final Calendar startTime, final LinkBasedRelativeDualityGapFunction gapFunction) {
     final Calendar currentTime = Calendar.getInstance();
-    LOGGER.info(String.format("%sNetwork cost: %.2f (pcu-hours)", createLoggingPrefix(getIterationIndex()), gapFunction.getMeasuredNetworkCost()));
     LOGGER.info(String.format("%sGap: %.10f (%d ms)", createLoggingPrefix(getIterationIndex()), gapFunction.getGap(), currentTime.getTimeInMillis() - startTime.getTimeInMillis()));
     return currentTime;
   }

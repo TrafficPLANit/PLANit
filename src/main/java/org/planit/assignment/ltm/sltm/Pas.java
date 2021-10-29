@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.planit.algorithms.shortestpath.ShortestPathResult;
@@ -115,7 +116,7 @@ public class Pas {
    * Shift flows for this PAS given the currently known costs and smoothing procedure to apply
    * 
    * @param networkS2FlowPcuH     total flow currently using the high cost alternative
-   * @param flowShiftPcuH         amount to shift
+   * @param flowShiftPcuH         amount to shift from high cost to low cost segment
    * @param flowAcceptanceFactors to use
    * @return true when flow shifted, false otherwise
    */
@@ -452,6 +453,23 @@ public class Pas {
    */
   public double getReducedCost() {
     return s2Cost - s1Cost;
+  }
+
+  /**
+   * Match first link segment of PAS segment to predicate provided
+   * 
+   * @param lowCostSegment when true apply on s1, otherwise on s2
+   * @param predicate      to test
+   * @return edge segment that matches, null if none matches
+   */
+  public EdgeSegment matchFirst(boolean lowCostSegment, Predicate<EdgeSegment> predicate) {
+    EdgeSegment[] alternative = getAlternative(lowCostSegment);
+    for (int index = 0; index < alternative.length; ++index) {
+      if (predicate.test(alternative[index])) {
+        return alternative[index];
+      }
+    }
+    return null;
   }
 
 }

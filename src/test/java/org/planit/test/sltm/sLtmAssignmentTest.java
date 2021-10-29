@@ -240,6 +240,7 @@ public class sLtmAssignmentTest {
 
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_6);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(100000);
       sLTM.execute();
 
     } catch (Exception e) {

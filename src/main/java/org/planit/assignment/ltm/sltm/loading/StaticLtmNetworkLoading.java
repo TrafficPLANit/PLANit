@@ -612,7 +612,7 @@ public abstract class StaticLtmNetworkLoading {
    * 1. Initial acceptance flow, capacity, and storage factors, all set to one  
    * 2. Initial in/outflows via network loading Eq. (3)-(4) in paper: unconstrained network loading
    * 3. Initial sending and receiving flows: s_a=u_a, r_a=capacity_a for all link segments a
-   * 4. Set iteration number to one (to be done exogneously)
+   * 4. Set iteration number to one (to be done exogenously)
    * (Extension A):  
    * 5. Restrict receiving flows to storage capacity Eq. (8) - only relevant when storage capacity is activated
    *   

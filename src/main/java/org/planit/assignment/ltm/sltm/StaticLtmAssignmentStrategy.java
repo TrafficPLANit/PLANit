@@ -6,8 +6,6 @@ import org.planit.assignment.ltm.sltm.loading.SplittingRateData;
 import org.planit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.planit.cost.physical.AbstractPhysicalCost;
 import org.planit.cost.virtual.AbstractVirtualCost;
-import org.planit.gap.GapFunction;
-import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.TrafficAssignmentComponentAccessee;
 import org.planit.network.MacroscopicNetwork;
 import org.planit.network.transport.TransportModelNetwork;
@@ -61,25 +59,6 @@ public abstract class StaticLtmAssignmentStrategy {
 
   /** the user configured traffic assignment components used */
   private final TrafficAssignmentComponentAccessee taComponents;
-
-  /**
-   * Based on the provided costs we update the network costs portion on the gap function. This is agnostic to the the applied strategy as it is simply a multiplication of the link
-   * segment costs with the demand traversing the link
-   * 
-   * @param theMode                 these costs apply to
-   * @param networkLinkSegmentCosts
-   */
-  private void executeGapNetworkCostsUpdate(final Mode theMode, final double[] networkLinkSegmentCosts) {
-    LinkBasedRelativeDualityGapFunction gapFunction = ((LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class));
-    double[] inflowsPcuH = getLoading().getCurrentInflowsPcuH();
-
-    /* flows and costs structured in array, simply use synchronised index, no need to relate to link segments explicitly */
-    int numberOfEdgeSegments = networkLinkSegmentCosts.length;
-    for (int index = 0; index < numberOfEdgeSegments; ++index) {
-      gapFunction.increaseMeasuredNetworkCost(networkLinkSegmentCosts[index] * inflowsPcuH[index]);
-    }
-
-  }
 
   /**
    * The transport model network used
@@ -310,9 +289,6 @@ public abstract class StaticLtmAssignmentStrategy {
       physicalCost.populateWithCost(getInfrastructureNetwork().getLayerByMode(theMode), theMode, costsToUpdate);
 
     }
-
-    /* use the provided costs to update the current state of the network costs to compare against the potential min costs for the gap */
-    executeGapNetworkCostsUpdate(theMode, costsToUpdate);
   }
 
   /**
