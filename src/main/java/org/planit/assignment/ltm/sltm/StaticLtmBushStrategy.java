@@ -1,12 +1,16 @@
 package org.planit.assignment.ltm.sltm;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
+import org.ojalgo.array.Array1D;
 import org.planit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.planit.algorithms.shortestpath.MinMaxPathResult;
 import org.planit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
@@ -14,18 +18,24 @@ import org.planit.algorithms.shortestpath.ShortestPathResult;
 import org.planit.assignment.ltm.sltm.consumer.InitialiseBushEdgeSegmentDemandConsumer;
 import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingBush;
 import org.planit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
+import org.planit.cost.physical.AbstractPhysicalCost;
+import org.planit.cost.physical.PhysicalCost;
+import org.planit.cost.virtual.AbstractVirtualCost;
+import org.planit.cost.virtual.VirtualCost;
 import org.planit.gap.GapFunction;
 import org.planit.gap.LinkBasedRelativeDualityGapFunction;
 import org.planit.interactor.TrafficAssignmentComponentAccessee;
 import org.planit.network.transport.TransportModelNetwork;
 import org.planit.od.demand.OdDemands;
-import org.planit.sdinteraction.smoothing.Smoothing;
 import org.planit.utils.exceptions.PlanItException;
 import org.planit.utils.graph.EdgeSegment;
 import org.planit.utils.graph.directed.DirectedVertex;
 import org.planit.utils.id.IdGroupingToken;
+import org.planit.utils.math.Precision;
 import org.planit.utils.misc.Pair;
 import org.planit.utils.mode.Mode;
+import org.planit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.planit.utils.network.virtual.ConnectoidSegment;
 import org.planit.utils.zoning.OdZone;
 import org.planit.zoning.Zoning;
 
@@ -45,6 +55,176 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
 
   /** track all unique PASs */
   private final PasManager pasManager;
+
+  /**
+   * Update gap. Unconventional gap function where we update the GAP based on PAS cost discrepancy. This is due to the impossibility of efficiently determining the network and
+   * minimum path costs in a capacity constrained bush based setting. Instead we:
+   * <p>
+   * minimumCost PAS : s1 cost * SUM(s1 sending flow, s2 sending flow) measuredCost PAS: s1 sending flow * s1 cost + s2 sending flow * s2 cost
+   * <p>
+   * Sum the above over all PASs. Note that PASs can (partially) overlap, so the measured cost does likely not add up to the network cost
+   * 
+   * @param gapFunction   to use
+   * @param pas           to compute for
+   * @param s1SendingFlow of the PAS s1 segment
+   * @param s2SendingFlow of the PAS s2 segment
+   */
+  private void updateGap(final LinkBasedRelativeDualityGapFunction gapFunction, final Pas pas, double s1SendingFlow, double s2SendingFlow) {
+    gapFunction.increaseConvexityBound(pas.getAlternativeLowCost() * (s1SendingFlow + s2SendingFlow));
+    gapFunction.increaseMeasuredCost(s1SendingFlow * pas.getAlternativeLowCost());
+    gapFunction.increaseMeasuredCost(s2SendingFlow * pas.getAlternativeHighCost());
+  }
+
+  /**
+   * For the given PAS determine the amount of slack flow on its cheaper alternative, i.e., the minimum difference between the link outflow rate and the capacity across all its
+   * link segments, including the link segments beyond its alternative it is directing the flows to. It is assumed the cheap cost alternative of the PAS has already been found to
+   * be uncongested and as such should have a zero or higher slack flow.
+   * <p>
+   * In the special case that it passes through (or directs to) a segment that is at capacity (due to for example one or more of its other in-links being congested), then we return
+   * a slack capacity of zero. In that case the caller of this method should likely still move some flow, but must assume that all shifted flow immediately causes congestion
+   * 
+   * 
+   * @param pas            PAS to determine slack for
+   * @param networkLoading to collect outflow rates from
+   * @return pair of slack flow and slack capacity ratio
+   */
+  private double determineSlackFlow(Pas pas, StaticLtmLoadingBush networkLoading) {
+    EdgeSegment lastS2Segment = pas.getLastEdgeSegment(false);
+    double slackFlow = Double.POSITIVE_INFINITY;
+
+    if (networkLoading.getCurrentFlowAcceptanceFactors()[(int) lastS2Segment.getId()] < 1) {
+      /*
+       * s1 directs towards congested outlink(s) not part of its segment. Hence, the slack flow for s2 is zero as well as it will direct towards these out segments. Due to lack of
+       * information we must assume all flow added to s1 will immediately cause congestion on s1 (worst case)
+       */
+      return 0;
+    } else {
+      Array1D<Double> splittingRates = networkLoading.getSplittingRateData().getSplittingRates(lastS2Segment);
+      int index = 0;
+      for (EdgeSegment exitSegment : lastS2Segment.getDownstreamVertex().getExitEdgeSegments()) {
+        double splittingRate = splittingRates.get(index);
+        if (splittingRate > 0) {
+          /* since only a portion is directed to this out link, we can multiple the slack with the reciprocal of the splitting rate */
+          double scaledSlackFlow = (1 / splittingRate) * ((MacroscopicLinkSegment) exitSegment).getCapacityOrDefaultPcuH()
+              - networkLoading.getCurrentOutflowsPcuH()[(int) exitSegment.getId()];
+          slackFlow = Math.min(slackFlow, scaledSlackFlow);
+        }
+        ++index;
+      }
+    }
+
+    EdgeSegment[] s1 = pas.getAlternative(true);
+    MacroscopicLinkSegment linkSegment = null;
+    for (int index = 0; index < s1.length; ++index) {
+      linkSegment = (MacroscopicLinkSegment) s1[index];
+      double currSlackflow = linkSegment.getCapacityOrDefaultPcuH() - networkLoading.getCurrentOutflowsPcuH()[(int) linkSegment.getId()];
+      if (Precision.isSmaller(currSlackflow, slackFlow)) {
+        slackFlow = currSlackflow;
+      }
+    }
+
+    return slackFlow;
+  }
+
+  /**
+   * For the given PAS determine the flow shift to apply from the high cost to the low cost segment. Depending on the state of the segments we utilise their derivatives of travel
+   * time towards flow to determine the optimal shift. In case one or both segments are uncongested, we shift as much as possible conditional on the available slack for when we
+   * would expect the segment to transition to congestion.
+   * 
+   * @param pas                       to determine shift for
+   * @param s2ShiftableFlow           maximum shiftable flow
+   * @param theMode                   we're considering
+   * @param physicalCost              to use (for performance)
+   * @param virtualCost               to use (for performance)
+   * @param networkLoading            to use (for performance)
+   * @param firstCongestedLinkSegment to use (for performance)
+   * @return amount of flow to shift
+   */
+  private double determineFlowShift(final Pas pas, double s2ShiftableFlow, final Mode theMode, final PhysicalCost physicalCost, final VirtualCost virtualCost,
+      final StaticLtmLoadingBush networkLoading, Predicate<EdgeSegment> firstCongestedLinkSegment) {
+
+    // OLD
+//  {
+//    /* DUMB approach -> shift all of it smoothed by MSA */
+//    return getTrafficAssignmentComponent(Smoothing.class).execute(0, s2ShiftableFlow);
+//  }
+
+    // NEW
+
+    double flowShift = s2ShiftableFlow;
+
+    /* obtain derivatives of traveltime towards flow for PAS segments. */
+    // TODO: Currently requires instanceof, so benchmark if not too slow
+    double denominatorS2 = 0;
+    double denominatorS1 = 0;
+    {
+      EdgeSegment firstS2CongestedLinkSegment = pas.matchFirst(false /* high cost */, firstCongestedLinkSegment);
+      EdgeSegment firstS1CongestedLinkSegment = pas.matchFirst(true, /* low cost */ firstCongestedLinkSegment);
+
+      if (firstS1CongestedLinkSegment == null) {
+        // cheap option not congested, derivative of zero
+        denominatorS1 = 0;
+      } else {
+        if (firstS1CongestedLinkSegment instanceof MacroscopicLinkSegment) {
+          denominatorS1 = physicalCost.getDTravelTimeDFlow(false, theMode, (MacroscopicLinkSegment) firstS1CongestedLinkSegment);
+        } else if (firstS1CongestedLinkSegment instanceof ConnectoidSegment) {
+          denominatorS1 = virtualCost.getDTravelTimeDFlow(false, theMode, (ConnectoidSegment) firstS1CongestedLinkSegment);
+        }
+      }
+
+      /* cheap option congested, determine flow shift based on its derivative towards travel time: We are equating the travel times between segments: */
+      // tauw_s1 + dtauw_s1/ds_1 * (-flowShift) = tauw_s2 + dtauw_s2/ds_2 * (flowShift) we find:
+      // flowShift = (tauw_s2-tauw_s1)/(1/v_s1_first_bottleneck + 1/v_s2_first_bottleneck))
+
+      if (firstS2CongestedLinkSegment == null) {
+        /* expensive option not congested, derivative of zero */
+        denominatorS2 = 0;
+      } else {
+        if (firstS2CongestedLinkSegment instanceof MacroscopicLinkSegment) {
+          denominatorS2 = physicalCost.getDTravelTimeDFlow(false, theMode, (MacroscopicLinkSegment) firstS2CongestedLinkSegment);
+        } else if (firstS2CongestedLinkSegment instanceof ConnectoidSegment) {
+          denominatorS2 = virtualCost.getDTravelTimeDFlow(false, theMode, (ConnectoidSegment) firstS2CongestedLinkSegment);
+        }
+      }
+
+      double denominator = denominatorS2 + denominatorS1;
+      if (!Precision.isPositive(denominator)) {
+        /* neither alternative is congested, determine flow shift via slack */
+        double slackFlow = determineSlackFlow(pas, networkLoading);
+        if (slackFlow < s2ShiftableFlow) {
+          /*
+           * We cannot shift all flow without having to assume part of it triggers congestion somewhere. We only partly shift the presumed congested portion of flow we would like
+           * to shift. Since we do not know the derivative of travel time since the congestion does not yet exists, we instead use the ratio of the low and high cost segments such
+           * that the closer the costs are to equilibrium, the less we shift, whereas if there is a big difference we shift more aggressively.
+           */
+          double assumedUncongestedShift = slackFlow;
+          double assumedCongestedShift = s2ShiftableFlow - slackFlow;
+          // TODO: replace by virtual derivative where we assume outflow rate of (s2Shiftableflow+slackFlow)
+          double appliedCongestedShiftPortion = (1 - pas.getAlternativeLowCost() / pas.getAlternativeHighCost());
+          flowShift = assumedUncongestedShift + assumedCongestedShift * appliedCongestedShiftPortion;
+        } else {
+          /* likely all remains uncongested when shifting, shift all */
+          // TODO: possibly too harsh, in case it flops to congestion, we could trigger flip-flopping, so likely some
+          // kind of smoothing is required
+          flowShift = s2ShiftableFlow;
+        }
+
+      } else {
+
+        double numerator = pas.getAlternativeHighCost() - pas.getAlternativeLowCost();
+        flowShift = numerator / denominator;
+
+        /* debug only, test if shift solves travel time discrepancy, to be removed when it works */
+        double diff = (pas.getAlternativeLowCost() + denominatorS1 * flowShift) - (pas.getAlternativeHighCost() + denominatorS2 * -flowShift);
+        if (Precision.isNotEqual(diff, 0.0)) {
+          LOGGER.severe("Computation of using derivatives to shift flows between PAS segments does not result in equal travel time after shift, this should not happen");
+        }
+      }
+    }
+
+    return Math.min(s2ShiftableFlow, flowShift);
+
+  }
 
   /**
    * Check if an existing PAS exists that terminates at the given (bush) merge vertex. If so, it is considered a match when:
@@ -261,6 +441,65 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
   }
 
   /**
+   * Shift flows based on the registered PASs and their origins.
+   * 
+   * @param theMode to use
+   * @return true when at least some flows were shifted, false otherwise
+   */
+  private boolean shiftFlows(final Mode theMode) {
+    boolean flowShifted = false;
+    List<Pas> passWithoutOrigins = new ArrayList<Pas>();
+
+    StaticLtmLoadingBush networkLoading = getLoading();
+    LinkBasedRelativeDualityGapFunction gapFunction = (LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class);
+    PhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
+    VirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
+
+    /* reused predicate */
+    Predicate<EdgeSegment> firstCongestedLinkSegment = es -> getLoading().getCurrentFlowAcceptanceFactors()[(int) es.getId()] < 1;
+
+    /**
+     * Sort all PAss by their reduced cost ensuring we shift flows from the most attractive shift towards the least where we exclude all link segments of a processed PAS such that
+     * no other PASs are allowed to shift flows if they overlap to avoid using inconsistent costs after a flow shift to or from a link segment
+     */
+    BitSet linkSegmentsUsed = new BitSet(networkLoading.getCurrentInflowsPcuH().length);
+    PriorityQueue<Pas> sortedPass = pasManager.getPassSortedByReducedCost();
+    for (Pas pas : sortedPass) {
+
+      /* determine the network flow on the high cost subpath */
+      double s2ShiftableFlow = networkLoading.computeSubPathSendingFlow(pas.getDivergeVertex(), pas.getMergeVertex(), pas.getAlternative(false /* highCost */));
+
+      { // gap function update
+        double s1SendingFlow = networkLoading.computeSubPathSendingFlow(pas.getDivergeVertex(), pas.getMergeVertex(), pas.getAlternative(true /* low cost */));
+        updateGap(gapFunction, pas, s1SendingFlow, s2ShiftableFlow);
+      }
+
+      if (pas.containsAny(linkSegmentsUsed)) {
+        continue;
+      }
+      /* untouched PAS (no flows shifted yet) in this iteration */
+
+      double flowShift = determineFlowShift(pas, s2ShiftableFlow, theMode, physicalCost, virtualCost, networkLoading, firstCongestedLinkSegment);
+
+      boolean pasFlowShifted = pas.executeFlowShift(s2ShiftableFlow, flowShift, networkLoading.getCurrentFlowAcceptanceFactors());
+      if (!pas.hasOrigins()) {
+        passWithoutOrigins.add(pas);
+      }
+
+      if (pasFlowShifted) {
+        pas.forEachEdgeSegment(true, (es) -> linkSegmentsUsed.set((int) es.getId()));
+        pas.forEachEdgeSegment(false, (es) -> linkSegmentsUsed.set((int) es.getId()));
+        flowShifted = true;
+      }
+    }
+
+    if (!passWithoutOrigins.isEmpty()) {
+      passWithoutOrigins.forEach((pas) -> pasManager.removePas(pas));
+    }
+    return flowShifted;
+  }
+
+  /**
    * Create bush based network loading implementation
    * 
    * @return created loading implementation supporting bush-based approach
@@ -344,9 +583,7 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
       pasManager.updateCosts(newPass, costsToUpdate);      
             
       /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
-      final Smoothing smoothing = getTrafficAssignmentComponent(Smoothing.class);
-      LinkBasedRelativeDualityGapFunction gapfunction = (LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class);
-      pasManager.shiftFlows(getLoading(), smoothing, gapfunction);      
+      shiftFlows(theMode);      
       
     }catch(Exception e) {
       LOGGER.severe(e.getMessage());

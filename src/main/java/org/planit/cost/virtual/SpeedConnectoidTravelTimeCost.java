@@ -79,7 +79,7 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * @return the travel time for this connectoid segment
    */
   @Override
-  public double getSegmentCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
+  public double getGeneralisedCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
     return connectoidSegment.getParentEdge().getLengthKm() / connectoidSpeed;
   }
 
@@ -89,7 +89,7 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
   @Override
   public void populateWithCost(final VirtualNetwork virtualNetwork, final Mode mode, double[] costToFill) throws PlanItException {
     for (ConnectoidSegment virtualSegment : virtualNetwork.getConnectoidSegments()) {
-      costToFill[(int) virtualSegment.getId()] = getSegmentCost(mode, virtualSegment);
+      costToFill[(int) virtualSegment.getId()] = getGeneralisedCost(mode, virtualSegment);
     }
   }
 
@@ -107,6 +107,22 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
   @Override
   public void reset() {
     // Chosen speed is considered configuration not internal state, so upon resetting the chosen speed remains in tact
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getTravelTimeCost(Mode mode, ConnectoidSegment connectoidSegment) {
+    return getGeneralisedCost(mode, connectoidSegment);
+  }
+
+  /**
+   * Fixed, so derivative is always zero
+   */
+  @Override
+  public double getDTravelTimeDFlow(boolean uncongested, Mode mode, ConnectoidSegment connectoidSegment) {
+    return 0.0;
   }
 
 }

@@ -378,7 +378,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    */
   private void populateModalConnectoidCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
     for (final ConnectoidSegment currentSegment : getTransportNetwork().getVirtualNetwork().getConnectoidSegments()) {
-      currentSegmentCosts[(int) currentSegment.getId()] = getVirtualCost().getSegmentCost(mode, currentSegment);
+      currentSegmentCosts[(int) currentSegment.getId()] = getVirtualCost().getGeneralisedCost(mode, currentSegment);
     }
   }
 
@@ -446,7 +446,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    */
   private void populateCost(Cost<MacroscopicLinkSegment> cost, final Mode mode, final double[] costsToPopulate) throws PlanItException {
     for (final MacroscopicLinkSegment linkSegment : networkLayer.getLinkSegments()) {
-      double currentSegmentCost = cost.getSegmentCost(mode, linkSegment);
+      double currentSegmentCost = cost.getGeneralisedCost(mode, linkSegment);
       if (currentSegmentCost < 0.0) {
         throw new PlanItException(String.format("link segment cost is negative for link segment %d (id: %d)", linkSegment.getExternalId(), linkSegment.getId()));
       }

@@ -88,7 +88,7 @@ public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysica
    * @param linkSegment the current link segment
    * @return cost the initial cost for this mode and link segment
    */
-  public abstract double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment);
+  public abstract double getGeneralisedCost(final Mode mode, final MacroscopicLinkSegment linkSegment);
 
   /**
    * get the initial cost for a specified mode and link segment

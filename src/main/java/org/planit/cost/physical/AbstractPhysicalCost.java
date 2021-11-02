@@ -51,7 +51,7 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
    */
   public void populateWithCost(final UntypedPhysicalLayer<?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
     for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
-      costToFill[(int) linkSegment.getId()] = getSegmentCost(mode, (MacroscopicLinkSegment) linkSegment);
+      costToFill[(int) linkSegment.getId()] = getGeneralisedCost(mode, (MacroscopicLinkSegment) linkSegment);
     }
   }
 

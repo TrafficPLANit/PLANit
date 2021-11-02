@@ -81,7 +81,7 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * {@inheritDoc}
    */
   @Override
-  public double getSegmentCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
+  public double getGeneralisedCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
     return fixedConnectoidCost;
   }
 
@@ -109,5 +109,21 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
   @Override
   public void reset() {
     // Chosen cost is considered configuration not internal state, so do nothing
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getTravelTimeCost(Mode mode, ConnectoidSegment connectoidSegment) {
+    return getGeneralisedCost(mode, connectoidSegment);
+  }
+
+  /**
+   * fixed cost so derivative is always zero
+   */
+  @Override
+  public double getDTravelTimeDFlow(boolean uncongested, Mode mode, ConnectoidSegment connectoidSegment) {
+    return 0.0;
   }
 }

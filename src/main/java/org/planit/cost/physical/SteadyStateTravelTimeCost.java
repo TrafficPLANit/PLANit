@@ -169,7 +169,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    *
    */
   @Override
-  public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
+  public double getGeneralisedCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
     double inflow = accessee.getLinkSegmentInflowPcuHour(linkSegment);
     double outflow = accessee.getLinkSegmentOutflowPcuHour(linkSegment);
 
@@ -217,6 +217,48 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   public void reset() {
     this.freeFlowTravelTimePerLinkSegment = null;
     this.linkSegmentFundamentalDiagrams = null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getTravelTimeCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
+    return getGeneralisedCost(mode, linkSegment);
+  }
+
+  /**
+   * First Derivative towards inflowRate. HypocriticalDelay is FD dependent. HyperCritical delay equates to (timePeriod duration/2) * (1/outflowRate).
+   * 
+   * {@inheritDoc}
+   */
+  @Override
+  public double getDTravelTimeDFlow(boolean uncongested, Mode mode, MacroscopicLinkSegment linkSegment) {
+    double outflowRatePcuH = accessee.getLinkSegmentOutflowPcuHour(linkSegment);
+
+    int linkSegmentId = (int) linkSegment.getLinkSegmentId();
+    FundamentalDiagram fd = linkSegmentFundamentalDiagrams[linkSegmentId];
+
+    /* hypo critical delay derivative */
+    if (uncongested) {
+      if (fd.getFreeFlowBranch().isLinear()) {
+        // 0 -> linear free flow branch
+        return 0.0;
+      } else {
+        LOGGER.severe("Steady state travel time implementation does not yet support derivative of hypocritical delay on non-linear uncongested FD branches");
+        throw new RuntimeException("Unable to continue due to error in Steady State travel time cost computation");
+      }
+    }
+    /* hyperCriticalDelay derivative */
+    else {
+      if (Precision.isPositive(outflowRatePcuH)) {
+        /* congested derivative (T/2)*(1/v) */
+        return 0.5 * currentTimePeriodHours / outflowRatePcuH;
+      } else {
+        /* avoid division by zero, if no outflow rate but congested, it is undesirable to use this link, we return infinity */
+        return Double.POSITIVE_INFINITY;
+      }
+    }
   }
 
 }

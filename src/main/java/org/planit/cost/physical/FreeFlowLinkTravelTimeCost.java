@@ -66,8 +66,24 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
    *
    */
   @Override
-  public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
+  public double getGeneralisedCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
     return linkSegment.computeFreeFlowTravelTimeHour(mode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getTravelTimeCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
+    return getGeneralisedCost(mode, linkSegment);
+  }
+
+  /**
+   * Derivative of free flow travel time is zero
+   */
+  @Override
+  public double getDTravelTimeDFlow(boolean uncongested, final Mode mode, final MacroscopicLinkSegment linkSegment) {
+    return 0.0;
   }
 
   /**

@@ -81,7 +81,7 @@ public class TampereNodeModel implements NodeModel {
       double sumScaledTurnSendingFlows = scaledRemainingTurnSendingFlows.aggregateColumn(outLinkSegmentIndex, Aggregator.SUM).doubleValue();
 
       // Only non-zero flows can lead to a restriction
-      if (Precision.isGreaterEqual(sumScaledTurnSendingFlows, Precision.EPSILON_6)) {
+      if (Precision.isPositive(sumScaledTurnSendingFlows)) {
         // compute factor: remaining R_b for unprocessed b / SUM of lambda_a*t_ab
         double currentOutgoingRestrictionFactor = remainingReceivingFlow / sumScaledTurnSendingFlows;
         if (currentOutgoingRestrictionFactor < foundRestrictionFactor) {

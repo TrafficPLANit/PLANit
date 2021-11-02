@@ -58,6 +58,9 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
      * @param beta  BPR beta value
      */
     private void registerParameters(final Mode mode, final double alpha, final double beta) {
+      if (beta < 1) {
+        LOGGER.warning(String.format("BPR Beta parameter smaller than 1 (%.2f), unlikely choice", mode.getXmlId(), beta));
+      }
       parametersMap.put(mode, Pair.of(alpha, beta));
     }
 
@@ -68,6 +71,9 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
      * @param pair Pair containing BPR alpha and beta values
      */
     private void registerParameters(final Mode mode, final Pair<Double, Double> pair) {
+      if (pair.second() < 1) {
+        LOGGER.warning(String.format("BPR Beta parameter smaller than one (%.2f), unlikely choice", mode.getXmlId(), pair.second()));
+      }
       parametersMap.put(mode, pair);
     }
 
@@ -298,8 +304,39 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @return the travel time for the current link (in hours)
    */
   @Override
-  public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
-    return computeCostInHours((MacroscopicLinkSegment) linkSegment, mode, linkVolumeAccessee.getLinkSegmentVolume(linkSegment));
+  public double getGeneralisedCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
+    return computeCostInHours(linkSegment, mode, linkVolumeAccessee.getLinkSegmentVolume(linkSegment));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getTravelTimeCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
+    return computeCostInHours(linkSegment, mode, linkVolumeAccessee.getLinkSegmentVolume(linkSegment));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getDTravelTimeDFlow(boolean uncongested /* not used */ , final Mode mode, final MacroscopicLinkSegment linkSegment) {
+    if (!linkSegment.isModeAllowed(mode)) {
+      return Double.MAX_VALUE;
+    }
+    final int id = (int) linkSegment.getId();
+
+    final double freeFlowTravelTime = freeFlowTravelTimePerLinkSegment[(int) mode.getId()][id];
+    final double capacity = linkSegment.getCapacityOrDefaultPcuH();
+
+    final Pair<Double, Double> alphaBetaParameters = bprParametersPerLinkSegment[id].getAlphaBetaParameters(mode);
+    final double alpha = alphaBetaParameters.first();
+    final double beta = alphaBetaParameters.second();
+
+    double currentFlow = linkVolumeAccessee.getLinkSegmentVolume(linkSegment);
+
+    // assumed beta > 1
+    return (beta - 1) * freeFlowTravelTime * alpha * Math.pow(currentFlow / capacity, beta - 1);
   }
 
   /**

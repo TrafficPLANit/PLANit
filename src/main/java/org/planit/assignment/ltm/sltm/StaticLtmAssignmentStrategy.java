@@ -274,9 +274,9 @@ public abstract class StaticLtmAssignmentStrategy {
 
         /* entry segments */
         networkLayer.getLinkSegments().forEachMatchingIdIn(trackedFlowNode.getEntryEdgeSegments(),
-            (es) -> costsToUpdate[(int) es.getId()] = physicalCost.getSegmentCost(theMode, (MacroscopicLinkSegment) es));
+            (es) -> costsToUpdate[(int) es.getId()] = physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) es));
         virtualLayer.getConnectoidSegments().forEachMatchingIdIn(trackedFlowNode.getEntryEdgeSegments(),
-            (es) -> costsToUpdate[(int) es.getId()] = virtualCost.getSegmentCost(theMode, (ConnectoidSegment) es));
+            (es) -> costsToUpdate[(int) es.getId()] = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es));
       }
     }
     /* OTHER -> all nodes (and attached links) are updated, update all costs */

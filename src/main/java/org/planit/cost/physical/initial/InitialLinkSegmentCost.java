@@ -47,7 +47,7 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
 
     double initialCost = Double.POSITIVE_INFINITY;
     if (present) {
-      initialCost = initialCostsByMode.getSegmentCost(mode, linkSegment);
+      initialCost = initialCostsByMode.getGeneralisedCost(mode, linkSegment);
       present = (initialCost != Double.POSITIVE_INFINITY);
     }
 
@@ -119,7 +119,7 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
    * @return the cost for this link segment and mode
    */
   @Override
-  public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
+  public double getGeneralisedCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
     return getSegmentCost(timePeriodAgnosticCosts, mode, linkSegment);
   }
 
@@ -208,6 +208,23 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
   public void reset() {
     timePeriodAgnosticCosts.reset();
     timePeriodCosts.forEach((k, v) -> v.reset());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getTravelTimeCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
+    return getGeneralisedCost(mode, linkSegment);
+  }
+
+  /**
+   * Not supported returns -infinity for all calls and logs severe warning
+   */
+  @Override
+  public double getDTravelTimeDFlow(boolean uncongested, final Mode mode, final MacroscopicLinkSegment linkSegment) {
+    LOGGER.severe("Initial cost has no derivative, unable to compute");
+    return Double.NEGATIVE_INFINITY;
   }
 
 }

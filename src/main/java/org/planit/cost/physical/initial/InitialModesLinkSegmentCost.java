@@ -59,7 +59,7 @@ public class InitialModesLinkSegmentCost implements Cloneable, Cost<MacroscopicL
    * @return the cost for this link segment and mode
    */
   @Override
-  public double getSegmentCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
+  public double getGeneralisedCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
     final Map<Long, Double> costPerLinkSegment = costPerModeAndLinkSegment.get(mode);
     if (costPerLinkSegment == null) {
       return Double.POSITIVE_INFINITY;
@@ -116,6 +116,23 @@ public class InitialModesLinkSegmentCost implements Cloneable, Cost<MacroscopicL
    */
   public void reset() {
     costPerModeAndLinkSegment.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getTravelTimeCost(final Mode mode, final MacroscopicLinkSegment linkSegment) {
+    return getGeneralisedCost(mode, linkSegment);
+  }
+
+  /**
+   * Not supported returns -infinity for all calls and logs severe warning
+   */
+  @Override
+  public double getDTravelTimeDFlow(boolean uncongested, final Mode mode, final MacroscopicLinkSegment linkSegment) {
+    LOGGER.severe("Initial (modes) cost has no derivative, unable to compute");
+    return Double.NEGATIVE_INFINITY;
   }
 
 }
