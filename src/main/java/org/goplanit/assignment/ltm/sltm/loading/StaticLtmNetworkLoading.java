@@ -17,11 +17,6 @@ import org.goplanit.gap.NormBasedGapFunction;
 import org.goplanit.gap.StopCriterion;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
-import org.ojalgo.array.Array1D;
-import org.ojalgo.array.Array2D;
-import org.ojalgo.function.PrimitiveFunction;
-import org.ojalgo.function.aggregator.Aggregator;
-import org.ojalgo.structure.Access1D;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -31,9 +26,14 @@ import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.pcu.PcuCapacitated;
+import org.goplanit.utils.zoning.Centroid;
+import org.ojalgo.array.Array1D;
+import org.ojalgo.array.Array2D;
+import org.ojalgo.function.PrimitiveFunction;
+import org.ojalgo.function.aggregator.Aggregator;
+import org.ojalgo.structure.Access1D;
 
 /**
  * Class exposing the various sLTM network loading solution method components of sLTM (not considering path choice, this is assumed to be given). Network loading solution method
@@ -85,6 +85,24 @@ public abstract class StaticLtmNetworkLoading {
     if (logSolutionScheme) {
       LOGGER.info(String.format("sLTM network loading scheme set to %s", solutionScheme.getValue()));
     }
+  }
+
+  /**
+   * Whenever we want to activate or track all node turn flows, either because of a change in solution approach, or to be able to persist the results network wide this method
+   * ensures that the link segment sending flows are re-initialised (across the whole network) and that for each node the splitting rate data is ready to be updated
+   */
+  private void initialiseTrackAllNodeTurnFlows() {
+    /*
+     * sending flows must be re-initialised since otherwise the sending flows of earlier non-tracked nodes have been reset to zero during earlier loading iterations, now they must
+     * be available for all tracked nodes, so we reinitialise by conducting a full initialisation based on paths and most recent flow acceptance factors
+     */
+    initialiseSendingFlows();
+
+    /*
+     * Splitting rates must be re-initialised in this approach as well, a different splitting rate data is created based on updated solution scheme Change from using only a small
+     * subset of nodes with splitting rates to tracking splitting rates for all used nodes
+     */
+    initialiseNodeSplittingRateStatus();
   }
 
   /**
@@ -246,53 +264,60 @@ public abstract class StaticLtmNetworkLoading {
         continue;
       }
 
-      // TODO: not computationally efficient, capacities are recomputed every time and construction of
-      // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
+      if (trackedNode instanceof Centroid) {
+        // TODO instanceof is ugly. Ideally, we'd split centroids in origin and destination centroids, then we coudl
+        // verify based on absence of incoming or outgoing link segments
+        consumer.consumeCentroidResult(trackedNode, sendingFlows);
+      } else {
+        /* regular node */
 
-      /* C_a : in Array1D form */
-      Array1D<Double> inCapacities = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfEntryEdgeSegments());
-      int index = 0;
-      for (EdgeSegment entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
-        inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH());
-      }
+        // TODO: not computationally efficient, capacities are recomputed every time and construction of
+        // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
 
-      /* r_a : in Array1D form */
-      Array1D<Double> outReceivingFlows = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfExitEdgeSegments());
-      index = 0;
-      for (EdgeSegment exitEdgeSegment : trackedNode.getExitEdgeSegments()) {
-        outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).getCapacityOrDefaultPcuH());
-      }
-
-      /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
-      @SuppressWarnings("unchecked")
-      Access1D<Double>[] tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[trackedNode.sizeOfEntryEdgeSegments()];
-      int entryIndex = 0;
-      for (Iterator<EdgeSegment> iter = trackedNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
-        EdgeSegment entryEdgeSegment = iter.next();
-        /* s_ab = s_a*phi_ab */
-        double sendingFlow = sendingFlows[(int) entryEdgeSegment.getId()];
-        Array1D<Double> localTurnSendingFlows = this.splittingRateData.getSplittingRates(entryEdgeSegment).copy();
-        localTurnSendingFlows.modifyAll(PrimitiveFunction.MULTIPLY.by(sendingFlow));
-        tunSendingFlowsByEntryLinkSegment[entryIndex] = localTurnSendingFlows;
-      }
-      Array2D<Double> turnSendingFlows = Array2D.PRIMITIVE64.rows(tunSendingFlowsByEntryLinkSegment);
-
-      /* Kappa(s,r,phi) : node model update */
-      TampereNodeModelFixedInput nodeModelInputFixed = new TampereNodeModelFixedInput(inCapacities, outReceivingFlows);
-      try {
-        TampereNodeModel nodeModel = new TampereNodeModel(new TampereNodeModelInput(nodeModelInputFixed, turnSendingFlows));
-        Array1D<Double> localFlowAcceptanceFactor = nodeModel.run();
-
-        /* delegate to consumer if any */
-        if (consumer != null) {
-          consumer.accept((Node) trackedNode, localFlowAcceptanceFactor, nodeModel);
+        /* C_a : in Array1D form */
+        Array1D<Double> inCapacities = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfEntryEdgeSegments());
+        int index = 0;
+        for (EdgeSegment entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
+          inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH());
         }
 
-      } catch (Exception e) {
-        LOGGER.severe(e.getMessage());
-        LOGGER.severe(String.format("Unable to run Tampere node model on potentially blocking node %s", trackedNode.getXmlId()));
+        /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
+        @SuppressWarnings("unchecked")
+        Access1D<Double>[] tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[trackedNode.sizeOfEntryEdgeSegments()];
+        int entryIndex = 0;
+        for (Iterator<EdgeSegment> iter = trackedNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
+          EdgeSegment entryEdgeSegment = iter.next();
+          /* s_ab = s_a*phi_ab */
+          double sendingFlow = sendingFlows[(int) entryEdgeSegment.getId()];
+          Array1D<Double> localTurnSendingFlows = this.splittingRateData.getSplittingRates(entryEdgeSegment).copy();
+          localTurnSendingFlows.modifyAll(PrimitiveFunction.MULTIPLY.by(sendingFlow));
+          tunSendingFlowsByEntryLinkSegment[entryIndex] = localTurnSendingFlows;
+        }
+        Array2D<Double> turnSendingFlows = Array2D.PRIMITIVE64.rows(tunSendingFlowsByEntryLinkSegment);
+
+        /* r_a : in Array1D form */
+        Array1D<Double> outReceivingFlows = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfExitEdgeSegments());
+        index = 0;
+        for (EdgeSegment exitEdgeSegment : trackedNode.getExitEdgeSegments()) {
+          outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).getCapacityOrDefaultPcuH());
+        }
+
+        /* Kappa(s,r,phi) : node model update */
+        try {
+          TampereNodeModel nodeModel = new TampereNodeModel(new TampereNodeModelInput(new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingFlows));
+          Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
+
+          /* delegate to consumer */
+          consumer.consumeRegularResult(trackedNode, localFlowAcceptanceFactors, turnSendingFlows);
+
+        } catch (Exception e) {
+          LOGGER.severe(e.getMessage());
+          LOGGER.severe(String.format("Unable to run Tampere node model on tracked node %s", trackedNode.getXmlId()));
+        }
+
       }
     }
+
   }
 
   /**
@@ -456,7 +481,7 @@ public abstract class StaticLtmNetworkLoading {
 
   //@formatter:off
   /**
-   * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns on nodes that are potentially blocking to reduce
+   * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns on nodes that are tracked or activated to reduce
    * computational overhead.
    * 
    * @return acceptedTurnFlows (on potentially blocking nodes) where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
@@ -547,7 +572,15 @@ public abstract class StaticLtmNetworkLoading {
       if(Precision.isPositive(sendingFlowsPcuH[(int) linkSegment.getId()])){
         extendedSplittingRates.activateNode(linkSegment.getUpstreamNode());
       }
-    }    
+    }
+    /* also add nodes of eligible connectoid segments (when they are not centroids) */
+    for (ConnectoidSegment connectoidSegment : getTransportNetwork().getZoning().getVirtualNetwork().getConnectoidSegments()) {
+      if(Precision.isPositive(sendingFlowsPcuH[(int) connectoidSegment.getId()])){
+        /* activate both nodes, succeeding segments might not be available */
+        extendedSplittingRates.activateNode(connectoidSegment.getUpstreamVertex());
+        extendedSplittingRates.activateNode(connectoidSegment.getDownstreamVertex());
+      }
+    }        
   }
 
   /**
@@ -896,18 +929,12 @@ public abstract class StaticLtmNetworkLoading {
     /* POINT - QUEUE */
     if(this.solutionScheme.isPointQueue()) {
       if(this.solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC)) {
-        /* BASIC -> ADVANCED, e.g., activate local iterative updates of sending flows */
+        /* BASIC -> ADVANCED, e.g., activate local iterative updates of sending flows by tracking entire network */
         this.solutionScheme = StaticLtmLoadingScheme.POINT_QUEUE_ADVANCED;
         
-        
-        /* sending flows must be re-initialised since otherwise the sending flows of earlier non-tracked nodes have been reset to zero 
-         * during earlier loading iterations, now they must be available for all tracked nodes, so we reinitialise by conducting a full initialisation based
-         * on paths and most recent flow acceptance factors*/
-        initialiseSendingFlows();
-                
-        /* Splitting rates must be re-initialised in this approach as well, a different splitting rate data is created based on updated solution scheme 
-         * Change from using only a small subset of nodes with splitting rates to tracking splitting rates for all used nodes */
-        initialiseNodeSplittingRateStatus();
+        /* initialise to allow loading to work with all nodes active based on new solution scheme */
+        initialiseTrackAllNodeTurnFlows();
+
       }else {
         /* no other extensions available, so deactivate any further extensions by maximising the offset */
         convergenceAnalyser.setMinIterationThreshold(Integer.MAX_VALUE);
@@ -926,6 +953,41 @@ public abstract class StaticLtmNetworkLoading {
     }
     
     return solutionSchemeChanged;
+  }
+
+  /**
+   * When loading has converged, outputs might be persisted for (intermediate) iterations. Since the loading does not always
+   * track the entire network for performance reasons. This method can be invoked before persisting results to populate the gaps
+   * (if any) regarding for example link in and outflows that might otherwise not be available, e.g. in the POINT_QUEUE_BASIC laoding scheme
+   * only potentially blocking nodes and their immediate links might be tracked on the network level. Whereas if we want to see the results of this
+   * iteration, we would want the full inflows/outflows on all links in the network. This is what this methods ensure with minimal overhead.
+   * <p>
+   * This is potentially costly, so ideally no intermediate results are persisted in such cases. 
+   */
+  public void populateForPersistence() {
+    if (!isTrackAllNodeTurnFlows()) {
+      /* tracks all node turn flows, which is what we require */
+      this.solutionScheme = StaticLtmLoadingScheme.POINT_QUEUE_ADVANCED;
+      
+      /* prep: force single iteration on sending flow/inflow update */
+      int originalMaxIterations = this.sendingFlowGapFunction.getStopCriterion().getMaxIterations();
+      this.sendingFlowGapFunction.getStopCriterion().setMaxIterations(1);      
+      
+      /* update sending flows, inflows, outflows on all links with minimal overhead */
+      initialiseTrackAllNodeTurnFlows();
+      
+      /* now conduct a single network wide loading based on converged most recent iteration results (reduction factors) */
+      {
+        stepOneSplittingRatesUpdate();
+        stepTwoInflowSendingFlowUpdate();      
+        stepThreeSplittingRateUpdate();
+        stepFourOutflowReceivingFlowUpdate();
+        /* skip convergence check */
+      }
+      
+      /* post */
+      this.sendingFlowGapFunction.getStopCriterion().setMaxIterations(originalMaxIterations);
+    }
   }
 
   /** Collect the settings. Only make changes before running any of the loading steps, otherwise risk undefined 

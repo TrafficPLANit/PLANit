@@ -26,8 +26,6 @@ import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
-import org.goplanit.zoning.Zoning;
-import org.ojalgo.array.Array1D;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -38,6 +36,8 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.zoning.Zoning;
+import org.ojalgo.array.Array1D;
 
 /**
  * Implementation to support a bush absed solution for sLTM

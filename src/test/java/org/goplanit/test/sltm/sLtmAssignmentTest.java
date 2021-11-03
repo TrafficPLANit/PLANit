@@ -1,5 +1,6 @@
 package org.goplanit.test.sltm;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
@@ -14,6 +15,8 @@ import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.od.demand.OdDemandMatrix;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.output.enums.OutputType;
+import org.goplanit.output.formatter.MemoryOutputFormatter;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -238,14 +241,35 @@ public class sLtmAssignmentTest {
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(false);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateBushBased(true);
 
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateOutput(OutputType.LINK);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+
       StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_6);
-      sLTM.getGapFunction().getStopCriterion().setMaxIterations(100);
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
       sLTM.execute();
 
-      // TODO: not working properly yet, we have converged to precision but shift is so small that
-      // it does nothing when adding to total flow. Since PASs overlap only two of teh three routes are in equilibrium, not all three
-      // so gap remains stable...find a way to improve.
+      double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+      double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+      double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+      double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+
+      assertEquals(outflow1, 2333.333333, Precision.EPSILON_6);
+      assertEquals(outflow5, 2333.333333, Precision.EPSILON_6);
+      assertEquals(outflow8, 2333.333333, Precision.EPSILON_6);
+      assertEquals(outflow2, 7000, Precision.EPSILON_6);
+
+      double inflow0 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+      double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+      double inflow5 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+      double inflow8 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+      double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+
+      assertEquals(inflow0, 8000, Precision.EPSILON_6);
+      assertEquals(inflow1, 2714.529914369357, Precision.EPSILON_6);
+      assertEquals(inflow5, 2642.7350425744858, Precision.EPSILON_6);
+      assertEquals(inflow8, 2642.7350430561573, Precision.EPSILON_6);
+      assertEquals(inflow2, 7000, Precision.EPSILON_6);
 
     } catch (Exception e) {
       e.printStackTrace();

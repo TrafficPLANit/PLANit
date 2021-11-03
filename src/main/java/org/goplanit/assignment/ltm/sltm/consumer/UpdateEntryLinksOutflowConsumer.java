@@ -1,11 +1,10 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import org.goplanit.algorithms.nodemodel.TampereNodeModel;
+import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.ojalgo.array.Array1D;
 import org.ojalgo.array.Array2D;
 import org.ojalgo.function.aggregator.Aggregator;
-import org.goplanit.utils.graph.EdgeSegment;
-import org.goplanit.utils.network.layer.physical.Node;
 
 /**
  * A functional class that consumes the result of a node model update in order to determine the next accepted outflows of incoming links of all nodes it is applied to
@@ -31,22 +30,30 @@ public class UpdateEntryLinksOutflowConsumer implements ApplyToNodeModelResult {
    * {@inheritDoc}
    */
   @Override
-  public void accept(final Node potentiallyBlockingNode, final Array1D<Double> localFlowAcceptanceFactor, final TampereNodeModel nodeModel) {
+  public void consumeCentroidResult(final DirectedVertex node, final double[] linkSegmentSendingFlows) {
+    int linkSegmentId = 0;
+    for (EdgeSegment entryLinkSegment : node.getEntryEdgeSegments()) {
+      linkSegmentId = (int) entryLinkSegment.getId();
+      outflowsToPopulate[linkSegmentId] = linkSegmentSendingFlows[linkSegmentId];
+    }
+  }
 
-    /* s_ab */
-    Array2D<Double> turnSendingFlows = nodeModel.getInputs().getTurnSendingFlows();
-
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void consumeRegularResult(DirectedVertex node, Array1D<Double> flowAcceptanceFactor, Array2D<Double> turnSendingFlows) {
     int entryIndex = 0;
-    for (EdgeSegment entryLinkSegment : potentiallyBlockingNode.getEntryLinkSegments()) {
-      int linkSegmentId = (int) entryLinkSegment.getId();
+    int linkSegmentId = 0;
+    for (EdgeSegment entryLinkSegment : node.getEntryEdgeSegments()) {
+      linkSegmentId = (int) entryLinkSegment.getId();
       /* s_a = Sum_b(s_ab) */
       double sendingFlow = turnSendingFlows.aggregateRow(entryIndex, Aggregator.SUM);
       /* v_a = s_a * alpha_a */
-      double acceptedOutflow = sendingFlow * localFlowAcceptanceFactor.get(entryIndex);
+      double acceptedOutflow = sendingFlow * flowAcceptanceFactor.get(entryIndex);
       outflowsToPopulate[linkSegmentId] = acceptedOutflow;
       ++entryIndex;
     }
-
   }
 
 }

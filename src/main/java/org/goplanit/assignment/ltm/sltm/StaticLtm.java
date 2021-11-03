@@ -135,6 +135,8 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     /* ASSIGNMENT LOOP */
     do {
       getGapFunction().reset();
+      assignmentStrategy.getLoading().resetIteration();
+
       simulationData.incrementIterationIndex();
       getSmoothing().updateStep(simulationData.getIterationIndex());
 
@@ -154,12 +156,27 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       converged = getGapFunction().hasConverged(simulationData.getIterationIndex());
 
       // PERSIST
-      getOutputManager().persistOutputData(timePeriod, modes, converged);
+      persistIterationResults(timePeriod, theMode, converged);
 
       iterationStartTime = logBasicIterationInformation(iterationStartTime, (LinkBasedRelativeDualityGapFunction) getGapFunction());
-      assignmentStrategy.getLoading().resetIteration();
     } while (!converged);
 
+  }
+
+  /**
+   * Persist the results for this iteration. In case the results require additional actions because the loading has been optimised this is adjusted here before persisting
+   * 
+   * @param timePeriod to use
+   * @param theMode    to use
+   * @param converged  true when converged, false otherwise
+   * @throws PlanItException thrown when error
+   */
+  private void persistIterationResults(TimePeriod timePeriod, Mode theMode, boolean converged) throws PlanItException {
+    Set<Mode> modes = Set.of(theMode);
+    if (getOutputManager().isAnyOutputPersisted(timePeriod, modes, converged)) {
+      assignmentStrategy.getLoading().populateForPersistence();
+      getOutputManager().persistOutputData(timePeriod, modes, converged);
+    }
   }
 
   /**

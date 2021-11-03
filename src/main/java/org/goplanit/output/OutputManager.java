@@ -83,17 +83,36 @@ public class OutputManager {
    * @param converged  true if the assignment has converged
    * @throws PlanItException thrown if there is an error
    */
-  public void persistOutputData(TimePeriod timePeriod, Set<Mode> modes, boolean converged) throws PlanItException {
+  public void persistOutputData(final TimePeriod timePeriod, final Set<Mode> modes, final boolean converged) throws PlanItException {
     for (OutputType outputType : outputConfiguration.getActivatedOutputTypes()) {
       OutputTypeConfiguration outputTypeConfiguration = outputConfiguration.getOutputTypeConfiguration(outputType);
-      for (OutputFormatter outputFormatter : outputFormatters) {
-        if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
+      if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
+        for (OutputFormatter outputFormatter : outputFormatters) {
           if (converged || outputFormatter.canHandleMultipleIterations()) {
             outputFormatter.persist(timePeriod, modes, outputConfiguration, outputTypeConfiguration, outputAdapter);
           }
         }
       }
     }
+  }
+
+  /**
+   * Verify if anything is actually persisted when {@link #persistOutputData(TimePeriod, Set, boolean)} is invoked given the underlying configuration
+   * 
+   * @param timePeriod to verify for
+   * @param modes      to verify for
+   * @param converged  true if the assignment has converged
+   * @return true when anything is persisted, false otherwise
+   */
+  public boolean isAnyOutputPersisted(final TimePeriod timePeriod, final Set<Mode> modes, final boolean converged) {
+    if (converged || !outputConfiguration.isPersistOnlyFinalIteration()) {
+      for (OutputFormatter outputFormatter : outputFormatters) {
+        if (converged || outputFormatter.canHandleMultipleIterations()) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**

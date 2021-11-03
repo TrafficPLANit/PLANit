@@ -175,13 +175,16 @@ public class PasManager {
   public PasManager() {
     this.passByMergeVertex = new HashMap<DirectedVertex, Collection<Pas>>();
 
-    /* compare by reduced cost in descending order (from high reduced cost to low reduced cost */
+    /*
+     * compare by reduced cost in descending order (from high reduced cost to low reduced cost), use very high precision to make sure very small cost differences are still
+     * considered as much as possible
+     */
     this.pasReducedCostComparator = new Comparator<Pas>() {
       @Override
       public int compare(Pas p1, Pas p2) {
-        if (Precision.isGreater(p1.getReducedCost(), p2.getReducedCost())) {
+        if (Precision.isGreater(p1.getReducedCost(), p2.getReducedCost(), Precision.EPSILON_15)) {
           return -1;
-        } else if (Precision.isSmaller(p1.getReducedCost(), p2.getReducedCost())) {
+        } else if (Precision.isSmaller(p1.getReducedCost(), p2.getReducedCost(), Precision.EPSILON_15)) {
           return 1;
         } else {
           return 0;

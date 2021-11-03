@@ -75,7 +75,7 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
      * recent bush's splitting rates, we only use the bush's sending flows for bush flow shifts. The bush's sending flows are updated AFTER the network loading is complete
      * (converged) by using the network splitting rates and reduction factors
      */
-    double[] bushSendingFlows = new double[dataConfig.sendingFlows.length];
+    double[] bushSendingFlows = new double[dataConfig.flowAcceptanceFactors.length];
 
     /* get topological sorted vertices to process */
     Collection<DirectedVertex> topSortedVertices = originBush.getTopologicallySortedVertices();
