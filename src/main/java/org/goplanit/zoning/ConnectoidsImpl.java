@@ -1,0 +1,81 @@
+package org.goplanit.zoning;
+
+import java.util.logging.Logger;
+
+import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
+import org.goplanit.utils.event.EventType;
+import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.zoning.Connectoid;
+import org.goplanit.utils.zoning.Connectoids;
+import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
+
+/**
+ * Base implementation of Connectoids container and factory class
+ * 
+ * @author markr
+ *
+ */
+public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEntitiesImpl<T> implements Connectoids<T> {
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(ConnectoidsImpl.class.getCanonicalName());
+
+  /**
+   * update the references to all access zones for all connectoids
+   */
+  protected void updateConnectoidAccessZoneIdReferences() {
+    for (Connectoid connectoid : this) {
+      if (!(connectoid instanceof ConnectoidImpl)) {
+        LOGGER.severe("recreation of transfer zone ids utilises unsupported implementation of connectoids interface when attempting to update access zone references");
+      }
+      ((ConnectoidImpl) connectoid).recreateAccessZoneIdMapping();
+    }
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param groupId      to use for creating ids for instances
+   * @param parentZoning
+   */
+  public ConnectoidsImpl(final IdGroupingToken groupId) {
+    super(Connectoid::getId, Connectoid.CONNECTOID_ID_CLASS);
+  }
+
+  /**
+   * Copy constructor
+   * 
+   * @param connectoidsImpl to copy
+   */
+  public ConnectoidsImpl(ConnectoidsImpl<T> connectoidsImpl) {
+    super(connectoidsImpl);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ConnectoidsImpl<T> clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EventType[] getKnownSupportedEventTypes() {
+    return new EventType[] { ModifiedZoneIdsEvent.EVENT_TYPE };
+  }
+
+  /**
+   * Support event callbacks whenever zones have been modified
+   */
+  @Override
+  public void onZoningModifierEvent(ZoningModificationEvent event) {
+
+    /* update connectoid zone id references when zone ids have changed */
+    if (event.getType().equals(ModifiedZoneIdsEvent.EVENT_TYPE)) {
+      updateConnectoidAccessZoneIdReferences();
+    }
+  }
+
+}
