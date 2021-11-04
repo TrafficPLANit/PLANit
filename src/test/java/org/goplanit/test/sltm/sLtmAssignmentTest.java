@@ -273,7 +273,7 @@ public class sLtmAssignmentTest {
 
     } catch (Exception e) {
       e.printStackTrace();
-      fail("Error when testing sLTM network loading");
+      fail("Error when testing sLTM bush based assignment");
     }
   }
 
