@@ -25,7 +25,7 @@ public class ModeFactoryImpl extends ManagedIdEntityFactoryImpl<Mode> implements
    * Constructor
    * 
    * @param groupId to use
-   * @param edges   to use
+   * @param modes   to use
    */
   protected ModeFactoryImpl(final IdGroupingToken groupId, final Modes modes) {
     super(groupId);

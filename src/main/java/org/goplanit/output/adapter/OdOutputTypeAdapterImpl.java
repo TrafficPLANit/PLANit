@@ -38,11 +38,10 @@ public abstract class OdOutputTypeAdapterImpl extends OutputTypeAdapterImpl impl
   /**
    * Returns the specified output property values for the current cell in the OD Matrix Iterator
    * 
-   * @param outputProperty     the specified output property
-   * @param odMatrixIterator   the iterator through the current OD Matrix
-   * @param mode               the current mode
-   * @param timePeriod         the current time period
-   * @param timeUnitMultiplier the multiplier for time units
+   * @param outputProperty the specified output property
+   * @param odIterator     the iterator through the current OD Matrix
+   * @param mode           the current mode
+   * @param timePeriod     the current time period
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
   @Override

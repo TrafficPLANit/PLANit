@@ -32,7 +32,7 @@ public class DirectedVerticesImpl extends GraphEntitiesImpl<DirectedVertex> impl
   /**
    * Constructor
    * 
-   * @param graphBuilder          the graph builder to use to create vertices
+   * @param groupId               to use
    * @param directedVertexFactory to use
    */
   public DirectedVerticesImpl(final IdGroupingToken groupId, final DirectedVertexFactory directedVertexFactory) {

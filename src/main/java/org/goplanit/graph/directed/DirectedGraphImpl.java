@@ -2,7 +2,6 @@ package org.goplanit.graph.directed;
 
 import java.util.logging.Logger;
 
-import org.goplanit.graph.UntypedDirectedGraphImpl;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.graph.directed.DirectedEdge;
@@ -30,7 +29,9 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
    * DirectedGraph Constructor
    *
    * @param groupToken   contiguous id generation within this group for instances of this class
-   * @param graphBuilder the builder to be used to create this network
+   * @param vertices     to use
+   * @param edges        to use
+   * @param edgeSegments to use
    */
   public DirectedGraphImpl(final IdGroupingToken groupToken, GraphEntities<V> vertices, GraphEntities<E> edges, GraphEntities<ES> edgeSegments) {
     super(groupToken, vertices, edges, edgeSegments);

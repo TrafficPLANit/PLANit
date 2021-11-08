@@ -18,7 +18,6 @@ public class PopulateComponentEvent extends PopulateUntypedComponentEvent {
   /**
    * Constructor
    *
-   * @param type                of the populate component event
    * @param source              of the event
    * @param componentToPopulate to populate
    * @param additionalContent   for this component to be able to populate

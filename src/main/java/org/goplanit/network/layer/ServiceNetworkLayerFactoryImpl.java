@@ -26,6 +26,7 @@ public class ServiceNetworkLayerFactoryImpl extends ManagedIdEntityFactoryImpl<S
    * Constructor
    * 
    * @param groupIdToken to use
+   * @param container    to use
    */
   public ServiceNetworkLayerFactoryImpl(IdGroupingToken groupIdToken, ServiceNetworkLayersImpl container) {
     super(groupIdToken);

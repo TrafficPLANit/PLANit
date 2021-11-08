@@ -19,8 +19,8 @@ public class TransferZoneGroupFactoryImpl extends ManagedIdEntityFactoryImpl<Tra
   /**
    * Constructor
    * 
-   * @param groupId             to use
-   * @param directedConnectoids to use
+   * @param groupId            to use
+   * @param transferZoneGroups to use
    */
   protected TransferZoneGroupFactoryImpl(final IdGroupingToken groupId, final TransferZoneGroups transferZoneGroups) {
     super(groupId);

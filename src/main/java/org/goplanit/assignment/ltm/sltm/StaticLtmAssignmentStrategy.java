@@ -71,6 +71,8 @@ public abstract class StaticLtmAssignmentStrategy {
 
   /**
    * The physical network used
+   * 
+   * @return the infrastructure network
    */
   protected MacroscopicNetwork getInfrastructureNetwork() {
     return (MacroscopicNetwork) getTransportNetwork().getInfrastructureNetwork();
@@ -222,6 +224,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * Invoked before start of equilibrating a new time period
    * 
    * @param timePeriod to initialise for
+   * @param mode       to initialise for
    * @param odDemands  to use
    */
   public void updateTimePeriod(final TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) {
@@ -240,7 +243,7 @@ public abstract class StaticLtmAssignmentStrategy {
   /**
    * Perform a single iteration where we perform a loading and then an equilibration step resulting in updated costs
    *
-   * @param mode           to use
+   * @param theMode        to use
    * @param costsToUpdate  the link segment costs we are updating (possibly partially for all link segments that might have been affected by a loading
    * @param iterationIndex we're at
    * @return true when iteration could be successfully completed, false otherwise

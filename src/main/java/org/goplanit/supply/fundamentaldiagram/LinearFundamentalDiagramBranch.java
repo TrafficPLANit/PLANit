@@ -42,7 +42,7 @@ public class LinearFundamentalDiagramBranch implements FundamentalDiagramBranch 
    * Constructor
    * 
    * @param characteristicWaveSpeedKmHour to use (either free flow speed to use or backward wave speed)
-   * @param densityAtZeroFlow             to use
+   * @param densityAtZeroFlowPcuKm        to use
    */
   public LinearFundamentalDiagramBranch(double characteristicWaveSpeedKmHour, double densityAtZeroFlowPcuKm) {
     this.characteristicWaveSpeedKmHour = characteristicWaveSpeedKmHour;

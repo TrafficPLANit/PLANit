@@ -2,7 +2,7 @@ package org.goplanit.network.layer;
 
 import java.util.logging.Logger;
 
-import org.goplanit.graph.UntypedDirectedGraphImpl;
+import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.layer.modifier.UntypedNetworkLayerModifierImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.geo.PlanitJtsUtils;
@@ -56,6 +56,9 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   /**
    * Network Constructor
    *
+   * @param <Vx> container type for vertices
+   * @param <Ex> container type for vertices
+   * @param <Sx> container type for vertices
    * @param tokenId      contiguous id generation within this group for instances of this class
    * @param vertices     managed vertices container to use
    * @param edges        managed edges container to use
@@ -71,6 +74,9 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   /**
    * Network Constructor
    *
+   * @param <Vx> container type for vertices
+   * @param <Ex> container type for vertices
+   * @param <Sx> container type for vertices
    * @param tokenId       contiguous id generation within this group for instances of this class
    * @param vertices      vertices container to use
    * @param edges         edges container to use

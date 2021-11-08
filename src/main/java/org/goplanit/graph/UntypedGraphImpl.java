@@ -41,6 +41,7 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
   /**
    * Generate a graph id
    * 
+   * @param groupId to use
    * @return the generated id
    */
   protected static long generatedGraphId(final IdGroupingToken groupId) {

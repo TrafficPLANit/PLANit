@@ -56,6 +56,7 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
   /**
    * recreate the internal link segment id and set it
    * 
+   * @param tokenId to use
    * @return updated id
    */
   protected long recreateLinkSegmentId(IdGroupingToken tokenId) {
@@ -124,9 +125,9 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
   }
 
   // Public
-  
+
   // Public getters - setters
-  
+
   /**
    * {@inheritDoc}
    */

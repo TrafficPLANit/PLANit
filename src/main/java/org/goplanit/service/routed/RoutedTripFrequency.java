@@ -27,7 +27,7 @@ public interface RoutedTripFrequency extends RoutedTrip, Iterable<ServiceLegSegm
   /**
    * Add a new leg segment (directed leg) to the end of the already registered legs.
    * 
-   * @param leg segment to add to the trip's route
+   * @param legSegment to add to the trip's route
    */
   public abstract void addLegSegment(ServiceLegSegment legSegment);
 
@@ -35,6 +35,7 @@ public interface RoutedTripFrequency extends RoutedTrip, Iterable<ServiceLegSegm
    * Get a leg segment in a particular position of the routed trip
    * 
    * @param index to collect segment for
+   * @return the leg segment found
    */
   public abstract ServiceLegSegment getLegSegment(int index);
 
@@ -74,7 +75,7 @@ public interface RoutedTripFrequency extends RoutedTrip, Iterable<ServiceLegSegm
   /**
    * Get first leg segment of the routed trip
    * 
-   * @param first leg segment
+   * @return the leg segment with id 0
    */
   public default ServiceLegSegment getFirstLegSegment() {
     return getLegSegment(0);
@@ -83,7 +84,7 @@ public interface RoutedTripFrequency extends RoutedTrip, Iterable<ServiceLegSegm
   /**
    * Get last leg segment of the routed trip
    * 
-   * @param last leg segment, null if none present
+   * @return the last segment, i.e., the one with the highest id
    */
   public default ServiceLegSegment getLastLegSegment() {
     if (!hasLegSegments()) {

@@ -560,7 +560,7 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
    * 4. Conducting a loading to obtain network costs 
    * 
    * @param theMode to use
-   * @param linkSegmentCosts to place updated costs in (output)
+   * @param costsToUpdate to place updated costs in (output)
    * @param iterationIndex we're at
    * @return true when iteration could be successfully completed, false otherwise
    */

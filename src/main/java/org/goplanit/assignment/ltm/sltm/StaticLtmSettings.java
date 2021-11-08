@@ -31,7 +31,7 @@ public class StaticLtmSettings implements Cloneable {
   /**
    * Copy constructor
    * 
-   * @param staticLtmSettings
+   * @param staticLtmSettings to copy
    */
   public StaticLtmSettings(StaticLtmSettings staticLtmSettings) {
     this.bushBased = staticLtmSettings.bushBased.booleanValue();
@@ -92,7 +92,7 @@ public class StaticLtmSettings implements Cloneable {
   }
 
   /**
-   * {@inhericDoc}
+   * {@inheritDoc}
    */
   @Override
   public StaticLtmSettings clone() {

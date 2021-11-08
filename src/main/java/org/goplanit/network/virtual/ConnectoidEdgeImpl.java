@@ -50,6 +50,7 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl implements ConnectoidEd
   /**
    * recreate the internal connectoid edge id and set it
    * 
+   * @param tokenId to use
    * @return updated id
    */
   protected long recreateConnectoidEdgeId(IdGroupingToken tokenId) {

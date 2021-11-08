@@ -20,6 +20,8 @@ public class SimulationData implements Cloneable {
 
   /**
    * Copy constructor
+   * 
+   * @param simulationData to copy
    */
   protected SimulationData(final SimulationData simulationData) {
     super();

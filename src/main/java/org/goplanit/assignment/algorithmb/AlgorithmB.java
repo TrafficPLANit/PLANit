@@ -71,9 +71,9 @@ public class AlgorithmB extends StaticTrafficAssignment {
   }
 
   /**
-   * Constructor
+   * Copy Constructor
    * 
-   * @param groupId group the id generator will be using when genarting the id
+   * @param algorithmB to copy
    */
   public AlgorithmB(AlgorithmB algorithmB) {
     super(algorithmB);

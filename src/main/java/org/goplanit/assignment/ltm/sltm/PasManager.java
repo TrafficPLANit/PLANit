@@ -274,7 +274,6 @@ public class PasManager {
    * Update costs on all registered PASs
    * 
    * @param linkSegmentCosts to use
-   * @return true when at least some flows were shifted, false otherwise
    */
   public void updateCosts(final double[] linkSegmentCosts) {
     for (Collection<Pas> pass : passByMergeVertex.values()) {

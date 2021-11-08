@@ -87,6 +87,7 @@ public interface OdOutputTypeAdapter extends OutputTypeAdapter {
   /**
    * Returns the Od value
    * 
+   * @param <T>        type of the return value to expect
    * @param odIterator OdIterator object containing the current value
    * @return the OD travel cost for the current cell in the OD skim matrix
    * @throws PlanItException thrown if there is an error
@@ -107,10 +108,10 @@ public interface OdOutputTypeAdapter extends OutputTypeAdapter {
   /**
    * Returns the specified output property values for the current cell in the OD Matrix Iterator
    * 
-   * @param outputProperty   the specified output property
-   * @param odMatrixIterator the iterator through the current OD Matrix
-   * @param mode             the current mode
-   * @param timePeriod       the current time period
+   * @param outputProperty the specified output property
+   * @param odIterator     the iterator through the current OD data
+   * @param mode           the current mode
+   * @param timePeriod     the current time period
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
   public abstract Optional<?> getOdOutputPropertyValue(OutputProperty outputProperty, final OdDataIterator<?> odIterator, Mode mode, TimePeriod timePeriod);

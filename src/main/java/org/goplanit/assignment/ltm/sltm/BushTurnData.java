@@ -96,6 +96,7 @@ public class BushTurnData implements Cloneable {
   /**
    * Total sending flows s_a from given segment
    * 
+   * @param fromSegment to use
    * @return sending flow s_a
    */
   public double getTotalSendingFlowPcuH(final EdgeSegment fromSegment) {

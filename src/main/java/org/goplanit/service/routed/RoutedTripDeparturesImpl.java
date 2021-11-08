@@ -3,6 +3,12 @@ package org.goplanit.service.routed;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 
+/**
+ * Class that manages all routed trip departures
+ * 
+ * @author markr
+ *
+ */
 public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDeparture> implements RoutedTripDepartures {
 
   /** The factory to use */
@@ -21,7 +27,7 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
   /**
    * Copy constructor
    * 
-   * @param routedServiceTripsImpl to copy
+   * @param routedTripDepartures to copy
    */
   public RoutedTripDeparturesImpl(RoutedTripDeparturesImpl routedTripDepartures) {
     super(routedTripDepartures);

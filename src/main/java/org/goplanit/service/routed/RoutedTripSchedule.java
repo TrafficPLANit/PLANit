@@ -28,14 +28,18 @@ public interface RoutedTripSchedule extends RoutedTrip {
   /**
    * Add a new leg's timing to the end of the already registered leg timings.
    * 
-   * @param legsegment (directed leg) to add to the trip's route
+   * @param parentLegSegment (directed leg) to add to the trip's route
+   * @param duration         duration of the leg segment
+   * @param dwellTime        at the destination of the leg segment
+   * @return the added timing
    */
-  public abstract RelativeLegTiming addRelativeLegSegmentTiming(final ServiceLegSegment parentLeg, final LocalTime duration, final LocalTime dwellTime);
+  public abstract RelativeLegTiming addRelativeLegSegmentTiming(final ServiceLegSegment parentLegSegment, final LocalTime duration, final LocalTime dwellTime);
 
   /**
    * Collect a leg timing based on its index
    * 
    * @param index to collect
+   * @return the relative leg timing found
    */
   public abstract RelativeLegTiming getRelativeLegTiming(int index);
 

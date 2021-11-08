@@ -34,11 +34,10 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
    * i.e., free speed, we do so. If the registered link segment types explicitly require a particular capacity to be used than the estimated capacity of the FD is overruled with
    * the one of the type (or if the FD cannot derive its capacity from physical characteristics, in which case either the set or default capacity of the link segment type is used).
    * 
-   * @param fundamentalDiagramToPopulate the fundamental diagram component tracking all used Fds in the network and by whom they are used
-   * @param parentNetworkLayer           to use
+   * @param parentNetworkLayer to use
    */
   @Override
-  protected void initialiseDefaultFundamentalDiagramsForLayer(MacroscopicNetworkLayer parentNetworkLayer) {
+  protected void initialiseDefaultFundamentalDiagramsForLayer(final MacroscopicNetworkLayer parentNetworkLayer) {
     /* NEWELL */
     Mode mode = parentNetworkLayer.getFirstSupportedMode();
 

@@ -75,7 +75,7 @@ public class TimePeriodImpl extends ExternalIdAbleImpl implements TimePeriod {
   /**
    * Copy constructor
    * 
-   * @param timePeriodImpl
+   * @param timePeriodImpl to copy
    */
   public TimePeriodImpl(TimePeriodImpl timePeriodImpl) {
     super(timePeriodImpl);

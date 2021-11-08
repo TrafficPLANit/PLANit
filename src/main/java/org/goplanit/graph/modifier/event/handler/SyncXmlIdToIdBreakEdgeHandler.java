@@ -28,8 +28,8 @@ public class SyncXmlIdToIdBreakEdgeHandler implements GraphModifierListener {
   /**
    * Perform action by syncing XML ids to ids
    * 
-   * @param aToBreak
-   * @param breakToB
+   * @param aToBreak edge running from original a node to break location (new node)
+   * @param breakToB aToBreak edge running from break location (new node) to original node b
    */
   protected void onBreakEdge(Edge aToBreak, Edge breakToB) {
     aToBreak.setXmlId(String.valueOf(aToBreak.getId()));

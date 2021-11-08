@@ -4,6 +4,39 @@ PlanIt Releases
 
 This project contains core code which is used by all the interface projects.
 
+## 0.3.0
+
+**enhancements**
+
+* refactored infrastructure layers (container and network): parameterise it and introduce a new TopologicalLayer with configurable vertices,edges, edgesegments containers #47
+* support stops, platforms and other PT related infrastructure in PLANit memory model via service network and transfer zone implementations (PLANitOSM/#8)
+* modifications to network, zoning or other core components that have managedids, are now handled via a dedicated modifier classes to ensure ids remain consistent #51
+* breaking links causes XML ids to no longer be unique and no option to fix this. Now we can add listeners to fix this on the flye in a generic way #55
+* improved choices for default outputproperties on output configurations #6
+* outputProperty LinkCost renamed to LinkSegmentCost #9
+* outputProperty LinkType not correctly defined, should be segment based
+* updated artifact id to conform with how this generally is setup, i.e. <application>-<subrepo> #57
+* creation of paths now supported through PathBuilder like other id dependent components #58
+* refactored the way we can track read input entities by their (original) source id when parsing and converting into PLANit entities via converter readers. this was not proper and has been improved #63
+* added service network that can be defined on top of a physical network to represent service legs and service nodes #62
+* added physical cost implementation based on free flow travel time only #64
+* added norm based gap function #65
+* linkSegmentTypes should not define speed limits per mode within the access element but via an accessgroup. This has been changed (planitxml/#20)
+* initialCosts are not properly implemented. They require more flexibility (period agnostic/specific parsing, registration on assignment separate and again timeperiod specific or agnostic and unrelated to parsing) (planit/#68)
+* added new PhysicalCost imlementation: SteadyStateTravelTimeCost based on Raadsen and Bliemer 2019 for sLTM #67
+* added support for overriding units in output type configuration (planitpy2j/#10)
+* parameters in fired create event for each traffic assignment component needs documentation (handled by creating dedicated classes) #16
+* add support for user based setting of the used gapfunction (planitpy2j/#9)
+* update packages to conform to new domain org.goplanit.* #72
+
+**bug fixes**
+
+* Tampere node model input is not properly setup for checking making it possible for asymmetric intersections to fail verification if correctly specified. this has been fixed #48
+* Copy constructor of edge and vertex does not copy inputproperties -> should be deep copied by default. this has been fixed  #50
+* When a mode is not supported on a link its cost now defaults to maxvalue and not infinity #52
+* When a link is not accessible to a mode, we now use Double.MAX_VALUE as cost and not infinity because infinity cost results in NaN when multiplied with zero flow #53
+* collecting link segments by startnode id in core is WRONG! This has been removed #2
+
 ## 0.2.0
 
 **enhancements**

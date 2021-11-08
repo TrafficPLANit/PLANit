@@ -183,7 +183,6 @@ public class Bush implements IdAble {
    * Collect the bush splitting rates for a given incoming edge segment
    * 
    * @param entrySegment to use
-   * @param exitSegment  to use
    * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the downstream from segment vertex
    */
   public double[] getSplittingRates(EdgeSegment entrySegment) {

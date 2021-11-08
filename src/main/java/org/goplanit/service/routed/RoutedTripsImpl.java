@@ -25,8 +25,7 @@ public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEnt
   /**
    * Constructor
    * 
-   * @param tokenId           to use
-   * @param routedTripFactory to use, ensure that the container on this factory is the class instance deriving from this class
+   * @param tokenId to use
    */
   protected RoutedTripsImpl(final IdGroupingToken tokenId) {
     super(T::getId, RoutedTrip.ROUTED_TRIP_ID_CLASS);
@@ -35,7 +34,7 @@ public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEnt
   /**
    * Copy constructor
    * 
-   * @param routedServiceTripsImpl to copy
+   * @param routedTripsBase to copy
    */
   public RoutedTripsImpl(RoutedTripsImpl<T> routedTripsBase) {
     super(routedTripsBase);

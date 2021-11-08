@@ -16,7 +16,6 @@ public abstract class ZonesImpl<Z extends Zone> extends ManagedIdEntitiesImpl<Z>
   /**
    * Constructor
    * 
-   * @param tokenId to use for creating ids for instances
    */
   public ZonesImpl() {
     super(Zone::getId, Zone.ZONE_ID_CLASS);

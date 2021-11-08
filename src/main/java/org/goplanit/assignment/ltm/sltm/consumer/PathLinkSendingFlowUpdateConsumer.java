@@ -35,7 +35,7 @@ public class PathLinkSendingFlowUpdateConsumer extends PathFlowUpdateConsumer<Ne
    * Apply final path flow on last segment that otherwise would not have been updated in the turn based {@link #applySingleFlowUpdate(int, EdgeSegment, double)}
    * 
    * @param lastEdgeSegment      to use
-   * @param acceptedPathFlowRate
+   * @param acceptedPathFlowRate to use
    */
   @Override
   protected void applyPathFinalSegmentFlowUpdate(EdgeSegment lastEdgeSegment, double acceptedPathFlowRate) {
@@ -43,11 +43,10 @@ public class PathLinkSendingFlowUpdateConsumer extends PathFlowUpdateConsumer<Ne
   }
 
   /**
-   * constructor
+   * Constructor
    * 
-   * @param odPaths                          to use
-   * @param linkSegmentFlowAcceptanceFactors flow acceptance factors to apply to path flows while traversing the path
-   * @param linkSegmentSendingFlows          to populate
+   * @param dataConfig containing data configuration to use
+   * @param odPaths    to use
    */
   public PathLinkSendingFlowUpdateConsumer(final NetworkFlowUpdateData dataConfig, final OdPaths odPaths) {
     super(dataConfig, odPaths);

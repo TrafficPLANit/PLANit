@@ -52,6 +52,7 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements Connectoid
   /**
    * recreate the internal connectoid segment id and set it
    * 
+   * @param tokenId to use
    * @return updated id
    */
   protected long recreateConnectoidSegmentId(IdGroupingToken tokenId) {

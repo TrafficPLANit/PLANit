@@ -13,16 +13,16 @@ public interface FundamentalDiagramBranch extends Cloneable {
   /**
    * The flow at a given density
    * 
-   * @param densityPcuKm
-   * @return flowPcuHour
+   * @param densityPcuKm to use
+   * @return flowPcuHour found
    */
   public abstract double getFlowPcuHour(double densityPcuKm);
 
   /**
    * The flow at a given density
    * 
-   * @param flowPcuHour
-   * @return densityPcuKm
+   * @param flowPcuHour to use
+   * @return densityPcuKm found
    */
   public abstract double getDensityPcuKm(double flowPcuHour);
 
@@ -30,7 +30,7 @@ public interface FundamentalDiagramBranch extends Cloneable {
    * The speed at a given flow. If flow is zero, the speed at zero flow is returned
    * 
    * @param flowPcuHour to use
-   * @return speedKmHour
+   * @return speedKmHour found
    */
   public default double getSpeedKmHourByFlow(double flowPcuHour) {
     if (Precision.isGreater(flowPcuHour, 0)) {
@@ -51,7 +51,7 @@ public interface FundamentalDiagramBranch extends Cloneable {
    * The speed at a given density. If density is zero, the speed at zero density is returned
    * 
    * @param densityPcuKm to use
-   * @return speedKmHour
+   * @return speedKmHour found
    */
   public default double getSpeedKmHourByDensity(double densityPcuKm) {
     if (Precision.isGreater(densityPcuKm, 0)) {
@@ -63,7 +63,7 @@ public interface FundamentalDiagramBranch extends Cloneable {
   /**
    * Collect the speed at zero density when flow/density cannot be computed.
    * 
-   * @return speedKmHour
+   * @return speedKmHour found
    */
   public abstract double getSpeedKmHourAtZeroDensity();
 
@@ -78,7 +78,7 @@ public interface FundamentalDiagramBranch extends Cloneable {
   /**
    * The derivative of density towards a change in flow given a particular density
    * 
-   * @param densityPcuKm
+   * @param densityPcuKm to use
    * @return tangent of density
    */
   public default double getDensityTangent(double densityPcuKm) {
@@ -91,6 +91,7 @@ public interface FundamentalDiagramBranch extends Cloneable {
    * precision.
    * 
    * @param scale indicating how many decimals to consider, e.g., 2 considers 2 decimals for precision
+   * @return the created relaxed hash code
    */
   public abstract int relaxedHashCode(int scale);
 

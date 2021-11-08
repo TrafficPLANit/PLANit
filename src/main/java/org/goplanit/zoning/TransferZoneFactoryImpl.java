@@ -6,7 +6,7 @@ import org.goplanit.utils.zoning.TransferZoneFactory;
 import org.goplanit.utils.zoning.TransferZones;
 
 /**
- * Factory for creating od zones (on container)
+ * Factory for creating transfer zones (on container)
  * 
  * @author markr
  */
@@ -18,8 +18,8 @@ public class TransferZoneFactoryImpl extends ZoneFactoryImpl<TransferZone> imple
   /**
    * Constructor
    * 
-   * @param groupId             to use
-   * @param directedConnectoids to use
+   * @param groupId       to use
+   * @param transferZones to use
    */
   protected TransferZoneFactoryImpl(final IdGroupingToken groupId, final TransferZones transferZones) {
     super(groupId);

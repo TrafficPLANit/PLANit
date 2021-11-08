@@ -1,6 +1,5 @@
 package org.goplanit.cost;
 
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
 
@@ -18,7 +17,6 @@ public interface Cost<T extends EdgeSegment> {
    * @param mode        the specified mode of travel
    * @param edgeSegment the specified edge segment (which can be physical or virtual)
    * @return the cost of travel along the specified segment
-   * @throws PlanItException the exception thrown when not available
    */
   public abstract double getGeneralisedCost(final Mode mode, final T edgeSegment);
 
@@ -28,7 +26,6 @@ public interface Cost<T extends EdgeSegment> {
    * @param mode        the specified mode of travel
    * @param edgeSegment the specified edge segment (which can be physical or virtual)
    * @return the cost of travel along the specified segment
-   * @throws PlanItException the exception thrown when not available
    */
   public abstract double getTravelTimeCost(final Mode mode, final T edgeSegment);
 
@@ -37,7 +34,7 @@ public interface Cost<T extends EdgeSegment> {
    * 
    * @param uncongested flag idicating if the provided flow is uncongested or congested flow, relevant when flow can represent multiple traffic states
    * @param mode        to use
-   * @param linkSegment to use
+   * @param edgeSegment to use
    * @return the first derivative of travel time for a unit flow rate change in PCU per Hour
    */
   public abstract double getDTravelTimeDFlow(boolean uncongested, final Mode mode, final T edgeSegment);

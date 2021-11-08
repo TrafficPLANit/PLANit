@@ -18,8 +18,8 @@ public class EdgeSegmentFactoryImpl extends GraphEntityFactoryImpl<EdgeSegment> 
   /**
    * Constructor
    * 
-   * @param groupId       to use
-   * @param directedEdges to use
+   * @param groupId      to use
+   * @param edgeSegments to use
    */
   protected EdgeSegmentFactoryImpl(final IdGroupingToken groupId, EdgeSegments edgeSegments) {
     super(groupId, edgeSegments);

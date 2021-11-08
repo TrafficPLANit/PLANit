@@ -63,7 +63,7 @@ public class TransferZoneGroupImpl extends ExternalIdAbleImpl implements Transfe
   /**
    * Copy constructor
    * 
-   * @param transferZoneGroupImpl
+   * @param transferZoneGroupImpl to copy
    */
   public TransferZoneGroupImpl(TransferZoneGroupImpl transferZoneGroupImpl) {
     super(transferZoneGroupImpl);

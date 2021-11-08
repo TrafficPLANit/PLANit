@@ -4,9 +4,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.ojalgo.array.Array1D;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.ojalgo.array.Array1D;
 
 /**
  * Store the splitting rates used during sLTM loading updates (Step 1 and 5). In this implementation we track all splitting rates of turns that are used by a path and assumed they
@@ -45,7 +45,6 @@ public class SplittingRateDataComplete implements SplittingRateData {
   /**
    * Constructor
    * 
-   * @param Nodes                the nodes in the network
    * @param numberOfLinkSegments in the network
    */
   public SplittingRateDataComplete(long numberOfLinkSegments) {

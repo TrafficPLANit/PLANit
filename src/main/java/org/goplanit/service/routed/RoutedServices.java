@@ -43,9 +43,10 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
   /**
    * Constructor
    * 
-   * @param tokenId to use for generation of the id of this routed services instance
+   * @param tokenId              to use for generation of the id of this routed services instance
+   * @param parentServiceNetwork the parent service network for these routed services
    */
-  public RoutedServices(IdGroupingToken tokenId, final ServiceNetwork parentServiceNetwork) {
+  public RoutedServices(final IdGroupingToken tokenId, final ServiceNetwork parentServiceNetwork) {
     super(tokenId, RoutedServices.class);
     this.parentServiceNetwork = parentServiceNetwork;
     this.layers = new RoutedServicesLayersImpl(tokenId);
@@ -56,7 +57,7 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
    * 
    * @param routedServices to copy
    */
-  public RoutedServices(RoutedServices routedServices) {
+  public RoutedServices(final RoutedServices routedServices) {
     super(routedServices);
     this.parentServiceNetwork = routedServices.parentServiceNetwork;
     this.layers = routedServices.layers.clone();

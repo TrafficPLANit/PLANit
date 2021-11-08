@@ -58,6 +58,7 @@ public interface FundamentalDiagram extends Cloneable {
    * hash code that ensures that for the given precision level identical hashes are created even if the underlying floating point variables differ beyond this precision.
    * 
    * @param scale indicating how many decimals to consider, e.g., 2 considers 2 decimals for precision
+   * @return created relaxed hash code
    */
   public abstract int relaxedHashCode(int scale);
 

@@ -33,7 +33,8 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
   /**
    * Local factory method to create an instance of mode specific routed services container
    * 
-   * @param mode for which services can be registered
+   * @param tokenId to use
+   * @param mode    for which services can be registered
    * @return created instance
    */
   private static RoutedModeServicesImpl createRoutedModeServices(final IdGroupingToken tokenId, final Mode mode) {

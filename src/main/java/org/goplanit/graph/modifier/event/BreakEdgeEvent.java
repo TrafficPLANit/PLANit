@@ -19,9 +19,9 @@ public class BreakEdgeEvent extends EventImpl implements GraphModificationEvent 
   public static final GraphModifierEventType EVENT_TYPE = new GraphModifierEventType("GRAPHMODIFIER.BREAK_EDGE");
 
   /**
-   * constructor
+   * Constructor
    * 
-   * @param sourceId        of the event
+   * @param source          of the event
    * @param vertexToBreakAt vertex to break at
    * @param aToBreak        edge broken now from vertex a to break
    * @param breakToB        edge broken now from break to b vertex
@@ -31,7 +31,7 @@ public class BreakEdgeEvent extends EventImpl implements GraphModificationEvent 
   }
 
   /**
-   * collect vertex to break at
+   * Collect vertex to break at
    * 
    * @return vertex to break at
    */

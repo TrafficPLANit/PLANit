@@ -51,7 +51,7 @@ public class ModeImpl extends ExternalIdAbleImpl implements Mode {
   /**
    * Constructor, using all defaults for non-provided parameters
    * 
-   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param groupId  contiguous id generation within this group for instances of this class
    * @param name     the name of this mode
    * @param maxSpeed this mode takes on
    * @param pcu      the PCU value of this mode
@@ -63,7 +63,7 @@ public class ModeImpl extends ExternalIdAbleImpl implements Mode {
   /**
    * Constructor, using all defaults for non-provided parameters
    * 
-   * @param groupId,          contiguous id generation within this group for instances of this class
+   * @param tokenId           contiguous id generation within this group for instances of this class
    * @param name              the name of this mode
    * @param maxSpeed          this mode takes on
    * @param pcu               the PCU value of this mode

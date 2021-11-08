@@ -29,7 +29,7 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
   /**
    * Constructor using all defaults except for the free speed to apply
    * 
-   * @param freeSpeedKmHour 
+   * @param freeSpeedKmHour to use
    */
   public NewellFundamentalDiagram(double freeSpeedKmHour) {
     this(freeSpeedKmHour, MacroscopicConstants.DEFAULT_MAX_DENSITY_PCU_KM_LANE);
@@ -38,7 +38,7 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
   /**
    * Constructor using all defaults except for the free speed to apply
    * 
-   * @param freeSpeedKmHour
+   * @param freeSpeedKmHour to use
    * @param jamDensityPcuKm maximum density allowed
    */
   public NewellFundamentalDiagram(double freeSpeedKmHour, double jamDensityPcuKm) {
@@ -49,7 +49,7 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
   /**
    * Constructor using all defaults except for the free speed to apply
    * 
-   * @param freeSpeedKmHour
+   * @param freeSpeedKmHour to use
    * @param capacityPcuHour to allow
    * @param jamDensityPcuKm maximum density allowed
    */
@@ -61,7 +61,8 @@ public class NewellFundamentalDiagram extends FundamentalDiagramImpl {
   /**
    * Constructor using all defaults except for the free speed to apply
    * 
-   * @param freeSpeedKmHour
+   * @param freeFlowBranch to use
+   * @param congestedBranch to use
    */
   public NewellFundamentalDiagram(final LinearFundamentalDiagramBranch freeFlowBranch, final LinearFundamentalDiagramBranch congestedBranch) {
     super(freeFlowBranch, congestedBranch);

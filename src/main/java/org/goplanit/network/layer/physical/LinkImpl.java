@@ -3,7 +3,6 @@ package org.goplanit.network.layer.physical;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.DirectedEdgeImpl;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Link;
@@ -53,7 +52,8 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
   /**
    * recreate the internal link id and set it
    * 
-   * @return
+   * @param tokenId to use
+   * @return the created link id
    */
   protected long recreateLinkId(IdGroupingToken tokenId) {
     long newLinkId = generateLinkId(tokenId);
@@ -77,7 +77,6 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param nodeA    the first node in the link
    * @param nodeB    the second node in the link
-   * @throws PlanItException thrown if there is an error
    */
   protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB) {
     super(groupId, nodeA, nodeB);
@@ -91,7 +90,6 @@ public class LinkImpl extends DirectedEdgeImpl implements Link {
    * @param nodeA    the first node in the link
    * @param nodeB    the second node in the link
    * @param length   the length of the link
-   * @throws PlanItException thrown if there is an error
    */
   protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length) {
     super(groupId, nodeA, nodeB, length);

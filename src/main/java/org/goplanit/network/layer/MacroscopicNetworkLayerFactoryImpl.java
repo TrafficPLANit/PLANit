@@ -23,6 +23,7 @@ public class MacroscopicNetworkLayerFactoryImpl extends ManagedIdEntityFactoryIm
    * Constructor
    * 
    * @param groupIdToken to use
+   * @param container    to use for network layers
    */
   public MacroscopicNetworkLayerFactoryImpl(IdGroupingToken groupIdToken, MacroscopicNetworkLayers container) {
     super(groupIdToken);

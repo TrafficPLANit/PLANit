@@ -91,8 +91,8 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
   /**
    * constructor where sending flows are not to be updated
    * 
+   * @param trackAllNodeTurnFlows    flag indicating where or not to track all node turn flows
    * @param splittingRateData        to use
-   * @param solutionScheme           to apply
    * @param networkLoadingFactorData to use
    */
   public NetworkTurnFlowUpdateData(final boolean trackAllNodeTurnFlows, final SplittingRateData splittingRateData, NetworkLoadingFactorData networkLoadingFactorData) {

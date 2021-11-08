@@ -93,9 +93,10 @@ public class Pas {
   }
 
   /**
-   * update costs of both paths
+   * update costs of an alternative
    * 
    * @param edgeSegmentCosts to use
+   * @param updateS1         Flag indicating to update cost of s1 (cheap) segment, when false update the s2 (costlier) segment
    */
   protected void updateCost(final double[] edgeSegmentCosts, boolean updateS1) {
 

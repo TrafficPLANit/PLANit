@@ -11,6 +11,8 @@ public class RoutedTripsFrequencyImpl extends RoutedTripsImpl<RoutedTripFrequenc
 
   /**
    * Constructor
+   * 
+   * @param tokenId to use
    */
   protected RoutedTripsFrequencyImpl(final IdGroupingToken tokenId) {
     super(tokenId);

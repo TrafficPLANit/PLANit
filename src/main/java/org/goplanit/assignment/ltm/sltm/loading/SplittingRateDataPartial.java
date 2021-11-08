@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.ojalgo.array.Array1D;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.misc.HashUtils;
+import org.ojalgo.array.Array1D;
 
 /**
  * Store the splitting rates used during sLTM loading updates (Step 1 and 5). In this implementation we only track splitting rates of explicitly registered node. This is compatible
@@ -49,6 +49,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
   /**
    * Constructor
    * 
+   * @param numberOfVertices to expect at most
    */
   public SplittingRateDataPartial(int numberOfVertices) {
     super();

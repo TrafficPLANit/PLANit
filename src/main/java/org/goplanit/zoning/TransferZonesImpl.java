@@ -30,7 +30,6 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Transf
   /**
    * Constructor
    * 
-   * @param groupId             to use for creating ids for instances
    * @param transferZoneFactory the factory to use
    */
   public TransferZonesImpl(TransferZoneFactory transferZoneFactory) {

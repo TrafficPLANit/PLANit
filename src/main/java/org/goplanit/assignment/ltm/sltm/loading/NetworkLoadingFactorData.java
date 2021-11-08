@@ -33,7 +33,7 @@ public class NetworkLoadingFactorData extends LinkSegmentData {
   /**
    * Constructor
    * 
-   * @param emptySegmentArray empty array used to initialize data stores
+   * @param numberOfLinkSegments number of link segments to be expected
    */
   public NetworkLoadingFactorData(int numberOfLinkSegments) {
     super(numberOfLinkSegments, 1.0);

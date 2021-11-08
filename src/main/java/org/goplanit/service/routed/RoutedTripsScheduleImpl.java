@@ -11,6 +11,8 @@ public class RoutedTripsScheduleImpl extends RoutedTripsImpl<RoutedTripSchedule>
 
   /**
    * Constructor
+   * 
+   * @param tokenId to use
    */
   protected RoutedTripsScheduleImpl(final IdGroupingToken tokenId) {
     super(tokenId);

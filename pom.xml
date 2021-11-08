@@ -3,12 +3,10 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>	
 
-	<!-- parent pom. Make sure it is installed (discoverable), otherwise maven 
-		will fail. to install, in PLANitAll project, run mvn install on the pom.xml -->
 	<parent>
     <groupId>org.goplanit.parentpom</groupId>
     <artifactId>planit-parentpom</artifactId>
-		<version>0.2.1a1</version>
+		<version>0.3.0</version>
 	</parent>
 
 	<groupId>org.goplanit</groupId>

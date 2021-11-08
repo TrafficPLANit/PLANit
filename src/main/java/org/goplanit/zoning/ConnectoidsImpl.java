@@ -2,13 +2,13 @@ package org.goplanit.zoning;
 
 import java.util.logging.Logger;
 
-import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.Connectoids;
 import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
+import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
 
 /**
  * Base implementation of Connectoids container and factory class
@@ -36,8 +36,7 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
   /**
    * Constructor
    * 
-   * @param groupId      to use for creating ids for instances
-   * @param parentZoning
+   * @param groupId to use for creating ids for instances
    */
   public ConnectoidsImpl(final IdGroupingToken groupId) {
     super(Connectoid::getId, Connectoid.CONNECTOID_ID_CLASS);

@@ -30,6 +30,9 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
   /**
    * Constructor
    *
+   * @param <Nx>         type of managed nodes container
+   * @param <Lx>         type of managed links container
+   * @param <Sx>         type of managed link segments container
    * @param tokenId      contiguous id generation within this group for instances of this class
    * @param nodes        managed nodes container to use
    * @param links        managed links container to use

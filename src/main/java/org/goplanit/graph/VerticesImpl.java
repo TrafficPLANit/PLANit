@@ -30,7 +30,7 @@ public class VerticesImpl extends GraphEntitiesImpl<Vertex> implements Vertices 
   /**
    * Constructor
    * 
-   * @param graphBuilder  the graph builder to use to create vertices
+   * @param groupId       to use
    * @param vertexFactory to use
    */
   public VerticesImpl(final IdGroupingToken groupId, final VertexFactory vertexFactory) {

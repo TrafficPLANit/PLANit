@@ -26,16 +26,16 @@ public class MSASmoothing extends Smoothing {
   /**
    * Constructor
    * 
-   * @param @param other to copy
+   * @param groupId contiguous id generation within this group for instances of this class
    */
   public MSASmoothing(IdGroupingToken groupId) {
     super(groupId);
   }
 
   /**
-   * Constructor
+   * Copy constructor
    * 
-   * @param groupId contiguous id generation within this group for instances of this class
+   * @param other to copy
    */
   public MSASmoothing(MSASmoothing other) {
     super(other);

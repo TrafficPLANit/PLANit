@@ -18,11 +18,10 @@ public interface ShortestPathResult {
   /**
    * Create the path from the provided origin to a specified destination vertex, using the results available. The path builder is used to create the instance of the path.
    * 
-   * @param pathBuilder to use for creating path instances
+   * @param pathFactory to use for creating path instances
    * @param origin      the specified origin vertex
    * @param destination the specified destination vertex
    * @return the path that is created, when no path could be extracted null is returned
-   * 
    */
   public abstract DirectedPath createPath(final DirectedPathFactory pathFactory, Vertex origin, Vertex destination);
 

@@ -53,7 +53,7 @@ public abstract class CumulativeEvent extends EventImpl {
    * 
    * 
    * @param type            of the event
-   * @param sourceId        of the event (where does it originate from)
+   * @param source          of the event (where does it originate from)
    * @param cumulativePoint contains the cumulative information
    * @param singleParameter create room in the content array for additional content of derived event classes
    */

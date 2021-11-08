@@ -6,15 +6,15 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.goplanit.graph.directed.DirectedEdgeImpl;
+import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.service.ServiceLeg;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.LineString;
 import org.opengis.geometry.MismatchedDimensionException;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
-import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.Link;
-import org.goplanit.utils.network.layer.service.ServiceLeg;
-import org.goplanit.utils.network.layer.service.ServiceNode;
 
 /**
  * A service leg connects two service nodes. Underlying are one or more physical links represented by this single service leg.
@@ -45,9 +45,9 @@ public class ServiceLegImpl extends DirectedEdgeImpl implements ServiceLeg {
   /**
    * Constructor which injects link lengths directly
    *
-   * @param groupId, contiguous id generation within this group for instances of this class
-   * @param vertexA  first vertex in the link
-   * @param vertexB  second vertex in the link
+   * @param tokenId contiguous id generation within this group for instances of this class
+   * @param nodeA   first vertex in the link
+   * @param nodeB   second vertex in the link
    */
   protected ServiceLegImpl(final IdGroupingToken tokenId, final ServiceNode nodeA, final ServiceNode nodeB) {
     this(tokenId, nodeA, nodeB, null);
@@ -56,9 +56,10 @@ public class ServiceLegImpl extends DirectedEdgeImpl implements ServiceLeg {
   /**
    * Constructor which injects link lengths directly
    *
-   * @param groupId, contiguous id generation within this group for instances of this class
-   * @param vertexA  first vertex in the link
-   * @param vertexB  second vertex in the link
+   * @param tokenId           contiguous id generation within this group for instances of this class
+   * @param nodeA             first vertex in the link
+   * @param nodeB             second vertex in the link
+   * @param networkLayerLinks to use
    */
   protected ServiceLegImpl(final IdGroupingToken tokenId, final ServiceNode nodeA, final ServiceNode nodeB, final List<Link> networkLayerLinks) {
     super(tokenId, nodeA, nodeB);
@@ -89,7 +90,7 @@ public class ServiceLegImpl extends DirectedEdgeImpl implements ServiceLeg {
   }
 
   /**
-   * @returns true when all underlying links have a geometry, false otherwise
+   * @return true when all underlying links have a geometry, false otherwise
    */
   @Override
   public boolean hasGeometry() {
@@ -101,7 +102,7 @@ public class ServiceLegImpl extends DirectedEdgeImpl implements ServiceLeg {
   }
 
   /**
-   * @returns true when geometry is present and all underlying links are in ab direction, false otherwise
+   * @return true when geometry is present and all underlying links are in ab direction, false otherwise
    */
   @Override
   public boolean isGeometryInAbDirection() {

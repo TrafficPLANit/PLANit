@@ -18,7 +18,6 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
    * generate id based on provided token and class and set it on this instance
    * 
    * @param tokenId to use for id generation
-   * @param clazz   to use for id generation
    * @return created and set id
    */
   protected long generateAndSetId(IdGroupingToken tokenId) {
@@ -33,7 +32,7 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
    * 
    * @param idGroupingToken to use
    * @param clazz           to register for
-   * @return
+   * @return generated id
    */
   protected static long generateId(IdGroupingToken idGroupingToken, Class<? extends IdAble> clazz) {
     return IdGenerator.generateId(idGroupingToken, clazz);
@@ -42,7 +41,8 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
   /**
    * Constructor
    * 
-   * @param id to use
+   * @param tokenId to use
+   * @param clazz   to register for
    */
   public GraphEntityImpl(IdGroupingToken tokenId, Class<? extends GraphEntity> clazz) {
     super(generateId(tokenId, clazz));

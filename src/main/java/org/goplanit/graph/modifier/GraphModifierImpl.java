@@ -16,8 +16,6 @@ import org.goplanit.graph.modifier.event.BreakEdgeEvent;
 import org.goplanit.graph.modifier.event.RemoveSubGraphEdgeEvent;
 import org.goplanit.graph.modifier.event.RemoveSubGraphEvent;
 import org.goplanit.graph.modifier.event.RemoveSubGraphVertexEvent;
-import org.locationtech.jts.geom.LineString;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
@@ -33,6 +31,8 @@ import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ManagedIdEntities;
+import org.locationtech.jts.geom.LineString;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Apply modifications to the graph in an integrated fashion.
@@ -57,8 +57,6 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   /**
    * update the geometry of the broken edge, knowing at what vertex it was broken from a previously longer edge
    * 
-   * @param <V>            type of vertex
-   * @param <E>            type of edge
    * @param brokenEdge     the broken edge
    * @param vertexBrokenAt the vertex it was broken at
    * @throws PlanItException thrown if error

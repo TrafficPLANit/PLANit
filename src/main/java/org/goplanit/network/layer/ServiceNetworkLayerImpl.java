@@ -47,8 +47,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   /**
    * Constructor. Instance only usable after user explicitly sets the parent network layer
    * 
-   * @param tokenId                    to use for id generation of instances of this class
-   * @param serviceNetworkLayerBuilder this is the builder to use for this layer
+   * @param tokenId to use for id generation of instances of this class
    */
   protected ServiceNetworkLayerImpl(final IdGroupingToken tokenId) {
     this(tokenId, null);
@@ -57,9 +56,8 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   /**
    * Constructor. Instance only usable after user explicitly sets the parent network layer
    * 
-   * @param tokenId                    to use for id generation of instances of this class
-   * @param parentNetworkLayer         this service layer is built on top of this network (when null user is expected to set it manually afterwards)
-   * @param serviceNetworkLayerBuilder this is the builder to use for this layer
+   * @param tokenId     to use for id generation of instances of this class
+   * @param parentLayer this service layer is built on top of this network (when null user is expected to set it manually afterwards)
    */
   protected ServiceNetworkLayerImpl(final IdGroupingToken tokenId, final MacroscopicNetworkLayer parentLayer) {
     this(tokenId, parentLayer, new ServiceNodesImpl(tokenId), new ServiceLegsImpl(tokenId), new ServiceLegSegmentsImpl(tokenId));
@@ -68,9 +66,11 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   /**
    * Constructor
    * 
-   * @param tokenId                    to use for id generation of instances of this class
-   * @param parentNetworkLayer         this service layer is built on top of this network (whn null user is expected to set it manually afterwards)
-   * @param serviceNetworkLayerBuilder this is the builder to use for this layer
+   * @param tokenId            to use for id generation of instances of this class
+   * @param parentNetworkLayer this service layer is built on top of this network (whn null user is expected to set it manually afterwards)
+   * @param nodes              to use
+   * @param legs               to use
+   * @param legSegments        to use
    */
   protected ServiceNetworkLayerImpl(final IdGroupingToken tokenId, final MacroscopicNetworkLayer parentNetworkLayer, final ServiceNodes nodes, final ServiceLegs legs,
       final ServiceLegSegments legSegments) {
@@ -159,8 +159,8 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   /**
    * A service network does not allow for registering supported modes as the supported modes are defined by its parent network already. log warning and do nothing
    * 
-   * @param supportedMode to register
-   * @return false
+   * @param supportedModes to register
+   * @return always return false
    */
   @Override
   public boolean registerSupportedModes(Collection<Mode> supportedModes) {

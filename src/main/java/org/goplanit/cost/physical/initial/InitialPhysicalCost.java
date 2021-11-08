@@ -57,7 +57,8 @@ public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysica
   /**
    * Are link segment costs available for the given mode (without time period)
    * 
-   * @param mode the mode
+   * @param timePeriod to use
+   * @param mode       the mode
    * @return true when available, false otherwise
    */
   public abstract boolean isSegmentCostsSetForMode(final TimePeriod timePeriod, final Mode mode);

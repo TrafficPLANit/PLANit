@@ -15,6 +15,8 @@ public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServic
 
   /**
    * Constructor
+   * 
+   * @param tokenId to use
    */
   protected RoutedServicesLayersImpl(final IdGroupingToken tokenId) {
     super(RoutedServicesLayer::getId, RoutedServicesLayer.ROUTED_SERVICES_LAYER_ID_CLASS);
@@ -26,7 +28,7 @@ public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServic
    * 
    * @param routedServicesLayersImpl to copy
    */
-  public RoutedServicesLayersImpl(RoutedServicesLayersImpl routedServicesLayersImpl) {
+  public RoutedServicesLayersImpl(final RoutedServicesLayersImpl routedServicesLayersImpl) {
     super(routedServicesLayersImpl);
     this.factory = routedServicesLayersImpl.factory;
   }

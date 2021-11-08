@@ -48,9 +48,9 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
    * Register the bush accepted turn flow to the turn if required. Default implementation does nothing but provide a hook for derived classes that do require to do something with
    * turn accepted flows
    * 
-   * @param prevSegmentId       of turn
-   * @param currentSegment      of turn
-   * @param turnSendingFlowPcuH sending flow rate of turn
+   * @param prevSegmentId    of turn
+   * @param currentSegment   of turn
+   * @param turnAcceptedFlow sending flow rate of turn
    */
   protected void applyAcceptedTurnFlowUpdate(final int prevSegmentId, final EdgeSegment currentSegment, final double turnAcceptedFlow) {
     // default implementation does nothing but provide a hook for derived classes that do require to do something with turn accepted flows

@@ -5,9 +5,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.UntypedDirectedGraphImpl;
+import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.graph.modifier.DirectedGraphModifierImpl;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
@@ -16,6 +15,7 @@ import org.goplanit.utils.graph.modifier.DirectedGraphModifier;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Modifier class for model free network layer, generics used to allow derived classes to provide typed versions for containers and content of containers. It wraps a directed graph
@@ -38,9 +38,8 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   // PUBLIC
 
   /**
-   * Network Constructor
+   * Constructor
    *
-   * @param graph         parent graph
    * @param graphModifier parent graph modifier
    */
   public UntypedNetworkLayerModifierImpl(final DirectedGraphModifier graphModifier) {
@@ -48,7 +47,7 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   }
 
   /**
-   * Network Constructor
+   * Constructor
    *
    * @param graph parent graph to abse modifier on
    */

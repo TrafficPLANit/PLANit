@@ -28,7 +28,11 @@ public abstract class LinkSegmentData {
   }
 
   /**
-   * swap the two 2Darray references
+   * Swap the two 2Darray references
+   * 
+   * @param index   first row index to swap contents for
+   * @param index2  second row index to swap contents for
+   * @param array2d 2d array to swap contents for based on two row indices
    */
   protected static void swap(int index, int index2, double[][] array2d) {
     double[] dummy = array2d[index];

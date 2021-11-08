@@ -235,7 +235,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   /**
    * Return the assignment solution strategy used
    * 
-   * @return
+   * @return used assignment strategy
    */
   protected StaticLtmAssignmentStrategy getStrategy() {
     return assignmentStrategy;
@@ -356,9 +356,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   }
 
   /**
-   * Set the flag indicating link storage constraints are active or not
+   * collect the flag indicating link storage constraints are active or not
    * 
-   * @param flag when true activate, when false disable
+   * @return flag when true activated, when false disabled
    */
   public boolean isActivateDetailedLogging() {
     return settings.isDetailedLogging();

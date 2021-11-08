@@ -28,7 +28,6 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
    * 
    * @param <V> type of object being stored
    * @param obj object being stored by its class signature, assuming ithat is the identifier it is registered under
-   * @return true if successful, false otherwise
    * @throws PlanItException thrown if error
    */
   protected <V> void registerBySourceId(final V obj) throws PlanItException {
@@ -37,12 +36,12 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
 
   /**
    * Stores an object by its source Id, after checking whether the external Id is a duplicate
-   * 
-   * @param <V>   type of object being stored
-   * @param clazz class to identify the correct container
-   * @param obj   object being stored
-   * @return true if successful, false otherwise
-   * @throws PlanItException thrown if dupliate or not possible to register due to lack of initialised container
+   *
+   * @param <U>      type of object being stored
+   * @param <V>      value to store
+   * @param theClazz class to identify the correct container
+   * @param obj      object being stored
+   * @throws PlanItException thrown if duplicate or not possible to register due to lack of initialised container
    */
   protected <U, V> void registerBySourceId(Class<U> theClazz, final V obj) throws PlanItException {
 
@@ -93,6 +92,7 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
   /**
    * access to the container with sourceIds
    * 
+   * @param <V>   value of the container
    * @param clazz to collect container for
    * @return the source id map wrapper, null if not present
    */

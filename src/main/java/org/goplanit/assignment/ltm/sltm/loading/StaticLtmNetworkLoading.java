@@ -449,6 +449,7 @@ public abstract class StaticLtmNetworkLoading {
   /**
    * Validate all constructor parameters
    * 
+   * @return true when positively validated, false when failed
    */
   protected boolean validateInputs() {
     if (!getSettings().validate()) {
@@ -649,6 +650,7 @@ public abstract class StaticLtmNetworkLoading {
    * (Extension A):  
    * 5. Restrict receiving flows to storage capacity Eq. (8) - only relevant when storage capacity is activated
    *   
+   * @param logSolutionScheme flag indicating whether or not to log the solution scheme used
    * @return true when successful, false otherwise 
    */
   public boolean stepZeroIterationInitialisation(boolean logSolutionScheme) {    

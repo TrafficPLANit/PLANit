@@ -87,7 +87,7 @@ public class StaticLtmSimulationData extends SimulationData {
   /**
    * Active time period
    * 
-   * @param active time period
+   * @param timePeriod to use
    */
   public void setTimePeriod(TimePeriod timePeriod) {
     this.timePeriod = timePeriod;

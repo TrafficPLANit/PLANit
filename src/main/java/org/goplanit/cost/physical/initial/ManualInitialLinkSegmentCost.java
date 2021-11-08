@@ -17,16 +17,16 @@ public class ManualInitialLinkSegmentCost extends InitialLinkSegmentCost {
   /**
    * Constructor
    * 
-   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param groupId contiguous id generation within this group for instances of this class
    */
   public ManualInitialLinkSegmentCost(IdGroupingToken groupId) {
     super(groupId);
   }
 
   /**
-   * Constructor
+   * Copy constructor
    * 
-   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param other to copy
    */
   public ManualInitialLinkSegmentCost(ManualInitialLinkSegmentCost other) {
     super(other);

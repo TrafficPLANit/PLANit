@@ -13,7 +13,7 @@ public class PlanitComponentEventType extends EventType {
   /**
    * Constructor
    * 
-   * @param eventTypeName
+   * @param eventTypeName to use
    */
   public PlanitComponentEventType(String eventTypeName) {
     super(eventTypeName);

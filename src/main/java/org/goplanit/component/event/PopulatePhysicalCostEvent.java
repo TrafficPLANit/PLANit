@@ -22,6 +22,7 @@ public class PopulatePhysicalCostEvent extends PopulateUntypedComponentEvent {
    * 
    * @param source                 of the event
    * @param physicalCostToPopulate network to populate
+   * @param network                to apply to
    */
   public PopulatePhysicalCostEvent(final PlanitComponentFactory<?> source, AbstractPhysicalCost physicalCostToPopulate, MacroscopicNetwork network) {
     super(EVENT_TYPE, source, physicalCostToPopulate, network);
