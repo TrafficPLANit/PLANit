@@ -31,6 +31,7 @@ import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ManagedIdEntities;
+import org.goplanit.utils.misc.Pair;
 import org.locationtech.jts.geom.LineString;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -234,14 +235,15 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    * 
    */
   @Override
-  public <Ex extends Edge> Map<Long, Set<Ex>> breakEdgesAt(final List<Ex> edgesToBreak, final Vertex vertexToBreakAt, final CoordinateReferenceSystem crs) throws PlanItException {
+  public <Ex extends Edge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(final List<Ex> edgesToBreak, final Vertex vertexToBreakAt, final CoordinateReferenceSystem crs)
+      throws PlanItException {
     PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
 
-    Map<Long, Set<Ex>> affectedEdges = new HashMap<Long, Set<Ex>>();
+    Map<Long, Pair<Ex, Ex>> affectedEdges = new HashMap<Long, Pair<Ex, Ex>>();
     for (Ex edgeToBreak : edgesToBreak) {
-      affectedEdges.putIfAbsent(edgeToBreak.getId(), new HashSet<Ex>());
-
-      Set<Ex> affectedEdgesOfEdgeToBreak = affectedEdges.get(edgeToBreak.getId());
+      if (affectedEdges.containsKey(edgeToBreak.getId())) {
+        LOGGER.severe(String.format("Edge (%s) cannot be broken twice at a single vertex, yet this appears to be the case", edgeToBreak.getXmlId()));
+      }
 
       /* break an edge */
       Ex breakToB = breakEdgeAt(vertexToBreakAt, edgeToBreak, geoUtils);
@@ -249,9 +251,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
         continue;
       }
       Ex aToBreak = edgeToBreak;
-      affectedEdgesOfEdgeToBreak.add(aToBreak);
-      affectedEdgesOfEdgeToBreak.add(breakToB);
-
+      affectedEdges.put(edgeToBreak.getId(), Pair.of(aToBreak, breakToB));
     }
     return affectedEdges;
   }

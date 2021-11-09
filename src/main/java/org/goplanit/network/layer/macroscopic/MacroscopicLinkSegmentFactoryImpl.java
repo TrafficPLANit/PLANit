@@ -30,8 +30,8 @@ public class MacroscopicLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<Ma
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegment create(final Link parentLink, final boolean directionAB) throws PlanItException {
-    final MacroscopicLinkSegment macroscopicLinkSegment = new MacroscopicLinkSegmentImpl(getIdGroupingToken(), parentLink, directionAB);
+  public MacroscopicLinkSegment create(final Link parentLink, final boolean directionAb) throws PlanItException {
+    final MacroscopicLinkSegment macroscopicLinkSegment = new MacroscopicLinkSegmentImpl(getIdGroupingToken(), parentLink, directionAb);
     return macroscopicLinkSegment;
   }
 
@@ -40,7 +40,7 @@ public class MacroscopicLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<Ma
    */
   @Override
   public MacroscopicLinkSegment registerNew(final Link parentLink, final boolean directionAb, boolean registerOnNodeAndLink) throws PlanItException {
-    final MacroscopicLinkSegment macroscopicLinkSegment = new MacroscopicLinkSegmentImpl(getIdGroupingToken(), parentLink, directionAb);
+    final MacroscopicLinkSegment macroscopicLinkSegment = create(parentLink, directionAb);
     getGraphEntities().register(macroscopicLinkSegment);
 
     if (registerOnNodeAndLink) {

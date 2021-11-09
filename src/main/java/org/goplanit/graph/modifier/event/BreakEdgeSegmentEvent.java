@@ -4,8 +4,8 @@ import org.goplanit.utils.event.EventImpl;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.modifier.DirectedGraphModifier;
-import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
-import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
+import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
+import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierEventType;
 
 /**
  * Wrapper around break edge segment event
@@ -13,10 +13,10 @@ import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
  * @author markr
  *
  */
-public class BreakEdgeSegmentEvent extends EventImpl implements GraphModificationEvent {
+public class BreakEdgeSegmentEvent extends EventImpl implements DirectedGraphModificationEvent {
 
   /** event type fired off when edge has been broken */
-  public static final GraphModifierEventType EVENT_TYPE = new GraphModifierEventType("DIRECTEDGRAPHMODIFIER.EDGESEGMENT.BREAK");
+  public static final DirectedGraphModifierEventType EVENT_TYPE = new DirectedGraphModifierEventType("DIRECTEDGRAPHMODIFIER.EDGESEGMENT.BREAK");
 
   /**
    * constructor

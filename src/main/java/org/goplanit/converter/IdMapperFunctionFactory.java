@@ -48,12 +48,12 @@ public class IdMapperFunctionFactory {
       };
     case XML:
       return (instance) -> {
-          return instance.getXmlId();
+        return instance.getXmlId();
       };
     default:
       throw new PlanItException(String.format("unknown id mapping type found for %s %s", clazz.getName(), idMapper.toString()));
     }
-  }  
+  }
 
   /**
    * create a function that takes a node and generates the appropriate id based on the user configuration
@@ -89,7 +89,7 @@ public class IdMapperFunctionFactory {
   }
 
   /**
-   * create a function that takes a link segment and (optional) id mapper and generates the appropriate MATSIM link id based on the user configuration
+   * create a function that takes a link segment and (optional) id mapper and generates the appropriate link segment id based on the user configuration
    * 
    * @param idMapper that generates mapped link segment id's for persistence
    * @return created function
@@ -124,7 +124,7 @@ public class IdMapperFunctionFactory {
   public static Function<Mode, String> createModeIdMappingFunction(IdMapperType idMapper) throws PlanItException {
     return createIdMappingFunction(Mode.class, idMapper);
   }
-  
+
   /**
    * create a function that takes a connectoid and generates the appropriate id based on the user configuration
    * 
@@ -142,7 +142,7 @@ public class IdMapperFunctionFactory {
    * @param idMapper the type of mapping function to create
    * @return function that generates zone id's for zone output
    * @throws PlanItException thrown if error
-   */  
+   */
   public static Function<Zone, String> createZoneIdMappingFunction(IdMapperType idMapper) throws PlanItException {
     return createIdMappingFunction(Zone.class, idMapper);
   }
@@ -153,7 +153,7 @@ public class IdMapperFunctionFactory {
    * @param idMapper the type of mapping function to create
    * @return function that generates transfer zone group id's for transfer zone group output
    * @throws PlanItException thrown if error
-   */   
+   */
   public static Function<TransferZoneGroup, String> createTransferZoneGroupIdMappingFunction(IdMapperType idMapper) throws PlanItException {
     return createIdMappingFunction(TransferZoneGroup.class, idMapper);
   }

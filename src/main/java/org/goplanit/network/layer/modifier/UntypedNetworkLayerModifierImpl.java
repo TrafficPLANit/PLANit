@@ -2,7 +2,6 @@ package org.goplanit.network.layer.modifier;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
@@ -14,6 +13,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.modifier.DirectedGraphModifier;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -70,7 +70,7 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
    * @throws PlanItException thrown if error
    */
   @Override
-  public Map<Long, Set<E>> breakAt(List<E> linksToBreak, V nodeToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
+  public Map<Long, Pair<E, E>> breakAt(List<E> linksToBreak, V nodeToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
     return graphModifier.breakEdgesAt(linksToBreak, nodeToBreakAt, crs);
   }
 

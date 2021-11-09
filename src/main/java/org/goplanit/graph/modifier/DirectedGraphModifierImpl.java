@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.modifier.event.BreakEdgeSegmentEvent;
 import org.goplanit.graph.modifier.event.RemoveSubGraphEdgeSegmentEvent;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
@@ -22,10 +22,13 @@ import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.modifier.DirectedGraphModifier;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
+import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierListener;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
 import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
 import org.goplanit.utils.id.ManagedIdEntities;
+import org.goplanit.utils.misc.Pair;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Implementation of a directed graph modifier that supports making changes to any untyped directed graph. The benefit of using the untyped directed graph is that it does not rely
@@ -50,7 +53,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    */
   @Override
   protected void fireEvent(EventListener eventListener, Event event) {
-    if (event.getType() instanceof DirectedGraphModifierListener) {
+    if (event.getType() instanceof DirectedGraphModifierEventType) {
       DirectedGraphModifierListener.class.cast(eventListener).onDirectedGraphModificationEvent(DirectedGraphModificationEvent.class.cast(event));
     } else {
       graphModifier.fireEvent(eventListener, event);
@@ -64,6 +67,90 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    */
   protected UntypedDirectedGraph<?, ?, ?> getUntypedDirectedGraph() {
     return (UntypedDirectedGraph<?, ?, ?>) graphModifier.theGraph;
+  }
+
+  /**
+   * For each broken edge, its underlying edge segments are simply copies of the original edge. These require updating as well. the two original segments are reused on one of the
+   * two sections of the broken edge, whereas two new segments are created for the other part
+   * 
+   * @param <Ex>     type of directed edge
+   * @param aToBreak first brokenLinkSection
+   * @param breakToB second brokenLinkSection
+   */
+  @SuppressWarnings("unchecked")
+  private <Ex extends DirectedEdge> void updateBrokenEdgeItsEdgeSegments(Ex aToBreak, Ex breakToB) {
+    DirectedVertex vertexAtBreak = aToBreak.getVertexB();
+
+    List<EdgeSegment> identifiedEdgeSegmentOnEdge = new ArrayList<EdgeSegment>(2);
+    for (Ex brokenEdge : List.of(aToBreak, breakToB)) {
+      /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
+      if (brokenEdge.hasEdgeSegmentAb()) {
+        EdgeSegment oldEdgeSegmentAb = brokenEdge.getEdgeSegmentAb();
+        EdgeSegment newEdgeSegmentAb = oldEdgeSegmentAb;
+
+        if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentAb)) {
+          /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
+          newEdgeSegmentAb = getUntypedDirectedGraph().getEdgeSegments().getFactory().createUniqueCopyOf(oldEdgeSegmentAb);
+          ((GraphEntities<EdgeSegment>) getUntypedDirectedGraph().getEdgeSegments()).register(newEdgeSegmentAb);
+          newEdgeSegmentAb.setParent(brokenEdge);
+        } else {
+          /* reuse the old first */
+          identifiedEdgeSegmentOnEdge.add(newEdgeSegmentAb);
+        }
+
+        /* update parent edge <-> edge segment */
+        brokenEdge.replace(oldEdgeSegmentAb, newEdgeSegmentAb);
+        newEdgeSegmentAb.setParent(brokenEdge);
+
+        /* update segment's vertices */
+        newEdgeSegmentAb.setUpstreamVertex((DirectedVertex) brokenEdge.getVertexA());
+        newEdgeSegmentAb.setDownstreamVertex((DirectedVertex) brokenEdge.getVertexB());
+
+        /* update vertices' segments */
+        newEdgeSegmentAb.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
+        newEdgeSegmentAb.getDownstreamVertex().replaceEntrySegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
+
+        if (hasListener(BreakEdgeSegmentEvent.EVENT_TYPE)) {
+          fireEvent(new BreakEdgeSegmentEvent(this, vertexAtBreak, newEdgeSegmentAb));
+        }
+
+        /* useful for debugging */
+        // newEdgeSegmentAb.validate();
+      }
+
+      /* do the same for edge segment B-> A */
+      if (brokenEdge.hasEdgeSegmentBa()) {
+        EdgeSegment oldEdgeSegmentBa = brokenEdge.getEdgeSegmentBa();
+        EdgeSegment newEdgeSegmentBa = oldEdgeSegmentBa;
+
+        if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentBa)) {
+          /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
+          newEdgeSegmentBa = getUntypedDirectedGraph().getEdgeSegments().getFactory().createUniqueCopyOf(oldEdgeSegmentBa);
+          ((GraphEntities<EdgeSegment>) getUntypedDirectedGraph().getEdgeSegments()).register(newEdgeSegmentBa);
+          newEdgeSegmentBa.setParent(brokenEdge);
+        } else {
+          identifiedEdgeSegmentOnEdge.add(newEdgeSegmentBa);
+        }
+        /* update parent edge <-> edge segment */
+        brokenEdge.replace(oldEdgeSegmentBa, newEdgeSegmentBa);
+        newEdgeSegmentBa.setParent(brokenEdge);
+
+        /* update segment's vertices */
+        newEdgeSegmentBa.setUpstreamVertex((DirectedVertex) brokenEdge.getVertexB());
+        newEdgeSegmentBa.setDownstreamVertex((DirectedVertex) brokenEdge.getVertexA());
+
+        /* update vertices' segments */
+        newEdgeSegmentBa.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
+        newEdgeSegmentBa.getDownstreamVertex().replaceEntrySegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
+
+        if (hasListener(BreakEdgeSegmentEvent.EVENT_TYPE)) {
+          fireEvent(new BreakEdgeSegmentEvent(this, vertexAtBreak, newEdgeSegmentBa));
+        }
+
+        /* useful for debugging */
+        // newEdgeSegmentBa.validate();
+      }
+    }
   }
 
   /**
@@ -142,82 +229,13 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * @param geoUtils        required to update edge lengths
    * @return newly created edge due to breaking, null if not feasible
    */
-  @SuppressWarnings("unchecked")
   @Override
   public <Ex extends DirectedEdge> Ex breakEdgeAt(DirectedVertex vertexToBreakAt, Ex edgeToBreak, PlanitJtsCrsUtils geoUtils) throws PlanItException {
     Ex aToBreak = edgeToBreak;
     Ex breakToB = graphModifier.breakEdgeAt(vertexToBreakAt, edgeToBreak, geoUtils);
 
-    List<EdgeSegment> identifiedEdgeSegmentOnEdge = new ArrayList<EdgeSegment>(2);
-    for (Ex brokenEdge : List.of(aToBreak, breakToB)) {
-      /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
-      if (brokenEdge.hasEdgeSegmentAb()) {
-        EdgeSegment oldEdgeSegmentAb = brokenEdge.getEdgeSegmentAb();
-        EdgeSegment newEdgeSegmentAb = oldEdgeSegmentAb;
-
-        if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentAb)) {
-          /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
-          newEdgeSegmentAb = getUntypedDirectedGraph().getEdgeSegments().getFactory().createUniqueCopyOf(oldEdgeSegmentAb);
-          ((GraphEntities<EdgeSegment>) getUntypedDirectedGraph().getEdgeSegments()).register(newEdgeSegmentAb);
-          newEdgeSegmentAb.setParent(brokenEdge);
-        } else {
-          /* reuse the old first */
-          identifiedEdgeSegmentOnEdge.add(newEdgeSegmentAb);
-        }
-
-        /* update parent edge <-> edge segment */
-        brokenEdge.replace(oldEdgeSegmentAb, newEdgeSegmentAb);
-        newEdgeSegmentAb.setParent(brokenEdge);
-
-        /* update segment's vertices */
-        newEdgeSegmentAb.setUpstreamVertex((DirectedVertex) brokenEdge.getVertexA());
-        newEdgeSegmentAb.setDownstreamVertex((DirectedVertex) brokenEdge.getVertexB());
-
-        /* update vertices' segments */
-        newEdgeSegmentAb.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
-        newEdgeSegmentAb.getDownstreamVertex().replaceEntrySegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
-
-        if (graphModifier.hasListener(BreakEdgeSegmentEvent.EVENT_TYPE)) {
-          fireEvent(new BreakEdgeSegmentEvent(this, vertexToBreakAt, newEdgeSegmentAb));
-        }
-
-        /* useful for debugging */
-        // newEdgeSegmentAb.validate();
-      }
-
-      /* do the same for edge segment B-> A */
-      if (brokenEdge.hasEdgeSegmentBa()) {
-        EdgeSegment oldEdgeSegmentBa = brokenEdge.getEdgeSegmentBa();
-        EdgeSegment newEdgeSegmentBa = oldEdgeSegmentBa;
-
-        if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentBa)) {
-          /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
-          newEdgeSegmentBa = getUntypedDirectedGraph().getEdgeSegments().getFactory().createUniqueCopyOf(oldEdgeSegmentBa);
-          ((GraphEntities<EdgeSegment>) getUntypedDirectedGraph().getEdgeSegments()).register(newEdgeSegmentBa);
-          newEdgeSegmentBa.setParent(brokenEdge);
-        } else {
-          identifiedEdgeSegmentOnEdge.add(newEdgeSegmentBa);
-        }
-        /* update parent edge <-> edge segment */
-        brokenEdge.replace(oldEdgeSegmentBa, newEdgeSegmentBa);
-        newEdgeSegmentBa.setParent(brokenEdge);
-
-        /* update segment's vertices */
-        newEdgeSegmentBa.setUpstreamVertex((DirectedVertex) brokenEdge.getVertexB());
-        newEdgeSegmentBa.setDownstreamVertex((DirectedVertex) brokenEdge.getVertexA());
-
-        /* update vertices' segments */
-        newEdgeSegmentBa.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
-        newEdgeSegmentBa.getDownstreamVertex().replaceEntrySegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
-
-        if (graphModifier.hasListener(BreakEdgeSegmentEvent.EVENT_TYPE)) {
-          fireEvent(new BreakEdgeSegmentEvent(this, vertexToBreakAt, newEdgeSegmentBa));
-        }
-
-        /* useful for debugging */
-        // newEdgeSegmentBa.validate();
-      }
-    }
+    /* update the underlying directed edge segments */
+    updateBrokenEdgeItsEdgeSegments(aToBreak, breakToB);
 
     return breakToB;
   }
@@ -228,10 +246,18 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * {@inheritDoc}
    */
   @Override
-  public <Ex extends DirectedEdge> Map<Long, Set<Ex>> breakEdgesAt(List<Ex> edgesToBreak, DirectedVertex vertexToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
+  public <Ex extends DirectedEdge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(List<Ex> edgesToBreak, DirectedVertex vertexToBreakAt, CoordinateReferenceSystem crs)
+      throws PlanItException {
 
     /* delegate regular breaking of edges */
-    return graphModifier.breakEdgesAt(edgesToBreak, vertexToBreakAt, crs);
+    Map<Long, Pair<Ex, Ex>> brokenEdges = graphModifier.breakEdgesAt(edgesToBreak, vertexToBreakAt, crs);
+
+    /* update the underlying directed edge segments */
+    for (Entry<Long, Pair<Ex, Ex>> entry : brokenEdges.entrySet()) {
+      updateBrokenEdgeItsEdgeSegments(entry.getValue().first(), entry.getValue().second());
+    }
+
+    return brokenEdges;
   }
 
   /**
