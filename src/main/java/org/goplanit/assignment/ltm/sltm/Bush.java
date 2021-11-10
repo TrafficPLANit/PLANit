@@ -164,8 +164,20 @@ public class Bush implements IdAble {
    * @param exitSegment  to use
    * @return true when turn sending flow is present, false otherwise
    */
-  public boolean containsTurnSendingFlow(EdgeSegment entrySegment, EdgeSegment exitSegment) {
+  public boolean containsTurnSendingFlow(final EdgeSegment entrySegment, final EdgeSegment exitSegment) {
     return Precision.isPositive(bushData.getTurnSendingFlowPcuH(entrySegment, exitSegment));
+  }
+
+  /**
+   * Multiply all turn sending flows, that have the given segment as entry segment, with the given factor
+   * 
+   * @param entrySegment to use as turn entry segment
+   * @param factor       to multiply with
+   */
+  public void multiplyTurnSendingFlows(final EdgeSegment entrySegment, double factor) {
+    for (EdgeSegment exitSegment : entrySegment.getDownstreamVertex().getExitEdgeSegments()) {
+      bushData.updateTurnSendingFlow(entrySegment, exitSegment, bushData.getTurnSendingFlowPcuH(entrySegment, exitSegment) * factor);
+    }
   }
 
   /**
@@ -180,7 +192,7 @@ public class Bush implements IdAble {
   }
 
   /**
-   * Collect the bush splitting rates for a given incoming edge segment
+   * Collect the bush splitting rates for a given incoming edge segment. If entry segment has no flow, zero splitting rates are returned for all turns
    * 
    * @param entrySegment to use
    * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the downstream from segment vertex
@@ -223,9 +235,15 @@ public class Bush implements IdAble {
    * @param toEdgeSegment   of the turn
    */
   public void removeTurn(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
-    dag.removeEdgeSegment(fromEdgeSegment);
-    dag.removeEdgeSegment(toEdgeSegment);
     bushData.removeTurn(fromEdgeSegment, toEdgeSegment);
+
+    /* update graph if entry/exit segment is now unused as well */
+    if (!Precision.isPositive(getSendingFlowPcuH(toEdgeSegment))) {
+      dag.removeEdgeSegment(toEdgeSegment);
+    }
+    if (!Precision.isPositive(getSendingFlowPcuH(fromEdgeSegment))) {
+      dag.removeEdgeSegment(fromEdgeSegment);
+    }
     requireTopologicalSortUpdate = true;
   }
 

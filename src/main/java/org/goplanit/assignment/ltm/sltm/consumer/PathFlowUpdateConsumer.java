@@ -68,8 +68,8 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
     /* path */
     DirectedPath odPath = odPaths.getValue(origin, destination);
     double acceptedPathFlowRate = odDemand;
-    if (odPath.isEmpty()) {
-      LOGGER.warning(String.format("IGNORE: encountered empty path %s", odPath.getXmlId()));
+    if (odPath == null || odPath.isEmpty()) {
+      LOGGER.warning(String.format("IGNORE: encountered empty path %s", odPath == null ? "" : odPath.getXmlId()));
       return;
     }
 

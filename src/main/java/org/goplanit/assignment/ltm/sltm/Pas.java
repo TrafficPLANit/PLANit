@@ -68,7 +68,7 @@ public class Pas {
     while (++index < pasSegment.length) {
       currentSegment = nextSegment;
       nextSegment = pasSegment[index];
-      if (potentialBushPruning && Precision.isSmallerEqual(origin.getTurnSendingFlow(currentSegment, nextSegment), flowShiftPcuH)) {
+      if (potentialBushPruning && !Precision.isPositive(origin.getTurnSendingFlow(currentSegment, nextSegment) - flowShiftPcuH)) {
         /* no remaining flow at all after flow shift, remove turn from bush entirely */
         origin.removeTurn(currentSegment, nextSegment);
       } else {
@@ -160,7 +160,7 @@ public class Pas {
 
       /* Bush flow portion */
       boolean potentialBushPruning = false;
-      double bushPortion = Math.min(bushS2Flow / networkS2FlowPcuH, 1); // bush portion >1 when earlier other overlapping PAS flow shifts added flow to S2
+      double bushPortion = Precision.isPositive(networkS2FlowPcuH) ? Math.min(bushS2Flow / networkS2FlowPcuH, 1) : 1;
       double bushFlowShift = flowShiftPcuH * bushPortion;
       if (Precision.isGreaterEqual(bushFlowShift, bushS2Flow)) {
         /* remove this origin from the PAS when done as no flow remains on high cost segment */
@@ -181,12 +181,12 @@ public class Pas {
         EdgeSegment firstS1EdgeSegment = getFirstEdgeSegment(true /* low cost segment */);
         for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
           double entryEdgeSegmentFlowPcuH = bushEntryTurnFlows[index++];
-          if (Precision.isPositive(entryEdgeSegmentFlowPcuH)) {
+          if (potentialBushPruning || Precision.isPositive(entryEdgeSegmentFlowPcuH)) {
             double entryPortion = entryEdgeSegmentFlowPcuH / totalBushEntryTurnFlows;
             /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s2 segment */
             double bushEntrySegmentFlowShift = bushFlowShift * entryPortion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
 
-            if (potentialBushPruning && Precision.isSmallerEqual(origin.getTurnSendingFlow(entrySegment, firstS2EdgeSegment), bushEntrySegmentFlowShift)) {
+            if (potentialBushPruning && !Precision.isPositive(origin.getTurnSendingFlow(entrySegment, firstS2EdgeSegment) - bushEntrySegmentFlowShift)) {
               /* no remaining flow at all after flow shift, remove turn from bush entirely */
               origin.removeTurn(entrySegment, firstS2EdgeSegment);
             } else {
@@ -211,20 +211,25 @@ public class Pas {
          * percentage of flow using each exit segment is applied to the s1 segment
          */
         if (getMergeVertex().hasExitEdgeSegments()) {
+          int index = 0;
+          double[] splittingRates = origin.getSplittingRates(lastS2Segment);
           for (EdgeSegment exitSegment : getMergeVertex().getExitEdgeSegments()) {
-            double splittingRate = origin.getSplittingRate(lastS2Segment, exitSegment);
+            if (origin.containsEdgeSegment(exitSegment)) {
+              double splittingRate = splittingRates[index];
 
-            /* remove flow for s2 */
-            double s2FlowShift = s2FinalShiftedFlow * splittingRate;
-            if (potentialBushPruning && Precision.isSmallerEqual(origin.getTurnSendingFlow(lastS2Segment, exitSegment), s2FlowShift)) {
-              /* no remaining flow at all after flow shift, remove turn from bush entirely */
-              origin.removeTurn(lastS2Segment, exitSegment);
-            } else {
-              origin.addTurnSendingFlow(lastS2Segment, exitSegment, s2FlowShift);
+              /* remove flow for s2 */
+              double s2FlowShift = s2FinalShiftedFlow * splittingRate;
+              if (potentialBushPruning && !Precision.isPositive(origin.getTurnSendingFlow(lastS2Segment, exitSegment) - s2FlowShift)) {
+                /* no remaining flow at all after flow shift, remove turn from bush entirely */
+                origin.removeTurn(lastS2Segment, exitSegment);
+              } else {
+                origin.addTurnSendingFlow(lastS2Segment, exitSegment, s2FlowShift);
+              }
+
+              /* add flow for s1 */
+              origin.addTurnSendingFlow(lastS1Segment, exitSegment, s1FinalSendingFlow * splittingRate);
             }
-
-            /* add flow for s1 */
-            origin.addTurnSendingFlow(lastS1Segment, exitSegment, s1FinalSendingFlow * splittingRate);
+            ++index;
           }
         }
       }

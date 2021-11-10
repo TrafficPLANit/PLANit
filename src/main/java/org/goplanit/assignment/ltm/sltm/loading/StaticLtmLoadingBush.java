@@ -25,7 +25,6 @@ import org.goplanit.utils.math.Precision;
 public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
 
   /** logger to use */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingBush.class.getCanonicalName());
 
   /** the bushes managed by the bush strategy but provided to be able to conduct a network loading based on the current state (bush splitting rates) of each bush */

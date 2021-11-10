@@ -120,7 +120,8 @@ public class BushTurnData implements Cloneable {
   }
 
   /**
-   * Collect the splitting rates for a given link segment. Splitting rates are based on the current turn sending flows s_ab.
+   * Collect the splitting rates for a given link segment. Splitting rates are based on the current turn sending flows s_ab. In case no flows are present, zero splitting rates for
+   * all turns are returned
    * 
    * @param fromSegment to collect bush splitting rates for
    * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the downstream from segment vertex
@@ -136,8 +137,14 @@ public class BushTurnData implements Cloneable {
       splittingRates[index++] = s_ab;
       totalSendingFlow += s_ab;
     }
-    for (index = 0; index < splittingRates.length; ++index) {
-      splittingRates[index] /= totalSendingFlow;
+    if (Precision.isPositive(totalSendingFlow)) {
+      for (index = 0; index < splittingRates.length; ++index) {
+        splittingRates[index] /= totalSendingFlow;
+      }
+    } else {
+      for (index = 0; index < splittingRates.length; ++index) {
+        splittingRates[index] = 0;
+      }
     }
     return splittingRates;
   }

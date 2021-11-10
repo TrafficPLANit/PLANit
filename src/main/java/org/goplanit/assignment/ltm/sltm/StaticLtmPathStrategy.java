@@ -13,7 +13,6 @@ import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.path.OdPaths;
 import org.goplanit.od.path.OdPathsHashed;
 import org.goplanit.path.DirectedPathFactoryImpl;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
@@ -21,6 +20,7 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.path.DirectedPath;
 import org.goplanit.utils.path.DirectedPathFactory;
 import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.zoning.Zoning;
 
 /**
  * Implementation to deal with a path based sLTM implementation
@@ -144,7 +144,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    */
   @Override
   public String getDescription() {
-    return "{Path-based";
+    return "Path-based";
   }
 
 }

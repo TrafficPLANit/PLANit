@@ -104,8 +104,22 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
           }
 
           /* v_a = s_a * alpha_a */
-          double bushEntryAcceptedFlow = bushLinkSendingFlow * dataConfig.flowAcceptanceFactors[entrySegmentId];
+          double alpha = dataConfig.flowAcceptanceFactors[entrySegmentId];
+          double bushEntryAcceptedFlow = bushLinkSendingFlow * alpha;
+
+          /*
+           * update bush turn sending flows based on prev sending flow to laoding based sending flow ratio this ensures the bush turn sending flows remain consistent with the
+           * loading. Note that we can not use the alpha of the segment for this because this pertains to the sending flows of the next link and since that one has not been
+           * processed fully
+           */
+          double bushLinkPrevSendingFlow = originBush.getSendingFlowPcuH(entrySegment);
+          if (Precision.isPositive(bushLinkPrevSendingFlow)) {
+            originBush.multiplyTurnSendingFlows(entrySegment, bushLinkSendingFlow / bushLinkPrevSendingFlow);
+          }
+
+          /* bush splitting rates */
           double[] splittingRates = originBush.getSplittingRates(entrySegment);
+
           int index = 0;
           for (EdgeSegment exitSegment : currVertex.getExitEdgeSegments()) {
             if (Precision.isPositive(splittingRates[index])) {

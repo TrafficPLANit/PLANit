@@ -42,13 +42,13 @@ import org.locationtech.jts.geom.GeometryFactory;
  * @author markr
  *
  */
-public class sLtmAssignmentTest {
+public class sLtmAssignmentSingleOdTest1 {
 
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
   private Zoning zoning;
 
-  private final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("sLtmAssignmentTest");
+  private final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("sLtmAssignmentSingleOdTest1");
 
   /** the logger */
   private static Logger LOGGER = null;
@@ -80,7 +80,7 @@ public class sLtmAssignmentTest {
   @BeforeClass
   public static void setUp() throws Exception {
     if (LOGGER == null) {
-      LOGGER = Logging.createLogger(sLtmAssignmentTest.class);
+      LOGGER = Logging.createLogger(sLtmAssignmentSingleOdTest1.class);
     }
   }
 

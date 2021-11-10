@@ -92,32 +92,32 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
     EdgeSegment lastS2Segment = pas.getLastEdgeSegment(false);
     double slackFlow = Double.POSITIVE_INFINITY;
 
-    if (networkLoading.getCurrentFlowAcceptanceFactors()[(int) lastS2Segment.getId()] < 1) {
-      /*
-       * s1 directs towards congested outlink(s) not part of its segment. Hence, the slack flow for s2 is zero as well as it will direct towards these out segments. Due to lack of
-       * information we must assume all flow added to s1 will immediately cause congestion on s1 (worst case)
-       */
-      return 0;
-    } else {
-      Array1D<Double> splittingRates = networkLoading.getSplittingRateData().getSplittingRates(lastS2Segment);
-      int index = 0;
-      for (EdgeSegment exitSegment : lastS2Segment.getDownstreamVertex().getExitEdgeSegments()) {
-        double splittingRate = splittingRates.get(index);
-        if (splittingRate > 0) {
-          /* since only a portion is directed to this out link, we can multiple the slack with the reciprocal of the splitting rate */
-          double scaledSlackFlow = (1 / splittingRate) * ((MacroscopicLinkSegment) exitSegment).getCapacityOrDefaultPcuH()
-              - networkLoading.getCurrentOutflowsPcuH()[(int) exitSegment.getId()];
-          slackFlow = Math.min(slackFlow, scaledSlackFlow);
-        }
-        ++index;
+    Array1D<Double> splittingRates = networkLoading.getSplittingRateData().getSplittingRates(lastS2Segment);
+
+    int index = 0;
+    int linkSegmentId = -1;
+
+    for (EdgeSegment exitSegment : lastS2Segment.getDownstreamVertex().getExitEdgeSegments()) {
+      double splittingRate = splittingRates.get(index);
+      if (splittingRate > 0) {
+        linkSegmentId = (int) exitSegment.getId();
+        /* do not use outflows directly because they are only available on potentially blocking nodes in point queue basic solution scheme */
+        double outflow = networkLoading.getCurrentInflowsPcuH()[linkSegmentId] * networkLoading.getCurrentFlowAcceptanceFactors()[linkSegmentId];
+        /* since only a portion is directed to this out link, we can multiply the slack with the reciprocal of the splitting rate */
+        double scaledSlackFlow = (1 / splittingRate) * ((MacroscopicLinkSegment) exitSegment).getCapacityOrDefaultPcuH() - outflow;
+        slackFlow = Math.min(slackFlow, scaledSlackFlow);
       }
+      ++index;
     }
 
-    EdgeSegment[] s1 = pas.getAlternative(true);
     MacroscopicLinkSegment linkSegment = null;
-    for (int index = 0; index < s1.length; ++index) {
+    EdgeSegment[] s1 = pas.getAlternative(true);
+    for (index = 0; index < s1.length; ++index) {
       linkSegment = (MacroscopicLinkSegment) s1[index];
-      double currSlackflow = linkSegment.getCapacityOrDefaultPcuH() - networkLoading.getCurrentOutflowsPcuH()[(int) linkSegment.getId()];
+      linkSegmentId = (int) linkSegment.getId();
+      /* do not use outflows directly because they are only available on potentially blocking nodes in point queue basic solution scheme */
+      double outflow = networkLoading.getCurrentInflowsPcuH()[linkSegmentId] * networkLoading.getCurrentFlowAcceptanceFactors()[linkSegmentId];
+      double currSlackflow = linkSegment.getCapacityOrDefaultPcuH() - outflow;
       if (Precision.isSmaller(currSlackflow, slackFlow)) {
         slackFlow = currSlackflow;
       }
@@ -479,9 +479,9 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
       }
       /* untouched PAS (no flows shifted yet) in this iteration */
 
+      boolean pasFlowShifted = false;
       double flowShift = determineFlowShift(pas, s2ShiftableFlow, theMode, physicalCost, virtualCost, networkLoading, firstCongestedLinkSegment);
-
-      boolean pasFlowShifted = pas.executeFlowShift(s2ShiftableFlow, flowShift, networkLoading.getCurrentFlowAcceptanceFactors());
+      pasFlowShifted = pas.executeFlowShift(s2ShiftableFlow, flowShift, networkLoading.getCurrentFlowAcceptanceFactors());
       if (!pas.hasOrigins()) {
         passWithoutOrigins.add(pas);
       }
