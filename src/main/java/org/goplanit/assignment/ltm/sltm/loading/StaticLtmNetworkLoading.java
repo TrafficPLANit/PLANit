@@ -258,64 +258,60 @@ public abstract class StaticLtmNetworkLoading {
   private void performNodeModelUpdate(final ApplyToNodeModelResult consumer) {
     double[] sendingFlows = this.sendingFlowData.getCurrentSendingFlows();
 
-    /* For each potentially blocking node */
+    /* For each tracked node */
     for (DirectedVertex trackedNode : splittingRateData.getTrackedNodes()) {
-      if (!splittingRateData.isPotentiallyBlocking(trackedNode)) {
-        continue;
+
+      /* tracked but non-blocking or centroid is notified as non-blocking */
+      if (!splittingRateData.isPotentiallyBlocking(trackedNode) || trackedNode instanceof Centroid) {
+        consumer.acceptNonBlockingLinkBasedResult(trackedNode, sendingFlows);
       }
 
-      if (trackedNode instanceof Centroid) {
-        // TODO instanceof is ugly. Ideally, we'd split centroids in origin and destination centroids, then we coudl
-        // verify based on absence of incoming or outgoing link segments
-        consumer.consumeCentroidResult(trackedNode, sendingFlows);
-      } else {
-        /* regular node */
+      /* For each potentially blocking node */
 
-        // TODO: not computationally efficient, capacities are recomputed every time and construction of
-        // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
+      // TODO: not computationally efficient, capacities are recomputed every time and construction of
+      // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
 
-        /* C_a : in Array1D form */
-        Array1D<Double> inCapacities = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfEntryEdgeSegments());
-        int index = 0;
-        for (EdgeSegment entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
-          inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH());
-        }
-
-        /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
-        @SuppressWarnings("unchecked")
-        Access1D<Double>[] tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[trackedNode.sizeOfEntryEdgeSegments()];
-        int entryIndex = 0;
-        for (Iterator<EdgeSegment> iter = trackedNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
-          EdgeSegment entryEdgeSegment = iter.next();
-          /* s_ab = s_a*phi_ab */
-          double sendingFlow = sendingFlows[(int) entryEdgeSegment.getId()];
-          Array1D<Double> localTurnSendingFlows = this.splittingRateData.getSplittingRates(entryEdgeSegment).copy();
-          localTurnSendingFlows.modifyAll(PrimitiveFunction.MULTIPLY.by(sendingFlow));
-          tunSendingFlowsByEntryLinkSegment[entryIndex] = localTurnSendingFlows;
-        }
-        Array2D<Double> turnSendingFlows = Array2D.PRIMITIVE64.rows(tunSendingFlowsByEntryLinkSegment);
-
-        /* r_a : in Array1D form */
-        Array1D<Double> outReceivingFlows = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfExitEdgeSegments());
-        index = 0;
-        for (EdgeSegment exitEdgeSegment : trackedNode.getExitEdgeSegments()) {
-          outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).getCapacityOrDefaultPcuH());
-        }
-
-        /* Kappa(s,r,phi) : node model update */
-        try {
-          TampereNodeModel nodeModel = new TampereNodeModel(new TampereNodeModelInput(new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingFlows));
-          Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
-
-          /* delegate to consumer */
-          consumer.consumeRegularResult(trackedNode, localFlowAcceptanceFactors, turnSendingFlows);
-
-        } catch (Exception e) {
-          LOGGER.severe(e.getMessage());
-          LOGGER.severe(String.format("Unable to run Tampere node model on tracked node %s", trackedNode.getXmlId()));
-        }
-
+      /* C_a : in Array1D form */
+      Array1D<Double> inCapacities = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfEntryEdgeSegments());
+      int index = 0;
+      for (EdgeSegment entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
+        inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH());
       }
+
+      /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
+      @SuppressWarnings("unchecked")
+      Access1D<Double>[] tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[trackedNode.sizeOfEntryEdgeSegments()];
+      int entryIndex = 0;
+      for (Iterator<EdgeSegment> iter = trackedNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
+        EdgeSegment entryEdgeSegment = iter.next();
+        /* s_ab = s_a*phi_ab */
+        double sendingFlow = sendingFlows[(int) entryEdgeSegment.getId()];
+        Array1D<Double> localTurnSendingFlows = this.splittingRateData.getSplittingRates(entryEdgeSegment).copy();
+        localTurnSendingFlows.modifyAll(PrimitiveFunction.MULTIPLY.by(sendingFlow));
+        tunSendingFlowsByEntryLinkSegment[entryIndex] = localTurnSendingFlows;
+      }
+      Array2D<Double> turnSendingFlows = Array2D.PRIMITIVE64.rows(tunSendingFlowsByEntryLinkSegment);
+
+      /* r_a : in Array1D form */
+      Array1D<Double> outReceivingFlows = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfExitEdgeSegments());
+      index = 0;
+      for (EdgeSegment exitEdgeSegment : trackedNode.getExitEdgeSegments()) {
+        outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).getCapacityOrDefaultPcuH());
+      }
+
+      /* Kappa(s,r,phi) : node model update */
+      try {
+        TampereNodeModel nodeModel = new TampereNodeModel(new TampereNodeModelInput(new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingFlows));
+        Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
+
+        /* delegate to consumer */
+        consumer.acceptTurnBasedResult(trackedNode, localFlowAcceptanceFactors, turnSendingFlows);
+
+      } catch (Exception e) {
+        LOGGER.severe(e.getMessage());
+        LOGGER.severe(String.format("Unable to run Tampere node model on tracked node %s", trackedNode.getXmlId()));
+      }
+
     }
 
   }

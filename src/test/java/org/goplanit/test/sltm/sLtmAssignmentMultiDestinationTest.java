@@ -1,6 +1,7 @@
 package org.goplanit.test.sltm;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.logging.Logger;
@@ -107,8 +108,8 @@ public class sLtmAssignmentMultiDestinationTest {
     // Demand AA'  = 4000
     // Demand AA'' = 4000
     //
-    // [0,12] = 8000 capacity
-    // [1,4,5,8,9,11,12,13] = 4000 capacity
+    // [0,1,4,5,8,12] = 8000 capacity
+    // [2,4,6,8,9,11,12,13] = 4000 capacity
     // [9,10] = 3000 capacity
     // [3,10,7] = 1500 capacity
     // 
@@ -220,14 +221,14 @@ public class sLtmAssignmentMultiDestinationTest {
       linkTypes.getFactory().registerNew("500_lane", 500, 180, network.getModes().getFirst()).setXmlId("500_lane");
       
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("0"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(16);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("1"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(8);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("1"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(16);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("2"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(8);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("3"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(3);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("4"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(8);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("5"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(8);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("4"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(16);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("5"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(16);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("6"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(8);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(3);
-      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("8"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(8);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("8"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(16);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("9"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(6);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("10"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(6);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("11"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(3);
@@ -301,16 +302,20 @@ public class sLtmAssignmentMultiDestinationTest {
       sLTM.execute();
 
       /*
-       * due to asymetry the flows on link 12 and 13 MUST be different. In case of incorrect tracking of flow composition this is not captured and they would receive equal amounts
-       * of flow
+       * If splitting rates are kept correctly on the bush it is impossible that flows from destination A' end up at destination A''. Hence, the last liunk before each destination
+       * should have less flow than the OD demand of 4k
        */
+      double outflow4 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
+      assertTrue(Precision.isSmallerEqual(outflow4, 4000));
+      double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+      assertTrue(Precision.isSmallerEqual(outflow8, 4000));
 
-      double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+      // TODO: When this is properly handled find out the correct answer and put in the rest of the assertions
+
 //      double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
 //      double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
 //      double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
 //
-//      assertEquals(outflow1, 2333.333333, Precision.EPSILON_6);
 //      assertEquals(outflow5, 2333.333333, Precision.EPSILON_6);
 //      assertEquals(outflow8, 2333.333333, Precision.EPSILON_6);
 //      assertEquals(outflow2, 7000, Precision.EPSILON_6);

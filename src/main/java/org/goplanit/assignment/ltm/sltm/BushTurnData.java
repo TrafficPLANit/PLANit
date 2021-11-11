@@ -150,7 +150,11 @@ public class BushTurnData implements Cloneable {
   }
 
   /**
-   * Collect the splitting rates for a given link segment. Splitting rates are based on the current turn sending flows s_ab.
+   * Collect the splitting rate for a given link segment. Splitting rates are based on the current turn sending flows s_ab.
+   * <p>
+   * When collecting multiple splitting rates with the same in link, do not use this method but instead collect all splitting rates at once and then filter the ones you require it
+   * is computationally more efficient.
+   * 
    * 
    * @param fromSegment of turn to collect splitting rate for
    * @param toSegment   of turn to collect splitting rate for
@@ -159,7 +163,7 @@ public class BushTurnData implements Cloneable {
   public double getSplittingRate(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
     double turnSendingFlow = getTurnSendingFlowPcuH(fromSegment, toSegment);
     if (Precision.isPositive(turnSendingFlow)) {
-      return getTotalSendingFlowPcuH(fromSegment) / turnSendingFlow;
+      return turnSendingFlow / getTotalSendingFlowPcuH(fromSegment);
     } else {
       return 0;
     }

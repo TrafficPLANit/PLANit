@@ -84,6 +84,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * @param fd                 to use
    * @param inflowRatePcuHour  to use
    * @param outflowRatePcuHour to use
+   * @return travel time computed, when outflow is zero and inflow is positive an infinite travel time is returned
    */
   private double computeTravelTime(LinkSegment linkSegment, FundamentalDiagram fd, double inflowRatePcuHour, double outflowRatePcuHour) {
     /* minimum travel time */
@@ -101,6 +102,13 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
 
       /* average hyper critical delay */
       if (Precision.isSmaller(outflowRatePcuHour, inflowRatePcuHour)) {
+
+        if (!Precision.isPositive(outflowRatePcuHour)) {
+          LOGGER.warning(String.format("Link segment %s (%d) appears to have no outflow while positive inflow (%.2f) -> infinite travel time, this is unlikely",
+              linkSegment.getXmlId(), linkSegment.getId(), inflowRatePcuHour));
+          return Double.POSITIVE_INFINITY;
+        }
+
         // hyperCriticalDelay = (excess inflow rate * 1/2* duration)/outflow rate)
         hyperCriticalDelay = ((inflowRatePcuHour - outflowRatePcuHour) * 0.5 * currentTimePeriodHours / outflowRatePcuHour);
       }

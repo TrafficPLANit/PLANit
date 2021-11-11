@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.BitSet;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.loading.SplittingRateData;
@@ -59,6 +60,11 @@ public abstract class StaticLtmAssignmentStrategy {
 
   /** the user configured traffic assignment components used */
   private final TrafficAssignmentComponentAccessee taComponents;
+
+  /**
+   * Track which nodes were potentially blocking in previous iteration to ensure costs are updated for these nodes even when they are no longer blocking in the current iteration
+   */
+  private final BitSet prevIterationPotentiallyBlocking;
 
   /**
    * The transport model network used
@@ -218,6 +224,7 @@ public abstract class StaticLtmAssignmentStrategy {
     this.idGroupingToken = idGroupingToken;
     this.settings = settings;
     this.taComponents = taComponents;
+    this.prevIterationPotentiallyBlocking = new BitSet(transportModelNetwork.getNumberOfVerticesAllLayers());
   }
 
   /**
@@ -270,8 +277,10 @@ public abstract class StaticLtmAssignmentStrategy {
       VirtualNetwork virtualLayer = getTransportNetwork().getZoning().getVirtualNetwork();
 
       /* only update when node is both (flow) tracked as well as potentially blocking */
+      boolean currentlyPotentiallyBlocking = false;
       for (DirectedVertex trackedFlowNode : splittingRateData.getTrackedNodes()) {
-        if (!splittingRateData.isPotentiallyBlocking(trackedFlowNode)) {
+        currentlyPotentiallyBlocking = splittingRateData.isPotentiallyBlocking(trackedFlowNode);
+        if (!currentlyPotentiallyBlocking && !prevIterationPotentiallyBlocking.get((int) trackedFlowNode.getId())) {
           continue;
         }
 
@@ -280,6 +289,8 @@ public abstract class StaticLtmAssignmentStrategy {
             (es) -> costsToUpdate[(int) es.getId()] = physicalCost.getGeneralisedCost(theMode, (MacroscopicLinkSegment) es));
         virtualLayer.getConnectoidSegments().forEachMatchingIdIn(trackedFlowNode.getEntryEdgeSegments(),
             (es) -> costsToUpdate[(int) es.getId()] = virtualCost.getGeneralisedCost(theMode, (ConnectoidSegment) es));
+
+        prevIterationPotentiallyBlocking.set((int) trackedFlowNode.getId(), currentlyPotentiallyBlocking);
       }
     }
     /* OTHER -> all nodes (and attached links) are updated, update all costs */

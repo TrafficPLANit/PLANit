@@ -32,7 +32,7 @@ public class UpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult {
    * {@inheritDoc}
    */
   @Override
-  public void consumeCentroidResult(final DirectedVertex node, double[] sendingFlows) {
+  public void acceptNonBlockingLinkBasedResult(final DirectedVertex node, double[] sendingFlows) {
     int segmentId = -1;
     for (EdgeSegment exitLinkSegment : node.getExitEdgeSegments()) {
       segmentId = (int) exitLinkSegment.getId();
@@ -44,7 +44,7 @@ public class UpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult {
    * {@inheritDoc}
    */
   @Override
-  public void consumeRegularResult(final DirectedVertex node, final Array1D<Double> flowAcceptanceFactors, final Array2D<Double> turnSendingFlows) {
+  public void acceptTurnBasedResult(final DirectedVertex node, final Array1D<Double> flowAcceptanceFactors, final Array2D<Double> turnSendingFlows) {
     /* v_ab = s_ab*alpha_a: Convert turn sending flows to turn accepted flows (to avoid duplication we reuse sending flow 2d array) */
     for (int entryIndex = 0; entryIndex < flowAcceptanceFactors.length; ++entryIndex) {
       double alpha = flowAcceptanceFactors.get(entryIndex);
