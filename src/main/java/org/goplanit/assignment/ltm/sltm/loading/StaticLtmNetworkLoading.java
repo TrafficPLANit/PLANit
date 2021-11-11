@@ -264,6 +264,7 @@ public abstract class StaticLtmNetworkLoading {
       /* tracked but non-blocking or centroid is notified as non-blocking */
       if (!splittingRateData.isPotentiallyBlocking(trackedNode) || trackedNode instanceof Centroid) {
         consumer.acceptNonBlockingLinkBasedResult(trackedNode, sendingFlows);
+        continue;
       }
 
       /* For each potentially blocking node */

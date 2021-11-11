@@ -1,13 +1,11 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.misc.HashUtils;
 
 /**
  * Track the turn based data of a bush.
@@ -22,14 +20,14 @@ public class BushTurnData implements Cloneable {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(BushTurnData.class.getCanonicalName());
 
-  /** track known bush turn sending flows s_ab by the combined hash code of incoming and outgoing link segment */
-  private final Map<Integer, Double> turnSendingFlows;
+  /** track known bush turn sending flows s_ab by the combined key of incoming and outgoing link segments */
+  private final MultiKeyMap<Object, Double> turnSendingFlows;
 
   /**
    * Constructor
    */
   BushTurnData() {
-    this.turnSendingFlows = new HashMap<Integer, Double>();
+    this.turnSendingFlows = new MultiKeyMap<Object, Double>();
   }
 
   /**
@@ -38,7 +36,7 @@ public class BushTurnData implements Cloneable {
    * @param bushTurnData to copy
    */
   public BushTurnData(BushTurnData bushTurnData) {
-    this.turnSendingFlows = new HashMap<Integer, Double>(bushTurnData.turnSendingFlows);
+    this.turnSendingFlows = bushTurnData.turnSendingFlows.clone();
   }
 
   /**
@@ -49,7 +47,7 @@ public class BushTurnData implements Cloneable {
    * @param turnSendingFlow to update
    */
   public void updateTurnSendingFlow(final EdgeSegment fromSegment, final EdgeSegment toSegment, final double turnSendingFlow) {
-    turnSendingFlows.put(HashUtils.createCombinedHashCode(fromSegment, toSegment), turnSendingFlow);
+    turnSendingFlows.put(fromSegment, toSegment, turnSendingFlow);
   }
 
   /**
@@ -60,16 +58,20 @@ public class BushTurnData implements Cloneable {
    * @param turnSendingFlow to update
    */
   public void addTurnSendingFlow(final EdgeSegment fromSegment, final EdgeSegment toSegment, final double turnSendingFlow) {
-    int hashId = HashUtils.createCombinedHashCode(fromSegment, toSegment);
 
-    double newSendingFlow = turnSendingFlows.getOrDefault(hashId, 0.0) + turnSendingFlow;
+    double newSendingFlow = turnSendingFlow;
+    Double existingSendingFlow = turnSendingFlows.get(fromSegment, toSegment);
+    if (existingSendingFlow != null) {
+      newSendingFlow += existingSendingFlow;
+    }
+
     if (!Precision.isPositive(newSendingFlow)) {
       LOGGER.warning(String.format("Turn (%s to %s) sending flow negative (%.2f) after adding %.2f flow, reset to 0.0", fromSegment.getXmlId(), toSegment.getXmlId(),
           newSendingFlow, turnSendingFlow));
       newSendingFlow = 0;
     }
 
-    turnSendingFlows.put(hashId, newSendingFlow);
+    turnSendingFlows.put(fromSegment, toSegment, newSendingFlow);
   }
 
   /**
@@ -79,7 +81,7 @@ public class BushTurnData implements Cloneable {
    * @param toEdgeSegment   of turn
    */
   public void removeTurn(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
-    turnSendingFlows.remove(HashUtils.createCombinedHashCode(fromEdgeSegment, toEdgeSegment));
+    turnSendingFlows.remove(fromEdgeSegment, toEdgeSegment);
   }
 
   /**
@@ -90,7 +92,12 @@ public class BushTurnData implements Cloneable {
    * @return turn sending flow, 0 if not present
    */
   public double getTurnSendingFlowPcuH(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
-    return turnSendingFlows.getOrDefault(HashUtils.createCombinedHashCode(fromSegment, toSegment), 0.0);
+    Double existingSendingFlow = turnSendingFlows.get(fromSegment, toSegment);
+    if (existingSendingFlow != null) {
+      return existingSendingFlow;
+    } else {
+      return 0;
+    }
   }
 
   /**
@@ -116,7 +123,7 @@ public class BushTurnData implements Cloneable {
    * @return true when present, false otherwise
    */
   public boolean containsTurnSendingFlow(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
-    return turnSendingFlows.containsKey(HashUtils.createCombinedHashCode(fromSegment, toSegment));
+    return turnSendingFlows.containsKey(fromSegment, toSegment);
   }
 
   /**
