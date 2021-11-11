@@ -281,6 +281,16 @@ public class Pas {
   }
 
   /**
+   * Verify if origin is registered on PAS
+   * 
+   * @param originBush to check
+   * @return true when registered, false otherwise
+   */
+  public boolean hasRegisteredOrigin(final Bush originBush) {
+    return originBushes.contains(originBush);
+  }
+
+  /**
    * Verify if PAS (still) has origins registered on it
    * 
    * @return true when origins are present, false otherwise
