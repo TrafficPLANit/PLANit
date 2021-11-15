@@ -1,10 +1,14 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
 
 /**
@@ -20,47 +24,110 @@ public class BushTurnData implements Cloneable {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(BushTurnData.class.getCanonicalName());
 
-  /** track known bush turn sending flows s_ab by the combined key of incoming and outgoing link segments */
-  private final MultiKeyMap<Object, Double> turnSendingFlows;
+  // TODO not supported yet, but container is there
+  /** track which composition labels are registered on each link segment */
+  private final HashMap<EdgeSegment, Set<BushFlowCompositionLabel>> linkSegmentCompositionLabels;
+
+  /** track known bush turn sending flows s_ab by the combined key of incoming (and composition) outgoing (and composition) link segments */
+  private final MultiKeyMap<Object, Double> compositionTurnSendingFlows;
 
   /**
-   * Constructor
+   * Based on the currently registered link segment composition labels, assess if all are still present by means of checking if at least a flow is registered for each composition
+   * on any turn of the node. If not remove the compositions that are no longer present
+   * 
+   * @param node to check
    */
-  BushTurnData() {
-    this.turnSendingFlows = new MultiKeyMap<Object, Double>();
+  private void pruneCompositionLabels(final DirectedVertex node) {
+    Map<EdgeSegment, Set<BushFlowCompositionLabel>> identifiedExitCompositionLabelMap = new HashMap<EdgeSegment, Set<BushFlowCompositionLabel>>();
+    for (EdgeSegment entrySegment : node.getEntryEdgeSegments()) {
+      Set<BushFlowCompositionLabel> existingEntryLabels = linkSegmentCompositionLabels.get(entrySegment);
+      if (existingEntryLabels == null) {
+        continue;
+      }
+      Set<BushFlowCompositionLabel> remainingEntryLabels = new HashSet<BushFlowCompositionLabel>();
+      for (BushFlowCompositionLabel entryComposition : existingEntryLabels) {
+        for (EdgeSegment exitSegment : node.getExitEdgeSegments()) {
+          Set<BushFlowCompositionLabel> exitLabels = linkSegmentCompositionLabels.get(exitSegment);
+          if (exitLabels == null) {
+            continue;
+          }
+          Set<BushFlowCompositionLabel> identifiedExitCompositionLabels = identifiedExitCompositionLabelMap.get(exitSegment);
+          if (identifiedExitCompositionLabels == null) {
+            identifiedExitCompositionLabels = new HashSet<BushFlowCompositionLabel>();
+            identifiedExitCompositionLabelMap.put(exitSegment, identifiedExitCompositionLabels);
+          }
+
+          for (BushFlowCompositionLabel exitComposition : exitLabels) {
+            if (compositionTurnSendingFlows.containsKey(entrySegment, entryComposition, exitSegment, exitComposition)) {
+              remainingEntryLabels.add(entryComposition);
+              identifiedExitCompositionLabels.add(exitComposition);
+            }
+          }
+        }
+      }
+      if (remainingEntryLabels.isEmpty()) {
+        linkSegmentCompositionLabels.remove(entrySegment);
+      } else {
+        linkSegmentCompositionLabels.put(entrySegment, remainingEntryLabels);
+      }
+    }
+    identifiedExitCompositionLabelMap.forEach((exitSegment, remainingExitLabels) -> {
+      if (remainingExitLabels.isEmpty()) {
+        linkSegmentCompositionLabels.remove(exitSegment);
+      } else {
+        linkSegmentCompositionLabels.put(exitSegment, remainingExitLabels);
+      }
+    });
   }
 
   /**
-   * copy constructor
+   * Constructor
+   * 
+   */
+  BushTurnData() {
+    this.compositionTurnSendingFlows = new MultiKeyMap<Object, Double>();
+    this.linkSegmentCompositionLabels = new HashMap<EdgeSegment, Set<BushFlowCompositionLabel>>();
+  }
+
+  /**
+   * copy constructor.
    * 
    * @param bushTurnData to copy
    */
   public BushTurnData(BushTurnData bushTurnData) {
-    this.turnSendingFlows = bushTurnData.turnSendingFlows.clone();
+    this.compositionTurnSendingFlows = bushTurnData.compositionTurnSendingFlows.clone();
+    this.linkSegmentCompositionLabels = new HashMap<EdgeSegment, Set<BushFlowCompositionLabel>>();
+    bushTurnData.linkSegmentCompositionLabels.forEach((k, v) -> linkSegmentCompositionLabels.put(k, new HashSet<BushFlowCompositionLabel>(v)));
   }
 
   /**
    * Update the turn sending flow for a given turn
    * 
    * @param fromSegment     of turn
+   * @param fromComposition of turn flow
    * @param toSegment       of turn
+   * @param toComposition   of turn flow
    * @param turnSendingFlow to update
    */
-  public void updateTurnSendingFlow(final EdgeSegment fromSegment, final EdgeSegment toSegment, final double turnSendingFlow) {
-    turnSendingFlows.put(fromSegment, toSegment, turnSendingFlow);
+  public void updateTurnSendingFlow(final EdgeSegment fromSegment, BushFlowCompositionLabel fromComposition, final EdgeSegment toSegment, BushFlowCompositionLabel toComposition,
+      double turnSendingFlow) {
+    compositionTurnSendingFlows.put(fromSegment, fromComposition, toSegment, toComposition, turnSendingFlow);
   }
 
   /**
    * Add turn sending flow for a given turn
    * 
    * @param fromSegment     of turn
+   * @param fromComposition of turn flow
    * @param toSegment       of turn
-   * @param turnSendingFlow to update
+   * @param toComposition   of turn flow
+   * @param turnSendingFlow to add
    */
-  public void addTurnSendingFlow(final EdgeSegment fromSegment, final EdgeSegment toSegment, final double turnSendingFlow) {
+  public void addTurnSendingFlow(final EdgeSegment fromSegment, BushFlowCompositionLabel fromComposition, final EdgeSegment toSegment, BushFlowCompositionLabel toComposition,
+      double turnSendingFlow) {
 
     double newSendingFlow = turnSendingFlow;
-    Double existingSendingFlow = turnSendingFlows.get(fromSegment, toSegment);
+    Double existingSendingFlow = compositionTurnSendingFlows.get(fromSegment, fromComposition, toSegment, toComposition);
     if (existingSendingFlow != null) {
       newSendingFlow += existingSendingFlow;
     }
@@ -71,28 +138,54 @@ public class BushTurnData implements Cloneable {
       newSendingFlow = 0;
     }
 
-    turnSendingFlows.put(fromSegment, toSegment, newSendingFlow);
+    updateTurnSendingFlow(fromSegment, fromComposition, toSegment, toComposition, newSendingFlow);
   }
 
   /**
-   * Remove the turn
+   * Remove the turn entirely
    * 
    * @param fromEdgeSegment of turn
    * @param toEdgeSegment   of turn
    */
   public void removeTurn(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
-    turnSendingFlows.remove(fromEdgeSegment, toEdgeSegment);
+    Set<BushFlowCompositionLabel> fromLabels = linkSegmentCompositionLabels.get(fromEdgeSegment);
+    Set<BushFlowCompositionLabel> toLabels = linkSegmentCompositionLabels.get(toEdgeSegment);
+    if (fromLabels != null && toLabels != null) {
+      fromLabels.forEach(
+          fromComposition -> toLabels.forEach(toComposition -> compositionTurnSendingFlows.removeMultiKey(fromEdgeSegment, fromComposition, toEdgeSegment, toComposition)));
+    }
+    pruneCompositionLabels(fromEdgeSegment.getDownstreamVertex());
+  }
+
+  /**
+   * Remove the turn flow of the given labels (if present) and update the link composition labels in the process
+   * 
+   * @param fromEdgeSegment of turn
+   * @param fromLabel       of turn flow
+   * @param toEdgeSegment   of turn
+   * @param toLabel         of turn flow
+   */
+  public void removeTurnFlow(final EdgeSegment fromEdgeSegment, final BushFlowCompositionLabel fromLabel, final EdgeSegment toEdgeSegment, final BushFlowCompositionLabel toLabel) {
+    if (fromLabel == null || toLabel == null || fromEdgeSegment == null || toEdgeSegment != null) {
+      LOGGER.severe("One or more inputs required to remove turn flow from bush data registration is null, unable to remove turn flow");
+      return;
+    }
+    compositionTurnSendingFlows.removeMultiKey(fromEdgeSegment, fromLabel, toEdgeSegment, toLabel);
+    pruneCompositionLabels(fromEdgeSegment.getDownstreamVertex());
   }
 
   /**
    * Get the turn sending flow for a given turn
    * 
-   * @param fromSegment from of turn
-   * @param toSegment   to of turn
+   * @param fromSegment     of turn
+   * @param fromComposition of turn flow
+   * @param toSegment       of turn
+   * @param toComposition   of turn flow
    * @return turn sending flow, 0 if not present
    */
-  public double getTurnSendingFlowPcuH(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
-    Double existingSendingFlow = turnSendingFlows.get(fromSegment, toSegment);
+  public double getTurnSendingFlowPcuH(final EdgeSegment fromSegment, BushFlowCompositionLabel fromComposition, final EdgeSegment toSegment,
+      BushFlowCompositionLabel toComposition) {
+    Double existingSendingFlow = compositionTurnSendingFlows.get(fromSegment, fromComposition, toSegment, toComposition);
     if (existingSendingFlow != null) {
       return existingSendingFlow;
     } else {
@@ -101,16 +194,80 @@ public class BushTurnData implements Cloneable {
   }
 
   /**
+   * Get the turn sending flow for a given turn regardless of the composition label
+   * 
+   * @param fromSegment of turn
+   * @param toSegment   of turn
+   * @return turn sending flow, 0 if not present
+   */
+  public double getTurnSendingFlowPcuH(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
+    double totalTurnSendingFlow = 0;
+    Set<BushFlowCompositionLabel> fromLabels = linkSegmentCompositionLabels.get(fromSegment);
+    if (fromLabels == null) {
+      return totalTurnSendingFlow;
+    }
+    Set<BushFlowCompositionLabel> toLabels = linkSegmentCompositionLabels.get(toSegment);
+    if (toLabels == null) {
+      return totalTurnSendingFlow;
+    }
+
+    for (BushFlowCompositionLabel fromComposition : fromLabels) {
+      for (BushFlowCompositionLabel toComposition : toLabels) {
+        double s_ab = getTurnSendingFlowPcuH(fromSegment, fromComposition, toSegment, toComposition);
+        totalTurnSendingFlow += s_ab;
+      }
+    }
+    return totalTurnSendingFlow;
+  }
+
+  /**
    * Total sending flows s_a from given segment
    * 
-   * @param fromSegment to use
+   * @param edgeSegment to use
    * @return sending flow s_a
    */
-  public double getTotalSendingFlowPcuH(final EdgeSegment fromSegment) {
+  public double getTotalSendingFlowPcuH(final EdgeSegment edgeSegment) {
     double totalSendingFlow = 0;
-    for (EdgeSegment exitSegment : fromSegment.getDownstreamVertex().getExitEdgeSegments()) {
-      double s_ab = getTurnSendingFlowPcuH(fromSegment, exitSegment);
-      totalSendingFlow += s_ab;
+    Set<BushFlowCompositionLabel> fromLabels = linkSegmentCompositionLabels.get(edgeSegment);
+    if (fromLabels == null) {
+      return totalSendingFlow;
+    }
+    for (BushFlowCompositionLabel fromComposition : fromLabels) {
+      for (EdgeSegment exitSegment : edgeSegment.getDownstreamVertex().getExitEdgeSegments()) {
+        Set<BushFlowCompositionLabel> toLabels = linkSegmentCompositionLabels.get(exitSegment);
+        if (toLabels == null) {
+          continue;
+        }
+        for (BushFlowCompositionLabel toComposition : toLabels) {
+          double s_ab = getTurnSendingFlowPcuH(edgeSegment, fromComposition, exitSegment, toComposition);
+          totalSendingFlow += s_ab;
+        }
+      }
+    }
+    return totalSendingFlow;
+  }
+
+  /**
+   * Collect the sending flow of an edge segment in the bush but only for the specified label, if not present, zero flow is returned
+   * 
+   * @param edgeSegment      to collect sending flow for
+   * @param compositionLabel to filter by
+   * @return bush sending flow on edge segment
+   */
+  public double getTotalSendingFlowPcuH(final EdgeSegment edgeSegment, final BushFlowCompositionLabel compositionLabel) {
+    if (!hasFlowCompositionLabel(edgeSegment, compositionLabel)) {
+      return 0;
+    }
+    double totalSendingFlow = 0;
+    for (EdgeSegment exitSegment : edgeSegment.getDownstreamVertex().getExitEdgeSegments()) {
+      Set<BushFlowCompositionLabel> toLabels = linkSegmentCompositionLabels.get(exitSegment);
+      if (toLabels == null) {
+        continue;
+      }
+      for (BushFlowCompositionLabel toComposition : toLabels) {
+        double s_ab = getTurnSendingFlowPcuH(edgeSegment, compositionLabel, exitSegment, toComposition);
+        totalSendingFlow += s_ab;
+      }
     }
     return totalSendingFlow;
   }
@@ -123,14 +280,32 @@ public class BushTurnData implements Cloneable {
    * @return true when present, false otherwise
    */
   public boolean containsTurnSendingFlow(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
-    return turnSendingFlows.containsKey(fromSegment, toSegment);
+    Set<BushFlowCompositionLabel> fromLabels = linkSegmentCompositionLabels.get(fromSegment);
+    if (fromLabels == null) {
+      return false;
+    }
+    for (BushFlowCompositionLabel fromComposition : fromLabels) {
+      for (EdgeSegment exitSegment : fromSegment.getDownstreamVertex().getExitEdgeSegments()) {
+        Set<BushFlowCompositionLabel> toLabels = linkSegmentCompositionLabels.get(exitSegment);
+        if (toLabels == null) {
+          continue;
+        }
+        for (BushFlowCompositionLabel toComposition : toLabels) {
+          if (Precision.isPositive(getTurnSendingFlowPcuH(fromSegment, fromComposition, exitSegment, toComposition))) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   /**
-   * Collect the splitting rates for a given link segment. Splitting rates are based on the current turn sending flows s_ab. In case no flows are present, zero splitting rates for
-   * all turns are returned
+   * Collect the splitting rates for a given link segment and composition. Splitting rates are based on the current (labelled) turn sending flows s_ab. In case no flows are present
+   * for the given composition label, zero splitting rates for all turns are returned.
    * 
-   * @param fromSegment to collect bush splitting rates for
+   * @param fromSegment     to collect bush splitting rates for
+   * @param fromComposition to restrict splitting rates to
    * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the downstream from segment vertex
    */
   public double[] getSplittingRates(final EdgeSegment fromSegment) {
@@ -177,10 +352,68 @@ public class BushTurnData implements Cloneable {
   }
 
   /**
+   * Verify if the edge segment has any flow composition labels registered on it
+   * 
+   * @param edgeSegment to verify
+   * @return true when present, false otherwise
+   */
+  public boolean hasFlowCompositionLabels(final EdgeSegment edgeSegment) {
+    Set<BushFlowCompositionLabel> labels = getFlowCompositionLabels(edgeSegment);
+    return labels != null && !labels.isEmpty();
+  }
+
+  /**
+   * The currently registered flow composition labels for this edge segment
+   * 
+   * @param edgeSegment to collect for
+   * @return labels for edge segment
+   */
+  public Set<BushFlowCompositionLabel> getFlowCompositionLabels(final EdgeSegment edgeSegment) {
+    return this.linkSegmentCompositionLabels.get(edgeSegment);
+  }
+
+  /**
+   * Verify if the edge segment has the flow composition label provided
+   * 
+   * @param edgeSegment      to verify
+   * @param compositionLabel to verify
+   * @return true when present, false otherwise
+   */
+  public boolean hasFlowCompositionLabel(EdgeSegment edgeSegment, BushFlowCompositionLabel compositionLabel) {
+    Set<BushFlowCompositionLabel> labels = getFlowCompositionLabels(edgeSegment);
+    if (labels != null) {
+      return labels.contains(compositionLabel);
+    }
+    return false;
+  }
+
+  /**
+   * Relabel existing flow from one composition from-to combination to a new from-to label
+   * 
+   * @param fromSegment    from segment of turn
+   * @param oldFromLabel   from composition label to replace
+   * @param toSegment      to segment of turn
+   * @param oldToLabel     to composition label to replace
+   * @param newFromToLabel label to replace flow with
+   * @return the amount of flow that was relabelled
+   */
+  public double relabel(EdgeSegment fromSegment, BushFlowCompositionLabel oldFromLabel, EdgeSegment toSegment, BushFlowCompositionLabel oldToLabel,
+      BushFlowCompositionLabel newFromToLabel) {
+
+    double flowToRelabel = getTurnSendingFlowPcuH(fromSegment, oldFromLabel, toSegment, oldToLabel);
+    removeTurnFlow(fromSegment, oldFromLabel, toSegment, oldToLabel);
+    if (Precision.isPositive(flowToRelabel)) {
+      addTurnSendingFlow(fromSegment, newFromToLabel, toSegment, newFromToLabel, flowToRelabel);
+    }
+    return flowToRelabel;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
   public BushTurnData clone() {
     return new BushTurnData(this);
   }
+
 }

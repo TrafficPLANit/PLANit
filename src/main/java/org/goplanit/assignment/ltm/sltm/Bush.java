@@ -2,8 +2,10 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
@@ -15,6 +17,7 @@ import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdAble;
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
@@ -48,6 +51,9 @@ public class Bush implements IdAble {
   /** track bush specific data */
   protected final BushTurnData bushData;
 
+  /** token for id generation unique within this bush */
+  protected final IdGroupingToken bushGroupingToken;
+
   /** track if underlying acyclic graph is modified, if so, an update of the topological sort is required flagged by this member */
   boolean requireTopologicalSortUpdate = false;
 
@@ -62,18 +68,20 @@ public class Bush implements IdAble {
     this.origin = origin;
     this.dag = new ACyclicSubGraphImpl(idToken, (int) numberOfEdgeSegments, origin.getCentroid());
     this.bushData = new BushTurnData();
+    this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, origin.getId());
   }
 
   /**
    * Copy constructor
    * 
-   * @param bush to copy
+   * @param bush to (shallow) copy
    */
   public Bush(Bush bush) {
     this.origin = bush.getOrigin();
     this.dag = bush.dag.clone();
     this.bushData = bush.bushData.clone();
     this.requireTopologicalSortUpdate = bush.requireTopologicalSortUpdate;
+    this.bushGroupingToken = bush.bushGroupingToken;
   }
 
   /**
@@ -166,6 +174,20 @@ public class Bush implements IdAble {
    */
   public boolean containsTurnSendingFlow(final EdgeSegment entrySegment, final EdgeSegment exitSegment) {
     return Precision.isPositive(bushData.getTurnSendingFlowPcuH(entrySegment, exitSegment));
+  }
+
+  /**
+   * Verify if the provided turn has any registered sending flow for the given label combination
+   * 
+   * @param entrySegment          to use
+   * @param entryCompositionLabel to use
+   * @param exitSegment           to use
+   * @param exitCompositionLabel  to use
+   * @return true when turn sending flow is present, false otherwise
+   */
+  public boolean containsTurnSendingFlow(EdgeSegment entrySegment, BushFlowCompositionLabel entryCompositionLabel, EdgeSegment exitSegment,
+      BushFlowCompositionLabel exitCompositionLabel) {
+    return Precision.isPositive(bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitCompositionLabel));
   }
 
   /**
@@ -423,6 +445,49 @@ public class Bush implements IdAble {
     }
 
     return subPathSendingFlow;
+  }
+
+  /**
+   * Create anew flow composition label for this bush
+   * 
+   * @return created label
+   */
+  public BushFlowCompositionLabel createFlowCompositionLabel() {
+    return new BushFlowCompositionLabel(this.bushGroupingToken);
+  }
+
+  /**
+   * Find out the portion of the origin attributed flow on the segment that belongs to each available flow composition label proportional to the toal flow across all provided
+   * labels on this same segment
+   * 
+   * @param edgeSegment              to determine the label rates for
+   * @param pasFlowCompositionLabels to determine relative proportions for based on total flow across provided labels on the link segment
+   * @return the rates at hand for each found composition label
+   */
+  public Map<BushFlowCompositionLabel, Double> determineProportionalFlowCompositionRates(final EdgeSegment edgeSegment,
+      final Set<BushFlowCompositionLabel> pasFlowCompositionLabels) {
+    double totalSendingFlow = 0;
+    Map<BushFlowCompositionLabel, Double> rateMap = new HashMap<BushFlowCompositionLabel, Double>();
+    for (BushFlowCompositionLabel label : pasFlowCompositionLabels) {
+      double labelFlow = bushData.getTotalSendingFlowPcuH(edgeSegment, label);
+      rateMap.put(label, labelFlow);
+      totalSendingFlow += labelFlow;
+    }
+    for (Double value : rateMap.values()) {
+      value /= totalSendingFlow;
+    }
+
+    return rateMap;
+  }
+
+  /**
+   * The labels present for the given segment
+   * 
+   * @param edgeSegment to collect composition labels for
+   * @return the flow composition labels found
+   */
+  public Set<BushFlowCompositionLabel> getFlowCompositionLabels(EdgeSegment edgeSegment) {
+    return bushData.getFlowCompositionLabels(edgeSegment);
   }
 
   /**

@@ -2,8 +2,13 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -52,6 +57,57 @@ public class Pas {
   }
 
   /**
+   * Determine all labels (on the final segment) that represent flow that is fully overlapping with the indicated PAS segment (low or high cost). We also provide composite labels
+   * into which the final labels might have split off from. These composite labels are provided as a seaprate list per matched label where the last entry represents the label
+   * closest to the starting point of the PAS segment (upstream)
+   * 
+   * @param originBush     to do this for
+   * @param lowCostSegment the segment to verify against
+   * @return found matching composition labels as keys, where the values are an ordered list of encountered composite labels when traversing along the PAS (if any)
+   */
+  private Map<BushFlowCompositionLabel, Collection<BushFlowCompositionLabel>> determineMatchingLabels(final Bush originBush, boolean lowCostSegment) {
+    Set<BushFlowCompositionLabel> edgeSegmentCompositionLabels = originBush.getFlowCompositionLabels(getLastEdgeSegment(lowCostSegment));
+    Map<BushFlowCompositionLabel, Collection<BushFlowCompositionLabel>> pasCompositionLabels = new HashMap<BushFlowCompositionLabel, Collection<BushFlowCompositionLabel>>();
+
+    EdgeSegment[] alternative = lowCostSegment ? s1 : s2;
+    Iterator<BushFlowCompositionLabel> labelIter = edgeSegmentCompositionLabels.iterator();
+    while (labelIter.hasNext()) {
+      BushFlowCompositionLabel initialLabel = labelIter.next();
+      BushFlowCompositionLabel currentLabel = initialLabel;
+      Collection<BushFlowCompositionLabel> transitionLabels = null;
+
+      EdgeSegment currentSegment = null;
+      EdgeSegment succeedingSegment = getLastEdgeSegment(lowCostSegment);
+      for (int index = alternative.length - 2; index >= 0; --index) {
+        currentSegment = alternative[index];
+        if (!originBush.containsTurnSendingFlow(currentSegment, currentLabel, succeedingSegment, currentLabel)) {
+          /* label transition or no match */
+          BushFlowCompositionLabel transitionLabel = null;
+          Set<BushFlowCompositionLabel> potentialLabelTransitions = originBush.getFlowCompositionLabels(currentSegment);
+          for (BushFlowCompositionLabel potentialLabel : potentialLabelTransitions) {
+            if (originBush.containsTurnSendingFlow(currentSegment, potentialLabel, succeedingSegment, currentLabel)) {
+              transitionLabel = potentialLabel;
+              if (transitionLabels == null) {
+                transitionLabels = new ArrayList<BushFlowCompositionLabel>();
+              }
+              transitionLabels.add(transitionLabel);
+            }
+          }
+          if (transitionLabel == null) {
+            /* no match - remove the original label we started with */
+            break;
+          }
+          /* transition - update label representing composite flow that contains label under investigation */
+          currentLabel = transitionLabel;
+        }
+        succeedingSegment = currentSegment;
+      }
+      pasCompositionLabels.put(initialLabel, transitionLabels == null ? new ArrayList<BushFlowCompositionLabel>(0) : transitionLabels);
+    }
+    return pasCompositionLabels;
+  }
+
+  /**
    * Execute a flow shift on a given bush for the given PAS segment. This does not move flow through the final merge vertex nor the initial diverge vertex.
    * 
    * @param origin                bush at hand
@@ -61,7 +117,7 @@ public class Pas {
    * @param potentialBushPruning  when true verify if the flow shift has caused the bush turn sending flows to become non-positive, if so remove (prune) the turn from the bush
    * @return sending flow on last edge segment of the PAS alternative after the flow shift (considering encountered reductions)
    */
-  private double executeBushFlowShift(Bush origin, double flowShiftPcuH, EdgeSegment[] pasSegment, double[] flowAcceptanceFactors, boolean potentialBushPruning) {
+  private double executeBushLabeledAlternativeFlowShift(Bush origin, double flowShiftPcuH, EdgeSegment[] pasSegment, double[] flowAcceptanceFactors, boolean potentialBushPruning) {
     int index = 0;
     EdgeSegment currentSegment = null;
     EdgeSegment nextSegment = pasSegment[index];
@@ -124,6 +180,9 @@ public class Pas {
   protected boolean executeFlowShift(double networkS2FlowPcuH, double flowShiftPcuH, final double[] flowAcceptanceFactors) {
 
     List<Bush> originsWithoutRemainingPasFlow = new ArrayList<Bush>();
+    EdgeSegment lastS1Segment = getLastEdgeSegment(true /* low cost */);
+    EdgeSegment lastS2Segment = getLastEdgeSegment(false /* high cost */);
+
     for (Bush origin : originBushes) {
 
       double bushS2Flow = 0;
@@ -171,68 +230,84 @@ public class Pas {
         potentialBushPruning = true;
       }
 
-      if (numberOfUsedEntrySegments >= 1) {
-        /*
-         * multiple entry segments lead into the PAS segment we are moving flow from --> we must update turn flows/splitting rates of turns passing through initial diverge vertex
-         * before updating s1/s2
-         */
-        int index = 0;
-        EdgeSegment firstS2EdgeSegment = getFirstEdgeSegment(false /* high cost segment */);
-        EdgeSegment firstS1EdgeSegment = getFirstEdgeSegment(true /* low cost segment */);
-        for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
-          double entryEdgeSegmentFlowPcuH = bushEntryTurnFlows[index++];
-          if (potentialBushPruning || Precision.isPositive(entryEdgeSegmentFlowPcuH)) {
-            double entryPortion = entryEdgeSegmentFlowPcuH / totalBushEntryTurnFlows;
-            /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s2 segment */
-            double bushEntrySegmentFlowShift = bushFlowShift * entryPortion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
+      /*
+       * Collect the flow composition label(s) that are present along the high cost segment (either themselves or in composite form) In case of multiple composition labels
+       * following the entire PAS segment, we determine the rate of the composition in relation to the total flow on the link segment attributed to the origin (which we use to
+       * proportionally apply the flow shift per composition label)
+       */
+      Map<BushFlowCompositionLabel, Collection<BushFlowCompositionLabel>> pasFlowCompositionLabels = determineMatchingLabels(origin, false /* high cost segment */);
+      Map<BushFlowCompositionLabel, Double> pasFlowCompositionLabelRates = origin.determineProportionalFlowCompositionRates(lastS2Segment, pasFlowCompositionLabels.keySet());
+      for (Entry<BushFlowCompositionLabel, Double> labelEntry : pasFlowCompositionLabelRates.entrySet()) {
 
-            if (potentialBushPruning && !Precision.isPositive(origin.getTurnSendingFlow(entrySegment, firstS2EdgeSegment) - bushEntrySegmentFlowShift)) {
-              /* no remaining flow at all after flow shift, remove turn from bush entirely */
-              origin.removeTurn(entrySegment, firstS2EdgeSegment);
-            } else {
-              origin.addTurnSendingFlow(entrySegment, firstS2EdgeSegment, -bushEntrySegmentFlowShift);
-            }
-            origin.addTurnSendingFlow(entrySegment, firstS1EdgeSegment, bushEntrySegmentFlowShift);
-          }
-        }
-      }
+        /* portion of flow attributed to composition label traversing s2 */
+        double bushLabeledFlowShift = labelEntry.getValue() * bushFlowShift;
 
-      /* now update s2/s1 with the flow shift */
-      {
-        /* origin-bush high cost segment: -delta flow */
-        double s2FinalShiftedFlow = executeBushFlowShift(origin, -bushFlowShift, s2, flowAcceptanceFactors, potentialBushPruning);
-        /* origin-bush low cost segment: +delta flow */
-        double s1FinalSendingFlow = executeBushFlowShift(origin, bushFlowShift, s1, flowAcceptanceFactors, false);
-        EdgeSegment lastS1Segment = getLastEdgeSegment(true /* low cost */);
-        EdgeSegment lastS2Segment = getLastEdgeSegment(false /* high cost */);
+        /* update s2/s1 with the flow shift utilising the relevant composition labels */
+        {
+          // TODO: add support for labels
 
-        /*
-         * for the turn sending flow shift through the final merge vertex, we use the splitting rates of the bush S2 segment and transfer them to the s1 segment, i.e. the
-         * percentage of flow using each exit segment is applied to the s1 segment
-         */
-        if (getMergeVertex().hasExitEdgeSegments()) {
-          int index = 0;
-          double[] splittingRates = origin.getSplittingRates(lastS2Segment);
-          for (EdgeSegment exitSegment : getMergeVertex().getExitEdgeSegments()) {
-            if (origin.containsEdgeSegment(exitSegment)) {
-              double splittingRate = splittingRates[index];
+          /* origin-bush high cost segment: -delta flow */
+          double s2FinalShiftedFlow = executeBushLabeledAlternativeFlowShift(origin, labelEntry.getKey(), -bushLabeledFlowShift, s2, flowAcceptanceFactors, potentialBushPruning);
+          /* origin-bush low cost segment: +delta flow */
+          double s1FinalSendingFlow = executeBushLabeledAlternativeFlowShift(origin, labelEntry.getKey(), bushLabeledFlowShift, s1, flowAcceptanceFactors, false);
 
-              /* remove flow for s2 */
-              double s2FlowShift = s2FinalShiftedFlow * splittingRate;
-              if (potentialBushPruning && !Precision.isPositive(origin.getTurnSendingFlow(lastS2Segment, exitSegment) - s2FlowShift)) {
-                /* no remaining flow at all after flow shift, remove turn from bush entirely */
-                origin.removeTurn(lastS2Segment, exitSegment);
-              } else {
-                origin.addTurnSendingFlow(lastS2Segment, exitSegment, s2FlowShift);
+          // TODO: for the below also add support for labels
+
+          /*
+           * for the turn sending flow shift through the final merge vertex, we use the splitting rates of the bush S2 segment and transfer them to the s1 segment, i.e. the
+           * percentage of flow using each exit segment is applied to the s1 segment
+           */
+          if (getMergeVertex().hasExitEdgeSegments()) {
+            int index = 0;
+            double[] splittingRates = origin.getSplittingRates(lastS2Segment);
+            for (EdgeSegment exitSegment : getMergeVertex().getExitEdgeSegments()) {
+              if (origin.containsEdgeSegment(exitSegment)) {
+                double splittingRate = splittingRates[index];
+
+                /* remove flow for s2 */
+                double s2FlowShift = s2FinalShiftedFlow * splittingRate;
+                if (potentialBushPruning && !Precision.isPositive(origin.getTurnSendingFlow(lastS2Segment, exitSegment) - s2FlowShift)) {
+                  /* no remaining flow at all after flow shift, remove turn from bush entirely */
+                  origin.removeTurn(lastS2Segment, exitSegment);
+                } else {
+                  origin.addTurnSendingFlow(lastS2Segment, exitSegment, s2FlowShift);
+                }
+
+                /* add flow for s1 */
+                origin.addTurnSendingFlow(lastS1Segment, exitSegment, s1FinalSendingFlow * splittingRate);
               }
-
-              /* add flow for s1 */
-              origin.addTurnSendingFlow(lastS1Segment, exitSegment, s1FinalSendingFlow * splittingRate);
+              ++index;
             }
-            ++index;
           }
         }
+
+        if (numberOfUsedEntrySegments >= 1) {
+          /*
+           * We must update turn flows/splitting rates of turns passing through initial diverge vertex before updating s1/s2
+           */
+          int index = 0;
+          EdgeSegment firstS2EdgeSegment = getFirstEdgeSegment(false /* high cost segment */);
+          EdgeSegment firstS1EdgeSegment = getFirstEdgeSegment(true /* low cost segment */);
+          for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
+            double entryEdgeSegmentFlowPcuH = bushEntryTurnFlows[index++];
+            if (potentialBushPruning || Precision.isPositive(entryEdgeSegmentFlowPcuH)) {
+              double entryPortion = entryEdgeSegmentFlowPcuH / totalBushEntryTurnFlows;
+              /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s2 segment */
+              double bushEntrySegmentFlowShift = bushFlowShift * entryPortion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
+
+              if (potentialBushPruning && !Precision.isPositive(origin.getTurnSendingFlow(entrySegment, firstS2EdgeSegment) - bushEntrySegmentFlowShift)) {
+                /* no remaining flow at all after flow shift, remove turn from bush entirely */
+                origin.removeTurn(entrySegment, firstS2EdgeSegment);
+              } else {
+                origin.addTurnSendingFlow(entrySegment, firstS2EdgeSegment, -bushEntrySegmentFlowShift);
+              }
+              origin.addTurnSendingFlow(entrySegment, firstS1EdgeSegment, bushEntrySegmentFlowShift);
+            }
+          }
+        }
+
       }
+
     }
 
     /* remove irrelevant bushes */

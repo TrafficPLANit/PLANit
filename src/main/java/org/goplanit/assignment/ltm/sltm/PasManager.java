@@ -253,6 +253,7 @@ public class PasManager {
       if (pas.hasRegisteredOrigin(originBush)) {
         continue;
       }
+
       boolean pasPotentialMatch = false;
       for (EdgeSegment pasFirstExitSegment : pas.getDivergeVertex().getExitEdgeSegments()) {
         if (originBush.containsEdgeSegment(pasFirstExitSegment)) {
