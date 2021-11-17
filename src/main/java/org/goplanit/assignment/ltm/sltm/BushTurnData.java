@@ -1,12 +1,15 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
@@ -301,6 +304,20 @@ public class BushTurnData implements Cloneable {
   }
 
   /**
+   * Verify if the turn sending flow for a given turn is positive
+   * 
+   * @param fromSegment     of turn
+   * @param fromComposition of turn flow
+   * @param toSegment       of turn
+   * @param toComposition   of turn flow
+   * @return true when present, false otherwise
+   */
+  public boolean containsTurnSendingFlow(final EdgeSegment fromSegment, BushFlowCompositionLabel fromComposition, final EdgeSegment toSegment,
+      BushFlowCompositionLabel toComposition) {
+    return Precision.isPositive(getTurnSendingFlowPcuH(fromSegment, fromComposition, toSegment, toComposition));
+  }
+
+  /**
    * Collect the splitting rates for a given link segment and composition. Splitting rates are based on the current (labelled) turn sending flows s_ab. In case no flows are present
    * for the given composition label, zero splitting rates for all turns are returned.
    * 
@@ -319,15 +336,32 @@ public class BushTurnData implements Cloneable {
       splittingRates[index++] = s_ab;
       totalSendingFlow += s_ab;
     }
-    if (Precision.isPositive(totalSendingFlow)) {
-      for (index = 0; index < splittingRates.length; ++index) {
-        splittingRates[index] /= totalSendingFlow;
-      }
-    } else {
-      for (index = 0; index < splittingRates.length; ++index) {
-        splittingRates[index] = 0;
-      }
+    ArrayUtils.divideBy(splittingRates, totalSendingFlow, 0);
+    return splittingRates;
+  }
+
+  /**
+   * Collect the bush splitting rates for a given incoming edge segment and entry-exit composition labelling. If no flow exits for this input, zero splitting rates are returned for
+   * all turns
+   * 
+   * @param fromSegment to use
+   * @param fromLabel   to use
+   * @param toLabel     to use
+   * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the downstream from segment vertex
+   */
+  public double[] getSplittingRates(EdgeSegment fromSegment, BushFlowCompositionLabel fromLabel, BushFlowCompositionLabel toLabel) {
+    Set<EdgeSegment> exitEdgeSegments = fromSegment.getDownstreamVertex().getExitEdgeSegments();
+    double[] splittingRates = new double[exitEdgeSegments.size()];
+
+    double totalSendingFlow = 0;
+    int index = 0;
+    for (EdgeSegment exitSegment : exitEdgeSegments) {
+      double s_ab = getTurnSendingFlowPcuH(fromSegment, fromLabel, exitSegment, toLabel);
+      splittingRates[index++] = s_ab;
+      totalSendingFlow += s_ab;
     }
+
+    ArrayUtils.divideBy(splittingRates, totalSendingFlow, 0);
     return splittingRates;
   }
 
@@ -414,6 +448,28 @@ public class BushTurnData implements Cloneable {
   @Override
   public BushTurnData clone() {
     return new BushTurnData(this);
+  }
+
+  /**
+   * Determine the composition exit labels on exit segments that have positive flow on the turn with the provided edge segment and composition label
+   * 
+   * @param edgeSegment      incoming turn segment
+   * @param compositionLabel filter by label, i.e., only flow emanating from this label towards exit segments is considered
+   * @return used labels on any exit segment with positive from frmo entry segment with given entry label
+   */
+  public List<BushFlowCompositionLabel> determineUsedTurnCompositionLabels(EdgeSegment edgeSegment, BushFlowCompositionLabel compositionLabel) {
+    List<BushFlowCompositionLabel> usedLabels = new ArrayList<BushFlowCompositionLabel>(5);
+    if (edgeSegment.getDownstreamVertex().hasExitEdgeSegments()) {
+      for (EdgeSegment exitsegment : edgeSegment.getDownstreamVertex().getExitEdgeSegments()) {
+        Set<BushFlowCompositionLabel> exitLabels = getFlowCompositionLabels(edgeSegment);
+        for (BushFlowCompositionLabel exitLabel : exitLabels) {
+          if (containsTurnSendingFlow(edgeSegment, compositionLabel, exitsegment, exitLabel)) {
+            usedLabels.add(exitLabel);
+          }
+        }
+      }
+    }
+    return usedLabels;
   }
 
 }

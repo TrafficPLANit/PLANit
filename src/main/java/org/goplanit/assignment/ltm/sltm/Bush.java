@@ -4,6 +4,7 @@ import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -121,10 +122,13 @@ public class Bush implements IdAble {
    * flow is added to it.
    * 
    * @param fromEdgeSegment     from segment of the turn
+   * @param fromLabel           to use
    * @param toEdgeSegment       to segment of the turn
+   * @param toLabel             to use
    * @param turnSendingflowPcuH to add
    */
-  public void addTurnSendingFlow(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment, double turnSendingflowPcuH) {
+  public void addTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowCompositionLabel fromLabel, final EdgeSegment toEdgeSegment,
+      final BushFlowCompositionLabel toLabel, double turnSendingflowPcuH) {
     if (!containsEdgeSegment(fromEdgeSegment)) {
       if (containsAnyEdgeSegmentOf(fromEdgeSegment.getParentEdge())) {
         LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
@@ -141,7 +145,7 @@ public class Bush implements IdAble {
       dag.addEdgeSegment(toEdgeSegment);
       requireTopologicalSortUpdate = true;
     }
-    bushData.addTurnSendingFlow(fromEdgeSegment, toEdgeSegment, turnSendingflowPcuH);
+    bushData.addTurnSendingFlow(fromEdgeSegment, fromLabel, toEdgeSegment, toLabel, turnSendingflowPcuH);
   }
 
   /**
@@ -153,6 +157,20 @@ public class Bush implements IdAble {
    */
   public double getTurnSendingFlow(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
     return bushData.getTurnSendingFlowPcuH(fromEdgeSegment, toEdgeSegment);
+  }
+
+  /**
+   * Collect bush turn sending flow (if any)
+   * 
+   * @param fromEdgeSegment to use
+   * @param fromLabel       to filter by
+   * @param toEdgeSegment   to use
+   * @param toLabel         to filter by
+   * @return sending flow, zero if unknown
+   */
+  public double getTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowCompositionLabel fromLabel, final EdgeSegment toEdgeSegment,
+      final BushFlowCompositionLabel toLabel) {
+    return bushData.getTurnSendingFlowPcuH(fromEdgeSegment, fromLabel, toEdgeSegment, toLabel);
   }
 
   /**
@@ -209,7 +227,7 @@ public class Bush implements IdAble {
    * @param exitSegment  to use
    * @return found splitting rate, in case the turn is not used, 0 is returned
    */
-  public double getSplittingRate(EdgeSegment entrySegment, EdgeSegment exitSegment) {
+  public double getSplittingRate(final EdgeSegment entrySegment, final EdgeSegment exitSegment) {
     return bushData.getSplittingRate(entrySegment, exitSegment);
   }
 
@@ -219,8 +237,21 @@ public class Bush implements IdAble {
    * @param entrySegment to use
    * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the downstream from segment vertex
    */
-  public double[] getSplittingRates(EdgeSegment entrySegment) {
+  public double[] getSplittingRates(final EdgeSegment entrySegment) {
     return bushData.getSplittingRates(entrySegment);
+  }
+
+  /**
+   * Collect the bush splitting rates for a given incoming edge segment and entry-exit composition labelling. If no flow exits for this input, zero splitting rates are returned for
+   * all turns
+   * 
+   * @param entrySegment to use
+   * @param entryLabel   to use
+   * @param exitLabel    to use
+   * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the downstream from segment vertex
+   */
+  public double[] getSplittingRates(final EdgeSegment entrySegment, final BushFlowCompositionLabel entryLabel, final BushFlowCompositionLabel exitLabel) {
+    return bushData.getSplittingRates(entrySegment, entryLabel, exitLabel);
   }
 
   /**
@@ -478,6 +509,17 @@ public class Bush implements IdAble {
     }
 
     return rateMap;
+  }
+
+  /**
+   * Determine the composition exit labels on exit segments that have positive flow on the turn with the provided edge segment and composition label
+   * 
+   * @param edgeSegment      incoming turn segment
+   * @param compositionLabel filter by label, i.e., only flow emanating from this label towards exit segments is considered
+   * @return used labels on any exit segment with positive from frmo entry segment with given entry label
+   */
+  public List<BushFlowCompositionLabel> determineUsedTurnCompositionLabels(final EdgeSegment edgeSegment, final BushFlowCompositionLabel compositionLabel) {
+    return bushData.determineUsedTurnCompositionLabels(edgeSegment, compositionLabel);
   }
 
   /**
