@@ -20,13 +20,14 @@ public class PathLinkSendingFlowUpdateConsumer extends PathFlowUpdateConsumer<Ne
   /**
    * For each entry segment update the in(sending)flow
    * 
-   * @param prevSegmentId       to use
+   * @param prevSegment         to use
    * @param currentSegment      to use
    * @param turnSendingFlowPcuH to use
    */
   @Override
-  protected double applySingleFlowUpdate(int prevSegmentId, EdgeSegment currentSegment, double turnSendingFlowPcuH) {
+  protected double applySingleFlowUpdate(final EdgeSegment prevSegment, final EdgeSegment currentSegment, double turnSendingFlowPcuH) {
     /* u_a: update inflow for link segment */
+    int prevSegmentId = (int) prevSegment.getId();
     dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
     return turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
   }

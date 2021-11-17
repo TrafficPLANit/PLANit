@@ -2,10 +2,13 @@ package org.goplanit.assignment.ltm.sltm.consumer;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.Bush;
+import org.goplanit.assignment.ltm.sltm.BushFlowCompositionLabel;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
@@ -32,13 +35,17 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
    * @param originBush       at hand
    * @param bushSendingFlows to populate as a starting point for the bush loading
    */
-  private void initialiseRootExitSegmentSendingFlows(final Bush originBush, final double[] bushSendingFlows) {
+  private void initialiseRootExitSegmentSendingFlows(final Bush originBush, final MultiKeyMap<Object, Double> bushSendingFlows) {
     int index = 0;
     double[] rootVertexSplittingRates = originBush.getRootVertexSplittingRates();
     for (EdgeSegment rootExit : originBush.getOrigin().getCentroid().getExitEdgeSegments()) {
       if (originBush.containsEdgeSegment(rootExit)) {
-        // TODO: if this works well, then we can replace this by simply collecting the rootExit sending flow directly which is less costly (but has no checks)
-        bushSendingFlows[(int) rootExit.getId()] = originBush.getTravelDemandPcuH() * rootVertexSplittingRates[index];
+        Set<BushFlowCompositionLabel> usedLabels = originBush.getFlowCompositionLabels(rootExit);
+        if (usedLabels.size() != 1) {
+          LOGGER.severe(String.format("Flow composition labelling compromised, only a single label can be present at origin (%s) exit segment %s (%d) , but found %d",
+              originBush.getOrigin().getXmlId(), rootExit.getXmlId(), rootExit.getId(), usedLabels.size()));
+        }
+        bushSendingFlows.put(rootExit, usedLabels.iterator().next(), originBush.getTravelDemandPcuH() * rootVertexSplittingRates[index]);
       }
       ++index;
     }
@@ -48,11 +55,14 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
    * Register the bush accepted turn flow to the turn if required. Default implementation does nothing but provide a hook for derived classes that do require to do something with
    * turn accepted flows
    * 
-   * @param prevSegmentId    of turn
-   * @param currentSegment   of turn
-   * @param turnAcceptedFlow sending flow rate of turn
+   * @param prevSegment          of turn
+   * @param prevLabel            at hand
+   * @param currentSegment       of turn
+   * @param currLabel            at hand
+   * @param turnAcceptedFlowPcuH sending flow rate of turn
    */
-  protected void applyAcceptedTurnFlowUpdate(final int prevSegmentId, final EdgeSegment currentSegment, final double turnAcceptedFlow) {
+  protected void applyAcceptedTurnFlowUpdate(final EdgeSegment prevSegment, final BushFlowCompositionLabel prevLabel, final EdgeSegment currentSegment,
+      final BushFlowCompositionLabel currLabel, double turnAcceptedFlowPcuH) {
     // default implementation does nothing but provide a hook for derived classes that do require to do something with turn accepted flows
   }
 
@@ -75,7 +85,9 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
      * recent bush's splitting rates, we only use the bush's sending flows for bush flow shifts. The bush's sending flows are updated AFTER the network loading is complete
      * (converged) by using the network splitting rates and reduction factors
      */
-    double[] bushSendingFlows = new double[dataConfig.flowAcceptanceFactors.length];
+
+    /* key is segment+label, value is sending flow */
+    MultiKeyMap<Object, Double> bushSendingFlows = new MultiKeyMap<Object, Double>();
 
     /* get topological sorted vertices to process */
     Collection<DirectedVertex> topSortedVertices = originBush.getTopologicallySortedVertices();
@@ -96,43 +108,48 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
       for (EdgeSegment entrySegment : currVertex.getEntryEdgeSegments()) {
         if (originBush.containsEdgeSegment(entrySegment)) {
           int entrySegmentId = (int) entrySegment.getId();
-          double bushLinkSendingFlow = bushSendingFlows[entrySegmentId];
+          Set<BushFlowCompositionLabel> usedLabels = originBush.getFlowCompositionLabels(entrySegment);
+          for (BushFlowCompositionLabel entrylabel : usedLabels) {
+            double bushLinkLabelSendingFlow = bushSendingFlows.get(entrySegment, entrylabel);
 
-          /* s_a = u_a */
-          if (dataConfig.updateLinkSendingFlows) {
-            dataConfig.sendingFlows[(int) entrySegment.getId()] += bushLinkSendingFlow;
-          }
-
-          /* v_a = s_a * alpha_a */
-          double alpha = dataConfig.flowAcceptanceFactors[entrySegmentId];
-          double bushEntryAcceptedFlow = bushLinkSendingFlow * alpha;
-
-          /*
-           * update bush turn sending flows based on prev sending flow to laoding based sending flow ratio this ensures the bush turn sending flows remain consistent with the
-           * loading. Note that we can not use the alpha of the segment for this because this pertains to the sending flows of the next link and since that one has not been
-           * processed fully
-           */
-          double bushLinkPrevSendingFlow = originBush.getSendingFlowPcuH(entrySegment);
-          if (Precision.isPositive(bushLinkPrevSendingFlow)) {
-            originBush.multiplyTurnSendingFlows(entrySegment, bushLinkSendingFlow / bushLinkPrevSendingFlow);
-          }
-
-          /* bush splitting rates */
-          double[] splittingRates = originBush.getSplittingRates(entrySegment);
-
-          int index = 0;
-          for (EdgeSegment exitSegment : currVertex.getExitEdgeSegments()) {
-            if (Precision.isPositive(splittingRates[index])) {
-              int exitSegmentId = (int) exitSegment.getId();
-
-              /* v_ab = v_a * phi_ab */
-              double turnAcceptedFlow = bushEntryAcceptedFlow * splittingRates[index];
-              bushSendingFlows[exitSegmentId] += turnAcceptedFlow; // bush level
-
-              /* update turn accepted flows as per derived class implementation (or do nothing) */
-              applyAcceptedTurnFlowUpdate(entrySegmentId, exitSegment, turnAcceptedFlow);
+            /* s_a = u_a */
+            if (dataConfig.updateLinkSendingFlows) {
+              dataConfig.sendingFlows[entrySegmentId] += bushLinkLabelSendingFlow;
             }
-            ++index;
+
+            /* v_a = s_a * alpha_a */
+            double alpha = dataConfig.flowAcceptanceFactors[entrySegmentId];
+            double bushEntryAcceptedFlow = bushLinkLabelSendingFlow * alpha;
+
+            /*
+             * update bush turn sending flows based on prev sending flow to loading based sending flow ratio this ensures the bush turn sending flows remain consistent with the
+             * loading. Note that we can not use the alpha of the segment for this because this pertains to the sending flows of the next link and since that one has not been
+             * processed fully
+             */
+            double bushLinkLabelPrevSendingFlow = originBush.getSendingFlowPcuH(entrySegment, entrylabel);
+            if (Precision.isPositive(bushLinkLabelPrevSendingFlow)) {
+              originBush.multiplyTurnSendingFlows(entrySegment, entrylabel, bushLinkLabelSendingFlow / bushLinkLabelPrevSendingFlow);
+            }
+
+            /* bush splitting rates by [exit segment, exit label] as key */
+            MultiKeyMap<Object, Double> splittingRates = originBush.getSplittingRates(entrySegment, entrylabel);
+
+            for (EdgeSegment exitSegment : currVertex.getExitEdgeSegments()) {
+              Set<BushFlowCompositionLabel> exitLabels = originBush.getFlowCompositionLabels(exitSegment);
+              for (BushFlowCompositionLabel exitLabel : exitLabels) {
+                double splittingRate = splittingRates.get(exitSegment, exitLabel);
+                if (Precision.isPositive(splittingRate)) {
+
+                  /* v_ab = v_a * phi_ab */
+                  double turnAcceptedFlow = bushEntryAcceptedFlow * splittingRate;
+                  Double exitLabelFlowToUpdate = bushSendingFlows.get(exitSegment, exitLabel);
+                  exitLabelFlowToUpdate += turnAcceptedFlow;
+
+                  /* update turn accepted flows as per derived class implementation (or do nothing) */
+                  applyAcceptedTurnFlowUpdate(entrySegment, entrylabel, exitSegment, exitLabel, turnAcceptedFlow);
+                }
+              }
+            }
           }
         }
       }

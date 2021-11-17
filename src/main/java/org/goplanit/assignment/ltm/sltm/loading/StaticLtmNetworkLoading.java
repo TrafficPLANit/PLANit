@@ -1,10 +1,10 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelFixedInput;
 import org.goplanit.algorithms.nodemodel.TampereNodeModelInput;
@@ -21,7 +21,6 @@ import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.misc.HashUtils;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
@@ -219,9 +218,9 @@ public abstract class StaticLtmNetworkLoading {
   /**
    * Update the splitting rates based on the provided accepted turn flows
    * 
-   * @param acceptedTurnFlows to use to determine splitting rates
+   * @param acceptedTurnFlows to use to determine splitting rates (multikey is entrysegment,exitsegment of turn)
    */
-  private void updateNextSplittingRates(final Map<Integer, Double> acceptedTurnFlows) {
+  private void updateNextSplittingRates(final MultiKeyMap<Object, Double> acceptedTurnFlows) {
     Set<DirectedVertex> trackedNodes = splittingRateData.getTrackedNodes();
     for (DirectedVertex node : trackedNodes) {
       for (EdgeSegment entrySegment : node.getEntryEdgeSegments()) {
@@ -235,7 +234,12 @@ public abstract class StaticLtmNetworkLoading {
           if (entrySegment.idEquals(exitSegment)) {
             continue;
           }
-          nextSplittingRates.set(index++, acceptedTurnFlows.getOrDefault(HashUtils.createCombinedHashCode(entrySegment.getId(), exitSegment.getId()), 0.0));
+
+          Double acceptedTurnFlow = acceptedTurnFlows.get(entrySegment, exitSegment);
+          if (acceptedTurnFlow == null) {
+            acceptedTurnFlow = 0.0;
+          }
+          nextSplittingRates.set(index++, acceptedTurnFlow);
         }
 
         /* sum all flows and then divide by this sum to obtain splitting rates */
@@ -482,9 +486,9 @@ public abstract class StaticLtmNetworkLoading {
    * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns on nodes that are tracked or activated to reduce
    * computational overhead.
    * 
-   * @return acceptedTurnFlows (on potentially blocking nodes) where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
+   * @return acceptedTurnFlows (on potentially blocking nodes) where multikey comprises entry and exit edge segment and value is the accepted turn flow v_ab
    */
-  protected abstract Map<Integer, Double> networkLoadingTurnFlowUpdate();
+  protected abstract MultiKeyMap<Object, Double> networkLoadingTurnFlowUpdate();
 
   /**
    * Conduct a network loading to compute updated inflow rates (without tracking turn flows): Eq. (3)-(4) in paper
@@ -687,7 +691,7 @@ public abstract class StaticLtmNetworkLoading {
     }
     
     /* 1. Update turn inflows via network loading Eq. (3) */
-    Map<Integer, Double> acceptedTurnFlows = networkLoadingTurnFlowUpdate();
+    MultiKeyMap<Object, Double> acceptedTurnFlows = networkLoadingTurnFlowUpdate();
     
     /* update splitting rates Eq. (6),(4) */
     updateNextSplittingRates(acceptedTurnFlows);
@@ -781,7 +785,7 @@ public abstract class StaticLtmNetworkLoading {
     updateNextFlowAcceptanceFactors();
     
     /* 2. Update inflows via network loading, Eq. (3) */
-    Map<Integer, Double> acceptedTurnFlows = networkLoadingTurnFlowUpdate();
+    MultiKeyMap<Object, Double> acceptedTurnFlows = networkLoadingTurnFlowUpdate();
     
     /* 3. update splitting rates Eq. (6),(4) */
     updateNextSplittingRates(acceptedTurnFlows);    

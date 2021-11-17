@@ -366,6 +366,32 @@ public class BushTurnData implements Cloneable {
   }
 
   /**
+   * Collect the bush splitting rates for a given incoming edge segment and entry label. If no flow exits, zero splitting rates are returned
+   * 
+   * @param entrySegment to use
+   * @param entryLabel   to use
+   * @return splitting rates in multikeymap where the key is the combination of exit segment and exit label and the value is the portion of the entry segment entry label flow
+   *         directed to it
+   */
+  public MultiKeyMap<Object, Double> getSplittingRates(EdgeSegment fromSegment, BushFlowCompositionLabel fromLabel) {
+    Set<EdgeSegment> exitEdgeSegments = fromSegment.getDownstreamVertex().getExitEdgeSegments();
+
+    MultiKeyMap<Object, Double> splittingRatesByExitSegmentLabel = new MultiKeyMap<Object, Double>();
+    double totalSendingFlow = getTotalSendingFlowPcuH(fromSegment, fromLabel);
+    for (EdgeSegment exitSegment : exitEdgeSegments) {
+      Set<BushFlowCompositionLabel> toLabels = getFlowCompositionLabels(exitSegment);
+      for (BushFlowCompositionLabel toLabel : toLabels) {
+        double s_ab = getTurnSendingFlowPcuH(fromSegment, fromLabel, exitSegment, toLabel);
+        if (Precision.isPositive(s_ab)) {
+          splittingRatesByExitSegmentLabel.put(exitSegment, toLabel, s_ab / totalSendingFlow);
+        }
+        totalSendingFlow += s_ab;
+      }
+    }
+    return splittingRatesByExitSegmentLabel;
+  }
+
+  /**
    * Collect the splitting rate for a given link segment. Splitting rates are based on the current turn sending flows s_ab.
    * <p>
    * When collecting multiple splitting rates with the same in link, do not use this method but instead collect all splitting rates at once and then filter the ones you require it
@@ -386,17 +412,6 @@ public class BushTurnData implements Cloneable {
   }
 
   /**
-   * Verify if the edge segment has any flow composition labels registered on it
-   * 
-   * @param edgeSegment to verify
-   * @return true when present, false otherwise
-   */
-  public boolean hasFlowCompositionLabels(final EdgeSegment edgeSegment) {
-    Set<BushFlowCompositionLabel> labels = getFlowCompositionLabels(edgeSegment);
-    return labels != null && !labels.isEmpty();
-  }
-
-  /**
    * The currently registered flow composition labels for this edge segment
    * 
    * @param edgeSegment to collect for
@@ -407,13 +422,24 @@ public class BushTurnData implements Cloneable {
   }
 
   /**
+   * Verify if the edge segment has any flow composition labels registered on it
+   * 
+   * @param edgeSegment to verify
+   * @return true when present, false otherwise
+   */
+  public boolean hasFlowCompositionLabel(final EdgeSegment edgeSegment) {
+    Set<BushFlowCompositionLabel> labels = getFlowCompositionLabels(edgeSegment);
+    return labels != null && !labels.isEmpty();
+  }
+
+  /**
    * Verify if the edge segment has the flow composition label provided
    * 
    * @param edgeSegment      to verify
    * @param compositionLabel to verify
    * @return true when present, false otherwise
    */
-  public boolean hasFlowCompositionLabel(EdgeSegment edgeSegment, BushFlowCompositionLabel compositionLabel) {
+  public boolean hasFlowCompositionLabel(final EdgeSegment edgeSegment, final BushFlowCompositionLabel compositionLabel) {
     Set<BushFlowCompositionLabel> labels = getFlowCompositionLabels(edgeSegment);
     if (labels != null) {
       return labels.contains(compositionLabel);

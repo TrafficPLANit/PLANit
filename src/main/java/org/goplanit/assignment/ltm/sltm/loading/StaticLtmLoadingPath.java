@@ -1,8 +1,8 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
@@ -67,7 +67,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
    * {@inheritDoc}
    */
   @Override
-  protected Map<Integer, Double> networkLoadingTurnFlowUpdate() {
+  protected MultiKeyMap<Object, Double> networkLoadingTurnFlowUpdate() {
     
     /* when one-shot sending flow update in step-2 of the algorithm is active, the sending flows are to be updated during the update here, 
      * otherwise not. In the latter case it is taken care of by step-2 in the solution algorithm via the iterative procedure */

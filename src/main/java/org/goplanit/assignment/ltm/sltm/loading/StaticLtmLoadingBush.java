@@ -1,8 +1,8 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.Pas;
 import org.goplanit.assignment.ltm.sltm.PasManager;
@@ -88,7 +88,7 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
    * @return acceptedTurnFlows (on potentially blocking nodes) where key comprises a combined hash of entry and exit edge segment ids and value is the accepted turn flow v_ab
    */
   @Override
-  protected Map<Integer, Double> networkLoadingTurnFlowUpdate() {
+  protected MultiKeyMap<Object, Double> networkLoadingTurnFlowUpdate() {
    
     /* update network turn flows (and sending flows if POINT_QUEUE_BASIC) by performing a network loading
      * on all bushes using the bush-splitting rates (and updating the bush turn sending flows in the process so they remain consistent

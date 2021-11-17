@@ -1,13 +1,12 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingFactorData;
 import org.goplanit.assignment.ltm.sltm.loading.SendingFlowData;
 import org.goplanit.assignment.ltm.sltm.loading.SplittingRateData;
-import org.goplanit.utils.misc.HashUtils;
+import org.goplanit.utils.graph.EdgeSegment;
 
 /**
  * Base class to aid updating of the network turn flows during loading. Derived classes can apply a path or bush based approach to this update for example. This class stores the
@@ -45,20 +44,9 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
   protected final boolean trackAllNodeTurnFlows;
 
   /**
-   * The output of this update that can be collected after execution
+   * The output of this update that can be collected after execution. They key of this map is forged from an entry and exit segment
    */
-  protected final Map<Integer, Double> acceptedTurnFlows;
-
-  /**
-   * create hash code used for turn flow map
-   * 
-   * @param fromId               to use
-   * @param currentEdgeSegmentId to use
-   * @return created hash
-   */
-  protected static int createTurnHashCode(final int fromId, final int currentEdgeSegmentId) {
-    return HashUtils.createCombinedHashCode(fromId, currentEdgeSegmentId);
-  }
+  protected final MultiKeyMap<Object, Double> acceptedTurnFlows;
 
   /**
    * add to accepted turn flows
@@ -66,8 +54,13 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
    * @param turnHashCode  to use
    * @param flowToAddPcuH to add
    */
-  protected void addToAcceptedTurnFlows(int turnHashCode, double flowToAddPcuH) {
-    acceptedTurnFlows.put(turnHashCode, acceptedTurnFlows.getOrDefault(turnHashCode, 0.0) + flowToAddPcuH);
+  protected void addToAcceptedTurnFlows(final EdgeSegment entrySegment, final EdgeSegment exitSegment, double flowToAddPcuH) {
+    Double currentAcceptedTurnFlow = acceptedTurnFlows.get(entrySegment, exitSegment);
+    if (currentAcceptedTurnFlow == null) {
+      acceptedTurnFlows.put(entrySegment, exitSegment, flowToAddPcuH);
+    } else {
+      currentAcceptedTurnFlow += flowToAddPcuH;
+    }
   }
 
   /**
@@ -81,7 +74,7 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
   public NetworkTurnFlowUpdateData(final boolean trackAllNodeTurnFlows, SendingFlowData sendingFlowData, final SplittingRateData splittingRateData,
       NetworkLoadingFactorData networkLoadingFactorData) {
     super(sendingFlowData, networkLoadingFactorData);
-    this.acceptedTurnFlows = new HashMap<Integer, Double>();
+    this.acceptedTurnFlows = new MultiKeyMap<Object, Double>();
     this.splittingRateData = splittingRateData;
 
     /* see class description on why we use these flags */
@@ -97,7 +90,7 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
    */
   public NetworkTurnFlowUpdateData(final boolean trackAllNodeTurnFlows, final SplittingRateData splittingRateData, NetworkLoadingFactorData networkLoadingFactorData) {
     super(networkLoadingFactorData);
-    this.acceptedTurnFlows = new HashMap<Integer, Double>();
+    this.acceptedTurnFlows = new MultiKeyMap<Object, Double>();
     this.splittingRateData = splittingRateData;
 
     /* see class description on why we use these flags */
@@ -109,7 +102,7 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
    * 
    * @return accepted turn flows
    */
-  public Map<Integer, Double> getAcceptedTurnFlows() {
+  public MultiKeyMap<Object, Double> getAcceptedTurnFlows() {
     return this.acceptedTurnFlows;
   }
 }

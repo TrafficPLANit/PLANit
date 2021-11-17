@@ -4,7 +4,6 @@ import java.util.function.Consumer;
 
 import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.BushFlowCompositionLabel;
-import org.goplanit.assignment.ltm.sltm.BushTurnData;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
@@ -44,8 +43,6 @@ public class InitialiseBushEdgeSegmentDemandConsumer implements Consumer<EdgeSeg
    */
   private BushFlowCompositionLabel mostRecentMergedWithLabel;
 
-  private final BushTurnData bushTurnData;
-
   /**
    * Reset to prep for next destination (if any)
    */
@@ -63,9 +60,9 @@ public class InitialiseBushEdgeSegmentDemandConsumer implements Consumer<EdgeSeg
    */
   private void relabelDivergingFlow(final EdgeSegment edgeSegment) {
     for (EdgeSegment exitSegment : edgeSegment.getDownstreamVertex().getExitEdgeSegments()) {
-      double flowToRelabel = bushTurnData.getTurnSendingFlowPcuH(edgeSegment, mostRecentMergedWithLabel, exitSegment, mostRecentMergedWithLabel);
+      double flowToRelabel = originBush.getTurnSendingFlow(edgeSegment, mostRecentMergedWithLabel, exitSegment, mostRecentMergedWithLabel);
       if (Precision.isPositive(flowToRelabel)) {
-        bushTurnData.relabel(edgeSegment, mostRecentMergedWithLabel, exitSegment, mostRecentMergedWithLabel, currentCompositionLabel);
+        originBush.relabel(edgeSegment, mostRecentMergedWithLabel, exitSegment, mostRecentMergedWithLabel, currentCompositionLabel);
       }
     }
   }
@@ -75,9 +72,8 @@ public class InitialiseBushEdgeSegmentDemandConsumer implements Consumer<EdgeSeg
    * 
    * @param originBush to use
    */
-  public InitialiseBushEdgeSegmentDemandConsumer(final Bush originBush, final BushTurnData bushTurnData) {
+  public InitialiseBushEdgeSegmentDemandConsumer(final Bush originBush) {
     this.originBush = originBush;
-    this.bushTurnData = bushTurnData;
     reset();
   }
 
@@ -92,13 +88,13 @@ public class InitialiseBushEdgeSegmentDemandConsumer implements Consumer<EdgeSeg
     /*
      * when a preceding destination already used the link segment, we must now trigger relabelling since the composition changes due to diverging flows downstream
      */
-    if (bushTurnData.hasFlowCompositionLabels(edgeSegment)) {
-      BushFlowCompositionLabel newMergingLabel = bushTurnData.getFlowCompositionLabels(edgeSegment).iterator().next(); // only single label can be present
+    if (originBush.hasFlowCompositionLabel(edgeSegment)) {
+      BushFlowCompositionLabel newMergingLabel = originBush.getFlowCompositionLabels(edgeSegment).iterator().next(); // only single label can be present
       if (mostRecentMergedWithLabel == null) {
         this.mostRecentMergedWithLabel = newMergingLabel;
         this.currentCompositionLabel = originBush.createFlowCompositionLabel();
         relabelDivergingFlow(edgeSegment);
-      } else if (!bushTurnData.hasFlowCompositionLabel(edgeSegment, mostRecentMergedWithLabel)) {
+      } else if (!originBush.hasFlowCompositionLabel(edgeSegment, mostRecentMergedWithLabel)) {
         /*
          * Now the earlier flow merges (with another label) rather than we merging with earlier flow. Therefore, we can now switch our current label to the merging label while only
          * relabelling the outgoing label from the earlier merged flow label to our current label while adding the turn flow of this OD.
@@ -119,11 +115,11 @@ public class InitialiseBushEdgeSegmentDemandConsumer implements Consumer<EdgeSeg
 
       /* must relabel existing flow */
       if (mostRecentMergedWithLabel != null) {
-        bushTurnData.relabel(edgeSegment, mostRecentMergedWithLabel, succeedingEdgeSegment, mostRecentMergedWithLabel, currentCompositionLabel);
+        originBush.relabel(edgeSegment, mostRecentMergedWithLabel, succeedingEdgeSegment, mostRecentMergedWithLabel, currentCompositionLabel);
       }
 
       /* add new destination flow */
-      bushTurnData.addTurnSendingFlow(edgeSegment, currentCompositionLabel, succeedingEdgeSegment, succeedingFlowCompositionLabel, originDestinationDemandPcuH);
+      originBush.addTurnSendingFlow(edgeSegment, currentCompositionLabel, succeedingEdgeSegment, succeedingFlowCompositionLabel, originDestinationDemandPcuH);
     }
     succeedingEdgeSegment = edgeSegment;
   }

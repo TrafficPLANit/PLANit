@@ -34,12 +34,12 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
   /**
    * Apply the flow to the turn (and update link sending flow if required)
    * 
-   * @param prevSegmentId       of turn
+   * @param prevSegment         of turn
    * @param currentSegment      of turn
    * @param turnSendingFlowPcuH sending flow rate of turn
    * @return accepted flow rate of turn after applying link acceptance factor
    */
-  protected abstract double applySingleFlowUpdate(final int prevSegmentId, final EdgeSegment currentSegment, final double turnSendingFlowPcuH);
+  protected abstract double applySingleFlowUpdate(final EdgeSegment prevSegment, final EdgeSegment currentSegment, final double turnSendingFlowPcuH);
 
   /**
    * Apply the flow to a final path segment (and update link sending flow if required) which has no outgoing edge segment on the turn
@@ -75,12 +75,12 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
 
     /* turn */
     Iterator<EdgeSegment> edgeSegmentIter = odPath.iterator();
-    int previousEdgeSegmentId = (int) edgeSegmentIter.next().getId();
+    EdgeSegment previousEdgeSegment = edgeSegmentIter.next();
     EdgeSegment currEdgeSegment = null;
     while (edgeSegmentIter.hasNext()) {
       currEdgeSegment = edgeSegmentIter.next();
-      acceptedPathFlowRate = applySingleFlowUpdate(previousEdgeSegmentId, currEdgeSegment, acceptedPathFlowRate);
-      previousEdgeSegmentId = (int) currEdgeSegment.getId();
+      acceptedPathFlowRate = applySingleFlowUpdate(previousEdgeSegment, currEdgeSegment, acceptedPathFlowRate);
+      previousEdgeSegment = currEdgeSegment;
     }
 
     applyPathFinalSegmentFlowUpdate(currEdgeSegment, acceptedPathFlowRate);

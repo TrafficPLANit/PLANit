@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.iterators.ReverseListIterator;
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortestpath.ShortestPathResult;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.EdgeSegment;
@@ -213,16 +214,21 @@ public class Pas {
 
     /* remove shifted flows through final merge towards exit segments proportionally, to later add to s1 turns through merge */
     if (getMergeVertex().hasExitEdgeSegments()) {
-      List<BushFlowCompositionLabel> usedExitLabels = origin.determineUsedTurnCompositionLabels(lastS2Segment, finalSegmentLabel);
-      for (BushFlowCompositionLabel exitLabel : usedExitLabels) {
-        int index = 0;
-        double[] splittingRates = origin.getSplittingRates(lastS2Segment, finalSegmentLabel, exitLabel);
-        for (EdgeSegment exitSegment : getMergeVertex().getExitEdgeSegments()) {
-          if (origin.containsEdgeSegment(exitSegment)) {
-            double splittingRate = splittingRates[index];
+      /* key: [exitSegment, exitLabel] */
+      MultiKeyMap<Object, Double> splittingRates = origin.getSplittingRates(lastS2Segment, finalSegmentLabel);
+      int index = 0;
+      for (EdgeSegment exitSegment : getMergeVertex().getExitEdgeSegments()) {
+        if (origin.containsEdgeSegment(exitSegment)) {
+          Set<BushFlowCompositionLabel> exitLabels = origin.getFlowCompositionLabels(exitSegment);
+          for (BushFlowCompositionLabel exitLabel : exitLabels) {
+
+            Double labeledSplittingRate = splittingRates.get(exitSegment, exitLabel);
+            if (labeledSplittingRate == null || !Precision.isPositive(labeledSplittingRate)) {
+              continue;
+            }
 
             /* remove flow for s2 */
-            double s2FlowShift = s2FinalLabeledFlowShift * splittingRate;
+            double s2FlowShift = s2FinalLabeledFlowShift * labeledSplittingRate;
             if (!Precision.isPositive(origin.getTurnSendingFlow(lastS2Segment, exitSegment) + s2FlowShift)) {
               /* no remaining flow at all after flow shift, remove turn from bush entirely */
               origin.removeTurn(lastS2Segment, exitSegment);
@@ -237,11 +243,12 @@ public class Pas {
               exitShiftedSendingFlowToPopulate.put(exitLabel, exitLabelExitSegmentShiftedSendingFlow);
             }
             exitLabelExitSegmentShiftedSendingFlow[index] += -s2FlowShift;
-            ++index;
           }
         }
+        ++index;
       }
     }
+
   }
 
   /**

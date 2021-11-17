@@ -1,10 +1,11 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.Bush;
+import org.goplanit.assignment.ltm.sltm.BushFlowCompositionLabel;
 import org.goplanit.utils.graph.EdgeSegment;
 
 /**
@@ -42,14 +43,17 @@ public class BushTurnFlowUpdateConsumer extends BushFlowUpdateConsumer<NetworkTu
   /**
    * track the turn accepted flows when they are classified as being tracked, otherwise do nothing
    * 
-   * @param prevSegmentId        to use
-   * @param currentSegment       to use
+   * @param prevSegment          of turn
+   * @param prevLabel            at hand
+   * @param currentSegment       of turn
+   * @param currLabel            at hand
    * @param turnAcceptedFlowPcuH to use
    */
   @Override
-  protected void applyAcceptedTurnFlowUpdate(int prevSegmentId, EdgeSegment currentSegment, double turnAcceptedFlowPcuH) {
+  protected void applyAcceptedTurnFlowUpdate(final EdgeSegment prevSegment, final BushFlowCompositionLabel prevLabel, final EdgeSegment currentSegment,
+      final BushFlowCompositionLabel currLabel, double turnAcceptedFlowPcuH) {
     if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(currentSegment.getUpstreamVertex())) {
-      dataConfig.addToAcceptedTurnFlows(NetworkTurnFlowUpdateData.createTurnHashCode(prevSegmentId, (int) currentSegment.getId()), turnAcceptedFlowPcuH); // network level
+      dataConfig.addToAcceptedTurnFlows(prevSegment, currentSegment, turnAcceptedFlowPcuH); // network level
     }
   }
 
@@ -58,7 +62,7 @@ public class BushTurnFlowUpdateConsumer extends BushFlowUpdateConsumer<NetworkTu
    * 
    * @return accepted turn flows
    */
-  public Map<Integer, Double> getAcceptedTurnFlows() {
+  public MultiKeyMap<Object, Double> getAcceptedTurnFlows() {
     return dataConfig.getAcceptedTurnFlows();
   }
 }
