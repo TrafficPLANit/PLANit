@@ -230,9 +230,12 @@ public class Bush implements IdAble {
   public void multiplyTurnSendingFlows(final EdgeSegment entrySegment, final BushFlowCompositionLabel entryCompositionLabel, double factor) {
     for (EdgeSegment exitSegment : entrySegment.getDownstreamVertex().getExitEdgeSegments()) {
       Set<BushFlowCompositionLabel> exitLabels = bushData.getFlowCompositionLabels(exitSegment);
+      if (exitLabels == null) {
+        continue;
+      }
       for (BushFlowCompositionLabel exitLabel : exitLabels) {
-        bushData.updateTurnSendingFlow(entrySegment, entryCompositionLabel, exitSegment, exitLabel,
-            bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, entryCompositionLabel) * factor);
+        bushData.setTurnSendingFlow(entrySegment, entryCompositionLabel, exitSegment, exitLabel,
+            bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitLabel) * factor);
       }
     }
   }

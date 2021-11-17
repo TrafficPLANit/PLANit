@@ -175,6 +175,8 @@ public class sLtmNetworkLoadingTest {
 
       // TODO: path based sLTM assignment does not work yet, this is why gap computation gives severe warning. Fix this
 
+      // TODO: add assertions to check validity of outcome explicitly
+
     } catch (Exception e) {
       e.printStackTrace();
       fail("Error when testing sLTM network loading");
