@@ -409,7 +409,6 @@ public class BushTurnData implements Cloneable {
         if (Precision.isPositive(s_ab)) {
           splittingRatesByExitSegmentLabel.put(exitSegment, toLabel, s_ab / totalSendingFlow);
         }
-        totalSendingFlow += s_ab;
       }
     }
     return splittingRatesByExitSegmentLabel;
@@ -488,6 +487,27 @@ public class BushTurnData implements Cloneable {
     removeTurnFlow(fromSegment, oldFromLabel, toSegment, oldToLabel);
     if (Precision.isPositive(flowToRelabel)) {
       addTurnSendingFlow(fromSegment, newFromToLabel, toSegment, newFromToLabel, flowToRelabel);
+    }
+    return flowToRelabel;
+  }
+
+  /**
+   * Relabel the from label of existing flow from one composition from-to combination to a new from-to label
+   * 
+   * @param fromSegment  from segment of turn
+   * @param oldFromLabel from composition label to replace
+   * @param toSegment    to segment of turn
+   * @param toLabel      to composition label to replace
+   * @param newFromLabel label to replace flow with
+   * @return the amount of flow that was relabelled
+   */
+  public double relabelFrom(EdgeSegment fromSegment, BushFlowCompositionLabel oldFromLabel, EdgeSegment toSegment, BushFlowCompositionLabel toLabel,
+      BushFlowCompositionLabel newFromLabel) {
+
+    double flowToRelabel = getTurnSendingFlowPcuH(fromSegment, oldFromLabel, toSegment, toLabel);
+    removeTurnFlow(fromSegment, oldFromLabel, toSegment, toLabel);
+    if (Precision.isPositive(flowToRelabel)) {
+      addTurnSendingFlow(fromSegment, newFromLabel, toSegment, toLabel, flowToRelabel);
     }
     return flowToRelabel;
   }

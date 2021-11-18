@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
@@ -523,8 +524,9 @@ public class Bush implements IdAble {
       rateMap.put(label, labelFlow);
       totalSendingFlow += labelFlow;
     }
-    for (Double value : rateMap.values()) {
-      value /= totalSendingFlow;
+
+    for (Entry<BushFlowCompositionLabel, Double> entry : rateMap.entrySet()) {
+      entry.setValue(entry.getValue() / totalSendingFlow);
     }
 
     return rateMap;
@@ -585,6 +587,21 @@ public class Bush implements IdAble {
   public double relabel(EdgeSegment fromSegment, BushFlowCompositionLabel oldFromLabel, EdgeSegment toSegment, BushFlowCompositionLabel oldToLabel,
       BushFlowCompositionLabel newFromToLabel) {
     return bushData.relabel(fromSegment, oldFromLabel, toSegment, oldToLabel, newFromToLabel);
+  }
+
+  /**
+   * Relabel the from label of existing flow from one composition from-to combination to a new from-to label
+   * 
+   * @param fromSegment  from segment of turn
+   * @param oldFromLabel from composition label to replace
+   * @param toSegment    to segment of turn
+   * @param toLabel      to composition label to replace
+   * @param newFromLabel label to replace flow with
+   * @return the amount of flow that was relabelled
+   */
+  public double relabelFrom(EdgeSegment fromSegment, BushFlowCompositionLabel oldFromLabel, EdgeSegment toSegment, BushFlowCompositionLabel toLabel,
+      BushFlowCompositionLabel newFromLabel) {
+    return bushData.relabelFrom(fromSegment, oldFromLabel, toSegment, toLabel, newFromLabel);
   }
 
   /**

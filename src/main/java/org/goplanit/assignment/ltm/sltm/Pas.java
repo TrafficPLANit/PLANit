@@ -57,7 +57,7 @@ public class Pas {
    * 
    * @param origin                 to initialise labelling for
    * @param s1MatchingLabelsToFill map to populate with the new label
-   * @return pasS1EndLabelRates created indicatin 1 (100%) of flow is allocated to the new label on the final segment of s1
+   * @return pasS1EndLabelRates created indicating 1 (100%) of flow is allocated to the new label on the final segment of s1
    */
   private Map<BushFlowCompositionLabel, Double> initialiseS1Labelling(final Bush origin, Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> s1MatchingLabelsToFill) {
     BushFlowCompositionLabel pasS1Label = origin.createFlowCompositionLabel();
@@ -68,6 +68,50 @@ public class Pas {
     pasS1EndLabelRates.put(pasS1Label, 1.0);
 
     return pasS1EndLabelRates;
+  }
+
+  /**
+   * Relabel the given label on any turn on the vertex towards the given exit segment it maintains the same label. If found, we relabel in the upstream direction until the label
+   * disappears or we arrive at the origin
+   * 
+   * @param origin           to use
+   * @param vertex           to use
+   * @param exitEdgeSegment  to use
+   * @param compositionLabel to relabel if needed
+   */
+  private void relabelIfNotTerminating(final Bush origin, final DirectedVertex vertex, final EdgeSegment exitSegment, final BushFlowCompositionLabel compositionLabel) {
+    for (EdgeSegment entrySegment : vertex.getEntryEdgeSegments()) {
+      if (origin.containsEdgeSegment(exitSegment) && Precision.isPositive(origin.getTurnSendingFlow(entrySegment, compositionLabel, exitSegment, compositionLabel))) {
+        /* match found - relabel across vertex */
+        BushFlowCompositionLabel newLabel = origin.createFlowCompositionLabel();
+        origin.relabelFrom(entrySegment, compositionLabel, exitSegment, compositionLabel, newLabel);
+        /* proceed upstream - relabel with new label recursively */
+        relabelWhileNotTerminatingWith(origin, entrySegment.getUpstreamVertex(), entrySegment, compositionLabel, newLabel);
+      }
+    }
+  }
+
+  /**
+   * Relabel the given label on any turn on the vertex towards the given exit segment it maintains the same label. If found, we relabel in the upstream direction until the label
+   * disappears or we arrive at the origin using the provided alternative label
+   * 
+   * @param origin          to use
+   * @param vertex          to use
+   * @param exitEdgeSegment to use
+   * @param oldLabel        to relabel if needed
+   * @param newLabel        to relabel with if needed
+   */
+  private void relabelWhileNotTerminatingWith(final Bush origin, final DirectedVertex vertex, final EdgeSegment exitSegment, final BushFlowCompositionLabel oldLabel,
+      final BushFlowCompositionLabel newLabel) {
+    for (EdgeSegment entrySegment : vertex.getEntryEdgeSegments()) {
+      if (origin.containsEdgeSegment(exitSegment) && Precision.isPositive(origin.getTurnSendingFlow(entrySegment, oldLabel, exitSegment, oldLabel))) {
+        /* match found - relabel across vertex */
+        origin.relabel(entrySegment, oldLabel, exitSegment, oldLabel, newLabel);
+        /* proceed upstream - relabel with new label recursively */
+        relabelWhileNotTerminatingWith(origin, entrySegment.getUpstreamVertex(), entrySegment, oldLabel, newLabel);
+      }
+    }
+
   }
 
   /**
@@ -83,6 +127,8 @@ public class Pas {
    * Determine all labels (on the final segment) that represent flow that is fully overlapping with the indicated PAS segment (low or high cost). We also provide composite labels
    * into which the final labels have split off from during their journey from the start to the end of the PAS alternative (if any). These composite labels are provided as a
    * separate list per matched label where the last entry represents the label closest to the starting point of the PAS segment (upstream)
+   * <p>
+   * If only a single label is used, the predecessor list will contain only a single entry which is the same as the key of the map
    * 
    * @param originBush     to do this for
    * @param lowCostSegment the segment to verify against
@@ -97,7 +143,8 @@ public class Pas {
     while (labelIter.hasNext()) {
       BushFlowCompositionLabel initialLabel = labelIter.next();
       BushFlowCompositionLabel currentLabel = initialLabel;
-      List<BushFlowCompositionLabel> transitionLabels = null;
+      List<BushFlowCompositionLabel> transitionLabels = new ArrayList<BushFlowCompositionLabel>();
+      transitionLabels.add(initialLabel);
 
       EdgeSegment currentSegment = null;
       EdgeSegment succeedingSegment = getLastEdgeSegment(lowCostSegment);
@@ -125,9 +172,23 @@ public class Pas {
         }
         succeedingSegment = currentSegment;
       }
-      pasCompositionLabels.put(initialLabel, transitionLabels == null ? new ArrayList<BushFlowCompositionLabel>(0) : transitionLabels);
+
+      pasCompositionLabels.put(initialLabel, transitionLabels);
     }
     return pasCompositionLabels;
+  }
+
+  /**
+   * Helper method that determine which label was used at the start of the segment given the final label and any predecssors known when traversing along the PAS towards its diverge
+   * 
+   * @param reverseOrderUsedLabels known to use
+   * @return the first label used in the segment, which is the last label in the predecessor list
+   */
+  private BushFlowCompositionLabel extractUsedStartLabel(List<BushFlowCompositionLabel> reverseOrderUsedLabels) {
+    if (reverseOrderUsedLabels.isEmpty()) {
+      LOGGER.severe("No labels present in provided reverse order used label list, unable to extract start label");
+    }
+    return reverseOrderUsedLabels.get(reverseOrderUsedLabels.size() - 1);
   }
 
   /**
@@ -141,8 +202,9 @@ public class Pas {
    */
   private Set<BushFlowCompositionLabel> extractUsedStartLabels(Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> pasAlternativeEndFlowCompositionLabels) {
     Set<BushFlowCompositionLabel> usedStartLabels = new HashSet<BushFlowCompositionLabel>();
-    for (List<BushFlowCompositionLabel> usedLabelPrecessors : pasAlternativeEndFlowCompositionLabels.values()) {
-      usedStartLabels.add(usedLabelPrecessors.get(usedLabelPrecessors.size() - 1));
+    for (Entry<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> usedLabelPrecessors : pasAlternativeEndFlowCompositionLabels.entrySet()) {
+      List<BushFlowCompositionLabel> compositePredecessors = usedLabelPrecessors.getValue();
+      usedStartLabels.add(extractUsedStartLabel(compositePredecessors));
     }
     return usedStartLabels;
   }
@@ -421,6 +483,7 @@ public class Pas {
     List<Bush> originsWithoutRemainingPasFlow = new ArrayList<Bush>();
     EdgeSegment lastS1Segment = getLastEdgeSegment(true /* low cost */);
     EdgeSegment lastS2Segment = getLastEdgeSegment(false /* high cost */);
+    EdgeSegment firstS2Segment = getFirstEdgeSegment(false /* high cost */);
 
     for (Bush origin : originBushes) {
 
@@ -440,7 +503,6 @@ public class Pas {
 
       // TODO: below can be combined with determining the subPathSending flow for efficiency
       Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> pasS2EndFlowCompositionLabels = determineMatchingLabels(origin, false /* high cost segment */);
-      Set<BushFlowCompositionLabel> pasS2UsedStartLabels = extractUsedStartLabels(pasS2EndFlowCompositionLabels);
 
       /* Backward splitting rates regarding the origin of the flow towards S2 for the used entry label. Used only to determine flow shift through diverge towards PAS segments */
       /*
@@ -452,6 +514,7 @@ public class Pas {
       int numberOfUsedEntrySegments = 0;
       Map<BushFlowCompositionLabel, double[]> s2DivergeEntryBackwardSplittingRates = new HashMap<BushFlowCompositionLabel, double[]>();
       if (getDivergeVertex().hasEntryEdgeSegments()) {
+        Set<BushFlowCompositionLabel> pasS2UsedStartLabels = extractUsedStartLabels(pasS2EndFlowCompositionLabels);
         numberOfUsedEntrySegments = populateS2DivergeBackwardSplittingRates(origin, pasS2UsedStartLabels, flowAcceptanceFactors, s2DivergeEntryBackwardSplittingRates);
       }
 
@@ -469,7 +532,7 @@ public class Pas {
 
         BushFlowCompositionLabel finalSegmentLabel = mergeLabelEntry.getKey();
         List<BushFlowCompositionLabel> reverseOrderS2Labels = pasS2EndFlowCompositionLabels.get(finalSegmentLabel);
-        BushFlowCompositionLabel initialSegmentLabel = reverseOrderS2Labels.get(reverseOrderS2Labels.size() - 1);
+        BushFlowCompositionLabel initialSegmentLabel = extractUsedStartLabel(reverseOrderS2Labels);
 
         /* shift portion of flow attributed to composition label traversing s2 */
         double s2StartLabeledFlowShift = mergeLabelEntry.getValue() * bushFlowShift;
@@ -519,6 +582,13 @@ public class Pas {
         if (numberOfUsedEntrySegments >= 1) {
           /* shift flow across initial diverge into S1 based on findings in s2 */
           executeBushLabeledS1FlowShiftStartDiverge(origin, initialSegmentLabel, s1StartLabeledFlowShift, s2DivergeEntryBackwardSplittingRates, flowAcceptanceFactors);
+          if (s1SegmentNotUsedYet) {
+            /*
+             * Flow with a label that now splits off whereas before it was not requires relabeling because if not relabeled it maintains the same label (flow composition) reference
+             * while in fact the composition might have changed due to part of its flow splitting off
+             */
+            relabelIfNotTerminating(origin, getDivergeVertex(), firstS2Segment, initialSegmentLabel);
+          }
         }
       }
     }
