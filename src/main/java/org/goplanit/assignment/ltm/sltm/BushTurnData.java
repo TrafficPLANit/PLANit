@@ -95,7 +95,9 @@ public class BushTurnData implements Cloneable {
       fromLabels = new HashSet<BushFlowCompositionLabel>();
       linkSegmentCompositionLabels.put(edgeSegment, fromLabels);
     }
-    fromLabels.add(compositionLabel);
+    if (!fromLabels.contains(compositionLabel)) {
+      fromLabels.add(compositionLabel);
+    }
   }
 
   /**
@@ -188,7 +190,7 @@ public class BushTurnData implements Cloneable {
    * @param toLabel         of turn flow
    */
   public void removeTurnFlow(final EdgeSegment fromEdgeSegment, final BushFlowCompositionLabel fromLabel, final EdgeSegment toEdgeSegment, final BushFlowCompositionLabel toLabel) {
-    if (fromLabel == null || toLabel == null || fromEdgeSegment == null || toEdgeSegment != null) {
+    if (fromLabel == null || toLabel == null || fromEdgeSegment == null || toEdgeSegment == null) {
       LOGGER.severe("One or more inputs required to remove turn flow from bush data registration is null, unable to remove turn flow");
       return;
     }
