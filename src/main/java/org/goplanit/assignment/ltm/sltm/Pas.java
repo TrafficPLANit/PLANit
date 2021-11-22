@@ -79,7 +79,7 @@ public class Pas {
    * @param vertex           to use
    * @param exitEdgeSegment  to use
    * @param eligibleLabels   eligible labels that we consider for relabeling. Each label is a label with non-zero flow into s2 and its values are the backward splitting rates from
-   *                         the first s2 segment into the various entry segments
+   *                         the first s2 segment into the various entry segments. Entries are updated based on executed relabelling!
    * @param compositionLabel to relabel if needed
    */
   private void relabelIfNotTerminating(final Bush origin, final DirectedVertex vertex, final EdgeSegment exitSegment, Map<BushFlowCompositionLabel, double[]> eligibleLabels) {
@@ -94,19 +94,41 @@ public class Pas {
       BushFlowCompositionLabel currEntryLabel = labelIter.next();
       double[] s2LabeledBackwardSplittingRates = eligibleLabels.get(currEntryLabel);
       int index = 0;
+
+      /* determine if a new entry label is required */
+      BushFlowCompositionLabel newLabel = null;
+      for (EdgeSegment entrySegment : vertex.getEntryEdgeSegments()) {
+        double backwardsplittingrate = s2LabeledBackwardSplittingRates[index++];
+        if (Precision.isPositive(backwardsplittingrate) && Precision.isPositive(origin.getTurnSendingFlow(entrySegment, currEntryLabel, exitSegment, currEntryLabel))) {
+          /* match found - create new label to relabel any turn flow across vertex with original labelling */
+          newLabel = origin.createFlowCompositionLabel();
+          break;
+        }
+        ++index;
+      }
+
+      if (newLabel == null) {
+        continue;
+      }
+
+      /*
+       * now we perform the actual relabelling after establishing the unique new label to use (which might have to relabel multiple entry segments, hence splitting the
+       * identification off from the actual relabelling
+       */
+      index = 0;
       for (EdgeSegment entrySegment : vertex.getEntryEdgeSegments()) {
         double backwardsplittingrate = s2LabeledBackwardSplittingRates[index++];
         if (Precision.isPositive(backwardsplittingrate) && Precision.isPositive(origin.getTurnSendingFlow(entrySegment, currEntryLabel, exitSegment, currEntryLabel))) {
           /* match found - relabel across vertex */
-          BushFlowCompositionLabel newLabel = origin.createFlowCompositionLabel();
           origin.relabelFrom(entrySegment, currEntryLabel, exitSegment, currEntryLabel, newLabel);
           /* proceed upstream - relabel with new label recursively */
           relabelWhileNotTerminatingWith(origin, entrySegment.getUpstreamVertex(), entrySegment, currEntryLabel, newLabel);
 
-          /* remove entry as key has changed, add new entry with updated label */
+          /* remove entry as key (label) has changed, add new entry with updated label */
           labelIter.remove();
           updatedLabels.put(newLabel, s2LabeledBackwardSplittingRates);
         }
+        ++index;
       }
     }
     eligibleLabels.putAll(updatedLabels);
@@ -358,9 +380,8 @@ public class Pas {
         double[] exitLabelSplittingRates = entry.getValue();
         int index = 0;
         for (EdgeSegment exitSegment : getMergeVertex().getExitEdgeSegments()) {
-          if (origin.containsEdgeSegment(exitSegment)) {
-            double splittingRate = exitLabelSplittingRates[index];
-
+          double splittingRate = exitLabelSplittingRates[index];
+          if (Precision.isPositive(splittingRate)) {
             /* add flow for s1 */
             double s1FlowShift = s1FinalLabeledFlowShift * splittingRate;
             origin.addTurnSendingFlow(lastS1Segment, finalSegmentLabel, exitSegment, exitLabel, s1FlowShift);
@@ -438,20 +459,18 @@ public class Pas {
       double[] bushEntryTurnBackwardSplittingRates = divergeLabelEntry.getValue();
       int index = 0;
       for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
-        if (origin.containsEdgeSegment(entrySegment)) {
-          double entryLabelPortion = bushEntryTurnBackwardSplittingRates[index];
-          if (!Precision.isPositive(entryLabelPortion)) {
-            continue;
-          }
-
-          /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s1 segment */
-          double s1DivergeEntryLabeledFlowShift = s1StartLabeledFlowShift * entryLabelPortion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
-          if (Precision.isNegative(s1DivergeEntryLabeledFlowShift)) {
-            LOGGER.severe("Expected non-negative shift on s1 turn for given label combination, skip flow shift at PAS s1 diverge");
-            continue;
-          }
-          origin.addTurnSendingFlow(entrySegment, entryLabel, firstS1Segment, startSegmentLabel, s1DivergeEntryLabeledFlowShift);
+        double entryLabelPortion = bushEntryTurnBackwardSplittingRates[index];
+        if (!Precision.isPositive(entryLabelPortion)) {
+          continue;
         }
+
+        /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s1 segment */
+        double s1DivergeEntryLabeledFlowShift = s1StartLabeledFlowShift * entryLabelPortion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
+        if (Precision.isNegative(s1DivergeEntryLabeledFlowShift)) {
+          LOGGER.severe("Expected non-negative shift on s1 turn for given label combination, skip flow shift at PAS s1 diverge");
+          continue;
+        }
+        origin.addTurnSendingFlow(entrySegment, entryLabel, firstS1Segment, startSegmentLabel, s1DivergeEntryLabeledFlowShift);
         ++index;
       }
     }
@@ -577,10 +596,10 @@ public class Pas {
        * ------------------------------------------------- S2 FLOW SHIFT ----------------------------------------------------------------------------------------------------------
        * Update S1 by shifting flow proportionally along encountered flow compositions matching with the PAS/origin/alternative
        */
-      boolean s1SegmentNotUsedYet = false;
       Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> pasS1FlowCompositionLabels = determineMatchingLabels(origin, true /* low cost segment */);
+      final boolean s1SegmentNotUsedYet = pasS1FlowCompositionLabels.isEmpty();
       Map<BushFlowCompositionLabel, Double> pasS1EndLabelRates = null;
-      if (pasS1FlowCompositionLabels.isEmpty()) {
+      if (s1SegmentNotUsedYet) {
         pasS1EndLabelRates = initialiseS1Labelling(origin, pasS1FlowCompositionLabels);
 
         /*
