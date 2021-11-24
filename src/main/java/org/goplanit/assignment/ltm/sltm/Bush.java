@@ -595,13 +595,28 @@ public class Bush implements IdAble {
    * @param fromSegment  from segment of turn
    * @param oldFromLabel from composition label to replace
    * @param toSegment    to segment of turn
-   * @param toLabel      to composition label to replace
+   * @param toLabel      to composition label
    * @param newFromLabel label to replace flow with
    * @return the amount of flow that was relabelled
    */
   public double relabelFrom(EdgeSegment fromSegment, BushFlowCompositionLabel oldFromLabel, EdgeSegment toSegment, BushFlowCompositionLabel toLabel,
       BushFlowCompositionLabel newFromLabel) {
     return bushData.relabelFrom(fromSegment, oldFromLabel, toSegment, toLabel, newFromLabel);
+  }
+
+  /**
+   * Relabel the to label of existing flow from one composition from-to combination to a new from-to label
+   * 
+   * @param fromSegment  from segment of turn
+   * @param fromLabel    from composition label
+   * @param toSegment    to segment of turn
+   * @param oldToLabel      to composition label to replace
+   * @param newToLabel label to replace flow with
+   * @return the amount of flow that was relabelled
+   */
+  public double relabelTo(EdgeSegment fromSegment, BushFlowCompositionLabel fromLabel, EdgeSegment toSegment, BushFlowCompositionLabel oldToLabel,
+      BushFlowCompositionLabel newToLabel) {
+    return bushData.relabelTo(fromSegment, fromLabel, toSegment, oldToLabel, newToLabel);
   }
 
   /**

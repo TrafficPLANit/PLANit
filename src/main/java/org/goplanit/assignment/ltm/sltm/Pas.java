@@ -142,11 +142,23 @@ public class Pas {
   private void relabelWhileNotTerminatingWith(final Bush origin, final DirectedVertex vertex, final EdgeSegment exitSegment, final BushFlowCompositionLabel oldLabel,
       final BushFlowCompositionLabel newLabel) {
     for (EdgeSegment entrySegment : vertex.getEntryEdgeSegments()) {
-      if (origin.containsEdgeSegment(entrySegment) && Precision.isPositive(origin.getTurnSendingFlow(entrySegment, oldLabel, exitSegment, oldLabel))) {
-        /* match found - relabel across vertex */
-        origin.relabel(entrySegment, oldLabel, exitSegment, oldLabel, newLabel);
-        /* proceed upstream - relabel with new label recursively */
-        relabelWhileNotTerminatingWith(origin, entrySegment.getUpstreamVertex(), entrySegment, oldLabel, newLabel);
+      if (origin.containsEdgeSegment(entrySegment)) {
+
+        if (Precision.isPositive(origin.getTurnSendingFlow(entrySegment, oldLabel, exitSegment, oldLabel))) {
+          /* match found - relabel across vertex */
+          origin.relabel(entrySegment, oldLabel, exitSegment, oldLabel, newLabel);
+          /* proceed upstream - relabel with new label recursively */
+          relabelWhileNotTerminatingWith(origin, entrySegment.getUpstreamVertex(), entrySegment, oldLabel, newLabel);
+        } else {
+
+          /* terminating, so update final flow from other label to old label with new label */
+          var entryLabels = origin.getFlowCompositionLabels(entrySegment);
+          for (var entryLabel : entryLabels) {
+            if (Precision.isPositive(origin.getTurnSendingFlow(entrySegment, entryLabel, exitSegment, oldLabel))) {
+              origin.relabelTo(entrySegment, entryLabel, exitSegment, oldLabel, newLabel);
+            }
+          }
+        }
       }
     }
 

@@ -101,6 +101,28 @@ public class BushTurnData implements Cloneable {
   }
 
   /**
+   * Relabel existing flow from one composition from-to combination to a new from-to label
+   * 
+   * @param fromSegment  from segment of turn
+   * @param oldFromLabel from composition label to replace
+   * @param toSegment    to segment of turn
+   * @param oldToLabel   to composition label to replace
+   * @param newFromLabel label to replace flow with
+   * @param newToLabel   label to replace flow with
+   * @return the amount of flow that was relabelled
+   */
+  private double relabel(EdgeSegment fromSegment, BushFlowCompositionLabel oldFromLabel, EdgeSegment toSegment, BushFlowCompositionLabel oldToLabel,
+      BushFlowCompositionLabel newFromLabel, BushFlowCompositionLabel newToLabel) {
+
+    double flowToRelabel = getTurnSendingFlowPcuH(fromSegment, oldFromLabel, toSegment, oldToLabel);
+    removeTurnFlow(fromSegment, oldFromLabel, toSegment, oldToLabel);
+    if (Precision.isPositive(flowToRelabel)) {
+      addTurnSendingFlow(fromSegment, newFromLabel, toSegment, newToLabel, flowToRelabel);
+    }
+    return flowToRelabel;
+  }
+
+  /**
    * Constructor
    * 
    */
@@ -484,13 +506,7 @@ public class BushTurnData implements Cloneable {
    */
   public double relabel(EdgeSegment fromSegment, BushFlowCompositionLabel oldFromLabel, EdgeSegment toSegment, BushFlowCompositionLabel oldToLabel,
       BushFlowCompositionLabel newFromToLabel) {
-
-    double flowToRelabel = getTurnSendingFlowPcuH(fromSegment, oldFromLabel, toSegment, oldToLabel);
-    removeTurnFlow(fromSegment, oldFromLabel, toSegment, oldToLabel);
-    if (Precision.isPositive(flowToRelabel)) {
-      addTurnSendingFlow(fromSegment, newFromToLabel, toSegment, newFromToLabel, flowToRelabel);
-    }
-    return flowToRelabel;
+    return relabel(fromSegment, oldFromLabel, toSegment, oldToLabel, newFromToLabel, newFromToLabel);
   }
 
   /**
@@ -499,19 +515,28 @@ public class BushTurnData implements Cloneable {
    * @param fromSegment  from segment of turn
    * @param oldFromLabel from composition label to replace
    * @param toSegment    to segment of turn
-   * @param toLabel      to composition label to replace
+   * @param toLabel      to composition label
    * @param newFromLabel label to replace flow with
    * @return the amount of flow that was relabelled
    */
   public double relabelFrom(EdgeSegment fromSegment, BushFlowCompositionLabel oldFromLabel, EdgeSegment toSegment, BushFlowCompositionLabel toLabel,
       BushFlowCompositionLabel newFromLabel) {
+    return relabel(fromSegment, oldFromLabel, toSegment, toLabel, newFromLabel, toLabel);
+  }
 
-    double flowToRelabel = getTurnSendingFlowPcuH(fromSegment, oldFromLabel, toSegment, toLabel);
-    removeTurnFlow(fromSegment, oldFromLabel, toSegment, toLabel);
-    if (Precision.isPositive(flowToRelabel)) {
-      addTurnSendingFlow(fromSegment, newFromLabel, toSegment, toLabel, flowToRelabel);
-    }
-    return flowToRelabel;
+  /**
+   * Relabel the to label of existing flow from one composition from-to combination to a new from-to label
+   * 
+   * @param fromSegment from segment of turn
+   * @param fromLabel   from composition label
+   * @param toSegment   to segment of turn
+   * @param oldToLabel  to composition label to replace
+   * @param newToLabel  label to replace flow with
+   * @return the amount of flow that was relabelled
+   */
+  public double relabelTo(EdgeSegment fromSegment, BushFlowCompositionLabel fromLabel, EdgeSegment toSegment, BushFlowCompositionLabel oldToLabel,
+      BushFlowCompositionLabel newToLabel) {
+    return relabel(fromSegment, fromLabel, toSegment, oldToLabel, fromLabel, newToLabel);
   }
 
   /**

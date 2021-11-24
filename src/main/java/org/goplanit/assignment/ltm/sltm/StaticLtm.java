@@ -2,7 +2,6 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -101,7 +100,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
     boolean updateOnlyPotentiallyBlockingNodeCosts = false;
     double[] initialLinkSegmentCosts = new double[getTotalNumberOfNetworkSegments()];
     assignmentStrategy.executeNetworkCostsUpdate(mode, updateOnlyPotentiallyBlockingNodeCosts, initialLinkSegmentCosts);
-    StaticLtmSimulationData simulationData = new StaticLtmSimulationData(timePeriod, List.of(mode), getTotalNumberOfNetworkSegments());
+    var simulationData = new StaticLtmSimulationData(timePeriod, List.of(mode), getTotalNumberOfNetworkSegments());
     simulationData.setLinkSegmentTravelTimePcuH(mode, initialLinkSegmentCosts);
 
     /* create initial solution as starting point for equilibration */
@@ -172,7 +171,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * @throws PlanItException thrown when error
    */
   private void persistIterationResults(TimePeriod timePeriod, Mode theMode, boolean converged) throws PlanItException {
-    Set<Mode> modes = Set.of(theMode);
+    var modes = Set.of(theMode);
     if (getOutputManager().isAnyOutputPersisted(timePeriod, modes, converged)) {
       assignmentStrategy.getLoading().populateForPersistence();
       getOutputManager().persistOutputData(timePeriod, modes, converged);
@@ -212,7 +211,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   @Override
   protected void executeEquilibration() throws PlanItException {
     // perform assignment per period
-    final Collection<TimePeriod> timePeriods = getDemands().timePeriods.asSortedSetByStartTime();
+    final var timePeriods = getDemands().timePeriods.asSortedSetByStartTime();
     LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "total time periods: " + timePeriods.size());
     for (final TimePeriod timePeriod : timePeriods) {
       Calendar startTime = Calendar.getInstance();
