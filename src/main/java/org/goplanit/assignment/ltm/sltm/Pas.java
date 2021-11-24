@@ -15,6 +15,7 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.iterators.ReverseListIterator;
+import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortestpath.ShortestPathResult;
 import org.goplanit.utils.arrays.ArrayUtils;
@@ -78,60 +79,54 @@ public class Pas {
    * @param origin           to use
    * @param vertex           to use
    * @param exitEdgeSegment  to use
-   * @param eligibleLabels   eligible labels that we consider for relabeling. Each label is a label with non-zero flow into s2 and its values are the backward splitting rates from
-   *                         the first s2 segment into the various entry segments. Entries are updated based on executed relabelling!
+   * @param eligibleLabels   eligible labels that we consider for relabeling. Each label is eligible when it has a non-zero value. They keys are [entrysegment, entrylabel,
+   *                         exitlabel] and value indicates non-zero flow into first s2 segment. Entries are updated based on executed relabelling!
    * @param compositionLabel to relabel if needed
    */
-  private void relabelIfNotTerminating(final Bush origin, final DirectedVertex vertex, final EdgeSegment exitSegment, Map<BushFlowCompositionLabel, double[]> eligibleLabels) {
+  private void relabelIfNotTerminating(final Bush origin, final DirectedVertex vertex, final EdgeSegment exitSegment, final MultiKeyMap<Object, Double> eligibleLabels) {
     if (!getDivergeVertex().hasEntryEdgeSegments()) {
       return;
     }
 
-    Map<BushFlowCompositionLabel, double[]> updatedLabels = new HashMap<>();
+    var updatedLabels = new MultiKeyMap<Object, Double>();
 
-    Iterator<BushFlowCompositionLabel> labelIter = eligibleLabels.keySet().iterator();
-    while (labelIter.hasNext()) {
-      BushFlowCompositionLabel currEntryLabel = labelIter.next();
-      double[] s2LabeledBackwardSplittingRates = eligibleLabels.get(currEntryLabel);
-      int index = 0;
-
-      /* determine if a new entry label is required */
-      BushFlowCompositionLabel newLabel = null;
-      for (EdgeSegment entrySegment : vertex.getEntryEdgeSegments()) {
-        double backwardsplittingrate = s2LabeledBackwardSplittingRates[index++];
-        if (Precision.isPositive(backwardsplittingrate) && Precision.isPositive(origin.getTurnSendingFlow(entrySegment, currEntryLabel, exitSegment, currEntryLabel))) {
-          /* match found - create new label to relabel any turn flow across vertex with original labelling */
-          newLabel = origin.createFlowCompositionLabel();
-          break;
-        }
-        ++index;
-      }
-
-      if (newLabel == null) {
+    var iter = eligibleLabels.mapIterator();
+    MultiKey<? extends Object> multiKey = null;
+    while (iter.hasNext()) {
+      iter.next();
+      Double portion = iter.getValue();
+      if (portion == null || !Precision.isPositive(portion)) {
         continue;
       }
+
+      /* equal entry-exit labels -> relabel */
+      multiKey = iter.getKey();
+      var currEntryLabel = (BushFlowCompositionLabel) multiKey.getKey(1);
+      if (!currEntryLabel.equals(multiKey.getKey(2))) {
+        continue;
+      }
+
+      /* match found - create new label to relabel any turn flow across vertex with original labelling */
+      var newLabel = origin.createFlowCompositionLabel();
+      EdgeSegment entrySegment = (EdgeSegment) multiKey.getKey(0);
 
       /*
        * now we perform the actual relabelling after establishing the unique new label to use (which might have to relabel multiple entry segments, hence splitting the
        * identification off from the actual relabelling
        */
-      index = 0;
-      for (EdgeSegment entrySegment : vertex.getEntryEdgeSegments()) {
-        double backwardsplittingrate = s2LabeledBackwardSplittingRates[index++];
-        if (Precision.isPositive(backwardsplittingrate) && Precision.isPositive(origin.getTurnSendingFlow(entrySegment, currEntryLabel, exitSegment, currEntryLabel))) {
-          /* match found - relabel across vertex */
-          origin.relabelFrom(entrySegment, currEntryLabel, exitSegment, currEntryLabel, newLabel);
-          /* proceed upstream - relabel with new label recursively */
-          relabelWhileNotTerminatingWith(origin, entrySegment.getUpstreamVertex(), entrySegment, currEntryLabel, newLabel);
+      origin.relabelFrom(entrySegment, currEntryLabel, exitSegment, currEntryLabel, newLabel);
+      /* proceed upstream - relabel with new label recursively */
+      relabelWhileNotTerminatingWith(origin, entrySegment.getUpstreamVertex(), entrySegment, currEntryLabel, newLabel);
 
-          /* remove entry as key (label) has changed, add new entry with updated label */
-          labelIter.remove();
-          updatedLabels.put(newLabel, s2LabeledBackwardSplittingRates);
-        }
-        ++index;
-      }
+      /* register updated label */
+      updatedLabels.put(entrySegment, newLabel, currEntryLabel, portion);
+      /* remove existing entry from map */
+      iter.remove();
     }
-    eligibleLabels.putAll(updatedLabels);
+
+    if (!updatedLabels.isEmpty()) {
+      eligibleLabels.putAll(updatedLabels);
+    }
   }
 
   /**
@@ -222,6 +217,66 @@ public class Pas {
       pasCompositionLabels.put(initialLabel, transitionLabels);
     }
     return pasCompositionLabels;
+  }
+
+  /**
+   * portion of total shifted flow allocated to each used turn+entrylabel+exitlabel combination based on proportional distribution by dividing the turnlabeled flow by the total
+   * accepted turn flow into s2 for the given exit label.
+   * <p>
+   * The key for the MultiKeyMap is [entry segment, entry-label, exit-label] while the value will hold the portion
+   *
+   * @param origin                                  at hand
+   * @param pasS2UsedStartLabels                    the labels that have non-zero flow along S2
+   * @param flowAcceptanceFactors                   to use
+   * @param s2DivergeTurnLabelProportionsToPopulate to populate, only entries for used labels will be present
+   * @return number of used entry segments zero when PAS diverges at an origin
+   */
+  private int populateS2DivergeProportionsByTurnLabels(Bush origin, Set<BushFlowCompositionLabel> pasS2UsedStartLabels, final double[] flowAcceptanceFactors,
+      MultiKeyMap<Object, Double> s2DivergeTurnLabelProportionsToPopulate) {
+
+    EdgeSegment firstS2EdgeSegment = getFirstEdgeSegment(false /* high cost segment */);
+
+    Set<EdgeSegment> usedEntrySegments = new HashSet<>();
+    Map<BushFlowCompositionLabel, Double> s2ExitLabelTotalFlows = new HashMap<>();
+    for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
+      if (origin.containsEdgeSegment(entrySegment)) {
+        Set<BushFlowCompositionLabel> entryLabels = origin.getFlowCompositionLabels(entrySegment);
+        for (BushFlowCompositionLabel entryLabel : entryLabels) {
+          for (BushFlowCompositionLabel exitLabel : pasS2UsedStartLabels) {
+            double turnSendingFlow = origin.getTurnSendingFlow(entrySegment, entryLabel, firstS2EdgeSegment, exitLabel);
+            if (Precision.isPositive(turnSendingFlow)) {
+              double turnAcceptedFlow = turnSendingFlow * flowAcceptanceFactors[(int) entrySegment.getId()];
+              usedEntrySegments.add(entrySegment);
+
+              Double currentFlow = s2DivergeTurnLabelProportionsToPopulate.get(entrySegment, entryLabel, exitLabel);
+              if (currentFlow == null) {
+                currentFlow = 0.0;
+              }
+              s2DivergeTurnLabelProportionsToPopulate.put(entrySegment, entryLabel, exitLabel, currentFlow + turnAcceptedFlow);
+              s2ExitLabelTotalFlows.put(exitLabel, s2ExitLabelTotalFlows.getOrDefault(exitLabel, 0.0) + turnAcceptedFlow);
+            }
+          }
+        }
+      }
+    }
+
+    /* determine proportional portion of each non-zero contributing turn-entrylabel-exitlable identified towards PAS s2 initial segment */
+    for (BushFlowCompositionLabel exitLabel : pasS2UsedStartLabels) {
+      double s2ExitLabelTotalFlow = s2ExitLabelTotalFlows.get(exitLabel);
+      for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
+        if (origin.containsEdgeSegment(entrySegment)) {
+          Set<BushFlowCompositionLabel> entryLabels = origin.getFlowCompositionLabels(entrySegment);
+          for (BushFlowCompositionLabel entryLabel : entryLabels) {
+            Double turnSendingFlow = s2DivergeTurnLabelProportionsToPopulate.get(entrySegment, entryLabel, exitLabel);
+            if (turnSendingFlow != null && Precision.isPositive(turnSendingFlow)) {
+              s2DivergeTurnLabelProportionsToPopulate.put(entrySegment, entryLabel, exitLabel, turnSendingFlow / s2ExitLabelTotalFlow);
+            }
+          }
+        }
+      }
+    }
+
+    return usedEntrySegments.size();
   }
 
   /**
@@ -394,37 +449,37 @@ public class Pas {
 
   /**
    * Perform the flow shift through the start diverge vertex of the PASs high cost segment for the given origin bush flow composition
+   * <p>
+   * s2DivergeProportionsByTurnLabels has the following expected multikey[entrysegment,entrylabel,exitlabel]
    * 
-   * @param origin                                      to use
-   * @param startSegmentLabel                           flow composition label on s2 initial segment to apply
-   * @param s2StartLabeledFlowShift                     the flow shift applied to the first s2 segment
-   * @param s2DivergeEntrySegmentBackwardSplittingRates backward splitting rates to S2 initial segment attributed to each entry by used label
-   * @param flowAcceptanceFactors                       to use
+   * @param origin                           to use
+   * @param startSegmentLabel                flow composition label on s2 initial segment to apply
+   * @param s2StartLabeledFlowShift          the flow shift applied to the first s2 segment
+   * @param s2DivergeProportionsByTurnLabels portion to be shifted flow attributed to each used turn entry-exitlabel towards S2 initial segment
+   * @param flowAcceptanceFactors            to use
    */
   private void executeBushLabeledS2FlowShiftStartDiverge(Bush origin, BushFlowCompositionLabel startSegmentLabel, double s2StartLabeledFlowShift,
-      Map<BushFlowCompositionLabel, double[]> s2DivergeEntrySegmentBackwardSplittingRates, final double[] flowAcceptanceFactors) {
+      MultiKeyMap<Object, Double> s2DivergeProportionsByTurnLabels, final double[] flowAcceptanceFactors) {
 
     EdgeSegment firstS2Segment = getFirstEdgeSegment(false /* high cost */);
 
-    for (Entry<BushFlowCompositionLabel, double[]> divergeLabelEntry : s2DivergeEntrySegmentBackwardSplittingRates.entrySet()) {
-      BushFlowCompositionLabel entryLabel = divergeLabelEntry.getKey();
-      double[] bushEntryTurnBackwardSplittingRates = divergeLabelEntry.getValue();
-      int index = 0;
-      for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
-        if (origin.containsEdgeSegment(entrySegment)) {
-          double entryLabelPortion = bushEntryTurnBackwardSplittingRates[index];
-          if (!Precision.isPositive(entryLabelPortion)) {
+    for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
+      if (origin.containsEdgeSegment(entrySegment)) {
+        Set<BushFlowCompositionLabel> entryLabels = origin.getFlowCompositionLabels(entrySegment);
+        for (BushFlowCompositionLabel entryLabel : entryLabels) {
+          Double portion = s2DivergeProportionsByTurnLabels.get(entrySegment, entryLabel, startSegmentLabel);
+          if (portion == null) {
             continue;
           }
-
-          /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s2 segment */
-          double s2DivergeEntryLabeledFlowShift = s2StartLabeledFlowShift * entryLabelPortion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
 
           double existingTotalTurnLabeledSendingFlow = origin.getTurnSendingFlow(entrySegment, entryLabel, firstS2Segment, startSegmentLabel);
           if (!Precision.isPositive(existingTotalTurnLabeledSendingFlow)) {
             LOGGER.severe("Expected available turn sending flow for given label combination, found none, skip flow shift at PAS s2 diverge");
             continue;
           }
+
+          /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s2 segment */
+          double s2DivergeEntryLabeledFlowShift = s2StartLabeledFlowShift * portion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
 
           if (!Precision.isPositive(existingTotalTurnLabeledSendingFlow + s2DivergeEntryLabeledFlowShift)) {
             /* no remaining flow at all after flow shift, remove turn from bush entirely */
@@ -433,45 +488,46 @@ public class Pas {
             origin.addTurnSendingFlow(entrySegment, entryLabel, firstS2Segment, startSegmentLabel, s2DivergeEntryLabeledFlowShift);
           }
         }
-        ++index;
       }
     }
   }
 
   /**
    * Perform the flow shift through the start diverge vertex of the PASs low cost segment for the given origin bush flow composition. We use the same proportions that were applied
-   * in the S2 diverge update via the usedLabelBackwardSplittingRates. These splitting rates are not normal splitting rates bu instead reflect the backward splitting rates of ONLY
-   * the shifted flows per entry label, and we should use this same distribution when dealing with t
+   * in the S2 diverge update via the divergeProportionsByTurnLabels. These portions are based on a proportional distribution for each used entrysegment-entrylabel-exitlabel
+   * contribution compared to the total exit label flow.
+   * <p>
+   * the multikey of the multikeymap is expected to be [entry segment,entry label,exit label] while the value reflects the to be applied portion
    * 
-   * @param origin                          to use
-   * @param startSegmentLabel               flow composition label on s1 initial segment to apply
-   * @param s1StartLabeledFlowShift         the flow shift applied to the first s1 segment for the label
-   * @param usedLabelBackwardSplittingRates the backward splitting rates for a used (meaning flow has been shifted for this entry label for the PAS). To be applied to the flows
-   *                                        shifted towards S1 the same way as it has been used for s2, only now apply it to the S1 exit label shifted flow
-   * @param flowAcceptanceFactors           to use
+   * @param origin                         to use
+   * @param startSegmentLabel              flow composition label on s1 initial segment to apply
+   * @param s1StartLabeledFlowShift        the flow shift applied to the first s1 segment for the label
+   * @param divergeProportionsByTurnLabels portions to apply for each entrysegment-entrylabel-exitlabel given the to be shifted flow for a given exitlabel towards S1 initial
+   *                                       segment
+   * @param flowAcceptanceFactors          to use
    */
   private void executeBushLabeledS1FlowShiftStartDiverge(Bush origin, BushFlowCompositionLabel startSegmentLabel, double s1StartLabeledFlowShift,
-      Map<BushFlowCompositionLabel, double[]> usedLabelBackwardSplittingRates, final double[] flowAcceptanceFactors) {
+      MultiKeyMap<Object, Double> divergeProportionsByTurnLabels, final double[] flowAcceptanceFactors) {
+
     EdgeSegment firstS1Segment = getFirstEdgeSegment(true /* low cost */);
 
-    for (Entry<BushFlowCompositionLabel, double[]> divergeLabelEntry : usedLabelBackwardSplittingRates.entrySet()) {
-      BushFlowCompositionLabel entryLabel = divergeLabelEntry.getKey();
-      double[] bushEntryTurnBackwardSplittingRates = divergeLabelEntry.getValue();
-      int index = 0;
-      for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
-        double entryLabelPortion = bushEntryTurnBackwardSplittingRates[index];
-        if (!Precision.isPositive(entryLabelPortion)) {
-          continue;
-        }
+    for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
+      if (origin.containsEdgeSegment(entrySegment)) {
+        Set<BushFlowCompositionLabel> entryLabels = origin.getFlowCompositionLabels(entrySegment);
+        for (BushFlowCompositionLabel entryLabel : entryLabels) {
+          Double portion = divergeProportionsByTurnLabels.get(entrySegment, entryLabel, startSegmentLabel);
+          if (portion == null) {
+            continue;
+          }
 
-        /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s1 segment */
-        double s1DivergeEntryLabeledFlowShift = s1StartLabeledFlowShift * entryLabelPortion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
-        if (Precision.isNegative(s1DivergeEntryLabeledFlowShift)) {
-          LOGGER.severe("Expected non-negative shift on s1 turn for given label combination, skip flow shift at PAS s1 diverge");
-          continue;
+          /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s1 segment */
+          double s1DivergeEntryLabeledFlowShift = s1StartLabeledFlowShift * portion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
+          if (Precision.isNegative(s1DivergeEntryLabeledFlowShift)) {
+            LOGGER.severe("Expected non-negative shift on s1 turn for given label combination, skip flow shift at PAS s1 diverge");
+            continue;
+          }
+          origin.addTurnSendingFlow(entrySegment, entryLabel, firstS1Segment, startSegmentLabel, s1DivergeEntryLabeledFlowShift);
         }
-        origin.addTurnSendingFlow(entrySegment, entryLabel, firstS1Segment, startSegmentLabel, s1DivergeEntryLabeledFlowShift);
-        ++index;
       }
     }
   }
@@ -543,22 +599,20 @@ public class Pas {
       // TODO: below can be combined with determining the subPathSending flow for efficiency
       Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> pasS2EndFlowCompositionLabels = determineMatchingLabels(origin, false /* high cost segment */);
 
-      /* Backward splitting rates regarding the origin of the flow towards S2 for the used entry label. Used only to determine flow shift through diverge towards PAS segments */
       /*
-       * TODO: since the principle of labelling is to always use unique labels when flow merges (only true when we give each PAS alternative its own label), all backward splitting
-       * rates should only have a single non-zero entry per used label. If this is the case we do not need backward splitting rates but instead simply the entering segment for each
-       * label. Verify this and if so refactor this. The same goes for s2DivergeEntryShiftedSendingFlows (per used entry label) since each entry label should only exist on a single
-       * in-link anyway
+       * determine the proportion attributed to each used turn-entrylabel-exitlabel combination where the exit label is used on the s2 alternative. The found portions are
+       * proportional to contribution of each combination to the total sending flow on the s2-label flow on its initial link segment. Multikey: [entrysegment, entrylabel,
+       * exitlabel]
        */
       int numberOfUsedEntrySegments = 0;
-      Map<BushFlowCompositionLabel, double[]> s2DivergeEntryBackwardSplittingRates = new HashMap<BushFlowCompositionLabel, double[]>();
+      var s2DivergeProportionsByTurnLabels = new MultiKeyMap<Object, Double>();
       if (getDivergeVertex().hasEntryEdgeSegments()) {
-        Set<BushFlowCompositionLabel> pasS2UsedStartLabels = extractUsedStartLabels(pasS2EndFlowCompositionLabels);
-        numberOfUsedEntrySegments = populateS2DivergeBackwardSplittingRates(origin, pasS2UsedStartLabels, flowAcceptanceFactors, s2DivergeEntryBackwardSplittingRates);
+        var pasS2UsedStartLabels = extractUsedStartLabels(pasS2EndFlowCompositionLabels);
+        numberOfUsedEntrySegments = populateS2DivergeProportionsByTurnLabels(origin, pasS2UsedStartLabels, flowAcceptanceFactors, s2DivergeProportionsByTurnLabels);
       }
 
       /* exit turn flows out of s2 by used exit label - to be populated in s2 merge update for use by s1 update */
-      Map<BushFlowCompositionLabel, double[]> s2MergeExitShiftedSendingFlows = new HashMap<BushFlowCompositionLabel, double[]>();
+      var s2MergeExitShiftedSendingFlows = new HashMap<BushFlowCompositionLabel, double[]>();
 
       /* LABEL SPECIFIC PREP - END */
 
@@ -569,9 +623,9 @@ public class Pas {
       Map<BushFlowCompositionLabel, Double> pasS2EndLabelRates = origin.determineProportionalFlowCompositionRates(lastS2Segment, pasS2EndFlowCompositionLabels.keySet());
       for (Entry<BushFlowCompositionLabel, Double> mergeLabelEntry : pasS2EndLabelRates.entrySet()) {
 
-        BushFlowCompositionLabel finalSegmentLabel = mergeLabelEntry.getKey();
-        List<BushFlowCompositionLabel> reverseOrderS2Labels = pasS2EndFlowCompositionLabels.get(finalSegmentLabel);
-        BushFlowCompositionLabel initialSegmentLabel = extractUsedStartLabel(reverseOrderS2Labels);
+        var finalSegmentLabel = mergeLabelEntry.getKey();
+        var reverseOrderS2Labels = pasS2EndFlowCompositionLabels.get(finalSegmentLabel);
+        var initialSegmentLabel = extractUsedStartLabel(reverseOrderS2Labels);
 
         /* shift portion of flow attributed to composition label traversing s2 */
         double s2StartLabeledFlowShift = mergeLabelEntry.getValue() * bushFlowShift;
@@ -582,7 +636,7 @@ public class Pas {
 
         /* shift flows across starting diverge before entering S2 using reciprocal of flow acceptance factor */
         if (numberOfUsedEntrySegments >= 1) {
-          executeBushLabeledS2FlowShiftStartDiverge(origin, initialSegmentLabel, -s2StartLabeledFlowShift, s2DivergeEntryBackwardSplittingRates, flowAcceptanceFactors);
+          executeBushLabeledS2FlowShiftStartDiverge(origin, initialSegmentLabel, -s2StartLabeledFlowShift, s2DivergeProportionsByTurnLabels, flowAcceptanceFactors);
         }
       }
 
@@ -603,18 +657,18 @@ public class Pas {
         pasS1EndLabelRates = initialiseS1Labelling(origin, pasS1FlowCompositionLabels);
 
         /*
-         * Flow into s2 that presently maintains its label at the initial diverge must be relabeled in the ustream direction because due to the flow shift it now splits off flow
+         * Flow into s2 that presently maintains its label at the initial diverge must be relabeled in the upstream direction because due to the flow shift it now splits off flow
          * into s1. so relabel all those "non-terminating" labels first
          */
-        relabelIfNotTerminating(origin, getDivergeVertex(), firstS2Segment, s2DivergeEntryBackwardSplittingRates);
+        relabelIfNotTerminating(origin, getDivergeVertex(), firstS2Segment, s2DivergeProportionsByTurnLabels);
 
       } else {
         pasS1EndLabelRates = origin.determineProportionalFlowCompositionRates(lastS1Segment, pasS1FlowCompositionLabels.keySet());
       }
       for (Entry<BushFlowCompositionLabel, Double> labelEntry : pasS1EndLabelRates.entrySet()) {
-        BushFlowCompositionLabel finalSegmentLabel = labelEntry.getKey();
-        List<BushFlowCompositionLabel> reverseOrderS1Labels = pasS1FlowCompositionLabels.get(finalSegmentLabel);
-        BushFlowCompositionLabel initialSegmentLabel = extractUsedStartLabel(reverseOrderS1Labels);
+        var finalSegmentLabel = labelEntry.getKey();
+        var reverseOrderS1Labels = pasS1FlowCompositionLabels.get(finalSegmentLabel);
+        var initialSegmentLabel = extractUsedStartLabel(reverseOrderS1Labels);
 
         /* portion of flow attributed to composition label traversing s1 */
         double s1StartLabeledFlowShift = labelEntry.getValue() * bushFlowShift;
@@ -626,7 +680,7 @@ public class Pas {
 
         if (numberOfUsedEntrySegments >= 1) {
           /* shift flow across initial diverge into S1 based on findings in s2 */
-          executeBushLabeledS1FlowShiftStartDiverge(origin, initialSegmentLabel, s1StartLabeledFlowShift, s2DivergeEntryBackwardSplittingRates, flowAcceptanceFactors);
+          executeBushLabeledS1FlowShiftStartDiverge(origin, initialSegmentLabel, s1StartLabeledFlowShift, s2DivergeProportionsByTurnLabels, flowAcceptanceFactors);
         }
       }
     }
@@ -635,54 +689,6 @@ public class Pas {
     removeOrigins(originsWithoutRemainingPasFlow);
 
     return true;
-  }
-
-  /**
-   * Backward splitting rates regarding the origin of the flow towards S2 for the used entry label. This allows us to determine how to redistribute shifted flow on S2 towards S1
-   * for the PAS diverge's incoming edge segments with non-zero flow into the PAS. These backward splitting rates are tracked per label since all flow shifted for this label needs
-   * to be uniquely traceable and shifted from {entrylabel,entrysegment} - s2label towards {entrylabel, entrysegment} - s1label
-   *
-   * @param origin                                         at hand
-   * @param pasS2UsedStartLabels                           the labels that have non-zero flow along S2
-   * @param flowAcceptanceFactors                          to use
-   * @param s2DivergeEntryBackwardSplittingRatesToPopulate to populate, only entries for used labels will be present
-   * @return number of used entry segments zero when PAS diverges at an origin
-   */
-  private int populateS2DivergeBackwardSplittingRates(Bush origin, Set<BushFlowCompositionLabel> pasS2UsedStartLabels, final double[] flowAcceptanceFactors,
-      Map<BushFlowCompositionLabel, double[]> s2DivergeEntryBackwardSplittingRatesToPopulate) {
-
-    int numberOfUsedEntrySegments = 0;
-    EdgeSegment firstS2EdgeSegment = getFirstEdgeSegment(false /* high cost segment */);
-
-    /* total turn accepted flow into PAS s2 from bush as well as per entry label turn flows */
-    int index = 0;
-    for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
-      if (origin.containsEdgeSegment(entrySegment)) {
-        Set<BushFlowCompositionLabel> entryLabels = origin.getFlowCompositionLabels(entrySegment);
-        for (BushFlowCompositionLabel entryLabel : entryLabels) {
-          for (BushFlowCompositionLabel exitLabel : pasS2UsedStartLabels) {
-            double turnSendingFlow = origin.getTurnSendingFlow(entrySegment, entryLabel, firstS2EdgeSegment, exitLabel);
-            if (Precision.isPositive(turnSendingFlow)) {
-              double turnAcceptedFlow = turnSendingFlow * flowAcceptanceFactors[(int) entrySegment.getId()];
-              double[] entryTurnAcceptedFlows = s2DivergeEntryBackwardSplittingRatesToPopulate.get(entryLabel);
-              if (entryTurnAcceptedFlows == null) {
-                entryTurnAcceptedFlows = new double[getDivergeVertex().getEntryEdgeSegments().size()];
-                s2DivergeEntryBackwardSplittingRatesToPopulate.put(entryLabel, entryTurnAcceptedFlows);
-              }
-              entryTurnAcceptedFlows[index] += turnAcceptedFlow;
-            }
-          }
-        }
-        ++numberOfUsedEntrySegments;
-      }
-      ++index;
-    }
-
-    /* determine split of flows across the used entry segments at diverge for each used entry label towards PAS s2 initial segment */
-    for (Entry<BushFlowCompositionLabel, double[]> entry : s2DivergeEntryBackwardSplittingRatesToPopulate.entrySet()) {
-      ArrayUtils.divideBySum(entry.getValue(), 0);
-    }
-    return numberOfUsedEntrySegments;
   }
 
   /**

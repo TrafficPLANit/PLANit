@@ -48,6 +48,22 @@ public class BushFlowCompositionLabel {
    * {@inheritDoc}
    */
   @Override
+  public boolean equals(Object label) {
+    if (this == label) {
+      return true;
+    }
+
+    try {
+      return getLabelId() == ((BushFlowCompositionLabel) label).getLabelId();
+    } catch (Exception e) {
+      return false;
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public int hashCode() {
     return (int) id;
   }
