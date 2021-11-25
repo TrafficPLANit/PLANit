@@ -33,7 +33,7 @@ public class PathLinkSendingFlowUpdateConsumer extends PathFlowUpdateConsumer<Ne
   }
 
   /**
-   * Apply final path flow on last segment that otherwise would not have been updated in the turn based {@link #applySingleFlowUpdate(int, EdgeSegment, double)}
+   * Apply final path flow on last segment that otherwise would not have been updated in the turn based {@link #applySingleFlowUpdate(EdgeSegment, EdgeSegment, double)}
    * 
    * @param lastEdgeSegment      to use
    * @param acceptedPathFlowRate to use

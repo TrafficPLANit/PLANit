@@ -38,7 +38,9 @@ public class BushFlowCompositionLabel {
   }
 
   /**
-   * the unique label id within its context
+   * The unique label id within its context
+   * 
+   * @return the label id
    */
   public long getLabelId() {
     return id;
