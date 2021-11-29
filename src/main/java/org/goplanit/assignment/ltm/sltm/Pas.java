@@ -206,8 +206,8 @@ public class Pas {
         if (!originBush.containsTurnSendingFlow(currentSegment, currentLabel, succeedingSegment, currentLabel)) {
           /* label transition or no match */
           BushFlowCompositionLabel transitionLabel = null;
-          Set<BushFlowCompositionLabel> potentialLabelTransitions = originBush.getFlowCompositionLabels(currentSegment);
-          for (BushFlowCompositionLabel potentialLabel : potentialLabelTransitions) {
+          var potentialLabelTransitions = originBush.getFlowCompositionLabels(currentSegment);
+          for (var potentialLabel : potentialLabelTransitions) {
             if (originBush.containsTurnSendingFlow(currentSegment, potentialLabel, succeedingSegment, currentLabel)) {
               transitionLabel = potentialLabel;
               if (transitionLabels == null) {
