@@ -367,7 +367,6 @@ public class BushTurnData implements Cloneable {
    * for the given composition label, zero splitting rates for all turns are returned.
    * 
    * @param fromSegment     to collect bush splitting rates for
-   * @param fromComposition to restrict splitting rates to
    * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the downstream from segment vertex
    */
   public double[] getSplittingRates(final EdgeSegment fromSegment) {
@@ -413,9 +412,9 @@ public class BushTurnData implements Cloneable {
   /**
    * Collect the bush splitting rates for a given incoming edge segment and entry label. If no flow exits, zero splitting rates are returned
    * 
-   * @param entrySegment to use
-   * @param entryLabel   to use
-   * @return splitting rates in multikeymap where the key is the combination of exit segment and exit label and the value is the portion of the entry segment entry label flow
+   * @param fromSegment to use
+   * @param fromLabel   to use
+   * @return splitting rates in multikey map where the key is the combination of exit segment and exit label and the value is the portion of the entry segment entry label flow
    *         directed to it
    */
   public MultiKeyMap<Object, Double> getSplittingRates(EdgeSegment fromSegment, BushFlowCompositionLabel fromLabel) {
@@ -502,7 +501,7 @@ public class BushTurnData implements Cloneable {
    * @param toSegment      to segment of turn
    * @param oldToLabel     to composition label to replace
    * @param newFromToLabel label to replace flow with
-   * @return the amount of flow that was relabelled
+   * @return the amount of flow that was relabeled
    */
   public double relabel(EdgeSegment fromSegment, BushFlowCompositionLabel oldFromLabel, EdgeSegment toSegment, BushFlowCompositionLabel oldToLabel,
       BushFlowCompositionLabel newFromToLabel) {
@@ -517,7 +516,7 @@ public class BushTurnData implements Cloneable {
    * @param toSegment    to segment of turn
    * @param toLabel      to composition label
    * @param newFromLabel label to replace flow with
-   * @return the amount of flow that was relabelled
+   * @return the amount of flow that was relabeled
    */
   public double relabelFrom(EdgeSegment fromSegment, BushFlowCompositionLabel oldFromLabel, EdgeSegment toSegment, BushFlowCompositionLabel toLabel,
       BushFlowCompositionLabel newFromLabel) {
@@ -532,7 +531,7 @@ public class BushTurnData implements Cloneable {
    * @param toSegment   to segment of turn
    * @param oldToLabel  to composition label to replace
    * @param newToLabel  label to replace flow with
-   * @return the amount of flow that was relabelled
+   * @return the amount of flow that was relabeled
    */
   public double relabelTo(EdgeSegment fromSegment, BushFlowCompositionLabel fromLabel, EdgeSegment toSegment, BushFlowCompositionLabel oldToLabel,
       BushFlowCompositionLabel newToLabel) {

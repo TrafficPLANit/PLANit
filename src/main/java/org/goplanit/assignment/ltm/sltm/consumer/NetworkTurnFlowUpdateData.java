@@ -51,7 +51,8 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
   /**
    * add to accepted turn flows
    * 
-   * @param turnHashCode  to use
+   * @param entrySegment  to use
+   * @param exitSegment to use
    * @param flowToAddPcuH to add
    */
   protected void addToAcceptedTurnFlows(final EdgeSegment entrySegment, final EdgeSegment exitSegment, double flowToAddPcuH) {
