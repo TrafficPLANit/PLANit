@@ -35,7 +35,7 @@ public abstract class Converter<T> extends ConverterBase {
   @SuppressWarnings("unchecked")
   public void convert() throws PlanItException {
 
-    ConverterReader<T> reader = ((ConverterReader<T>) getReader());
+    var reader = ((ConverterReader<T>) getReader());
     LOGGER.info(String.format("****************** [START] CONVERTER: READ %s [START] ********************", reader.getTypeDescription()));
     T network = reader.read();
     reader.reset();

@@ -144,14 +144,14 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   @Override
   public void initialiseBeforeSimulation(TransportLayerNetwork<?, ?> network) throws PlanItException {
     PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "Steady state travel time cost is only compatible with macroscopic networks");
-    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
+    var macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
         "Steady state travel time cost is currently only compatible with networks using a single infrastructure layer");
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1, "Steady state travel time cost is currently only compatible with a single mode, found %d",
         network.getModes().size());
 
-    Mode mode = network.getModes().getFirst();
-    MacroscopicLinkSegments linkSegments = ((MacroscopicNetwork) network).getLayerByMode(mode).getLinkSegments();
+    var mode = network.getModes().getFirst();
+    var linkSegments = ((MacroscopicNetwork) network).getLayerByMode(mode).getLinkSegments();
     initialiseFreeFlowTravelTimesPerLinkSegment(mode, linkSegments);
     initialiseFundamentalDiagramsPerLinkSegment(linkSegments);
   }
@@ -196,7 +196,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   public void populateWithCost(UntypedPhysicalLayer<?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
     double[] inflows = accessee.getLinkSegmentInflowsPcuHour();
     double[] outflows = accessee.getLinkSegmentOutflowsPcuHour();
-    for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
+    for (var linkSegment : physicalLayer.getLinkSegments()) {
       int linkSegmentId = (int) linkSegment.getLinkSegmentId();
       costToFill[linkSegmentId] = computeTravelTime(linkSegment, linkSegmentFundamentalDiagrams[linkSegmentId], inflows[linkSegmentId], outflows[linkSegmentId]);
     }

@@ -4,13 +4,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import org.locationtech.jts.geom.Point;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.CloneUtils;
+import org.locationtech.jts.geom.Point;
 
 /**
  * Vertex representation connected to one or more entry and exit edges
@@ -59,7 +58,7 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
     setPosition((Point) vertexImpl.getPosition().copy());
     edges.putAll(vertexImpl.edges);
     if (vertexImpl.inputProperties != null && !vertexImpl.inputProperties.isEmpty()) {
-      for (Entry<String, Object> entry : vertexImpl.inputProperties.entrySet()) {
+      for (var entry : vertexImpl.inputProperties.entrySet()) {
         addInputProperty(new String(entry.getKey()), CloneUtils.clone(entry.getValue()));
       }
     }

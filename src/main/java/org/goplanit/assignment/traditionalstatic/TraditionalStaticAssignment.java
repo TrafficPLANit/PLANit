@@ -10,7 +10,6 @@ import org.goplanit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.goplanit.algorithms.shortestpath.ShortestPathResult;
 import org.goplanit.assignment.StaticTrafficAssignment;
 import org.goplanit.cost.Cost;
-import org.goplanit.cost.physical.initial.InitialModesLinkSegmentCost;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.interactor.LinkVolumeAccessee;
 import org.goplanit.network.MacroscopicNetwork;
@@ -32,7 +31,6 @@ import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.path.DirectedPath;
 import org.goplanit.utils.path.DirectedPathFactory;
 import org.goplanit.utils.time.TimePeriod;
@@ -372,7 +370,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void populateModalConnectoidCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
-    for (final ConnectoidSegment currentSegment : getTransportNetwork().getVirtualNetwork().getConnectoidSegments()) {
+    for (var currentSegment : getTransportNetwork().getVirtualNetwork().getConnectoidSegments()) {
       currentSegmentCosts[(int) currentSegment.getId()] = getVirtualCost().getGeneralisedCost(mode, currentSegment);
     }
   }
@@ -421,7 +419,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private boolean populateToInitialCost(final Mode mode, final TimePeriod timePeriod, final double[] segmentCostToPopulate) throws PlanItException {
-    final InitialModesLinkSegmentCost initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod);
+    final var initialLinkSegmentCostForTimePeriod = initialLinkSegmentCostByTimePeriod.get(timePeriod);
     if (initialLinkSegmentCostForTimePeriod == null || !initialLinkSegmentCostForTimePeriod.isSegmentCostsSetForMode(mode)) {
       return populateToInitialCost(mode, segmentCostToPopulate);
     }
@@ -440,7 +438,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void populateCost(Cost<MacroscopicLinkSegment> cost, final Mode mode, final double[] costsToPopulate) throws PlanItException {
-    for (final MacroscopicLinkSegment linkSegment : networkLayer.getLinkSegments()) {
+    for (var linkSegment : networkLayer.getLinkSegments()) {
       double currentSegmentCost = cost.getGeneralisedCost(mode, linkSegment);
       if (currentSegmentCost < 0.0) {
         throw new PlanItException(String.format("link segment cost is negative for link segment %d (id: %d)", linkSegment.getExternalId(), linkSegment.getId()));
@@ -532,7 +530,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       simulationData.incrementIterationIndex();
       iterationStartTime = logBasicIterationInformation(iterationStartTime, dualityGapFunction.getMeasuredNetworkCost(), dualityGapFunction.getGap());
 
-      for (final Mode mode : modes) {
+      for (var mode : modes) {
         final double[] modalLinkSegmentCosts = collectModalLinkSegmentCosts(mode, timePeriod);
         simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
       }

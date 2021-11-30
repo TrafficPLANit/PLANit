@@ -46,7 +46,7 @@ public abstract class BaseReaderImpl<T> implements ConverterReader<T> {
   protected <U, V> void registerBySourceId(Class<U> theClazz, final V obj) throws PlanItException {
 
     @SuppressWarnings("unchecked")
-    MapWrapper<U, V> mapWrapper = (MapWrapper<U, V>) sourceIdTrackerMap.get(theClazz);
+    var mapWrapper = (MapWrapper<U, V>) sourceIdTrackerMap.get(theClazz);
     if (mapWrapper == null) {
       throw new PlanItException("No source id container registered for PLANit entity of type %s, unable to register, perhaps consider registering via its superclass explicitly",
           obj.getClass().getName());

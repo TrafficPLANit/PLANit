@@ -15,7 +15,6 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -258,17 +257,17 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
 
     /* pre-compute the free flow travel times */
     freeFlowTravelTimePerLinkSegment = new double[network.getModes().size()][(int) networkLayer.getLinkSegments().size()];
-    for (Mode mode : network.getModes()) {
+    for (var mode : network.getModes()) {
       freeFlowTravelTimePerLinkSegment[(int) mode.getId()] = networkLayer.getLinkSegments().getFreeFlowTravelTimeHourPerLinkSegment(mode);
     }
 
     /* explicitly set BPR parameters for each mode/segment combination */
     bprParametersPerLinkSegment = new BPRParameters[(int) networkLayer.getLinkSegments().size()];
-    for (final MacroscopicLinkSegment macroscopicLinkSegment : networkLayer.getLinkSegments()) {
+    for (var macroscopicLinkSegment : networkLayer.getLinkSegments()) {
       final int id = (int) macroscopicLinkSegment.getLinkSegmentId(); // changed 7/9/21, see comment in #populateWithCost
       bprParametersPerLinkSegment[id] = new BPRParameters();
-      final MacroscopicLinkSegmentType macroscopicLinkSegmentType = macroscopicLinkSegment.getLinkSegmentType();
-      for (final Mode mode : network.getModes()) {
+      final var macroscopicLinkSegmentType = macroscopicLinkSegment.getLinkSegmentType();
+      for (var mode : network.getModes()) {
         Pair<Double, Double> alphaBetaPair;
         if ((parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment) != null)
             && (parametersPerLinkSegmentAndMode.get(macroscopicLinkSegment).getAlphaBetaParameters(mode) != null)) {
@@ -349,7 +348,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   public void populateWithCost(UntypedPhysicalLayer<?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
     double[] linkSegmentFlows = linkVolumeAccessee.getLinkSegmentVolumes();
 
-    for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
+    for (var linkSegment : physicalLayer.getLinkSegments()) {
       // changed from id to link segment id 7/9/2021 since we array is created based on linksegments only, not all edge segments (so excluding connectoid segments). Therefore
       // we should not be using the id that is unique across both, just the one for physical link segments. By accident this did work so far due to connectoid segments being
       // created after the link segments. Verify if tests still succeed. IF so, remove this comment

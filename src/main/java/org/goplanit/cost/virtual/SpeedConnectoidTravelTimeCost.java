@@ -88,7 +88,7 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    */
   @Override
   public void populateWithCost(final VirtualNetwork virtualNetwork, final Mode mode, double[] costToFill) throws PlanItException {
-    for (ConnectoidSegment virtualSegment : virtualNetwork.getConnectoidSegments()) {
+    for (var virtualSegment : virtualNetwork.getConnectoidSegments()) {
       costToFill[(int) virtualSegment.getId()] = getGeneralisedCost(mode, virtualSegment);
     }
   }

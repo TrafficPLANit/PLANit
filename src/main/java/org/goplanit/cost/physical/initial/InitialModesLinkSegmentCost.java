@@ -16,7 +16,6 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 public class InitialModesLinkSegmentCost implements Cloneable, Cost<MacroscopicLinkSegment> {
 
   /** Logger to use */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(InitialModesLinkSegmentCost.class.getCanonicalName());
 
   /**

@@ -147,7 +147,7 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
      * @return new traveler type created
      */
     public UserClass createAndRegisterNewUserClass(String name, Mode mode, TravelerType travellerType) {
-      UserClass newUserClass = new UserClass(getIdGroupingToken(), name, mode, travellerType);
+      var newUserClass = new UserClass(getIdGroupingToken(), name, mode, travellerType);
       register(newUserClass);
       return newUserClass;
     }
@@ -216,18 +216,18 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
      * @throws PlanItException thrown if start time and/or duration are invalid
      */
     public TimePeriod createAndRegisterNewTimePeriod(String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
-      TimePeriod newTimePeriod = new TimePeriodImpl(getIdGroupingToken(), description, startTimeSeconds, durationSeconds);
+      var newTimePeriod = new TimePeriodImpl(getIdGroupingToken(), description, startTimeSeconds, durationSeconds);
       register(newTimePeriod);
       return newTimePeriod;
     }
 
     /**
-     * Returns a set of all registered time periods sorted by the start time, i.e., the way th time period is comparable
+     * Returns a set of all registered time periods sorted by the start time, i.e., the way the time period is comparable
      * 
      * @return Set of all registered time periods
      */
     public SortedSet<TimePeriod> asSortedSetByStartTime() {
-      SortedSet<TimePeriod> timePeriodSet = new TreeSet<TimePeriod>(TimePeriodUtils.comparatorByStartTime());
+      SortedSet<TimePeriod> timePeriodSet = new TreeSet<>(TimePeriodUtils.comparatorByStartTime());
       timePeriodSet.addAll(getMap().values());
       return timePeriodSet;
     }
@@ -301,9 +301,9 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     this.userClasses = other.userClasses.clone();
     this.timePeriods = other.timePeriods.clone();
     this.odDemandsByTimePeriodAndMode = new TreeMap<Long, TreeMap<Mode, OdDemands>>();
-    for (TimePeriod timePeriod : timePeriods) {
-      Set<Mode> modes = getRegisteredModesForTimePeriod(timePeriod);
-      for (Mode mode : modes) {
+    for (var timePeriod : timePeriods) {
+      var modes = getRegisteredModesForTimePeriod(timePeriod);
+      for (var mode : modes) {
         OdDemands odDemandMatrix = get(mode, timePeriod);
         this.registerOdDemandPcuHour(timePeriod, mode, odDemandMatrix);
       }

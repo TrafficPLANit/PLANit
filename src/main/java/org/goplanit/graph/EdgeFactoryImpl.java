@@ -29,7 +29,7 @@ public class EdgeFactoryImpl extends GraphEntityFactoryImpl<Edge> implements Edg
    */
   @Override
   public Edge registerNew(Vertex vertexA, Vertex vertexB, boolean registerOnVertices) throws PlanItException {
-    final Edge newEdge = new EdgeImpl(getIdGroupingToken(), vertexA, vertexB);
+    final var newEdge = new EdgeImpl(getIdGroupingToken(), vertexA, vertexB);
     getGraphEntities().register(newEdge);
     if (registerOnVertices) {
       vertexA.addEdge(newEdge);

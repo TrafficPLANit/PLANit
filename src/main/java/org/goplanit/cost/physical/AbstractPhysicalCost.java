@@ -8,7 +8,6 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -50,7 +49,7 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
    * @throws PlanItException thrown if error
    */
   public void populateWithCost(final UntypedPhysicalLayer<?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
-    for (LinkSegment linkSegment : physicalLayer.getLinkSegments()) {
+    for (var linkSegment : physicalLayer.getLinkSegments()) {
       costToFill[(int) linkSegment.getId()] = getGeneralisedCost(mode, (MacroscopicLinkSegment) linkSegment);
     }
   }

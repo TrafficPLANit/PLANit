@@ -50,7 +50,6 @@ import org.goplanit.supply.fundamentaldiagram.NewellFundamentalDiagramComponent;
 import org.goplanit.supply.network.nodemodel.NodeModelComponent;
 import org.goplanit.supply.network.nodemodel.TampereNodeModelComponent;
 import org.goplanit.supply.networkloading.NetworkLoading;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventListenerPriority;
@@ -59,6 +58,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.time.TimePeriod;
+import org.goplanit.zoning.Zoning;
 
 /**
  * Generic factory class for registered subclasses of predefined PLANit components, so it does not create instances of T but of subclasses of T.
@@ -141,7 +141,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    */
   @SuppressWarnings("unchecked")
   private T createTrafficComponent(final String planitComponentClassName, final Object[] constructorParameters) throws PlanItException {
-    final TreeSet<String> eligibleComponentTypes = registeredPlanitComponents.get(componentSuperTypeCanonicalName);
+    final var eligibleComponentTypes = registeredPlanitComponents.get(componentSuperTypeCanonicalName);
     PlanItException.throwIf(eligibleComponentTypes == null || !eligibleComponentTypes.contains(planitComponentClassName),
         "Provided PLANit Component class %s is not eligible for construction", planitComponentClassName != null ? planitComponentClassName : "");
 
@@ -245,7 +245,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
       if (currentSuperClass instanceof ParameterizedType && ((ParameterizedType) currentSuperClass).getRawType() == PlanitComponent.class) {
         // superclass is a PLANitComponent class, so the current class is the
         // class that we need register by collecting the component entry and placing the component
-        final TreeSet<String> treeSet = registeredPlanitComponents.get(currentClass.getCanonicalName());
+        final var treeSet = registeredPlanitComponents.get(currentClass.getCanonicalName());
         if (treeSet == null) {
           LOGGER.severe("Base class of PLANit component not registered as eligible on PLANit, component not eligible and therefore ignored");
           return;

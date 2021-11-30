@@ -2,15 +2,14 @@ package org.goplanit.graph;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Logger;
 
-import org.locationtech.jts.geom.LineString;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.CloneUtils;
+import org.locationtech.jts.geom.LineString;
 
 /**
  * Edge class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry additional information for each
@@ -118,7 +117,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
     this.lengthInKm = edgeImpl.lengthInKm;
     this.name = edgeImpl.name;
     if (edgeImpl.inputProperties != null && !edgeImpl.inputProperties.isEmpty()) {
-      for (Entry<String, Object> entry : edgeImpl.inputProperties.entrySet()) {
+      for (var entry : edgeImpl.inputProperties.entrySet()) {
         addInputProperty(new String(entry.getKey()), CloneUtils.clone(entry.getValue()));
       }
     }
