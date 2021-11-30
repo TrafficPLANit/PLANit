@@ -2,14 +2,14 @@ package org.goplanit.algorithms.nodemodel;
 
 import java.util.ArrayList;
 
-import org.ojalgo.array.Array1D;
-import org.ojalgo.array.Array2D;
-import org.ojalgo.function.PrimitiveFunction;
-import org.ojalgo.function.aggregator.Aggregator;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.function.NullaryDoubleSupplier;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
+import org.ojalgo.array.Array1D;
+import org.ojalgo.array.Array2D;
+import org.ojalgo.function.PrimitiveFunction;
+import org.ojalgo.function.aggregator.Aggregator;
 
 /**
  * General First order node model implementation as proposed by Tampere et al. (2011). Here we utilise the algorithm description as presented in Bliemer et al. (2014).
@@ -115,7 +115,7 @@ public class TampereNodeModel implements NodeModel {
    * @return true if demand constrained in link(s) is/are found, false otherwise
    */
   protected boolean updateDemandConstrainedInLinkSegments(Pair<Double, Integer> mostRestrictingOutLinkSegmentData) {
-    ArrayList<Long> demandConstrainedInLinksY = new ArrayList<Long>();
+    ArrayList<Long> demandConstrainedInLinksY = new ArrayList<>();
 
     /* ALL REMAINING DEMAND CONSTRAINED */
     if (mostRestrictingOutLinkSegmentData == null) {

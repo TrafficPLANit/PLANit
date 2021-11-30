@@ -100,7 +100,7 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
       // already been found and we continue with the next entry
       // track all adjacent edge segments for possible improved shortest paths
 
-      for (EdgeSegment adjacentEdgeSegment : currentVertex.getExitEdgeSegments()) {
+      for (var adjacentEdgeSegment : currentVertex.getExitEdgeSegments()) {
         double currentEdgeSegmentCost = edgeSegmentCosts[(int) adjacentEdgeSegment.getId()];
         if (currentEdgeSegmentCost < Double.MAX_VALUE) {
 

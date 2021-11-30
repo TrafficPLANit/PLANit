@@ -3,7 +3,6 @@ package org.goplanit.assignment.ltm.sltm;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -11,7 +10,6 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.MinMaxPathResult;
 import org.goplanit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
 import org.goplanit.algorithms.shortestpath.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.consumer.InitialiseBushEdgeSegmentDemandConsumer;
@@ -35,7 +33,6 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
-import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
 import org.ojalgo.array.Array1D;
 
@@ -89,7 +86,7 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
    * @return pair of slack flow and slack capacity ratio
    */
   private double determineSlackFlow(Pas pas, StaticLtmLoadingBush networkLoading) {
-    EdgeSegment lastS2Segment = pas.getLastEdgeSegment(false);
+    var lastS2Segment = pas.getLastEdgeSegment(false);
     double slackFlow = Double.POSITIVE_INFINITY;
 
     Array1D<Double> splittingRates = networkLoading.getSplittingRateData().getSplittingRates(lastS2Segment);
@@ -97,7 +94,7 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
     int index = 0;
     int linkSegmentId = -1;
 
-    for (EdgeSegment exitSegment : lastS2Segment.getDownstreamVertex().getExitEdgeSegments()) {
+    for (var exitSegment : lastS2Segment.getDownstreamVertex().getExitEdgeSegments()) {
       double splittingRate = splittingRates.get(index);
       if (splittingRate > 0) {
         linkSegmentId = (int) exitSegment.getId();
@@ -158,8 +155,8 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
     double denominatorS2 = 0;
     double denominatorS1 = 0;
     {
-      EdgeSegment firstS2CongestedLinkSegment = pas.matchFirst(false /* high cost */, firstCongestedLinkSegment);
-      EdgeSegment firstS1CongestedLinkSegment = pas.matchFirst(true, /* low cost */ firstCongestedLinkSegment);
+      var firstS2CongestedLinkSegment = pas.matchFirst(false /* high cost */, firstCongestedLinkSegment);
+      var firstS1CongestedLinkSegment = pas.matchFirst(true, /* low cost */ firstCongestedLinkSegment);
 
       if (firstS1CongestedLinkSegment == null) {
         // cheap option not congested, derivative of zero
@@ -245,8 +242,8 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
   private boolean extendBushWithSuitableExistingPas(final Bush originBush, final DirectedVertex mergeVertex, final double reducedCost) {
 
     boolean bushFlowThroughMergeVertex = false;
-    for (EdgeSegment entrySegment : mergeVertex.getEntryEdgeSegments()) {
-      for (EdgeSegment exitSegment : mergeVertex.getExitEdgeSegments()) {
+    for (var entrySegment : mergeVertex.getEntryEdgeSegments()) {
+      for (var exitSegment : mergeVertex.getExitEdgeSegments()) {
         if (originBush.containsTurnSendingFlow(entrySegment, exitSegment)) {
           bushFlowThroughMergeVertex = true;
           break;
@@ -340,11 +337,11 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
 
     Zoning zoning = getTransportNetwork().getZoning();
     OdDemands odDemands = getOdDemands();
-    for (OdZone origin : zoning.getOdZones()) {
+    for (var origin : zoning.getOdZones()) {
       ShortestPathResult oneToAllResult = null;
       InitialiseBushEdgeSegmentDemandConsumer initialiseBushConsumer = null;
       Bush originBush = null;
-      for (OdZone destination : zoning.getOdZones()) {
+      for (var destination : zoning.getOdZones()) {
         if (destination.idEquals(origin)) {
           continue;
         }
@@ -387,7 +384,7 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
    */
   private Collection<Pas> extendBushes(final double[] linkSegmentCosts) throws PlanItException {
 
-    List<Pas> newPass = new ArrayList<Pas>();
+    List<Pas> newPass = new ArrayList<>();
 
     final OneToAllShortestPathAlgorithm networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
 
@@ -396,13 +393,13 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
       if (originBush != null) {
 
         /* within-bush min/max-paths */
-        MinMaxPathResult minMaxPaths = originBush.computeMinMaxShortestPaths(linkSegmentCosts, this.getTransportNetwork().getNumberOfVerticesAllLayers());
+        var minMaxPaths = originBush.computeMinMaxShortestPaths(linkSegmentCosts, this.getTransportNetwork().getNumberOfVerticesAllLayers());
 
         /* network min-paths */
-        ShortestPathResult networkMinPaths = networkShortestPathAlgo.executeOneToAll(originBush.getOrigin().getCentroid());
+        var networkMinPaths = networkShortestPathAlgo.executeOneToAll(originBush.getOrigin().getCentroid());
 
         /* find (new) matching PASs */
-        for (Iterator<DirectedVertex> bushVertexIter = originBush.getDirectedVertexIterator(); bushVertexIter.hasNext();) {
+        for (var bushVertexIter = originBush.getDirectedVertexIterator(); bushVertexIter.hasNext();) {
           DirectedVertex bushVertex = bushVertexIter.next();
 
           /* when bush does not contain the reduced cost edge segment (or the opposite direction which would cause a cycle) consider it */
@@ -448,12 +445,12 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
    */
   private boolean shiftFlows(final Mode theMode) {
     boolean flowShifted = false;
-    List<Pas> passWithoutOrigins = new ArrayList<Pas>();
+    List<Pas> passWithoutOrigins = new ArrayList<>();
 
-    StaticLtmLoadingBush networkLoading = getLoading();
-    LinkBasedRelativeDualityGapFunction gapFunction = (LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class);
-    PhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
-    VirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
+    var networkLoading = getLoading();
+    var gapFunction = (LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class);
+    var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
+    var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
 
     /* reused predicate */
     Predicate<EdgeSegment> firstCongestedLinkSegment = es -> getLoading().getCurrentFlowAcceptanceFactors()[(int) es.getId()] < 1;

@@ -1,6 +1,5 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.ojalgo.array.Array1D;
 import org.ojalgo.array.Array2D;
@@ -32,7 +31,7 @@ public class UpdateEntryLinksOutflowConsumer implements ApplyToNodeModelResult {
   @Override
   public void acceptNonBlockingLinkBasedResult(final DirectedVertex node, final double[] linkSegmentSendingFlows) {
     int linkSegmentId = 0;
-    for (EdgeSegment entryLinkSegment : node.getEntryEdgeSegments()) {
+    for (var entryLinkSegment : node.getEntryEdgeSegments()) {
       linkSegmentId = (int) entryLinkSegment.getId();
       outflowsToPopulate[linkSegmentId] = linkSegmentSendingFlows[linkSegmentId];
     }
@@ -45,7 +44,7 @@ public class UpdateEntryLinksOutflowConsumer implements ApplyToNodeModelResult {
   public void acceptTurnBasedResult(DirectedVertex node, Array1D<Double> flowAcceptanceFactor, Array2D<Double> turnSendingFlows) {
     int entryIndex = 0;
     int linkSegmentId = 0;
-    for (EdgeSegment entryLinkSegment : node.getEntryEdgeSegments()) {
+    for (var entryLinkSegment : node.getEntryEdgeSegments()) {
       linkSegmentId = (int) entryLinkSegment.getId();
       /* s_a = Sum_b(s_ab) */
       double sendingFlow = turnSendingFlows.aggregateRow(entryIndex, Aggregator.SUM);

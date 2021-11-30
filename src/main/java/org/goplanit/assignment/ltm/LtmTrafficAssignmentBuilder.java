@@ -6,13 +6,12 @@ import org.goplanit.demands.Demands;
 import org.goplanit.input.InputBuilderListener;
 import org.goplanit.network.TransportLayerNetwork;
 import org.goplanit.path.choice.PathChoice;
-import org.goplanit.path.choice.PathChoiceBuilder;
 import org.goplanit.path.choice.PathChoiceBuilderFactory;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.zoning.Zoning;
 
 /**
  * An LTM traffic assignment builder is assumed to only support Link Transmission Model (LTM) traffic assignment instances. It is used to build the traffic assignment instance with
@@ -31,8 +30,7 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
    * @throws PlanItException thrown if error
    */
   protected FundamentalDiagramComponent createFundamentalDiagramComponentInstance(final MacroscopicNetworkLayer macroscopicNetworkLayer) throws PlanItException {
-    PlanitComponentFactory<FundamentalDiagramComponent> fundamentalDiagramComponentFactory = new PlanitComponentFactory<FundamentalDiagramComponent>(
-        FundamentalDiagramComponent.class);
+    var fundamentalDiagramComponentFactory = new PlanitComponentFactory<FundamentalDiagramComponent>(FundamentalDiagramComponent.class);
     fundamentalDiagramComponentFactory.addListener(getInputBuilderListener());
     return fundamentalDiagramComponentFactory.create(getConfigurator().getFundamentalDiagram().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() },
         new Object[] { macroscopicNetworkLayer });
@@ -46,7 +44,7 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
    * @throws PlanItException thrown if error
    */
   protected PathChoice createPathChoiceInstance(LtmConfigurator<? extends LtmAssignment> configurator) throws PlanItException {
-    PlanitComponentFactory<PathChoice> pathChoiceFactory = new PlanitComponentFactory<PathChoice>(PathChoice.class);
+    var pathChoiceFactory = new PlanitComponentFactory<PathChoice>(PathChoice.class);
     pathChoiceFactory.addListener(getInputBuilderListener());
     return pathChoiceFactory.create(configurator.getPathChoice().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
@@ -62,7 +60,7 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
 
     /* Fundamental diagram sub component */
     if (getConfigurator().getFundamentalDiagram() != null) {
-      FundamentalDiagramComponent fundamentalDiagramComponent = createFundamentalDiagramComponentInstance(ltmAssignmentInstance.getUsedNetworkLayer());
+      var fundamentalDiagramComponent = createFundamentalDiagramComponentInstance(ltmAssignmentInstance.getUsedNetworkLayer());
       getConfigurator().getFundamentalDiagram().configure(fundamentalDiagramComponent);
       ltmAssignmentInstance.setFundamentalDiagram(fundamentalDiagramComponent);
     }
@@ -71,10 +69,9 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
      * path choice sub component... ...because it has sub components of its own, we must construct a builder for it instead of instantiating it directly here
      */
     if (getConfigurator().getPathChoice() != null) {
-      PathChoiceBuilder<? extends PathChoice> pathChoiceBuilder = PathChoiceBuilderFactory
-          .createBuilder(getConfigurator().getPathChoice().getClassTypeToConfigure().getCanonicalName(), getGroupIdToken(), getInputBuilderListener());
-      PathChoice pathChoice = pathChoiceBuilder.build();
-      ltmAssignmentInstance.setPathChoice(pathChoice);
+      var pathChoiceBuilder = PathChoiceBuilderFactory.createBuilder(getConfigurator().getPathChoice().getClassTypeToConfigure().getCanonicalName(), getGroupIdToken(),
+          getInputBuilderListener());
+      ltmAssignmentInstance.setPathChoice(pathChoiceBuilder.build());
     }
   }
 

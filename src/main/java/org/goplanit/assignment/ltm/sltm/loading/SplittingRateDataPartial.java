@@ -79,7 +79,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
   public void registerTrackedNode(final DirectedVertex trackNode) {
     if (!trackedNodes.contains(trackNode)) {
       trackedNodes.add(trackNode);
-      for (EdgeSegment entrySegment : trackNode.getEntryEdgeSegments()) {
+      for (var entrySegment : trackNode.getEntryEdgeSegments()) {
         registerSplittingRates(trackNode, entrySegment);
       }
     }

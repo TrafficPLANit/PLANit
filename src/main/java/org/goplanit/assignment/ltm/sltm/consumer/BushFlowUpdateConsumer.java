@@ -1,8 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -38,9 +36,9 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
   private void initialiseRootExitSegmentSendingFlows(final Bush originBush, final MultiKeyMap<Object, Double> bushSendingFlows) {
     int index = 0;
     double[] rootVertexSplittingRates = originBush.getRootVertexSplittingRates();
-    for (EdgeSegment rootExit : originBush.getOrigin().getCentroid().getExitEdgeSegments()) {
+    for (var rootExit : originBush.getOrigin().getCentroid().getExitEdgeSegments()) {
       if (originBush.containsEdgeSegment(rootExit)) {
-        Set<BushFlowCompositionLabel> usedLabels = originBush.getFlowCompositionLabels(rootExit);
+        var usedLabels = originBush.getFlowCompositionLabels(rootExit);
         if (usedLabels.size() != 1) {
           LOGGER.severe(String.format("Flow composition labelling compromised, only a single label can be present at origin (%s) exit segment %s (%d) , but found %d",
               originBush.getOrigin().getXmlId(), rootExit.getXmlId(), rootExit.getId(), usedLabels.size()));
@@ -87,12 +85,12 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
      */
 
     /* key is segment+label, value is sending flow */
-    MultiKeyMap<Object, Double> bushSendingFlows = new MultiKeyMap<Object, Double>();
+    MultiKeyMap<Object, Double> bushSendingFlows = new MultiKeyMap<>();
 
     /* get topological sorted vertices to process */
     Collection<DirectedVertex> topSortedVertices = originBush.getTopologicallySortedVertices();
-    Iterator<DirectedVertex> vertexIter = topSortedVertices.iterator();
-    DirectedVertex currVertex = vertexIter.next();
+    var vertexIter = topSortedVertices.iterator();
+    var currVertex = vertexIter.next();
     if (!currVertex.idEquals(originBush.getOrigin().getCentroid())) {
       LOGGER.severe(String.format("Topologically sorted bush rooted at origin %s, does not commence with its root vertex %s", originBush.getOrigin().getXmlId(),
           originBush.getOrigin().getCentroid().getXmlId()));
@@ -105,14 +103,14 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
     /* pass over bush in topological order propagating flow from origin */
     while (vertexIter.hasNext()) {
       currVertex = vertexIter.next();
-      for (EdgeSegment entrySegment : currVertex.getEntryEdgeSegments()) {
+      for (var entrySegment : currVertex.getEntryEdgeSegments()) {
         if (!originBush.containsEdgeSegment(entrySegment)) {
           continue;
         }
 
         int entrySegmentId = (int) entrySegment.getId();
-        Set<BushFlowCompositionLabel> usedLabels = originBush.getFlowCompositionLabels(entrySegment);
-        for (BushFlowCompositionLabel entrylabel : usedLabels) {
+        var usedLabels = originBush.getFlowCompositionLabels(entrySegment);
+        for (var entrylabel : usedLabels) {
           double bushLinkLabelSendingFlow = bushSendingFlows.get(entrySegment, entrylabel);
 
           /* s_a = u_a */
@@ -137,13 +135,13 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
           /* bush splitting rates by [exit segment, exit label] as key */
           MultiKeyMap<Object, Double> splittingRates = originBush.getSplittingRates(entrySegment, entrylabel);
 
-          for (EdgeSegment exitSegment : currVertex.getExitEdgeSegments()) {
+          for (var exitSegment : currVertex.getExitEdgeSegments()) {
             if (!originBush.containsEdgeSegment(exitSegment)) {
               continue;
             }
 
-            Set<BushFlowCompositionLabel> exitLabels = originBush.getFlowCompositionLabels(exitSegment);
-            for (BushFlowCompositionLabel exitLabel : exitLabels) {
+            var exitLabels = originBush.getFlowCompositionLabels(exitSegment);
+            for (var exitLabel : exitLabels) {
               double splittingRate = splittingRates.get(exitSegment, exitLabel);
               if (Precision.isPositive(splittingRate)) {
 

@@ -1,7 +1,6 @@
 package org.goplanit.assignment;
 
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -75,9 +74,9 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
   @Override
   public void executeEquilibration() throws PlanItException {
     // perform assignment per period - per mode
-    final Collection<TimePeriod> timePeriods = getDemands().timePeriods.asSortedSetByStartTime();
+    final var timePeriods = getDemands().timePeriods.asSortedSetByStartTime();
     LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "total time periods: " + timePeriods.size());
-    for (final TimePeriod timePeriod : timePeriods) {
+    for (var timePeriod : timePeriods) {
       LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createTimePeriodPrefix(timePeriod) + timePeriod.toString());
       executeTimePeriod(timePeriod);
     }

@@ -1,6 +1,5 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
 import org.ojalgo.array.Array1D;
@@ -34,7 +33,7 @@ public class UpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult {
   @Override
   public void acceptNonBlockingLinkBasedResult(final DirectedVertex node, double[] sendingFlows) {
     int segmentId = -1;
-    for (EdgeSegment exitLinkSegment : node.getExitEdgeSegments()) {
+    for (var exitLinkSegment : node.getExitEdgeSegments()) {
       segmentId = (int) exitLinkSegment.getId();
       inFlowsToUpdate[segmentId] = sendingFlows[segmentId];
     }
@@ -54,7 +53,7 @@ public class UpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult {
     }
     /* u_b = SUM_a(v_ab): set inflow */
     int exitIndex = 0;
-    for (EdgeSegment exitLinkSegment : node.getExitEdgeSegments()) {
+    for (var exitLinkSegment : node.getExitEdgeSegments()) {
       inFlowsToUpdate[(int) exitLinkSegment.getId()] = turnSendingFlows.aggregateColumn(exitIndex++, Aggregator.SUM);
     }
   }

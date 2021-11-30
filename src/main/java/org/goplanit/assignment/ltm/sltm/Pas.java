@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,7 +31,6 @@ import org.goplanit.utils.math.Precision;
 public class Pas {
 
   /** logger to use */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(Pas.class.getCanonicalName());
 
   /** cheap PA segment s1 */
@@ -60,11 +58,11 @@ public class Pas {
    * @return pasS1EndLabelRates created indicating 1 (100%) of flow is allocated to the new label on the final segment of s1
    */
   private Map<BushFlowCompositionLabel, Double> initialiseS1Labelling(final Bush origin, Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> s1MatchingLabelsToFill) {
-    BushFlowCompositionLabel pasS1Label = origin.createFlowCompositionLabel();
+    var pasS1Label = origin.createFlowCompositionLabel();
     s1MatchingLabelsToFill.put(pasS1Label, new ArrayList<BushFlowCompositionLabel>(1));
     s1MatchingLabelsToFill.get(pasS1Label).add(pasS1Label);
 
-    Map<BushFlowCompositionLabel, Double> pasS1EndLabelRates = new HashMap<BushFlowCompositionLabel, Double>();
+    Map<BushFlowCompositionLabel, Double> pasS1EndLabelRates = new HashMap<>();
     pasS1EndLabelRates.put(pasS1Label, 1.0);
 
     return pasS1EndLabelRates;
@@ -141,7 +139,7 @@ public class Pas {
    */
   private void relabelWhileNotTerminatingWith(final Bush origin, final DirectedVertex vertex, final EdgeSegment exitSegment, final BushFlowCompositionLabel oldLabel,
       final BushFlowCompositionLabel newLabel) {
-    for (EdgeSegment entrySegment : vertex.getEntryEdgeSegments()) {
+    for (var entrySegment : vertex.getEntryEdgeSegments()) {
       if (origin.containsEdgeSegment(entrySegment)) {
 
         if (Precision.isPositive(origin.getTurnSendingFlow(entrySegment, oldLabel, exitSegment, oldLabel))) {
@@ -185,14 +183,14 @@ public class Pas {
    * @return found matching composition labels as keys, where the values are an ordered list of encountered composite labels when traversing along the PAS (if any)
    */
   private Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> determineMatchingLabels(final Bush originBush, boolean lowCostSegment) {
-    Set<BushFlowCompositionLabel> edgeSegmentCompositionLabels = originBush.getFlowCompositionLabels(getLastEdgeSegment(lowCostSegment));
-    Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> pasCompositionLabels = new HashMap<BushFlowCompositionLabel, List<BushFlowCompositionLabel>>();
+    var edgeSegmentCompositionLabels = originBush.getFlowCompositionLabels(getLastEdgeSegment(lowCostSegment));
+    Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> pasCompositionLabels = new HashMap<>();
     if (edgeSegmentCompositionLabels == null || edgeSegmentCompositionLabels.isEmpty()) {
       return pasCompositionLabels;
     }
 
     EdgeSegment[] alternative = lowCostSegment ? s1 : s2;
-    Iterator<BushFlowCompositionLabel> labelIter = edgeSegmentCompositionLabels.iterator();
+    var labelIter = edgeSegmentCompositionLabels.iterator();
     while (labelIter.hasNext()) {
       BushFlowCompositionLabel initialLabel = labelIter.next();
       BushFlowCompositionLabel currentLabel = initialLabel;
@@ -200,7 +198,7 @@ public class Pas {
       transitionLabels.add(initialLabel);
 
       EdgeSegment currentSegment = null;
-      EdgeSegment succeedingSegment = getLastEdgeSegment(lowCostSegment);
+      var succeedingSegment = getLastEdgeSegment(lowCostSegment);
       for (int index = alternative.length - 2; index >= 0; --index) {
         currentSegment = alternative[index];
         if (!originBush.containsTurnSendingFlow(currentSegment, currentLabel, succeedingSegment, currentLabel)) {
@@ -249,7 +247,7 @@ public class Pas {
       Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> pasS2EndFlowCompositionLabels, Map<BushFlowCompositionLabel, Double> pasS2EndLabelRates,
       final double[] flowAcceptanceFactors) {
 
-    EdgeSegment firstS2EdgeSegment = getFirstEdgeSegment(false /* high cost segment */);
+    var firstS2EdgeSegment = getFirstEdgeSegment(false /* high cost segment */);
     var s2DivergeTurnLabelProportionsToPopulate = new MultiKeyMap<Object, Double>();
 
     double s2InitialSegmentTotalFlow = 0;
@@ -257,7 +255,7 @@ public class Pas {
       if (origin.containsEdgeSegment(entrySegment)) {
         double alpha = flowAcceptanceFactors[(int) entrySegment.getId()];
         var entryLabels = origin.getFlowCompositionLabels(entrySegment);
-        for (BushFlowCompositionLabel entryLabel : entryLabels) {
+        for (var entryLabel : entryLabels) {
           for (var usedLabelPrecessors : pasS2EndFlowCompositionLabels.entrySet()) {
             var usedExitLabel = extractUsedStartLabel(usedLabelPrecessors.getValue());
             double turnSendingFlow = origin.getTurnSendingFlow(entrySegment, entryLabel, firstS2EdgeSegment, usedExitLabel);
@@ -326,11 +324,11 @@ public class Pas {
       double[] flowAcceptanceFactors, boolean forceInitialLabel) {
     int index = 0;
     EdgeSegment currentSegment = null;
-    EdgeSegment nextSegment = pasSegment[index];
+    var nextSegment = pasSegment[index];
 
-    ReverseListIterator<BushFlowCompositionLabel> reverseIter = new ReverseListIterator<BushFlowCompositionLabel>(reverseOrderCompositionLabels);
-    BushFlowCompositionLabel currCompositionLabel = reverseIter.next();
-    BushFlowCompositionLabel nextCompositionLabel = currCompositionLabel;
+    var reverseLabelIter = new ReverseListIterator<BushFlowCompositionLabel>(reverseOrderCompositionLabels);
+    var currCompositionLabel = reverseLabelIter.next();
+    var nextCompositionLabel = currCompositionLabel;
     while (++index < pasSegment.length) {
       currentSegment = nextSegment;
       nextSegment = pasSegment[index];
@@ -338,7 +336,7 @@ public class Pas {
       double turnSendingFlow = origin.getTurnSendingFlow(currentSegment, currCompositionLabel, nextSegment, currCompositionLabel);
       if (!forceInitialLabel && !Precision.isPositive(turnSendingFlow)) {
         /* composition splits/ends, identify if next label it splits off in is valid/available */
-        nextCompositionLabel = reverseIter.hasNext() ? reverseIter.next() : null;
+        nextCompositionLabel = reverseLabelIter.hasNext() ? reverseLabelIter.next() : null;
         if (nextCompositionLabel != null && origin.containsTurnSendingFlow(currentSegment, currCompositionLabel, nextSegment, nextCompositionLabel)) {
           turnSendingFlow = origin.getTurnSendingFlow(currentSegment, currCompositionLabel, nextSegment, nextCompositionLabel);
         } else {
@@ -371,17 +369,17 @@ public class Pas {
   private void executeBushLabeledS2FlowShiftEndMerge(Bush origin, BushFlowCompositionLabel finalSegmentLabel, double s2FinalLabeledFlowShift,
       Map<BushFlowCompositionLabel, double[]> exitShiftedSendingFlowToPopulate) {
 
-    EdgeSegment lastS2Segment = getLastEdgeSegment(false /* high cost */);
+    var lastS2Segment = getLastEdgeSegment(false /* high cost */);
 
     /* remove shifted flows through final merge towards exit segments proportionally, to later add to s1 turns through merge */
     if (getMergeVertex().hasExitEdgeSegments()) {
       /* key: [exitSegment, exitLabel] */
       MultiKeyMap<Object, Double> splittingRates = origin.getSplittingRates(lastS2Segment, finalSegmentLabel);
       int index = 0;
-      for (EdgeSegment exitSegment : getMergeVertex().getExitEdgeSegments()) {
+      for (var exitSegment : getMergeVertex().getExitEdgeSegments()) {
         if (origin.containsEdgeSegment(exitSegment)) {
-          Set<BushFlowCompositionLabel> exitLabels = origin.getFlowCompositionLabels(exitSegment);
-          for (BushFlowCompositionLabel exitLabel : exitLabels) {
+          var exitLabels = origin.getFlowCompositionLabels(exitSegment);
+          for (var exitLabel : exitLabels) {
 
             Double labeledSplittingRate = splittingRates.get(exitSegment, exitLabel);
             if (labeledSplittingRate == null || !Precision.isPositive(labeledSplittingRate)) {
@@ -428,11 +426,11 @@ public class Pas {
 
     /* add shifted flows through final merge towards exit segments proportionally based on labeled exit usage */
     if (getMergeVertex().hasExitEdgeSegments()) {
-      for (Entry<BushFlowCompositionLabel, double[]> entry : usedLabelSplittingRates.entrySet()) {
+      for (var entry : usedLabelSplittingRates.entrySet()) {
         BushFlowCompositionLabel exitLabel = entry.getKey();
         double[] exitLabelSplittingRates = entry.getValue();
         int index = 0;
-        for (EdgeSegment exitSegment : getMergeVertex().getExitEdgeSegments()) {
+        for (var exitSegment : getMergeVertex().getExitEdgeSegments()) {
           double splittingRate = exitLabelSplittingRates[index];
           if (Precision.isPositive(splittingRate)) {
             /* add flow for s1 */
@@ -461,10 +459,10 @@ public class Pas {
 
     EdgeSegment firstS2Segment = getFirstEdgeSegment(false /* high cost */);
 
-    for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
+    for (var entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
       if (origin.containsEdgeSegment(entrySegment)) {
-        Set<BushFlowCompositionLabel> entryLabels = origin.getFlowCompositionLabels(entrySegment);
-        for (BushFlowCompositionLabel entryLabel : entryLabels) {
+        var entryLabels = origin.getFlowCompositionLabels(entrySegment);
+        for (var entryLabel : entryLabels) {
           Double portion = s2DivergeProportionsByTurnLabels.get(entrySegment, entryLabel);
           if (portion == null) {
             continue;
@@ -508,10 +506,10 @@ public class Pas {
 
     EdgeSegment firstS1Segment = getFirstEdgeSegment(true /* low cost */);
 
-    for (EdgeSegment entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
+    for (var entrySegment : getDivergeVertex().getEntryEdgeSegments()) {
       if (origin.containsEdgeSegment(entrySegment)) {
-        Set<BushFlowCompositionLabel> entryLabels = origin.getFlowCompositionLabels(entrySegment);
-        for (BushFlowCompositionLabel entryLabel : entryLabels) {
+        var entryLabels = origin.getFlowCompositionLabels(entrySegment);
+        for (var entryLabel : entryLabels) {
           Double portion = divergeProportionsByTurnLabels.get(entrySegment, entryLabel);
           if (portion == null) {
             continue;
@@ -572,12 +570,12 @@ public class Pas {
    */
   protected boolean executeFlowShift(double networkS2FlowPcuH, double flowShiftPcuH, final double[] flowAcceptanceFactors) {
 
-    List<Bush> originsWithoutRemainingPasFlow = new ArrayList<Bush>();
+    List<Bush> originsWithoutRemainingPasFlow = new ArrayList<>();
     EdgeSegment lastS1Segment = getLastEdgeSegment(true /* low cost */);
     EdgeSegment lastS2Segment = getLastEdgeSegment(false /* high cost */);
     EdgeSegment firstS2Segment = getFirstEdgeSegment(false /* high cost */);
 
-    for (Bush origin : originBushes) {
+    for (var origin : originBushes) {
 
       double bushS2Flow = origin.computeSubPathSendingFlow(getDivergeVertex(), getMergeVertex(), s2);
 

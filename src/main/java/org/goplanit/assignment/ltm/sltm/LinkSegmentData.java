@@ -2,7 +2,6 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.Arrays;
 
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 
 /**
@@ -47,7 +46,7 @@ public abstract class LinkSegmentData {
    * @param linkSegments  to use
    */
   protected void limitFlowsToCapacity(double[] flowPcuHArray, final MacroscopicLinkSegments linkSegments) {
-    for (MacroscopicLinkSegment linkSegment : linkSegments) {
+    for (var linkSegment : linkSegments) {
       int lsId = (int) linkSegment.getId();
       flowPcuHArray[lsId] = Math.min(flowPcuHArray[lsId], linkSegment.getCapacityOrDefaultPcuH());
     }

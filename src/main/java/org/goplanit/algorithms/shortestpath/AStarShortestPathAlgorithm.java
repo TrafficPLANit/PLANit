@@ -4,12 +4,12 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.misc.Pair;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * A* shortest path algorithm
@@ -131,7 +131,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
       double costToVertex = vertexMeasuredCost[vertexId];
 
       // for all exiting edges
-      for (EdgeSegment adjacentEdgeSegment : currentVertex.getExitEdgeSegments()) {
+      for (var adjacentEdgeSegment : currentVertex.getExitEdgeSegments()) {
         int adjacentVertexId = (int) adjacentEdgeSegment.getDownstreamVertex().getId();
 
         // edge cost
@@ -141,7 +141,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
           // updated actual cost to adjacent node
           double tentativeCost = costToVertex + exitEdgeCost;
 
-          DirectedVertex adjacentVertex = adjacentEdgeSegment.getDownstreamVertex();
+          var adjacentVertex = adjacentEdgeSegment.getDownstreamVertex();
           double adjacentMeasuredCost = vertexMeasuredCost[adjacentVertexId];
 
           // first visit, compute heuristic on the fly (once)

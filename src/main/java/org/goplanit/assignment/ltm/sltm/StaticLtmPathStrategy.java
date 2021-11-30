@@ -4,7 +4,6 @@ import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
 import org.goplanit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -17,9 +16,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.path.DirectedPath;
 import org.goplanit.utils.path.DirectedPathFactory;
-import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
 
 /**
@@ -51,9 +48,9 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
 
     Zoning zoning = getTransportNetwork().getZoning();
     OdDemands odDemands = getOdDemands();
-    for (OdZone origin : zoning.getOdZones()) {
-      ShortestPathResult oneToAllResult = shortestPathAlgorithm.executeOneToAll(origin.getCentroid());
-      for (OdZone destination : zoning.getOdZones()) {
+    for (var origin : zoning.getOdZones()) {
+      var oneToAllResult = shortestPathAlgorithm.executeOneToAll(origin.getCentroid());
+      for (var destination : zoning.getOdZones()) {
         if (destination.idEquals(origin)) {
           continue;
         }
@@ -61,7 +58,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         /* for positive demand on OD generate the shortest path under given costs */
         Double currOdDemand = odDemands.getValue(origin, destination);
         if (currOdDemand != null && currOdDemand > 0) {
-          DirectedPath path = oneToAllResult.createPath(pathFactory, origin.getCentroid(), destination.getCentroid());
+          var path = oneToAllResult.createPath(pathFactory, origin.getCentroid(), destination.getCentroid());
           if (path == null) {
             LOGGER.warning(String.format("%sUnable to create path for OD (%s,%s) with non-zero demand (%.2f)", LoggingUtils.createRunIdPrefix(getAssignmentId()), origin.getXmlId(),
                 destination.getXmlId(), currOdDemand));

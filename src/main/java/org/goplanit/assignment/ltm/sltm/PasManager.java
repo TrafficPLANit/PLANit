@@ -243,7 +243,7 @@ public class PasManager {
   public Pas findFirstSuitableExistingPas(final Bush originBush, final DirectedVertex mergeVertex, double[] flowAcceptanceFactors, double reducedCost) {
 
     /* verify potential PASs */
-    Collection<Pas> potentialPass = getPassByMergeVertex(mergeVertex);
+    var potentialPass = getPassByMergeVertex(mergeVertex);
     if (potentialPass == null) {
       return null;
     }
@@ -255,7 +255,7 @@ public class PasManager {
       }
 
       boolean pasPotentialMatch = false;
-      for (EdgeSegment pasFirstExitSegment : pas.getDivergeVertex().getExitEdgeSegments()) {
+      for (var pasFirstExitSegment : pas.getDivergeVertex().getExitEdgeSegments()) {
         if (originBush.containsEdgeSegment(pasFirstExitSegment)) {
           pasPotentialMatch = true;
         }

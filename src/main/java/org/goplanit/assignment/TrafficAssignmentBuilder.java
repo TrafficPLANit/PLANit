@@ -16,11 +16,9 @@ import org.goplanit.output.OutputManager;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.networkloading.NetworkLoading;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.time.TimePeriod;
+import org.goplanit.zoning.Zoning;
 
 /**
  * All traffic assignment instances require a network, demand, and (equilibrium) smoothing procedure, all of which should be registered via this generic builder. Specific traffic
@@ -51,8 +49,8 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     PlanItException.throwIf(!zoning.isCompatibleWithDemands(demands, network.getModes()),
         "Zoning structure is incompatible with one or more of the demands, likely the number of zones does not match the number of origins and/or destinations");
 
-    for (final Mode mode : network.getModes()) {
-      for (TimePeriod timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
+    for (var mode : network.getModes()) {
+      for (var timePeriod : demands.timePeriods.asSortedSetByStartTime()) {
         if (demands.get(mode, timePeriod) == null) {
           LOGGER.warning("No demand matrix defined for Mode " + mode.getExternalId() + " and Time Period " + timePeriod.getExternalId());
         }
@@ -97,10 +95,10 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
   protected T createTrafficAssignmentInstance() throws PlanItException {
     String trafficAssignmentClassName = getClassToBuild().getCanonicalName();
 
-    PlanitComponentFactory<TrafficAssignment> assignmentFactory = new PlanitComponentFactory<TrafficAssignment>(NetworkLoading.class.getCanonicalName());
+    var assignmentFactory = new PlanitComponentFactory<TrafficAssignment>(NetworkLoading.class.getCanonicalName());
     assignmentFactory.addListener(getInputBuilderListener());
 
-    final NetworkLoading networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentClassName, new Object[] { groupId });
+    var networkLoadingAndAssignment = assignmentFactory.create(trafficAssignmentClassName, new Object[] { groupId });
     PlanItException.throwIf(!(networkLoadingAndAssignment instanceof TrafficAssignment), "not a valid traffic assignment type");
     return (T) networkLoadingAndAssignment;
   }
@@ -112,7 +110,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected Smoothing createSmoothingInstance() throws PlanItException {
-    PlanitComponentFactory<Smoothing> smoothingFactory = new PlanitComponentFactory<Smoothing>(Smoothing.class);
+    var smoothingFactory = new PlanitComponentFactory<Smoothing>(Smoothing.class);
     smoothingFactory.addListener(getInputBuilderListener());
     return smoothingFactory.create(getConfigurator().getSmoothing().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
@@ -124,7 +122,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected AbstractPhysicalCost createPhysicalCostInstance() throws PlanItException {
-    PlanitComponentFactory<AbstractPhysicalCost> physicalCostFactory = new PlanitComponentFactory<AbstractPhysicalCost>(AbstractPhysicalCost.class);
+    var physicalCostFactory = new PlanitComponentFactory<AbstractPhysicalCost>(AbstractPhysicalCost.class);
     physicalCostFactory.addListener(getInputBuilderListener());
     return physicalCostFactory.create(getConfigurator().getPhysicalCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() },
         new Object[] { getConfigurator().getInfrastructureNetwork() });
@@ -137,7 +135,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected AbstractVirtualCost createVirtualCostInstance() throws PlanItException {
-    PlanitComponentFactory<AbstractVirtualCost> virtualCostFactory = new PlanitComponentFactory<AbstractVirtualCost>(AbstractVirtualCost.class);
+    var virtualCostFactory = new PlanitComponentFactory<AbstractVirtualCost>(AbstractVirtualCost.class);
     virtualCostFactory.addListener(getInputBuilderListener());
     return virtualCostFactory.create(getConfigurator().getVirtualCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
   }
@@ -150,7 +148,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected GapFunction createGapFunctionInstance(StopCriterion stopCriterion) throws PlanItException {
-    PlanitComponentFactory<GapFunction> gapFunctionFactory = new PlanitComponentFactory<GapFunction>(GapFunction.class);
+    var gapFunctionFactory = new PlanitComponentFactory<GapFunction>(GapFunction.class);
     gapFunctionFactory.addListener(getInputBuilderListener());
     return gapFunctionFactory.create(getConfigurator().getGapFunction().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken(), stopCriterion });
   }
@@ -166,14 +164,14 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
 
     // smoothing
     if (getConfigurator().getSmoothing() != null) {
-      Smoothing smoothing = createSmoothingInstance();
+      var smoothing = createSmoothingInstance();
       getConfigurator().getSmoothing().configure(smoothing);
       trafficAssignmentInstance.setSmoothing(smoothing);
     }
 
     // physical cost
     if (getConfigurator().getPhysicalCost() != null) {
-      AbstractPhysicalCost physicalCost = createPhysicalCostInstance();
+      var physicalCost = createPhysicalCostInstance();
       getConfigurator().getPhysicalCost().configure(physicalCost);
       trafficAssignmentInstance.setPhysicalCost(physicalCost);
 
@@ -189,7 +187,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
 
     // virtual cost
     if (getConfigurator().getVirtualCost() != null) {
-      AbstractVirtualCost virtualCost = createVirtualCostInstance();
+      var virtualCost = createVirtualCostInstance();
       getConfigurator().getVirtualCost().configure(virtualCost);
       trafficAssignmentInstance.setVirtualCost(virtualCost);
 
@@ -207,10 +205,10 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
       // yet, the stop criterion is the only sub component and it will likely be moved,
       // also there is only one stop criterion available at present. Therefore, we construct
       // it here instead for now.
-      StopCriterion stopCriterion = new StopCriterion();
+      var stopCriterion = new StopCriterion();
       getConfigurator().getGapFunction().getStopCriterion().configure(stopCriterion);
 
-      GapFunction gapFunction = createGapFunctionInstance(stopCriterion);
+      var gapFunction = createGapFunctionInstance(stopCriterion);
       getConfigurator().getGapFunction().configure(gapFunction);
       trafficAssignmentInstance.setGapFunction(gapFunction);
     }

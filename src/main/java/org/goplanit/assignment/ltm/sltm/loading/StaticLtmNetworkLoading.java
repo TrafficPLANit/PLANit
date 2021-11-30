@@ -1,7 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
 import java.util.Iterator;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -129,10 +128,10 @@ public abstract class StaticLtmNetworkLoading {
 
       /* r_a = q_a */
       double[] currReceivingFlows = this.receivingFlowData.getCurrentReceivingFlows();
-      for (MacroscopicLinkSegment linkSegment : getUsedNetworkLayer().getLinkSegments()) {
+      for (var linkSegment : getUsedNetworkLayer().getLinkSegments()) {
         currReceivingFlows[(int) linkSegment.getId()] = linkSegment.getCapacityOrDefaultPcuH();
       }
-      for (ConnectoidSegment connectoidSegment : network.getVirtualNetwork().getConnectoidSegments()) {
+      for (var connectoidSegment : network.getVirtualNetwork().getConnectoidSegments()) {
         currReceivingFlows[(int) connectoidSegment.getId()] = connectoidSegment.getCapacityOrDefaultPcuH();
       }
       LinkSegmentData.copyTo(currReceivingFlows, receivingFlowData.getNextReceivingFlows());
@@ -221,15 +220,15 @@ public abstract class StaticLtmNetworkLoading {
    * @param acceptedTurnFlows to use to determine splitting rates (multikey is entrysegment,exitsegment of turn)
    */
   private void updateNextSplittingRates(final MultiKeyMap<Object, Double> acceptedTurnFlows) {
-    Set<DirectedVertex> trackedNodes = splittingRateData.getTrackedNodes();
-    for (DirectedVertex node : trackedNodes) {
-      for (EdgeSegment entrySegment : node.getEntryEdgeSegments()) {
+    var trackedNodes = splittingRateData.getTrackedNodes();
+    for (var node : trackedNodes) {
+      for (var entrySegment : node.getEntryEdgeSegments()) {
 
         /* construct splitting rates by first imposing absolute turn flows */
         Array1D<Double> nextSplittingRates = splittingRateData.getSplittingRates(entrySegment);
         nextSplittingRates.reset();
         int index = 0;
-        for (EdgeSegment exitSegment : node.getExitEdgeSegments()) {
+        for (var exitSegment : node.getExitEdgeSegments()) {
           /* assume no uturn flow allowed */
           if (entrySegment.idEquals(exitSegment)) {
             continue;
@@ -263,7 +262,7 @@ public abstract class StaticLtmNetworkLoading {
     double[] sendingFlows = this.sendingFlowData.getCurrentSendingFlows();
 
     /* For each tracked node */
-    for (DirectedVertex trackedNode : splittingRateData.getTrackedNodes()) {
+    for (var trackedNode : splittingRateData.getTrackedNodes()) {
 
       /* tracked but non-blocking or centroid is notified as non-blocking */
       if (!splittingRateData.isPotentiallyBlocking(trackedNode) || trackedNode instanceof Centroid) {
@@ -277,17 +276,17 @@ public abstract class StaticLtmNetworkLoading {
       // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
 
       /* C_a : in Array1D form */
-      Array1D<Double> inCapacities = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfEntryEdgeSegments());
+      var inCapacities = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfEntryEdgeSegments());
       int index = 0;
-      for (EdgeSegment entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
+      for (var entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
         inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH());
       }
 
       /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
       @SuppressWarnings("unchecked")
-      Access1D<Double>[] tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[trackedNode.sizeOfEntryEdgeSegments()];
+      var tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[trackedNode.sizeOfEntryEdgeSegments()];
       int entryIndex = 0;
-      for (Iterator<EdgeSegment> iter = trackedNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
+      for (var iter = trackedNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
         EdgeSegment entryEdgeSegment = iter.next();
         /* s_ab = s_a*phi_ab */
         double sendingFlow = sendingFlows[(int) entryEdgeSegment.getId()];
@@ -298,15 +297,15 @@ public abstract class StaticLtmNetworkLoading {
       Array2D<Double> turnSendingFlows = Array2D.PRIMITIVE64.rows(tunSendingFlowsByEntryLinkSegment);
 
       /* r_a : in Array1D form */
-      Array1D<Double> outReceivingFlows = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfExitEdgeSegments());
+      var outReceivingFlows = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfExitEdgeSegments());
       index = 0;
-      for (EdgeSegment exitEdgeSegment : trackedNode.getExitEdgeSegments()) {
+      for (var exitEdgeSegment : trackedNode.getExitEdgeSegments()) {
         outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).getCapacityOrDefaultPcuH());
       }
 
       /* Kappa(s,r,phi) : node model update */
       try {
-        TampereNodeModel nodeModel = new TampereNodeModel(new TampereNodeModelInput(new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingFlows));
+        var nodeModel = new TampereNodeModel(new TampereNodeModelInput(new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingFlows));
         Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
 
         /* delegate to consumer */

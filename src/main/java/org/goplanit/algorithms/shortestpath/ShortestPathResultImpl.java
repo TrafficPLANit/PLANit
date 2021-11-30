@@ -49,11 +49,11 @@ public class ShortestPathResultImpl implements ShortestPathResult {
   @Override
   public DirectedPath createPath(final DirectedPathFactory pathFactory, Vertex origin, Vertex destination) {
     // path edge segment container
-    final Deque<EdgeSegment> pathEdgeSegments = new LinkedList<EdgeSegment>();
+    final Deque<EdgeSegment> pathEdgeSegments = new LinkedList<>();
 
     // prep
     int vertexId = (int) destination.getId();
-    EdgeSegment previousEdgeSegmentOnPath = incomingEdgeSegment[vertexId];
+    var previousEdgeSegmentOnPath = incomingEdgeSegment[vertexId];
     final int originVertexId = (int) origin.getId();
 
     // extract path

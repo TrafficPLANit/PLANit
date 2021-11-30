@@ -24,10 +24,10 @@ import org.goplanit.output.formatter.OutputFormatter;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.sdinteraction.smoothing.SmoothingConfigurator;
 import org.goplanit.sdinteraction.smoothing.SmoothingConfiguratorFactory;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.builder.Configurator;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.time.TimePeriod;
+import org.goplanit.zoning.Zoning;
 
 /**
  * Configurator class for traffic assignment. Hides builder pattern from user while allowing for easy way to configure an assignment without having actual access to it.
@@ -246,7 +246,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   public void registerInitialLinkSegmentCost(InitialLinkSegmentCost initialLinkSegmentCost) {
     registerInitialLinkSegmentCost(initialLinkSegmentCost.getTimePeriodAgnosticCosts());
     if (initialLinkSegmentCost.getTimePeriods() != null) {
-      for (TimePeriod timePeriod : initialLinkSegmentCost.getTimePeriods()) {
+      for (var timePeriod : initialLinkSegmentCost.getTimePeriods()) {
         registerInitialLinkSegmentCost(initialLinkSegmentCost.getTimePeriodCosts(timePeriod));
       }
     }

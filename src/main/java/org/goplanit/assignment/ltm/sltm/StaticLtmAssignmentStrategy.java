@@ -13,7 +13,6 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.network.virtual.VirtualNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
@@ -278,7 +277,7 @@ public abstract class StaticLtmAssignmentStrategy {
 
       /* only update when node is both (flow) tracked as well as potentially blocking */
       boolean currentlyPotentiallyBlocking = false;
-      for (DirectedVertex trackedFlowNode : splittingRateData.getTrackedNodes()) {
+      for (var trackedFlowNode : splittingRateData.getTrackedNodes()) {
         currentlyPotentiallyBlocking = splittingRateData.isPotentiallyBlocking(trackedFlowNode);
         if (!currentlyPotentiallyBlocking && !prevIterationPotentiallyBlocking.get((int) trackedFlowNode.getId())) {
           continue;

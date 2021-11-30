@@ -7,7 +7,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
 import org.goplanit.algorithms.shortestpath.ShortestPathResult;
 import org.goplanit.assignment.StaticTrafficAssignment;
 import org.goplanit.cost.Cost;
@@ -23,7 +22,6 @@ import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.configuration.OdOutputTypeConfiguration;
 import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.output.enums.OutputType;
-import org.goplanit.output.enums.SubOutputTypeEnum;
 import org.goplanit.path.DirectedPathFactoryImpl;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -32,11 +30,9 @@ import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
-import org.goplanit.utils.od.OdDataIterator;
 import org.goplanit.utils.path.DirectedPath;
 import org.goplanit.utils.path.DirectedPathFactory;
 import org.goplanit.utils.time.TimePeriod;
@@ -93,10 +89,10 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   protected void verifyNetworkDemandZoningCompatibility() throws PlanItException {
     /* network compatibility */
     PlanItException.throwIf(!(getInfrastructureNetwork() instanceof MacroscopicNetwork), "Traditional static assignment is only compatible with macroscopic networks");
-    MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) getInfrastructureNetwork();
+    var macroscopicNetwork = (MacroscopicNetwork) getInfrastructureNetwork();
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
         "Traditional static assignment  is currently only compatible with networks using a single infrastructure layer");
-    MacroscopicNetworkLayer infrastructureLayer = macroscopicNetwork.getTransportLayers().getFirst();
+    var infrastructureLayer = macroscopicNetwork.getTransportLayers().getFirst();
     if (getInfrastructureNetwork().getModes().size() != infrastructureLayer.getSupportedModes().size()) {
       LOGGER.warning("network wide modes do not match modes supported by the single available layer, consider removing unused modes");
     }
@@ -130,7 +126,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     simulationData = new TraditionalStaticAssignmentSimulationData(getIdGroupingToken());
     simulationData.setIterationIndex(0);
     simulationData.getModeSpecificData().clear();
-    for (final Mode mode : modes) {
+    for (var mode : modes) {
       // flow initialisation
       simulationData.getModeSpecificData().put(mode, new ModeData(new double[getTotalNumberOfNetworkSegments()]));
       // cost initialisation
@@ -177,12 +173,11 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   private void executeTimePeriodAndMode(final Mode mode, final TimePeriod timePeriod, final ModeData currentModeData, final double[] modalNetworkSegmentCosts)
       throws PlanItException {
 
-    final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, getTotalNumberOfNetworkSegments(),
-        getTotalNumberOfNetworkVertices());
+    final var shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, getTotalNumberOfNetworkSegments(), getTotalNumberOfNetworkVertices());
     final OdDemands odDemands = getDemands().get(mode, timePeriod);
 
-    final LinkBasedRelativeDualityGapFunction dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
-    final OdPathMatrix odpathMatrix = simulationData.getOdPathMatrix(mode);
+    final var dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
+    final var odpathMatrix = simulationData.getOdPathMatrix(mode);
     final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
 
     // loop over all available OD demands
@@ -190,7 +185,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     // track the cost to reach each vertex in the network and the shortest path
     // segment used to get there
     ShortestPathResult shortestPathResult = null;
-    for (final OdDataIterator<Double> odDemandMatrixIter = odDemands.iterator(); odDemandMatrixIter.hasNext();) {
+    for (final var odDemandMatrixIter = odDemands.iterator(); odDemandMatrixIter.hasNext();) {
       final double odDemand = odDemandMatrixIter.next();
       final Zone currentOriginZone = odDemandMatrixIter.getCurrentOrigin();
       final Zone currentDestinationZone = odDemandMatrixIter.getCurrentDestination();
@@ -319,8 +314,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       final double odDemand, final ShortestPathResult shortestPathResult) {
 
     if (getOutputManager().isOutputTypeActive(OutputType.OD)) {
-      Set<SubOutputTypeEnum> activeSubOutputTypes = ((OdOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD)).getActiveSubOutputTypes();
-      for (final SubOutputTypeEnum odSkimOutputType : activeSubOutputTypes) {
+      var activeSubOutputTypes = ((OdOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD)).getActiveSubOutputTypes();
+      for (final var odSkimOutputType : activeSubOutputTypes) {
         if (odSkimOutputType.equals(OdSkimSubOutputType.COST)) {
 
           // Collect cost to get to vertex from shortest path ONE-TO-ALL information directly

@@ -194,7 +194,7 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
   public void activateNodeTrackingFor(final Pas newPas) {
     /* only when not all turn flows are tracked, we must expand the tracked nodes, otherwise they are already available */
     if(!isTrackAllNodeTurnFlows()) {
-      SplittingRateDataPartial pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.getSplittingRateData();
+      var pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.getSplittingRateData();
       boolean lowCostSegment = true;
       newPas.forEachVertex(lowCostSegment, (v) -> {
         if(!pointQueueBasicSplittingRates.isTracked(v)) 

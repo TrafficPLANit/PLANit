@@ -1,6 +1,5 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.goplanit.od.path.OdPaths;
@@ -74,8 +73,8 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
     }
 
     /* turn */
-    Iterator<EdgeSegment> edgeSegmentIter = odPath.iterator();
-    EdgeSegment previousEdgeSegment = edgeSegmentIter.next();
+    var edgeSegmentIter = odPath.iterator();
+    var previousEdgeSegment = edgeSegmentIter.next();
     EdgeSegment currEdgeSegment = null;
     while (edgeSegmentIter.hasNext()) {
       currEdgeSegment = edgeSegmentIter.next();

@@ -3,11 +3,11 @@ package org.goplanit.algorithms.nodemodel;
 import java.util.ArrayList;
 import java.util.Set;
 
-import org.ojalgo.array.Array1D;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.ojalgo.array.Array1D;
 
 /**
  * Inner class that holds the mapping of the inputs to/from the underlying physical network (if any). Currently we support the PLANit network format for this mapping, or one
@@ -36,7 +36,7 @@ public class TampereNodeModelFixedInput {
   private void mapLinkSegments(ArrayList<MacroscopicLinkSegment> linkSegments, Set<EdgeSegment> edgeSegments) throws PlanItException {
     PlanItException.throwIf(edgeSegments == null, "edge segments to map are null");
 
-    for (EdgeSegment incomingLinkSegment : edgeSegments) {
+    for (var incomingLinkSegment : edgeSegments) {
       PlanItException.throwIf(!(incomingLinkSegment instanceof MacroscopicLinkSegment), "Edges of node are not of type MacroScopicLinkSegment when mapping in Tampere node model");
 
       linkSegments.add((MacroscopicLinkSegment) incomingLinkSegment);
@@ -54,7 +54,7 @@ public class TampereNodeModelFixedInput {
     PlanItException.throwIf(linkSegments == null, "link segments to extract capacity from are null");
 
     arrayToInitialise = Array1D.PRIMITIVE64.makeZero(linkSegments.size());
-    for (MacroscopicLinkSegment linkSegment : linkSegments) {
+    for (var linkSegment : linkSegments) {
       arrayToInitialise.add(linkSegment.getCapacityOrDefaultPcuH());
     }
   }

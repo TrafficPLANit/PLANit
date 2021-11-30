@@ -102,7 +102,7 @@ public class StaticLtmLinkOutputTypeAdapter extends MacroscopicLinkOutputTypeAda
   private Optional<Double> getVcRatio(final MacroscopicLinkSegment linkSegment) throws PlanItException {
     double totalFlow = 0.0;
     // future implementation might support more than one mode
-    for (final Mode mode : List.of(getAssignment().getStrategy().getLoading().getSupportedMode())) {
+    for (var mode : List.of(getAssignment().getStrategy().getLoading().getSupportedMode())) {
       totalFlow += getInFlowPcuHour(linkSegment, mode).get();
     }
     final double capacityPerLane = getCapacityPerLanePcuHour(linkSegment).get();

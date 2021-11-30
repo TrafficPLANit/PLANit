@@ -61,7 +61,7 @@ public class SplittingRateDataComplete implements SplittingRateData {
   public void activateNode(DirectedVertex trackedNode) {
     int numberOfExitLinkSegments = trackedNode.getExitEdgeSegments().size();
     activatedNodes.add(trackedNode);
-    for (EdgeSegment entrySegment : trackedNode.getEntryEdgeSegments()) {
+    for (var entrySegment : trackedNode.getEntryEdgeSegments()) {
       initialiseSplittingRates(entrySegment, numberOfExitLinkSegments);
     }
   }

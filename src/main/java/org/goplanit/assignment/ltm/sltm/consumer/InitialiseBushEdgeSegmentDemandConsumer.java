@@ -59,7 +59,7 @@ public class InitialiseBushEdgeSegmentDemandConsumer implements Consumer<EdgeSeg
    * @param edgeSegment incoming segment to relabel for
    */
   private void relabelDivergingFlow(final EdgeSegment edgeSegment) {
-    for (EdgeSegment exitSegment : edgeSegment.getDownstreamVertex().getExitEdgeSegments()) {
+    for (var exitSegment : edgeSegment.getDownstreamVertex().getExitEdgeSegments()) {
       double flowToRelabel = originBush.getTurnSendingFlow(edgeSegment, mostRecentMergedWithLabel, exitSegment, mostRecentMergedWithLabel);
       if (Precision.isPositive(flowToRelabel)) {
         originBush.relabel(edgeSegment, mostRecentMergedWithLabel, exitSegment, mostRecentMergedWithLabel, currentCompositionLabel);
@@ -89,7 +89,7 @@ public class InitialiseBushEdgeSegmentDemandConsumer implements Consumer<EdgeSeg
      * when a preceding destination already used the link segment, we must now trigger relabelling since the composition changes due to diverging flows downstream
      */
     if (originBush.hasFlowCompositionLabel(edgeSegment)) {
-      BushFlowCompositionLabel newMergingLabel = originBush.getFlowCompositionLabels(edgeSegment).iterator().next(); // only single label can be present
+      var newMergingLabel = originBush.getFlowCompositionLabels(edgeSegment).iterator().next(); // only single label can be present
       if (mostRecentMergedWithLabel == null) {
         this.mostRecentMergedWithLabel = newMergingLabel;
         this.currentCompositionLabel = originBush.createFlowCompositionLabel();
