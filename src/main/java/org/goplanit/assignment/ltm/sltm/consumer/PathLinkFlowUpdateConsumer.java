@@ -11,11 +11,11 @@ import org.goplanit.utils.graph.EdgeSegment;
  * @author markr
  *
  */
-public class PathLinkSendingFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFlowUpdateData> {
+public class PathLinkFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkFlowUpdateData> {
 
   /** logger to use */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(PathLinkSendingFlowUpdateConsumer.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(PathLinkFlowUpdateConsumer.class.getCanonicalName());
 
   /**
    * For each entry segment update the in(sending)flow
@@ -49,7 +49,7 @@ public class PathLinkSendingFlowUpdateConsumer extends PathFlowUpdateConsumer<Ne
    * @param dataConfig containing data configuration to use
    * @param odPaths    to use
    */
-  public PathLinkSendingFlowUpdateConsumer(final NetworkFlowUpdateData dataConfig, final OdPaths odPaths) {
+  public PathLinkFlowUpdateConsumer(final NetworkFlowUpdateData dataConfig, final OdPaths odPaths) {
     super(dataConfig, odPaths);
   }
 

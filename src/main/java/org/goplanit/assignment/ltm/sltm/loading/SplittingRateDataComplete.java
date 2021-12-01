@@ -1,7 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.EdgeSegment;
@@ -24,7 +23,7 @@ public class SplittingRateDataComplete implements SplittingRateData {
   private static final Logger LOGGER = Logger.getLogger(SplittingRateDataComplete.class.getCanonicalName());
 
   /** the activated nodes for which we are tracking splitting rates for their entry link segments */
-  private final Set<DirectedVertex> activatedNodes;
+  private final TreeSet<DirectedVertex> activatedNodes;
 
   /**
    * Splitting rates per link segment (as different lengths Array1D), only activated link segments will have an actual instantiation of the splitting rate array to minimise memory
@@ -50,7 +49,7 @@ public class SplittingRateDataComplete implements SplittingRateData {
   public SplittingRateDataComplete(long numberOfLinkSegments) {
     super();
     this.splittingRates = new Object[(int) numberOfLinkSegments];
-    this.activatedNodes = new HashSet<DirectedVertex>();
+    this.activatedNodes = new TreeSet<DirectedVertex>();
   }
 
   /**
@@ -86,7 +85,7 @@ public class SplittingRateDataComplete implements SplittingRateData {
    * {@inheritDoc}
    */
   @Override
-  public Set<DirectedVertex> getTrackedNodes() {
+  public TreeSet<DirectedVertex> getTrackedNodes() {
     return this.activatedNodes;
   }
 

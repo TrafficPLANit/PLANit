@@ -75,13 +75,15 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
 
   /**
    * Update(increase) the (network) flows based on the bush at hand as dictated by the data configuration
+   * 
+   * {@inheritDoc}
    */
   @Override
   public void accept(final Bush originBush) {
     /*
      * track bush sending flows propagated from the origin Note: We cannot use the bush's own turn sending flows because we are performing a network loading based on the most
      * recent bush's splitting rates, we only use the bush's sending flows for bush flow shifts. The bush's sending flows are updated AFTER the network loading is complete
-     * (converged) by using the network splitting rates and reduction factors
+     * (converged) by using the network reduction factors
      */
 
     /* key is segment+label, value is sending flow */
@@ -113,14 +115,19 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
         for (var entrylabel : usedLabels) {
           double bushLinkLabelSendingFlow = bushSendingFlows.get(entrySegment, entrylabel);
 
-          /* s_a = u_a */
-          if (dataConfig.updateLinkSendingFlows) {
+          /* s_a = SUM(u^o_a) (only when enabled) */
+          if (dataConfig.isSendingflowsUpdate()) {
             dataConfig.sendingFlows[entrySegmentId] += bushLinkLabelSendingFlow;
           }
 
-          /* v_a = s_a * alpha_a */
+          /* v^o_a = s^o_a * alpha_a */
           double alpha = dataConfig.flowAcceptanceFactors[entrySegmentId];
           double bushEntryAcceptedFlow = bushLinkLabelSendingFlow * alpha;
+
+          /* v_a = SUM(v^o_a) (only when enabled) */
+          if (dataConfig.isOutflowsUpdate()) {
+            dataConfig.outFlows[entrySegmentId] += bushEntryAcceptedFlow;
+          }
 
           /*
            * update bush turn sending flows based on prev sending flow to loading based sending flow ratio this ensures the bush turn sending flows remain consistent with the
@@ -145,7 +152,7 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
               double splittingRate = splittingRates.get(exitSegment, exitLabel);
               if (Precision.isPositive(splittingRate)) {
 
-                /* v_ab = v_a * phi_ab */
+                /* v^o_ab = v^o_a * phi_ab */
                 double turnAcceptedFlow = bushEntryAcceptedFlow * splittingRate;
                 Double exitLabelFlowToUpdate = bushSendingFlows.get(exitSegment, exitLabel);
                 if (exitLabelFlowToUpdate == null) {

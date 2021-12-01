@@ -1,6 +1,7 @@
 package org.goplanit.assignment.ltm.sltm;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.List;
@@ -574,6 +575,10 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
             
       /* PAS COST UPDATE*/
       pasManager.updateCosts(costsToUpdate);
+      
+      LOGGER.severe(String.format("** COSTS: %s", Arrays.toString(costsToUpdate)));
+      LOGGER.severe(String.format("** INFLOW: %s", Arrays.toString(getLoading().getCurrentInflowsPcuH())));
+      LOGGER.severe(String.format("** OUTFLOW: %s", Arrays.toString(getLoading().getCurrentOutflowsPcuH())));
     
       /* (NEW) PAS MATCHING FOR BUSHES */
       Collection<Pas> newPass = extendBushes(costsToUpdate);      

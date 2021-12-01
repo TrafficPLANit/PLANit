@@ -2,12 +2,12 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -57,12 +57,12 @@ public class Pas {
    * @param s1MatchingLabelsToFill map to populate with the new label
    * @return pasS1EndLabelRates created indicating 1 (100%) of flow is allocated to the new label on the final segment of s1
    */
-  private Map<BushFlowCompositionLabel, Double> initialiseS1Labelling(final Bush origin, Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> s1MatchingLabelsToFill) {
+  private TreeMap<BushFlowCompositionLabel, Double> initialiseS1Labelling(final Bush origin, Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> s1MatchingLabelsToFill) {
     var pasS1Label = origin.createFlowCompositionLabel();
     s1MatchingLabelsToFill.put(pasS1Label, new ArrayList<BushFlowCompositionLabel>(1));
     s1MatchingLabelsToFill.get(pasS1Label).add(pasS1Label);
 
-    Map<BushFlowCompositionLabel, Double> pasS1EndLabelRates = new HashMap<>();
+    var pasS1EndLabelRates = new TreeMap<BushFlowCompositionLabel, Double>();
     pasS1EndLabelRates.put(pasS1Label, 1.0);
 
     return pasS1EndLabelRates;
@@ -182,9 +182,9 @@ public class Pas {
    * @param lowCostSegment the segment to verify against
    * @return found matching composition labels as keys, where the values are an ordered list of encountered composite labels when traversing along the PAS (if any)
    */
-  private Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> determineMatchingLabels(final Bush originBush, boolean lowCostSegment) {
+  private TreeMap<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> determineMatchingLabels(final Bush originBush, boolean lowCostSegment) {
     var edgeSegmentCompositionLabels = originBush.getFlowCompositionLabels(getLastEdgeSegment(lowCostSegment));
-    Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> pasCompositionLabels = new HashMap<>();
+    var pasCompositionLabels = new TreeMap<BushFlowCompositionLabel, List<BushFlowCompositionLabel>>();
     if (edgeSegmentCompositionLabels == null || edgeSegmentCompositionLabels.isEmpty()) {
       return pasCompositionLabels;
     }
@@ -244,7 +244,7 @@ public class Pas {
    * @return s2DivergeTurnLabelProportionsToPopulate to populate, only entries for used labels will be present
    */
   private MultiKeyMap<Object, Double> createS2DivergeProportionsByTurnLabels(Bush origin,
-      Map<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> pasS2EndFlowCompositionLabels, Map<BushFlowCompositionLabel, Double> pasS2EndLabelRates,
+      TreeMap<BushFlowCompositionLabel, List<BushFlowCompositionLabel>> pasS2EndFlowCompositionLabels, Map<BushFlowCompositionLabel, Double> pasS2EndLabelRates,
       final double[] flowAcceptanceFactors) {
 
     var firstS2EdgeSegment = getFirstEdgeSegment(false /* high cost segment */);
@@ -608,7 +608,7 @@ public class Pas {
       }
 
       /* exit turn flows out of s2 by used exit label - to be populated in s2 merge update for use by s1 update */
-      var s2MergeExitShiftedSendingFlows = new HashMap<BushFlowCompositionLabel, double[]>();
+      var s2MergeExitShiftedSendingFlows = new TreeMap<BushFlowCompositionLabel, double[]>();
       for (var mergeLabelEntry : pasS2EndLabelRates.entrySet()) {
 
         var finalSegmentLabel = mergeLabelEntry.getKey();
@@ -618,6 +618,9 @@ public class Pas {
         /* shift portion of flow attributed to composition label traversing s2 */
         double s2StartLabeledFlowShift = mergeLabelEntry.getValue() * bushFlowShift;
         double s2FinalLabeledFlowShift = executeBushLabeledAlternativeFlowShift(origin, reverseOrderS2Labels, -s2StartLabeledFlowShift, s2, flowAcceptanceFactors, false);
+
+        LOGGER.severe(String.format("** S2 SHIFT: label start %d, end %d, flow shift start %.10f, end %.10f", initialSegmentLabel.getLabelId(), finalSegmentLabel.getLabelId(),
+            s2StartLabeledFlowShift, s2FinalLabeledFlowShift));
 
         /* shift flow across final merge for S2 */
         executeBushLabeledS2FlowShiftEndMerge(origin, finalSegmentLabel, s2FinalLabeledFlowShift, s2MergeExitShiftedSendingFlows);
@@ -642,7 +645,7 @@ public class Pas {
        */
       var pasS1EndLabels = determineMatchingLabels(origin, true /* low cost segment */);
       final boolean s1SegmentNotUsedYet = pasS1EndLabels.isEmpty();
-      Map<BushFlowCompositionLabel, Double> pasS1EndLabelRates = null;
+      TreeMap<BushFlowCompositionLabel, Double> pasS1EndLabelRates = null;
       if (s1SegmentNotUsedYet) {
         pasS1EndLabelRates = initialiseS1Labelling(origin, pasS1EndLabels);
 
@@ -664,6 +667,9 @@ public class Pas {
         double s1StartLabeledFlowShift = labelEntry.getValue() * bushFlowShift;
         double s1FinalLabeledFlowShift = executeBushLabeledAlternativeFlowShift(origin, reverseOrderS1Labels, s1StartLabeledFlowShift, s1, flowAcceptanceFactors,
             s1SegmentNotUsedYet);
+
+        LOGGER.severe(String.format("** S1 SHIFT: label start %d, end %d, flow shift start %.10f, end %.10f", initialSegmentLabel.getLabelId(), finalSegmentLabel.getLabelId(),
+            s1StartLabeledFlowShift, s1FinalLabeledFlowShift));
 
         /* shift flow across final merge for S1 based on findings in s2 */
         executeBushLabeledS1FlowShiftEndMerge(origin, finalSegmentLabel, s1FinalLabeledFlowShift, s2MergeExitShiftedSplittingRates);

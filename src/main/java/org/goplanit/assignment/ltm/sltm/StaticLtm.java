@@ -173,8 +173,12 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   private void persistIterationResults(TimePeriod timePeriod, Mode theMode, boolean converged) throws PlanItException {
     var modes = Set.of(theMode);
     if (getOutputManager().isAnyOutputPersisted(timePeriod, modes, converged)) {
-      assignmentStrategy.getLoading().populateForPersistence();
+      assignmentStrategy.getLoading().stepSixFinaliseForPersistence();
       getOutputManager().persistOutputData(timePeriod, modes, converged);
+
+      LOGGER.severe(String.format("** INFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentInflowsPcuH())));
+      LOGGER.severe(String.format("** OUTFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentOutflowsPcuH())));
+      LOGGER.severe(String.format("** ALPHA: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentFlowAcceptanceFactors())));
     }
   }
 

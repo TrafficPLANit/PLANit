@@ -2,12 +2,11 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -514,10 +513,10 @@ public class Bush implements IdAble {
    * @param pasFlowCompositionLabels to determine relative proportions for based on total flow across provided labels on the link segment
    * @return the rates at hand for each found composition label
    */
-  public Map<BushFlowCompositionLabel, Double> determineProportionalFlowCompositionRates(final EdgeSegment edgeSegment,
+  public TreeMap<BushFlowCompositionLabel, Double> determineProportionalFlowCompositionRates(final EdgeSegment edgeSegment,
       final Set<BushFlowCompositionLabel> pasFlowCompositionLabels) {
     double totalSendingFlow = 0;
-    Map<BushFlowCompositionLabel, Double> rateMap = new HashMap<>();
+    var rateMap = new TreeMap<BushFlowCompositionLabel, Double>();
     for (var label : pasFlowCompositionLabels) {
       double labelFlow = bushData.getTotalSendingFlowPcuH(edgeSegment, label);
       rateMap.put(label, labelFlow);
@@ -532,23 +531,12 @@ public class Bush implements IdAble {
   }
 
   /**
-   * Determine the composition exit labels on exit segments that have positive flow on the turn with the provided edge segment and composition label
-   * 
-   * @param edgeSegment      incoming turn segment
-   * @param compositionLabel filter by label, i.e., only flow emanating from this label towards exit segments is considered
-   * @return used labels on any exit segment with positive from frmo entry segment with given entry label
-   */
-  public List<BushFlowCompositionLabel> determineUsedTurnCompositionLabels(final EdgeSegment edgeSegment, final BushFlowCompositionLabel compositionLabel) {
-    return bushData.determineUsedTurnCompositionLabels(edgeSegment, compositionLabel);
-  }
-
-  /**
    * The labels present for the given segment
    * 
    * @param edgeSegment to collect composition labels for
    * @return the flow composition labels found
    */
-  public Set<BushFlowCompositionLabel> getFlowCompositionLabels(EdgeSegment edgeSegment) {
+  public TreeSet<BushFlowCompositionLabel> getFlowCompositionLabels(EdgeSegment edgeSegment) {
     return bushData.getFlowCompositionLabels(edgeSegment);
   }
 

@@ -1,6 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
-import java.util.Set;
+import java.util.TreeSet;
 
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -41,7 +41,7 @@ public interface SplittingRateData {
    * 
    * @return registered potentially blocking nodes
    */
-  public abstract Set<DirectedVertex> getTrackedNodes();
+  public abstract TreeSet<DirectedVertex> getTrackedNodes();
 
   /**
    * Obtain the downstream splitting rates of given node entry segment (can be modified)

@@ -1,6 +1,7 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
 import org.goplanit.assignment.ltm.sltm.LinkSegmentData;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 
 /**
  * During sLTM loading we use temporary inflow and outflow rates resulting from node model updates. These flows are then used to determine the factors for the relevant algorithm
@@ -70,5 +71,9 @@ public class InflowOutflowData extends LinkSegmentData {
   public void reset() {
     resetInflows();
     resetOutflows();
+  }
+
+  public void limitOutflowsToCapacity(MacroscopicLinkSegments linkSegments) {
+    limitFlowsToCapacity(getOutflows(), linkSegments);
   }
 }

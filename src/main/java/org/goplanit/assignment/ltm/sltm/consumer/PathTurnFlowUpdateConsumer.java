@@ -44,13 +44,19 @@ public class PathTurnFlowUpdateConsumer extends PathFlowUpdateConsumer<NetworkTu
       int prevSegmentId = (int) prevSegment.getId();
 
       /* s_a = u_a where we only need to update the sending flows of tracked turns */
-      if (dataConfig.updateLinkSendingFlows) {
+      if (dataConfig.isSendingflowsUpdate()) {
         dataConfig.sendingFlows[prevSegmentId] += turnSendingFlowPcuH;
       }
 
       /* v_ap = u_bp = alpha_a*...*f_p where we implicitly consider all preceding alphas (flow acceptance factors) up to now */
       double acceptedTurnFlowPcuH = turnSendingFlowPcuH * dataConfig.flowAcceptanceFactors[prevSegmentId];
       dataConfig.addToAcceptedTurnFlows(prevSegment, currentSegment, acceptedTurnFlowPcuH);
+
+      /* v_a = SUM(v_ap) (only when enabled) */
+      if (dataConfig.isOutflowsUpdate()) {
+        dataConfig.outFlows[prevSegmentId] += acceptedTurnFlowPcuH;
+      }
+
       return acceptedTurnFlowPcuH;
     } else {
       return turnSendingFlowPcuH;

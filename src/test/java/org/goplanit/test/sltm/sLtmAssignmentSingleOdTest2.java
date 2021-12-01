@@ -260,6 +260,7 @@ public class sLtmAssignmentSingleOdTest2 {
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
       double outflow0 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
@@ -279,8 +280,8 @@ public class sLtmAssignmentSingleOdTest2 {
       assertEquals(2000.0, outflow3, Precision.EPSILON_6);
       assertEquals(3521.575311898768, outflow4, Precision.EPSILON_6);
       assertEquals(outflow4, outflow5, Precision.EPSILON_6);
-      assertEquals(1987.8442545073424, outflow6, Precision.EPSILON_6);
-      assertEquals(1972.64957264152, outflow7, Precision.EPSILON_6);
+      assertEquals(1987.8442563194762, outflow6, Precision.EPSILON_6);
+      assertEquals(1972.649573691407, outflow7, Precision.EPSILON_6);
       assertEquals(outflow7, outflow8, Precision.EPSILON_6);
       assertEquals(888.8888888888889, outflow9, Precision.EPSILON_6);
 
@@ -312,7 +313,7 @@ public class sLtmAssignmentSingleOdTest2 {
       assertEquals(inflow4, 3521.575311898768, Precision.EPSILON_6);
       assertEquals(inflow5, inflow4, Precision.EPSILON_6);
       assertEquals(inflow6, inflow5, Precision.EPSILON_6);
-      assertEquals(inflow7, 1972.64957264152, Precision.EPSILON_6);
+      assertEquals(inflow7, 1972.649573691407, Precision.EPSILON_6);
       assertEquals(inflow8, inflow7, Precision.EPSILON_6);
       assertEquals(inflow9, inflow8, Precision.EPSILON_6);
 

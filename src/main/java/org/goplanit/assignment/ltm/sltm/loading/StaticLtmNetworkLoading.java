@@ -111,7 +111,7 @@ public abstract class StaticLtmNetworkLoading {
    */
   private void initialiseSendingFlows() {
     this.sendingFlowData.resetCurrentSendingFlows();
-    networkLoadingLinkSegmentInflowUpdate(this.sendingFlowData.getCurrentSendingFlows());
+    networkLoadingLinkSegmentSendingFlowUpdate();
     LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), this.sendingFlowData.getNextSendingFlows());
   }
 
@@ -480,6 +480,96 @@ public abstract class StaticLtmNetworkLoading {
     return true;
   }
 
+  /**
+   * Convenience method to collect the used layer for this loading
+   * 
+   * @return layer used
+   */
+  protected MacroscopicNetworkLayer getUsedNetworkLayer() {
+    return ((MacroscopicNetworkLayer) this.network.getInfrastructureNetwork().getLayerByMode(mode));
+  }
+
+  /**
+   * Get the transport model network
+   * 
+   * @return transport model network
+   */
+  protected TransportModelNetwork getTransportNetwork() {
+    return network;
+  }
+
+  /**
+   * access to od demands for loading
+   * 
+   * @return odDemands
+   */
+  protected OdDemands getOdDemands() {
+    return odDemands;
+  }
+
+  /**
+   * Verify if the sending flows are updated iteratively and locally in the Step 2 sending flow update. when not updated iteratively, only a single update is performed before doing
+   * another loading consistent with Bliemer et al. (2014). When updated iteratively, the solution scheme presented in Raadsen and Bliemer (2021) is active.
+   * 
+   * @return true when not in POINT_QUEUE_BASIC scheme, false otherwise
+   */
+  protected boolean isIterativeSendingFlowUpdateActivated() {
+    return !solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
+  }
+
+  /**
+   * Verify if all turn flows are to be tracked during loading.
+   * 
+   * @return false when POINT_QUEUE_BASIC solution scheme is active, true otherwise
+   */
+  protected boolean isTrackAllNodeTurnFlows() {
+    return !solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
+  }
+
+  /**
+   * For all nodes that have downstream link segments with sending flows that exceed their capacity, ensure they are registered as potentially blocking (if not already)
+   * 
+   * @param sendingFlowsPcuH to use
+   */
+  protected void updatePotentiallyBlockingNodes(final double[] sendingFlowsPcuH) {
+    SplittingRateDataPartial pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.splittingRateData;
+    pointQueueBasicSplittingRates.resetPotentiallyBlockingNodes();
+
+    for (MacroscopicLinkSegment linkSegment : getUsedNetworkLayer().getLinkSegments()) {
+      if (!pointQueueBasicSplittingRates.isPotentiallyBlocking(linkSegment.getUpstreamNode())) {
+        double capacity = linkSegment.getCapacityOrDefaultPcuH();
+        /* register if unconstrained flow exceeds capacity */
+        if (Precision.isGreater(sendingFlowsPcuH[(int) linkSegment.getId()], capacity)) {
+          pointQueueBasicSplittingRates.registerPotentiallyBlockingNode(linkSegment.getUpstreamNode());
+        }
+      }
+    }
+  }
+
+  /**
+   * For all nodes that have downstream link segments with positive sending flows, ensure they are activated for splitting rates (activation implies tracking and potentially
+   * blocking) if not already. To be used when we consider spillback or when we performing iterative local sending flow updates to propagate flows locally.
+   * 
+   * @param sendingFlowsPcuH to use
+   */
+  protected void activateAllUsedNodeSplittingRates(double[] sendingFlowsPcuH) {
+    // TODO: not great that we cast to implementation, would be better to use polymorphism to solve this by adding a register option on interface
+    SplittingRateDataComplete extendedSplittingRates = (SplittingRateDataComplete) this.splittingRateData;
+    for (MacroscopicLinkSegment linkSegment : getUsedNetworkLayer().getLinkSegments()) {
+      if (Precision.isPositive(sendingFlowsPcuH[(int) linkSegment.getId()])) {
+        extendedSplittingRates.activateNode(linkSegment.getUpstreamNode());
+      }
+    }
+    /* also add nodes of eligible connectoid segments (when they are not centroids) */
+    for (ConnectoidSegment connectoidSegment : getTransportNetwork().getZoning().getVirtualNetwork().getConnectoidSegments()) {
+      if (Precision.isPositive(sendingFlowsPcuH[(int) connectoidSegment.getId()])) {
+        /* activate both nodes, succeeding segments might not be available */
+        extendedSplittingRates.activateNode(connectoidSegment.getUpstreamVertex());
+        extendedSplittingRates.activateNode(connectoidSegment.getDownstreamVertex());
+      }
+    }
+  }
+
   //@formatter:off
   /**
    * Conduct a network loading to compute updated turn inflow rates u_ab: Eq. (3)-(4) in paper. We only consider turns on nodes that are tracked or activated to reduce
@@ -490,99 +580,17 @@ public abstract class StaticLtmNetworkLoading {
   protected abstract MultiKeyMap<Object, Double> networkLoadingTurnFlowUpdate();
 
   /**
-   * Conduct a network loading to compute updated inflow rates (without tracking turn flows): Eq. (3)-(4) in paper
+   * Conduct a network loading to compute updated current sending flow rates (without tracking turn flows): Eq. (3)-(4) in paper
+   */
+  protected abstract void networkLoadingLinkSegmentSendingFlowUpdate();
+
+  /**
+   * Conduct a network loading to compute updated current sending flow and outflow rates (without tracking turn flows). Used to finalise a loading after convergence
+   * to ensure consistency in flows that might be compromised during local updates
    * 
    * @param linkSegmentFlowArrayToFill the inflows (u_a) to update
-   */
-  protected abstract void networkLoadingLinkSegmentInflowUpdate(final double[] linkSegmentFlowArrayToFill);
-
-  /**
-   * Convenience method to collect the used layer for this loading
-   * 
-   * @return layer used
-   */
-  protected MacroscopicNetworkLayer getUsedNetworkLayer() {
-    return ((MacroscopicNetworkLayer) this.network.getInfrastructureNetwork().getLayerByMode(mode));
-  }
-  
-  /** Get the transport model network
-   * 
-   * @return transport model network
-   */
-  protected TransportModelNetwork getTransportNetwork() {
-    return network;
-  }
-  
-  /** access to od demands for loading
-   * 
-   * @return odDemands
-   */
-  protected OdDemands getOdDemands() {
-    return odDemands;
-  }
-  
-  /** Verify if the sending flows are updated iteratively and locally in the Step 2 sending flow update.
-   * when not updated iteratively, only a single update is performed before doing another loading consistent with Bliemer et al. (2014).
-   * When updated iteratively, the solution scheme presented in Raadsen and Bliemer (2021) is active. 
-   * 
-   * @return true when not in POINT_QUEUE_BASIC scheme, false otherwise
-   */
-  protected boolean isIterativeSendingFlowUpdateActivated() {
-    return !solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-  }
-
-  /** Verify if all turn flows are to be tracked during loading. 
-   * 
-   * @return false when POINT_QUEUE_BASIC solution scheme is active, true otherwise 
-   */
-  protected boolean isTrackAllNodeTurnFlows() {
-    return !solutionScheme.equals(StaticLtmLoadingScheme.POINT_QUEUE_BASIC);
-  }  
-
-  /**
-   * For all nodes that have downstream link segments with sending flows that exceed their capacity, ensure they are registered as potentially blocking (if not already)
-   * 
-   * @param sendingFlowsPcuH to use
-   */
-  protected void updatePotentiallyBlockingNodes(final double[] sendingFlowsPcuH) {
-    SplittingRateDataPartial pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.splittingRateData;
-    pointQueueBasicSplittingRates.resetPotentiallyBlockingNodes();
-    
-    for (MacroscopicLinkSegment linkSegment : getUsedNetworkLayer().getLinkSegments()) {
-      if(!pointQueueBasicSplittingRates.isPotentiallyBlocking(linkSegment.getUpstreamNode())){
-        double capacity = linkSegment.getCapacityOrDefaultPcuH();
-        /* register if unconstrained flow exceeds capacity */
-        if (Precision.isGreater(sendingFlowsPcuH[(int) linkSegment.getId()], capacity)) {
-          pointQueueBasicSplittingRates.registerPotentiallyBlockingNode(linkSegment.getUpstreamNode());
-        }
-      }
-    }  
-  }
-  
-  /**
-   * For all nodes that have downstream link segments with positive sending flows, 
-   * ensure they are activated for splitting rates (activation implies tracking and potentially blocking) if not already. 
-   * To be used when we consider spillback or when we performing iterative local sending flow updates to propagate flows locally.
-   * 
-   * @param sendingFlowsPcuH to use
    */  
-  protected void activateAllUsedNodeSplittingRates(double[] sendingFlowsPcuH) {
-    //TODO: not great that we cast to implementation, would be better to use polymorphism to solve this by adding a register option on interface
-    SplittingRateDataComplete extendedSplittingRates = (SplittingRateDataComplete) this.splittingRateData;
-    for (MacroscopicLinkSegment linkSegment : getUsedNetworkLayer().getLinkSegments()) {
-      if(Precision.isPositive(sendingFlowsPcuH[(int) linkSegment.getId()])){
-        extendedSplittingRates.activateNode(linkSegment.getUpstreamNode());
-      }
-    }
-    /* also add nodes of eligible connectoid segments (when they are not centroids) */
-    for (ConnectoidSegment connectoidSegment : getTransportNetwork().getZoning().getVirtualNetwork().getConnectoidSegments()) {
-      if(Precision.isPositive(sendingFlowsPcuH[(int) connectoidSegment.getId()])){
-        /* activate both nodes, succeeding segments might not be available */
-        extendedSplittingRates.activateNode(connectoidSegment.getUpstreamVertex());
-        extendedSplittingRates.activateNode(connectoidSegment.getDownstreamVertex());
-      }
-    }        
-  }
+  protected abstract void networkLoadingLinkSegmentSendingflowOutflowUpdate();
 
   /**
    * Let derived loading implementation initialise which nodes are to be tracked for network splitting rates, e.g.
@@ -905,6 +913,56 @@ public abstract class StaticLtmNetworkLoading {
     return converged;
   }
   
+  /**
+   * When loading has converged, outputs might be persisted for (intermediate) iterations. Since the loading does not always
+   * track the entire network for performance reasons. This method can be invoked before persisting results to populate the gaps
+   * (if any) regarding for example link in and outflows that might otherwise not be available, e.g. in the POINT_QUEUE_BASIC laoding scheme
+   * only potentially blocking nodes and their immediate links might be tracked on the network level. Whereas if we want to see the results of this
+   * iteration, we would want the full inflows/outflows on all links in the network. This is what this methods ensure with minimal overhead.
+   * <p>
+   * This is potentially costly, so ideally no intermediate results are persisted in such cases. 
+   */
+  public void stepSixFinaliseForPersistence() {
+    
+    /*
+     * Persistence requires all network data available, when not tracking entire network during loading
+     * we must now switch to full network tracking for persistence purpose. 
+     */
+    if (!isTrackAllNodeTurnFlows()) {
+      
+      /* tracks all node turn flows*/
+      this.solutionScheme = StaticLtmLoadingScheme.POINT_QUEUE_ADVANCED;
+      
+      /* prep: force single iteration on sending flow/inflow update */
+      int originalMaxIterations = this.sendingFlowGapFunction.getStopCriterion().getMaxIterations();
+      this.sendingFlowGapFunction.getStopCriterion().setMaxIterations(1);      
+      
+      /* update sending flows, inflows, outflows on all links with minimal overhead */
+      initialiseTrackAllNodeTurnFlows();           
+      
+      /* conduct full network loading to ensure all variables are available based on most recent route choice results */
+      {
+        stepOneSplittingRatesUpdate();
+        stepTwoInflowSendingFlowUpdate();      
+        stepThreeSplittingRateUpdate();
+        stepFourOutflowReceivingFlowUpdate();
+      }
+      
+      /* post */
+      this.sendingFlowGapFunction.getStopCriterion().setMaxIterations(originalMaxIterations);
+    }
+    
+    /* Do one final loading updating inflows and outflows simultaneously to ensure consistency in flows across network as local updates on sending/receiving and
+     * in/outflows might otherwise cause slight discrepancies in final result that look strange, e.g., outflow>inflow etc.
+     */
+    {
+      networkLoadingLinkSegmentSendingflowOutflowUpdate();
+      sendingFlowData.limitCurrentSendingFlowsToCapacity(getUsedNetworkLayer().getLinkSegments());
+      LinkSegmentData.copyTo(sendingFlowData.getCurrentSendingFlows(), inFlowOutflowData.getInflows());
+      inFlowOutflowData.limitOutflowsToCapacity(getUsedNetworkLayer().getLinkSegments());
+    }
+  }
+
   /** Verify if we are still converging
    * 
    * @return true when potentially still converging, false otherwise
@@ -955,41 +1013,6 @@ public abstract class StaticLtmNetworkLoading {
     }
     
     return solutionSchemeChanged;
-  }
-
-  /**
-   * When loading has converged, outputs might be persisted for (intermediate) iterations. Since the loading does not always
-   * track the entire network for performance reasons. This method can be invoked before persisting results to populate the gaps
-   * (if any) regarding for example link in and outflows that might otherwise not be available, e.g. in the POINT_QUEUE_BASIC laoding scheme
-   * only potentially blocking nodes and their immediate links might be tracked on the network level. Whereas if we want to see the results of this
-   * iteration, we would want the full inflows/outflows on all links in the network. This is what this methods ensure with minimal overhead.
-   * <p>
-   * This is potentially costly, so ideally no intermediate results are persisted in such cases. 
-   */
-  public void populateForPersistence() {
-    if (!isTrackAllNodeTurnFlows()) {
-      /* tracks all node turn flows, which is what we require */
-      this.solutionScheme = StaticLtmLoadingScheme.POINT_QUEUE_ADVANCED;
-      
-      /* prep: force single iteration on sending flow/inflow update */
-      int originalMaxIterations = this.sendingFlowGapFunction.getStopCriterion().getMaxIterations();
-      this.sendingFlowGapFunction.getStopCriterion().setMaxIterations(1);      
-      
-      /* update sending flows, inflows, outflows on all links with minimal overhead */
-      initialiseTrackAllNodeTurnFlows();
-      
-      /* now conduct a single network wide loading based on converged most recent iteration results (reduction factors) */
-      {
-        stepOneSplittingRatesUpdate();
-        stepTwoInflowSendingFlowUpdate();      
-        stepThreeSplittingRateUpdate();
-        stepFourOutflowReceivingFlowUpdate();
-        /* skip convergence check */
-      }
-      
-      /* post */
-      this.sendingFlowGapFunction.getStopCriterion().setMaxIterations(originalMaxIterations);
-    }
   }
 
   /** Collect the settings. Only make changes before running any of the loading steps, otherwise risk undefined 

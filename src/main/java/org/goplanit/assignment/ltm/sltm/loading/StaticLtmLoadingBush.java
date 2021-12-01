@@ -37,32 +37,64 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
   private PasManager pasManager;
 
   /**
+   * TODO: Create factory class for this
+   * <p>
    * Factory method to create the right flow update consumer to use when conducting a bush based flow update. We either create one that updates turn accepted flows (and possibly
-   * also sending flows), or one that only updates link sending flows. The latter is to be used for initialisation purposes only where the former is the one used during the
-   * iterative loading procedure.
+   * also sending flows), or one that only updates (network wide) link sending flows and/or link outflows. The latter is to be used for initialisation/finalisation purposes only.
+   * The former is the one used during the iterative loading procedure.
    * 
    * @param updateturnAcceptedFlows flag indicating if the turn accepted flows are to be updated by this consumer
-   * @param updateLinkSendingFlows  flag indicating if the link sending flow are to be updated by this consumer
+   * @param updateSendingFlows      flag indicating if the link sending flow are to be updated by this consumer
+   * @param updateOutflow           flag indicating if the link outflows are to be updated by this consumer
    * @return created flow update consumer
    */
-  private BushFlowUpdateConsumer<?> createBushFlowUpdateconsumer(boolean updateTurnAcceptedFlows, boolean updateLinkSendingFlows) {
+  private BushFlowUpdateConsumer<?> createBushFlowUpdateConsumer(boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows) {
+    if (!updateSendingFlows && !updateTurnAcceptedFlows) {
+      LOGGER.warning("Network flow updates using bushes must either updating link sending flows or turn accepted flows, neither are selected");
+      return null;
+    }
 
+    if (updateSendingFlows) {
+      sendingFlowData.reset();
+    }
+    if (updateOutflows) {
+      this.inFlowOutflowData.resetOutflows();
+    }
+
+    /* link based only */
+    if (!updateTurnAcceptedFlows) {
+      NetworkFlowUpdateData dataConfig = null;
+      if (updateOutflows) {
+        /* sending + outflow update only */
+        dataConfig = new NetworkFlowUpdateData(sendingFlowData, inFlowOutflowData, networkLoadingFactorData);
+      } else {
+        /* sending flow update only */
+        dataConfig = new NetworkFlowUpdateData(sendingFlowData, networkLoadingFactorData);
+      }
+      return new BushFlowUpdateConsumer<NetworkFlowUpdateData>(dataConfig);
+    }
+
+    /* turn based + optional link based */
     if (updateTurnAcceptedFlows) {
       NetworkTurnFlowUpdateData dataConfig = null;
-      if (updateLinkSendingFlows) {
-        sendingFlowData.reset();
-        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), sendingFlowData, splittingRateData, networkLoadingFactorData);
+      if (updateSendingFlows) {
+        if (updateOutflows) {
+          LOGGER.warning("Network flow updates using bushes cannot update turn accepted flows and outflows, this is not yet supported");
+          return null;
+        } else {
+          dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), sendingFlowData, splittingRateData, networkLoadingFactorData);
+        }
+      } else if (updateOutflows) {
+        LOGGER.warning("Network flow updates using bushes must either updating link sending flows and otuflows, or just turn accepted flows, neither are selected");
+        return null;
       } else {
         dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), splittingRateData, networkLoadingFactorData);
       }
       return new BushTurnFlowUpdateConsumer(dataConfig);
-    } else {
-      if (!updateLinkSendingFlows) {
-        LOGGER.warning("network flow updates using bushes must either updating link sending flows or turn accepted flows, neither are selected");
-        return null;
-      }
-      return new BushFlowUpdateConsumer<NetworkFlowUpdateData>(new NetworkFlowUpdateData(sendingFlowData, networkLoadingFactorData));
     }
+
+    LOGGER.warning("Invalid network flow update requested for bush absed laoding");
+    return null;
   }
 
   /**
@@ -95,8 +127,9 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
      * with the loading)
      */
     boolean updateTurnAcceptedFlows = true;
-    boolean updateSendingFlowDuringLoading = !isIterativeSendingFlowUpdateActivated();     
-    BushTurnFlowUpdateConsumer bushTurnFlowUpdateConsumer = (BushTurnFlowUpdateConsumer) createBushFlowUpdateconsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading);    
+    boolean updateSendingFlowDuringLoading = !isIterativeSendingFlowUpdateActivated();
+    boolean updateOutflows = false;
+    var bushTurnFlowUpdateConsumer = (BushTurnFlowUpdateConsumer) createBushFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows);    
     
     /* execute */
     executeNetworkLoadingUpdate(bushTurnFlowUpdateConsumer);
@@ -106,20 +139,35 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
   }
   
   /**
-   * Conduct a network loading to compute updated inflow rates (without tracking turn flows): Eq. (3)-(4) in paper
-   * 
-   * @param linkSegmentFlowArrayToFill the inflows (u_a) to update
+   * {@inheritDoc}
    */
   @Override
-  protected void networkLoadingLinkSegmentInflowUpdate(final double[] linkSegmentFlowArrayToFill) {
+  protected void networkLoadingLinkSegmentSendingFlowUpdate() {
         
     /* configure to only update all link segment sending flows */
     boolean updateTurnAcceptedFlows = false;
-    boolean updateSendingFlowDuringLoading = true;     
-    BushFlowUpdateConsumer<?> bushFlowUpdateConsumer = createBushFlowUpdateconsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading);
+    boolean updateSendingFlowDuringLoading = true;
+    boolean updateOutflows = false;
+    var bushFlowUpdateConsumer = createBushFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows);
     
     /* execute */
     executeNetworkLoadingUpdate(bushFlowUpdateConsumer);
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void networkLoadingLinkSegmentSendingflowOutflowUpdate() {
+        
+    /* configure to only update all link segment sending flows */
+    boolean updateTurnAcceptedFlows = false;
+    boolean updateSendingFlow = true;
+    boolean updateOutflowFlow= true;
+    var bushFlowUpdateConsumer = createBushFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlow, updateOutflowFlow);
+    
+    /* execute */
+    executeNetworkLoadingUpdate(bushFlowUpdateConsumer);    
   }   
 
   /**

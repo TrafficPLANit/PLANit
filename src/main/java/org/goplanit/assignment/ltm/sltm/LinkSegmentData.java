@@ -45,7 +45,7 @@ public abstract class LinkSegmentData {
    * @param flowPcuHArray to apply limit on (pcuPerHour)
    * @param linkSegments  to use
    */
-  protected void limitFlowsToCapacity(double[] flowPcuHArray, final MacroscopicLinkSegments linkSegments) {
+  protected static void limitFlowsToCapacity(double[] flowPcuHArray, final MacroscopicLinkSegments linkSegments) {
     for (var linkSegment : linkSegments) {
       int lsId = (int) linkSegment.getId();
       flowPcuHArray[lsId] = Math.min(flowPcuHArray[lsId], linkSegment.getCapacityOrDefaultPcuH());
