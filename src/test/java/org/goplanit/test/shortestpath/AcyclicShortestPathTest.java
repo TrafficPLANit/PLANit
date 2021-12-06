@@ -154,8 +154,8 @@ public class AcyclicShortestPathTest {
       centroidB = zoneB.getCentroid();
       centroidB.setPosition(geoFactory.createPoint(new Coordinate(2*1000, 2*1000)));      
       
-      zoning.odConnectoids.getFactory().registerNew(networkLayer.getNodes().get(0), zoneA, 0);
-      zoning.odConnectoids.getFactory().registerNew(networkLayer.getNodes().get(8), zoneB, 0);      
+      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(0), zoneA, 0);
+      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(8), zoneB, 0);      
       
       transportNetwork = new TransportModelNetwork(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids();

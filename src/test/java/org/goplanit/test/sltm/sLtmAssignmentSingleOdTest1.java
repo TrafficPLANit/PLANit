@@ -190,8 +190,8 @@ public class sLtmAssignmentSingleOdTest1 {
       zoning.odZones.getFactory().registerNew().setXmlId("A");
       zoning.odZones.getFactory().registerNew().setXmlId("A`");
            
-      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
-      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("3"),  zoning.getOdZones().getByXmlId("A`"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("3"),  zoning.getOdZones().getByXmlId("A`"), 0);
                       
     }catch(Exception e) {
       e.printStackTrace();

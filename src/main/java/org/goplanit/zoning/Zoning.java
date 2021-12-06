@@ -7,7 +7,6 @@ import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
 import org.goplanit.network.virtual.VirtualNetwork;
 import org.goplanit.od.demand.OdDemands;
-import org.goplanit.zoning.modifier.ZoningModifierImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
@@ -19,6 +18,7 @@ import org.goplanit.utils.zoning.TransferZones;
 import org.goplanit.utils.zoning.UndirectedConnectoids;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.utils.zoning.modifier.ZoningModifier;
+import org.goplanit.zoning.modifier.ZoningModifierImpl;
 
 /**
  * Zoning class which holds a particular zoning
@@ -52,12 +52,12 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   /**
    * provide access to undirected connectoids (of od zones)
    */
-  public final UndirectedConnectoids odConnectoids;
+  protected final UndirectedConnectoids odConnectoids;
 
   /**
    * provide access to directed connectoids (of transfer zones)
    */
-  public final DirectedConnectoids transferConnectoids;
+  protected final DirectedConnectoids transferConnectoids;
 
   /**
    * provide access to zones
@@ -188,12 +188,30 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   }
 
   /**
-   * Access to the odZones container
+   * Access to the transferZones container
    * 
    * @return odZones
    */
   public TransferZones getTransferZones() {
     return transferZones;
+  }
+
+  /**
+   * Access to the origin-destination connectoids container
+   * 
+   * @return od connectoids container
+   */
+  public UndirectedConnectoids getOdConnectoids() {
+    return this.odConnectoids;
+  }
+
+  /**
+   * Access to the transfer connectoids container
+   * 
+   * @return transfer connectoids container
+   */
+  public DirectedConnectoids getTransferConnectoids() {
+    return this.transferConnectoids;
   }
 
   /**

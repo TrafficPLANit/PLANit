@@ -241,9 +241,9 @@ public class sLtmAssignmentMultiDestinationTest {
       zoning.odZones.getFactory().registerNew().setXmlId("A`");
       zoning.odZones.getFactory().registerNew().setXmlId("A``");
            
-      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
-      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("5"),  zoning.getOdZones().getByXmlId("A`"), 0);
-      zoning.odConnectoids.getFactory().registerNew(nodes.getByXmlId("9"),  zoning.getOdZones().getByXmlId("A``"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("5"),  zoning.getOdZones().getByXmlId("A`"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("9"),  zoning.getOdZones().getByXmlId("A``"), 0);
                       
     }catch(Exception e) {
       e.printStackTrace();

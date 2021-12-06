@@ -3,12 +3,12 @@ package org.goplanit.zoning;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.locationtech.jts.geom.Geometry;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * Represents a zone base class.

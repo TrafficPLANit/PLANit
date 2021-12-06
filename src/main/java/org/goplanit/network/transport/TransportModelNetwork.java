@@ -6,7 +6,6 @@ import java.util.logging.Logger;
 import org.goplanit.network.TransportLayerNetwork;
 import org.goplanit.network.layer.MacroscopicNetworkLayerImpl;
 import org.goplanit.network.virtual.VirtualNetwork;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.EdgeSegment;
@@ -17,6 +16,7 @@ import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.ConnectoidSegmentFactory;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.UndirectedConnectoid;
+import org.goplanit.zoning.Zoning;
 
 /**
  * Entire transport network that is being modeled including both the physical and virtual aspects of it as well as the zoning. It acts as a wrapper unifying the two components
@@ -133,13 +133,13 @@ public class TransportModelNetwork {
 
     VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
     ConnectoidEdgeFactory connectoidEdgeFactory = virtualNetwork.getConnectoidEdges().getFactory();
-    for (UndirectedConnectoid undirectedConnectoid : zoning.odConnectoids) {
+    for (UndirectedConnectoid undirectedConnectoid : zoning.getOdConnectoids()) {
       /* undirected connectoid (virtual) edge between zone centroid and access node */
       Collection<ConnectoidEdge> connectoidEdges = connectoidEdgeFactory.registerNew(undirectedConnectoid);
       createAndRegisterConectoidEdgeSegments(virtualNetwork, connectoidEdges);
 
     }
-    for (DirectedConnectoid directedConnectoid : zoning.transferConnectoids) {
+    for (DirectedConnectoid directedConnectoid : zoning.getTransferConnectoids()) {
       /* directed connectoid (virtual) edge between zone centroid and access link segment's downstream node */
       Collection<ConnectoidEdge> connectoidEdges = connectoidEdgeFactory.registerNew(directedConnectoid);
       createAndRegisterConectoidEdgeSegments(virtualNetwork, connectoidEdges);

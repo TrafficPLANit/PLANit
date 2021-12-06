@@ -14,14 +14,6 @@ import org.goplanit.algorithms.shortestpath.ShortestPathResult;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
-import org.goplanit.zoning.Zoning;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
@@ -30,6 +22,14 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
+import org.goplanit.zoning.Zoning;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
  * Test the shortest path algorithms
@@ -180,11 +180,11 @@ public class ShortestPathTest {
       centroidE = zoneE.getCentroid();
       centroidE.setPosition(geoFactory.createPoint(new Coordinate(4*1000, 4*1000)));
       
-      zoning.odConnectoids.getFactory().registerNew(networkLayer.getNodes().get(0),  zoneA, 0);
-      zoning.odConnectoids.getFactory().registerNew(networkLayer.getNodes().get(21), zoneB, 0);
-      zoning.odConnectoids.getFactory().registerNew(networkLayer.getNodes().get(12), zoneC, 0);
-      zoning.odConnectoids.getFactory().registerNew(networkLayer.getNodes().get(23), zoneD, 0);
-      zoning.odConnectoids.getFactory().registerNew(networkLayer.getNodes().get(24), zoneE, 0);
+      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(0),  zoneA, 0);
+      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(21), zoneB, 0);
+      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(12), zoneC, 0);
+      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(23), zoneD, 0);
+      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(24), zoneE, 0);
       
       transportNetwork = new TransportModelNetwork(network, zoning);
       transportNetwork.integrateTransportNetworkViaConnectoids();

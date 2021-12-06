@@ -5,10 +5,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.goplanit.zoning.ConnectoidsImpl;
-import org.goplanit.zoning.TransferZoneGroupsImpl;
-import org.goplanit.zoning.Zoning;
-import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
@@ -20,6 +16,10 @@ import org.goplanit.utils.zoning.modifier.ZoningModifier;
 import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierEventType;
 import org.goplanit.utils.zoning.modifier.event.ZoningModifierListener;
+import org.goplanit.zoning.ConnectoidsImpl;
+import org.goplanit.zoning.TransferZoneGroupsImpl;
+import org.goplanit.zoning.Zoning;
+import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
 
 /**
  * Implementation of the zoningModifier interface
@@ -35,8 +35,8 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
    * register listeners for the internally fired events on the internally known containers of the zoning
    */
   private void addInternalEventListeners() {
-    this.addListener((ConnectoidsImpl<?>) zoning.odConnectoids);
-    this.addListener((ConnectoidsImpl<?>) zoning.transferConnectoids);
+    this.addListener((ConnectoidsImpl<?>) zoning.getOdConnectoids());
+    this.addListener((ConnectoidsImpl<?>) zoning.getTransferConnectoids());
     this.addListener((TransferZoneGroupsImpl) zoning.transferZoneGroups);
   }
 
@@ -88,10 +88,10 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
      * once, otherwise it is not longer unique across both when recreating the ids
      */
     boolean recreateManagedIdClass = true;
-    zoning.odConnectoids.recreateIds(recreateManagedIdClass);
+    zoning.getOdConnectoids().recreateIds(recreateManagedIdClass);
 
     recreateManagedIdClass = false;
-    zoning.transferConnectoids.recreateIds(recreateManagedIdClass);
+    zoning.getTransferConnectoids().recreateIds(recreateManagedIdClass);
   }
 
   /**
@@ -127,8 +127,8 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
     /* identify all dangling zones */
     Set<Zone> danglingZones = new HashSet<Zone>(zoning.odZones.toCollection());
     danglingZones.addAll(zoning.transferZones.toCollection());
-    zoning.odConnectoids.forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));
-    zoning.transferConnectoids.forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));
+    zoning.getOdConnectoids().forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));
+    zoning.getTransferConnectoids().forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));
 
     /* remove all remaining zones that are not referenced by any connectoid */
     if (!danglingZones.isEmpty()) {

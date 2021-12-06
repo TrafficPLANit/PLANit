@@ -7,7 +7,6 @@ import java.util.logging.Logger;
 
 import org.goplanit.graph.modifier.event.RemoveSubGraphEvent;
 import org.goplanit.graph.modifier.event.RemoveSubGraphVertexEvent;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.event.EventType;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -17,6 +16,7 @@ import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.UndirectedConnectoid;
+import org.goplanit.zoning.Zoning;
 
 /**
  * A listener designed to deal with the situation that sub graphs are removed from the network which leaves connectoids in the zoning that reference these sub graph elements
@@ -51,15 +51,15 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
       LOGGER.severe(String.format("Zoning is null when initialising in %s, %s invalid", this.getClass().getName()));
     }
     connectoidsByAccessVertex = new HashMap<DirectedVertex, ArrayList<Connectoid>>();
-    for (UndirectedConnectoid connectoid : zoning.odConnectoids) {
-      DirectedVertex accessVertex = connectoid.getAccessVertex();
+    for (var connectoid : zoning.getOdConnectoids()) {
+      var accessVertex = connectoid.getAccessVertex();
       if (accessVertex != null) {
         connectoidsByAccessVertex.putIfAbsent(accessVertex, new ArrayList<Connectoid>(1));
         connectoidsByAccessVertex.get(accessVertex).add(connectoid);
       }
     }
-    for (DirectedConnectoid connectoid : zoning.transferConnectoids) {
-      DirectedVertex accessVertex = connectoid.getAccessVertex();
+    for (var connectoid : zoning.getTransferConnectoids()) {
+      var accessVertex = connectoid.getAccessVertex();
       if (accessVertex != null) {
         connectoidsByAccessVertex.putIfAbsent(accessVertex, new ArrayList<Connectoid>(1));
         connectoidsByAccessVertex.get(accessVertex).add(connectoid);
@@ -75,12 +75,12 @@ public class UpdateConnectoidsOnVertexRemovalHandler implements DirectedGraphMod
   protected void removeConnectoidsWithAccessVertex(Vertex vertex) {
     if (connectoidsByAccessVertex.containsKey(vertex)) {
       ArrayList<Connectoid> connectoids = connectoidsByAccessVertex.get(vertex);
-      for (Connectoid connectoid : connectoids) {
+      for (var connectoid : connectoids) {
         if (connectoid instanceof UndirectedConnectoid) {
-          zoning.odConnectoids.remove((UndirectedConnectoid) connectoid);
+          zoning.getOdConnectoids().remove((UndirectedConnectoid) connectoid);
           removedConnectoids = true;
         } else if (connectoid instanceof DirectedConnectoid) {
-          zoning.transferConnectoids.remove((DirectedConnectoid) connectoid);
+          zoning.getTransferConnectoids().remove((DirectedConnectoid) connectoid);
           removedConnectoids = true;
         } else {
           LOGGER.severe(String.format("unknown connectoid type used on vertex %d", vertex.getId()));
