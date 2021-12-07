@@ -202,7 +202,7 @@ public class Bush implements IdAble {
    * @return true when turn sending flow is present, false otherwise
    */
   public boolean containsTurnSendingFlow(final EdgeSegment entrySegment, final EdgeSegment exitSegment) {
-    return Precision.isPositive(bushData.getTurnSendingFlowPcuH(entrySegment, exitSegment));
+    return Precision.positive(bushData.getTurnSendingFlowPcuH(entrySegment, exitSegment));
   }
 
   /**
@@ -216,7 +216,7 @@ public class Bush implements IdAble {
    */
   public boolean containsTurnSendingFlow(EdgeSegment entrySegment, BushFlowCompositionLabel entryCompositionLabel, EdgeSegment exitSegment,
       BushFlowCompositionLabel exitCompositionLabel) {
-    return Precision.isPositive(bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitCompositionLabel));
+    return Precision.positive(bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitCompositionLabel));
   }
 
   /**
@@ -233,8 +233,11 @@ public class Bush implements IdAble {
         continue;
       }
       for (var exitLabel : exitLabels) {
-        bushData.setTurnSendingFlow(entrySegment, entryCompositionLabel, exitSegment, exitLabel,
-            bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitLabel) * factor);
+        double currentTurnLabeledSendingFlow = bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitLabel);
+        if (Precision.positive(currentTurnLabeledSendingFlow)) {
+          bushData.setTurnSendingFlow(entrySegment, entryCompositionLabel, exitSegment, exitLabel,
+              bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitLabel) * factor);
+        }
       }
     }
   }
@@ -292,7 +295,7 @@ public class Bush implements IdAble {
     }
 
     /* make sure the total of demand found exiting matches the originally registered total root demand */
-    if (!Precision.isEqual(foundRootDemandPcuH, originDemandPcuH)) {
+    if (!Precision.equal(foundRootDemandPcuH, originDemandPcuH)) {
       LOGGER.severe(String.format("Combined flows (%.2f) on bush root for origin %s do not add up to the origin's travel demand (%.2f)", foundRootDemandPcuH,
           getOrigin().getXmlId(), originDemandPcuH));
     }
@@ -309,10 +312,10 @@ public class Bush implements IdAble {
     bushData.removeTurn(fromEdgeSegment, toEdgeSegment);
 
     /* update graph if entry/exit segment is now unused as well */
-    if (!Precision.isPositive(getSendingFlowPcuH(toEdgeSegment))) {
+    if (!Precision.positive(getSendingFlowPcuH(toEdgeSegment))) {
       dag.removeEdgeSegment(toEdgeSegment);
     }
-    if (!Precision.isPositive(getSendingFlowPcuH(fromEdgeSegment))) {
+    if (!Precision.positive(getSendingFlowPcuH(fromEdgeSegment))) {
       dag.removeEdgeSegment(fromEdgeSegment);
     }
     requireTopologicalSortUpdate = true;
@@ -430,14 +433,14 @@ public class Bush implements IdAble {
     EdgeSegment nextEdgeSegment = subPathMap.get(startVertex);
     double subPathSendingFlow = bushData.getTotalSendingFlowPcuH(nextEdgeSegment);
 
-    if (Precision.isPositive(subPathSendingFlow)) {
+    if (Precision.positive(subPathSendingFlow)) {
       var currEdgeSegment = nextEdgeSegment;
       nextEdgeSegment = subPathMap.get(currEdgeSegment.getDownstreamVertex());
       do {
         subPathSendingFlow *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
         currEdgeSegment = nextEdgeSegment;
         nextEdgeSegment = subPathMap.get(currEdgeSegment.getDownstreamVertex());
-      } while (nextEdgeSegment != null && Precision.isPositive(subPathSendingFlow));
+      } while (nextEdgeSegment != null && Precision.positive(subPathSendingFlow));
     }
 
     return subPathSendingFlow;
@@ -461,7 +464,7 @@ public class Bush implements IdAble {
     double subPathAcceptedFlowPcuH = bushData.getTotalSendingFlowPcuH(currEdgeSegment);
 
     var nextEdgeSegment = currEdgeSegment;
-    while (index < subPathArray.length && Precision.isPositive(subPathAcceptedFlowPcuH)) {
+    while (index < subPathArray.length && Precision.positive(subPathAcceptedFlowPcuH)) {
       currEdgeSegment = nextEdgeSegment;
       nextEdgeSegment = subPathArray[index++];
       subPathAcceptedFlowPcuH *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment) * linkSegmentAcceptanceFactors[(int) currEdgeSegment.getId()];
@@ -487,7 +490,7 @@ public class Bush implements IdAble {
     double subPathSendingFlow = bushData.getTotalSendingFlowPcuH(currEdgeSegment);
 
     var nextEdgeSegment = currEdgeSegment;
-    while (index < subPathArray.length && Precision.isPositive(subPathSendingFlow)) {
+    while (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
       currEdgeSegment = nextEdgeSegment;
       nextEdgeSegment = subPathArray[index++];
       subPathSendingFlow *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
@@ -649,4 +652,57 @@ public class Bush implements IdAble {
     return new Bush(this);
   }
 
+  /**
+   * Conduct an update of the bush turn flows based on the network flow acceptance factors by conducting a bush DAG loading and updating the turn sending flows from the root, i.e.,
+   * scale them back with the flow acceptance factor whenever one is encountered.
+   * 
+   * @param flowAcceptanceFactors to use
+   */
+  public void updateTurnFlows(double[] flowAcceptanceFactors) {
+
+    /* get topological sorted vertices to process */
+    Collection<DirectedVertex> topSortedVertices = getTopologicallySortedVertices();
+    var vertexIter = topSortedVertices.iterator();
+    var currVertex = vertexIter.next();
+
+    /* pass over bush in topological order updating turn sending flows based on flow acceptance factors */
+    while (vertexIter.hasNext()) {
+      currVertex = vertexIter.next();
+      for (var entrySegment : currVertex.getEntryEdgeSegments()) {
+        if (!containsEdgeSegment(entrySegment)) {
+          continue;
+        }
+
+        int entrySegmentId = (int) entrySegment.getId();
+        double alpha = flowAcceptanceFactors[entrySegmentId];
+
+        var usedLabels = getFlowCompositionLabels(entrySegment);
+        for (var entrylabel : usedLabels) {
+          double entryLabelSendingFlow = bushData.getTotalSendingFlowPcuH(entrySegment, entrylabel);
+          double bushEntryLabelOutFlow = entryLabelSendingFlow * alpha;
+
+          /*
+           * bush splitting rates by [exit segment, exit label] as key - splitting rates are computed based on turn flows but placed in new map. so once we have the splitting rates
+           * in this map, we can safely update the turn flows without affecting these splitting rates
+           */
+          MultiKeyMap<Object, Double> splittingRates = getSplittingRates(entrySegment, entrylabel);
+
+          for (var exitSegment : currVertex.getExitEdgeSegments()) {
+            if (!containsEdgeSegment(exitSegment)) {
+              continue;
+            }
+
+            var exitLabels = getFlowCompositionLabels(exitSegment);
+            for (var exitLabel : exitLabels) {
+              Double bushExitSegmentLabelSplittingRate = splittingRates.get(exitSegment, exitLabel);
+              if (bushExitSegmentLabelSplittingRate != null && Precision.positive(bushExitSegmentLabelSplittingRate)) {
+                double bushTurnLabeledAcceptedFlow = bushEntryLabelOutFlow * bushExitSegmentLabelSplittingRate;
+                bushData.setTurnSendingFlow(entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }

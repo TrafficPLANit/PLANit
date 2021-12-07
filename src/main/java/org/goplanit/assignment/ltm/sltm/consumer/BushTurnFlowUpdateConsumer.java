@@ -9,7 +9,7 @@ import org.goplanit.assignment.ltm.sltm.BushFlowCompositionLabel;
 import org.goplanit.utils.graph.EdgeSegment;
 
 /**
- * Consumer to apply during bush based turn flow update for each non-zero demand bush
+ * Consumer to apply during bush based network loading turn flow update for each non-zero demand bush
  * <p>
  * Depending on the applied solution scheme a slightly different approach is taken to this update where:
  * <p>
@@ -41,7 +41,7 @@ public class BushTurnFlowUpdateConsumer extends BushFlowUpdateConsumer<NetworkTu
   }
 
   /**
-   * track the turn accepted flows when they are classified as being tracked, otherwise do nothing
+   * Track the turn accepted flows when they are classified as being tracked during network loading, otherwise do nothing
    * 
    * @param prevSegment          of turn
    * @param prevLabel            at hand

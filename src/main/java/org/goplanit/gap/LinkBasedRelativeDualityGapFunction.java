@@ -102,11 +102,11 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    */
   @Override
   public double computeGap() {
-    if (!Precision.isPositive(measuredNetworkCost)) {
+    if (!Precision.positive(measuredNetworkCost)) {
       LOGGER.severe(String.format("Measured network cost (%.2f) needs to be positive to compute gap, this is not the case", measuredNetworkCost));
       return -1;
     }
-    if (Precision.isSmaller(measuredNetworkCost, minimumNetworkCost)) {
+    if (Precision.smaller(measuredNetworkCost, minimumNetworkCost)) {
       LOGGER.severe(String.format("Minimum network cost (%.2f) exceeds measured network cost (%.2f), this should not happen", minimumNetworkCost, measuredNetworkCost));
     }
     gap = (measuredNetworkCost - minimumNetworkCost) / measuredNetworkCost;

@@ -103,9 +103,7 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
    * @param bushFlowUpdateConsumer to use
    */
   private void executeNetworkLoadingUpdate(final BushFlowUpdateConsumer<?> bushFlowUpdateConsumer) {
-    Bush originBush = null;
-    for (int index = 0; index < originBushes.length; ++index) {
-      originBush = originBushes[index];
+    for (var originBush : originBushes) {
       if (originBush != null) {
         bushFlowUpdateConsumer.accept(originBush);
       }
@@ -207,7 +205,7 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
     double subPathSendingFlow = getCurrentInflowsPcuH()[(int)currEdgeSegment.getId()];
 
     EdgeSegment nextEdgeSegment = currEdgeSegment;
-    while (index < subPathArray.length && Precision.isPositive(subPathSendingFlow)) {
+    while (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
       currEdgeSegment = nextEdgeSegment;
       nextEdgeSegment = subPathArray[index++];
       subPathSendingFlow *= this.splittingRateData.getSplittingRate(currEdgeSegment, nextEdgeSegment);

@@ -1,6 +1,7 @@
 package org.goplanit.assignment.ltm.sltm;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
@@ -92,7 +93,7 @@ public class Pas {
     while (iter.hasNext()) {
       iter.next();
       Double portion = iter.getValue();
-      if (portion == null || !Precision.isPositive(portion)) {
+      if (portion == null || !Precision.positive(portion)) {
         continue;
       }
 
@@ -101,7 +102,7 @@ public class Pas {
       EdgeSegment entrySegment = (EdgeSegment) multiKey.getKey(0);
       var currEntryLabel = (BushFlowCompositionLabel) multiKey.getKey(1);
 
-      if (!Precision.isPositive(origin.getTurnSendingFlow(entrySegment, currEntryLabel, exitSegment, currEntryLabel))) {
+      if (!Precision.positive(origin.getTurnSendingFlow(entrySegment, currEntryLabel, exitSegment, currEntryLabel))) {
         continue;
       }
 
@@ -142,7 +143,7 @@ public class Pas {
     for (var entrySegment : vertex.getEntryEdgeSegments()) {
       if (origin.containsEdgeSegment(entrySegment)) {
 
-        if (Precision.isPositive(origin.getTurnSendingFlow(entrySegment, oldLabel, exitSegment, oldLabel))) {
+        if (Precision.positive(origin.getTurnSendingFlow(entrySegment, oldLabel, exitSegment, oldLabel))) {
           /* match found - relabel across vertex */
           origin.relabel(entrySegment, oldLabel, exitSegment, oldLabel, newLabel);
           /* proceed upstream - relabel with new label recursively */
@@ -152,7 +153,7 @@ public class Pas {
           /* terminating, so update final flow from other label to old label with new label */
           var entryLabels = origin.getFlowCompositionLabels(entrySegment);
           for (var entryLabel : entryLabels) {
-            if (Precision.isPositive(origin.getTurnSendingFlow(entrySegment, entryLabel, exitSegment, oldLabel))) {
+            if (Precision.positive(origin.getTurnSendingFlow(entrySegment, entryLabel, exitSegment, oldLabel))) {
               origin.relabelTo(entrySegment, entryLabel, exitSegment, oldLabel, newLabel);
             }
           }
@@ -259,7 +260,7 @@ public class Pas {
           for (var usedLabelPrecessors : pasS2EndFlowCompositionLabels.entrySet()) {
             var usedExitLabel = extractUsedStartLabel(usedLabelPrecessors.getValue());
             double turnSendingFlow = origin.getTurnSendingFlow(entrySegment, entryLabel, firstS2EdgeSegment, usedExitLabel);
-            if (!Precision.isPositive(turnSendingFlow)) {
+            if (!Precision.positive(turnSendingFlow)) {
               continue;
             }
 
@@ -268,7 +269,7 @@ public class Pas {
             double s2CompatiblePortion = pasS2EndLabelRates.get(s2EndLabel);
             double s2CompatibleTurnAcceptedFlow = turnSendingFlow * s2CompatiblePortion * alpha;
 
-            if (!Precision.isPositive(s2CompatibleTurnAcceptedFlow)) {
+            if (!Precision.positive(s2CompatibleTurnAcceptedFlow)) {
               continue;
             }
 
@@ -334,7 +335,7 @@ public class Pas {
       nextSegment = pasSegment[index];
 
       double turnSendingFlow = origin.getTurnSendingFlow(currentSegment, currCompositionLabel, nextSegment, currCompositionLabel);
-      if (!forceInitialLabel && !Precision.isPositive(turnSendingFlow)) {
+      if (!forceInitialLabel && !Precision.positive(turnSendingFlow)) {
         /* composition splits/ends, identify if next label it splits off in is valid/available */
         nextCompositionLabel = reverseLabelIter.hasNext() ? reverseLabelIter.next() : null;
         if (nextCompositionLabel != null && origin.containsTurnSendingFlow(currentSegment, currCompositionLabel, nextSegment, nextCompositionLabel)) {
@@ -344,7 +345,7 @@ public class Pas {
         }
       }
 
-      if (!Precision.isPositive(turnSendingFlow + flowShiftPcuH)) {
+      if (!Precision.positive(turnSendingFlow + flowShiftPcuH)) {
         /* no remaining flow at all after flow shift, remove turn from bush entirely */
         origin.removeTurn(currentSegment, nextSegment);
       } else {
@@ -382,13 +383,13 @@ public class Pas {
           for (var exitLabel : exitLabels) {
 
             Double labeledSplittingRate = splittingRates.get(exitSegment, exitLabel);
-            if (labeledSplittingRate == null || !Precision.isPositive(labeledSplittingRate)) {
+            if (labeledSplittingRate == null || !Precision.positive(labeledSplittingRate)) {
               continue;
             }
 
             /* remove flow for s2 */
             double s2FlowShift = s2FinalLabeledFlowShift * labeledSplittingRate;
-            if (!Precision.isPositive(origin.getTurnSendingFlow(lastS2Segment, exitSegment) + s2FlowShift)) {
+            if (!Precision.positive(origin.getTurnSendingFlow(lastS2Segment, exitSegment) + s2FlowShift)) {
               /* no remaining flow at all after flow shift, remove turn from bush entirely */
               origin.removeTurn(lastS2Segment, exitSegment);
             } else {
@@ -432,7 +433,7 @@ public class Pas {
         int index = 0;
         for (var exitSegment : getMergeVertex().getExitEdgeSegments()) {
           double splittingRate = exitLabelSplittingRates[index];
-          if (Precision.isPositive(splittingRate)) {
+          if (Precision.positive(splittingRate)) {
             /* add flow for s1 */
             double s1FlowShift = s1FinalLabeledFlowShift * splittingRate;
             origin.addTurnSendingFlow(lastS1Segment, finalSegmentLabel, exitSegment, exitLabel, s1FlowShift);
@@ -469,7 +470,7 @@ public class Pas {
           }
 
           double existingTotalTurnLabeledSendingFlow = origin.getTurnSendingFlow(entrySegment, entryLabel, firstS2Segment, startSegmentLabel);
-          if (!Precision.isPositive(existingTotalTurnLabeledSendingFlow)) {
+          if (!Precision.positive(existingTotalTurnLabeledSendingFlow)) {
             LOGGER.severe("Expected available turn sending flow for given label combination, found none, skip flow shift at PAS s2 diverge");
             continue;
           }
@@ -477,7 +478,7 @@ public class Pas {
           /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s2 segment */
           double s2DivergeEntryLabeledFlowShift = s2StartLabeledFlowShift * portion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
 
-          if (!Precision.isPositive(existingTotalTurnLabeledSendingFlow + s2DivergeEntryLabeledFlowShift)) {
+          if (!Precision.positive(existingTotalTurnLabeledSendingFlow + s2DivergeEntryLabeledFlowShift)) {
             /* no remaining flow at all after flow shift, remove turn from bush entirely */
             origin.removeTurn(entrySegment, firstS2Segment);
           } else {
@@ -517,7 +518,7 @@ public class Pas {
 
           /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s1 segment */
           double s1DivergeEntryLabeledFlowShift = s1StartLabeledFlowShift * portion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
-          if (Precision.isNegative(s1DivergeEntryLabeledFlowShift)) {
+          if (Precision.negative(s1DivergeEntryLabeledFlowShift)) {
             LOGGER.severe("Expected non-negative shift on s1 turn for given label combination, skip flow shift at PAS s1 diverge");
             continue;
           }
@@ -575,14 +576,18 @@ public class Pas {
     EdgeSegment lastS2Segment = getLastEdgeSegment(false /* high cost */);
     EdgeSegment firstS2Segment = getFirstEdgeSegment(false /* high cost */);
 
+    LOGGER.severe("** PAS FLOW shift" + toString());
+
     for (var origin : originBushes) {
+
+      LOGGER.severe("** Origin" + origin.getOrigin().getXmlId().toString());
 
       double bushS2Flow = origin.computeSubPathSendingFlow(getDivergeVertex(), getMergeVertex(), s2);
 
       /* Bush flow portion */
-      double bushPortion = Precision.isPositive(networkS2FlowPcuH) ? Math.min(bushS2Flow / networkS2FlowPcuH, 1) : 1;
+      double bushPortion = Precision.positive(networkS2FlowPcuH) ? Math.min(bushS2Flow / networkS2FlowPcuH, 1) : 1;
       double bushFlowShift = flowShiftPcuH * bushPortion;
-      if (Precision.isGreaterEqual(bushFlowShift, bushS2Flow)) {
+      if (Precision.greaterEqual(bushFlowShift, bushS2Flow)) {
         /* remove this origin from the PAS when done as no flow remains on high cost segment */
         originsWithoutRemainingPasFlow.add(origin);
         /* remove what we can */
@@ -616,8 +621,8 @@ public class Pas {
         var initialSegmentLabel = extractUsedStartLabel(reverseOrderS2Labels);
 
         /* shift portion of flow attributed to composition label traversing s2 */
-        double s2StartLabeledFlowShift = mergeLabelEntry.getValue() * bushFlowShift;
-        double s2FinalLabeledFlowShift = executeBushLabeledAlternativeFlowShift(origin, reverseOrderS2Labels, -s2StartLabeledFlowShift, s2, flowAcceptanceFactors, false);
+        double s2StartLabeledFlowShift = -mergeLabelEntry.getValue() * bushFlowShift;
+        double s2FinalLabeledFlowShift = executeBushLabeledAlternativeFlowShift(origin, reverseOrderS2Labels, s2StartLabeledFlowShift, s2, flowAcceptanceFactors, false);
 
         LOGGER.severe(String.format("** S2 SHIFT: label start %d, end %d, flow shift start %.10f, end %.10f", initialSegmentLabel.getLabelId(), finalSegmentLabel.getLabelId(),
             s2StartLabeledFlowShift, s2FinalLabeledFlowShift));
@@ -627,14 +632,18 @@ public class Pas {
 
         /* shift flows across starting diverge before entering S2 using reciprocal of flow acceptance factor */
         if (!s2DivergeProportionsByTurnLabels.isEmpty()) {
-          executeBushLabeledS2FlowShiftStartDiverge(origin, initialSegmentLabel, -s2StartLabeledFlowShift, s2DivergeProportionsByTurnLabels, flowAcceptanceFactors);
+          executeBushLabeledS2FlowShiftStartDiverge(origin, initialSegmentLabel, s2StartLabeledFlowShift, s2DivergeProportionsByTurnLabels, flowAcceptanceFactors);
         }
       }
 
       /* convert flows to exit segment splitting rates by label */
       var useExitLabels = s2MergeExitShiftedSendingFlows.keySet();
+      double[] exitSegmentTotalShiftedFlows = new double[getMergeVertex().getExitEdgeSegments().size()];
       for (var exitLabel : useExitLabels) {
-        ArrayUtils.divideBySum(s2MergeExitShiftedSendingFlows.get(exitLabel), 0);
+        ArrayUtils.addTo(exitSegmentTotalShiftedFlows, s2MergeExitShiftedSendingFlows.get(exitLabel));
+      }
+      for (var exitLabel : useExitLabels) {
+        ArrayUtils.divideBy(s2MergeExitShiftedSendingFlows.get(exitLabel), exitSegmentTotalShiftedFlows, 0);
       }
       var s2MergeExitShiftedSplittingRates = s2MergeExitShiftedSendingFlows;
       s2MergeExitShiftedSendingFlows = null;
@@ -932,6 +941,19 @@ public class Pas {
       }
     }
     return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("s1: [");
+    Arrays.stream(s1).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : ls.getId()).append(","));
+    sb.replace(sb.length() - 1, sb.length(), "] s2: [");
+    Arrays.stream(s2).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : ls.getId()).append(","));
+    sb.replace(sb.length() - 1, sb.length(), "]");
+    return sb.toString();
   }
 
 }

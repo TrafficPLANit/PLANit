@@ -539,7 +539,7 @@ public abstract class StaticLtmNetworkLoading {
       if (!pointQueueBasicSplittingRates.isPotentiallyBlocking(linkSegment.getUpstreamNode())) {
         double capacity = linkSegment.getCapacityOrDefaultPcuH();
         /* register if unconstrained flow exceeds capacity */
-        if (Precision.isGreater(sendingFlowsPcuH[(int) linkSegment.getId()], capacity)) {
+        if (Precision.greater(sendingFlowsPcuH[(int) linkSegment.getId()], capacity)) {
           pointQueueBasicSplittingRates.registerPotentiallyBlockingNode(linkSegment.getUpstreamNode());
         }
       }
@@ -556,13 +556,13 @@ public abstract class StaticLtmNetworkLoading {
     // TODO: not great that we cast to implementation, would be better to use polymorphism to solve this by adding a register option on interface
     SplittingRateDataComplete extendedSplittingRates = (SplittingRateDataComplete) this.splittingRateData;
     for (MacroscopicLinkSegment linkSegment : getUsedNetworkLayer().getLinkSegments()) {
-      if (Precision.isPositive(sendingFlowsPcuH[(int) linkSegment.getId()])) {
+      if (Precision.positive(sendingFlowsPcuH[(int) linkSegment.getId()])) {
         extendedSplittingRates.activateNode(linkSegment.getUpstreamNode());
       }
     }
     /* also add nodes of eligible connectoid segments (when they are not centroids) */
     for (ConnectoidSegment connectoidSegment : getTransportNetwork().getZoning().getVirtualNetwork().getConnectoidSegments()) {
-      if (Precision.isPositive(sendingFlowsPcuH[(int) connectoidSegment.getId()])) {
+      if (Precision.positive(sendingFlowsPcuH[(int) connectoidSegment.getId()])) {
         /* activate both nodes, succeeding segments might not be available */
         extendedSplittingRates.activateNode(connectoidSegment.getUpstreamVertex());
         extendedSplittingRates.activateNode(connectoidSegment.getDownstreamVertex());

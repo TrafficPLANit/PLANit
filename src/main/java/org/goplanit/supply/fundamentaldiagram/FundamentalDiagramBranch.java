@@ -33,7 +33,7 @@ public interface FundamentalDiagramBranch extends Cloneable {
    * @return speedKmHour found
    */
   public default double getSpeedKmHourByFlow(double flowPcuHour) {
-    if (Precision.isGreater(flowPcuHour, 0)) {
+    if (Precision.greater(flowPcuHour, 0)) {
       return flowPcuHour / getDensityPcuKm(flowPcuHour);
     }
     return getSpeedKmHourAtZeroFlow();
@@ -54,7 +54,7 @@ public interface FundamentalDiagramBranch extends Cloneable {
    * @return speedKmHour found
    */
   public default double getSpeedKmHourByDensity(double densityPcuKm) {
-    if (Precision.isGreater(densityPcuKm, 0)) {
+    if (Precision.greater(densityPcuKm, 0)) {
       return getFlowPcuHour(densityPcuKm) / densityPcuKm;
     }
     return getSpeedKmHourAtZeroDensity();

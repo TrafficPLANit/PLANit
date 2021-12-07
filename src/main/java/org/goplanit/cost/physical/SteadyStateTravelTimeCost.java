@@ -93,7 +93,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     double hypoCriticalDelay = 0;
     double hyperCriticalDelay = 0;
 
-    if (Precision.isPositive(inflowRatePcuHour)) {
+    if (Precision.positive(inflowRatePcuHour)) {
       /* hypo critical delay */
       if (!fd.getFreeFlowBranch().isLinear()) {
         // hypocritical delay = hypocritical travel time - minimum travel time
@@ -101,9 +101,9 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
       }
 
       /* average hyper critical delay */
-      if (Precision.isSmaller(outflowRatePcuHour, inflowRatePcuHour)) {
+      if (Precision.smaller(outflowRatePcuHour, inflowRatePcuHour)) {
 
-        if (!Precision.isPositive(outflowRatePcuHour)) {
+        if (!Precision.positive(outflowRatePcuHour)) {
           LOGGER.warning(String.format("Link segment %s (%d) appears to have no outflow while positive inflow (%.2f) -> infinite travel time, this is unlikely",
               linkSegment.getXmlId(), linkSegment.getId(), inflowRatePcuHour));
           return Double.POSITIVE_INFINITY;
@@ -259,7 +259,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
     }
     /* hyperCriticalDelay derivative */
     else {
-      if (Precision.isPositive(outflowRatePcuH)) {
+      if (Precision.positive(outflowRatePcuH)) {
         /* congested derivative (T/2)*(1/v) */
         return 0.5 * currentTimePeriodHours / outflowRatePcuH;
       } else {

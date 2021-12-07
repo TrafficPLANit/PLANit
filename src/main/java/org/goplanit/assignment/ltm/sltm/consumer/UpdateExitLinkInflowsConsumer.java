@@ -47,7 +47,7 @@ public class UpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult {
     /* v_ab = s_ab*alpha_a: Convert turn sending flows to turn accepted flows (to avoid duplication we reuse sending flow 2d array) */
     for (int entryIndex = 0; entryIndex < flowAcceptanceFactors.length; ++entryIndex) {
       double alpha = flowAcceptanceFactors.get(entryIndex);
-      if (Precision.isSmaller(alpha, 1)) {
+      if (Precision.smaller(alpha, 1)) {
         turnSendingFlows.modifyRow(entryIndex, PrimitiveFunction.MULTIPLY.by(alpha));
       }
     }

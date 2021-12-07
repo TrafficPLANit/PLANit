@@ -3,10 +3,10 @@ package org.goplanit.assignment.ltm.sltm;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -58,7 +58,7 @@ public class PasManager {
    * @return true when considered effective, false otherwise
    */
   private boolean isCostEffective(Pas pas, double reducedCost) {
-    return Precision.isGreater(pas.getAlternativeHighCost() - pas.getAlternativeLowCost(), MU * reducedCost);
+    return Precision.greater(pas.getAlternativeHighCost() - pas.getAlternativeLowCost(), MU * reducedCost);
   }
 
   /**
@@ -84,7 +84,7 @@ public class PasManager {
     double s2LastSegmentSendingFlowOnBush = originBush.getSendingFlowPcuH(s2LastEdgeSegment);
     double s2LastSegmentAcceptedFlowOnBush = s2LastSegmentSendingFlowOnBush * flowAcceptanceFactors[(int) s2LastEdgeSegment.getId()];
 
-    return Precision.isGreater(s2SubPathAcceptedFlowOnBush, NU * s2LastSegmentAcceptedFlowOnBush);
+    return Precision.greater(s2SubPathAcceptedFlowOnBush, NU * s2LastSegmentAcceptedFlowOnBush);
   }
 
   /**
@@ -182,9 +182,9 @@ public class PasManager {
     this.pasReducedCostComparator = new Comparator<Pas>() {
       @Override
       public int compare(Pas p1, Pas p2) {
-        if (Precision.isGreater(p1.getReducedCost(), p2.getReducedCost(), Precision.EPSILON_15)) {
+        if (Precision.greater(p1.getReducedCost(), p2.getReducedCost(), Precision.EPSILON_15)) {
           return -1;
-        } else if (Precision.isSmaller(p1.getReducedCost(), p2.getReducedCost(), Precision.EPSILON_15)) {
+        } else if (Precision.smaller(p1.getReducedCost(), p2.getReducedCost(), Precision.EPSILON_15)) {
           return 1;
         } else {
           return 0;
@@ -300,12 +300,13 @@ public class PasManager {
   /**
    * Construct a priority queue based on the PASs reduced cost, i.e., difference between their high and low cost segments in descending order.
    * 
-   * @return sorted PAS queue
+   * @return sorted PAS queue in descending order, i.e., highest reduced cost first
    */
-  public PriorityQueue<Pas> getPassSortedByReducedCost() {
-    PriorityQueue<Pas> passOrderedByReducedCost = new PriorityQueue<Pas>(pasReducedCostComparator);
-    forEachPas((pas) -> passOrderedByReducedCost.add(pas));
-    return passOrderedByReducedCost;
+  public Collection<Pas> getPassSortedByReducedCost() {
+    var sortedList = new ArrayList<Pas>((int) getNumberOfPass());
+    forEachPas((pas) -> sortedList.add(pas));
+    Collections.sort(sortedList, pasReducedCostComparator);
+    return sortedList;
   }
 
   /**
@@ -317,6 +318,20 @@ public class PasManager {
     passByMergeVertex.forEach((v, pc) -> {
       pc.forEach(pasConsumer);
     });
+  }
+
+  /**
+   * Number of PASs registered
+   * 
+   * @return number of PASs registered
+   */
+  public long getNumberOfPass() {
+    long numPass = 0;
+    for (var pass : passByMergeVertex.values()) {
+      numPass += pass.size();
+    }
+    return numPass;
+
   }
 
 }

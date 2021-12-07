@@ -109,9 +109,9 @@ public class sLtmAssignmentMultiDestinationTest {
     // Demand AA'' = 4000
     //
     // [0,1,4,5,8,12] = 8000 capacity
-    // [2,4,6,8,9,11,12,13] = 4000 capacity
+    // [2,4,6,8,9,13] = 4000 capacity
     // [9,10] = 3000 capacity
-    // [3,10,7] = 1500 capacity
+    // [3,7,10,11] = 1500 capacity
     // 
     //            
     //    A'                    A''
@@ -299,6 +299,7 @@ public class sLtmAssignmentMultiDestinationTest {
       StaticLtm sLTM = sLTMBuilder.build();
       sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
       sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      sLTM.setActivateDetailedLogging(true);
       sLTM.execute();
 
       /*
@@ -306,9 +307,9 @@ public class sLtmAssignmentMultiDestinationTest {
        * should have less flow than the OD demand of 4k
        */
       double outflow4 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
-      assertTrue(Precision.isSmallerEqual(outflow4, 4000));
+      assertTrue(Precision.smallerEqual(outflow4, 4000));
       double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
-      assertTrue(Precision.isSmallerEqual(outflow8, 4000));
+      assertTrue(Precision.smallerEqual(outflow8, 4000));
 
       // TODO: When this is properly handled find out the correct answer and put in the rest of the assertions
 

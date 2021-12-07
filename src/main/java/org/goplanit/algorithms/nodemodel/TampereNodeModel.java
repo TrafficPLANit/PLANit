@@ -81,7 +81,7 @@ public class TampereNodeModel implements NodeModel {
       double sumScaledTurnSendingFlows = scaledRemainingTurnSendingFlows.aggregateColumn(outLinkSegmentIndex, Aggregator.SUM).doubleValue();
 
       // Only non-zero flows can lead to a restriction
-      if (Precision.isPositive(sumScaledTurnSendingFlows)) {
+      if (Precision.positive(sumScaledTurnSendingFlows)) {
         // compute factor: remaining R_b for unprocessed b / SUM of lambda_a*t_ab
         double currentOutgoingRestrictionFactor = remainingReceivingFlow / sumScaledTurnSendingFlows;
         if (currentOutgoingRestrictionFactor < foundRestrictionFactor) {
@@ -136,10 +136,10 @@ public class TampereNodeModel implements NodeModel {
       scaledRemainingTurnSendingFlows.loopColumn(mostRestrictedOutLinkIndex, (inLinkSegmentIndex, outLinkSegmentIndex) -> {
         final double turnSendingFlow = scaledRemainingTurnSendingFlows.get(inLinkSegmentIndex, outLinkSegmentIndex);
         // t_ab_topbar > 0 && a is unprocessed in link segment
-        if (Precision.isGreater(turnSendingFlow, Precision.EPSILON_6) && !isInLinkSegmentProcessed((int) inLinkSegmentIndex)) {
+        if (Precision.greater(turnSendingFlow, Precision.EPSILON_6) && !isInLinkSegmentProcessed((int) inLinkSegmentIndex)) {
           // lambda_a * beta_b
           final double requiredScalingFactor = inputs.capacityScalingFactors.get(inLinkSegmentIndex) * outLinkSegmentScalingFactorBeta;
-          if (Precision.isGreaterEqual(requiredScalingFactor, 1)) {
+          if (Precision.greaterEqual(requiredScalingFactor, 1)) {
             demandConstrainedInLinksY.add(inLinkSegmentIndex);
           }
         }
@@ -170,7 +170,7 @@ public class TampereNodeModel implements NodeModel {
     scaledRemainingTurnSendingFlows.loopColumn(mostRestrictedOutLinkIndex, (inLinkSegmentIndex, outLinkSegmentIndex) -> {
       final double turnSendingFlow = scaledRemainingTurnSendingFlows.get(inLinkSegmentIndex, outLinkSegmentIndex);
       // t_ab_topbar > 0 && a is unprocessed in link segment
-      if (Precision.isGreater(turnSendingFlow, Precision.EPSILON_6) && !isInLinkSegmentProcessed((int) inLinkSegmentIndex)) {
+      if (Precision.greater(turnSendingFlow, Precision.EPSILON_6) && !isInLinkSegmentProcessed((int) inLinkSegmentIndex)) {
         // capacity constrained
 
         // alpha_a = lambda_a*beta_b

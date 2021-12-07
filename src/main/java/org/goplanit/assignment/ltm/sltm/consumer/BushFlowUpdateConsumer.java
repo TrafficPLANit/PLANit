@@ -12,7 +12,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
 
 /**
- * Base Consumer to apply during bush based network flow update for each origin bush
+ * Base Consumer to apply during bush based network loading flow update for each origin bush
  * <p>
  * Derived implementation can apply different changes to each of the (turn/link) flows on the bushes by
  * 
@@ -81,7 +81,7 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
   @Override
   public void accept(final Bush originBush) {
     /*
-     * track bush sending flows propagated from the origin Note: We cannot use the bush's own turn sending flows because we are performing a network loading based on the most
+     * track bush sending flows propagated from the origin. Note: We cannot use the bush's own turn sending flows because we are performing a network loading based on the most
      * recent bush's splitting rates, we only use the bush's sending flows for bush flow shifts. The bush's sending flows are updated AFTER the network loading is complete
      * (converged) by using the network reduction factors
      */
@@ -113,30 +113,25 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
         int entrySegmentId = (int) entrySegment.getId();
         var usedLabels = originBush.getFlowCompositionLabels(entrySegment);
         for (var entrylabel : usedLabels) {
-          double bushLinkLabelSendingFlow = bushSendingFlows.get(entrySegment, entrylabel);
 
-          /* s_a = SUM(u^o_a) (only when enabled) */
-          if (dataConfig.isSendingflowsUpdate()) {
-            dataConfig.sendingFlows[entrySegmentId] += bushLinkLabelSendingFlow;
+          Double bushLinkLabelSendingFlow = bushSendingFlows.get(entrySegment, entrylabel);
+          if (bushLinkLabelSendingFlow == null) {
+            LOGGER.severe(String.format("No link sending flow found for segment %s and used label %d, this shouldn't happen", entrySegment.getXmlId(), entrylabel.getLabelId()));
+            continue;
           }
 
           /* v^o_a = s^o_a * alpha_a */
           double alpha = dataConfig.flowAcceptanceFactors[entrySegmentId];
           double bushEntryAcceptedFlow = bushLinkLabelSendingFlow * alpha;
 
+          /* s_a = SUM(u^o_a) (only when enabled) */
+          if (dataConfig.isSendingflowsUpdate()) {
+            dataConfig.sendingFlows[entrySegmentId] += bushLinkLabelSendingFlow;
+          }
+
           /* v_a = SUM(v^o_a) (only when enabled) */
           if (dataConfig.isOutflowsUpdate()) {
             dataConfig.outFlows[entrySegmentId] += bushEntryAcceptedFlow;
-          }
-
-          /*
-           * update bush turn sending flows based on prev sending flow to loading based sending flow ratio this ensures the bush turn sending flows remain consistent with the
-           * loading. Note that we can not use the alpha of the segment for this because this pertains to the sending flows of the next link and since that one has not been
-           * processed fully
-           */
-          double bushLinkLabelPrevSendingFlow = originBush.getSendingFlowPcuH(entrySegment, entrylabel);
-          if (Precision.isPositive(bushLinkLabelPrevSendingFlow)) {
-            originBush.multiplyTurnSendingFlows(entrySegment, entrylabel, bushLinkLabelSendingFlow / bushLinkLabelPrevSendingFlow);
           }
 
           /* bush splitting rates by [exit segment, exit label] as key */
@@ -149,8 +144,8 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
 
             var exitLabels = originBush.getFlowCompositionLabels(exitSegment);
             for (var exitLabel : exitLabels) {
-              double splittingRate = splittingRates.get(exitSegment, exitLabel);
-              if (Precision.isPositive(splittingRate)) {
+              Double splittingRate = splittingRates.get(exitSegment, exitLabel);
+              if (splittingRate != null && Precision.positive(splittingRate)) {
 
                 /* v^o_ab = v^o_a * phi_ab */
                 double turnAcceptedFlow = bushEntryAcceptedFlow * splittingRate;

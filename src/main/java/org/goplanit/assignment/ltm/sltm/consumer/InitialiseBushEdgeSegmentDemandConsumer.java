@@ -61,8 +61,8 @@ public class InitialiseBushEdgeSegmentDemandConsumer implements Consumer<EdgeSeg
   private void relabelDivergingFlow(final EdgeSegment edgeSegment) {
     for (var exitSegment : edgeSegment.getDownstreamVertex().getExitEdgeSegments()) {
       double flowToRelabel = originBush.getTurnSendingFlow(edgeSegment, mostRecentMergedWithLabel, exitSegment, mostRecentMergedWithLabel);
-      if (Precision.isPositive(flowToRelabel)) {
-        originBush.relabel(edgeSegment, mostRecentMergedWithLabel, exitSegment, mostRecentMergedWithLabel, currentCompositionLabel);
+      if (Precision.positive(flowToRelabel)) {
+        originBush.relabelFrom(edgeSegment, mostRecentMergedWithLabel, exitSegment, mostRecentMergedWithLabel, currentCompositionLabel);
       }
     }
   }

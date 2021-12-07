@@ -169,7 +169,7 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
    */
   @Override
   public boolean isEqualExceptForModes(AccessGroupProperties accessProperties) {
-    return Precision.isEqual(getMaximumSpeedKmH(), accessProperties.getMaximumSpeedKmH()) && Precision.isEqual(getCriticalSpeedKmH(), accessProperties.getCriticalSpeedKmH());
+    return Precision.equal(getMaximumSpeedKmH(), accessProperties.getMaximumSpeedKmH()) && Precision.equal(getCriticalSpeedKmH(), accessProperties.getCriticalSpeedKmH());
   }
 
   /**

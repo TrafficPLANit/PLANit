@@ -113,7 +113,7 @@ public class BushTurnData implements Cloneable {
 
     double flowToRelabel = getTurnSendingFlowPcuH(fromSegment, oldFromLabel, toSegment, oldToLabel);
     removeTurnFlow(fromSegment, oldFromLabel, toSegment, oldToLabel);
-    if (Precision.isPositive(flowToRelabel)) {
+    if (Precision.positive(flowToRelabel)) {
       addTurnSendingFlow(fromSegment, newFromLabel, toSegment, newToLabel, flowToRelabel);
     }
     return flowToRelabel;
@@ -151,9 +151,9 @@ public class BushTurnData implements Cloneable {
   public void setTurnSendingFlow(final EdgeSegment fromSegment, BushFlowCompositionLabel fromComposition, final EdgeSegment toSegment, BushFlowCompositionLabel toComposition,
       double turnSendingFlow) {
 
-    if (!Precision.isPositive(turnSendingFlow)) {
-      LOGGER.warning(String.format("Turn (%s to %s) sending flow negative (%.2f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(), turnSendingFlow,
-          fromComposition.getLabelId(), toComposition.getLabelId()));
+    if (!Precision.positive(turnSendingFlow)) {
+      LOGGER.warning(String.format("Turn (%s to %s) sending flow not positive (%.2f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
+          turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
       removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
     } else {
       compositionTurnSendingFlows.put(fromSegment, fromComposition, toSegment, toComposition, turnSendingFlow);
@@ -175,7 +175,7 @@ public class BushTurnData implements Cloneable {
       double turnSendingFlow) {
 
     Double newSendingFlow = turnSendingFlow + getTurnSendingFlowPcuH(fromSegment, fromComposition, toSegment, toComposition);
-    if (!Precision.isPositive(newSendingFlow)) {
+    if (!Precision.positive(newSendingFlow)) {
       LOGGER.warning(String.format("Turn (%s to %s) sending flow negative (%.2f) after adding %.2f flow, remove labelled entry (%d,%d)", fromSegment.getXmlId(),
           toSegment.getXmlId(), newSendingFlow, turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
       removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
@@ -336,7 +336,7 @@ public class BushTurnData implements Cloneable {
           continue;
         }
         for (var toComposition : toLabels) {
-          if (Precision.isPositive(getTurnSendingFlowPcuH(fromSegment, fromComposition, exitSegment, toComposition))) {
+          if (Precision.positive(getTurnSendingFlowPcuH(fromSegment, fromComposition, exitSegment, toComposition))) {
             return true;
           }
         }
@@ -356,7 +356,7 @@ public class BushTurnData implements Cloneable {
    */
   public boolean containsTurnSendingFlow(final EdgeSegment fromSegment, BushFlowCompositionLabel fromComposition, final EdgeSegment toSegment,
       BushFlowCompositionLabel toComposition) {
-    return Precision.isPositive(getTurnSendingFlowPcuH(fromSegment, fromComposition, toSegment, toComposition));
+    return Precision.positive(getTurnSendingFlowPcuH(fromSegment, fromComposition, toSegment, toComposition));
   }
 
   /**
@@ -426,7 +426,7 @@ public class BushTurnData implements Cloneable {
       }
       for (var toLabel : toLabels) {
         double s_ab = getTurnSendingFlowPcuH(fromSegment, fromLabel, exitSegment, toLabel);
-        if (Precision.isPositive(s_ab)) {
+        if (Precision.positive(s_ab)) {
           splittingRatesByExitSegmentLabel.put(exitSegment, toLabel, s_ab / totalSendingFlow);
         }
       }
@@ -447,7 +447,7 @@ public class BushTurnData implements Cloneable {
    */
   public double getSplittingRate(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
     double turnSendingFlow = getTurnSendingFlowPcuH(fromSegment, toSegment);
-    if (Precision.isPositive(turnSendingFlow)) {
+    if (Precision.positive(turnSendingFlow)) {
       return turnSendingFlow / getTotalSendingFlowPcuH(fromSegment);
     } else {
       return 0;
