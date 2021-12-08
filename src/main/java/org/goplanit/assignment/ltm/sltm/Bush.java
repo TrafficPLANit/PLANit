@@ -1,8 +1,11 @@
 package org.goplanit.assignment.ltm.sltm;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -191,7 +194,7 @@ public class Bush implements IdAble {
    * @return bush sending flow on edge segment
    */
   public double getSendingFlowPcuH(EdgeSegment edgeSegment, BushFlowCompositionLabel compositionLabel) {
-    return bushData.getTotalSendingFlowPcuH(edgeSegment, compositionLabel);
+    return bushData.getTotalSendingFlowFromPcuH(edgeSegment, compositionLabel);
   }
 
   /**
@@ -478,12 +481,10 @@ public class Bush implements IdAble {
    * Determine the sending flow between origin,destination vertex using the subpath given by the subPathArray in order from start to finish. We utilise the initial sending flow on
    * the first segment as the base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
    * 
-   * @param startVertex  to use
-   * @param endVertex    to use
    * @param subPathArray to extract path from
    * @return sendingFlowPcuH between start and end vertex following the sub-path
    */
-  public double computeSubPathSendingFlow(final DirectedVertex startVertex, final DirectedVertex endVertex, final EdgeSegment[] subPathArray) {
+  public double determineSubPathSendingFlow(final EdgeSegment[] subPathArray) {
 
     int index = 0;
     EdgeSegment currEdgeSegment = subPathArray[index++];
@@ -509,7 +510,7 @@ public class Bush implements IdAble {
   }
 
   /**
-   * Find out the portion of the origin attributed flow on the segment that belongs to each available flow composition label proportional to the toal flow across all provided
+   * Find out the portion of the origin attributed flow on the segment that belongs to each available flow composition label proportional to the total flow across all provided
    * labels on this same segment
    * 
    * @param edgeSegment              to determine the label rates for
@@ -521,7 +522,7 @@ public class Bush implements IdAble {
     double totalSendingFlow = 0;
     var rateMap = new TreeMap<BushFlowCompositionLabel, Double>();
     for (var label : pasFlowCompositionLabels) {
-      double labelFlow = bushData.getTotalSendingFlowPcuH(edgeSegment, label);
+      double labelFlow = bushData.getTotalSendingFlowFromPcuH(edgeSegment, label);
       rateMap.put(label, labelFlow);
       totalSendingFlow += labelFlow;
     }
@@ -531,6 +532,57 @@ public class Bush implements IdAble {
     }
 
     return rateMap;
+  }
+
+  /**
+   * Determine all label chains that represent flow that is fully overlapping with the provided subpath (assumed present on the bush). The chain represents the various connected
+   * labels in reverse order. These composite labels are provided as a list and the number of lists indicates the number of unique chains matching the PAS alternative
+   * 
+   * @param subPath to do this for
+   * @return found matching composition labels as a reverse ordered lists of encountered composite labels when traversing along the PAS (if any)
+   */
+  public List<LinkedList<BushFlowCompositionLabel>> determineUsedLabelChains(final EdgeSegment[] subPath) {
+    var edgeSegmentCompositionLabels = getFlowCompositionLabels(subPath[0]);
+
+    var pasCompositionLabels = new ArrayList<LinkedList<BushFlowCompositionLabel>>();
+    if (edgeSegmentCompositionLabels == null || edgeSegmentCompositionLabels.isEmpty()) {
+      return pasCompositionLabels;
+    }
+
+    var labelIter = edgeSegmentCompositionLabels.iterator();
+    while (labelIter.hasNext()) {
+      BushFlowCompositionLabel firstSegmentLabel = labelIter.next();
+      BushFlowCompositionLabel currentLabel = firstSegmentLabel;
+      LinkedList<BushFlowCompositionLabel> transitionLabels = new LinkedList<BushFlowCompositionLabel>();
+      transitionLabels.add(firstSegmentLabel);
+
+      EdgeSegment currentSegment = subPath[0];
+      EdgeSegment succeedingSegment = null;
+      for (int index = 1; index < subPath.length; ++index) {
+        succeedingSegment = subPath[index];
+        if (!containsTurnSendingFlow(currentSegment, currentLabel, succeedingSegment, currentLabel)) {
+          /* label transition or no match */
+          BushFlowCompositionLabel transitionLabel = null;
+          var potentialLabelTransitions = getFlowCompositionLabels(succeedingSegment);
+          for (var potentialLabel : potentialLabelTransitions) {
+            if (containsTurnSendingFlow(currentSegment, currentLabel, succeedingSegment, potentialLabel)) {
+              transitionLabel = potentialLabel;
+              transitionLabels.addFirst(transitionLabel);
+            }
+          }
+          if (transitionLabel == null) {
+            /* no match - remove the original label we started with */
+            break;
+          }
+          /* transition - update label representing composite flow that contains label under investigation */
+          currentLabel = transitionLabel;
+        }
+        currentSegment = succeedingSegment;
+      }
+
+      pasCompositionLabels.add(transitionLabels);
+    }
+    return pasCompositionLabels;
   }
 
   /**
@@ -610,6 +662,56 @@ public class Bush implements IdAble {
   }
 
   /**
+   * Conduct an update of the bush turn flows based on the network flow acceptance factors by conducting a bush DAG loading and updating the turn sending flows from the root, i.e.,
+   * scale them back with the flow acceptance factor whenever one is encountered.
+   * 
+   * @param flowAcceptanceFactors to use
+   */
+  public void updateTurnFlows(double[] flowAcceptanceFactors) {
+
+    /* get topological sorted vertices to process */
+    Collection<DirectedVertex> topSortedVertices = getTopologicallySortedVertices();
+    var vertexIter = topSortedVertices.iterator();
+    var currVertex = vertexIter.next();
+
+    /* pass over bush in topological order updating turn sending flows based on flow acceptance factors */
+    while (vertexIter.hasNext()) {
+      currVertex = vertexIter.next();
+      for (var entrySegment : currVertex.getEntryEdgeSegments()) {
+        if (!containsEdgeSegment(entrySegment)) {
+          continue;
+        }
+
+        var usedLabels = getFlowCompositionLabels(entrySegment);
+        for (var entrylabel : usedLabels) {
+          double entryLabelSendingFlow = bushData.getTotalAcceptedFlowToPcuH(entrySegment, entrylabel, flowAcceptanceFactors);
+
+          /*
+           * bush splitting rates by [exit segment, exit label] as key - splitting rates are computed based on turn flows but placed in new map. so once we have the splitting rates
+           * in this map, we can safely update the turn flows without affecting these splitting rates
+           */
+          MultiKeyMap<Object, Double> splittingRates = getSplittingRates(entrySegment, entrylabel);
+
+          for (var exitSegment : currVertex.getExitEdgeSegments()) {
+            if (!containsEdgeSegment(exitSegment)) {
+              continue;
+            }
+
+            var exitLabels = getFlowCompositionLabels(exitSegment);
+            for (var exitLabel : exitLabels) {
+              Double bushExitSegmentLabelSplittingRate = splittingRates.get(exitSegment, exitLabel);
+              if (bushExitSegmentLabelSplittingRate != null && Precision.positive(bushExitSegmentLabelSplittingRate)) {
+                double bushTurnLabeledAcceptedFlow = entryLabelSendingFlow * bushExitSegmentLabelSplittingRate;
+                bushData.setTurnSendingFlow(entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Topologically sorted vertices of the bush
    * 
    * @return vertices
@@ -650,59 +752,5 @@ public class Bush implements IdAble {
   @Override
   public Bush clone() {
     return new Bush(this);
-  }
-
-  /**
-   * Conduct an update of the bush turn flows based on the network flow acceptance factors by conducting a bush DAG loading and updating the turn sending flows from the root, i.e.,
-   * scale them back with the flow acceptance factor whenever one is encountered.
-   * 
-   * @param flowAcceptanceFactors to use
-   */
-  public void updateTurnFlows(double[] flowAcceptanceFactors) {
-
-    /* get topological sorted vertices to process */
-    Collection<DirectedVertex> topSortedVertices = getTopologicallySortedVertices();
-    var vertexIter = topSortedVertices.iterator();
-    var currVertex = vertexIter.next();
-
-    /* pass over bush in topological order updating turn sending flows based on flow acceptance factors */
-    while (vertexIter.hasNext()) {
-      currVertex = vertexIter.next();
-      for (var entrySegment : currVertex.getEntryEdgeSegments()) {
-        if (!containsEdgeSegment(entrySegment)) {
-          continue;
-        }
-
-        int entrySegmentId = (int) entrySegment.getId();
-        double alpha = flowAcceptanceFactors[entrySegmentId];
-
-        var usedLabels = getFlowCompositionLabels(entrySegment);
-        for (var entrylabel : usedLabels) {
-          double entryLabelSendingFlow = bushData.getTotalSendingFlowPcuH(entrySegment, entrylabel);
-          double bushEntryLabelOutFlow = entryLabelSendingFlow * alpha;
-
-          /*
-           * bush splitting rates by [exit segment, exit label] as key - splitting rates are computed based on turn flows but placed in new map. so once we have the splitting rates
-           * in this map, we can safely update the turn flows without affecting these splitting rates
-           */
-          MultiKeyMap<Object, Double> splittingRates = getSplittingRates(entrySegment, entrylabel);
-
-          for (var exitSegment : currVertex.getExitEdgeSegments()) {
-            if (!containsEdgeSegment(exitSegment)) {
-              continue;
-            }
-
-            var exitLabels = getFlowCompositionLabels(exitSegment);
-            for (var exitLabel : exitLabels) {
-              Double bushExitSegmentLabelSplittingRate = splittingRates.get(exitSegment, exitLabel);
-              if (bushExitSegmentLabelSplittingRate != null && Precision.positive(bushExitSegmentLabelSplittingRate)) {
-                double bushTurnLabeledAcceptedFlow = bushEntryLabelOutFlow * bushExitSegmentLabelSplittingRate;
-                bushData.setTurnSendingFlow(entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow);
-              }
-            }
-          }
-        }
-      }
-    }
   }
 }

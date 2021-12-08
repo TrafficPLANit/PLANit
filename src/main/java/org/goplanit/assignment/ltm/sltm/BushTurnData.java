@@ -10,6 +10,7 @@ import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.zoning.Centroid;
 
 /**
  * Track the turn based data of a bush.
@@ -293,13 +294,13 @@ public class BushTurnData implements Cloneable {
   }
 
   /**
-   * Collect the sending flow of an edge segment in the bush but only for the specified label, if not present, zero flow is returned
+   * Collect the sending flow originating at an edge segment in the bush but only for the specified label, if not present, zero flow is returned
    * 
-   * @param edgeSegment      to collect sending flow for
+   * @param edgeSegment      to collect sending flow originating from for
    * @param compositionLabel to filter by
-   * @return bush sending flow on edge segment
+   * @return bush sending flow found
    */
-  public double getTotalSendingFlowPcuH(final EdgeSegment edgeSegment, final BushFlowCompositionLabel compositionLabel) {
+  public double getTotalSendingFlowFromPcuH(final EdgeSegment edgeSegment, final BushFlowCompositionLabel compositionLabel) {
     if (!hasFlowCompositionLabel(edgeSegment, compositionLabel)) {
       return 0;
     }
@@ -315,6 +316,39 @@ public class BushTurnData implements Cloneable {
       }
     }
     return totalSendingFlow;
+  }
+
+  /**
+   * Collect the accepted flow towards an edge segment in the bush with the specified label, if not present, zero flow is returned
+   * 
+   * @param edgeSegment           to collect sending flow towards to
+   * @param compositionLabel      to filter by
+   * @param flowAcceptanceFactors to convert sending flow to accepted flow
+   * @return bush sending flow found
+   */
+  public double getTotalAcceptedFlowToPcuH(final EdgeSegment edgeSegment, final BushFlowCompositionLabel compositionLabel, double[] flowAcceptanceFactors) {
+    if (!hasFlowCompositionLabel(edgeSegment, compositionLabel)) {
+      return 0;
+    }
+
+    if (edgeSegment.getUpstreamVertex() instanceof Centroid) {
+      /* no preceding link segments, so same as what is being sent out of the segment */
+      return getTotalSendingFlowFromPcuH(edgeSegment, compositionLabel);
+    }
+
+    double totalAcceptedFlow = 0;
+    for (var entrySegment : edgeSegment.getUpstreamVertex().getEntryEdgeSegments()) {
+      var fromLabels = linkSegmentCompositionLabels.get(entrySegment);
+      if (fromLabels == null) {
+        continue;
+      }
+      for (var fromLabel : fromLabels) {
+        double s_ab = getTurnSendingFlowPcuH(entrySegment, fromLabel, edgeSegment, compositionLabel);
+        double v_ab = s_ab * flowAcceptanceFactors[(int) entrySegment.getId()];
+        totalAcceptedFlow += v_ab;
+      }
+    }
+    return totalAcceptedFlow;
   }
 
   /**
@@ -418,7 +452,7 @@ public class BushTurnData implements Cloneable {
     var exitEdgeSegments = fromSegment.getDownstreamVertex().getExitEdgeSegments();
 
     MultiKeyMap<Object, Double> splittingRatesByExitSegmentLabel = new MultiKeyMap<Object, Double>();
-    double totalSendingFlow = getTotalSendingFlowPcuH(fromSegment, fromLabel);
+    double totalSendingFlow = getTotalSendingFlowFromPcuH(fromSegment, fromLabel);
     for (var exitSegment : exitEdgeSegments) {
       var toLabels = getFlowCompositionLabels(exitSegment);
       if (toLabels == null) {

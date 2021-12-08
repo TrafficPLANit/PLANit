@@ -274,26 +274,26 @@ public class sLtmAssignmentSingleOdTest2 {
       double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
       double outflow9 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
 
-      assertEquals(8000, outflow0, Precision.EPSILON_6);
-      assertEquals(2484.8053181341775, outflow1, Precision.EPSILON_6);
-      assertEquals(1111.111111111111, outflow2, Precision.EPSILON_6);
-      assertEquals(2000.0, outflow3, Precision.EPSILON_6);
-      assertEquals(3521.575311898768, outflow4, Precision.EPSILON_6);
-      assertEquals(outflow4, outflow5, Precision.EPSILON_6);
-      assertEquals(1987.8442563194762, outflow6, Precision.EPSILON_6);
-      assertEquals(1972.649573691407, outflow7, Precision.EPSILON_6);
-      assertEquals(outflow7, outflow8, Precision.EPSILON_6);
-      assertEquals(888.8888888888889, outflow9, Precision.EPSILON_6);
+      assertEquals(8000, outflow0, Precision.EPSILON_3);
+      assertEquals(2484.8053168536194, outflow1, Precision.EPSILON_3);
+      assertEquals(1111.111111111111, outflow2, Precision.EPSILON_3);
+      assertEquals(2000.0, outflow3, Precision.EPSILON_3);
+      assertEquals(3521.575311898768, outflow4, Precision.EPSILON_3);
+      assertEquals(outflow4, outflow5, Precision.EPSILON_3);
+      assertEquals(1987.8442542873556, outflow6, Precision.EPSILON_3);
+      assertEquals(1972.649573691407, outflow7, Precision.EPSILON_3);
+      assertEquals(outflow7, outflow8, Precision.EPSILON_3);
+      assertEquals(888.8888888888889, outflow9, Precision.EPSILON_3);
 
       // conectoid edge segments
       double outflow10 = sLTM.getLinkSegmentOutflowsPcuHour()[10]; // A out
       double outflow11 = sLTM.getLinkSegmentOutflowsPcuHour()[11]; // A in
       double outflow12 = sLTM.getLinkSegmentOutflowsPcuHour()[12]; // A' out
       double outflow13 = sLTM.getLinkSegmentOutflowsPcuHour()[13]; // A' in
-      assertEquals(outflow10, 8000, Precision.EPSILON_6);
-      assertEquals(outflow13, 1999.9999999974425, Precision.EPSILON_6);
-      assertEquals(outflow11, 0, Precision.EPSILON_6);
-      assertEquals(outflow11, outflow12, Precision.EPSILON_6);
+      assertEquals(outflow10, 8000, Precision.EPSILON_3);
+      assertEquals(outflow13, 1999.9999999974425, Precision.EPSILON_3);
+      assertEquals(outflow11, 0, Precision.EPSILON_3);
+      assertEquals(outflow11, outflow12, Precision.EPSILON_3);
 
       double inflow0 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
       double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
@@ -306,16 +306,16 @@ public class sLtmAssignmentSingleOdTest2 {
       double inflow8 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
       double inflow9 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
 
-      assertEquals(inflow0, 8000, Precision.EPSILON_6);
-      assertEquals(inflow1, 4478.424688101231, Precision.EPSILON_6);
-      assertEquals(inflow2, 2500, Precision.EPSILON_6);
-      assertEquals(inflow3, 2000.0, Precision.EPSILON_6);
-      assertEquals(inflow4, 3521.575311898768, Precision.EPSILON_6);
-      assertEquals(inflow5, inflow4, Precision.EPSILON_6);
-      assertEquals(inflow6, inflow5, Precision.EPSILON_6);
-      assertEquals(inflow7, 1972.649573691407, Precision.EPSILON_6);
-      assertEquals(inflow8, inflow7, Precision.EPSILON_6);
-      assertEquals(inflow9, inflow8, Precision.EPSILON_6);
+      assertEquals(inflow0, 8000, Precision.EPSILON_3);
+      assertEquals(inflow1, 4478.424688101231, Precision.EPSILON_3);
+      assertEquals(inflow2, 2500, Precision.EPSILON_3);
+      assertEquals(inflow3, 2000.0, Precision.EPSILON_3);
+      assertEquals(inflow4, 3521.575311898768, Precision.EPSILON_3);
+      assertEquals(inflow5, inflow4, Precision.EPSILON_3);
+      assertEquals(inflow6, inflow5, Precision.EPSILON_3);
+      assertEquals(inflow7, 1972.649573691407, Precision.EPSILON_3);
+      assertEquals(inflow8, inflow7, Precision.EPSILON_3);
+      assertEquals(inflow9, inflow8, Precision.EPSILON_3);
 
     } catch (Exception e) {
       e.printStackTrace();
