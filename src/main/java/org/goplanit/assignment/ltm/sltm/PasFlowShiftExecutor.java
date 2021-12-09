@@ -466,6 +466,14 @@ public class PasFlowShiftExecutor {
       return proposedFlowShift;
     }
 
+    /*
+     * when approaching equilibrium, small shifts should be fully executed, otherwise it takes forever to converge. With such small flows chances have decreased that overshooting
+     * and triggering a different state has a dramatic effect on the travel time derivative
+     */
+    if (Precision.smaller(proposedFlowShift, 10)) {
+      return proposedFlowShift;
+    }
+
     double assumedCongestedShift = proposedFlowShift - s1SlackFlow;
     double portion = (1 - pas.getAlternativeLowCost() / pas.getAlternativeHighCost());
     return s1SlackFlow + assumedCongestedShift * portion;
@@ -591,7 +599,11 @@ public class PasFlowShiftExecutor {
 
     /* s1 & S2 UNCONGESTED - no derivative estimate possible (denominator zero) */
     if (firstS1CongestedLinkSegment == null && firstS2CongestedLinkSegment == null) {
-      return adjustFlowShiftBasedOnS1SlackFlow(getS2SendingFlow(), s1SlackFlowEstimate);
+      /*
+       * propose to move exactly as much as the point that changes in state (+ small margin to trigger state change and be able to deal with situation that there is 0 slack flow)
+       */
+      double proposedFlowShift = Math.min(getS2SendingFlow() - 10, s1SlackFlowEstimate) + 10;
+      return adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, s1SlackFlowEstimate);
     }
 
     /* s1 and/or s2 congested - derivative estimate possible */
