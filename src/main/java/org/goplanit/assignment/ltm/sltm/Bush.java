@@ -3,6 +3,7 @@ package org.goplanit.assignment.ltm.sltm;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -24,6 +25,7 @@ import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.zoning.OdZone;
 
@@ -564,14 +566,17 @@ public class Bush implements IdAble {
           /* label transition or no match */
           BushFlowCompositionLabel transitionLabel = null;
           var potentialLabelTransitions = getFlowCompositionLabels(succeedingSegment);
-          for (var potentialLabel : potentialLabelTransitions) {
-            if (containsTurnSendingFlow(currentSegment, currentLabel, succeedingSegment, potentialLabel)) {
-              transitionLabel = potentialLabel;
-              transitionLabels.addFirst(transitionLabel);
+          if(potentialLabelTransitions != null) {
+            for (var potentialLabel : potentialLabelTransitions) {
+              if (containsTurnSendingFlow(currentSegment, currentLabel, succeedingSegment, potentialLabel)) {
+                transitionLabel = potentialLabel;
+                transitionLabels.addFirst(transitionLabel);
+              }
             }
           }
           if (transitionLabel == null) {
             /* no match - remove the original label we started with */
+            transitionLabels = null;
             break;
           }
           /* transition - update label representing composite flow that contains label under investigation */
@@ -580,7 +585,9 @@ public class Bush implements IdAble {
         currentSegment = succeedingSegment;
       }
 
-      pasCompositionLabels.add(transitionLabels);
+      if(!CollectionUtils.nullOrEmpty(transitionLabels)) {
+        pasCompositionLabels.add(transitionLabels);
+      }
     }
     return pasCompositionLabels;
   }
@@ -684,7 +691,7 @@ public class Bush implements IdAble {
 
         var usedLabels = getFlowCompositionLabels(entrySegment);
         for (var entrylabel : usedLabels) {
-          double entryLabelSendingFlow = bushData.getTotalAcceptedFlowToPcuH(entrySegment, entrylabel, flowAcceptanceFactors);
+          double entryLabelAcceptedFlow = bushData.getTotalAcceptedFlowToPcuH(entrySegment, entrylabel, flowAcceptanceFactors);
 
           /*
            * bush splitting rates by [exit segment, exit label] as key - splitting rates are computed based on turn flows but placed in new map. so once we have the splitting rates
@@ -701,7 +708,7 @@ public class Bush implements IdAble {
             for (var exitLabel : exitLabels) {
               Double bushExitSegmentLabelSplittingRate = splittingRates.get(exitSegment, exitLabel);
               if (bushExitSegmentLabelSplittingRate != null && Precision.positive(bushExitSegmentLabelSplittingRate)) {
-                double bushTurnLabeledAcceptedFlow = entryLabelSendingFlow * bushExitSegmentLabelSplittingRate;
+                double bushTurnLabeledAcceptedFlow = entryLabelAcceptedFlow * bushExitSegmentLabelSplittingRate;
                 bushData.setTurnSendingFlow(entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow);
               }
             }

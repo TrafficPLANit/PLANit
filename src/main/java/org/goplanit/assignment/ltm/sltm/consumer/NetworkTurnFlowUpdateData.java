@@ -60,7 +60,7 @@ public class NetworkTurnFlowUpdateData extends NetworkFlowUpdateData {
     if (currentAcceptedTurnFlow == null) {
       acceptedTurnFlows.put(entrySegment, exitSegment, flowToAddPcuH);
     } else {
-      currentAcceptedTurnFlow += flowToAddPcuH;
+      acceptedTurnFlows.put(entrySegment, exitSegment, currentAcceptedTurnFlow + flowToAddPcuH);
     }
   }
 
