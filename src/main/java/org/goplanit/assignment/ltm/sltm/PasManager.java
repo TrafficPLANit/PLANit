@@ -258,6 +258,7 @@ public class PasManager {
       for (var pasFirstExitSegment : pas.getDivergeVertex().getExitEdgeSegments()) {
         if (originBush.containsEdgeSegment(pasFirstExitSegment)) {
           pasPotentialMatch = true;
+          break;
         }
       }
 

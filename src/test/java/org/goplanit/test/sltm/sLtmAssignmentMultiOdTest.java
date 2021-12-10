@@ -38,24 +38,24 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 
 /**
- * Test the sLTM assignment basic functionality (route choice) with multiple destinations for a single origin
+ * Test the sLTM assignment basic functionality (route choice) with multiple origin-destinations
  * 
  * @author markr
  *
  */
-public class sLtmAssignmentMultiDestinationTest {
+public class sLtmAssignmentMultiOdTest {
 
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
   private Zoning zoning;
 
-  private final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("sLtmAssignmentMultiDestinationTest");
+  private final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("sLtmAssignmentMultiOdTest");
 
   /** the logger */
   private static Logger LOGGER = null;
 
   /**
-   * Create demands an populate with OD DEMANDS 4000 A->A`, 4000 A->A``
+   * Create demands an populate with OD DEMANDS 2000 A->A`, 2000 A->A``, and, 2000 A```->A`, 2000 A```->A``
    * 
    * @return created demands
    * @throws PlanItException thrown if error
@@ -69,8 +69,10 @@ public class sLtmAssignmentMultiDestinationTest {
     /* OD DEMANDS 4000 A->A`, 4000 A->A`` */
     OdZones odZones = zoning.getOdZones();
     OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
-    odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), 4000.0);
-    odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 4000.0);
+    odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A`"), 2000.0);
+    odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 2000.0);
+    odDemands.setValue(odZones.getByXmlId("A```"), odZones.getByXmlId("A`"), 2000.0);
+    odDemands.setValue(odZones.getByXmlId("A```"), odZones.getByXmlId("A``"), 2000.0);
     demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
 
     return demands;
@@ -82,7 +84,7 @@ public class sLtmAssignmentMultiDestinationTest {
   @BeforeClass
   public static void setUp() throws Exception {
     if (LOGGER == null) {
-      LOGGER = Logging.createLogger(sLtmAssignmentMultiDestinationTest.class);
+      LOGGER = Logging.createLogger(sLtmAssignmentMultiOdTest.class);
     }
   }
 
@@ -106,11 +108,13 @@ public class sLtmAssignmentMultiDestinationTest {
     // diverge node, otherwise it will fail
     //
     // ! = bottleneck
-    // Demand AA'  = 4000
-    // Demand AA'' = 4000
+    // Demand AA'  = 2000
+    // Demand AA'' = 2000
+    // Demand A'''A' = 2000
+    // Demand A'''A'' = 2000
     //
-    // [0,1,4,5,12] = 8000 capacity
-    // [2,4,6,8,9,13] = 4000 capacity
+    // [0,1,4,5,8,12,15] = 8000 capacity
+    // [2,4,6,8,13] = 4000 capacity
     // [9,10] = 3000 capacity
     // [3,7,11] = 1500 capacity
     // 
@@ -128,10 +132,10 @@ public class sLtmAssignmentMultiDestinationTest {
     //       \   /       \   /
     //     (2) *    (1)    * (6)
     //          \----*----/
-    //           1   |   5
-    //               | 0
-    //           (0) *
-    //               A
+    //           1  / \   5
+    //           15/   \ 0
+    //           *(13)(0)*
+    //          A```     A
     
     try {
       // local CRS in meters
@@ -145,7 +149,7 @@ public class sLtmAssignmentMultiDestinationTest {
         // 0
         Node node = networkLayer.getNodes().getFactory().registerNew();
         node.setXmlId("0");
-        node.setPosition(geoFactory.createPoint(new Coordinate(2000, 0)));
+        node.setPosition(geoFactory.createPoint(new Coordinate(2500, 0)));
         // 1
         node = networkLayer.getNodes().getFactory().registerNew();
         node.setXmlId("1");
@@ -193,7 +197,11 @@ public class sLtmAssignmentMultiDestinationTest {
         // 12
         node = networkLayer.getNodes().getFactory().registerNew();
         node.setXmlId("12");
-        node.setPosition(geoFactory.createPoint(new Coordinate(2000, 3000)));        
+        node.setPosition(geoFactory.createPoint(new Coordinate(2000, 3000)));    
+        // 13
+        node = networkLayer.getNodes().getFactory().registerNew();
+        node.setXmlId("13");
+        node.setPosition(geoFactory.createPoint(new Coordinate(1500, 0)));         
       }
                      
       
@@ -215,6 +223,7 @@ public class sLtmAssignmentMultiDestinationTest {
       links.getFactory().registerNew(nodes.getByXmlId("11"), nodes.getByXmlId("12"), 1, true).setXmlId("12");
       links.getFactory().registerNew(nodes.getByXmlId("12"), nodes.getByXmlId("4"), 1, true).setXmlId("13");
       links.getFactory().registerNew(nodes.getByXmlId("12"), nodes.getByXmlId("8"), 1, true).setXmlId("14");
+      links.getFactory().registerNew(nodes.getByXmlId("13"), nodes.getByXmlId("1"), 1, true).setXmlId("15");      
       
       
       /* capacities the same (500), difference is in number of lanes applied), two types, one of 3 lanes (bottleneck) and one of 16 lanes (not bottleneck) */
@@ -236,15 +245,18 @@ public class sLtmAssignmentMultiDestinationTest {
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("12"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(16);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("13"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(8);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("14"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(8);
+      networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("15"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(16);
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
       zoning.odZones.getFactory().registerNew().setXmlId("A");
       zoning.odZones.getFactory().registerNew().setXmlId("A`");
       zoning.odZones.getFactory().registerNew().setXmlId("A``");
+      zoning.odZones.getFactory().registerNew().setXmlId("A```");
            
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("5"),  zoning.getOdZones().getByXmlId("A`"), 0);
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("9"),  zoning.getOdZones().getByXmlId("A``"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("13"),  zoning.getOdZones().getByXmlId("A```"), 0);
                       
     }catch(Exception e) {
       e.printStackTrace();
@@ -318,11 +330,13 @@ public class sLtmAssignmentMultiDestinationTest {
       double outflow12 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("12").getLinkSegmentAb());
       double outflow13 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("13").getLinkSegmentAb());
       double outflow14 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("14").getLinkSegmentAb());
+      double outflow15 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("15").getLinkSegmentAb());
 
       assertTrue(Precision.smallerEqual(outflow4, 4000));
       assertTrue(Precision.smallerEqual(outflow8, 4000));
 
-      assertEquals(outflow0, 8000, Precision.EPSILON_3);
+      assertEquals(outflow0, 4000, Precision.EPSILON_3);
+      assertEquals(outflow15, 4000, Precision.EPSILON_3);
       assertEquals(outflow1, 4523.076922848041, Precision.EPSILON_3);
       assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
       assertEquals(outflow3, outflow2, Precision.EPSILON_3);
@@ -353,7 +367,7 @@ public class sLtmAssignmentMultiDestinationTest {
       double inflow13 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("13").getLinkSegmentAb());
       double inflow14 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("14").getLinkSegmentAb());
 
-      assertEquals(outflow0, inflow1 + inflow5, Precision.EPSILON_6);
+      assertEquals(outflow0 + outflow15, inflow1 + inflow5, Precision.EPSILON_6);
       assertEquals(outflow1, inflow2 + inflow9, Precision.EPSILON_6);
       assertEquals(outflow2, inflow3, Precision.EPSILON_6);
       assertEquals(outflow3 + outflow13, inflow4, Precision.EPSILON_6);

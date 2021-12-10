@@ -3,7 +3,6 @@ package org.goplanit.assignment.ltm.sltm;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -566,7 +565,7 @@ public class Bush implements IdAble {
           /* label transition or no match */
           BushFlowCompositionLabel transitionLabel = null;
           var potentialLabelTransitions = getFlowCompositionLabels(succeedingSegment);
-          if(potentialLabelTransitions != null) {
+          if (potentialLabelTransitions != null) {
             for (var potentialLabel : potentialLabelTransitions) {
               if (containsTurnSendingFlow(currentSegment, currentLabel, succeedingSegment, potentialLabel)) {
                 transitionLabel = potentialLabel;
@@ -585,7 +584,7 @@ public class Bush implements IdAble {
         currentSegment = succeedingSegment;
       }
 
-      if(!CollectionUtils.nullOrEmpty(transitionLabels)) {
+      if (!CollectionUtils.nullOrEmpty(transitionLabels)) {
         pasCompositionLabels.add(transitionLabels);
       }
     }

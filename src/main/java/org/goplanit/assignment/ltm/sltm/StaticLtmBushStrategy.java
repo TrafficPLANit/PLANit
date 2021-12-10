@@ -259,6 +259,7 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
             Pas newPas = extendBushWithNewPas(originBush, bushVertex, networkMinPaths);
             if (newPas != null) {
               newPass.add(newPas);
+              newPas.updateCost(linkSegmentCosts);
               continue;
             }
 
@@ -428,8 +429,7 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */     
       {
         /* (NEW) PAS MATCHING FOR BUSHES */
-        Collection<Pas> newPass = extendBushes(costsToUpdate);      
-        pasManager.updateCosts(newPass, costsToUpdate);      
+        Collection<Pas> newPass = extendBushes(costsToUpdate);            
               
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
         Collection<Pas> updatedPass = shiftFlows(theMode);      
