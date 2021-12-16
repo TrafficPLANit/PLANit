@@ -1,7 +1,7 @@
 package org.goplanit.network.layers;
 
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.layer.ServiceNetworkLayerFactoryImpl;
+import org.goplanit.network.layer.service.ServiceNetworkLayerFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layers.ServiceNetworkLayerFactory;

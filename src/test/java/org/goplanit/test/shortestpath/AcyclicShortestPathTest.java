@@ -14,8 +14,8 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.goplanit.algorithms.shortestpath.AcyclicMinMaxShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.MinMaxPathResult;
+import org.goplanit.algorithms.shortest.AcyclicMinMaxShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
 import org.goplanit.logging.Logging;
@@ -109,7 +109,7 @@ public class AcyclicShortestPathTest {
       GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
       
       int gridSize = 2;
-      network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
+      network = MacroscopicNetwork.create(IdGroupingToken.collectGlobalToken());
       networkLayer = network.getTransportLayers().getFactory().registerNew();
       for(int nodeRowIndex = 0;nodeRowIndex<=gridSize;++nodeRowIndex) {
         for(int nodeColIndex = 0;nodeColIndex<=gridSize;++nodeColIndex) {

@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortestpath.ShortestPathResult;
+import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 

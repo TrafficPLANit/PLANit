@@ -1,4 +1,4 @@
-package org.goplanit.algorithms.shortestpath;
+package org.goplanit.algorithms.shortest;
 
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.Vertex;

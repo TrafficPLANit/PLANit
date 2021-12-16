@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.logging.Logger;
 
 import org.goplanit.network.TransportLayerNetwork;
-import org.goplanit.network.layer.MacroscopicNetworkLayerImpl;
+import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.goplanit.network.virtual.VirtualNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.Edge;

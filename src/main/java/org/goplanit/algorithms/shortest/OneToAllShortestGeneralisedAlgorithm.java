@@ -1,12 +1,12 @@
-package org.goplanit.algorithms.shortestpath;
+package org.goplanit.algorithms.shortest;
 
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
+import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.EdgeSegment;
-import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.misc.Pair;
 
@@ -21,12 +21,12 @@ import org.goplanit.utils.misc.Pair;
  * @author markr
  *
  */
-public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgorithm {
+public class OneToAllShortestGeneralisedAlgorithm {
 
   /**
    * Reference to current origin for which we have collected shortest paths on a ONE-TO-ALL basis
    */
-  protected Vertex currentOrigin = null;
+  protected DirectedVertex currentOrigin = null;
 
   /**
    * Track the cost for each edge to determine shortest paths
@@ -49,29 +49,16 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
   });
 
   /**
-   * Constructor for an edge cost based Dijkstra algorithm for finding shortest paths.
+   * Generalised one-to-all shortest-X search where the test whether or not an incoming edge segment is shortest is dictated by the provided predicate while the processing of the
+   * incoming edge segment when the predicate tests as true is outsourced to the provided consumer. It is however assumed that only a single cost is stored per vertex resulting in
+   * the returned vertex measured cost array
    * 
-   * @param edgeSegmentCosts     Edge segment costs
-   * @param numberOfEdgeSegments Edge segments, both physical and connectoid
-   * @param numberOfVertices     Vertices, both nodes and centroids
+   * @param verifyVertex                        predicate to test if the new cost to reach vertex is considered shortest compared to existing cost
+   * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by the predicate
+   * @param found                               shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
    */
-  public DijkstraShortestPathAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
-    this.edgeSegmentCosts = edgeSegmentCosts;
-    this.numberOfVertices = numberOfVertices;
-    this.numberOfEdgeSegments = numberOfEdgeSegments;
-  }
-
-  /**
-   * Construct shortest paths from source node to all other nodes in the network based on directed LinkSegment edges
-   * 
-   * @param currentOrigin origin vertex of source node
-   * @return shortest path result that can be used to extract paths
-   * @throws PlanItException thrown if an error occurs
-   */
-  @Override
-  public ShortestPathResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException {
+  protected double[] executeOneToAll(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
     boolean[] vertexVisited = new boolean[numberOfVertices];
-    this.currentOrigin = currentOrigin;
 
     // track measured cost for each vertex
     double[] vertexMeasuredCost = new double[numberOfVertices];
@@ -110,17 +97,31 @@ public class DijkstraShortestPathAlgorithm implements OneToAllShortestPathAlgori
             double adjacentVertexCost = vertexMeasuredCost[adjacentVertexId];
             double computedCostToReachAdjacentVertex = currentCost + currentEdgeSegmentCost;
 
-            // Whenever the adjacent vertex can be reached in less cost than currently is
-            // the case, place it on the queue for expanding and update its cost
-            if (adjacentVertexCost > computedCostToReachAdjacentVertex) {
-              vertexMeasuredCost[adjacentVertexId] = computedCostToReachAdjacentVertex;
-              incomingEdgeSegment[adjacentVertexId] = adjacentEdgeSegment;
+            if (verifyVertex.test(adjacentVertexCost, computedCostToReachAdjacentVertex)) {
+              vertexMeasuredCost[adjacentVertexId] = computedCostToReachAdjacentVertex; // update cost
               openVertices.add(Pair.of(adjacentVertex, computedCostToReachAdjacentVertex)); // place on queue
+
+              shortestIncomingEdgeSegmentConsumer.accept(adjacentEdgeSegment); // process "shortest" edge segment
             }
           }
         }
       }
     }
-    return new ShortestPathResultImpl(vertexMeasuredCost, incomingEdgeSegment);
+
+    return vertexMeasuredCost;
   }
+
+  /**
+   * Constructor for an edge cost based Dijkstra algorithm for finding shortest paths.
+   * 
+   * @param edgeSegmentCosts     Edge segment costs
+   * @param numberOfEdgeSegments Edge segments, both physical and connectoid
+   * @param numberOfVertices     Vertices, both nodes and centroids
+   */
+  public OneToAllShortestGeneralisedAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
+    this.edgeSegmentCosts = edgeSegmentCosts;
+    this.numberOfVertices = numberOfVertices;
+    this.numberOfEdgeSegments = numberOfEdgeSegments;
+  }
+
 }

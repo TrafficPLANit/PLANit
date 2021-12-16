@@ -1,11 +1,10 @@
-package org.goplanit.network.layer;
+package org.goplanit.network.layer.macroscopic;
 
 import java.util.logging.Logger;
 
-import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentTypesImpl;
-import org.goplanit.network.layer.macroscopic.MacroscopicLinkSegmentsImpl;
 import org.goplanit.network.layer.physical.LinksImpl;
 import org.goplanit.network.layer.physical.NodesImpl;
+import org.goplanit.network.layer.physical.UntypedPhysicalLayerImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;

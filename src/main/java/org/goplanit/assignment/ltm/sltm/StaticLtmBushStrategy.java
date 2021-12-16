@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.ShortestPathResult;
+import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.OneToAllShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.consumer.InitialiseBushEdgeSegmentDemandConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBush;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;

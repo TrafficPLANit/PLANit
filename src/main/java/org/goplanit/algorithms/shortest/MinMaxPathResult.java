@@ -1,4 +1,4 @@
-package org.goplanit.algorithms.shortestpath;
+package org.goplanit.algorithms.shortest;
 
 /**
  * Track results of a min-max path tree path execution allowing one to extract both minimum and maximum cost paths along the tree.

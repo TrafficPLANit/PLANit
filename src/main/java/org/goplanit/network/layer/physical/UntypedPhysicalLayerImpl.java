@@ -1,7 +1,8 @@
-package org.goplanit.network.layer;
+package org.goplanit.network.layer.physical;
 
 import java.util.logging.Logger;
 
+import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.utils.graph.ManagedGraphEntities;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Link;

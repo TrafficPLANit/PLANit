@@ -1,4 +1,4 @@
-package org.goplanit.algorithms.shortestpath;
+package org.goplanit.algorithms.shortest;
 
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.directed.DirectedVertex;

@@ -1,4 +1,4 @@
 /**
  * Shortest Path algorithms for PlanIt
  */
-package org.goplanit.algorithms.shortestpath;
+package org.goplanit.algorithms.shortest;

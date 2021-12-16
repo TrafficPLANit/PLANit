@@ -13,8 +13,8 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.algorithms.shortestpath.AcyclicMinMaxShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.MinMaxPathResult;
+import org.goplanit.algorithms.shortest.AcyclicMinMaxShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
 import org.goplanit.utils.graph.EdgeSegment;

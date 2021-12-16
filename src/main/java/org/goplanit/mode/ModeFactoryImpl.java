@@ -1,6 +1,7 @@
 package org.goplanit.mode;
 
-import org.goplanit.utils.exceptions.PlanItException;
+import java.util.logging.Logger;
+
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.mode.Mode;
@@ -17,6 +18,9 @@ import org.goplanit.utils.mode.UsabilityModeFeatures;
  * @author markr
  */
 public class ModeFactoryImpl extends ManagedIdEntityFactoryImpl<Mode> implements ModeFactory {
+
+  /** Logger to use */
+  private static final Logger LOGGER = Logger.getLogger(ModeFactoryImpl.class.getCanonicalName());
 
   /** modes container to use */
   protected final Modes modes;
@@ -36,7 +40,7 @@ public class ModeFactoryImpl extends ManagedIdEntityFactoryImpl<Mode> implements
    * {@inheritDoc}
    */
   @Override
-  public PredefinedMode createPredefinedMode(IdGroupingToken groupId, final PredefinedModeType modeType) throws PlanItException {
+  public PredefinedMode createPredefinedMode(IdGroupingToken groupId, final PredefinedModeType modeType) {
     switch (modeType) {
     case BICYCLE:
       return new BicycleMode(groupId);
@@ -67,7 +71,8 @@ public class ModeFactoryImpl extends ManagedIdEntityFactoryImpl<Mode> implements
     case TRAM:
       return new TramMode(groupId);
     default:
-      throw new PlanItException(String.format("mode type %s unknown", modeType));
+      LOGGER.severe(String.format("mode type %s unknown, mode not created", modeType));
+      return null;
     }
   }
 
@@ -85,7 +90,7 @@ public class ModeFactoryImpl extends ManagedIdEntityFactoryImpl<Mode> implements
    * {@inheritDoc}
    */
   @Override
-  public PredefinedMode registerNew(PredefinedModeType modeType) throws PlanItException {
+  public PredefinedMode registerNew(PredefinedModeType modeType) {
     PredefinedMode theMode = null;
     if (!modes.containsPredefinedMode(modeType)) {
       theMode = createPredefinedMode(getIdGroupingToken(), modeType);

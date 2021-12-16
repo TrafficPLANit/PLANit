@@ -117,7 +117,7 @@ public class sLtmAssignmentSingleOdTest1 {
       // local CRS in meters
       GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
       
-      network = new MacroscopicNetwork(testToken);
+      network = MacroscopicNetwork.create(testToken);
       network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
       networkLayer = network.getTransportLayers().getFactory().registerNew(network.getModes().get(PredefinedModeType.CAR));
 

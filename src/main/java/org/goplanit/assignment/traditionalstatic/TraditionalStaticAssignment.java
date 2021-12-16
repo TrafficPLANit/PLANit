@@ -6,14 +6,14 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.ShortestPathResult;
+import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.StaticTrafficAssignment;
 import org.goplanit.cost.Cost;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.interactor.LinkVolumeAccessee;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.layer.MacroscopicNetworkLayerImpl;
+import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.path.OdPathMatrix;
 import org.goplanit.od.skim.OdSkimMatrix;

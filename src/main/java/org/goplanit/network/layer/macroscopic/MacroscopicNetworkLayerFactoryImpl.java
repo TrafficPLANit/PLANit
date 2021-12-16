@@ -1,4 +1,4 @@
-package org.goplanit.network.layer;
+package org.goplanit.network.layer.macroscopic;
 
 import java.util.Arrays;
 

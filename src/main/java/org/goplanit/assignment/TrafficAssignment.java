@@ -23,11 +23,11 @@ import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
 import org.goplanit.supply.networkloading.NetworkLoading;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.time.TimePeriod;
+import org.goplanit.zoning.Zoning;
 
 /**
  * Traffic assignment class which simultaneously is responsible for the loading hence it is also considered as a traffic assignment component of this type
@@ -49,8 +49,6 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * Output manager deals with all the output configurations for the registered traffic assignments
    */
   private OutputManager outputManager;
-
-  
 
   /* INPUT COMPONENTS */
 
@@ -238,7 +236,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * log registering an item on this traffic assignment
    * 
    * @param item     to (un)register
-   * @param register when true it signals activate, otherwise deactive
+   * @param register when true it signals activate, otherwise deactivate
    */
   protected void logRegisteredComponent(Object item, boolean register) {
     LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.logActiveStateByClassName(item, register));
@@ -526,7 +524,7 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   public void setOutputManager(OutputManager outputManager) {
     this.outputManager = outputManager;
     // TODO: move all logging of components to one central place instead of in setters
-    outputManager.getOutputFormatters().forEach(of -> logRegisteredComponent(of, false));
+    outputManager.getOutputFormatters().forEach(of -> logRegisteredComponent(of, true));
     outputManager.getRegisteredOutputTypeConfigurations().forEach(oc -> LOGGER.info(LoggingUtils.createRunIdPrefix(this.getId()) + "activated: OutputType." + oc.getOutputType()));
   }
 

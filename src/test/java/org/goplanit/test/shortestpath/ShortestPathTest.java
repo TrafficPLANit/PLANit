@@ -8,9 +8,9 @@ import java.util.logging.Logger;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
-import org.goplanit.algorithms.shortestpath.AStarShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.ShortestPathResult;
+import org.goplanit.algorithms.shortest.AStarShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
@@ -109,7 +109,7 @@ public class ShortestPathTest {
       GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
       
       int gridSize = 4;
-      network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
+      network = MacroscopicNetwork.create(IdGroupingToken.collectGlobalToken());
       networkLayer = network.getTransportLayers().getFactory().registerNew();
       for(int nodeRowIndex = 0;nodeRowIndex<=gridSize;++nodeRowIndex) {
         for(int nodeColIndex = 0;nodeColIndex<=gridSize;++nodeColIndex) {

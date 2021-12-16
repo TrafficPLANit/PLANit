@@ -4,8 +4,10 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.HashedMap;
+import org.goplanit.network.layer.macroscopic.MacroscopicGridNetworkLayerGenerator;
 import org.goplanit.network.layers.MacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.TransportLayer;
 import org.goplanit.utils.network.layers.MacroscopicNetworkLayers;
@@ -41,7 +43,7 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    * 
    * @param tokenId contiguous id generation within this group for instances of this class
    */
-  public MacroscopicNetwork(final IdGroupingToken tokenId) {
+  protected MacroscopicNetwork(final IdGroupingToken tokenId) {
     super(tokenId);
   }
 
@@ -67,7 +69,33 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
 
     /* register modes */
     layerConfiguration.modeToLayerXmlId.forEach((mode, layerXmlId) -> getTransportLayers().get(xmlIdToId.get(layerXmlId)).registerSupportedMode(mode));
+  }
 
+  /**
+   * Create a macroscopic network instance using the id token provided
+   * 
+   * @param tokenId
+   * @return
+   */
+  public static MacroscopicNetwork create(final IdGroupingToken tokenId) {
+    return new MacroscopicNetwork(tokenId);
+  }
+
+  /**
+   * Create a macroscopic network instance using the id token provided and in addition generate a simple grid-based network layer for the predefined car mode, where each link is
+   * bi-directional and has a single link segment type with access for car (nothing else set). For a more sophisticated grid generator use the dedicated generator class
+   * {@link #org.planit.network.layer.macroscopic.MacroscopicGridNetworkLayerGenerator}.
+   * 
+   * @param tokenId to use
+   * @param rows    in the grid
+   * @param columns in the grid
+   * @return
+   */
+  public static MacroscopicNetwork createSimpleGrid(final IdGroupingToken tokenId, int rows, int columns) {
+    var network = create(tokenId);
+    var carMode = network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
+    MacroscopicGridNetworkLayerGenerator.create(rows, columns, network.getTransportLayers(), carMode).generate();
+    return network;
   }
 
 }

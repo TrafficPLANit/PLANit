@@ -2,8 +2,8 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
-import org.goplanit.algorithms.shortestpath.OneToAllShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.OneToAllShortestPathAlgorithm;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;

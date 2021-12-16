@@ -141,7 +141,7 @@ public class sLtmAssignmentMultiOdTest {
       // local CRS in meters
       GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
       
-      network = new MacroscopicNetwork(testToken);
+      network = MacroscopicNetwork.create(testToken);
       network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
       networkLayer = network.getTransportLayers().getFactory().registerNew(network.getModes().get(PredefinedModeType.CAR));
 
@@ -264,32 +264,6 @@ public class sLtmAssignmentMultiOdTest {
     }
   }
   //@formatter:on
-
-  /**
-   * Test sLTM path-based assignment on above network for a point queue model
-   */
-  @Test
-  public void sLtmPointQueuePathBasedAssignmentTest() {
-    try {
-
-      Demands demands = createDemands();
-
-      /* sLTM - POINT QUEUE */
-      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(true);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateBushBased(false);
-
-      StaticLtm sLTM = sLTMBuilder.build();
-      sLTM.execute();
-
-      // TODO: not yet supported
-
-    } catch (Exception e) {
-      e.printStackTrace();
-      fail("Error when testing sLTM network loading");
-    }
-  }
 
   /**
    * Test sLTM bush-based assignment on above network for a point queue model

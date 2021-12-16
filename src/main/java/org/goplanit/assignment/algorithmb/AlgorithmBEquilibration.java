@@ -3,7 +3,7 @@ package org.goplanit.assignment.algorithmb;
 import java.util.Set;
 
 import org.goplanit.utils.time.TimePeriod;
-import org.goplanit.algorithms.shortestpath.DijkstraShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.output.OutputManager;
 import org.goplanit.utils.exceptions.PlanItException;

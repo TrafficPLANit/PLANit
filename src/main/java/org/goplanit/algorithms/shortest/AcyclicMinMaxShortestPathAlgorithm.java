@@ -1,4 +1,4 @@
-package org.goplanit.algorithms.shortestpath;
+package org.goplanit.algorithms.shortest;
 
 import java.util.Arrays;
 import java.util.Collection;

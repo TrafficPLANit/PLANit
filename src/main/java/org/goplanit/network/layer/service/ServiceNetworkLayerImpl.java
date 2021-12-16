@@ -1,11 +1,9 @@
-package org.goplanit.network.layer;
+package org.goplanit.network.layer.service;
 
 import java.util.Collection;
 import java.util.logging.Logger;
 
-import org.goplanit.network.layer.service.ServiceLegSegmentsImpl;
-import org.goplanit.network.layer.service.ServiceLegsImpl;
-import org.goplanit.network.layer.service.ServiceNodesImpl;
+import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
