@@ -9,9 +9,12 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.OneToAllShortestBushAlgorithm;
+import org.goplanit.algorithms.shortest.OneToAllShortestBushAlgorithmImpl;
 import org.goplanit.algorithms.shortest.OneToAllShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.ShortestBushResult;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
-import org.goplanit.assignment.ltm.sltm.consumer.InitialiseBushEdgeSegmentDemandConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.InitialiseBushDestinationDagConsumer;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBush;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
@@ -157,15 +160,15 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
   }
 
   /**
-   * Create a network wide shortest path algorithm based on provided costs
+   * Create a network wide shortest bush algorithm based on provided costs
    * 
    * @param linkSegmentCosts to use
-   * @return one-to-all shortest path algorithm
+   * @return one-to-all shortest bush algorithm
    */
-  private OneToAllShortestPathAlgorithm createNetworkShortestPathAlgo(final double[] linkSegmentCosts) {
+  private OneToAllShortestBushAlgorithm createNetworkShortestBushAlgo(final double[] linkSegmentCosts) {
     final int numberOfEdgeSegments = getTransportNetwork().getNumberOfEdgeSegmentsAllLayers();
     final int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
-    return new DijkstraShortestPathAlgorithm(linkSegmentCosts, numberOfEdgeSegments, numberOfVertices);
+    return new OneToAllShortestBushAlgorithmImpl(linkSegmentCosts, numberOfEdgeSegments, numberOfVertices);
   }
 
   /**
@@ -175,13 +178,13 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
    * @throws PlanItException thrown when error
    */
   private void initialiseBushes(final double[] linkSegmentCosts) throws PlanItException {
-    final OneToAllShortestPathAlgorithm shortestPathAlgorithm = createNetworkShortestPathAlgo(linkSegmentCosts);
+    final var shortestBushAlgorithm = createNetworkShortestBushAlgo(linkSegmentCosts);
 
     Zoning zoning = getTransportNetwork().getZoning();
     OdDemands odDemands = getOdDemands();
     for (var origin : zoning.getOdZones()) {
-      ShortestPathResult oneToAllResult = null;
-      InitialiseBushEdgeSegmentDemandConsumer initialiseBushConsumer = null;
+      ShortestBushResult oneToAllResult = null;
+      InitialiseBushDestinationDagConsumer initialiseBushConsumer = null;
       Bush originBush = null;
       for (var destination : zoning.getOdZones()) {
         if (destination.idEquals(origin)) {
@@ -195,18 +198,17 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
             /* register new bush */
             originBush = new Bush(getIdGroupingToken(), origin, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
             originBushes[(int) origin.getOdZoneId()] = originBush;
-            initialiseBushConsumer = new InitialiseBushEdgeSegmentDemandConsumer(originBush);
+            initialiseBushConsumer = new InitialiseBushDestinationDagConsumer(originBush);
           }
-          /* ensure bush initialisation is applied to the right destination/demand */
-          initialiseBushConsumer.setDestination(destination.getCentroid(), currOdDemand);
 
           /* find one-to-all shortest paths */
           if (oneToAllResult == null) {
-            oneToAllResult = shortestPathAlgorithm.executeOneToAll(origin.getCentroid());
+            oneToAllResult = shortestBushAlgorithm.executeOneToAll(origin.getCentroid());
           }
 
           /* initialise bush with this destination shortest path */
-          oneToAllResult.forEachBackwardEdgeSegment(origin.getCentroid(), destination.getCentroid(), initialiseBushConsumer);
+          var destinationDag = oneToAllResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), destination.getCentroid());
+          initialiseBushConsumer.accept(destination.getCentroid(), currOdDemand, destinationDag);
         }
 
       }
@@ -227,56 +229,56 @@ public class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy {
   private Collection<Pas> extendBushes(final double[] linkSegmentCosts) throws PlanItException {
 
     List<Pas> newPass = new ArrayList<>();
-
-    final OneToAllShortestPathAlgorithm networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
-
-    for (int index = 0; index < originBushes.length; ++index) {
-      Bush originBush = originBushes[index];
-      if (originBush != null) {
-
-        /* within-bush min/max-paths */
-        var minMaxPaths = originBush.computeMinMaxShortestPaths(linkSegmentCosts, this.getTransportNetwork().getNumberOfVerticesAllLayers());
-
-        /* network min-paths */
-        var networkMinPaths = networkShortestPathAlgo.executeOneToAll(originBush.getOrigin().getCentroid());
-
-        /* find (new) matching PASs */
-        for (var bushVertexIter = originBush.getDirectedVertexIterator(); bushVertexIter.hasNext();) {
-          DirectedVertex bushVertex = bushVertexIter.next();
-
-          /* when bush does not contain the reduced cost edge segment (or the opposite direction which would cause a cycle) consider it */
-          EdgeSegment reducedCostSegment = networkMinPaths.getIncomingEdgeSegmentForVertex(bushVertex);
-          if (reducedCostSegment != null && !originBush.containsAnyEdgeSegmentOf(reducedCostSegment.getParentEdge())) {
-
-            double reducedCost = minMaxPaths.getCostToReach(bushVertex) - networkMinPaths.getCostToReach(bushVertex);
-
-            boolean matchFound = extendBushWithSuitableExistingPas(originBush, bushVertex, reducedCost);
-            if (matchFound) {
-              continue;
-            }
-
-            /* no suitable match, attempt creating an entirely new PAS */
-            Pas newPas = extendBushWithNewPas(originBush, bushVertex, networkMinPaths);
-            if (newPas != null) {
-              newPass.add(newPas);
-              newPas.updateCost(linkSegmentCosts);
-              continue;
-            }
-
-            // BRANCH SHIFT
-            {
-              // NOTE: since we will perform an update on all PASs it seems illogical to also explicitly register the required branch shifts
-              // since they will be carried out regardless. Hence we do not log a warning nor implement the branch shift until it appears necessary
-
-              /* no suitable new or existing PAS could be found given the conditions applied, do a branch shift instead */
-              // LOGGER.info("No existing/new PAS found that satisfies flow/cost effective conditions for origin bush %s, consider branch shift - not yet implemented");
-              // TODO: currently not implemented yet -> requires shifting flow on existing bush with the given vertex as the end point
-            }
-
-          }
-        }
-      }
-    }
+//
+//    final var networkShortestPathAlgo = createNetworkShortestBushAlgo(linkSegmentCosts);
+//
+//    for (int index = 0; index < originBushes.length; ++index) {
+//      Bush originBush = originBushes[index];
+//      if (originBush != null) {
+//
+//        /* within-bush min/max-paths */
+//        var minMaxPaths = originBush.computeMinMaxShortestPaths(linkSegmentCosts, this.getTransportNetwork().getNumberOfVerticesAllLayers());
+//
+//        /* network min-paths */
+//        var networkMinPaths = networkShortestPathAlgo.executeOneToAll(originBush.getOrigin().getCentroid());
+//
+//        /* find (new) matching PASs */
+//        for (var bushVertexIter = originBush.getDirectedVertexIterator(); bushVertexIter.hasNext();) {
+//          DirectedVertex bushVertex = bushVertexIter.next();
+//
+//          /* when bush does not contain the reduced cost edge segment (or the opposite direction which would cause a cycle) consider it */
+//          EdgeSegment reducedCostSegment = networkMinPaths.getIncomingEdgeSegmentForVertex(bushVertex);
+//          if (reducedCostSegment != null && !originBush.containsAnyEdgeSegmentOf(reducedCostSegment.getParentEdge())) {
+//
+//            double reducedCost = minMaxPaths.getCostToReach(bushVertex) - networkMinPaths.getCostToReach(bushVertex);
+//
+//            boolean matchFound = extendBushWithSuitableExistingPas(originBush, bushVertex, reducedCost);
+//            if (matchFound) {
+//              continue;
+//            }
+//
+//            /* no suitable match, attempt creating an entirely new PAS */
+//            Pas newPas = extendBushWithNewPas(originBush, bushVertex, networkMinPaths);
+//            if (newPas != null) {
+//              newPass.add(newPas);
+//              newPas.updateCost(linkSegmentCosts);
+//              continue;
+//            }
+//
+//            // BRANCH SHIFT
+//            {
+//              // NOTE: since we will perform an update on all PASs it seems illogical to also explicitly register the required branch shifts
+//              // since they will be carried out regardless. Hence we do not log a warning nor implement the branch shift until it appears necessary
+//
+//              /* no suitable new or existing PAS could be found given the conditions applied, do a branch shift instead */
+//              // LOGGER.info("No existing/new PAS found that satisfies flow/cost effective conditions for origin bush %s, consider branch shift - not yet implemented");
+//              // TODO: currently not implemented yet -> requires shifting flow on existing bush with the given vertex as the end point
+//            }
+//
+//          }
+//        }
+//      }
+//    }
     return newPass;
   }
 

@@ -19,6 +19,9 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
  */
 public class DijkstraShortestPathAlgorithm extends OneToAllShortestGeneralisedAlgorithm implements OneToAllShortestPathAlgorithm {
 
+  /**
+   * Track incoming edge segment that is shortest for each vertex in this array
+   */
   protected EdgeSegment[] incomingEdgeSegment;
 
   /**

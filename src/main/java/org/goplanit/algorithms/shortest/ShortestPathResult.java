@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.path.DirectedPath;
 import org.goplanit.utils.path.DirectedPathFactory;
 
@@ -23,7 +24,7 @@ public interface ShortestPathResult {
    * @param destination the specified destination vertex
    * @return the path that is created, when no path could be extracted null is returned
    */
-  public abstract DirectedPath createPath(final DirectedPathFactory pathFactory, Vertex origin, Vertex destination);
+  public abstract DirectedPath createPath(final DirectedPathFactory pathFactory, DirectedVertex origin, DirectedVertex destination);
 
   /**
    * apply consumer to each edge segment on backward path from destination to origin. If path does not lead to origin, the loop terminates when no backward edge segment is found
@@ -34,7 +35,7 @@ public interface ShortestPathResult {
    * @param backwardEdgeSegmentConsumer to apply to each segment on the backward path from destination to origin
    * @return number of edge segments traversed on the path
    */
-  public default int forEachBackwardEdgeSegment(Vertex origin, Vertex destination, Consumer<EdgeSegment> backwardEdgeSegmentConsumer) {
+  public default int forEachBackwardEdgeSegment(DirectedVertex origin, DirectedVertex destination, Consumer<EdgeSegment> backwardEdgeSegmentConsumer) {
     EdgeSegment backwardEdgeSegment = null;
     Vertex currentVertex = destination;
     int count = 0;

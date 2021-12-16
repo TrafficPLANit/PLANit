@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.Vertex;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.path.DirectedPath;
 import org.goplanit.utils.path.DirectedPathFactory;
 
@@ -28,7 +29,7 @@ public class ShortestPathResultImpl implements ShortestPathResult {
   protected final double[] vertexMeasuredCost;
 
   /**
-   * the preceding vertex to reach the vertex with the given measured cost
+   * the preceding edge segment to reach the vertex with the given measured cost
    */
   protected final EdgeSegment[] incomingEdgeSegment;
 
@@ -47,7 +48,7 @@ public class ShortestPathResultImpl implements ShortestPathResult {
    * {@inheritDoc}
    */
   @Override
-  public DirectedPath createPath(final DirectedPathFactory pathFactory, Vertex origin, Vertex destination) {
+  public DirectedPath createPath(final DirectedPathFactory pathFactory, DirectedVertex origin, DirectedVertex destination) {
     // path edge segment container
     final Deque<EdgeSegment> pathEdgeSegments = new LinkedList<>();
 
