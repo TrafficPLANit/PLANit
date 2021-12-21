@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.Bush;
-import org.goplanit.assignment.ltm.sltm.BushFlowCompositionLabel;
+import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
@@ -34,18 +34,19 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
    * @param bushSendingFlows to populate as a starting point for the bush loading
    */
   private void initialiseRootExitSegmentSendingFlows(final Bush originBush, final MultiKeyMap<Object, Double> bushSendingFlows) {
-    int index = 0;
-    double[] rootVertexSplittingRates = originBush.getRootVertexSplittingRates();
+    double totalRootSendingFlow = 0;
     for (var rootExit : originBush.getOrigin().getCentroid().getExitEdgeSegments()) {
       if (originBush.containsEdgeSegment(rootExit)) {
         var usedLabels = originBush.getFlowCompositionLabels(rootExit);
-        if (usedLabels.size() != 1) {
-          LOGGER.severe(String.format("Flow composition labelling compromised, only a single label can be present at origin (%s) exit segment %s (%d) , but found %d",
-              originBush.getOrigin().getXmlId(), rootExit.getXmlId(), rootExit.getId(), usedLabels.size()));
+        for (var usedLabel : usedLabels) {
+          double sendingFlow = originBush.getSendingFlowPcuH(rootExit, usedLabel);
+          bushSendingFlows.put(rootExit, usedLabel, sendingFlow);
+          totalRootSendingFlow += sendingFlow;
         }
-        bushSendingFlows.put(rootExit, usedLabels.iterator().next(), originBush.getTravelDemandPcuH() * rootVertexSplittingRates[index]);
       }
-      ++index;
+    }
+    if (Precision.notEqual(totalRootSendingFlow, originBush.getTravelDemandPcuH())) {
+      LOGGER.severe(String.format("Origin (%s) travel demand not equal to total flow placed on bush root, this shouldn't happen", originBush.getOrigin().getXmlId()));
     }
   }
 
@@ -59,8 +60,8 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
    * @param currLabel            at hand
    * @param turnAcceptedFlowPcuH sending flow rate of turn
    */
-  protected void applyAcceptedTurnFlowUpdate(final EdgeSegment prevSegment, final BushFlowCompositionLabel prevLabel, final EdgeSegment currentSegment,
-      final BushFlowCompositionLabel currLabel, double turnAcceptedFlowPcuH) {
+  protected void applyAcceptedTurnFlowUpdate(final EdgeSegment prevSegment, final BushFlowLabel prevLabel, final EdgeSegment currentSegment,
+      final BushFlowLabel currLabel, double turnAcceptedFlowPcuH) {
     // default implementation does nothing but provide a hook for derived classes that do require to do something with turn accepted flows
   }
 

@@ -11,7 +11,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class BushFlowCompositionLabel implements Comparable<BushFlowCompositionLabel> {
+public class BushFlowLabel implements Comparable<BushFlowLabel> {
 
   /**
    * the id label
@@ -25,7 +25,7 @@ public class BushFlowCompositionLabel implements Comparable<BushFlowCompositionL
    * @return the generated id
    */
   protected static final long generateId(final IdGroupingToken idToken) {
-    return IdGenerator.generateId(idToken, BushFlowCompositionLabel.class);
+    return IdGenerator.generateId(idToken, BushFlowLabel.class);
   }
 
   /**
@@ -33,7 +33,7 @@ public class BushFlowCompositionLabel implements Comparable<BushFlowCompositionL
    * 
    * @param idToken to use
    */
-  public BushFlowCompositionLabel(final IdGroupingToken idToken) {
+  public BushFlowLabel(final IdGroupingToken idToken) {
     this.id = generateId(idToken);
   }
 
@@ -66,7 +66,7 @@ public class BushFlowCompositionLabel implements Comparable<BushFlowCompositionL
    * {@inheritDoc}
    */
   @Override
-  public int compareTo(BushFlowCompositionLabel o) {
+  public int compareTo(BushFlowLabel o) {
     return Long.compare(getLabelId(), o.getLabelId());
   }
 

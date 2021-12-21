@@ -1,11 +1,8 @@
 package org.goplanit.assignment.ltm.sltm;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -24,7 +21,6 @@ import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.misc.CollectionUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.zoning.OdZone;
 
@@ -131,8 +127,8 @@ public class Bush implements IdAble {
    * @param toLabel             to use
    * @param turnSendingflowPcuH to add
    */
-  public void addTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowCompositionLabel fromLabel, final EdgeSegment toEdgeSegment,
-      final BushFlowCompositionLabel toLabel, double turnSendingflowPcuH) {
+  public void addTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowLabel fromLabel, final EdgeSegment toEdgeSegment,
+      final BushFlowLabel toLabel, double turnSendingflowPcuH) {
     if (!containsEdgeSegment(fromEdgeSegment)) {
       if (containsAnyEdgeSegmentOf(fromEdgeSegment.getParentEdge())) {
         LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
@@ -172,8 +168,8 @@ public class Bush implements IdAble {
    * @param toLabel         to filter by
    * @return sending flow, zero if unknown
    */
-  public double getTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowCompositionLabel fromLabel, final EdgeSegment toEdgeSegment,
-      final BushFlowCompositionLabel toLabel) {
+  public double getTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowLabel fromLabel, final EdgeSegment toEdgeSegment,
+      final BushFlowLabel toLabel) {
     return bushData.getTurnSendingFlowPcuH(fromEdgeSegment, fromLabel, toEdgeSegment, toLabel);
   }
 
@@ -184,7 +180,7 @@ public class Bush implements IdAble {
    * @return bush sending flow on edge segment
    */
   public double getSendingFlowPcuH(final EdgeSegment edgeSegment) {
-    return bushData.getTotalSendingFlowPcuH(edgeSegment);
+    return bushData.getTotalSendingFlowFromPcuH(edgeSegment);
   }
 
   /**
@@ -194,7 +190,7 @@ public class Bush implements IdAble {
    * @param compositionLabel to filter by
    * @return bush sending flow on edge segment
    */
-  public double getSendingFlowPcuH(EdgeSegment edgeSegment, BushFlowCompositionLabel compositionLabel) {
+  public double getSendingFlowPcuH(EdgeSegment edgeSegment, BushFlowLabel compositionLabel) {
     return bushData.getTotalSendingFlowFromPcuH(edgeSegment, compositionLabel);
   }
 
@@ -218,8 +214,8 @@ public class Bush implements IdAble {
    * @param exitCompositionLabel  to use
    * @return true when turn sending flow is present, false otherwise
    */
-  public boolean containsTurnSendingFlow(EdgeSegment entrySegment, BushFlowCompositionLabel entryCompositionLabel, EdgeSegment exitSegment,
-      BushFlowCompositionLabel exitCompositionLabel) {
+  public boolean containsTurnSendingFlow(EdgeSegment entrySegment, BushFlowLabel entryCompositionLabel, EdgeSegment exitSegment,
+      BushFlowLabel exitCompositionLabel) {
     return Precision.positive(bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitCompositionLabel));
   }
 
@@ -230,7 +226,7 @@ public class Bush implements IdAble {
    * @param entryCompositionLabel to filter turn flow by
    * @param factor                to multiply with
    */
-  public void multiplyTurnSendingFlows(final EdgeSegment entrySegment, final BushFlowCompositionLabel entryCompositionLabel, double factor) {
+  public void multiplyTurnSendingFlows(final EdgeSegment entrySegment, final BushFlowLabel entryCompositionLabel, double factor) {
     for (EdgeSegment exitSegment : entrySegment.getDownstreamVertex().getExitEdgeSegments()) {
       var exitLabels = bushData.getFlowCompositionLabels(exitSegment);
       if (exitLabels == null) {
@@ -258,6 +254,19 @@ public class Bush implements IdAble {
   }
 
   /**
+   * Collect the bush splitting rate on the given turn for a given label. This might be 0, or 1, but cna also be something in between in case the label splits off in multiple
+   * directions
+   * 
+   * @param entrySegment   to use
+   * @param exitSegment    to use
+   * @param entryExitLabel label to be used for both entry and exit of the turn
+   * @return found splitting rate, in case the turn is not used, 0 is returned
+   */
+  public double getSplittingRate(EdgeSegment entrySegment, EdgeSegment exitSegment, BushFlowLabel entryExitLabel) {
+    return bushData.getSplittingRate(entrySegment, exitSegment, entryExitLabel);
+  }
+
+  /**
    * Collect the bush splitting rates for a given incoming edge segment. If entry segment has no flow, zero splitting rates are returned for all turns
    * 
    * @param entrySegment to use
@@ -275,7 +284,7 @@ public class Bush implements IdAble {
    * @return splitting rates in multikeymap where the key is the combination of exit segment and exit label and the value is the portion of the entry segment entry label flow
    *         directed to it
    */
-  public MultiKeyMap<Object, Double> getSplittingRates(final EdgeSegment entrySegment, final BushFlowCompositionLabel entryLabel) {
+  public MultiKeyMap<Object, Double> getSplittingRates(final EdgeSegment entrySegment, final BushFlowLabel entryLabel) {
     return bushData.getSplittingRates(entrySegment, entryLabel);
   }
 
@@ -291,7 +300,7 @@ public class Bush implements IdAble {
     double foundRootDemandPcuH = 0;
     for (var exitSegment : this.dag.getRootVertex().getExitEdgeSegments()) {
       if (containsEdgeSegment(exitSegment)) {
-        double rootExitDemandPcuH = bushData.getTotalSendingFlowPcuH(exitSegment);
+        double rootExitDemandPcuH = bushData.getTotalSendingFlowFromPcuH(exitSegment);
         splittingRates[index] = rootExitDemandPcuH / originDemandPcuH;
         foundRootDemandPcuH += rootExitDemandPcuH;
       }
@@ -435,7 +444,7 @@ public class Bush implements IdAble {
    */
   public double computeSubPathSendingFlow(final DirectedVertex startVertex, final DirectedVertex endVertex, final Map<DirectedVertex, EdgeSegment> subPathMap) {
     EdgeSegment nextEdgeSegment = subPathMap.get(startVertex);
-    double subPathSendingFlow = bushData.getTotalSendingFlowPcuH(nextEdgeSegment);
+    double subPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(nextEdgeSegment);
 
     if (Precision.positive(subPathSendingFlow)) {
       var currEdgeSegment = nextEdgeSegment;
@@ -465,7 +474,7 @@ public class Bush implements IdAble {
 
     int index = 0;
     EdgeSegment currEdgeSegment = subPathArray[index++];
-    double subPathAcceptedFlowPcuH = bushData.getTotalSendingFlowPcuH(currEdgeSegment);
+    double subPathAcceptedFlowPcuH = bushData.getTotalSendingFlowFromPcuH(currEdgeSegment);
 
     var nextEdgeSegment = currEdgeSegment;
     while (index < subPathArray.length && Precision.positive(subPathAcceptedFlowPcuH)) {
@@ -489,7 +498,7 @@ public class Bush implements IdAble {
 
     int index = 0;
     EdgeSegment currEdgeSegment = subPathArray[index++];
-    double subPathSendingFlow = bushData.getTotalSendingFlowPcuH(currEdgeSegment);
+    double subPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(currEdgeSegment);
 
     var nextEdgeSegment = currEdgeSegment;
     while (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
@@ -506,8 +515,8 @@ public class Bush implements IdAble {
    * 
    * @return created label
    */
-  public BushFlowCompositionLabel createFlowCompositionLabel() {
-    return new BushFlowCompositionLabel(this.bushGroupingToken);
+  public BushFlowLabel createFlowCompositionLabel() {
+    return new BushFlowLabel(this.bushGroupingToken);
   }
 
   /**
@@ -518,10 +527,10 @@ public class Bush implements IdAble {
    * @param pasFlowCompositionLabels to determine relative proportions for based on total flow across provided labels on the link segment
    * @return the rates at hand for each found composition label
    */
-  public TreeMap<BushFlowCompositionLabel, Double> determineProportionalFlowCompositionRates(final EdgeSegment edgeSegment,
-      final Set<BushFlowCompositionLabel> pasFlowCompositionLabels) {
+  public TreeMap<BushFlowLabel, Double> determineProportionalFlowCompositionRates(final EdgeSegment edgeSegment,
+      final Set<BushFlowLabel> pasFlowCompositionLabels) {
     double totalSendingFlow = 0;
-    var rateMap = new TreeMap<BushFlowCompositionLabel, Double>();
+    var rateMap = new TreeMap<BushFlowLabel, Double>();
     for (var label : pasFlowCompositionLabels) {
       double labelFlow = bushData.getTotalSendingFlowFromPcuH(edgeSegment, label);
       rateMap.put(label, labelFlow);
@@ -536,69 +545,23 @@ public class Bush implements IdAble {
   }
 
   /**
-   * Determine all label chains that represent flow that is fully overlapping with the provided subpath (assumed present on the bush). The chain represents the various connected
-   * labels in reverse order. These composite labels are provided as a list and the number of lists indicates the number of unique chains matching the PAS alternative
-   * 
-   * @param subPath to do this for
-   * @return found matching composition labels as a reverse ordered lists of encountered composite labels when traversing along the PAS (if any)
-   */
-  public List<LinkedList<BushFlowCompositionLabel>> determineUsedLabelChains(final EdgeSegment[] subPath) {
-    var edgeSegmentCompositionLabels = getFlowCompositionLabels(subPath[0]);
-
-    var pasCompositionLabels = new ArrayList<LinkedList<BushFlowCompositionLabel>>();
-    if (edgeSegmentCompositionLabels == null || edgeSegmentCompositionLabels.isEmpty()) {
-      return pasCompositionLabels;
-    }
-
-    var labelIter = edgeSegmentCompositionLabels.iterator();
-    while (labelIter.hasNext()) {
-      BushFlowCompositionLabel firstSegmentLabel = labelIter.next();
-      BushFlowCompositionLabel currentLabel = firstSegmentLabel;
-      LinkedList<BushFlowCompositionLabel> transitionLabels = new LinkedList<BushFlowCompositionLabel>();
-      transitionLabels.add(firstSegmentLabel);
-
-      EdgeSegment currentSegment = subPath[0];
-      EdgeSegment succeedingSegment = null;
-      for (int index = 1; index < subPath.length; ++index) {
-        succeedingSegment = subPath[index];
-        if (!containsTurnSendingFlow(currentSegment, currentLabel, succeedingSegment, currentLabel)) {
-          /* label transition or no match */
-          BushFlowCompositionLabel transitionLabel = null;
-          var potentialLabelTransitions = getFlowCompositionLabels(succeedingSegment);
-          if (potentialLabelTransitions != null) {
-            for (var potentialLabel : potentialLabelTransitions) {
-              if (containsTurnSendingFlow(currentSegment, currentLabel, succeedingSegment, potentialLabel)) {
-                transitionLabel = potentialLabel;
-                transitionLabels.addFirst(transitionLabel);
-              }
-            }
-          }
-          if (transitionLabel == null) {
-            /* no match - remove the original label we started with */
-            transitionLabels = null;
-            break;
-          }
-          /* transition - update label representing composite flow that contains label under investigation */
-          currentLabel = transitionLabel;
-        }
-        currentSegment = succeedingSegment;
-      }
-
-      if (!CollectionUtils.nullOrEmpty(transitionLabels)) {
-        pasCompositionLabels.add(transitionLabels);
-      }
-    }
-    return pasCompositionLabels;
-  }
-
-  /**
    * The labels present for the given segment
    * 
    * @param edgeSegment to collect composition labels for
    * @return the flow composition labels found
    */
-  public TreeSet<BushFlowCompositionLabel> getFlowCompositionLabels(EdgeSegment edgeSegment) {
+  public TreeSet<BushFlowLabel> getFlowCompositionLabels(EdgeSegment edgeSegment) {
     return bushData.getFlowCompositionLabels(edgeSegment);
+  }
+
+  /**
+   * The first of the flow composition labels present on the given segment. If no lables are present null is returned
+   * 
+   * @param edgeSegment to collect composition labels for
+   * @return the flow composition labels found
+   */
+  public BushFlowLabel getFirstFlowCompositionLabel(EdgeSegment edgeSegment) {
+    return hasFlowCompositionLabel(edgeSegment) ? bushData.getFlowCompositionLabels(edgeSegment).first() : null;
   }
 
   /**
@@ -618,7 +581,7 @@ public class Bush implements IdAble {
    * @param compositionLabel to verify
    * @return true when present, false otherwise
    */
-  public boolean hasFlowCompositionLabel(final EdgeSegment edgeSegment, final BushFlowCompositionLabel compositionLabel) {
+  public boolean hasFlowCompositionLabel(final EdgeSegment edgeSegment, final BushFlowLabel compositionLabel) {
     return bushData.hasFlowCompositionLabel(edgeSegment, compositionLabel);
   }
 
@@ -632,8 +595,8 @@ public class Bush implements IdAble {
    * @param newFromToLabel label to replace flow with
    * @return the amount of flow that was relabelled
    */
-  public double relabel(EdgeSegment fromSegment, BushFlowCompositionLabel oldFromLabel, EdgeSegment toSegment, BushFlowCompositionLabel oldToLabel,
-      BushFlowCompositionLabel newFromToLabel) {
+  public double relabel(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel,
+      BushFlowLabel newFromToLabel) {
     return bushData.relabel(fromSegment, oldFromLabel, toSegment, oldToLabel, newFromToLabel);
   }
 
@@ -647,8 +610,8 @@ public class Bush implements IdAble {
    * @param newFromLabel label to replace flow with
    * @return the amount of flow that was relabelled
    */
-  public double relabelFrom(EdgeSegment fromSegment, BushFlowCompositionLabel oldFromLabel, EdgeSegment toSegment, BushFlowCompositionLabel toLabel,
-      BushFlowCompositionLabel newFromLabel) {
+  public double relabelFrom(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel toLabel,
+      BushFlowLabel newFromLabel) {
     return bushData.relabelFrom(fromSegment, oldFromLabel, toSegment, toLabel, newFromLabel);
   }
 
@@ -662,8 +625,8 @@ public class Bush implements IdAble {
    * @param newToLabel  label to replace flow with
    * @return the amount of flow that was relabelled
    */
-  public double relabelTo(EdgeSegment fromSegment, BushFlowCompositionLabel fromLabel, EdgeSegment toSegment, BushFlowCompositionLabel oldToLabel,
-      BushFlowCompositionLabel newToLabel) {
+  public double relabelTo(EdgeSegment fromSegment, BushFlowLabel fromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel,
+      BushFlowLabel newToLabel) {
     return bushData.relabelTo(fromSegment, fromLabel, toSegment, oldToLabel, newToLabel);
   }
 
@@ -742,6 +705,15 @@ public class Bush implements IdAble {
    */
   public double getTravelDemandPcuH() {
     return originDemandPcuH;
+  }
+
+  /**
+   * Verify if empty
+   * 
+   * @return true when empty, false otherwise
+   */
+  public boolean isEmpty() {
+    return bushData.hasTurnFlows();
   }
 
   /**

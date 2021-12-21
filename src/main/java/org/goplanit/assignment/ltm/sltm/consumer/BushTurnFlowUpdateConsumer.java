@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.Bush;
-import org.goplanit.assignment.ltm.sltm.BushFlowCompositionLabel;
+import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.utils.graph.EdgeSegment;
 
 /**
@@ -50,8 +50,8 @@ public class BushTurnFlowUpdateConsumer extends BushFlowUpdateConsumer<NetworkTu
    * @param turnAcceptedFlowPcuH to use
    */
   @Override
-  protected void applyAcceptedTurnFlowUpdate(final EdgeSegment prevSegment, final BushFlowCompositionLabel prevLabel, final EdgeSegment currentSegment,
-      final BushFlowCompositionLabel currLabel, double turnAcceptedFlowPcuH) {
+  protected void applyAcceptedTurnFlowUpdate(final EdgeSegment prevSegment, final BushFlowLabel prevLabel, final EdgeSegment currentSegment,
+      final BushFlowLabel currLabel, double turnAcceptedFlowPcuH) {
     if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(currentSegment.getUpstreamVertex())) {
       dataConfig.addToAcceptedTurnFlows(prevSegment, currentSegment, turnAcceptedFlowPcuH); // network level
     }
