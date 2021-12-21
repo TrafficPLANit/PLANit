@@ -24,7 +24,6 @@ import org.goplanit.utils.misc.CollectionUtils;
  */
 public class ShortestBushResultImpl implements ShortestBushResult {
 
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ShortestPathResult.class.getCanonicalName());
 
   /**
@@ -47,6 +46,7 @@ public class ShortestBushResultImpl implements ShortestBushResult {
   /**
    * Constructor only to be used by shortest path algorithms
    * 
+   * @param origin               to use
    * @param vertexMeasuredCost   measured costs to get to the vertex (by id)
    * @param incomingEdgeSegments the incoming edge segment for each vertex (by id)
    * @param numberOfEdgeSegments on the parent network

@@ -14,7 +14,7 @@ public interface NetworkLayerGenerator {
   /**
    * Generate the network layer
    * 
-   * @return
+   * @return created layer
    */
   public abstract UntypedPhysicalLayer<?, ?, ?> generate();
 }

@@ -588,7 +588,6 @@ public abstract class StaticLtmNetworkLoading {
    * Conduct a network loading to compute updated current sending flow and outflow rates (without tracking turn flows). Used to finalise a loading after convergence
    * to ensure consistency in flows that might be compromised during local updates
    * 
-   * @param linkSegmentFlowArrayToFill the inflows (u_a) to update
    */  
   protected abstract void networkLoadingLinkSegmentSendingflowOutflowUpdate();
 

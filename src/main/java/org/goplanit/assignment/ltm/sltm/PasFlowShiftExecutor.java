@@ -201,11 +201,9 @@ public abstract class PasFlowShiftExecutor {
    * would expect the segment to transition to congestion.
    * 
    * @param theMode        to use
-   * @param networkLoading to use
-   * @param virtualCost    to use
    * @param physicalCost   to use
-   * @param theMode        to use
-   * 
+   * @param virtualCost    to use
+   * @param networkLoading to use
    * @return amount of flow to shift
    */
   protected double determineFlowShift(Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, StaticLtmLoadingBush networkLoading) {

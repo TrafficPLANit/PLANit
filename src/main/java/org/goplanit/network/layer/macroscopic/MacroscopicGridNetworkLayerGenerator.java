@@ -188,6 +188,7 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
    * @param columns         to use
    * @param layersContainer to register on
    * @param modes           to support
+   * @return created grid network layer
    */
   public static MacroscopicGridNetworkLayerGenerator create(int rows, int columns, final MacroscopicNetworkLayers layersContainer, final Mode... modes) {
     return new MacroscopicGridNetworkLayerGenerator(rows, columns, layersContainer, modes);

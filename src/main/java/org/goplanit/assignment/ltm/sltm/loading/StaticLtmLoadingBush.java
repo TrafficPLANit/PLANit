@@ -11,8 +11,6 @@ import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.BushTurnFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
-import org.goplanit.utils.graph.EdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -188,33 +186,6 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
     super(idToken, assignmentId, settings);
   }
   
-  //TODO: replaced by summing over subpaths of all origin bushes using labelling, since network loading has too little information to determine
-  // the flows through a subpath due to merging and diverging flows and lack of labelling
-//  /**
-//   * Determine the sending flow between origin,destination vertex using the subpath given by the subPathArray in order from start to finish. We utilise the initial sending flow on
-//   * the first segment as the base flow which is then followed along the subpath through the network splitting rates up to the final link segment
-//   * 
-//   * @param startVertex  to use
-//   * @param endVertex    to use
-//   * @param subPathArray to extract path from
-//   * @return sendingFlowPcuH between start and end vertex following the sub-path
-//   */
-//  public double computeSubPathSendingFlow(final DirectedVertex startVertex, final DirectedVertex endVertex, final EdgeSegment[] subPathArray) {
-//
-//    int index = 0;
-//    EdgeSegment currEdgeSegment = subPathArray[index++];
-//    double subPathSendingFlow = getCurrentInflowsPcuH()[(int)currEdgeSegment.getId()];
-//
-//    EdgeSegment nextEdgeSegment = currEdgeSegment;
-//    while (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
-//      currEdgeSegment = nextEdgeSegment;
-//      nextEdgeSegment = subPathArray[index++];
-//      subPathSendingFlow *= this.splittingRateData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
-//    }
-//
-//    return subPathSendingFlow;
-//  }
-
   /** The bushes to use when a loading update is requested
    * 
    * @param originBushes to use
@@ -232,7 +203,7 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
     this.pasManager = pasManager;
   } 
 
-  /** For each PAS we must be able to determine the network level flows along the segments, see {@link #computeSubPathSendingFlow(DirectedVertex, DirectedVertex, EdgeSegment[])}. 
+  /** For each PAS we must be able to determine the network level flows along the segments, see computeSubPathSendingFlow(). 
    * This requires knowing the network level splitting rates on the network level as well as the sending flows and acceptance factors, otherwise we cannot determine this. 
    * Therefore, for each newly identified PAS we activate node tracking for all (eligible) nodes along the segments of this PAS, if not already done so 
    *

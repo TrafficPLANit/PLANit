@@ -109,8 +109,8 @@ public class BushTurnData implements Cloneable {
    * @param newToLabel   label to replace flow with
    * @return the amount of flow that was relabelled
    */
-  private double relabel(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel,
-      BushFlowLabel newFromLabel, BushFlowLabel newToLabel) {
+  private double relabel(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel, BushFlowLabel newFromLabel,
+      BushFlowLabel newToLabel) {
 
     double flowToRelabel = getTurnSendingFlowPcuH(fromSegment, oldFromLabel, toSegment, oldToLabel);
     removeTurnFlow(fromSegment, oldFromLabel, toSegment, oldToLabel);
@@ -149,8 +149,7 @@ public class BushTurnData implements Cloneable {
    * @param toComposition   of turn flow
    * @param turnSendingFlow to update
    */
-  public void setTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition,
-      double turnSendingFlow) {
+  public void setTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition, double turnSendingFlow) {
 
     if (!Precision.positive(turnSendingFlow)) {
       LOGGER.warning(String.format("Turn (%s to %s) sending flow not positive (%.2f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
@@ -172,8 +171,7 @@ public class BushTurnData implements Cloneable {
    * @param toComposition   of turn flow
    * @param turnSendingFlow to add
    */
-  public void addTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition,
-      double turnSendingFlow) {
+  public void addTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition, double turnSendingFlow) {
 
     Double newSendingFlow = turnSendingFlow + getTurnSendingFlowPcuH(fromSegment, fromComposition, toSegment, toComposition);
     if (!Precision.positive(newSendingFlow)) {
@@ -229,8 +227,7 @@ public class BushTurnData implements Cloneable {
    * @param toComposition   of turn flow
    * @return turn sending flow, 0 if not present
    */
-  public double getTurnSendingFlowPcuH(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment,
-      BushFlowLabel toComposition) {
+  public double getTurnSendingFlowPcuH(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition) {
     Double existingSendingFlow = compositionTurnSendingFlows.get(fromSegment, fromComposition, toSegment, toComposition);
     if (existingSendingFlow != null) {
       return existingSendingFlow;
@@ -388,8 +385,7 @@ public class BushTurnData implements Cloneable {
    * @param toComposition   of turn flow
    * @return true when present, false otherwise
    */
-  public boolean containsTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment,
-      BushFlowLabel toComposition) {
+  public boolean containsTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition) {
     return Precision.positive(getTurnSendingFlowPcuH(fromSegment, fromComposition, toSegment, toComposition));
   }
 
@@ -492,8 +488,8 @@ public class BushTurnData implements Cloneable {
    * Collect the bush splitting rate on the given turn for a given label. This might be 0, or 1, but cna also be something in between in case the label splits off in multiple
    * directions
    * 
-   * @param entrySegment   to use
-   * @param exitSegment    to use
+   * @param fromSegment    to use
+   * @param toSegment      to use
    * @param entryExitLabel label to be used for both entry and exit of the turn
    * @return found splitting rate, in case the turn is not used, 0 is returned
    */
@@ -552,8 +548,7 @@ public class BushTurnData implements Cloneable {
    * @param newFromToLabel label to replace flow with
    * @return the amount of flow that was relabeled
    */
-  public double relabel(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel,
-      BushFlowLabel newFromToLabel) {
+  public double relabel(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel, BushFlowLabel newFromToLabel) {
     return relabel(fromSegment, oldFromLabel, toSegment, oldToLabel, newFromToLabel, newFromToLabel);
   }
 
@@ -567,8 +562,7 @@ public class BushTurnData implements Cloneable {
    * @param newFromLabel label to replace flow with
    * @return the amount of flow that was relabeled
    */
-  public double relabelFrom(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel toLabel,
-      BushFlowLabel newFromLabel) {
+  public double relabelFrom(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel toLabel, BushFlowLabel newFromLabel) {
     return relabel(fromSegment, oldFromLabel, toSegment, toLabel, newFromLabel, toLabel);
   }
 
@@ -582,8 +576,7 @@ public class BushTurnData implements Cloneable {
    * @param newToLabel  label to replace flow with
    * @return the amount of flow that was relabeled
    */
-  public double relabelTo(EdgeSegment fromSegment, BushFlowLabel fromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel,
-      BushFlowLabel newToLabel) {
+  public double relabelTo(EdgeSegment fromSegment, BushFlowLabel fromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel, BushFlowLabel newToLabel) {
     return relabel(fromSegment, fromLabel, toSegment, oldToLabel, fromLabel, newToLabel);
   }
 

@@ -40,6 +40,7 @@ public class NetworkFlowUpdateData {
    * Constructor to update sending flows during flow update
    * 
    * @param sendingFlowData          to use
+   * @param inflowOutflowdata        to use
    * @param networkLoadingFactorData to use
    */
   public NetworkFlowUpdateData(final SendingFlowData sendingFlowData, final InflowOutflowData inflowOutflowdata, NetworkLoadingFactorData networkLoadingFactorData) {

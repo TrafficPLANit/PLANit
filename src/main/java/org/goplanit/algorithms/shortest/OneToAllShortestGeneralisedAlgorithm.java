@@ -55,7 +55,7 @@ public class OneToAllShortestGeneralisedAlgorithm {
    * 
    * @param verifyVertex                        predicate to test if the new cost to reach vertex is considered shortest compared to existing cost
    * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by the predicate
-   * @param found                               shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
+   * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
    */
   protected double[] executeOneToAll(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
     boolean[] vertexVisited = new boolean[numberOfVertices];

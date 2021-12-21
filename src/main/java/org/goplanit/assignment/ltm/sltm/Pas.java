@@ -146,8 +146,8 @@ public class Pas {
    * 
    * @param bushes to remove
    */
-  public void removeOrigins(List<Bush> originsWithoutRemainingPasFlow) {
-    originsWithoutRemainingPasFlow.forEach((bush) -> originBushes.remove(bush));
+  public void removeOrigins(List<Bush> bushes) {
+    bushes.forEach((bush) -> originBushes.remove(bush));
   }
 
   /**

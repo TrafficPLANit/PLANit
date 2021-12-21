@@ -74,8 +74,8 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
   /**
    * Create a macroscopic network instance using the id token provided
    * 
-   * @param tokenId
-   * @return
+   * @param tokenId to use
+   * @return created network
    */
   public static MacroscopicNetwork create(final IdGroupingToken tokenId) {
     return new MacroscopicNetwork(tokenId);
@@ -84,12 +84,12 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
   /**
    * Create a macroscopic network instance using the id token provided and in addition generate a simple grid-based network layer for the predefined car mode, where each link is
    * bi-directional and has a single link segment type with access for car (nothing else set). For a more sophisticated grid generator use the dedicated generator class
-   * {@link #org.planit.network.layer.macroscopic.MacroscopicGridNetworkLayerGenerator}.
+   * MacroscopicGridNetworkLayerGenerator.
    * 
    * @param tokenId to use
    * @param rows    in the grid
    * @param columns in the grid
-   * @return
+   * @return created grid network
    */
   public static MacroscopicNetwork createSimpleGrid(final IdGroupingToken tokenId, int rows, int columns) {
     var network = create(tokenId);
