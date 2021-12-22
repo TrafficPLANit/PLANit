@@ -1,61 +1,46 @@
-package org.goplanit.assignment.ltm.sltm.consumer;
+package org.goplanit.assignment.ltm.sltm;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.goplanit.assignment.ltm.sltm.Bush;
-import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
-import org.goplanit.utils.functionalinterface.TriConsumer;
+import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
+import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.Centroid;
+import org.goplanit.utils.zoning.OdZone;
 
 /**
- * Initialise the origin sLTM bush by including the DAGs for each origin-destination. while adding make sure the appropriate labelling is set to be able to separate overalpping
- * merging and diverging flows. Whenever an o-d is not a single path but comprises multiple (implicit) paths, we split the OD demand proportionally
- * <p>
- * Add the edge segments to the bush and update the turn sending flow accordingly.
- * <p>
- * Consumer can be reused for multiple destinations by updating the destination and demand that goes with it.
- * <p>
- * Key principle when creating initial labels (per destination DAG on the origin bush) is that once we merge with an existing label it follows the same bush to the origin by
- * definition, since there is no cheaper bush available (at the moment). Therefore, we can start following the label we have merged with. It does not matter if multiple entry
- * segments are used (it is a bush), in that case we simply recursively follow them all
+ * Implementation to support a destination labelled bush based solution for sLTM
  * 
  * @author markr
  *
  */
-public class InitialiseBushDestinationDagConsumer implements TriConsumer<DirectedVertex, Double, ACyclicSubGraph> {
+public class StaticLtmDestinationLabelledBushStrategy extends StaticLtmBushStrategy {
 
-  /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(InitialiseBushDestinationDagConsumer.class.getCanonicalName());
+  /** Logger to use */
+  private static final Logger LOGGER = Logger.getLogger(StaticLtmDestinationLabelledBushStrategy.class.getCanonicalName());
 
-  /** the bush to initialise */
-  private final Bush originBush;
-
-  /**
-   * Constructor
-   * 
-   * @param originBush to use
-   */
-  public InitialiseBushDestinationDagConsumer(final Bush originBush) {
-    this.originBush = originBush;
-  }
+  private final BushFlowLabel[] destinationLabels;
 
   /**
    * {@inheritDoc}
+   * 
+   * Label each destination separately
    */
   @Override
-  public void accept(final DirectedVertex currentDestination, final Double originDestinationDemandPcuH, final ACyclicSubGraph currentDestinationDag) {
+  public void initialiseBushForDestination(final Bush originBush, final OdZone currentDestination, final Double originDestinationDemandPcuH,
+      final ACyclicSubGraph currentDestinationDag) {
 
     originBush.addOriginDemandPcuH(originDestinationDemandPcuH);
 
     Map<EdgeSegment, Double> destinationDagLabelledFlows = new HashMap<>();
-    /* composite label to start with at origin */
-    BushFlowLabel currentLabel = originBush.createFlowCompositionLabel();
+    /* destination label to to use (can be reused across bushes) */
+    final BushFlowLabel currentLabel = destinationLabels[(int) currentDestination.getOdZoneId()];
 
     /* get topological sorted vertices to process */
     Collection<DirectedVertex> topSortedVertices = currentDestinationDag.topologicalSort(true);
@@ -105,6 +90,43 @@ public class InitialiseBushDestinationDagConsumer implements TriConsumer<Directe
         }
       }
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   * 
+   */
+  @Override
+  protected PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas) {
+    return new PasFlowShiftDestinationLabelledExecutor(pas);
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param idGroupingToken       to use for internal managed ids
+   * @param assignmentId          of parent assignment
+   * @param transportModelNetwork to use
+   * @param settings              to use
+   * @param taComponents          to use for access to user configured assignment components
+   */
+  public StaticLtmDestinationLabelledBushStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork,
+      final StaticLtmSettings settings, final TrafficAssignmentComponentAccessee taComponents) {
+    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
+
+    this.destinationLabels = new BushFlowLabel[(int) transportModelNetwork.getZoning().getOdZones().size()];
+    for (var odZone : transportModelNetwork.getZoning().getOdZones()) {
+      destinationLabels[(int) odZone.getOdZoneId()] = BushFlowLabel.create(this.getIdGroupingToken(),
+          odZone.getName() != null ? odZone.getName() : (odZone.getXmlId() != null ? odZone.getXmlId() : String.valueOf(odZone.getId())));
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String getDescription() {
+    return "Bush-based (destination-labelled)";
   }
 
 }

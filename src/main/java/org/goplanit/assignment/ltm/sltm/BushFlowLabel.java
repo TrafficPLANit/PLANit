@@ -19,13 +19,18 @@ public class BushFlowLabel implements Comparable<BushFlowLabel> {
   private final long id;
 
   /**
-   * Generate id
+   * the name (if any)
+   */
+  private final String name;
+
+  /**
+   * Constructor
    * 
    * @param idToken to use
-   * @return the generated id
    */
-  protected static final long generateId(final IdGroupingToken idToken) {
-    return IdGenerator.generateId(idToken, BushFlowLabel.class);
+  private BushFlowLabel(final IdGroupingToken idToken, final String name) {
+    this.id = generateId(idToken);
+    this.name = name;
   }
 
   /**
@@ -33,8 +38,18 @@ public class BushFlowLabel implements Comparable<BushFlowLabel> {
    * 
    * @param idToken to use
    */
-  public BushFlowLabel(final IdGroupingToken idToken) {
-    this.id = generateId(idToken);
+  private BushFlowLabel(final IdGroupingToken idToken) {
+    this(idToken, null);
+  }
+
+  /**
+   * Generate id
+   * 
+   * @param idToken to use
+   * @return the generated id
+   */
+  protected static final long generateId(final IdGroupingToken idToken) {
+    return IdGenerator.generateId(idToken, BushFlowLabel.class);
   }
 
   /**
@@ -75,7 +90,27 @@ public class BushFlowLabel implements Comparable<BushFlowLabel> {
    */
   @Override
   public String toString() {
-    return String.format("%d", id);
+    return (name != null ? "name:" + name : "") + " id: " + id;
+  }
+
+  /**
+   * Create a new flow composition label for this bush
+   * 
+   * @param idToken to use
+   * @return created label
+   */
+  public static BushFlowLabel create(IdGroupingToken idToken) {
+    return new BushFlowLabel(idToken);
+  }
+
+  /**
+   * Create a new flow composition label for this bush
+   * 
+   * @param idToken to use
+   * @return created label
+   */
+  public static BushFlowLabel create(IdGroupingToken idToken, String name) {
+    return new BushFlowLabel(idToken, name);
   }
 
 }

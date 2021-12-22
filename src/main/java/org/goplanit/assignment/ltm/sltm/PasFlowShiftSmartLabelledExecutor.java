@@ -48,7 +48,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    * @return pasS1EndLabelRates created indicating 1 (100%) of flow is allocated to the new label on the final segment of s1
    */
   private TreeMap<BushFlowLabel, Double> initialiseS1Labelling(final Bush origin, List<LinkedList<BushFlowLabel>> s1UsedLabelChainsToFill) {
-    var pasS1Label = origin.createFlowCompositionLabel();
+    var pasS1Label = BushFlowLabel.create(origin.bushGroupingToken);
     var s1LabelChain = new LinkedList<BushFlowLabel>();
     s1LabelChain.addFirst(pasS1Label);
     s1UsedLabelChainsToFill.add(s1LabelChain);
@@ -217,7 +217,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
       }
 
       /* match found - create new label to relabel any turn flow across vertex with original labelling */
-      var newLabel = origin.createFlowCompositionLabel();
+      var newLabel = BushFlowLabel.create(origin.bushGroupingToken);
 
       /*
        * now we perform the actual relabelling after establishing the unique new label to use (which might have to relabel multiple entry segments, hence splitting the

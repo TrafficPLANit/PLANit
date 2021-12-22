@@ -22,6 +22,9 @@ public class StaticLtmSettings implements Cloneable {
   /** flag indicating to apply bush based assignment, or path based, default is true meaning bush based */
   private Boolean bushBased = BUSH_BASED_DEFAULT;
 
+  /** flag indicating to apply bush based destination labelling, default is true, when false smart labelling is used. Flag only used when {@link #bushBased} is set to true */
+  private Boolean bushBasedDestinationLabelling = BUSH_BASED_LABELLING_DEFAULT;
+
   /**
    * Constructor
    */
@@ -63,8 +66,19 @@ public class StaticLtmSettings implements Cloneable {
     this.bushBased = flag;
   }
 
+  public Boolean isBushBasedDestinationLabelling() {
+    return bushBasedDestinationLabelling;
+  }
+
+  public void setBushBasedDestinationLabelling(Boolean flag) {
+    this.bushBasedDestinationLabelling = flag;
+  }
+
   /** default setting for assignment is to apply a bush-based type of implementation over a path based one */
   public static boolean BUSH_BASED_DEFAULT = true;
+
+  /** default setting for bush-based assignment labelling is destination based labelling */
+  public static boolean BUSH_BASED_LABELLING_DEFAULT = true;
 
   /**
    * Validate if all settings have been properly set and log found issues

@@ -146,7 +146,7 @@ public abstract class PasFlowShiftExecutor {
   }
 
   /**
-   * PErform the flow shift for a given origin. Delegate to conrete class implementation
+   * Perform the flow shift for a given origin. Delegate to conrete class implementation
    * 
    * @param origin                to perform shift for
    * @param bushFlowShift         the absolute shift to apply for the given origin
@@ -279,22 +279,6 @@ public abstract class PasFlowShiftExecutor {
     }
 
     return flowShift;
-  }
-
-  /**
-   * Factory method to create the flow shift executor for a given PAS
-   * 
-   * @param pas                       to use
-   * @param destinationBasedLabelling flag indicating if the flow shift should assume flow is labelled by destination (true) or that the "smart" labelling is applied (false)
-   * @return created executor
-   */
-  public static PasFlowShiftExecutor create(Pas pas, boolean destinationBasedLabelling) {
-    if (destinationBasedLabelling) {
-      return new PasFlowShiftDestinationLabelledExecutor(pas);
-    } else {
-      LOGGER.warning("SMART LABELLING NOT YET PROPERLY IMPLEMENTED");
-      return new PasFlowShiftSmartLabelledExecutor(pas);
-    }
   }
 
   /**

@@ -58,7 +58,12 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   private StaticLtmAssignmentStrategy createAssignmentStrategy() {
     /* create the assignment solution to apply */
     if (settings.isBushBased()) {
-      return new StaticLtmBushStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+      if (settings.isBushBasedDestinationLabelling()) {
+        return new StaticLtmDestinationLabelledBushStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+      } else {
+        LOGGER.warning("Only destination based labelling for bush-based sLTM is supported, but not configured as such, aborting");
+        return null;
+      }
     } else {
       return new StaticLtmPathStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
     }

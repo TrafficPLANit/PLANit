@@ -127,8 +127,8 @@ public class Bush implements IdAble {
    * @param toLabel             to use
    * @param turnSendingflowPcuH to add
    */
-  public void addTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowLabel fromLabel, final EdgeSegment toEdgeSegment,
-      final BushFlowLabel toLabel, double turnSendingflowPcuH) {
+  public void addTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowLabel fromLabel, final EdgeSegment toEdgeSegment, final BushFlowLabel toLabel,
+      double turnSendingflowPcuH) {
     if (!containsEdgeSegment(fromEdgeSegment)) {
       if (containsAnyEdgeSegmentOf(fromEdgeSegment.getParentEdge())) {
         LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
@@ -168,8 +168,7 @@ public class Bush implements IdAble {
    * @param toLabel         to filter by
    * @return sending flow, zero if unknown
    */
-  public double getTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowLabel fromLabel, final EdgeSegment toEdgeSegment,
-      final BushFlowLabel toLabel) {
+  public double getTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowLabel fromLabel, final EdgeSegment toEdgeSegment, final BushFlowLabel toLabel) {
     return bushData.getTurnSendingFlowPcuH(fromEdgeSegment, fromLabel, toEdgeSegment, toLabel);
   }
 
@@ -214,8 +213,7 @@ public class Bush implements IdAble {
    * @param exitCompositionLabel  to use
    * @return true when turn sending flow is present, false otherwise
    */
-  public boolean containsTurnSendingFlow(EdgeSegment entrySegment, BushFlowLabel entryCompositionLabel, EdgeSegment exitSegment,
-      BushFlowLabel exitCompositionLabel) {
+  public boolean containsTurnSendingFlow(EdgeSegment entrySegment, BushFlowLabel entryCompositionLabel, EdgeSegment exitSegment, BushFlowLabel exitCompositionLabel) {
     return Precision.positive(bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitCompositionLabel));
   }
 
@@ -511,15 +509,6 @@ public class Bush implements IdAble {
   }
 
   /**
-   * Create anew flow composition label for this bush
-   * 
-   * @return created label
-   */
-  public BushFlowLabel createFlowCompositionLabel() {
-    return new BushFlowLabel(this.bushGroupingToken);
-  }
-
-  /**
    * Find out the portion of the origin attributed flow on the segment that belongs to each available flow composition label proportional to the total flow across all provided
    * labels on this same segment
    * 
@@ -527,8 +516,7 @@ public class Bush implements IdAble {
    * @param pasFlowCompositionLabels to determine relative proportions for based on total flow across provided labels on the link segment
    * @return the rates at hand for each found composition label
    */
-  public TreeMap<BushFlowLabel, Double> determineProportionalFlowCompositionRates(final EdgeSegment edgeSegment,
-      final Set<BushFlowLabel> pasFlowCompositionLabels) {
+  public TreeMap<BushFlowLabel, Double> determineProportionalFlowCompositionRates(final EdgeSegment edgeSegment, final Set<BushFlowLabel> pasFlowCompositionLabels) {
     double totalSendingFlow = 0;
     var rateMap = new TreeMap<BushFlowLabel, Double>();
     for (var label : pasFlowCompositionLabels) {
@@ -595,8 +583,7 @@ public class Bush implements IdAble {
    * @param newFromToLabel label to replace flow with
    * @return the amount of flow that was relabelled
    */
-  public double relabel(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel,
-      BushFlowLabel newFromToLabel) {
+  public double relabel(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel, BushFlowLabel newFromToLabel) {
     return bushData.relabel(fromSegment, oldFromLabel, toSegment, oldToLabel, newFromToLabel);
   }
 
@@ -610,8 +597,7 @@ public class Bush implements IdAble {
    * @param newFromLabel label to replace flow with
    * @return the amount of flow that was relabelled
    */
-  public double relabelFrom(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel toLabel,
-      BushFlowLabel newFromLabel) {
+  public double relabelFrom(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel toLabel, BushFlowLabel newFromLabel) {
     return bushData.relabelFrom(fromSegment, oldFromLabel, toSegment, toLabel, newFromLabel);
   }
 
@@ -625,8 +611,7 @@ public class Bush implements IdAble {
    * @param newToLabel  label to replace flow with
    * @return the amount of flow that was relabelled
    */
-  public double relabelTo(EdgeSegment fromSegment, BushFlowLabel fromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel,
-      BushFlowLabel newToLabel) {
+  public double relabelTo(EdgeSegment fromSegment, BushFlowLabel fromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel, BushFlowLabel newToLabel) {
     return bushData.relabelTo(fromSegment, fromLabel, toSegment, oldToLabel, newToLabel);
   }
 
