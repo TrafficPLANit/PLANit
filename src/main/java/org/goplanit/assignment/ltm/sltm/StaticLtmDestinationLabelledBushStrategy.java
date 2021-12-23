@@ -38,7 +38,7 @@ public class StaticLtmDestinationLabelledBushStrategy extends StaticLtmBushStrat
 
     originBush.addOriginDemandPcuH(originDestinationDemandPcuH);
 
-    Map<EdgeSegment, Double> destinationDagLabelledFlows = new HashMap<>();
+    Map<EdgeSegment, Double> destinationDagInitialFlows = new HashMap<>();
     /* destination label to to use (can be reused across bushes) */
     final BushFlowLabel currentLabel = destinationLabels[(int) currentDestination.getOdZoneId()];
 
@@ -54,7 +54,7 @@ public class StaticLtmDestinationLabelledBushStrategy extends StaticLtmBushStrat
     /* initialise */
     int numUsedOdExitSegments = currentDestinationDag.getNumberOfEdgeSegments(currVertex, true /* exit segments */);
     for (var exitEdgeSegment : currVertex.getExitEdgeSegments()) {
-      destinationDagLabelledFlows.put(exitEdgeSegment, originDestinationDemandPcuH / numUsedOdExitSegments);
+      destinationDagInitialFlows.put(exitEdgeSegment, originDestinationDemandPcuH / numUsedOdExitSegments);
     }
 
     /* pass over destination DAG in topological order propagating o-d flow and initialising labels from origin */
@@ -66,7 +66,7 @@ public class StaticLtmDestinationLabelledBushStrategy extends StaticLtmBushStrat
       double vertexOdSendingFlow = 0;
       for (var entryEdgeSegment : currVertex.getEntryEdgeSegments()) {
         if (currentDestinationDag.containsEdgeSegment(entryEdgeSegment)) {
-          Double entrySegmentSendingFlow = destinationDagLabelledFlows.get(entryEdgeSegment);
+          Double entrySegmentSendingFlow = destinationDagInitialFlows.get(entryEdgeSegment);
           vertexOdSendingFlow += entrySegmentSendingFlow != null ? entrySegmentSendingFlow : 0;
         }
         if (!anyEntryInBush && originBush.hasFlowCompositionLabel(entryEdgeSegment)) {
@@ -85,7 +85,7 @@ public class StaticLtmDestinationLabelledBushStrategy extends StaticLtmBushStrat
         for (var exitSegment : currVertex.getExitEdgeSegments()) {
           if (currentDestinationDag.containsEdgeSegment(exitSegment)) {
             originBush.addTurnSendingFlow(entrySegment, currentLabel, exitSegment, currentLabel, proportionalOdExitFlow);
-            destinationDagLabelledFlows.put(exitSegment, proportionalOdExitFlow);
+            destinationDagInitialFlows.put(exitSegment, proportionalOdExitFlow);
           }
         }
       }
