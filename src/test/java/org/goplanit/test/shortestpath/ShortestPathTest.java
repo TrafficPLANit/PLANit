@@ -19,7 +19,6 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.physical.Link;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
@@ -130,12 +129,8 @@ public class ShortestPathTest {
           Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1);
           nodeA.addEdge(link);
           nodeB.addEdge(link);
-          LinkSegment linkSegmentAb = networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
-          LinkSegment linkSegmentBa = networkLayer.getLinkSegments().getFactory().registerNew(link, false, true);
-//          nodeB.addEdgeSegment(linkSegmentAb);
-//          nodeB.addEdgeSegment(linkSegmentBa);
-//          nodeA.addEdgeSegment(linkSegmentAb);
-//          nodeA.addEdgeSegment(linkSegmentBa);
+          networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
+          networkLayer.getLinkSegments().getFactory().registerNew(link, false, true);
         }
       }
         
@@ -148,12 +143,8 @@ public class ShortestPathTest {
           Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1);
           nodeA.addEdge(link);
           nodeB.addEdge(link);
-          LinkSegment linkSegmentAb = networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
-          LinkSegment linkSegmentBa = networkLayer.getLinkSegments().getFactory().registerNew(link, false, true);
-//          nodeB.addEdgeSegment(linkSegmentBa);
-//          nodeB.addEdgeSegment(linkSegmentAb);
-//          nodeA.addEdgeSegment(linkSegmentAb);
-//          nodeA.addEdgeSegment(linkSegmentBa);
+          networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
+          networkLayer.getLinkSegments().getFactory().registerNew(link, false, true);
         }  
       }
       
