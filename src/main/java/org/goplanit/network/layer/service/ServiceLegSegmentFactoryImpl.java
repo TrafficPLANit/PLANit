@@ -34,8 +34,6 @@ public class ServiceLegSegmentFactoryImpl extends GraphEntityFactoryImpl<Service
 
     if (registerOnServiceNodeAndLeg) {
       parentLeg.registerEdgeSegment(legSegment, directionAb);
-      parentLeg.getServiceNodeA().addEdgeSegment(legSegment);
-      parentLeg.getServiceNodeB().addEdgeSegment(legSegment);
     }
     return legSegment;
   }

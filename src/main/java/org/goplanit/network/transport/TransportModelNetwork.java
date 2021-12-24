@@ -8,11 +8,9 @@ import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.goplanit.network.virtual.VirtualNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.Edge;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.ConnectoidEdge;
 import org.goplanit.utils.network.virtual.ConnectoidEdgeFactory;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.ConnectoidSegmentFactory;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.UndirectedConnectoid;
@@ -48,27 +46,6 @@ public class TransportModelNetwork {
    */
   protected final Zoning zoning;
 
-  /**
-   * Add edge segment to the incoming or outgoing set of edge segments for the related vertices
-   * 
-   * @param edgeSegment EdgeSegment to be added to upstream and downstream vertices
-   * @throws PlanItException thrown if there is an error
-   */
-  protected void connectVerticesToEdgeSegment(EdgeSegment edgeSegment) throws PlanItException {
-    edgeSegment.getUpstreamVertex().addEdgeSegment(edgeSegment);
-    edgeSegment.getDownstreamVertex().addEdgeSegment(edgeSegment);
-  }
-
-  /**
-   * Remove edge segment from the incoming or outgoing set of edge segments for the related vertices
-   * 
-   * @param edgeSegment the EdgeSegment object to be removed from the network
-   * @throws PlanItException thrown if there is an error
-   */
-  protected void disconnectVerticesFromEdgeSegment(EdgeSegment edgeSegment) throws PlanItException {
-    edgeSegment.getUpstreamVertex().removeEdgeSegment(edgeSegment);
-    edgeSegment.getDownstreamVertex().removeEdgeSegment(edgeSegment);
-  }
 
   /**
    * Add Edge to both vertices
@@ -101,7 +78,7 @@ public class TransportModelNetwork {
    * @param connectoidEdges to process
    * @throws PlanItException thrown if error
    */
-  protected void createAndRegisterConectoidEdgeSegments(VirtualNetwork virtualNetwork, Collection<ConnectoidEdge> connectoidEdges) throws PlanItException {
+  protected void createAndRegisterConnectoidEdgeSegments(VirtualNetwork virtualNetwork, Collection<ConnectoidEdge> connectoidEdges) throws PlanItException {
 
     ConnectoidSegmentFactory connectoidSegmentFactory = virtualNetwork.getConnectoidSegments().getFactory();
     for (ConnectoidEdge connectoidEdge : connectoidEdges) {
@@ -136,17 +113,21 @@ public class TransportModelNetwork {
     for (UndirectedConnectoid undirectedConnectoid : zoning.getOdConnectoids()) {
       /* undirected connectoid (virtual) edge between zone centroid and access node */
       Collection<ConnectoidEdge> connectoidEdges = connectoidEdgeFactory.registerNew(undirectedConnectoid);
-      createAndRegisterConectoidEdgeSegments(virtualNetwork, connectoidEdges);
+      for (ConnectoidEdge connectoidEdge : connectoidEdges) {
+        connectVerticesToEdge(connectoidEdge);
+      }
+      createAndRegisterConnectoidEdgeSegments(virtualNetwork, connectoidEdges);
 
     }
     for (DirectedConnectoid directedConnectoid : zoning.getTransferConnectoids()) {
       /* directed connectoid (virtual) edge between zone centroid and access link segment's downstream node */
       Collection<ConnectoidEdge> connectoidEdges = connectoidEdgeFactory.registerNew(directedConnectoid);
-      createAndRegisterConectoidEdgeSegments(virtualNetwork, connectoidEdges);
+      for (ConnectoidEdge connectoidEdge : connectoidEdges) {
+        connectVerticesToEdge(connectoidEdge);
+      }
+      createAndRegisterConnectoidEdgeSegments(virtualNetwork, connectoidEdges);
     }
-    for (ConnectoidSegment connectoidSegment : virtualNetwork.getConnectoidSegments()) {
-      connectVerticesToEdgeSegment(connectoidSegment);
-    }
+
 
     logInfo();
   }
@@ -216,9 +197,7 @@ public class TransportModelNetwork {
     for (ConnectoidEdge connectoidEdge : zoning.getVirtualNetwork().getConnectoidEdges()) {
       disconnectVerticesFromEdge(connectoidEdge);
     }
-    for (ConnectoidSegment connectoidSegment : zoning.getVirtualNetwork().getConnectoidSegments()) {
-      disconnectVerticesFromEdgeSegment(connectoidSegment);
-    }
+
 
     /* clear out contents */
     zoning.getVirtualNetwork().clear();

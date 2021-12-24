@@ -271,12 +271,14 @@ public abstract class StaticLtmNetworkLoading {
       }
 
       /* For each potentially blocking node */
+      int numEntrySegments = trackedNode.sizeOfEntryEdgeSegments();
+      int numExitSegments = trackedNode.sizeOfExitEdgeSegments();
 
       // TODO: not computationally efficient, capacities are recomputed every time and construction of
       // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
 
       /* C_a : in Array1D form */
-      var inCapacities = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfEntryEdgeSegments());
+      var inCapacities = Array1D.PRIMITIVE64.makeZero(numEntrySegments);
       int index = 0;
       for (var entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
         inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH());
@@ -284,7 +286,7 @@ public abstract class StaticLtmNetworkLoading {
 
       /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
       @SuppressWarnings("unchecked")
-      var tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[trackedNode.sizeOfEntryEdgeSegments()];
+      var tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[numEntrySegments];
       int entryIndex = 0;
       for (var iter = trackedNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
         EdgeSegment entryEdgeSegment = iter.next();
@@ -297,7 +299,7 @@ public abstract class StaticLtmNetworkLoading {
       Array2D<Double> turnSendingFlows = Array2D.PRIMITIVE64.rows(tunSendingFlowsByEntryLinkSegment);
 
       /* r_a : in Array1D form */
-      var outReceivingFlows = Array1D.PRIMITIVE64.makeZero(trackedNode.sizeOfExitEdgeSegments());
+      var outReceivingFlows = Array1D.PRIMITIVE64.makeZero(numExitSegments);
       index = 0;
       for (var exitEdgeSegment : trackedNode.getExitEdgeSegments()) {
         outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).getCapacityOrDefaultPcuH());

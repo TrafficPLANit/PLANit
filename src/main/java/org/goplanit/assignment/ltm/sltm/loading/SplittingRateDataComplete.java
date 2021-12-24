@@ -58,7 +58,7 @@ public class SplittingRateDataComplete implements SplittingRateData {
    * @param trackedNode to start tracking turn flows and splitting rates for
    */
   public void activateNode(DirectedVertex trackedNode) {
-    int numberOfExitLinkSegments = trackedNode.getExitEdgeSegments().size();
+    int numberOfExitLinkSegments = trackedNode.sizeOfExitEdgeSegments();
     activatedNodes.add(trackedNode);
     for (var entrySegment : trackedNode.getEntryEdgeSegments()) {
       initialiseSplittingRates(entrySegment, numberOfExitLinkSegments);

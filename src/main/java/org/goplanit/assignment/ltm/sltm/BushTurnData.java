@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.TreeSet;
@@ -398,7 +399,9 @@ public class BushTurnData implements Cloneable {
    */
   public double[] getSplittingRates(final EdgeSegment fromSegment) {
     var exitEdgeSegments = fromSegment.getDownstreamVertex().getExitEdgeSegments();
-    double[] splittingRates = new double[exitEdgeSegments.size()];
+
+    /* determining number of edge segment is costly, instead use edges (which is larger or equal) and then copy result */
+    double[] splittingRates = new double[fromSegment.getDownstreamVertex().getNumberOfEdges()];
 
     double totalSendingFlow = 0;
     int index = 0;
@@ -408,6 +411,9 @@ public class BushTurnData implements Cloneable {
       totalSendingFlow += s_ab;
     }
     ArrayUtils.divideBy(splittingRates, totalSendingFlow, 0);
+
+    /* truncate */
+    Arrays.copyOf(splittingRates, index);
     return splittingRates;
   }
 
@@ -422,7 +428,9 @@ public class BushTurnData implements Cloneable {
    */
   public double[] getSplittingRates(EdgeSegment fromSegment, BushFlowLabel fromLabel, BushFlowLabel toLabel) {
     var exitEdgeSegments = fromSegment.getDownstreamVertex().getExitEdgeSegments();
-    double[] splittingRates = new double[exitEdgeSegments.size()];
+
+    /* determining number of edge segment is costly, instead use edges (which is larger or equal) and then copy result */
+    double[] splittingRates = new double[fromSegment.getDownstreamVertex().getNumberOfEdges()];
 
     double totalSendingFlow = 0;
     int index = 0;
@@ -433,6 +441,8 @@ public class BushTurnData implements Cloneable {
     }
 
     ArrayUtils.divideBy(splittingRates, totalSendingFlow, 0);
+    /* truncate */
+    Arrays.copyOf(splittingRates, index);
     return splittingRates;
   }
 

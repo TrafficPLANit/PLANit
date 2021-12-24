@@ -169,4 +169,24 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegment removeEdgeSegmentAb() {
+    var removedEdgeSegment = edgeSegmentAb;
+    setEdgeSegmentAb(null);
+    return removedEdgeSegment;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegment removeEdgeSegmentBa() {
+    var removedEdgeSegment = edgeSegmentBa;
+    setEdgeSegmentBa(null);
+    return removedEdgeSegment;
+  }
+
 }

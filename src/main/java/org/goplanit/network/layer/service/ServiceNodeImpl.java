@@ -3,12 +3,10 @@ package org.goplanit.network.layer.service;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.DirectedVertexImpl;
-import org.locationtech.jts.geom.Point;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
+import org.locationtech.jts.geom.Point;
 
 /**
  * A ServiceNode is used in a ServiceNetwork where it holds a reference to a DirectedNode of the ServiceNetworkLayer's underlying physical network layer. Each ServiceNode
@@ -56,23 +54,8 @@ public class ServiceNodeImpl extends DirectedVertexImpl implements ServiceNode {
   protected ServiceNodeImpl(final ServiceNodeImpl serviceNode) {
     super(serviceNode);
     this.networkNode = serviceNode.getParentNode();
-    edges.putAll(serviceNode.edges);
-    entryEdgeSegments.addAll(serviceNode.entryEdgeSegments);
-    exitEdgeSegments.addAll(serviceNode.exitEdgeSegments);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean addEdgeSegment(EdgeSegment serviceLegSegment) {
-    if (!(serviceLegSegment instanceof ServiceLegSegment)) {
-      LOGGER.warning("Unable to add, provided EdgeSegment no instance of ServiceLegSegment");
-      return false;
-    }
-    
-    return super.addEdgeSegment(serviceLegSegment);
-  }
 
   /**
    * Based on network node
@@ -83,8 +66,8 @@ public class ServiceNodeImpl extends DirectedVertexImpl implements ServiceNode {
   public final Point getPosition() {
     return networkNode.getPosition();
   }
-  
-  @Override  
+
+  @Override
   public void setPosition(Point position) {
     LOGGER.warning("Unable to modify position, network node determines position of service node indirectly");
   }

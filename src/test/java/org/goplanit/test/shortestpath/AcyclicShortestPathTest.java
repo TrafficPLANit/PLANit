@@ -23,6 +23,7 @@ import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.path.DirectedPathFactoryImpl;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
@@ -109,7 +110,7 @@ public class AcyclicShortestPathTest {
       GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
       
       int gridSize = 2;
-      network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
+      network = new MacroscopicNetwork(IdGenerator.createIdGroupingToken(AcyclicShortestPathTest.class.getCanonicalName()));
       networkLayer = network.getTransportLayers().getFactory().registerNew();
       for(int nodeRowIndex = 0;nodeRowIndex<=gridSize;++nodeRowIndex) {
         for(int nodeColIndex = 0;nodeColIndex<=gridSize;++nodeColIndex) {
@@ -180,13 +181,22 @@ public class AcyclicShortestPathTest {
       acyclicSubGraph = new ACyclicSubGraphImpl(network.getNetworkGroupingTokenId(),(int) totalEdgeSegments, centroidA);
 
       /* add all physical link segments */
-      for (MacroscopicLinkSegment linkSegment : networkLayer.getLinkSegments()) {
-        acyclicSubGraph.addEdgeSegment(linkSegment);
-      }
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(0).getEdgeSegment(networkLayer.getNodes().get(1)));
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(1).getEdgeSegment(networkLayer.getNodes().get(2)));
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(3).getEdgeSegment(networkLayer.getNodes().get(4)));
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(4).getEdgeSegment(networkLayer.getNodes().get(5)));
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(0).getEdgeSegment(networkLayer.getNodes().get(3)));      
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(1).getEdgeSegment(networkLayer.getNodes().get(4)));      
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(2).getEdgeSegment(networkLayer.getNodes().get(5)));
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(6).getEdgeSegment(networkLayer.getNodes().get(7)));
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(7).getEdgeSegment(networkLayer.getNodes().get(8)));
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(3).getEdgeSegment(networkLayer.getNodes().get(6)));      
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(4).getEdgeSegment(networkLayer.getNodes().get(7)));      
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(5).getEdgeSegment(networkLayer.getNodes().get(8)));            
 
       /* only add outgoing connectoid segment of origin and incoming connectoid segment of destination */
-      acyclicSubGraph.addEdgeSegment(centroidA.getExitEdgeSegments().iterator().next());
-      acyclicSubGraph.addEdgeSegment(centroidB.getEntryEdgeSegments().iterator().next());
+      acyclicSubGraph.addEdgeSegment(centroidA.getEdgeSegment(networkLayer.getNodes().get(0)));
+      acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(8).getEdgeSegment(centroidB));
       
       pathFactory = new DirectedPathFactoryImpl(networkLayer.getLayerIdGroupingToken());
       

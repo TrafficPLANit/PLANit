@@ -44,8 +44,6 @@ public class LinkSegmentFactoryImpl extends GraphEntityFactoryImpl<LinkSegment> 
 
     if (registerOnNodeAndLink) {
       parentLink.registerEdgeSegment(edgeSegment, directionAb);
-      parentLink.getVertexA().addEdgeSegment(edgeSegment);
-      parentLink.getVertexB().addEdgeSegment(edgeSegment);
     }
     return edgeSegment;
   }

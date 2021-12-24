@@ -293,7 +293,7 @@ public class Bush implements IdAble {
    * @return splitting rates for the root vertex exit segments.
    */
   public double[] getRootVertexSplittingRates() {
-    double[] splittingRates = new double[this.dag.getRootVertex().getExitEdgeSegments().size()];
+    double[] splittingRates = new double[this.dag.getRootVertex().sizeOfExitEdgeSegments()];
     int index = 0;
     double foundRootDemandPcuH = 0;
     for (var exitSegment : this.dag.getRootVertex().getExitEdgeSegments()) {

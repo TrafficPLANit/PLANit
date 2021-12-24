@@ -264,6 +264,11 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    */
   @Override
   public void addEdgeSegment(EdgeSegment edgeSegment) {
+    if (edgeSegment == null) {
+      LOGGER.warning("Unable to add edge segment to acyclic subgraph, null provided");
+      return;
+    }
+
     registeredLinkSegments.set((int) edgeSegment.getId());
     if (!vertexData.containsKey(edgeSegment.getUpstreamVertex())) {
       vertexData.put(edgeSegment.getUpstreamVertex(), new AcyclicVertexData());

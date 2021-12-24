@@ -312,7 +312,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
             /* track so we can attribute it to s1 segment later */
             double[] exitLabelExitSegmentShiftedSendingFlow = exitShiftedSendingFlowToPopulate.get(exitLabel);
             if (exitLabelExitSegmentShiftedSendingFlow == null) {
-              exitLabelExitSegmentShiftedSendingFlow = new double[pas.getMergeVertex().getExitEdgeSegments().size()];
+              exitLabelExitSegmentShiftedSendingFlow = new double[this.pasMergeVertexNumExitSegments];
               exitShiftedSendingFlowToPopulate.put(exitLabel, exitLabelExitSegmentShiftedSendingFlow);
             }
             exitLabelExitSegmentShiftedSendingFlow[index] += -s2FlowShift;
@@ -560,7 +560,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
     //TODO: BUG I THINK: pretty sure the splitting rates per label DO NOT add up to one, they add up to one per exit segment over all labels but I think it should be totalling to 
     //      one per label over all exit segments instead
     var usedExitLabels = bushS2MergeExitShiftedSendingFlows.keySet();
-    double[] exitSegmentTotalShiftedFlows = new double[pas.getMergeVertex().getExitEdgeSegments().size()];
+    double[] exitSegmentTotalShiftedFlows = new double[this.pasMergeVertexNumExitSegments];
     for (var exitLabel : usedExitLabels) {
       ArrayUtils.addTo(exitSegmentTotalShiftedFlows, bushS2MergeExitShiftedSendingFlows.get(exitLabel));
     }

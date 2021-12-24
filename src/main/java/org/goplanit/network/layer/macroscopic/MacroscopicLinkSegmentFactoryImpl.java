@@ -45,8 +45,6 @@ public class MacroscopicLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<Ma
 
     if (registerOnNodeAndLink) {
       parentLink.registerEdgeSegment(macroscopicLinkSegment, directionAb);
-      parentLink.getVertexA().addEdgeSegment(macroscopicLinkSegment);
-      parentLink.getVertexB().addEdgeSegment(macroscopicLinkSegment);
     }
     return macroscopicLinkSegment;
   }

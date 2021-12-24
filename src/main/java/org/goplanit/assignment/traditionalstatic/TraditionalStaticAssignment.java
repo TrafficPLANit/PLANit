@@ -200,8 +200,8 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
           if (previousOriginZoneId != currentOriginZone.getId()) {
 
             final Centroid originCentroid = currentOriginZone.getCentroid();
-            if (originCentroid.getExitEdgeSegments().isEmpty()) {
-              throw new PlanItException(String.format("edge segments have not been assigned to Centroid for Zone %d", currentOriginZone.getExternalId()));
+            if (!originCentroid.hasExitEdgeSegments()) {
+              throw new PlanItException(String.format("Edge segments have not been assigned to Centroid for Zone %d", currentOriginZone.getExternalId()));
             }
 
             // UPDATE SHORTEST PATHS

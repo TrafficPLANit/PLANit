@@ -1,7 +1,6 @@
 package org.goplanit.graph.modifier;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -102,11 +101,6 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
         brokenEdge.replace(oldEdgeSegmentAb, newEdgeSegmentAb);
         newEdgeSegmentAb.setParent(brokenEdge);
 
-        /* update segment's vertices */
-
-        /* update vertices' segments */
-        newEdgeSegmentAb.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
-        newEdgeSegmentAb.getDownstreamVertex().replaceEntrySegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
 
         if (hasListener(BreakEdgeSegmentEvent.EVENT_TYPE)) {
           fireEvent(new BreakEdgeSegmentEvent(this, vertexAtBreak, newEdgeSegmentAb));
@@ -133,13 +127,6 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
         brokenEdge.replace(oldEdgeSegmentBa, newEdgeSegmentBa);
         newEdgeSegmentBa.setParent(brokenEdge);
 
-        /* update segment's vertices */
-
-
-        /* update vertices' segments */
-        newEdgeSegmentBa.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
-        newEdgeSegmentBa.getDownstreamVertex().replaceEntrySegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
-
         if (hasListener(BreakEdgeSegmentEvent.EVENT_TYPE)) {
           fireEvent(new BreakEdgeSegmentEvent(this, vertexAtBreak, newEdgeSegmentBa));
         }
@@ -165,39 +152,50 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
   @Override
   public void removeSubGraph(Set<? extends DirectedVertex> subGraphToRemove) {
     UntypedDirectedGraph<?, ?, ?> directedGraph = getUntypedDirectedGraph();
+
     /* remove the edge segment portion of the directed subgraph from the actual directed graph */
     for (DirectedVertex directedVertex : subGraphToRemove) {
 
-      Set<EdgeSegment> entryEdgeSegments = new HashSet<EdgeSegment>(directedVertex.getEntryEdgeSegments());
-      Set<EdgeSegment> exitEdgeSegments = new HashSet<EdgeSegment>(directedVertex.getExitEdgeSegments());
-
-      /* remove vertex' edge segments from graph */
-      entryEdgeSegments.forEach(edgeSegment -> directedGraph.getEdgeSegments().remove(edgeSegment.getId()));
-      exitEdgeSegments.forEach(edgeSegment -> directedGraph.getEdgeSegments().remove(edgeSegment.getId()));
-
-
-
-      /* remove edge from edge segments */
-      entryEdgeSegments.forEach(edgeSegment -> edgeSegment.removeParentEdge());
-      exitEdgeSegments.forEach(edgeSegment -> edgeSegment.removeParentEdge());
-
-      /* remove edge segments from vertex */
-      entryEdgeSegments.forEach(edgeSegment -> directedVertex.removeEdgeSegment(edgeSegment));
-      exitEdgeSegments.forEach(edgeSegment -> directedVertex.removeEdgeSegment(edgeSegment));
-
-      /* remove edge segments from graph */
-      for (EdgeSegment edgeSegment : entryEdgeSegments) {
-        directedGraph.getEdgeSegments().remove(edgeSegment.getId());
-        if (hasListener(RemoveSubGraphEdgeSegmentEvent.EVENT_TYPE)) {
-          fireEvent(new RemoveSubGraphEdgeSegmentEvent(this, edgeSegment));
+      /* remove directed graph specific elements from edge --> edge segments */
+      for (DirectedEdge directedEdge : directedVertex.getEdges()) {
+        for (EdgeSegment edgeSegment : directedEdge.getEdgeSegments()) {
+          edgeSegment.removeParentEdge();
+          directedGraph.getEdgeSegments().remove(edgeSegment.getId());
+          if (hasListener(RemoveSubGraphEdgeSegmentEvent.EVENT_TYPE)) {
+            fireEvent(new RemoveSubGraphEdgeSegmentEvent(this, edgeSegment));
+          }
         }
+        directedEdge.removeEdgeSegments();
       }
-      for (EdgeSegment edgeSegment : exitEdgeSegments) {
-        directedGraph.getEdgeSegments().remove(edgeSegment.getId());
-        if (hasListener(RemoveSubGraphEdgeSegmentEvent.EVENT_TYPE)) {
-          fireEvent(new RemoveSubGraphEdgeSegmentEvent(this, edgeSegment));
-        }
-      }
+
+//      Set<EdgeSegment> entryEdgeSegments = new HashSet<EdgeSegment>(directedVertex.getEntryEdgeSegments());
+//      Set<EdgeSegment> exitEdgeSegments = new HashSet<EdgeSegment>(directedVertex.getExitEdgeSegments());
+//
+//      /* remove vertex' edge segments from graph */
+//      entryEdgeSegments.forEach(edgeSegment -> directedGraph.getEdgeSegments().remove(edgeSegment.getId()));
+//      exitEdgeSegments.forEach(edgeSegment -> directedGraph.getEdgeSegments().remove(edgeSegment.getId()));
+//
+//      /* remove edge from edge segments */
+//      entryEdgeSegments.forEach(edgeSegment -> edgeSegment.removeParentEdge());
+//      exitEdgeSegments.forEach(edgeSegment -> edgeSegment.removeParentEdge());
+//
+//      /* remove edge segments from vertex */
+//      entryEdgeSegments.forEach(edgeSegment -> directedVertex.removeEdgeSegment(edgeSegment));
+//      exitEdgeSegments.forEach(edgeSegment -> directedVertex.removeEdgeSegment(edgeSegment));
+//
+//      /* remove edge segments from graph */
+//      for (EdgeSegment edgeSegment : entryEdgeSegments) {
+//        directedGraph.getEdgeSegments().remove(edgeSegment.getId());
+//        if (hasListener(RemoveSubGraphEdgeSegmentEvent.EVENT_TYPE)) {
+//          fireEvent(new RemoveSubGraphEdgeSegmentEvent(this, edgeSegment));
+//        }
+//      }
+//      for (EdgeSegment edgeSegment : exitEdgeSegments) {
+//        directedGraph.getEdgeSegments().remove(edgeSegment.getId());
+//        if (hasListener(RemoveSubGraphEdgeSegmentEvent.EVENT_TYPE)) {
+//          fireEvent(new RemoveSubGraphEdgeSegmentEvent(this, edgeSegment));
+//        }
+//      }
     }
 
     /* do the same for vertices and edges */

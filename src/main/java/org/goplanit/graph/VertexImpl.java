@@ -122,7 +122,7 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
    * {@inheritDoc}
    */
   @Override
-  public Collection<Edge> getEdges() {
+  public Collection<? extends Edge> getEdges() {
     return Collections.unmodifiableCollection(edges.values());
   }
 

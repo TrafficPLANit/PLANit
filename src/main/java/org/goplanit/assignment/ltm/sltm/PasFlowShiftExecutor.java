@@ -43,6 +43,9 @@ public abstract class PasFlowShiftExecutor {
   /** Track the desired sending flows for s1 and s2 per origin */
   protected final Map<Bush, Pair<Double, Double>> bushS1S2SendingFlows;
 
+  /** store locally as it is costly-ish to compute */
+  protected final int pasMergeVertexNumExitSegments;
+
   /**
    * Determine the adjusted flow shift by taking the proposed flow shift (s2 sending flow) and reduce it by a designated amount based on the difference between the PAS alternative
    * costs and the assumed s1 slack flow (flow estimated to switch from uncongested to congested on the PAS's S1 (low cost) segment)
@@ -142,7 +145,8 @@ public abstract class PasFlowShiftExecutor {
    */
   protected PasFlowShiftExecutor(Pas pas) {
     this.pas = pas;
-    bushS1S2SendingFlows = new HashMap<>();
+    this.bushS1S2SendingFlows = new HashMap<>();
+    this.pasMergeVertexNumExitSegments = pas.getMergeVertex().sizeOfExitEdgeSegments();
   }
 
   /**

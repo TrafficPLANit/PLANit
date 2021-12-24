@@ -159,7 +159,7 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
     if (pas.getMergeVertex().hasExitEdgeSegments()) {
 
       var lastS2Segment = pas.getLastEdgeSegment(false /* high cost */);
-      var destinationLabelExitSegmentShiftedSendingFlows = new double[pas.getMergeVertex().getExitEdgeSegments().size()];
+      var destinationLabelExitSegmentShiftedSendingFlows = new double[pasMergeVertexNumExitSegments];
       exitShiftedSendingFlowToPopulate.put(destinationLabel, destinationLabelExitSegmentShiftedSendingFlows);
 
       /* key: [exitSegment, exitLabel] */

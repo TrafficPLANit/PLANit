@@ -14,6 +14,7 @@ import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
@@ -43,7 +44,7 @@ public class ShortestPathTest {
   private static Logger LOGGER = null;
 
   private static final CoordinateReferenceSystem crs = CartesianAuthorityFactory.GENERIC_2D;
-
+  private final IdGroupingToken idToken = IdGenerator.createIdGroupingToken(ShortestPathTest.class.getCanonicalName());
   private TransportModelNetwork transportNetwork;
   private MacroscopicNetwork network;
   private MacroscopicNetworkLayer networkLayer;
@@ -109,13 +110,12 @@ public class ShortestPathTest {
       GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
       
       int gridSize = 4;
-      network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
+      network = new MacroscopicNetwork(idToken);
       networkLayer = network.getTransportLayers().getFactory().registerNew();
       for(int nodeRowIndex = 0;nodeRowIndex<=gridSize;++nodeRowIndex) {
         for(int nodeColIndex = 0;nodeColIndex<=gridSize;++nodeColIndex) {
-          String externalId = String.valueOf(nodeRowIndex*gridSize+nodeColIndex);
           Node node = networkLayer.getNodes().getFactory().registerNew();
-          node.setExternalId(externalId);
+          node.setXmlId(String.valueOf(node.getId()));
           // all nodes are spaced 1 km apart
           node.setPosition(geoFactory.createPoint(new Coordinate(nodeRowIndex*1000, nodeColIndex*1000)));
         }
@@ -130,12 +130,12 @@ public class ShortestPathTest {
           Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1);
           nodeA.addEdge(link);
           nodeB.addEdge(link);
-          LinkSegment linkSegmentAb = networkLayer.getLinkSegments().getFactory().create(link, true);
-          LinkSegment linkSegmentBa = networkLayer.getLinkSegments().getFactory().create(link, false);
-          nodeB.addEdgeSegment(linkSegmentAb);
-          nodeB.addEdgeSegment(linkSegmentBa);
-          nodeA.addEdgeSegment(linkSegmentAb);
-          nodeA.addEdgeSegment(linkSegmentBa);
+          LinkSegment linkSegmentAb = networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
+          LinkSegment linkSegmentBa = networkLayer.getLinkSegments().getFactory().registerNew(link, false, true);
+//          nodeB.addEdgeSegment(linkSegmentAb);
+//          nodeB.addEdgeSegment(linkSegmentBa);
+//          nodeA.addEdgeSegment(linkSegmentAb);
+//          nodeA.addEdgeSegment(linkSegmentBa);
         }
       }
         
@@ -148,36 +148,41 @@ public class ShortestPathTest {
           Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1);
           nodeA.addEdge(link);
           nodeB.addEdge(link);
-          LinkSegment linkSegmentAb = networkLayer.getLinkSegments().getFactory().create(link, true);
-          LinkSegment linkSegmentBa = networkLayer.getLinkSegments().getFactory().create(link, false);
-          nodeB.addEdgeSegment(linkSegmentBa);
-          nodeB.addEdgeSegment(linkSegmentAb);
-          nodeA.addEdgeSegment(linkSegmentAb);
-          nodeA.addEdgeSegment(linkSegmentBa);
+          LinkSegment linkSegmentAb = networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
+          LinkSegment linkSegmentBa = networkLayer.getLinkSegments().getFactory().registerNew(link, false, true);
+//          nodeB.addEdgeSegment(linkSegmentBa);
+//          nodeB.addEdgeSegment(linkSegmentAb);
+//          nodeA.addEdgeSegment(linkSegmentAb);
+//          nodeA.addEdgeSegment(linkSegmentBa);
         }  
       }
       
-      zoning = new Zoning(IdGroupingToken.collectGlobalToken(), networkLayer.getLayerIdGroupingToken());
+      zoning = new Zoning(idToken, networkLayer.getLayerIdGroupingToken());
       Zone zoneA = zoning.odZones.getFactory().registerNew();
-      zoneA.setExternalId("A");
+      zoneA.setXmlId("A");
       Zone zoneB = zoning.odZones.getFactory().registerNew();
-      zoneB.setExternalId("B");
+      zoneB.setXmlId("B");
       Zone zoneC = zoning.odZones.getFactory().registerNew();
-      zoneC.setExternalId("C");
+      zoneC.setXmlId("C");
       Zone zoneD = zoning.odZones.getFactory().registerNew();
-      zoneD.setExternalId("D");
+      zoneD.setXmlId("D");
       Zone zoneE = zoning.odZones.getFactory().registerNew();
-      zoneE.setExternalId("E");
+      zoneE.setXmlId("E");
       
       centroidA = zoneA.getCentroid();
+      centroidA.setXmlId(zoneA.getXmlId());
       centroidA.setPosition(geoFactory.createPoint(new Coordinate(0, 0)));
       centroidB = zoneB.getCentroid();
+      centroidB.setXmlId(zoneB.getXmlId());
       centroidB.setPosition(geoFactory.createPoint(new Coordinate(1*1000, 4*1000)));
       centroidC = zoneC.getCentroid();
+      centroidC.setXmlId(zoneC.getXmlId());
       centroidC.setPosition(geoFactory.createPoint(new Coordinate(2*1000, 2*1000)));
       centroidD = zoneD.getCentroid();
+      centroidD.setXmlId(zoneD.getXmlId());
       centroidD.setPosition(geoFactory.createPoint(new Coordinate(3*1000, 4*1000)));
       centroidE = zoneE.getCentroid();
+      centroidE.setXmlId(zoneE.getXmlId());
       centroidE.setPosition(geoFactory.createPoint(new Coordinate(4*1000, 4*1000)));
       
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(0),  zoneA, 0);

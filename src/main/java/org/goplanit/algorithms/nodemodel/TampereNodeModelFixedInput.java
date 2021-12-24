@@ -1,7 +1,6 @@
 package org.goplanit.algorithms.nodemodel;
 
 import java.util.ArrayList;
-import java.util.Set;
 
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.EdgeSegment;
@@ -33,7 +32,7 @@ public class TampereNodeModelFixedInput {
    * @param edgeSegments  to map from
    * @throws PlanItException
    */
-  private void mapLinkSegments(ArrayList<MacroscopicLinkSegment> linkSegments, Set<EdgeSegment> edgeSegments) throws PlanItException {
+  private void mapLinkSegments(ArrayList<MacroscopicLinkSegment> linkSegments, Iterable<EdgeSegment> edgeSegments) throws PlanItException {
     PlanItException.throwIf(edgeSegments == null, "edge segments to map are null");
 
     for (var incomingLinkSegment : edgeSegments) {
@@ -65,8 +64,8 @@ public class TampereNodeModelFixedInput {
    * @param incomingEdgeSegments to map
    * @throws PlanItException
    */
-  private void mapIncomingLinkSegments(Set<EdgeSegment> incomingEdgeSegments) throws PlanItException {
-    this.incomingLinkSegments = new ArrayList<MacroscopicLinkSegment>(incomingEdgeSegments.size());
+  private void mapIncomingLinkSegments(Iterable<EdgeSegment> incomingEdgeSegments, int numSegments) throws PlanItException {
+    this.incomingLinkSegments = new ArrayList<MacroscopicLinkSegment>(numSegments);
     mapLinkSegments(incomingLinkSegments, incomingEdgeSegments);
   }
 
@@ -76,8 +75,8 @@ public class TampereNodeModelFixedInput {
    * @param outgoingEdgeSegments to map
    * @throws PlanItException
    */
-  private void mapOutgoingLinkSegments(Set<EdgeSegment> outgoingEdgeSegments) throws PlanItException {
-    this.outgoingLinkSegments = new ArrayList<MacroscopicLinkSegment>(outgoingEdgeSegments.size());
+  private void mapOutgoingLinkSegments(Iterable<EdgeSegment> outgoingEdgeSegments, int numSegments) throws PlanItException {
+    this.outgoingLinkSegments = new ArrayList<MacroscopicLinkSegment>(numSegments);
     mapLinkSegments(outgoingLinkSegments, outgoingEdgeSegments);
   }
 
@@ -127,9 +126,9 @@ public class TampereNodeModelFixedInput {
    */
   public TampereNodeModelFixedInput(Node node, boolean initialiseReceivingFlowsAtCapacity) throws PlanItException {
     // Set A^in
-    mapIncomingLinkSegments(node.getEntryEdgeSegments());
+    mapIncomingLinkSegments(node.getEntryEdgeSegments(), node.sizeOfEntryEdgeSegments());
     // Set A^out
-    mapOutgoingLinkSegments(node.getEntryEdgeSegments());
+    mapOutgoingLinkSegments(node.getExitEdgeSegments(), node.sizeOfExitEdgeSegments());
     // Set C_a
     initialiseIncomingLinkSegmentCapacities();
     // Set R_b

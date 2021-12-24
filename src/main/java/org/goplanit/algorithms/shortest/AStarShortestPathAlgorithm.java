@@ -163,7 +163,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
     }
 
     PlanItException.throwIf(currentVertex.getId() != destination.getId(),
-        String.format("destination %s (id:%d) unreachable from origin %d (id:%d)", destination.getExternalId(), destination.getId(), origin.getExternalId(), origin.getId()));
+        String.format("destination %s (id:%d) unreachable from origin %S (id:%d)", destination.getXmlId(), destination.getId(), origin.getXmlId(), origin.getId()));
 
     return new ShortestPathResultImpl(vertexMeasuredCost, incomingEdgeSegment);
   }

@@ -1,12 +1,12 @@
 package org.goplanit.graph.directed;
 
-import java.util.Collections;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.VertexImpl;
 import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 
@@ -18,6 +18,122 @@ import org.goplanit.utils.id.IdGroupingToken;
  */
 public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
 
+  /**
+   * Dedicated iterable to provide access to edge segments that are either incoming or outgoing for this vertex
+   * 
+   * @author markr
+   *
+   */
+  public final class EdgeSegmentIterable implements Iterable<EdgeSegment> {
+
+    /** flag indicating incoming or outgoing edge segments to iterate over */
+    boolean incoming;
+
+    /**
+     * Constructor
+     * 
+     * @param incoming flag
+     */
+    private EdgeSegmentIterable(boolean incoming) {
+      this.incoming = incoming;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Iterator<EdgeSegment> iterator() {
+      return new EdgeSegmentIterator(incoming);
+    }
+
+  }
+
+  /**
+   * Iterator for a run over the incoming or outgoing edge segments of this vertex (non-modifiable)
+   * 
+   * @author markr
+   *
+   */
+  public class EdgeSegmentIterator implements Iterator<EdgeSegment> {
+
+    /**
+     * parent edges iterator to extract information from
+     */
+    private Iterator<? extends DirectedEdge> edgesIter;
+
+    /**
+     * flag inherited from iterable
+     */
+    private boolean incoming;
+
+    /**
+     * tracking of next edge segment (to return)
+     */
+    private EdgeSegment nextEdgeSegment;
+
+    /**
+     * Constructor
+     * 
+     * @param incoming flag
+     */
+    private EdgeSegmentIterator(boolean incoming) {
+      this.incoming = incoming;
+      edgesIter = (Iterator<? extends DirectedEdge>) DirectedVertexImpl.this.getEdges().iterator();
+      nextEdgeSegment = null;
+      hasNext();
+    }
+
+    /**
+     * Not supported
+     */
+    @Override
+    public void remove() {
+      throw new UnsupportedOperationException();
+    }
+
+
+    /**
+     * Check if next is available by querying edges for available segment based on their vertex location matching this vertex
+     * 
+     * @return true when present, false otherwise
+     */
+    @Override
+    public boolean hasNext() {
+      if (nextEdgeSegment != null) {
+        return true;
+      }
+
+      while (edgesIter.hasNext()) {
+        var edge = edgesIter.next();
+        if (edge.getVertexA() == DirectedVertexImpl.this) {
+          nextEdgeSegment = incoming ? edge.getEdgeSegmentBa() : edge.getEdgeSegmentAb();
+        } else if (edge.getVertexB() == DirectedVertexImpl.this) {
+          nextEdgeSegment = incoming ? edge.getEdgeSegmentAb() : edge.getEdgeSegmentBa();
+        } else {
+          LOGGER.severe(String.format("Vertex (%s) not present on edge (%s) it holds, this shouldn't happen", DirectedVertexImpl.this.getXmlId(), edge.getXmlId()));
+        }
+
+        if (nextEdgeSegment != null) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * Get next edge segment
+     * 
+     * @return edge segment found
+     */
+    @Override
+    public EdgeSegment next() {
+      var returnEdgeSegment = nextEdgeSegment;
+      nextEdgeSegment = null;
+      return returnEdgeSegment;
+    }
+
+  }
+
   /** generated UID */
   private static final long serialVersionUID = 2165199386965239623L;
 
@@ -27,14 +143,14 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
   // Protected
 
   /**
-   * Entry edge segments which connect to this vertex
+   * Entry edge segments iterable connected to this vertex
    */
-  protected final Set<EdgeSegment> entryEdgeSegments = new TreeSet<EdgeSegment>();
+  protected final EdgeSegmentIterable entryEdgeSegments;
 
   /**
    * Exit edge segments which connect to this vertex
    */
-  protected final Set<EdgeSegment> exitEdgeSegments = new TreeSet<EdgeSegment>();
+  protected final EdgeSegmentIterable exitEdgeSegments;
 
   /**
    * Constructor
@@ -43,6 +159,8 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    */
   protected DirectedVertexImpl(final IdGroupingToken groupId) {
     super(groupId);
+    this.entryEdgeSegments = new EdgeSegmentIterable(true /* incoming */);
+    this.exitEdgeSegments = new EdgeSegmentIterable(false /* outgoing */);
   }
 
   /**
@@ -52,8 +170,8 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    */
   protected DirectedVertexImpl(DirectedVertexImpl directedVertexImpl) {
     super(directedVertexImpl);
-    entryEdgeSegments.addAll(directedVertexImpl.getEntryEdgeSegments());
-    exitEdgeSegments.addAll(directedVertexImpl.getExitEdgeSegments());
+    this.entryEdgeSegments = directedVertexImpl.entryEdgeSegments;
+    this.exitEdgeSegments = directedVertexImpl.exitEdgeSegments;
   }
 
   // Public
@@ -62,61 +180,26 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    * {@inheritDoc}
    */
   @Override
-  public Set<EdgeSegment> getEntryEdgeSegments() {
-    return Collections.unmodifiableSet(this.entryEdgeSegments);
+  public Iterable<EdgeSegment> getEntryEdgeSegments() {
+    return entryEdgeSegments;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Set<EdgeSegment> getExitEdgeSegments() {
-    return Collections.unmodifiableSet(this.exitEdgeSegments);
+  public Iterable<EdgeSegment> getExitEdgeSegments() {
+    return exitEdgeSegments;
   }
+
 
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
-  public boolean addEdgeSegment(final EdgeSegment edgeSegment) {
-
-    if (edgeSegment.getUpstreamVertex().getId() == getId()) {
-      return exitEdgeSegments.add(edgeSegment);
-    } else if (edgeSegment.getDownstreamVertex().getId() == getId()) {
-      return entryEdgeSegments.add(edgeSegment);
-    }
-    LOGGER.warning(
-        String.format("Edge segment %s (id:%d) does not have this vertex %s (%d) on either end", edgeSegment.getExternalId(), edgeSegment.getId(), getExternalId(), getId()));
-    return false;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean removeEdgeSegment(final EdgeSegment edgeSegment) {
-    boolean removed = false;
-    removed = exitEdgeSegments.remove(edgeSegment);
-    if (!removed) {
-      removed = entryEdgeSegments.remove(edgeSegment);
-    }
-    return removed;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean removeEntryEdgeSegment(EdgeSegment edgeSegment) {
-    return entryEdgeSegments.remove(edgeSegment);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean removeExitEdgeSegment(EdgeSegment edgeSegment) {
-    return exitEdgeSegments.remove(edgeSegment);
+  public Collection<? extends DirectedEdge> getEdges() {
+    return (Collection<? extends DirectedEdge>) super.getEdges();
   }
 
   /**
