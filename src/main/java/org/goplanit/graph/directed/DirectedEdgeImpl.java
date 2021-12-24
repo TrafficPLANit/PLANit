@@ -115,18 +115,18 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
       edgeSegment.setParent(this);
     }
 
-    if (edgeSegment.getParentEdge().getId() != getId()) {
+    if (edgeSegment.getParentEdge() != this) {
       LOGGER.warning("Inconsistency between link segment's parent link and link it is being registered on");
       return null;
     }
 
-    final EdgeSegment currentEdgeSegment = directionAB ? getEdgeSegmentAb() : getEdgeSegmentBa();
+    final EdgeSegment overwrittenEdgeSegment = directionAB ? getEdgeSegmentAb() : getEdgeSegmentBa();
     if (directionAB) {
       setEdgeSegmentAb(edgeSegment);
     } else {
       setEdgeSegmentBa(edgeSegment);
     }
-    return currentEdgeSegment;
+    return overwrittenEdgeSegment;
   }
 
   /**

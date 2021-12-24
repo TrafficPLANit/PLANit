@@ -5,7 +5,6 @@ import java.util.logging.Logger;
 import org.goplanit.graph.GraphEntityImpl;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -23,15 +22,13 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(EdgeSegmentImpl.class.getCanonicalName());
 
-  /**
-   * the upstreamVertex of the edge segment TODO: remove instead store direction and derive vertex from parent if needed
-   */
-  private DirectedVertex upstreamVertex;
+
 
   /**
-   * The downstream vertex of this edge segment TODO: remove instead store direction and derive vertex from parent if needed
+   * Store the direction of this edge segment in relation to its parent edge
    */
-  private DirectedVertex downstreamVertex;
+  private boolean directionAb;
+
 
   /**
    * segment's parent edge
@@ -45,18 +42,12 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    *
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param parentEdge  parent edge of segment
-   * @param directionAB direction of travel
+   * @param directionAb direction of travel
    */
-  protected EdgeSegmentImpl(final IdGroupingToken groupId, final DirectedEdge parentEdge, final boolean directionAB) {
-    this(groupId, directionAB);
+  protected EdgeSegmentImpl(final IdGroupingToken groupId, final DirectedEdge parentEdge, final boolean directionAb) {
+    this(groupId, directionAb);
     setParent(parentEdge);
-    if (directionAB == true) {
-      setUpstreamVertex(parentEdge.getVertexA());
-      setDownstreamVertex(parentEdge.getVertexB());
-    } else {
-      setUpstreamVertex(parentEdge.getVertexB());
-      setDownstreamVertex(parentEdge.getVertexA());
-    }
+    this.directionAb = directionAb;
   }
 
   /**
@@ -77,67 +68,19 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
   protected EdgeSegmentImpl(EdgeSegmentImpl edgeSegmentImpl) {
     super(edgeSegmentImpl);
     setParent(edgeSegmentImpl.getParentEdge());
-    setUpstreamVertex(edgeSegmentImpl.getUpstreamVertex());
-    setDownstreamVertex(edgeSegmentImpl.getDownstreamVertex());
+    this.directionAb = edgeSegmentImpl.directionAb;
   }
 
   // Public
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean remove(DirectedVertex vertex) {
-    if (vertex != null) {
-      if (getUpstreamVertex() != null && getUpstreamVertex().getId() == vertex.getId()) {
-        this.upstreamVertex = null;
-        return true;
-      } else if (getDownstreamVertex() != null && getDownstreamVertex().getId() == vertex.getId()) {
-        this.downstreamVertex = null;
-        return true;
-      }
-    }
-    return false;
-  }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setDownstreamVertex(DirectedVertex downstreamVertex) {
-    this.downstreamVertex = downstreamVertex;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setUpstreamVertex(DirectedVertex upstreamVertex) {
-    this.upstreamVertex = upstreamVertex;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedVertex getUpstreamVertex() {
-    return upstreamVertex;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedVertex getDownstreamVertex() {
-    return downstreamVertex;
-  }
 
   /**
    * {@inheritDoc}
    */
   @Override
   public boolean isDirectionAb() {
-    return getParentEdge().hasEdgeSegmentAb() && getParentEdge().getEdgeSegmentAb().getId() == this.getId();
+    return this.directionAb;
   }
 
   // Getter - Setters
@@ -199,7 +142,7 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
       return false;
     }
 
-    if (getParentEdge().getVertexA() == getUpstreamVertex()) {
+    if (getParentEdge().getVertexA() == getUpstreamVertex() && isDirectionAb()) {
       if (getParentEdge().getEdgeSegmentAb() == null) {
         LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", getId(), getExternalId()));
         return false;
@@ -209,7 +152,7 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
         return false;
       }
     }
-    if (getParentEdge().getVertexB() == getUpstreamVertex()) {
+    if (getParentEdge().getVertexB() == getUpstreamVertex() && !isDirectionAb()) {
       if (getParentEdge().getEdgeSegmentBa() == null) {
         LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", getId(), getExternalId()));
         return false;
@@ -219,6 +162,8 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
         LOGGER.warning(String.format("edge segment B->A on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is not", getId(), getExternalId()));
         return false;
       }
+    } else {
+      LOGGER.warning(String.format("edge segment direction inconsistent with its vertices (id:%d externalId:%s) should be the same but it is not", getId(), getExternalId()));
     }
 
     if (getParentEdge().getVertexA().equals(getUpstreamVertex())) {

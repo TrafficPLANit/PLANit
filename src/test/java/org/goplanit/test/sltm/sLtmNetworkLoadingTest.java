@@ -86,7 +86,7 @@ public class sLtmNetworkLoadingTest {
       // local CRS in meters
       GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
       
-      network = MacroscopicNetwork.create(testToken);
+      network = new MacroscopicNetwork(testToken);
       network.getModes().getFactory().registerNew(PredefinedModeType.CAR);
       networkLayer = network.getTransportLayers().getFactory().registerNew(network.getModes().get(PredefinedModeType.CAR));
       int index=0;

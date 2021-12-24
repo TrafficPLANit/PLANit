@@ -109,7 +109,7 @@ public class AcyclicShortestPathTest {
       GeometryFactory geoFactory = JTSFactoryFinder.getGeometryFactory();
       
       int gridSize = 2;
-      network = MacroscopicNetwork.create(IdGroupingToken.collectGlobalToken());
+      network = new MacroscopicNetwork(IdGroupingToken.collectGlobalToken());
       networkLayer = network.getTransportLayers().getFactory().registerNew();
       for(int nodeRowIndex = 0;nodeRowIndex<=gridSize;++nodeRowIndex) {
         for(int nodeColIndex = 0;nodeColIndex<=gridSize;++nodeColIndex) {

@@ -103,8 +103,6 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
         newEdgeSegmentAb.setParent(brokenEdge);
 
         /* update segment's vertices */
-        newEdgeSegmentAb.setUpstreamVertex((DirectedVertex) brokenEdge.getVertexA());
-        newEdgeSegmentAb.setDownstreamVertex((DirectedVertex) brokenEdge.getVertexB());
 
         /* update vertices' segments */
         newEdgeSegmentAb.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentAb, newEdgeSegmentAb, true);
@@ -136,8 +134,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
         newEdgeSegmentBa.setParent(brokenEdge);
 
         /* update segment's vertices */
-        newEdgeSegmentBa.setUpstreamVertex((DirectedVertex) brokenEdge.getVertexB());
-        newEdgeSegmentBa.setDownstreamVertex((DirectedVertex) brokenEdge.getVertexA());
+
 
         /* update vertices' segments */
         newEdgeSegmentBa.getUpstreamVertex().replaceExitSegment(oldEdgeSegmentBa, newEdgeSegmentBa, true);
@@ -178,9 +175,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
       entryEdgeSegments.forEach(edgeSegment -> directedGraph.getEdgeSegments().remove(edgeSegment.getId()));
       exitEdgeSegments.forEach(edgeSegment -> directedGraph.getEdgeSegments().remove(edgeSegment.getId()));
 
-      /* remove directed vertex from edge segments */
-      entryEdgeSegments.forEach(edgeSegment -> edgeSegment.remove(directedVertex));
-      exitEdgeSegments.forEach(edgeSegment -> edgeSegment.remove(directedVertex));
+
 
       /* remove edge from edge segments */
       entryEdgeSegments.forEach(edgeSegment -> edgeSegment.removeParentEdge());

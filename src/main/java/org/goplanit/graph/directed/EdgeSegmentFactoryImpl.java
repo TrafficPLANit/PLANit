@@ -40,14 +40,14 @@ public class EdgeSegmentFactoryImpl extends GraphEntityFactoryImpl<EdgeSegment> 
    */
   @Override
   public EdgeSegment registerNew(DirectedEdge parentEdge, boolean directionAb, boolean registerOnVertexAndEdge) {
-    final EdgeSegment edgeSegment = new EdgeSegmentImpl(getIdGroupingToken(), parentEdge, directionAb);
+    final var edgeSegment = new EdgeSegmentImpl(getIdGroupingToken(), parentEdge, directionAb);
     getGraphEntities().register(edgeSegment);
 
     if (registerOnVertexAndEdge) {
       parentEdge.registerEdgeSegment(edgeSegment, directionAb);
       if (parentEdge.getVertexA() instanceof DirectedVertex) {
-        ((DirectedVertex) parentEdge.getVertexA()).addEdgeSegment(edgeSegment);
-        ((DirectedVertex) parentEdge.getVertexB()).addEdgeSegment(edgeSegment);
+        parentEdge.getVertexA().addEdgeSegment(edgeSegment);
+        parentEdge.getVertexB().addEdgeSegment(edgeSegment);
       }
     }
     return edgeSegment;
