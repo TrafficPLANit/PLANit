@@ -16,7 +16,7 @@ import org.goplanit.utils.network.layers.TopologicalLayers;
  * @author markr
  *
  */
-public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U extends TopologicalLayers<T>> extends TransportLayerNetwork<T, U> {
+public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U extends TopologicalLayers<T>> extends LayeredNetwork<T, U> {
 
   /** generated serial id */
   private static final long serialVersionUID = 2402806336978560448L;

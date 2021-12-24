@@ -10,18 +10,18 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.TransportLayer;
+import org.goplanit.utils.network.layer.NetworkLayer;
 
 /**
- * Implementation of TransportLayer interface with only barebones functionality to support ids and modes. Only meant as starting point for actual implementations that built on it
+ * Implementation of NetworkLayer interface with only bare-bones functionality to support ids and modes. Only meant as starting point for actual implementations that built on it
  * 
  * @author markr
  *
  */
-public abstract class TransportLayerImpl extends ExternalIdAbleImpl implements TransportLayer {
+public abstract class NetworkLayerImpl extends ExternalIdAbleImpl implements NetworkLayer {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(TransportLayerImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(NetworkLayerImpl.class.getCanonicalName());
 
   /** the modes supported by this layer **/
   protected final Map<Long, Mode> supportedModes;
@@ -33,7 +33,7 @@ public abstract class TransportLayerImpl extends ExternalIdAbleImpl implements T
    * @return nodeId
    */
   protected static long generateId(final IdGroupingToken tokenId) {
-    return IdGenerator.generateId(tokenId, TransportLayer.TRANSPORT_LAYER_ID_CLASS);
+    return IdGenerator.generateId(tokenId, NetworkLayer.NETWORK_LAYER_ID_CLASS);
   }
 
   /**
@@ -41,7 +41,7 @@ public abstract class TransportLayerImpl extends ExternalIdAbleImpl implements T
    * 
    * @param tokenId to generate id for this instance for
    */
-  protected TransportLayerImpl(IdGroupingToken tokenId) {
+  protected NetworkLayerImpl(IdGroupingToken tokenId) {
     super(generateId(tokenId));
     this.supportedModes = new TreeMap<Long, Mode>();
   }
@@ -51,7 +51,7 @@ public abstract class TransportLayerImpl extends ExternalIdAbleImpl implements T
    * 
    * @param transportLayerImpl to copy
    */
-  protected TransportLayerImpl(TransportLayerImpl transportLayerImpl) {
+  protected NetworkLayerImpl(NetworkLayerImpl transportLayerImpl) {
     super(transportLayerImpl);
     this.supportedModes = new TreeMap<Long, Mode>(transportLayerImpl.supportedModes);
   }
@@ -130,6 +130,6 @@ public abstract class TransportLayerImpl extends ExternalIdAbleImpl implements T
    * {@inheritDoc}
    */
   @Override
-  public abstract TransportLayerImpl clone();
+  public abstract NetworkLayerImpl clone();
 
 }

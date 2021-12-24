@@ -15,7 +15,7 @@ import org.goplanit.demands.Demands;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.GapFunctionConfigurator;
 import org.goplanit.gap.GapFunctionConfiguratorFactory;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.output.OutputManager;
 import org.goplanit.output.configuration.OutputConfiguration;
 import org.goplanit.output.configuration.OutputTypeConfiguration;
@@ -83,7 +83,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @param network to set
    */
-  protected void setInfrastructureNetwork(TransportLayerNetwork<?, ?> network) {
+  protected void setInfrastructureNetwork(LayeredNetwork<?, ?> network) {
     registerDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK, network);
   }
 
@@ -137,8 +137,8 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @return network
    */
-  public TransportLayerNetwork<?, ?> getInfrastructureNetwork() {
-    return (TransportLayerNetwork<?, ?>) getFirstParameterOfDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK);
+  public LayeredNetwork<?, ?> getInfrastructureNetwork() {
+    return (LayeredNetwork<?, ?>) getFirstParameterOfDelayedMethodCall(SET_INFRASTRUCTURE_NETWORK);
   }
 
   /**

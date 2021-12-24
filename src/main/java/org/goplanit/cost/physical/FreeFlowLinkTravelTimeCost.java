@@ -1,7 +1,7 @@
 package org.goplanit.cost.physical;
 
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
@@ -40,7 +40,7 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
    * {@inheritDoc}
    */
   @Override
-  public void initialiseBeforeSimulation(TransportLayerNetwork<?, ?> network) throws PlanItException {
+  public void initialiseBeforeSimulation(LayeredNetwork<?, ?> network) throws PlanItException {
     PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "Free flow  travel time cost is only compatible with macroscopic networks");
     var macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,

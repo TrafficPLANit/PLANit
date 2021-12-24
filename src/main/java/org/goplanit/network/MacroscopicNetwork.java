@@ -9,7 +9,7 @@ import org.goplanit.network.layers.MacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.TransportLayer;
+import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layers.MacroscopicNetworkLayers;
 
 /**
@@ -62,7 +62,7 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
     /* register layers */
     Map<String, Long> xmlIdToId = new HashedMap<String, Long>();
     for (String layerXmlId : layerConfiguration.transportLayersByXmlId) {
-      TransportLayer newLayer = getTransportLayers().getFactory().registerNew();
+      NetworkLayer newLayer = getTransportLayers().getFactory().registerNew();
       newLayer.setXmlId(layerXmlId);
       xmlIdToId.put(layerXmlId, newLayer.getId());
     }

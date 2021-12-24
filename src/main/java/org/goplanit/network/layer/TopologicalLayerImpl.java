@@ -9,7 +9,7 @@ import org.goplanit.utils.network.layer.TopologicalLayer;
  * @author markr
  *
  */
-public abstract class TopologicalLayerImpl extends TransportLayerImpl implements TopologicalLayer {
+public abstract class TopologicalLayerImpl extends NetworkLayerImpl implements TopologicalLayer {
 
   /**
    * Constructor

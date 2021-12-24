@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 import org.goplanit.interactor.LinkVolumeAccessee;
 import org.goplanit.interactor.LinkVolumeAccessor;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
@@ -246,7 +246,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @throws PlanItException thrown if error
    */
   @Override
-  public void initialiseBeforeSimulation(final TransportLayerNetwork<?, ?> network) throws PlanItException {
+  public void initialiseBeforeSimulation(final LayeredNetwork<?, ?> network) throws PlanItException {
     PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "BPR cost is only compatible with macroscopic networks");
     MacroscopicNetwork macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1, "BPR cost is currently only compatible with networks using a single infrastructure layer");
@@ -376,7 +376,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   }
 
   /**
-   * return to pre-{@link #initialiseBeforeSimulation(TransportLayerNetwork)} state
+   * return to pre-{@link #initialiseBeforeSimulation(LayeredNetwork)} state
    */
   @Override
   public void reset() {

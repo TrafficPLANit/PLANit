@@ -5,8 +5,8 @@ import java.util.logging.Logger;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.TransportLayer;
-import org.goplanit.utils.network.layers.TransportLayers;
+import org.goplanit.utils.network.layer.NetworkLayer;
+import org.goplanit.utils.network.layers.NetworkLayers;
 
 /**
  * Base implementation of the TransportLayer interface, without the createNew() method
@@ -14,7 +14,7 @@ import org.goplanit.utils.network.layers.TransportLayers;
  * @author markr
  *
  */
-public abstract class TransportLayersImpl<T extends TransportLayer> extends ManagedIdEntitiesImpl<T> implements TransportLayers<T> {
+public abstract class TransportLayersImpl<T extends NetworkLayer> extends ManagedIdEntitiesImpl<T> implements NetworkLayers<T> {
 
   /** the logger */
   @SuppressWarnings("unused")
@@ -40,7 +40,7 @@ public abstract class TransportLayersImpl<T extends TransportLayer> extends Mana
    * @param idToken to generated id's for infrastructure layers
    */
   public TransportLayersImpl(IdGroupingToken idToken) {
-    super(T::getId, TransportLayer.TRANSPORT_LAYER_ID_CLASS);
+    super(T::getId, NetworkLayer.NETWORK_LAYER_ID_CLASS);
     this.idToken = idToken;
   }
 

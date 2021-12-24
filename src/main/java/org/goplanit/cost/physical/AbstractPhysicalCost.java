@@ -3,7 +3,7 @@ package org.goplanit.cost.physical;
 import java.io.Serializable;
 
 import org.goplanit.component.PlanitComponent;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
@@ -60,7 +60,7 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
    * @param network the network
    * @throws PlanItException thrown if error
    */
-  public abstract void initialiseBeforeSimulation(TransportLayerNetwork<?, ?> network) throws PlanItException;
+  public abstract void initialiseBeforeSimulation(LayeredNetwork<?, ?> network) throws PlanItException;
 
   /**
    * Provide the cost calculation with information regarding the time period for which the cost is to be calculated

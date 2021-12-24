@@ -3,7 +3,7 @@ package org.goplanit.cost.physical;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.interactor.LinkInflowOutflowAccessor;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -142,7 +142,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * {@inheritDoc}
    */
   @Override
-  public void initialiseBeforeSimulation(TransportLayerNetwork<?, ?> network) throws PlanItException {
+  public void initialiseBeforeSimulation(LayeredNetwork<?, ?> network) throws PlanItException {
     PlanItException.throwIf(!(network instanceof MacroscopicNetwork), "Steady state travel time cost is only compatible with macroscopic networks");
     var macroscopicNetwork = (MacroscopicNetwork) network;
     PlanItException.throwIf(macroscopicNetwork.getTransportLayers().size() != 1,
@@ -219,7 +219,7 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
   }
 
   /**
-   * Full reset returns to pre-{@link #initialiseBeforeSimulation(TransportLayerNetwork)} state.
+   * Full reset returns to pre-{@link #initialiseBeforeSimulation(LayeredNetwork)} state.
    */
   @Override
   public void reset() {

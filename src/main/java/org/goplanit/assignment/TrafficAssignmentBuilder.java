@@ -11,7 +11,7 @@ import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.StopCriterion;
 import org.goplanit.input.InputBuilderListener;
 import org.goplanit.interactor.InteractorAccessor;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.output.OutputManager;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.sdinteraction.smoothing.Smoothing;
@@ -40,7 +40,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @param network network object to be registered
    * @throws PlanItException thrown if the number of zones in the Zoning and Demand objects is inconsistent
    */
-  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final TransportLayerNetwork<?, ?> network) throws PlanItException {
+  private void registerDemandZoningAndNetwork(final Demands demands, final Zoning zoning, final LayeredNetwork<?, ?> network) throws PlanItException {
     if (zoning == null || demands == null || network == null) {
       PlanItException.throwIf(zoning == null, "zoning in registerDemandZoningAndNetwork is null");
       PlanItException.throwIf(demands == null, "demands in registerDemandZoningAndNetwork is null");
@@ -229,7 +229,7 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown when error
    */
   protected TrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, final IdGroupingToken projectToken, InputBuilderListener inputBuilderListener, final Demands demands,
-      final Zoning zoning, final TransportLayerNetwork<?, ?> network) throws PlanItException {
+      final Zoning zoning, final LayeredNetwork<?, ?> network) throws PlanItException {
     super(trafficAssignmentClass, projectToken, inputBuilderListener);
 
     /* register inputs (on configurator) */

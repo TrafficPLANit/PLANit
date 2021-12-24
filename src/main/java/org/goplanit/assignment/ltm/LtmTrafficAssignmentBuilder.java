@@ -4,7 +4,7 @@ import org.goplanit.assignment.TrafficAssignmentBuilder;
 import org.goplanit.component.PlanitComponentFactory;
 import org.goplanit.demands.Demands;
 import org.goplanit.input.InputBuilderListener;
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.path.choice.PathChoice;
 import org.goplanit.path.choice.PathChoiceBuilderFactory;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
@@ -87,7 +87,7 @@ public abstract class LtmTrafficAssignmentBuilder<T extends LtmAssignment> exten
    * @throws PlanItException thrown if there is an exception
    */
   public LtmTrafficAssignmentBuilder(final Class<T> trafficAssignmentClass, IdGroupingToken groupId, final InputBuilderListener inputBuilderListener, final Demands demands,
-      final Zoning zoning, final TransportLayerNetwork<?, ?> network) throws PlanItException {
+      final Zoning zoning, final LayeredNetwork<?, ?> network) throws PlanItException {
     super(trafficAssignmentClass, groupId, inputBuilderListener, demands, zoning, network);
   }
 

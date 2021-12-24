@@ -3,7 +3,7 @@ package org.goplanit.network.transport;
 import java.util.Collection;
 import java.util.logging.Logger;
 
-import org.goplanit.network.TransportLayerNetwork;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.goplanit.network.virtual.VirtualNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -41,7 +41,7 @@ public class TransportModelNetwork {
   /**
    * Holds the infrastructure road network that is being modelled
    */
-  protected final TransportLayerNetwork<?, ?> infrastructureNetwork;
+  protected final LayeredNetwork<?, ?> infrastructureNetwork;
 
   /**
    * Holds the zoning structure and virtual transport network interfacing with the physical network
@@ -117,7 +117,7 @@ public class TransportModelNetwork {
    * @param infrastructureNetwork the network used to generate this TransportNetwork
    * @param zoning                the Zoning used to generate this TransportNetwork
    */
-  public TransportModelNetwork(TransportLayerNetwork<?, ?> infrastructureNetwork, Zoning zoning) {
+  public TransportModelNetwork(LayeredNetwork<?, ?> infrastructureNetwork, Zoning zoning) {
     this.infrastructureNetwork = infrastructureNetwork;
     this.zoning = zoning;
   }
@@ -229,7 +229,7 @@ public class TransportModelNetwork {
    * 
    * @return physicalNetwork
    */
-  public TransportLayerNetwork<?, ?> getInfrastructureNetwork() {
+  public LayeredNetwork<?, ?> getInfrastructureNetwork() {
     return infrastructureNetwork;
   }
 

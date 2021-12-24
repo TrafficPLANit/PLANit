@@ -6,8 +6,8 @@ import org.goplanit.mode.ModesImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
-import org.goplanit.utils.network.layer.TransportLayer;
-import org.goplanit.utils.network.layers.TransportLayers;
+import org.goplanit.utils.network.layer.NetworkLayer;
+import org.goplanit.utils.network.layers.NetworkLayers;
 
 /**
  * A transport network with one or more layers. One can choose the container for the different layers as a generic type that defines the container level operations available. Each
@@ -20,14 +20,14 @@ import org.goplanit.utils.network.layers.TransportLayers;
  * @param <U> transport layer base class
  * @param <T> transport layer container class where each layer extends {@code <U>}
  */
-public abstract class TransportLayerNetwork<U extends TransportLayer, T extends TransportLayers<U>> extends Network {
+public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLayers<U>> extends Network {
 
   /** generated serial id */
   private static final long serialVersionUID = 2402806336978560448L;
 
   /** the logger to use */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(TransportLayerNetwork.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(LayeredNetwork.class.getCanonicalName());
 
   /**
    * class instance containing all modes specific functionality across the layers
@@ -52,7 +52,7 @@ public abstract class TransportLayerNetwork<U extends TransportLayer, T extends 
    * 
    * @param tokenId to use for id generation
    */
-  public TransportLayerNetwork(IdGroupingToken tokenId) {
+  public LayeredNetwork(IdGroupingToken tokenId) {
     super(tokenId);
 
     /* for mode management */
