@@ -107,6 +107,7 @@ public class BushFlowLabel implements Comparable<BushFlowLabel> {
    * Create a new flow composition label for this bush
    * 
    * @param idToken to use
+   * @param name    of the label
    * @return created label
    */
   public static BushFlowLabel create(IdGroupingToken idToken, String name) {
