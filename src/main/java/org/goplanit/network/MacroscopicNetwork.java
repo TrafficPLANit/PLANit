@@ -73,8 +73,8 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
 
   /**
    * Create a macroscopic network instance using the id token provided and in addition generate a simple grid-based network layer for the predefined car mode, where each link is
-   * bi-directional and has a single link segment type with access for car (nothing else set). For a more sophisticated grid generator use the dedicated generator class
-   * MacroscopicGridNetworkLayerGenerator.
+   * bi-directional and has a single link segment type with access for car (nothing else set). For a more sophisticated grid generator configure the dedicated generator class
+   * MacroscopicGridNetworkLayerGenerator by overriding its defaults that are used here
    * 
    * @param tokenId to use
    * @param rows    in the grid

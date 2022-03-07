@@ -171,7 +171,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * @return newly created PASs (empty if no new PASs were created)
    * @throws PlanItException thrown if error
    */
-  private Collection<Pas> extendBushes(final double[] linkSegmentCosts) throws PlanItException {
+  private Collection<Pas> updateBushPass(final double[] linkSegmentCosts) throws PlanItException {
 
     List<Pas> newPass = new ArrayList<>();
 
@@ -477,7 +477,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */     
       {
         /* (NEW) PAS MATCHING FOR BUSHES */
-        Collection<Pas> newPass = extendBushes(costsToUpdate);            
+        Collection<Pas> newPass = updateBushPass(costsToUpdate);            
               
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
         Collection<Pas> updatedPass = shiftFlows(theMode);      

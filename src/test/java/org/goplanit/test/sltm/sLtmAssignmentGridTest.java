@@ -116,7 +116,7 @@ public class sLtmAssignmentGridTest {
       
       network = MacroscopicNetwork.createSimpleGrid(testToken, 4, 4);
       networkLayer = network.getTransportLayers().getFirst();
-      networkLayer.getLinkSegmentTypes().getFirst().getAccessProperties(network.getModes().getFirst()).setMaximumSpeedKmH(MAX_SPEED_KM_H /* km/h */);
+      networkLayer.getLinkSegmentTypes().forEach( ls -> ls.getAccessProperties(network.getModes().getFirst()).setMaximumSpeedKmH(MAX_SPEED_KM_H /* km/h */));           
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
       zoning.odZones.getFactory().registerNew().setXmlId("A");
@@ -145,11 +145,91 @@ public class sLtmAssignmentGridTest {
 
       Demands demands = createDemands();
 
-      /* OD DEMANDS 3600 A->A``, 3600 A->A``` */
+      /* OD DEMANDS 1800 A->A``, 1800 A->A``` */
       OdZones odZones = zoning.getOdZones();
       OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
       odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 1800.0);
       odDemands.setValue(odZones.getByXmlId("A`"), odZones.getByXmlId("A```"), 1800.0);
+      demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
+
+      /* sLTM - POINT QUEUE */
+      StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(false);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateBushBased(true);
+
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateOutput(OutputType.LINK);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
+
+      StaticLtm sLTM = sLTMBuilder.build();
+      sLTM.getGapFunction().getStopCriterion().setEpsilon(Precision.EPSILON_9);
+      sLTM.getGapFunction().getStopCriterion().setMaxIterations(1000);
+      // sLTM.setActivateDetailedLogging(true);
+      sLTM.execute();
+
+      double outflow0 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("0").getLinkSegmentAb());
+      double outflow1 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
+      double outflow2 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
+      double outflow3 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("3").getLinkSegmentAb());
+      double outflow4 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("4").getLinkSegmentAb());
+      double outflow5 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("5").getLinkSegmentAb());
+      double outflow6 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("6").getLinkSegmentAb());
+      double outflow7 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("7").getLinkSegmentAb());
+      double outflow8 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("8").getLinkSegmentAb());
+      double outflow9 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("9").getLinkSegmentAb());
+      double outflow10 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("10").getLinkSegmentAb());
+      double outflow11 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("11").getLinkSegmentAb());
+      double outflow12 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("12").getLinkSegmentAb());
+      double outflow13 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("13").getLinkSegmentAb());
+      double outflow14 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("14").getLinkSegmentAb());
+      double outflow15 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("15").getLinkSegmentAb());
+      double outflow20 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("20").getLinkSegmentBa());
+      double outflow21 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("21").getLinkSegmentBa());
+      double outflow22 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("22").getLinkSegmentBa());
+      double outflow23 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("23").getLinkSegmentBa());
+
+      assertEquals(outflow0, 900, Precision.EPSILON_3);
+      assertEquals(outflow1, outflow0 / 2, Precision.EPSILON_3);
+      assertEquals(outflow2, outflow1 / 2, Precision.EPSILON_3);
+      assertEquals(outflow3, outflow12, Precision.EPSILON_3);
+      assertEquals(outflow4, outflow13 + outflow3, Precision.EPSILON_3);
+      assertEquals(outflow5, outflow14 + outflow4, Precision.EPSILON_3);
+      assertEquals(outflow12, outflow0, Precision.EPSILON_3);
+      assertEquals(outflow13, outflow1, Precision.EPSILON_3);
+      assertEquals(outflow14, outflow2, Precision.EPSILON_3);
+      assertEquals(outflow15, outflow2, Precision.EPSILON_3);
+
+      assertEquals(outflow9, 900, Precision.EPSILON_3);
+      assertEquals(outflow10, outflow9 / 2, Precision.EPSILON_3);
+      assertEquals(outflow11, outflow10 / 2, Precision.EPSILON_3);
+      assertEquals(outflow20, outflow9, Precision.EPSILON_3);
+      assertEquals(outflow21, outflow10, Precision.EPSILON_3);
+      assertEquals(outflow22, outflow11, Precision.EPSILON_3);
+      assertEquals(outflow23, outflow11, Precision.EPSILON_3);
+      assertEquals(outflow6, outflow20, Precision.EPSILON_3);
+      assertEquals(outflow7, outflow21 + outflow6, Precision.EPSILON_3);
+      assertEquals(outflow8, outflow22 + outflow7, Precision.EPSILON_3);
+
+    } catch (Exception e) {
+      e.printStackTrace();
+      fail("Error when testing sLTM bush based assignment");
+    }
+  }
+
+  /**
+   * Test sLTM bush-based assignment on grid based network with demand causing some queues
+   */
+  @Test
+  public void sLtmPointQueueBushBasedAssignmentWithQueueTest() {
+    try {
+
+      Demands demands = createDemands();
+
+      /* OD DEMANDS 3600 A->A``, 3600 A->A``` */
+      OdZones odZones = zoning.getOdZones();
+      OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
+      odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 3600.0);
+      odDemands.setValue(odZones.getByXmlId("A`"), odZones.getByXmlId("A```"), 3600.0);
       demands.registerOdDemandPcuHour(demands.timePeriods.getFirst(), network.getModes().get(PredefinedModeType.CAR), odDemands);
 
       /* sLTM - POINT QUEUE */
@@ -188,7 +268,7 @@ public class sLtmAssignmentGridTest {
       double outflow22 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("22").getLinkSegmentBa());
       double outflow23 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("23").getLinkSegmentBa());
 
-      assertEquals(outflow0, 900, Precision.EPSILON_3);
+      assertEquals(outflow0, 1800, Precision.EPSILON_3);
       assertEquals(outflow1, outflow0 / 2, Precision.EPSILON_3);
       assertEquals(outflow2, outflow1 / 2, Precision.EPSILON_3);
       assertEquals(outflow3, outflow12, Precision.EPSILON_3);
@@ -199,7 +279,7 @@ public class sLtmAssignmentGridTest {
       assertEquals(outflow14, outflow2, Precision.EPSILON_3);
       assertEquals(outflow15, outflow2, Precision.EPSILON_3);
 
-      assertEquals(outflow9, 900, Precision.EPSILON_3);
+      assertEquals(outflow9, 1800, Precision.EPSILON_3);
       assertEquals(outflow10, outflow9 / 2, Precision.EPSILON_3);
       assertEquals(outflow11, outflow10 / 2, Precision.EPSILON_3);
       assertEquals(outflow20, outflow9, Precision.EPSILON_3);

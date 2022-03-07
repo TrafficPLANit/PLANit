@@ -41,7 +41,7 @@ public class OneToAllShortestBushAlgorithmImpl extends OneToAllShortestGeneralis
 
   /**
    * Test whether shortest bush means less or equal cost compared to existing cost, so cheaper and equal cost paths are considered. also store the costs so we can test if they were
-   * equal or shorter in {@link #processShorterOrEqualIncomginEdgeSegment(EdgeSegment)}
+   * equal or shorter in {@link #processShorterOrEqualIncomingEdgeSegment(EdgeSegment)}
    */
   private boolean isShorterOrEqual(double currShortestCostToVertex, double currComputedCostToVertex) {
     currEqualShortestCosts = false;
@@ -60,7 +60,7 @@ public class OneToAllShortestBushAlgorithmImpl extends OneToAllShortestGeneralis
    * @param incomingEdgeSegment that is considered shorter or equal shortest for its downstream vertex
    */
   @SuppressWarnings("unchecked")
-  private void processShorterOrEqualIncomginEdgeSegment(EdgeSegment incomingEdgeSegment) {
+  private void processShorterOrEqualIncomingEdgeSegment(EdgeSegment incomingEdgeSegment) {
 
     if (currEqualShortestCosts) {
       /* equal costs */
@@ -115,7 +115,7 @@ public class OneToAllShortestBushAlgorithmImpl extends OneToAllShortestGeneralis
      * found shortest bush costs to each vertex for current origin. When deemed shortest, all incoming edge segments are stored on the array as a list, unless only a single edge
      * segment is shortest in which case the entry is just the edge segment
      */
-    var vertexMeasuredCost = super.executeOneToAll(this::isShorterOrEqual, this::processShorterOrEqualIncomginEdgeSegment);
+    var vertexMeasuredCost = super.executeOneToAll(this::isShorterOrEqual, this::processShorterOrEqualIncomingEdgeSegment);
     return new ShortestBushResultImpl(currentOrigin, vertexMeasuredCost, incomingEdgeSegments, numberOfEdgeSegments);
   }
 }
