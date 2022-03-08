@@ -1,5 +1,6 @@
 package org.goplanit.graph;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,9 +36,9 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
   protected Point position;
 
   /**
-   * Edges of this vertex
+   * Edges of this vertex. List used to ensure fixed order in iterating and minimal memory overhead
    */
-  protected final Map<Long, Edge> edges = new HashMap<Long, Edge>();
+  protected final ArrayList<Edge> edges = new ArrayList<Edge>(2);
 
   /**
    * Constructor
@@ -56,7 +57,7 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
   protected VertexImpl(VertexImpl vertexImpl) {
     super(vertexImpl);
     setPosition((Point) vertexImpl.getPosition().copy());
-    edges.putAll(vertexImpl.edges);
+    edges.addAll(vertexImpl.edges);
     if (vertexImpl.inputProperties != null && !vertexImpl.inputProperties.isEmpty()) {
       for (var entry : vertexImpl.inputProperties.entrySet()) {
         addInputProperty(new String(entry.getKey()), CloneUtils.clone(entry.getValue()));
@@ -107,7 +108,12 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
    */
   @Override
   public boolean addEdge(final Edge edge) {
-    return edges.put(edge.getId(), edge) != null;
+    if (edges.contains(edge)) {
+      return false;
+    }
+
+    edges.add(edge);
+    return true;
   }
 
   /**
@@ -115,7 +121,7 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
    */
   @Override
   public boolean removeEdge(final long edgeId) {
-    return edges.remove(edgeId) != null;
+    return edges.removeIf(e -> e.getId() == edgeId);
   }
 
   /**
@@ -123,7 +129,7 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
    */
   @Override
   public Collection<? extends Edge> getEdges() {
-    return Collections.unmodifiableCollection(edges.values());
+    return Collections.unmodifiableCollection(edges);
   }
 
   /**

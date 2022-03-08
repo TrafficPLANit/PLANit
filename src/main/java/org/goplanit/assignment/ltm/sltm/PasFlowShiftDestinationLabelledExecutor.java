@@ -184,8 +184,8 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
           /* track so we can attribute it to s1 segment later */
           destinationLabelExitSegmentShiftedSendingFlows[index] += -s2FlowShift;
         }
+        ++index;
       }
-      ++index;
     }
   }
 
@@ -374,8 +374,8 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
       double s2StartLabeledFlowShift = -currLabelPortion * bushFlowShift;
       double s2FinalLabeledFlowShift = executeBushDestinationLabeledBaseFlowShift(origin, currLabel, s2StartLabeledFlowShift, s2, flowAcceptanceFactors);
 
-      LOGGER
-          .severe(String.format("** S2 SHIFT: destination label %d, flow shift start %.10f, end %.10f", currLabel.getLabelId(), s2StartLabeledFlowShift, s2FinalLabeledFlowShift));
+      LOGGER.severe(
+          String.format("** S2 SHIFT: dest-label %d, shift-start-link %.10f, shift-final-link %.10f", currLabel.getLabelId(), s2StartLabeledFlowShift, s2FinalLabeledFlowShift));
 
       /* shift flow across final merge for S2 */
       executeBushDestinationLabeledS2FlowShiftEndMerge(origin, currLabel, s2FinalLabeledFlowShift, bushS2MergeExitShiftedSendingFlows);
@@ -403,8 +403,8 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
       double s1StartLabeledFlowShift = currLabelPortion * bushFlowShift;
       double s1FinalLabeledFlowShift = executeBushDestinationLabeledBaseFlowShift(origin, currLabel, s1StartLabeledFlowShift, s1, flowAcceptanceFactors);
 
-      LOGGER
-          .severe(String.format("** S1 SHIFT: destination label %d, flow shift start %.10f, end %.10f", currLabel.getLabelId(), s1StartLabeledFlowShift, s1FinalLabeledFlowShift));
+      LOGGER.severe(
+          String.format("** S1 SHIFT: dest-label %d, shift-start-link %.10f, shift-final-link %.10f", currLabel.getLabelId(), s1StartLabeledFlowShift, s1FinalLabeledFlowShift));
 
       /* shift flow across final merge for S1 based on findings in s2 */
       executeBushDestinationLabeledS1FlowShiftEndMerge(origin, currLabel, s1FinalLabeledFlowShift, bushS2MergeExitShiftedSplittingRates.get(currLabel));

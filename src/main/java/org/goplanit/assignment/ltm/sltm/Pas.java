@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.logging.Logger;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.misc.CollectionUtils;
 
 /**
  * Paired Alternative Segment (PAS) implementation comprising two subpaths (segments), one of a higher cost than the other. In a PAS both subpaths start at the same vertex and end
@@ -167,22 +169,46 @@ public class Pas {
   /**
    * check if shortest path tree is overlapping with one of the alternatives
    * 
-   * @param pathMatchForCheapPath to verify
-   * @param lowCost               when true check with low cost alternative otherwise high cost
+   * @param pathToVerify to verify
+   * @param lowCost      when true check with low cost alternative otherwise high cost
    * @return true when overlapping, false otherwise
    */
-  public boolean isOverlappingWith(ShortestPathResult pathMatchForCheapPath, boolean lowCost) {
+  public boolean isOverlappingWith(ShortestPathResult pathToVerify, boolean lowCost) {
     EdgeSegment[] alternative = lowCost ? s1 : s2;
     EdgeSegment currEdgeSegment = null;
     EdgeSegment matchingEdgeSegment = null;
     for (int index = alternative.length - 1; index >= 0; --index) {
       currEdgeSegment = alternative[index];
-      matchingEdgeSegment = pathMatchForCheapPath.getIncomingEdgeSegmentForVertex(currEdgeSegment.getDownstreamVertex());
+      matchingEdgeSegment = pathToVerify.getIncomingEdgeSegmentForVertex(currEdgeSegment.getDownstreamVertex());
       if (!currEdgeSegment.idEquals(matchingEdgeSegment)) {
         return false;
       }
     }
     return true;
+  }
+
+  /**
+   * Verify if the provided path is equal to the PAS alternative
+   * 
+   * @param pathToVerify to verify
+   * @param lowCost      which of the two alternatives to check against
+   * @return true when equal, false otherwise
+   */
+  public boolean isAlternativeEqual(final EdgeSegment[] pathToVerify, boolean lowCost) {
+    EdgeSegment[] alternative = lowCost ? s1 : s2;
+    return Arrays.equals(alternative, pathToVerify);
+  }
+
+  /**
+   * Verify if the provided path is equal to the PAS alternative
+   * 
+   * @param pathToVerify to verify
+   * @param lowCost      which of the two alternatives to check against
+   * @return true when equal, false otherwise
+   */
+  public boolean isAlternativeEqual(final Collection<EdgeSegment> pathToVerify, boolean lowCost) {
+    EdgeSegment[] alternative = lowCost ? s1 : s2;
+    return CollectionUtils.equals(pathToVerify, alternative);
   }
 
   /**

@@ -102,7 +102,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
     if (!bushFlowThroughMergeVertex) {
       // TODO: when we find this condition never occurs (and it shouldn't, remove the above checks as they are costly)
-      LOGGER.warning(String.format("Explored vertex %s for existing PAS match even though bush has not flow passing through it. This should not happen", mergeVertex.getXmlId()));
+      LOGGER.warning(String.format("Explored vertex %s for existing PAS match even though bush has no flow passing through it. This should not happen", mergeVertex.getXmlId()));
       return false;
     }
 
@@ -152,7 +152,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     boolean truncateSpareArrayCapacity = true;
     EdgeSegment[] s1 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, networkMinPaths, shortestPathLength, truncateSpareArrayCapacity);
     EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, highCostSegment.second(), shortestPathLength, truncateSpareArrayCapacity);
-    newPas = pasManager.createNewPas(originBush, s1, s2);
+    newPas = pasManager.createAndRegisterNewPas(originBush, s1, s2);
 
     /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
     getLoading().activateNodeTrackingFor(newPas);

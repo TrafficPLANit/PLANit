@@ -201,12 +201,24 @@ public class PasManager {
    * @param s2         expensive alternative segment
    * @return createdPas
    */
-  public Pas createNewPas(final Bush originBush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
+  public Pas createAndRegisterNewPas(final Bush originBush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
     Pas newPas = Pas.create(s1, s2);
     newPas.registerOrigin(originBush);
     passByMergeVertex.putIfAbsent(newPas.getMergeVertex(), new ArrayList<Pas>());
     passByMergeVertex.get(newPas.getMergeVertex()).add(newPas);
     return newPas;
+  }
+
+  /**
+   * create a new PAS for the given cheap and expensive paired alternative segments (subpaths) and register the origin bush on it that was responsible for creating it
+   * 
+   * @param originBush responsible for triggering the creation of this PAS
+   * @param s1         cheap alternative segment
+   * @param s2         expensive alternative segment
+   * @return createdPas
+   */
+  public Pas createAndRegisterNewPas(final Bush originBush, final Collection<EdgeSegment> s1, final Collection<EdgeSegment> s2) {
+    return createAndRegisterNewPas(originBush, s1.toArray(new EdgeSegment[s1.size()]), s2.toArray(new EdgeSegment[s2.size()]));
   }
 
   /**
@@ -226,6 +238,39 @@ public class PasManager {
    */
   public Collection<Pas> getPassByMergeVertex(final DirectedVertex mergeVertex) {
     return passByMergeVertex.get(mergeVertex);
+  }
+
+  /**
+   * Find PAS that exactly matches the provides alternative segments
+   * 
+   * @param alternative1 alternative segment of PAS
+   * @param alternative2 alternative segment of PAS
+   * @return the matching PAS, null otherwise
+   */
+  public Pas findExistingPas(final Collection<EdgeSegment> alternative1, final Collection<EdgeSegment> alternative2) {
+    if (alternative1 == null || alternative2 == null) {
+      LOGGER.severe("one or more alternatives of potential PAS are null");
+      return null;
+    }
+    if (alternative1.isEmpty() || alternative2.isEmpty()) {
+      LOGGER.severe("one or more alternatives of potential PAS are empty");
+      return null;
+    }
+
+    var potentialPass = getPassByMergeVertex(alternative1.iterator().next().getUpstreamVertex());
+    if (potentialPass == null) {
+      return null;
+    }
+
+    for (Pas potentialPas : potentialPass) {
+      if (potentialPas.isAlternativeEqual(alternative1, true) && potentialPas.isAlternativeEqual(alternative2, false)) {
+        return potentialPas;
+      } else if (potentialPas.isAlternativeEqual(alternative2, true) && potentialPas.isAlternativeEqual(alternative1, false)) {
+        return potentialPas;
+      }
+    }
+
+    return null;
   }
 
   /**

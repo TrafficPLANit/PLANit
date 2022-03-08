@@ -16,6 +16,7 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.pcu.PcuCapacitated;
 import org.ojalgo.array.Array1D;
 
 /**
@@ -116,20 +117,20 @@ public abstract class PasFlowShiftExecutor {
         /* do not use outflows directly because they are only available on potentially blocking nodes in point queue basic solution scheme */
         double outflow = networkLoading.getCurrentInflowsPcuH()[linkSegmentId] * networkLoading.getCurrentFlowAcceptanceFactors()[linkSegmentId];
         /* since only a portion is directed to this out link, we can multiply the slack with the reciprocal of the splitting rate */
-        double scaledSlackFlow = (1 / splittingRate) * ((MacroscopicLinkSegment) exitSegment).getCapacityOrDefaultPcuH() - outflow;
+        double scaledSlackFlow = (1 / splittingRate) * ((PcuCapacitated) exitSegment).getCapacityOrDefaultPcuH() - outflow;
         slackFlow = Math.min(slackFlow, scaledSlackFlow);
       }
       ++index;
     }
 
-    MacroscopicLinkSegment linkSegment = null;
+    EdgeSegment s1EdgeSegment = null;
     EdgeSegment[] s1 = pas.getAlternative(true);
     for (index = 0; index < s1.length; ++index) {
-      linkSegment = (MacroscopicLinkSegment) s1[index];
-      linkSegmentId = (int) linkSegment.getId();
+      s1EdgeSegment = s1[index];
+      linkSegmentId = (int) s1EdgeSegment.getId();
       /* do not use outflows directly because they are only available on potentially blocking nodes in point queue basic solution scheme */
       double outflow = networkLoading.getCurrentInflowsPcuH()[linkSegmentId] * networkLoading.getCurrentFlowAcceptanceFactors()[linkSegmentId];
-      double currSlackflow = linkSegment.getCapacityOrDefaultPcuH() - outflow;
+      double currSlackflow = ((PcuCapacitated) s1EdgeSegment).getCapacityOrDefaultPcuH() - outflow;
       if (Precision.smaller(currSlackflow, slackFlow)) {
         slackFlow = currSlackflow;
       }
@@ -168,7 +169,7 @@ public abstract class PasFlowShiftExecutor {
   protected boolean executeFlowShift(double flowShiftPcuH, double[] flowAcceptanceFactors) {
 
     List<Bush> originsWithoutRemainingPasFlow = new ArrayList<>();
-    LOGGER.severe("** PAS FLOW shift" + pas.toString());
+    LOGGER.severe("** PAS FLOW shift " + pas.toString());
 
     for (var origin : pas.getOrigins()) {
 
@@ -319,6 +320,26 @@ public abstract class PasFlowShiftExecutor {
   public boolean run(Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, StaticLtmLoadingBush networkLoading) {
     double flowShift = determineFlowShift(theMode, physicalCost, virtualCost, networkLoading);
     return executeFlowShift(flowShift, networkLoading.getCurrentFlowAcceptanceFactors());
+  }
+
+  /**
+   * updated version --> we account for the fact that per origin bush different incoming links to the PAS might be used -> each incoming link that is used and that is congested
+   * should be the basis for the flow shift instead of the first congested one within the PAS. This is currently not accounted for + if an incoming link is congested, then it has
+   * the same alpha for both alternatives BUT the most restricting one might be linked to one of those. If so then we should shift towards the other! This does not exist yet. If
+   * neither is the most restricting then revert to situation where we shift as if uncongested as it has no impact. + So -> split flow shift and execution to per incoming link
+   * rather than combining them as we do in run!! Later we can optimise possibly
+   * 
+   * Each PAS per origin is split in x PASs where x is the number of used in links for each bush
+   * 
+   * @param theMode
+   * @param physicalCost
+   * @param virtualCost
+   * @param networkLoading
+   * @return
+   */
+  public boolean runNew(Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, StaticLtmLoadingBush networkLoading) {
+    // TODO
+    return false;
   }
 
   /**
