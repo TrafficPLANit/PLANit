@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CollectionUtils;
 
 /**
@@ -376,6 +377,16 @@ public class Pas {
     Arrays.stream(s2).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : ls.getId()).append(","));
     sb.replace(sb.length() - 1, sb.length(), "]");
     return sb.toString();
+  }
+
+  /**
+   * Verify if the current known cost for the PAS is considered equal under the given epsilon
+   * 
+   * @param epsilon to use
+   * @return true when abs(costS1-costS2)<=epsilon
+   */
+  public boolean isCostEqual(double epsilon) {
+    return Precision.smaller(Math.abs(s2Cost - s1Cost), epsilon);
   }
 
 }
