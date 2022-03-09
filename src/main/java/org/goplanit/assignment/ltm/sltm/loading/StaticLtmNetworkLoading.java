@@ -10,8 +10,8 @@ import org.goplanit.algorithms.nodemodel.TampereNodeModelInput;
 import org.goplanit.assignment.ltm.sltm.LinkSegmentData;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.ApplyToNodeModelResult;
-import org.goplanit.assignment.ltm.sltm.consumer.UpdateEntryLinksOutflowConsumer;
-import org.goplanit.assignment.ltm.sltm.consumer.UpdateExitLinkInflowsConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.NMRUpdateEntryLinksOutflowConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.NMRUpdateExitLinkInflowsConsumer;
 import org.goplanit.gap.NormBasedGapFunction;
 import org.goplanit.gap.StopCriterion;
 import org.goplanit.network.transport.TransportModelNetwork;
@@ -259,67 +259,10 @@ public abstract class StaticLtmNetworkLoading {
    * @param consumer to apply to the result of each node model update of the considered nodes, may be null then ignored
    */
   private void performNodeModelUpdate(final ApplyToNodeModelResult consumer) {
-    double[] sendingFlows = this.sendingFlowData.getCurrentSendingFlows();
-
     /* For each tracked node */
     for (var trackedNode : splittingRateData.getTrackedNodes()) {
-
-      /* tracked but non-blocking or centroid is notified as non-blocking */
-      if (!splittingRateData.isPotentiallyBlocking(trackedNode) || trackedNode instanceof Centroid) {
-        consumer.acceptNonBlockingLinkBasedResult(trackedNode, sendingFlows);
-        continue;
-      }
-
-      /* For each potentially blocking node */
-      int numEntrySegments = trackedNode.sizeOfEntryEdgeSegments();
-      int numExitSegments = trackedNode.sizeOfExitEdgeSegments();
-
-      // TODO: not computationally efficient, capacities are recomputed every time and construction of
-      // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
-
-      /* C_a : in Array1D form */
-      var inCapacities = Array1D.PRIMITIVE64.makeZero(numEntrySegments);
-      int index = 0;
-      for (var entryEdgeSegment : trackedNode.getEntryEdgeSegments()) {
-        inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH());
-      }
-
-      /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
-      @SuppressWarnings("unchecked")
-      var tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[numEntrySegments];
-      int entryIndex = 0;
-      for (var iter = trackedNode.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
-        EdgeSegment entryEdgeSegment = iter.next();
-        /* s_ab = s_a*phi_ab */
-        double sendingFlow = sendingFlows[(int) entryEdgeSegment.getId()];
-        Array1D<Double> localTurnSendingFlows = this.splittingRateData.getSplittingRates(entryEdgeSegment).copy();
-        localTurnSendingFlows.modifyAll(PrimitiveFunction.MULTIPLY.by(sendingFlow));
-        tunSendingFlowsByEntryLinkSegment[entryIndex] = localTurnSendingFlows;
-      }
-      Array2D<Double> turnSendingFlows = Array2D.PRIMITIVE64.rows(tunSendingFlowsByEntryLinkSegment);
-
-      /* r_a : in Array1D form */
-      var outReceivingFlows = Array1D.PRIMITIVE64.makeZero(numExitSegments);
-      index = 0;
-      for (var exitEdgeSegment : trackedNode.getExitEdgeSegments()) {
-        outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).getCapacityOrDefaultPcuH());
-      }
-
-      /* Kappa(s,r,phi) : node model update */
-      try {
-        var nodeModel = new TampereNodeModel(new TampereNodeModelInput(new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingFlows));
-        Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
-
-        /* delegate to consumer */
-        consumer.acceptTurnBasedResult(trackedNode, localFlowAcceptanceFactors, turnSendingFlows);
-
-      } catch (Exception e) {
-        LOGGER.severe(e.getMessage());
-        LOGGER.severe(String.format("Unable to run Tampere node model on tracked node %s", trackedNode.getXmlId()));
-      }
-
+      StaticLtmNetworkLoading.performNodeModelUpdate(trackedNode, consumer, this);
     }
-
   }
 
   /**
@@ -619,6 +562,72 @@ public abstract class StaticLtmNetworkLoading {
     this.prevIterationFinalSolutionScheme = solutionScheme;
   }
 
+  /**
+   * conduct a node model update sLTM style with
+   * 
+   * @param node                    to compute
+   * @param consumer                to apply to the result of each node model update of the considered nodes, may be null then ignored
+   * @param staticLtmNetworkLoading sLTMloading containing the data to populate node with (using current sending flows)
+   */
+  public static void performNodeModelUpdate(DirectedVertex node, ApplyToNodeModelResult consumer, StaticLtmNetworkLoading staticLtmNetworkLoading) {
+    var splittingRateData = staticLtmNetworkLoading.getSplittingRateData();
+    var sendingFlowData = staticLtmNetworkLoading.sendingFlowData;
+  
+    /* tracked but non-blocking or centroid is notified as non-blocking */
+    if (!splittingRateData.isPotentiallyBlocking(node) || node instanceof Centroid) {
+      consumer.acceptNonBlockingLinkBasedResult(node, sendingFlowData.getCurrentSendingFlows());
+      return;
+    }
+  
+    /* For each potentially blocking node */
+    int numEntrySegments = node.sizeOfEntryEdgeSegments();
+    int numExitSegments = node.sizeOfExitEdgeSegments();
+  
+    // TODO: not computationally efficient, capacities are recomputed every time and construction of
+    // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
+  
+    /* C_a : in Array1D form */
+    var inCapacities = Array1D.PRIMITIVE64.makeZero(numEntrySegments);
+    int index = 0;
+    for (var entryEdgeSegment : node.getEntryEdgeSegments()) {
+      inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH());
+    }
+  
+    /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
+    @SuppressWarnings("unchecked")
+    var tunSendingFlowsByEntryLinkSegment = (Access1D<Double>[]) new Access1D<?>[numEntrySegments];
+    int entryIndex = 0;
+    for (var iter = node.getEntryEdgeSegments().iterator(); iter.hasNext(); ++entryIndex) {
+      EdgeSegment entryEdgeSegment = iter.next();
+      /* s_ab = s_a*phi_ab */
+      double sendingFlow = sendingFlowData.getCurrentSendingFlows()[(int) entryEdgeSegment.getId()];
+      Array1D<Double> localTurnSendingFlows = splittingRateData.getSplittingRates(entryEdgeSegment).copy();
+      localTurnSendingFlows.modifyAll(PrimitiveFunction.MULTIPLY.by(sendingFlow));
+      tunSendingFlowsByEntryLinkSegment[entryIndex] = localTurnSendingFlows;
+    }
+    Array2D<Double> turnSendingFlows = Array2D.PRIMITIVE64.rows(tunSendingFlowsByEntryLinkSegment);
+  
+    /* r_a : in Array1D form */
+    var outReceivingFlows = Array1D.PRIMITIVE64.makeZero(numExitSegments);
+    index = 0;
+    for (var exitEdgeSegment : node.getExitEdgeSegments()) {
+      outReceivingFlows.set(index++, ((PcuCapacitated) exitEdgeSegment).getCapacityOrDefaultPcuH());
+    }
+  
+    /* Kappa(s,r,phi) : node model update */
+    try {
+      var nodeModel = new TampereNodeModel(new TampereNodeModelInput(new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingFlows));
+      Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
+  
+      /* delegate to consumer */
+      consumer.acceptTurnBasedResult(node, localFlowAcceptanceFactors, nodeModel);
+  
+    } catch (Exception e) {
+      LOGGER.severe(e.getMessage());
+      LOGGER.severe(String.format("Unable to run Tampere node model on tracked node %s", node.getXmlId()));
+    }
+  }
+
   /** Initialise the loading with the given inputs
    * 
    * @param mode to use
@@ -736,7 +745,7 @@ public abstract class StaticLtmNetworkLoading {
       /* 1. Update node model to compute new inflows, Eq. (5)
        * 2. Update next sending flows via inflows, Eq. (7) */
       LinkSegmentData.copyTo(this.sendingFlowData.getCurrentSendingFlows(), this.inFlowOutflowData.getInflows());
-      performNodeModelUpdate(new UpdateExitLinkInflowsConsumer(this.inFlowOutflowData.getInflows()));
+      performNodeModelUpdate(new NMRUpdateExitLinkInflowsConsumer(this.inFlowOutflowData.getInflows()));
       /* s_a^tilde = u_a */
       LinkSegmentData.copyTo(this.inFlowOutflowData.getInflows(), this.sendingFlowData.getNextSendingFlows());
             
@@ -831,7 +840,7 @@ public abstract class StaticLtmNetworkLoading {
     do {
       
       /* 1. Update node model to compute new outflows, Eq. (5) */
-      performNodeModelUpdate(new UpdateEntryLinksOutflowConsumer(this.inFlowOutflowData.getOutflows()));
+      performNodeModelUpdate(new NMRUpdateEntryLinksOutflowConsumer(this.inFlowOutflowData.getOutflows()));
       
       /* POINT QUEUE -> only run as iterative procedure with physical queues are present and r can vary, now
        * we only require an update of outflows v to use for updating flow capacity factors */  

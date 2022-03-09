@@ -40,6 +40,27 @@ public class Bush implements IdAble {
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(Bush.class.getCanonicalName());
 
+  /**
+   * Determine the sending flow between origin,destination vertex using the subpath given by the subPathArray in order from start to finish. We utilise the initial sending flow on
+   * the first segment as the base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
+   * 
+   * @param subPathSendingFlow to start with
+   * @param index              offset to start in array with
+   * @param subPathArray       to extract path from
+   * @return sendingFlowPcuH between index and end vertex following the sub-path
+   */
+  private double determineSubPathSendingFlow(double subPathSendingFlow, int index, final EdgeSegment[] subPathArray) {
+    var currEdgeSegment = subPathArray[index];
+    var nextEdgeSegment = currEdgeSegment;
+    while (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
+      currEdgeSegment = nextEdgeSegment;
+      nextEdgeSegment = subPathArray[index++];
+      subPathSendingFlow *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
+    }
+  
+    return subPathSendingFlow;
+  }
+
   /** the origin of the bush */
   protected final OdZone origin;
 
@@ -498,14 +519,26 @@ public class Bush implements IdAble {
     EdgeSegment currEdgeSegment = subPathArray[index++];
     double subPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(currEdgeSegment);
 
-    var nextEdgeSegment = currEdgeSegment;
-    while (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
-      currEdgeSegment = nextEdgeSegment;
-      nextEdgeSegment = subPathArray[index++];
-      subPathSendingFlow *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
-    }
+    return determineSubPathSendingFlow(subPathSendingFlow, index, subPathArray);
+  }
 
-    return subPathSendingFlow;
+  /**
+   * Determine the sending flow between origin,destination vertex using the subpath given by the segment + subPathArray in order from start to finish. We utilise the initial
+   * sending flow on the entry segment as the base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
+   *
+   * @param entrySegment to start subpath from
+   * @param subPathArray to append to entry segment to extract path from
+   * @return sendingFlowPcuH between start and end vertex following the sub-path
+   */
+  public double determineSubPathSendingFlow(EdgeSegment entrySegment, EdgeSegment[] subPathArray) {
+
+    double subPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(entrySegment);
+
+    int index = 0;
+    EdgeSegment currEdgeSegment = subPathArray[index++];
+    subPathSendingFlow *= bushData.getSplittingRate(entrySegment, currEdgeSegment);
+
+    return determineSubPathSendingFlow(subPathSendingFlow, index, subPathArray);
   }
 
   /**
