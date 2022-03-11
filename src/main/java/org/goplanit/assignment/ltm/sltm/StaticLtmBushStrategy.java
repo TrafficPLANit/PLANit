@@ -263,10 +263,21 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
       if (pasFlowShifted) {
         flowShiftedPass.add(pas);
 
+        /*
+         * When flow is shifted we disallow overlapping other PASs to shift flow in this iteration as cost is likely to change. However, when flow is shifted to maximise entropy,
+         * it means cost is already equal, and is expected to not be affected by shift. Hence, in that case we do not disallow other PASs to shift flow and do not mark the PASs
+         * link segments as "used".
+         */
+        if (pasFlowShifter.isTowardsEqualAlternativeFlowDistribution()) {
+          continue;
+        }
+
         /* s1 */
         pas.forEachEdgeSegment(true /* low cost */, (es) -> linkSegmentsUsed.set((int) es.getId()));
         /* s2 */
         pas.forEachEdgeSegment(false /* high cost */, (es) -> linkSegmentsUsed.set((int) es.getId()));
+
+        pasFlowShifter.getUsedCongestedEntrySegments().forEach(es -> linkSegmentsUsed.set((int) es.getId()));
 
         /* when s2 no longer used on any bush - mark PAS for overall removal */
         if (!pas.hasOrigins()) {
@@ -430,6 +441,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
     this.originBushes = new Bush[transportModelNetwork.getZoning().getOdZones().size()];
     this.pasManager = new PasManager();
+    this.pasManager.setDetailedLogging(settings.isDetailedLogging());
   }
 
   //@formatter:off

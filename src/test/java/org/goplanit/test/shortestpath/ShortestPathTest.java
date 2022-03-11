@@ -126,9 +126,7 @@ public class ShortestPathTest {
           Node nodeA = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex-1);
           Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex);
           // all links are 1 km in length          
-          Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1);
-          nodeA.addEdge(link);
-          nodeB.addEdge(link);
+          Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, false, true);
         }
@@ -140,9 +138,7 @@ public class ShortestPathTest {
           // all links are 1 km in length
           Node nodeA = networkLayer.getNodes().get((linkRowIndex-1)*(gridSize+1)+linkColIndex);
           Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1)+linkColIndex);
-          Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1);
-          nodeA.addEdge(link);
-          nodeB.addEdge(link);
+          Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, false, true);
         }  

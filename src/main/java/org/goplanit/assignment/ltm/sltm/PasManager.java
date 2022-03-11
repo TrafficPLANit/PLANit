@@ -46,6 +46,9 @@ public class PasManager {
   /** a comparator to compare PASs based on the reduced cost between their high and low cost segments */
   private final Comparator<Pas> pasReducedCostComparator;
 
+  /** flag for detailed logging */
+  private boolean detailedLogging = DETAILED_LOGGING;
+
   /**
    * Verify if extending a bush with the given PAS given the reduced cost found, it would be effective in improving the bush. This is verified by
    * <p>
@@ -101,6 +104,9 @@ public class PasManager {
     /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound of the reduced cost */
     return isCostEffective(pas, reducedCost) && isFlowEffective(pas, originBush, flowAcceptanceFactors);
   }
+
+  /** default for detailed logging flag */
+  public static final boolean DETAILED_LOGGING = false;
 
   /**
    * Extract a subpath in the form of a raw edge segment array from start to end vertex based on the shortest path result provided. Since the path tree is in reverse direction, the
@@ -203,6 +209,9 @@ public class PasManager {
    */
   public Pas createAndRegisterNewPas(final Bush originBush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
     Pas newPas = Pas.create(s1, s2);
+    if (detailedLogging) {
+      LOGGER.info(String.format("Created new PAS: %s", newPas.toString()));
+    }
     newPas.registerOrigin(originBush);
     passByMergeVertex.putIfAbsent(newPas.getMergeVertex(), new ArrayList<Pas>());
     passByMergeVertex.get(newPas.getMergeVertex()).add(newPas);
@@ -228,6 +237,9 @@ public class PasManager {
    */
   public void removePas(final Pas pas) {
     passByMergeVertex.get(pas.getMergeVertex()).remove(pas);
+    if (detailedLogging) {
+      LOGGER.info(String.format("Removed existing PAS: %s", pas.toString()));
+    }
   }
 
   /**
@@ -378,6 +390,16 @@ public class PasManager {
     }
     return numPass;
 
+  }
+
+  /* GETTERS - SETTERS */
+
+  public boolean isDetailedLogging() {
+    return detailedLogging;
+  }
+
+  public void setDetailedLogging(boolean detailedLogging) {
+    this.detailedLogging = detailedLogging;
   }
 
 }

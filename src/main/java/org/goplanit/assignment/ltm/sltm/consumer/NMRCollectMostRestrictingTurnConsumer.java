@@ -49,7 +49,7 @@ public class NMRCollectMostRestrictingTurnConsumer implements ApplyToNodeModelRe
     /* match entry segment to index */
     var iter = node.getEntryEdgeSegments().iterator();
     int index = 0;
-    while (iter.hasNext() && !iter.next().idEquals(entrySegment.getId())) {
+    while (iter.hasNext() && !iter.next().idEquals(entrySegment)) {
       ++index;
     }
 

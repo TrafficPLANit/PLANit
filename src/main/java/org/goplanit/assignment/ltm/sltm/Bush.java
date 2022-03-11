@@ -50,14 +50,14 @@ public class Bush implements IdAble {
    * @return sendingFlowPcuH between index and end vertex following the sub-path
    */
   private double determineSubPathSendingFlow(double subPathSendingFlow, int index, final EdgeSegment[] subPathArray) {
-    var currEdgeSegment = subPathArray[index];
+    var currEdgeSegment = subPathArray[index++];
     var nextEdgeSegment = currEdgeSegment;
     while (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
       currEdgeSegment = nextEdgeSegment;
       nextEdgeSegment = subPathArray[index++];
       subPathSendingFlow *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
     }
-  
+
     return subPathSendingFlow;
   }
 
@@ -507,22 +507,6 @@ public class Bush implements IdAble {
   }
 
   /**
-   * Determine the sending flow between origin,destination vertex using the subpath given by the subPathArray in order from start to finish. We utilise the initial sending flow on
-   * the first segment as the base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
-   * 
-   * @param subPathArray to extract path from
-   * @return sendingFlowPcuH between start and end vertex following the sub-path
-   */
-  public double determineSubPathSendingFlow(final EdgeSegment[] subPathArray) {
-
-    int index = 0;
-    EdgeSegment currEdgeSegment = subPathArray[index++];
-    double subPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(currEdgeSegment);
-
-    return determineSubPathSendingFlow(subPathSendingFlow, index, subPathArray);
-  }
-
-  /**
    * Determine the sending flow between origin,destination vertex using the subpath given by the segment + subPathArray in order from start to finish. We utilise the initial
    * sending flow on the entry segment as the base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
    *
@@ -535,7 +519,7 @@ public class Bush implements IdAble {
     double subPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(entrySegment);
 
     int index = 0;
-    EdgeSegment currEdgeSegment = subPathArray[index++];
+    EdgeSegment currEdgeSegment = subPathArray[index];
     subPathSendingFlow *= bushData.getSplittingRate(entrySegment, currEdgeSegment);
 
     return determineSubPathSendingFlow(subPathSendingFlow, index, subPathArray);

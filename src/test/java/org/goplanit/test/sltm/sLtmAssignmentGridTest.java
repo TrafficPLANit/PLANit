@@ -22,6 +22,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.zoning.OdZones;
 import org.goplanit.zoning.Zoning;
 import org.junit.After;
@@ -116,6 +117,23 @@ public class sLtmAssignmentGridTest {
       
       network = MacroscopicNetwork.createSimpleGrid(testToken, 4, 4);
       networkLayer = network.getTransportLayers().getFirst();
+      
+      /* add physical link in front of attaching zone to node 0 and 12 so that we can properly deal with any queue build up there*/
+      var nodeBefore0 = networkLayer.getNodes().getFactory().registerNew();
+      nodeBefore0.setXmlId("before0");
+      var nodeBefore12 = networkLayer.getNodes().getFactory().registerNew();
+      nodeBefore12.setXmlId("before12");
+      var linkBefore0 = networkLayer.getLinks().getFactory().registerNew(nodeBefore0, networkLayer.getNodes().getByXmlId("0"), 1, true);
+      var linkBefore12 = networkLayer.getLinks().getFactory().registerNew(nodeBefore12, networkLayer.getNodes().getByXmlId("12"), 1, true);
+      var linkSegmentsBefore0 = networkLayer.getLinkSegments().getFactory().registerNew(linkBefore0, true);
+      var linkSegmentsBefore12 = networkLayer.getLinkSegments().getFactory().registerNew(linkBefore12, true);
+      linkSegmentsBefore0.<MacroscopicLinkSegment>both( ls -> ls.setXmlId(""+ls.getId()));
+      linkSegmentsBefore12.<MacroscopicLinkSegment>both( ls -> ls.setXmlId(""+ls.getId()));
+      linkSegmentsBefore0.<MacroscopicLinkSegment>both( ls -> ls.setLinkSegmentType(networkLayer.getLinkSegmentTypes().getFirst()));
+      linkSegmentsBefore12.<MacroscopicLinkSegment>both( ls -> ls.setLinkSegmentType(networkLayer.getLinkSegmentTypes().getFirst()));
+      linkSegmentsBefore0.<MacroscopicLinkSegment>both( ls -> ls.setNumberOfLanes(2));
+      linkSegmentsBefore12.<MacroscopicLinkSegment>both( ls -> ls.setNumberOfLanes(2));
+      
       networkLayer.getLinkSegmentTypes().forEach( ls -> ls.getAccessProperties(network.getModes().getFirst()).setMaximumSpeedKmH(MAX_SPEED_KM_H /* km/h */));           
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
@@ -124,8 +142,8 @@ public class sLtmAssignmentGridTest {
       zoning.odZones.getFactory().registerNew().setXmlId("A``");
       zoning.odZones.getFactory().registerNew().setXmlId("A```");
            
-      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(0),  zoning.getOdZones().getByXmlId("A"), 0);
-      zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(12),  zoning.getOdZones().getByXmlId("A`"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(nodeBefore0,  zoning.getOdZones().getByXmlId("A"), 0);
+      zoning.getOdConnectoids().getFactory().registerNew(nodeBefore12,  zoning.getOdZones().getByXmlId("A`"), 0);
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(7),  zoning.getOdZones().getByXmlId("A``"), 0);
       zoning.getOdConnectoids().getFactory().registerNew(networkLayer.getNodes().get(11),  zoning.getOdZones().getByXmlId("A```"), 0);
                       

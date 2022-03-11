@@ -386,7 +386,7 @@ public class Pas {
    * @return true when abs(costS1-costS2)<=epsilon
    */
   public boolean isCostEqual(double epsilon) {
-    return Precision.smaller(Math.abs(s2Cost - s1Cost), epsilon);
+    return Precision.equal(s2Cost, s1Cost, epsilon);
   }
 
 }

@@ -119,8 +119,9 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
     var defaultLinkSegmentType = networkLayer.getLinkSegmentTypes().getFirst();
     boolean registerOnNodes = true;
     for (var link : networkLayer.getLinks()) {
-      networkLayer.getLinkSegments().getFactory().registerNew(link, defaultLinkSegmentType, true /* A->B */, registerOnNodes);
-      var linkSegment = networkLayer.getLinkSegments().getFactory().registerNew(link, defaultLinkSegmentType, false /* B->A */, registerOnNodes);
+      var linkSegment = networkLayer.getLinkSegments().getFactory().registerNew(link, defaultLinkSegmentType, true /* A->B */, registerOnNodes);
+      linkSegment.setXmlId(String.valueOf(linkSegment.getId()));
+      linkSegment = networkLayer.getLinkSegments().getFactory().registerNew(link, defaultLinkSegmentType, false /* B->A */, registerOnNodes);
       linkSegment.setXmlId(String.valueOf(linkSegment.getId()));
     }
   }
