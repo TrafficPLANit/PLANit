@@ -1,6 +1,7 @@
 package org.goplanit.zoning;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
@@ -261,6 +262,14 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     this.odConnectoids.reset();
     this.transferZoneGroups.reset();
     this.transferZones.reset();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
 }

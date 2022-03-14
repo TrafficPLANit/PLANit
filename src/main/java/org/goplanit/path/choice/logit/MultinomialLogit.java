@@ -1,5 +1,7 @@
 package org.goplanit.path.choice.logit;
 
+import java.util.Map;
+
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -45,6 +47,14 @@ public class MultinomialLogit extends LogitChoiceModel {
   @Override
   public void reset() {
     // No internal state (yet), do nothing
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
 }

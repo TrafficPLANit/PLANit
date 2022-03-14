@@ -1,6 +1,7 @@
 package org.goplanit.service.routed;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
@@ -72,6 +73,22 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
   }
 
   /**
+   * reset by removing all layers and what is in them
+   */
+  @Override
+  public void reset() {
+    layers.reset();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
+  }
+
+  /**
    * Collect the parent service network on top of which these services are defined
    * 
    * @return parent service network
@@ -87,14 +104,6 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
    */
   public RoutedServicesLayers getLayers() {
     return layers;
-  }
-
-  /**
-   * reset by removing all layers and what is in them
-   */
-  @Override
-  public void reset() {
-    layers.reset();
   }
 
 }

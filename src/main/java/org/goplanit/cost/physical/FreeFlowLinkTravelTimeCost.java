@@ -1,7 +1,9 @@
 package org.goplanit.cost.physical;
 
-import org.goplanit.network.MacroscopicNetwork;
+import java.util.Map;
+
 import org.goplanit.network.LayeredNetwork;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
@@ -100,6 +102,15 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
   @Override
   public void reset() {
     // do nothing
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    // no settings
+    return null;
   }
 
 }

@@ -1,5 +1,6 @@
 package org.goplanit.supply.fundamentaldiagram;
 
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
@@ -140,6 +141,14 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
    */
   public FundamentalDiagram register(final MacroscopicLinkSegmentType linkSegmentType, final NewellFundamentalDiagram fundamentalDiagram) {
     return super.register(linkSegmentType, fundamentalDiagram);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
 }

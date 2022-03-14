@@ -27,6 +27,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
@@ -50,11 +51,6 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(TraditionalStaticAssignment.class.getCanonicalName());
-
-  /**
-   * Epsilon margin when comparing flow rates (veh/h)
-   */
-  private static final double DEFAULT_FLOW_EPSILON = 0.000001;
 
   /**
    * Simulation data for this equilibration process
@@ -189,10 +185,10 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       final Zone currentDestinationZone = odDemandMatrixIter.getCurrentDestination();
 
       if (currentOriginZone.getId() != currentDestinationZone.getId()) {
-        if (getOutputManager().getOutputConfiguration().isPersistZeroFlow() || ((odDemand - DEFAULT_FLOW_EPSILON) > 0.0)) {
+        if (getOutputManager().getOutputConfiguration().isPersistZeroFlow() || Precision.positive(odDemand)) {
 
           if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.fine(LoggingUtils.createRunIdPrefix(getId()) + String.format("(O,D)=(%d,%d) --> demand (pcu/h): %f (mode: %d)", currentOriginZone.getExternalId(),
+            LOGGER.fine(LoggingUtils.runIdPrefix(getId()) + String.format("(O,D)=(%d,%d) --> demand (pcu/h): %f (mode: %d)", currentOriginZone.getExternalId(),
                 currentDestinationZone.getExternalId(), odDemand, mode.getExternalId()));
           }
 
@@ -208,7 +204,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
             shortestPathResult = shortestPathAlgorithm.executeOneToAll(originCentroid);
           }
 
-          if ((odDemand - DEFAULT_FLOW_EPSILON) > 0.0) {
+          if (Precision.positive(odDemand)) {
             double odShortestPathCost = shortestPathResult.getCostToReach(currentDestinationZone.getCentroid());
             if (odShortestPathCost == Double.POSITIVE_INFINITY || odShortestPathCost == Double.MAX_VALUE) {
               LOGGER.warning(String.format("%s impossible path from origin zone %s (id:%d) to destination zone %s (id:%d) for mode %s (id:%d)", createLoggingPrefix(),
@@ -253,7 +249,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private void executeAndSmoothTimePeriodAndMode(final TimePeriod timePeriod, final Mode mode) throws PlanItException {
-    LOGGER.fine(LoggingUtils.createRunIdPrefix(getId()) + String.format("[mode %s (id:%d)]", mode.getExternalId(), mode.getId()));
+    LOGGER.fine(LoggingUtils.runIdPrefix(getId()) + String.format("[mode %s (id:%d)]", mode.getExternalId(), mode.getId()));
 
     // mode specific data
     final double[] modalLinkSegmentCosts = simulationData.getModalLinkSegmentCosts(mode);
@@ -596,7 +592,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       outputTypeAdapter = new TraditionalStaticPathOutputTypeAdapter(outputType, this);
       break;
     default:
-      LOGGER.warning(LoggingUtils.createRunIdPrefix(getId()) + outputType.value() + " has not been defined yet.");
+      LOGGER.warning(LoggingUtils.runIdPrefix(getId()) + outputType.value() + " has not been defined yet.");
     }
     return outputTypeAdapter;
   }
@@ -631,6 +627,14 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   @Override
   public TraditionalStaticAssignment clone() {
     return new TraditionalStaticAssignment(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
 }

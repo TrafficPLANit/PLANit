@@ -2,6 +2,7 @@ package org.goplanit.demands;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -373,4 +374,12 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     odDemandsByTimePeriodAndMode.clear();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    // TODO -> consider logging the traveler types, user classes, and time periods
+    return null;
+  }
 }

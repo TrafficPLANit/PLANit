@@ -2,12 +2,13 @@ package org.goplanit.cost.physical;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.interactor.LinkVolumeAccessee;
 import org.goplanit.interactor.LinkVolumeAccessor;
-import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.LayeredNetwork;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
@@ -84,6 +85,15 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
      */
     public Pair<Double, Double> getAlphaBetaParameters(final Mode mode) {
       return parametersMap.get(mode);
+    }
+
+    /**
+     * the registered modes
+     * 
+     * @return modes
+     */
+    public Set<Mode> getModes() {
+      return this.parametersMap.keySet();
     }
   }
 
@@ -383,6 +393,34 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     // keep configuration, reset internal state
     this.freeFlowTravelTimePerLinkSegment = null;
     this.bprParametersPerLinkSegment = null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    var keyValueMap = new HashMap<String, String>();
+    keyValueMap.put("default-alpha/beta:", "" + defaultParameters.first() + ", " + defaultParameters.second());
+    for (var modeEntry : defaultParametersPerMode.getModes()) {
+      var modeAlphaBeta = defaultParametersPerMode.getAlphaBetaParameters(modeEntry);
+      keyValueMap.put(modeEntry.getName() + "-alpha/beta:", "" + modeAlphaBeta.first() + ", " + modeAlphaBeta.second());
+    }
+    for (var typeEntry : defaultParametersPerLinkSegmentTypeAndMode.entrySet()) {
+      var modesPerType = typeEntry.getValue();
+      for (var modeEntry : modesPerType.getModes()) {
+        var modeAlphaBeta = modesPerType.getAlphaBetaParameters(modeEntry);
+        keyValueMap.put("type-" + typeEntry.getKey().getXmlId() + "-" + modeEntry.getName() + "-alpha/beta:", "" + modeAlphaBeta.first() + ", " + modeAlphaBeta.second());
+      }
+    }
+    for (var segmentEntry : parametersPerLinkSegmentAndMode.entrySet()) {
+      var modesPerSegment = segmentEntry.getValue();
+      for (var modeEntry : modesPerSegment.getModes()) {
+        var modeAlphaBeta = modesPerSegment.getAlphaBetaParameters(modeEntry);
+        keyValueMap.put("segment-" + segmentEntry.getKey().getXmlId() + "-" + modeEntry.getName() + "-alpha/beta:", "" + modeAlphaBeta.first() + ", " + modeAlphaBeta.second());
+      }
+    }
+    return keyValueMap;
   }
 
 }

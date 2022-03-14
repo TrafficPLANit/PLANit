@@ -1,5 +1,7 @@
 package org.goplanit.assignment.ltm.eltm;
 
+import java.util.Map;
+
 import org.goplanit.assignment.ltm.LtmAssignment;
 import org.goplanit.interactor.InteractorAccessor;
 import org.goplanit.output.adapter.OutputTypeAdapter;
@@ -74,6 +76,14 @@ public class EventBasedLtm extends LtmAssignment {
   @Override
   public void reset() {
     // TODO Auto-generated method stub
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
 }

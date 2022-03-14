@@ -398,7 +398,7 @@ public abstract class StaticLtmNetworkLoading {
    */
   protected boolean validateInputs() {
     if (!getSettings().validate()) {
-      LOGGER.severe(String.format("%sUnable to use sLTM settings, aborting initialisation of sLTM", LoggingUtils.createRunIdPrefix(runId)));
+      LOGGER.severe(String.format("%sUnable to use sLTM settings, aborting initialisation of sLTM", LoggingUtils.runIdPrefix(runId)));
       return false;
     }
 
@@ -704,7 +704,7 @@ public abstract class StaticLtmNetworkLoading {
    */
   public void stepOneSplittingRatesUpdate() {
     if(this.solutionScheme.isPhysicalQueue()) {
-      LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.createRunIdPrefix(runId)));
+      LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.runIdPrefix(runId)));
     }
     
     /* 1. Update turn inflows via network loading Eq. (3) */
@@ -734,7 +734,7 @@ public abstract class StaticLtmNetworkLoading {
    */
   public void stepTwoInflowSendingFlowUpdate() {
     if(this.solutionScheme.isPhysicalQueue()) {
-      LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.createRunIdPrefix(runId)));
+      LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.runIdPrefix(runId)));
       return;
     }
     
@@ -794,7 +794,7 @@ public abstract class StaticLtmNetworkLoading {
     }    
     
     if(this.solutionScheme.isPhysicalQueue()) {
-      LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.createRunIdPrefix(runId)));
+      LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.runIdPrefix(runId)));
       return;
     }    
     
@@ -831,7 +831,7 @@ public abstract class StaticLtmNetworkLoading {
 
     /* for now */
     if(this.solutionScheme.isPhysicalQueue()) {
-      LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.createRunIdPrefix(runId)));
+      LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.runIdPrefix(runId)));
       return;
     }
      
@@ -896,7 +896,7 @@ public abstract class StaticLtmNetworkLoading {
    */
   public boolean stepFiveCheckNetworkLoadingConvergence(int networkLoadingIteration) {
     if(this.solutionScheme.isPhysicalQueue()) {
-      LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.createRunIdPrefix(runId)));
+      LOGGER.severe(String.format("%ssLTM with physical queues is not yet implemented, please disable storage constraints and try again",LoggingUtils.runIdPrefix(runId)));
       return true;
     }
     
@@ -910,7 +910,7 @@ public abstract class StaticLtmNetworkLoading {
     this.convergenceAnalyser.registerIterationGap(globalGap);
     
     if(getSettings().isDetailedLogging()) {
-      LOGGER.info(String.format("%sNetwork loading gap (i=%d): %.10f",LoggingUtils.createRunIdPrefix(runId), networkLoadingIteration, globalGap));
+      LOGGER.info(String.format("%sNetwork loading gap (i=%d): %.10f",LoggingUtils.runIdPrefix(runId), networkLoadingIteration, globalGap));
     }
     
     /* set next to current */
@@ -918,7 +918,7 @@ public abstract class StaticLtmNetworkLoading {
     
     boolean converged = this.flowAcceptanceGapFunction.getStopCriterion().hasConverged(globalGap, networkLoadingIteration);        
     if(converged) {
-      LOGGER.info(String.format("%ssLTM network loading converged in %d iterations (remaining gap: %.10f)",LoggingUtils.createRunIdPrefix(runId), networkLoadingIteration, globalGap));
+      LOGGER.info(String.format("%ssLTM network loading converged in %d iterations (remaining gap: %.10f)",LoggingUtils.runIdPrefix(runId), networkLoadingIteration, globalGap));
     }
     return converged;
   }
@@ -1014,12 +1014,12 @@ public abstract class StaticLtmNetworkLoading {
     }
     /* PHYSICAL - QUEUE */
     else {
-      LOGGER.warning(String.format("%sNo extensions have yet been implemented for sLTM with physical queues",LoggingUtils.createRunIdPrefix(runId)));
+      LOGGER.warning(String.format("%sNo extensions have yet been implemented for sLTM with physical queues",LoggingUtils.runIdPrefix(runId)));
       solutionSchemeChanged = false;
     }    
     
     if(solutionSchemeChanged) {
-      LOGGER.info(String.format("%sSwitching network loading scheme to %s", LoggingUtils.createRunIdPrefix(runId), solutionScheme.getValue()));
+      LOGGER.info(String.format("%sSwitching network loading scheme to %s", LoggingUtils.runIdPrefix(runId), solutionScheme.getValue()));
     }
     
     return solutionSchemeChanged;

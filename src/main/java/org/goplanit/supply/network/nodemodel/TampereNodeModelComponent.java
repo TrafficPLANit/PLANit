@@ -1,5 +1,7 @@
 package org.goplanit.supply.network.nodemodel;
 
+import java.util.Map;
+
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -46,6 +48,14 @@ public class TampereNodeModelComponent extends NodeModelComponent {
   @Override
   public void reset() {
     // nothing to reset
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
 }

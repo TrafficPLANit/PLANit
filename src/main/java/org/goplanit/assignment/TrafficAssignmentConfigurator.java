@@ -58,6 +58,9 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
 
   protected static final String SET_DEMANDS = "setDemands";
 
+  /** flag indicating if settings are to be logged upon building the component or not */
+  protected boolean logSettings = TrafficAssignmentBuilder.LOG_SETTINGS;
+
   /**
    * Nested configurator for smoothing within this assignment
    */
@@ -142,7 +145,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   }
 
   /**
-   * collect the registered zoning
+   * Get the registered zoning
    * 
    * @return zoning
    */
@@ -151,12 +154,30 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   }
 
   /**
-   * collect the registered demands
+   * Get the registered demands
    * 
    * @return demands
    */
   public Demands getDemands() {
     return (Demands) getFirstParameterOfDelayedMethodCall(SET_DEMANDS);
+  }
+
+  /**
+   * Set the flag for logging all settings
+   * 
+   * @param flag to set
+   */
+  public void setLogSettings(Boolean flag) {
+    this.logSettings = flag;
+  }
+
+  /**
+   * Get the flag for logging all settings
+   * 
+   * return flag
+   */
+  public boolean isLogSettings() {
+    return this.logSettings;
   }
 
   /**

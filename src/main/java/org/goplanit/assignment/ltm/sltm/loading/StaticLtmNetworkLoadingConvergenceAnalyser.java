@@ -178,7 +178,7 @@ public class StaticLtmNetworkLoadingConvergenceAnalyser {
    */
   public void logGapsSince(long runId, int referenceIteration) {
     LOGGER.info(
-        String.format("%sGaps for iteration %d-%d: %s", LoggingUtils.createRunIdPrefix(runId), referenceIteration, getRegisteredIterations(), this.gapsByIteration.toString()));
+        String.format("%sGaps for iteration %d-%d: %s", LoggingUtils.runIdPrefix(runId), referenceIteration, getRegisteredIterations(), this.gapsByIteration.toString()));
   }
 
   /**

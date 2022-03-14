@@ -1,12 +1,13 @@
 package org.goplanit.path;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.TreeMap;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.od.path.OdPathMatrix;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.zoning.Zoning;
 
 /**
  * Contains one or more origin-destination based path sets that can be used in assignment. For now each individual path set takes on the form of the already available ODPathMatrix.
@@ -108,5 +109,13 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
   @Override
   public void reset() {
     odPathMatrices.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 }

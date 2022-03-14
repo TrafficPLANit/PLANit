@@ -166,7 +166,7 @@ public abstract class StaticLtmAssignmentStrategy {
       if (!changedScheme) {
         LOGGER.warning(
             String.format("%sDetected network loading is not converging as expected (internal loading iteration %d) - unable to activate further extensions, consider aborting",
-                LoggingUtils.createRunIdPrefix(getAssignmentId()), networkLoadingIterationIndex));
+                LoggingUtils.runIdPrefix(getAssignmentId()), networkLoadingIterationIndex));
       }
     }
   }

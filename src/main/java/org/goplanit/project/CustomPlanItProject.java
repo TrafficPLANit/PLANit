@@ -134,7 +134,7 @@ public class CustomPlanItProject {
     this.projectToken = IdGenerator.createIdGroupingToken(this, this.id);
 
     this.inputBuilderListener = inputBuilderListener;
-    LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.logActiveStateByClassName(inputBuilderListener, true));
+    LOGGER.info(LoggingUtils.projectPrefix(this.id) + LoggingUtils.logActiveStateByClassName(inputBuilderListener, true));
 
     // connect inputs
     this.inputs = new PlanItProjectInput(this.id, projectToken, inputBuilderListener);
@@ -324,8 +324,8 @@ public class CustomPlanItProject {
       TrafficAssignment ta = null;
       try {
         ta = tab.build();
-        LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.logActiveStateByClassName(ta, true));
-        LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.createRunIdPrefix(ta.getId()) + "assignment created");
+        LOGGER.info(LoggingUtils.projectPrefix(this.id) + LoggingUtils.logActiveStateByClassName(ta, true));
+        LOGGER.info(LoggingUtils.projectPrefix(this.id) + LoggingUtils.runIdPrefix(ta.getId()) + "assignment created");
         ta.execute();
       } catch (final PlanItException pe) {
         LOGGER.severe(pe.getMessage());

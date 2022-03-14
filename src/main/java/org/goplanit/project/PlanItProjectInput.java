@@ -111,9 +111,9 @@ public class PlanItProjectInput {
             InitialLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId}, fileName, network, timePeriod);
     
     if(timePeriod!=null) {   
-      LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createTimePeriodPrefix(timePeriod)+"populated initial link segment costs");
+      LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.timePeriodPrefix(timePeriod)+"populated initial link segment costs");
     }else {
-      LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populated initial link segment costs");      
+      LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populated initial link segment costs");      
     }
     
     initialLinkSegmentCosts.get(network).add(initialLinkSegmentCost);
@@ -184,7 +184,7 @@ public class PlanItProjectInput {
    * @throws PlanItException thrown if there is an error
    */
   public LayeredNetwork<?,?> createAndRegisterInfrastructureNetwork(final String infrastructureNetworkType) throws PlanItException {
-    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating network");
+    LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populating network");
     final Network theNetwork = getComponentFactory(Network.class).create(infrastructureNetworkType, new Object[] { projectGroupId });
     
     /* for now we only support infrastructure based networks even though class heirarchy is more generic */
@@ -194,7 +194,7 @@ public class PlanItProjectInput {
     LayeredNetwork<?,?> infrastructureNetwork = (LayeredNetwork<?,?>) theNetwork;
 
     /* log info across layers */
-    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createNetworkPrefix(infrastructureNetwork.getId());
+    String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.networkPrefix(infrastructureNetwork.getId());
     LOGGER.info(String.format("%s#modes: %d", prefix, infrastructureNetwork.getModes().size()));    
     
     /* for each layer log information regarding contents */
@@ -216,14 +216,14 @@ public class PlanItProjectInput {
   public Zoning createAndRegisterZoning(final LayeredNetwork<?,?> infrastructureNetwork) throws PlanItException {
     PlanItException.throwIf(infrastructureNetwork == null, "The physical network must be defined before definition of zones can begin");
 
-    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating zoning");
+    LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populating zoning");
     final Zoning zoning = 
         getComponentFactory(Zoning.class).create(
             Zoning.class.getCanonicalName(), 
             new Object[] { projectGroupId, infrastructureNetwork.getNetworkGroupingTokenId() }, 
             infrastructureNetwork);
     
-    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createZoningPrefix(zoning.getId());
+    String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.zoningPrefix(zoning.getId());
     zoning.logInfo(prefix);
 
     zonings.register(zoning);
@@ -242,12 +242,12 @@ public class PlanItProjectInput {
     PlanItException.throwIf(zoning == null, "Zones must be defined before definition of demands can begin");
     PlanItException.throwIf(network == null, "network must be defined before definition of demands can begin");
 
-    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating demands");
+    LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populating demands");
     final Demands demands = 
         getComponentFactory(Demands.class).create(
             Demands.class.getCanonicalName(), new Object[] { projectGroupId }, zoning, network);  
     
-    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createDemandsPrefix(demands.getId());
+    String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.demandsPrefix(demands.getId());
     LOGGER.info(String.format("%s#time periods: %d", prefix, demands.timePeriods.size()));
     LOGGER.info(String.format("%s#traveler types: %d", prefix, demands.travelerTypes.size()));    
     LOGGER.info(String.format("%s#user classes: %d", prefix, demands.userClasses.size()));
@@ -266,7 +266,7 @@ public class PlanItProjectInput {
   public ServiceNetwork createAndRegisterServiceNetwork(final MacroscopicNetwork network) throws PlanItException {
     PlanItException.throwIf(network == null, "Physical network must be defined before definition of service network can begin");
 
-    LOGGER.info(String.format("%spopulating service network with parent physical network %s", LoggingUtils.createProjectPrefix(this.projectId), network.getXmlId()));
+    LOGGER.info(String.format("%spopulating service network with parent physical network %s", LoggingUtils.projectPrefix(this.projectId), network.getXmlId()));
     final Network theNetwork = 
         getComponentFactory(Network.class).create(
             ServiceNetwork.class.getCanonicalName(), new Object[] { projectGroupId, network });
@@ -278,7 +278,7 @@ public class PlanItProjectInput {
     }
     ServiceNetwork serviceNetwork = (ServiceNetwork) theNetwork;    
     
-    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createServiceNetworkPrefix(serviceNetwork.getId());    
+    String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.serviceNetworkPrefix(serviceNetwork.getId());    
     if(serviceNetwork.getTransportLayers().isEmpty()) {
       LOGGER.warning(String.format("Created service network for parent network %s is empty",network.getXmlId()));
     }else {
@@ -305,12 +305,12 @@ public class PlanItProjectInput {
   public RoutedServices createAndRegisterRoutedServices(final ServiceNetwork serviceNetwork) throws PlanItException {
     PlanItException.throwIf(serviceNetwork == null, "Parent service network must be defined before definition of routed services can begin");
 
-    LOGGER.info(String.format("%spopulating routed services with parent service network %s", LoggingUtils.createProjectPrefix(this.projectId), serviceNetwork.getXmlId()));
+    LOGGER.info(String.format("%spopulating routed services with parent service network %s", LoggingUtils.projectPrefix(this.projectId), serviceNetwork.getXmlId()));
     final RoutedServices routedServices = 
         getComponentFactory(RoutedServices.class).create(
             RoutedServices.class.getCanonicalName(), new Object[] { projectGroupId, serviceNetwork});  
     
-    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createRoutedServicesPrefix(routedServices.getId());
+    String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.routedServicesPrefix(routedServices.getId());
     for(RoutedServicesLayer layer : routedServices.getLayers()) {
       layer.logInfo(prefix);
     }
@@ -333,12 +333,12 @@ public class PlanItProjectInput {
     PlanItException.throwIf(zoning == null, "Zones must be defined before definition of od path sets can proceed");
     PlanItException.throwIf(networkLayer == null, "Physical network must be defined before of od path sets can proceed");
 
-    LOGGER.info(LoggingUtils.createProjectPrefix(this.projectId)+"populating od path sets");
+    LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+"populating od path sets");
     final OdPathSets odPathSets = 
         getComponentFactory(OdPathSets.class).create(
             OdPathSets.class.getCanonicalName(), new Object[] { projectGroupId }, odPathSetInputPath);
     
-    String prefix = LoggingUtils.createProjectPrefix(this.projectId)+LoggingUtils.createOdPathSetsPrefix(odPathSets.getId());
+    String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.odPathSetsPrefix(odPathSets.getId());
     LOGGER.info(String.format("%s#od path sets: %d", prefix, odPathSets.getNumberOfOdPathSets()));
 
     this.odPathSets.register(odPathSets);

@@ -96,7 +96,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * @param fundamentalDiagram the fundamental diagram
    */
   public void setFundamentalDiagram(final FundamentalDiagramComponent fundamentalDiagram) {
-    logRegisteredComponent(fundamentalDiagram, true);
+    logRegisteredComponentName(fundamentalDiagram, true);
     registerComponent(FundamentalDiagramComponent.class, fundamentalDiagram);
   }
 
@@ -106,7 +106,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * @param nodeModel to use
    */
   public void setNodeModel(final NodeModelComponent nodeModel) {
-    logRegisteredComponent(nodeModel, true);
+    logRegisteredComponentName(nodeModel, true);
     registerComponent(NodeModelComponent.class, nodeModel);
   }
 
@@ -125,7 +125,7 @@ public abstract class LtmAssignment extends TrafficAssignment {
    * @param pathChoice model used
    */
   public void setPathChoice(PathChoice pathChoice) {
-    logRegisteredComponent(pathChoice, true);
+    logRegisteredComponentName(pathChoice, true);
     registerComponent(PathChoice.class, pathChoice);
   }
 

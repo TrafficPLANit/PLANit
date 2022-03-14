@@ -1,5 +1,8 @@
 package org.goplanit.sdinteraction.smoothing;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -86,6 +89,16 @@ public class MSASmoothing extends Smoothing {
   @Override
   public void reset() {
     this.stepSize = DEFAULT_INITIAL_STEP_SIZE;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    var settingsMap = new HashMap<String, String>();
+    settingsMap.put("step-size", "" + stepSize);
+    return settingsMap;
   }
 
 }

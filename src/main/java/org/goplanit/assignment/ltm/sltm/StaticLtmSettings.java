@@ -130,4 +130,5 @@ public class StaticLtmSettings implements Cloneable {
   public void setEnforceMaxEntropyFlowSolution(Boolean enforceMaxEntropyFlowSolution) {
     this.enforceMaxEntropyFlowSolution = enforceMaxEntropyFlowSolution;
   }
+
 }
