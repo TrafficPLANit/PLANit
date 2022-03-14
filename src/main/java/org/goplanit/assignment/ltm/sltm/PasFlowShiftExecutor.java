@@ -61,6 +61,9 @@ public abstract class PasFlowShiftExecutor {
   /** store locally as it is costly-ish to compute */
   protected final int pasMergeVertexNumExitSegments;
 
+  /** reference to settings of the overarching assignment */
+  private final StaticLtmSettings staticLtmSettings;
+
   /**
    * flag indicating of most recent call to {@link #determineEntrySegmentFlowShift(Bush, EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBush)}
    * identified that flow distribution between s1 and s2 should be made equal.
@@ -162,15 +165,15 @@ public abstract class PasFlowShiftExecutor {
    * @return pair of slack flow and slack capacity ratio
    */
   private double determinePasAlternativeSlackFlow(StaticLtmLoadingBush networkLoading, boolean lowCost) {
-    var lastS1Segment = pas.getLastEdgeSegment(lowCost);
+    var lastAlternativeSegment = pas.getLastEdgeSegment(lowCost);
     double slackFlow = Double.POSITIVE_INFINITY;
 
-    Array1D<Double> splittingRates = networkLoading.getSplittingRateData().getSplittingRates(lastS1Segment);
+    Array1D<Double> splittingRates = networkLoading.getSplittingRateData().getSplittingRates(lastAlternativeSegment);
 
     int index = 0;
     int linkSegmentId = -1;
 
-    for (var exitSegment : lastS1Segment.getDownstreamVertex().getExitEdgeSegments()) {
+    for (var exitSegment : lastAlternativeSegment.getDownstreamVertex().getExitEdgeSegments()) {
       double splittingRate = splittingRates.get(index);
       if (splittingRate > 0) {
         linkSegmentId = (int) exitSegment.getId();
@@ -183,14 +186,14 @@ public abstract class PasFlowShiftExecutor {
       ++index;
     }
 
-    EdgeSegment s1EdgeSegment = null;
-    EdgeSegment[] s1 = pas.getAlternative(true);
-    for (index = 0; index < s1.length; ++index) {
-      s1EdgeSegment = s1[index];
-      linkSegmentId = (int) s1EdgeSegment.getId();
+    EdgeSegment alternativeEdgeSegment = null;
+    EdgeSegment[] alternativeEdgeSegments = pas.getAlternative(lowCost);
+    for (index = 0; index < alternativeEdgeSegments.length; ++index) {
+      alternativeEdgeSegment = alternativeEdgeSegments[index];
+      linkSegmentId = (int) alternativeEdgeSegment.getId();
       /* do not use outflows directly because they are only available on potentially blocking nodes in point queue basic solution scheme */
       double outflow = networkLoading.getCurrentInflowsPcuH()[linkSegmentId] * networkLoading.getCurrentFlowAcceptanceFactors()[linkSegmentId];
-      double currSlackflow = ((PcuCapacitated) s1EdgeSegment).getCapacityOrDefaultPcuH() - outflow;
+      double currSlackflow = ((PcuCapacitated) alternativeEdgeSegment).getCapacityOrDefaultPcuH() - outflow;
       if (smaller(currSlackflow, slackFlow)) {
         slackFlow = currSlackflow;
       }
@@ -202,10 +205,12 @@ public abstract class PasFlowShiftExecutor {
   /**
    * Constructor
    * 
-   * @param pas to use
+   * @param pas               to use
+   * @param staticLtmSettings
    */
-  protected PasFlowShiftExecutor(Pas pas) {
+  protected PasFlowShiftExecutor(Pas pas, StaticLtmSettings staticLtmSettings) {
     this.pas = pas;
+    this.staticLtmSettings = staticLtmSettings;
     this.bushEntrySegmentS1S2SendingFlows = new HashMap<>();
     this.usedCongestedEntryEdgeSegments = new HashSet<>();
     this.pasMergeVertexNumExitSegments = pas.getMergeVertex().sizeOfExitEdgeSegments();
@@ -288,14 +293,14 @@ public abstract class PasFlowShiftExecutor {
         denominatorS2 = getDTravelTimeDFlow(theMode, physicalCost, virtualCost, firstS2CongestedLinkSegment);
       }
     }
-    congestedFlowShiftAffectsLinkDerivative = !pasUncongested;
 
     /*
      * UE -> if we find equal cost and turn derivative differs but link derivative is expected to be unaffected by flow shift to less restricted out link, we should enforce equal
      * flow distribution (max entropy) to obtain unique solution while also minimising cost (as equal distribution spreads pressure on outlink competition in case of the same entry
      * link).
      */
-    this.towardsEqualAlternativeFlowDistribution = pasCostEqual && (pasUncongested || !congestedFlowShiftAffectsLinkDerivative);
+    this.towardsEqualAlternativeFlowDistribution = pasCostEqual && (pasUncongested || !congestedFlowShiftAffectsLinkDerivative)
+        && staticLtmSettings.isEnforceMaxEntropyFlowSolution();
 
     double flowShift = 0;
     if (towardsEqualAlternativeFlowDistribution) {

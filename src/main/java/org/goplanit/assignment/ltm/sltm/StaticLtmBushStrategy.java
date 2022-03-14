@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
@@ -49,6 +51,9 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
   /** track all unique PASs */
   protected final PasManager pasManager;
+
+  /** track all PASs where we are attempting to distribute flow equally to obtain unique solution under unequal flow but equal cost/cost-derivative */
+  protected Set<Pas> equalFlowDistributedPass;
 
   /**
    * Update gap. Unconventional gap function where we update the GAP based on PAS cost discrepancy. This is due to the impossibility of efficiently determining the network and
@@ -234,6 +239,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * @return all PASs where non-zero flow was shifted on
    */
   private Collection<Pas> shiftFlows(final Mode theMode) {
+    equalFlowDistributedPass.clear();
     var flowShiftedPass = new ArrayList<Pas>((int) pasManager.getNumberOfPass());
     var passWithoutOrigins = new ArrayList<Pas>();
 
@@ -269,6 +275,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
          * link segments as "used".
          */
         if (pasFlowShifter.isTowardsEqualAlternativeFlowDistribution()) {
+          equalFlowDistributedPass.add(pas);
           continue;
         }
 
@@ -300,6 +307,29 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
       originBush.updateTurnFlows(getLoading().getCurrentFlowAcceptanceFactors());
     }
+  }
+
+  /**
+   * Verify if solution is flow proportional
+   * 
+   * @param gapEpsilon to use
+   * @return true when flow proportional, false otherwise
+   */
+  private boolean isSolutionFlowEntropyMaximised(double gapEpsilon) {
+    StringBuilder remainingPassToMaximiseEntropy = new StringBuilder("PASs not at max entropy: \n");
+    boolean entryFound = false;
+    for (var pas : this.equalFlowDistributedPass) {
+      entryFound = true;
+      remainingPassToMaximiseEntropy.append("PAS - ");
+      remainingPassToMaximiseEntropy.append(pas.toString());
+      remainingPassToMaximiseEntropy.append("\n");
+    }
+    if (entryFound && getSettings().isDetailedLogging()) {
+      LOGGER.info(remainingPassToMaximiseEntropy.toString());
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -442,6 +472,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     this.originBushes = new Bush[transportModelNetwork.getZoning().getOdZones().size()];
     this.pasManager = new PasManager();
     this.pasManager.setDetailedLogging(settings.isDetailedLogging());
+    this.equalFlowDistributedPass = new HashSet<>();
   }
 
   //@formatter:off
@@ -509,6 +540,29 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
       return false;
     }
     return true;
+  }
+
+  /**
+   * Unlike the default convergence check, we also see if the solution is proportional if relevant; in a bush setting with a triangular fundamental diagram we do not obtain a
+   * unique solution if a PAS has equal cost with an equal derivative but unequal flow distribution along its two segments, e.g. in free flow conditions we expect equal flow along
+   * both alternatives if equal cost. When the settings indicate so, we verify if the solution is proportional or not and only if so we indicate convergence has been reached.
+   * 
+   * @param gapFunction    to use for regular convergence check on cost
+   * @param iterationIndex at hand
+   * @return true when converged, false otherwise
+   * 
+   */
+  @Override
+  public boolean hasConverged(GapFunction gapFunction, int iterationIndex) {
+    // TODO Auto-generated method stub
+    boolean converged = super.hasConverged(gapFunction, iterationIndex);
+    if (converged && getSettings().isEnforceMaxEntropyFlowSolution()) {
+      converged = isSolutionFlowEntropyMaximised(gapFunction.getStopCriterion().getEpsilon());
+      if(!converged) {
+        LOGGER.info("cost convergence: yes - yet one or more PASs flow distribution is not entropy maximised - overall convergence: no");
+      }
+    }
+    return converged;
   } 
 
 }

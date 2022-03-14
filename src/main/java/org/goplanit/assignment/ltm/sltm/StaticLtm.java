@@ -156,8 +156,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       getIterationData().setLinkSegmentTravelTimePcuH(theMode, costsToUpdate);
 
       // CONVERGENCE CHECK
-      getGapFunction().computeGap();
-      converged = getGapFunction().hasConverged(simulationData.getIterationIndex());
+      converged = assignmentStrategy.hasConverged(getGapFunction(), simulationData.getIterationIndex());
 
       // PERSIST
       persistIterationResults(timePeriod, theMode, converged);
@@ -364,12 +363,30 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   }
 
   /**
-   * collect the flag indicating link storage constraints are active or not
+   * Collect the flag indicating link storage constraints are active or not
    * 
    * @return flag when true activated, when false disabled
    */
   public boolean isActivateDetailedLogging() {
     return settings.isDetailedLogging();
+  }
+
+  /**
+   * Collect the flag indicating to enforce max entropy flow solution is active or not
+   * 
+   * @return flag when true activated, when false disabled
+   */
+  public boolean isEnforceMaxEntropyFlowSolution() {
+    return settings.isEnforceMaxEntropyFlowSolution();
+  }
+
+  /**
+   * Set the flag indicating to enforce max entropy flow solution is active or not
+   * 
+   * @return flag when true activated, when false disabled
+   */
+  public void setEnforceMaxEntropyFlowSolution(boolean enforceMaxEntropyFlowSolution) {
+    settings.setEnforceMaxEntropyFlowSolution(enforceMaxEntropyFlowSolution);
   }
 
   /**

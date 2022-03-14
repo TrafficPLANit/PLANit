@@ -5,6 +5,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -367,6 +368,48 @@ public class Pas {
   }
 
   /**
+   * Verify if the current known cost for the PAS is considered equal under the given epsilon
+   * 
+   * @param epsilon to use
+   * @return true when abs(costS1-costS2)<=epsilon
+   */
+  public boolean isCostEqual(double epsilon) {
+    return Precision.equal(s2Cost, s1Cost, epsilon);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(s1, s2);
+  }
+
+  /**
+   * A Pas equal sanother pas if the alternative segments are the same. The registered origins or current cost are not considered in this equality test
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof Pas)) {
+      return false;
+    }
+  
+    if (obj == this) {
+      return true;
+    }
+  
+    var objPas = (Pas) obj;
+    if (Arrays.equals(objPas.s1, this.s1) && Arrays.equals(objPas.s2, this.s2)) {
+      return true;
+    }
+  
+    return false;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -377,16 +420,6 @@ public class Pas {
     Arrays.stream(s2).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : ls.getId()).append(","));
     sb.replace(sb.length() - 1, sb.length(), "]");
     return sb.toString();
-  }
-
-  /**
-   * Verify if the current known cost for the PAS is considered equal under the given epsilon
-   * 
-   * @param epsilon to use
-   * @return true when abs(costS1-costS2)<=epsilon
-   */
-  public boolean isCostEqual(double epsilon) {
-    return Precision.equal(s2Cost, s1Cost, epsilon);
   }
 
 }

@@ -155,7 +155,8 @@ public class sLtmAssignmentGridTest {
   //@formatter:on
 
   /**
-   * Test sLTM bush-based assignment on grid based network which should result in an even spread across uncongested links in the final solution
+   * Test sLTM bush-based assignment on grid based network which should result in an even spread across uncongested links in the final solution. In this test we do not enforce a
+   * max entropy flow distribution as the initial distribution is more intuitive to test for.
    */
   @Test
   public void sLtmPointQueueBushBasedAssignmentNoQueueTest() {
@@ -173,8 +174,9 @@ public class sLtmAssignmentGridTest {
       /* sLTM - POINT QUEUE */
       StaticLtmTrafficAssignmentBuilder sLTMBuilder = new StaticLtmTrafficAssignmentBuilder(network.getIdGroupingToken(), null, demands, zoning, network);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
-      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(false);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(true);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateBushBased(true);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateMaxEntropyFlowDistribution(false);
 
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateOutput(OutputType.LINK);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
@@ -255,6 +257,7 @@ public class sLtmAssignmentGridTest {
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).disableLinkStorageConstraints(StaticLtmConfigurator.DEFAULT_DISABLE_LINK_STORAGE_CONSTRAINTS);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateDetailedLogging(false);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateBushBased(true);
+      ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateMaxEntropyFlowDistribution(true);
 
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).activateOutput(OutputType.LINK);
       ((StaticLtmConfigurator) sLTMBuilder.getConfigurator()).registerOutputFormatter(new MemoryOutputFormatter(network.getIdGroupingToken()));
@@ -286,22 +289,22 @@ public class sLtmAssignmentGridTest {
       double outflow22 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("22").getLinkSegmentBa());
       double outflow23 = sLTM.getLinkSegmentOutflowPcuHour(networkLayer.getLinks().getByXmlId("23").getLinkSegmentBa());
 
-      assertEquals(outflow0, 1800, Precision.EPSILON_3);
-      assertEquals(outflow1, outflow0 / 2, Precision.EPSILON_3);
-      assertEquals(outflow2, outflow1 / 2, Precision.EPSILON_3);
-      assertEquals(outflow3, outflow12, Precision.EPSILON_3);
+      assertEquals(outflow0, 3 * 600, Precision.EPSILON_3);
+      assertEquals(outflow1, 2 * 600, Precision.EPSILON_3);
+      assertEquals(outflow2, 1 * 600, Precision.EPSILON_3);
+      assertEquals(outflow3, 1 * 600, Precision.EPSILON_3);
       assertEquals(outflow4, outflow13 + outflow3, Precision.EPSILON_3);
       assertEquals(outflow5, outflow14 + outflow4, Precision.EPSILON_3);
-      assertEquals(outflow12, outflow0, Precision.EPSILON_3);
-      assertEquals(outflow13, outflow1, Precision.EPSILON_3);
-      assertEquals(outflow14, outflow2, Precision.EPSILON_3);
-      assertEquals(outflow15, outflow2, Precision.EPSILON_3);
+      assertEquals(outflow12, 1 * 600, Precision.EPSILON_3);
+      assertEquals(outflow13, 1 * 600, Precision.EPSILON_3);
+      assertEquals(outflow14, 1 * 600, Precision.EPSILON_3);
+      assertEquals(outflow15, 1 * 600, Precision.EPSILON_3);
 
-      assertEquals(outflow9, 1800, Precision.EPSILON_3);
-      assertEquals(outflow10, outflow9 / 2, Precision.EPSILON_3);
-      assertEquals(outflow11, outflow10 / 2, Precision.EPSILON_3);
-      assertEquals(outflow20, outflow9, Precision.EPSILON_3);
-      assertEquals(outflow21, outflow10, Precision.EPSILON_3);
+      assertEquals(outflow9, 3 * 600, Precision.EPSILON_3);
+      assertEquals(outflow10, 2 * 600, Precision.EPSILON_3);
+      assertEquals(outflow11, 1 * 600, Precision.EPSILON_3);
+      assertEquals(outflow20, 1 * 600, Precision.EPSILON_3);
+      assertEquals(outflow21, 1 * 600, Precision.EPSILON_3);
       assertEquals(outflow22, outflow11, Precision.EPSILON_3);
       assertEquals(outflow23, outflow11, Precision.EPSILON_3);
       assertEquals(outflow6, outflow20, Precision.EPSILON_3);
