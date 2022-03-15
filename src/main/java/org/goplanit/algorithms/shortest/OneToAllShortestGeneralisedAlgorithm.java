@@ -83,7 +83,7 @@ public class OneToAllShortestGeneralisedAlgorithm {
 
       vertexVisited[currentVertexId] = true;
 
-      // vertex has not yet been processed, if it has than a cheaper path which has
+      // vertex has not yet been processed, if it has then a cheaper path which has
       // already been found and we continue with the next entry
       // track all adjacent edge segments for possible improved shortest paths
 

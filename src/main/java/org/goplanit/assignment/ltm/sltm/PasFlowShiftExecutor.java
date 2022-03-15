@@ -299,13 +299,16 @@ public abstract class PasFlowShiftExecutor {
      * flow distribution (max entropy) to obtain unique solution while also minimising cost (as equal distribution spreads pressure on outlink competition in case of the same entry
      * link).
      */
-    this.towardsEqualAlternativeFlowDistribution = pasCostEqual && (pasUncongested || !congestedFlowShiftAffectsLinkDerivative)
-        && staticLtmSettings.isEnforceMaxEntropyFlowSolution();
+    this.towardsEqualAlternativeFlowDistribution = pasCostEqual && (pasUncongested || !congestedFlowShiftAffectsLinkDerivative);
 
     double flowShift = 0;
     if (towardsEqualAlternativeFlowDistribution) {
       if (pasAlternativeFlowsEqual) {
         LOGGER.severe("** proportional distribution exists under equal cost - skip flow shift");
+        return flowShift;
+      }
+      if (!staticLtmSettings.isEnforceMaxEntropyFlowSolution()) {
+        LOGGER.severe("** equal cost - no equal flow distribution enforced - skip flow shift");
         return flowShift;
       }
       LOGGER.severe("** towards proportional distribution - equal cost/ equal (link) derivative/non-equal flow");
@@ -319,7 +322,7 @@ public abstract class PasFlowShiftExecutor {
       double cappedAdjustedProposedFlowShift = Math.min(Math.abs(proposedFlowShift) - 10, Math.max(0, slackFlowEstimate)) + 10;
       return proposedFlowShift > 0 ? cappedAdjustedProposedFlowShift : -cappedAdjustedProposedFlowShift;
 
-    } else if (!pasCostEqual) {
+    } else {
       double slackFlowEstimate = determinePasAlternativeSlackFlow(networkLoading, true);
       if (pasUncongested) {
 
@@ -330,19 +333,26 @@ public abstract class PasFlowShiftExecutor {
         return adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, slackFlowEstimate);
 
       } else
+
+      if (pasCostEqual) {
+        LOGGER.severe("** one or both alternatives congested - towards S1 - near equal cost (<10^-9)");
+      } else {
         LOGGER.severe("** one or both alternatives congested - towards S1 - unequal cost");
+      }
       /* s1 and/or s2 congested - derivative based flow shift possible */
       // tauw_s1 + dtauw_s1/ds_1 * (-flowShift) = tauw_s2 + dtauw_s2/ds_2 * (flowShift) we find:
       // flowShift = (tauw_s2-tauw_s1)/(1/v_s1_first_bottleneck + 1/v_s2_first_bottleneck))
       double denominator = denominatorS2 + denominatorS1;
       double numerator = pas.getAlternativeHighCost() - pas.getAlternativeLowCost();
-      flowShift = Math.min(s2WithEntrySendingFlow, numerator / denominator);
+      flowShift = numerator / denominator;
 
       /* debug only, test if shift solves travel time discrepancy, to be removed when it works */
       double diff = (pas.getAlternativeLowCost() + denominatorS1 * flowShift) - (pas.getAlternativeHighCost() + denominatorS2 * -flowShift);
       if (Precision.notEqual(diff, 0.0)) {
         LOGGER.severe("Computation of using derivatives to shift flows between PAS segments does not result in equal travel time after shift, this should not happen");
       }
+
+      flowShift = Math.min(s2WithEntrySendingFlow, numerator / denominator);
 
       // VERIFY CROSSING OF DISCONTINUITY on S1 travel time function - adjust shift if so to mitigate effect
       if (firstS1CongestedLinkSegment == null) {
@@ -355,8 +365,6 @@ public abstract class PasFlowShiftExecutor {
         double s2SlackFlowEstimate = s2WithEntrySendingFlow * (1 - networkLoading.getCurrentFlowAcceptanceFactors()[(int) firstS2CongestedLinkSegment.getId()]);
         flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2SlackFlowEstimate);
       }
-    } else {
-      LOGGER.severe("** equal cost - flow shift affects cost - skip flow shift");
     }
 
     return flowShift;
@@ -430,7 +438,7 @@ public abstract class PasFlowShiftExecutor {
           double bushEntrySegmentS1Flow = entrySegmentS1S2SubPathSendingFlowPair.first();
           double bushEntrySegmentS2Flow = entrySegmentS1S2SubPathSendingFlowPair.second();
 
-          LOGGER.severe("** PAS-origin-entry-segment " + entrySegment.getXmlId());
+          LOGGER.severe("** PAS-origin-entry-segment " + entrySegment.toString());
           /*
            * split each PAS in |entrySegment x PAS| shifts as each entry segment (depending on whether it is congested or not) might impact the flow shift that is to be executed
            */
