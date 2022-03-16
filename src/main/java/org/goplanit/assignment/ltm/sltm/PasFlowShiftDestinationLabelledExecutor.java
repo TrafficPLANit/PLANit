@@ -266,11 +266,11 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
   /**
    * Constructor
    * 
-   * @param pas               to use
-   * @param staticLtmSettings
+   * @param pas      to use
+   * @param settings to use
    */
-  protected PasFlowShiftDestinationLabelledExecutor(final Pas pas, final StaticLtmSettings staticLtmSettings) {
-    super(pas, staticLtmSettings);
+  protected PasFlowShiftDestinationLabelledExecutor(final Pas pas, final StaticLtmSettings settings) {
+    super(pas, settings);
     this.s1DestinationLabelledFlows = new HashMap<>();
     this.s2DestinationLabelledFlows = new HashMap<>();
   }

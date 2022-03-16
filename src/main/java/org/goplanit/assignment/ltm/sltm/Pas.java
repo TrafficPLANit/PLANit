@@ -351,6 +351,17 @@ public class Pas {
   }
 
   /**
+   * Returns the difference between the cost of the high cost and the low cost segment normalised based on the total number of edge segments across both alternatives. Hence it
+   * reflects {@link #getReducedCost()} divided by ({@link #getAlternative(true)}+{@link #getAlternative(false)}. Should always be larger than zero assuming an
+   * {@link #updateCost(double[])}).
+   * 
+   * @return (s2Cost - s2Cost)/(#numEdgeSegmentsS1+#numEdgeSegmentsS2)
+   */
+  public double getNormalisedReducedCost() {
+    return (s2Cost - s1Cost) / (s1.length + s2.length);
+  }
+
+  /**
    * Match first link segment of PAS segment to predicate provided
    * 
    * @param lowCostSegment when true apply on s1, otherwise on s2
@@ -396,16 +407,16 @@ public class Pas {
     if (!(obj instanceof Pas)) {
       return false;
     }
-  
+
     if (obj == this) {
       return true;
     }
-  
+
     var objPas = (Pas) obj;
     if (Arrays.equals(objPas.s1, this.s1) && Arrays.equals(objPas.s2, this.s2)) {
       return true;
     }
-  
+
     return false;
   }
 

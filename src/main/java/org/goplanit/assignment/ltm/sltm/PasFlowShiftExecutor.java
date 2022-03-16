@@ -1,6 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import static org.goplanit.utils.math.Precision.EPSILON_9;
+import static org.goplanit.utils.math.Precision.EPSILON_12;
 import static org.goplanit.utils.math.Precision.equal;
 import static org.goplanit.utils.math.Precision.smaller;
 
@@ -42,10 +42,13 @@ public abstract class PasFlowShiftExecutor {
   private final static Logger LOGGER = Logger.getLogger(PasFlowShiftExecutor.class.getCanonicalName());
 
   /** local epsilon used in flow shifting */
-  private static final double EPSILON = EPSILON_9;
+  private static final double EPSILON = EPSILON_12;
 
   /** to operate on */
   protected final Pas pas;
+
+  /** settings to use */
+  protected final StaticLtmSettings settings;
 
   /** S1 sending flow along (entire) alternative */
   protected double s2SendingFlow;
@@ -60,9 +63,6 @@ public abstract class PasFlowShiftExecutor {
 
   /** store locally as it is costly-ish to compute */
   protected final int pasMergeVertexNumExitSegments;
-
-  /** reference to settings of the overarching assignment */
-  private final StaticLtmSettings staticLtmSettings;
 
   /**
    * flag indicating of most recent call to {@link #determineEntrySegmentFlowShift(Bush, EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBush)}
@@ -97,7 +97,7 @@ public abstract class PasFlowShiftExecutor {
    * @param networkLoading to use
    * @return identified most restricting out edge segment
    */
-  private EdgeSegment identifyMostRestrictingOutEdgeSegment(EdgeSegment entrySegment, StaticLtmLoadingBush networkLoading) {
+  private static EdgeSegment identifyMostRestrictingOutEdgeSegment(EdgeSegment entrySegment, StaticLtmLoadingBush networkLoading) {
     var consumer = new NMRCollectMostRestrictingTurnConsumer(entrySegment); // collect most restricting turn for entry segment
     StaticLtmNetworkLoading.performNodeModelUpdate(entrySegment.getDownstreamVertex(), consumer, networkLoading);
 
@@ -107,6 +107,31 @@ public abstract class PasFlowShiftExecutor {
           entrySegment.getXmlId()));
     }
     return mostRestrictingOutSegment;
+  }
+
+  private Pair<EdgeSegment, EdgeSegment> populateFirstCongestedEdgeSegmentOnPasAlternative(final EdgeSegment entrySegment, final StaticLtmLoadingBush networkLoading) {
+
+    Predicate<EdgeSegment> firstCongestedLinkSegment = es -> networkLoading.getCurrentFlowAcceptanceFactors()[(int) es.getId()] < 1;
+    var firstS1CongestedLinkSegment = pas.matchFirst(true, /* low cost */ firstCongestedLinkSegment);
+    var firstS2CongestedLinkSegment = pas.matchFirst(false /* high cost */, firstCongestedLinkSegment);
+
+    /* prep */
+    var entrySegmentAlpha = networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()];
+    if (smaller(entrySegmentAlpha, 1, EPSILON)) {
+
+      /*
+       * entry segment congested - derivative is only sensitive to most restricted out link, which pertains to one of the PAS alternatives (or none). Identify which. We can then
+       * assume that the shift does not impact other directions than the most restricting one if and only if no other congested link segments other than the entry segment is
+       * congested
+       */
+      EdgeSegment mostRestrictingOutSegment = identifyMostRestrictingOutEdgeSegment(entrySegment, networkLoading);
+      if (mostRestrictingOutSegment.idEquals(pas.getFirstEdgeSegment(true))) {
+        firstS1CongestedLinkSegment = entrySegment;
+      } else if (mostRestrictingOutSegment.idEquals(pas.getFirstEdgeSegment(false))) {
+        firstS2CongestedLinkSegment = entrySegment;
+      }
+    }
+    return Pair.of(firstS1CongestedLinkSegment, firstS2CongestedLinkSegment);
   }
 
   /**
@@ -205,12 +230,12 @@ public abstract class PasFlowShiftExecutor {
   /**
    * Constructor
    * 
-   * @param pas               to use
-   * @param staticLtmSettings
+   * @param pas      to use
+   * @param settings to use
    */
-  protected PasFlowShiftExecutor(Pas pas, StaticLtmSettings staticLtmSettings) {
+  protected PasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings) {
     this.pas = pas;
-    this.staticLtmSettings = staticLtmSettings;
+    this.settings = settings;
     this.bushEntrySegmentS1S2SendingFlows = new HashMap<>();
     this.usedCongestedEntryEdgeSegments = new HashSet<>();
     this.pasMergeVertexNumExitSegments = pas.getMergeVertex().sizeOfExitEdgeSegments();
@@ -241,101 +266,44 @@ public abstract class PasFlowShiftExecutor {
   protected double determineEntrySegmentFlowShift(Bush origin, EdgeSegment entrySegment, Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost,
       StaticLtmLoadingBush networkLoading) {
 
-    /* obtain derivatives of travel time towards flow for ENTRY+PAS_alternatives and use them to determine the amount of flow to shift */
-    // TODO: Currently requires instanceof, so benchmark if not too slow
+    /* get first congested edge segment that is affected when shifting flow, per alternative */
+    var firstCongestedSegmentPair = populateFirstCongestedEdgeSegmentOnPasAlternative(entrySegment, networkLoading);
+    EdgeSegment firstS1CongestedLinkSegment = firstCongestedSegmentPair.first();
+    EdgeSegment firstS2CongestedLinkSegment = firstCongestedSegmentPair.second();
+    boolean sharedCongestedEntry = (entrySegment == firstS1CongestedLinkSegment || entrySegment == firstS2CongestedLinkSegment);
 
+    /* obtain derivatives of travel time towards flow for ENTRY+PAS_alternatives and use them to determine the amount of flow to shift */
+    double denominatorS2 = 0;
+    double denominatorS1 = 0;
+    /* derivative of link cost based on first congested link */
+    if (firstS1CongestedLinkSegment != null) {
+      denominatorS1 = getDTravelTimeDFlow(theMode, physicalCost, virtualCost, firstS1CongestedLinkSegment);
+    }
+    if (firstS2CongestedLinkSegment != null) {
+      denominatorS2 = getDTravelTimeDFlow(theMode, physicalCost, virtualCost, firstS2CongestedLinkSegment);
+    }
+
+    /* obtain PAS-entry segment sub-path sending flows */
     var s1S2SubPathSendingFlowPair = bushEntrySegmentS1S2SendingFlows.get(origin).get(entrySegment);
     double s1WithEntrySendingFlow = s1S2SubPathSendingFlowPair.first();
     double s2WithEntrySendingFlow = s1S2SubPathSendingFlowPair.second();
-    boolean pasCostEqual = pas.isCostEqual(EPSILON);
-    boolean pasAlternativeFlowsEqual = equal(s1WithEntrySendingFlow, s2WithEntrySendingFlow, EPSILON);
-
-    /* prep */
-    EdgeSegment firstS2CongestedLinkSegment = null;
-    EdgeSegment firstS1CongestedLinkSegment = null;
-    boolean congestedFlowShiftAffectsLinkDerivative = true;
-
-    var entrySegmentAlpha = networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()];
-    if (smaller(entrySegmentAlpha, 1, EPSILON)) {
-
-      /* entry segment congested - derivative is only sensitive to most restricted out link, which pertains to one of the PAS alternatives (or none). Identify which */
-      EdgeSegment mostRestrictingOutSegment = identifyMostRestrictingOutEdgeSegment(entrySegment, networkLoading);
-      if (mostRestrictingOutSegment.idEquals(pas.getFirstEdgeSegment(true))) {
-        firstS1CongestedLinkSegment = entrySegment;
-      } else if (mostRestrictingOutSegment.idEquals(pas.getFirstEdgeSegment(false))) {
-        firstS2CongestedLinkSegment = entrySegment;
-      }
-
-      /* we can assume that the shift does not impact other directions than the most restricting one */
-      congestedFlowShiftAffectsLinkDerivative = false;
-    } else {
-      congestedFlowShiftAffectsLinkDerivative = true;
-    }
-
-    /* If not set yet, then find PAS alternative's first congested edge segment (not entry segment) */
-    Predicate<EdgeSegment> firstCongestedLinkSegment = es -> networkLoading.getCurrentFlowAcceptanceFactors()[(int) es.getId()] < 1;
-    if (firstS1CongestedLinkSegment == null) {
-      firstS1CongestedLinkSegment = pas.matchFirst(true, /* low cost */ firstCongestedLinkSegment);
-    }
-    if (firstS2CongestedLinkSegment == null) {
-      firstS2CongestedLinkSegment = pas.matchFirst(false /* high cost */, firstCongestedLinkSegment);
-    }
-    boolean pasUncongested = firstS1CongestedLinkSegment == null && firstS2CongestedLinkSegment == null;
-
-    double denominatorS2 = 0;
-    double denominatorS1 = 0;
-    if (!pasUncongested) {
-      /* derivative of link cost based on first congested link */
-      if (firstS1CongestedLinkSegment != null) {
-        denominatorS1 = getDTravelTimeDFlow(theMode, physicalCost, virtualCost, firstS1CongestedLinkSegment);
-      }
-      if (firstS2CongestedLinkSegment != null) {
-        denominatorS2 = getDTravelTimeDFlow(theMode, physicalCost, virtualCost, firstS2CongestedLinkSegment);
-      }
-    }
-
-    /*
-     * UE -> if we find equal cost and turn derivative differs but link derivative is expected to be unaffected by flow shift to less restricted out link, we should enforce equal
-     * flow distribution (max entropy) to obtain unique solution while also minimising cost (as equal distribution spreads pressure on outlink competition in case of the same entry
-     * link).
-     */
-    this.towardsEqualAlternativeFlowDistribution = pasCostEqual && (pasUncongested || !congestedFlowShiftAffectsLinkDerivative);
 
     double flowShift = 0;
-    if (towardsEqualAlternativeFlowDistribution) {
-      if (pasAlternativeFlowsEqual) {
-        LOGGER.severe("** proportional distribution exists under equal cost - skip flow shift");
-        return flowShift;
-      }
-      if (!staticLtmSettings.isEnforceMaxEntropyFlowSolution()) {
-        LOGGER.severe("** equal cost - no equal flow distribution enforced - skip flow shift");
-        return flowShift;
-      }
-      LOGGER.severe("** towards proportional distribution - equal cost/ equal (link) derivative/non-equal flow");
-      double proportionalFlow = (s2WithEntrySendingFlow + s1WithEntrySendingFlow) / 2;
-      /* can be positive (shift towards s1) or negative (shift towards s2) given that s1 and s2 have equal cost here */
-      double proposedFlowShift = s2WithEntrySendingFlow - proportionalFlow;
-      /* slack flow estimate can be from s1 (when shifting to s1) or s2 (when shifting to s2) */
-      double slackFlowEstimate = determinePasAlternativeSlackFlow(networkLoading, Precision.positive(proposedFlowShift, EPSILON));
+    boolean pasCostEqual = pas.isCostEqual(EPSILON);
+    boolean pasUncongested = firstS1CongestedLinkSegment == null && firstS2CongestedLinkSegment == null;
+    double slackFlowEstimate = determinePasAlternativeSlackFlow(networkLoading, true);
+    if (pasUncongested && !pasCostEqual) {
 
-      /* proportional shift limited to expected state change + delta */
-      double cappedAdjustedProposedFlowShift = Math.min(Math.abs(proposedFlowShift) - 10, Math.max(0, slackFlowEstimate)) + 10;
-      return proposedFlowShift > 0 ? cappedAdjustedProposedFlowShift : -cappedAdjustedProposedFlowShift;
+      LOGGER.severe("** uncongested - towards S1 - unequal cost");
+      /* s1 & S2 UNCONGESTED - no derivative estimate possible (denominator zero) */
+      /* move all towards cheaper alternative limited by slack + delta */
+      double proposedFlowShift = Math.min(s2WithEntrySendingFlow - 10, slackFlowEstimate) + 10;
+      return adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, slackFlowEstimate);
 
     } else {
-      double slackFlowEstimate = determinePasAlternativeSlackFlow(networkLoading, true);
-      if (pasUncongested) {
-
-        LOGGER.severe("** uncongested - towards S1 - unequal cost");
-        /* s1 & S2 UNCONGESTED - no derivative estimate possible (denominator zero) */
-        /* move all towards cheaper alternative limited by slack + delta */
-        double proposedFlowShift = Math.min(s2WithEntrySendingFlow - 10, slackFlowEstimate) + 10;
-        return adjustFlowShiftBasedOnS1SlackFlow(proposedFlowShift, slackFlowEstimate);
-
-      } else
 
       if (pasCostEqual) {
-        LOGGER.severe("** one or both alternatives congested - towards S1 - near equal cost (<10^-9)");
+        LOGGER.severe("** one or both alternatives congested - towards S1 - near equal cost (<10^-12)");
       } else {
         LOGGER.severe("** one or both alternatives congested - towards S1 - unequal cost");
       }
@@ -344,30 +312,67 @@ public abstract class PasFlowShiftExecutor {
       // flowShift = (tauw_s2-tauw_s1)/(1/v_s1_first_bottleneck + 1/v_s2_first_bottleneck))
       double denominator = denominatorS2 + denominatorS1;
       double numerator = pas.getAlternativeHighCost() - pas.getAlternativeLowCost();
-      flowShift = numerator / denominator;
+      if (numerator != 0) {
+        flowShift = numerator / denominator;
 
-      /* debug only, test if shift solves travel time discrepancy, to be removed when it works */
-      double diff = (pas.getAlternativeLowCost() + denominatorS1 * flowShift) - (pas.getAlternativeHighCost() + denominatorS2 * -flowShift);
-      if (Precision.notEqual(diff, 0.0)) {
-        LOGGER.severe("Computation of using derivatives to shift flows between PAS segments does not result in equal travel time after shift, this should not happen");
+        /* debug only, test if shift solves travel time discrepancy, to be removed when it works */
+        double diff = (pas.getAlternativeLowCost() + denominatorS1 * flowShift) - (pas.getAlternativeHighCost() + denominatorS2 * -flowShift);
+        if (Precision.notEqual(diff, 0.0)) {
+          LOGGER.severe("Computation of using derivatives to shift flows between PAS segments does not result in equal travel time after shift, this should not happen");
+        }
+
+        flowShift = Math.min(s2WithEntrySendingFlow, numerator / denominator);
+
+        // VERIFY CROSSING OF DISCONTINUITY on S1 travel time function - adjust shift if so to mitigate effect
+        if (firstS1CongestedLinkSegment == null) {
+          /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
+          flowShift = adjustFlowShiftBasedOnS1SlackFlow(flowShift, slackFlowEstimate);
+        }
+
+        // VERIFY CROSSING OF DISCONTINUITY on S2 travel time function - adjust shift if so to mitigate effect
+        if (firstS2CongestedLinkSegment != null) {
+          double s2SlackFlowEstimate = s2WithEntrySendingFlow * (1 - networkLoading.getCurrentFlowAcceptanceFactors()[(int) firstS2CongestedLinkSegment.getId()]);
+          flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2SlackFlowEstimate);
+        }
+      }
+    }
+
+    /*
+     * UE -> if we find equal cost and turn derivative differs but link derivative is expected to be unaffected by flow shift to less restricted out link, we should enforce equal
+     * flow distribution (max entropy) to obtain unique solution while also minimising cost (as equal distribution spreads pressure on outlink competition in case of the same entry
+     * link).
+     */
+    if (flowShift == 0) {
+
+      if (!settings.isEnforceMaxEntropyFlowSolution()) {
+        LOGGER.severe("** equal cost/ equal (link) derivative/non-equal flow - no max entropy required - skip flow shift");
+        return flowShift;
       }
 
-      flowShift = Math.min(s2WithEntrySendingFlow, numerator / denominator);
+      boolean allowCongestedEqualFlowDistribution = sharedCongestedEntry && (firstS1CongestedLinkSegment == null || firstS2CongestedLinkSegment == null);
+      this.towardsEqualAlternativeFlowDistribution = pasCostEqual && (pasUncongested || allowCongestedEqualFlowDistribution);
+      if (towardsEqualAlternativeFlowDistribution) {
 
-      // VERIFY CROSSING OF DISCONTINUITY on S1 travel time function - adjust shift if so to mitigate effect
-      if (firstS1CongestedLinkSegment == null) {
-        /* possible triggering of congestion on s1 due to shift -> passing discontinuity on travel time function */
-        flowShift = adjustFlowShiftBasedOnS1SlackFlow(flowShift, slackFlowEstimate);
-      }
+        boolean pasAlternativeFlowsEqual = equal(s1WithEntrySendingFlow, s2WithEntrySendingFlow, EPSILON);
+        if (pasAlternativeFlowsEqual) {
+          LOGGER.severe("** proportional distribution exists under equal cost - skip flow shift");
+          return flowShift;
+        }
 
-      // VERIFY CROSSING OF DISCONTINUITY on S2 travel time function - adjust shift if so to mitigate effect
-      if (firstS2CongestedLinkSegment != null) {
-        double s2SlackFlowEstimate = s2WithEntrySendingFlow * (1 - networkLoading.getCurrentFlowAcceptanceFactors()[(int) firstS2CongestedLinkSegment.getId()]);
-        flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2SlackFlowEstimate);
+        LOGGER.severe("** towards proportional distribution - equal cost/ equal (link) derivative/non-equal flow");
+        double proportionalFlow = (s2WithEntrySendingFlow + s1WithEntrySendingFlow) / 2;
+        /* can be positive (shift towards s1) or negative (shift towards s2) given that s1 and s2 have equal cost here */
+        flowShift = s2WithEntrySendingFlow - proportionalFlow;
+
+        /*
+         * do not cap based on slack flow because then we will never achieve the desired result. By not doing so we might open ourselves up for flip-flopping, but the solution is
+         * not to limit the change.
+         */
       }
     }
 
     return flowShift;
+
   }
 
   /**
@@ -445,7 +450,7 @@ public abstract class PasFlowShiftExecutor {
 
           /* flow shift based on entry segment - PAS combination */
           double proposedEntrySegmentPasflowShift = determineEntrySegmentFlowShift(origin, entrySegment, theMode, physicalCost, virtualCost, networkLoading);
-          if (equal(proposedEntrySegmentPasflowShift, 0, EPSILON)) {
+          if (Math.abs(proposedEntrySegmentPasflowShift) == 0) {
             continue;
           }
 

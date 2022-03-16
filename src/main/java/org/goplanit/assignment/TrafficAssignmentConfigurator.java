@@ -167,7 +167,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    * 
    * @param flag to set
    */
-  public void setLogSettings(Boolean flag) {
+  public void setLogSettings(boolean flag) {
     this.logSettings = flag;
   }
 

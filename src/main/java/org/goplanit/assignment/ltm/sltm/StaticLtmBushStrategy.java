@@ -198,10 +198,9 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
           /* when bush does not contain the reduced cost edge segment (or the opposite direction which would cause a cycle) consider it */
           EdgeSegment reducedCostSegment = networkMinPaths.getIncomingEdgeSegmentForVertex(bushVertex);
-          if (reducedCostSegment != null && !originBush.containsAnyEdgeSegmentOf(reducedCostSegment.getParentEdge())) {
+          if (reducedCostSegment != null && !originBush.containsEdgeSegment(reducedCostSegment)) {
 
             double reducedCost = minMaxPaths.getCostToReach(bushVertex) - networkMinPaths.getCostToReach(bushVertex);
-
             boolean matchFound = extendBushWithSuitableExistingPas(originBush, bushVertex, reducedCost);
             if (matchFound) {
               continue;
@@ -210,6 +209,13 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
             /* no suitable match, attempt creating an entirely new PAS */
             Pas newPas = extendBushWithNewPas(originBush, bushVertex, networkMinPaths);
             if (newPas != null) {
+
+              // TODO: when this never happens we can remove it to save computation time, for now we just want to make sure all goes well
+              if (originBush.determineIntroduceCycle(newPas.getAlternative(true))) {
+                LOGGER.severe(String.format("Newly identified PAS (%s) for origin %s would introduce cycle on low cost alternative, this shouldn't happen, PAS ignored",
+                    newPas.toString(), originBush.getOrigin().toString()));
+              }
+
               newPass.add(newPas);
               newPas.updateCost(linkSegmentCosts);
               continue;
@@ -256,7 +262,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     Collection<Pas> sortedPass = pasManager.getPassSortedByReducedCost();
     for (Pas pas : sortedPass) {
 
-      var pasFlowShifter = createPasFlowShiftExecutor(pas);
+      var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
       pasFlowShifter.initialise(); // to be able to collect pas sending flows for gap
       updateGap(gapFunction, pas, pasFlowShifter.getS1SendingFlow(), pasFlowShifter.getS2SendingFlow());
 
@@ -391,10 +397,11 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
   /**
    * {@inheritDoc}
    * 
-   * @param pas to create flow shift executor for
+   * @param pas      to create flow shift executor for
+   * @param settings to use
    * @return created executor
    */
-  protected abstract PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas);
+  protected abstract PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings);
 
   /**
    * Create a network wide shortest bush algorithm based on provided costs

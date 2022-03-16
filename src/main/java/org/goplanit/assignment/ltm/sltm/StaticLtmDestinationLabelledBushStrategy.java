@@ -315,8 +315,8 @@ public class StaticLtmDestinationLabelledBushStrategy extends StaticLtmBushStrat
    * 
    */
   @Override
-  protected PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas) {
-    return new PasFlowShiftDestinationLabelledExecutor(pas, getSettings());
+  protected PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings) {
+    return new PasFlowShiftDestinationLabelledExecutor(pas, settings);
   }
 
   /**

@@ -616,8 +616,9 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    * Constructor
    * 
    * @param pas to use
+   * @param settings to use
    */
-  protected PasFlowShiftSmartLabelledExecutor(Pas pas, StaticLtmSettings settings) {
+  protected PasFlowShiftSmartLabelledExecutor(Pas pas, final StaticLtmSettings settings) {
     super(pas, settings);
     s1ReverseLabelChains = new HashMap<>();
     s2ReverseLabelChains = new HashMap<>();

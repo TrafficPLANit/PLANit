@@ -107,6 +107,22 @@ public class Bush implements IdAble {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long getId() {
+    return dag.getId();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Bush clone() {
+    return new Bush(this);
+  }
+
+  /**
    * Compute the min-max path tree rooted at the origin and given the provided (network wide) costs. The provided costs are at the network level so should contain all the segments
    * active in the bush
    * 
@@ -127,6 +143,27 @@ public class Bush implements IdAble {
       LOGGER.severe(String.format("Unable to complete minmax path three for bush rooted at origin %s", dag.getRootVertex().getXmlId()));
     }
     return null;
+  }
+
+  /**
+   * Verify if adding the sub-path edge segments would introduce a cycle in this bush
+   * 
+   * @param alternative to verify
+   * @return true if it introduces a cycle, false otherwise
+   */
+  public boolean determineIntroduceCycle(EdgeSegment[] alternative) {
+    if (alternative == null) {
+      LOGGER.severe("Cannot verify if edge segments introduce cycle when parameters are null");
+      return true;
+    }
+    EdgeSegment currSegment = null;
+    for (int index = 0; index < alternative.length; ++index) {
+      currSegment = alternative[index].getOppositeDirectionSegment();
+      if (currSegment != null && containsEdgeSegment(currSegment)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -716,21 +753,5 @@ public class Bush implements IdAble {
    */
   public boolean isEmpty() {
     return bushData.hasTurnFlows();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return dag.getId();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Bush clone() {
-    return new Bush(this);
   }
 }

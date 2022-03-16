@@ -183,4 +183,19 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
     this.supportedModes.add(mode);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("Modes: [");
+    this.supportedModes.forEach(m -> sb.append(m.toString()).append(","));
+    sb.deleteCharAt(sb.length() - 1);
+    sb.append("] maxSpeed (km/h): ");
+    sb.append(getMaximumSpeedOrDefaultKmH(-1));
+    sb.append(" critSpeed (km/h): ");
+    sb.append(getCriticalSpeedOrDefaultKmH(-1));
+    return sb.toString();
+  }
+
 }

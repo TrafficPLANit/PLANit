@@ -182,8 +182,9 @@ public class PasManager {
     this.passByMergeVertex = new HashMap<DirectedVertex, Collection<Pas>>();
 
     /*
-     * compare by reduced cost in descending order (from high reduced cost to low reduced cost), use very high precision to make sure very small cost differences are still
-     * considered as much as possible
+     * compare by normalised reduced cost in descending order (from high reduced cost to low reduced cost), use very high precision to make sure very small cost differences are
+     * still considered as much as possible. We use normalised cost to ensure that small PASs are not disadvantaged compared to overlapping larger PASs since the smaller the PAS
+     * the better the convergence so if anything they should be favoured and processed earlier
      */
     this.pasReducedCostComparator = new Comparator<Pas>() {
       @Override
@@ -246,7 +247,7 @@ public class PasManager {
    * Collect all PASs that share the same merge (end) vertex
    * 
    * @param mergeVertex to collect for
-   * @return found PAS matches
+   * @return found PAS matches, null if none
    */
   public Collection<Pas> getPassByMergeVertex(final DirectedVertex mergeVertex) {
     return passByMergeVertex.get(mergeVertex);
@@ -319,15 +320,23 @@ public class PasManager {
         }
       }
 
-      /* PAS start/end node are on bush, now check PAS carefully if its high cost segment is present on the bush fully */
       if (!pasPotentialMatch) {
         continue;
       }
 
-      if (isPasEffectiveForBush(pas, originBush, flowAcceptanceFactors, reducedCost)) {
-        matchedPas = pas;
-        break;
+      /* PAS start/end node are on bush, now check if it is effective in reducing cost/shifting flow */
+      if (!isPasEffectiveForBush(pas, originBush, flowAcceptanceFactors, reducedCost)) {
+        continue;
       }
+
+      /* deemed effective, now ensure it does not introduce cycles */
+      if (originBush.determineIntroduceCycle(pas.getAlternative(true))) {
+        continue;
+      }
+
+      matchedPas = pas;
+      break;
+
     }
     return matchedPas;
   }
