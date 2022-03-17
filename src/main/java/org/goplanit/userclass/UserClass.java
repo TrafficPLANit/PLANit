@@ -3,6 +3,7 @@ package org.goplanit.userclass;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.StringUtils;
 import org.goplanit.utils.mode.Mode;
 
 /**
@@ -13,16 +14,6 @@ import org.goplanit.utils.mode.Mode;
  *
  */
 public class UserClass extends ExternalIdAbleImpl {
-
-  /**
-   * default name
-   */
-  public static final String DEFAULT_NAME = "Default";
-
-  /**
-   * Default XML id
-   */
-  public static final String DEFAULT_XML_ID = "1";
 
   /**
    * Name of this user class
@@ -37,7 +28,17 @@ public class UserClass extends ExternalIdAbleImpl {
   /**
    * Traveler type of this user class
    */
-  private final TravelerType travellerType;
+  private final TravellerType travellerType;
+
+  /**
+   * default name
+   */
+  public static final String DEFAULT_NAME = "Default";
+
+  /**
+   * Default XML id
+   */
+  public static final String DEFAULT_XML_ID = "1";
 
   /**
    * Constructor of user class
@@ -47,7 +48,7 @@ public class UserClass extends ExternalIdAbleImpl {
    * @param mode         the mode of travel
    * @param travelerType the travelerType
    */
-  public UserClass(final IdGroupingToken groupId, final String name, final Mode mode, final TravelerType travelerType) {
+  public UserClass(final IdGroupingToken groupId, final String name, final Mode mode, final TravellerType travelerType) {
     super(IdGenerator.generateId(groupId, UserClass.class));
     this.name = name;
     this.travellerType = travelerType;
@@ -71,8 +72,17 @@ public class UserClass extends ExternalIdAbleImpl {
    *
    * @return TravelerType of this user class
    */
-  public TravelerType getTravelerType() {
+  public TravellerType getTravelerType() {
     return travellerType;
+  }
+
+  /**
+   * check if it has a name
+   * 
+   * @return true when name is present false otherwise
+   */
+  public boolean hasName() {
+    return !StringUtils.isNullOrBlank(name);
   }
 
   /**

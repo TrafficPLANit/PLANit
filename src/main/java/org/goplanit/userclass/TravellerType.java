@@ -3,15 +3,16 @@ package org.goplanit.userclass;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.StringUtils;
 
 /**
- * Traveler type is a placeholder for all different types of traveler characteristics that affect the user class in the path choice component of traffic assignment. Together with
+ * Traveller type is a placeholder for all different types of traveler characteristics that affect the user class in the path choice component of traffic assignment. Together with
  * the mode this largely defines each user class TODO: Not used yet in UserClass class
  * 
  * @author markr
  *
  */
-public class TravelerType extends ExternalIdAbleImpl {
+public class TravellerType extends ExternalIdAbleImpl {
 
   /**
    * default name
@@ -33,8 +34,8 @@ public class TravelerType extends ExternalIdAbleImpl {
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  public TravelerType(final IdGroupingToken groupId) {
-    super(IdGenerator.generateId(groupId, TravelerType.class));
+  public TravellerType(final IdGroupingToken groupId) {
+    super(IdGenerator.generateId(groupId, TravellerType.class));
     this.name = DEFAULT_NAME;
   }
 
@@ -43,7 +44,7 @@ public class TravelerType extends ExternalIdAbleImpl {
    * 
    * @param other to copy
    */
-  public TravelerType(final TravelerType other) {
+  public TravellerType(final TravellerType other) {
     super(other);
     this.name = other.name;
   }
@@ -55,9 +56,18 @@ public class TravelerType extends ExternalIdAbleImpl {
    * @param name    name of this traveler type
    * 
    */
-  public TravelerType(final IdGroupingToken groupId, final String name) {
-    super(IdGenerator.generateId(groupId, TravelerType.class));
+  public TravellerType(final IdGroupingToken groupId, final String name) {
+    super(IdGenerator.generateId(groupId, TravellerType.class));
     this.name = name;
+  }
+
+  /**
+   * check if it has a name
+   * 
+   * @return true when name is present false otherwise
+   */
+  public boolean hasName() {
+    return !StringUtils.isNullOrBlank(name);
   }
 
   /**
@@ -73,7 +83,7 @@ public class TravelerType extends ExternalIdAbleImpl {
    * {@inheritDoc}
    */
   @Override
-  public TravelerType clone() {
-    return new TravelerType(this);
+  public TravellerType clone() {
+    return new TravellerType(this);
   }
 }

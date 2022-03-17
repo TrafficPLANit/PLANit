@@ -3,6 +3,7 @@ package org.goplanit.converter;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
+import org.goplanit.userclass.TravellerType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.ExternalIdAble;
@@ -156,6 +157,17 @@ public class IdMapperFunctionFactory {
    */
   public static Function<TransferZoneGroup, String> createTransferZoneGroupIdMappingFunction(IdMapperType idMapper) throws PlanItException {
     return createIdMappingFunction(TransferZoneGroup.class, idMapper);
+  }
+
+  /**
+   * create a function that takes a traveller type and generates the appropriate id based on the user configuration
+   * 
+   * @param idMapper the type of mapping function to create
+   * @return function that generates traveller type ids for traveller type output
+   * @throws PlanItException thrown if error
+   */
+  public static Function<TravellerType, String> createTravellerTypeIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+    return createIdMappingFunction(TravellerType.class, idMapper);
   }
 
 }
