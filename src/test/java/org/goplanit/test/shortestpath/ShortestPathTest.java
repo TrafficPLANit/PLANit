@@ -145,15 +145,15 @@ public class ShortestPathTest {
       }
       
       zoning = new Zoning(idToken, networkLayer.getLayerIdGroupingToken());
-      Zone zoneA = zoning.odZones.getFactory().registerNew();
+      Zone zoneA = zoning.getOdZones().getFactory().registerNew();
       zoneA.setXmlId("A");
-      Zone zoneB = zoning.odZones.getFactory().registerNew();
+      Zone zoneB = zoning.getOdZones().getFactory().registerNew();
       zoneB.setXmlId("B");
-      Zone zoneC = zoning.odZones.getFactory().registerNew();
+      Zone zoneC = zoning.getOdZones().getFactory().registerNew();
       zoneC.setXmlId("C");
-      Zone zoneD = zoning.odZones.getFactory().registerNew();
+      Zone zoneD = zoning.getOdZones().getFactory().registerNew();
       zoneD.setXmlId("D");
-      Zone zoneE = zoning.odZones.getFactory().registerNew();
+      Zone zoneE = zoning.getOdZones().getFactory().registerNew();
       zoneE.setXmlId("E");
       
       centroidA = zoneA.getCentroid();

@@ -145,9 +145,9 @@ public class AcyclicShortestPathTest {
       }
       
       zoning = new Zoning(IdGroupingToken.collectGlobalToken(), networkLayer.getLayerIdGroupingToken());
-      Zone zoneA = zoning.odZones.getFactory().registerNew();
+      Zone zoneA = zoning.getOdZones().getFactory().registerNew();
       zoneA.setXmlId("A");
-      Zone zoneB = zoning.odZones.getFactory().registerNew();
+      Zone zoneB = zoning.getOdZones().getFactory().registerNew();
       zoneB.setXmlId("B");      
       
       centroidA = zoneA.getCentroid();

@@ -509,10 +509,11 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
         // :TODO ugly -> you are not resetting 1 matrix but multiple, NAMES ARE WRONG
         // :TODO: slow -> only reset or do something when it is stored in the first place, this is not checked
         if (getOutputManager().isOutputTypeActive(OutputType.OD)) {
-          simulationData.resetSkimMatrix(mode, getTransportNetwork().getZoning().odZones, (OdOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD));
+          simulationData.resetSkimMatrix(mode, getTransportNetwork().getZoning().getOdZones(),
+              (OdOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD));
         }
         if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
-          simulationData.resetPathMatrix(mode, getTransportNetwork().getZoning().odZones);
+          simulationData.resetPathMatrix(mode, getTransportNetwork().getZoning().getOdZones());
         }
 
         /* execute */

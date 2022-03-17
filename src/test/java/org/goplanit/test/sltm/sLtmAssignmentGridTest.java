@@ -137,10 +137,10 @@ public class sLtmAssignmentGridTest {
       networkLayer.getLinkSegmentTypes().forEach( ls -> ls.getAccessProperties(network.getModes().getFirst()).setMaximumSpeedKmH(MAX_SPEED_KM_H /* km/h */));           
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
-      zoning.odZones.getFactory().registerNew().setXmlId("A");
-      zoning.odZones.getFactory().registerNew().setXmlId("A`");
-      zoning.odZones.getFactory().registerNew().setXmlId("A``");
-      zoning.odZones.getFactory().registerNew().setXmlId("A```");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A`");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A``");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A```");
            
       zoning.getOdConnectoids().getFactory().registerNew(nodeBefore0,  zoning.getOdZones().getByXmlId("A"), 0);
       zoning.getOdConnectoids().getFactory().registerNew(nodeBefore12,  zoning.getOdZones().getByXmlId("A`"), 0);

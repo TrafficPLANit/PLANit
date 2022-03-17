@@ -170,7 +170,7 @@ public class TransportModelNetwork {
    * @return the total number of vertices
    */
   public int getNumberOfVerticesAllLayers() {
-    return zoning.odZones.getNumberOfCentroids() + zoning.transferZones.getNumberOfCentroids() + getNumberOfPhysicalNodesAllLayers();
+    return zoning.getOdZones().getNumberOfCentroids() + zoning.getTransferZones().getNumberOfCentroids() + getNumberOfPhysicalNodesAllLayers();
   }
 
   /**

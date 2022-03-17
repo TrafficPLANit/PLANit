@@ -37,7 +37,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   private void addInternalEventListeners() {
     this.addListener((ConnectoidsImpl<?>) zoning.getOdConnectoids());
     this.addListener((ConnectoidsImpl<?>) zoning.getTransferConnectoids());
-    this.addListener((TransferZoneGroupsImpl) zoning.transferZoneGroups);
+    this.addListener((TransferZoneGroupsImpl) zoning.getTransferZoneGroups());
   }
 
   /**
@@ -60,11 +60,11 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
    */
   protected void removeZone(Zone toRemove) {
     if (toRemove instanceof OdZone) {
-      zoning.odZones.remove((OdZone) toRemove);
+      zoning.getOdZones().remove((OdZone) toRemove);
     } else if (toRemove instanceof TransferZone) {
-      zoning.transferZones.remove((TransferZone) toRemove);
+      zoning.getTransferZones().remove((TransferZone) toRemove);
     } else {
-      LOGGER.severe(String.format("unsupported zone %s to be removed by zoning modifier, ignored", Zone.class.getCanonicalName()));
+      LOGGER.severe(String.format("Unsupported zone %s to be removed by zoning modifier, ignored", Zone.class.getCanonicalName()));
     }
   }
 
@@ -104,9 +104,9 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
      * otherwise it is not longer unique across both when recreating the ids
      */
     boolean resetManagedIdClass = true;
-    zoning.odZones.recreateIds(resetManagedIdClass);
+    zoning.getOdZones().recreateIds(resetManagedIdClass);
     resetManagedIdClass = false;
-    zoning.transferZones.recreateIds(resetManagedIdClass);
+    zoning.getTransferZones().recreateIds(resetManagedIdClass);
 
     fireEvent(new ModifiedZoneIdsEvent(this, zoning));
   }
@@ -116,7 +116,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
    */
   @Override
   public void recreateTransferZoneGroupIds() {
-    zoning.transferZoneGroups.recreateIds();
+    zoning.getTransferZoneGroups().recreateIds();
   }
 
   /**
@@ -125,8 +125,8 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   @Override
   public void removeDanglingZones() {
     /* identify all dangling zones */
-    Set<Zone> danglingZones = new HashSet<Zone>(zoning.odZones.toCollection());
-    danglingZones.addAll(zoning.transferZones.toCollection());
+    Set<Zone> danglingZones = new HashSet<Zone>(zoning.getOdZones().toCollection());
+    danglingZones.addAll(zoning.getTransferZones().toCollection());
     zoning.getOdConnectoids().forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));
     zoning.getTransferConnectoids().forEach(connectoid -> danglingZones.removeAll(connectoid.getAccessZones()));
 
@@ -151,7 +151,7 @@ public class ZoningModifierImpl extends EventProducerImpl implements ZoningModif
   public void removeDanglingTransferZoneGroups() {
     boolean groupRemoved = false;
     /* remove group if dangling */
-    Iterator<TransferZoneGroup> iterator = zoning.transferZoneGroups.iterator();
+    Iterator<TransferZoneGroup> iterator = zoning.getTransferZoneGroups().iterator();
     while (iterator.hasNext()) {
       TransferZoneGroup group = iterator.next();
       if (group.isEmpty()) {

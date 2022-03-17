@@ -63,17 +63,17 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   /**
    * provide access to zones
    */
-  public final OdZones odZones;
+  protected final OdZones odZones;
 
   /**
    * provide access to transfer zones (if any)
    */
-  public final TransferZones transferZones;
+  protected final TransferZones transferZones;
 
   /**
    * provide access to transfer zone groups (if any)
    */
-  public final TransferZoneGroups transferZoneGroups;
+  protected final TransferZoneGroups transferZoneGroups;
 
   /**
    * Constructor
@@ -191,10 +191,19 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   /**
    * Access to the transferZones container
    * 
-   * @return odZones
+   * @return transferZones
    */
   public TransferZones getTransferZones() {
     return transferZones;
+  }
+
+  /**
+   * Access to the transferZoneGroups container
+   * 
+   * @return TranferZoneGroups
+   */
+  public TransferZoneGroups getTransferZoneGroups() {
+    return transferZoneGroups;
   }
 
   /**

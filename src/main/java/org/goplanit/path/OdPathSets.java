@@ -63,7 +63,7 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    * @return newly created od path matrix
    */
   public OdPathMatrix createAndRegisterOdPathMatrix(final Zoning zoning) {
-    final OdPathMatrix newOdPathMatrix = new OdPathMatrix(getIdGroupingToken(), zoning.odZones);
+    final OdPathMatrix newOdPathMatrix = new OdPathMatrix(getIdGroupingToken(), zoning.getOdZones());
     odPathMatrices.put(newOdPathMatrix.getId(), newOdPathMatrix);
     return newOdPathMatrix;
   }

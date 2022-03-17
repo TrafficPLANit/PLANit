@@ -238,9 +238,9 @@ public class sLtmAssignmentMultiDestinationTest {
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("14"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(8);
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
-      zoning.odZones.getFactory().registerNew().setXmlId("A");
-      zoning.odZones.getFactory().registerNew().setXmlId("A`");
-      zoning.odZones.getFactory().registerNew().setXmlId("A``");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A`");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A``");
            
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("5"),  zoning.getOdZones().getByXmlId("A`"), 0);

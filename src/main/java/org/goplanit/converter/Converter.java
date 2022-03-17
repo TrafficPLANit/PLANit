@@ -37,16 +37,15 @@ public abstract class Converter<T> extends ConverterBase {
 
     var reader = ((ConverterReader<T>) getReader());
     LOGGER.info(String.format("****************** [START] CONVERTER: READ %s [START] ********************", reader.getTypeDescription()));
-    T network = reader.read();
+    T entity = reader.read();
     reader.reset();
     LOGGER.info(String.format("****************** [END]   CONVERTER: READ %s [END]   ********************", reader.getTypeDescription()));
 
     ConverterWriter<T> writer = ((ConverterWriter<T>) getWriter());
-    LOGGER.info(String.format("****************** [START] NETWORK CONVERTER: WRITE %s [START] ********************", writer.getTypeDescription()));
-    writer.write(network);
+    LOGGER.info(String.format("****************** [START] CONVERTER: WRITE %s [START] ********************", writer.getTypeDescription()));
+    writer.write(entity);
     writer.reset();
-    LOGGER.info(String.format("****************** [END]   NETWORK CONVERTER: WRITE %s [END]   ********************", writer.getTypeDescription()));
-
+    LOGGER.info(String.format("****************** [END]   CONVERTER: WRITE %s [END]   ********************", writer.getTypeDescription()));
   }
 
 }

@@ -2,12 +2,12 @@ package org.goplanit.assignment.algorithmb;
 
 import java.util.Set;
 
-import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.output.OutputManager;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.Zone;
 
 /**
@@ -39,7 +39,7 @@ public class AlgorithmBEquilibration {
         transportNetwork.getNumberOfVerticesAllLayers());
 
     for (@SuppressWarnings("unused")
-    Zone zone : assignment.getTransportNetwork().getZoning().odZones) {
+    Zone zone : assignment.getTransportNetwork().getZoning().getOdZones()) {
       /* for each origin create initial bush with shortest path */
     }
   }
@@ -70,7 +70,7 @@ public class AlgorithmBEquilibration {
     boolean converged = false;
     while (!converged) {
       for (@SuppressWarnings("unused")
-      Zone origin : assignment.getTransportNetwork().getZoning().odZones) {
+      Zone origin : assignment.getTransportNetwork().getZoning().getOdZones()) {
         @SuppressWarnings("unused")
         boolean bushIsOptimal = false;
         // TODO Bush originBasedBush = getBush(origin);

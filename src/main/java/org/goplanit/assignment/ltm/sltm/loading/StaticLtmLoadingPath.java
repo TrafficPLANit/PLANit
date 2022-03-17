@@ -100,7 +100,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     PathTurnFlowUpdateConsumer pathTurnFlowUpdateConsumer = (PathTurnFlowUpdateConsumer) createPathFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlows, updateOutflows);
     
     /* execute */
-    getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().odZones, pathTurnFlowUpdateConsumer);
+    getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathTurnFlowUpdateConsumer);
     return pathTurnFlowUpdateConsumer.getAcceptedTurnFlows();
   }
   
@@ -115,7 +115,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     var pathLinkFlowUpdateConsumer = (PathLinkFlowUpdateConsumer) createPathFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlows, updateOutflows); 
     
     /* execute */
-    getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().odZones, pathLinkFlowUpdateConsumer);
+    getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathLinkFlowUpdateConsumer);
   }
 
   /**
@@ -129,7 +129,7 @@ public class StaticLtmLoadingPath extends StaticLtmNetworkLoading {
     var pathLinkFlowUpdateConsumer = (PathLinkFlowUpdateConsumer) createPathFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlows, updateOutflows); 
     
     /* execute */
-    getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().odZones, pathLinkFlowUpdateConsumer);   
+    getOdDemands().forEachNonZeroOdDemand(getTransportNetwork().getZoning().getOdZones(), pathLinkFlowUpdateConsumer);   
   }  
 
   /** In a path based implementation, tracked nodes overlap with potentially blocking nodes. Since potentially blocking nodes

@@ -41,7 +41,7 @@ public class ProjectAssignmentBuilders implements Iterable<TrafficAssignmentBuil
    * @return true if registered assignments exist, false otherwise
    */
   public boolean isEmpty() {
-    return !builders.isEmpty();
+    return builders.isEmpty();
   }
 
   /**

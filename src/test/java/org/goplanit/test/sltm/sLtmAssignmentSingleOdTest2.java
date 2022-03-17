@@ -199,8 +199,8 @@ public class sLtmAssignmentSingleOdTest2 {
       networkLayer.getLinkSegments().forEach(ls -> ls.setXmlId(""+ls.getParentLink().getId()));
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
-      zoning.odZones.getFactory().registerNew().setXmlId("A");
-      zoning.odZones.getFactory().registerNew().setXmlId("A`");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A`");
            
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("4"),  zoning.getOdZones().getByXmlId("A`"), 0);
