@@ -4,6 +4,7 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.userclass.TravellerType;
+import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.ExternalIdAble;
@@ -11,6 +12,7 @@ import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.TransferZoneGroup;
 import org.goplanit.utils.zoning.Zone;
@@ -168,6 +170,28 @@ public class IdMapperFunctionFactory {
    */
   public static Function<TravellerType, String> createTravellerTypeIdMappingFunction(IdMapperType idMapper) throws PlanItException {
     return createIdMappingFunction(TravellerType.class, idMapper);
+  }
+
+  /**
+   * create a function that takes a traveller type and generates the appropriate id based on the user configuration
+   * 
+   * @param idMapper the type of mapping function to create
+   * @return function that generates time period ids for time period output
+   * @throws PlanItException thrown if error
+   */
+  public static Function<TimePeriod, String> createTimePeriodIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+    return createIdMappingFunction(TimePeriod.class, idMapper);
+  }
+
+  /**
+   * create a function that takes a user class and generates the appropriate id based on the user configuration
+   * 
+   * @param idMapper the type of mapping function to create
+   * @return function that generates user class ids for user class output
+   * @throws PlanItException thrown if error
+   */
+  public static Function<UserClass, String> createUserClassIdMappingFunction(IdMapperType idMapper) throws PlanItException {
+    return createIdMappingFunction(UserClass.class, idMapper);
   }
 
 }
