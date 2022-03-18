@@ -210,6 +210,10 @@ public class PasManager {
    */
   public Pas createAndRegisterNewPas(final Bush originBush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
     Pas newPas = Pas.create(s1, s2);
+    if (newPas == null) {
+      return null;
+    }
+
     if (detailedLogging) {
       LOGGER.info(String.format("Created new PAS: %s", newPas.toString()));
     }

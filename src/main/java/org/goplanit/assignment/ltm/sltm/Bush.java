@@ -372,7 +372,7 @@ public class Bush implements IdAble {
   }
 
   /**
-   * Remove a turn from the bush by removing it from the acyclic graph and removing any data associated with it
+   * Remove a turn from the bush by removing it from the acyclic graph and removing any data associated with it. Edge segments are also removed in case the no longer carry any flow
    * 
    * @param fromEdgeSegment of the turn
    * @param toEdgeSegment   of the turn
@@ -380,14 +380,30 @@ public class Bush implements IdAble {
   public void removeTurn(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
     bushData.removeTurn(fromEdgeSegment, toEdgeSegment);
 
-    /* update graph if entry/exit segment is now unused as well */
-    if (!Precision.positive(getSendingFlowPcuH(toEdgeSegment))) {
-      dag.removeEdgeSegment(toEdgeSegment);
-    }
     if (!Precision.positive(getSendingFlowPcuH(fromEdgeSegment))) {
-      dag.removeEdgeSegment(fromEdgeSegment);
+      removeEdgeSegment(fromEdgeSegment);
+    }
+    if (!Precision.positive(getSendingFlowPcuH(toEdgeSegment))) {
+      removeEdgeSegment(toEdgeSegment);
     }
     requireTopologicalSortUpdate = true;
+  }
+
+  /**
+   * Remove edge segment from bush, if it no longer has flow
+   * 
+   * @param edgeSegment to remove
+   * @return true when removed, false otherwise
+   */
+  public boolean removeEdgeSegment(EdgeSegment edgeSegment) {
+    /* update graph if edge segment is unused */
+    if (!Precision.positive(getSendingFlowPcuH(edgeSegment))) {
+      dag.removeEdgeSegment(edgeSegment);
+      return true;
+    }
+
+    LOGGER.warning(String.format("Unable to remove egdge segment %s from bush (origin %s) unless it has no flow", edgeSegment.getXmlId()));
+    return false;
   }
 
   /**
@@ -690,7 +706,17 @@ public class Bush implements IdAble {
           continue;
         }
 
+        /* if flow has fallen below threshold due to queues, remove from bush */
         var usedLabels = getFlowCompositionLabels(entrySegment);
+        if (usedLabels == null) {
+          // TODO: likely goes wrong for PASs where it is now possible for a PAS to have an origin where part of the PAS alternative is no longer present
+          boolean removed = removeEdgeSegment(entrySegment);
+          if (!removed) {
+            LOGGER.warning(String.format("Entry segment %s has no flow labels but has flow, this shouldn't happen", entrySegment.getXmlId()));
+          }
+          continue;
+        }
+
         for (var entrylabel : usedLabels) {
           double entryLabelAcceptedFlow = bushData.getTotalAcceptedFlowToPcuH(entrySegment, entrylabel, flowAcceptanceFactors);
 

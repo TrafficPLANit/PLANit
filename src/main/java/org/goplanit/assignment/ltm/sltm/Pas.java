@@ -84,9 +84,13 @@ public class Pas {
    * @param s1 to use
    * @param s2 to use
    * 
-   * @return newly created PAS
+   * @return newly created PAS, or null when alternative segment(s) is/are null
    */
   protected static Pas create(final EdgeSegment[] s1, final EdgeSegment[] s2) {
+    if (s1 == null || s2 == null) {
+      LOGGER.warning("Unable to create new PAS, one or both alternative segments are null");
+      return null;
+    }
     return new Pas(s1, s2);
   }
 
@@ -425,11 +429,17 @@ public class Pas {
    */
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder("s1: [");
-    Arrays.stream(s1).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : ls.getId()).append(","));
-    sb.replace(sb.length() - 1, sb.length(), "] s2: [");
-    Arrays.stream(s2).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : ls.getId()).append(","));
-    sb.replace(sb.length() - 1, sb.length(), "]");
+    final StringBuilder sb = new StringBuilder();
+    if (s1 != null) {
+      sb.append("s1: [");
+      Arrays.stream(s1).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : ls.getId()).append(","));
+      sb.replace(sb.length() - 1, sb.length(), "]");
+    }
+    if (s2 != null) {
+      sb.append(" s2: [");
+      Arrays.stream(s2).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : ls.getId()).append(","));
+      sb.replace(sb.length() - 1, sb.length(), "]");
+    }
     return sb.toString();
   }
 

@@ -76,7 +76,8 @@ public class NewellFundamentalDiagramComponent extends FundamentalDiagramCompone
     for (MacroscopicLinkSegment linkSegment : parentNetworkLayer.getLinkSegments()) {
       if (Precision.smaller(linkSegment.getPhysicalSpeedLimitKmH(), linkSegment.getLinkSegmentType().getMaximumSpeedKmH(mode))) {
         LOGGER.warning(String.format("Physical speed limit (%.2f) on link segment %s is more restrictive than the speed limit (%.2f) of the applied link segment type %s",
-            linkSegment.getPhysicalSpeedLimitKmH(), linkSegment.getXmlId(), linkSegment.getLinkSegmentType().getMaximumSpeedKmH(mode)));
+            linkSegment.getPhysicalSpeedLimitKmH(), linkSegment.getXmlId(), linkSegment.getLinkSegmentType().getMaximumSpeedKmH(mode),
+            linkSegment.getLinkSegmentType().getXmlId()));
 
         /* updated FD */
         double modeSpeedLimit = linkSegment.getModelledSpeedLimitKmH(mode);
