@@ -147,7 +147,7 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
      * @param travellerType the travel type for this user class
      * @return new traveler type created
      */
-    public UserClass createAndRegisterNewUserClass(String name, Mode mode, TravellerType travellerType) {
+    public UserClass createAndRegister(String name, Mode mode, TravellerType travellerType) {
       var newUserClass = new UserClass(getIdGroupingToken(), name, mode, travellerType);
       register(newUserClass);
       return newUserClass;

@@ -25,7 +25,7 @@ public class TravellerType extends ExternalIdAbleImpl {
   public static final String DEFAULT_XML_ID = "1";
 
   /**
-   * Name of this traveler type
+   * Name of this traveller type
    */
   private final String name;
 
@@ -85,5 +85,13 @@ public class TravellerType extends ExternalIdAbleImpl {
   @Override
   public TravellerType clone() {
     return new TravellerType(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return String.format("[id: %d, XMLid: %s, name: %s]", getId(), getXmlId(), getName());
   }
 }

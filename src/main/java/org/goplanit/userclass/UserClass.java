@@ -111,4 +111,11 @@ public class UserClass extends ExternalIdAbleImpl {
     return new UserClass(this);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    return String.format("[id: %d, XMLid: %s, name: %s, mode %s, travellertype %s]", getId(), getXmlId(), getName(), getMode().toString(), travellerType.toString());
+  }
 }

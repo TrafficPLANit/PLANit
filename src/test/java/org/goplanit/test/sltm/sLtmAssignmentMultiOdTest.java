@@ -64,7 +64,7 @@ public class sLtmAssignmentMultiOdTest {
     Demands demands = new Demands(testToken);
     demands.timePeriods.createAndRegisterNewTimePeriod("dummyTimePeriod", 0, 3600);
     demands.travelerTypes.createAndRegisterNew("dummyTravellerType");
-    demands.userClasses.createAndRegisterNewUserClass("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
+    demands.userClasses.createAndRegister("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
 
     /* OD DEMANDS 4000 A->A`, 4000 A->A`` */
     OdZones odZones = zoning.getOdZones();
