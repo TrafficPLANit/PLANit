@@ -156,20 +156,21 @@ public class PasManager {
     EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
     DirectedVertex currVertex = start;
     EdgeSegment currEdgeSegment = null;
-    int index = 0;
+    int index = -1;
     do {
       currEdgeSegment = pathTree.get(currVertex);
-      edgeSegmentArray[index++] = currEdgeSegment;
+      edgeSegmentArray[++index] = currEdgeSegment;
       if (currEdgeSegment == null) {
         LOGGER.warning(String.format("Unable to extract subpath from start vertex %s to end vertex %s, no outgoing edge segment available at intermediate vertex %s",
             start.getXmlId(), end.getXmlId(), currVertex.getXmlId()));
         return null;
       }
       currVertex = currEdgeSegment.getDownstreamVertex();
+      ++index;
     } while (!currVertex.idEquals(end));
 
     if (truncateArray && index < (arrayLength - 1)) {
-      return Arrays.copyOfRange(edgeSegmentArray, 0, index);
+      return Arrays.copyOfRange(edgeSegmentArray, 0, index + 1);
     }
 
     return edgeSegmentArray;

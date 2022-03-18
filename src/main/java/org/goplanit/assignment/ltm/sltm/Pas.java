@@ -27,7 +27,6 @@ import org.goplanit.utils.misc.CollectionUtils;
 public class Pas {
 
   /** logger to use */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(Pas.class.getCanonicalName());
 
   /** cheap PA segment s1 */
@@ -430,16 +429,17 @@ public class Pas {
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
-    if (s1 != null) {
-      sb.append("s1: [");
-      Arrays.stream(s1).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : ls.getId()).append(","));
-      sb.replace(sb.length() - 1, sb.length(), "]");
+    sb.append("s1: [");
+    if (s1 != null && s1.length > 0) {
+      Arrays.stream(s1).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : String.valueOf(ls.getId()) + "*").append(","));
+      sb.replace(sb.length() - 1, sb.length(), "");
     }
-    if (s2 != null) {
-      sb.append(" s2: [");
-      Arrays.stream(s2).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : ls.getId()).append(","));
-      sb.replace(sb.length() - 1, sb.length(), "]");
+    sb.append("] s2: [");
+    if (s2 != null && s2.length > 0) {
+      Arrays.stream(s2).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : String.valueOf(ls.getId()) + "*").append(","));
+      sb.replace(sb.length() - 1, sb.length(), "");
     }
+    sb.append("]");
     return sb.toString();
   }
 
