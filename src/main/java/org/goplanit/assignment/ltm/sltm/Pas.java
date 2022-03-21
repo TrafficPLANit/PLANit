@@ -428,14 +428,24 @@ public class Pas {
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
+
+    Consumer<EdgeSegment> consumer = (ls) -> {
+      if (ls == null) {
+        LOGGER.warning("edgeSegment null on PAS alternative, shouldn't happen");
+        sb.append("null,");
+        return;
+      }
+      sb.append(ls.getXmlId() != null ? ls.getXmlId() : String.valueOf(ls.getId()) + "*").append(",");
+    };
+
     sb.append("s1: [");
     if (s1 != null && s1.length > 0) {
-      Arrays.stream(s1).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : String.valueOf(ls.getId()) + "*").append(","));
+      Arrays.stream(s1).forEach(consumer);
       sb.replace(sb.length() - 1, sb.length(), "");
     }
     sb.append("] s2: [");
     if (s2 != null && s2.length > 0) {
-      Arrays.stream(s2).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : String.valueOf(ls.getId()) + "*").append(","));
+      Arrays.stream(s2).forEach(consumer);
       sb.replace(sb.length() - 1, sb.length(), "");
     }
     sb.append("]");

@@ -156,7 +156,8 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     /* create the PAS and register origin bush on it */
     boolean truncateSpareArrayCapacity = true;
     EdgeSegment[] s1 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, networkMinPaths, shortestPathLength, truncateSpareArrayCapacity);
-    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, highCostSegment.second(), shortestPathLength, truncateSpareArrayCapacity);
+    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, highCostSegment.second(),
+        Math.min(shortestPathLength, highCostSegment.second().size()), truncateSpareArrayCapacity);
     newPas = pasManager.createAndRegisterNewPas(originBush, s1, s2);
 
     /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
