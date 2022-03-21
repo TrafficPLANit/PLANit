@@ -97,7 +97,7 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
   }
 
   /**
-   * Traverse the graph recursively with the purposes of sorting it topologically
+   * Traverse the graph recursively with the purpose of sorting it topologically
    * 
    * @param vertexIndex      current index we are at
    * @param visited          track which vertices have been visited

@@ -49,7 +49,7 @@ public class sLtmAssignmentGridTest {
   private static double MAX_SPEED_KM_H = 60.0;
 
   /**
-   * Create demands an populate with OD DEMANDS 2000 A->A`, 2000 A->A``, and, 2000 A```->A`, 2000 A```->A``
+   * Create demands object, with time period T=[0,3600] a dummy user and traveler type 
    * 
    * @return created demands
    * @throws PlanItException thrown if error
@@ -85,7 +85,7 @@ public class sLtmAssignmentGridTest {
   public void intialise() {
     // construct the network. 
     //
-    // The network is a 4X4 grid. All link shave 1800 capacity per lane, for a single lane
+    // The network is a 4X4 grid. All links have 1800 capacity per lane, for a single lane
     //
     // C_a = 1800 pcu/h (default when not set explicitly)
     // Maximum speed = 60 km/h
@@ -145,7 +145,7 @@ public class sLtmAssignmentGridTest {
 
       Demands demands = createDemands();
 
-      /* OD DEMANDS 3600 A->A``, 3600 A->A``` */
+      /* OD DEMANDS 3600 A->A``, 3600 A->A``` (1800 pcu/h for two hours) */
       OdZones odZones = zoning.getOdZones();
       OdDemands odDemands = new OdDemandMatrix(zoning.getOdZones());
       odDemands.setValue(odZones.getByXmlId("A"), odZones.getByXmlId("A``"), 1800.0);

@@ -12,8 +12,8 @@ import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 
 /**
- * Functionality to conduct a PAS flow shift by means of the simples labelling technique possible, where all flow attributed to a destination is labelled uniquely throughout the
- * bush. This is least effecient in terms of memory but conceptually the easiest the understand, implement, and test.
+ * Functionality to conduct a PAS flow shift by means of the simplest labelling technique possible, where all flow attributed to a destination is labelled uniquely throughout the
+ * bush. This is least efficient in terms of memory but conceptually the easiest the understand, implement, and test.
  * 
  * @author markr
  *
