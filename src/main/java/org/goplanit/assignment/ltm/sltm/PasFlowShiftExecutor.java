@@ -257,6 +257,8 @@ public abstract class PasFlowShiftExecutor {
    * cost on the PAS is already equal, we propose to shift as much flow as would yield an equal distribution between the alternatives (maximising entropy) in order to obtain a
    * unique solution under equal cost. would expect the segment to transition to congestion.
    * 
+   * @param origin         to use
+   * @param entrySegment   to use
    * @param theMode        to use
    * @param physicalCost   to use
    * @param virtualCost    to use
@@ -409,19 +411,19 @@ public abstract class PasFlowShiftExecutor {
   }
 
   /**
-   * updated version --> we account for the fact that per origin bush different incoming links to the PAS might be used -> each incoming link that is used and that is congested
-   * should be the basis for the flow shift instead of the first congested one within the PAS. This is currently not accounted for + if an incoming link is congested, then it has
-   * the same alpha for both alternatives BUT the most restricting one might be linked to one of those. If so then we should shift towards the other! This does not exist yet. If
-   * neither is the most restricting then revert to situation where we shift as if uncongested as it has no impact. + So -> split flow shift and execution to per incoming link
-   * rather than combining them as we do in run!! Later we can optimise possibly
+   * We account for the fact that per origin bush different incoming links to the PAS might be used so each incoming link that is used and that is congested should be the basis for
+   * the flow shift instead of the first congested one within the PAS. This is currently not accounted for + if an incoming link is congested, then it has the same alpha for both
+   * alternatives BUT the most restricting one might be linked to one of those. If so then we should shift towards the other! This does not exist yet. If neither is the most
+   * restricting then revert to situation where we shift as if uncongested as it has no impact. So, split flow shift and execution to per incoming link rather than combining them
+   * as we do in run!! Later we can optimise possibly
    * 
    * Each PAS per origin is split in x PASs where x is the number of used in links for each bush
    * 
-   * @param theMode
-   * @param physicalCost
-   * @param virtualCost
-   * @param networkLoading
-   * @return
+   * @param theMode        to use
+   * @param physicalCost   to use
+   * @param virtualCost    to use
+   * @param networkLoading to use
+   * @return true when flow is shifted, false otherwise
    */
   public boolean run(Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, StaticLtmLoadingBush networkLoading) {
     List<Bush> originsWithoutRemainingPasFlow = new ArrayList<>();

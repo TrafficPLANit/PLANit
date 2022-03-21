@@ -354,9 +354,8 @@ public class Pas {
   }
 
   /**
-   * Returns the difference between the cost of the high cost and the low cost segment normalised based on the total number of edge segments across both alternatives. Hence it
-   * reflects {@link #getReducedCost()} divided by ({@link #getAlternative(true)}+{@link #getAlternative(false)}. Should always be larger than zero assuming an
-   * {@link #updateCost(double[])}).
+   * Returns the difference between the cost of the high cost and the low cost segment normalised based on the total number of edge segments across both alternatives. Should always
+   * be larger than zero.
    * 
    * @return (s2Cost - s2Cost)/(#numEdgeSegmentsS1+#numEdgeSegmentsS2)
    */
@@ -385,7 +384,7 @@ public class Pas {
    * Verify if the current known cost for the PAS is considered equal under the given epsilon
    * 
    * @param epsilon to use
-   * @return true when abs(costS1-costS2)<=epsilon
+   * @return true when abs(costS1-costS2) smaller or equal than epsilon
    */
   public boolean isCostEqual(double epsilon) {
     return Precision.equal(s2Cost, s1Cost, epsilon);

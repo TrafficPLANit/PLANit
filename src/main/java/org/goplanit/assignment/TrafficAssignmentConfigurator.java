@@ -174,7 +174,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
   /**
    * Get the flag for logging all settings
    * 
-   * return flag
+   * @return true when logging false otherwise
    */
   public boolean isLogSettings() {
     return this.logSettings;

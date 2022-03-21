@@ -387,7 +387,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   /**
    * Set the flag indicating to enforce max entropy flow solution is active or not
    * 
-   * @return flag when true activated, when false disabled
+   * @param enforceMaxEntropyFlowSolution set flag to enforce max entropy solution
    */
   public void setEnforceMaxEntropyFlowSolution(boolean enforceMaxEntropyFlowSolution) {
     settings.setEnforceMaxEntropyFlowSolution(enforceMaxEntropyFlowSolution);
