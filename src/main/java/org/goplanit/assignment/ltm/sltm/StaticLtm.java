@@ -1,8 +1,11 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -18,6 +21,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -124,8 +128,8 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   private void executeTimePeriod(TimePeriod timePeriod, Set<Mode> modes) throws PlanItException {
 
     if (modes.size() != 1) {
-      LOGGER.warning(String.format("%ssLTM only supports a single mode for now, found %s, aborting assignment for time period %s", LoggingUtils.createRunIdPrefix(getId()),
-          timePeriod.getXmlId()));
+      LOGGER.warning(
+          String.format("%ssLTM only supports a single mode for now, found %s, aborting assignment for time period %s", LoggingUtils.runIdPrefix(getId()), timePeriod.getXmlId()));
       return;
     }
 
@@ -156,8 +160,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       getIterationData().setLinkSegmentTravelTimePcuH(theMode, costsToUpdate);
 
       // CONVERGENCE CHECK
-      getGapFunction().computeGap();
-      converged = getGapFunction().hasConverged(simulationData.getIterationIndex());
+      converged = assignmentStrategy.hasConverged(getGapFunction(), simulationData.getIterationIndex());
 
       // PERSIST
       persistIterationResults(timePeriod, theMode, converged);
@@ -196,12 +199,12 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
 
     /* gap function check */
     PlanItException.throwIf(!(getGapFunction() instanceof LinkBasedRelativeDualityGapFunction),
-        "%sStatic LTM only supports a link based relative gap function (for equilibration) at the moment, but found %s", LoggingUtils.createRunIdPrefix(getId()),
+        "%sStatic LTM only supports a link based relative gap function (for equilibration) at the moment, but found %s", LoggingUtils.runIdPrefix(getId()),
         getGapFunction().getClass().getCanonicalName());
 
     /* smoothing check */
-    PlanItException.throwIf(!(getSmoothing() instanceof MSASmoothing), "%sStatic LTM only supports MSA smoothing at the moment, but found %s",
-        LoggingUtils.createRunIdPrefix(getId()), getSmoothing().getClass().getCanonicalName());
+    PlanItException.throwIf(!(getSmoothing() instanceof MSASmoothing), "%sStatic LTM only supports MSA smoothing at the moment, but found %s", LoggingUtils.runIdPrefix(getId()),
+        getSmoothing().getClass().getCanonicalName());
   }
 
   /**
@@ -211,7 +214,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   protected void initialiseBeforeExecution() throws PlanItException {
     super.initialiseBeforeExecution();
     this.assignmentStrategy = createAssignmentStrategy();
-    LOGGER.info(String.format("%sstrategy: %s", LoggingUtils.createRunIdPrefix(getId()), assignmentStrategy.getDescription()));
+    LOGGER.info(String.format("%sstrategy: %s", LoggingUtils.runIdPrefix(getId()), assignmentStrategy.getDescription()));
   }
 
   /**
@@ -221,13 +224,13 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   protected void executeEquilibration() throws PlanItException {
     // perform assignment per period
     final var timePeriods = getDemands().timePeriods.asSortedSetByStartTime();
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "total time periods: " + timePeriods.size());
+    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + "total time periods: " + timePeriods.size());
     for (final TimePeriod timePeriod : timePeriods) {
       Calendar startTime = Calendar.getInstance();
       final Calendar initialStartTime = startTime;
-      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createTimePeriodPrefix(timePeriod) + timePeriod.toString());
+      LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.timePeriodPrefix(timePeriod) + timePeriod.toString());
       executeTimePeriod(timePeriod, getDemands().getRegisteredModesForTimePeriod(timePeriod));
-      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
+      LOGGER.info(LoggingUtils.runIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
     }
   }
 
@@ -295,7 +298,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       // NOT YET SUPPORTED
       break;
     default:
-      LOGGER.warning(String.format("%s%s is not supported yet", LoggingUtils.createRunIdPrefix(getId()), outputType.value()));
+      LOGGER.warning(String.format("%s%s is not supported yet", LoggingUtils.runIdPrefix(getId()), outputType.value()));
     }
     return outputTypeAdapter;
   }
@@ -364,12 +367,30 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   }
 
   /**
-   * collect the flag indicating link storage constraints are active or not
+   * Collect the flag indicating link storage constraints are active or not
    * 
    * @return flag when true activated, when false disabled
    */
   public boolean isActivateDetailedLogging() {
     return settings.isDetailedLogging();
+  }
+
+  /**
+   * Collect the flag indicating to enforce max entropy flow solution is active or not
+   * 
+   * @return flag when true activated, when false disabled
+   */
+  public boolean isEnforceMaxEntropyFlowSolution() {
+    return settings.isEnforceMaxEntropyFlowSolution();
+  }
+
+  /**
+   * Set the flag indicating to enforce max entropy flow solution is active or not
+   * 
+   * @param enforceMaxEntropyFlowSolution set flag to enforce max entropy solution
+   */
+  public void setEnforceMaxEntropyFlowSolution(boolean enforceMaxEntropyFlowSolution) {
+    settings.setEnforceMaxEntropyFlowSolution(enforceMaxEntropyFlowSolution);
   }
 
   /**
@@ -395,6 +416,17 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   public void reset() {
     super.reset();
     this.simulationData.reset();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(settings, i -> Modifier.isPrivate(i) && !Modifier.isStatic(i));
+    var keyValueMap = new HashMap<String, String>();
+    privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
+    return keyValueMap;
   }
 
 }

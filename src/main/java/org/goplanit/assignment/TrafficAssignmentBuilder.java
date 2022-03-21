@@ -242,6 +242,9 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
     getConfigurator().activateOutput(OutputType.LINK);
   }
 
+  /** default flag indicating if settings are to be logged upon creation or not */
+  public static final boolean LOG_SETTINGS = true;
+
   /**
    * {@inheritDoc}
    */
@@ -272,6 +275,10 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
 
     /* information is now present to generate appropriate output type adapters (requires output manager which now has been set */
     initialiseOutputAdapters(trafficAssignment);
+
+    if (getConfigurator().isLogSettings()) {
+      trafficAssignment.logAllSettings();
+    }
 
     return trafficAssignment;
   }

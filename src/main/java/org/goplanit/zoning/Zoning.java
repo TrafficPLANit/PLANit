@@ -1,6 +1,7 @@
 package org.goplanit.zoning;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
@@ -62,17 +63,17 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   /**
    * provide access to zones
    */
-  public final OdZones odZones;
+  protected final OdZones odZones;
 
   /**
    * provide access to transfer zones (if any)
    */
-  public final TransferZones transferZones;
+  protected final TransferZones transferZones;
 
   /**
    * provide access to transfer zone groups (if any)
    */
-  public final TransferZoneGroups transferZoneGroups;
+  protected final TransferZoneGroups transferZoneGroups;
 
   /**
    * Constructor
@@ -190,10 +191,19 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
   /**
    * Access to the transferZones container
    * 
-   * @return odZones
+   * @return transferZones
    */
   public TransferZones getTransferZones() {
     return transferZones;
+  }
+
+  /**
+   * Access to the transferZoneGroups container
+   * 
+   * @return TranferZoneGroups
+   */
+  public TransferZoneGroups getTransferZoneGroups() {
+    return transferZoneGroups;
   }
 
   /**
@@ -261,6 +271,14 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
     this.odConnectoids.reset();
     this.transferZoneGroups.reset();
     this.transferZones.reset();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
 }

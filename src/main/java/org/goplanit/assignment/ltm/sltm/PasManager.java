@@ -46,6 +46,9 @@ public class PasManager {
   /** a comparator to compare PASs based on the reduced cost between their high and low cost segments */
   private final Comparator<Pas> pasReducedCostComparator;
 
+  /** flag for detailed logging */
+  private boolean detailedLogging = DETAILED_LOGGING;
+
   /**
    * Verify if extending a bush with the given PAS given the reduced cost found, it would be effective in improving the bush. This is verified by
    * <p>
@@ -102,6 +105,9 @@ public class PasManager {
     return isCostEffective(pas, reducedCost) && isFlowEffective(pas, originBush, flowAcceptanceFactors);
   }
 
+  /** default for detailed logging flag */
+  public static final boolean DETAILED_LOGGING = false;
+
   /**
    * Extract a subpath in the form of a raw edge segment array from start to end vertex based on the shortest path result provided. Since the path tree is in reverse direction, the
    * array is filled from the back, i.e.,if there is spare capacity the front of the array would be empty.
@@ -153,17 +159,22 @@ public class PasManager {
     int index = 0;
     do {
       currEdgeSegment = pathTree.get(currVertex);
-      edgeSegmentArray[index++] = currEdgeSegment;
+      edgeSegmentArray[index] = currEdgeSegment;
       if (currEdgeSegment == null) {
         LOGGER.warning(String.format("Unable to extract subpath from start vertex %s to end vertex %s, no outgoing edge segment available at intermediate vertex %s",
             start.getXmlId(), end.getXmlId(), currVertex.getXmlId()));
         return null;
       }
       currVertex = currEdgeSegment.getDownstreamVertex();
-    } while (!currVertex.idEquals(end));
+    } while (!currVertex.idEquals(end) && ++index < arrayLength);
 
-    if (truncateArray && index < (arrayLength - 1)) {
-      return Arrays.copyOfRange(edgeSegmentArray, 0, index);
+    if (!currVertex.idEquals(end)) {
+      LOGGER.warning(String.format("Unable to create subpath array node (%s) to node (%s) from given pathTree", start.toString(), end.toString()));
+      return null;
+    }
+
+    if (truncateArray && index < arrayLength) {
+      return Arrays.copyOfRange(edgeSegmentArray, 0, index + 1);
     }
 
     return edgeSegmentArray;
@@ -176,8 +187,9 @@ public class PasManager {
     this.passByMergeVertex = new HashMap<DirectedVertex, Collection<Pas>>();
 
     /*
-     * compare by reduced cost in descending order (from high reduced cost to low reduced cost), use very high precision to make sure very small cost differences are still
-     * considered as much as possible
+     * compare by normalised reduced cost in descending order (from high reduced cost to low reduced cost), use very high precision to make sure very small cost differences are
+     * still considered as much as possible. We use normalised cost to ensure that small PASs are not disadvantaged compared to overlapping larger PASs since the smaller the PAS
+     * the better the convergence so if anything they should be favoured and processed earlier
      */
     this.pasReducedCostComparator = new Comparator<Pas>() {
       @Override
@@ -201,12 +213,31 @@ public class PasManager {
    * @param s2         expensive alternative segment
    * @return createdPas
    */
-  public Pas createNewPas(final Bush originBush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
+  public Pas createAndRegisterNewPas(final Bush originBush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
     Pas newPas = Pas.create(s1, s2);
+    if (newPas == null) {
+      return null;
+    }
+
+    if (detailedLogging) {
+      LOGGER.info(String.format("Created new PAS: %s", newPas.toString()));
+    }
     newPas.registerOrigin(originBush);
     passByMergeVertex.putIfAbsent(newPas.getMergeVertex(), new ArrayList<Pas>());
     passByMergeVertex.get(newPas.getMergeVertex()).add(newPas);
     return newPas;
+  }
+
+  /**
+   * create a new PAS for the given cheap and expensive paired alternative segments (subpaths) and register the origin bush on it that was responsible for creating it
+   * 
+   * @param originBush responsible for triggering the creation of this PAS
+   * @param s1         cheap alternative segment
+   * @param s2         expensive alternative segment
+   * @return createdPas
+   */
+  public Pas createAndRegisterNewPas(final Bush originBush, final Collection<EdgeSegment> s1, final Collection<EdgeSegment> s2) {
+    return createAndRegisterNewPas(originBush, s1.toArray(new EdgeSegment[s1.size()]), s2.toArray(new EdgeSegment[s2.size()]));
   }
 
   /**
@@ -216,16 +247,52 @@ public class PasManager {
    */
   public void removePas(final Pas pas) {
     passByMergeVertex.get(pas.getMergeVertex()).remove(pas);
+    if (detailedLogging) {
+      LOGGER.info(String.format("Removed existing PAS: %s", pas.toString()));
+    }
   }
 
   /**
    * Collect all PASs that share the same merge (end) vertex
    * 
    * @param mergeVertex to collect for
-   * @return found PAS matches
+   * @return found PAS matches, null if none
    */
   public Collection<Pas> getPassByMergeVertex(final DirectedVertex mergeVertex) {
     return passByMergeVertex.get(mergeVertex);
+  }
+
+  /**
+   * Find PAS that exactly matches the provides alternative segments
+   * 
+   * @param alternative1 alternative segment of PAS
+   * @param alternative2 alternative segment of PAS
+   * @return the matching PAS, null otherwise
+   */
+  public Pas findExistingPas(final Collection<EdgeSegment> alternative1, final Collection<EdgeSegment> alternative2) {
+    if (alternative1 == null || alternative2 == null) {
+      LOGGER.severe("one or more alternatives of potential PAS are null");
+      return null;
+    }
+    if (alternative1.isEmpty() || alternative2.isEmpty()) {
+      LOGGER.severe("one or more alternatives of potential PAS are empty");
+      return null;
+    }
+
+    var potentialPass = getPassByMergeVertex(alternative1.iterator().next().getUpstreamVertex());
+    if (potentialPass == null) {
+      return null;
+    }
+
+    for (Pas potentialPas : potentialPass) {
+      if (potentialPas.isAlternativeEqual(alternative1, true) && potentialPas.isAlternativeEqual(alternative2, false)) {
+        return potentialPas;
+      } else if (potentialPas.isAlternativeEqual(alternative2, true) && potentialPas.isAlternativeEqual(alternative1, false)) {
+        return potentialPas;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -262,15 +329,23 @@ public class PasManager {
         }
       }
 
-      /* PAS start/end node are on bush, now check PAS carefully if its high cost segment is present on the bush fully */
       if (!pasPotentialMatch) {
         continue;
       }
 
-      if (isPasEffectiveForBush(pas, originBush, flowAcceptanceFactors, reducedCost)) {
-        matchedPas = pas;
-        break;
+      /* PAS start/end node are on bush, now check if it is effective in reducing cost/shifting flow */
+      if (!isPasEffectiveForBush(pas, originBush, flowAcceptanceFactors, reducedCost)) {
+        continue;
       }
+
+      /* deemed effective, now ensure it does not introduce cycles */
+      if (originBush.determineIntroduceCycle(pas.getAlternative(true))) {
+        continue;
+      }
+
+      matchedPas = pas;
+      break;
+
     }
     return matchedPas;
   }
@@ -333,6 +408,16 @@ public class PasManager {
     }
     return numPass;
 
+  }
+
+  /* GETTERS - SETTERS */
+
+  public boolean isDetailedLogging() {
+    return detailedLogging;
+  }
+
+  public void setDetailedLogging(boolean detailedLogging) {
+    this.detailedLogging = detailedLogging;
   }
 
 }

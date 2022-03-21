@@ -1,5 +1,8 @@
 package org.goplanit.cost.virtual;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.goplanit.network.virtual.VirtualNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -124,5 +127,15 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
   @Override
   public double getDTravelTimeDFlow(boolean uncongested, Mode mode, ConnectoidSegment connectoidSegment) {
     return 0.0;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    var settings = new HashMap<String, String>();
+    settings.put("fixed-connectoid-cost (h)", "" + fixedConnectoidCost);
+    return settings;
   }
 }

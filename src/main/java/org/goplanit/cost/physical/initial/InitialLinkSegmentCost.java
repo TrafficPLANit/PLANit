@@ -229,4 +229,13 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
     return Double.NEGATIVE_INFINITY;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    // no settings
+    return null;
+  }
+
 }

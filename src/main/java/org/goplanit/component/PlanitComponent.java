@@ -1,6 +1,7 @@
 package org.goplanit.component;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import org.goplanit.component.event.PlanitComponentEvent;
 import org.goplanit.component.event.PlanitComponentEventType;
@@ -62,6 +63,17 @@ public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializabl
     this.tokenId = other.tokenId;
     this.idImpl = other.idImpl.clone();
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract PlanitComponent<T> clone();
+
+  /**
+   * All components should be able to reset going back to some representative initial state
+   */
+  public abstract void reset();
 
   /**
    * Each component may override this default which indicates it does not support any events, meaning that the component is not notified on any planitcomponent events. Derived
@@ -135,6 +147,23 @@ public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializabl
   // Public
 
   /**
+   * Act upon the provided event. In this base class an empty implementation is provided indicating that it is not madnatory to act upon these events.
+   * 
+   * @param event the component is registered for
+   */
+  @Override
+  public void onPlanitComponentEvent(PlanitComponentEvent event) throws PlanItException {
+    // DO NOTHING IN BASE IMPLEMENTATION - OPTIONAL FOR DERIVED IMPLEMENTATIONS
+  }
+
+  /**
+   * Provide all the settings of this particular component by name and value, where each value is a string representation of the underlying entity
+   * 
+   * @return name-value map of all (user configurable) settings
+   */
+  public abstract Map<String, String> collectSettingsAsKeyValueMap();
+
+  /**
    * Collect the component type of this instance
    * 
    * @return PLANit component type
@@ -151,25 +180,4 @@ public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializabl
   public IdGroupingToken getIdGroupingToken() {
     return tokenId;
   }
-
-  /**
-   * Act upon the provided event. In this base class an empty implementation is provided indicating that it is not madnatory to act upon these events.
-   * 
-   * @param event the component is registered for
-   */
-  @Override
-  public void onPlanitComponentEvent(PlanitComponentEvent event) throws PlanItException {
-    // DO NOTHING IN BASE IMPLEMENTATION - OPTIONAL FOR DERIVED IMPLEMENTATIONS
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public abstract PlanitComponent<T> clone();
-
-  /**
-   * All components should be able to reset going back to some representative initial state
-   */
-  public abstract void reset();
 }

@@ -2,8 +2,10 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -12,6 +14,8 @@ import java.util.logging.Logger;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.misc.CollectionUtils;
 
 /**
  * Paired Alternative Segment (PAS) implementation comprising two subpaths (segments), one of a higher cost than the other. In a PAS both subpaths start at the same vertex and end
@@ -23,7 +27,6 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 public class Pas {
 
   /** logger to use */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(Pas.class.getCanonicalName());
 
   /** cheap PA segment s1 */
@@ -80,9 +83,13 @@ public class Pas {
    * @param s1 to use
    * @param s2 to use
    * 
-   * @return newly created PAS
+   * @return newly created PAS, or null when alternative segment(s) is/are null
    */
   protected static Pas create(final EdgeSegment[] s1, final EdgeSegment[] s2) {
+    if (s1 == null || s2 == null) {
+      LOGGER.warning("Unable to create new PAS, one or both alternative segments are null");
+      return null;
+    }
     return new Pas(s1, s2);
   }
 
@@ -167,22 +174,46 @@ public class Pas {
   /**
    * check if shortest path tree is overlapping with one of the alternatives
    * 
-   * @param pathMatchForCheapPath to verify
-   * @param lowCost               when true check with low cost alternative otherwise high cost
+   * @param pathToVerify to verify
+   * @param lowCost      when true check with low cost alternative otherwise high cost
    * @return true when overlapping, false otherwise
    */
-  public boolean isOverlappingWith(ShortestPathResult pathMatchForCheapPath, boolean lowCost) {
+  public boolean isOverlappingWith(ShortestPathResult pathToVerify, boolean lowCost) {
     EdgeSegment[] alternative = lowCost ? s1 : s2;
     EdgeSegment currEdgeSegment = null;
     EdgeSegment matchingEdgeSegment = null;
     for (int index = alternative.length - 1; index >= 0; --index) {
       currEdgeSegment = alternative[index];
-      matchingEdgeSegment = pathMatchForCheapPath.getIncomingEdgeSegmentForVertex(currEdgeSegment.getDownstreamVertex());
+      matchingEdgeSegment = pathToVerify.getIncomingEdgeSegmentForVertex(currEdgeSegment.getDownstreamVertex());
       if (!currEdgeSegment.idEquals(matchingEdgeSegment)) {
         return false;
       }
     }
     return true;
+  }
+
+  /**
+   * Verify if the provided path is equal to the PAS alternative
+   * 
+   * @param pathToVerify to verify
+   * @param lowCost      which of the two alternatives to check against
+   * @return true when equal, false otherwise
+   */
+  public boolean isAlternativeEqual(final EdgeSegment[] pathToVerify, boolean lowCost) {
+    EdgeSegment[] alternative = lowCost ? s1 : s2;
+    return Arrays.equals(alternative, pathToVerify);
+  }
+
+  /**
+   * Verify if the provided path is equal to the PAS alternative
+   * 
+   * @param pathToVerify to verify
+   * @param lowCost      which of the two alternatives to check against
+   * @return true when equal, false otherwise
+   */
+  public boolean isAlternativeEqual(final Collection<EdgeSegment> pathToVerify, boolean lowCost) {
+    EdgeSegment[] alternative = lowCost ? s1 : s2;
+    return CollectionUtils.equals(pathToVerify, alternative);
   }
 
   /**
@@ -323,6 +354,16 @@ public class Pas {
   }
 
   /**
+   * Returns the difference between the cost of the high cost and the low cost segment normalised based on the total number of edge segments across both alternatives. Should always
+   * be larger than zero.
+   * 
+   * @return (s2Cost - s2Cost)/(#numEdgeSegmentsS1+#numEdgeSegmentsS2)
+   */
+  public double getNormalisedReducedCost() {
+    return (s2Cost - s1Cost) / (s1.length + s2.length);
+  }
+
+  /**
    * Match first link segment of PAS segment to predicate provided
    * 
    * @param lowCostSegment when true apply on s1, otherwise on s2
@@ -340,15 +381,74 @@ public class Pas {
   }
 
   /**
+   * Verify if the current known cost for the PAS is considered equal under the given epsilon
+   * 
+   * @param epsilon to use
+   * @return true when abs(costS1-costS2) smaller or equal than epsilon
+   */
+  public boolean isCostEqual(double epsilon) {
+    return Precision.equal(s2Cost, s1Cost, epsilon);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    return Objects.hash(s1, s2);
+  }
+
+  /**
+   * A Pas equal sanother pas if the alternative segments are the same. The registered origins or current cost are not considered in this equality test
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    }
+    if (!(obj instanceof Pas)) {
+      return false;
+    }
+
+    if (obj == this) {
+      return true;
+    }
+
+    var objPas = (Pas) obj;
+    if (Arrays.equals(objPas.s1, this.s1) && Arrays.equals(objPas.s2, this.s2)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder("s1: [");
-    Arrays.stream(s1).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : ls.getId()).append(","));
-    sb.replace(sb.length() - 1, sb.length(), "] s2: [");
-    Arrays.stream(s2).forEach(ls -> sb.append(ls.getXmlId() != null ? ls.getXmlId() : ls.getId()).append(","));
-    sb.replace(sb.length() - 1, sb.length(), "]");
+    final StringBuilder sb = new StringBuilder();
+
+    Consumer<EdgeSegment> consumer = (ls) -> {
+      if (ls == null) {
+        LOGGER.warning("edgeSegment null on PAS alternative, shouldn't happen");
+        sb.append("null,");
+        return;
+      }
+      sb.append(ls.getXmlId() != null ? ls.getXmlId() : String.valueOf(ls.getId()) + "*").append(",");
+    };
+
+    sb.append("s1: [");
+    if (s1 != null && s1.length > 0) {
+      Arrays.stream(s1).forEach(consumer);
+      sb.replace(sb.length() - 1, sb.length(), "");
+    }
+    sb.append("] s2: [");
+    if (s2 != null && s2.length > 0) {
+      Arrays.stream(s2).forEach(consumer);
+      sb.replace(sb.length() - 1, sb.length(), "");
+    }
+    sb.append("]");
     return sb.toString();
   }
 

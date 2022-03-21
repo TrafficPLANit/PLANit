@@ -1,9 +1,11 @@
 package org.goplanit.cost.physical;
 
+import java.util.Map;
+
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.interactor.LinkInflowOutflowAccessor;
-import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.LayeredNetwork;
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagram;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -267,6 +269,15 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
         return Double.POSITIVE_INFINITY;
       }
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    // no settings
+    return null;
   }
 
 }

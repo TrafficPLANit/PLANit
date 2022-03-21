@@ -1,6 +1,7 @@
 package org.goplanit.network;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.utils.id.IdGenerator;
@@ -68,5 +69,13 @@ public class Network extends PlanitComponent<Network> implements Serializable {
   @Override
   public void reset() {
     // nothing to reset at this level
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 }

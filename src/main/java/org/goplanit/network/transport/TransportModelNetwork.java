@@ -46,7 +46,6 @@ public class TransportModelNetwork {
    */
   protected final Zoning zoning;
 
-
   /**
    * Add Edge to both vertices
    * 
@@ -72,7 +71,7 @@ public class TransportModelNetwork {
   // Public
 
   /**
-   * create and register the edge segments for the passed in connectoid edges
+   * create and register the edge segments for the passed in connectoid edges, XML id set to id prefixed with "c".
    * 
    * @param virtualNetwork  to create and register on
    * @param connectoidEdges to process
@@ -82,8 +81,10 @@ public class TransportModelNetwork {
 
     ConnectoidSegmentFactory connectoidSegmentFactory = virtualNetwork.getConnectoidSegments().getFactory();
     for (ConnectoidEdge connectoidEdge : connectoidEdges) {
-      connectoidSegmentFactory.registerNew(connectoidEdge, true);
-      connectoidSegmentFactory.registerNew(connectoidEdge, false);
+      var segment = connectoidSegmentFactory.registerNew(connectoidEdge, true);
+      segment.setXmlId("c" + segment.getId());
+      segment = connectoidSegmentFactory.registerNew(connectoidEdge, false);
+      segment.setXmlId("c" + segment.getId());
       connectVerticesToEdge(connectoidEdge);
     }
   }
@@ -128,7 +129,6 @@ public class TransportModelNetwork {
       createAndRegisterConnectoidEdgeSegments(virtualNetwork, connectoidEdges);
     }
 
-
     logInfo();
   }
 
@@ -170,7 +170,7 @@ public class TransportModelNetwork {
    * @return the total number of vertices
    */
   public int getNumberOfVerticesAllLayers() {
-    return zoning.odZones.getNumberOfCentroids() + zoning.transferZones.getNumberOfCentroids() + getNumberOfPhysicalNodesAllLayers();
+    return zoning.getOdZones().getNumberOfCentroids() + zoning.getTransferZones().getNumberOfCentroids() + getNumberOfPhysicalNodesAllLayers();
   }
 
   /**
@@ -197,7 +197,6 @@ public class TransportModelNetwork {
     for (ConnectoidEdge connectoidEdge : zoning.getVirtualNetwork().getConnectoidEdges()) {
       disconnectVerticesFromEdge(connectoidEdge);
     }
-
 
     /* clear out contents */
     zoning.getVirtualNetwork().clear();

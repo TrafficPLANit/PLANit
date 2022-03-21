@@ -1,5 +1,7 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
+import org.goplanit.algorithms.nodemodel.NodeModel;
+import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.ojalgo.array.Array1D;
 import org.ojalgo.array.Array2D;
@@ -11,7 +13,7 @@ import org.ojalgo.function.aggregator.Aggregator;
  * @author markr
  *
  */
-public class UpdateEntryLinksOutflowConsumer implements ApplyToNodeModelResult {
+public class NMRUpdateEntryLinksOutflowConsumer implements ApplyToNodeModelResult {
 
   /** the array to store the accepted outflows in while updating the receiving flows */
   private final double[] outflowsToPopulate;
@@ -21,7 +23,7 @@ public class UpdateEntryLinksOutflowConsumer implements ApplyToNodeModelResult {
    * 
    * @param outflowsToPopulate to use
    */
-  public UpdateEntryLinksOutflowConsumer(final double[] outflowsToPopulate) {
+  public NMRUpdateEntryLinksOutflowConsumer(final double[] outflowsToPopulate) {
     this.outflowsToPopulate = outflowsToPopulate;
   }
 
@@ -41,7 +43,10 @@ public class UpdateEntryLinksOutflowConsumer implements ApplyToNodeModelResult {
    * {@inheritDoc}
    */
   @Override
-  public void acceptTurnBasedResult(DirectedVertex node, Array1D<Double> flowAcceptanceFactor, Array2D<Double> turnSendingFlows) {
+  public void acceptTurnBasedResult(DirectedVertex node, Array1D<Double> flowAcceptanceFactor, NodeModel nodeModel) {
+    // TODO: should not cast directly
+    Array2D<Double> turnSendingFlows = ((TampereNodeModel) nodeModel).getInputs().getTurnSendingFlows();
+
     int entryIndex = 0;
     int linkSegmentId = 0;
     for (var entryLinkSegment : node.getEntryEdgeSegments()) {

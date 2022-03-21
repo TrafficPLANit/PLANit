@@ -26,6 +26,21 @@ public class StaticLtmSettings implements Cloneable {
   private Boolean bushBasedDestinationLabelling = BUSH_BASED_LABELLING_DEFAULT;
 
   /**
+   * flag indicating what to do when cost and derivative of cost on PAS alternative is equal, yet the flows are not. When false, this is considered a solution, when true an attempt
+   * is made to proportionally distribute flows across PAS alternatives to obtain a unique solution. The former is faster, the latter gives a consistent result.
+   */
+  private Boolean enforceMaxEntropyFlowSolution = ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT;
+
+  /** default setting for assignment is to apply a bush-based type of implementation over a path based one */
+  public static boolean BUSH_BASED_DEFAULT = true;
+
+  /** default setting for bush-based assignment labelling is destination based labelling */
+  public static boolean BUSH_BASED_LABELLING_DEFAULT = true;
+
+  /** default setting for enforcing a flow proportional solution when possible */
+  public static boolean ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT = false;
+
+  /**
    * Constructor
    */
   public StaticLtmSettings() {
@@ -40,6 +55,40 @@ public class StaticLtmSettings implements Cloneable {
     this.bushBased = staticLtmSettings.bushBased.booleanValue();
     this.detailedLogging = staticLtmSettings.detailedLogging.booleanValue();
     this.disableStorageConstraints = staticLtmSettings.disableStorageConstraints.booleanValue();
+    this.enforceMaxEntropyFlowSolution = staticLtmSettings.enforceMaxEntropyFlowSolution.booleanValue();
+  }
+
+  /**
+   * Validate if all settings have been properly set and log found issues
+   * 
+   * @return true when valid, false otherwise
+   */
+  public boolean validate() {
+    boolean valid = true;
+    Field[] fields = this.getClass().getDeclaredFields();
+    for (int index = 0; index < fields.length; ++index) {
+      Field field = fields[index];
+      field.setAccessible(true);
+      try {
+        if (field.get(this) == null) {
+          LOGGER.severe(String.format("%s has not been set as part of sLTM network loading settings, this should not happen", field.getName()));
+          valid = false;
+        }
+      } catch (Exception e) {
+        LOGGER.severe(String.format("Unable to collect field %s from class instance %s, this should not happen", field.getName(), this.getClass().getName()));
+        e.printStackTrace();
+        valid = false;
+      }
+    }
+    return valid;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public StaticLtmSettings clone() {
+    return new StaticLtmSettings(this);
   }
 
   public Boolean isDisableStorageConstraints() {
@@ -74,42 +123,12 @@ public class StaticLtmSettings implements Cloneable {
     this.bushBasedDestinationLabelling = flag;
   }
 
-  /** default setting for assignment is to apply a bush-based type of implementation over a path based one */
-  public static boolean BUSH_BASED_DEFAULT = true;
-
-  /** default setting for bush-based assignment labelling is destination based labelling */
-  public static boolean BUSH_BASED_LABELLING_DEFAULT = true;
-
-  /**
-   * Validate if all settings have been properly set and log found issues
-   * 
-   * @return true when valid, false otherwise
-   */
-  public boolean validate() {
-    boolean valid = true;
-    Field[] fields = this.getClass().getDeclaredFields();
-    for (int index = 0; index < fields.length; ++index) {
-      Field field = fields[index];
-      field.setAccessible(true);
-      try {
-        if (field.get(this) == null) {
-          LOGGER.severe(String.format("%s has not been set as part of sLTM network loading settings, this should not happen", field.getName()));
-          valid = false;
-        }
-      } catch (Exception e) {
-        LOGGER.severe(String.format("Unable to collect field %s from class instance %s, this should not happen", field.getName(), this.getClass().getName()));
-        e.printStackTrace();
-        valid = false;
-      }
-    }
-    return valid;
+  public Boolean isEnforceMaxEntropyFlowSolution() {
+    return enforceMaxEntropyFlowSolution;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public StaticLtmSettings clone() {
-    return new StaticLtmSettings(this);
+  public void setEnforceMaxEntropyFlowSolution(Boolean enforceMaxEntropyFlowSolution) {
+    this.enforceMaxEntropyFlowSolution = enforceMaxEntropyFlowSolution;
   }
+
 }

@@ -3,6 +3,7 @@ package org.goplanit.network.layer.macroscopic;
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentFactory;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
@@ -39,11 +40,11 @@ public class MacroscopicLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<Ma
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegment registerNew(final Link parentLink, final boolean directionAb, boolean registerOnNodeAndLink) throws PlanItException {
+  public MacroscopicLinkSegment registerNew(final Link parentLink, final boolean directionAb, boolean registerOnLink) throws PlanItException {
     final MacroscopicLinkSegment macroscopicLinkSegment = create(parentLink, directionAb);
     getGraphEntities().register(macroscopicLinkSegment);
 
-    if (registerOnNodeAndLink) {
+    if (registerOnLink) {
       parentLink.registerEdgeSegment(macroscopicLinkSegment, directionAb);
     }
     return macroscopicLinkSegment;
@@ -53,10 +54,18 @@ public class MacroscopicLinkSegmentFactoryImpl extends GraphEntityFactoryImpl<Ma
    * {@inheritDoc}
    */
   @Override
-  public MacroscopicLinkSegment registerNew(Link parentLink, MacroscopicLinkSegmentType type, boolean directionAb, boolean registerOnNodeAndLink) throws PlanItException {
-    MacroscopicLinkSegment linkSegment = registerNew(parentLink, directionAb, registerOnNodeAndLink);
+  public MacroscopicLinkSegment registerNew(Link parentLink, MacroscopicLinkSegmentType type, boolean directionAb, boolean registerOnLink) throws PlanItException {
+    MacroscopicLinkSegment linkSegment = registerNew(parentLink, directionAb, registerOnLink);
     linkSegment.setLinkSegmentType(type);
     return linkSegment;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Pair<MacroscopicLinkSegment, MacroscopicLinkSegment> registerNew(Link parentLink, boolean registerOnLink) throws PlanItException {
+    return Pair.of(registerNew(parentLink, true, registerOnLink), registerNew(parentLink, false, registerOnLink));
   }
 
 }

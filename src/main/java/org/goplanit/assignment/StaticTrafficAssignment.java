@@ -45,7 +45,7 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
     Calendar startTime = Calendar.getInstance();
     final Calendar initialStartTime = startTime;
     executeTimePeriod(timePeriod, getDemands().getRegisteredModesForTimePeriod(timePeriod));
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
+    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + String.format("run time: %d milliseconds", startTime.getTimeInMillis() - initialStartTime.getTimeInMillis()));
   }
 
   /**
@@ -75,9 +75,9 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
   public void executeEquilibration() throws PlanItException {
     // perform assignment per period - per mode
     final var timePeriods = getDemands().timePeriods.asSortedSetByStartTime();
-    LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + "total time periods: " + timePeriods.size());
+    LOGGER.info(LoggingUtils.runIdPrefix(getId()) + "total time periods: " + timePeriods.size());
     for (var timePeriod : timePeriods) {
-      LOGGER.info(LoggingUtils.createRunIdPrefix(getId()) + LoggingUtils.createTimePeriodPrefix(timePeriod) + timePeriod.toString());
+      LOGGER.info(LoggingUtils.runIdPrefix(getId()) + LoggingUtils.timePeriodPrefix(timePeriod) + timePeriod.toString());
       executeTimePeriod(timePeriod);
     }
   }

@@ -60,7 +60,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
         if (currOdDemand != null && currOdDemand > 0) {
           var path = oneToAllResult.createPath(pathFactory, origin.getCentroid(), destination.getCentroid());
           if (path == null) {
-            LOGGER.warning(String.format("%sUnable to create path for OD (%s,%s) with non-zero demand (%.2f)", LoggingUtils.createRunIdPrefix(getAssignmentId()), origin.getXmlId(),
+            LOGGER.warning(String.format("%sUnable to create path for OD (%s,%s) with non-zero demand (%.2f)", LoggingUtils.runIdPrefix(getAssignmentId()), origin.getXmlId(),
                 destination.getXmlId(), currOdDemand));
             continue;
           }

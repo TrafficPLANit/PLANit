@@ -496,7 +496,10 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
   /**
    * {@inheritDoc}
    */
-  protected void executeOriginFlowShift(Bush origin, double bushFlowShift, double[] flowAcceptanceFactors) {
+  protected void executeOriginFlowShift(Bush origin, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
+    // TODO: not yet updated to support entry segment specific flow shifts! should allow this to be simplified as passed in flow shift is
+    // expected to be specific to the entry segment already! -> anything diverge specific should be removed
+
     /* prep - pas */
     final EdgeSegment lastS1Segment = pas.getLastEdgeSegment(true /* low cost */);
     final EdgeSegment lastS2Segment = pas.getLastEdgeSegment(false /* high cost */);
@@ -613,9 +616,10 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    * Constructor
    * 
    * @param pas to use
+   * @param settings to use
    */
-  protected PasFlowShiftSmartLabelledExecutor(Pas pas) {
-    super(pas);
+  protected PasFlowShiftSmartLabelledExecutor(Pas pas, final StaticLtmSettings settings) {
+    super(pas, settings);
     s1ReverseLabelChains = new HashMap<>();
     s2ReverseLabelChains = new HashMap<>();
   }

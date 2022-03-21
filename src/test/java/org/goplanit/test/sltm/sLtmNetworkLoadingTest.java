@@ -127,10 +127,10 @@ public class sLtmNetworkLoadingTest {
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("MainType"), true, true);        
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
-      zoning.odZones.getFactory().registerNew().setXmlId("A");
-      zoning.odZones.getFactory().registerNew().setXmlId("B");
-      zoning.odZones.getFactory().registerNew().setXmlId("C");
-      zoning.odZones.getFactory().registerNew().setXmlId("D");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("B");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("C");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("D");
            
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("7"),  zoning.getOdZones().getByXmlId("A"), 0);
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("4"),  zoning.getOdZones().getByXmlId("B"), 0);
@@ -154,7 +154,7 @@ public class sLtmNetworkLoadingTest {
       Demands demands = new Demands(testToken);
       demands.timePeriods.createAndRegisterNewTimePeriod("dummyTimePeriod", 0, 3600);
       demands.travelerTypes.createAndRegisterNew("dummyTravellerType");
-      demands.userClasses.createAndRegisterNewUserClass("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
+      demands.userClasses.createAndRegister("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
 
       /* OD DEMANDS 1000 A->C, 1000 C->B */
       OdZones odZones = zoning.getOdZones();

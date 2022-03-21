@@ -1,5 +1,7 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
+import org.goplanit.algorithms.nodemodel.NodeModel;
+import org.goplanit.algorithms.nodemodel.TampereNodeModel;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
 import org.ojalgo.array.Array1D;
@@ -13,7 +15,7 @@ import org.ojalgo.function.aggregator.Aggregator;
  * @author markr
  *
  */
-public class UpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult {
+public class NMRUpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult {
 
   /** the next sending flows to update based on the found accepted in flows on outgoing links of the node */
   private double[] inFlowsToUpdate;
@@ -23,7 +25,7 @@ public class UpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult {
    * 
    * @param inFlowsToUpdate to use
    */
-  public UpdateExitLinkInflowsConsumer(final double[] inFlowsToUpdate) {
+  public NMRUpdateExitLinkInflowsConsumer(final double[] inFlowsToUpdate) {
     this.inFlowsToUpdate = inFlowsToUpdate;
   }
 
@@ -43,7 +45,10 @@ public class UpdateExitLinkInflowsConsumer implements ApplyToNodeModelResult {
    * {@inheritDoc}
    */
   @Override
-  public void acceptTurnBasedResult(final DirectedVertex node, final Array1D<Double> flowAcceptanceFactors, final Array2D<Double> turnSendingFlows) {
+  public void acceptTurnBasedResult(final DirectedVertex node, final Array1D<Double> flowAcceptanceFactors, final NodeModel nodeModel) {
+    // TODO: should not cast directly
+    Array2D<Double> turnSendingFlows = ((TampereNodeModel) nodeModel).getInputs().getTurnSendingFlows();
+
     /* v_ab = s_ab*alpha_a: Convert turn sending flows to turn accepted flows (to avoid duplication we reuse sending flow 2d array) */
     for (int entryIndex = 0; entryIndex < flowAcceptanceFactors.length; ++entryIndex) {
       double alpha = flowAcceptanceFactors.get(entryIndex);

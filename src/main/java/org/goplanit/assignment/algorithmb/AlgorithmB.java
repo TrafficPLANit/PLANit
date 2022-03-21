@@ -1,5 +1,6 @@
 package org.goplanit.assignment.algorithmb;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -126,6 +127,14 @@ public class AlgorithmB extends StaticTrafficAssignment {
   @Override
   public void reset() {
     // TODO Auto-generated method stub
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
   }
 
 }

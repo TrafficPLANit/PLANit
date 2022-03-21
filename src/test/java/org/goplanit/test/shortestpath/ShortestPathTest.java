@@ -126,9 +126,7 @@ public class ShortestPathTest {
           Node nodeA = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex-1);
           Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex);
           // all links are 1 km in length          
-          Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1);
-          nodeA.addEdge(link);
-          nodeB.addEdge(link);
+          Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, false, true);
         }
@@ -140,24 +138,22 @@ public class ShortestPathTest {
           // all links are 1 km in length
           Node nodeA = networkLayer.getNodes().get((linkRowIndex-1)*(gridSize+1)+linkColIndex);
           Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1)+linkColIndex);
-          Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1);
-          nodeA.addEdge(link);
-          nodeB.addEdge(link);
+          Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, false, true);
         }  
       }
       
       zoning = new Zoning(idToken, networkLayer.getLayerIdGroupingToken());
-      Zone zoneA = zoning.odZones.getFactory().registerNew();
+      Zone zoneA = zoning.getOdZones().getFactory().registerNew();
       zoneA.setXmlId("A");
-      Zone zoneB = zoning.odZones.getFactory().registerNew();
+      Zone zoneB = zoning.getOdZones().getFactory().registerNew();
       zoneB.setXmlId("B");
-      Zone zoneC = zoning.odZones.getFactory().registerNew();
+      Zone zoneC = zoning.getOdZones().getFactory().registerNew();
       zoneC.setXmlId("C");
-      Zone zoneD = zoning.odZones.getFactory().registerNew();
+      Zone zoneD = zoning.getOdZones().getFactory().registerNew();
       zoneD.setXmlId("D");
-      Zone zoneE = zoning.odZones.getFactory().registerNew();
+      Zone zoneE = zoning.getOdZones().getFactory().registerNew();
       zoneE.setXmlId("E");
       
       centroidA = zoneA.getCentroid();

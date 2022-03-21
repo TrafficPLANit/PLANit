@@ -2,6 +2,7 @@ package org.goplanit.demands;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -11,7 +12,7 @@ import java.util.logging.Logger;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.time.TimePeriodImpl;
-import org.goplanit.userclass.TravelerType;
+import org.goplanit.userclass.TravellerType;
 import org.goplanit.userclass.UserClass;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
@@ -54,13 +55,13 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    * @author markr
    *
    */
-  public class TravelerTypes extends LongMapWrapperImpl<TravelerType> {
+  public class TravelerTypes extends LongMapWrapperImpl<TravellerType> {
 
     /**
      * Constructor
      */
     public TravelerTypes() {
-      super(new HashMap<Long, TravelerType>(), TravelerType::getId);
+      super(new HashMap<Long, TravellerType>(), TravellerType::getId);
     }
 
     /**
@@ -78,8 +79,8 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
      * @param name the name of the travel type
      * @return new traveler type created
      */
-    public TravelerType createAndRegisterNew(String name) {
-      TravelerType newTravelerType = new TravelerType(getIdGroupingToken(), name);
+    public TravellerType createAndRegisterNew(String name) {
+      TravellerType newTravelerType = new TravellerType(getIdGroupingToken(), name);
       register(newTravelerType);
       return newTravelerType;
     }
@@ -92,8 +93,8 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
      * @param xmlId the XML Id of the specified traveler type
      * @return the retrieved traveler type, or null if no traveler type was found
      */
-    public TravelerType getByXmlId(String xmlId) {
-      return findFirst(travelerType -> xmlId.equals(((TravelerType) travelerType).getXmlId()));
+    public TravellerType getByXmlId(String xmlId) {
+      return findFirst(travelerType -> xmlId.equals(((TravellerType) travelerType).getXmlId()));
     }
 
     /**
@@ -110,7 +111,7 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     @Override
     public void clear() {
       super.clear();
-      IdGenerator.reset(getIdGroupingToken(), TravelerType.class);
+      IdGenerator.reset(getIdGroupingToken(), TravellerType.class);
     }
   }
 
@@ -146,7 +147,7 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
      * @param travellerType the travel type for this user class
      * @return new traveler type created
      */
-    public UserClass createAndRegisterNewUserClass(String name, Mode mode, TravelerType travellerType) {
+    public UserClass createAndRegister(String name, Mode mode, TravellerType travellerType) {
       var newUserClass = new UserClass(getIdGroupingToken(), name, mode, travellerType);
       register(newUserClass);
       return newUserClass;
@@ -373,4 +374,12 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
     odDemandsByTimePeriodAndMode.clear();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    // TODO -> consider logging the traveler types, user classes, and time periods
+    return null;
+  }
 }

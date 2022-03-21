@@ -63,7 +63,7 @@ public class sLtmAssignmentSingleOdTest2 {
     Demands demands = new Demands(testToken);
     demands.timePeriods.createAndRegisterNewTimePeriod("dummyTimePeriod", 0, 3600);
     demands.travelerTypes.createAndRegisterNew("dummyTravellerType");
-    demands.userClasses.createAndRegisterNewUserClass("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
+    demands.userClasses.createAndRegister("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
 
     /* OD DEMANDS 8000 A->A` */
     OdZones odZones = zoning.getOdZones();
@@ -196,10 +196,11 @@ public class sLtmAssignmentSingleOdTest2 {
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("7"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(6);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("8"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(4);
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("9"), linkTypes.getByXmlId("500_per_lane"), true, true).setNumberOfLanes(4);
+      networkLayer.getLinkSegments().forEach(ls -> ls.setXmlId(""+ls.getParentLink().getId()));
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
-      zoning.odZones.getFactory().registerNew().setXmlId("A");
-      zoning.odZones.getFactory().registerNew().setXmlId("A`");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A`");
            
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("4"),  zoning.getOdZones().getByXmlId("A`"), 0);

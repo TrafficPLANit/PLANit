@@ -60,9 +60,15 @@ public class BushTurnData implements Cloneable {
           }
 
           for (BushFlowLabel exitComposition : exitLabels) {
-            if (compositionTurnSendingFlows.containsKey(entrySegment, entryComposition, exitSegment, exitComposition)) {
+            Double labelledTurnFlow = compositionTurnSendingFlows.get(entrySegment, entryComposition, exitSegment, exitComposition);
+            if (labelledTurnFlow == null) {
+              continue;
+            }
+            if (Precision.positive(labelledTurnFlow)) {
               remainingEntryLabels.add(entryComposition);
               identifiedExitCompositionLabels.add(exitComposition);
+            } else {
+              compositionTurnSendingFlows.removeMultiKey(entrySegment, entryComposition, exitSegment, exitComposition);
             }
           }
         }
@@ -153,7 +159,7 @@ public class BushTurnData implements Cloneable {
   public void setTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition, double turnSendingFlow) {
 
     if (!Precision.positive(turnSendingFlow)) {
-      LOGGER.warning(String.format("Turn (%s to %s) sending flow not positive (%.2f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
+      LOGGER.warning(String.format("Turn (%s to %s) sending flow not positive (enough) (%.9f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
           turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
       removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
     } else {
@@ -173,15 +179,8 @@ public class BushTurnData implements Cloneable {
    * @param turnSendingFlow to add
    */
   public void addTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition, double turnSendingFlow) {
-
     Double newSendingFlow = turnSendingFlow + getTurnSendingFlowPcuH(fromSegment, fromComposition, toSegment, toComposition);
-    if (!Precision.positive(newSendingFlow)) {
-      LOGGER.warning(String.format("Turn (%s to %s) sending flow negative (%.2f) after adding %.2f flow, remove labelled entry (%d,%d)", fromSegment.getXmlId(),
-          toSegment.getXmlId(), newSendingFlow, turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
-      removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
-    } else {
-      setTurnSendingFlow(fromSegment, fromComposition, toSegment, toComposition, newSendingFlow);
-    }
+    setTurnSendingFlow(fromSegment, fromComposition, toSegment, toComposition, newSendingFlow);
   }
 
   /**

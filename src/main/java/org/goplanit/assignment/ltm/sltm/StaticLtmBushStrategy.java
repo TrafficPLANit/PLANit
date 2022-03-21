@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
@@ -49,6 +51,9 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
   /** track all unique PASs */
   protected final PasManager pasManager;
+
+  /** track all PASs where we are attempting to distribute flow equally to obtain unique solution under unequal flow but equal cost/cost-derivative */
+  protected Set<Pas> equalFlowDistributedPass;
 
   /**
    * Update gap. Unconventional gap function where we update the GAP based on PAS cost discrepancy. This is due to the impossibility of efficiently determining the network and
@@ -102,7 +107,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
     if (!bushFlowThroughMergeVertex) {
       // TODO: when we find this condition never occurs (and it shouldn't, remove the above checks as they are costly)
-      LOGGER.warning(String.format("Explored vertex %s for existing PAS match even though bush has not flow passing through it. This should not happen", mergeVertex.getXmlId()));
+      LOGGER.warning(String.format("Explored vertex %s for existing PAS match even though bush has no flow passing through it. This should not happen", mergeVertex.getXmlId()));
       return false;
     }
 
@@ -151,8 +156,9 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     /* create the PAS and register origin bush on it */
     boolean truncateSpareArrayCapacity = true;
     EdgeSegment[] s1 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, networkMinPaths, shortestPathLength, truncateSpareArrayCapacity);
-    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, highCostSegment.second(), shortestPathLength, truncateSpareArrayCapacity);
-    newPas = pasManager.createNewPas(originBush, s1, s2);
+    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, highCostSegment.second(),
+        Math.min(shortestPathLength, highCostSegment.second().size()), truncateSpareArrayCapacity);
+    newPas = pasManager.createAndRegisterNewPas(originBush, s1, s2);
 
     /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
     getLoading().activateNodeTrackingFor(newPas);
@@ -171,7 +177,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * @return newly created PASs (empty if no new PASs were created)
    * @throws PlanItException thrown if error
    */
-  private Collection<Pas> extendBushes(final double[] linkSegmentCosts) throws PlanItException {
+  private Collection<Pas> updateBushPass(final double[] linkSegmentCosts) throws PlanItException {
 
     List<Pas> newPass = new ArrayList<>();
 
@@ -193,10 +199,9 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
           /* when bush does not contain the reduced cost edge segment (or the opposite direction which would cause a cycle) consider it */
           EdgeSegment reducedCostSegment = networkMinPaths.getIncomingEdgeSegmentForVertex(bushVertex);
-          if (reducedCostSegment != null && !originBush.containsAnyEdgeSegmentOf(reducedCostSegment.getParentEdge())) {
+          if (reducedCostSegment != null && !originBush.containsEdgeSegment(reducedCostSegment)) {
 
             double reducedCost = minMaxPaths.getCostToReach(bushVertex) - networkMinPaths.getCostToReach(bushVertex);
-
             boolean matchFound = extendBushWithSuitableExistingPas(originBush, bushVertex, reducedCost);
             if (matchFound) {
               continue;
@@ -205,6 +210,13 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
             /* no suitable match, attempt creating an entirely new PAS */
             Pas newPas = extendBushWithNewPas(originBush, bushVertex, networkMinPaths);
             if (newPas != null) {
+
+              // TODO: when this never happens we can remove it to save computation time, for now we just want to make sure all goes well
+              if (originBush.determineIntroduceCycle(newPas.getAlternative(true))) {
+                LOGGER.severe(String.format("Newly identified PAS (%s) for origin %s would introduce cycle on low cost alternative, this shouldn't happen, PAS ignored",
+                    newPas.toString(), originBush.getOrigin().toString()));
+              }
+
               newPass.add(newPas);
               newPas.updateCost(linkSegmentCosts);
               continue;
@@ -234,6 +246,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * @return all PASs where non-zero flow was shifted on
    */
   private Collection<Pas> shiftFlows(final Mode theMode) {
+    equalFlowDistributedPass.clear();
     var flowShiftedPass = new ArrayList<Pas>((int) pasManager.getNumberOfPass());
     var passWithoutOrigins = new ArrayList<Pas>();
 
@@ -250,7 +263,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     Collection<Pas> sortedPass = pasManager.getPassSortedByReducedCost();
     for (Pas pas : sortedPass) {
 
-      var pasFlowShifter = createPasFlowShiftExecutor(pas);
+      var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
       pasFlowShifter.initialise(); // to be able to collect pas sending flows for gap
       updateGap(gapFunction, pas, pasFlowShifter.getS1SendingFlow(), pasFlowShifter.getS2SendingFlow());
 
@@ -263,10 +276,22 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
       if (pasFlowShifted) {
         flowShiftedPass.add(pas);
 
+        /*
+         * When flow is shifted we disallow overlapping other PASs to shift flow in this iteration as cost is likely to change. However, when flow is shifted to maximise entropy,
+         * it means cost is already equal, and is expected to not be affected by shift. Hence, in that case we do not disallow other PASs to shift flow and do not mark the PASs
+         * link segments as "used".
+         */
+        if (pasFlowShifter.isTowardsEqualAlternativeFlowDistribution()) {
+          equalFlowDistributedPass.add(pas);
+          continue;
+        }
+
         /* s1 */
         pas.forEachEdgeSegment(true /* low cost */, (es) -> linkSegmentsUsed.set((int) es.getId()));
         /* s2 */
         pas.forEachEdgeSegment(false /* high cost */, (es) -> linkSegmentsUsed.set((int) es.getId()));
+
+        pasFlowShifter.getUsedCongestedEntrySegments().forEach(es -> linkSegmentsUsed.set((int) es.getId()));
 
         /* when s2 no longer used on any bush - mark PAS for overall removal */
         if (!pas.hasOrigins()) {
@@ -289,6 +314,29 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
       originBush.updateTurnFlows(getLoading().getCurrentFlowAcceptanceFactors());
     }
+  }
+
+  /**
+   * Verify if solution is flow proportional
+   * 
+   * @param gapEpsilon to use
+   * @return true when flow proportional, false otherwise
+   */
+  private boolean isSolutionFlowEntropyMaximised(double gapEpsilon) {
+    StringBuilder remainingPassToMaximiseEntropy = new StringBuilder("PASs not at max entropy: \n");
+    boolean entryFound = false;
+    for (var pas : this.equalFlowDistributedPass) {
+      entryFound = true;
+      remainingPassToMaximiseEntropy.append("PAS - ");
+      remainingPassToMaximiseEntropy.append(pas.toString());
+      remainingPassToMaximiseEntropy.append("\n");
+    }
+    if (entryFound && getSettings().isDetailedLogging()) {
+      LOGGER.info(remainingPassToMaximiseEntropy.toString());
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -350,10 +398,11 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
   /**
    * {@inheritDoc}
    * 
-   * @param pas to create flow shift executor for
+   * @param pas      to create flow shift executor for
+   * @param settings to use
    * @return created executor
    */
-  protected abstract PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas);
+  protected abstract PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings);
 
   /**
    * Create a network wide shortest bush algorithm based on provided costs
@@ -430,6 +479,8 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
     this.originBushes = new Bush[transportModelNetwork.getZoning().getOdZones().size()];
     this.pasManager = new PasManager();
+    this.pasManager.setDetailedLogging(settings.isDetailedLogging());
+    this.equalFlowDistributedPass = new HashSet<>();
   }
 
   //@formatter:off
@@ -477,7 +528,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */     
       {
         /* (NEW) PAS MATCHING FOR BUSHES */
-        Collection<Pas> newPass = extendBushes(costsToUpdate);            
+        Collection<Pas> newPass = updateBushPass(costsToUpdate);            
               
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
         Collection<Pas> updatedPass = shiftFlows(theMode);      
@@ -497,6 +548,29 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
       return false;
     }
     return true;
+  }
+
+  /**
+   * Unlike the default convergence check, we also see if the solution is proportional if relevant; in a bush setting with a triangular fundamental diagram we do not obtain a
+   * unique solution if a PAS has equal cost with an equal derivative but unequal flow distribution along its two segments, e.g. in free flow conditions we expect equal flow along
+   * both alternatives if equal cost. When the settings indicate so, we verify if the solution is proportional or not and only if so we indicate convergence has been reached.
+   * 
+   * @param gapFunction    to use for regular convergence check on cost
+   * @param iterationIndex at hand
+   * @return true when converged, false otherwise
+   * 
+   */
+  @Override
+  public boolean hasConverged(GapFunction gapFunction, int iterationIndex) {
+    // TODO Auto-generated method stub
+    boolean converged = super.hasConverged(gapFunction, iterationIndex);
+    if (converged && getSettings().isEnforceMaxEntropyFlowSolution()) {
+      converged = isSolutionFlowEntropyMaximised(gapFunction.getStopCriterion().getEpsilon());
+      if(!converged) {
+        LOGGER.info("cost convergence: yes - yet one or more PASs flow distribution is not entropy maximised - overall convergence: no");
+      }
+    }
+    return converged;
   } 
 
 }

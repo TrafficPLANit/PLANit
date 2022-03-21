@@ -13,7 +13,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 
 /**
- * Generate a grid based network layer for specified modes of a given size
+ * Generate a grid based network layer for specified modes of a given size. When using defaults it creates one link segment type named "default".
  * 
  * @author markr
  *
@@ -119,8 +119,9 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
     var defaultLinkSegmentType = networkLayer.getLinkSegmentTypes().getFirst();
     boolean registerOnNodes = true;
     for (var link : networkLayer.getLinks()) {
-      networkLayer.getLinkSegments().getFactory().registerNew(link, defaultLinkSegmentType, true /* A->B */, registerOnNodes);
-      var linkSegment = networkLayer.getLinkSegments().getFactory().registerNew(link, defaultLinkSegmentType, false /* B->A */, registerOnNodes);
+      var linkSegment = networkLayer.getLinkSegments().getFactory().registerNew(link, defaultLinkSegmentType, true /* A->B */, registerOnNodes);
+      linkSegment.setXmlId(String.valueOf(linkSegment.getId()));
+      linkSegment = networkLayer.getLinkSegments().getFactory().registerNew(link, defaultLinkSegmentType, false /* B->A */, registerOnNodes);
       linkSegment.setXmlId(String.valueOf(linkSegment.getId()));
     }
   }
@@ -153,13 +154,16 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
     this.modes = modes;
   }
 
+  /** name used for default physical link segment type name */
+  public static final String PHYSICAL_LINK_SEGMENT_TYPE_NAME = "default";
+
   /**
    * Generate a macroscopic network layer based on the configured grid
    */
   @Override
   public MacroscopicNetworkLayer generate() {
     var networkLayer = layersContainer.getFactory().registerNew(modes);
-    createDefaultLinkSegmentType(networkLayer);
+    createDefaultLinkSegmentType(networkLayer, PHYSICAL_LINK_SEGMENT_TYPE_NAME);
     try {
       populateGrid(networkLayer);
     } catch (Exception e) {
@@ -174,9 +178,9 @@ public class MacroscopicGridNetworkLayerGenerator implements NetworkLayerGenerat
    * 
    * @param networkLayer to register on
    */
-  private void createDefaultLinkSegmentType(MacroscopicNetworkLayer networkLayer) {
-    var linkSegmentType = networkLayer.getLinkSegmentTypes().getFactory().registerNew("default");
-    var accessGroupProperties = AccessGroupPropertiesFactory.create(modes);
+  private void createDefaultLinkSegmentType(final MacroscopicNetworkLayer networkLayer, String linkSegmentTypeName) {
+    final var linkSegmentType = networkLayer.getLinkSegmentTypes().getFactory().registerNew(linkSegmentTypeName);
+    final var accessGroupProperties = AccessGroupPropertiesFactory.create(modes);
     linkSegmentType.addAccessGroupProperties(accessGroupProperties);
   }
 

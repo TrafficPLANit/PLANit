@@ -7,6 +7,7 @@ import org.goplanit.assignment.ltm.sltm.loading.SplittingRateData;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
+import org.goplanit.gap.GapFunction;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
@@ -165,7 +166,7 @@ public abstract class StaticLtmAssignmentStrategy {
       if (!changedScheme) {
         LOGGER.warning(
             String.format("%sDetected network loading is not converging as expected (internal loading iteration %d) - unable to activate further extensions, consider aborting",
-                LoggingUtils.createRunIdPrefix(getAssignmentId()), networkLoadingIterationIndex));
+                LoggingUtils.runIdPrefix(getAssignmentId()), networkLoadingIterationIndex));
       }
     }
   }
@@ -208,55 +209,6 @@ public abstract class StaticLtmAssignmentStrategy {
   protected abstract StaticLtmNetworkLoading createNetworkLoading();
 
   /**
-   * Constructor
-   * 
-   * @param idGroupingToken       to use for id generation
-   * @param assignmentId          id of the parent assignment
-   * @param transportModelNetwork the transport model network
-   * @param settings              the sLTM settings to use
-   * @param taComponents          to use
-   */
-  public StaticLtmAssignmentStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
-      final TrafficAssignmentComponentAccessee taComponents) {
-    this.transportModelNetwork = transportModelNetwork;
-    this.assignmentId = assignmentId;
-    this.idGroupingToken = idGroupingToken;
-    this.settings = settings;
-    this.taComponents = taComponents;
-    this.prevIterationPotentiallyBlocking = new BitSet(transportModelNetwork.getNumberOfVerticesAllLayers());
-  }
-
-  /**
-   * Invoked before start of equilibrating a new time period
-   * 
-   * @param timePeriod to initialise for
-   * @param mode       to initialise for
-   * @param odDemands  to use
-   */
-  public void updateTimePeriod(final TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) {
-    this.networkLoading = createNetworkLoading();
-    this.networkLoading.initialiseInputs(mode, odDemands, getTransportNetwork());
-    setOdDemands(odDemands);
-  }
-
-  /**
-   * Create the initial solution to start the equilibration process with
-   * 
-   * @param initialLinkSegmentCosts to use
-   */
-  public abstract void createInitialSolution(double[] initialLinkSegmentCosts);
-
-  /**
-   * Perform a single iteration where we perform a loading and then an equilibration step resulting in updated costs
-   *
-   * @param theMode        to use
-   * @param costsToUpdate  the link segment costs we are updating (possibly partially for all link segments that might have been affected by a loading
-   * @param iterationIndex we're at
-   * @return true when iteration could be successfully completed, false otherwise
-   */
-  public abstract boolean performIteration(final Mode theMode, final double[] costsToUpdate, int iterationIndex);
-
-  /**
    * Perform an update of the network wide costs where a partial update is applied in case only potentially blocking nodes are updated during the loading
    * 
    * @param theMode                                to perform the update for
@@ -265,7 +217,7 @@ public abstract class StaticLtmAssignmentStrategy {
    * @param costsToUpdate                          the network wide costs to update (fully or partially), this is an output
    * @throws PlanItException thrown if error
    */
-  public void executeNetworkCostsUpdate(Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts, double[] costsToUpdate) throws PlanItException {
+  protected void executeNetworkCostsUpdate(Mode theMode, boolean updateOnlyPotentiallyBlockingNodeCosts, double[] costsToUpdate) throws PlanItException {
 
     final AbstractPhysicalCost physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     final AbstractVirtualCost virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
@@ -303,6 +255,67 @@ public abstract class StaticLtmAssignmentStrategy {
 
     }
   }
+
+  /**
+   * Constructor
+   * 
+   * @param idGroupingToken       to use for id generation
+   * @param assignmentId          id of the parent assignment
+   * @param transportModelNetwork the transport model network
+   * @param settings              the sLTM settings to use
+   * @param taComponents          to use
+   */
+  public StaticLtmAssignmentStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
+      final TrafficAssignmentComponentAccessee taComponents) {
+    this.transportModelNetwork = transportModelNetwork;
+    this.assignmentId = assignmentId;
+    this.idGroupingToken = idGroupingToken;
+    this.settings = settings;
+    this.taComponents = taComponents;
+    this.prevIterationPotentiallyBlocking = new BitSet(transportModelNetwork.getNumberOfVerticesAllLayers());
+  }
+
+  /**
+   * Invoked before start of equilibrating a new time period
+   * 
+   * @param timePeriod to initialise for
+   * @param mode       to initialise for
+   * @param odDemands  to use
+   */
+  public void updateTimePeriod(final TimePeriod timePeriod, final Mode mode, final OdDemands odDemands) {
+    this.networkLoading = createNetworkLoading();
+    this.networkLoading.initialiseInputs(mode, odDemands, getTransportNetwork());
+    setOdDemands(odDemands);
+  }
+
+  /**
+   * Verify if assignment has converged, which, means computing ths gap and determining if it has converged in this iteration in this default setup
+   * 
+   * @param gapFunction    to use
+   * @param iterationIndex to use
+   * @return true when considered converged, false otherwise
+   */
+  public boolean hasConverged(GapFunction gapFunction, int iterationIndex) {
+    gapFunction.computeGap();
+    return gapFunction.hasConverged(iterationIndex);
+  }
+
+  /**
+   * Create the initial solution to start the equilibration process with
+   * 
+   * @param initialLinkSegmentCosts to use
+   */
+  public abstract void createInitialSolution(double[] initialLinkSegmentCosts);
+
+  /**
+   * Perform a single iteration where we perform a loading and then an equilibration step resulting in updated costs
+   *
+   * @param theMode        to use
+   * @param costsToUpdate  the link segment costs we are updating (possibly partially for all link segments that might have been affected by a loading
+   * @param iterationIndex we're at
+   * @return true when iteration could be successfully completed, false otherwise
+   */
+  public abstract boolean performIteration(final Mode theMode, final double[] costsToUpdate, int iterationIndex);
 
   /**
    * Description of the chosen sLTM strategy for equilibration

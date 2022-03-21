@@ -15,20 +15,20 @@ import org.goplanit.component.PlanitComponentFactory;
 import org.goplanit.cost.physical.initial.InitialLinkSegmentCost;
 import org.goplanit.demands.Demands;
 import org.goplanit.input.InputBuilderListener;
+import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.ServiceNetwork;
-import org.goplanit.network.LayeredNetwork;
 import org.goplanit.output.formatter.OutputFormatter;
 import org.goplanit.output.formatter.OutputFormatterFactory;
 import org.goplanit.path.OdPathSets;
 import org.goplanit.service.routed.RoutedServices;
-import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.time.TimePeriod;
+import org.goplanit.zoning.Zoning;
 
 /**
  * The top-level class which hosts a single project.
@@ -134,7 +134,7 @@ public class CustomPlanItProject {
     this.projectToken = IdGenerator.createIdGroupingToken(this, this.id);
 
     this.inputBuilderListener = inputBuilderListener;
-    LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.logActiveStateByClassName(inputBuilderListener, true));
+    LOGGER.info(LoggingUtils.projectPrefix(this.id) + LoggingUtils.logActiveStateByClassName(inputBuilderListener, true));
 
     // connect inputs
     this.inputs = new PlanItProjectInput(this.id, projectToken, inputBuilderListener);
@@ -320,12 +320,18 @@ public class CustomPlanItProject {
    */
   public void executeAllTrafficAssignments() throws PlanItException {
     Set<TrafficAssignment> failedAssignments = new HashSet<TrafficAssignment>();
+
+    if (assignmentBuilders.isEmpty()) {
+      LOGGER.warning(LoggingUtils.projectPrefix(this.id) + "No assignment registered on project, execution ended prematurely");
+      return;
+    }
+
     for (TrafficAssignmentBuilder<?> tab : assignmentBuilders) {
       TrafficAssignment ta = null;
       try {
         ta = tab.build();
-        LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.logActiveStateByClassName(ta, true));
-        LOGGER.info(LoggingUtils.createProjectPrefix(this.id) + LoggingUtils.createRunIdPrefix(ta.getId()) + "assignment created");
+        LOGGER.info(LoggingUtils.projectPrefix(this.id) + LoggingUtils.logActiveStateByClassName(ta, true));
+        LOGGER.info(LoggingUtils.projectPrefix(this.id) + LoggingUtils.runIdPrefix(ta.getId()) + "assignment created");
         ta.execute();
       } catch (final PlanItException pe) {
         LOGGER.severe(pe.getMessage());

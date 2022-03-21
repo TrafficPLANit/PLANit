@@ -1,5 +1,6 @@
 package org.goplanit.gap;
 
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
@@ -193,6 +194,14 @@ public class NormBasedGapFunction extends GapFunction {
   }
 
   // GETTERS - SETTERS
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    return null;
+  }
 
   public int getNorm() {
     return norm;

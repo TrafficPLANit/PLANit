@@ -24,6 +24,7 @@ import org.goplanit.utils.exceptions.PlanItException;
  * <ul>
  * <li>disableLinkStorageConstraints: true</li>
  * <li>activateDetailedLogging: false</li>
+ * <li>activateEnforceMaxEntropyFlowDistribution: false</li>
  * </ul>
  * 
  * @author markr
@@ -36,6 +37,8 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
   private static final String ACTIVATE_DETAILED_LOGGING = "setActivateDetailedLogging";
 
   private static final String ACTIVATE_BUSH_BASED = "setActivateBushBased";
+
+  private static final String ACTIVATE_ENFORCE_MAX_ENTROPY_FLOW_DISTRIBUTION = "setEnforceMaxEntropyFlowSolution";
 
   /**
    * Constructor
@@ -88,12 +91,22 @@ public class StaticLtmConfigurator extends LtmConfigurator<StaticLtm> {
   }
 
   /**
-   * (De)Activate the bush based assignment strategy. If switched off, a apth absed approach is applied
+   * (De)Activate the bush based assignment strategy. If switched off, a path absed approach is applied
    * 
    * @param flag to set
    */
   public void activateBushBased(boolean flag) {
     registerDelayedMethodCall(ACTIVATE_BUSH_BASED, flag);
+  }
+
+  /**
+   * (De)Activate the bush based max entropy flow solution. If switched off, any equal cost solution for a PAS is considered correct, when switched on an attempt is made to obtain
+   * unique equal flow distribution if possible. The latter is computationally more costly but results in unique solution.
+   * 
+   * @param flag to set
+   */
+  public void activateMaxEntropyFlowDistribution(boolean flag) {
+    registerDelayedMethodCall(ACTIVATE_ENFORCE_MAX_ENTROPY_FLOW_DISTRIBUTION, flag);
   }
 
 }

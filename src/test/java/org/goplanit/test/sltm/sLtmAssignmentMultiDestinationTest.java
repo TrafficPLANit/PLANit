@@ -64,7 +64,7 @@ public class sLtmAssignmentMultiDestinationTest {
     Demands demands = new Demands(testToken);
     demands.timePeriods.createAndRegisterNewTimePeriod("dummyTimePeriod", 0, 3600);
     demands.travelerTypes.createAndRegisterNew("dummyTravellerType");
-    demands.userClasses.createAndRegisterNewUserClass("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
+    demands.userClasses.createAndRegister("dummyUser", network.getModes().get(PredefinedModeType.CAR), demands.travelerTypes.getFirst());
 
     /* OD DEMANDS 4000 A->A`, 4000 A->A`` */
     OdZones odZones = zoning.getOdZones();
@@ -238,9 +238,9 @@ public class sLtmAssignmentMultiDestinationTest {
       networkLayer.getLinkSegments().getFactory().registerNew(links.getByXmlId("14"), linkTypes.getByXmlId("500_lane"), true, true).setNumberOfLanes(8);
               
       zoning = new Zoning(testToken, networkLayer.getLayerIdGroupingToken());
-      zoning.odZones.getFactory().registerNew().setXmlId("A");
-      zoning.odZones.getFactory().registerNew().setXmlId("A`");
-      zoning.odZones.getFactory().registerNew().setXmlId("A``");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A`");
+      zoning.getOdZones().getFactory().registerNew().setXmlId("A``");
            
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("0"),  zoning.getOdZones().getByXmlId("A"), 0);
       zoning.getOdConnectoids().getFactory().registerNew(nodes.getByXmlId("5"),  zoning.getOdZones().getByXmlId("A`"), 0);
@@ -297,20 +297,20 @@ public class sLtmAssignmentMultiDestinationTest {
       assertTrue(Precision.smallerEqual(outflow8, 4000));
 
       assertEquals(outflow0, 8000, Precision.EPSILON_3);
-      assertEquals(outflow1, 4523.076922848041, Precision.EPSILON_3);
+      assertEquals(outflow1, 4523, 1);
       assertEquals(outflow2, 1500.0, Precision.EPSILON_3);
       assertEquals(outflow3, outflow2, Precision.EPSILON_3);
-      assertEquals(outflow4, 3750.0645149423417, Precision.EPSILON_3);
-      assertEquals(outflow5, 3190.1840490063214, Precision.EPSILON_3);
+      assertEquals(outflow4, 3750, 1);
+      assertEquals(outflow5, 3190, 1);
       assertEquals(outflow6, 1500.0, Precision.EPSILON_3);
       assertEquals(outflow7, outflow6, Precision.EPSILON_3);
-      assertEquals(outflow8, 3749.935485061265, Precision.EPSILON_3);
+      assertEquals(outflow8, 3750, 1);
       assertEquals(outflow9, 3000.0, Precision.EPSILON_3);
       assertEquals(outflow10, 1500.0, Precision.EPSILON_3);
       assertEquals(outflow11, outflow10, Precision.EPSILON_3);
       assertEquals(outflow12, 4500.0, Precision.EPSILON_3);
-      assertEquals(outflow13, 2250.0645151768613, Precision.EPSILON_3);
-      assertEquals(outflow14, 2249.935485061265, Precision.EPSILON_3);
+      assertEquals(outflow13, 2250, 1);
+      assertEquals(outflow14, 2250, 1);
 
       double inflow1 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("1").getLinkSegmentAb());
       double inflow2 = sLTM.getLinkSegmentInflowPcuHour(networkLayer.getLinks().getByXmlId("2").getLinkSegmentAb());
