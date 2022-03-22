@@ -269,7 +269,7 @@ public class PasManager {
    * @param alternative2 alternative segment of PAS
    * @return the matching PAS, null otherwise
    */
-  public Pas findExistingPas(final Collection<EdgeSegment> alternative1, final Collection<EdgeSegment> alternative2) {
+  public Pas findExistingPas(final ArrayList<EdgeSegment> alternative1, final ArrayList<EdgeSegment> alternative2) {
     if (alternative1 == null || alternative2 == null) {
       LOGGER.severe("one or more alternatives of potential PAS are null");
       return null;
@@ -279,7 +279,7 @@ public class PasManager {
       return null;
     }
 
-    var potentialPass = getPassByMergeVertex(alternative1.iterator().next().getUpstreamVertex());
+    var potentialPass = getPassByMergeVertex(alternative1.get(alternative1.size()-1).getDownstreamVertex());
     if (potentialPass == null) {
       return null;
     }

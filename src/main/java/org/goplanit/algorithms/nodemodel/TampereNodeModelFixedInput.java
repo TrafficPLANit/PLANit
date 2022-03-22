@@ -54,7 +54,7 @@ public class TampereNodeModelFixedInput {
 
     arrayToInitialise = Array1D.PRIMITIVE64.makeZero(linkSegments.size());
     for (var linkSegment : linkSegments) {
-      arrayToInitialise.add(linkSegment.getCapacityOrDefaultPcuH());
+      arrayToInitialise.add(Math.min(getMaxInLinkSegmentCapacity(),linkSegment.getCapacityOrDefaultPcuH()));
     }
   }
 
@@ -104,6 +104,9 @@ public class TampereNodeModelFixedInput {
       outgoingLinkSegmentReceivingFlows = null;
     }
   }
+  
+  /** in case in link shave no capacity set, or an physically infeasible capacity, it is capped to this capacity */
+  protected double maxInLinkSegmentCapacity = DEFAULT_MAX_IN_CAPACITY;
 
   /** mapping of incoming link index to link segment (if any), i.e., a=1,...|A^in|-1 */
   protected ArrayList<MacroscopicLinkSegment> incomingLinkSegments;
@@ -114,6 +117,9 @@ public class TampereNodeModelFixedInput {
   protected Array1D<Double> incomingLinkSegmentCapacities;
   /** store the receiving flows of each outgoing link segment at capacity, i.e., R_b=C_b */
   protected Array1D<Double> outgoingLinkSegmentReceivingFlows;
+  
+  /** default max in capacity */
+  public static double DEFAULT_MAX_IN_CAPACITY = 10_000.0;
 
   /**
    * Constructor. The TampereNodeModelFixedInput class is meant to be created once for each node where the node model is applied more than once. All fixed inputs conditioned on the
@@ -143,6 +149,7 @@ public class TampereNodeModelFixedInput {
    */
   public TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities, Array1D<Double> outgoingLinkSegmentReceivingFlows) {
     this.incomingLinkSegmentCapacities = incomingLinkSegmentCapacities.copy();
+    //TODO: continue here incomingLinkSegmentCapacities.modifyAll( v -> Math.max(get, v));
     this.outgoingLinkSegmentReceivingFlows = outgoingLinkSegmentReceivingFlows.copy();
   }
 
@@ -173,5 +180,21 @@ public class TampereNodeModelFixedInput {
   public int getNumberOfOutgoingLinkSegments() {
     return outgoingLinkSegmentReceivingFlows.size();
   }
+  
+  /** Collect current maximum in link capacity that is being used
+   * 
+   * @return max in capacity
+   */
+  public double getMaxInLinkSegmentCapacity() {
+    return maxInLinkSegmentCapacity;
+  }
+
+  /** Collect current maximum in link capacity that is being used
+   * 
+   * @return max in capacity
+   */  
+  public void setMaxInLinkSegmentCapacity(double maxInLinkSegmentCapacity) {
+    this.maxInLinkSegmentCapacity = maxInLinkSegmentCapacity;
+  }  
 
 }
