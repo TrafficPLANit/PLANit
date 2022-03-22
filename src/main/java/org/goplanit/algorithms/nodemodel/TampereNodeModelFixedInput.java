@@ -7,6 +7,7 @@ import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.ojalgo.array.Array1D;
+import org.ojalgo.function.PrimitiveFunction;
 
 /**
  * Inner class that holds the mapping of the inputs to/from the underlying physical network (if any). Currently we support the PLANit network format for this mapping, or one
@@ -54,7 +55,7 @@ public class TampereNodeModelFixedInput {
 
     arrayToInitialise = Array1D.PRIMITIVE64.makeZero(linkSegments.size());
     for (var linkSegment : linkSegments) {
-      arrayToInitialise.add(Math.min(getMaxInLinkSegmentCapacity(),linkSegment.getCapacityOrDefaultPcuH()));
+      arrayToInitialise.add(Math.min(getMaxInLinkSegmentCapacity(), linkSegment.getCapacityOrDefaultPcuH()));
     }
   }
 
@@ -104,7 +105,7 @@ public class TampereNodeModelFixedInput {
       outgoingLinkSegmentReceivingFlows = null;
     }
   }
-  
+
   /** in case in link shave no capacity set, or an physically infeasible capacity, it is capped to this capacity */
   protected double maxInLinkSegmentCapacity = DEFAULT_MAX_IN_CAPACITY;
 
@@ -117,9 +118,9 @@ public class TampereNodeModelFixedInput {
   protected Array1D<Double> incomingLinkSegmentCapacities;
   /** store the receiving flows of each outgoing link segment at capacity, i.e., R_b=C_b */
   protected Array1D<Double> outgoingLinkSegmentReceivingFlows;
-  
+
   /** default max in capacity */
-  public static double DEFAULT_MAX_IN_CAPACITY = 10_000.0;
+  public static double DEFAULT_MAX_IN_CAPACITY = 20_000.0;
 
   /**
    * Constructor. The TampereNodeModelFixedInput class is meant to be created once for each node where the node model is applied more than once. All fixed inputs conditioned on the
@@ -142,14 +143,13 @@ public class TampereNodeModelFixedInput {
   }
 
   /**
-   * Constructor. Using this constructor does not require any dependency on PLANit network infrastructure
+   * Constructor. Using this constructor does not require any dependency on PLANit network infrastructure.
    * 
    * @param incomingLinkSegmentCapacities     to use
    * @param outgoingLinkSegmentReceivingFlows to use
    */
   public TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities, Array1D<Double> outgoingLinkSegmentReceivingFlows) {
     this.incomingLinkSegmentCapacities = incomingLinkSegmentCapacities.copy();
-    //TODO: continue here incomingLinkSegmentCapacities.modifyAll( v -> Math.max(get, v));
     this.outgoingLinkSegmentReceivingFlows = outgoingLinkSegmentReceivingFlows.copy();
   }
 
@@ -161,6 +161,14 @@ public class TampereNodeModelFixedInput {
   public TampereNodeModelFixedInput(Array1D<Double> incomingLinkSegmentCapacities) {
     this.incomingLinkSegmentCapacities = incomingLinkSegmentCapacities.copy();
     this.outgoingLinkSegmentReceivingFlows = null;
+  }
+
+  /**
+   * Based on the set maximum in link capacity, check and update current in link capacities if they exceed this maximum
+   */
+  public void capInLinkCapacitiesToMaximum() {
+    PrimitiveFunction.Unary capToMaxCapacity = v -> Math.max(getMaxInLinkSegmentCapacity(), v);
+    incomingLinkSegmentCapacities.modifyAll(capToMaxCapacity);
   }
 
   /**
@@ -180,8 +188,9 @@ public class TampereNodeModelFixedInput {
   public int getNumberOfOutgoingLinkSegments() {
     return outgoingLinkSegmentReceivingFlows.size();
   }
-  
-  /** Collect current maximum in link capacity that is being used
+
+  /**
+   * Collect current maximum in link capacity that is being used
    * 
    * @return max in capacity
    */
@@ -189,12 +198,13 @@ public class TampereNodeModelFixedInput {
     return maxInLinkSegmentCapacity;
   }
 
-  /** Collect current maximum in link capacity that is being used
+  /**
+   * Collect current maximum in link capacity that is being used
    * 
    * @return max in capacity
-   */  
+   */
   public void setMaxInLinkSegmentCapacity(double maxInLinkSegmentCapacity) {
     this.maxInLinkSegmentCapacity = maxInLinkSegmentCapacity;
-  }  
+  }
 
 }

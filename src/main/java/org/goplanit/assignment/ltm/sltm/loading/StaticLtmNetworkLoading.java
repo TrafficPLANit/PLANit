@@ -586,11 +586,11 @@ public abstract class StaticLtmNetworkLoading {
     // TODO: not computationally efficient, capacities are recomputed every time and construction of
     // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised
   
-    /* C_a : in Array1D form */
+    /* C_a : in Array1D form, capped to maximum physical capacity in case we are dealing with connectoid with infinite capacity */
     var inCapacities = Array1D.PRIMITIVE64.makeZero(numEntrySegments);
     int index = 0;
     for (var entryEdgeSegment : node.getEntryEdgeSegments()) {
-      inCapacities.set(index++, ((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH());
+      inCapacities.set(index++, Math.min(TampereNodeModelFixedInput.DEFAULT_MAX_IN_CAPACITY,((PcuCapacitated) entryEdgeSegment).getCapacityOrDefaultPcuH()));
     }
   
     /* s_ab : turn sending flows in per entrylinksegmentindex: Array1D (turn to outsegment flows) form */
