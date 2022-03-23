@@ -283,6 +283,9 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    */
   @Override
   public boolean containsEdgeSegment(EdgeSegment edgeSegment) {
+    if (edgeSegment == null) {
+      return false;
+    }
     return registeredLinkSegments.get((int) edgeSegment.getId());
   }
 

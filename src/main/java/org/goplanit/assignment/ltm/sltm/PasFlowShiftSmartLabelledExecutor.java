@@ -302,11 +302,10 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
 
             /* remove flow for s2 */
             double s2FlowShift = s2FinalLabeledFlowShift * labeledSplittingRate;
-            if (!Precision.positive(origin.getTurnSendingFlow(lastS2Segment, exitSegment) + s2FlowShift)) {
-              /* no remaining flow at all after flow shift, remove turn from bush entirely */
+            boolean positiveLabelledFlowRemaining = origin.addTurnSendingFlow(lastS2Segment, finalSegmentLabel, exitSegment, exitLabel, s2FlowShift);
+            if (!positiveLabelledFlowRemaining && !Precision.positive(origin.getTurnSendingFlow(lastS2Segment, exitSegment))) {
+              /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
               origin.removeTurn(lastS2Segment, exitSegment);
-            } else {
-              origin.addTurnSendingFlow(lastS2Segment, finalSegmentLabel, exitSegment, exitLabel, s2FlowShift);
             }
 
             /* track so we can attribute it to s1 segment later */
@@ -349,7 +348,11 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
           if (Precision.positive(splittingRate)) {
             /* add flow for s1 */
             double s1FlowShift = s1FinalLabeledFlowShift * splittingRate;
-            origin.addTurnSendingFlow(lastS1Segment, finalSegmentLabel, exitSegment, exitLabel, s1FlowShift);
+            boolean positiveLabelledFlowRemaining = origin.addTurnSendingFlow(lastS1Segment, finalSegmentLabel, exitSegment, exitLabel, s1FlowShift);
+            if (!positiveLabelledFlowRemaining && !Precision.positive(origin.getTurnSendingFlow(lastS1Segment, exitSegment))) {
+              /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
+              origin.removeTurn(lastS1Segment, exitSegment);
+            }
           }
           ++index;
         }
@@ -391,11 +394,10 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
           /* convert back to sending flow as alpha<1 increases sending flow on entry segment compared to the sending flow component on the first s2 segment */
           double s2DivergeEntryLabeledFlowShift = s2StartLabeledFlowShift * portion * (1 / flowAcceptanceFactors[(int) entrySegment.getId()]);
 
-          if (!Precision.positive(existingTotalTurnLabeledSendingFlow + s2DivergeEntryLabeledFlowShift)) {
-            /* no remaining flow at all after flow shift, remove turn from bush entirely */
+          boolean positiveLabelledFlowRemaining = origin.addTurnSendingFlow(entrySegment, entryLabel, firstS2Segment, startSegmentLabel, s2DivergeEntryLabeledFlowShift);
+          if (!positiveLabelledFlowRemaining && !Precision.positive(origin.getTurnSendingFlow(entrySegment, firstS2Segment))) {
+            /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
             origin.removeTurn(entrySegment, firstS2Segment);
-          } else {
-            origin.addTurnSendingFlow(entrySegment, entryLabel, firstS2Segment, startSegmentLabel, s2DivergeEntryLabeledFlowShift);
           }
         }
       }
@@ -435,7 +437,12 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
             LOGGER.severe("Expected non-negative shift on s1 turn for given label combination, skip flow shift at PAS s1 diverge");
             continue;
           }
-          origin.addTurnSendingFlow(entrySegment, entryLabel, firstS1Segment, startSegmentLabel, s1DivergeEntryLabeledFlowShift);
+
+          boolean positiveLabelledFlowRemaining = origin.addTurnSendingFlow(entrySegment, entryLabel, firstS1Segment, startSegmentLabel, s1DivergeEntryLabeledFlowShift);
+          if (!positiveLabelledFlowRemaining && !Precision.positive(origin.getTurnSendingFlow(entrySegment, firstS1Segment))) {
+            /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
+            origin.removeTurn(entrySegment, firstS1Segment);
+          }
         }
       }
     }
@@ -479,12 +486,12 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
         }
       }
 
-      if (!Precision.positive(turnSendingFlow + flowShiftPcuH)) {
-        /* no remaining flow at all after flow shift, remove turn from bush entirely */
+      boolean positiveLabelledFlowRemaining = origin.addTurnSendingFlow(currentSegment, currCompositionLabel, nextSegment, nextCompositionLabel, flowShiftPcuH);
+      if (!positiveLabelledFlowRemaining && !Precision.positive(origin.getTurnSendingFlow(currentSegment, nextSegment))) {
+        /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
         origin.removeTurn(currentSegment, nextSegment);
-      } else {
-        origin.addTurnSendingFlow(currentSegment, currCompositionLabel, nextSegment, nextCompositionLabel, flowShiftPcuH);
       }
+
       flowShiftPcuH *= flowAcceptanceFactors[(int) currentSegment.getId()];
 
       currCompositionLabel = nextCompositionLabel;

@@ -219,9 +219,6 @@ public class PasManager {
       return null;
     }
 
-    if (detailedLogging) {
-      LOGGER.info(String.format("Origin %s - Created new PAS: %s", originBush.getOrigin().getXmlId(), newPas.toString()));
-    }
     newPas.registerOrigin(originBush);
     passByMergeVertex.putIfAbsent(newPas.getMergeVertex(), new ArrayList<Pas>());
     passByMergeVertex.get(newPas.getMergeVertex()).add(newPas);
@@ -243,11 +240,12 @@ public class PasManager {
   /**
    * Remove the PAS from the manager
    * 
-   * @param pas to remove
+   * @param pas           to remove
+   * @param logRemovedPas when true log removed pas, when false do not
    */
-  public void removePas(final Pas pas) {
+  public void removePas(final Pas pas, boolean logRemovedPas) {
     passByMergeVertex.get(pas.getMergeVertex()).remove(pas);
-    if (detailedLogging) {
+    if (logRemovedPas) {
       LOGGER.info(String.format("Removed existing PAS: %s", pas.toString()));
     }
   }

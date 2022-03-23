@@ -203,6 +203,9 @@ public class StaticLtmDestinationLabelledBushStrategy extends StaticLtmBushStrat
           var pas = pasManager.findExistingPas(referenceAlternative, pasAlternative);
           if (pas == null) {
             pas = pasManager.createAndRegisterNewPas(originBush, referenceAlternative, pasAlternative);
+            if (getSettings().isDetailedLogging()) {
+              LOGGER.info(String.format("Origin %s - Created new PAS: %s", originBush.getOrigin().getXmlId(), pas.toString()));
+            }
           } else {
             pas.registerOrigin(originBush);
           }
@@ -308,6 +311,7 @@ public class StaticLtmDestinationLabelledBushStrategy extends StaticLtmBushStrat
         }
       }
     }
+
   }
 
   /**

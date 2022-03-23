@@ -155,32 +155,38 @@ public class BushTurnData implements Cloneable {
    * @param toSegment       of turn
    * @param toComposition   of turn flow
    * @param turnSendingFlow to update
+   * @param true            when turn has any labelled turn sending flow left after addition, false when labelled turn sending flow no longer exists
    */
-  public void setTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition, double turnSendingFlow) {
+  public boolean setTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition,
+      double turnSendingFlow) {
 
     if (!Precision.positive(turnSendingFlow)) {
       LOGGER.warning(String.format("Turn (%s to %s) sending flow not positive (enough) (%.9f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
           turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
       removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
+      return false;
     } else {
       compositionTurnSendingFlows.put(fromSegment, fromComposition, toSegment, toComposition, turnSendingFlow);
       registerEdgeSegmentCompositionLabel(fromSegment, fromComposition);
       registerEdgeSegmentCompositionLabel(toSegment, toComposition);
+      return true;
     }
   }
 
   /**
-   * Add turn sending flow for a given turn
+   * Add turn sending flow for a given turn (can be negative)
    * 
    * @param fromSegment     of turn
    * @param fromComposition of turn flow
    * @param toSegment       of turn
    * @param toComposition   of turn flow
    * @param turnSendingFlow to add
+   * @return true when turn has any sending flow left after addition, false when labelled turn sending flow no longer exists
    */
-  public void addTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition, double turnSendingFlow) {
+  public boolean addTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition,
+      double turnSendingFlow) {
     Double newSendingFlow = turnSendingFlow + getTurnSendingFlowPcuH(fromSegment, fromComposition, toSegment, toComposition);
-    setTurnSendingFlow(fromSegment, fromComposition, toSegment, toComposition, newSendingFlow);
+    return setTurnSendingFlow(fromSegment, fromComposition, toSegment, toComposition, newSendingFlow);
   }
 
   /**

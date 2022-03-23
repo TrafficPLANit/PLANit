@@ -122,6 +122,9 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
      * cost link segments which will be created if non-existent on bush)
      */
     effectivePas.registerOrigin(originBush);
+    if (getSettings().isDetailedLogging()) {
+      LOGGER.info(String.format("Origin %s added to PAS %s", originBush.getOrigin().getXmlId(), effectivePas.toString()));
+    }
     return true;
   }
 
@@ -171,8 +174,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     }
 
     /* S2 */
-    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(divergeVertex, mergeVertex, highCostSegment.second(),
-        Math.min(numShortestPathEdgeSegments, highCostSegment.second().size()), truncateSpareArrayCapacity);
+    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(divergeVertex, mergeVertex, highCostSegment.second(), highCostSegment.second().size(), truncateSpareArrayCapacity);
 
     /* PAS */
     newPas = pasManager.createAndRegisterNewPas(originBush, s1, s2);
@@ -319,7 +321,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     }
 
     if (!passWithoutOrigins.isEmpty()) {
-      passWithoutOrigins.forEach((pas) -> pasManager.removePas(pas));
+      passWithoutOrigins.forEach((pas) -> pasManager.removePas(pas, getSettings().isDetailedLogging()));
     }
     return flowShiftedPass;
   }
@@ -409,6 +411,10 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
           initialiseBushForDestination(originBush, destination, currOdDemand, destinationDag);
         }
 
+      }
+
+      if (originBush != null && getSettings().isDetailedLogging()) {
+        LOGGER.info(originBush.toString());
       }
     }
   }
@@ -551,10 +557,15 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
         /* PAS/BUSH FLOW SHIFTS + GAP UPDATE */
         Collection<Pas> updatedPass = shiftFlows(theMode);      
         
+        if(getSettings().isDetailedLogging()) {
+          var newUsedPass = new ArrayList<Pas>(newPass);
+          newUsedPass.retainAll(updatedPass);
+          newUsedPass.forEach( p -> LOGGER.info(String.format("Created new PAS and applied flow shift on it: %s", p.toString()))); 
+        }
         /* Remove unused new PASs, in case no flow shift is applied due to overlap with PAS with higher reduced cost 
          * In this case, the new PAS is not used and is to be removed identical to how existing PASs are removed during flow shifts when they no longer carry flow*/
         newPass.removeAll(updatedPass);
-        newPass.forEach( pas -> pasManager.removePas(pas));
+        newPass.forEach( pas -> pasManager.removePas(pas, false));
       }
       
     }catch(Exception e) {

@@ -42,7 +42,7 @@ public abstract class PasFlowShiftExecutor {
   private final static Logger LOGGER = Logger.getLogger(PasFlowShiftExecutor.class.getCanonicalName());
 
   /** local epsilon used in flow shifting */
-  private static final double EPSILON = EPSILON_12;
+  protected static final double EPSILON = EPSILON_12;
 
   /** to operate on */
   protected final Pas pas;

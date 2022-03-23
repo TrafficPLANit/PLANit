@@ -2,8 +2,11 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -123,6 +126,37 @@ public class Bush implements IdAble {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    var sb = new StringBuilder("Bush: origin zone: " + getOrigin().getXmlId() + "\n [");
+    /* log all edge segments on bush */
+    var root = this.dag.getRootVertex();
+    Queue<DirectedVertex> openVertices = new PriorityQueue<>();
+    openVertices.add(root);
+    Set<DirectedVertex> processed = new HashSet<>();
+    while (!openVertices.isEmpty()) {
+      var vertex = openVertices.poll();
+      processed.add(vertex);
+      for (var exitSegment : vertex.getExitEdgeSegments()) {
+        if (!containsEdgeSegment(exitSegment)) {
+          continue;
+        }
+        var nextVertex = exitSegment.getDownstreamVertex();
+        sb.append(exitSegment.getXmlId() + ",");
+        if (processed.contains(nextVertex)) {
+          continue;
+        }
+        openVertices.add(nextVertex);
+      }
+    }
+    sb.deleteCharAt(sb.length() - 1);
+    sb.append("]");
+    return sb.toString();
+  }
+
+  /**
    * Compute the min-max path tree rooted at the origin and given the provided (network wide) costs. The provided costs are at the network level so should contain all the segments
    * active in the bush
    * 
@@ -177,18 +211,19 @@ public class Bush implements IdAble {
 
   /**
    * Add turn sending flow to the bush. In case the turn does not yet exist on the bush it is newly registered. If it does exist and there is already flow present, the provided
-   * flow is added to it.
+   * flow is added to it. If by adding the flow (can be ngative) the turn no longer has any flow, the labels are removed
    * 
    * @param fromEdgeSegment     from segment of the turn
    * @param fromLabel           to use
    * @param toEdgeSegment       to segment of the turn
    * @param toLabel             to use
    * @param turnSendingflowPcuH to add
+   * @return true when turn has any sending flow left, false when labelled turn sending flow no longer exists
    */
-  public void addTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowLabel fromLabel, final EdgeSegment toEdgeSegment, final BushFlowLabel toLabel,
+  public boolean addTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowLabel fromLabel, final EdgeSegment toEdgeSegment, final BushFlowLabel toLabel,
       double turnSendingflowPcuH) {
     if (!containsEdgeSegment(fromEdgeSegment)) {
-      if (containsAnyEdgeSegmentOf(fromEdgeSegment.getParentEdge())) {
+      if (containsEdgeSegment(fromEdgeSegment.getOppositeDirectionSegment())) {
         LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
             fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId(), fromEdgeSegment.getXmlId()));
       }
@@ -196,14 +231,14 @@ public class Bush implements IdAble {
       requireTopologicalSortUpdate = true;
     }
     if (!containsEdgeSegment(toEdgeSegment)) {
-      if (containsAnyEdgeSegmentOf(toEdgeSegment.getParentEdge())) {
+      if (containsEdgeSegment(toEdgeSegment.getOppositeDirectionSegment())) {
         LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
             fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId(), toEdgeSegment.getXmlId()));
       }
       dag.addEdgeSegment(toEdgeSegment);
       requireTopologicalSortUpdate = true;
     }
-    bushData.addTurnSendingFlow(fromEdgeSegment, fromLabel, toEdgeSegment, toLabel, turnSendingflowPcuH);
+    return bushData.addTurnSendingFlow(fromEdgeSegment, fromLabel, toEdgeSegment, toLabel, turnSendingflowPcuH);
   }
 
   /**
@@ -281,8 +316,10 @@ public class Bush implements IdAble {
    * @param entrySegment          to use as turn entry segment
    * @param entryCompositionLabel to filter turn flow by
    * @param factor                to multiply with
+   * @return true when all turns have any sending flow left after multiplication, false when any adjusted labelled turn sending flow no longer exists
    */
-  public void multiplyTurnSendingFlows(final EdgeSegment entrySegment, final BushFlowLabel entryCompositionLabel, double factor) {
+  public boolean multiplyTurnSendingFlows(final EdgeSegment entrySegment, final BushFlowLabel entryCompositionLabel, double factor) {
+    boolean anyTurnLabelledSendingFlowZero = false;
     for (EdgeSegment exitSegment : entrySegment.getDownstreamVertex().getExitEdgeSegments()) {
       var exitLabels = bushData.getFlowCompositionLabels(exitSegment);
       if (exitLabels == null) {
@@ -291,11 +328,12 @@ public class Bush implements IdAble {
       for (var exitLabel : exitLabels) {
         double currentTurnLabeledSendingFlow = bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitLabel);
         if (Precision.positive(currentTurnLabeledSendingFlow)) {
-          bushData.setTurnSendingFlow(entrySegment, entryCompositionLabel, exitSegment, exitLabel,
+          anyTurnLabelledSendingFlowZero |= bushData.setTurnSendingFlow(entrySegment, entryCompositionLabel, exitSegment, exitLabel,
               bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitLabel) * factor);
         }
       }
     }
+    return anyTurnLabelledSendingFlowZero;
   }
 
   /**
