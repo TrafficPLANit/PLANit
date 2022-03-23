@@ -695,6 +695,11 @@ public class Bush implements IdAble {
 
     /* get topological sorted vertices to process */
     Collection<DirectedVertex> topSortedVertices = getTopologicallySortedVertices();
+    if (topSortedVertices == null) {
+      LOGGER.severe(String.format("Topologically sorted vertices on bush rooted at origin %s not available, this shouldn't happen, skip turn flow update", getOrigin().getXmlId()));
+      return;
+    }
+
     var vertexIter = topSortedVertices.iterator();
     var currVertex = vertexIter.next();
 
@@ -732,6 +737,15 @@ public class Bush implements IdAble {
             }
 
             var exitLabels = getFlowCompositionLabels(exitSegment);
+            if (exitLabels == null) {
+              // TODO: likely goes wrong for PASs where it is now possible for a PAS to have an origin where part of the PAS alternative is no longer present
+              boolean removed = removeEdgeSegment(exitSegment);
+              if (!removed) {
+                LOGGER.warning(String.format("Exit segment %s has no flow labels but has flow, this shouldn't happen", entrySegment.getXmlId()));
+              }
+              continue;
+            }
+
             for (var exitLabel : exitLabels) {
               Double bushExitSegmentLabelSplittingRate = splittingRates.get(exitSegment, exitLabel);
               if (bushExitSegmentLabelSplittingRate != null && Precision.positive(bushExitSegmentLabelSplittingRate)) {
@@ -748,7 +762,7 @@ public class Bush implements IdAble {
   /**
    * Topologically sorted vertices of the bush
    * 
-   * @return vertices
+   * @return vertices, null if no topological sort was possible
    */
   public Collection<DirectedVertex> getTopologicallySortedVertices() {
     return dag.topologicalSort(requireTopologicalSortUpdate);

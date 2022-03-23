@@ -210,6 +210,10 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
    *@param newPas to activate nodes on segments for
    */
   public void activateNodeTrackingFor(final Pas newPas) {
+    if(newPas==null) {
+      LOGGER.severe("Provided PAS is null, unable to activate node tracking for alternative segments");
+      return;
+    }
     /* only when not all turn flows are tracked, we must expand the tracked nodes, otherwise they are already available */
     if(!isTrackAllNodeTurnFlows()) {
       var pointQueueBasicSplittingRates = (SplittingRateDataPartial) this.getSplittingRateData();

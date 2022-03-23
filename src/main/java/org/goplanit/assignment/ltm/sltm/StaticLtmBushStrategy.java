@@ -141,7 +141,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     /* Label all vertices on shortest path origin-bushVertex as -1, and PAS merge Vertex itself as 1 */
     final short[] alternativeSegmentVertexLabels = new short[getTransportNetwork().getNumberOfVerticesAllLayers()];
     alternativeSegmentVertexLabels[(int) mergeVertex.getId()] = 1;
-    int shortestPathLength = networkMinPaths.forEachBackwardEdgeSegment(originBush.getOrigin().getCentroid(), mergeVertex,
+    int numShortestPathEdgeSegments = networkMinPaths.forEachBackwardEdgeSegment(originBush.getOrigin().getCentroid(), mergeVertex,
         (edgeSegment) -> alternativeSegmentVertexLabels[(int) edgeSegment.getUpstreamVertex().getId()] = -1);
 
     /* Use labels to identify when it merges again with bush (at upstream diverge point) */
@@ -155,9 +155,10 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
     /* create the PAS and register origin bush on it */
     boolean truncateSpareArrayCapacity = true;
-    EdgeSegment[] s1 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, networkMinPaths, shortestPathLength, truncateSpareArrayCapacity);
-    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(highCostSegment.first(), mergeVertex, highCostSegment.second(),
-        Math.min(shortestPathLength, highCostSegment.second().size()), truncateSpareArrayCapacity);
+    var divergeVertex = highCostSegment.first();
+    EdgeSegment[] s1 = PasManager.createSubpathArrayFrom(divergeVertex, mergeVertex, networkMinPaths, numShortestPathEdgeSegments, truncateSpareArrayCapacity);
+    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(divergeVertex, mergeVertex, highCostSegment.second(),
+        Math.min(numShortestPathEdgeSegments, highCostSegment.second().size()), truncateSpareArrayCapacity);
     newPas = pasManager.createAndRegisterNewPas(originBush, s1, s2);
 
     /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
@@ -189,9 +190,17 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
         /* within-bush min/max-paths */
         var minMaxPaths = originBush.computeMinMaxShortestPaths(linkSegmentCosts, this.getTransportNetwork().getNumberOfVerticesAllLayers());
+        if (minMaxPaths == null) {
+          LOGGER.severe(String.format("Unable to obtain min-max paths on bush (origin %s), this shouldn't happen, skip updateBushPass", originBush.getOrigin().getXmlId()));
+          continue;
+        }
 
         /* network min-paths */
         var networkMinPaths = networkShortestPathAlgo.executeOneToAll(originBush.getOrigin().getCentroid());
+        if (networkMinPaths == null) {
+          LOGGER.severe(String.format("Unable to obtain network min paths on bush (origin %s), this shouldn't happen, skip updateBushPass", originBush.getOrigin().getXmlId()));
+          continue;
+        }
 
         /* find (new) matching PASs */
         for (var bushVertexIter = originBush.getDirectedVertexIterator(); bushVertexIter.hasNext();) {

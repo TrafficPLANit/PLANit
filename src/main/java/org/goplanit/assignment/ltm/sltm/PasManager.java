@@ -124,10 +124,10 @@ public class PasManager {
     EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
     DirectedVertex currVertex = end;
     EdgeSegment currEdgeSegment = null;
-    int index = edgeSegmentArray.length - 1;
+    int index = edgeSegmentArray.length;
     do {
       currEdgeSegment = pathTree.getIncomingEdgeSegmentForVertex(currVertex);
-      edgeSegmentArray[index--] = currEdgeSegment;
+      edgeSegmentArray[--index] = currEdgeSegment;
       if (currEdgeSegment == null) {
         LOGGER.warning(String.format("Unable to extract subpath from start vertex %s to end vertex %s, no incoming edge segment available at intermediate vertex %s",
             start.getXmlId(), end.getXmlId(), currVertex.getXmlId()));
@@ -137,7 +137,7 @@ public class PasManager {
     } while (!currVertex.idEquals(start));
 
     if (truncateArray && index > 0) {
-      return Arrays.copyOfRange(edgeSegmentArray, index + 1, edgeSegmentArray.length);
+      return Arrays.copyOfRange(edgeSegmentArray, index, edgeSegmentArray.length);
     }
     return edgeSegmentArray;
   }
@@ -279,7 +279,7 @@ public class PasManager {
       return null;
     }
 
-    var potentialPass = getPassByMergeVertex(alternative1.get(alternative1.size()-1).getDownstreamVertex());
+    var potentialPass = getPassByMergeVertex(alternative1.get(alternative1.size() - 1).getDownstreamVertex());
     if (potentialPass == null) {
       return null;
     }

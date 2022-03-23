@@ -60,8 +60,8 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
    * @param currLabel            at hand
    * @param turnAcceptedFlowPcuH sending flow rate of turn
    */
-  protected void applyAcceptedTurnFlowUpdate(final EdgeSegment prevSegment, final BushFlowLabel prevLabel, final EdgeSegment currentSegment,
-      final BushFlowLabel currLabel, double turnAcceptedFlowPcuH) {
+  protected void applyAcceptedTurnFlowUpdate(final EdgeSegment prevSegment, final BushFlowLabel prevLabel, final EdgeSegment currentSegment, final BushFlowLabel currLabel,
+      double turnAcceptedFlowPcuH) {
     // default implementation does nothing but provide a hook for derived classes that do require to do something with turn accepted flows
   }
 
@@ -92,6 +92,11 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
 
     /* get topological sorted vertices to process */
     Collection<DirectedVertex> topSortedVertices = originBush.getTopologicallySortedVertices();
+    if (topSortedVertices == null) {
+      LOGGER.severe(String.format("Topologically sorted bush rooted at origin %s not available, this shouldn't happen, skip", originBush.getOrigin().getXmlId()));
+      return;
+    }
+
     var vertexIter = topSortedVertices.iterator();
     var currVertex = vertexIter.next();
     if (!currVertex.idEquals(originBush.getOrigin().getCentroid())) {
@@ -113,6 +118,11 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
 
         int entrySegmentId = (int) entrySegment.getId();
         var usedLabels = originBush.getFlowCompositionLabels(entrySegment);
+        if (usedLabels == null) {
+          LOGGER.severe(String.format("Edge segment %s on bush, but no flow labels present, this shouldn't happen", entrySegment.getXmlId()));
+          continue;
+        }
+
         for (var entrylabel : usedLabels) {
 
           Double bushLinkLabelSendingFlow = bushSendingFlows.get(entrySegment, entrylabel);
@@ -144,6 +154,11 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
             }
 
             var exitLabels = originBush.getFlowCompositionLabels(exitSegment);
+            if (exitLabels == null) {
+              LOGGER.severe(String.format("Edge segment %s on bush, but no flow labels present, this shouldn't happen", exitSegment.getXmlId()));
+              continue;
+            }
+
             for (var exitLabel : exitLabels) {
               Double splittingRate = splittingRates.get(exitSegment, exitLabel);
               if (splittingRate != null && Precision.positive(splittingRate)) {
