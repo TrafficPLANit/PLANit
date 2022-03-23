@@ -149,21 +149,21 @@ public class Bush implements IdAble {
    * Verify if adding the sub-path edge segments would introduce a cycle in this bush
    * 
    * @param alternative to verify
-   * @return true if it introduces a cycle, false otherwise
+   * @return edge segment that would introduces a cycle, null otherwise
    */
-  public boolean determineIntroduceCycle(EdgeSegment[] alternative) {
+  public EdgeSegment determineIntroduceCycle(EdgeSegment[] alternative) {
     if (alternative == null) {
       LOGGER.severe("Cannot verify if edge segments introduce cycle when parameters are null");
-      return true;
+      return null;
     }
     EdgeSegment currSegment = null;
     for (int index = 0; index < alternative.length; ++index) {
       currSegment = alternative[index].getOppositeDirectionSegment();
       if (currSegment != null && containsEdgeSegment(currSegment)) {
-        return true;
+        return alternative[index];
       }
     }
-    return false;
+    return null;
   }
 
   /**

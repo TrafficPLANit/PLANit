@@ -220,7 +220,7 @@ public class PasManager {
     }
 
     if (detailedLogging) {
-      LOGGER.info(String.format("Created new PAS: %s", newPas.toString()));
+      LOGGER.info(String.format("Origin %s - Created new PAS: %s", originBush.getOrigin().getXmlId(), newPas.toString()));
     }
     newPas.registerOrigin(originBush);
     passByMergeVertex.putIfAbsent(newPas.getMergeVertex(), new ArrayList<Pas>());
@@ -339,7 +339,7 @@ public class PasManager {
       }
 
       /* deemed effective, now ensure it does not introduce cycles */
-      if (originBush.determineIntroduceCycle(pas.getAlternative(true))) {
+      if (originBush.determineIntroduceCycle(pas.getAlternative(true)) != null) {
         continue;
       }
 

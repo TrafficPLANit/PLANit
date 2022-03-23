@@ -156,9 +156,25 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     /* create the PAS and register origin bush on it */
     boolean truncateSpareArrayCapacity = true;
     var divergeVertex = highCostSegment.first();
+
+    /* S1 */
     EdgeSegment[] s1 = PasManager.createSubpathArrayFrom(divergeVertex, mergeVertex, networkMinPaths, numShortestPathEdgeSegments, truncateSpareArrayCapacity);
+    var cycleInducingSegment = originBush.determineIntroduceCycle(s1);
+    if (cycleInducingSegment != null) {
+      /*
+       * this can happen if the merge vertex can only be reached by traversing the bush in opposite direction of existing edge segment on the bush. In which case, an alternative
+       * PAS further upstream should be considered, now identify this and ignore PAS as it is sub-optimal and cycle inducing
+       */
+      LOGGER.fine(String.format("Newly identified PAS alternative for origin (%s) would introduce cycle on low cost alternative (edge segment %s), ignore",
+          originBush.getOrigin().toString(), cycleInducingSegment.getXmlId()));
+      return null;
+    }
+
+    /* S2 */
     EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(divergeVertex, mergeVertex, highCostSegment.second(),
         Math.min(numShortestPathEdgeSegments, highCostSegment.second().size()), truncateSpareArrayCapacity);
+
+    /* PAS */
     newPas = pasManager.createAndRegisterNewPas(originBush, s1, s2);
 
     /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
@@ -219,13 +235,6 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
             /* no suitable match, attempt creating an entirely new PAS */
             Pas newPas = extendBushWithNewPas(originBush, bushVertex, networkMinPaths);
             if (newPas != null) {
-
-              // TODO: when this never happens we can remove it to save computation time, for now we just want to make sure all goes well
-              if (originBush.determineIntroduceCycle(newPas.getAlternative(true))) {
-                LOGGER.severe(String.format("Newly identified PAS (%s) for origin %s would introduce cycle on low cost alternative, this shouldn't happen, PAS ignored",
-                    newPas.toString(), originBush.getOrigin().toString()));
-              }
-
               newPass.add(newPas);
               newPas.updateCost(linkSegmentCosts);
               continue;
