@@ -371,7 +371,7 @@ public class Bush implements IdAble {
   }
 
   /**
-   * Collect the bush splitting rates for a given incoming edge segment and entry label. If no flow exits, zero splitting rates are returned
+   * Collect the bush splitting rates for a given incoming edge segment and entry label. If no flow exits, no splitting rate is provided in the returned map
    * 
    * @param entrySegment to use
    * @param entryLabel   to use
@@ -417,6 +417,7 @@ public class Bush implements IdAble {
    */
   public void removeTurn(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
     bushData.removeTurn(fromEdgeSegment, toEdgeSegment);
+    LOGGER.info(String.format("Removing turn (%s,%s) from bush for origin (%s) entirely", fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId(), getOrigin().getXmlId()));
 
     if (!Precision.positive(getSendingFlowPcuH(fromEdgeSegment))) {
       removeEdgeSegment(fromEdgeSegment);
@@ -436,11 +437,12 @@ public class Bush implements IdAble {
   public boolean removeEdgeSegment(EdgeSegment edgeSegment) {
     /* update graph if edge segment is unused */
     if (!Precision.positive(getSendingFlowPcuH(edgeSegment))) {
+      LOGGER.info(String.format("Removing edge segment (%s) from bush for origin (%s) entirely", edgeSegment.getXmlId(), getOrigin().getXmlId()));
       dag.removeEdgeSegment(edgeSegment);
       return true;
     }
 
-    LOGGER.warning(String.format("Unable to remove egdge segment %s from bush (origin %s) unless it has no flow", edgeSegment.getXmlId()));
+    LOGGER.warning(String.format("Unable to remove edge segment %s from bush (origin %s) unless it has no flow", edgeSegment.getXmlId()));
     return false;
   }
 

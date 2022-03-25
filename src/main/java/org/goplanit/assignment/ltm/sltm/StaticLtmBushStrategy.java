@@ -139,8 +139,6 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    */
   private Pas extendBushWithNewPas(final Bush originBush, final DirectedVertex mergeVertex, final ShortestPathResult networkMinPaths) {
 
-    Pas newPas = null;
-
     /* Label all vertices on shortest path origin-bushVertex as -1, and PAS merge Vertex itself as 1 */
     final short[] alternativeSegmentVertexLabels = new short[getTransportNetwork().getNumberOfVerticesAllLayers()];
     alternativeSegmentVertexLabels[(int) mergeVertex.getId()] = 1;
@@ -176,13 +174,23 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     /* S2 */
     EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(divergeVertex, mergeVertex, highCostSegment.second(), highCostSegment.second().size(), truncateSpareArrayCapacity);
 
-    /* PAS */
-    newPas = pasManager.createAndRegisterNewPas(originBush, s1, s2);
+    /* register on existing PAS (if available) otherwise create new PAS */
+    Pas pas = pasManager.findExistingPas(s1, s2);
+    if (pas != null) {
+      pas.registerOrigin(originBush);
+    } else {
+      pas = pasManager.findExistingPas(s2, s1);
+      if (pas != null) {
+        LOGGER.severe(String.format("existing pas has inverted high/low segment costs compared to current situation, shouldn't happen"));
+        pas.registerOrigin(originBush);
+      } else {
+        pas = pasManager.createAndRegisterNewPas(originBush, s1, s2);
+        /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
+        getLoading().activateNodeTrackingFor(pas);
+      }
+    }
 
-    /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
-    getLoading().activateNodeTrackingFor(newPas);
-
-    return newPas;
+    return pas;
   }
 
   /**

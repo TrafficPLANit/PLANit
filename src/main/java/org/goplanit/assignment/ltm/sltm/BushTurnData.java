@@ -40,12 +40,15 @@ public class BushTurnData implements Cloneable {
    * @param node to check
    */
   private void pruneCompositionLabels(final DirectedVertex node) {
+
     var identifiedExitCompositionLabelMap = new HashMap<EdgeSegment, TreeSet<BushFlowLabel>>();
     for (var entrySegment : node.getEntryEdgeSegments()) {
+
       var existingEntryLabels = linkSegmentCompositionLabels.get(entrySegment);
       if (existingEntryLabels == null) {
         continue;
       }
+
       var remainingEntryLabels = new TreeSet<BushFlowLabel>();
       for (BushFlowLabel entryComposition : existingEntryLabels) {
         for (var exitSegment : node.getExitEdgeSegments()) {
@@ -53,6 +56,7 @@ public class BushTurnData implements Cloneable {
           if (exitLabels == null) {
             continue;
           }
+
           var identifiedExitCompositionLabels = identifiedExitCompositionLabelMap.get(exitSegment);
           if (identifiedExitCompositionLabels == null) {
             identifiedExitCompositionLabels = new TreeSet<BushFlowLabel>();
@@ -61,6 +65,7 @@ public class BushTurnData implements Cloneable {
 
           for (BushFlowLabel exitComposition : exitLabels) {
             Double labelledTurnFlow = compositionTurnSendingFlows.get(entrySegment, entryComposition, exitSegment, exitComposition);
+
             if (labelledTurnFlow == null) {
               continue;
             }
@@ -373,7 +378,7 @@ public class BushTurnData implements Cloneable {
           continue;
         }
         for (var toComposition : toLabels) {
-          if (Precision.positive(getTurnSendingFlowPcuH(fromSegment, fromComposition, exitSegment, toComposition))) {
+          if (containsTurnSendingFlow(fromSegment, fromComposition, exitSegment, toComposition)) {
             return true;
           }
         }
@@ -392,7 +397,7 @@ public class BushTurnData implements Cloneable {
    * @return true when present, false otherwise
    */
   public boolean containsTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition) {
-    return Precision.positive(getTurnSendingFlowPcuH(fromSegment, fromComposition, toSegment, toComposition));
+    return getTurnSendingFlowPcuH(fromSegment, fromComposition, toSegment, toComposition) > 0;
   }
 
   /**
@@ -452,7 +457,7 @@ public class BushTurnData implements Cloneable {
   }
 
   /**
-   * Collect the bush splitting rates for a given incoming edge segment and entry label. If no flow exits, zero splitting rates are returned
+   * Collect the bush splitting rates for a given incoming edge segment and entry label. If no flow exits, no splitting rates are returned in the map
    * 
    * @param fromSegment to use
    * @param fromLabel   to use
@@ -462,8 +467,15 @@ public class BushTurnData implements Cloneable {
   public MultiKeyMap<Object, Double> getSplittingRates(EdgeSegment fromSegment, BushFlowLabel fromLabel) {
     var exitEdgeSegments = fromSegment.getDownstreamVertex().getExitEdgeSegments();
 
+    /*
+     * Note: flow/label removal below threshold is done when shifting flows. Splitting rates just follow so no precision threshold applied here
+     */
     MultiKeyMap<Object, Double> splittingRatesByExitSegmentLabel = new MultiKeyMap<Object, Double>();
     double totalSendingFlow = getTotalSendingFlowFromPcuH(fromSegment, fromLabel);
+    if (totalSendingFlow <= 0) {
+      return splittingRatesByExitSegmentLabel;
+    }
+
     for (var exitSegment : exitEdgeSegments) {
       var toLabels = getFlowCompositionLabels(exitSegment);
       if (toLabels == null) {
@@ -471,7 +483,7 @@ public class BushTurnData implements Cloneable {
       }
       for (var toLabel : toLabels) {
         double s_ab = getTurnSendingFlowPcuH(fromSegment, fromLabel, exitSegment, toLabel);
-        if (Precision.positive(s_ab)) {
+        if (s_ab > 0) {
           splittingRatesByExitSegmentLabel.put(exitSegment, toLabel, s_ab / totalSendingFlow);
         }
       }
@@ -492,7 +504,7 @@ public class BushTurnData implements Cloneable {
    */
   public double getSplittingRate(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
     double turnSendingFlow = getTurnSendingFlowPcuH(fromSegment, toSegment);
-    if (Precision.positive(turnSendingFlow)) {
+    if (turnSendingFlow > 0) {
       return turnSendingFlow / getTotalSendingFlowFromPcuH(fromSegment);
     } else {
       return 0;
@@ -510,7 +522,7 @@ public class BushTurnData implements Cloneable {
    */
   public double getSplittingRate(EdgeSegment fromSegment, EdgeSegment toSegment, BushFlowLabel entryExitLabel) {
     double turnSendingFlow = getTurnSendingFlowPcuH(fromSegment, entryExitLabel, toSegment, entryExitLabel);
-    if (Precision.positive(turnSendingFlow)) {
+    if (turnSendingFlow > 0) {
       return turnSendingFlow / getTotalSendingFlowFromPcuH(fromSegment, entryExitLabel);
     } else {
       return 0;

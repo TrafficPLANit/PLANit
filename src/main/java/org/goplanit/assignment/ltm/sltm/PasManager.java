@@ -261,7 +261,7 @@ public class PasManager {
   }
 
   /**
-   * Find PAS that exactly matches the provides alternative segments
+   * Find PAS that exactly matches the provides alternative segments. Identical to {@link #findExistingPas(EdgeSegment[], EdgeSegment[])}
    * 
    * @param alternative1 alternative segment of PAS
    * @param alternative2 alternative segment of PAS
@@ -278,6 +278,35 @@ public class PasManager {
     }
 
     var potentialPass = getPassByMergeVertex(alternative1.get(alternative1.size() - 1).getDownstreamVertex());
+    if (potentialPass == null) {
+      return null;
+    }
+
+    for (Pas potentialPas : potentialPass) {
+      if (potentialPas.isAlternativeEqual(alternative1, true) && potentialPas.isAlternativeEqual(alternative2, false)) {
+        return potentialPas;
+      } else if (potentialPas.isAlternativeEqual(alternative2, true) && potentialPas.isAlternativeEqual(alternative1, false)) {
+        return potentialPas;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Find PAS that exactly matches the provides alternative segments. Identical to {@link #findExistingPas(ArrayList, ArrayList)}
+   * 
+   * @param alternative1 alternative segment of PAS
+   * @param alternative2 alternative segment of PAS
+   * @return the matching PAS, null otherwise
+   */
+  public Pas findExistingPas(final EdgeSegment[] alternative1, final EdgeSegment[] alternative2) {
+    if (alternative1 == null || alternative2 == null) {
+      LOGGER.severe("one or more alternatives of potential PAS are null");
+      return null;
+    }
+
+    var potentialPass = getPassByMergeVertex(alternative1[alternative1.length - 1].getDownstreamVertex());
     if (potentialPass == null) {
       return null;
     }

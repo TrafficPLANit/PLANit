@@ -127,7 +127,8 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
 
           Double bushLinkLabelSendingFlow = bushSendingFlows.get(entrySegment, entrylabel);
           if (bushLinkLabelSendingFlow == null) {
-            LOGGER.severe(String.format("No link sending flow found for segment %s and used label %d, this shouldn't happen", entrySegment.getXmlId(), entrylabel.getLabelId()));
+            LOGGER.severe(String.format("Origin (%s): No link sending flow found for segment %s and label %d, this shouldn't happen", originBush.getOrigin().getXmlId(),
+                entrySegment.getXmlId(), entrylabel.getLabelId()));
             continue;
           }
 
@@ -147,6 +148,9 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
 
           /* bush splitting rates by [exit segment, exit label] as key */
           MultiKeyMap<Object, Double> splittingRates = originBush.getSplittingRates(entrySegment, entrylabel);
+          if (splittingRates == null || splittingRates.isEmpty()) {
+            continue;
+          }
 
           for (var exitSegment : currVertex.getExitEdgeSegments()) {
             if (!originBush.containsEdgeSegment(exitSegment)) {
@@ -161,7 +165,7 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
 
             for (var exitLabel : exitLabels) {
               Double splittingRate = splittingRates.get(exitSegment, exitLabel);
-              if (splittingRate != null && Precision.positive(splittingRate)) {
+              if (splittingRate != null && splittingRate > 0) {
 
                 /* v^o_ab = v^o_a * phi_ab */
                 double turnAcceptedFlow = bushEntryAcceptedFlow * splittingRate;
