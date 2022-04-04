@@ -52,6 +52,7 @@ public class BushTurnData implements Cloneable {
       var remainingEntryLabels = new TreeSet<BushFlowLabel>();
       for (BushFlowLabel entryComposition : existingEntryLabels) {
         for (var exitSegment : node.getExitEdgeSegments()) {
+
           var exitLabels = linkSegmentCompositionLabels.get(exitSegment);
           if (exitLabels == null) {
             continue;
@@ -100,14 +101,29 @@ public class BushTurnData implements Cloneable {
    * @param compositionLabel to register
    */
   private void registerEdgeSegmentCompositionLabel(final EdgeSegment edgeSegment, final BushFlowLabel compositionLabel) {
-    var fromLabels = linkSegmentCompositionLabels.get(edgeSegment);
-    if (fromLabels == null) {
-      fromLabels = new TreeSet<BushFlowLabel>();
-      linkSegmentCompositionLabels.put(edgeSegment, fromLabels);
+    var existingLabels = linkSegmentCompositionLabels.get(edgeSegment);
+    if (existingLabels == null) {
+      existingLabels = new TreeSet<BushFlowLabel>();
+      linkSegmentCompositionLabels.put(edgeSegment, existingLabels);
     }
-    if (!fromLabels.contains(compositionLabel)) {
-      fromLabels.add(compositionLabel);
+    if (!existingLabels.contains(compositionLabel)) {
+      existingLabels.add(compositionLabel);
     }
+  }
+
+  /**
+   * Register labelled sending flow on the container while also ensuring link level composition labels are kept consistent
+   * 
+   * @param fromSegment     of turn
+   * @param fromComposition label of turn
+   * @param toSegment       of turn
+   * @param toComposition   label of turn
+   * @param turnSendingFlow flow of turn
+   */
+  private void registerLabelledTurnSendingFlow(EdgeSegment fromSegment, BushFlowLabel fromComposition, EdgeSegment toSegment, BushFlowLabel toComposition, double turnSendingFlow) {
+    compositionTurnSendingFlows.put(fromSegment, fromComposition, toSegment, toComposition, turnSendingFlow);
+    registerEdgeSegmentCompositionLabel(fromSegment, fromComposition);
+    registerEdgeSegmentCompositionLabel(toSegment, toComposition);
   }
 
   /**
@@ -166,15 +182,21 @@ public class BushTurnData implements Cloneable {
       double turnSendingFlow) {
 
     if (!Precision.positive(turnSendingFlow)) {
+      if (Double.isNaN(turnSendingFlow)) {
+        LOGGER.severe("Turn (%s to %s) sending flow is NAN, shouldn't happen - consider identifying issue as turn flow cannot be updated properly");
+        return true;
+      }
+
       LOGGER.warning(String.format("Turn (%s to %s) sending flow not positive (enough) (%.9f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
           turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
       removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
       return false;
+
     } else {
-      compositionTurnSendingFlows.put(fromSegment, fromComposition, toSegment, toComposition, turnSendingFlow);
-      registerEdgeSegmentCompositionLabel(fromSegment, fromComposition);
-      registerEdgeSegmentCompositionLabel(toSegment, toComposition);
+
+      registerLabelledTurnSendingFlow(fromSegment, fromComposition, toSegment, toComposition, turnSendingFlow);
       return true;
+
     }
   }
 
@@ -505,7 +527,12 @@ public class BushTurnData implements Cloneable {
   public double getSplittingRate(final EdgeSegment fromSegment, final EdgeSegment toSegment) {
     double turnSendingFlow = getTurnSendingFlowPcuH(fromSegment, toSegment);
     if (turnSendingFlow > 0) {
-      return turnSendingFlow / getTotalSendingFlowFromPcuH(fromSegment);
+      double totalSendingFlow = getTotalSendingFlowFromPcuH(fromSegment);
+      if (totalSendingFlow < turnSendingFlow) {
+        LOGGER.severe(String.format("Total sending flow (%.10f) smaller than turn (%s,%s) sending flow (%.10f), this shouldn't happen", totalSendingFlow, fromSegment.getXmlId(),
+            toSegment.getXmlId(), turnSendingFlow));
+      }
+      return turnSendingFlow / totalSendingFlow;
     } else {
       return 0;
     }
@@ -523,6 +550,11 @@ public class BushTurnData implements Cloneable {
   public double getSplittingRate(EdgeSegment fromSegment, EdgeSegment toSegment, BushFlowLabel entryExitLabel) {
     double turnSendingFlow = getTurnSendingFlowPcuH(fromSegment, entryExitLabel, toSegment, entryExitLabel);
     if (turnSendingFlow > 0) {
+      double totalSendingFlow = getTotalSendingFlowFromPcuH(fromSegment, entryExitLabel);
+      if (totalSendingFlow < turnSendingFlow) {
+        LOGGER.severe(String.format("Total sending flow (%.10f) smaller than turn (%s,%s) sending flow (%.10f) for label (%d,%d), this shouldn't happen", totalSendingFlow,
+            fromSegment.getXmlId(), toSegment.getXmlId(), entryExitLabel.getLabelId(), entryExitLabel.getLabelId(), turnSendingFlow));
+      }
       return turnSendingFlow / getTotalSendingFlowFromPcuH(fromSegment, entryExitLabel);
     } else {
       return 0;

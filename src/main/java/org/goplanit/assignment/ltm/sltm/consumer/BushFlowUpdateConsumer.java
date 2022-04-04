@@ -10,6 +10,7 @@ import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
+import org.goplanit.utils.network.virtual.ConnectoidSegment;
 
 /**
  * Base Consumer to apply during bush based network loading flow update for each origin bush
@@ -45,8 +46,10 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
         }
       }
     }
+
     if (Precision.notEqual(totalRootSendingFlow, originBush.getTravelDemandPcuH())) {
-      LOGGER.severe(String.format("Origin (%s) travel demand not equal to total flow placed on bush root, this shouldn't happen", originBush.getOrigin().getXmlId()));
+      LOGGER.severe(String.format("Origin (%s) travel demand (%.2f pcu/h) not equal to total flow (%.2f pcu/h) placed on bush root, this shouldn't happen",
+          originBush.getOrigin().getXmlId(), originBush.getTravelDemandPcuH(), totalRootSendingFlow));
     }
   }
 
@@ -123,6 +126,8 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
           continue;
         }
 
+        double totalEntryAcceptedFlow = 0;
+        double totalExitAcceptedFlow = 0;
         for (var entrylabel : usedLabels) {
 
           Double bushLinkLabelSendingFlow = bushSendingFlows.get(entrySegment, entrylabel);
@@ -135,6 +140,7 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
           /* v^o_a = s^o_a * alpha_a */
           double alpha = dataConfig.flowAcceptanceFactors[entrySegmentId];
           double bushEntryAcceptedFlow = bushLinkLabelSendingFlow * alpha;
+          totalEntryAcceptedFlow += bushEntryAcceptedFlow;
 
           /* s_a = SUM(u^o_a) (only when enabled) */
           if (dataConfig.isSendingflowsUpdate()) {
@@ -166,9 +172,10 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
             for (var exitLabel : exitLabels) {
               Double splittingRate = splittingRates.get(exitSegment, exitLabel);
               if (splittingRate != null && splittingRate > 0) {
-
                 /* v^o_ab = v^o_a * phi_ab */
                 double turnAcceptedFlow = bushEntryAcceptedFlow * splittingRate;
+                totalExitAcceptedFlow += turnAcceptedFlow;
+
                 Double exitLabelFlowToUpdate = bushSendingFlows.get(exitSegment, exitLabel);
                 if (exitLabelFlowToUpdate == null) {
                   exitLabelFlowToUpdate = turnAcceptedFlow;
@@ -182,6 +189,11 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
               }
             }
           }
+        }
+        if (Precision.notEqual(totalEntryAcceptedFlow, totalExitAcceptedFlow) && !(entrySegment instanceof ConnectoidSegment)) {
+          LOGGER.severe(String.format(
+              "Accepted (labelled) out flow %.10f on edge segment (%s) not equal to flow (%.10f) assigned to (labelled) turns - origin bush %s, this shouldn't happen",
+              totalEntryAcceptedFlow, entrySegment.getXmlId(), totalExitAcceptedFlow, originBush.getOrigin().getXmlId()));
         }
       }
     }

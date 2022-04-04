@@ -42,7 +42,7 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
    */
   private void executeTurnFlowShift(Bush origin, EdgeSegment turnEntry, EdgeSegment turnExit, BushFlowLabel label, double flowShiftPcuH) {
     boolean positiveLabelledFlowRemaining = origin.addTurnSendingFlow(turnEntry, label, turnExit, label, flowShiftPcuH);
-    if (!positiveLabelledFlowRemaining && !Precision.positive(origin.getTurnSendingFlow(turnEntry, turnExit))) {
+    if (!positiveLabelledFlowRemaining && !Precision.positive(origin.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
       /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
       origin.removeTurn(turnEntry, turnExit);
     }
@@ -114,7 +114,7 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
       for (var exitSegment : pas.getMergeVertex().getExitEdgeSegments()) {
         if (origin.containsEdgeSegment(exitSegment)) {
           Double labeledSplittingRate = splittingRates.get(exitSegment, destinationLabel);
-          if (labeledSplittingRate == null || !Precision.positive(labeledSplittingRate)) {
+          if (labeledSplittingRate == null || !Precision.positive(labeledSplittingRate, EPSILON)) {
             ++index;
             continue;
           }
@@ -122,7 +122,7 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
           /* remove flow for s2 */
           double s2FlowShift = s2FinalLabeledFlowShift * labeledSplittingRate;
           boolean positiveLabelledFlowRemaining = origin.addTurnSendingFlow(lastS2Segment, destinationLabel, exitSegment, destinationLabel, s2FlowShift);
-          if (!positiveLabelledFlowRemaining && !Precision.positive(origin.getTurnSendingFlow(lastS2Segment, exitSegment))) {
+          if (!positiveLabelledFlowRemaining && !Precision.positive(origin.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
             /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
             origin.removeTurn(lastS2Segment, exitSegment);
           }

@@ -243,7 +243,7 @@ public abstract class StaticLtmNetworkLoading {
 
         /* sum all flows and then divide by this sum to obtain splitting rates */
         double totalEntryFlow = nextSplittingRates.aggregateAll(Aggregator.SUM);
-        if (totalEntryFlow > Precision.EPSILON_6) {
+        if (totalEntryFlow > 0) {
           nextSplittingRates.modifyAll(PrimitiveFunction.DIVIDE.by(totalEntryFlow));
         } else {
           nextSplittingRates.fillAll(1.0);
