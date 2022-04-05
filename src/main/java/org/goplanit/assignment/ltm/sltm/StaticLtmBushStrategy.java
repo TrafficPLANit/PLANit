@@ -231,12 +231,19 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
         /* find (new) matching PASs */
         for (var bushVertexIter = originBush.getDirectedVertexIterator(); bushVertexIter.hasNext();) {
           DirectedVertex bushVertex = bushVertexIter.next();
+          if (bushVertex.getNumberOfEdges() < 3 || bushVertex.sizeOfEntryEdgeSegments() < 2 || !bushVertex.hasExitEdgeSegments()) {
+            continue;
+          }
+
+          EdgeSegment reducedCostSegment = networkMinPaths.getIncomingEdgeSegmentForVertex(bushVertex);
+          if (reducedCostSegment == null) {
+            continue;
+          }
+          double reducedCost = minMaxPaths.getCostToReach(bushVertex) - networkMinPaths.getCostToReach(bushVertex);
 
           /* when bush does not contain the reduced cost edge segment (or the opposite direction which would cause a cycle) consider it */
-          EdgeSegment reducedCostSegment = networkMinPaths.getIncomingEdgeSegmentForVertex(bushVertex);
-          if (reducedCostSegment != null && !originBush.containsEdgeSegment(reducedCostSegment)) {
+          if (reducedCost > 0 && !originBush.containsAnyEdgeSegmentOf(reducedCostSegment.getParentEdge())) {
 
-            double reducedCost = minMaxPaths.getCostToReach(bushVertex) - networkMinPaths.getCostToReach(bushVertex);
             boolean matchFound = extendBushWithSuitableExistingPas(originBush, bushVertex, reducedCost);
             if (matchFound) {
               continue;
@@ -546,10 +553,10 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
         /* PAS COST UPDATE*/
         pasManager.updateCosts(costsToUpdate);      
                           
-        LOGGER.severe(String.format("** ALPHA: %s", Arrays.toString(getLoading().getCurrentFlowAcceptanceFactors())));
-        LOGGER.severe(String.format("** COSTS: %s", Arrays.toString(costsToUpdate)));
-        LOGGER.severe(String.format("** INFLOW: %s", Arrays.toString(getLoading().getCurrentInflowsPcuH())));
-        LOGGER.severe(String.format("** OUTFLOW: %s", Arrays.toString(getLoading().getCurrentOutflowsPcuH())));
+        LOGGER.info(String.format("** ALPHA: %s", Arrays.toString(getLoading().getCurrentFlowAcceptanceFactors())));
+        LOGGER.info(String.format("** COSTS: %s", Arrays.toString(costsToUpdate)));
+        LOGGER.info(String.format("** INFLOW: %s", Arrays.toString(getLoading().getCurrentInflowsPcuH())));
+        LOGGER.info(String.format("** OUTFLOW: %s", Arrays.toString(getLoading().getCurrentOutflowsPcuH())));
       }
       
       /* 3 - BUSH LOADING - SYNC BUSH TURN FLOWS - USE NETWORK LOADING ALPHAS - MODE AGNOSTIC FOR NOW */

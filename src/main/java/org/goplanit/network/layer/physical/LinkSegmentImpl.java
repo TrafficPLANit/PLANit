@@ -164,17 +164,17 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    * {@inheritDoc}
    */
   @Override
-  public void setNumberOfLanes(final int numberOfLanes) {
+  public LinkSegment setNumberOfLanes(final int numberOfLanes) {
     this.numberOfLanes = numberOfLanes;
+    return this;
   }
 
   /**
-   * This is the maximum speed that is physically present and a driver can observe from the signs on the road
-   * 
-   * @param maximumSpeed physical speed limit
+   * {@inheritDoc}
    */
-  public void setPhysicalSpeedLimitKmH(double maximumSpeed) {
+  public LinkSegment setPhysicalSpeedLimitKmH(double maximumSpeed) {
     this.physicalSpeedLinkKmh = maximumSpeed;
+    return this;
   }
 
   /**

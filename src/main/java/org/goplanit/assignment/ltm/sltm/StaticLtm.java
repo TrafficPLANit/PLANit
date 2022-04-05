@@ -184,9 +184,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
       assignmentStrategy.getLoading().stepSixFinaliseForPersistence();
       getOutputManager().persistOutputData(timePeriod, modes, converged);
 
-      LOGGER.severe(String.format("** INFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentInflowsPcuH())));
-      LOGGER.severe(String.format("** OUTFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentOutflowsPcuH())));
-      LOGGER.severe(String.format("** ALPHA: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentFlowAcceptanceFactors())));
+      LOGGER.info(String.format("** INFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentInflowsPcuH())));
+      LOGGER.info(String.format("** OUTFLOW: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentOutflowsPcuH())));
+      LOGGER.info(String.format("** ALPHA: %s", Arrays.toString(assignmentStrategy.getLoading().getCurrentFlowAcceptanceFactors())));
     }
   }
 

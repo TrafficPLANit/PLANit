@@ -45,22 +45,35 @@ public class Bush implements IdAble {
 
   /**
    * Determine the sending flow between origin,destination vertex using the subpath given by the subPathArray in order from start to finish. We utilise the initial sending flow on
-   * the first segment as the base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
+   * the indexed segment and label as the base flow which is then followed along the subpath through the bush splitting rates up to the final link segment
    * 
    * @param subPathSendingFlow to start with
    * @param index              offset to start in array with
    * @param subPathArray       to extract path from
    * @return sendingFlowPcuH between index and end vertex following the sub-path
    */
-  private double determineSubPathSendingFlow(double subPathSendingFlow, int index, final EdgeSegment[] subPathArray) {
+  private double determineSubPathSendingFlow(double subPathSendingFlow, BushFlowLabel label, int index, final EdgeSegment[] subPathArray) {
     var currEdgeSegment = subPathArray[index++];
-    var nextEdgeSegment = currEdgeSegment;
-    while (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
-      currEdgeSegment = nextEdgeSegment;
-      nextEdgeSegment = subPathArray[index++];
-      subPathSendingFlow *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
-    }
+    if (index < subPathArray.length && Precision.positive(subPathSendingFlow)) {
+      var nextEdgeSegment = subPathArray[index];
 
+      var exitLabels = getFlowCompositionLabels(nextEdgeSegment);
+      if (exitLabels == null) {
+        return 0;
+      }
+
+      var exitSegmentExitLabelSplittingRates = bushData.getSplittingRates(currEdgeSegment, label);
+      double remainingSubPathSendingFlow = 0;
+      for (var exitLabel : exitLabels) {
+        Double currSplittingRate = exitSegmentExitLabelSplittingRates.get(nextEdgeSegment, exitLabel);
+        if (currSplittingRate == null || currSplittingRate <= 0) {
+          continue;
+        }
+        remainingSubPathSendingFlow += subPathSendingFlow * currSplittingRate;
+      }
+
+      return determineSubPathSendingFlow(remainingSubPathSendingFlow, label, index, subPathArray);
+    }
     return subPathSendingFlow;
   }
 
@@ -211,58 +224,77 @@ public class Bush implements IdAble {
 
   /**
    * Add turn sending flow to the bush. In case the turn does not yet exist on the bush it is newly registered. If it does exist and there is already flow present, the provided
-   * flow is added to it. If by adding the flow (can be ngative) the turn no longer has any flow, the labels are removed
+   * flow is added to it. If by adding the flow (can be negative) the turn no longer has any flow, nor labels nor the turn itself is removed
    * 
-   * @param fromEdgeSegment     from segment of the turn
-   * @param fromLabel           to use
-   * @param toEdgeSegment       to segment of the turn
-   * @param toLabel             to use
-   * @param turnSendingflowPcuH to add
-   * @return true when turn has any sending flow left, false when labelled turn sending flow no longer exists
+   * @param from        from segment of the turn
+   * @param fromLabel   to use
+   * @param to          to segment of the turn
+   * @param toLabel     to use
+   * @param addFlowPcuH to add
+   * @return new labelled turn sending flow after adding given flow
    */
-  public boolean addTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowLabel fromLabel, final EdgeSegment toEdgeSegment, final BushFlowLabel toLabel,
-      double turnSendingflowPcuH) {
-    if (!containsEdgeSegment(fromEdgeSegment)) {
-      if (containsEdgeSegment(fromEdgeSegment.getOppositeDirectionSegment())) {
-        LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
-            fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId(), fromEdgeSegment.getXmlId()));
+  public double addTurnSendingFlow(final EdgeSegment from, final BushFlowLabel fromLabel, final EdgeSegment to, final BushFlowLabel toLabel, double addFlowPcuH) {
+    return addTurnSendingFlow(from, fromLabel, to, toLabel, addFlowPcuH, false);
+  }
+
+  /**
+   * Add turn sending flow to the bush. In case the turn does not yet exist on the bush it is newly registered. If it does exist and there is already flow present, the provided
+   * flow is added to it. If by adding the flow (can be negative) the turn no longer has any flow, the labels are removed
+   * 
+   * @param from             from segment of the turn
+   * @param fromLabel        to use
+   * @param to               to segment of the turn
+   * @param toLabel          to use
+   * @param addFlowPcuH      to add
+   * @param allowTurnRemoval when true we remove turn when no flow remains after adding (negative) flow, when false, we only change the flow to zero but the bush is not adjusted
+   * @return new labelled turn sending flow after adding given flow
+   */
+  public double addTurnSendingFlow(final EdgeSegment from, final BushFlowLabel fromLabel, final EdgeSegment to, final BushFlowLabel toLabel, double addFlowPcuH,
+      boolean allowTurnRemoval) {
+
+    if (addFlowPcuH > 0) {
+      if (!containsEdgeSegment(from)) {
+        if (containsEdgeSegment(from.getOppositeDirectionSegment())) {
+          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
+              from.getXmlId(), to.getXmlId(), from.getXmlId()));
+        }
+        dag.addEdgeSegment(from);
+        requireTopologicalSortUpdate = true;
       }
-      dag.addEdgeSegment(fromEdgeSegment);
-      requireTopologicalSortUpdate = true;
-    }
-    if (!containsEdgeSegment(toEdgeSegment)) {
-      if (containsEdgeSegment(toEdgeSegment.getOppositeDirectionSegment())) {
-        LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
-            fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId(), toEdgeSegment.getXmlId()));
+      if (!containsEdgeSegment(to)) {
+        if (containsEdgeSegment(to.getOppositeDirectionSegment())) {
+          LOGGER.warning(String.format("Trying to add turn flow (%s,%s) on bush where the opposite direction (of segment %s) already is part of the bush, this break acyclicity",
+              from.getXmlId(), to.getXmlId(), to.getXmlId()));
+        }
+        dag.addEdgeSegment(to);
+        requireTopologicalSortUpdate = true;
       }
-      dag.addEdgeSegment(toEdgeSegment);
-      requireTopologicalSortUpdate = true;
     }
-    return bushData.addTurnSendingFlow(fromEdgeSegment, fromLabel, toEdgeSegment, toLabel, turnSendingflowPcuH);
+    return bushData.addTurnSendingFlow(from, fromLabel, to, toLabel, addFlowPcuH, allowTurnRemoval);
   }
 
   /**
    * Collect bush turn sending flow (if any)
    * 
-   * @param fromEdgeSegment to use
-   * @param toEdgeSegment   to use
+   * @param from to use
+   * @param to   to use
    * @return sending flow, zero if unknown
    */
-  public double getTurnSendingFlow(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
-    return bushData.getTurnSendingFlowPcuH(fromEdgeSegment, toEdgeSegment);
+  public double getTurnSendingFlow(final EdgeSegment from, final EdgeSegment to) {
+    return bushData.getTurnSendingFlowPcuH(from, to);
   }
 
   /**
    * Collect bush turn sending flow (if any)
    * 
-   * @param fromEdgeSegment to use
-   * @param fromLabel       to filter by
-   * @param toEdgeSegment   to use
-   * @param toLabel         to filter by
+   * @param from      to use
+   * @param fromLabel to filter by
+   * @param to        to use
+   * @param toLabel   to filter by
    * @return sending flow, zero if unknown
    */
-  public double getTurnSendingFlow(final EdgeSegment fromEdgeSegment, final BushFlowLabel fromLabel, final EdgeSegment toEdgeSegment, final BushFlowLabel toLabel) {
-    return bushData.getTurnSendingFlowPcuH(fromEdgeSegment, fromLabel, toEdgeSegment, toLabel);
+  public double getTurnSendingFlow(final EdgeSegment from, final BushFlowLabel fromLabel, final EdgeSegment to, final BushFlowLabel toLabel) {
+    return bushData.getTurnSendingFlowPcuH(from, fromLabel, to, toLabel);
   }
 
   /**
@@ -289,62 +321,36 @@ public class Bush implements IdAble {
   /**
    * Verify if the provided turn has any registered sending flow
    * 
-   * @param entrySegment to use
-   * @param exitSegment  to use
+   * @param from to use
+   * @param to   to use
    * @return true when turn sending flow is present, false otherwise
    */
-  public boolean containsTurnSendingFlow(final EdgeSegment entrySegment, final EdgeSegment exitSegment) {
-    return Precision.positive(bushData.getTurnSendingFlowPcuH(entrySegment, exitSegment));
+  public boolean containsTurnSendingFlow(final EdgeSegment from, final EdgeSegment to) {
+    return bushData.getTurnSendingFlowPcuH(from, to) > 0;
   }
 
   /**
    * Verify if the provided turn has any registered sending flow for the given label combination
    * 
-   * @param entrySegment          to use
-   * @param entryCompositionLabel to use
-   * @param exitSegment           to use
-   * @param exitCompositionLabel  to use
+   * @param from      to use
+   * @param fromLabel to use
+   * @param to        to use
+   * @param toLabel   to use
    * @return true when turn sending flow is present, false otherwise
    */
-  public boolean containsTurnSendingFlow(EdgeSegment entrySegment, BushFlowLabel entryCompositionLabel, EdgeSegment exitSegment, BushFlowLabel exitCompositionLabel) {
-    return Precision.positive(bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitCompositionLabel));
-  }
-
-  /**
-   * Multiply all turn sending flows with the given entry label that have the given segment as entry segment, with the given factor
-   * 
-   * @param entrySegment          to use as turn entry segment
-   * @param entryCompositionLabel to filter turn flow by
-   * @param factor                to multiply with
-   * @return true when all turns have any sending flow left after multiplication, false when any adjusted labelled turn sending flow no longer exists
-   */
-  public boolean multiplyTurnSendingFlows(final EdgeSegment entrySegment, final BushFlowLabel entryCompositionLabel, double factor) {
-    boolean anyTurnLabelledSendingFlowZero = false;
-    for (EdgeSegment exitSegment : entrySegment.getDownstreamVertex().getExitEdgeSegments()) {
-      var exitLabels = bushData.getFlowCompositionLabels(exitSegment);
-      if (exitLabels == null) {
-        continue;
-      }
-      for (var exitLabel : exitLabels) {
-        double currentTurnLabeledSendingFlow = bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitLabel);
-        if (Precision.positive(currentTurnLabeledSendingFlow)) {
-          anyTurnLabelledSendingFlowZero |= bushData.setTurnSendingFlow(entrySegment, entryCompositionLabel, exitSegment, exitLabel,
-              bushData.getTurnSendingFlowPcuH(entrySegment, entryCompositionLabel, exitSegment, exitLabel) * factor);
-        }
-      }
-    }
-    return anyTurnLabelledSendingFlowZero;
+  public boolean containsTurnSendingFlow(EdgeSegment from, BushFlowLabel fromLabel, EdgeSegment to, BushFlowLabel toLabel) {
+    return bushData.getTurnSendingFlowPcuH(from, fromLabel, to, toLabel) > 0;
   }
 
   /**
    * Collect the bush splitting rate on the given turn
    * 
-   * @param entrySegment to use
-   * @param exitSegment  to use
+   * @param from to use
+   * @param to   to use
    * @return found splitting rate, in case the turn is not used, 0 is returned
    */
-  public double getSplittingRate(final EdgeSegment entrySegment, final EdgeSegment exitSegment) {
-    return bushData.getSplittingRate(entrySegment, exitSegment);
+  public double getSplittingRate(final EdgeSegment from, final EdgeSegment to) {
+    return bushData.getSplittingRate(from, to);
   }
 
   /**
@@ -609,13 +615,34 @@ public class Bush implements IdAble {
    */
   public double determineSubPathSendingFlow(EdgeSegment entrySegment, EdgeSegment[] subPathArray) {
 
-    double subPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(entrySegment);
-
     int index = 0;
-    EdgeSegment currEdgeSegment = subPathArray[index];
-    subPathSendingFlow *= bushData.getSplittingRate(entrySegment, currEdgeSegment);
+    var usedEntryLabels = getFlowCompositionLabels(entrySegment);
+    double subPathSendingFlow = 0;
+    for (var entryLabel : usedEntryLabels) {
+      double labelSendingFlow = bushData.getTotalSendingFlowFromPcuH(entrySegment, entryLabel);
 
-    return determineSubPathSendingFlow(subPathSendingFlow, index, subPathArray);
+      /* determine flow from entry segment into initial segment, from there on recursively traverse sub-path */
+      var initialSubPathEdgeSegment = subPathArray[index];
+      var exitLabels = getFlowCompositionLabels(initialSubPathEdgeSegment);
+      if (exitLabels == null) {
+        return 0;
+      }
+
+      var exitSegmentExitLabelSplittingRates = bushData.getSplittingRates(entrySegment, entryLabel);
+      double remainingSubPathSendingFlow = 0;
+      for (var exitLabel : exitLabels) {
+        Double currSplittingRate = exitSegmentExitLabelSplittingRates.get(initialSubPathEdgeSegment, exitLabel);
+        if (currSplittingRate == null || currSplittingRate <= 0) {
+          continue;
+        }
+        remainingSubPathSendingFlow += labelSendingFlow * currSplittingRate;
+      }
+
+      labelSendingFlow = determineSubPathSendingFlow(remainingSubPathSendingFlow, entryLabel, index, subPathArray);
+      subPathSendingFlow += labelSendingFlow;
+    }
+
+    return subPathSendingFlow;
   }
 
   /**
@@ -744,6 +771,7 @@ public class Bush implements IdAble {
     var currVertex = vertexIter.next();
 
     /* pass over bush in topological order updating turn sending flows based on flow acceptance factors */
+    final boolean AllowTurnRemoval = false;
     while (vertexIter.hasNext()) {
       currVertex = vertexIter.next();
       for (var entrySegment : currVertex.getEntryEdgeSegments()) {
@@ -754,11 +782,6 @@ public class Bush implements IdAble {
         /* if flow has fallen below threshold due to queues, remove from bush */
         var usedLabels = getFlowCompositionLabels(entrySegment);
         if (usedLabels == null) {
-          // TODO: likely goes wrong for PASs where it is now possible for a PAS to have an origin where part of the PAS alternative is no longer present
-          boolean removed = removeEdgeSegment(entrySegment);
-          if (!removed) {
-            LOGGER.warning(String.format("Entry segment %s has no flow labels but has flow, this shouldn't happen", entrySegment.getXmlId()));
-          }
           continue;
         }
 
@@ -778,11 +801,6 @@ public class Bush implements IdAble {
 
             var exitLabels = getFlowCompositionLabels(exitSegment);
             if (exitLabels == null) {
-              // TODO: likely goes wrong for PASs where it is now possible for a PAS to have an origin where part of the PAS alternative is no longer present
-              boolean removed = removeEdgeSegment(exitSegment);
-              if (!removed) {
-                LOGGER.warning(String.format("Exit segment %s has no flow labels but has flow, this shouldn't happen", entrySegment.getXmlId()));
-              }
               continue;
             }
 
@@ -790,7 +808,7 @@ public class Bush implements IdAble {
               Double bushExitSegmentLabelSplittingRate = splittingRates.get(exitSegment, exitLabel);
               if (bushExitSegmentLabelSplittingRate != null && Precision.positive(bushExitSegmentLabelSplittingRate)) {
                 double bushTurnLabeledAcceptedFlow = entryLabelAcceptedFlow * bushExitSegmentLabelSplittingRate;
-                bushData.setTurnSendingFlow(entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow);
+                bushData.setTurnSendingFlow(entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow, AllowTurnRemoval);
               }
             }
           }

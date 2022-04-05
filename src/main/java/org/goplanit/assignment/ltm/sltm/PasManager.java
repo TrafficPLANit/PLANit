@@ -323,6 +323,29 @@ public class PasManager {
   }
 
   /**
+   * Verify if any PAS at given merge is used by this origin bush.
+   * 
+   * @param originBush  to test for
+   * @param mergeVertex to test for
+   * @return true when PAS is used by origin bush ending at this vertex, false otherwise
+   */
+  public boolean isRegisteredOnAnyPasAtMerge(final Bush originBush, final DirectedVertex mergeVertex) {
+    /* verify potential PASs */
+    var potentialPass = getPassByMergeVertex(mergeVertex);
+    if (potentialPass == null) {
+      return false;
+    }
+
+    for (Pas pas : potentialPass) {
+      if (pas.hasRegisteredOrigin(originBush)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
    * find the first PAS which has the given merge vertex as end vertex and which if we would extend the bush with its least cost alternative would improve to the point it is
    * considered effective enough compared to the upper bound (reduced cost) improvement provided as well as that the bush has sufficient flow on the high cost alternative of the
    * PAS such that it can improve sufficiently by shifting flow towards the new low cost segment. If this all holds the PAS is selected and returned. We select the first PAS we can

@@ -39,13 +39,16 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
    * @param turnExit      turn exit segment
    * @param label         label to use on both entry and exit
    * @param flowShiftPcuH turn flow shift to apply by adding this flow to the turn
+   * @return new labelled turn flow after shift
    */
-  private void executeTurnFlowShift(Bush origin, EdgeSegment turnEntry, EdgeSegment turnExit, BushFlowLabel label, double flowShiftPcuH) {
-    boolean positiveLabelledFlowRemaining = origin.addTurnSendingFlow(turnEntry, label, turnExit, label, flowShiftPcuH);
-    if (!positiveLabelledFlowRemaining && !Precision.positive(origin.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
+  private double executeTurnFlowShift(Bush origin, EdgeSegment turnEntry, EdgeSegment turnExit, BushFlowLabel label, double flowShiftPcuH) {
+    double newLabelledTurnFlow = origin.addTurnSendingFlow(turnEntry, label, turnExit, label, flowShiftPcuH, isPasS2RemovalAllowed());
+    if (isPasS2RemovalAllowed() && !Precision.positive(newLabelledTurnFlow, EPSILON) && !Precision.positive(origin.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
       /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
       origin.removeTurn(turnEntry, turnExit);
+      newLabelledTurnFlow = 0.0;
     }
+    return newLabelledTurnFlow;
   }
 
   /**
@@ -96,10 +99,11 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
    * @param origin                           to use
    * @param destinationLabel                 flow composition label at hand
    * @param s2FinalLabeledFlowShift          the flow shift applied so far up to the final merge
+   * @param s2MergeExitSplittingRates        splitting rates to use with multi-key (exit segment, label)
    * @param exitShiftedSendingFlowToPopulate map to populate with the found exit segment flows (values) by used exit label (key)
    */
   private void executeBushDestinationLabeledS2FlowShiftEndMerge(Bush origin, BushFlowLabel destinationLabel, double s2FinalLabeledFlowShift,
-      Map<BushFlowLabel, double[]> exitShiftedSendingFlowToPopulate) {
+      MultiKeyMap<Object, Double> s2MergeExitSplittingRates, Map<BushFlowLabel, double[]> exitShiftedSendingFlowToPopulate) {
 
     /* remove shifted flows through final merge towards exit segments proportionally, to later add to s1 turns through merge */
     if (pas.getMergeVertex().hasExitEdgeSegments()) {
@@ -109,11 +113,10 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
       exitShiftedSendingFlowToPopulate.put(destinationLabel, destinationLabelExitSegmentShiftedSendingFlows);
 
       /* key: [exitSegment, exitLabel] */
-      MultiKeyMap<Object, Double> splittingRates = origin.getSplittingRates(lastS2Segment, destinationLabel);
       int index = 0;
       for (var exitSegment : pas.getMergeVertex().getExitEdgeSegments()) {
         if (origin.containsEdgeSegment(exitSegment)) {
-          Double labeledSplittingRate = splittingRates.get(exitSegment, destinationLabel);
+          Double labeledSplittingRate = s2MergeExitSplittingRates.get(exitSegment, destinationLabel);
           if (labeledSplittingRate == null || !Precision.positive(labeledSplittingRate, EPSILON)) {
             ++index;
             continue;
@@ -121,8 +124,8 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
 
           /* remove flow for s2 */
           double s2FlowShift = s2FinalLabeledFlowShift * labeledSplittingRate;
-          boolean positiveLabelledFlowRemaining = origin.addTurnSendingFlow(lastS2Segment, destinationLabel, exitSegment, destinationLabel, s2FlowShift);
-          if (!positiveLabelledFlowRemaining && !Precision.positive(origin.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
+          double newLabelledTurnFlow = origin.addTurnSendingFlow(lastS2Segment, destinationLabel, exitSegment, destinationLabel, s2FlowShift, isPasS2RemovalAllowed());
+          if (!Precision.positive(newLabelledTurnFlow, EPSILON) && !Precision.positive(origin.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
             /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
             origin.removeTurn(lastS2Segment, exitSegment);
           }
@@ -156,10 +159,9 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
         if (Precision.positive(splittingRate)) {
           /* add flow for s1 */
           double s1FlowShift = s1FinalLabeledFlowShift * splittingRate;
-          boolean positiveLabelledFlowRemaining = origin.addTurnSendingFlow(lastS1Segment, destinationLabel, exitSegment, destinationLabel, s1FlowShift);
-          if (!positiveLabelledFlowRemaining && !Precision.positive(origin.getTurnSendingFlow(lastS1Segment, exitSegment))) {
-            /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
-            origin.removeTurn(lastS1Segment, exitSegment);
+          double newLabelledTurnFlow = origin.addTurnSendingFlow(lastS1Segment, destinationLabel, exitSegment, destinationLabel, s1FlowShift);
+          if (!Precision.positive(newLabelledTurnFlow, EPSILON)) {
+            LOGGER.severe("Flow shift towards cheaper S1 alternative should always result in non-negative remaining flow, but this was not found, this shouldn't happen");
           }
         }
         ++index;
@@ -231,14 +233,18 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
       var currLabel = labelPortionPair.getKey();
       var currLabelPortion = labelPortionPair.getValue();
 
+      // TODO: combine final merge and flow shift in one approach ideally
+      /* obtain splitting rates before flow shift in case turns/edges are removed on S2, then splitting rate information is lost while required for final merge afterwards */
+      var s2MergeExitSplittingRates = origin.getSplittingRates(pas.getLastEdgeSegment(false /* high cost */), currLabel);
+
       /* shift portion of flow attributed to composition label traversing s2 */
       double s2StartLabeledFlowShift = -currLabelPortion * bushFlowShift;
       double s2FinalLabeledFlowShift = executeBushDestinationLabeledFlowShift(origin, entrySegment, currLabel, s2StartLabeledFlowShift, s2, flowAcceptanceFactors);
 
-      LOGGER.severe(String.format("** S2 SHIFT: dest-label %d, shift-link [start,end]: [%.10f, %.10f]", currLabel.getLabelId(), s2StartLabeledFlowShift, s2FinalLabeledFlowShift));
+      LOGGER.info(String.format("** S2 SHIFT: dest-label %d, shift-link [start,end]: [%.10f, %.10f]", currLabel.getLabelId(), s2StartLabeledFlowShift, s2FinalLabeledFlowShift));
 
       /* shift flow across final merge for S2 */
-      executeBushDestinationLabeledS2FlowShiftEndMerge(origin, currLabel, s2FinalLabeledFlowShift, bushS2MergeExitShiftedSendingFlows);
+      executeBushDestinationLabeledS2FlowShiftEndMerge(origin, currLabel, s2FinalLabeledFlowShift, s2MergeExitSplittingRates, bushS2MergeExitShiftedSendingFlows);
     }
 
     /* convert flows to portions by label */
@@ -258,7 +264,7 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
       double s1StartLabeledFlowShift = currLabelPortion * bushFlowShift;
       double s1FinalLabeledFlowShift = executeBushDestinationLabeledFlowShift(origin, entrySegment, currLabel, s1StartLabeledFlowShift, s1, flowAcceptanceFactors);
 
-      LOGGER.severe(String.format("** S1 SHIFT: dest-label %d, shift-link [start,end]: [%.10f, %.10f]", currLabel.getLabelId(), s1StartLabeledFlowShift, s1FinalLabeledFlowShift));
+      LOGGER.info(String.format("** S1 SHIFT: dest-label %d, shift-link [start,end]: [%.10f, %.10f]", currLabel.getLabelId(), s1StartLabeledFlowShift, s1FinalLabeledFlowShift));
 
       /* shift flow across final merge for S1 based on findings in s2 */
       executeBushDestinationLabeledS1FlowShiftEndMerge(origin, currLabel, s1FinalLabeledFlowShift, bushS2MergeExitShiftedSplittingRates.get(currLabel));

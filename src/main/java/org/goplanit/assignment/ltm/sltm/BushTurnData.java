@@ -142,7 +142,7 @@ public class BushTurnData implements Cloneable {
 
     double flowToRelabel = getTurnSendingFlowPcuH(fromSegment, oldFromLabel, toSegment, oldToLabel);
     removeTurnFlow(fromSegment, oldFromLabel, toSegment, oldToLabel);
-    if (Precision.positive(flowToRelabel)) {
+    if (flowToRelabel > 0) {
       addTurnSendingFlow(fromSegment, newFromLabel, toSegment, newToLabel, flowToRelabel);
     }
     return flowToRelabel;
@@ -171,49 +171,64 @@ public class BushTurnData implements Cloneable {
   /**
    * Update the turn sending flow for a given turn
    * 
-   * @param fromSegment     of turn
-   * @param fromComposition of turn flow
-   * @param toSegment       of turn
-   * @param toComposition   of turn flow
-   * @param turnSendingFlow to update
-   * @param true            when turn has any labelled turn sending flow left after addition, false when labelled turn sending flow no longer exists
+   * @param fromSegment      of turn
+   * @param fromComposition  of turn flow
+   * @param toSegment        of turn
+   * @param toComposition    of turn flow
+   * @param turnSendingFlow  to update
+   * @param allowTurnRemoval when true we allow for removal of turn/edge segment flow labels when no flow remains, when false we keep labelling regardless of the remaining flow
+   * @return true when turn has any labelled turn sending flow left after addition, false when labelled turn sending flow no longer exists
    */
-  public boolean setTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition,
-      double turnSendingFlow) {
+  public boolean setTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition, double turnSendingFlow,
+      boolean allowTurnRemoval) {
 
-    if (!Precision.positive(turnSendingFlow)) {
-      if (Double.isNaN(turnSendingFlow)) {
-        LOGGER.severe("Turn (%s to %s) sending flow is NAN, shouldn't happen - consider identifying issue as turn flow cannot be updated properly");
-        return true;
-      }
+    if (Double.isNaN(turnSendingFlow)) {
+      LOGGER.severe("Turn (%s to %s) sending flow is NAN, shouldn't happen - consider identifying issue as turn flow cannot be updated properly, reset to 0.0 flow");
+      turnSendingFlow = 0.0;
+    }
 
-      LOGGER.warning(String.format("Turn (%s to %s) sending flow not positive (enough) (%.9f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
+    if (allowTurnRemoval && !Precision.positive(turnSendingFlow)) {
+      LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
           turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
       removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
       return false;
-
-    } else {
-
-      registerLabelledTurnSendingFlow(fromSegment, fromComposition, toSegment, toComposition, turnSendingFlow);
-      return true;
-
     }
+
+    registerLabelledTurnSendingFlow(fromSegment, fromComposition, toSegment, toComposition, turnSendingFlow);
+    return true;
+
   }
 
   /**
-   * Add turn sending flow for a given turn (can be negative)
+   * Add turn sending flow for a given turn (can be negative), turn will not be removed if no flow remains
    * 
-   * @param fromSegment     of turn
-   * @param fromComposition of turn flow
-   * @param toSegment       of turn
-   * @param toComposition   of turn flow
-   * @param turnSendingFlow to add
-   * @return true when turn has any sending flow left after addition, false when labelled turn sending flow no longer exists
+   * @param from      of turn
+   * @param fromLabel of turn flow
+   * @param to        of turn
+   * @param toLabel   of turn flow
+   * @param flowPcuH  to add
+   * @return the new labelled turn sending flow after adding the given flow
    */
-  public boolean addTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition,
-      double turnSendingFlow) {
-    Double newSendingFlow = turnSendingFlow + getTurnSendingFlowPcuH(fromSegment, fromComposition, toSegment, toComposition);
-    return setTurnSendingFlow(fromSegment, fromComposition, toSegment, toComposition, newSendingFlow);
+  public double addTurnSendingFlow(final EdgeSegment from, BushFlowLabel fromLabel, final EdgeSegment to, BushFlowLabel toLabel, double flowPcuH) {
+    return addTurnSendingFlow(from, fromLabel, to, toLabel, flowPcuH, false);
+  }
+
+  /**
+   * Add turn sending flow for a given turn (can be negative), flow labelling can be removed if desired depdning on flags set if desired
+   * 
+   * @param from             of turn
+   * @param fromLabel        of turn flow
+   * @param to               of turn
+   * @param toLabel          of turn flow
+   * @param FlowPcuH         to add
+   * @param allowTurnRemoval when true we allow for removal of turn/edge segment flow labels when no flow remains, when false we keep labelling regardless of the remaining flow
+   * @return the new labelled turn sending flow after adding the given flow
+   */
+  public double addTurnSendingFlow(final EdgeSegment from, BushFlowLabel fromLabel, final EdgeSegment to, BushFlowLabel toLabel, double flowPcuH, boolean allowTurnRemoval) {
+    Double newSendingFlow = flowPcuH + getTurnSendingFlowPcuH(from, fromLabel, to, toLabel);
+    boolean hasRemainingFlow = setTurnSendingFlow(from, fromLabel, to, toLabel, newSendingFlow, allowTurnRemoval);
+    newSendingFlow = hasRemainingFlow ? newSendingFlow : 0.0;
+    return newSendingFlow;
   }
 
   /**
@@ -553,7 +568,7 @@ public class BushTurnData implements Cloneable {
       double totalSendingFlow = getTotalSendingFlowFromPcuH(fromSegment, entryExitLabel);
       if (totalSendingFlow < turnSendingFlow) {
         LOGGER.severe(String.format("Total sending flow (%.10f) smaller than turn (%s,%s) sending flow (%.10f) for label (%d,%d), this shouldn't happen", totalSendingFlow,
-            fromSegment.getXmlId(), toSegment.getXmlId(), entryExitLabel.getLabelId(), entryExitLabel.getLabelId(), turnSendingFlow));
+            fromSegment.getXmlId(), toSegment.getXmlId(), turnSendingFlow, entryExitLabel.getLabelId(), entryExitLabel.getLabelId()));
       }
       return turnSendingFlow / getTotalSendingFlowFromPcuH(fromSegment, entryExitLabel);
     } else {
