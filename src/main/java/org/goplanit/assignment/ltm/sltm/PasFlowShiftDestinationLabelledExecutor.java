@@ -125,7 +125,7 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
           /* remove flow for s2 */
           double s2FlowShift = s2FinalLabeledFlowShift * labeledSplittingRate;
           double newLabelledTurnFlow = origin.addTurnSendingFlow(lastS2Segment, destinationLabel, exitSegment, destinationLabel, s2FlowShift, isPasS2RemovalAllowed());
-          if (!Precision.positive(newLabelledTurnFlow, EPSILON) && !Precision.positive(origin.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
+          if (isPasS2RemovalAllowed() && !Precision.positive(newLabelledTurnFlow, EPSILON) && !Precision.positive(origin.getTurnSendingFlow(lastS2Segment, exitSegment), EPSILON)) {
             /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
             origin.removeTurn(lastS2Segment, exitSegment);
           }

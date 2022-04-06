@@ -30,13 +30,13 @@ public class PasManager {
    * reduced cost multiplier, empirical calibrated value to use as threshold to consider shifting flow on an origin matching with a PAS, such that reducedCost_max_bush_PAS_path -
    * reducedCost_min_bush_PAS_path > mu * reducedCost_min_network_PAS_path. 0.5 based on Bar-Gera (2010)
    */
-  private final double MU = 0.5;
+  private static final double MU = 0.5;
 
   /**
    * Flow Effective factor nu, empirically calibrated value to use as threshold to consider shifting flow on an origin matching with a PAS, such that max_cost_PAS_path_flow -
    * max_cost_PAS_path_flow > nu * min_network_PAS_path_flow. 0.25 based on Xie and Xie (2015)
    */
-  private final double NU = 0.25;
+  private static final double NU = 0.25;
 
   /**
    * Map storing all PASs by their merge vertex
@@ -48,21 +48,6 @@ public class PasManager {
 
   /** flag for detailed logging */
   private boolean detailedLogging = DETAILED_LOGGING;
-
-  /**
-   * Verify if extending a bush with the given PAS given the reduced cost found, it would be effective in improving the bush. This is verified by
-   * <p>
-   * reducedCost = bush_min_path_cost - PAS_min_path_cost, then <br\> it is considered effective if <br\> (PAS_max_path_cost - PAS_min_path_cost) > mu*bushReducedCost.
-   * <p>
-   * Formulation based on Bar-Gera (2010). IDea is that if the PAS has little difference between high and low cost, we can't shift much flow to improve and it is less attractive.
-   * This is ok if the reduced cost, i.e., the maximum improvement given the current state of the network, is also low, but when the best option (which might not exactly follow
-   * this PAS) is much better than what this PAS offers, we regard this PAS as not cost-effective and ignore it as a viable option.
-   * 
-   * @return true when considered effective, false otherwise
-   */
-  private boolean isCostEffective(Pas pas, double reducedCost) {
-    return Precision.greater(pas.getAlternativeHighCost() - pas.getAlternativeLowCost(), MU * reducedCost);
-  }
 
   /**
    * Use the accepted flow on the bush from start-to-end of PAS high cost segment and make sure it exceeds NU * total accepted flow (on the bush at hand) on the final edge segment
@@ -102,11 +87,26 @@ public class PasManager {
    */
   private boolean isPasEffectiveForBush(Pas pas, Bush originBush, double[] flowAcceptanceFactors, double reducedCost) {
     /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound of the reduced cost */
-    return isCostEffective(pas, reducedCost) && isFlowEffective(pas, originBush, flowAcceptanceFactors);
+    return isCostEffective(pas.getAlternativeHighCost() , pas.getAlternativeLowCost(), reducedCost) && isFlowEffective(pas, originBush, flowAcceptanceFactors);
   }
 
   /** default for detailed logging flag */
   public static final boolean DETAILED_LOGGING = false;
+
+  /**
+   * Verify if extending a bush with the given PAS given the reduced cost found, it would be effective in improving the bush. This is verified by
+   * <p>
+   * reducedCost = bush_min_path_cost - PAS_min_path_cost, then <br\> it is considered effective if <br\> (PAS_max_path_cost - PAS_min_path_cost) > mu*bushReducedCost.
+   * <p>
+   * Formulation based on Bar-Gera (2010). IDea is that if the PAS has little difference between high and low cost, we can't shift much flow to improve and it is less attractive.
+   * This is ok if the reduced cost, i.e., the maximum improvement given the current state of the network, is also low, but when the best option (which might not exactly follow
+   * this PAS) is much better than what this PAS offers, we regard this PAS as not cost-effective and ignore it as a viable option.
+   * 
+   * @return true when considered effective, false otherwise
+   */
+  public static boolean isCostEffective(double alternativeHighCost, double alternativeLowCost, double reducedCost) {
+    return Precision.greater(alternativeHighCost- alternativeLowCost, MU * reducedCost);
+  }
 
   /**
    * Extract a subpath in the form of a raw edge segment array from start to end vertex based on the shortest path result provided. Since the path tree is in reverse direction, the
@@ -219,7 +219,7 @@ public class PasManager {
       return null;
     }
 
-    newPas.registerOrigin(originBush);
+    newPas.registerBush(originBush);
     passByMergeVertex.putIfAbsent(newPas.getMergeVertex(), new ArrayList<Pas>());
     passByMergeVertex.get(newPas.getMergeVertex()).add(newPas);
     return newPas;
@@ -337,7 +337,7 @@ public class PasManager {
     }
 
     for (Pas pas : potentialPass) {
-      if (pas.hasRegisteredOrigin(originBush)) {
+      if (pas.hasRegisteredBush(originBush)) {
         return true;
       }
     }
@@ -367,7 +367,7 @@ public class PasManager {
 
     Pas matchedPas = null;
     for (Pas pas : potentialPass) {
-      if (pas.hasRegisteredOrigin(originBush)) {
+      if (pas.hasRegisteredBush(originBush)) {
         continue;
       }
 

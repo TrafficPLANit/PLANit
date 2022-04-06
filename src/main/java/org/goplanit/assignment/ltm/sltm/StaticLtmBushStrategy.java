@@ -121,7 +121,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
      * found -> register origin, shifting of flow occurs when updating pas, extending bush with low cost segment occurs automatically when shifting flow later (flow is added to low
      * cost link segments which will be created if non-existent on bush)
      */
-    effectivePas.registerOrigin(originBush);
+    effectivePas.registerBush(originBush);
     if (getSettings().isDetailedLogging()) {
       LOGGER.info(String.format("Origin %s added to PAS %s", originBush.getOrigin().getXmlId(), effectivePas.toString()));
     }
@@ -177,12 +177,12 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     /* register on existing PAS (if available) otherwise create new PAS */
     Pas pas = pasManager.findExistingPas(s1, s2);
     if (pas != null) {
-      pas.registerOrigin(originBush);
+      pas.registerBush(originBush);
     } else {
       pas = pasManager.findExistingPas(s2, s1);
       if (pas != null) {
         LOGGER.severe(String.format("existing pas has inverted high/low segment costs compared to current situation, shouldn't happen"));
-        pas.registerOrigin(originBush);
+        pas.registerBush(originBush);
       } else {
         pas = pasManager.createAndRegisterNewPas(originBush, s1, s2);
         /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
@@ -231,9 +231,6 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
         /* find (new) matching PASs */
         for (var bushVertexIter = originBush.getDirectedVertexIterator(); bushVertexIter.hasNext();) {
           DirectedVertex bushVertex = bushVertexIter.next();
-          if (bushVertex.getNumberOfEdges() < 3 || bushVertex.sizeOfEntryEdgeSegments() < 2 || !bushVertex.hasExitEdgeSegments()) {
-            continue;
-          }
 
           EdgeSegment reducedCostSegment = networkMinPaths.getIncomingEdgeSegmentForVertex(bushVertex);
           if (reducedCostSegment == null) {
@@ -251,11 +248,12 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
             /* no suitable match, attempt creating an entirely new PAS */
             Pas newPas = extendBushWithNewPas(originBush, bushVertex, networkMinPaths);
-            if (newPas != null) {
-              newPass.add(newPas);
-              newPas.updateCost(linkSegmentCosts);
+            if (newPas == null) {
               continue;
             }
+            
+            newPass.add(newPas);
+            newPas.updateCost(linkSegmentCosts);  
 
             // BRANCH SHIFT
             {
@@ -329,7 +327,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
         pasFlowShifter.getUsedCongestedEntrySegments().forEach(es -> linkSegmentsUsed.set((int) es.getId()));
 
         /* when s2 no longer used on any bush - mark PAS for overall removal */
-        if (!pas.hasOrigins()) {
+        if (!pas.hasRegisteredBushes()) {
           passWithoutOrigins.add(pas);
         }
       }

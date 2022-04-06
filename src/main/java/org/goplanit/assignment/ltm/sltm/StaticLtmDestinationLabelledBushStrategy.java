@@ -207,7 +207,7 @@ public class StaticLtmDestinationLabelledBushStrategy extends StaticLtmBushStrat
               LOGGER.info(String.format("Origin %s - Created new PAS: %s", originBush.getOrigin().getXmlId(), pas.toString()));
             }
           } else {
-            pas.registerOrigin(originBush);
+            pas.registerBush(originBush);
           }
 
           // remove tracking info from alternative - finished

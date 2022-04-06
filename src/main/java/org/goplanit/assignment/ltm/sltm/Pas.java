@@ -42,7 +42,7 @@ public class Pas {
   private double s2Cost;
 
   /** registered origin bushes */
-  private final Set<Bush> originBushes;
+  private final Set<Bush> registeredBushes;
 
   /**
    * Constructor
@@ -53,7 +53,7 @@ public class Pas {
   private Pas(final EdgeSegment[] s1, final EdgeSegment[] s2) {
     this.s1 = s1;
     this.s2 = s2;
-    this.originBushes = new HashSet<Bush>();
+    this.registeredBushes = new HashSet<Bush>();
   }
 
   /**
@@ -114,29 +114,29 @@ public class Pas {
   /**
    * Register origin on the PAS
    * 
-   * @param origin bush to register
+   * @param bush bush to register
    */
-  public void registerOrigin(final Bush origin) {
-    originBushes.add(origin);
+  public void registerBush(final Bush bush) {
+    registeredBushes.add(bush);
   }
 
   /**
-   * Verify if origin is registered on PAS
+   * Verify if bush is registered on PAS
    * 
-   * @param originBush to check
+   * @param bush to check
    * @return true when registered, false otherwise
    */
-  public boolean hasRegisteredOrigin(final Bush originBush) {
-    return originBushes.contains(originBush);
+  public boolean hasRegisteredBush(final Bush bush) {
+    return registeredBushes.contains(bush);
   }
 
   /**
-   * The registered origin bushes
+   * The registered bushes
    * 
-   * @return registered origin bushes
+   * @return registered bushes
    */
-  public Set<Bush> getOrigins() {
-    return originBushes;
+  public Set<Bush> getRegisteredBushes() {
+    return registeredBushes;
   }
 
   /**
@@ -144,8 +144,8 @@ public class Pas {
    * 
    * @return true when origins are present, false otherwise
    */
-  public boolean hasOrigins() {
-    return !originBushes.isEmpty();
+  public boolean hasRegisteredBushes() {
+    return !registeredBushes.isEmpty();
   }
 
   /**
@@ -153,8 +153,17 @@ public class Pas {
    * 
    * @param bushes to remove
    */
-  public void removeOrigins(List<Bush> bushes) {
-    bushes.forEach((bush) -> originBushes.remove(bush));
+  public void removeBushes(List<Bush> bushes) {
+    bushes.forEach((bush) -> removeBush(bush));
+  }
+
+  /**
+   * Remove bush from this PAS
+   * 
+   * @param bush to remove
+   */
+  public void removeBush(Bush bush) {
+    registeredBushes.remove(bush);
   }
 
   /**
