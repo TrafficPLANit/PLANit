@@ -177,7 +177,7 @@ public class BushTurnData implements Cloneable {
    * @param toComposition    of turn flow
    * @param turnSendingFlow  to update
    * @param allowTurnRemoval when true we allow for removal of turn/edge segment flow labels when no flow remains, when false we keep labelling regardless of the remaining flow
-   * @return true when turn has any labelled turn sending flow left after addition, false when labelled turn sending flow no longer exists
+   * @return true when turn has any labelled turn sending flow left after setting flow, false when labelled turn sending flow no longer exists
    */
   public boolean setTurnSendingFlow(final EdgeSegment fromSegment, BushFlowLabel fromComposition, final EdgeSegment toSegment, BushFlowLabel toComposition, double turnSendingFlow,
       boolean allowTurnRemoval) {
@@ -185,13 +185,18 @@ public class BushTurnData implements Cloneable {
     if (Double.isNaN(turnSendingFlow)) {
       LOGGER.severe("Turn (%s to %s) sending flow is NAN, shouldn't happen - consider identifying issue as turn flow cannot be updated properly, reset to 0.0 flow");
       turnSendingFlow = 0.0;
-    }
-
-    if (allowTurnRemoval && !Precision.positive(turnSendingFlow)) {
-      LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
-          turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
-      removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
-      return false;
+    }else if(!Precision.positive(turnSendingFlow)) {
+      if (allowTurnRemoval) {
+        LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
+            turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
+        removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
+        return false;
+      }else if(turnSendingFlow < 0){
+        LOGGER.info(String.format("** Turn (%s to %s) sending flow negative (%.9f), this is not allowed, reset to 0.0 for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
+            turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
+        turnSendingFlow = 0.0;
+        return false;
+      }
     }
 
     registerLabelledTurnSendingFlow(fromSegment, fromComposition, toSegment, toComposition, turnSendingFlow);

@@ -449,17 +449,19 @@ public abstract class PasFlowShiftExecutor {
     
     /* prep - origin */
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {
+      
+      Pair<Double,Double> totalEntrySegmentS1S1SendingFlow = totalEntrySegmentS1S2Flow.get(entrySegment);
+      double totalEntrySegmentS2Flow = totalEntrySegmentS1S1SendingFlow.second();
+      if(totalEntrySegmentS2Flow <= 0 ) {
+        continue;
+      }
 
       /* flow shift based on entry segment - PAS combination */
       double proposedPasflowShift = determineEntrySegmentFlowShift(entrySegment, theMode, physicalCost, virtualCost, networkLoading);
       if (Math.abs(proposedPasflowShift) == 0) {
         continue;
       }       
-      
-      Pair<Double,Double> totalEntrySegmentS1S1SendingFlow = totalEntrySegmentS1S2Flow.get(entrySegment);
-      double totalEntrySegmentS1Flow = totalEntrySegmentS1S1SendingFlow.first();
-      double totalEntrySegmentS2Flow = totalEntrySegmentS1S1SendingFlow.second();
-      
+            
       double entrySegmentPortion = totalEntrySegmentS2Flow/totalS2SendingFlow;
       double proposedProportionalPasflowShift = proposedPasflowShift * entrySegmentPortion; 
                  
@@ -478,16 +480,14 @@ public abstract class PasFlowShiftExecutor {
           LOGGER.info("** Entry segment ("+entrySegment.toString()+") - Origin (" + origin.getOrigin().getXmlId()+")");          
           
           final Map<EdgeSegment, Pair<Double, Double>> entrySegmentS1S2Flows = bushEntrySegmentS1S2SendingFlows.get(origin);          
-          var entrySegmentS1S2SubPathSendingFlowPair = entrySegmentS1S2Flows.get(entrySegment);
-          double bushEntrySegmentS1Flow = entrySegmentS1S2SubPathSendingFlowPair.first();
-          double bushEntrySegmentS2Flow = entrySegmentS1S2SubPathSendingFlowPair.second();
+          var bushEntrySegmentS2Flow = entrySegmentS1S2Flows.get(entrySegment).second();
           
           /*
            * In case of multiple used origins for this entry segment -> we cannot let proposed shifts be executed in full because cost is affected and therefore succeeding entries would
            * "overshoot". Hence we apply proposed shift proportionally to contribution to total flow along PAS
            */
-          double originPortion = (bushEntrySegmentS1Flow + bushEntrySegmentS2Flow) / (totalEntrySegmentS1Flow + totalEntrySegmentS2Flow);
-          double entrySegmentPasflowShift = proposedPasflowShift * originPortion;
+          double originS2Portion = bushEntrySegmentS2Flow / totalEntrySegmentS2Flow;
+          double entrySegmentPasflowShift = proposedProportionalPasflowShift * originS2Portion;
 
           /* perform the flow shift for the current bush and its attributed portion */
           executeOriginFlowShift(origin, entrySegment, entrySegmentPasflowShift, networkLoading.getCurrentFlowAcceptanceFactors());
