@@ -64,7 +64,7 @@ public class ShortestBushResultImpl implements ShortestBushResult {
   @Override
   public ACyclicSubGraph createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex destination) {
 
-    var dag = new ACyclicSubGraphImpl(idToken, numberOfEdgeSegments, origin);
+    var dag = new ACyclicSubGraphImpl(idToken, numberOfEdgeSegments);
 
     // extract bush from destination -> backwards to origin
     TreeSet<Vertex> openVertices = new TreeSet<Vertex>();

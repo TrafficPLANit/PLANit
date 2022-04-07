@@ -163,7 +163,7 @@ public class StaticLtmDestinationLabelledBushStrategy extends StaticLtmBushStrat
    * @param originVertexAlternatives                   information regarding origin diverge vertices and alternatives of unfinished PAS(s)
    * @param edgeSegmentPasOriginVertexAlternativeIndex information regarding what unfinished PAS(s) pass through what edge segments
    */
-  private void finishEligiblePassAtMerge(final Bush originBush, ArrayList<EdgeSegment> entrySegmentsWithUnfinishedPas,
+  private void finishEligiblePassAtMerge(final OriginBush originBush, ArrayList<EdgeSegment> entrySegmentsWithUnfinishedPas,
       Map<DirectedVertex, ArrayList<ArrayList<EdgeSegment>>> originVertexAlternatives, Map<EdgeSegment, Map<DirectedVertex, Integer>> edgeSegmentPasOriginVertexAlternativeIndex) {
 
     /*
@@ -226,10 +226,9 @@ public class StaticLtmDestinationLabelledBushStrategy extends StaticLtmBushStrat
   /**
    * {@inheritDoc}
    * 
-   * Label each destination separately
    */
   @Override
-  public void initialiseBushForDestination(final Bush originBush, final OdZone currentDestination, final Double originDestinationDemandPcuH,
+  public void initialiseBushForDestination(final OriginBush originBush, final OdZone currentDestination, final Double originDestinationDemandPcuH,
       final ACyclicSubGraph currentDestinationDag) {
 
     originBush.addOriginDemandPcuH(originDestinationDemandPcuH);

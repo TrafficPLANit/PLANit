@@ -5,8 +5,8 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
+import org.goplanit.assignment.ltm.sltm.OriginBush;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
@@ -20,7 +20,7 @@ import org.goplanit.utils.network.virtual.ConnectoidSegment;
  * @author markr
  *
  */
-public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements Consumer<Bush> {
+public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements Consumer<OriginBush> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(BushFlowUpdateConsumer.class.getCanonicalName());
@@ -34,7 +34,7 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
    * @param originBush       at hand
    * @param bushSendingFlows to populate as a starting point for the bush loading
    */
-  private void initialiseRootExitSegmentSendingFlows(final Bush originBush, final MultiKeyMap<Object, Double> bushSendingFlows) {
+  private void initialiseRootExitSegmentSendingFlows(final OriginBush originBush, final MultiKeyMap<Object, Double> bushSendingFlows) {
     double totalRootSendingFlow = 0;
     for (var rootExit : originBush.getOrigin().getCentroid().getExitEdgeSegments()) {
       if (originBush.containsEdgeSegment(rootExit)) {
@@ -47,9 +47,9 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
       }
     }
 
-    if (Precision.notEqual(totalRootSendingFlow, originBush.getTravelDemandPcuH())) {
+    if (Precision.notEqual(totalRootSendingFlow, originBush.getOriginDemandPcuH())) {
       LOGGER.severe(String.format("Origin (%s) travel demand (%.2f pcu/h) not equal to total flow (%.2f pcu/h) placed on bush root, this shouldn't happen",
-          originBush.getOrigin().getXmlId(), originBush.getTravelDemandPcuH(), totalRootSendingFlow));
+          originBush.getOrigin().getXmlId(), originBush.getOriginDemandPcuH(), totalRootSendingFlow));
     }
   }
 
@@ -83,7 +83,7 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
    * {@inheritDoc}
    */
   @Override
-  public void accept(final Bush originBush) {
+  public void accept(final OriginBush originBush) {
     /*
      * track bush sending flows propagated from the origin. Note: We cannot use the bush's own turn sending flows because we are performing a network loading based on the most
      * recent bush's splitting rates, we only use the bush's sending flows for bush flow shifts. The bush's sending flows are updated AFTER the network loading is complete

@@ -3,7 +3,7 @@ package org.goplanit.assignment.ltm.sltm.loading;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.Bush;
+import org.goplanit.assignment.ltm.sltm.OriginBush;
 import org.goplanit.assignment.ltm.sltm.Pas;
 import org.goplanit.assignment.ltm.sltm.PasManager;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
@@ -25,7 +25,7 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
   private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingBush.class.getCanonicalName());
 
   /** the bushes managed by the bush strategy but provided to be able to conduct a network loading based on the current state (bush splitting rates) of each bush */
-  private Bush[] originBushes;
+  private OriginBush[] originBushes;
 
   /**
    * the PAS manager with all the currently active PASs, used to determine which nodes to track flows and splitting rates for during network loading, namely all links and nodes
@@ -190,7 +190,7 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
    * 
    * @param originBushes to use
    */
-  public void setBushes(final Bush[] originBushes) {
+  public void setBushes(final OriginBush[] originBushes) {
     this.originBushes = originBushes;    
   }
   

@@ -6,9 +6,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
@@ -37,11 +39,9 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * The id of this acyclic sub graph
    */
   private final long id;
-
-  /**
-   * root of the sub graph
-   */
-  DirectedVertex root;
+  
+  /** the root vertices of the DAG */
+  protected Set<DirectedVertex> rootVertices;
 
   /**
    * track data for the vertices used in this acyclic graph, mainly used to enable topological sorting
@@ -181,14 +181,13 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * 
    * @param groupId                    generate id based on the group it resides in
    * @param numberOfParentEdgeSegments number of directed edge segments of the parent this subgraph is a subset from
-   * @param root                       (initial) root of the subgraph
    */
-  public ACyclicSubGraphImpl(final IdGroupingToken groupId, int numberOfParentEdgeSegments, DirectedVertex root) {
+  public ACyclicSubGraphImpl(final IdGroupingToken groupId, int numberOfParentEdgeSegments) {
     this.id = IdGenerator.generateId(groupId, ACyclicSubGraph.class);
-    this.root = root;
-    this.vertexData = new HashMap<DirectedVertex, AcyclicVertexData>();
+    this.vertexData = new HashMap<>();
     this.registeredLinkSegments = new BitSet(numberOfParentEdgeSegments);
     this.topologicalOrder = null;
+    this.rootVertices = new HashSet<>();
   }
 
   /**
@@ -198,13 +197,14 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    */
   public ACyclicSubGraphImpl(ACyclicSubGraphImpl aCyclicSubGraphImpl) {
     this.id = aCyclicSubGraphImpl.getId();
-    this.root = aCyclicSubGraphImpl.getRootVertex();
     this.registeredLinkSegments = BitSet.valueOf(aCyclicSubGraphImpl.registeredLinkSegments.toByteArray());
 
     this.vertexData = new HashMap<DirectedVertex, AcyclicVertexData>();
     aCyclicSubGraphImpl.vertexData.forEach((v, d) -> this.vertexData.put(v, d.clone()));
 
     this.topologicalOrder = aCyclicSubGraphImpl.topologicalOrder != null ? new ArrayDeque<DirectedVertex>(aCyclicSubGraphImpl.topologicalOrder) : null;
+    
+    this.rootVertices = new HashSet<>(aCyclicSubGraphImpl.rootVertices);
   }
 
   /**
@@ -222,21 +222,23 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
 
     topologicalOrder = new ArrayDeque<DirectedVertex>(vertexData.size());
     resetVertexData();
-
     BitSet visited = new BitSet(vertexData.size());
     LongAdder counter = new LongAdder();
-    counter.increment();
-    boolean isAcyclic = traverseRecursively(root, visited, counter, topologicalOrder);
+    
+    /* for each root vertex */
+    boolean isAcyclic = true;
+    for(var rootVertex : rootVertices) {
+      counter.increment();    
+      isAcyclic = traverseRecursively(rootVertex, visited, counter, topologicalOrder);
+      if(!isAcyclic) {
+        return null;
+      }
+    }
 
-    if (!isAcyclic) {
-      return null;
-    } else {
-      for (Entry<DirectedVertex, AcyclicVertexData> vertexEntry : this.vertexData.entrySet()) {
-        if (!visited.get((int) vertexEntry.getKey().getId())) {
-          LOGGER.warning(String.format("Topological sort applied, but some vertices not connected to the root (%s) of the acyclic graph (%d), unable to determine sorting order",
-              root.getXmlId(), getId()));
-          return null;
-        }
+    for (Entry<DirectedVertex, AcyclicVertexData> vertexEntry : this.vertexData.entrySet()) {
+      if (!visited.get((int) vertexEntry.getKey().getId())) {
+        LOGGER.warning(String.format("Topological sort applied, but some vertices not connected to a root of the acyclic graph (%d), unable to determine sorting order"));
+        return null;
       }
     }
 
@@ -253,10 +255,18 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
 
   /**
    * {@inheritDoc}
+   */  
+  @Override
+  public void addRootVertex(DirectedVertex rootVertex) {
+    rootVertices.add(rootVertex);
+  }
+
+  /**
+   * {@inheritDoc}
    */
   @Override
-  public DirectedVertex getRootVertex() {
-    return root;
+  public Set<DirectedVertex> getRootVertices() {
+    return rootVertices;
   }
 
   /**

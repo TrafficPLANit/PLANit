@@ -47,7 +47,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategy.class.getCanonicalName());
 
   /** track bushes per origin (with non-zero demand) */
-  protected final Bush[] originBushes;
+  protected final OriginBush[] bushes;
 
   /** track all unique PASs */
   protected final PasManager pasManager;
@@ -90,7 +90,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * 
    * @return true when a match is found and bush is newly registered on a PAS, false otherwise
    */
-  private boolean extendBushWithSuitableExistingPas(final Bush originBush, final DirectedVertex mergeVertex, final double reducedCost) {
+  private boolean extendBushWithSuitableExistingPas(final OriginBush originBush, final DirectedVertex mergeVertex, final double reducedCost) {
 
     boolean bushFlowThroughMergeVertex = false;
     for (var entrySegment : mergeVertex.getEntryEdgeSegments()) {
@@ -137,7 +137,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * @param networkMinPaths the current network shortest path tree
    * @return new created PAS if successfully created, null otherwise
    */
-  private Pas extendBushWithNewPas(final Bush originBush, final DirectedVertex mergeVertex, final ShortestPathResult networkMinPaths) {
+  private Pas extendBushWithNewPas(final OriginBush originBush, final DirectedVertex mergeVertex, final ShortestPathResult networkMinPaths) {
 
     /* Label all vertices on shortest path origin-bushVertex as -1, and PAS merge Vertex itself as 1 */
     final short[] alternativeSegmentVertexLabels = new short[getTransportNetwork().getNumberOfVerticesAllLayers()];
@@ -210,9 +210,10 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
     final var networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
 
-    for (int index = 0; index < originBushes.length; ++index) {
-      Bush originBush = originBushes[index];
-      if (originBush != null) {
+    for (int index = 0; index < bushes.length; ++index) {
+      Bush bush = bushes[index];
+      if (bush != null && bush instanceof OriginBush) {
+        OriginBush originBush = (OriginBush) bush;
 
         /* within-bush min/max-paths */
         var minMaxPaths = originBush.computeMinMaxShortestPaths(linkSegmentCosts, this.getTransportNetwork().getNumberOfVerticesAllLayers());
@@ -340,7 +341,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
   }
 
   private void syncBushTurnFlows() {
-    for (var originBush : originBushes) {
+    for (var originBush : bushes) {
       if (originBush == null) {
         continue;
       }
@@ -383,7 +384,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * @param originDestinationDemandPcuH to use
    * @param destinationDAG              to use
    */
-  protected abstract void initialiseBushForDestination(final Bush originBush, final OdZone destination, final Double originDestinationDemandPcuH,
+  protected abstract void initialiseBushForDestination(final OriginBush originBush, final OdZone destination, final Double originDestinationDemandPcuH,
       final ACyclicSubGraph destinationDAG);
 
   /**
@@ -399,7 +400,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     OdDemands odDemands = getOdDemands();
     for (var origin : zoning.getOdZones()) {
       ShortestBushResult oneToAllResult = null;
-      Bush originBush = null;
+      OriginBush originBush = null;
       for (var destination : zoning.getOdZones()) {
         if (destination.idEquals(origin)) {
           continue;
@@ -410,8 +411,8 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
           if (originBush == null) {
             /* register new bush */
-            originBush = new Bush(getIdGroupingToken(), origin, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
-            originBushes[(int) origin.getOdZoneId()] = originBush;
+            originBush = new OriginBush(getIdGroupingToken(), origin, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
+            bushes[(int) origin.getOdZoneId()] = originBush;
           }
 
           /* find one-to-all shortest paths */
@@ -494,7 +495,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
       /* delegate to concrete implementation */
       initialiseBushes(initialLinkSegmentCosts);
 
-      getLoading().setBushes(originBushes);
+      getLoading().setBushes(bushes);
       getLoading().setPasManager(this.pasManager);
 
     } catch (PlanItException e) {
@@ -514,7 +515,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
   public StaticLtmBushStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
-    this.originBushes = new Bush[transportModelNetwork.getZoning().getOdZones().size()];
+    this.bushes = new OriginBush[transportModelNetwork.getZoning().getOdZones().size()];
     this.pasManager = new PasManager();
     this.pasManager.setDetailedLogging(settings.isDetailedLogging());
     this.equalFlowDistributedPass = new HashSet<>();

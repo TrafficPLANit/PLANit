@@ -4,8 +4,8 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
+import org.goplanit.assignment.ltm.sltm.OriginBush;
 import org.goplanit.utils.graph.EdgeSegment;
 
 /**
@@ -25,7 +25,7 @@ import org.goplanit.utils.graph.EdgeSegment;
  * @author markr
  *
  */
-public class BushTurnFlowUpdateConsumer extends BushFlowUpdateConsumer<NetworkTurnFlowUpdateData> implements Consumer<Bush> {
+public class BushTurnFlowUpdateConsumer extends BushFlowUpdateConsumer<NetworkTurnFlowUpdateData> implements Consumer<OriginBush> {
 
   /** logger to use */
   @SuppressWarnings("unused")

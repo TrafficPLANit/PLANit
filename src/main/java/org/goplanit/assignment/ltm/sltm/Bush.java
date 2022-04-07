@@ -2,19 +2,15 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.algorithms.shortest.AcyclicMinMaxShortestPathAlgorithm;
-import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
 import org.goplanit.utils.graph.EdgeSegment;
@@ -28,8 +24,8 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.zoning.OdZone;
 
 /**
- * A bush is an acyclic directed graph comprising of all implicit paths used by an origin to reach all its destinations. This is achieved by having the total origin demand at its
- * root vertex which is then split across the graph by (bush specific) splitting rates that reside on each edge. The sum of the edge splitting rates originating from a vertex must
+ * A bush is an acyclic directed graph comprising of implicit paths along a network. Demand on the bush is expected to be placed along its root node(s) by derived classes 
+ * which is then split across the graph by (bush specific) splitting rates that reside on each edge. The sum of the edge splitting rates originating from a vertex must
  * always sum to 1.
  * <p>
  * The vertices in the bush represent link segments in the physical network, whereas each edge represents a turn from one link to another. This way each splitting rate uniquely
@@ -77,12 +73,9 @@ public class Bush implements IdAble {
     return subPathSendingFlow;
   }
 
-  /** the origin of the bush */
-  protected final OdZone origin;
-
-  /** the total demand of the bush */
-  protected double originDemandPcuH;
-
+  /** the origin demands (PCU/h) of the bush all representing a root (starting point) within the DAG */
+  protected Map<OdZone, Double> originDemandsPcuH;
+  
   /** the directed acyclic subgraph representation of the bush, pertaining solely to the topology */
   protected final ACyclicSubGraph dag;
 
@@ -91,22 +84,37 @@ public class Bush implements IdAble {
 
   /** token for id generation unique within this bush */
   protected final IdGroupingToken bushGroupingToken;
-
+  
   /** track if underlying acyclic graph is modified, if so, an update of the topological sort is required flagged by this member */
-  boolean requireTopologicalSortUpdate = false;
+  protected boolean requireTopologicalSortUpdate = false;  
+
+  /** Track origin demands for bush
+   * @param originZone to set
+   * @param demandPcuH demand to set
+   */
+  public void addOriginDemandPcuH(OdZone originZone, double demandPcuH) {
+    this.originDemandsPcuH.put(originZone, demandPcuH);    
+  }
+  
+  /** Get the origin demand for a given origin
+   * 
+   * @param originZone to collect demand for
+   * @return demand (if any)
+   */
+  public Double getOriginDemandPcuH(OdZone originZone) {
+    return this.originDemandsPcuH.get(originZone);
+  }
 
   /**
    * Constructor
    * 
    * @param idToken              the token to base the id generation on
-   * @param origin               of the bush
-   * @param numberOfEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
+   * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
-  public Bush(final IdGroupingToken idToken, final OdZone origin, long numberOfEdgeSegments) {
-    this.origin = origin;
-    this.dag = new ACyclicSubGraphImpl(idToken, (int) numberOfEdgeSegments, origin.getCentroid());
+  public Bush(final IdGroupingToken idToken, long maxSubGraphEdgeSegments) {
+    this.dag = new ACyclicSubGraphImpl(idToken, (int) maxSubGraphEdgeSegments);
     this.bushData = new BushTurnData();
-    this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, origin.getId());
+    this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, dag.getId());
   }
 
   /**
@@ -115,7 +123,7 @@ public class Bush implements IdAble {
    * @param bush to (shallow) copy
    */
   public Bush(Bush bush) {
-    this.origin = bush.getOrigin();
+    this.originDemandsPcuH = new HashMap<>(bush.originDemandsPcuH);
     this.dag = bush.dag.clone();
     this.bushData = bush.bushData.clone();
     this.requireTopologicalSortUpdate = bush.requireTopologicalSortUpdate;
@@ -137,61 +145,7 @@ public class Bush implements IdAble {
   public Bush clone() {
     return new Bush(this);
   }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString() {
-    var sb = new StringBuilder("Bush: origin zone: " + getOrigin().getXmlId() + "\n [");
-    /* log all edge segments on bush */
-    var root = this.dag.getRootVertex();
-    Queue<DirectedVertex> openVertices = new PriorityQueue<>();
-    openVertices.add(root);
-    Set<DirectedVertex> processed = new HashSet<>();
-    while (!openVertices.isEmpty()) {
-      var vertex = openVertices.poll();
-      processed.add(vertex);
-      for (var exitSegment : vertex.getExitEdgeSegments()) {
-        if (!containsEdgeSegment(exitSegment)) {
-          continue;
-        }
-        var nextVertex = exitSegment.getDownstreamVertex();
-        sb.append(exitSegment.getXmlId() + ",");
-        if (processed.contains(nextVertex)) {
-          continue;
-        }
-        openVertices.add(nextVertex);
-      }
-    }
-    sb.deleteCharAt(sb.length() - 1);
-    sb.append("]");
-    return sb.toString();
-  }
-
-  /**
-   * Compute the min-max path tree rooted at the origin and given the provided (network wide) costs. The provided costs are at the network level so should contain all the segments
-   * active in the bush
-   * 
-   * @param linkSegmentCosts              to use
-   * @param totalTransportNetworkVertices needed to be able to create primitive array recording the (partial) subgraph backward link segment results (efficiently)
-   * @return minMaxPathResult, null if unable to complete
-   */
-  public MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
-    /* update topological ordering if needed - Always done for now, should be optimised */
-    var topologicalOrder = getTopologicallySortedVertices();
-    requireTopologicalSortUpdate = false;
-
-    /* build min/max path tree */
-    var minMaxBushPaths = new AcyclicMinMaxShortestPathAlgorithm(dag, topologicalOrder, linkSegmentCosts, totalTransportNetworkVertices);
-    try {
-      return minMaxBushPaths.executeOneToAll(dag.getRootVertex());
-    } catch (Exception e) {
-      LOGGER.severe(String.format("Unable to complete minmax path three for bush rooted at origin %s", dag.getRootVertex().getXmlId()));
-    }
-    return null;
-  }
-
+  
   /**
    * Verify if adding the sub-path edge segments would introduce a cycle in this bush
    * 
@@ -211,15 +165,6 @@ public class Bush implements IdAble {
       }
     }
     return null;
-  }
-
-  /**
-   * Add additional demand to the bush's root
-   * 
-   * @param originDemandPcuH to add
-   */
-  public void addOriginDemandPcuH(double originDemandPcuH) {
-    this.originDemandPcuH += originDemandPcuH;
   }
 
   /**
@@ -389,33 +334,6 @@ public class Bush implements IdAble {
   }
 
   /**
-   * Collect the splitting rates for the root vertex (which do not have an entry segment). Result has an entry for each outgoing segment regardless if it is part of the bush in the
-   * order of looping through the outgoing edge segments on the root vertex
-   * 
-   * @return splitting rates for the root vertex exit segments.
-   */
-  public double[] getRootVertexSplittingRates() {
-    double[] splittingRates = new double[this.dag.getRootVertex().sizeOfExitEdgeSegments()];
-    int index = 0;
-    double foundRootDemandPcuH = 0;
-    for (var exitSegment : this.dag.getRootVertex().getExitEdgeSegments()) {
-      if (containsEdgeSegment(exitSegment)) {
-        double rootExitDemandPcuH = bushData.getTotalSendingFlowFromPcuH(exitSegment);
-        splittingRates[index] = rootExitDemandPcuH / originDemandPcuH;
-        foundRootDemandPcuH += rootExitDemandPcuH;
-      }
-      ++index;
-    }
-
-    /* make sure the total of demand found exiting matches the originally registered total root demand */
-    if (!Precision.equal(foundRootDemandPcuH, originDemandPcuH)) {
-      LOGGER.severe(String.format("Combined flows (%.2f) on bush root for origin %s do not add up to the origin's travel demand (%.2f)", foundRootDemandPcuH,
-          getOrigin().getXmlId(), originDemandPcuH));
-    }
-    return splittingRates;
-  }
-
-  /**
    * Remove a turn from the bush by removing it from the acyclic graph and removing any data associated with it. Edge segments are also removed in case the no longer carry any flow
    * 
    * @param fromEdgeSegment of the turn
@@ -423,7 +341,7 @@ public class Bush implements IdAble {
    */
   public void removeTurn(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
     bushData.removeTurn(fromEdgeSegment, toEdgeSegment);
-    LOGGER.info(String.format("Removing turn (%s,%s) from bush for origin (%s) entirely", fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId(), getOrigin().getXmlId()));
+    LOGGER.info(String.format("Removing turn (%s,%s) from bush", fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId()));
 
     if (!Precision.positive(getSendingFlowPcuH(fromEdgeSegment))) {
       removeEdgeSegment(fromEdgeSegment);
@@ -443,7 +361,7 @@ public class Bush implements IdAble {
   public boolean removeEdgeSegment(EdgeSegment edgeSegment) {
     /* update graph if edge segment is unused */
     if (!Precision.positive(getSendingFlowPcuH(edgeSegment))) {
-      LOGGER.info(String.format("Removing edge segment (%s) from bush for origin (%s) entirely", edgeSegment.getXmlId(), getOrigin().getXmlId()));
+      LOGGER.info(String.format("Removing edge segment (%s) from bush", edgeSegment.getXmlId()));
       dag.removeEdgeSegment(edgeSegment);
       return true;
     }
@@ -547,7 +465,7 @@ public class Bush implements IdAble {
      * investigate and see if this expected behaviour (if so remove statement). this would equate to finding a vertex marked with a '1' in Xie & Xie, which I do not do because I
      * don't think it is needed, but I might be wrong.
      */
-    LOGGER.warning(String.format("Cycle found when finding alternative subpath on bush for origin zone %s merging at vertex %s", getOrigin().getXmlId(), mergeVertex.getXmlId()));
+    LOGGER.warning(String.format("Cycle found when finding alternative subpath on bush merging at vertex %s", mergeVertex.getXmlId()));
     return null;
   }
 
@@ -763,7 +681,7 @@ public class Bush implements IdAble {
     /* get topological sorted vertices to process */
     Collection<DirectedVertex> topSortedVertices = getTopologicallySortedVertices();
     if (topSortedVertices == null) {
-      LOGGER.severe(String.format("Topologically sorted vertices on bush rooted at origin %s not available, this shouldn't happen, skip turn flow update", getOrigin().getXmlId()));
+      LOGGER.severe(String.format("Topologically sorted vertices on bush not available, this shouldn't happen, skip turn flow update"));
       return;
     }
 
@@ -824,24 +742,6 @@ public class Bush implements IdAble {
    */
   public Collection<DirectedVertex> getTopologicallySortedVertices() {
     return dag.topologicalSort(requireTopologicalSortUpdate);
-  }
-
-  /**
-   * Get the origin, the root of this bush
-   * 
-   * @return origin
-   */
-  public OdZone getOrigin() {
-    return origin;
-  }
-
-  /**
-   * Collect the total travel demand for this origin bush
-   * 
-   * @return travel demand
-   */
-  public double getTravelDemandPcuH() {
-    return originDemandPcuH;
   }
 
   /**

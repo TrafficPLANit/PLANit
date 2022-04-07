@@ -4,13 +4,10 @@ import static org.goplanit.utils.math.Precision.EPSILON_12;
 import static org.goplanit.utils.math.Precision.equal;
 import static org.goplanit.utils.math.Precision.smaller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -474,7 +471,13 @@ public abstract class PasFlowShiftExecutor {
         proposedProportionalPasflowShift = totalEntrySegmentS2Flow;
       }
             
-      for (var origin : pas.getRegisteredBushes()) {                    
+      for (var bush : pas.getRegisteredBushes()) { 
+        if(!(bush instanceof OriginBush)) {
+          LOGGER.severe("Expected originbush but found other derived bush implementation, this shouldn't happen");
+          return false;
+        }
+        OriginBush origin = (OriginBush) bush; 
+        
         if (origin.containsTurnSendingFlow(entrySegment, pas.getFirstEdgeSegment(false))) {
           
           LOGGER.info("** Entry segment ("+entrySegment.toString()+") - Origin (" + origin.getOrigin().getXmlId()+")");          

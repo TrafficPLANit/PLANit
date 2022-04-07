@@ -1,6 +1,7 @@
 package org.goplanit.graph.directed.acyclic;
 
 import java.util.Collection;
+import java.util.Set;
 
 import org.goplanit.utils.graph.directed.DirectedSubGraph;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -24,11 +25,17 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 public interface ACyclicSubGraph extends DirectedSubGraph, Iterable<DirectedVertex> {
 
   /**
-   * Collect the root vertex of this acyclic subgraph
+   * Collect the root vertices of this acyclic subgraph
    * 
-   * @return root vertex
+   * @return root vertices
    */
-  public abstract DirectedVertex getRootVertex();
+  public abstract Set<DirectedVertex> getRootVertices();
+  
+  /** Add a root vertex to the subgraph
+   * 
+   * @param rootVertex to add
+   */
+  public abstract void addRootVertex(DirectedVertex rootVertex);
 
   /**
    * Perform a topological sort on this graph. It is expected that this is conducted before any operations that require this sorting to be in place are invoked, e.g., min-max path
