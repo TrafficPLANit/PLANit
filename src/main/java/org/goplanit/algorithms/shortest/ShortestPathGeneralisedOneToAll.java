@@ -21,12 +21,12 @@ import org.goplanit.utils.misc.Pair;
  * @author markr
  *
  */
-public class OneToAllShortestGeneralisedAlgorithm {
+public class ShortestPathGeneralisedOneToAll {
 
   /**
    * Reference to current origin for which we have collected shortest paths on a ONE-TO-ALL basis
    */
-  protected DirectedVertex currentOrigin = null;
+  protected DirectedVertex currentSource = null;
 
   /**
    * Track the cost for each edge to determine shortest paths
@@ -63,13 +63,13 @@ public class OneToAllShortestGeneralisedAlgorithm {
     // track measured cost for each vertex
     double[] vertexMeasuredCost = new double[numberOfVertices];
     Arrays.fill(vertexMeasuredCost, Double.MAX_VALUE);
-    vertexMeasuredCost[(int) currentOrigin.getId()] = 0.0;
+    vertexMeasuredCost[(int) currentSource.getId()] = 0.0;
     // precedingVertex for each vertex (used to reconstruct path)
     EdgeSegment[] incomingEdgeSegment = new EdgeSegment[numberOfVertices];
     Arrays.fill(incomingEdgeSegment, null);
 
     PriorityQueue<Pair<DirectedVertex, Double>> openVertices = new PriorityQueue<Pair<DirectedVertex, Double>>(numberOfVertices, pairSecondComparator);
-    openVertices.add(Pair.of(currentOrigin, 0.0)); // cost to reach self is zero
+    openVertices.add(Pair.of(currentSource, 0.0)); // cost to reach self is zero
 
     // collect cheapest cost and expand the vertex if not already visited
     while (!openVertices.isEmpty()) {
@@ -118,7 +118,7 @@ public class OneToAllShortestGeneralisedAlgorithm {
    * @param numberOfEdgeSegments Edge segments, both physical and connectoid
    * @param numberOfVertices     Vertices, both nodes and centroids
    */
-  public OneToAllShortestGeneralisedAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
+  public ShortestPathGeneralisedOneToAll(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
     this.edgeSegmentCosts = edgeSegmentCosts;
     this.numberOfVertices = numberOfVertices;
     this.numberOfEdgeSegments = numberOfEdgeSegments;

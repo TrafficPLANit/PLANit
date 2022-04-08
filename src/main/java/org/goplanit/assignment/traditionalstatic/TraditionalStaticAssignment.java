@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.StaticTrafficAssignment;
 import org.goplanit.cost.Cost;
@@ -167,7 +167,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   private void executeTimePeriodAndMode(final Mode mode, final TimePeriod timePeriod, final ModeData currentModeData, final double[] modalNetworkSegmentCosts)
       throws PlanItException {
 
-    final var shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(modalNetworkSegmentCosts, getTotalNumberOfNetworkSegments(), getTotalNumberOfNetworkVertices());
+    final var shortestPathAlgorithm = new ShortestPathDijkstra(modalNetworkSegmentCosts, getTotalNumberOfNetworkSegments(), getTotalNumberOfNetworkVertices());
     final OdDemands odDemands = getDemands().get(mode, timePeriod);
 
     final var dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());

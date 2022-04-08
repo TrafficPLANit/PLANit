@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiPredicate;
 
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
@@ -21,7 +20,7 @@ import org.goplanit.utils.math.Precision;
  * @author markr
  *
  */
-public class OneToAllShortestBushAlgorithmImpl extends OneToAllShortestGeneralisedAlgorithm implements OneToAllShortestBushAlgorithm {
+public class ShortestBushOneToAllImpl extends ShortestPathGeneralisedOneToAll implements ShortestBushOneToAll {
 
   /**
    * Track incoming edge segment(s) that are shortest for each vertex in this array. In case there is only a single shortest option, the object is an edge segment, otherwise it is
@@ -92,7 +91,7 @@ public class OneToAllShortestBushAlgorithmImpl extends OneToAllShortestGeneralis
    * @param numberOfEdgeSegments Edge segments, both physical and connectoid
    * @param numberOfVertices     Vertices, both nodes and centroids
    */
-  public OneToAllShortestBushAlgorithmImpl(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
+  public ShortestBushOneToAllImpl(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
     super(edgeSegmentCosts, numberOfEdgeSegments, numberOfVertices);
   }
 
@@ -101,12 +100,11 @@ public class OneToAllShortestBushAlgorithmImpl extends OneToAllShortestGeneralis
    * 
    * @param currentOrigin origin vertex of source node
    * @return shortest bush result that can be used to extract bushes
-   * @throws PlanItException thrown if an error occurs
    */
   @Override
-  public ShortestBushResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException {
+  public ShortestBushResult executeOneToAll(DirectedVertex currentOrigin) {
 
-    this.currentOrigin = currentOrigin;
+    this.currentSource = currentOrigin;
 
     /* see #processShorterOrEqualIncomginEdgeSegment on how it is populated */
     this.incomingEdgeSegments = new Object[numberOfVertices];

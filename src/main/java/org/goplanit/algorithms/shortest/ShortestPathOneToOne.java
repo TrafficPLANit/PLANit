@@ -10,16 +10,17 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
  * @author markr
  *
  */
-public interface OneToAllShortestPathAlgorithm {
+public interface ShortestPathOneToOne {
 
   /**
    * Construct shortest paths from source node to all other nodes in the network
    * based on directed LinkSegment edges
    * 
-   * @param currentOrigin origin vertex of source node
-   * @return shortest path result that can be used to extract paths
-   * @throws PlanItException thrown if an error occurs
+   * @param origin vertex of source node
+   * @param destination vertex of sink node
+   * @return shortest path result of the execution
+   * @throws PlanItException thrown if path cannot be created
    */
-  public ShortestPathResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException;
+  public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) throws PlanItException;
 
 }

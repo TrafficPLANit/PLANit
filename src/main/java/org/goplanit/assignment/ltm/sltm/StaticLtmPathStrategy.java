@@ -2,8 +2,8 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
-import org.goplanit.algorithms.shortest.OneToAllShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
+import org.goplanit.algorithms.shortest.ShortestPathOneToAll;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingPath;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
@@ -41,7 +41,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * @throws PlanItException thrown if error
    */
   private OdPaths createOdPaths(final double[] currentSegmentCosts) throws PlanItException {
-    final OneToAllShortestPathAlgorithm shortestPathAlgorithm = new DijkstraShortestPathAlgorithm(currentSegmentCosts, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers(),
+    final ShortestPathOneToAll shortestPathAlgorithm = new ShortestPathDijkstra(currentSegmentCosts, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers(),
         getTransportNetwork().getNumberOfVerticesAllLayers());
     DirectedPathFactory pathFactory = new DirectedPathFactoryImpl(getIdGroupingToken());
     OdPaths odPaths = new OdPathsHashed(getIdGroupingToken(), getTransportNetwork().getZoning().getOdZones());

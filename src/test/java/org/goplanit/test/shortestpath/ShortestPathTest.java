@@ -8,8 +8,8 @@ import java.util.logging.Logger;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
-import org.goplanit.algorithms.shortest.AStarShortestPathAlgorithm;
-import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.ShortestPathAStar;
+import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
@@ -217,7 +217,7 @@ public class ShortestPathTest {
   public void dijkstraTest() {
     try {
 
-      DijkstraShortestPathAlgorithm dijkstra = new DijkstraShortestPathAlgorithm(linkSegmentCosts, transportNetwork.getNumberOfEdgeSegmentsAllLayers(),
+      ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(linkSegmentCosts, transportNetwork.getNumberOfEdgeSegmentsAllLayers(),
           transportNetwork.getNumberOfVerticesAllLayers());
 
       ShortestPathResult result = dijkstra.executeOneToAll(centroidA);
@@ -262,7 +262,7 @@ public class ShortestPathTest {
       // each link is 1 km long. Yet smallest cost for a link is 3 in the network, so the minimum cost multiplier per km is 3
       double multiplier = 3;
 
-      AStarShortestPathAlgorithm aStar = new AStarShortestPathAlgorithm(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers(), crs, multiplier);
+      ShortestPathAStar aStar = new ShortestPathAStar(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers(), crs, multiplier);
 
       ShortestPathResult result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(1));
       double costAto1 = result.getCostToReach(networkLayer.getNodes().get(1));

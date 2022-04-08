@@ -17,7 +17,7 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
  * @author markr
  *
  */
-public class AcyclicMinMaxShortestPathAlgorithm implements OneToAllShortestPathAlgorithm {
+public class ShortestPathAcyclicMinMax implements ShortestPathOneToAll {
 
   /** topological ordering to use, which is assumed to be based on the given origin vertex */
   private final Collection<? extends DirectedVertex> topologicalOrder;
@@ -42,7 +42,7 @@ public class AcyclicMinMaxShortestPathAlgorithm implements OneToAllShortestPathA
    * @param edgeSegmentCosts      for all edge segments
    * @param parentNetworkVertices number of vertices in parent network, required to create raw result array by contiguous vertex id without the need for any mapping
    */
-  public AcyclicMinMaxShortestPathAlgorithm(final ACyclicSubGraph acyclicSubGraph, final Collection<? extends DirectedVertex> topologicalOrder, final double[] edgeSegmentCosts,
+  public ShortestPathAcyclicMinMax(final ACyclicSubGraph acyclicSubGraph, final Collection<? extends DirectedVertex> topologicalOrder, final double[] edgeSegmentCosts,
       final int parentNetworkVertices) {
     this.acyclicSubGraph = acyclicSubGraph;
     this.topologicalOrder = topologicalOrder;

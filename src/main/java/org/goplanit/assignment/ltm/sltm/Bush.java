@@ -24,8 +24,7 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.zoning.OdZone;
 
 /**
- * A bush is an acyclic directed graph comprising of implicit paths along a network. Demand on the bush is expected to be placed along its root node(s) by derived classes which is
- * then split across the graph by (bush specific) splitting rates that reside on each edge. The sum of the edge splitting rates originating from a vertex must always sum to 1.
+ * A bush is an acyclic directed graph comprising of implicit paths along a network.
  * <p>
  * The vertices in the bush represent link segments in the physical network, whereas each edge represents a turn from one link to another. This way each splitting rate uniquely
  * relates to a single turn and all outgoing edges of a vertex represent all turns of a node's incoming link
@@ -93,7 +92,7 @@ public class Bush implements IdAble {
    * @param originZone to set
    * @param demandPcuH demand to set
    */
-  public void addOriginDemandPcuH(OdZone originZone, double demandPcuH) {
+  protected void addOriginDemandPcuH(OdZone originZone, double demandPcuH) {
     this.originDemandsPcuH.put(originZone, demandPcuH);
     if (!this.dag.containsRootVertex(originZone.getCentroid())) {
       this.dag.addRootVertex(originZone.getCentroid());
@@ -106,7 +105,7 @@ public class Bush implements IdAble {
    * @param originZone to collect demand for
    * @return demand (if any)
    */
-  public Double getOriginDemandPcuH(OdZone originZone) {
+  protected Double getOriginDemandPcuH(OdZone originZone) {
     return this.originDemandsPcuH.get(originZone);
   }
 

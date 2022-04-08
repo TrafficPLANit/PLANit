@@ -22,7 +22,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
  * @author markr
  *
  */
-public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm {
+public class ShortestPathAStar implements ShortestPathOneToOne {
 
   /**
    * The cost for each edge to determine shortest paths
@@ -66,7 +66,7 @@ public class AStarShortestPathAlgorithm implements OneToOneShortestPathAlgorithm
    * @param heuristicDistanceMultiplier used to convert the distance between two vertices to a cost, in transport context this would generally be the maximum speed (km/h) that is
    *                                    allowed on the network assuming the cost is representing travel time (h).
    */
-  public AStarShortestPathAlgorithm(final double[] edgeSegmentCosts, int numberOfVertices, CoordinateReferenceSystem crs, double heuristicDistanceMultiplier) {
+  public ShortestPathAStar(final double[] edgeSegmentCosts, int numberOfVertices, CoordinateReferenceSystem crs, double heuristicDistanceMultiplier) {
     this.edgeSegmentCosts = edgeSegmentCosts;
     this.numberOfVertices = numberOfVertices;
     this.numberOfEdgeSegments = edgeSegmentCosts.length;

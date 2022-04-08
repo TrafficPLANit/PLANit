@@ -9,15 +9,15 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 /**
  * Dijkstra's shortest path algorithm
  * 
- * Dijkstra's shortest path is a one-to-all implementation of the shortest path algorithm based on the generalized costs on each link segment (edge). The costs should be provided
- * upon instantiation and are reused whenever a One-To-All execution conditional on the chosen source node is performed.
+ * Dijkstra's shortest path is a one-to-all (or all-to-one) implementation of the shortest path algorithm based on the generalized costs on each link segment (edge). The costs
+ * should be provided upon instantiation and are reused whenever an execution conditional on the chosen source/destination node is performed.
  * 
  * In its current form, it assumes a macroscopic network and macroscopic link segments to operate on
  * 
  * @author markr
  *
  */
-public class DijkstraShortestPathAlgorithm extends OneToAllShortestGeneralisedAlgorithm implements OneToAllShortestPathAlgorithm {
+public class ShortestPathDijkstra extends ShortestPathGeneralisedOneToAll implements ShortestPathOneToAll, ShortestPathAllToOne {
 
   /**
    * Track incoming edge segment that is shortest for each vertex in this array
@@ -38,7 +38,7 @@ public class DijkstraShortestPathAlgorithm extends OneToAllShortestGeneralisedAl
    * @param numberOfEdgeSegments Edge segments, both physical and connectoid
    * @param numberOfVertices     Vertices, both nodes and centroids
    */
-  public DijkstraShortestPathAlgorithm(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
+  public ShortestPathDijkstra(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
     super(edgeSegmentCosts, numberOfEdgeSegments, numberOfVertices);
   }
 
@@ -51,7 +51,7 @@ public class DijkstraShortestPathAlgorithm extends OneToAllShortestGeneralisedAl
    */
   @Override
   public ShortestPathResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException {
-    this.currentOrigin = currentOrigin;
+    this.currentSource = currentOrigin;
     this.incomingEdgeSegment = new EdgeSegment[numberOfVertices];
 
     /*
@@ -60,5 +60,27 @@ public class DijkstraShortestPathAlgorithm extends OneToAllShortestGeneralisedAl
     double[] vertexMeasuredCost = super.executeOneToAll(isShorterPredicate, es -> incomingEdgeSegment[(int) es.getDownstreamVertex().getId()] = es);
 
     return new ShortestPathResultImpl(vertexMeasuredCost, incomingEdgeSegment);
+  }
+
+  /**
+   * Construct shortest paths from all nodes to a single sink node in the network based on directed Link segment edges
+   * 
+   * @param currentDestination destination vertex
+   * @return shortest path result that can be used to extract paths
+   * @throws PlanItException thrown if an error occurs
+   */
+  @Override
+  public ShortestPathResult executeAllToOne(DirectedVertex currentDestination) {
+    this.currentSource = currentDestination;
+
+    CONTINUE HERE use generalised implementation to support either diretion search based on setup here. Then do the same for shortest bush implementation
+//    this.incomingEdgeSegment = new EdgeSegment[numberOfVertices];
+//
+//    /*
+//     * found shortest path costs to each vertex for current origin. When deemed shortest, the incoming edge segment is stored on the array
+//     */
+//    double[] vertexMeasuredCost = super.executeOneToAll(isShorterPredicate, es -> incomingEdgeSegment[(int) es.getDownstreamVertex().getId()] = es);
+//
+//    return new ShortestPathResultImpl(vertexMeasuredCost, incomingEdgeSegment);
   }
 }

@@ -10,10 +10,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.DijkstraShortestPathAlgorithm;
-import org.goplanit.algorithms.shortest.OneToAllShortestBushAlgorithm;
-import org.goplanit.algorithms.shortest.OneToAllShortestBushAlgorithmImpl;
-import org.goplanit.algorithms.shortest.OneToAllShortestPathAlgorithm;
+import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
+import org.goplanit.algorithms.shortest.ShortestBushOneToAll;
+import org.goplanit.algorithms.shortest.ShortestBushOneToAllImpl;
+import org.goplanit.algorithms.shortest.ShortestPathOneToAll;
 import org.goplanit.algorithms.shortest.ShortestBushResult;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBush;
@@ -448,10 +448,10 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * @param linkSegmentCosts to use
    * @return one-to-all shortest bush algorithm
    */
-  protected OneToAllShortestBushAlgorithm createNetworkShortestBushAlgo(final double[] linkSegmentCosts) {
+  protected ShortestBushOneToAll createNetworkShortestBushAlgo(final double[] linkSegmentCosts) {
     final int numberOfEdgeSegments = getTransportNetwork().getNumberOfEdgeSegmentsAllLayers();
     final int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
-    return new OneToAllShortestBushAlgorithmImpl(linkSegmentCosts, numberOfEdgeSegments, numberOfVertices);
+    return new ShortestBushOneToAllImpl(linkSegmentCosts, numberOfEdgeSegments, numberOfVertices);
   }
 
   /**
@@ -460,10 +460,10 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * @param linkSegmentCosts to use
    * @return one-to-all shortest path algorithm
    */
-  protected OneToAllShortestPathAlgorithm createNetworkShortestPathAlgo(final double[] linkSegmentCosts) {
+  protected ShortestPathOneToAll createNetworkShortestPathAlgo(final double[] linkSegmentCosts) {
     final int numberOfEdgeSegments = getTransportNetwork().getNumberOfEdgeSegmentsAllLayers();
     final int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
-    return new DijkstraShortestPathAlgorithm(linkSegmentCosts, numberOfEdgeSegments, numberOfVertices);
+    return new ShortestPathDijkstra(linkSegmentCosts, numberOfEdgeSegments, numberOfVertices);
   }
 
   /**
