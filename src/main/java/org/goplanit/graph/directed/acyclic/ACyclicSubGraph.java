@@ -30,8 +30,19 @@ public interface ACyclicSubGraph extends DirectedSubGraph, Iterable<DirectedVert
    * @return root vertices
    */
   public abstract Set<DirectedVertex> getRootVertices();
-  
-  /** Add a root vertex to the subgraph
+
+  /**
+   * Verify if vertex is registered as root vertex on this dag
+   * 
+   * @param rootVertex to verify
+   * @return true if present, false otherwise
+   */
+  public default boolean containsRootVertex(DirectedVertex rootVertex) {
+    return getRootVertices().contains(rootVertex);
+  }
+
+  /**
+   * Add a root vertex to the subgraph
    * 
    * @param rootVertex to add
    */

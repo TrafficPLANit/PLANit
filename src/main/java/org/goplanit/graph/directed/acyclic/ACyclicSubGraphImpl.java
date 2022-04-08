@@ -39,7 +39,7 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * The id of this acyclic sub graph
    */
   private final long id;
-  
+
   /** the root vertices of the DAG */
   protected Set<DirectedVertex> rootVertices;
 
@@ -203,7 +203,7 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
     aCyclicSubGraphImpl.vertexData.forEach((v, d) -> this.vertexData.put(v, d.clone()));
 
     this.topologicalOrder = aCyclicSubGraphImpl.topologicalOrder != null ? new ArrayDeque<DirectedVertex>(aCyclicSubGraphImpl.topologicalOrder) : null;
-    
+
     this.rootVertices = new HashSet<>(aCyclicSubGraphImpl.rootVertices);
   }
 
@@ -224,20 +224,23 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
     resetVertexData();
     BitSet visited = new BitSet(vertexData.size());
     LongAdder counter = new LongAdder();
-    
+
     /* for each root vertex */
     boolean isAcyclic = true;
-    for(var rootVertex : rootVertices) {
-      counter.increment();    
+    if (rootVertices.isEmpty()) {
+      LOGGER.severe(String.format("Acyclic subgraph (%d) has no root vertices, unable to commence topological sort", getId()));
+    }
+    for (var rootVertex : rootVertices) {
+      counter.increment();
       isAcyclic = traverseRecursively(rootVertex, visited, counter, topologicalOrder);
-      if(!isAcyclic) {
+      if (!isAcyclic) {
         return null;
       }
     }
 
     for (Entry<DirectedVertex, AcyclicVertexData> vertexEntry : this.vertexData.entrySet()) {
       if (!visited.get((int) vertexEntry.getKey().getId())) {
-        LOGGER.warning(String.format("Topological sort applied, but some vertices not connected to a root of the acyclic graph (%d), unable to determine sorting order"));
+        LOGGER.warning(String.format("Topological sort applied, but some vertices not connected to a root of the acyclic graph (%d), unable to determine sorting order", getId()));
         return null;
       }
     }
@@ -255,7 +258,7 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public void addRootVertex(DirectedVertex rootVertex) {
     rootVertices.add(rootVertex);

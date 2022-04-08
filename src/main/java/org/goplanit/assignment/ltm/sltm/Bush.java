@@ -24,9 +24,8 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.zoning.OdZone;
 
 /**
- * A bush is an acyclic directed graph comprising of implicit paths along a network. Demand on the bush is expected to be placed along its root node(s) by derived classes 
- * which is then split across the graph by (bush specific) splitting rates that reside on each edge. The sum of the edge splitting rates originating from a vertex must
- * always sum to 1.
+ * A bush is an acyclic directed graph comprising of implicit paths along a network. Demand on the bush is expected to be placed along its root node(s) by derived classes which is
+ * then split across the graph by (bush specific) splitting rates that reside on each edge. The sum of the edge splitting rates originating from a vertex must always sum to 1.
  * <p>
  * The vertices in the bush represent link segments in the physical network, whereas each edge represents a turn from one link to another. This way each splitting rate uniquely
  * relates to a single turn and all outgoing edges of a vertex represent all turns of a node's incoming link
@@ -75,7 +74,7 @@ public class Bush implements IdAble {
 
   /** the origin demands (PCU/h) of the bush all representing a root (starting point) within the DAG */
   protected Map<OdZone, Double> originDemandsPcuH;
-  
+
   /** the directed acyclic subgraph representation of the bush, pertaining solely to the topology */
   protected final ACyclicSubGraph dag;
 
@@ -84,19 +83,25 @@ public class Bush implements IdAble {
 
   /** token for id generation unique within this bush */
   protected final IdGroupingToken bushGroupingToken;
-  
-  /** track if underlying acyclic graph is modified, if so, an update of the topological sort is required flagged by this member */
-  protected boolean requireTopologicalSortUpdate = false;  
 
-  /** Track origin demands for bush
+  /** track if underlying acyclic graph is modified, if so, an update of the topological sort is required flagged by this member */
+  protected boolean requireTopologicalSortUpdate = false;
+
+  /**
+   * Track origin demands for bush
+   * 
    * @param originZone to set
    * @param demandPcuH demand to set
    */
   public void addOriginDemandPcuH(OdZone originZone, double demandPcuH) {
-    this.originDemandsPcuH.put(originZone, demandPcuH);    
+    this.originDemandsPcuH.put(originZone, demandPcuH);
+    if (!this.dag.containsRootVertex(originZone.getCentroid())) {
+      this.dag.addRootVertex(originZone.getCentroid());
+    }
   }
-  
-  /** Get the origin demand for a given origin
+
+  /**
+   * Get the origin demand for a given origin
    * 
    * @param originZone to collect demand for
    * @return demand (if any)
@@ -108,13 +113,14 @@ public class Bush implements IdAble {
   /**
    * Constructor
    * 
-   * @param idToken              the token to base the id generation on
+   * @param idToken                 the token to base the id generation on
    * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
   public Bush(final IdGroupingToken idToken, long maxSubGraphEdgeSegments) {
     this.dag = new ACyclicSubGraphImpl(idToken, (int) maxSubGraphEdgeSegments);
     this.bushData = new BushTurnData();
     this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, dag.getId());
+    this.originDemandsPcuH = new HashMap<>();
   }
 
   /**
@@ -145,7 +151,7 @@ public class Bush implements IdAble {
   public Bush clone() {
     return new Bush(this);
   }
-  
+
   /**
    * Verify if adding the sub-path edge segments would introduce a cycle in this bush
    * 
