@@ -27,44 +27,37 @@ public interface ShortestPathResult {
   public abstract DirectedPath createPath(final DirectedPathFactory pathFactory, DirectedVertex origin, DirectedVertex destination);
 
   /**
-   * apply consumer to each edge segment on backward path from destination to origin. If path does not lead to origin, the loop terminates when no backward edge segment is found
-   * anymore
+   * apply consumer to each edge segment on path. Depending on the thype of shortest path (direction), the next segment is either in the backward direction from destination to
+   * origin (one-to-all) or in the forward direction from the origin to the destination (all-to-one). This depends on the implementation of the
+   * {@link #getNextEdgeSegmentForVertex(Vertex)}. If path does not lead to origin/destination, the loop terminates when no more next edge segment is found anymore
    * 
-   * @param origin                      to end loop
-   * @param destination                 to start backward loop
-   * @param backwardEdgeSegmentConsumer to apply to each segment on the backward path from destination to origin
+   * @param startVertex             to use
+   * @param endVertex               to use
+   * @param nextEdgeSegmentConsumer to apply to each next segment on the path
    * @return number of edge segments traversed on the path
    */
-  public default int forEachBackwardEdgeSegment(DirectedVertex origin, DirectedVertex destination, Consumer<EdgeSegment> backwardEdgeSegmentConsumer) {
+  public default int forEachNextEdgeSegment(DirectedVertex startVertex, DirectedVertex endVertex, Consumer<EdgeSegment> nextEdgeSegmentConsumer) {
     EdgeSegment backwardEdgeSegment = null;
-    Vertex currentVertex = destination;
+    Vertex currentVertex = endVertex;
     int count = 0;
     do {
-      backwardEdgeSegment = getIncomingEdgeSegmentForVertex(currentVertex);
+      backwardEdgeSegment = getNextEdgeSegmentForVertex(currentVertex);
       if (backwardEdgeSegment == null) {
         break;
       }
-      backwardEdgeSegmentConsumer.accept(backwardEdgeSegment);
+      nextEdgeSegmentConsumer.accept(backwardEdgeSegment);
       currentVertex = backwardEdgeSegment.getUpstreamVertex();
       ++count;
-    } while (!currentVertex.idEquals(origin));
+    } while (!currentVertex.idEquals(startVertex));
     return count;
   }
 
   /**
-   * Find the incoming edge segment for a given vertex
+   * Find the next edge segment for a given vertex, depending on the underlying search this can be either in upstream or diwnstream direction
    * 
-   * @param vertex to get incoming segment for
-   * @return incoming edge segment
+   * @param vertex to get next segment for
+   * @return next edge segment
    */
-  public abstract EdgeSegment getIncomingEdgeSegmentForVertex(Vertex vertex);
-
-  /**
-   * Collect the cost to reach the given vertex
-   * 
-   * @param vertex to collect cost for
-   * @return cost found
-   */
-  public abstract double getCostToReach(Vertex vertex);
+  public abstract EdgeSegment getNextEdgeSegmentForVertex(Vertex vertex);
 
 }

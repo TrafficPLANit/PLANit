@@ -21,6 +21,6 @@ public interface ShortestPathOneToOne {
    * @return shortest path result of the execution
    * @throws PlanItException thrown if path cannot be created
    */
-  public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) throws PlanItException;
+  public ShortestPathOneToAllResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) throws PlanItException;
 
 }

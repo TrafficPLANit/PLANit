@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
+import org.goplanit.algorithms.shortest.ShortestPathResultGeneralisedImpl.ResultType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.graph.EdgeSegment;
@@ -82,7 +83,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
    * with a nullpointer.
    */
   @Override
-  public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) throws PlanItException {
+  public ShortestPathOneToAllResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) throws PlanItException {
     if (origin.getPosition() == null || destination.getPosition() == null) {
       throw new PlanItException(
           "aStar shortest path must compute distances between vertices on-the-fly. One or more vertices do not have location information available making this impossible");
@@ -165,7 +166,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
     PlanItException.throwIf(currentVertex.getId() != destination.getId(),
         String.format("destination %s (id:%d) unreachable from origin %S (id:%d)", destination.getXmlId(), destination.getId(), origin.getXmlId(), origin.getId()));
 
-    return new ShortestPathResultImpl(vertexMeasuredCost, incomingEdgeSegment);
+    return new ShortestPathResultGeneralisedImpl(vertexMeasuredCost, incomingEdgeSegment, ResultType.ONE_TO_ONE);
   }
 
 }

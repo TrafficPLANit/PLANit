@@ -20,6 +20,6 @@ public interface ShortestPathOneToAll {
    * @return shortest path result that can be used to extract paths
    * @throws PlanItException thrown if an error occurs
    */
-  public ShortestPathResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException;
+  public ShortestPathOneToAllResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException;
 
 }

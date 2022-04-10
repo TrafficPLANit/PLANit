@@ -9,8 +9,9 @@ import java.util.logging.Logger;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.referencing.factory.epsg.CartesianAuthorityFactory;
 import org.goplanit.algorithms.shortest.ShortestPathAStar;
+import org.goplanit.algorithms.shortest.ShortestPathAllToOneResult;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
-import org.goplanit.algorithms.shortest.ShortestPathResult;
+import org.goplanit.algorithms.shortest.ShortestPathOneToAllResult;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
@@ -211,16 +212,16 @@ public class ShortestPathTest {
 //@formatter:on
 
   /**
-   * Test Dijsktra based on above network
+   * Test Dijsktra one-to-all based on above network
    */
   @Test
-  public void dijkstraTest() {
+  public void dijkstraOneToAllTest() {
     try {
 
       ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(linkSegmentCosts, transportNetwork.getNumberOfEdgeSegmentsAllLayers(),
           transportNetwork.getNumberOfVerticesAllLayers());
 
-      ShortestPathResult result = dijkstra.executeOneToAll(centroidA);
+      ShortestPathOneToAllResult result = dijkstra.executeOneToAll(centroidA);
 
       double costAto1 = result.getCostToReach(networkLayer.getNodes().get(1));
       assertEquals(costAto1, 10, Precision.EPSILON_6);
@@ -248,6 +249,68 @@ public class ShortestPathTest {
 
     } catch (Exception e) {
       e.printStackTrace();
+      fail("Error when testing Dijsktra one-to-all shortest path");
+    }
+  }
+
+  /**
+   * Test Dijsktra all-to-one based on above network
+   */
+  @Test
+  public void dijkstraAllToOneTest() {
+    try {
+
+      ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(linkSegmentCosts, transportNetwork.getNumberOfEdgeSegmentsAllLayers(),
+          transportNetwork.getNumberOfVerticesAllLayers());
+
+      ShortestPathAllToOneResult result = dijkstra.executeAllToOne(networkLayer.getNodes().get(1));
+
+      double costAto1 = result.getCostFrom(centroidA);
+      assertEquals(costAto1, 10, Precision.EPSILON_6);
+
+      double cost2to1 = result.getCostFrom(networkLayer.getNodes().get(2));
+      assertEquals(cost2to1, 12, Precision.EPSILON_6);
+
+      double cost3to1 = result.getCostFrom(networkLayer.getNodes().get(3));
+      assertEquals(cost3to1, 42, Precision.EPSILON_6);
+
+      result = dijkstra.executeAllToOne(networkLayer.getNodes().get(2));
+
+      double costAto2 = result.getCostFrom(centroidA);
+      assertEquals(costAto2, 22, Precision.EPSILON_6);
+
+      result = dijkstra.executeAllToOne(networkLayer.getNodes().get(3));
+
+      double costAto3 = result.getCostFrom(centroidA);
+      assertEquals(costAto3, 52, Precision.EPSILON_6);
+
+      result = dijkstra.executeAllToOne(networkLayer.getNodes().get(4));
+
+      double costAto4 = result.getCostFrom(centroidA);
+      assertEquals(costAto4, 62, Precision.EPSILON_6);
+
+      result = dijkstra.executeAllToOne(networkLayer.getNodes().get(5));
+
+      double costAto5 = result.getCostFrom(centroidA);
+      assertEquals(costAto5, 33, Precision.EPSILON_6);
+
+      result = dijkstra.executeAllToOne(networkLayer.getNodes().get(6));
+
+      double costAto6 = result.getCostFrom(centroidA);
+      assertEquals(costAto6, 35, Precision.EPSILON_6);
+
+      result = dijkstra.executeAllToOne(centroidC);
+
+      double aToCCost = result.getCostFrom(centroidA);
+      assertEquals(aToCCost, 77.0, Precision.EPSILON_6);
+
+      result = dijkstra.executeAllToOne(centroidB);
+
+      double aToBCost = result.getCostFrom(centroidA);
+      assertEquals(aToBCost, 85.0, Precision.EPSILON_6);
+
+    } catch (Exception e) {
+      e.printStackTrace();
       fail("Error when testing Dijsktra shortest path");
     }
   }
@@ -264,7 +327,7 @@ public class ShortestPathTest {
 
       ShortestPathAStar aStar = new ShortestPathAStar(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers(), crs, multiplier);
 
-      ShortestPathResult result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(1));
+      ShortestPathOneToAllResult result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(1));
       double costAto1 = result.getCostToReach(networkLayer.getNodes().get(1));
       assertEquals(costAto1, 10, Precision.EPSILON_6);
 

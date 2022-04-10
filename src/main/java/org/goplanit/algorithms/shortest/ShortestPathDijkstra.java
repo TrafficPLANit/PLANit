@@ -2,6 +2,7 @@ package org.goplanit.algorithms.shortest;
 
 import java.util.function.BiPredicate;
 
+import org.goplanit.algorithms.shortest.ShortestPathResultGeneralisedImpl.ResultType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -17,12 +18,12 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
  * @author markr
  *
  */
-public class ShortestPathDijkstra extends ShortestPathGeneralisedOneToAll implements ShortestPathOneToAll, ShortestPathAllToOne {
+public class ShortestPathDijkstra extends ShortestPathGeneralised implements ShortestPathOneToAll, ShortestPathAllToOne {
 
   /**
    * Track incoming edge segment that is shortest for each vertex in this array
    */
-  protected EdgeSegment[] incomingEdgeSegment;
+  protected EdgeSegment[] shortestEdgeSegmentOfVertex;
 
   /**
    * predicate for Dijkstra where shortest means less cost than existing cost, so only cheaper paths overwrite an existing shortest path to a node
@@ -50,16 +51,16 @@ public class ShortestPathDijkstra extends ShortestPathGeneralisedOneToAll implem
    * @throws PlanItException thrown if an error occurs
    */
   @Override
-  public ShortestPathResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException {
+  public ShortestPathOneToAllResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException {
     this.currentSource = currentOrigin;
-    this.incomingEdgeSegment = new EdgeSegment[numberOfVertices];
+    this.shortestEdgeSegmentOfVertex = new EdgeSegment[numberOfVertices];
 
     /*
      * found shortest path costs to each vertex for current origin. When deemed shortest, the incoming edge segment is stored on the array
      */
-    double[] vertexMeasuredCost = super.executeOneToAll(isShorterPredicate, es -> incomingEdgeSegment[(int) es.getDownstreamVertex().getId()] = es);
+    double[] vertexMeasuredCost = super.executeOneToAll(isShorterPredicate, es -> shortestEdgeSegmentOfVertex[(int) es.getDownstreamVertex().getId()] = es);
 
-    return new ShortestPathResultImpl(vertexMeasuredCost, incomingEdgeSegment);
+    return new ShortestPathResultGeneralisedImpl(vertexMeasuredCost, shortestEdgeSegmentOfVertex, ResultType.ONE_TO_ALL);
   }
 
   /**
@@ -70,17 +71,15 @@ public class ShortestPathDijkstra extends ShortestPathGeneralisedOneToAll implem
    * @throws PlanItException thrown if an error occurs
    */
   @Override
-  public ShortestPathResult executeAllToOne(DirectedVertex currentDestination) {
+  public ShortestPathAllToOneResult executeAllToOne(DirectedVertex currentDestination) {
     this.currentSource = currentDestination;
+    this.shortestEdgeSegmentOfVertex = new EdgeSegment[numberOfVertices];
 
-    CONTINUE HERE use generalised implementation to support either diretion search based on setup here. Then do the same for shortest bush implementation
-//    this.incomingEdgeSegment = new EdgeSegment[numberOfVertices];
-//
-//    /*
-//     * found shortest path costs to each vertex for current origin. When deemed shortest, the incoming edge segment is stored on the array
-//     */
-//    double[] vertexMeasuredCost = super.executeOneToAll(isShorterPredicate, es -> incomingEdgeSegment[(int) es.getDownstreamVertex().getId()] = es);
-//
-//    return new ShortestPathResultImpl(vertexMeasuredCost, incomingEdgeSegment);
+    /*
+     * found shortest path costs to each vertex for current origin. When deemed shortest, the incoming edge segment is stored on the array
+     */
+    double[] vertexMeasuredCost = super.executeAllToOne(isShorterPredicate, es -> shortestEdgeSegmentOfVertex[(int) es.getUpstreamVertex().getId()] = es);
+
+    return new ShortestPathResultGeneralisedImpl(vertexMeasuredCost, shortestEdgeSegmentOfVertex, ResultType.ALL_TO_ONE);
   }
 }

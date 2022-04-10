@@ -24,7 +24,7 @@ import org.goplanit.utils.misc.CollectionUtils;
  */
 public class ShortestBushResultImpl implements ShortestBushResult {
 
-  private static final Logger LOGGER = Logger.getLogger(ShortestPathResult.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(ShortestPathOneToAllResult.class.getCanonicalName());
 
   /**
    * the costs found by a shortest path run

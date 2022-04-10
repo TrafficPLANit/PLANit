@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.ShortestPathResult;
+import org.goplanit.algorithms.shortest.ShortestPathOneToAllResult;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
@@ -119,14 +119,14 @@ public class PasManager {
    * @param truncateArray flag indicating to truncate the subpath array in case the front of the array is not fully used due to the existence of spare capacity
    * @return created array, null if no path could be found
    */
-  public static EdgeSegment[] createSubpathArrayFrom(final DirectedVertex start, final DirectedVertex end, final ShortestPathResult pathTree, int arrayLength,
+  public static EdgeSegment[] createSubpathArrayFrom(final DirectedVertex start, final DirectedVertex end, final ShortestPathOneToAllResult pathTree, int arrayLength,
       boolean truncateArray) {
     EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
     DirectedVertex currVertex = end;
     EdgeSegment currEdgeSegment = null;
     int index = edgeSegmentArray.length;
     do {
-      currEdgeSegment = pathTree.getIncomingEdgeSegmentForVertex(currVertex);
+      currEdgeSegment = pathTree.getNextEdgeSegmentForVertex(currVertex);
       edgeSegmentArray[--index] = currEdgeSegment;
       if (currEdgeSegment == null) {
         LOGGER.warning(String.format("Unable to extract subpath from start vertex %s to end vertex %s, no incoming edge segment available at intermediate vertex %s",

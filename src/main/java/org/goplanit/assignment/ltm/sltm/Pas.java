@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.ShortestPathResult;
+import org.goplanit.algorithms.shortest.ShortestPathOneToAllResult;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
@@ -187,13 +187,13 @@ public class Pas {
    * @param lowCost      when true check with low cost alternative otherwise high cost
    * @return true when overlapping, false otherwise
    */
-  public boolean isOverlappingWith(ShortestPathResult pathToVerify, boolean lowCost) {
+  public boolean isOverlappingWith(ShortestPathOneToAllResult pathToVerify, boolean lowCost) {
     EdgeSegment[] alternative = lowCost ? s1 : s2;
     EdgeSegment currEdgeSegment = null;
     EdgeSegment matchingEdgeSegment = null;
     for (int index = alternative.length - 1; index >= 0; --index) {
       currEdgeSegment = alternative[index];
-      matchingEdgeSegment = pathToVerify.getIncomingEdgeSegmentForVertex(currEdgeSegment.getDownstreamVertex());
+      matchingEdgeSegment = pathToVerify.getNextEdgeSegmentForVertex(currEdgeSegment.getDownstreamVertex());
       if (!currEdgeSegment.idEquals(matchingEdgeSegment)) {
         return false;
       }

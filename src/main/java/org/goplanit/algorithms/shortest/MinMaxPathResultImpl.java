@@ -1,5 +1,6 @@
 package org.goplanit.algorithms.shortest;
 
+import org.goplanit.algorithms.shortest.ShortestPathResultGeneralisedImpl.ResultType;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -22,12 +23,12 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
   /**
    * tracking min path results
    */
-  private ShortestPathResult minPathResult;
+  private ShortestPathOneToAllResult minPathResult;
 
   /**
    * tracking max path results
    */
-  private ShortestPathResult maxPathResult;
+  private ShortestPathOneToAllResult maxPathResult;
 
   /**
    * Constructor
@@ -39,8 +40,8 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    */
   protected MinMaxPathResultImpl(double[] minVertexCost, EdgeSegment[] minCostBackwardEdgeSegments, double[] maxVertexCost, EdgeSegment[] maxCostBackwardEdgeSegments) {
     this.minPathState = true;
-    this.minPathResult = new ShortestPathResultImpl(minVertexCost, minCostBackwardEdgeSegments);
-    this.maxPathResult = new ShortestPathResultImpl(maxVertexCost, maxCostBackwardEdgeSegments);
+    this.minPathResult = new ShortestPathResultGeneralisedImpl(minVertexCost, minCostBackwardEdgeSegments, ResultType.ONE_TO_ALL);
+    this.maxPathResult = new ShortestPathResultGeneralisedImpl(maxVertexCost, maxCostBackwardEdgeSegments, ResultType.ONE_TO_ALL);
   }
 
   /**
@@ -55,8 +56,8 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment getIncomingEdgeSegmentForVertex(Vertex vertex) {
-    return minPathState ? minPathResult.getIncomingEdgeSegmentForVertex(vertex) : maxPathResult.getIncomingEdgeSegmentForVertex(vertex);
+  public EdgeSegment getNextEdgeSegmentForVertex(Vertex vertex) {
+    return minPathState ? minPathResult.getNextEdgeSegmentForVertex(vertex) : maxPathResult.getNextEdgeSegmentForVertex(vertex);
   }
 
   /**

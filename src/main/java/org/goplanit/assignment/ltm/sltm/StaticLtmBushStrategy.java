@@ -15,7 +15,7 @@ import org.goplanit.algorithms.shortest.ShortestBushOneToAll;
 import org.goplanit.algorithms.shortest.ShortestBushOneToAllImpl;
 import org.goplanit.algorithms.shortest.ShortestPathOneToAll;
 import org.goplanit.algorithms.shortest.ShortestBushResult;
-import org.goplanit.algorithms.shortest.ShortestPathResult;
+import org.goplanit.algorithms.shortest.ShortestPathOneToAllResult;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBush;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
@@ -137,12 +137,12 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * @param networkMinPaths the current network shortest path tree
    * @return new created PAS if successfully created, null otherwise
    */
-  private Pas extendBushWithNewPas(final OriginBush originBush, final DirectedVertex mergeVertex, final ShortestPathResult networkMinPaths) {
+  private Pas extendBushWithNewPas(final OriginBush originBush, final DirectedVertex mergeVertex, final ShortestPathOneToAllResult networkMinPaths) {
 
     /* Label all vertices on shortest path origin-bushVertex as -1, and PAS merge Vertex itself as 1 */
     final short[] alternativeSegmentVertexLabels = new short[getTransportNetwork().getNumberOfVerticesAllLayers()];
     alternativeSegmentVertexLabels[(int) mergeVertex.getId()] = 1;
-    int numShortestPathEdgeSegments = networkMinPaths.forEachBackwardEdgeSegment(originBush.getOrigin().getCentroid(), mergeVertex,
+    int numShortestPathEdgeSegments = networkMinPaths.forEachNextEdgeSegment(originBush.getOrigin().getCentroid(), mergeVertex,
         (edgeSegment) -> alternativeSegmentVertexLabels[(int) edgeSegment.getUpstreamVertex().getId()] = -1);
 
     /* Use labels to identify when it merges again with bush (at upstream diverge point) */
@@ -233,7 +233,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
         for (var bushVertexIter = originBush.getDirectedVertexIterator(); bushVertexIter.hasNext();) {
           DirectedVertex bushVertex = bushVertexIter.next();
 
-          EdgeSegment reducedCostSegment = networkMinPaths.getIncomingEdgeSegmentForVertex(bushVertex);
+          EdgeSegment reducedCostSegment = networkMinPaths.getNextEdgeSegmentForVertex(bushVertex);
           if (reducedCostSegment == null) {
             continue;
           }

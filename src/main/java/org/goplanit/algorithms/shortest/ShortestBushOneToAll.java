@@ -1,6 +1,5 @@
 package org.goplanit.algorithms.shortest;
 
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 
 /**
@@ -17,6 +16,6 @@ public interface ShortestBushOneToAll {
    * @param currentOrigin origin vertex of source node
    * @return shortest bush result that can be used to extract bushes
    */
-  public ShortestBushResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException;
+  public ShortestBushResult executeOneToAll(DirectedVertex currentOrigin);
 
 }

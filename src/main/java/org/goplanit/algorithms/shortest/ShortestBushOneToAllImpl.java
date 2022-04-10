@@ -20,7 +20,7 @@ import org.goplanit.utils.math.Precision;
  * @author markr
  *
  */
-public class ShortestBushOneToAllImpl extends ShortestPathGeneralisedOneToAll implements ShortestBushOneToAll {
+public class ShortestBushOneToAllImpl extends ShortestPathGeneralised implements ShortestBushOneToAll {
 
   /**
    * Track incoming edge segment(s) that are shortest for each vertex in this array. In case there is only a single shortest option, the object is an edge segment, otherwise it is

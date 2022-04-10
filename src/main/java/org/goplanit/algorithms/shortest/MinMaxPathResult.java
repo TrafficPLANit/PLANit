@@ -10,7 +10,7 @@ package org.goplanit.algorithms.shortest;
  * @author markr
  *
  */
-public interface MinMaxPathResult extends ShortestPathResult {
+public interface MinMaxPathResult extends ShortestPathOneToAllResult {
 
   /**
    * Switch state to minimum path results
