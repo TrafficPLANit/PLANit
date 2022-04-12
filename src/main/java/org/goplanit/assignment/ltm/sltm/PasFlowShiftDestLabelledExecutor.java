@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.utils.arrays.ArrayUtils;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 
 /**
@@ -26,10 +26,10 @@ public class PasFlowShiftDestLabelledExecutor extends PasFlowShiftExecutor {
   private final static Logger LOGGER = Logger.getLogger(PasFlowShiftDestLabelledExecutor.class.getCanonicalName());
 
   /** the labelled (sending) flows per origin (map key) that traverse S2 */
-  protected final Map<Bush, Map<BushFlowLabel, Double>> s2DestinationLabelledFlows;
+  protected final Map<RootedBush, Map<BushFlowLabel, Double>> s2DestinationLabelledFlows;
 
   /** the labelled (sending) flows, per origin (map key) that traverse S1 */
-  protected final Map<Bush, Map<BushFlowLabel, Double>> s1DestinationLabelledFlows;
+  protected final Map<RootedBush, Map<BushFlowLabel, Double>> s1DestinationLabelledFlows;
 
   /**
    * Helper to perform a flow shift on a turn. If the turn has no more flow for the given label it is removed from the bush
@@ -41,7 +41,7 @@ public class PasFlowShiftDestLabelledExecutor extends PasFlowShiftExecutor {
    * @param flowShiftPcuH turn flow shift to apply by adding this flow to the turn
    * @return new labelled turn flow after shift
    */
-  private double executeTurnFlowShift(Bush origin, EdgeSegment turnEntry, EdgeSegment turnExit, BushFlowLabel label, double flowShiftPcuH) {
+  private double executeTurnFlowShift(RootedBush origin, EdgeSegment turnEntry, EdgeSegment turnExit, BushFlowLabel label, double flowShiftPcuH) {
     double newLabelledTurnFlow = origin.addTurnSendingFlow(turnEntry, label, turnExit, label, flowShiftPcuH, isPasS2RemovalAllowed());
     if (isPasS2RemovalAllowed() && !Precision.positive(newLabelledTurnFlow, EPSILON) && !Precision.positive(origin.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
       /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
@@ -61,7 +61,7 @@ public class PasFlowShiftDestLabelledExecutor extends PasFlowShiftExecutor {
    * @param subPath to do this for
    * @return found matching labels and their accepted absolute flows through s2, i.e., we track the flows by splitting rates and reduce by encountered flow acceptance factors
    */
-  private Map<BushFlowLabel, Double> determineUsedLabelAcceptedFlows(Bush origin, final EdgeSegment[] subPath, double[] flowAcceptanceFactors) {
+  private Map<BushFlowLabel, Double> determineUsedLabelAcceptedFlows(RootedBush origin, final EdgeSegment[] subPath, double[] flowAcceptanceFactors) {
     var edgeSegmentCompositionLabels = origin.getFlowCompositionLabels(subPath[0]);
 
     var pasCompositionLabelledSendingFlows = new HashMap<BushFlowLabel, Double>();
@@ -102,7 +102,7 @@ public class PasFlowShiftDestLabelledExecutor extends PasFlowShiftExecutor {
    * @param s2MergeExitSplittingRates        splitting rates to use with multi-key (exit segment, label)
    * @param exitShiftedSendingFlowToPopulate map to populate with the found exit segment flows (values) by used exit label (key)
    */
-  private void executeBushDestinationLabeledS2FlowShiftEndMerge(Bush origin, BushFlowLabel destinationLabel, double s2FinalLabeledFlowShift,
+  private void executeBushDestinationLabeledS2FlowShiftEndMerge(RootedBush origin, BushFlowLabel destinationLabel, double s2FinalLabeledFlowShift,
       MultiKeyMap<Object, Double> s2MergeExitSplittingRates, Map<BushFlowLabel, double[]> exitShiftedSendingFlowToPopulate) {
 
     /* remove shifted flows through final merge towards exit segments proportionally, to later add to s1 turns through merge */
@@ -146,7 +146,7 @@ public class PasFlowShiftDestLabelledExecutor extends PasFlowShiftExecutor {
    * @param s1FinalLabeledFlowShift                   the flow shift applied so far up to the final merge
    * @param destinationLabelExitSegmentSplittingRates the splitting rates to apply towards the available exit segments for the given exit label
    */
-  private void executeBushDestinationLabeledS1FlowShiftEndMerge(Bush origin, BushFlowLabel destinationLabel, double s1FinalLabeledFlowShift,
+  private void executeBushDestinationLabeledS1FlowShiftEndMerge(RootedBush origin, BushFlowLabel destinationLabel, double s1FinalLabeledFlowShift,
       double[] destinationLabelExitSegmentSplittingRates) {
 
     /* add shifted flows through final merge towards exit segments proportionally based on labeled exit usage */
@@ -180,7 +180,7 @@ public class PasFlowShiftDestLabelledExecutor extends PasFlowShiftExecutor {
    * @param flowAcceptanceFactors to use when updating the flows
    * @return sending flow on last edge segment of the PAS alternative after the flow shift (considering encountered reductions)
    */
-  private double executeBushDestinationLabeledFlowShift(final Bush origin, final EdgeSegment entrySegment, final BushFlowLabel label, double flowShiftPcuH,
+  private double executeBushDestinationLabeledFlowShift(final RootedBush origin, final EdgeSegment entrySegment, final BushFlowLabel label, double flowShiftPcuH,
       final EdgeSegment[] pasSegment, final double[] flowAcceptanceFactors) {
 
     /* initial turn into pas segment */
@@ -206,7 +206,7 @@ public class PasFlowShiftDestLabelledExecutor extends PasFlowShiftExecutor {
   /**
    * {@inheritDoc}
    */
-  protected void executeOriginFlowShift(Bush origin, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
+  protected void executeOriginFlowShift(RootedBush origin, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
     /* prep - pas */
     final var s2 = pas.getAlternative(false);
     final var s1 = pas.getAlternative(true);

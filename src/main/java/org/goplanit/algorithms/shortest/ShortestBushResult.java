@@ -3,9 +3,9 @@ package org.goplanit.algorithms.shortest;
 import java.util.List;
 
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -40,6 +40,6 @@ public interface ShortestBushResult {
    * @param vertex to collect cost for
    * @return cost found
    */
-  public abstract double getCostToReach(Vertex vertex);
+  public abstract double getCostOf(Vertex vertex);
 
 }

@@ -1,8 +1,8 @@
 package org.goplanit.algorithms.shortest;
 
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.path.DirectedPath;
 import org.goplanit.utils.path.DirectedPathFactory;
 
@@ -12,7 +12,7 @@ import org.goplanit.utils.path.DirectedPathFactory;
  * @author markr
  *
  */
-public class MinMaxPathResultImpl implements MinMaxPathOneToAllResult, MinMaxPathAllToOneResult {
+public class MinMaxPathResultImpl implements MinMaxPathResult {
 
   /**
    * Track the state regarding whether or not to return min or max path information
@@ -67,20 +67,25 @@ public class MinMaxPathResultImpl implements MinMaxPathOneToAllResult, MinMaxPat
     return minPathState ? minPathResult.getNextEdgeSegmentForVertex(vertex) : maxPathResult.getNextEdgeSegmentForVertex(vertex);
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
-  public double getCostToReach(Vertex vertex) {
-    return minPathState ? minPathResult.getCostToReach(vertex) : maxPathResult.getCostToReach(vertex);
+  public DirectedVertex getNextVertexForEdgeSegment(EdgeSegment edgeSegment) {
+    return minPathState ? minPathResult.getNextVertexForEdgeSegment(edgeSegment) : maxPathResult.getNextVertexForEdgeSegment(edgeSegment);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public double getCostFrom(Vertex vertex) {
-    return minPathState ? minPathResult.getCostFrom(vertex) : maxPathResult.getCostFrom(vertex);
+  public double getCostOf(Vertex vertex) {
+    return minPathState ? minPathResult.getCostOf(vertex) : maxPathResult.getCostOf(vertex);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ShortestSearchType getSearchType() {
+    return minPathResult.searchType;
   }
 
 }

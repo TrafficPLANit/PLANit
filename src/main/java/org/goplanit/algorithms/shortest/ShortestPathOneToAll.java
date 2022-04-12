@@ -16,6 +16,6 @@ public interface ShortestPathOneToAll {
    * @param currentOrigin start vertex
    * @return shortest path result that can be used to extract paths
    */
-  public ShortestPathOneToAllResult executeOneToAll(DirectedVertex currentOrigin);
+  public ShortestPathResult executeOneToAll(DirectedVertex currentOrigin);
 
 }

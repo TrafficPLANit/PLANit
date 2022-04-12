@@ -13,8 +13,8 @@ import org.apache.commons.collections4.iterators.ReverseListIterator;
 import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.utils.arrays.ArrayUtils;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CollectionUtils;
 
@@ -33,10 +33,10 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
   private final static Logger LOGGER = Logger.getLogger(PasFlowShiftSmartLabelledExecutor.class.getCanonicalName());
 
   /** the label chains (list of list map value), per origin (map key), in reverse order (end to start) that traverse S2 */
-  protected final Map<Bush, List<LinkedList<BushFlowLabel>>> s2ReverseLabelChains;
+  protected final Map<RootedBush, List<LinkedList<BushFlowLabel>>> s2ReverseLabelChains;
 
   /** the label chains (list of list map value), per origin (map key) in reverse order (end to start) that traverse S1 */
-  protected final Map<Bush, List<LinkedList<BushFlowLabel>>> s1ReverseLabelChains;
+  protected final Map<RootedBush, List<LinkedList<BushFlowLabel>>> s1ReverseLabelChains;
 
   /**
    * The first time a PAS is used for flow shifting, its S1 segment has no labels yet along the PAS. Therefore we create a new label unique to the S1 alternative and populate the
@@ -47,7 +47,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    * @param s1UsedLabelChainsToFill map to populate with the new label
    * @return pasS1EndLabelRates created indicating 1 (100%) of flow is allocated to the new label on the final segment of s1
    */
-  private TreeMap<BushFlowLabel, Double> initialiseS1Labelling(final Bush origin, List<LinkedList<BushFlowLabel>> s1UsedLabelChainsToFill) {
+  private TreeMap<BushFlowLabel, Double> initialiseS1Labelling(final RootedBush origin, List<LinkedList<BushFlowLabel>> s1UsedLabelChainsToFill) {
     var pasS1Label = BushFlowLabel.create(origin.bushGroupingToken);
     var s1LabelChain = new LinkedList<BushFlowLabel>();
     s1LabelChain.addFirst(pasS1Label);
@@ -68,7 +68,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    * @param subPath to do this for
    * @return found matching composition labels as a reverse ordered lists of encountered composite labels when traversing along the PAS (if any)
    */
-  private List<LinkedList<BushFlowLabel>> determineUsedLabelChains(Bush origin, final EdgeSegment[] subPath) {
+  private List<LinkedList<BushFlowLabel>> determineUsedLabelChains(RootedBush origin, final EdgeSegment[] subPath) {
     var edgeSegmentCompositionLabels = origin.getFlowCompositionLabels(subPath[0]);
 
     var pasCompositionLabels = new ArrayList<LinkedList<BushFlowLabel>>();
@@ -131,7 +131,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    * @param flowAcceptanceFactors to use
    * @return s2DivergeTurnLabelProportionsToPopulate to populate, only entries for used labels will be present
    */
-  private MultiKeyMap<Object, Double> createS2DivergeProportionsByTurnLabels(Bush origin, List<LinkedList<BushFlowLabel>> pasS2UsedLabelChains,
+  private MultiKeyMap<Object, Double> createS2DivergeProportionsByTurnLabels(RootedBush origin, List<LinkedList<BushFlowLabel>> pasS2UsedLabelChains,
       Map<BushFlowLabel, Double> pasS2EndLabelRates, final double[] flowAcceptanceFactors) {
 
     var firstS2EdgeSegment = pas.getFirstEdgeSegment(false /* high cost segment */);
@@ -191,7 +191,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    *                         They keys are [entrysegment, entrylabel] and value indicates non-zero flow into first s2 segment. Entries are updated based on executed relabelling!
    * @param compositionLabel to relabel if needed
    */
-  private void relabelIfNotTerminating(final Bush origin, final DirectedVertex vertex, final EdgeSegment exitSegment, final MultiKeyMap<Object, Double> eligibleLabels) {
+  private void relabelIfNotTerminating(final RootedBush origin, final DirectedVertex vertex, final EdgeSegment exitSegment, final MultiKeyMap<Object, Double> eligibleLabels) {
     if (!pas.getDivergeVertex().hasEntryEdgeSegments()) {
       return;
     }
@@ -248,7 +248,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    * @param oldLabel        to relabel if needed
    * @param newLabel        to relabel with if needed
    */
-  private void relabelWhileNotTerminatingWith(final Bush origin, final DirectedVertex vertex, final EdgeSegment exitSegment, final BushFlowLabel oldLabel,
+  private void relabelWhileNotTerminatingWith(final RootedBush origin, final DirectedVertex vertex, final EdgeSegment exitSegment, final BushFlowLabel oldLabel,
       final BushFlowLabel newLabel) {
     for (var entrySegment : vertex.getEntryEdgeSegments()) {
       if (origin.containsEdgeSegment(entrySegment)) {
@@ -280,7 +280,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    * @param s2FinalLabeledFlowShift          the flow shift applied so far up to the final merge
    * @param exitShiftedSendingFlowToPopulate map to populate with the found exit segment flows (values) by used exit label (key)
    */
-  private void executeBushLabeledS2FlowShiftEndMerge(Bush origin, BushFlowLabel finalSegmentLabel, double s2FinalLabeledFlowShift,
+  private void executeBushLabeledS2FlowShiftEndMerge(RootedBush origin, BushFlowLabel finalSegmentLabel, double s2FinalLabeledFlowShift,
       Map<BushFlowLabel, double[]> exitShiftedSendingFlowToPopulate) {
 
     var lastS2Segment = pas.getLastEdgeSegment(false /* high cost */);
@@ -332,7 +332,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    * @param usedLabelSplittingRates the splitting rates to apply per used label towards the available exit segments where the key is the exit label and the value the splitting
    *                                rates towards each exit
    */
-  private void executeBushLabeledS1FlowShiftEndMerge(Bush origin, BushFlowLabel finalSegmentLabel, double s1FinalLabeledFlowShift,
+  private void executeBushLabeledS1FlowShiftEndMerge(RootedBush origin, BushFlowLabel finalSegmentLabel, double s1FinalLabeledFlowShift,
       Map<BushFlowLabel, double[]> usedLabelSplittingRates) {
 
     EdgeSegment lastS1Segment = pas.getLastEdgeSegment(true /* low cost */);
@@ -370,7 +370,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    * @param s2DivergeProportionsByTurnLabels portion to be shifted flow attributed to each used turn entry-exitlabel towards S2 initial segment
    * @param flowAcceptanceFactors            to use
    */
-  private void executeBushLabeledS2FlowShiftStartDiverge(Bush origin, BushFlowLabel startSegmentLabel, double s2StartLabeledFlowShift,
+  private void executeBushLabeledS2FlowShiftStartDiverge(RootedBush origin, BushFlowLabel startSegmentLabel, double s2StartLabeledFlowShift,
       MultiKeyMap<Object, Double> s2DivergeProportionsByTurnLabels, final double[] flowAcceptanceFactors) {
 
     EdgeSegment firstS2Segment = pas.getFirstEdgeSegment(false /* high cost */);
@@ -417,7 +417,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    * @param divergeProportionsByTurnLabels portions to apply for each entrysegment-entrylabel given the to be shifted flow for a given exitlabel towards S1 initial segment
    * @param flowAcceptanceFactors          to use
    */
-  private void executeBushLabeledS1FlowShiftStartDiverge(Bush origin, BushFlowLabel startSegmentLabel, double s1StartLabeledFlowShift,
+  private void executeBushLabeledS1FlowShiftStartDiverge(RootedBush origin, BushFlowLabel startSegmentLabel, double s1StartLabeledFlowShift,
       MultiKeyMap<Object, Double> divergeProportionsByTurnLabels, final double[] flowAcceptanceFactors) {
 
     EdgeSegment firstS1Segment = pas.getFirstEdgeSegment(true /* low cost */);
@@ -461,7 +461,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    *                                      use existing labels conforming with the reverseOrderCompositionLabels
    * @return sending flow on last edge segment of the PAS alternative after the flow shift (considering encountered reductions)
    */
-  private double executeBushLabeledAlternativeFlowShift(Bush origin, List<BushFlowLabel> reverseOrderCompositionLabels, double flowShiftPcuH, EdgeSegment[] pasSegment,
+  private double executeBushLabeledAlternativeFlowShift(RootedBush origin, List<BushFlowLabel> reverseOrderCompositionLabels, double flowShiftPcuH, EdgeSegment[] pasSegment,
       double[] flowAcceptanceFactors, boolean forceInitialLabel) {
     int index = 0;
     EdgeSegment currentSegment = null;
@@ -502,7 +502,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
   /**
    * {@inheritDoc}
    */
-  protected void executeOriginFlowShift(Bush origin, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
+  protected void executeOriginFlowShift(RootedBush origin, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
     // TODO: not yet updated to support entry segment specific flow shifts! should allow this to be simplified as passed in flow shift is
     // expected to be specific to the entry segment already! -> anything diverge specific should be removed
 

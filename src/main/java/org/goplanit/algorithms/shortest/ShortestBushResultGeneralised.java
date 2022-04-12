@@ -9,9 +9,9 @@ import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.CollectionUtils;
 
@@ -23,7 +23,7 @@ import org.goplanit.utils.misc.CollectionUtils;
  * @author markr
  *
  */
-public class ShortestBushResultGeneralised implements ShortestBushOneToAllResult, ShortestBushAllToOneResult {
+public class ShortestBushResultGeneralised implements ShortestBushResult {
 
   private static final Logger LOGGER = Logger.getLogger(ShortestBushResultGeneralised.class.getCanonicalName());
 
@@ -59,7 +59,7 @@ public class ShortestBushResultGeneralised implements ShortestBushOneToAllResult
     this.numberOfEdgeSegments = numberOfEdgeSegments;
 
     /* search direction for creating paths in opposite direction as compared to shortest bush search itself */
-    this.getVertexAtExtreme = ShortestPathUtils.getVertexFromEdgeSegmentLambda(searchType, true /* invert */ );
+    this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(searchType, true /* invert */ );
   }
 
   /**
@@ -68,8 +68,7 @@ public class ShortestBushResultGeneralised implements ShortestBushOneToAllResult
   @Override
   public ACyclicSubGraph createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex origin, final DirectedVertex destination) {
 
-    var dag = new ACyclicSubGraphImpl(idToken, numberOfEdgeSegments);
-    dag.addRootVertex(origin);
+    var dag = new ACyclicSubGraphImpl(idToken, origin, false /* not inverted */, numberOfEdgeSegments);
 
     // extract bush from destination -> backwards to origin
     TreeSet<Vertex> openVertices = new TreeSet<Vertex>();
@@ -125,15 +124,7 @@ public class ShortestBushResultGeneralised implements ShortestBushOneToAllResult
    * {@inheritDoc}
    */
   @Override
-  public double getCostToReach(Vertex vertex) {
-    return vertexMeasuredCost[(int) vertex.getId()];
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public double getCostFrom(Vertex vertex) {
+  public double getCostOf(Vertex vertex) {
     return vertexMeasuredCost[(int) vertex.getId()];
   }
 

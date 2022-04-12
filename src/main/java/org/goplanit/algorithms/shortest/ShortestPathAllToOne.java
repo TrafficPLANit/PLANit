@@ -16,6 +16,6 @@ public interface ShortestPathAllToOne {
    * @param currentDestination destination vertex to which all paths go
    * @return shortest path result that can be used to extract paths
    */
-  public ShortestPathAllToOneResult executeAllToOne(DirectedVertex currentDestination);
+  public ShortestPathResult executeAllToOne(DirectedVertex currentDestination);
 
 }

@@ -3,8 +3,8 @@ package org.goplanit.algorithms.shortest;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 
 /**
@@ -98,7 +98,7 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised implements 
    * @return shortest bush result that can be used to extract bushes
    */
   @Override
-  public ShortestBushOneToAllResult executeOneToAll(DirectedVertex currentOrigin) {
+  public ShortestBushResult executeOneToAll(DirectedVertex currentOrigin) {
 
     this.currentSource = currentOrigin;
 
@@ -120,7 +120,7 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised implements 
    * @return shortest bush result that can be used to extract bushes
    */
   @Override
-  public ShortestBushAllToOneResult executeAllToOne(DirectedVertex currentDestination) {
+  public ShortestBushResult executeAllToOne(DirectedVertex currentDestination) {
     this.currentSource = currentDestination;
 
     /* see #processShorterOrEqualIncomginEdgeSegment on how it is populated */

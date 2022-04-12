@@ -11,9 +11,9 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.ShortestPathOneToAllResult;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CollectionUtils;
 
@@ -42,7 +42,7 @@ public class Pas {
   private double s2Cost;
 
   /** registered origin bushes */
-  private final Set<Bush> registeredBushes;
+  private final Set<RootedBush> registeredBushes;
 
   /**
    * Constructor
@@ -53,7 +53,7 @@ public class Pas {
   private Pas(final EdgeSegment[] s1, final EdgeSegment[] s2) {
     this.s1 = s1;
     this.s2 = s2;
-    this.registeredBushes = new HashSet<Bush>();
+    this.registeredBushes = new HashSet<RootedBush>();
   }
 
   /**
@@ -116,7 +116,7 @@ public class Pas {
    * 
    * @param bush bush to register
    */
-  public void registerBush(final Bush bush) {
+  public void registerBush(final RootedBush bush) {
     registeredBushes.add(bush);
   }
 
@@ -126,7 +126,7 @@ public class Pas {
    * @param bush to check
    * @return true when registered, false otherwise
    */
-  public boolean hasRegisteredBush(final Bush bush) {
+  public boolean hasRegisteredBush(final RootedBush bush) {
     return registeredBushes.contains(bush);
   }
 
@@ -135,7 +135,7 @@ public class Pas {
    * 
    * @return registered bushes
    */
-  public Set<Bush> getRegisteredBushes() {
+  public Set<RootedBush> getRegisteredBushes() {
     return registeredBushes;
   }
 
@@ -153,7 +153,7 @@ public class Pas {
    * 
    * @param bushes to remove
    */
-  public void removeBushes(List<Bush> bushes) {
+  public void removeBushes(List<RootedBush> bushes) {
     bushes.forEach((bush) -> removeBush(bush));
   }
 
@@ -162,7 +162,7 @@ public class Pas {
    * 
    * @param bush to remove
    */
-  public void removeBush(Bush bush) {
+  public void removeBush(RootedBush bush) {
     registeredBushes.remove(bush);
   }
 
@@ -175,7 +175,7 @@ public class Pas {
    * @return when non-negative the segment is overlapping with the PAS, where the value indicates the accepted flow on this sub-path for the bush (with sendinf flow at start as
    *         base demand)
    */
-  public double computeOverlappingAcceptedFlow(Bush bush, boolean lowCost, double[] linkSegmentFlowAcceptanceFactors) {
+  public double computeOverlappingAcceptedFlow(RootedBush bush, boolean lowCost, double[] linkSegmentFlowAcceptanceFactors) {
     EdgeSegment[] alternative = lowCost ? s1 : s2;
     return bush.computeSubPathAcceptedFlow(getDivergeVertex(), getMergeVertex(), alternative, linkSegmentFlowAcceptanceFactors);
   }
@@ -187,12 +187,13 @@ public class Pas {
    * @param lowCost      when true check with low cost alternative otherwise high cost
    * @return true when overlapping, false otherwise
    */
-  public boolean isOverlappingWith(ShortestPathOneToAllResult pathToVerify, boolean lowCost) {
+  public boolean isOverlappingWith(ShortestPathResult pathToVerify, boolean lowCost) {
     EdgeSegment[] alternative = lowCost ? s1 : s2;
     EdgeSegment currEdgeSegment = null;
     EdgeSegment matchingEdgeSegment = null;
     for (int index = alternative.length - 1; index >= 0; --index) {
       currEdgeSegment = alternative[index];
+      todo-> collect correct direction of vertex from result not assuming downstream vertex!
       matchingEdgeSegment = pathToVerify.getNextEdgeSegmentForVertex(currEdgeSegment.getDownstreamVertex());
       if (!currEdgeSegment.idEquals(matchingEdgeSegment)) {
         return false;

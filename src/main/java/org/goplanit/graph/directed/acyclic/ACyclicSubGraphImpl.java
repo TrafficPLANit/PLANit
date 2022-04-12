@@ -5,16 +5,14 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 
@@ -39,9 +37,6 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    */
   private final long id;
 
-  /** the root vertices of the DAG */
-  protected Set<DirectedVertex> rootVertices;
-
   /**
    * track data for the vertices used in this acyclic graph, mainly used to enable topological sorting
    * 
@@ -55,6 +50,12 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
 
   /** track the link segments used via a bit set, where 1 at index indicates the link segment with id=index is included */
   private BitSet registeredLinkSegments;
+
+  /** root vertex of the dag */
+  private DirectedVertex rootVertex;
+
+  /** indicate if direction of dag is inverted compared to "normal" downstream direction */
+  private boolean invertedDirection;
 
   /**
    * reset vertex data pre and post indices
@@ -179,14 +180,17 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * Constructor
    * 
    * @param groupId                    generate id based on the group it resides in
+   * @param rootVertex                 of the dag
+   * @param invertedDirection          when true dag ends at root and all other vertices precede it, when false the root is the starting point and all other vertices succeed it
    * @param numberOfParentEdgeSegments number of directed edge segments of the parent this subgraph is a subset from
    */
-  public ACyclicSubGraphImpl(final IdGroupingToken groupId, int numberOfParentEdgeSegments) {
+  public ACyclicSubGraphImpl(final IdGroupingToken groupId, DirectedVertex rootVertex, boolean invertedDirection, int numberOfParentEdgeSegments) {
     this.id = IdGenerator.generateId(groupId, ACyclicSubGraph.class);
     this.vertexData = new HashMap<>();
     this.registeredLinkSegments = new BitSet(numberOfParentEdgeSegments);
     this.topologicalOrder = null;
-    this.rootVertices = new HashSet<>();
+    this.rootVertex = rootVertex;
+    this.invertedDirection = invertedDirection;
   }
 
   /**
@@ -196,14 +200,15 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    */
   public ACyclicSubGraphImpl(ACyclicSubGraphImpl aCyclicSubGraphImpl) {
     this.id = aCyclicSubGraphImpl.getId();
+    this.rootVertex = aCyclicSubGraphImpl.getRootVertex();
+    this.invertedDirection = aCyclicSubGraphImpl.isDirectionInverted();
+
     this.registeredLinkSegments = BitSet.valueOf(aCyclicSubGraphImpl.registeredLinkSegments.toByteArray());
 
     this.vertexData = new HashMap<DirectedVertex, AcyclicVertexData>();
     aCyclicSubGraphImpl.vertexData.forEach((v, d) -> this.vertexData.put(v, d.clone()));
 
     this.topologicalOrder = aCyclicSubGraphImpl.topologicalOrder != null ? new ArrayDeque<DirectedVertex>(aCyclicSubGraphImpl.topologicalOrder) : null;
-
-    this.rootVertices = new HashSet<>(aCyclicSubGraphImpl.rootVertices);
   }
 
   /**
@@ -226,15 +231,10 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
 
     /* for each root vertex */
     boolean isAcyclic = true;
-    if (rootVertices.isEmpty()) {
-      LOGGER.severe(String.format("Acyclic subgraph (%d) has no root vertices, unable to commence topological sort", getId()));
-    }
-    for (var rootVertex : rootVertices) {
-      counter.increment();
-      isAcyclic = traverseRecursively(rootVertex, visited, counter, topologicalOrder);
-      if (!isAcyclic) {
-        return null;
-      }
+    counter.increment();
+    isAcyclic = traverseRecursively(rootVertex, visited, counter, topologicalOrder);
+    if (!isAcyclic) {
+      return null;
     }
 
     for (Entry<DirectedVertex, AcyclicVertexData> vertexEntry : this.vertexData.entrySet()) {
@@ -253,22 +253,6 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
   @Override
   public long getId() {
     return this.id;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void addRootVertex(DirectedVertex rootVertex) {
-    rootVertices.add(rootVertex);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Set<DirectedVertex> getRootVertices() {
-    return rootVertices;
   }
 
   /**
@@ -338,6 +322,22 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
   @Override
   public ACyclicSubGraphImpl clone() {
     return new ACyclicSubGraphImpl(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedVertex getRootVertex() {
+    return this.rootVertex;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isDirectionInverted() {
+    return this.invertedDirection;
   }
 
 }

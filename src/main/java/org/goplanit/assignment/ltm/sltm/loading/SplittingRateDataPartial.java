@@ -4,8 +4,8 @@ import java.util.BitSet;
 import java.util.TreeSet;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.ojalgo.array.Array1D;
 
 /**

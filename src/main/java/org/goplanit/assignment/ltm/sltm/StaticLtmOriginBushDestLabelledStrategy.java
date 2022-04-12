@@ -61,9 +61,9 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
    * @param shortestBushAlgorithm to use
    */
   @Override
-  protected void initialiseBush(Bush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
+  protected void initialiseBush(RootedBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
     var origin = ((OriginBush) bush).getOrigin();
-    ShortestBushResult oneToAllResult = null;
+    ShortestBushResult shortestBushResult = null;
 
     for (var destination : zoning.getOdZones()) {
       if (destination.idEquals(origin)) {
@@ -74,12 +74,12 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
       if (currOdDemand != null && currOdDemand > 0) {
 
         /* find one-to-all shortest paths */
-        if (oneToAllResult == null) {
-          oneToAllResult = shortestBushAlgorithm.executeOneToAll(origin.getCentroid());
+        if (shortestBushResult == null) {
+          shortestBushResult = shortestBushAlgorithm.executeOneToAll(origin.getCentroid());
         }
 
         /* initialise bush with this destination shortest path */
-        var destinationDag = oneToAllResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), origin.getCentroid(), destination.getCentroid());
+        var destinationDag = shortestBushResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), origin.getCentroid(), destination.getCentroid());
 
         ((OriginBush) bush).addOriginDemandPcuH(currOdDemand);
         initialiseBushForDestination((OriginBush) bush, destination, currOdDemand, destinationDag);

@@ -4,8 +4,8 @@ import java.util.logging.Logger;
 
 import org.goplanit.graph.GraphEntitiesImpl;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.EdgeSegmentFactory;
 import org.goplanit.utils.graph.directed.EdgeSegments;
 import org.goplanit.utils.id.IdGroupingToken;

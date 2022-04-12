@@ -3,7 +3,7 @@ package org.goplanit.algorithms.nodemodel;
 import java.util.ArrayList;
 
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.ojalgo.array.Array1D;

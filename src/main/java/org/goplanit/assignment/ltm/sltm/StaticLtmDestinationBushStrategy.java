@@ -62,7 +62,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategy {
    * @param shortestBushAlgorithm to use
    */
   @Override
-  protected void initialiseBush(Bush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
+  protected void initialiseBush(RootedBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
     var destination = ((DestinationBush) bush).getDestination();
     ShortestBushResult allToOneResult = null;
 

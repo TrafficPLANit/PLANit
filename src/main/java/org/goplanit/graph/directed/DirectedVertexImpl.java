@@ -5,9 +5,9 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.VertexImpl;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**

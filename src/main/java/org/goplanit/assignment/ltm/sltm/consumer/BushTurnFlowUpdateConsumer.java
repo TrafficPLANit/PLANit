@@ -4,9 +4,9 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.Bush;
+import org.goplanit.assignment.ltm.sltm.RootedBush;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
-import org.goplanit.utils.graph.EdgeSegment;
 
 /**
  * Consumer to apply during bush based network loading turn flow update for each non-zero demand bush
@@ -25,7 +25,7 @@ import org.goplanit.utils.graph.EdgeSegment;
  * @author markr
  *
  */
-public class BushTurnFlowUpdateConsumer extends BushFlowUpdateConsumer<NetworkTurnFlowUpdateData> implements Consumer<Bush> {
+public class BushTurnFlowUpdateConsumer extends BushFlowUpdateConsumer<NetworkTurnFlowUpdateData> implements Consumer<RootedBush> {
 
   /** logger to use */
   @SuppressWarnings("unused")

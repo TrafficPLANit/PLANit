@@ -1,13 +1,12 @@
 package org.goplanit.algorithms.shortest;
 
 /**
- * Track state of a min-max path tree result execution allowing one to extract either minimum and maximum cost paths along the tree.
- * 
+ * Implementation of the MinMaxPathResult interface
  * 
  * @author markr
  *
  */
-public interface MinMaxPathResultState {
+public interface MinMaxPathResult extends ShortestPathResult {
 
   /**
    * Switch state to minimum path results
@@ -15,5 +14,4 @@ public interface MinMaxPathResultState {
    * @param flag when true switch to minimum paths, otherwise switch to maximum paths. Default is minimum paths
    */
   public abstract void setMinPathState(boolean flag);
-
 }

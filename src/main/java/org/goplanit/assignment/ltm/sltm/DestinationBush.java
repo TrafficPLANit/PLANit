@@ -3,8 +3,9 @@ package org.goplanit.assignment.ltm.sltm;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.MinMaxPathAllToOneResult;
+import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
+import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.OdZone;
@@ -17,7 +18,7 @@ import org.goplanit.utils.zoning.OdZone;
  * @author markr
  *
  */
-public class DestinationBush extends Bush {
+public class DestinationBush extends RootedBush {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(DestinationBush.class.getCanonicalName());
@@ -33,7 +34,7 @@ public class DestinationBush extends Bush {
    * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
   public DestinationBush(final IdGroupingToken idToken, OdZone destination, long maxSubGraphEdgeSegments) {
-    super(idToken, maxSubGraphEdgeSegments);
+    super(idToken, destination.getCentroid(), true /* inverted */, maxSubGraphEdgeSegments);
     this.destination = destination;
   }
 
@@ -45,6 +46,35 @@ public class DestinationBush extends Bush {
   public DestinationBush(DestinationBush bush) {
     super(bush);
     this.destination = bush.destination;
+  }
+
+  /**
+   * Compute the min-max path tree rooted at the destination towards all origins given the provided (network wide) costs. The provided costs are at the network level so should
+   * contain all the segments active in the bush
+   * 
+   * @param linkSegmentCosts              to use
+   * @param totalTransportNetworkVertices number of vertices in overall network needed to be able to construct result per vertex based on id
+   * @return minMaxPathResult, null if unable to complete
+   */
+  @Override
+  public MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
+
+    /* build min/max path tree */
+    var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(dag, requireTopologicalSortUpdate, linkSegmentCosts, totalTransportNetworkVertices);
+    try {
+      return minMaxBushPaths.executeAllToOne(dag.getRootVertex());
+    } catch (Exception e) {
+      LOGGER.severe(String.format("Unable to complete minmax path three for destination-based bush ending at destination %s", getDestination().getXmlId()));
+    }
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ShortestSearchType getShortestSearchType() {
+    return ShortestSearchType.ALL_TO_ONE;
   }
 
   /**
@@ -61,26 +91,6 @@ public class DestinationBush extends Bush {
   @Override
   public DestinationBush clone() {
     return new DestinationBush(this);
-  }
-
-  /**
-   * Compute the min-max path tree rooted at the destination towards all origins given the provided (network wide) costs. The provided costs are at the network level so should
-   * contain all the segments active in the bush
-   * 
-   * @param linkSegmentCosts              to use
-   * @param totalTransportNetworkVertices number of vertices in overall network needed to be able to construct result per vertex based on id
-   * @return minMaxPathResult, null if unable to complete
-   */
-  public MinMaxPathAllToOneResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
-
-    /* build min/max path tree */
-    var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(dag, requireTopologicalSortUpdate, linkSegmentCosts, totalTransportNetworkVertices);
-    try {
-      return minMaxBushPaths.executeAllToOne(getDestination().getCentroid());
-    } catch (Exception e) {
-      LOGGER.severe(String.format("Unable to complete minmax path three for bush ending at destination %s", getDestination().getXmlId()));
-    }
-    return null;
   }
 
   /**

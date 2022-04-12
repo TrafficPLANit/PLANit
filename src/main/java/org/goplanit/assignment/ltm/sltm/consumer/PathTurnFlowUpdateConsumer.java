@@ -4,7 +4,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.od.path.OdPaths;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
  * Consumer to apply during path based turn flow update for each combination of origin, destination, and demand

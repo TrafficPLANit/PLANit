@@ -6,7 +6,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;

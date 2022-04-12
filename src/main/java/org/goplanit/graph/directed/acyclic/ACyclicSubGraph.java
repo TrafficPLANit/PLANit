@@ -2,7 +2,6 @@ package org.goplanit.graph.directed.acyclic;
 
 import java.util.Deque;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.goplanit.utils.graph.directed.DirectedSubGraph;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -26,28 +25,19 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 public interface ACyclicSubGraph extends DirectedSubGraph, Iterable<DirectedVertex> {
 
   /**
-   * Collect the root vertices of this acyclic subgraph
+   * Root vertex of this acyclic graph. root can either be a starting point or end point depending on the direction of the dag
    * 
-   * @return root vertices
+   * @return root vertex
    */
-  public abstract Set<DirectedVertex> getRootVertices();
+  public abstract DirectedVertex getRootVertex();
 
   /**
-   * Verify if vertex is registered as root vertex on this dag
+   * Indicates if the direction of the graph is inverted, i.e., when inverted the root vertex is the final vertex and all other vertices precede it, otherwise it is a starting
+   * point and all other vertices succeed it
    * 
-   * @param rootVertex to verify
-   * @return true if present, false otherwise
+   * @return true when inverted, false otherwise
    */
-  public default boolean containsRootVertex(DirectedVertex rootVertex) {
-    return getRootVertices().contains(rootVertex);
-  }
-
-  /**
-   * Add a root vertex to the subgraph
-   * 
-   * @param rootVertex to add
-   */
-  public abstract void addRootVertex(DirectedVertex rootVertex);
+  public abstract boolean isDirectionInverted();
 
   /**
    * Perform a topological sort on this graph. It is expected that this is conducted before any operations that require this sorting to be in place are invoked, e.g., min-max path

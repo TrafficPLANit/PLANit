@@ -5,8 +5,8 @@ import java.util.Collection;
 import java.util.function.Function;
 
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
  * Build a min/max shortest path tree for a given start vertex based on the configuration used. This implementation requires an acyclic network representation such that the
@@ -110,9 +110,9 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
    * {@inheritDoc}
    */
   @Override
-  public MinMaxPathAllToOneResult executeAllToOne(DirectedVertex currentDestination) {
-    this.getEdgeSegmentsInDirection = ShortestPathUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ALL_TO_ONE);
-    this.getVertexAtExtreme = ShortestPathUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ALL_TO_ONE);
+  public MinMaxPathResult executeAllToOne(DirectedVertex currentDestination) {
+    this.getEdgeSegmentsInDirection = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ALL_TO_ONE);
+    this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ALL_TO_ONE);
     return execute(currentDestination);
   }
 
@@ -120,9 +120,9 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
    * {@inheritDoc}
    */
   @Override
-  public MinMaxPathOneToAllResult executeOneToAll(DirectedVertex currentOrigin) {
-    this.getEdgeSegmentsInDirection = ShortestPathUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ONE_TO_ALL);
-    this.getVertexAtExtreme = ShortestPathUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ONE_TO_ALL);
+  public MinMaxPathResult executeOneToAll(DirectedVertex currentOrigin) {
+    this.getEdgeSegmentsInDirection = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ONE_TO_ALL);
+    this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ONE_TO_ALL);
     return execute(currentOrigin);
   }
 

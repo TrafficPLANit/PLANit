@@ -16,6 +16,6 @@ public interface ShortestBushAllToOne {
    * @param currentDestination destination vertex
    * @return shortest bush result that can be used to extract bushes
    */
-  public ShortestBushAllToOneResult executeAllToOne(DirectedVertex currentDestination);
+  public ShortestBushResult executeAllToOne(DirectedVertex currentDestination);
 
 }

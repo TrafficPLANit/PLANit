@@ -1,6 +1,7 @@
 package org.goplanit.assignment.ltm.sltm;
 
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -10,11 +11,14 @@ import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.algorithms.shortest.MinMaxPathResult;
+import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
+import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -23,7 +27,8 @@ import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.zoning.OdZone;
 
 /**
- * A bush is an acyclic directed graph comprising of implicit paths along a network.
+ * A rooted bush is an acyclic directed graph comprising of implicit paths along a network. It has a single root which can be any vertex with only outgoing edge segments. while
+ * acyclic its direction can be either be in up or downstream direction compared to the super network it is situated on.
  * <p>
  * The vertices in the bush represent link segments in the physical network, whereas each edge represents a turn from one link to another. This way each splitting rate uniquely
  * relates to a single turn and all outgoing edges of a vertex represent all turns of a node's incoming link
@@ -31,10 +36,10 @@ import org.goplanit.utils.zoning.OdZone;
  * @author markr
  *
  */
-public abstract class Bush implements IdAble {
+public abstract class RootedBush implements IdAble {
 
   /** Logger to use */
-  private static final Logger LOGGER = Logger.getLogger(Bush.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(RootedBush.class.getCanonicalName());
 
   /**
    * Determine the sending flow between origin,destination vertex using the subpath given by the subPathArray in order from start to finish. We utilise the initial sending flow on
@@ -93,19 +98,19 @@ public abstract class Bush implements IdAble {
    */
   protected void addOriginDemandPcuH(OdZone originZone, double demandPcuH) {
     this.originDemandsPcuH.put(originZone, demandPcuH);
-    if (!this.dag.containsRootVertex(originZone.getCentroid())) {
-      this.dag.addRootVertex(originZone.getCentroid());
-    }
   }
 
   /**
    * Constructor
    * 
    * @param idToken                 the token to base the id generation on
+   * @param rootVertex              the root vertex of the bush which can be the end or starting point depending whether or not direction is inverted
+   * @param inverted                when true bush ends at root vertex and all other vertices precede it, when false the root is the starting point and all other vertices succeed
+   *                                it
    * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
-  public Bush(final IdGroupingToken idToken, long maxSubGraphEdgeSegments) {
-    this.dag = new ACyclicSubGraphImpl(idToken, (int) maxSubGraphEdgeSegments);
+  public RootedBush(final IdGroupingToken idToken, DirectedVertex rootVertex, boolean inverted, long maxSubGraphEdgeSegments) {
+    this.dag = new ACyclicSubGraphImpl(idToken, rootVertex, inverted, (int) maxSubGraphEdgeSegments);
     this.bushData = new BushTurnData();
     this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, dag.getId());
     this.originDemandsPcuH = new HashMap<>();
@@ -116,13 +121,23 @@ public abstract class Bush implements IdAble {
    * 
    * @param bush to (shallow) copy
    */
-  public Bush(Bush bush) {
+  public RootedBush(RootedBush bush) {
     this.originDemandsPcuH = new HashMap<>(bush.originDemandsPcuH);
     this.dag = bush.dag.clone();
     this.bushData = bush.bushData.clone();
     this.requireTopologicalSortUpdate = bush.requireTopologicalSortUpdate;
     this.bushGroupingToken = bush.bushGroupingToken;
   }
+
+  /**
+   * Compute the min-max path tree rooted in location depending on underlying dag configuration of derived implementation and given the provided (network wide) costs. The provided
+   * costs are at the network level so should contain all the segments active in the bush
+   * 
+   * @param linkSegmentCosts              to use
+   * @param totalTransportNetworkVertices needed to be able to create primitive array recording the (partial) subgraph backward link segment results (efficiently)
+   * @return minMaxPathResult, null if unable to complete
+   */
+  public abstract MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices);
 
   /**
    * Collect an iterator over topologically sorted bush in origin-destination or destination-origin direction. Depending on the derived bush implementation this might require
@@ -134,10 +149,18 @@ public abstract class Bush implements IdAble {
   public abstract Iterator<DirectedVertex> getTopologicalIterator(boolean originDestinationDirection);
 
   /**
+   * determine the search type supported by the bush based on the underlying dag's construction, i.e., a destination-based dag results in ALL-To-One, whereas an origin based dag
+   * results in One-To-All searches.
+   * 
+   * @return shortest searcht ype compatible with this bush implementation
+   */
+  public abstract ShortestSearchType getShortestSearchType();
+
+  /**
    * {@inheritDoc}
    */
   @Override
-  public abstract Bush clone();
+  public abstract RootedBush clone();
 
   /**
    * {@inheritDoc}
@@ -145,6 +168,24 @@ public abstract class Bush implements IdAble {
   @Override
   public long getId() {
     return dag.getId();
+  }
+
+  /**
+   * root vertex of the bush
+   * 
+   * @return root vertex of the bush
+   */
+  public DirectedVertex getRootVertex() {
+    return dag.getRootVertex();
+  }
+
+  /**
+   * Indicates if bush has inverted direction w.r.t. its root
+   * 
+   * @return true when inverted, false otherwise
+   */
+  public boolean isInverted() {
+    return dag.isDirectionInverted();
   }
 
   /**
@@ -406,9 +447,9 @@ public abstract class Bush implements IdAble {
   }
 
   /**
-   * The alternative subpath (not in this bush) is provided as link segment labels of value -1. The end point at which they merge with the bush is indicated with label 1 at the
-   * downstream bush vertex (passed in). Here we do a breadth-first search on the bush in the upstream direction to find a location the alternative path diverged from the bush,
-   * which, at the latest, should be at the origin and at the earliest directly upstream of the provided vertex.
+   * The alternative subpath is provided through link segment labels of value -1. The point at which they coincide with the bush is indicated with label 1 at the given reference
+   * vertex (passed in). Here we do a breadth-first search on the bush in the direction towards its root to find a location the alternative path reconnects to the bush, which, at
+   * the latest, should be at the root and at the earliest directly at the next vertex compared to the reference vertex.
    * <p>
    * Note that the breadth-first approach is a choice not a necessity but the underlying idea is that a shorter PAS (which is likely to be found) is used by more origins and
    * therefore more useful to explore than a really long PAS. This is preferred - in the original TAPAS - over simply backtracking along either the shortest or longest path of the
@@ -416,23 +457,35 @@ public abstract class Bush implements IdAble {
    * <p>
    * Consider implementing various strategies here in order to explore what works best but for now we adopt a breadth-first search
    * <p>
-   * The returned map contains the outgoing edge segment for each vertex, from the diverge to the merge node where for the merge node the edge segment remains null
+   * The returned map contains the next edge segment for each vertex, from the vertex closer to the bush root to the reference vertex where for the reference vertex the edge
+   * segment remains null
    * 
-   * @param mergeVertex                    to start backward breadth first search from as it is the point of merging between alternative path (via labelled vertices) and bush
-   * @param alternativeSubpathVertexLabels indicating the shortest (network) path merging at the bush vertex but not part of the bush's path to the merge vertex for some part of
-   *                                       its path prior to merging
-   * @return vertex at which the two paths diverged upstream and the map to extract the path from the diverge vertex to the merge vertex that was found using the breadth-first
+   * @param referenceVertex                to start breadth first search from as it is the point of coincidence of the alternative path (via labelled vertices) and bush
+   * @param alternativeSubpathVertexLabels indicating the shortest (network) path at the reference vertex but not part of the bush at that point (different edge segment used)
+   * @return vertex at which the two paths coincided again and the map to extract the path from the this vertex to the reference vertex that was found using the breadth-first
    *         method
    */
-  public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpath(DirectedVertex mergeVertex, final short[] alternativeSubpathVertexLabels) {
-    ArrayDeque<Pair<DirectedVertex, EdgeSegment>> openVertexQueue = new ArrayDeque<Pair<DirectedVertex, EdgeSegment>>(30);
-    Map<DirectedVertex, EdgeSegment> processedVertices = new TreeMap<DirectedVertex, EdgeSegment>();
+  public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpath(DirectedVertex referenceVertex, final short[] alternativeSubpathVertexLabels) {
+    Deque<Pair<DirectedVertex, EdgeSegment>> openVertexQueue = new ArrayDeque<>(30);
+    Map<DirectedVertex, EdgeSegment> processedVertices = new TreeMap<>();
 
-    /* start with incoming edge segments of merge vertex except alternative labelled segment */
-    processedVertices.put(mergeVertex, null);
-    for (var entrySegment : mergeVertex.getEntryEdgeSegments()) {
-      if (containsEdgeSegment(entrySegment) && alternativeSubpathVertexLabels[(int) mergeVertex.getId()] != -1) {
-        openVertexQueue.add(Pair.of(entrySegment.getUpstreamVertex(), entrySegment));
+    /*
+     * Construct results in same direction as shortest path search, so So, for one-to-all regular search, we construct results where we have for each vertex its upstream segment,
+     * while for all-to-one we have the downstream segment for each vertex
+     */
+    final boolean invertNextDirection = true;
+    final var getNextEdgeSegments = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(this, invertNextDirection);
+    final var getNextVertex = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(this, invertNextDirection);
+    
+    REWRITE SO RESULT IS NOT INVERTED WHICH WOULD MAKE IT IN LINE WITH SEARCH RESULT -> REQUIRES SIGNIFCANT REWRITE
+    + DEALING WITH RESULT IN CALLING METHODS ALSO NEEDS TO BE FLIPPED!
+
+    /* start with eligible edge segments of reference vertex except alternative labelled segment */
+    processedVertices.put(referenceVertex, null);
+    var nextEdgeSegments = getNextEdgeSegments.apply(referenceVertex);
+    for (var nextSegment : nextEdgeSegments) {
+      if (containsEdgeSegment(nextSegment) && alternativeSubpathVertexLabels[(int) referenceVertex.getId()] != -1) {
+        openVertexQueue.add(Pair.of(getNextVertex.apply(nextSegment), nextSegment));
       }
     }
 
@@ -450,10 +503,12 @@ public abstract class Bush implements IdAble {
       }
 
       /* breadth-first loop for used turns that not yet have been processed */
-      for (var entrySegment : currentVertex.getEntryEdgeSegments()) {
-        if (containsEdgeSegment(entrySegment) && bushData.containsTurnSendingFlow(entrySegment, current.second())) {
-          if (!processedVertices.containsKey(entrySegment.getUpstreamVertex())) {
-            openVertexQueue.add(Pair.of(entrySegment.getUpstreamVertex(), entrySegment));
+      nextEdgeSegments = getNextEdgeSegments.apply(currentVertex);
+      for (var nextSegment : nextEdgeSegments) {
+        if (containsEdgeSegment(nextSegment) && bushData.containsTurnSendingFlow(nextSegment, current.second())) {
+          var nextVertex = getNextVertex.apply(nextSegment);
+          if (!processedVertices.containsKey(nextVertex)) {
+            openVertexQueue.add(Pair.of(nextVertex, nextSegment));
           }
         }
       }
@@ -466,7 +521,7 @@ public abstract class Bush implements IdAble {
      * investigate and see if this expected behaviour (if so remove statement). this would equate to finding a vertex marked with a '1' in Xie & Xie, which I do not do because I
      * don't think it is needed, but I might be wrong.
      */
-    LOGGER.warning(String.format("Cycle found when finding alternative subpath on bush merging at vertex %s", mergeVertex.getXmlId()));
+    LOGGER.warning(String.format("Cycle found when finding alternative subpath on bush merging at vertex %s", referenceVertex.getXmlId()));
     return null;
   }
 

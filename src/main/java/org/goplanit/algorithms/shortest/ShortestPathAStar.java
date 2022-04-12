@@ -6,8 +6,8 @@ import java.util.PriorityQueue;
 
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
@@ -82,7 +82,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
    * with a nullpointer.
    */
   @Override
-  public ShortestPathOneToAllResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) throws PlanItException {
+  public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) throws PlanItException {
     if (origin.getPosition() == null || destination.getPosition() == null) {
       throw new PlanItException(
           "aStar shortest path must compute distances between vertices on-the-fly. One or more vertices do not have location information available making this impossible");

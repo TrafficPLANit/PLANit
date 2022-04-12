@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.ShortestPathOneToAllResult;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 
 /**
@@ -64,7 +64,7 @@ public class PasManager {
    * @param flowAcceptanceFactors the accepted flow found passing through the final vertex of the PAS from the origin of the bush, i.e., all sub-paths to this vertex
    * @return true when considered effective, false otherwise
    */
-  private boolean isFlowEffective(Pas pas, Bush originBush, double[] flowAcceptanceFactors) {
+  private boolean isFlowEffective(Pas pas, RootedBush originBush, double[] flowAcceptanceFactors) {
     boolean lowCostPath = true;
     /* usage of high cost segment on bush */
     double s2SubPathAcceptedFlowOnBush = pas.computeOverlappingAcceptedFlow(originBush, !lowCostPath, flowAcceptanceFactors);
@@ -78,7 +78,7 @@ public class PasManager {
 
   /**
    * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both {@link #isCostEffective(Pas, double)} and
-   * {@link #isFlowEffective(Pas, Bush, double[])}
+   * {@link #isFlowEffective(Pas, RootedBush, double[])}
    * 
    * @param pas                   to use
    * @param originBush            to use
@@ -86,7 +86,7 @@ public class PasManager {
    * @param reducedCost           to use
    * @return true when considered effective, false otherwise
    */
-  private boolean isPasEffectiveForBush(Pas pas, Bush originBush, double[] flowAcceptanceFactors, double reducedCost) {
+  private boolean isPasEffectiveForBush(Pas pas, RootedBush originBush, double[] flowAcceptanceFactors, double reducedCost) {
     /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound of the reduced cost */
     return isCostEffective(pas.getAlternativeHighCost(), pas.getAlternativeLowCost(), reducedCost) && isFlowEffective(pas, originBush, flowAcceptanceFactors);
   }
@@ -110,56 +110,81 @@ public class PasManager {
   }
 
   /**
-   * Extract a subpath in the form of a raw edge segment array from start to end vertex based on the shortest path result provided. Since the path tree is in reverse direction, the
+   * Extract a subpath in the form of a raw edge segment array in downstream direction based on the shortest path result provided. Since the path tree is in reverse direction, the
    * array is filled from the back, i.e.,if there is spare capacity the front of the array would be empty.
    * 
-   * @param start         start vertex upstream
-   * @param end           end vertex downstream
-   * @param pathTree      to extract path from, tree is in upstream direction
-   * @param arrayLength   to use for the to be created array which should be at least as long as the path that is to be extracted
-   * @param truncateArray flag indicating to truncate the subpath array in case the front of the array is not fully used due to the existence of spare capacity
-   * @return created array, null if no path could be found
+   * @param start            start vertex in relation to searchResult tree
+   * @param end              end vertex in relation to searchResult tree
+   * @param searchResultTree to extract path from, tree's direction is automatically accounted for
+   * @param arrayLength      to use for the to be created array which should be at least as long as the path that is to be extracted
+   * @param truncateArray    flag indicating to truncate the subpath array in case the front of the array is not fully used due to the existence of spare capacity
+   * @return created array in downstream direction, null if no path could be found
    */
-  public static EdgeSegment[] createSubpathArrayFrom(final DirectedVertex start, final DirectedVertex end, final ShortestPathOneToAllResult pathTree, int arrayLength,
+  public static EdgeSegment[] createSubpathArrayFrom(final DirectedVertex start, final DirectedVertex end, final ShortestPathResult searchResultTree, int arrayLength,
       boolean truncateArray) {
-    EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
-    DirectedVertex currVertex = end;
+
+    /*
+     * depending on the search direction, i.e., the direction of the to-be extract segments, we revert the way we add them to the resulting array to obtain the correct final
+     * direction of edge segments in downstream direction
+     */
+    boolean searchInverted = searchResultTree.getSearchType().isInverted();
+
     EdgeSegment currEdgeSegment = null;
-    int index = edgeSegmentArray.length;
+    EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
+
+    /* run from end to start backward while adding in reverse to final array, unless search was inverted, then we go from start to end */
+    int index = arrayLength;
+    DirectedVertex currVertex = end;
+    if (searchInverted) {
+      currVertex = start;
+      index = -1;
+    }
+
     do {
-      currEdgeSegment = pathTree.getNextEdgeSegmentForVertex(currVertex);
-      edgeSegmentArray[--index] = currEdgeSegment;
+
+      if (searchInverted) {
+        ++index;
+      } else {
+        --index;
+      }
+
+      currEdgeSegment = searchResultTree.getNextEdgeSegmentForVertex(currVertex);
+      edgeSegmentArray[index] = currEdgeSegment;
       if (currEdgeSegment == null) {
         LOGGER.warning(String.format("Unable to extract subpath from start vertex %s to end vertex %s, no incoming edge segment available at intermediate vertex %s",
             start.getXmlId(), end.getXmlId(), currVertex.getXmlId()));
         return null;
       }
-      currVertex = currEdgeSegment.getUpstreamVertex();
+      currVertex = searchResultTree.getNextVertexForEdgeSegment(currEdgeSegment);
     } while (!currVertex.idEquals(start));
 
-    if (truncateArray && index > 0) {
-      return Arrays.copyOfRange(edgeSegmentArray, index, edgeSegmentArray.length);
+    if (truncateArray) {
+      if (!((!searchInverted && index > 0) || (searchInverted && index < arrayLength - 1))) {
+        return Arrays.copyOfRange(edgeSegmentArray, index, edgeSegmentArray.length);
+      }
     }
     return edgeSegmentArray;
   }
 
   /**
-   * Extract a subpath in the form of a raw edge segment array from start to end vertex based on a map representing a tree with succeeding edge segments for each vertex
+   * Extract a subpath in the form of a raw edge segment array in downstream direction based on the shortest path result provided. Since the path tree is in reverse direction, the
+   * array is filled from the back, i.e.,if there is spare capacity the front of the array would be empty.
    * 
-   * @param start         start vertex upstream
-   * @param end           end vertex downstream
-   * @param pathTree      to extract path from, tree is in downstream direction
-   * @param arrayLength   to use for the to be created array which should be at least as long as the path that is to be extracted
-   * @param truncateArray flag indicating to truncate the subpath array in case the back of the array is not fully used due to the existence of spare capacity
+   * @param start            start vertex upstream
+   * @param end              end vertex downstream
+   * @param searchResultTree to extract path from, tree is in downstream direction
+   * @param arrayLength      to use for the to be created array which should be at least as long as the path that is to be extracted
+   * @param truncateArray    flag indicating to truncate the subpath array in case the back of the array is not fully used due to the existence of spare capacity
    * @return created array, null if no path could be found
    */
-  public static EdgeSegment[] createSubpathArrayFrom(DirectedVertex start, DirectedVertex end, Map<DirectedVertex, EdgeSegment> pathTree, int arrayLength, boolean truncateArray) {
+  public static EdgeSegment[] createSubpathArrayFrom(DirectedVertex start, DirectedVertex end, Map<DirectedVertex, EdgeSegment> searchResultTree, int arrayLength,
+      boolean truncateArray) {
     EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
     DirectedVertex currVertex = start;
     EdgeSegment currEdgeSegment = null;
     int index = 0;
     do {
-      currEdgeSegment = pathTree.get(currVertex);
+      currEdgeSegment = searchResultTree.get(currVertex);
       edgeSegmentArray[index] = currEdgeSegment;
       if (currEdgeSegment == null) {
         LOGGER.warning(String.format("Unable to extract subpath from start vertex %s to end vertex %s, no outgoing edge segment available at intermediate vertex %s",
@@ -214,7 +239,7 @@ public class PasManager {
    * @param s2         expensive alternative segment
    * @return createdPas
    */
-  public Pas createAndRegisterNewPas(final Bush originBush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
+  public Pas createAndRegisterNewPas(final RootedBush originBush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
     Pas newPas = Pas.create(s1, s2);
     if (newPas == null) {
       return null;
@@ -234,7 +259,7 @@ public class PasManager {
    * @param s2         expensive alternative segment
    * @return createdPas
    */
-  public Pas createAndRegisterNewPas(final Bush originBush, final Collection<EdgeSegment> s1, final Collection<EdgeSegment> s2) {
+  public Pas createAndRegisterNewPas(final RootedBush originBush, final Collection<EdgeSegment> s1, final Collection<EdgeSegment> s2) {
     return createAndRegisterNewPas(originBush, s1.toArray(new EdgeSegment[s1.size()]), s2.toArray(new EdgeSegment[s2.size()]));
   }
 
@@ -330,7 +355,7 @@ public class PasManager {
    * @param mergeVertex to test for
    * @return true when PAS is used by origin bush ending at this vertex, false otherwise
    */
-  public boolean isRegisteredOnAnyPasAtMerge(final Bush originBush, final DirectedVertex mergeVertex) {
+  public boolean isRegisteredOnAnyPasAtMerge(final RootedBush originBush, final DirectedVertex mergeVertex) {
     /* verify potential PASs */
     var potentialPass = getPassByMergeVertex(mergeVertex);
     if (potentialPass == null) {
@@ -358,7 +383,7 @@ public class PasManager {
    * @param reducedCost           the upper bound on the improvement that is known for this merge vertex
    * @return pas found, null if no suitable candidates exist
    */
-  public Pas findFirstSuitableExistingPas(final Bush originBush, final DirectedVertex mergeVertex, double[] flowAcceptanceFactors, double reducedCost) {
+  public Pas findFirstSuitableExistingPas(final RootedBush originBush, final DirectedVertex mergeVertex, double[] flowAcceptanceFactors, double reducedCost) {
 
     /* verify potential PASs */
     var potentialPass = getPassByMergeVertex(mergeVertex);

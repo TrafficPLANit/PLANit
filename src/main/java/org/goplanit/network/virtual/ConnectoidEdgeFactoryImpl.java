@@ -6,9 +6,9 @@ import java.util.Optional;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.virtual.ConnectoidEdge;

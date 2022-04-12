@@ -5,9 +5,9 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.Bush;
+import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.zoning.OdZone;
@@ -20,7 +20,7 @@ import org.goplanit.utils.zoning.OdZone;
  * @author markr
  *
  */
-public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements Consumer<Bush> {
+public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements Consumer<RootedBush> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(BushFlowUpdateConsumer.class.getCanonicalName());
@@ -34,7 +34,7 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
    * @param bush             at hand
    * @param bushSendingFlows to populate as a starting point for the bush loading
    */
-  private void initialiseRootExitSegmentSendingFlows(final Bush bush, final MultiKeyMap<Object, Double> bushSendingFlows) {
+  private void initialiseRootExitSegmentSendingFlows(final RootedBush bush, final MultiKeyMap<Object, Double> bushSendingFlows) {
     Set<OdZone> origins = bush.getOrigins();
     for (var origin : origins) {
       double totalRootSendingFlow = 0;
@@ -85,7 +85,7 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
    * 
    */
   @Override
-  public void accept(final Bush bush) {
+  public void accept(final RootedBush bush) {
     /*
      * track bush sending flows propagated from the origin. Note: We cannot use the bush's own turn sending flows because we are performing a network loading based on the most
      * recent bush's splitting rates, we only use the bush's sending flows for bush flow shifts. The bush's sending flows are updated AFTER the network loading is complete

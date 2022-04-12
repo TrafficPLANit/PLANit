@@ -223,28 +223,28 @@ public class ShortestPathTest {
 
       ShortestPathOneToAllResult result = dijkstra.executeOneToAll(centroidA);
 
-      double costAto1 = result.getCostToReach(networkLayer.getNodes().get(1));
+      double costAto1 = result.getCostOf(networkLayer.getNodes().get(1));
       assertEquals(10, costAto1, Precision.EPSILON_6);
 
-      double costAto2 = result.getCostToReach(networkLayer.getNodes().get(2));
+      double costAto2 = result.getCostOf(networkLayer.getNodes().get(2));
       assertEquals(costAto2, 22, Precision.EPSILON_6);
 
-      double costAto3 = result.getCostToReach(networkLayer.getNodes().get(3));
+      double costAto3 = result.getCostOf(networkLayer.getNodes().get(3));
       assertEquals(costAto3, 52, Precision.EPSILON_6);
 
-      double costAto4 = result.getCostToReach(networkLayer.getNodes().get(4));
+      double costAto4 = result.getCostOf(networkLayer.getNodes().get(4));
       assertEquals(costAto4, 62, Precision.EPSILON_6);
 
-      double costAto5 = result.getCostToReach(networkLayer.getNodes().get(5));
+      double costAto5 = result.getCostOf(networkLayer.getNodes().get(5));
       assertEquals(costAto5, 33, Precision.EPSILON_6);
 
-      double costAto6 = result.getCostToReach(networkLayer.getNodes().get(6));
+      double costAto6 = result.getCostOf(networkLayer.getNodes().get(6));
       assertEquals(costAto6, 35, Precision.EPSILON_6);
 
-      double aToCCost = result.getCostToReach(centroidC);
+      double aToCCost = result.getCostOf(centroidC);
       assertEquals(aToCCost, 77.0, Precision.EPSILON_6);
 
-      double aToBCost = result.getCostToReach(centroidB);
+      double aToBCost = result.getCostOf(centroidB);
       assertEquals(aToBCost, 85.0, Precision.EPSILON_6);
 
     } catch (Exception e) {
@@ -328,35 +328,35 @@ public class ShortestPathTest {
       ShortestPathAStar aStar = new ShortestPathAStar(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers(), crs, multiplier);
 
       ShortestPathOneToAllResult result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(1));
-      double costAto1 = result.getCostToReach(networkLayer.getNodes().get(1));
+      double costAto1 = result.getCostOf(networkLayer.getNodes().get(1));
       assertEquals(costAto1, 10, Precision.EPSILON_6);
 
       result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(2));
-      double costAto2 = result.getCostToReach(networkLayer.getNodes().get(2));
+      double costAto2 = result.getCostOf(networkLayer.getNodes().get(2));
       assertEquals(costAto2, 22, Precision.EPSILON_6);
 
       result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(3));
-      double costAto3 = result.getCostToReach(networkLayer.getNodes().get(3));
+      double costAto3 = result.getCostOf(networkLayer.getNodes().get(3));
       assertEquals(costAto3, 52, Precision.EPSILON_6);
 
       result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(4));
-      double costAto4 = result.getCostToReach(networkLayer.getNodes().get(4));
+      double costAto4 = result.getCostOf(networkLayer.getNodes().get(4));
       assertEquals(costAto4, 62, Precision.EPSILON_6);
 
       result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(5));
-      double costAto5 = result.getCostToReach(networkLayer.getNodes().get(5));
+      double costAto5 = result.getCostOf(networkLayer.getNodes().get(5));
       assertEquals(costAto5, 33, Precision.EPSILON_6);
 
       result = aStar.executeOneToOne(centroidA, networkLayer.getNodes().get(6));
-      double costAto6 = result.getCostToReach(networkLayer.getNodes().get(6));
+      double costAto6 = result.getCostOf(networkLayer.getNodes().get(6));
       assertEquals(costAto6, 35, Precision.EPSILON_6);
 
       result = aStar.executeOneToOne(centroidA, centroidC);
-      double aToCCost = result.getCostToReach(centroidC);
+      double aToCCost = result.getCostOf(centroidC);
       assertEquals(aToCCost, 77.0, Precision.EPSILON_6);
 
       result = aStar.executeOneToOne(centroidA, centroidB);
-      double aToBCost = result.getCostToReach(centroidB);
+      double aToBCost = result.getCostOf(centroidB);
       assertEquals(aToBCost, 85.0, Precision.EPSILON_6);
 
     } catch (Exception e) {

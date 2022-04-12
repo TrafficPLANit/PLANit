@@ -2,8 +2,8 @@ package org.goplanit.zoning;
 
 import java.util.logging.Logger;
 
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.LinkSegment;

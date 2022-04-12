@@ -4,7 +4,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.od.path.OdPaths;
 import org.goplanit.utils.functionalinterface.TriConsumer;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.path.DirectedPath;
 import org.goplanit.utils.zoning.OdZone;
 

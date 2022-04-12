@@ -1,8 +1,8 @@
 package org.goplanit.graph.modifier.event;
 
 import org.goplanit.utils.event.EventImpl;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.modifier.DirectedGraphModifier;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.DirectedGraphModifierEventType;

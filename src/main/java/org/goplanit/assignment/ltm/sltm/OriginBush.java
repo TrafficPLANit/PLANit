@@ -3,8 +3,9 @@ package org.goplanit.assignment.ltm.sltm;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.MinMaxPathOneToAllResult;
+import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
+import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.OdZone;
@@ -17,7 +18,7 @@ import org.goplanit.utils.zoning.OdZone;
  * @author markr
  *
  */
-public class OriginBush extends Bush {
+public class OriginBush extends RootedBush {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(OriginBush.class.getCanonicalName());
@@ -30,9 +31,7 @@ public class OriginBush extends Bush {
    * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
   public OriginBush(final IdGroupingToken idToken, OdZone origin, long maxSubGraphEdgeSegments) {
-    super(idToken, maxSubGraphEdgeSegments);
-    addOriginDemandPcuH(origin, 0);
-    this.dag.addRootVertex(origin.getCentroid());
+    this(idToken, origin, 0, maxSubGraphEdgeSegments);
   }
 
   /**
@@ -44,9 +43,8 @@ public class OriginBush extends Bush {
    * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
   public OriginBush(final IdGroupingToken idToken, OdZone origin, double originDemandPcuH, long maxSubGraphEdgeSegments) {
-    super(idToken, maxSubGraphEdgeSegments);
+    super(idToken, origin.getCentroid(), false /* not inverted */, maxSubGraphEdgeSegments);
     addOriginDemandPcuH(origin, originDemandPcuH);
-    this.dag.addRootVertex(origin.getCentroid());
   }
 
   /**
@@ -56,6 +54,35 @@ public class OriginBush extends Bush {
    */
   public OriginBush(OriginBush bush) {
     super(bush);
+  }
+
+  /**
+   * Compute the min-max path tree rooted at the origin and given the provided (network wide) costs. The provided costs are at the network level so should contain all the segments
+   * active in the bush
+   * 
+   * @param linkSegmentCosts              to use
+   * @param totalTransportNetworkVertices needed to be able to create primitive array recording the (partial) subgraph backward link segment results (efficiently)
+   * @return minMaxPathResult, null if unable to complete
+   */
+  @Override
+  public MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
+
+    /* build min/max path tree */
+    var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(dag, requireTopologicalSortUpdate, linkSegmentCosts, totalTransportNetworkVertices);
+    try {
+      return minMaxBushPaths.executeOneToAll(dag.getRootVertex());
+    } catch (Exception e) {
+      LOGGER.severe(String.format("Unable to complete minmax path three for origin-bush rooted at origin %s", getOrigin().getXmlId()));
+    }
+    return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ShortestSearchType getShortestSearchType() {
+    return ShortestSearchType.ONE_TO_ALL;
   }
 
   /**
@@ -72,28 +99,6 @@ public class OriginBush extends Bush {
   @Override
   public OriginBush clone() {
     return new OriginBush(this);
-  }
-
-  /**
-   * Compute the min-max path tree rooted at the origin and given the provided (network wide) costs. The provided costs are at the network level so should contain all the segments
-   * active in the bush
-   * 
-   * @param linkSegmentCosts              to use
-   * @param totalTransportNetworkVertices needed to be able to create primitive array recording the (partial) subgraph backward link segment results (efficiently)
-   * @return minMaxPathResult, null if unable to complete
-   */
-  public MinMaxPathOneToAllResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
-
-    var dagOriginRootVertex = dag.getRootVertices().iterator().next();
-
-    /* build min/max path tree */
-    var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(dag, requireTopologicalSortUpdate, linkSegmentCosts, totalTransportNetworkVertices);
-    try {
-      return minMaxBushPaths.executeOneToAll(dagOriginRootVertex);
-    } catch (Exception e) {
-      LOGGER.severe(String.format("Unable to complete minmax path three for bush rooted at origin %s", dagOriginRootVertex.getXmlId()));
-    }
-    return null;
   }
 
   /**

@@ -6,7 +6,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.loading.NetworkLoadingFactorData;
 import org.goplanit.assignment.ltm.sltm.loading.SendingFlowData;
 import org.goplanit.assignment.ltm.sltm.loading.SplittingRateData;
-import org.goplanit.utils.graph.EdgeSegment;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
  * Base class to aid updating of the network turn flows during loading. Derived classes can apply a path or bush based approach to this update for example. This class stores the

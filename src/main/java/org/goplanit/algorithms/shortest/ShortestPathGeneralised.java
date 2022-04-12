@@ -7,8 +7,8 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.misc.Pair;
 
 /**
@@ -37,7 +37,7 @@ public class ShortestPathGeneralised {
    * @param shortestAlternativeEdgeSegmentConsumer process the "shortest" alternative edge segment when verified by the predicate
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
    */
-  private double[] execute(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestAlternativeEdgeSegmentConsumer) {
+  private double[] internalExecute(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestAlternativeEdgeSegmentConsumer) {
     boolean[] vertexVisited = new boolean[numberOfVertices];
 
     // track measured cost for each vertex
@@ -118,6 +118,20 @@ public class ShortestPathGeneralised {
   protected Function<DirectedVertex, Iterable<EdgeSegment>> getEdgeSegmentsInDirection;
 
   /**
+   * Generalised shortest-X search where the search type determines to which of the other methods to delegate, oneToAll or AllToOne.
+   * 
+   * @param searchType                          to use
+   * @param verifyVertex                        predicate to test if the new cost to reach vertex is considered shortest compared to existing cost
+   * @param shortestIncomingEdgeSegmentConsumer process the "shortest" incoming edge segment when verified by the predicate
+   * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
+   */
+  protected double[] execute(ShortestSearchType searchType, BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
+    this.getEdgeSegmentsInDirection = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(searchType);
+    this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(searchType);
+    return internalExecute(verifyVertex, shortestIncomingEdgeSegmentConsumer);
+  }
+
+  /**
    * Generalised one-to-all shortest-X search where the test whether or not an alternative edge segment is shortest is dictated by the provided predicate while the processing of
    * the alternative edge segment when the predicate tests as true is outsourced to the provided consumer. It is however assumed that only a single cost is stored per vertex
    * resulting in the returned vertex measured cost array
@@ -127,9 +141,7 @@ public class ShortestPathGeneralised {
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
    */
   protected double[] executeOneToAll(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
-    this.getEdgeSegmentsInDirection = ShortestPathUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ONE_TO_ALL);
-    this.getVertexAtExtreme = ShortestPathUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ONE_TO_ALL);
-    return execute(verifyVertex, shortestIncomingEdgeSegmentConsumer);
+    return execute(ShortestSearchType.ONE_TO_ALL, verifyVertex, shortestIncomingEdgeSegmentConsumer);
   }
 
   /**
@@ -142,9 +154,7 @@ public class ShortestPathGeneralised {
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
    */
   protected double[] executeAllToOne(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
-    this.getEdgeSegmentsInDirection = ShortestPathUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ALL_TO_ONE);
-    this.getVertexAtExtreme = ShortestPathUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ALL_TO_ONE);
-    return execute(verifyVertex, shortestIncomingEdgeSegmentConsumer);
+    return execute(ShortestSearchType.ALL_TO_ONE, verifyVertex, shortestIncomingEdgeSegmentConsumer);
   }
 
   /**

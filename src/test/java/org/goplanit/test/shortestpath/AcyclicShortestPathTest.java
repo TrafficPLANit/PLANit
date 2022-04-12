@@ -322,7 +322,7 @@ public class AcyclicShortestPathTest {
       
       // MIN PATH RESULT
       minMaxResult.setMinPathState(true);
-      assertEquals(minMaxResult.getCostToReach(centroidB),20.0, Precision.EPSILON_6);
+      assertEquals(minMaxResult.getCostOf(centroidB),20.0, Precision.EPSILON_6);
       DirectedPath minPath = minMaxResult.createPath(pathFactory, centroidA, centroidB);
       
       MacroscopicLinkSegments segments = networkLayer.getLinkSegments();
@@ -331,7 +331,7 @@ public class AcyclicShortestPathTest {
       // MAX PATH RESULT
       minMaxResult.setMinPathState(false);
       
-      assertEquals(24.0, minMaxResult.getCostToReach(centroidB), Precision.EPSILON_6);
+      assertEquals(24.0, minMaxResult.getCostOf(centroidB), Precision.EPSILON_6);
       DirectedPath maxPath = minMaxResult.createPath(pathFactory, centroidA, centroidB);
       
       assertTrue(maxPath.containsSubPath(List.of(segments.get(6),segments.get(9), segments.get(4), segments.get(5))));      

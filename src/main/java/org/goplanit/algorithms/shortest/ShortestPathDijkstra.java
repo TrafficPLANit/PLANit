@@ -1,10 +1,12 @@
 package org.goplanit.algorithms.shortest;
 
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
  * Dijkstra's shortest path algorithm
@@ -19,6 +21,9 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
  */
 public class ShortestPathDijkstra extends ShortestPathGeneralised implements ShortestPathOneToAll, ShortestPathAllToOne {
 
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(ShortestPathDijkstra.class.getCanonicalName());
+
   /**
    * Track incoming edge segment that is shortest for each vertex in this array
    */
@@ -32,6 +37,25 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised implements Sho
   };
 
   /**
+   * Execute Dijkstra shortest path search based on search type, start vertex and consumer that deals with finding a new shorter(equally short) alternative edge segment for a given
+   * vertex
+   * 
+   * @param searchType                      to apply
+   * @param startVertex                     to use
+   * @param shortestNextEdgeSegmentConsumer to apply to a new shortest edge segment found for a given vertex
+   * @return shortest path results which, depending on search type, can take on various derived forms of this base result class
+   */
+  private ShortestPathResult dijkstraExecute(ShortestSearchType searchType, DirectedVertex startVertex, Consumer<EdgeSegment> shortestNextEdgeSegmentConsumer) {
+    this.currentSource = startVertex;
+    this.shortestEdgeSegmentOfVertex = new EdgeSegment[numberOfVertices];
+
+    /* shortest path costs to each vertex for start vertex */
+    double[] vertexMeasuredCost = super.execute(searchType, isShorterPredicate, shortestNextEdgeSegmentConsumer);
+    /* pass on to result object for user friendly dissemination */
+    return new ShortestPathResultGeneralised(vertexMeasuredCost, shortestEdgeSegmentOfVertex, searchType);
+  }
+
+  /**
    * Constructor for an edge cost based Dijkstra algorithm for finding shortest paths.
    * 
    * @param edgeSegmentCosts     Edge segment costs
@@ -43,22 +67,34 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised implements Sho
   }
 
   /**
+   * Execute shortest path search based on given search direction and start vertex
+   * 
+   * @param searchType  to use
+   * @param startVertex to use
+   * @return results of shortest path search, if something went wrong null is returned
+   */
+  public ShortestPathResult execute(ShortestSearchType searchType, DirectedVertex startVertex) {
+    switch (searchType) {
+    case ONE_TO_ALL:
+    case ONE_TO_ONE:
+      return executeOneToAll(startVertex);
+    case ALL_TO_ONE:
+      return executeAllToOne(startVertex);
+    default:
+      LOGGER.severe("Unsupported search type encountered in Dijkstra shortest path execution");
+      return null;
+    }
+  }
+
+  /**
    * Construct shortest paths from source node to all other nodes in the network based on directed LinkSegment edges
    * 
    * @param currentOrigin origin vertex of source node
    * @return shortest path result that can be used to extract paths
    */
   @Override
-  public ShortestPathOneToAllResult executeOneToAll(DirectedVertex currentOrigin) {
-    this.currentSource = currentOrigin;
-    this.shortestEdgeSegmentOfVertex = new EdgeSegment[numberOfVertices];
-
-    /*
-     * found shortest path costs to each vertex for current origin. When deemed shortest, the incoming edge segment is stored on the array
-     */
-    double[] vertexMeasuredCost = super.executeOneToAll(isShorterPredicate, es -> shortestEdgeSegmentOfVertex[(int) es.getDownstreamVertex().getId()] = es);
-
-    return new ShortestPathResultGeneralised(vertexMeasuredCost, shortestEdgeSegmentOfVertex, ShortestSearchType.ONE_TO_ALL);
+  public ShortestPathResult executeOneToAll(DirectedVertex currentOrigin) {
+    return dijkstraExecute(ShortestSearchType.ONE_TO_ALL, currentOrigin, es -> shortestEdgeSegmentOfVertex[(int) es.getDownstreamVertex().getId()] = es);
   }
 
   /**
@@ -69,15 +105,7 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised implements Sho
    * @throws PlanItException thrown if an error occurs
    */
   @Override
-  public ShortestPathAllToOneResult executeAllToOne(DirectedVertex currentDestination) {
-    this.currentSource = currentDestination;
-    this.shortestEdgeSegmentOfVertex = new EdgeSegment[numberOfVertices];
-
-    /*
-     * found shortest path costs from each vertex to current destination. When deemed shortest, the outgoing edge segment is stored on the array
-     */
-    double[] vertexMeasuredCost = super.executeAllToOne(isShorterPredicate, es -> shortestEdgeSegmentOfVertex[(int) es.getUpstreamVertex().getId()] = es);
-
-    return new ShortestPathResultGeneralised(vertexMeasuredCost, shortestEdgeSegmentOfVertex, ShortestSearchType.ALL_TO_ONE);
+  public ShortestPathResult executeAllToOne(DirectedVertex currentDestination) {
+    return dijkstraExecute(ShortestSearchType.ALL_TO_ONE, currentDestination, es -> shortestEdgeSegmentOfVertex[(int) es.getUpstreamVertex().getId()] = es);
   }
 }

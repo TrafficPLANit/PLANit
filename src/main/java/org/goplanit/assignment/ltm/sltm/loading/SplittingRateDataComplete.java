@@ -3,8 +3,8 @@ package org.goplanit.assignment.ltm.sltm.loading;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
-import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.ojalgo.array.Array1D;
 
 /**
