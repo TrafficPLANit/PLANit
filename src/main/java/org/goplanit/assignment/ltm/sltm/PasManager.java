@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
@@ -87,7 +88,7 @@ public class PasManager {
    */
   private boolean isPasEffectiveForBush(Pas pas, Bush originBush, double[] flowAcceptanceFactors, double reducedCost) {
     /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound of the reduced cost */
-    return isCostEffective(pas.getAlternativeHighCost() , pas.getAlternativeLowCost(), reducedCost) && isFlowEffective(pas, originBush, flowAcceptanceFactors);
+    return isCostEffective(pas.getAlternativeHighCost(), pas.getAlternativeLowCost(), reducedCost) && isFlowEffective(pas, originBush, flowAcceptanceFactors);
   }
 
   /** default for detailed logging flag */
@@ -105,7 +106,7 @@ public class PasManager {
    * @return true when considered effective, false otherwise
    */
   public static boolean isCostEffective(double alternativeHighCost, double alternativeLowCost, double reducedCost) {
-    return Precision.greater(alternativeHighCost- alternativeLowCost, MU * reducedCost);
+    return Precision.greater(alternativeHighCost - alternativeLowCost, MU * reducedCost);
   }
 
   /**
@@ -267,7 +268,7 @@ public class PasManager {
    * @param alternative2 alternative segment of PAS
    * @return the matching PAS, null otherwise
    */
-  public Pas findExistingPas(final ArrayList<EdgeSegment> alternative1, final ArrayList<EdgeSegment> alternative2) {
+  public Pas findExistingPas(final List<EdgeSegment> alternative1, final List<EdgeSegment> alternative2) {
     if (alternative1 == null || alternative2 == null) {
       LOGGER.severe("one or more alternatives of potential PAS are null");
       return null;

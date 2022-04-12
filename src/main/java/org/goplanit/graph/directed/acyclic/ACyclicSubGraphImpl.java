@@ -2,7 +2,6 @@ package org.goplanit.graph.directed.acyclic;
 
 import java.util.ArrayDeque;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -214,7 +213,7 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * @return Topologically sorted list of vertices, null when graph is not acyclic, or disconnected
    */
   @Override
-  public Collection<DirectedVertex> topologicalSort(boolean update) {
+  public Deque<DirectedVertex> topologicalSort(boolean update) {
 
     if (!update && topologicalOrder != null && !topologicalOrder.isEmpty()) {
       return topologicalOrder;

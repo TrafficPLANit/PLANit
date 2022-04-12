@@ -1,6 +1,5 @@
 package org.goplanit.algorithms.shortest;
 
-import org.goplanit.algorithms.shortest.ShortestPathResultGeneralisedImpl.ResultType;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -13,7 +12,7 @@ import org.goplanit.utils.path.DirectedPathFactory;
  * @author markr
  *
  */
-public class MinMaxPathResultImpl implements MinMaxPathResult {
+public class MinMaxPathResultImpl implements MinMaxPathOneToAllResult, MinMaxPathAllToOneResult {
 
   /**
    * Track the state regarding whether or not to return min or max path information
@@ -23,12 +22,12 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
   /**
    * tracking min path results
    */
-  private ShortestPathOneToAllResult minPathResult;
+  private ShortestPathResultGeneralised minPathResult;
 
   /**
    * tracking max path results
    */
-  private ShortestPathOneToAllResult maxPathResult;
+  private ShortestPathResultGeneralised maxPathResult;
 
   /**
    * Constructor
@@ -40,8 +39,16 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    */
   protected MinMaxPathResultImpl(double[] minVertexCost, EdgeSegment[] minCostBackwardEdgeSegments, double[] maxVertexCost, EdgeSegment[] maxCostBackwardEdgeSegments) {
     this.minPathState = true;
-    this.minPathResult = new ShortestPathResultGeneralisedImpl(minVertexCost, minCostBackwardEdgeSegments, ResultType.ONE_TO_ALL);
-    this.maxPathResult = new ShortestPathResultGeneralisedImpl(maxVertexCost, maxCostBackwardEdgeSegments, ResultType.ONE_TO_ALL);
+    this.minPathResult = new ShortestPathResultGeneralised(minVertexCost, minCostBackwardEdgeSegments, ShortestSearchType.ONE_TO_ALL);
+    this.maxPathResult = new ShortestPathResultGeneralised(maxVertexCost, maxCostBackwardEdgeSegments, ShortestSearchType.ONE_TO_ALL);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setMinPathState(boolean flag) {
+    this.minPathState = flag;
   }
 
   /**
@@ -72,8 +79,8 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    * {@inheritDoc}
    */
   @Override
-  public void setMinPathState(boolean flag) {
-    this.minPathState = flag;
+  public double getCostFrom(Vertex vertex) {
+    return minPathState ? minPathResult.getCostFrom(vertex) : maxPathResult.getCostFrom(vertex);
   }
 
 }

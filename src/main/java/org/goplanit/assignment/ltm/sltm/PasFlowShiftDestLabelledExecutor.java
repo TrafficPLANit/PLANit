@@ -18,12 +18,12 @@ import org.goplanit.utils.math.Precision;
  * @author markr
  *
  */
-public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecutor {
+public class PasFlowShiftDestLabelledExecutor extends PasFlowShiftExecutor {
 
   /**
    * Logger to use
    */
-  private final static Logger LOGGER = Logger.getLogger(PasFlowShiftDestinationLabelledExecutor.class.getCanonicalName());
+  private final static Logger LOGGER = Logger.getLogger(PasFlowShiftDestLabelledExecutor.class.getCanonicalName());
 
   /** the labelled (sending) flows per origin (map key) that traverse S2 */
   protected final Map<Bush, Map<BushFlowLabel, Double>> s2DestinationLabelledFlows;
@@ -277,7 +277,7 @@ public class PasFlowShiftDestinationLabelledExecutor extends PasFlowShiftExecuto
    * @param pas      to use
    * @param settings to use
    */
-  protected PasFlowShiftDestinationLabelledExecutor(final Pas pas, final StaticLtmSettings settings) {
+  protected PasFlowShiftDestLabelledExecutor(final Pas pas, final StaticLtmSettings settings) {
     super(pas, settings);
     this.s1DestinationLabelledFlows = new HashMap<>();
     this.s2DestinationLabelledFlows = new HashMap<>();

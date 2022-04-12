@@ -1,7 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
 import java.util.ArrayDeque;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -32,7 +31,7 @@ import org.goplanit.utils.zoning.OdZone;
  * @author markr
  *
  */
-public class Bush implements IdAble {
+public abstract class Bush implements IdAble {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(Bush.class.getCanonicalName());
@@ -100,16 +99,6 @@ public class Bush implements IdAble {
   }
 
   /**
-   * Get the origin demand for a given origin
-   * 
-   * @param originZone to collect demand for
-   * @return demand (if any)
-   */
-  protected Double getOriginDemandPcuH(OdZone originZone) {
-    return this.originDemandsPcuH.get(originZone);
-  }
-
-  /**
    * Constructor
    * 
    * @param idToken                 the token to base the id generation on
@@ -136,19 +125,26 @@ public class Bush implements IdAble {
   }
 
   /**
-   * {@inheritDoc}
+   * Collect an iterator over topologically sorted bush in origin-destination or destination-origin direction. Depending on the derived bush implementation this might require
+   * inverting the iteration direction. Hence it is an abstract method here
+   * 
+   * @param originDestinationDirection when true, iterator runs topological order from origin towards destinatino, when false, they other way around
+   * @return iterator over topologically ordered bush vertices
    */
-  @Override
-  public long getId() {
-    return dag.getId();
-  }
+  public abstract Iterator<DirectedVertex> getTopologicalIterator(boolean originDestinationDirection);
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Bush clone() {
-    return new Bush(this);
+  public abstract Bush clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public long getId() {
+    return dag.getId();
   }
 
   /**
@@ -684,13 +680,11 @@ public class Bush implements IdAble {
   public void updateTurnFlows(double[] flowAcceptanceFactors) {
 
     /* get topological sorted vertices to process */
-    Collection<DirectedVertex> topSortedVertices = getTopologicallySortedVertices();
-    if (topSortedVertices == null) {
+    var vertexIter = getTopologicalIterator(true /* od-direction */);
+    if (vertexIter == null) {
       LOGGER.severe(String.format("Topologically sorted vertices on bush not available, this shouldn't happen, skip turn flow update"));
       return;
     }
-
-    var vertexIter = topSortedVertices.iterator();
     var currVertex = vertexIter.next();
 
     /* pass over bush in topological order updating turn sending flows based on flow acceptance factors */
@@ -741,20 +735,30 @@ public class Bush implements IdAble {
   }
 
   /**
-   * Topologically sorted vertices of the bush
-   * 
-   * @return vertices, null if no topological sort was possible
-   */
-  public Collection<DirectedVertex> getTopologicallySortedVertices() {
-    return dag.topologicalSort(requireTopologicalSortUpdate);
-  }
-
-  /**
    * Verify if empty
    * 
    * @return true when empty, false otherwise
    */
   public boolean isEmpty() {
     return bushData.hasTurnFlows();
+  }
+
+  /**
+   * Origins (witrh non-zero flow) registered on this bush
+   * 
+   * @return origins on this bush
+   */
+  public Set<OdZone> getOrigins() {
+    return this.originDemandsPcuH.keySet();
+  }
+
+  /**
+   * Get the origin demand for a given origin
+   * 
+   * @param originZone to collect demand for
+   * @return demand (if any)
+   */
+  public Double getOriginDemandPcuH(OdZone originZone) {
+    return this.originDemandsPcuH.get(originZone);
   }
 }

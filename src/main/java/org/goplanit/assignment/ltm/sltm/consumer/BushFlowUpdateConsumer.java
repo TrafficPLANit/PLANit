@@ -1,16 +1,16 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import java.util.Collection;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
-import org.goplanit.assignment.ltm.sltm.OriginBush;
 import org.goplanit.utils.graph.EdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
+import org.goplanit.utils.zoning.OdZone;
 
 /**
  * Base Consumer to apply during bush based network loading flow update for each origin bush
@@ -20,7 +20,7 @@ import org.goplanit.utils.network.virtual.ConnectoidSegment;
  * @author markr
  *
  */
-public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements Consumer<OriginBush> {
+public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements Consumer<Bush> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(BushFlowUpdateConsumer.class.getCanonicalName());
@@ -31,25 +31,28 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
   /**
    * Initialise the bush sending flows for the bush's root exit edge segments to bootstrap the loading for this bush
    * 
-   * @param originBush       at hand
+   * @param bush             at hand
    * @param bushSendingFlows to populate as a starting point for the bush loading
    */
-  private void initialiseRootExitSegmentSendingFlows(final OriginBush originBush, final MultiKeyMap<Object, Double> bushSendingFlows) {
-    double totalRootSendingFlow = 0;
-    for (var rootExit : originBush.getOrigin().getCentroid().getExitEdgeSegments()) {
-      if (originBush.containsEdgeSegment(rootExit)) {
-        var usedLabels = originBush.getFlowCompositionLabels(rootExit);
-        for (var usedLabel : usedLabels) {
-          double sendingFlow = originBush.getSendingFlowPcuH(rootExit, usedLabel);
-          bushSendingFlows.put(rootExit, usedLabel, sendingFlow);
-          totalRootSendingFlow += sendingFlow;
+  private void initialiseRootExitSegmentSendingFlows(final Bush bush, final MultiKeyMap<Object, Double> bushSendingFlows) {
+    Set<OdZone> origins = bush.getOrigins();
+    for (var origin : origins) {
+      double totalRootSendingFlow = 0;
+      for (var rootExit : origin.getCentroid().getExitEdgeSegments()) {
+        if (bush.containsEdgeSegment(rootExit)) {
+          var usedLabels = bush.getFlowCompositionLabels(rootExit);
+          for (var usedLabel : usedLabels) {
+            double sendingFlow = bush.getSendingFlowPcuH(rootExit, usedLabel);
+            bushSendingFlows.put(rootExit, usedLabel, sendingFlow);
+            totalRootSendingFlow += sendingFlow;
+          }
         }
       }
-    }
 
-    if (Precision.notEqual(totalRootSendingFlow, originBush.getOriginDemandPcuH())) {
-      LOGGER.severe(String.format("Origin (%s) travel demand (%.2f pcu/h) not equal to total flow (%.2f pcu/h) placed on bush root, this shouldn't happen",
-          originBush.getOrigin().getXmlId(), originBush.getOriginDemandPcuH(), totalRootSendingFlow));
+      if (Precision.notEqual(totalRootSendingFlow, bush.getOriginDemandPcuH(origin))) {
+        LOGGER.severe(String.format("bush specific origin's (%s) travel demand (%.2f pcu/h) not equal to total flow (%.2f pcu/h) placed on bush root, this shouldn't happen",
+            origin.getXmlId(), bush.getOriginDemandPcuH(origin), totalRootSendingFlow));
+      }
     }
   }
 
@@ -80,10 +83,9 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
   /**
    * Update(increase) the (network) flows based on the bush at hand as dictated by the data configuration
    * 
-   * {@inheritDoc}
    */
   @Override
-  public void accept(final OriginBush originBush) {
+  public void accept(final Bush bush) {
     /*
      * track bush sending flows propagated from the origin. Note: We cannot use the bush's own turn sending flows because we are performing a network loading based on the most
      * recent bush's splitting rates, we only use the bush's sending flows for bush flow shifts. The bush's sending flows are updated AFTER the network loading is complete
@@ -94,33 +96,26 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
     MultiKeyMap<Object, Double> bushSendingFlows = new MultiKeyMap<>();
 
     /* get topological sorted vertices to process */
-    Collection<DirectedVertex> topSortedVertices = originBush.getTopologicallySortedVertices();
-    if (topSortedVertices == null) {
-      LOGGER.severe(String.format("Topologically sorted bush rooted at origin %s not available, this shouldn't happen, skip", originBush.getOrigin().getXmlId()));
+    var vertexIter = bush.getTopologicalIterator(true /* od-direction */);
+    if (vertexIter == null) {
+      LOGGER.severe(String.format("Topologically sorted bush not available, this shouldn't happen, skip"));
       return;
     }
-
-    var vertexIter = topSortedVertices.iterator();
     var currVertex = vertexIter.next();
-    if (!currVertex.idEquals(originBush.getOrigin().getCentroid())) {
-      LOGGER.severe(String.format("Topologically sorted bush rooted at origin %s, does not commence with its root vertex %s", originBush.getOrigin().getXmlId(),
-          originBush.getOrigin().getCentroid().getXmlId()));
-      return;
-    }
 
     /* initialise root vertex outgoing edge sending flows */
-    initialiseRootExitSegmentSendingFlows(originBush, bushSendingFlows);
+    initialiseRootExitSegmentSendingFlows(bush, bushSendingFlows);
 
     /* pass over bush in topological order propagating flow from origin */
     while (vertexIter.hasNext()) {
       currVertex = vertexIter.next();
       for (var entrySegment : currVertex.getEntryEdgeSegments()) {
-        if (!originBush.containsEdgeSegment(entrySegment)) {
+        if (!bush.containsEdgeSegment(entrySegment)) {
           continue;
         }
 
         int entrySegmentId = (int) entrySegment.getId();
-        var usedLabels = originBush.getFlowCompositionLabels(entrySegment);
+        var usedLabels = bush.getFlowCompositionLabels(entrySegment);
         if (usedLabels == null) {
           LOGGER.severe(String.format("Edge segment %s on bush, but no flow labels present, this shouldn't happen", entrySegment.getXmlId()));
           continue;
@@ -132,8 +127,7 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
 
           Double bushLinkLabelSendingFlow = bushSendingFlows.get(entrySegment, entrylabel);
           if (bushLinkLabelSendingFlow == null) {
-            LOGGER.severe(String.format("Origin (%s): No link sending flow found for segment %s and label %d, this shouldn't happen", originBush.getOrigin().getXmlId(),
-                entrySegment.getXmlId(), entrylabel.getLabelId()));
+            LOGGER.severe(String.format("No link sending flow found for segment %s and label %d, this shouldn't happen", entrySegment.getXmlId(), entrylabel.getLabelId()));
             continue;
           }
 
@@ -153,17 +147,17 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
           }
 
           /* bush splitting rates by [exit segment, exit label] as key */
-          MultiKeyMap<Object, Double> splittingRates = originBush.getSplittingRates(entrySegment, entrylabel);
+          MultiKeyMap<Object, Double> splittingRates = bush.getSplittingRates(entrySegment, entrylabel);
           if (splittingRates == null || splittingRates.isEmpty()) {
             continue;
           }
 
           for (var exitSegment : currVertex.getExitEdgeSegments()) {
-            if (!originBush.containsEdgeSegment(exitSegment)) {
+            if (!bush.containsEdgeSegment(exitSegment)) {
               continue;
             }
 
-            var exitLabels = originBush.getFlowCompositionLabels(exitSegment);
+            var exitLabels = bush.getFlowCompositionLabels(exitSegment);
             if (exitLabels == null) {
               LOGGER.severe(String.format("Edge segment %s on bush, but no flow labels present, this shouldn't happen", exitSegment.getXmlId()));
               continue;
@@ -191,9 +185,8 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
           }
         }
         if (Precision.notEqual(totalEntryAcceptedFlow, totalExitAcceptedFlow) && !(entrySegment instanceof ConnectoidSegment)) {
-          LOGGER.severe(String.format(
-              "Accepted (labelled) out flow %.10f on edge segment (%s) not equal to flow (%.10f) assigned to (labelled) turns - origin bush %s, this shouldn't happen",
-              totalEntryAcceptedFlow, entrySegment.getXmlId(), totalExitAcceptedFlow, originBush.getOrigin().getXmlId()));
+          LOGGER.severe(String.format("Accepted (labelled) out flow %.10f on edge segment (%s) not equal to flow (%.10f) assigned to (labelled) turns, this shouldn't happen",
+              totalEntryAcceptedFlow, entrySegment.getXmlId(), totalExitAcceptedFlow));
         }
       }
     }

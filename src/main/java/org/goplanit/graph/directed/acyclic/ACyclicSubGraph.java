@@ -1,6 +1,7 @@
 package org.goplanit.graph.directed.acyclic;
 
-import java.util.Collection;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.goplanit.utils.graph.directed.DirectedSubGraph;
@@ -55,7 +56,29 @@ public interface ACyclicSubGraph extends DirectedSubGraph, Iterable<DirectedVert
    * @param update when true the topological sort is conducted based on the current state of the subgraph, when false the most recent (if any) result is returned
    * @return return topological sorting found, null when it was found not to be possible to create a topological sorting
    */
-  public abstract Collection<DirectedVertex> topologicalSort(boolean update);
+  public abstract Deque<DirectedVertex> topologicalSort(boolean update);
+
+  /**
+   * Collect iterator over topologically sorted vertices
+   * 
+   * @param update when true the topological sort is conducted based on the current state of the subgraph, when false the most recent (if any) result is returned
+   * @return iterator
+   */
+  public default Iterator<DirectedVertex> getTopologicalIterator(boolean update) {
+    return getTopologicalIterator(update, false);
+  }
+
+  /**
+   * Collect iterator over topologically sorted vertices
+   * 
+   * @param update             when true the topological sort is conducted based on the current state of the subgraph, when false the most recent (if any) result is returned
+   * @param descendingIterator when true, iterator direction is reversed, when false it is not
+   * @return iterator
+   */
+  public default Iterator<DirectedVertex> getTopologicalIterator(boolean update, boolean descendingIterator) {
+    var topologicallySortedVertices = topologicalSort(update);
+    return descendingIterator ? topologicallySortedVertices.descendingIterator() : topologicallySortedVertices.iterator();
+  }
 
   /**
    * {@inheritDoc}

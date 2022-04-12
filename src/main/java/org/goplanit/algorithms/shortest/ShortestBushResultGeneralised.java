@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
@@ -22,9 +23,9 @@ import org.goplanit.utils.misc.CollectionUtils;
  * @author markr
  *
  */
-public class ShortestBushResultImpl implements ShortestBushResult {
+public class ShortestBushResultGeneralised implements ShortestBushOneToAllResult, ShortestBushAllToOneResult {
 
-  private static final Logger LOGGER = Logger.getLogger(ShortestPathOneToAllResult.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(ShortestBushResultGeneralised.class.getCanonicalName());
 
   /**
    * the costs found by a shortest path run
@@ -32,37 +33,40 @@ public class ShortestBushResultImpl implements ShortestBushResult {
   protected final double[] vertexMeasuredCost;
 
   /**
-   * the preceding edge segment(s) to reach the vertex with the given measured cost. If only a single edge segment is present, that is what is stored, otherwise it is a list of
-   * edge segments
+   * the next edge segment(s) to reach the vertex with the given measured cost. If only a single edge segment is present, that is what is stored, otherwise it is a list of edge
+   * segments
    */
-  protected final Object[] incomingEdgeSegments;
+  protected final Object[] nextEdgeSegments;
 
   /** number of edge segments in the parent network */
   protected final int numberOfEdgeSegments;
 
-  /** origin of the bush */
-  protected final DirectedVertex origin;
+  /** depending on configuration this function collects vertex at desired edge segment extremity */
+  protected Function<EdgeSegment, DirectedVertex> getVertexAtExtreme;
 
   /**
    * Constructor only to be used by shortest path algorithms
    * 
    * @param origin               to use
    * @param vertexMeasuredCost   measured costs to get to the vertex (by id)
-   * @param incomingEdgeSegments the incoming edge segment for each vertex (by id)
+   * @param nextEdgeSegments     the found next edge segment for each vertex (by id)
    * @param numberOfEdgeSegments on the parent network
+   * @param searchType           used (one-to-all, all-to-one, etc)
    */
-  protected ShortestBushResultImpl(DirectedVertex origin, double[] vertexMeasuredCost, Object[] incomingEdgeSegments, int numberOfEdgeSegments) {
-    this.origin = origin;
+  protected ShortestBushResultGeneralised(double[] vertexMeasuredCost, Object[] nextEdgeSegments, int numberOfEdgeSegments, ShortestSearchType searchType) {
     this.vertexMeasuredCost = vertexMeasuredCost;
-    this.incomingEdgeSegments = incomingEdgeSegments;
+    this.nextEdgeSegments = nextEdgeSegments;
     this.numberOfEdgeSegments = numberOfEdgeSegments;
+
+    /* search direction for creating paths in opposite direction as compared to shortest bush search itself */
+    this.getVertexAtExtreme = ShortestPathUtils.getVertexFromEdgeSegmentLambda(searchType, true /* invert */ );
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public ACyclicSubGraph createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex destination) {
+  public ACyclicSubGraph createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex origin, final DirectedVertex destination) {
 
     var dag = new ACyclicSubGraphImpl(idToken, numberOfEdgeSegments);
     dag.addRootVertex(origin);
@@ -76,23 +80,24 @@ public class ShortestBushResultImpl implements ShortestBushResult {
       openVertices.remove(currVertex);
 
       int currVertexId = (int) destination.getId();
-      var previousEdgeSegmentsOnPath = incomingEdgeSegments[currVertexId];
+      var previousEdgeSegmentsOnPath = nextEdgeSegments[currVertexId];
       if (previousEdgeSegmentsOnPath == null) {
         /* unable to continue populating bush */
         return null;
       }
 
       /* add all eligible upstream segments to the dag and register their upstream vertices (if unprocessed) for further processing */
-      List<EdgeSegment> eligibleUpstreamEdgeSegments = getIncomingEdgeSegmentsForVertex(currVertex);
-      if (!CollectionUtils.nullOrEmpty(eligibleUpstreamEdgeSegments)) {
-        for (var edgeSegment : eligibleUpstreamEdgeSegments) {
+      List<EdgeSegment> eligibleNextEdgeSegments = getNextEdgeSegmentsForVertex(currVertex);
+      if (!CollectionUtils.nullOrEmpty(eligibleNextEdgeSegments)) {
+        for (var edgeSegment : eligibleNextEdgeSegments) {
           dag.addEdgeSegment((EdgeSegment) edgeSegment);
-          if (!processedVertices.contains(edgeSegment.getUpstreamVertex())) {
-            openVertices.add(edgeSegment.getUpstreamVertex());
+          DirectedVertex nextVertex = this.getVertexAtExtreme.apply(edgeSegment);
+          if (!processedVertices.contains(nextVertex)) {
+            openVertices.add(nextVertex);
           }
         }
       } else if (!currVertex.equals(origin)) {
-        LOGGER.warning(String.format("No entry segments found for non-origin vertex (%s) on shortest-bush, this shouldn't happen", currVertex.getXmlId()));
+        LOGGER.warning(String.format("No eligible next segments found for regular vertex (%s) on shortest-bush, this shouldn't happen", currVertex.getXmlId()));
         continue;
       }
 
@@ -107,8 +112,8 @@ public class ShortestBushResultImpl implements ShortestBushResult {
    */
   @SuppressWarnings("unchecked")
   @Override
-  public List<EdgeSegment> getIncomingEdgeSegmentsForVertex(Vertex vertex) {
-    var incomingEdgeSegmentsAtVertex = incomingEdgeSegments[(int) vertex.getId()];
+  public List<EdgeSegment> getNextEdgeSegmentsForVertex(Vertex vertex) {
+    var incomingEdgeSegmentsAtVertex = nextEdgeSegments[(int) vertex.getId()];
     if (incomingEdgeSegmentsAtVertex instanceof EdgeSegment) {
       return List.of((EdgeSegment) incomingEdgeSegmentsAtVertex);
     } else {
@@ -121,6 +126,14 @@ public class ShortestBushResultImpl implements ShortestBushResult {
    */
   @Override
   public double getCostToReach(Vertex vertex) {
+    return vertexMeasuredCost[(int) vertex.getId()];
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public double getCostFrom(Vertex vertex) {
     return vertexMeasuredCost[(int) vertex.getId()];
   }
 

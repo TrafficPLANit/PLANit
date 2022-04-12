@@ -14,8 +14,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMax;
-import org.goplanit.algorithms.shortest.MinMaxPathResult;
+import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
 import org.goplanit.logging.Logging;
@@ -318,8 +317,8 @@ public class AcyclicShortestPathTest {
   public void minMaxPathTest() {
     try {
       
-      ShortestPathAcyclicMinMax minMaxPathAlgo = new ShortestPathAcyclicMinMax(acyclicSubGraph, acyclicSubGraph.topologicalSort(true /*update*/), linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
-      MinMaxPathResult minMaxResult = minMaxPathAlgo.executeOneToAll(centroidA);
+      var minMaxPathAlgo = new ShortestPathAcyclicMinMaxGeneralised(acyclicSubGraph, true /*update sort*/, linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
+      var minMaxResult = minMaxPathAlgo.executeOneToAll(centroidA);
       
       // MIN PATH RESULT
       minMaxResult.setMinPathState(true);

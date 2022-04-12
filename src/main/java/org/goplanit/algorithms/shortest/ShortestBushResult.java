@@ -15,15 +15,16 @@ import org.goplanit.utils.id.IdGroupingToken;
  *
  */
 public interface ShortestBushResult {
-  
 
-  /** Create the bush in the form of a directed acyclic subgraph of its parent network (layer) for a given origin-destination vertex
+  /**
+   * Create the bush in the form of a directed acyclic subgraph of its parent network (layer) for a given origin-destination vertex
    * 
-   * @param idToken to use for the Acyclic subgraph's id generation
+   * @param idToken     to use for the Acyclic subgraph's id generation
+   * @param origin      to use
    * @param destination to use
    * @return created acyclic graph
    */
-  public abstract ACyclicSubGraph createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex destination);  
+  public abstract ACyclicSubGraph createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex origin, final DirectedVertex destination);
 
   /**
    * Find the incoming edge segments for a given vertex
@@ -31,7 +32,7 @@ public interface ShortestBushResult {
    * @param vertex to get incoming segment for
    * @return incoming edge segments
    */
-  public abstract List<EdgeSegment> getIncomingEdgeSegmentsForVertex(Vertex vertex);
+  public abstract List<EdgeSegment> getNextEdgeSegmentsForVertex(Vertex vertex);
 
   /**
    * Collect the cost to reach the given vertex

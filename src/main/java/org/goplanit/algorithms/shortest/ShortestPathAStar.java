@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
-import org.goplanit.algorithms.shortest.ShortestPathResultGeneralisedImpl.ResultType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.graph.EdgeSegment;
@@ -166,7 +165,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
     PlanItException.throwIf(currentVertex.getId() != destination.getId(),
         String.format("destination %s (id:%d) unreachable from origin %S (id:%d)", destination.getXmlId(), destination.getId(), origin.getXmlId(), origin.getId()));
 
-    return new ShortestPathResultGeneralisedImpl(vertexMeasuredCost, incomingEdgeSegment, ResultType.ONE_TO_ONE);
+    return new ShortestPathResultGeneralised(vertexMeasuredCost, incomingEdgeSegment, ShortestSearchType.ONE_TO_ONE);
   }
 
 }

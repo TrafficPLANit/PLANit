@@ -1,9 +1,11 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.Iterator;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMax;
-import org.goplanit.algorithms.shortest.MinMaxPathResult;
+import org.goplanit.algorithms.shortest.MinMaxPathOneToAllResult;
+import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.OdZone;
 
@@ -60,6 +62,14 @@ public class OriginBush extends Bush {
    * {@inheritDoc}
    */
   @Override
+  public Iterator<DirectedVertex> getTopologicalIterator(boolean originDestinationDirection) {
+    return this.dag.getTopologicalIterator(requireTopologicalSortUpdate, !originDestinationDirection /* do not invert direction, dag is in od direction */ );
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public OriginBush clone() {
     return new OriginBush(this);
   }
@@ -72,14 +82,12 @@ public class OriginBush extends Bush {
    * @param totalTransportNetworkVertices needed to be able to create primitive array recording the (partial) subgraph backward link segment results (efficiently)
    * @return minMaxPathResult, null if unable to complete
    */
-  public MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
-    /* update topological ordering if needed - Always done for now, should be optimised */
-    var topologicalOrder = getTopologicallySortedVertices();
-    requireTopologicalSortUpdate = false;
+  public MinMaxPathOneToAllResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
+
     var dagOriginRootVertex = dag.getRootVertices().iterator().next();
 
     /* build min/max path tree */
-    var minMaxBushPaths = new ShortestPathAcyclicMinMax(dag, topologicalOrder, linkSegmentCosts, totalTransportNetworkVertices);
+    var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(dag, requireTopologicalSortUpdate, linkSegmentCosts, totalTransportNetworkVertices);
     try {
       return minMaxBushPaths.executeOneToAll(dagOriginRootVertex);
     } catch (Exception e) {

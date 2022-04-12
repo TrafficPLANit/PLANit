@@ -10,11 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
-import org.goplanit.algorithms.shortest.ShortestBushOneToAll;
-import org.goplanit.algorithms.shortest.ShortestBushOneToAllImpl;
-import org.goplanit.algorithms.shortest.ShortestPathOneToAll;
-import org.goplanit.algorithms.shortest.ShortestBushResult;
 import org.goplanit.algorithms.shortest.ShortestPathOneToAllResult;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBush;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingScheme;
@@ -22,7 +19,6 @@ import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.gap.GapFunction;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
-import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
@@ -32,7 +28,6 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
 
 /**
@@ -46,8 +41,8 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategy.class.getCanonicalName());
 
-  /** track bushes per origin (with non-zero demand) */
-  protected final OriginBush[] bushes;
+  /** tracked bushes (with non-zero demand) */
+  protected Bush[] bushes;
 
   /** track all unique PASs */
   protected final PasManager pasManager;
@@ -252,9 +247,9 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
             if (newPas == null) {
               continue;
             }
-            
+
             newPass.add(newPas);
-            newPas.updateCost(linkSegmentCosts);  
+            newPas.updateCost(linkSegmentCosts);
 
             // BRANCH SHIFT
             {
@@ -374,18 +369,24 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
   }
 
   /**
-   * Initialise the origin sLTM bush by including the DAGs for each origin-destination. While adding make sure the labelling is consistent with the adopted labelling strategy.
-   * single path but comprises multiple (implicit) paths, we split the OD demand proportionally
+   * Let derived implementations create the empty bushes as desired before populating them
+   * 
+   * @return created empty bushes suitable for this strategy
+   */
+  protected abstract Bush[] createEmptyBushes();
+
+  /**
+   * Initialise the sLTM bush by including the relevant DAGs based on available demand and bush layout. When equal costs are found between alternative paths OD demand is to be
+   * split proportionally
    * <p>
    * Add the edge segments to the bush and update the turn sending flow accordingly.
    * 
-   * @param originBush                  to use
-   * @param destination                 to use
-   * @param originDestinationDemandPcuH to use
-   * @param destinationDAG              to use
+   * @param bush                  to use
+   * @param zoning                to use
+   * @param odDemands             to use
+   * @param shortestBushAlgorithm to use
    */
-  protected abstract void initialiseBushForDestination(final OriginBush originBush, final OdZone destination, final Double originDestinationDemandPcuH,
-      final ACyclicSubGraph destinationDAG);
+  protected abstract void initialiseBush(Bush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm);
 
   /**
    * Initialise bushes. Find shortest bush for each origin and add the links, flow, and destination labelling to the bush
@@ -398,37 +399,15 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
     Zoning zoning = getTransportNetwork().getZoning();
     OdDemands odDemands = getOdDemands();
-    for (var origin : zoning.getOdZones()) {
-      ShortestBushResult oneToAllResult = null;
-      OriginBush originBush = null;
-      for (var destination : zoning.getOdZones()) {
-        if (destination.idEquals(origin)) {
-          continue;
-        }
-
-        Double currOdDemand = odDemands.getValue(origin, destination);
-        if (currOdDemand != null && currOdDemand > 0) {
-
-          if (originBush == null) {
-            /* register new bush */
-            originBush = new OriginBush(getIdGroupingToken(), origin, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers());
-            bushes[(int) origin.getOdZoneId()] = originBush;
-          }
-
-          /* find one-to-all shortest paths */
-          if (oneToAllResult == null) {
-            oneToAllResult = shortestBushAlgorithm.executeOneToAll(origin.getCentroid());
-          }
-
-          /* initialise bush with this destination shortest path */
-          var destinationDag = oneToAllResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), destination.getCentroid());
-          initialiseBushForDestination(originBush, destination, currOdDemand, destinationDag);
-        }
-
+    for (int index = 0; index < bushes.length; ++index) {
+      Bush bush = bushes[index];
+      if (bush == null) {
+        continue;
       }
+      initialiseBush(bush, zoning, odDemands, shortestBushAlgorithm);
 
-      if (originBush != null && getSettings().isDetailedLogging()) {
-        LOGGER.info(originBush.toString());
+      if (bush != null && getSettings().isDetailedLogging()) {
+        LOGGER.info(bush.toString());
       }
     }
   }
@@ -448,19 +427,19 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * @param linkSegmentCosts to use
    * @return one-to-all shortest bush algorithm
    */
-  protected ShortestBushOneToAll createNetworkShortestBushAlgo(final double[] linkSegmentCosts) {
+  protected ShortestBushGeneralised createNetworkShortestBushAlgo(final double[] linkSegmentCosts) {
     final int numberOfEdgeSegments = getTransportNetwork().getNumberOfEdgeSegmentsAllLayers();
     final int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
-    return new ShortestBushOneToAllImpl(linkSegmentCosts, numberOfEdgeSegments, numberOfVertices);
+    return new ShortestBushGeneralised(linkSegmentCosts, numberOfEdgeSegments, numberOfVertices);
   }
 
   /**
-   * Create a network wide shortest path algorithm based on provided costs
+   * Create a network wide Dijkstra shortest path algorithm based on provided costs
    * 
    * @param linkSegmentCosts to use
-   * @return one-to-all shortest path algorithm
+   * @return Dijkstra shortest path algorithm
    */
-  protected ShortestPathOneToAll createNetworkShortestPathAlgo(final double[] linkSegmentCosts) {
+  protected ShortestPathDijkstra createNetworkShortestPathAlgo(final double[] linkSegmentCosts) {
     final int numberOfEdgeSegments = getTransportNetwork().getNumberOfEdgeSegmentsAllLayers();
     final int numberOfVertices = getTransportNetwork().getNumberOfVerticesAllLayers();
     return new ShortestPathDijkstra(linkSegmentCosts, numberOfEdgeSegments, numberOfVertices);
@@ -492,9 +471,14 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
   @Override
   public void createInitialSolution(double[] initialLinkSegmentCosts) {
     try {
+
       /* delegate to concrete implementation */
+      if (this.bushes == null || this.bushes.length == 0) {
+        this.bushes = createEmptyBushes();
+      }
       initialiseBushes(initialLinkSegmentCosts);
 
+      /* update loading with information */
       getLoading().setBushes(bushes);
       getLoading().setPasManager(this.pasManager);
 
@@ -515,7 +499,6 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
   public StaticLtmBushStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
       final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
-    this.bushes = new OriginBush[transportModelNetwork.getZoning().getOdZones().size()];
     this.pasManager = new PasManager();
     this.pasManager.setDetailedLogging(settings.isDetailedLogging());
     this.equalFlowDistributedPass = new HashSet<>();

@@ -224,7 +224,7 @@ public class ShortestPathTest {
       ShortestPathOneToAllResult result = dijkstra.executeOneToAll(centroidA);
 
       double costAto1 = result.getCostToReach(networkLayer.getNodes().get(1));
-      assertEquals(costAto1, 10, Precision.EPSILON_6);
+      assertEquals(10, costAto1, Precision.EPSILON_6);
 
       double costAto2 = result.getCostToReach(networkLayer.getNodes().get(2));
       assertEquals(costAto2, 22, Precision.EPSILON_6);
@@ -249,7 +249,7 @@ public class ShortestPathTest {
 
     } catch (Exception e) {
       e.printStackTrace();
-      fail("Error when testing Dijsktra one-to-all shortest path");
+      fail("Error when testing Dijsktra shortest path - one-to-all");
     }
   }
 
@@ -311,7 +311,7 @@ public class ShortestPathTest {
 
     } catch (Exception e) {
       e.printStackTrace();
-      fail("Error when testing Dijsktra shortest path");
+      fail("Error when testing Dijsktra shortest path - all-to-one ");
     }
   }
 

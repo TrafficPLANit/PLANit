@@ -22,12 +22,9 @@ import org.goplanit.utils.path.DirectedPathFactory;
  * @author markr
  *
  */
-public class ShortestPathResultGeneralisedImpl implements ShortestPathOneToAllResult, ShortestPathAllToOneResult {
+public class ShortestPathResultGeneralised implements ShortestPathOneToAllResult, ShortestPathAllToOneResult {
 
-  enum ResultType {
-    ALL_TO_ONE, ONE_TO_ALL, ONE_TO_ONE;
-  }
-
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ShortestPathOneToAllResult.class.getCanonicalName());
 
   /**
@@ -40,8 +37,8 @@ public class ShortestPathResultGeneralisedImpl implements ShortestPathOneToAllRe
    */
   protected final EdgeSegment[] nextEdgeSegment;
 
-  /** reflects the active result type */
-  protected final ResultType resultType;
+  /** reflects the active type */
+  protected final ShortestSearchType resultType;
 
   /** depending on configuration this function collects vertex at desired edge segment extremity */
   protected Function<EdgeSegment, DirectedVertex> getVertexAtExtreme;
@@ -51,24 +48,15 @@ public class ShortestPathResultGeneralisedImpl implements ShortestPathOneToAllRe
    * 
    * @param vertexMeasuredCost  measured costs to get to the vertex (by id)
    * @param incomingEdgeSegment the incoming edge segment for each vertex (by id)
-   * @param resultType          used
+   * @param searchType          used (one-to-all, all-to-one, etc)
    */
-  protected ShortestPathResultGeneralisedImpl(double[] vertexMeasuredCost, EdgeSegment[] incomingEdgeSegment, ResultType resultType) {
+  protected ShortestPathResultGeneralised(double[] vertexMeasuredCost, EdgeSegment[] incomingEdgeSegment, ShortestSearchType searchType) {
     this.vertexMeasuredCost = vertexMeasuredCost;
     this.nextEdgeSegment = incomingEdgeSegment;
-    this.resultType = resultType;
-    switch (resultType) {
-    case ONE_TO_ALL:
-    case ONE_TO_ONE:
-      getVertexAtExtreme = ShortestPathGeneralised.getUpstreamVertex;
-      break;
-    case ALL_TO_ONE:
-      getVertexAtExtreme = ShortestPathGeneralised.getDownstreamVertex;
-      break;
-    default:
-      LOGGER.severe(String.format("Result type %s not supported by shortest path result", resultType.toString()));
-      break;
-    }
+    this.resultType = searchType;
+
+    /* search direction for creating paths in opposite direction as compared to shortest path search itself */
+    this.getVertexAtExtreme = ShortestPathUtils.getVertexFromEdgeSegmentLambda(searchType, true /* invert */ );
   }
 
   /**

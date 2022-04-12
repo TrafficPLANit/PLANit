@@ -25,48 +25,10 @@ import org.goplanit.utils.misc.Pair;
  */
 public class ShortestPathGeneralised {
 
-  /** Function collecting upstream vertex for edge segment */
-  protected static final Function<EdgeSegment, DirectedVertex> getUpstreamVertex = e -> e.getUpstreamVertex();
-
-  /** Function collecting downstream vertex for edge segment */
-  protected static final Function<EdgeSegment, DirectedVertex> getDownstreamVertex = e -> e.getDownstreamVertex();
-
-  /** Function collecting entry edge segments for vertex */
-  protected static final Function<DirectedVertex, Iterable<EdgeSegment>> getEntryEdgeSegments = v -> v.getEntryEdgeSegments();
-
-  /** Function collecting exit edge segments for vertex */
-  protected static final Function<DirectedVertex, Iterable<EdgeSegment>> getExitEdgeSegments = v -> v.getExitEdgeSegments();
-
   /** Comparator to sort based on the second elements minimum value (ascending order) */
-  protected static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator = Comparator.comparing(Pair<DirectedVertex, Double>::second, (f1, f2) -> {
+  private static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator = Comparator.comparing(Pair<DirectedVertex, Double>::second, (f1, f2) -> {
     return f1.compareTo(f2);
   });
-
-  /**
-   * Reference to current origin for which we have collected shortest paths on a ONE-TO-ALL basis
-   */
-  protected DirectedVertex currentSource = null;
-
-  /**
-   * Track the cost for each edge to determine shortest paths
-   */
-  protected final double[] edgeSegmentCosts;
-
-  /**
-   * The number of edge segments considered
-   */
-  protected final int numberOfEdgeSegments;
-
-  /**
-   * The number of vertices in the network
-   */
-  protected final int numberOfVertices;
-
-  /** depending on configuration this function collects vertex at desired edge segment extremity */
-  protected Function<EdgeSegment, DirectedVertex> getVertexAtExtreme;
-
-  /** depending on configuration this function collects edge segments in entry or exit direction of vertex */
-  protected Function<DirectedVertex, Iterable<EdgeSegment>> getEdgeSegmentsInDirection;
 
   /**
    * Generalised shortest-X search
@@ -83,8 +45,8 @@ public class ShortestPathGeneralised {
     Arrays.fill(vertexMeasuredCost, Double.MAX_VALUE);
     vertexMeasuredCost[(int) currentSource.getId()] = 0.0;
     // precedingVertex for each vertex (used to reconstruct path)
-    EdgeSegment[] incomingEdgeSegment = new EdgeSegment[numberOfVertices];
-    Arrays.fill(incomingEdgeSegment, null);
+    EdgeSegment[] nextEdgeSegmentByVertex = new EdgeSegment[numberOfVertices];
+    Arrays.fill(nextEdgeSegmentByVertex, null);
 
     PriorityQueue<Pair<DirectedVertex, Double>> openVertices = new PriorityQueue<Pair<DirectedVertex, Double>>(numberOfVertices, pairSecondComparator);
     openVertices.add(Pair.of(currentSource, 0.0)); // cost to reach self is zero
@@ -130,6 +92,32 @@ public class ShortestPathGeneralised {
   }
 
   /**
+   * Reference to starting point for search for which we collect shortest paths from/to
+   */
+  protected DirectedVertex currentSource = null;
+
+  /**
+   * Track the cost for each edge to determine shortest paths
+   */
+  protected final double[] edgeSegmentCosts;
+
+  /**
+   * The number of edge segments considered
+   */
+  protected final int numberOfEdgeSegments;
+
+  /**
+   * The number of vertices in the network
+   */
+  protected final int numberOfVertices;
+
+  /** depending on configuration this function collects vertex at desired edge segment extremity */
+  protected Function<EdgeSegment, DirectedVertex> getVertexAtExtreme;
+
+  /** depending on configuration this function collects edge segments in entry or exit direction of vertex */
+  protected Function<DirectedVertex, Iterable<EdgeSegment>> getEdgeSegmentsInDirection;
+
+  /**
    * Generalised one-to-all shortest-X search where the test whether or not an alternative edge segment is shortest is dictated by the provided predicate while the processing of
    * the alternative edge segment when the predicate tests as true is outsourced to the provided consumer. It is however assumed that only a single cost is stored per vertex
    * resulting in the returned vertex measured cost array
@@ -139,8 +127,8 @@ public class ShortestPathGeneralised {
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
    */
   protected double[] executeOneToAll(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
-    this.getEdgeSegmentsInDirection = ShortestPathGeneralised.getExitEdgeSegments;
-    this.getVertexAtExtreme = ShortestPathGeneralised.getDownstreamVertex;
+    this.getEdgeSegmentsInDirection = ShortestPathUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ONE_TO_ALL);
+    this.getVertexAtExtreme = ShortestPathUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ONE_TO_ALL);
     return execute(verifyVertex, shortestIncomingEdgeSegmentConsumer);
   }
 
@@ -154,8 +142,8 @@ public class ShortestPathGeneralised {
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
    */
   protected double[] executeAllToOne(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestIncomingEdgeSegmentConsumer) {
-    this.getEdgeSegmentsInDirection = ShortestPathGeneralised.getEntryEdgeSegments;
-    this.getVertexAtExtreme = ShortestPathGeneralised.getUpstreamVertex;
+    this.getEdgeSegmentsInDirection = ShortestPathUtils.getEdgeSegmentsInDirectionLambda(ShortestSearchType.ALL_TO_ONE);
+    this.getVertexAtExtreme = ShortestPathUtils.getVertexFromEdgeSegmentLambda(ShortestSearchType.ALL_TO_ONE);
     return execute(verifyVertex, shortestIncomingEdgeSegmentConsumer);
   }
 

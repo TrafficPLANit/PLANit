@@ -2,7 +2,6 @@ package org.goplanit.algorithms.shortest;
 
 import java.util.function.BiPredicate;
 
-import org.goplanit.algorithms.shortest.ShortestPathResultGeneralisedImpl.ResultType;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.EdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -48,10 +47,9 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised implements Sho
    * 
    * @param currentOrigin origin vertex of source node
    * @return shortest path result that can be used to extract paths
-   * @throws PlanItException thrown if an error occurs
    */
   @Override
-  public ShortestPathOneToAllResult executeOneToAll(DirectedVertex currentOrigin) throws PlanItException {
+  public ShortestPathOneToAllResult executeOneToAll(DirectedVertex currentOrigin) {
     this.currentSource = currentOrigin;
     this.shortestEdgeSegmentOfVertex = new EdgeSegment[numberOfVertices];
 
@@ -60,7 +58,7 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised implements Sho
      */
     double[] vertexMeasuredCost = super.executeOneToAll(isShorterPredicate, es -> shortestEdgeSegmentOfVertex[(int) es.getDownstreamVertex().getId()] = es);
 
-    return new ShortestPathResultGeneralisedImpl(vertexMeasuredCost, shortestEdgeSegmentOfVertex, ResultType.ONE_TO_ALL);
+    return new ShortestPathResultGeneralised(vertexMeasuredCost, shortestEdgeSegmentOfVertex, ShortestSearchType.ONE_TO_ALL);
   }
 
   /**
@@ -76,10 +74,10 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised implements Sho
     this.shortestEdgeSegmentOfVertex = new EdgeSegment[numberOfVertices];
 
     /*
-     * found shortest path costs to each vertex for current origin. When deemed shortest, the incoming edge segment is stored on the array
+     * found shortest path costs from each vertex to current destination. When deemed shortest, the outgoing edge segment is stored on the array
      */
     double[] vertexMeasuredCost = super.executeAllToOne(isShorterPredicate, es -> shortestEdgeSegmentOfVertex[(int) es.getUpstreamVertex().getId()] = es);
 
-    return new ShortestPathResultGeneralisedImpl(vertexMeasuredCost, shortestEdgeSegmentOfVertex, ResultType.ALL_TO_ONE);
+    return new ShortestPathResultGeneralised(vertexMeasuredCost, shortestEdgeSegmentOfVertex, ShortestSearchType.ALL_TO_ONE);
   }
 }

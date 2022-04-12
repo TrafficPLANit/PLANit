@@ -1,8 +1,11 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.Iterator;
 import java.util.logging.Logger;
 
-import org.goplanit.algorithms.shortest.MinMaxPathResult;
+import org.goplanit.algorithms.shortest.MinMaxPathAllToOneResult;
+import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
+import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.OdZone;
 
@@ -48,6 +51,14 @@ public class DestinationBush extends Bush {
    * {@inheritDoc}
    */
   @Override
+  public Iterator<DirectedVertex> getTopologicalIterator(boolean originDestinationDirection) {
+    return dag.getTopologicalIterator(requireTopologicalSortUpdate, originDestinationDirection /* reverse for od direction since dag is destination to origin oriented */);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public DestinationBush clone() {
     return new DestinationBush(this);
   }
@@ -60,20 +71,15 @@ public class DestinationBush extends Bush {
    * @param totalTransportNetworkVertices number of vertices in overall network needed to be able to construct result per vertex based on id
    * @return minMaxPathResult, null if unable to complete
    */
-  public MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
-    // TODO:
-//    /* update topological ordering if needed - Always done for now, should be optimised */
-//    var topologicalOrder = getTopologicallySortedVertices();
-//    requireTopologicalSortUpdate = false;
-//    var dagOriginRootVertex = dag.getRootVertices().iterator().next();
-//
-//    /* build min/max path tree */
-//    var minMaxBushPaths = new AcyclicMinMaxShortestPathAlgorithm(dag, topologicalOrder, linkSegmentCosts, totalTransportNetworkVertices);
-//    try {
-//      return minMaxBushPaths.executeOneToAll(dagOriginRootVertex);
-//    } catch (Exception e) {
-//      LOGGER.severe(String.format("Unable to complete minmax path three for bush rooted at origin %s", dagOriginRootVertex.getXmlId()));
-//    }
+  public MinMaxPathAllToOneResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
+
+    /* build min/max path tree */
+    var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(dag, requireTopologicalSortUpdate, linkSegmentCosts, totalTransportNetworkVertices);
+    try {
+      return minMaxBushPaths.executeAllToOne(getDestination().getCentroid());
+    } catch (Exception e) {
+      LOGGER.severe(String.format("Unable to complete minmax path three for bush ending at destination %s", getDestination().getXmlId()));
+    }
     return null;
   }
 
@@ -95,12 +101,4 @@ public class DestinationBush extends Bush {
     super.addOriginDemandPcuH(originZone, demandPcuH);
   }
 
-  /**
-   * Get the origin demand
-   * 
-   * @return demand (if any)
-   */
-  public Double getOriginDemandPcuH(OdZone originZone) {
-    return super.getOriginDemandPcuH(originZone);
-  }
 }
