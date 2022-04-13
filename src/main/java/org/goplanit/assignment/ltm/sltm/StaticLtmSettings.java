@@ -19,11 +19,8 @@ public class StaticLtmSettings implements Cloneable {
   /** flag indicating if detailed logging is enabled */
   private Boolean detailedLogging = null;
 
-  /** flag indicating to apply bush based assignment, or path based, default is true meaning bush based */
-  private Boolean bushBased = BUSH_BASED_DEFAULT;
-
-  /** flag indicating to apply bush based destination labelling, default is true, when false smart labelling is used. Flag only used when {@link #bushBased} is set to true */
-  private Boolean bushBasedDestinationLabelling = BUSH_BASED_LABELLING_DEFAULT;
+  /** flag indicating tthe type of sLTM assignment to apply, bush or path based */
+  private StaticLtmType sLtmType = DEFAULT_SLTM_TYPE;
 
   /**
    * flag indicating what to do when cost and derivative of cost on PAS alternative is equal, yet the flows are not. When false, this is considered a solution, when true an attempt
@@ -31,11 +28,8 @@ public class StaticLtmSettings implements Cloneable {
    */
   private Boolean enforceMaxEntropyFlowSolution = ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT;
 
-  /** default setting for assignment is to apply a bush-based type of implementation over a path based one */
-  public static boolean BUSH_BASED_DEFAULT = true;
-
-  /** default setting for bush-based assignment labelling is destination based labelling */
-  public static boolean BUSH_BASED_LABELLING_DEFAULT = true;
+  /** default setting for assignment is to apply an origin-based bush-based type of implementation over a path based one */
+  public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmType.ORIGIN_BUSH_BASED;
 
   /** default setting for enforcing a flow proportional solution when possible */
   public static boolean ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT = false;
@@ -52,7 +46,7 @@ public class StaticLtmSettings implements Cloneable {
    * @param staticLtmSettings to copy
    */
   public StaticLtmSettings(StaticLtmSettings staticLtmSettings) {
-    this.bushBased = staticLtmSettings.bushBased.booleanValue();
+    this.sLtmType = staticLtmSettings.sLtmType;
     this.detailedLogging = staticLtmSettings.detailedLogging.booleanValue();
     this.disableStorageConstraints = staticLtmSettings.disableStorageConstraints.booleanValue();
     this.enforceMaxEntropyFlowSolution = staticLtmSettings.enforceMaxEntropyFlowSolution.booleanValue();
@@ -108,20 +102,16 @@ public class StaticLtmSettings implements Cloneable {
   }
 
   public Boolean isBushBased() {
-    return bushBased;
+    return this.sLtmType != StaticLtmType.PATH_BASED;
   }
 
-  public void setBushBased(Boolean flag) {
-    this.bushBased = flag;
+  public void setSltmType(StaticLtmType type) {
+    this.sLtmType = type;
   }
-
-  public Boolean isBushBasedDestinationLabelling() {
-    return bushBasedDestinationLabelling;
-  }
-
-  public void setBushBasedDestinationLabelling(Boolean flag) {
-    this.bushBasedDestinationLabelling = flag;
-  }
+  
+  public StaticLtmType getSltmType() {
+    return this.sLtmType;
+  }  
 
   public Boolean isEnforceMaxEntropyFlowSolution() {
     return enforceMaxEntropyFlowSolution;

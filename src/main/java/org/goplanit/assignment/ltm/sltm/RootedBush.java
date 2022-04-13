@@ -477,9 +477,6 @@ public abstract class RootedBush implements IdAble {
     final var getNextEdgeSegments = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(this, invertNextDirection);
     final var getNextVertex = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(this, invertNextDirection);
     
-    REWRITE SO RESULT IS NOT INVERTED WHICH WOULD MAKE IT IN LINE WITH SEARCH RESULT -> REQUIRES SIGNIFCANT REWRITE
-    + DEALING WITH RESULT IN CALLING METHODS ALSO NEEDS TO BE FLIPPED!
-
     /* start with eligible edge segments of reference vertex except alternative labelled segment */
     processedVertices.put(referenceVertex, null);
     var nextEdgeSegments = getNextEdgeSegments.apply(referenceVertex);

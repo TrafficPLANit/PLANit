@@ -70,7 +70,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
   }
 
   /**
-   * Check if an existing PAS exists that terminates at the given (bush) merge vertex. If so, it is considered a match when:
+   * Check if an existing PAS exists that terminates at the given bush vertex. If so, it is considered a match when:
    * <ul>
    * <li>The cheap alternative ends with a link segment that is not part of the bush (Assumed true, to be checked beforehand)</li>
    * <li>The expensive alternative overlaps with the bush (has non-zero flow)</li>
@@ -79,18 +79,18 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * When this holds, accept this PAS as a decent enough alternative to the true shortest path (which its cheaper segment might or might not overlap with, as long as it is close
    * enough to the potential reduced cost we'll take it to avoid exponential growth of PASs)
    * 
-   * @param originBush  to consider
+   * @param bush  to consider
    * @param mergeVertex where we identified a potential reduced cost compared to current bush
    * @param reducedCost between the shorter path and current shortest path in the bush
    * 
    * @return true when a match is found and bush is newly registered on a PAS, false otherwise
    */
-  private boolean extendBushWithSuitableExistingPas(final OriginBush originBush, final DirectedVertex mergeVertex, final double reducedCost) {
+  private boolean extendBushWithSuitableExistingPas(final RootedBush bush, final DirectedVertex mergeVertex, final double reducedCost) {
 
     boolean bushFlowThroughMergeVertex = false;
     for (var entrySegment : mergeVertex.getEntryEdgeSegments()) {
       for (var exitSegment : mergeVertex.getExitEdgeSegments()) {
-        if (originBush.containsTurnSendingFlow(entrySegment, exitSegment)) {
+        if (bush.containsTurnSendingFlow(entrySegment, exitSegment)) {
           bushFlowThroughMergeVertex = true;
           break;
         }
@@ -107,7 +107,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     }
 
     double[] alphas = getLoading().getCurrentFlowAcceptanceFactors();
-    Pas effectivePas = pasManager.findFirstSuitableExistingPas(originBush, mergeVertex, alphas, reducedCost);
+    Pas effectivePas = pasManager.findFirstSuitableExistingPas(bush, mergeVertex, alphas, reducedCost);
     if (effectivePas == null) {
       return false;
     }
@@ -116,9 +116,9 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
      * found -> register origin, shifting of flow occurs when updating pas, extending bush with low cost segment occurs automatically when shifting flow later (flow is added to low
      * cost link segments which will be created if non-existent on bush)
      */
-    effectivePas.registerBush(originBush);
+    effectivePas.registerBush(bush);
     if (getSettings().isDetailedLogging()) {
-      LOGGER.info(String.format("Origin %s added to PAS %s", originBush.getOrigin().getXmlId(), effectivePas.toString()));
+      LOGGER.info(String.format("%s %s added to PAS %s", bush.isInverted() ? "Destination" : "Origin", bush.getRootVertex().getXmlId(), effectivePas.toString()));
     }
     return true;
   }
@@ -167,8 +167,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     }
 
     /* S2 */
-    when result of bush.findBushAlternativeSubpath is reversed, below method interpretation of this result also needs to be flipped -> then add support for all-to-one result
-    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(coincideCloserToRootVertex, reducedCostVertex, highCostSegment.second(), highCostSegment.second().size(),
+    EdgeSegment[] s2 = PasManager.createSubpathArrayFrom(coincideCloserToRootVertex, reducedCostVertex, bush.getShortestSearchType(), highCostSegment.second(), highCostSegment.second().size(),
         truncateSpareArrayCapacity);
 
     /* register on existing PAS (if available) otherwise create new PAS */
@@ -209,6 +208,9 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
 
     for (int index = 0; index < bushes.length; ++index) {
       RootedBush bush = bushes[index];
+      if(bush == null) {
+        continue;
+      }
 
       /* within-bush min/max-paths */
       var minMaxPaths = bush.computeMinMaxShortestPaths(linkSegmentCosts, this.getTransportNetwork().getNumberOfVerticesAllLayers());
@@ -371,6 +373,27 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
   }
 
   /**
+   * Constructor
+   * 
+   * @param idGroupingToken       to use for internal managed ids
+   * @param assignmentId          of parent assignment
+   * @param transportModelNetwork to use
+   * @param settings              to use
+   * @param taComponents          to use for access to user configured assignment components
+   */
+  protected StaticLtmBushStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
+      final TrafficAssignmentComponentAccessee taComponents) {
+    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
+    
+    /* destination based bushes are inverted, so PASs are to be registered based on vertex farthest from root, i.e, farthest from destination, so at the upstream point of the PAS at its diverge */
+    boolean registerPassByDiverge = settings.getSltmType() == StaticLtmType.DESTINATION_BUSH_BASED;
+    this.pasManager = new PasManager(registerPassByDiverge);
+    
+    this.pasManager.setDetailedLogging(settings.isDetailedLogging());
+    this.equalFlowDistributedPass = new HashSet<>();
+  }
+
+  /**
    * Let derived implementations create the empty bushes as desired before populating them
    * 
    * @return created empty bushes suitable for this strategy
@@ -389,6 +412,15 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
    * @param shortestBushAlgorithm to use
    */
   protected abstract void initialiseBush(RootedBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm);
+
+  /**
+   * {@inheritDoc}
+   * 
+   * @param pas      to create flow shift executor for
+   * @param settings to use
+   * @return created executor
+   */
+  protected abstract PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings);
 
   /**
    * Initialise bushes. Find shortest bush for each origin and add the links, flow, and destination labelling to the bush
@@ -413,15 +445,6 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
       }
     }
   }
-
-  /**
-   * {@inheritDoc}
-   * 
-   * @param pas      to create flow shift executor for
-   * @param settings to use
-   * @return created executor
-   */
-  protected abstract PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings);
 
   /**
    * Create a network wide shortest bush algorithm based on provided costs
@@ -487,23 +510,6 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     } catch (PlanItException e) {
       LOGGER.severe(String.format("Unable to create initial bushes for sLTM %d", getAssignmentId()));
     }
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param idGroupingToken       to use for internal managed ids
-   * @param assignmentId          of parent assignment
-   * @param transportModelNetwork to use
-   * @param settings              to use
-   * @param taComponents          to use for access to user configured assignment components
-   */
-  public StaticLtmBushStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork, final StaticLtmSettings settings,
-      final TrafficAssignmentComponentAccessee taComponents) {
-    super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
-    this.pasManager = new PasManager();
-    this.pasManager.setDetailedLogging(settings.isDetailedLogging());
-    this.equalFlowDistributedPass = new HashSet<>();
   }
 
   //@formatter:off

@@ -57,19 +57,20 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   /**
    * Factory method to create the desired assignment strategy to use
    * 
-   * @return created strategy
+   * @return created strategy, null if unsupported type is set
    */
   private StaticLtmAssignmentStrategy createAssignmentStrategy() {
     /* create the assignment solution to apply */
-    if (settings.isBushBased()) {
-      if (settings.isBushBasedDestinationLabelling()) {
+    switch (settings.getSltmType()) {
+      case ORIGIN_BUSH_BASED:
         return new StaticLtmOriginBushDestLabelledStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
-      } else {
-        LOGGER.warning("Only destination based labelling for bush-based sLTM is supported, but not configured as such, aborting");
+      case DESTINATION_BUSH_BASED:
+        return new StaticLtmDestinationBushStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+      case PATH_BASED:
+        return new StaticLtmPathStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);        
+      default:
+        LOGGER.warning(String.format("Unsupported static LTM type chosen %s, aborting",settings.getSltmType()));
         return null;
-      }
-    } else {
-      return new StaticLtmPathStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
     }
   }
 
@@ -362,8 +363,8 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * 
    * @param flag when true activate, when false disable
    */
-  public void setActivateBushBased(boolean flag) {
-    settings.setBushBased(flag);
+  public void setType(StaticLtmType type) {
+    settings.setSltmType(type);
   }
 
   /**

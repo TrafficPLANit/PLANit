@@ -29,10 +29,10 @@ public class Pas {
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(Pas.class.getCanonicalName());
 
-  /** cheap PA segment s1 */
+  /** cheap PA segment s1 in downstream direction*/
   private EdgeSegment[] s1;
 
-  /** expensive PA segment s2 */
+  /** expensive PA segment s2 in downstream direction*/
   private EdgeSegment[] s2;
 
   /** cheap path cost */
@@ -183,20 +183,32 @@ public class Pas {
   /**
    * check if shortest path tree is overlapping with one of the alternatives
    * 
-   * @param pathToVerify to verify
+   * @param pathSearchResult to verify
    * @param lowCost      when true check with low cost alternative otherwise high cost
    * @return true when overlapping, false otherwise
    */
-  public boolean isOverlappingWith(ShortestPathResult pathToVerify, boolean lowCost) {
+  public boolean isOverlappingWith(ShortestPathResult pathSearchResult, boolean lowCost) {
     EdgeSegment[] alternative = lowCost ? s1 : s2;
     EdgeSegment currEdgeSegment = null;
     EdgeSegment matchingEdgeSegment = null;
-    for (int index = alternative.length - 1; index >= 0; --index) {
-      currEdgeSegment = alternative[index];
-      todo-> collect correct direction of vertex from result not assuming downstream vertex!
-      matchingEdgeSegment = pathToVerify.getNextEdgeSegmentForVertex(currEdgeSegment.getDownstreamVertex());
-      if (!currEdgeSegment.idEquals(matchingEdgeSegment)) {
-        return false;
+        
+    if(pathSearchResult.isInverted()) {
+      /* when search type (and result) is in inverted direction, the result is traversed in downstream direction, i.e., match from first to last */      
+      for (int index = 0; index < alternative.length; ++index) {
+        currEdgeSegment = alternative[index];
+        matchingEdgeSegment = pathSearchResult.getNextEdgeSegmentForVertex(currEdgeSegment.getUpstreamVertex());
+        if (!currEdgeSegment.idEquals(matchingEdgeSegment)) {
+          return false;
+        }
+      }
+    }else {
+      /* when search type (and result) is in regular direction, the result is traversed in upstream direction, i.e., match from last to first */
+      for (int index = alternative.length - 1; index >= 0; --index) {
+        currEdgeSegment = alternative[index];
+        matchingEdgeSegment = pathSearchResult.getNextEdgeSegmentForVertex(currEdgeSegment.getDownstreamVertex());
+        if (!currEdgeSegment.idEquals(matchingEdgeSegment)) {
+          return false;
+        }
       }
     }
     return true;
@@ -409,7 +421,7 @@ public class Pas {
   }
 
   /**
-   * A Pas equal sanother pas if the alternative segments are the same. The registered origins or current cost are not considered in this equality test
+   * A PAS equals another pas if the alternative segments are the same. The registered origins or current cost are not considered in this equality test
    */
   @Override
   public boolean equals(Object obj) {

@@ -177,8 +177,7 @@ public class AcyclicShortestPathTest {
       
       // SUBGRAPH -> containing all link segments except the connectoids in the wrong direction      
       long totalEdgeSegments = transportNetwork.getNumberOfEdgeSegmentsAllLayers();
-      acyclicSubGraph = new ACyclicSubGraphImpl(network.getNetworkGroupingTokenId(),(int) totalEdgeSegments);
-      acyclicSubGraph.addRootVertex(centroidA);
+      acyclicSubGraph = new ACyclicSubGraphImpl(network.getNetworkGroupingTokenId(), centroidA, false, (int) totalEdgeSegments);
 
       /* add all physical link segments */
       acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(0).getEdgeSegment(networkLayer.getNodes().get(1)));

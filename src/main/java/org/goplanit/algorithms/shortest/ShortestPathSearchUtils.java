@@ -8,7 +8,9 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
- * Some common utilities for various shortest path algorithms
+ * Some common utilities for various shortest path algorithms. The lambdas provided base their direction (up/downstream) on the direction used in the shortest path search NOT the results it yields.
+ * To traverse the results, the opposite direciton is required which can be obtained by inverting the call via a flag.
+ * 
  * 
  * @author markr
  *

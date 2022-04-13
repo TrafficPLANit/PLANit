@@ -7,7 +7,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
-import org.goplanit.algorithms.shortest.ShortestPathOneToAllResult;
+import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.StaticTrafficAssignment;
 import org.goplanit.cost.Cost;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
@@ -178,7 +178,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     long previousOriginZoneId = -1;
     // track the cost to reach each vertex in the network and the shortest path
     // segment used to get there
-    ShortestPathOneToAllResult shortestPathResult = null;
+    ShortestPathResult shortestPathResult = null;
     for (final var odDemandMatrixIter = odDemands.iterator(); odDemandMatrixIter.hasNext();) {
       final double odDemand = odDemandMatrixIter.next();
       final Zone currentOriginZone = odDemandMatrixIter.getCurrentOrigin();
@@ -274,7 +274,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @return the path cost for the calculated minimum cost path
    * @throws PlanItException thrown if there is an error
    */
-  private void updateNetworkFlowsForPath(final ShortestPathOneToAllResult shortestPathResult, final Zone origin, final Zone destination, final double odDemand,
+  private void updateNetworkFlowsForPath(final ShortestPathResult shortestPathResult, final Zone origin, final Zone destination, final double odDemand,
       final ModeData currentModeData) throws PlanItException {
 
     // prep
@@ -305,7 +305,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param shortestPathResult     costs for the shortest path results for the specified mode and origin-any destination
    */
   private void updateODOutputData(final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap, final Zone currentOriginZone, final Zone currentDestinationZone,
-      final double odDemand, final ShortestPathOneToAllResult shortestPathResult) {
+      final double odDemand, final ShortestPathResult shortestPathResult) {
 
     if (getOutputManager().isOutputTypeActive(OutputType.OD)) {
       var activeSubOutputTypes = ((OdOutputTypeConfiguration) getOutputManager().getOutputTypeConfiguration(OutputType.OD)).getActiveSubOutputTypes();
@@ -330,7 +330,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param destination        destination zone
    * @param shortestPathResult shortest path tree for given origin
    */
-  private void updatePathOutputData(Mode mode, OdPathMatrix odpathMatrix, Zone origin, Zone destination, ShortestPathOneToAllResult shortestPathResult) {
+  private void updatePathOutputData(Mode mode, OdPathMatrix odpathMatrix, Zone origin, Zone destination, ShortestPathResult shortestPathResult) {
 
     // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
     if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
