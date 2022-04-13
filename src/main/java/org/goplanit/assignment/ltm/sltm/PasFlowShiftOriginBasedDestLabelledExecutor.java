@@ -18,18 +18,12 @@ import org.goplanit.utils.math.Precision;
  * @author markr
  *
  */
-public class PasFlowShiftDestLabelledExecutor extends PasFlowShiftExecutor {
+public class PasFlowShiftOriginBasedDestLabelledExecutor extends PasFlowShiftExecutor {
 
   /**
    * Logger to use
    */
-  private final static Logger LOGGER = Logger.getLogger(PasFlowShiftDestLabelledExecutor.class.getCanonicalName());
-
-  /** the labelled (sending) flows per origin (map key) that traverse S2 */
-  protected final Map<RootedBush, Map<BushFlowLabel, Double>> s2DestinationLabelledFlows;
-
-  /** the labelled (sending) flows, per origin (map key) that traverse S1 */
-  protected final Map<RootedBush, Map<BushFlowLabel, Double>> s1DestinationLabelledFlows;
+  private final static Logger LOGGER = Logger.getLogger(PasFlowShiftOriginBasedDestLabelledExecutor.class.getCanonicalName());
 
   /**
    * Helper to perform a flow shift on a turn. If the turn has no more flow for the given label it is removed from the bush
@@ -206,7 +200,7 @@ public class PasFlowShiftDestLabelledExecutor extends PasFlowShiftExecutor {
   /**
    * {@inheritDoc}
    */
-  protected void executeOriginFlowShift(RootedBush origin, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
+  protected void executeBushFlowShift(RootedBush origin, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
     /* prep - pas */
     final var s2 = pas.getAlternative(false);
     final var s1 = pas.getAlternative(true);
@@ -277,10 +271,8 @@ public class PasFlowShiftDestLabelledExecutor extends PasFlowShiftExecutor {
    * @param pas      to use
    * @param settings to use
    */
-  protected PasFlowShiftDestLabelledExecutor(final Pas pas, final StaticLtmSettings settings) {
+  protected PasFlowShiftOriginBasedDestLabelledExecutor(final Pas pas, final StaticLtmSettings settings) {
     super(pas, settings);
-    this.s1DestinationLabelledFlows = new HashMap<>();
-    this.s2DestinationLabelledFlows = new HashMap<>();
   }
 
 }

@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
@@ -23,14 +22,9 @@ import org.goplanit.utils.misc.CollectionUtils;
  * @author markr
  *
  */
-public class ShortestBushResultGeneralised implements ShortestBushResult {
+public class ShortestBushResultGeneralised extends ShortestResultGeneralised implements ShortestBushResult {
 
   private static final Logger LOGGER = Logger.getLogger(ShortestBushResultGeneralised.class.getCanonicalName());
-
-  /**
-   * the costs found by a shortest path run
-   */
-  protected final double[] vertexMeasuredCost;
 
   /**
    * the next edge segment(s) to reach the vertex with the given measured cost. If only a single edge segment is present, that is what is stored, otherwise it is a list of edge
@@ -41,25 +35,19 @@ public class ShortestBushResultGeneralised implements ShortestBushResult {
   /** number of edge segments in the parent network */
   protected final int numberOfEdgeSegments;
 
-  /** depending on configuration this function collects vertex at desired edge segment extremity */
-  protected Function<EdgeSegment, DirectedVertex> getVertexAtExtreme;
-
   /**
    * Constructor only to be used by shortest path algorithms
    * 
    * @param origin               to use
    * @param vertexMeasuredCost   measured costs to get to the vertex (by id)
-   * @param nextEdgeSegments     the found next edge segment for each vertex (by id)
+   * @param nextEdgeSegmentsByVertex     the found next edge segment for each vertex (by id)
    * @param numberOfEdgeSegments on the parent network
    * @param searchType           used (one-to-all, all-to-one, etc)
    */
-  protected ShortestBushResultGeneralised(double[] vertexMeasuredCost, Object[] nextEdgeSegments, int numberOfEdgeSegments, ShortestSearchType searchType) {
-    this.vertexMeasuredCost = vertexMeasuredCost;
-    this.nextEdgeSegments = nextEdgeSegments;
+  protected ShortestBushResultGeneralised(double[] vertexMeasuredCost, Object[] nextEdgeSegmentsByVertex, int numberOfEdgeSegments, ShortestSearchType searchType) {
+    super(vertexMeasuredCost, searchType);
+    this.nextEdgeSegments = nextEdgeSegmentsByVertex;
     this.numberOfEdgeSegments = numberOfEdgeSegments;
-
-    /* search direction for creating paths in opposite direction as compared to shortest bush search itself */
-    this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(searchType, true /* invert */ );
   }
 
   /**
@@ -68,22 +56,19 @@ public class ShortestBushResultGeneralised implements ShortestBushResult {
   @Override
   public ACyclicSubGraph createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex origin, final DirectedVertex destination) {
 
-    var dag = new ACyclicSubGraphImpl(idToken, origin, false /* not inverted */, numberOfEdgeSegments);
+    var startEndPair = getStartEndVertexForResultTraversal(origin, destination);
+    DirectedVertex startSearchVertex = startEndPair.first();
+    DirectedVertex endSearchVertex = startEndPair.second(); // is also root of dag since we always end up back at the root while traversing search result
+    
+    var dag = new ACyclicSubGraphImpl(idToken, endSearchVertex, isInverted(), numberOfEdgeSegments);
 
     // extract bush from destination -> backwards to origin
     TreeSet<Vertex> openVertices = new TreeSet<Vertex>();
     Set<Vertex> processedVertices = new HashSet<Vertex>();
-    openVertices.add(destination);
+    openVertices.add(startSearchVertex);
     while (!openVertices.isEmpty()) {
       var currVertex = openVertices.first();
       openVertices.remove(currVertex);
-
-      int currVertexId = (int) destination.getId();
-      var previousEdgeSegmentsOnPath = nextEdgeSegments[currVertexId];
-      if (previousEdgeSegmentsOnPath == null) {
-        /* unable to continue populating bush */
-        return null;
-      }
 
       /* add all eligible upstream segments to the dag and register their upstream vertices (if unprocessed) for further processing */
       List<EdgeSegment> eligibleNextEdgeSegments = getNextEdgeSegmentsForVertex(currVertex);
@@ -95,7 +80,7 @@ public class ShortestBushResultGeneralised implements ShortestBushResult {
             openVertices.add(nextVertex);
           }
         }
-      } else if (!currVertex.equals(origin)) {
+      } else if (!currVertex.equals(endSearchVertex)) {
         LOGGER.warning(String.format("No eligible next segments found for regular vertex (%s) on shortest-bush, this shouldn't happen", currVertex.getXmlId()));
         continue;
       }

@@ -110,22 +110,26 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
 
     AcyclicVertexData vertexData = getVertexData(vertex);
     preVisit(vertexData, counter);
+    
+    var getNextVertex = EdgeSegment.getVertexForEdgeSegmentLambda(isDirectionInverted());
+    var getNextEdgeSegments = DirectedVertex.getEdgeSegmentsForVertexLambda(isDirectionInverted());
 
     boolean isAcyclic = true;
-    for (EdgeSegment exitEdgeSegment : vertex.getExitEdgeSegments()) {
-      if (containsEdgeSegment(exitEdgeSegment)) {
-        DirectedVertex downstreamVertex = exitEdgeSegment.getDownstreamVertex();
-        AcyclicVertexData downstreamVertexData = getVertexData(downstreamVertex);
-        if (downstreamVertexData.preVisitIndex == 0) {
+    var nextEdgeSegments = getNextEdgeSegments.apply(vertex);
+    for (EdgeSegment nextEdgeSegment : nextEdgeSegments) {
+      if (containsEdgeSegment(nextEdgeSegment)) {
+        DirectedVertex nextVertex = getNextVertex.apply(nextEdgeSegment);
+        AcyclicVertexData nextVertexData = getVertexData(nextVertex);
+        if (nextVertexData.preVisitIndex == 0) {
           /* valid so far, not yet explored at all, proceed */
-          isAcyclic = traverseRecursively(downstreamVertex, visited, counter, topologicalOrder);
-        } else if (downstreamVertexData.postVisitIndex == 0) {
+          isAcyclic = traverseRecursively(nextVertex, visited, counter, topologicalOrder);
+        } else if (nextVertexData.postVisitIndex == 0) {
           /*
            * not valid, when already visited before, then it must have been fully explored, if not it means that this vertex being expanded originates from this (not fully
            * exhausted) downstream vertex and it ends up at the starting point again (current downstream vertex) -> cycle, not a DAG
            */
           isAcyclic = false;
-          LOGGER.warning(String.format("Cycle detected in supposed acyclic graph at vertex %s, terminating", downstreamVertex.getXmlId()));
+          LOGGER.warning(String.format("Cycle detected in supposed acyclic graph at vertex %s, terminating", nextVertex.getXmlId()));
         } /*
            * else { do nothing, valid but downstream vertex already exhausted, so no need to explore further }
            */

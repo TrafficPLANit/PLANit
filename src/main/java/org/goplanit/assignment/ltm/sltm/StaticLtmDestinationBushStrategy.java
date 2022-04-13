@@ -24,6 +24,9 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategy {
   /** Logger to use */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmDestinationBushStrategy.class.getCanonicalName());
+  
+  /** single dummy label used throughout  for destination bushes */
+  private final BushFlowLabel dummyLabel;
 
   /**
    * Populate with initial demand for given OD and shortest bush DAG
@@ -66,10 +69,6 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategy {
     var destination = ((DestinationBush) bush).getDestination();
     ShortestBushResult allToOneResult = null;
 
-    /* no labels needed for destination bush, but for now, we use a single label for all flow to be able to keep using current implementation that relies on it */
-    /* TODO: remove labelling once it works */
-    var destinationLabel = BushFlowLabel.create(getIdGroupingToken(), destination.getXmlId());
-
     for (var origin : zoning.getOdZones()) {
       if (origin.idEquals(destination)) {
         continue;
@@ -78,7 +77,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategy {
       Double currOdDemand = odDemands.getValue(origin, destination);
       if (currOdDemand != null && currOdDemand > 0) {
 
-        /* find one-to-all shortest paths */
+        /* find all-to-one shortest paths */
         if (allToOneResult == null) {
           allToOneResult = shortestBushAlgorithm.executeAllToOne(destination.getCentroid());
         }
@@ -87,7 +86,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategy {
         var originDag = allToOneResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), origin.getCentroid(), destination.getCentroid());
 
         bush.addOriginDemandPcuH(origin, currOdDemand);
-        initialiseBushForOrigin((DestinationBush) bush, origin, currOdDemand, originDag, destinationLabel);
+        initialiseBushForOrigin((DestinationBush) bush, origin, currOdDemand, originDag, dummyLabel);
       }
     }
   }
@@ -127,7 +126,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategy {
    */
   @Override
   protected PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings) {
-    return null; // new PasFlowShiftDestLabelledExecutor(pas, settings);
+    return new PasFlowShiftDestinationBasedExecutor(pas, settings, dummyLabel);
   }
 
   /**
@@ -142,12 +141,10 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategy {
   public StaticLtmDestinationBushStrategy(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork,
       final StaticLtmSettings settings, final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
-//
-//    this.destinationLabels = new BushFlowLabel[(int) transportModelNetwork.getZoning().getOdZones().size()];
-//    for (var odZone : transportModelNetwork.getZoning().getOdZones()) {
-//      destinationLabels[(int) odZone.getOdZoneId()] = BushFlowLabel.create(this.getIdGroupingToken(),
-//          odZone.getName() != null ? odZone.getName() : (odZone.getXmlId() != null ? odZone.getXmlId() : String.valueOf(odZone.getId())));
-//    }
+
+    /* no labels needed for destination bush, but for now, we use a single label for all flow to be able to keep using current implementation that relies on it */
+    /* TODO: remove labelling once it works */
+    this.dummyLabel = BushFlowLabel.create(getIdGroupingToken(), "dummy");
   }
 
   /**
@@ -155,7 +152,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategy {
    */
   @Override
   public String getDescription() {
-    return "Destination-based Bush (destination-labelled)";
+    return "Destination-based Bush (unlabelled)";
   }
 
 }

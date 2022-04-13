@@ -42,7 +42,7 @@ public class SplittingRateDataPartial implements SplittingRateData {
   private void registerSplittingRates(DirectedVertex potentiallyBlockingNode, EdgeSegment entrySegment) {
     var result = splittingRates.get(potentiallyBlockingNode, entrySegment);
     if (result == null) {
-      splittingRates.put(potentiallyBlockingNode, entrySegment, Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.sizeOfExitEdgeSegments()));
+      splittingRates.put(potentiallyBlockingNode, entrySegment, Array1D.PRIMITIVE64.makeZero(potentiallyBlockingNode.getNumberOfExitEdgeSegments()));
     }
   }
 

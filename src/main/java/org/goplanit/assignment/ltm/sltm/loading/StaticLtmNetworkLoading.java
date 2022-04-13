@@ -580,8 +580,8 @@ public abstract class StaticLtmNetworkLoading {
     }
   
     /* For each potentially blocking node */
-    int numEntrySegments = node.sizeOfEntryEdgeSegments();
-    int numExitSegments = node.sizeOfExitEdgeSegments();
+    int numEntrySegments = node.getNumberOfEntryEdgeSegments();
+    int numExitSegments = node.getNumberOfExitEdgeSegments();
   
     // TODO: not computationally efficient, capacities are recomputed every time and construction of
     // turn sending flows is not ideal it requires a lot of copying of data that potentially could be optimised

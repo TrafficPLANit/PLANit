@@ -25,12 +25,12 @@ import org.goplanit.utils.misc.CollectionUtils;
  * @author markr
  *
  */
-public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
+public class PasFlowShiftOriginBasedSmartLabelledExecutor extends PasFlowShiftExecutor {
 
   /**
    * Logger to use
    */
-  private final static Logger LOGGER = Logger.getLogger(PasFlowShiftSmartLabelledExecutor.class.getCanonicalName());
+  private final static Logger LOGGER = Logger.getLogger(PasFlowShiftOriginBasedSmartLabelledExecutor.class.getCanonicalName());
 
   /** the label chains (list of list map value), per origin (map key), in reverse order (end to start) that traverse S2 */
   protected final Map<RootedBush, List<LinkedList<BushFlowLabel>>> s2ReverseLabelChains;
@@ -502,7 +502,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
   /**
    * {@inheritDoc}
    */
-  protected void executeOriginFlowShift(RootedBush origin, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
+  protected void executeBushFlowShift(RootedBush origin, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
     // TODO: not yet updated to support entry segment specific flow shifts! should allow this to be simplified as passed in flow shift is
     // expected to be specific to the entry segment already! -> anything diverge specific should be removed
 
@@ -624,7 +624,7 @@ public class PasFlowShiftSmartLabelledExecutor extends PasFlowShiftExecutor {
    * @param pas to use
    * @param settings to use
    */
-  protected PasFlowShiftSmartLabelledExecutor(Pas pas, final StaticLtmSettings settings) {
+  protected PasFlowShiftOriginBasedSmartLabelledExecutor(Pas pas, final StaticLtmSettings settings) {
     super(pas, settings);
     s1ReverseLabelChains = new HashMap<>();
     s2ReverseLabelChains = new HashMap<>();

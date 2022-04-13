@@ -2,7 +2,6 @@ package org.goplanit.algorithms.shortest;
 
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.Vertex;
@@ -23,65 +22,15 @@ import org.goplanit.utils.path.DirectedPathFactory;
  * @author markr
  *
  */
-public class ShortestPathResultGeneralised implements ShortestPathResult {
+public class ShortestPathResultGeneralised extends ShortestResultGeneralised implements ShortestPathResult {
 
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ShortestPathResultGeneralised.class.getCanonicalName());
-
-  /**
-   * Determine the start and end vertex to use for constructing the path depending on the search type used in the preceding shortest path search
-   * 
-   * @param origin      of to be constructed path
-   * @param destination of to be constructed path
-   * @return order in which origin and destination are to be encountered when traversing search results
-   */
-  private Pair<DirectedVertex, DirectedVertex> getStartEndVertex(DirectedVertex origin, DirectedVertex destination) {
-    Boolean isInverted = isSearchResultInverted();
-    if (isInverted == null) {
-      LOGGER.severe(String.format("Unsupported search type %s found for shortest path result", searchType));
-      return null;
-    }
-
-    if (isSearchResultInverted()) {
-      return Pair.of(origin, destination);
-    } else {
-      /* regular direction where results are traversed from destination back to origin */
-      return Pair.of(destination, origin);
-    }
-  }
-
-  /**
-   * the costs found by a shortest path run
-   */
-  protected final double[] vertexMeasuredCost;
-
+  
   /**
    * the next edge segment to reach the vertex with the given measured cost (preceding in one-to-all, succeeding in all-to-one)
    */
-  protected final EdgeSegment[] nextEdgeSegmentByVertex;
-
-  /** reflects the active type */
-  protected final ShortestSearchType searchType;
-
-  /** depending on configuration this function collects vertex at desired edge segment extremity */
-  protected Function<EdgeSegment, DirectedVertex> getVertexAtExtreme;
-
-  /**
-   * Based on the search type of the underlying search we indicate if it is inverted compared to a regular shortest path search that occurs in the one-to-x direction
-   * 
-   * @return true when inverted, false otherwise
-   */
-  protected Boolean isSearchResultInverted() {
-    switch (searchType) {
-    case ONE_TO_ONE:
-    case ONE_TO_ALL:
-      return false;
-    case ALL_TO_ONE:
-      return true;
-    default:
-      LOGGER.severe(String.format("Unsupported search type %s found for shortest path result", searchType));
-      return null;
-    }
-  }
+  protected final EdgeSegment[] nextEdgeSegmentByVertex;  
 
   /**
    * Constructor only to be used by shortest path algorithms
@@ -91,12 +40,8 @@ public class ShortestPathResultGeneralised implements ShortestPathResult {
    * @param searchType              used (one-to-all, all-to-one, etc)
    */
   protected ShortestPathResultGeneralised(double[] vertexMeasuredCost, EdgeSegment[] nextEdgeSegmentByVertex, ShortestSearchType searchType) {
-    this.vertexMeasuredCost = vertexMeasuredCost;
+    super(vertexMeasuredCost, searchType);
     this.nextEdgeSegmentByVertex = nextEdgeSegmentByVertex;
-    this.searchType = searchType;
-
-    /* search direction for creating paths in opposite direction as compared to shortest path search itself */
-    this.getVertexAtExtreme = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(searchType, true /* invert */ );
   }
 
   /**
@@ -108,11 +53,11 @@ public class ShortestPathResultGeneralised implements ShortestPathResult {
     final Deque<EdgeSegment> pathEdgeSegments = new LinkedList<>();
 
     /* depending on the search direction the start and end vertex to loop through result could be inverted */
-    Pair<DirectedVertex, DirectedVertex> startEndPair = getStartEndVertex(origin, destination);
+    Pair<DirectedVertex, DirectedVertex> startEndPair = getStartEndVertexForResultTraversal(origin, destination);
     DirectedVertex startVertex = startEndPair.first();
     DirectedVertex endVertex = startEndPair.second();
 
-    boolean invertedTraversal = isSearchResultInverted();
+    boolean invertedTraversal = isInverted();
 
     int currVertexId = (int) startVertex.getId();
     var nextEdgeSegment = nextEdgeSegmentByVertex[currVertexId];
@@ -153,24 +98,10 @@ public class ShortestPathResultGeneralised implements ShortestPathResult {
    * {@inheritDoc}
    */
   @Override
-  public DirectedVertex getNextVertexForEdgeSegment(EdgeSegment edgeSegment) {
-    return this.getVertexAtExtreme.apply(edgeSegment);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public double getCostOf(Vertex vertex) {
     return vertexMeasuredCost[(int) vertex.getId()];
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ShortestSearchType getSearchType() {
-    return searchType;
-  }
+
 
 }

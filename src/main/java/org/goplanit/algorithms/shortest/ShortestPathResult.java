@@ -14,7 +14,7 @@ import org.goplanit.utils.path.DirectedPathFactory;
  * @author markr
  *
  */
-public interface ShortestPathResult {
+public interface ShortestPathResult extends ShortestResult{
 
   /**
    * Create the path from the provided origin to a specified destination vertex, using the results available. The path builder is used to create the instance of the path.
@@ -25,6 +25,14 @@ public interface ShortestPathResult {
    * @return the path that is created, when no path could be extracted null is returned
    */
   public abstract DirectedPath createPath(final DirectedPathFactory pathFactory, DirectedVertex origin, DirectedVertex destination);
+  
+  /**
+   * Find the next edge segment for a given vertex, depending on the underlying search this can be either in upstream or downstream direction
+   * 
+   * @param vertex to get next segment for
+   * @return next edge segment
+   */
+  public abstract EdgeSegment getNextEdgeSegmentForVertex(Vertex vertex);  
 
   /**
    * apply consumer to each edge segment on path. Depending on the type of shortest path (direction), the next segment is either in the backward direction from destination to
@@ -51,43 +59,4 @@ public interface ShortestPathResult {
     } while (!currentVertex.idEquals(startVertex));
     return count;
   }
-
-  /**
-   * Find the next edge segment for a given vertex, depending on the underlying search this can be either in upstream or downstream direction
-   * 
-   * @param vertex to get next segment for
-   * @return next edge segment
-   */
-  public abstract EdgeSegment getNextEdgeSegmentForVertex(Vertex vertex);
-
-  /**
-   * Find the next vertex on the given edge segment extremity based on the underlying search this can be either in upstream or downstream direction
-   * 
-   * @param segment to get next vertex for
-   * @return next vertex
-   */
-  public abstract DirectedVertex getNextVertexForEdgeSegment(EdgeSegment edgeSegment);
-
-  /**
-   * Collect the cost to reach the given vertex from the reference starting point
-   * 
-   * @param vertex to collect cost for
-   * @return cost found
-   */
-  public abstract double getCostOf(Vertex vertex);
-
-  /**
-   * Provide the search type that was used to obtain this result
-   * 
-   * @return shortest path search type used to obtain result
-   */
-  public abstract ShortestSearchType getSearchType();
-  
-  /** when search is inverted, result is also inverted, i.e., when search is one-to-x (regular), result is in upstream direction, when inverted, result is in downstream direction
-   * @return true when search (and result) is inverted compared to regular one-to-x search, false otherwise
-   */
-  public default boolean isInverted() {
-    return getSearchType().isInverted();
-  }
-
 }

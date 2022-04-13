@@ -209,7 +209,7 @@ public abstract class PasFlowShiftExecutor {
   protected static final double EPSILON = EPSILON_12;
 
   /**
-   * whenever a PAS S2 alternative's flow drops below this threshold for a given bush (origin), we allow the flow shift to move all remaining flow towards the S1 segment across all
+   * whenever a PAS S2 alternative's flow drops below this threshold for a given bush, we allow the flow shift to move all remaining flow towards the S1 segment across all
    * entry segments and unregister the bush for this PAS as it is no longer deemed a true alternative.
    */
   protected static final double PAS_MIN_S2_FLOW_THRESHOLD = 1;
@@ -223,7 +223,7 @@ public abstract class PasFlowShiftExecutor {
   /** S1 and S2 sending flows along (entire) alternative for a given entry segment*/
   protected Map<EdgeSegment, Pair<Double,Double>> totalEntrySegmentS1S2Flow;
 
-  /** Track the desired sending flows for s1 and s2 per origin per entry segment */
+  /** Track the desired sending flows for s1 and s2 per bush per entry segment */
   protected final Map<RootedBush, Map<EdgeSegment, Pair<Double, Double>>> bushEntrySegmentS1S2SendingFlows;
 
   protected final Set<EdgeSegment> usedCongestedEntryEdgeSegments;
@@ -255,18 +255,18 @@ public abstract class PasFlowShiftExecutor {
     this.settings = settings;
     this.bushEntrySegmentS1S2SendingFlows = new HashMap<>();
     this.usedCongestedEntryEdgeSegments = new HashSet<>();
-    this.pasMergeVertexNumExitSegments = pas.getMergeVertex().sizeOfExitEdgeSegments();
+    this.pasMergeVertexNumExitSegments = pas.getMergeVertex().getNumberOfExitEdgeSegments();
   }
 
   /**
-   * Perform the flow shift for a given origin. Delegate to conrete class implementation
+   * Perform the flow shift for a given bush. Delegate to concrete class implementation
    * 
-   * @param origin                    to perform shift for
+   * @param bush                    to perform shift for
    * @param entrySegment              entry segment at hand to apply flow shift for
-   * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-origin-entrysegment combination
+   * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entrysegment combination
    * @param flowAcceptanceFactors     to use
    */
-  protected abstract void executeOriginFlowShift(final RootedBush origin, final EdgeSegment entrySegment, double bushEntrySegmentFlowShift, final double[] flowAcceptanceFactors);
+  protected abstract void executeBushFlowShift(final RootedBush bush, final EdgeSegment entrySegment, double bushEntrySegmentFlowShift, final double[] flowAcceptanceFactors);
 
   /**
    * For the given PAS-entrysegment determine the flow shift to apply from the high cost to the low cost segment. Depending on the state of the segments we utilise their
@@ -403,18 +403,18 @@ public abstract class PasFlowShiftExecutor {
     totalEntrySegmentS1S2Flow = new HashMap<>();
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {
       totalEntrySegmentS1S2Flow.put(entrySegment, Pair.of(0.0,0.0));    
-      for (var origin : pas.getRegisteredBushes()) {       
+      for (var bush : pas.getRegisteredBushes()) {       
         var currTotalS1S2Flow = totalEntrySegmentS1S2Flow.get(entrySegment);
-        if (!origin.containsEdgeSegment(entrySegment)) {
+        if (!bush.containsEdgeSegment(entrySegment)) {
           continue;
         }
-        bushEntrySegmentS1S2SendingFlows.putIfAbsent(origin, new HashMap<>());
-        var entrySegmentS1S2SendingFlows = bushEntrySegmentS1S2SendingFlows.get(origin);
+        bushEntrySegmentS1S2SendingFlows.putIfAbsent(bush, new HashMap<>());
+        var entrySegmentS1S2SendingFlows = bushEntrySegmentS1S2SendingFlows.get(bush);
 
-        double s2BushSendingFlow = origin.determineSubPathSendingFlow(entrySegment, s2);
+        double s2BushSendingFlow = bush.determineSubPathSendingFlow(entrySegment, s2);
         double newS2Total = currTotalS1S2Flow.second() + s2BushSendingFlow;
 
-        double s1BushSendingFlow = origin.determineSubPathSendingFlow(entrySegment, s1);
+        double s1BushSendingFlow = bush.determineSubPathSendingFlow(entrySegment, s1);
         double newS1Total = currTotalS1S2Flow.first() + s1BushSendingFlow;
         
         totalEntrySegmentS1S2Flow.put(entrySegment, Pair.of(newS1Total,newS2Total));
@@ -424,13 +424,13 @@ public abstract class PasFlowShiftExecutor {
   }
 
   /**
-   * We account for the fact that per origin bush different incoming links to the PAS might be used so each incoming link that is used and that is congested should be the basis for
+   * We account for the fact that per bush different incoming links to the PAS might be used so each incoming link that is used and that is congested should be the basis for
    * the flow shift instead of the first congested one within the PAS. This is currently not accounted for + if an incoming link is congested, then it has the same alpha for both
    * alternatives BUT the most restricting one might be linked to one of those. If so then we should shift towards the other! This does not exist yet. If neither is the most
    * restricting then revert to situation where we shift as if uncongested as it has no impact. So, split flow shift and execution to per incoming link rather than combining them
    * as we do in run!! Later we can optimise possibly
    * 
-   * Each PAS per origin is split in x PASs where x is the number of used in links for each bush
+   * Each PAS per bush is split in x PASs where x is the number of used in links for each bush
    * 
    * @param theMode        to use
    * @param physicalCost   to use
@@ -442,9 +442,7 @@ public abstract class PasFlowShiftExecutor {
     LOGGER.info("** PAS FLOW shift " + pas.toString());
 
     boolean flowShifted = false;       
-    double totalS2SendingFlow = getS2SendingFlow();
-    
-    /* prep - origin */
+    double totalS2SendingFlow = getS2SendingFlow();    
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {
       
       Pair<Double,Double> totalEntrySegmentS1S1SendingFlow = totalEntrySegmentS1S2Flow.get(entrySegment);
@@ -465,35 +463,29 @@ public abstract class PasFlowShiftExecutor {
       /* test for eligibility to reduce to zero flow along S2 */
       activatePasS2RemovalIf(Precision.greaterEqual(proposedProportionalPasflowShift, totalEntrySegmentS2Flow,EPSILON) || Precision.greaterEqual(PAS_MIN_S2_FLOW_THRESHOLD, totalEntrySegmentS2Flow, EPSILON));
       if (isPasS2RemovalAllowed()) {
-        /* remove this origin from the PAS when done as no flow remains on high cost segment */
+        /* remove this entry segment from the PAS when done as no flow remains on high cost segment */
         totalEntrySegmentS1S2Flow.remove(entrySegment);
         /* remove all remaining flow */
         proposedProportionalPasflowShift = totalEntrySegmentS2Flow;
       }
             
-      for (var bush : pas.getRegisteredBushes()) { 
-        if(!(bush instanceof OriginBush)) {
-          LOGGER.severe("Expected originbush but found other derived bush implementation, this shouldn't happen");
-          return false;
-        }
-        OriginBush origin = (OriginBush) bush; 
-        
-        if (origin.containsTurnSendingFlow(entrySegment, pas.getFirstEdgeSegment(false))) {
+      for (var bush : pas.getRegisteredBushes()) {         
+        if (bush.containsTurnSendingFlow(entrySegment, pas.getFirstEdgeSegment(false))) {
           
-          LOGGER.info("** Entry segment ("+entrySegment.toString()+") - Origin (" + origin.getOrigin().getXmlId()+")");          
+          LOGGER.info("** Entry segment ("+entrySegment.toString()+") - root (" + bush.getRootVertex().getXmlId()+")");          
           
-          final Map<EdgeSegment, Pair<Double, Double>> entrySegmentS1S2Flows = bushEntrySegmentS1S2SendingFlows.get(origin);          
+          final Map<EdgeSegment, Pair<Double, Double>> entrySegmentS1S2Flows = bushEntrySegmentS1S2SendingFlows.get(bush);          
           var bushEntrySegmentS2Flow = entrySegmentS1S2Flows.get(entrySegment).second();
           
           /*
-           * In case of multiple used origins for this entry segment -> we cannot let proposed shifts be executed in full because cost is affected and therefore succeeding entries would
+           * In case of multiple used bushes for this entry segment -> we cannot let proposed shifts be executed in full because cost is affected and therefore succeeding entries would
            * "overshoot". Hence we apply proposed shift proportionally to contribution to total flow along PAS
            */
-          double originS2Portion = bushEntrySegmentS2Flow / totalEntrySegmentS2Flow;
-          double entrySegmentPasflowShift = proposedProportionalPasflowShift * originS2Portion;
+          double bushS2Portion = bushEntrySegmentS2Flow / totalEntrySegmentS2Flow;
+          double entrySegmentPasflowShift = proposedProportionalPasflowShift * bushS2Portion;
 
           /* perform the flow shift for the current bush and its attributed portion */
-          executeOriginFlowShift(origin, entrySegment, entrySegmentPasflowShift, networkLoading.getCurrentFlowAcceptanceFactors());
+          executeBushFlowShift(bush, entrySegment, entrySegmentPasflowShift, networkLoading.getCurrentFlowAcceptanceFactors());
           flowShifted = true;
 
           if (smaller(networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()], 1, EPSILON)) {

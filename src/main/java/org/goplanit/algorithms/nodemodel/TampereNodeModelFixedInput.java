@@ -133,9 +133,9 @@ public class TampereNodeModelFixedInput {
    */
   public TampereNodeModelFixedInput(Node node, boolean initialiseReceivingFlowsAtCapacity) throws PlanItException {
     // Set A^in
-    mapIncomingLinkSegments(node.getEntryEdgeSegments(), node.sizeOfEntryEdgeSegments());
+    mapIncomingLinkSegments(node.getEntryEdgeSegments(), node.getNumberOfEntryEdgeSegments());
     // Set A^out
-    mapOutgoingLinkSegments(node.getExitEdgeSegments(), node.sizeOfExitEdgeSegments());
+    mapOutgoingLinkSegments(node.getExitEdgeSegments(), node.getNumberOfExitEdgeSegments());
     // Set C_a
     initialiseIncomingLinkSegmentCapacities();
     // Set R_b

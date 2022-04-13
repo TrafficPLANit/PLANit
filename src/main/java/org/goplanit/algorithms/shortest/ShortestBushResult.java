@@ -14,10 +14,11 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public interface ShortestBushResult {
+public interface ShortestBushResult extends ShortestResult{
 
   /**
-   * Create the bush in the form of a directed acyclic subgraph of its parent network (layer) for a given origin-destination vertex
+   * Create a bush in the form of a directed acyclic subgraph of its parent network (layer) for a given origin-destination vertex. 
+   * The direction of the result is inherited from the search itself, so if the search was inverted, the dag has an inverted root etc.
    * 
    * @param idToken     to use for the Acyclic subgraph's id generation
    * @param origin      to use
@@ -25,21 +26,13 @@ public interface ShortestBushResult {
    * @return created acyclic graph
    */
   public abstract ACyclicSubGraph createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex origin, final DirectedVertex destination);
-
+  
   /**
-   * Find the incoming edge segments for a given vertex
+   * Find the next edge segment for a given vertex, depending on the underlying search this can be either in upstream or downstream direction
    * 
-   * @param vertex to get incoming segment for
-   * @return incoming edge segments
+   * @param vertex to get next segment for
+   * @return next edge segment
    */
   public abstract List<EdgeSegment> getNextEdgeSegmentsForVertex(Vertex vertex);
-
-  /**
-   * Collect the cost to reach the given vertex
-   * 
-   * @param vertex to collect cost for
-   * @return cost found
-   */
-  public abstract double getCostOf(Vertex vertex);
 
 }

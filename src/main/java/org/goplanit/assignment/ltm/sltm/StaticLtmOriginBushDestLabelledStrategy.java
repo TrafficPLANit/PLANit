@@ -122,7 +122,7 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
    */
   @Override
   protected PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings) {
-    return new PasFlowShiftDestLabelledExecutor(pas, settings);
+    return new PasFlowShiftOriginBasedDestLabelledExecutor(pas, settings);
   }
 
   /**

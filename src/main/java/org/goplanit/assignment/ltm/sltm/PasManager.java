@@ -182,30 +182,23 @@ public class PasManager {
   public static EdgeSegment[] createSubpathArrayFrom(final DirectedVertex closestToSearchRoot, final DirectedVertex furthestFromSearchRoot, final ShortestPathResult searchResultTree, int arrayLength,
       boolean truncateArray) {
 
+    EdgeSegment currEdgeSegment = null;
+    EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
+    DirectedVertex currVertex = furthestFromSearchRoot;
+
     /*
      * depending on the search direction, i.e., the direction of the to-be extract segments, we revert the way we add them to the resulting array to obtain the correct final
      * direction of edge segments in downstream direction
      */
     boolean searchInverted = searchResultTree.getSearchType().isInverted();
-
-    EdgeSegment currEdgeSegment = null;
-    EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
-
+    
     /* run from end to start backward while adding in reverse to final array, unless search was inverted, then we go from start to end */
-    int index = arrayLength;
-    DirectedVertex currVertex = furthestFromSearchRoot;
+    int index = arrayLength - 1;
     if (searchInverted) {
-      currVertex = closestToSearchRoot;
-      index = -1;
+      index = 0;
     }
 
     do {
-
-      if (searchInverted) {
-        ++index;
-      } else {
-        --index;
-      }
 
       currEdgeSegment = searchResultTree.getNextEdgeSegmentForVertex(currVertex);
       edgeSegmentArray[index] = currEdgeSegment;
@@ -215,11 +208,19 @@ public class PasManager {
         return null;
       }
       currVertex = searchResultTree.getNextVertexForEdgeSegment(currEdgeSegment);
+      
+      if (searchInverted) {
+        ++index;
+      } else {
+        --index;
+      }      
     } while (!currVertex.idEquals(closestToSearchRoot));
 
     if (truncateArray) {
-      if ((!searchInverted && index > 0) || (searchInverted && index < arrayLength - 1)) {
-        return Arrays.copyOfRange(edgeSegmentArray, index, edgeSegmentArray.length);
+      if (!searchInverted && index > 0){
+        return Arrays.copyOfRange(edgeSegmentArray, index+1, edgeSegmentArray.length);
+      }else if(searchInverted && index < arrayLength - 1) {
+        return Arrays.copyOfRange(edgeSegmentArray, 0, index);
       }
     }
     return edgeSegmentArray;
@@ -227,8 +228,8 @@ public class PasManager {
 
   /**
    * Extract a subpath in the form of a raw edge segment array in downstream direction based on the breadth-first (BF) search result provided. This search result is expected to be constructed from the regular shortest path result 
-   * and therefore takes on the inverse direction compared to the regular result direction hence it is qualified as inverted. The provided search type allows us to infer the actual direction since it provides the search type applied to the
-   * original shortest path search conducted to create this inverted search result.
+   * which direction depends on the search type. the BF search results are expected to be provided in the SAME direction as the search itself (unlike shortestXResults which are in the opposite direction), i.e., if the search was one-to-all (not inverted)
+   * then the bf results are also provided in the downstream direction, whereas all-to-one is in the opposite direction.
    * 
    * @param closestToSearchRoot         vertex in relation to searchResult tree
    * @param furthestFromSearchRoot      vertex in relation to searchResult tree
@@ -240,7 +241,7 @@ public class PasManager {
    */
   public static EdgeSegment[] createSubpathArrayFrom(DirectedVertex closestToSearchRoot, DirectedVertex furthestFromSearchRoot, ShortestSearchType shortestSearchType, Map<DirectedVertex, EdgeSegment> invertedBfSearchResultTree, int arrayLength,
       boolean truncateArray) {
-    
+
     /*
      * depending on the original search direction, i.e., the direction of the to-be extract segments, we revert the way we add them to the resulting array to obtain the correct final
      * direction of edge segments in downstream direction
@@ -250,14 +251,13 @@ public class PasManager {
     EdgeSegment[] edgeSegmentArray = new EdgeSegment[arrayLength];
     EdgeSegment currEdgeSegment = null;
     
-    /* search utils yields lambda based on search type for searching not result traversal, we traverse results, so we should invert. However, our provided results are inverted already, so doulbe inversion means it yet again depends on search type directly */
-    var getNextVertex = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(shortestSearchType, searchInverted );
+    /* search utils yields lambda based on search type for searching, not result traversal, we traverse results, so we should invert. However, our provided results are inverted already, so double inversion makes that we should not invert */
+    var getNextVertex = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(shortestSearchType);
     
     /* run from end to start backward while adding in reverse to final array, unless search was inverted, then we go from start to end */
     int index = 0;
     DirectedVertex currVertex = closestToSearchRoot;
     if (searchInverted) {
-      currVertex = furthestFromSearchRoot;
       index = arrayLength-1;
     }
     
