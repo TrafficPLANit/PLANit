@@ -37,21 +37,21 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
   private void initialiseRootExitSegmentSendingFlows(final RootedBush bush, final MultiKeyMap<Object, Double> bushSendingFlows) {
     Set<OdZone> origins = bush.getOrigins();
     for (var origin : origins) {
-      double totalRootSendingFlow = 0;
-      for (var rootExit : origin.getCentroid().getExitEdgeSegments()) {
-        if (bush.containsEdgeSegment(rootExit)) {
-          var usedLabels = bush.getFlowCompositionLabels(rootExit);
+      double totalOriginsSendingFlow = 0;
+      for (var originExit : origin.getCentroid().getExitEdgeSegments()) {
+        if (bush.containsEdgeSegment(originExit)) {
+          var usedLabels = bush.getFlowCompositionLabels(originExit);
           for (var usedLabel : usedLabels) {
-            double sendingFlow = bush.getSendingFlowPcuH(rootExit, usedLabel);
-            bushSendingFlows.put(rootExit, usedLabel, sendingFlow);
-            totalRootSendingFlow += sendingFlow;
+            double sendingFlow = bush.getSendingFlowPcuH(originExit, usedLabel);
+            bushSendingFlows.put(originExit, usedLabel, sendingFlow);
+            totalOriginsSendingFlow += sendingFlow;
           }
         }
       }
 
-      if (Precision.notEqual(totalRootSendingFlow, bush.getOriginDemandPcuH(origin))) {
+      if (Precision.notEqual(totalOriginsSendingFlow, bush.getOriginDemandPcuH(origin))) {
         LOGGER.severe(String.format("bush specific origin's (%s) travel demand (%.2f pcu/h) not equal to total flow (%.2f pcu/h) placed on bush root, this shouldn't happen",
-            origin.getXmlId(), bush.getOriginDemandPcuH(origin), totalRootSendingFlow));
+            origin.getXmlId(), bush.getOriginDemandPcuH(origin), totalOriginsSendingFlow));
       }
     }
   }

@@ -347,7 +347,7 @@ public abstract class PasFlowShiftExecutor {
 
         // VERIFY CROSSING OF DISCONTINUITY on S2 travel time function - adjust shift if so to mitigate effect
         if (firstS2CongestedLinkSegment != null) {
-          double s2SlackFlowEstimate = s2WithEntrySendingFlow * (1 - networkLoading.getCurrentFlowAcceptanceFactors()[(int) firstS2CongestedLinkSegment.getId()]);
+          double s2SlackFlowEstimate = this.getS2SendingFlow() * (1 - networkLoading.getCurrentFlowAcceptanceFactors()[(int) firstS2CongestedLinkSegment.getId()]);
           flowShift = adjustFlowShiftBasedOnS2SlackFlow(flowShift, s2SlackFlowEstimate);
         }
       }
@@ -439,7 +439,7 @@ public abstract class PasFlowShiftExecutor {
    * @return true when flow is shifted, false otherwise
    */
   public boolean run(Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, StaticLtmLoadingBush networkLoading) {
-    LOGGER.info("** PAS FLOW shift " + pas.toString());
+    LOGGER.info("** PAS FLOW shift " + pas.toString() + "cost-diff: " + pas.getReducedCost());
 
     boolean flowShifted = false;       
     double totalS2SendingFlow = getS2SendingFlow();    

@@ -1,11 +1,6 @@
 package org.goplanit.assignment.ltm.sltm;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -139,7 +134,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
    * @param s1FinalFlowShift          the flow shift applied so far up to the final merge
    * @param exitSegmentSplittingRates the splitting rates to apply towards the available exit segments
    */
-  private void executeBushDestinationLabeledS1FlowShiftEndMerge(RootedBush bush, double s1FinalFlowShift, double[] exitSegmentSplittingRates) {
+  private void executeBushS1FlowShiftEndMerge(RootedBush bush, double s1FinalFlowShift, double[] exitSegmentSplittingRates) {
 
     /* add shifted flows through final merge towards exit segments proportionally based on labelled exit usage */
     if (pas.getMergeVertex().hasExitEdgeSegments()) {
@@ -230,7 +225,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
 
       /* shift portion of flow attributed to composition label traversing s2 */
       //double s2StartLabeledFlowShift = -currLabelPortion * bushFlowShift;
-      double s2StartLabeledFlowShift = bushFlowShift;
+      double s2StartLabeledFlowShift = -bushFlowShift;
       double s2FinalLabeledFlowShift = executeBushPasFlowShift(bush, entrySegment, s2StartLabeledFlowShift, s2, flowAcceptanceFactors);
 
       LOGGER.info(String.format("** S2 SHIFT: shift-link [start,end]: [%.10f, %.10f]", s2StartLabeledFlowShift, s2FinalLabeledFlowShift));
@@ -260,7 +255,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
       LOGGER.info(String.format("** S1 SHIFT: shift-link [start,end]: [%.10f, %.10f]", s1StartLabeledFlowShift, s1FinalLabeledFlowShift));
 
       /* shift flow across final merge for S1 based on findings in s2 */
-      executeBushDestinationLabeledS1FlowShiftEndMerge(bush, s1FinalLabeledFlowShift, bushS2MergeExitShiftedSplittingRates);
+      executeBushS1FlowShiftEndMerge(bush, s1FinalLabeledFlowShift, bushS2MergeExitShiftedSplittingRates);
 //    }
   }
 

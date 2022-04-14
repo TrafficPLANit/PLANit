@@ -97,7 +97,8 @@ public abstract class RootedBush implements IdAble {
    * @param demandPcuH demand to set
    */
   protected void addOriginDemandPcuH(OdZone originZone, double demandPcuH) {
-    this.originDemandsPcuH.put(originZone, demandPcuH);
+    double currentDemandPcuH = this.originDemandsPcuH.getOrDefault(originZone,0.0);
+    this.originDemandsPcuH.put(originZone, currentDemandPcuH + demandPcuH);
   }
 
   /**
