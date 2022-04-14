@@ -287,6 +287,8 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
      */
     BitSet linkSegmentsUsed = new BitSet(networkLoading.getCurrentInflowsPcuH().length);
     Collection<Pas> sortedPass = pasManager.getPassSortedByReducedCost();
+    
+    double factor = 1;
     for (Pas pas : sortedPass) {
       
       var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
@@ -306,7 +308,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
       }
 
       /* untouched PAS (no flows shifted yet) in this iteration */
-      boolean pasFlowShifted = pasFlowShifter.run(theMode, physicalCost, virtualCost, networkLoading);
+      boolean pasFlowShifted = pasFlowShifter.run(theMode, physicalCost, virtualCost, networkLoading, factor);
       if (pasFlowShifted) {
         flowShiftedPass.add(pas);
 

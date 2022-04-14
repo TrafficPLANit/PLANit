@@ -436,9 +436,10 @@ public abstract class PasFlowShiftExecutor {
    * @param physicalCost   to use
    * @param virtualCost    to use
    * @param networkLoading to use
+   * @param factor         to apply to flow shift
    * @return true when flow is shifted, false otherwise
    */
-  public boolean run(Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, StaticLtmLoadingBush networkLoading) {     
+  public boolean run(Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, StaticLtmLoadingBush networkLoading, double factor) {     
     double totalS2SendingFlow = getS2SendingFlow();    
     LOGGER.info("******************* PAS FLOW shift " + pas.toString() + "S2 Sending flow: "+totalS2SendingFlow + " cost-diff: " + pas.getReducedCost() + " *****************************");
     if(!Precision.positive(totalS2SendingFlow)) {
@@ -463,7 +464,7 @@ public abstract class PasFlowShiftExecutor {
       }       
             
       double entrySegmentPortion = totalEntrySegmentS2Flow/totalS2SendingFlow;
-      double proposedProportionalPasflowShift = proposedPasflowShift * entrySegmentPortion; 
+      double proposedProportionalPasflowShift = proposedPasflowShift * entrySegmentPortion * factor; 
                  
       /* test for eligibility to reduce to zero flow along S2 */
       activatePasS2RemovalIf(Precision.greaterEqual(proposedProportionalPasflowShift, totalEntrySegmentS2Flow,EPSILON) || Precision.greaterEqual(PAS_MIN_S2_FLOW_THRESHOLD, totalEntrySegmentS2Flow, EPSILON));
