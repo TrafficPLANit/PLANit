@@ -1,6 +1,5 @@
 package org.goplanit.gap;
 
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
@@ -138,14 +137,6 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
   @Override
   public LinkBasedRelativeDualityGapFunction clone() {
     return new LinkBasedRelativeDualityGapFunction(this);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Map<String, String> collectSettingsAsKeyValueMap() {
-    return null;
   }
 
 }

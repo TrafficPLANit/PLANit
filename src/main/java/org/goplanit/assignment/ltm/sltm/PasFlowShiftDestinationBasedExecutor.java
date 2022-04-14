@@ -26,63 +26,21 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
   /**
    * Helper to perform a flow shift on a turn. If the turn has no more flow it is removed from the bush
    * 
-   * @param origin        bush to use
+   * @param bush        bush to use
    * @param turnEntry     turn entry segment
    * @param turnExit      turn exit segment
    * @param flowShiftPcuH turn flow shift to apply by adding this flow to the turn
    * @return new turn flow after shift
    */
-  private double executeTurnFlowShift(RootedBush origin, EdgeSegment turnEntry, EdgeSegment turnExit, double flowShiftPcuH) {
-    double newTurnFlow = origin.addTurnSendingFlow(turnEntry, dummyLabel, turnExit, dummyLabel, flowShiftPcuH, isPasS2RemovalAllowed());
-    if (isPasS2RemovalAllowed() && !Precision.positive(newTurnFlow, EPSILON) && !Precision.positive(origin.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
+  private double executeTurnFlowShift(RootedBush bush, EdgeSegment turnEntry, EdgeSegment turnExit, double flowShiftPcuH) {
+    double newTurnFlow = bush.addTurnSendingFlow(turnEntry, dummyLabel, turnExit, dummyLabel, flowShiftPcuH, isPasS2RemovalAllowed());
+    if (isPasS2RemovalAllowed() && !Precision.positive(newTurnFlow, EPSILON) && !Precision.positive(bush.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
       /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
-      origin.removeTurn(turnEntry, turnExit);
+      bush.removeTurn(turnEntry, turnExit);
       newTurnFlow = 0.0;
     }
     return newTurnFlow;
   }
-
-//  /**
-//   * Determine all labels' flows that are fully overlapping with the provided subpath (assumed present on the bush). We Utilise splitting rates to track because when destination
-//   * labelled it is possible that flows with the same label join the PAS halfway through but we should only track the portion of the labelled flow that participated from the start
-//   * <p>
-//   * The flows that are provided are the sending flows on the final edge segment of alternative S2, i.e., scaled back by all encountered flow acceptance factors
-//   * 
-//   * @param origin  at hand
-//   * @param subPath to do this for
-//   * @return found matching labels and their accepted absolute flows through s2, i.e., we track the flows by splitting rates and reduce by encountered flow acceptance factors
-//   */
-//  private Map<BushFlowLabel, Double> determineUsedLabelAcceptedFlows(RootedBush origin, final EdgeSegment[] subPath, double[] flowAcceptanceFactors) {
-//    var edgeSegmentCompositionLabels = origin.getFlowCompositionLabels(subPath[0]);
-//
-//    var pasCompositionLabelledSendingFlows = new HashMap<BushFlowLabel, Double>();
-//    if (edgeSegmentCompositionLabels == null || edgeSegmentCompositionLabels.isEmpty()) {
-//      return pasCompositionLabelledSendingFlows;
-//    }
-//
-//    var labelIter = edgeSegmentCompositionLabels.iterator();
-//    NEXTLABEL: while (labelIter.hasNext()) {
-//      var currLabel = labelIter.next();
-//
-//      EdgeSegment currentSegment = subPath[0];
-//      double labelledS2AcceptedFlow = origin.getSendingFlowPcuH(currentSegment, currLabel);
-//
-//      EdgeSegment succeedingSegment = currentSegment;
-//      for (int index = 1; index < subPath.length; ++index) {
-//        succeedingSegment = subPath[index];
-//        double currSplittingRate = origin.getSplittingRate(currentSegment, succeedingSegment, currLabel);
-//        if (!Precision.positive(currSplittingRate)) {
-//          continue NEXTLABEL;
-//        }
-//        currentSegment = succeedingSegment;
-//        labelledS2AcceptedFlow *= flowAcceptanceFactors[(int) currentSegment.getId()] * currSplittingRate;
-//      }
-//      labelledS2AcceptedFlow *= flowAcceptanceFactors[(int) succeedingSegment.getId()];
-//
-//      pasCompositionLabelledSendingFlows.put(currLabel, labelledS2AcceptedFlow);
-//    }
-//    return pasCompositionLabelledSendingFlows;
-//  }
 
   /**
    * Perform the flow shift through the end merge vertex of the PASs high cost segment for the given origin bush flow composition
@@ -197,42 +155,19 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
     final var s2 = pas.getAlternative(false);
     final var s1 = pas.getAlternative(true);
 
-    /* prep - origin */
-    //var s2DestinationLabelledAcceptedFlows = determineUsedLabelAcceptedFlows(bush, s2, flowAcceptanceFactors);
-
     /*
      * ------------------------------------------------- S2 FLOW SHIFT ----------------------------------------------------------------------------------------------------------
      * Update S2 by shifting flow proportionally along encountered flow compositions matching with the PAS/origin/alternative
      */
 
-//    /*
-//     * determine relative proportions of destination labels (based on s2). Given a PAS should be proportional on both alternatives we can use the found proportions on both
-//     * alternatives and can use the found proportions also for s1 (since we use destination labelling the same labels apply).
-//     */
-//    TreeMap<BushFlowLabel, Double> bushAlternativeRelativeLabelProportions = new TreeMap<>(s2DestinationLabelledAcceptedFlows);
-//    double sumOfS2LabelledAcceptedFlows = bushAlternativeRelativeLabelProportions.values().stream().collect(Collectors.summingDouble(d -> d));
-//    bushAlternativeRelativeLabelProportions.entrySet().forEach(e -> e.setValue(e.getValue() / sumOfS2LabelledAcceptedFlows));
-
-    /* exit turn flows out of s2 by used exit label - to be populated in s2 merge update for use by s1 update */
-    //var bushS2MergeExitShiftedSendingFlows = new TreeMap<BushFlowLabel, double[]>();    
-//    for (var labelPortionPair : bushAlternativeRelativeLabelProportions.entrySet()) {
-//      var currLabel = labelPortionPair.getKey();
-//      var currLabelPortion = labelPortionPair.getValue();
-
-      // TODO: combine final merge and flow shift in one approach ideally
       /* obtain splitting rates before flow shift in case turns/edges are removed on S2, then splitting rate information is lost while required for final merge afterwards */
       var s2MergeExitSplittingRates = bush.getSplittingRates(pas.getLastEdgeSegment(false /* high cost */), dummyLabel);
 
-      /* shift portion of flow attributed to composition label traversing s2 */
-      //double s2StartLabeledFlowShift = -currLabelPortion * bushFlowShift;
       double s2StartLabeledFlowShift = -bushFlowShift;
       double s2FinalLabeledFlowShift = executeBushPasFlowShift(bush, entrySegment, s2StartLabeledFlowShift, s2, flowAcceptanceFactors);
 
-      LOGGER.info(String.format("** S2 SHIFT: shift-link [start,end]: [%.10f, %.10f]", s2StartLabeledFlowShift, s2FinalLabeledFlowShift));
-
       /* shift flow across final merge for S2 */
       double[] bushS2MergeExitShiftedSendingFlows =executeBushS2FlowShiftEndMerge(bush, s2FinalLabeledFlowShift, s2MergeExitSplittingRates);
-//    }
 
     /* convert flows to portions by label */
     ArrayUtils.divideBySum(bushS2MergeExitShiftedSendingFlows, 0);
@@ -243,20 +178,11 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
      * ------------------------------------------------- S1 FLOW SHIFT ----------------------------------------------------------------------------------------------------------
      * Update S1 by shifting flow proportionally along encountered flow compositions matching with the PAS/origin/alternative
      */
-//    for (var labelPortionPair : bushAlternativeRelativeLabelProportions.entrySet()) {
-//      var currLabel = labelPortionPair.getKey();
-//      var currLabelPortion = labelPortionPair.getValue();
-
-      /* portion of flow attributed to composition label traversing s1 */
-      //double s1StartLabeledFlowShift = currLabelPortion * bushFlowShift;
       double s1StartLabeledFlowShift = bushFlowShift;
       double s1FinalLabeledFlowShift = executeBushPasFlowShift(bush, entrySegment, s1StartLabeledFlowShift, s1, flowAcceptanceFactors);
 
-      LOGGER.info(String.format("** S1 SHIFT: shift-link [start,end]: [%.10f, %.10f]", s1StartLabeledFlowShift, s1FinalLabeledFlowShift));
-
       /* shift flow across final merge for S1 based on findings in s2 */
       executeBushS1FlowShiftEndMerge(bush, s1FinalLabeledFlowShift, bushS2MergeExitShiftedSplittingRates);
-//    }
   }
 
   /**

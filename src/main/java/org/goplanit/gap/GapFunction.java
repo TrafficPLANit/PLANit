@@ -1,6 +1,7 @@
 package org.goplanit.gap;
 
 import java.io.Serializable;
+import java.util.Map;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -50,6 +51,15 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
   public GapFunction(final GapFunction other) {
     super(other);
     this.stopCriterion = other.stopCriterion.clone();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    Map<String,String> stopCriterionSettings = getStopCriterion().collectSettingsAsKeyValueMap();    
+    return stopCriterionSettings;
   }
 
   /**

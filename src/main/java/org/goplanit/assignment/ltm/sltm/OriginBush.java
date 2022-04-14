@@ -92,6 +92,14 @@ public class OriginBush extends RootedBush {
   public Iterator<DirectedVertex> getTopologicalIterator(boolean originDestinationDirection) {
     return this.dag.getTopologicalIterator(requireTopologicalSortUpdate, !originDestinationDirection /* do not invert direction, dag is in od direction */ );
   }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdZone getRootZone() {
+    return getOrigin();
+  }  
 
   /**
    * {@inheritDoc}
@@ -99,6 +107,15 @@ public class OriginBush extends RootedBush {
   @Override
   public OriginBush clone() {
     return new OriginBush(this);
+  }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    String result = super.toString();
+    return "Bush: origin zone: " + getOrigin().getXmlId() + "\n" + result;
   }
 
   /**
@@ -108,7 +125,7 @@ public class OriginBush extends RootedBush {
    */
   public OdZone getOrigin() {
     return this.originDemandsPcuH.keySet().iterator().next();
-  }
+  }  
 
   /**
    * add origin demand for this origin bush

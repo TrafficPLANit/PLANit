@@ -3,8 +3,11 @@ package org.goplanit.assignment.ltm.sltm;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -25,6 +28,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.zoning.OdZone;
+import org.goplanit.utils.zoning.Zone;
 
 /**
  * A rooted bush is an acyclic directed graph comprising of implicit paths along a network. It has a single root which can be any vertex with only outgoing edge segments. while
@@ -170,6 +174,41 @@ public abstract class RootedBush implements IdAble {
   public long getId() {
     return dag.getId();
   }
+  
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    var sb = new StringBuilder("[");
+    /* log all edge segments on bush */
+    var root = this.dag.getRootVertex();
+    Queue<DirectedVertex> openVertices = new PriorityQueue<>();
+    openVertices.add(root);
+    Set<DirectedVertex> processed = new HashSet<>();
+    
+    final var getNextEdgeSegments = isInverted() ? DirectedVertex.getEntryEdgeSegments : DirectedVertex.getExitEdgeSegments;
+    final var getNextVertex = isInverted() ? EdgeSegment.getUpstreamVertex : EdgeSegment.getDownstreamVertex;
+    
+    while (!openVertices.isEmpty()) {
+      var vertex = openVertices.poll();
+      processed.add(vertex);
+      for (var nextSegment : getNextEdgeSegments.apply(vertex)) {
+        if (!containsEdgeSegment(nextSegment)) {
+          continue;
+        }
+        var nextVertex = getNextVertex.apply(nextSegment);
+        sb.append(nextSegment.getXmlId() + ",");
+        if (processed.contains(nextVertex)) {
+          continue;
+        }
+        openVertices.add(nextVertex);
+      }
+    }
+    sb.deleteCharAt(sb.length() - 1);
+    sb.append("]");
+    return sb.toString();
+  }  
 
   /**
    * root vertex of the bush
@@ -202,6 +241,11 @@ public abstract class RootedBush implements IdAble {
     }
     EdgeSegment currSegment = null;
     for (int index = 0; index < alternative.length; ++index) {
+      EdgeSegment currEdgeSegment = alternative[index];
+      if(currEdgeSegment == null) {
+        LOGGER.severe(String.format("Alternative's edge segment at position %d on array is null, this shouldn't happen", index));
+        break;
+      }
       currSegment = alternative[index].getOppositeDirectionSegment();
       if (currSegment != null && containsEdgeSegment(currSegment)) {
         return alternative[index];
@@ -384,7 +428,7 @@ public abstract class RootedBush implements IdAble {
    */
   public void removeTurn(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
     bushData.removeTurn(fromEdgeSegment, toEdgeSegment);
-    LOGGER.info(String.format("Removing turn (%s,%s) from bush", fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId()));
+    //LOGGER.info(String.format("Removing turn (%s,%s) from bush", fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId()));
 
     if (!Precision.positive(getSendingFlowPcuH(fromEdgeSegment))) {
       removeEdgeSegment(fromEdgeSegment);
@@ -404,7 +448,7 @@ public abstract class RootedBush implements IdAble {
   public boolean removeEdgeSegment(EdgeSegment edgeSegment) {
     /* update graph if edge segment is unused */
     if (!Precision.positive(getSendingFlowPcuH(edgeSegment))) {
-      LOGGER.info(String.format("Removing edge segment (%s) from bush", edgeSegment.getXmlId()));
+    //  LOGGER.info(String.format("Removing edge segment (%s) from bush", edgeSegment.getXmlId()));
       dag.removeEdgeSegment(edgeSegment);
       return true;
     }
@@ -814,4 +858,10 @@ public abstract class RootedBush implements IdAble {
   public Double getOriginDemandPcuH(OdZone originZone) {
     return this.originDemandsPcuH.get(originZone);
   }
+
+  /** Each rooted bush is expected to have a zone attached to its root vertex, which is to be returned here
+   * 
+   * @return root zone
+   */
+  protected abstract Zone getRootZone();
 }

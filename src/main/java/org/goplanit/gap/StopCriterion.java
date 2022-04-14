@@ -1,5 +1,11 @@
 package org.goplanit.gap;
 
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.goplanit.utils.reflection.ReflectionUtils;
+
 /**
  * StopCriterion class. In its base form we only provide an epsilon value. However by deriving from this class additional citeria can be added
  * 
@@ -96,5 +102,17 @@ public class StopCriterion implements Cloneable {
    */
   public StopCriterion clone() {
     return new StopCriterion(this);
+  }
+
+  /**
+   * Settings of base stop criterion class
+   * 
+   * @return Map with settings as key value pairs 
+   */
+  public Map<String, String> collectSettingsAsKeyValueMap() {
+    var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(this, i -> Modifier.isPrivate(i) && !Modifier.isStatic(i));
+    var keyValueMap = new HashMap<String, String>();
+    privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
+    return keyValueMap;
   }
 }

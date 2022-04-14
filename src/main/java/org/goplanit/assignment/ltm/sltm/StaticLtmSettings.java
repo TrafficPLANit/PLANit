@@ -29,7 +29,7 @@ public class StaticLtmSettings implements Cloneable {
   private Boolean enforceMaxEntropyFlowSolution = ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT;
 
   /** default setting for assignment is to apply an origin-based bush-based type of implementation over a path based one */
-  public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmType.ORIGIN_BUSH_BASED;
+  public static StaticLtmType DEFAULT_SLTM_TYPE = StaticLtmType.DESTINATION_BUSH_BASED;
 
   /** default setting for enforcing a flow proportional solution when possible */
   public static boolean ENFORCE_FLOW_PROPORTIONAL_SOLUTION_DEFAULT = false;

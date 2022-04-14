@@ -187,12 +187,12 @@ public class BushTurnData implements Cloneable {
       turnSendingFlow = 0.0;
     }else if(!Precision.positive(turnSendingFlow)) {
       if (allowTurnRemoval) {
-        LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
-            turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
+        //LOGGER.info(String.format("** Turn (%s to %s) sending flow not positive (enough) (%.9f), remove entry for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
+        //    turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
         removeTurnFlow(fromSegment, fromComposition, toSegment, toComposition);
         return false;
       }else if(turnSendingFlow < 0){
-        LOGGER.info(String.format("** Turn (%s to %s) sending flow negative (%.9f), this is not allowed, reset to 0.0 for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
+         LOGGER.warning(String.format("** Turn (%s to %s) sending flow negative (%.9f), this is not allowed, reset to 0.0 for label (%s,%s)", fromSegment.getXmlId(), toSegment.getXmlId(),
             turnSendingFlow, fromComposition.getLabelId(), toComposition.getLabelId()));
         turnSendingFlow = 0.0;
         return false;

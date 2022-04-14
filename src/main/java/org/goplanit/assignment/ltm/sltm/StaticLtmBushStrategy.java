@@ -116,9 +116,9 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
      * found -> register origin, shifting of flow occurs when updating pas, extending bush with low cost segment occurs automatically when shifting flow later (flow is added to low
      * cost link segments which will be created if non-existent on bush)
      */
-    effectivePas.registerBush(bush);
-    if (getSettings().isDetailedLogging()) {
-      LOGGER.info(String.format("%s %s added to PAS %s", bush.isInverted() ? "Destination" : "Origin", bush.getRootVertex().getXmlId(), effectivePas.toString()));
+    boolean newlyRegistered = effectivePas.registerBush(bush);
+    if (newlyRegistered && getSettings().isDetailedLogging()) {
+      LOGGER.info(String.format("%s %s added to PAS %s", bush.isInverted() ? "Destination" : "Origin", bush.getRootZone().getXmlId(), effectivePas.toString()));
     }
     return true;
   }
@@ -171,21 +171,17 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
         truncateSpareArrayCapacity);
 
     /* register on existing PAS (if available) otherwise create new PAS */
-    Pas pas = pasManager.findExistingPas(s1, s2);
-    if (pas != null) {
-      pas.registerBush(bush);
-    } else {
-      pas = pasManager.findExistingPas(s2, s1);
-      if (pas != null) {
-        LOGGER.severe(String.format("existing pas has inverted high/low segment costs compared to current situation, shouldn't happen"));
-        pas.registerBush(bush);
-      } else {
-        pas = pasManager.createAndRegisterNewPas(bush, s1, s2);
-        /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
-        getLoading().activateNodeTrackingFor(pas);
-      }
+    Pas exitingPas = pasManager.findExistingPas(s1, s2);
+    if (exitingPas != null) {
+      exitingPas.registerBush(bush);
+      return null;
     }
-
+    
+    
+    /* New pas */
+    Pas pas = pasManager.createAndRegisterNewPas(bush, s1, s2);
+    /* make sure all nodes along the PAS are tracked on the network level, for splitting rate/sending flow/acceptance factor information */
+    getLoading().activateNodeTrackingFor(pas);
     return pas;
   }
 
@@ -292,11 +288,19 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
     BitSet linkSegmentsUsed = new BitSet(networkLoading.getCurrentInflowsPcuH().length);
     Collection<Pas> sortedPass = pasManager.getPassSortedByReducedCost();
     for (Pas pas : sortedPass) {
-
+      
       var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
       pasFlowShifter.initialise(); // to be able to collect pas sending flows for gap
+      
+      if(!(pasFlowShifter.getS2SendingFlow() >0)) {
+        /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial overlapping S2 segments) */
+        pas.removeAllRegisteredBushes();
+        passWithoutOrigins.add(pas);
+        continue;
+      }
+      
+      
       updateGap(gapFunction, pas, pasFlowShifter.getS1SendingFlow(), pasFlowShifter.getS2SendingFlow());
-
       if (pas.containsAny(linkSegmentsUsed)) {
         continue;
       }

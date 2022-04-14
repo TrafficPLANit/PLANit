@@ -115,9 +115,10 @@ public class Pas {
    * Register origin on the PAS
    * 
    * @param bush bush to register
+   * @return true when newly added, false, when already present
    */
-  public void registerBush(final RootedBush bush) {
-    registeredBushes.add(bush);
+  public boolean registerBush(final RootedBush bush) {
+    return registeredBushes.add(bush);
   }
 
   /**
@@ -146,6 +147,13 @@ public class Pas {
    */
   public boolean hasRegisteredBushes() {
     return !registeredBushes.isEmpty();
+  }
+
+  /**
+   * Remove all currently registered bushes from PAS
+   */
+  public void removeAllRegisteredBushes() {
+    registeredBushes.clear();
   }
 
   /**

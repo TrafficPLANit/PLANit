@@ -219,7 +219,7 @@ public class PasManager {
     if (truncateArray) {
       if (!searchInverted && index > 0){
         return Arrays.copyOfRange(edgeSegmentArray, index+1, edgeSegmentArray.length);
-      }else if(searchInverted && index < arrayLength - 1) {
+      }else if(searchInverted && index < arrayLength) {
         return Arrays.copyOfRange(edgeSegmentArray, 0, index);
       }
     }

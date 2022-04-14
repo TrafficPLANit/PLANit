@@ -1,9 +1,12 @@
 package org.goplanit.gap;
 
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.reflection.ReflectionUtils;
 
 /**
  * Gap function based on the norm, e.g. ||x||_p where p indicates which norm (norm 1, norm 2 etc) and x represents a vector of differences between two values. When averaged
@@ -200,7 +203,11 @@ public class NormBasedGapFunction extends GapFunction {
    */
   @Override
   public Map<String, String> collectSettingsAsKeyValueMap() {
-    return null;
+    var keyValueMap = new HashMap<String, String>(super.collectSettingsAsKeyValueMap());
+    
+    var privateFieldNameValues = ReflectionUtils.declaredFieldsNameValueMap(this, i -> Modifier.isProtected(i) && !Modifier.isStatic(i));
+    privateFieldNameValues.forEach((k, v) -> keyValueMap.put(k, v.toString()));
+    return keyValueMap;
   }
 
   public int getNorm() {
