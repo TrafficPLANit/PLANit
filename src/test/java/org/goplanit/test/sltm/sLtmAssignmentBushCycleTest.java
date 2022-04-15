@@ -112,7 +112,7 @@ public class sLtmAssignmentBushCycleTest {
     //    |0
     // (8)* A
     //
-    // cycle occurs in destination based (3)->(1)->(2)->(3)
+    // cycle occurs in destination based for vertices (3)->(1)->(2)->(3)
     // Bottlenecks: 10, 8 (500 veh/h), 2b (100) others (2000 veh/h)
     
     try {

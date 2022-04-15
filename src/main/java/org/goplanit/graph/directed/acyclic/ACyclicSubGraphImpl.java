@@ -27,7 +27,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class ACyclicSubGraphImpl implements ACyclicSubGraph {
+public class ACyclicSubGraphImpl<V extends DirectedVertex, E extends EdgeSegment> implements ACyclicSubGraph<V, E> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ACyclicSubGraphImpl.class.getCanonicalName());
@@ -43,16 +43,16 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * TODO: candidate to be generated based on registered link segments and provide as parameter to methods requiring it. This would allow one the option to not store this but
    * generate on-the-fly trading-off memory vs computational speed. Now we always have this in memory which is costly
    */
-  private Map<DirectedVertex, AcyclicVertexData> vertexData;
+  private Map<V, AcyclicVertexData> vertexData;
 
   /** track most recent topological order available */
-  private ArrayDeque<DirectedVertex> topologicalOrder;
+  private ArrayDeque<V> topologicalOrder;
 
   /** track the link segments used via a bit set, where 1 at index indicates the link segment with id=index is included */
   private BitSet registeredLinkSegments;
 
   /** root vertex of the dag */
-  private DirectedVertex rootVertex;
+  private V rootVertex;
 
   /** indicate if direction of dag is inverted compared to "normal" downstream direction */
   private boolean invertedDirection;
@@ -72,7 +72,7 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * 
    * @param vertex to remove data for
    */
-  private void removeVertexData(DirectedVertex vertex) {
+  private void removeVertexData(V vertex) {
     vertexData.remove(vertex);
   }
 
@@ -82,7 +82,7 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * @param vertex to check
    * @return true when connected, false otherwise
    */
-  private boolean isConnectedToAnySubgraphEdgeSegment(DirectedVertex vertex) {
+  private boolean isConnectedToAnySubgraphEdgeSegment(V vertex) {
     for (EdgeSegment edgeSegment : vertex.getExitEdgeSegments()) {
       if (containsEdgeSegment(edgeSegment)) {
         return true;
@@ -105,12 +105,13 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * 
    * @return true when acyclic, false otherwise
    */
-  private boolean traverseRecursively(DirectedVertex vertex, BitSet visited, LongAdder counter, Deque<DirectedVertex> topologicalOrder) {
+  @SuppressWarnings("unchecked")
+  private boolean traverseRecursively(DirectedVertex vertex, BitSet visited, LongAdder counter, Deque<V> topologicalOrder) {
     visited.set((int) vertex.getId());
 
     AcyclicVertexData vertexData = getVertexData(vertex);
     preVisit(vertexData, counter);
-    
+
     var getNextVertex = EdgeSegment.getVertexForEdgeSegmentLambda(isDirectionInverted());
     var getNextEdgeSegments = DirectedVertex.getEdgeSegmentsForVertexLambda(isDirectionInverted());
 
@@ -141,7 +142,7 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
     }
     postVisit(vertexData, counter);
     /* off the "being processed" stack, add to topological order list as no "earlier" vertices remain */
-    topologicalOrder.push(vertex);
+    topologicalOrder.push((V) vertex);
 
     return isAcyclic;
   }
@@ -188,7 +189,7 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * @param invertedDirection          when true dag ends at root and all other vertices precede it, when false the root is the starting point and all other vertices succeed it
    * @param numberOfParentEdgeSegments number of directed edge segments of the parent this subgraph is a subset from
    */
-  public ACyclicSubGraphImpl(final IdGroupingToken groupId, DirectedVertex rootVertex, boolean invertedDirection, int numberOfParentEdgeSegments) {
+  public ACyclicSubGraphImpl(final IdGroupingToken groupId, V rootVertex, boolean invertedDirection, int numberOfParentEdgeSegments) {
     this.id = IdGenerator.generateId(groupId, ACyclicSubGraph.class);
     this.vertexData = new HashMap<>();
     this.registeredLinkSegments = new BitSet(numberOfParentEdgeSegments);
@@ -202,17 +203,17 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * 
    * @param aCyclicSubGraphImpl to copy
    */
-  public ACyclicSubGraphImpl(ACyclicSubGraphImpl aCyclicSubGraphImpl) {
+  public ACyclicSubGraphImpl(ACyclicSubGraphImpl<V, E> aCyclicSubGraphImpl) {
     this.id = aCyclicSubGraphImpl.getId();
     this.rootVertex = aCyclicSubGraphImpl.getRootVertex();
     this.invertedDirection = aCyclicSubGraphImpl.isDirectionInverted();
 
     this.registeredLinkSegments = BitSet.valueOf(aCyclicSubGraphImpl.registeredLinkSegments.toByteArray());
 
-    this.vertexData = new HashMap<DirectedVertex, AcyclicVertexData>();
+    this.vertexData = new HashMap<V, AcyclicVertexData>();
     aCyclicSubGraphImpl.vertexData.forEach((v, d) -> this.vertexData.put(v, d.clone()));
 
-    this.topologicalOrder = aCyclicSubGraphImpl.topologicalOrder != null ? new ArrayDeque<DirectedVertex>(aCyclicSubGraphImpl.topologicalOrder) : null;
+    this.topologicalOrder = aCyclicSubGraphImpl.topologicalOrder != null ? new ArrayDeque<V>(aCyclicSubGraphImpl.topologicalOrder) : null;
   }
 
   /**
@@ -222,13 +223,13 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * @return Topologically sorted list of vertices, null when graph is not acyclic, or disconnected
    */
   @Override
-  public Deque<DirectedVertex> topologicalSort(boolean update) {
+  public Deque<V> topologicalSort(boolean update) {
 
     if (!update && topologicalOrder != null && !topologicalOrder.isEmpty()) {
       return topologicalOrder;
     }
 
-    topologicalOrder = new ArrayDeque<DirectedVertex>(vertexData.size());
+    topologicalOrder = new ArrayDeque<V>(vertexData.size());
     resetVertexData();
     BitSet visited = new BitSet(vertexData.size());
     LongAdder counter = new LongAdder();
@@ -241,7 +242,7 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
       return null;
     }
 
-    for (Entry<DirectedVertex, AcyclicVertexData> vertexEntry : this.vertexData.entrySet()) {
+    for (Entry<V, AcyclicVertexData> vertexEntry : this.vertexData.entrySet()) {
       if (!visited.get((int) vertexEntry.getKey().getId())) {
         LOGGER.warning(String.format("Topological sort applied, but some vertices not connected to a root of the acyclic graph (%d), unable to determine sorting order", getId()));
         return null;
@@ -262,8 +263,9 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
-  public void addEdgeSegment(EdgeSegment edgeSegment) {
+  public void addEdgeSegment(E edgeSegment) {
     if (edgeSegment == null) {
       LOGGER.warning("Unable to add edge segment to acyclic subgraph, null provided");
       return;
@@ -271,10 +273,10 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
 
     registeredLinkSegments.set((int) edgeSegment.getId());
     if (!vertexData.containsKey(edgeSegment.getUpstreamVertex())) {
-      vertexData.put(edgeSegment.getUpstreamVertex(), new AcyclicVertexData());
+      vertexData.put((V) edgeSegment.getUpstreamVertex(), new AcyclicVertexData());
     }
     if (!vertexData.containsKey(edgeSegment.getDownstreamVertex())) {
-      vertexData.put(edgeSegment.getDownstreamVertex(), new AcyclicVertexData());
+      vertexData.put((V) edgeSegment.getDownstreamVertex(), new AcyclicVertexData());
     }
   }
 
@@ -301,21 +303,22 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * {@inheritDoc}
    */
   @Override
-  public Iterator<DirectedVertex> iterator() {
+  public Iterator<V> iterator() {
     return Collections.unmodifiableSet(this.vertexData.keySet()).iterator();
   }
 
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
-  public void removeEdgeSegment(EdgeSegment edgeSegment) {
+  public void removeEdgeSegment(E edgeSegment) {
     registeredLinkSegments.set((int) edgeSegment.getId(), false);
-    if (!isConnectedToAnySubgraphEdgeSegment(edgeSegment.getDownstreamVertex())) {
-      removeVertexData(edgeSegment.getDownstreamVertex());
+    if (!isConnectedToAnySubgraphEdgeSegment((V) edgeSegment.getDownstreamVertex())) {
+      removeVertexData((V) edgeSegment.getDownstreamVertex());
     }
-    if (!isConnectedToAnySubgraphEdgeSegment(edgeSegment.getUpstreamVertex())) {
-      removeVertexData(edgeSegment.getUpstreamVertex());
+    if (!isConnectedToAnySubgraphEdgeSegment((V) edgeSegment.getUpstreamVertex())) {
+      removeVertexData((V) edgeSegment.getUpstreamVertex());
     }
 
   }
@@ -324,15 +327,15 @@ public class ACyclicSubGraphImpl implements ACyclicSubGraph {
    * {@inheritDoc}
    */
   @Override
-  public ACyclicSubGraphImpl clone() {
-    return new ACyclicSubGraphImpl(this);
+  public ACyclicSubGraphImpl<V, E> clone() {
+    return new ACyclicSubGraphImpl<V, E>(this);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public DirectedVertex getRootVertex() {
+  public V getRootVertex() {
     return this.rootVertex;
   }
 

@@ -83,7 +83,7 @@ public abstract class RootedBush implements IdAble {
   protected Map<OdZone, Double> originDemandsPcuH;
 
   /** the directed acyclic subgraph representation of the bush, pertaining solely to the topology */
-  protected final ACyclicSubGraph dag;
+  protected final ACyclicSubGraph<DirectedVertex, EdgeSegment> dag;
 
   /** track bush specific data */
   protected final BushTurnData bushData;
@@ -101,7 +101,7 @@ public abstract class RootedBush implements IdAble {
    * @param demandPcuH demand to set
    */
   protected void addOriginDemandPcuH(OdZone originZone, double demandPcuH) {
-    double currentDemandPcuH = this.originDemandsPcuH.getOrDefault(originZone,0.0);
+    double currentDemandPcuH = this.originDemandsPcuH.getOrDefault(originZone, 0.0);
     this.originDemandsPcuH.put(originZone, currentDemandPcuH + demandPcuH);
   }
 
@@ -115,7 +115,7 @@ public abstract class RootedBush implements IdAble {
    * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
   public RootedBush(final IdGroupingToken idToken, DirectedVertex rootVertex, boolean inverted, long maxSubGraphEdgeSegments) {
-    this.dag = new ACyclicSubGraphImpl(idToken, rootVertex, inverted, (int) maxSubGraphEdgeSegments);
+    this.dag = new ACyclicSubGraphImpl<DirectedVertex, EdgeSegment>(idToken, rootVertex, inverted, (int) maxSubGraphEdgeSegments);
     this.bushData = new BushTurnData();
     this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, dag.getId());
     this.originDemandsPcuH = new HashMap<>();
@@ -174,7 +174,7 @@ public abstract class RootedBush implements IdAble {
   public long getId() {
     return dag.getId();
   }
-  
+
   /**
    * {@inheritDoc}
    */
@@ -186,10 +186,10 @@ public abstract class RootedBush implements IdAble {
     Queue<DirectedVertex> openVertices = new PriorityQueue<>();
     openVertices.add(root);
     Set<DirectedVertex> processed = new HashSet<>();
-    
+
     final var getNextEdgeSegments = isInverted() ? DirectedVertex.getEntryEdgeSegments : DirectedVertex.getExitEdgeSegments;
     final var getNextVertex = isInverted() ? EdgeSegment.getUpstreamVertex : EdgeSegment.getDownstreamVertex;
-    
+
     while (!openVertices.isEmpty()) {
       var vertex = openVertices.poll();
       processed.add(vertex);
@@ -208,7 +208,7 @@ public abstract class RootedBush implements IdAble {
     sb.deleteCharAt(sb.length() - 1);
     sb.append("]");
     return sb.toString();
-  }  
+  }
 
   /**
    * root vertex of the bush
@@ -242,7 +242,7 @@ public abstract class RootedBush implements IdAble {
     EdgeSegment currSegment = null;
     for (int index = 0; index < alternative.length; ++index) {
       EdgeSegment currEdgeSegment = alternative[index];
-      if(currEdgeSegment == null) {
+      if (currEdgeSegment == null) {
         LOGGER.severe(String.format("Alternative's edge segment at position %d on array is null, this shouldn't happen", index));
         break;
       }
@@ -428,7 +428,7 @@ public abstract class RootedBush implements IdAble {
    */
   public void removeTurn(final EdgeSegment fromEdgeSegment, final EdgeSegment toEdgeSegment) {
     bushData.removeTurn(fromEdgeSegment, toEdgeSegment);
-    //LOGGER.info(String.format("Removing turn (%s,%s) from bush", fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId()));
+    // LOGGER.info(String.format("Removing turn (%s,%s) from bush", fromEdgeSegment.getXmlId(), toEdgeSegment.getXmlId()));
 
     if (!Precision.positive(getSendingFlowPcuH(fromEdgeSegment))) {
       removeEdgeSegment(fromEdgeSegment);
@@ -448,7 +448,7 @@ public abstract class RootedBush implements IdAble {
   public boolean removeEdgeSegment(EdgeSegment edgeSegment) {
     /* update graph if edge segment is unused */
     if (!Precision.positive(getSendingFlowPcuH(edgeSegment))) {
-    //  LOGGER.info(String.format("Removing edge segment (%s) from bush", edgeSegment.getXmlId()));
+      // LOGGER.info(String.format("Removing edge segment (%s) from bush", edgeSegment.getXmlId()));
       dag.removeEdgeSegment(edgeSegment);
       return true;
     }
@@ -521,7 +521,7 @@ public abstract class RootedBush implements IdAble {
     final boolean invertNextDirection = true;
     final var getNextEdgeSegments = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(this, invertNextDirection);
     final var getNextVertex = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(this, invertNextDirection);
-    
+
     /* start with eligible edge segments of reference vertex except alternative labelled segment */
     processedVertices.put(referenceVertex, null);
     var nextEdgeSegments = getNextEdgeSegments.apply(referenceVertex);
@@ -859,7 +859,8 @@ public abstract class RootedBush implements IdAble {
     return this.originDemandsPcuH.get(originZone);
   }
 
-  /** Each rooted bush is expected to have a zone attached to its root vertex, which is to be returned here
+  /**
+   * Each rooted bush is expected to have a zone attached to its root vertex, which is to be returned here
    * 
    * @return root zone
    */

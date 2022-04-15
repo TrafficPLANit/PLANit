@@ -21,7 +21,7 @@ public class BushInitialiserHelper {
   private final RootedBush bush;
 
   /** to use to initialise bush */
-  private final ACyclicSubGraph odDag;
+  private final ACyclicSubGraph<DirectedVertex, EdgeSegment> odDag;
 
   /** pas manager to use */
   private final PasManager pasManager;
@@ -113,7 +113,7 @@ public class BushInitialiserHelper {
    * @param edgeSegmentPasOriginVertexAlternativeIndex to be populated with exit segments registered to approprate alternative for unfinished PAS start vertex
    * @param originVertexAlternatives                   to be populated with origin vertex and alternative segments based on passed in vertex and used exit segments
    */
-  private static void addNewUnfinishedPass(final DirectedVertex pasDivergeVertex, final ACyclicSubGraph currentDestinationDag,
+  private static void addNewUnfinishedPass(final DirectedVertex pasDivergeVertex, final ACyclicSubGraph<DirectedVertex, EdgeSegment> currentDestinationDag,
       Map<EdgeSegment, Map<DirectedVertex, Integer>> edgeSegmentPasOriginVertexAlternativeIndex, Map<DirectedVertex, List<List<EdgeSegment>>> originVertexAlternatives) {
     /* new PAS(s) start here, flow splits, create and register exit edge segments as start of alternatives for new diverge leading to PAS(s) when merging later */
     var pasAlternatives = new ArrayList<List<EdgeSegment>>();
@@ -229,7 +229,7 @@ public class BushInitialiserHelper {
    * @param pasManager to use
    * @param logNewPass when true log new PASs, otherwise not
    */
-  protected BushInitialiserHelper(final RootedBush bush, final ACyclicSubGraph odDag, final PasManager pasManager, boolean logNewPass) {
+  protected BushInitialiserHelper(final RootedBush bush, final ACyclicSubGraph<DirectedVertex, EdgeSegment> odDag, final PasManager pasManager, boolean logNewPass) {
     this.bush = bush;
     this.odDag = odDag;
     this.pasManager = pasManager;
@@ -243,7 +243,7 @@ public class BushInitialiserHelper {
    * @param odDag to use
    * @return created helper
    */
-  public static BushInitialiserHelper create(final RootedBush bush, final ACyclicSubGraph odDag, final PasManager pasManager, boolean logNewPass) {
+  public static BushInitialiserHelper create(final RootedBush bush, final ACyclicSubGraph<DirectedVertex, EdgeSegment> odDag, final PasManager pasManager, boolean logNewPass) {
     return new BushInitialiserHelper(bush, odDag, pasManager, logNewPass);
   }
 

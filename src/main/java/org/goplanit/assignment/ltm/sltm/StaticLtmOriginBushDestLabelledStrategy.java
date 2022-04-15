@@ -8,6 +8,8 @@ import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.OdZone;
@@ -35,7 +37,8 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
    * @param odDag        to use
    * 
    */
-  private void initialiseBushForDestination(final OriginBush originBush, final OdZone destination, final Double oDDemandPcuH, final ACyclicSubGraph odDag) {
+  private void initialiseBushForDestination(final OriginBush originBush, final OdZone destination, final Double oDDemandPcuH,
+      final ACyclicSubGraph<DirectedVertex, EdgeSegment> odDag) {
 
     /* destination label to to use (can be reused across bushes) */
     final BushFlowLabel currentLabel = destinationLabels[(int) destination.getOdZoneId()];

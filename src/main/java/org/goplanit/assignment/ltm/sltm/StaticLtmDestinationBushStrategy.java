@@ -9,6 +9,7 @@ import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.zoning.Zoning;
@@ -38,8 +39,8 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategy {
    * @param destinationLabel dummy destination label to use
    * 
    */
-  private void initialiseBushForOrigin(final DestinationBush destinationBush, final OdZone origin, final Double oDDemandPcuH, final ACyclicSubGraph odDag,
-      BushFlowLabel destinationLabel) {
+  private void initialiseBushForOrigin(final DestinationBush destinationBush, final OdZone origin, final Double oDDemandPcuH,
+      final ACyclicSubGraph<DirectedVertex, EdgeSegment> odDag, BushFlowLabel destinationLabel) {
 
     /* get topological sorted vertices to process (starting at destination) */
     boolean descendingIterator = true;
