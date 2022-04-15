@@ -572,7 +572,7 @@ public abstract class StaticLtmNetworkLoading {
   public static void performNodeModelUpdate(DirectedVertex node, ApplyToNodeModelResult consumer, StaticLtmNetworkLoading staticLtmNetworkLoading) {
     var splittingRateData = staticLtmNetworkLoading.getSplittingRateData();
     var sendingFlowData = staticLtmNetworkLoading.sendingFlowData;
-  
+      
     /* tracked but non-blocking or centroid is notified as non-blocking */
     if (!splittingRateData.isPotentiallyBlocking(node) || node instanceof Centroid) {
       consumer.acceptNonBlockingLinkBasedResult(node, sendingFlowData.getCurrentSendingFlows());
@@ -618,7 +618,7 @@ public abstract class StaticLtmNetworkLoading {
     try {
       var nodeModel = new TampereNodeModel(new TampereNodeModelInput(new TampereNodeModelFixedInput(inCapacities, outReceivingFlows), turnSendingFlows));
       Array1D<Double> localFlowAcceptanceFactors = nodeModel.run();
-  
+        
       /* delegate to consumer */
       consumer.acceptTurnBasedResult(node, localFlowAcceptanceFactors, nodeModel);
   

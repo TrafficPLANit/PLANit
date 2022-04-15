@@ -16,6 +16,13 @@ import org.goplanit.utils.zoning.OdZones;
 public interface OdDemands extends OdData<Double> {
 
   /**
+   * Multiply all entries with given factor
+   * 
+   * @param factor to multiply with
+   */
+  public abstract void multiply(final double factor);
+
+  /**
    * Apply the provided consumer to each origin-destination combination found that has non zero demands
    * 
    * @param odZones  to loop over

@@ -24,8 +24,8 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategy {
   /** Logger to use */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmDestinationBushStrategy.class.getCanonicalName());
-  
-  /** single dummy label used throughout  for destination bushes */
+
+  /** single dummy label used throughout for destination bushes */
   private final BushFlowLabel dummyLabel;
 
   /**
@@ -84,6 +84,10 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategy {
 
         /* initialise bush with this origin shortest path(s) */
         var originDag = allToOneResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), origin.getCentroid(), destination.getCentroid());
+        if (originDag.isEmpty()) {
+          LOGGER.severe(String.format("Unable to create bush connection(s) from origin (%s) to destination %s", origin.getXmlId(), destination.getXmlId()));
+          continue;
+        }
 
         bush.addOriginDemandPcuH(origin, currOdDemand);
         initialiseBushForOrigin((DestinationBush) bush, origin, currOdDemand, originDag, dummyLabel);

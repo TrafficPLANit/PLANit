@@ -120,7 +120,7 @@ public class TampereNodeModelFixedInput {
   protected Array1D<Double> outgoingLinkSegmentReceivingFlows;
 
   /** default max in capacity */
-  public static double DEFAULT_MAX_IN_CAPACITY = 20_000.0;
+  public static double DEFAULT_MAX_IN_CAPACITY = 10_000.0;
 
   /**
    * Constructor. The TampereNodeModelFixedInput class is meant to be created once for each node where the node model is applied more than once. All fixed inputs conditioned on the
