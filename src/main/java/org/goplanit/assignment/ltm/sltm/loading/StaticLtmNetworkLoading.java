@@ -1,6 +1,5 @@
 package org.goplanit.assignment.ltm.sltm.loading;
 
-import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
@@ -852,7 +851,7 @@ public abstract class StaticLtmNetworkLoading {
       double[] outflows = this.inFlowOutflowData.getOutflows();
       double[] nextReceivingFlows = this.receivingFlowData.getNextReceivingFlows();
       for(DirectedVertex node : this.splittingRateData.getTrackedNodes()) {
-        for (Iterator<EdgeSegment> iter = node.getEntryEdgeSegments().iterator(); iter.hasNext();) {
+        for (var iter = node.getEntryEdgeSegments().iterator(); iter.hasNext();) {
           EdgeSegment entryEdgeSegment = iter.next();
           int index = (int)entryEdgeSegment.getId();
         

@@ -6,6 +6,7 @@ import org.goplanit.graph.directed.DirectedEdgeImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
@@ -15,7 +16,7 @@ import org.goplanit.utils.network.layer.physical.Node;
  * @author markr
  *
  */
-public class LinkImpl extends DirectedEdgeImpl implements Link {
+public class LinkImpl extends DirectedEdgeImpl<Node, LinkSegment> implements Link {
 
   // Protected
 

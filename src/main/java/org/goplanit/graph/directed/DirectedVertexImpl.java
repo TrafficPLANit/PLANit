@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.VertexImpl;
+import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -16,7 +17,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
+public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> implements DirectedVertex {
 
   /**
    * Dedicated iterable to provide access to edge segments that are either incoming or outgoing for this vertex
@@ -24,7 +25,7 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    * @author markr
    *
    */
-  public final class EdgeSegmentIterable implements Iterable<EdgeSegment> {
+  public final class EdgeSegmentIterable<ESI extends EdgeSegment> implements Iterable<ESI> {
 
     /** flag indicating incoming or outgoing edge segments to iterate over */
     boolean incoming;
@@ -42,8 +43,8 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
      * {@inheritDoc}
      */
     @Override
-    public Iterator<EdgeSegment> iterator() {
-      return new EdgeSegmentIterator(incoming);
+    public Iterator<ESI> iterator() {
+      return new EdgeSegmentIterator<ESI>(incoming);
     }
 
   }
@@ -54,7 +55,7 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    * @author markr
    *
    */
-  public class EdgeSegmentIterator implements Iterator<EdgeSegment> {
+  public class EdgeSegmentIterator<ES extends EdgeSegment> implements Iterator<ES> {
 
     /**
      * parent edges iterator to extract information from
@@ -69,7 +70,7 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
     /**
      * tracking of next edge segment (to return)
      */
-    private EdgeSegment nextEdgeSegment;
+    private ES nextEdgeSegment;
 
     /**
      * Constructor
@@ -91,12 +92,12 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
       throw new UnsupportedOperationException();
     }
 
-
     /**
      * Check if next is available by querying edges for available segment based on their vertex location matching this vertex
      * 
      * @return true when present, false otherwise
      */
+    @SuppressWarnings("unchecked")
     @Override
     public boolean hasNext() {
       if (nextEdgeSegment != null) {
@@ -106,9 +107,9 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
       while (edgesIter.hasNext()) {
         var edge = edgesIter.next();
         if (edge.getVertexA() == DirectedVertexImpl.this) {
-          nextEdgeSegment = incoming ? edge.getEdgeSegmentBa() : edge.getEdgeSegmentAb();
+          nextEdgeSegment = (ES) (incoming ? edge.getEdgeSegmentBa() : edge.getEdgeSegmentAb());
         } else if (edge.getVertexB() == DirectedVertexImpl.this) {
-          nextEdgeSegment = incoming ? edge.getEdgeSegmentAb() : edge.getEdgeSegmentBa();
+          nextEdgeSegment = (ES) (incoming ? edge.getEdgeSegmentAb() : edge.getEdgeSegmentBa());
         } else {
           LOGGER.severe(String.format("Vertex (%s) not present on edge (%s) it holds, this shouldn't happen", DirectedVertexImpl.this.getXmlId(), edge.getXmlId()));
         }
@@ -126,7 +127,7 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
      * @return edge segment found
      */
     @Override
-    public EdgeSegment next() {
+    public ES next() {
       var returnEdgeSegment = nextEdgeSegment;
       nextEdgeSegment = null;
       return returnEdgeSegment;
@@ -145,12 +146,12 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
   /**
    * Entry edge segments iterable connected to this vertex
    */
-  protected final EdgeSegmentIterable entryEdgeSegments;
+  protected final EdgeSegmentIterable<E> entryEdgeSegments;
 
   /**
    * Exit edge segments which connect to this vertex
    */
-  protected final EdgeSegmentIterable exitEdgeSegments;
+  protected final EdgeSegmentIterable<E> exitEdgeSegments;
 
   /**
    * Constructor
@@ -159,8 +160,8 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    */
   protected DirectedVertexImpl(final IdGroupingToken groupId) {
     super(groupId);
-    this.entryEdgeSegments = new EdgeSegmentIterable(true /* incoming */);
-    this.exitEdgeSegments = new EdgeSegmentIterable(false /* outgoing */);
+    this.entryEdgeSegments = new EdgeSegmentIterable<E>(true /* incoming */);
+    this.exitEdgeSegments = new EdgeSegmentIterable<E>(false /* outgoing */);
   }
 
   /**
@@ -168,7 +169,7 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    * 
    * @param directedVertexImpl to copy
    */
-  protected DirectedVertexImpl(DirectedVertexImpl directedVertexImpl) {
+  protected DirectedVertexImpl(DirectedVertexImpl<E> directedVertexImpl) {
     super(directedVertexImpl);
     this.entryEdgeSegments = directedVertexImpl.entryEdgeSegments;
     this.exitEdgeSegments = directedVertexImpl.exitEdgeSegments;
@@ -180,7 +181,7 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    * {@inheritDoc}
    */
   @Override
-  public Iterable<EdgeSegment> getEntryEdgeSegments() {
+  public Iterable<E> getEntryEdgeSegments() {
     return entryEdgeSegments;
   }
 
@@ -188,10 +189,9 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    * {@inheritDoc}
    */
   @Override
-  public Iterable<EdgeSegment> getExitEdgeSegments() {
+  public Iterable<E> getExitEdgeSegments() {
     return exitEdgeSegments;
   }
-
 
   /**
    * {@inheritDoc}
@@ -206,8 +206,8 @@ public class DirectedVertexImpl extends VertexImpl implements DirectedVertex {
    * {@inheritDoc}
    */
   @Override
-  public DirectedVertexImpl clone() {
-    return new DirectedVertexImpl(this);
+  public DirectedVertexImpl<E> clone() {
+    return new DirectedVertexImpl<E>(this);
   }
 
 }

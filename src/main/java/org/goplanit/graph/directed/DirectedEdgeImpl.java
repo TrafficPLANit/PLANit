@@ -15,7 +15,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
+public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment> extends EdgeImpl<V> implements DirectedEdge {
 
   // Protected
 
@@ -28,18 +28,18 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
   /**
    * Edge segment A to B direction
    */
-  private EdgeSegment edgeSegmentAb = null;
+  private ES edgeSegmentAb = null;
   /**
    * Edge segment B to A direction
    */
-  private EdgeSegment edgeSegmentBa = null;
+  private ES edgeSegmentBa = null;
 
   /**
    * set edge segment from B to A
    * 
    * @param edgeSegmentBa to set
    */
-  protected void setEdgeSegmentBa(EdgeSegment edgeSegmentBa) {
+  protected void setEdgeSegmentBa(ES edgeSegmentBa) {
     this.edgeSegmentBa = edgeSegmentBa;
   }
 
@@ -48,7 +48,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * 
    * @param edgeSegmentAb to set
    */
-  protected void setEdgeSegmentAb(EdgeSegment edgeSegmentAb) {
+  protected void setEdgeSegmentAb(ES edgeSegmentAb) {
     this.edgeSegmentAb = edgeSegmentAb;
   }
 
@@ -59,7 +59,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * @param vertexA  first vertex in the link
    * @param vertexB  second vertex in the link
    */
-  protected DirectedEdgeImpl(final IdGroupingToken groupId, final DirectedVertex vertexA, final DirectedVertex vertexB) {
+  protected DirectedEdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB) {
     super(groupId, vertexA, vertexB);
   }
 
@@ -71,7 +71,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * @param vertexB  second vertex in the link
    * @param lengthKm length of the link in km
    */
-  protected DirectedEdgeImpl(final IdGroupingToken groupId, final DirectedVertex vertexA, final DirectedVertex vertexB, final double lengthKm) {
+  protected DirectedEdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB, final double lengthKm) {
     super(groupId, vertexA, vertexB, lengthKm);
   }
 
@@ -80,7 +80,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * 
    * @param directedEdgeImpl to copy
    */
-  protected DirectedEdgeImpl(DirectedEdgeImpl directedEdgeImpl) {
+  protected DirectedEdgeImpl(DirectedEdgeImpl<V, ES> directedEdgeImpl) {
     super(directedEdgeImpl);
     setEdgeSegmentAb(directedEdgeImpl.getEdgeSegmentAb());
     setEdgeSegmentBa(directedEdgeImpl.getEdgeSegmentBa());
@@ -93,24 +93,9 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
-  public DirectedVertex getVertexA() {
-    return (DirectedVertex) super.getVertexA();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DirectedVertex getVertexB() {
-    return (DirectedVertex) super.getVertexB();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public EdgeSegment registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) {
+  public ES registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) {
     if (edgeSegment.getParentEdge() == null) {
       edgeSegment.setParent(this);
     }
@@ -120,11 +105,11 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
       return null;
     }
 
-    final EdgeSegment overwrittenEdgeSegment = directionAB ? getEdgeSegmentAb() : getEdgeSegmentBa();
+    final ES overwrittenEdgeSegment = directionAB ? getEdgeSegmentAb() : getEdgeSegmentBa();
     if (directionAB) {
-      setEdgeSegmentAb(edgeSegment);
+      setEdgeSegmentAb((ES) edgeSegment);
     } else {
-      setEdgeSegmentBa(edgeSegment);
+      setEdgeSegmentBa((ES) edgeSegment);
     }
     return overwrittenEdgeSegment;
   }
@@ -133,7 +118,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment getEdgeSegmentAb() {
+  public ES getEdgeSegmentAb() {
     return edgeSegmentAb;
   }
 
@@ -141,7 +126,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment getEdgeSegmentBa() {
+  public ES getEdgeSegmentBa() {
     return edgeSegmentBa;
   }
 
@@ -149,20 +134,21 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * {@inheritDoc}
    */
   @Override
-  public DirectedEdgeImpl clone() {
-    return new DirectedEdgeImpl(this);
+  public DirectedEdgeImpl<V, ES> clone() {
+    return new DirectedEdgeImpl<V, ES>(this);
   }
 
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
   public void replace(EdgeSegment edgeSegmentToReplace, EdgeSegment edgeSegmentToReplaceWith) {
     if (edgeSegmentToReplace != null) {
       if (hasEdgeSegmentAb() && getEdgeSegmentAb().getId() == edgeSegmentToReplace.getId()) {
-        setEdgeSegmentAb(edgeSegmentToReplaceWith);
+        setEdgeSegmentAb((ES) edgeSegmentToReplaceWith);
       } else if (hasEdgeSegmentBa() && getEdgeSegmentBa().getId() == edgeSegmentToReplace.getId()) {
-        setEdgeSegmentBa(edgeSegmentToReplaceWith);
+        setEdgeSegmentBa((ES) edgeSegmentToReplaceWith);
       } else {
         LOGGER.warning("provided edge segment to replace is not known on the directed edge");
       }
@@ -173,7 +159,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment removeEdgeSegmentAb() {
+  public ES removeEdgeSegmentAb() {
     var removedEdgeSegment = edgeSegmentAb;
     setEdgeSegmentAb(null);
     return removedEdgeSegment;
@@ -183,7 +169,7 @@ public class DirectedEdgeImpl extends EdgeImpl implements DirectedEdge {
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment removeEdgeSegmentBa() {
+  public ES removeEdgeSegmentBa() {
     var removedEdgeSegment = edgeSegmentBa;
     setEdgeSegmentBa(null);
     return removedEdgeSegment;

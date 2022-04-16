@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 import org.goplanit.graph.directed.DirectedVertexImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
@@ -16,7 +17,7 @@ import org.goplanit.utils.network.layer.physical.Node;
  * @author markr
  *
  */
-public class NodeImpl extends DirectedVertexImpl implements Node {
+public class NodeImpl extends DirectedVertexImpl<LinkSegment> implements Node {
 
   // Protected
 

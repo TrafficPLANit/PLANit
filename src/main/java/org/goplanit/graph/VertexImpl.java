@@ -18,7 +18,7 @@ import org.locationtech.jts.geom.Point;
  * @author markr
  *
  */
-public class VertexImpl extends GraphEntityImpl implements Vertex {
+public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Vertex {
 
   /** generated UID */
   private static final long serialVersionUID = -2877566769607366608L;
@@ -38,7 +38,7 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
   /**
    * Edges of this vertex. List used to ensure fixed order in iterating and minimal memory overhead
    */
-  protected final ArrayList<Edge> edges = new ArrayList<Edge>(2);
+  protected final ArrayList<E> edges = new ArrayList<E>(2);
 
   /**
    * Constructor
@@ -50,11 +50,20 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
   }
 
   /**
+   * Constructor
+   * 
+   * @param groupId, contiguous id generation within this group for instances of this class
+   */
+  protected VertexImpl(final IdGroupingToken groupId, final Class<? extends Vertex> vertexIdClass) {
+    super(groupId, vertexIdClass);
+  }
+
+  /**
    * Copy constructor. Geometry and input properties are deep copied, edges are not because they are not owned by this class by the vertex.
    * 
    * @param vertexImpl to copy
    */
-  protected VertexImpl(VertexImpl vertexImpl) {
+  protected VertexImpl(VertexImpl<E> vertexImpl) {
     super(vertexImpl);
     setPosition((Point) vertexImpl.getPosition().copy());
     edges.addAll(vertexImpl.edges);
@@ -106,13 +115,14 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
   /**
    * {@inheritDoc}
    */
+  @SuppressWarnings("unchecked")
   @Override
   public boolean addEdge(final Edge edge) {
     if (edges.contains(edge)) {
       return false;
     }
 
-    edges.add(edge);
+    edges.add((E) edge);
     return true;
   }
 
@@ -128,7 +138,7 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
    * {@inheritDoc}
    */
   @Override
-  public Collection<? extends Edge> getEdges() {
+  public Collection<? extends E> getEdges() {
     return Collections.unmodifiableCollection(edges);
   }
 
@@ -136,8 +146,8 @@ public class VertexImpl extends GraphEntityImpl implements Vertex {
    * {@inheritDoc}
    */
   @Override
-  public VertexImpl clone() {
-    return new VertexImpl(this);
+  public VertexImpl<E> clone() {
+    return new VertexImpl<E>(this);
   }
 
 }

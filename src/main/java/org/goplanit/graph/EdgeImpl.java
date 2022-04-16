@@ -18,7 +18,7 @@ import org.locationtech.jts.geom.LineString;
  * @author markr
  *
  */
-public class EdgeImpl extends GraphEntityImpl implements Edge {
+public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(EdgeImpl.class.getCanonicalName());
@@ -29,12 +29,12 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
   /**
    * Vertex A
    */
-  private Vertex vertexA = null;
+  private V vertexA = null;
 
   /**
    * Vertex B
    */
-  private Vertex vertexB = null;
+  private V vertexB = null;
 
   /**
    * The line geometry of this link if set
@@ -61,7 +61,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * 
    * @param vertexB to set
    */
-  protected void setVertexB(Vertex vertexB) {
+  protected void setVertexB(V vertexB) {
     this.vertexB = vertexB;
   }
 
@@ -70,7 +70,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * 
    * @param vertexA to set
    */
-  protected void setVertexA(Vertex vertexA) {
+  protected void setVertexA(V vertexA) {
     this.vertexA = vertexA;
   }
 
@@ -81,7 +81,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * @param vertexA  first vertex in the link
    * @param vertexB  second vertex in the link
    */
-  protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB) {
+  protected EdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB) {
     super(groupId, EDGE_ID_CLASS);
     this.vertexA = vertexA;
     this.vertexB = vertexB;
@@ -97,7 +97,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * @param vertexB  second vertex in the link
    * @param lengthKm length of the link
    */
-  protected EdgeImpl(final IdGroupingToken groupId, final Vertex vertexA, final Vertex vertexB, final double lengthKm) {
+  protected EdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB, final double lengthKm) {
     this(groupId, vertexA, vertexB);
     this.lengthInKm = lengthKm;
   }
@@ -107,7 +107,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * 
    * @param edgeImpl to copy
    */
-  protected EdgeImpl(EdgeImpl edgeImpl) {
+  protected EdgeImpl(EdgeImpl<V> edgeImpl) {
     super(edgeImpl);
     if (edgeImpl.hasGeometry()) {
       setGeometry((LineString) edgeImpl.getGeometry().copy());
@@ -220,7 +220,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * {@inheritDoc}
    */
   @Override
-  public Vertex getVertexA() {
+  public V getVertexA() {
     return vertexA;
   }
 
@@ -228,7 +228,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * {@inheritDoc}
    */
   @Override
-  public Vertex getVertexB() {
+  public V getVertexB() {
     return vertexB;
   }
 
@@ -252,6 +252,7 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * {@inheritDoc}
    * 
    */
+  @SuppressWarnings("unchecked")
   @Override
   public boolean replace(final Vertex vertexToReplace, final Vertex vertexToReplaceWith) throws PlanItException {
     boolean vertexReplaced = false;
@@ -260,11 +261,11 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
     if (vertexToReplaceWith != null) {
       if (getVertexA() != null && vertexToReplace.getId() == getVertexA().getId()) {
         removeVertex(vertexToReplace);
-        setVertexA(vertexToReplaceWith);
+        setVertexA((V) vertexToReplaceWith);
         vertexReplaced = true;
       } else if (getVertexB() != null && vertexToReplace.getId() == getVertexB().getId()) {
         removeVertex(vertexToReplace);
-        setVertexB(vertexToReplaceWith);
+        setVertexB((V) vertexToReplaceWith);
         vertexReplaced = true;
       }
     }
@@ -277,8 +278,8 @@ public class EdgeImpl extends GraphEntityImpl implements Edge {
    * 
    */
   @Override
-  public EdgeImpl clone() {
-    return new EdgeImpl(this);
+  public EdgeImpl<V> clone() {
+    return new EdgeImpl<V>(this);
   }
 
   /**

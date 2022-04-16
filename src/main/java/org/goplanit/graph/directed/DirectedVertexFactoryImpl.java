@@ -4,6 +4,7 @@ import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedVertexFactory;
 import org.goplanit.utils.graph.directed.DirectedVertices;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -28,7 +29,7 @@ public class DirectedVertexFactoryImpl extends GraphEntityFactoryImpl<DirectedVe
    */
   @Override
   public DirectedVertex createNew() {
-    return new DirectedVertexImpl(getIdGroupingToken());
+    return new DirectedVertexImpl<EdgeSegment>(getIdGroupingToken());
   }
 
   /**

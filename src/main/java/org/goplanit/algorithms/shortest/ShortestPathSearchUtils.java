@@ -8,8 +8,8 @@ import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
- * Some common utilities for various shortest path algorithms. The lambdas provided base their direction (up/downstream) on the direction used in the shortest path search NOT the results it yields.
- * To traverse the results, the opposite direciton is required which can be obtained by inverting the call via a flag.
+ * Some common utilities for various shortest path algorithms. The lambdas provided base their direction (up/downstream) on the direction used in the shortest path search NOT the
+ * results it yields. To traverse the results, the opposite direciton is required which can be obtained by inverting the call via a flag.
  * 
  * 
  * @author markr
@@ -88,7 +88,7 @@ public final class ShortestPathSearchUtils {
    * @param invertDirection flag to invert direction compared to "regular" result
    * @return lambda collecting edge segments in given direction based on vertex provided
    */
-  public static Function<DirectedVertex, Iterable<EdgeSegment>> getEdgeSegmentsInDirectionLambda(RootedBush bush, boolean invertDirection) {
+  public static Function<DirectedVertex, Iterable<? extends EdgeSegment>> getEdgeSegmentsInDirectionLambda(RootedBush bush, boolean invertDirection) {
     if (bush.isInverted()) {
       return getEdgeSegmentsInDirectionLambda(ShortestSearchType.ALL_TO_ONE, invertDirection);
     } else {
@@ -103,7 +103,7 @@ public final class ShortestPathSearchUtils {
    * @param bush to base lambda on
    * @return lambda collecting edge segments in given direction based on vertex provided
    */
-  public static Function<DirectedVertex, Iterable<EdgeSegment>> getEdgeSegmentsInDirectionLambda(RootedBush bush) {
+  public static Function<DirectedVertex, Iterable<? extends EdgeSegment>> getEdgeSegmentsInDirectionLambda(RootedBush bush) {
     return getEdgeSegmentsInDirectionLambda(bush, false);
   }
 
@@ -113,7 +113,7 @@ public final class ShortestPathSearchUtils {
    * @param shortestPathSearchType to base lambda on
    * @return lambda collecting edge segments in given direction based on vertex provided
    */
-  public static Function<DirectedVertex, Iterable<EdgeSegment>> getEdgeSegmentsInDirectionLambda(ShortestSearchType shortestPathSearchType) {
+  public static Function<DirectedVertex, Iterable<? extends EdgeSegment>> getEdgeSegmentsInDirectionLambda(ShortestSearchType shortestPathSearchType) {
     return getEdgeSegmentsInDirectionLambda(shortestPathSearchType, false);
   }
 
@@ -124,7 +124,7 @@ public final class ShortestPathSearchUtils {
    * @param invertDirection        flag to invert direction compared to "regular" result
    * @return lambda collecting edge segments in given direction based on vertex provided
    */
-  public static Function<DirectedVertex, Iterable<EdgeSegment>> getEdgeSegmentsInDirectionLambda(ShortestSearchType shortestPathSearchType, boolean invertDirection) {
+  public static Function<DirectedVertex, Iterable<? extends EdgeSegment>> getEdgeSegmentsInDirectionLambda(ShortestSearchType shortestPathSearchType, boolean invertDirection) {
     switch (shortestPathSearchType) {
     case ONE_TO_ALL:
     case ONE_TO_ONE:

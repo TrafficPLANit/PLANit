@@ -9,6 +9,7 @@ import org.goplanit.graph.directed.DirectedEdgeImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
+import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.LineString;
@@ -22,7 +23,7 @@ import org.opengis.referencing.operation.TransformException;
  * @author markr
  *
  */
-public class ServiceLegImpl extends DirectedEdgeImpl implements ServiceLeg {
+public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegment> implements ServiceLeg {
 
   /** Generated UID */
   private static final long serialVersionUID = 822966574857604397L;

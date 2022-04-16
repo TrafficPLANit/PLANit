@@ -193,7 +193,7 @@ public abstract class RootedBush implements IdAble {
     while (!openVertices.isEmpty()) {
       var vertex = openVertices.poll();
       processed.add(vertex);
-      for (var nextSegment : getNextEdgeSegments.apply(vertex)) {
+      for (EdgeSegment nextSegment : getNextEdgeSegments.apply(vertex)) {
         if (!containsEdgeSegment(nextSegment)) {
           continue;
         }

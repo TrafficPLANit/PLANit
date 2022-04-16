@@ -22,20 +22,84 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(EdgeSegmentImpl.class.getCanonicalName());
 
-
-
   /**
    * Store the direction of this edge segment in relation to its parent edge
    */
   private boolean directionAb;
-
 
   /**
    * segment's parent edge
    */
   private DirectedEdge parentEdge;
 
-  // Public
+  // Protected
+
+  /**
+   * Validate given edge segment on validity
+   * 
+   * @param edgeSegment to validate
+   * @return true when valid, false when not
+   */
+  protected static final boolean validate(EdgeSegment edgeSegment) {
+    if (edgeSegment.getParentEdge() == null) {
+      LOGGER.warning(String.format("parent edge missing on edge segment (id:%d externalId:%s)", edgeSegment.getId(), edgeSegment.getExternalId()));
+      return false;
+    }
+
+    if (edgeSegment.getUpstreamVertex() == null) {
+      LOGGER.warning(String.format("upstream vertex missing on edge segment (id:%d externalId:%s)", edgeSegment.getId(), edgeSegment.getExternalId()));
+      return false;
+    }
+
+    if (edgeSegment.getDownstreamVertex() == null) {
+      LOGGER.warning(String.format("downstream vertex missing on edge segment (id:%d externalId:%s)", edgeSegment.getId(), edgeSegment.getExternalId()));
+      return false;
+    }
+
+    if (edgeSegment.getParentEdge().getVertexA() == edgeSegment.getUpstreamVertex() && edgeSegment.isDirectionAb()) {
+      if (edgeSegment.getParentEdge().getEdgeSegmentAb() == null) {
+        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", edgeSegment.getId(),
+            edgeSegment.getExternalId()));
+        return false;
+      }
+      if (!edgeSegment.getParentEdge().getEdgeSegmentAb().equals(edgeSegment)) {
+        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is not", edgeSegment.getId(),
+            edgeSegment.getExternalId()));
+        return false;
+      }
+    }
+    if (edgeSegment.getParentEdge().getVertexB() == edgeSegment.getUpstreamVertex() && !edgeSegment.isDirectionAb()) {
+      if (edgeSegment.getParentEdge().getEdgeSegmentBa() == null) {
+        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", edgeSegment.getId(),
+            edgeSegment.getExternalId()));
+        return false;
+      }
+
+      if (!edgeSegment.getParentEdge().getEdgeSegmentBa().equals(edgeSegment)) {
+        LOGGER.warning(String.format("edge segment B->A on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is not", edgeSegment.getId(),
+            edgeSegment.getExternalId()));
+        return false;
+      }
+    } else {
+      LOGGER.warning(String.format("edge segment direction inconsistent with its vertices (id:%d externalId:%s) should be the same but it is not", edgeSegment.getId(),
+          edgeSegment.getExternalId()));
+    }
+
+    if (edgeSegment.getParentEdge().getVertexA().equals(edgeSegment.getUpstreamVertex())) {
+      if (!edgeSegment.getParentEdge().getVertexB().equals(edgeSegment.getDownstreamVertex())) {
+        LOGGER.warning(String.format("edge segment (id:%d externalId:%s) vertices do not match with parent edge vertices", edgeSegment.getId(), edgeSegment.getExternalId()));
+        return false;
+      }
+    } else {
+      if (!edgeSegment.getParentEdge().getVertexB().equals(edgeSegment.getUpstreamVertex())
+          || !edgeSegment.getParentEdge().getVertexA().equals(edgeSegment.getDownstreamVertex())) {
+        LOGGER.warning(String.format("edge segment (id:%d externalId:%s) vertices do not match with parent edge vertices", edgeSegment.getId(), edgeSegment.getExternalId()));
+        return false;
+      }
+    }
+
+    return true;
+  }
 
   /**
    * Constructor
@@ -72,8 +136,6 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
   }
 
   // Public
-
-
 
   /**
    * {@inheritDoc}
@@ -127,58 +189,7 @@ public class EdgeSegmentImpl extends GraphEntityImpl implements EdgeSegment {
    */
   @Override
   public boolean validate() {
-    if (parentEdge == null) {
-      LOGGER.warning(String.format("parent edge missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
-      return false;
-    }
-
-    if (getUpstreamVertex() == null) {
-      LOGGER.warning(String.format("upstream vertex missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
-      return false;
-    }
-
-    if (getDownstreamVertex() == null) {
-      LOGGER.warning(String.format("downstream vertex missing on edge segment (id:%d externalId:%s)", getId(), getExternalId()));
-      return false;
-    }
-
-    if (getParentEdge().getVertexA() == getUpstreamVertex() && isDirectionAb()) {
-      if (getParentEdge().getEdgeSegmentAb() == null) {
-        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", getId(), getExternalId()));
-        return false;
-      }
-      if (!getParentEdge().getEdgeSegmentAb().equals(this)) {
-        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is not", getId(), getExternalId()));
-        return false;
-      }
-    }
-    if (getParentEdge().getVertexB() == getUpstreamVertex() && !isDirectionAb()) {
-      if (getParentEdge().getEdgeSegmentBa() == null) {
-        LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", getId(), getExternalId()));
-        return false;
-      }
-
-      if (!getParentEdge().getEdgeSegmentBa().equals(this)) {
-        LOGGER.warning(String.format("edge segment B->A on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is not", getId(), getExternalId()));
-        return false;
-      }
-    } else {
-      LOGGER.warning(String.format("edge segment direction inconsistent with its vertices (id:%d externalId:%s) should be the same but it is not", getId(), getExternalId()));
-    }
-
-    if (getParentEdge().getVertexA().equals(getUpstreamVertex())) {
-      if (!getParentEdge().getVertexB().equals(getDownstreamVertex())) {
-        LOGGER.warning(String.format("edge segment (id:%d externalId:%s) vertices do not match with parent edge vertices", getId(), getExternalId()));
-        return false;
-      }
-    } else {
-      if (!getParentEdge().getVertexB().equals(getUpstreamVertex()) || !getParentEdge().getVertexA().equals(getDownstreamVertex())) {
-        LOGGER.warning(String.format("edge segment (id:%d externalId:%s) vertices do not match with parent edge vertices", getId(), getExternalId()));
-        return false;
-      }
-    }
-
-    return true;
+    return EdgeSegmentImpl.validate(this);
   }
 
 }

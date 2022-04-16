@@ -3,6 +3,7 @@ package org.goplanit.network.virtual;
 import org.goplanit.graph.directed.DirectedEdgeImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.ConnectoidEdge;
@@ -16,7 +17,7 @@ import org.goplanit.utils.zoning.Connectoid;
  * @author markr
  *
  */
-public class ConnectoidEdgeImpl extends DirectedEdgeImpl implements ConnectoidEdge {
+public class ConnectoidEdgeImpl extends DirectedEdgeImpl<DirectedVertex, EdgeSegment> implements ConnectoidEdge {
 
   /**
    * generated serial version id

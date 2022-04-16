@@ -35,7 +35,7 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
   protected Function<EdgeSegment, DirectedVertex> getVertexAtExtreme;
 
   /** depending on configuration this function collects edge segments in entry or exit direction of vertex */
-  protected Function<DirectedVertex, Iterable<EdgeSegment>> getEdgeSegmentsInDirection;
+  protected Function<DirectedVertex, Iterable<? extends EdgeSegment>> getEdgeSegmentsInDirection;
 
   /**
    * Constructor

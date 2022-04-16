@@ -115,7 +115,7 @@ public class ShortestPathGeneralised {
   protected Function<EdgeSegment, DirectedVertex> getVertexAtExtreme;
 
   /** depending on configuration this function collects edge segments in entry or exit direction of vertex */
-  protected Function<DirectedVertex, Iterable<EdgeSegment>> getEdgeSegmentsInDirection;
+  protected Function<DirectedVertex, Iterable<? extends EdgeSegment>> getEdgeSegmentsInDirection;
 
   /**
    * Generalised shortest-X search where the search type determines to which of the other methods to delegate, oneToAll or AllToOne.

@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 import org.goplanit.graph.directed.DirectedVertexImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
 import org.locationtech.jts.geom.Point;
 
@@ -15,7 +16,7 @@ import org.locationtech.jts.geom.Point;
  * @author markr
  *
  */
-public class ServiceNodeImpl extends DirectedVertexImpl implements ServiceNode {
+public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> implements ServiceNode {
 
   /** generated UID */
   private static final long serialVersionUID = 3704157577170156850L;
@@ -55,7 +56,6 @@ public class ServiceNodeImpl extends DirectedVertexImpl implements ServiceNode {
     super(serviceNode);
     this.networkNode = serviceNode.getParentNode();
   }
-
 
   /**
    * Based on network node

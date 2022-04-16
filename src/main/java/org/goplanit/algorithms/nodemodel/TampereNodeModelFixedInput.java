@@ -33,7 +33,7 @@ public class TampereNodeModelFixedInput {
    * @param edgeSegments  to map from
    * @throws PlanItException
    */
-  private void mapLinkSegments(ArrayList<MacroscopicLinkSegment> linkSegments, Iterable<EdgeSegment> edgeSegments) throws PlanItException {
+  private void mapLinkSegments(ArrayList<MacroscopicLinkSegment> linkSegments, Iterable<? extends EdgeSegment> edgeSegments) throws PlanItException {
     PlanItException.throwIf(edgeSegments == null, "edge segments to map are null");
 
     for (var incomingLinkSegment : edgeSegments) {
@@ -65,7 +65,7 @@ public class TampereNodeModelFixedInput {
    * @param incomingEdgeSegments to map
    * @throws PlanItException
    */
-  private void mapIncomingLinkSegments(Iterable<EdgeSegment> incomingEdgeSegments, int numSegments) throws PlanItException {
+  private void mapIncomingLinkSegments(Iterable<? extends EdgeSegment> incomingEdgeSegments, int numSegments) throws PlanItException {
     this.incomingLinkSegments = new ArrayList<MacroscopicLinkSegment>(numSegments);
     mapLinkSegments(incomingLinkSegments, incomingEdgeSegments);
   }
@@ -76,7 +76,7 @@ public class TampereNodeModelFixedInput {
    * @param outgoingEdgeSegments to map
    * @throws PlanItException
    */
-  private void mapOutgoingLinkSegments(Iterable<EdgeSegment> outgoingEdgeSegments, int numSegments) throws PlanItException {
+  private void mapOutgoingLinkSegments(Iterable<? extends EdgeSegment> outgoingEdgeSegments, int numSegments) throws PlanItException {
     this.outgoingLinkSegments = new ArrayList<MacroscopicLinkSegment>(numSegments);
     mapLinkSegments(outgoingLinkSegments, outgoingEdgeSegments);
   }
