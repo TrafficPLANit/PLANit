@@ -2,7 +2,6 @@ package org.goplanit.network.layer.physical;
 
 import org.goplanit.graph.directed.EdgeSegmentImpl;
 import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
@@ -14,7 +13,7 @@ import org.goplanit.utils.network.layer.physical.Node;
  * @author gman6028, markr
  *
  */
-public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
+public class LinkSegmentImpl<L extends Link> extends EdgeSegmentImpl<L> implements LinkSegment {
 
   /** generated UID */
   private static final long serialVersionUID = -4893553215218232006L;
@@ -33,16 +32,6 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    * physical maximum speed on the link segment in km/h
    */
   protected double physicalSpeedLinkKmh = DEFAULT_MAX_SPEED;
-
-  /**
-   * Generate unique link segment id
-   * 
-   * @param groupId, contiguous id generation within this group for instances of this class
-   * @return id of this link segment
-   */
-  protected static long generateLinkSegmentId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, LINK_SEGMENT_ID_CLASS);
-  }
 
   /**
    * Set the link segment id
@@ -84,7 +73,7 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    * @param directionAB direction of travel
    * @throws PlanItException throw when error
    */
-  protected LinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) throws PlanItException {
+  protected LinkSegmentImpl(final IdGroupingToken groupId, final L parentLink, final boolean directionAB) throws PlanItException {
     super(groupId, parentLink, directionAB);
     setLinkSegmentId(generateLinkSegmentId(groupId));
   }
@@ -94,7 +83,7 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    * 
    * @param linkSegmentImpl to copy
    */
-  protected LinkSegmentImpl(LinkSegmentImpl linkSegmentImpl) {
+  protected LinkSegmentImpl(LinkSegmentImpl<L> linkSegmentImpl) {
     super(linkSegmentImpl);
     setLinkSegmentId(linkSegmentImpl.getLinkSegmentId());
     setNumberOfLanes(linkSegmentImpl.getNumberOfLanes());
@@ -132,8 +121,8 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    * {@inheritDoc}
    */
   @Override
-  public Link getParentEdge() {
-    return (Link) super.getParentEdge();
+  public L getParent() {
+    return super.getParent();
   }
 
   /**
@@ -190,8 +179,8 @@ public class LinkSegmentImpl extends EdgeSegmentImpl implements LinkSegment {
    * {@inheritDoc}
    */
   @Override
-  public LinkSegmentImpl clone() {
-    return new LinkSegmentImpl(this);
+  public LinkSegmentImpl<L> clone() {
+    return new LinkSegmentImpl<L>(this);
   }
 
 }

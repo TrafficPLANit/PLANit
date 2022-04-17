@@ -2,7 +2,6 @@ package org.goplanit.network.layer.physical;
 
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegmentFactory;
@@ -15,7 +14,7 @@ import org.goplanit.utils.network.layer.physical.LinkSegments;
  * @author markr
  *
  */
-public class LinkSegmentsImpl extends ManagedIdEntitiesImpl<LinkSegment> implements LinkSegments, ManagedIdEntities<LinkSegment> {
+public class LinkSegmentsImpl extends ManagedIdEntitiesImpl<LinkSegment> implements LinkSegments {
 
   /** factory to use */
   private final LinkSegmentFactory linkSegmentFactory;

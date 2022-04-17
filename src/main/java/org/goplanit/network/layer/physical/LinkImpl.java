@@ -3,11 +3,11 @@ package org.goplanit.network.layer.physical;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.DirectedEdgeImpl;
+import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Link;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
-import org.goplanit.utils.network.layer.physical.Node;
 
 /**
  * Link class connecting two nodes via some geometry. Each link has one or two underlying link segments in a particular direction which may carry additional information for each
@@ -16,7 +16,7 @@ import org.goplanit.utils.network.layer.physical.Node;
  * @author markr
  *
  */
-public class LinkImpl extends DirectedEdgeImpl<Node, LinkSegment> implements Link {
+public class LinkImpl<N extends DirectedVertex, LS extends EdgeSegment> extends DirectedEdgeImpl<N, LS> implements Link {
 
   // Protected
 
@@ -67,7 +67,7 @@ public class LinkImpl extends DirectedEdgeImpl<Node, LinkSegment> implements Lin
    * 
    * @param linkImpl to copy
    */
-  protected LinkImpl(LinkImpl linkImpl) {
+  protected LinkImpl(LinkImpl<N, LS> linkImpl) {
     super(linkImpl);
     setLinkId(linkImpl.getLinkId());
   }
@@ -79,7 +79,7 @@ public class LinkImpl extends DirectedEdgeImpl<Node, LinkSegment> implements Lin
    * @param nodeA    the first node in the link
    * @param nodeB    the second node in the link
    */
-  protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB) {
+  protected LinkImpl(final IdGroupingToken groupId, final N nodeA, final N nodeB) {
     super(groupId, nodeA, nodeB);
     setLinkId(generateLinkId(groupId));
   }
@@ -92,7 +92,7 @@ public class LinkImpl extends DirectedEdgeImpl<Node, LinkSegment> implements Lin
    * @param nodeB    the second node in the link
    * @param length   the length of the link
    */
-  protected LinkImpl(final IdGroupingToken groupId, final Node nodeA, final Node nodeB, final double length) {
+  protected LinkImpl(final IdGroupingToken groupId, final N nodeA, final N nodeB, final double length) {
     super(groupId, nodeA, nodeB, length);
     setLinkId(generateLinkId(groupId));
   }
@@ -125,8 +125,8 @@ public class LinkImpl extends DirectedEdgeImpl<Node, LinkSegment> implements Lin
    * {@inheritDoc}
    */
   @Override
-  public LinkImpl clone() {
-    return new LinkImpl(this);
+  public LinkImpl<N, LS> clone() {
+    return new LinkImpl<N, LS>(this);
   }
 
   /**

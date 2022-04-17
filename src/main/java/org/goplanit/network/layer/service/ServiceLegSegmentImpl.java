@@ -11,7 +11,7 @@ import org.goplanit.utils.network.layer.service.ServiceLegSegment;
  * @author markr
  *
  */
-public class ServiceLegSegmentImpl extends EdgeSegmentImpl implements ServiceLegSegment {
+public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implements ServiceLegSegment {
 
   /**
    * generated UID
@@ -43,6 +43,6 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl implements ServiceLeg
    */
   @Override
   public ServiceLeg getParentLeg() {
-    return (ServiceLeg) getParentEdge();
+    return (ServiceLeg) getParent();
   }
 }

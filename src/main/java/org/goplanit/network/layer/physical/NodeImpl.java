@@ -6,9 +6,8 @@ package org.goplanit.network.layer.physical;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.DirectedVertexImpl;
-import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
@@ -17,7 +16,7 @@ import org.goplanit.utils.network.layer.physical.Node;
  * @author markr
  *
  */
-public class NodeImpl extends DirectedVertexImpl<LinkSegment> implements Node {
+public class NodeImpl<LS extends EdgeSegment> extends DirectedVertexImpl<LS> implements Node {
 
   // Protected
 
@@ -35,16 +34,6 @@ public class NodeImpl extends DirectedVertexImpl<LinkSegment> implements Node {
 
   /** name of the node */
   protected String name;
-
-  /**
-   * generate unique node id
-   *
-   * @param groupId contiguous id generation within this group for instances of this class
-   * @return nodeId
-   */
-  protected static long generateNodeId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, Node.NODE_ID_CLASS);
-  }
 
   /**
    * set the node id on this node
@@ -72,7 +61,7 @@ public class NodeImpl extends DirectedVertexImpl<LinkSegment> implements Node {
    * 
    * @param nodeImpl to copy
    */
-  protected NodeImpl(NodeImpl nodeImpl) {
+  protected NodeImpl(NodeImpl<LS> nodeImpl) {
     super(nodeImpl);
     setNodeId(nodeImpl.getNodeId());
     setName(nodeImpl.getName());
@@ -92,8 +81,8 @@ public class NodeImpl extends DirectedVertexImpl<LinkSegment> implements Node {
    * {@inheritDoc}
    */
   @Override
-  public NodeImpl clone() {
-    return new NodeImpl(this);
+  public NodeImpl<LS> clone() {
+    return new NodeImpl<LS>(this);
   }
 
   /**

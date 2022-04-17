@@ -83,7 +83,7 @@ public abstract class RootedBush implements IdAble {
   protected Map<OdZone, Double> originDemandsPcuH;
 
   /** the directed acyclic subgraph representation of the bush, pertaining solely to the topology */
-  protected final ACyclicSubGraph<DirectedVertex, EdgeSegment> dag;
+  protected final ACyclicSubGraph dag;
 
   /** track bush specific data */
   protected final BushTurnData bushData;
@@ -115,7 +115,7 @@ public abstract class RootedBush implements IdAble {
    * @param maxSubGraphEdgeSegments The maximum number of edge segments the bush can at most register given the parent network it is a subset of
    */
   public RootedBush(final IdGroupingToken idToken, DirectedVertex rootVertex, boolean inverted, long maxSubGraphEdgeSegments) {
-    this.dag = new ACyclicSubGraphImpl<DirectedVertex, EdgeSegment>(idToken, rootVertex, inverted, (int) maxSubGraphEdgeSegments);
+    this.dag = new ACyclicSubGraphImpl(idToken, rootVertex, inverted, (int) maxSubGraphEdgeSegments);
     this.bushData = new BushTurnData();
     this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, dag.getId());
     this.originDemandsPcuH = new HashMap<>();

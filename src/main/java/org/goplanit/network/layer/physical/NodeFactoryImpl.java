@@ -2,6 +2,7 @@ package org.goplanit.network.layer.physical;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.NodeFactory;
 import org.goplanit.utils.network.layer.physical.Nodes;
@@ -28,7 +29,7 @@ public class NodeFactoryImpl extends GraphEntityFactoryImpl<Node> implements Nod
    */
   @Override
   public Node createNew() {
-    return new NodeImpl(getIdGroupingToken());
+    return new NodeImpl<LinkSegment>(getIdGroupingToken());
   }
 
   /**

@@ -7,7 +7,6 @@ import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -90,16 +89,8 @@ public class ConjugateDirectedVertexImpl extends DirectedVertexImpl<ConjugateEdg
    * {@inheritDoc}
    */
   @Override
-  public EdgeSegment getOriginalEdgeSegmentAb() {
-    return originalEdge.getEdgeSegmentAb();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public EdgeSegment getOriginalEdgeSegmentBa() {
-    return originalEdge.getEdgeSegmentBa();
+  public DirectedEdge getOriginalEdge() {
+    return originalEdge;
   }
 
 }

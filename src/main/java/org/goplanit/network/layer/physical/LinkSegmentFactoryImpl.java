@@ -30,7 +30,7 @@ public class LinkSegmentFactoryImpl extends GraphEntityFactoryImpl<LinkSegment> 
    */
   @Override
   public LinkSegment create(final Link parentLink, final boolean directionAB) throws PlanItException {
-    final LinkSegment edgeSegment = new LinkSegmentImpl(getIdGroupingToken(), parentLink, directionAB);
+    final LinkSegment edgeSegment = new LinkSegmentImpl<Link>(getIdGroupingToken(), parentLink, directionAB);
     return edgeSegment;
   }
 

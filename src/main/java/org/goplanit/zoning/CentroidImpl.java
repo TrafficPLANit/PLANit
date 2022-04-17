@@ -1,6 +1,7 @@
 package org.goplanit.zoning;
 
 import org.goplanit.graph.directed.DirectedVertexImpl;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
@@ -11,7 +12,7 @@ import org.goplanit.utils.zoning.Zone;
  * @author gman6028, markr
  *
  */
-public class CentroidImpl extends DirectedVertexImpl implements Centroid {
+public class CentroidImpl extends DirectedVertexImpl<EdgeSegment> implements Centroid {
 
   // Protected
 
@@ -22,7 +23,7 @@ public class CentroidImpl extends DirectedVertexImpl implements Centroid {
    * the zone this centroid represents
    */
   private Zone parentZone;
-  
+
   /** name of the centroid */
   private String name;
 
@@ -34,15 +35,15 @@ public class CentroidImpl extends DirectedVertexImpl implements Centroid {
   protected void setParentzone(Zone parentZone) {
     this.parentZone = parentZone;
   }
-  
+
   /**
    * Constructor
    *
-   * @param groupId    contiguous id generation within this group for instances of this class
+   * @param groupId contiguous id generation within this group for instances of this class
    */
   protected CentroidImpl(final IdGroupingToken groupId) {
     this(groupId, null);
-  }  
+  }
 
   /**
    * Constructor
@@ -75,20 +76,20 @@ public class CentroidImpl extends DirectedVertexImpl implements Centroid {
   public CentroidImpl clone() {
     return new CentroidImpl(this);
   }
-  
-  // Getters-Setters  
-  
+
+  // Getters-Setters
+
   /**
    * {@inheritDoc}
    */
   @Override
   public Zone getParentZone() {
     return this.parentZone;
-  }  
+  }
 
   /**
    * {@inheritDoc}
-   */  
+   */
   @Override
   public String getName() {
     return name;
@@ -96,7 +97,7 @@ public class CentroidImpl extends DirectedVertexImpl implements Centroid {
 
   /**
    * {@inheritDoc}
-   */    
+   */
   @Override
   public void setName(String name) {
     this.name = name;

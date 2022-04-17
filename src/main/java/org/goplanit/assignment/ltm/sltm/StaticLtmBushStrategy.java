@@ -233,7 +233,7 @@ public abstract class StaticLtmBushStrategy extends StaticLtmAssignmentStrategy 
         double reducedCost = minMaxPaths.getCostOf(bushVertex) - networkMinPaths.getCostOf(bushVertex);
 
         /* when bush does not contain the reduced cost edge segment (or the opposite direction which would cause a cycle) consider it */
-        if (reducedCost > 0 && !bush.containsAnyEdgeSegmentOf(reducedCostSegment.getParentEdge())) {
+        if (reducedCost > 0 && !bush.containsAnyEdgeSegmentOf(reducedCostSegment.getParent())) {
 
           boolean matchFound = extendBushWithSuitableExistingPas(bush, bushVertex, reducedCost);
           if (matchFound) {

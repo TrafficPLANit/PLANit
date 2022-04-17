@@ -2,8 +2,8 @@ package org.goplanit.graph.directed.acyclic;
 
 import java.util.logging.Logger;
 
-import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
+import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -17,11 +17,11 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVertex, EdgeSegment> implements ACyclicSubGraph {
+public class ConjugateACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<ConjugateDirectedVertex, ConjugateEdgeSegment> implements ConjugateACyclicSubGraph {
 
   /** logger to use */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(ACyclicSubGraphImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(ConjugateACyclicSubGraphImpl.class.getCanonicalName());
 
   /**
    * Constructor
@@ -31,7 +31,7 @@ public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVert
    * @param invertedDirection          when true dag ends at root and all other vertices precede it, when false the root is the starting point and all other vertices succeed it
    * @param numberOfParentEdgeSegments number of directed edge segments of the parent this subgraph is a subset from
    */
-  public ACyclicSubGraphImpl(final IdGroupingToken groupId, DirectedVertex rootVertex, boolean invertedDirection, int numberOfParentEdgeSegments) {
+  public ConjugateACyclicSubGraphImpl(final IdGroupingToken groupId, ConjugateDirectedVertex rootVertex, boolean invertedDirection, int numberOfParentEdgeSegments) {
     super(groupId, rootVertex, invertedDirection, numberOfParentEdgeSegments);
   }
 
@@ -40,7 +40,7 @@ public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVert
    * 
    * @param aCyclicSubGraphImpl to copy
    */
-  public ACyclicSubGraphImpl(ACyclicSubGraphImpl aCyclicSubGraphImpl) {
+  public ConjugateACyclicSubGraphImpl(ConjugateACyclicSubGraphImpl aCyclicSubGraphImpl) {
     super(aCyclicSubGraphImpl);
   }
 
@@ -48,8 +48,8 @@ public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVert
    * {@inheritDoc}
    */
   @Override
-  public ACyclicSubGraphImpl clone() {
-    return new ACyclicSubGraphImpl(this);
+  public ConjugateACyclicSubGraphImpl clone() {
+    return new ConjugateACyclicSubGraphImpl(this);
   }
 
 }

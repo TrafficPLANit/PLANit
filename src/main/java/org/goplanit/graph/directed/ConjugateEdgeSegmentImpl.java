@@ -2,11 +2,11 @@ package org.goplanit.graph.directed;
 
 import java.util.logging.Logger;
 
-import org.goplanit.graph.GraphEntityImpl;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.Pair;
 
 /**
  * Conjugate EdgeSegment represents an edge in a particular (single) direction in a conjugate directed graph.
@@ -14,23 +14,14 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class ConjugateEdgeSegmentImpl extends GraphEntityImpl implements ConjugateEdgeSegment {
+public class ConjugateEdgeSegmentImpl extends EdgeSegmentImpl<ConjugateDirectedEdge> implements ConjugateEdgeSegment {
 
   /** UID */
   private static final long serialVersionUID = 8906736183855154599L;
 
   /** the logger */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ConjugateEdgeSegmentImpl.class.getCanonicalName());
-
-  /**
-   * Store the direction of this edge segment in relation to its parent edge
-   */
-  private boolean directionAb;
-
-  /**
-   * segment's parent edge
-   */
-  private ConjugateDirectedEdge parentEdge;
 
   // Public
 
@@ -40,11 +31,21 @@ public class ConjugateEdgeSegmentImpl extends GraphEntityImpl implements Conjuga
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param parentEdge  parent edge of segment
    * @param directionAb direction of travel
+   * @param idClazz     to use
+   */
+  protected ConjugateEdgeSegmentImpl(final IdGroupingToken groupId, final ConjugateDirectedEdge parentEdge, final boolean directionAb, final Class<ConjugateEdgeSegment> idClazz) {
+    super(groupId, parentEdge, directionAb, idClazz);
+  }
+
+  /**
+   * Constructor
+   *
+   * @param groupId     contiguous id generation within this group for instances of this class
+   * @param parentEdge  parent edge of segment
+   * @param directionAb direction of travel
    */
   protected ConjugateEdgeSegmentImpl(final IdGroupingToken groupId, final ConjugateDirectedEdge parentEdge, final boolean directionAb) {
-    this(groupId, directionAb);
-    setParent(parentEdge);
-    this.directionAb = directionAb;
+    this(groupId, parentEdge, directionAb, CONJUGATE_EDGE_SEGMENT_ID_CLASS);
   }
 
   /**
@@ -54,7 +55,7 @@ public class ConjugateEdgeSegmentImpl extends GraphEntityImpl implements Conjuga
    * @param directionAB direction of travel
    */
   protected ConjugateEdgeSegmentImpl(final IdGroupingToken groupId, final boolean directionAB) {
-    super(groupId, CONJUGATE_EDGE_SEGMENT_ID_CLASS);
+    this(groupId, null, directionAB);
   }
 
   /**
@@ -64,48 +65,6 @@ public class ConjugateEdgeSegmentImpl extends GraphEntityImpl implements Conjuga
    */
   protected ConjugateEdgeSegmentImpl(ConjugateEdgeSegmentImpl edgeSegmentImpl) {
     super(edgeSegmentImpl);
-    setParent(edgeSegmentImpl.getParentEdge());
-    this.directionAb = edgeSegmentImpl.directionAb;
-  }
-
-  // Public
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public boolean isDirectionAb() {
-    return this.directionAb;
-  }
-
-  // Getter - Setters
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ConjugateDirectedEdge getParentEdge() {
-    return this.parentEdge;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setParent(DirectedEdge parentEdge) {
-    if (parentEdge == null) {
-      LOGGER.warning(String.format("Parent edge is null, unable to set on conjugate edge segment (id: %d)", getId()));
-      return;
-    }
-    this.parentEdge = (ConjugateDirectedEdge) parentEdge;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void removeParentEdge() {
-    this.parentEdge = null;
   }
 
   /**
@@ -122,6 +81,14 @@ public class ConjugateEdgeSegmentImpl extends GraphEntityImpl implements Conjuga
   @Override
   public boolean validate() {
     return EdgeSegmentImpl.validate(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Pair<? extends EdgeSegment, ? extends EdgeSegment> getOriginalAdjcentEdgeSegments() {
+    return ConjugateEdgeSegment.getOriginalAdjcentEdgeSegments(this);
   }
 
 }

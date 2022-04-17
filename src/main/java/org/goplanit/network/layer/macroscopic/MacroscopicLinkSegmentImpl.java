@@ -16,7 +16,7 @@ import org.goplanit.utils.network.layer.physical.Link;
  *
  * @author markr
  */
-public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl implements MacroscopicLinkSegment {
+public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl<Link> implements MacroscopicLinkSegment {
 
   // Private
 

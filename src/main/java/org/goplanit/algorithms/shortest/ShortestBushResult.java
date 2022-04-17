@@ -25,8 +25,7 @@ public interface ShortestBushResult extends ShortestResult {
    * @param destination to use
    * @return created acyclic graph
    */
-  public abstract ACyclicSubGraph<DirectedVertex, EdgeSegment> createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex origin,
-      final DirectedVertex destination);
+  public abstract ACyclicSubGraph createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex origin, final DirectedVertex destination);
 
   /**
    * Find the next edge segment for a given vertex, depending on the underlying search this can be either in upstream or downstream direction

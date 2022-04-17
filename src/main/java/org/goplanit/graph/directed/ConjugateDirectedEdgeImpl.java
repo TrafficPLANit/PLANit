@@ -8,6 +8,7 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
+import org.locationtech.jts.geom.LineString;
 
 /**
  * Conjugate Edge implementation class connecting two vertices via some geometry. Each edge has one or two underlying edge segments in a particular direction which may carry
@@ -24,7 +25,6 @@ public class ConjugateDirectedEdgeImpl extends DirectedEdgeImpl<ConjugateDirecte
   private static final long serialVersionUID = -3061186642253968991L;
 
   /** the logger to use */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ConjugateDirectedEdgeImpl.class.getCanonicalName());
 
   /**
@@ -55,13 +55,53 @@ public class ConjugateDirectedEdgeImpl extends DirectedEdgeImpl<ConjugateDirecte
     this.originalEdges = conjugateDirectedEdgeImpl.originalEdges.copy();
   }
 
-  // Protected
+  /**
+   * Length not supported on conjugate edge, collect from original underlying edges instead if required
+   * 
+   * @return negative infinity
+   */
+  @Override
+  public double getLengthKm() {
+    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, collect those instead, negative infinity returned");
+    return Double.NEGATIVE_INFINITY;
+  }
+
+  /**
+   * Length not supported on conjugate edge, set on original underlying edges instead if required
+   * 
+   * @param lengthInKm to use
+   */
+  @Override
+  public void setLengthKm(double lengthInKm) {
+    LOGGER.warning("Length of conjugate is combination of underlying original geometries/lengths, set those instead");
+  }
+
+  /**
+   * Geometry not supported on conjugate edge, collect from original underlying edge segments instead if required
+   * 
+   * @return null
+   */
+  @Override
+  public LineString getGeometry() {
+    LOGGER.warning("Geometry of conjugate is combination of underlying original geometries, collect those instead, null returned");
+    return null;
+  }
+
+  /**
+   * Geometry not supported on conjugate edge, collect from original underlying edge segments instead if required
+   * 
+   * @param geometry to use
+   */
+  @Override
+  public void setGeometry(LineString geometry) {
+    LOGGER.warning("Geometry of conjugate is combination of underlying original geometries, set those instead");
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public Pair<DirectedEdge, DirectedEdge> getOriginalEdges() {
+  public Pair<DirectedEdge, DirectedEdge> getOriginalAdjacentEdges() {
     return originalEdges;
   }
 

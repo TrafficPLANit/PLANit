@@ -20,7 +20,7 @@ import org.goplanit.utils.network.virtual.ConnectoidSegment;
  * @author markr
  *
  */
-public class ConnectoidSegmentImpl extends EdgeSegmentImpl implements ConnectoidSegment {
+public class ConnectoidSegmentImpl extends EdgeSegmentImpl<ConnectoidEdge> implements ConnectoidSegment {
 
   /** generated UID */
   private static final long serialVersionUID = 6462304338451088764L;

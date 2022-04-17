@@ -7,6 +7,7 @@ import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.LinkFactory;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 
 /**
@@ -33,13 +34,13 @@ public class LinkFactoryImpl extends GraphEntityFactoryImpl<Link> implements Lin
    * {@inheritDoc}
    */
   @Override
-  public LinkImpl registerNew(final Node nodeA, final Node nodeB, double lengthKm, boolean registerOnNodes) {
+  public LinkImpl<Node, LinkSegment> registerNew(final Node nodeA, final Node nodeB, double lengthKm, boolean registerOnNodes) {
     if (nodeA == null || nodeB == null) {
       LOGGER.warning("Unable to create new link, one or more of its nodes are not defined");
       return null;
     }
 
-    LinkImpl newLink = new LinkImpl(getIdGroupingToken(), nodeA, nodeB);
+    LinkImpl<Node, LinkSegment> newLink = new LinkImpl<Node, LinkSegment>(getIdGroupingToken(), nodeA, nodeB);
     getGraphEntities().register(newLink);
     newLink.setLengthKm(lengthKm);
     if (registerOnNodes) {

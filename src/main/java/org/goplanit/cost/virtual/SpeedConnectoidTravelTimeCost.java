@@ -83,7 +83,7 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    */
   @Override
   public double getGeneralisedCost(final Mode mode, final ConnectoidSegment connectoidSegment) {
-    return connectoidSegment.getParentEdge().getLengthKm() / connectoidSpeed;
+    return connectoidSegment.getParent().getLengthKm() / connectoidSpeed;
   }
 
   /**

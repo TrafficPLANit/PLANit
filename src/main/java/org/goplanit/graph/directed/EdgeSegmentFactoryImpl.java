@@ -29,7 +29,7 @@ public class EdgeSegmentFactoryImpl extends GraphEntityFactoryImpl<EdgeSegment> 
    */
   @Override
   public EdgeSegment create(final DirectedEdge parentEdge, final boolean directionAB) {
-    final EdgeSegment edgeSegment = new EdgeSegmentImpl(getIdGroupingToken(), directionAB);
+    final EdgeSegment edgeSegment = new EdgeSegmentImpl<DirectedEdge>(getIdGroupingToken(), directionAB);
     edgeSegment.setParent(parentEdge);
     return edgeSegment;
   }
@@ -39,7 +39,7 @@ public class EdgeSegmentFactoryImpl extends GraphEntityFactoryImpl<EdgeSegment> 
    */
   @Override
   public EdgeSegment registerNew(DirectedEdge parentEdge, boolean directionAb, boolean registerOnVertexAndEdge) {
-    final var edgeSegment = new EdgeSegmentImpl(getIdGroupingToken(), parentEdge, directionAb);
+    final var edgeSegment = new EdgeSegmentImpl<DirectedEdge>(getIdGroupingToken(), parentEdge, directionAb);
     getGraphEntities().register(edgeSegment);
 
     if (registerOnVertexAndEdge) {

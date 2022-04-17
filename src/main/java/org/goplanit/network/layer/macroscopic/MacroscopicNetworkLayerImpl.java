@@ -6,6 +6,7 @@ import org.goplanit.network.layer.physical.LinksImpl;
 import org.goplanit.network.layer.physical.NodesImpl;
 import org.goplanit.network.layer.physical.UntypedPhysicalLayerImpl;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
@@ -130,6 +131,18 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
   public void resetChildManagedIdEntities() {
     super.resetChildManagedIdEntities();
     this.linkSegmentTypes.reset();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateMacroscopicNetworkLayer createConjugate() {
+    /* empty instance */
+    var conjugateLayer = new ConjugateMacroscopicNetworkLayerImpl(getLayerIdGroupingToken(), this);
+    /* update based on state of parent network */
+    conjugateLayer.update();
+    return conjugateLayer;
   }
 
 }

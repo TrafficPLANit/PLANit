@@ -96,11 +96,11 @@ public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment> 
   @SuppressWarnings("unchecked")
   @Override
   public ES registerEdgeSegment(final EdgeSegment edgeSegment, final boolean directionAB) {
-    if (edgeSegment.getParentEdge() == null) {
+    if (edgeSegment.getParent() == null) {
       edgeSegment.setParent(this);
     }
 
-    if (edgeSegment.getParentEdge() != this) {
+    if (edgeSegment.getParent() != this) {
       LOGGER.warning("Inconsistency between link segment's parent link and link it is being registered on");
       return null;
     }

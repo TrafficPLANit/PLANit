@@ -23,7 +23,7 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
   private final Collection<? extends DirectedVertex> topologicalOrder;
 
   /** the acyclic graph to operate on */
-  private final ACyclicSubGraph<DirectedVertex, EdgeSegment> acyclicSubGraph;
+  private final ACyclicSubGraph acyclicSubGraph;
 
   /** costs of all edge segments known, index reflects id of the graph entity */
   private final double[] edgeSegmentCosts;
@@ -48,7 +48,7 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
    * @param edgeSegmentCosts       for all edge segments
    * @param parentNetworkVertices  number of vertices in parent network, required to create raw result array by contiguous vertex id without the need for any mapping
    */
-  public ShortestPathAcyclicMinMaxGeneralised(final ACyclicSubGraph<DirectedVertex, EdgeSegment> acyclicSubGraph, boolean updateTopologicalOrder, final double[] edgeSegmentCosts,
+  public ShortestPathAcyclicMinMaxGeneralised(final ACyclicSubGraph acyclicSubGraph, boolean updateTopologicalOrder, final double[] edgeSegmentCosts,
       final int parentNetworkVertices) {
     this.acyclicSubGraph = acyclicSubGraph;
     this.topologicalOrder = this.acyclicSubGraph.topologicalSort(updateTopologicalOrder);

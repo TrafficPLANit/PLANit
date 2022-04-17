@@ -54,13 +54,13 @@ public class ShortestBushResultGeneralised extends ShortestResultGeneralised imp
    * {@inheritDoc}
    */
   @Override
-  public ACyclicSubGraph<DirectedVertex, EdgeSegment> createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex origin, final DirectedVertex destination) {
+  public ACyclicSubGraph createDirectedAcyclicSubGraph(final IdGroupingToken idToken, final DirectedVertex origin, final DirectedVertex destination) {
 
     var startEndPair = getStartEndVertexForResultTraversal(origin, destination);
     DirectedVertex startSearchVertex = startEndPair.first();
     DirectedVertex endSearchVertex = startEndPair.second(); // is also root of dag since we always end up back at the root while traversing search result
 
-    var dag = new ACyclicSubGraphImpl<DirectedVertex, EdgeSegment>(idToken, endSearchVertex, isInverted(), numberOfEdgeSegments);
+    var dag = new ACyclicSubGraphImpl(idToken, endSearchVertex, isInverted(), numberOfEdgeSegments);
 
     // extract bush from destination -> backwards to origin
     TreeSet<Vertex> openVertices = new TreeSet<Vertex>();
