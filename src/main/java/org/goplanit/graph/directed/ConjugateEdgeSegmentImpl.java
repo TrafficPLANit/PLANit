@@ -4,9 +4,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.Pair;
 
 /**
  * Conjugate EdgeSegment represents an edge in a particular (single) direction in a conjugate directed graph.
@@ -81,14 +79,6 @@ public class ConjugateEdgeSegmentImpl extends EdgeSegmentImpl<ConjugateDirectedE
   @Override
   public boolean validate() {
     return EdgeSegmentImpl.validate(this);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public Pair<? extends EdgeSegment, ? extends EdgeSegment> getOriginalAdjcentEdgeSegments() {
-    return ConjugateEdgeSegment.getOriginalAdjcentEdgeSegments(this);
   }
 
 }

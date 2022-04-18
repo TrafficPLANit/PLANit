@@ -1,5 +1,7 @@
 package org.goplanit.network.layer.macroscopic;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
@@ -15,6 +17,8 @@ import org.goplanit.utils.network.layer.physical.ConjugateLinkSegments;
 import org.goplanit.utils.network.layer.physical.ConjugateLinks;
 import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.physical.ConjugateNodes;
+import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.Node;
 
 /**
  * Conjugate of macroscopic physical Network (layer), i.e. the edge-to-vertex dual of its original form
@@ -37,7 +41,43 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
   protected void update() {
     reset();
 
-    CONTINUE HERE;
+    /* link -> conjugate node */
+    Map<Link, ConjugateNode> linkToConjugateNode = new HashMap<>();
+    for (Link link : originalLayer.getLinks()) {
+      var conjugateNode = getConjugateNodes().getFactory().createNew(link);
+      linkToConjugateNode.put(link, conjugateNode);
+    }
+
+    /* (link,link) -> conjugate link + conjugate link segments */
+    for (Node node : originalLayer.getNodes()) {
+
+      var linkIter = node.<Link>getLinks().iterator();
+      while (linkIter.hasNext()) {
+        var link = linkIter.next();
+        var nextLinkIter = node.<Link>getLinks().iterator();
+        while (!nextLinkIter.equals(linkIter)) {
+          nextLinkIter.next();
+        }
+
+        if (nextLinkIter.hasNext()) {
+          var nextLink = nextLinkIter.next();
+          /* conjugate link */
+          ConjugateLink conjugateLink = getConjugateLinks().getFactory().registerNew(linkToConjugateNode.get(link), linkToConjugateNode.get(nextLink), true, link, nextLink);
+
+          /* conjugate link segments for conjugate link */
+          boolean directionAb = true;
+          var abPair = conjugateLink.getOriginalAdjacentEdgeSegments(directionAb);
+          if (abPair.bothNotNull()) {
+            getConjugateLinkSegments().getFactory().registerNew(conjugateLink, directionAb, true);
+          }
+          directionAb = !directionAb;
+          var baPair = conjugateLink.getOriginalAdjacentEdgeSegments(directionAb);
+          if (baPair.bothNotNull()) {
+            getConjugateLinkSegments().getFactory().registerNew(conjugateLink, directionAb, true);
+          }
+        }
+      }
+    }
   }
 
   /**
