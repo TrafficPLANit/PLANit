@@ -2,10 +2,10 @@ package org.goplanit.algorithms.shortest;
 
 import java.util.List;
 
-import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**

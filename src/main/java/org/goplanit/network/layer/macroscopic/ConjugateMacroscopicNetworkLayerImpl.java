@@ -44,7 +44,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
     /* link -> conjugate node */
     Map<Link, ConjugateNode> linkToConjugateNode = new HashMap<>();
     for (Link link : originalLayer.getLinks()) {
-      var conjugateNode = getConjugateNodes().getFactory().createNew(link);
+      var conjugateNode = getConjugateNodes().getFactory().registerNew(link);
       linkToConjugateNode.put(link, conjugateNode);
     }
 
@@ -55,11 +55,20 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
       while (linkIter.hasNext()) {
         var link = linkIter.next();
         var nextLinkIter = node.<Link>getLinks().iterator();
-        while (!nextLinkIter.equals(linkIter)) {
-          nextLinkIter.next();
+
+        /* move next link iter to first after link iter */
+        while (nextLinkIter.hasNext()) {
+          if (nextLinkIter.next().equals(link)) {
+            break;
+          }
+        }
+        if (linkIter.hasNext() && !nextLinkIter.hasNext()) {
+          LOGGER.warning("Unable to find next link while updating conjugate macroscopic network, this shouldn't happen, abort");
+          return;
         }
 
-        if (nextLinkIter.hasNext()) {
+        /* for all remaining next links after current link create combinations (and in both directions for segments) */
+        while (nextLinkIter.hasNext()) {
           var nextLink = nextLinkIter.next();
           /* conjugate link */
           ConjugateLink conjugateLink = getConjugateLinks().getFactory().registerNew(linkToConjugateNode.get(link), linkToConjugateNode.get(nextLink), true, link, nextLink);

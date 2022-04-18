@@ -4,9 +4,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 
-import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 
 /**
  * Build a min/max shortest path tree for a given start vertex based on the configuration used. This implementation requires an acyclic network representation such that the

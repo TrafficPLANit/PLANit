@@ -4,10 +4,10 @@ import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestBushResult;
-import org.goplanit.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.OdZone;

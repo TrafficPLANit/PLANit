@@ -1,5 +1,6 @@
 package org.goplanit.test.conjugate;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
@@ -12,6 +13,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.zoning.Zoning;
 import org.junit.After;
 import org.junit.Before;
@@ -30,7 +32,8 @@ public class ConjugateNetworkTest {
   private MacroscopicNetworkLayer networkLayer;
   private Zoning zoning;
 
-  private final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("conjugateNetworkTest");
+  private final IdGroupingToken testToken = IdGenerator.createIdGroupingToken("regularNetworkToken");
+  private final IdGroupingToken conjugateTestToken = IdGenerator.createIdGroupingToken("conjugateNetworkToken");
 
   /** the logger */
   private static Logger LOGGER = null;
@@ -135,13 +138,25 @@ public class ConjugateNetworkTest {
   public void conjugateNetworkTest() {
     try {
 
-      ConjugateMacroscopicNetworkLayer conjugateLayer = networkLayer.createConjugate();
+      /* use a different token to ensure vertices/edges/edgesegments count from zero again, if we use the same token, they would simply continue */
+      ConjugateMacroscopicNetworkLayer conjugateLayer = networkLayer.createConjugate(conjugateTestToken);
 
-      // TODO: test contents and assert them to make sure it works
+      assertEquals(networkLayer.getLinks().size(), conjugateLayer.getConjugateNodes().size());
+
+      int totalEdgePairs = 0;
+      for (Node node : networkLayer.getNodes()) {
+        int combinations = 0;
+        for (int index = node.getEdges().size() - 1; index > 0; --index) {
+          combinations += index;
+        }
+        totalEdgePairs += combinations;
+      }
+      assertEquals(totalEdgePairs, conjugateLayer.getConjugateLinks().size());
+      assertEquals(totalEdgePairs * 2, conjugateLayer.getConjugateLinkSegments().size());
 
     } catch (Exception e) {
       e.printStackTrace();
-      fail("Error when testing sLTM bush based assignment");
+      fail("Error when testing conjugate network creation from macroscopic network layer");
     }
   }
 

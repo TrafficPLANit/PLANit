@@ -6,6 +6,7 @@ package org.goplanit.network.layer.physical;
 import java.util.Collection;
 import java.util.logging.Logger;
 
+import org.goplanit.graph.directed.DirectedVertexImpl;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.ConjugateLink;
@@ -14,12 +15,12 @@ import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.physical.Link;
 
 /**
- * Conjugate node representation connected to one or more conjugate (entry and exit) conjugate links
+ * Conjugate node representation connected to one or more conjugate (entry and exit) conjugate links.
  *
  * @author markr
  *
  */
-public class ConjugateNodeImpl extends NodeImpl<ConjugateLinkSegment> implements ConjugateNode {
+public class ConjugateNodeImpl extends DirectedVertexImpl<ConjugateLinkSegment> implements ConjugateNode {
 
   /** UID */
   private static final long serialVersionUID = 4196503072938986885L;
@@ -34,7 +35,7 @@ public class ConjugateNodeImpl extends NodeImpl<ConjugateLinkSegment> implements
   // Public
 
   /**
-   * Node constructor
+   * Conjugate Node constructor.
    * 
    * @param groupId  contiguous id generation within this group for instances of this class
    * @param original original this conjugate represents

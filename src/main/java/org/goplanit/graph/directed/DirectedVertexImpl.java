@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.graph.VertexImpl;
 import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -157,11 +158,21 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
    * Constructor
    * 
    * @param groupId, contiguous id generation within this group for instances of this class
+   * @param idClazz  to use for generating the internal id
    */
-  protected DirectedVertexImpl(final IdGroupingToken groupId) {
-    super(groupId);
+  protected DirectedVertexImpl(final IdGroupingToken groupId, Class<? extends Vertex> idClazz) {
+    super(groupId, idClazz);
     this.entryEdgeSegments = new EdgeSegmentIterable<E>(true /* incoming */);
     this.exitEdgeSegments = new EdgeSegmentIterable<E>(false /* outgoing */);
+  }
+
+  /**
+   * Constructor. USe default id class for generating id
+   * 
+   * @param groupId, contiguous id generation within this group for instances of this class
+   */
+  protected DirectedVertexImpl(final IdGroupingToken groupId) {
+    this(groupId, VERTEX_ID_CLASS);
   }
 
   /**
