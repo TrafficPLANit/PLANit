@@ -70,7 +70,7 @@ public class OriginBush extends RootedBush {
     /* build min/max path tree */
     var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(dag, requireTopologicalSortUpdate, linkSegmentCosts, totalTransportNetworkVertices);
     try {
-      return minMaxBushPaths.executeOneToAll(dag.getRootVertex());
+      return minMaxBushPaths.executeOneToAll(getRootVertex());
     } catch (Exception e) {
       LOGGER.severe(String.format("Unable to complete minmax path three for origin-bush rooted at origin %s", getOrigin().getXmlId()));
     }
@@ -92,14 +92,14 @@ public class OriginBush extends RootedBush {
   public Iterator<DirectedVertex> getTopologicalIterator(boolean originDestinationDirection) {
     return this.dag.getTopologicalIterator(requireTopologicalSortUpdate, !originDestinationDirection /* do not invert direction, dag is in od direction */ );
   }
-  
+
   /**
    * {@inheritDoc}
    */
   @Override
   public OdZone getRootZone() {
     return getOrigin();
-  }  
+  }
 
   /**
    * {@inheritDoc}
@@ -108,7 +108,7 @@ public class OriginBush extends RootedBush {
   public OriginBush clone() {
     return new OriginBush(this);
   }
-  
+
   /**
    * {@inheritDoc}
    */
@@ -125,7 +125,7 @@ public class OriginBush extends RootedBush {
    */
   public OdZone getOrigin() {
     return this.originDemandsPcuH.keySet().iterator().next();
-  }  
+  }
 
   /**
    * add origin demand for this origin bush

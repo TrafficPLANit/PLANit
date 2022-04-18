@@ -5,9 +5,11 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.logging.Logger;
 
@@ -53,8 +55,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
   /** track the link segments used via a bit set, where 1 at index indicates the link segment with id=index is included */
   private BitSet registeredLinkSegments;
 
-  /** root vertex of the dag */
-  private V rootVertex;
+  /** root vertices of the dag */
+  private Set<V> rootVertices;
 
   /** indicate if direction of dag is inverted compared to "normal" downstream direction */
   private boolean invertedDirection;
@@ -196,8 +198,28 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
     this.vertexData = new HashMap<>();
     this.registeredLinkSegments = new BitSet(numberOfParentEdgeSegments);
     this.topologicalOrder = null;
-    this.rootVertex = rootVertex;
     this.invertedDirection = invertedDirection;
+
+    this.rootVertices = new HashSet<>();
+    rootVertices.add(rootVertex);
+  }
+
+  /**
+   * Constructor
+   * 
+   * @param groupId                    generate id based on the group it resides in
+   * @param rootVertices               the root vertices of the conjugate dag which can be the end or starting point depending whether or not direction is inverted.
+   * @param invertedDirection          when true dag ends at root and all other vertices precede it, when false the root is the starting point and all other vertices succeed it
+   * @param numberOfParentEdgeSegments number of directed edge segments of the parent this subgraph is a subset from
+   */
+  public UntypedACyclicSubGraphImpl(final IdGroupingToken groupId, Set<V> rootVertices, boolean invertedDirection, int numberOfParentEdgeSegments) {
+    this.id = IdGenerator.generateId(groupId, ACyclicSubGraph.class);
+    this.vertexData = new HashMap<>();
+    this.registeredLinkSegments = new BitSet(numberOfParentEdgeSegments);
+    this.topologicalOrder = null;
+    this.invertedDirection = invertedDirection;
+
+    this.rootVertices = new HashSet<>(rootVertices);
   }
 
   /**
@@ -207,7 +229,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    */
   public UntypedACyclicSubGraphImpl(UntypedACyclicSubGraphImpl<V, E> aCyclicSubGraphImpl) {
     this.id = aCyclicSubGraphImpl.getId();
-    this.rootVertex = aCyclicSubGraphImpl.getRootVertex();
+
+    this.rootVertices = new HashSet<>(aCyclicSubGraphImpl.rootVertices);
     this.invertedDirection = aCyclicSubGraphImpl.isDirectionInverted();
 
     this.registeredLinkSegments = BitSet.valueOf(aCyclicSubGraphImpl.registeredLinkSegments.toByteArray());
@@ -239,9 +262,11 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
     /* for each root vertex */
     boolean isAcyclic = true;
     counter.increment();
-    isAcyclic = traverseRecursively(rootVertex, visited, counter, topologicalOrder);
-    if (!isAcyclic) {
-      return null;
+    for (var rootVertex : rootVertices) {
+      isAcyclic = traverseRecursively(rootVertex, visited, counter, topologicalOrder);
+      if (!isAcyclic) {
+        return null;
+      }
     }
 
     for (Entry<V, AcyclicVertexData> vertexEntry : this.vertexData.entrySet()) {
@@ -337,8 +362,8 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    * {@inheritDoc}
    */
   @Override
-  public V getRootVertex() {
-    return this.rootVertex;
+  public Set<V> getRootVertices() {
+    return this.rootVertices;
   }
 
   /**
@@ -347,6 +372,14 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
   @Override
   public boolean isDirectionInverted() {
     return this.invertedDirection;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void addRootVertex(V rootVertex) {
+    rootVertices.add(rootVertex);
   }
 
 }

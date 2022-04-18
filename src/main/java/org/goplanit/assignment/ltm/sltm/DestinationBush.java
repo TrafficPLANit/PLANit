@@ -62,7 +62,7 @@ public class DestinationBush extends RootedBush {
     /* build min/max path tree */
     var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(dag, requireTopologicalSortUpdate, linkSegmentCosts, totalTransportNetworkVertices);
     try {
-      return minMaxBushPaths.executeAllToOne(dag.getRootVertex());
+      return minMaxBushPaths.executeAllToOne(getRootVertex());
     } catch (Exception e) {
       LOGGER.severe(String.format("Unable to complete minmax path three for destination-based bush ending at destination %s", getDestination().getXmlId()));
     }
@@ -84,14 +84,14 @@ public class DestinationBush extends RootedBush {
   public Iterator<DirectedVertex> getTopologicalIterator(boolean originDestinationDirection) {
     return dag.getTopologicalIterator(requireTopologicalSortUpdate, originDestinationDirection /* reverse for od direction since dag is destination to origin oriented */);
   }
-  
+
   /**
    * {@inheritDoc}
    */
   @Override
   public OdZone getRootZone() {
     return getDestination();
-  }  
+  }
 
   /**
    * {@inheritDoc}
@@ -100,7 +100,7 @@ public class DestinationBush extends RootedBush {
   public DestinationBush clone() {
     return new DestinationBush(this);
   }
-  
+
   /**
    * {@inheritDoc}
    */
@@ -108,7 +108,7 @@ public class DestinationBush extends RootedBush {
   public String toString() {
     String result = super.toString();
     return "Bush: destination zone: " + getDestination().getXmlId() + "\n" + result;
-  }  
+  }
 
   /**
    * collect destination of this bush
@@ -118,7 +118,6 @@ public class DestinationBush extends RootedBush {
   public OdZone getDestination() {
     return this.destination;
   }
-   
 
   /**
    * add origin demand for this origin bush

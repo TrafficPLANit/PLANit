@@ -5,8 +5,8 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
+import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.virtual.ConnectoidSegment;
