@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -20,7 +21,7 @@ import org.goplanit.utils.zoning.OdZone;
  * @author markr
  *
  */
-public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements Consumer<RootedBush> {
+public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements Consumer<Bush> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(BushFlowUpdateConsumer.class.getCanonicalName());
@@ -85,7 +86,7 @@ public class BushFlowUpdateConsumer<T extends NetworkFlowUpdateData> implements 
    * 
    */
   @Override
-  public void accept(final RootedBush bush) {
+  public void accept(final Bush bush) {
     /*
      * track bush sending flows propagated from the origin. Note: We cannot use the bush's own turn sending flows because we are performing a network loading based on the most
      * recent bush's splitting rates, we only use the bush's sending flows for bush flow shifts. The bush's sending flows are updated AFTER the network loading is complete

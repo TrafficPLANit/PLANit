@@ -19,7 +19,7 @@ import org.goplanit.zoning.Zoning;
  * @author markr
  *
  */
-public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrategy {
+public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrategyRooted {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmOriginBushDestLabelledStrategy.class.getCanonicalName());

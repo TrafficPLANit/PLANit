@@ -12,7 +12,8 @@ import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.sltm.consumer.NMRCollectMostRestrictingTurnConsumer;
-import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBush;
+import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushBase;
+import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushRooted;
 import org.goplanit.assignment.ltm.sltm.loading.StaticLtmNetworkLoading;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
@@ -42,8 +43,9 @@ public abstract class PasFlowShiftExecutor {
   private boolean allowPasRemoval;
 
   /**
-   * flag indicating of most recent call to {@link #determineEntrySegmentFlowShift(RootedBush, EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBush)}
-   * identified that flow distribution between s1 and s2 should be made equal.
+   * flag indicating of most recent call to
+   * {@link #determineEntrySegmentFlowShift(RootedBush, EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBushRooted)} identified that flow distribution
+   * between s1 and s2 should be made equal.
    */
   boolean towardsEqualAlternativeFlowDistribution;
 
@@ -74,7 +76,7 @@ public abstract class PasFlowShiftExecutor {
    * @param networkLoading to use
    * @return identified most restricting out edge segment
    */
-  private static EdgeSegment identifyMostRestrictingOutEdgeSegment(EdgeSegment entrySegment, StaticLtmLoadingBush networkLoading) {
+  private static EdgeSegment identifyMostRestrictingOutEdgeSegment(EdgeSegment entrySegment, StaticLtmLoadingBushBase<?> networkLoading) {
     var consumer = new NMRCollectMostRestrictingTurnConsumer(entrySegment); // collect most restricting turn for entry segment
     StaticLtmNetworkLoading.performNodeModelUpdate(entrySegment.getDownstreamVertex(), consumer, networkLoading);
 
@@ -86,7 +88,7 @@ public abstract class PasFlowShiftExecutor {
     return mostRestrictingOutSegment;
   }
 
-  private Pair<EdgeSegment, EdgeSegment> populateFirstCongestedEdgeSegmentOnPasAlternative(final EdgeSegment entrySegment, final StaticLtmLoadingBush networkLoading) {
+  private Pair<EdgeSegment, EdgeSegment> populateFirstCongestedEdgeSegmentOnPasAlternative(final EdgeSegment entrySegment, final StaticLtmLoadingBushBase<?> networkLoading) {
 
     Predicate<EdgeSegment> firstCongestedLinkSegment = es -> networkLoading.getCurrentFlowAcceptanceFactors()[(int) es.getId()] < 1;
     var firstS1CongestedLinkSegment = pas.matchFirst(true, /* low cost */ firstCongestedLinkSegment);
@@ -166,7 +168,7 @@ public abstract class PasFlowShiftExecutor {
    * @param lowCost        when true determine for low cost alternative, when false for high cost alternative
    * @return pair of slack flow and slack capacity ratio
    */
-  private double determinePasAlternativeSlackFlow(StaticLtmLoadingBush networkLoading, boolean lowCost) {
+  private double determinePasAlternativeSlackFlow(StaticLtmLoadingBushBase<?> networkLoading, boolean lowCost) {
     var lastAlternativeSegment = pas.getLastEdgeSegment(lowCost);
     double slackFlow = Double.POSITIVE_INFINITY;
 
@@ -209,8 +211,8 @@ public abstract class PasFlowShiftExecutor {
   protected static final double EPSILON = EPSILON_12;
 
   /**
-   * whenever a PAS S2 alternative's flow drops below this threshold for a given bush, we allow the flow shift to move all remaining flow towards the S1 segment across all
-   * entry segments and unregister the bush for this PAS as it is no longer deemed a true alternative.
+   * whenever a PAS S2 alternative's flow drops below this threshold for a given bush, we allow the flow shift to move all remaining flow towards the S1 segment across all entry
+   * segments and unregister the bush for this PAS as it is no longer deemed a true alternative.
    */
   protected static final double PAS_MIN_S2_FLOW_THRESHOLD = 1;
 
@@ -220,8 +222,8 @@ public abstract class PasFlowShiftExecutor {
   /** settings to use */
   protected final StaticLtmSettings settings;
 
-  /** S1 and S2 sending flows along (entire) alternative for a given entry segment*/
-  protected Map<EdgeSegment, Pair<Double,Double>> totalEntrySegmentS1S2Flow;
+  /** S1 and S2 sending flows along (entire) alternative for a given entry segment */
+  protected Map<EdgeSegment, Pair<Double, Double>> totalEntrySegmentS1S2Flow;
 
   /** Track the desired sending flows for s1 and s2 per bush per entry segment */
   protected final Map<RootedBush, Map<EdgeSegment, Pair<Double, Double>>> bushEntrySegmentS1S2SendingFlows;
@@ -261,7 +263,7 @@ public abstract class PasFlowShiftExecutor {
   /**
    * Perform the flow shift for a given bush. Delegate to concrete class implementation
    * 
-   * @param bush                    to perform shift for
+   * @param bush                      to perform shift for
    * @param entrySegment              entry segment at hand to apply flow shift for
    * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entrysegment combination
    * @param flowAcceptanceFactors     to use
@@ -282,7 +284,7 @@ public abstract class PasFlowShiftExecutor {
    * @return amount of flow to shift
    */
   protected double determineEntrySegmentFlowShift(EdgeSegment entrySegment, Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost,
-      StaticLtmLoadingBush networkLoading) {
+      StaticLtmLoadingBushBase<?> networkLoading) {
 
     /* get first congested edge segment that is affected when shifting flow, per alternative */
     var firstCongestedSegmentPair = populateFirstCongestedEdgeSegmentOnPasAlternative(entrySegment, networkLoading);
@@ -402,8 +404,8 @@ public abstract class PasFlowShiftExecutor {
 
     totalEntrySegmentS1S2Flow = new HashMap<>();
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {
-      totalEntrySegmentS1S2Flow.put(entrySegment, Pair.of(0.0,0.0));    
-      for (var bush : pas.getRegisteredBushes()) {       
+      totalEntrySegmentS1S2Flow.put(entrySegment, Pair.of(0.0, 0.0));
+      for (var bush : pas.getRegisteredBushes()) {
         var currTotalS1S2Flow = totalEntrySegmentS1S2Flow.get(entrySegment);
         if (!bush.containsEdgeSegment(entrySegment)) {
           continue;
@@ -416,16 +418,16 @@ public abstract class PasFlowShiftExecutor {
 
         double s1BushSendingFlow = bush.determineSubPathSendingFlow(entrySegment, s1);
         double newS1Total = currTotalS1S2Flow.first() + s1BushSendingFlow;
-        
-        totalEntrySegmentS1S2Flow.put(entrySegment, Pair.of(newS1Total,newS2Total));
-        entrySegmentS1S2SendingFlows.put(entrySegment, Pair.of(s1BushSendingFlow,s2BushSendingFlow));       
+
+        totalEntrySegmentS1S2Flow.put(entrySegment, Pair.of(newS1Total, newS2Total));
+        entrySegmentS1S2SendingFlows.put(entrySegment, Pair.of(s1BushSendingFlow, s2BushSendingFlow));
       }
     }
   }
 
   /**
-   * We account for the fact that per bush different incoming links to the PAS might be used so each incoming link that is used and that is congested should be the basis for
-   * the flow shift instead of the first congested one within the PAS. This is currently not accounted for + if an incoming link is congested, then it has the same alpha for both
+   * We account for the fact that per bush different incoming links to the PAS might be used so each incoming link that is used and that is congested should be the basis for the
+   * flow shift instead of the first congested one within the PAS. This is currently not accounted for + if an incoming link is congested, then it has the same alpha for both
    * alternatives BUT the most restricting one might be linked to one of those. If so then we should shift towards the other! This does not exist yet. If neither is the most
    * restricting then revert to situation where we shift as if uncongested as it has no impact. So, split flow shift and execution to per incoming link rather than combining them
    * as we do in run!! Later we can optimise possibly
@@ -439,21 +441,22 @@ public abstract class PasFlowShiftExecutor {
    * @param factor         to apply to flow shift
    * @return true when flow is shifted, false otherwise
    */
-  public boolean run(Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, StaticLtmLoadingBush networkLoading, double factor) {     
-    double totalS2SendingFlow = getS2SendingFlow();    
-    LOGGER.info("******************* PAS FLOW shift " + pas.toString() + "S2 Sending flow: "+totalS2SendingFlow + " cost-diff: " + pas.getReducedCost() + " *****************************");
-    if(!Precision.positive(totalS2SendingFlow)) {
+  public boolean run(Mode theMode, AbstractPhysicalCost physicalCost, AbstractVirtualCost virtualCost, StaticLtmLoadingBushBase<?> networkLoading, double factor) {
+    double totalS2SendingFlow = getS2SendingFlow();
+    LOGGER.info("******************* PAS FLOW shift " + pas.toString() + "S2 Sending flow: " + totalS2SendingFlow + " cost-diff: " + pas.getReducedCost()
+        + " *****************************");
+    if (!Precision.positive(totalS2SendingFlow)) {
       LOGGER.warning("no flow on S2 segment of selected PAS, PAS should not exist anymore, this shouldn't happen");
     }
-    
-    boolean flowShifted = false; 
+
+    boolean flowShifted = false;
     for (var entrySegment : pas.getDivergeVertex().getEntryEdgeSegments()) {
-      
-      Pair<Double,Double> totalEntrySegmentS1S1SendingFlow = totalEntrySegmentS1S2Flow.get(entrySegment);
+
+      Pair<Double, Double> totalEntrySegmentS1S1SendingFlow = totalEntrySegmentS1S2Flow.get(entrySegment);
       double totalEntrySegmentS2Flow = totalEntrySegmentS1S1SendingFlow.second();
-      if(totalEntrySegmentS2Flow <= 0 ) {
+      if (totalEntrySegmentS2Flow <= 0) {
         /* remove this entry segment from the PAS when done as no flow remains on high cost segment */
-        totalEntrySegmentS1S2Flow.remove(entrySegment);        
+        totalEntrySegmentS1S2Flow.remove(entrySegment);
         continue;
       }
 
@@ -461,36 +464,38 @@ public abstract class PasFlowShiftExecutor {
       double proposedPasflowShift = determineEntrySegmentFlowShift(entrySegment, theMode, physicalCost, virtualCost, networkLoading);
       if (Math.abs(proposedPasflowShift) == 0) {
         continue;
-      }       
-            
-      double entrySegmentPortion = totalEntrySegmentS2Flow/totalS2SendingFlow;
-      double proposedProportionalPasflowShift = proposedPasflowShift * entrySegmentPortion * factor; 
-                 
+      }
+
+      double entrySegmentPortion = totalEntrySegmentS2Flow / totalS2SendingFlow;
+      double proposedProportionalPasflowShift = proposedPasflowShift * entrySegmentPortion * factor;
+
       /* test for eligibility to reduce to zero flow along S2 */
-      activatePasS2RemovalIf(Precision.greaterEqual(proposedProportionalPasflowShift, totalEntrySegmentS2Flow,EPSILON) || Precision.greaterEqual(PAS_MIN_S2_FLOW_THRESHOLD, totalEntrySegmentS2Flow, EPSILON));
+      activatePasS2RemovalIf(Precision.greaterEqual(proposedProportionalPasflowShift, totalEntrySegmentS2Flow, EPSILON)
+          || Precision.greaterEqual(PAS_MIN_S2_FLOW_THRESHOLD, totalEntrySegmentS2Flow, EPSILON));
       if (isPasS2RemovalAllowed()) {
-        
-        LOGGER.info(String.format("** Allow removal, proposed shift %.10f exceeds available s2 sending flow %.10f",proposedProportionalPasflowShift, totalEntrySegmentS2Flow));
+
+        LOGGER.info(String.format("** Allow removal, proposed shift %.10f exceeds available s2 sending flow %.10f", proposedProportionalPasflowShift, totalEntrySegmentS2Flow));
         /* remove this entry segment from the PAS when done as no flow remains on high cost segment */
         totalEntrySegmentS1S2Flow.remove(entrySegment);
         /* remove all remaining flow */
-        proposedProportionalPasflowShift = totalEntrySegmentS2Flow;        
+        proposedProportionalPasflowShift = totalEntrySegmentS2Flow;
       }
-            
-      for (var bush : pas.getRegisteredBushes()) {         
-        if (bush.containsTurnSendingFlow(entrySegment, pas.getFirstEdgeSegment(false))){                    
-          
-          final Map<EdgeSegment, Pair<Double, Double>> bushEntrySegmentS1S2Flows = bushEntrySegmentS1S2SendingFlows.get(bush);          
+
+      for (var bush : pas.getRegisteredBushes()) {
+        if (bush.containsTurnSendingFlow(entrySegment, pas.getFirstEdgeSegment(false))) {
+
+          final Map<EdgeSegment, Pair<Double, Double>> bushEntrySegmentS1S2Flows = bushEntrySegmentS1S2SendingFlows.get(bush);
           var bushEntrySegmentS2Flow = bushEntrySegmentS1S2Flows.get(entrySegment).second();
-          
+
           /*
-           * In case of multiple used bushes for this entry segment -> we cannot let proposed shifts be executed in full because cost is affected and therefore succeeding entries would
-           * "overshoot". Hence we apply proposed shift proportionally to contribution to total flow along PAS
+           * In case of multiple used bushes for this entry segment -> we cannot let proposed shifts be executed in full because cost is affected and therefore succeeding entries
+           * would "overshoot". Hence we apply proposed shift proportionally to contribution to total flow along PAS
            */
           double bushS2Portion = bushEntrySegmentS2Flow / totalEntrySegmentS2Flow;
           double entrySegmentPasflowShift = proposedProportionalPasflowShift * bushS2Portion;
-          
-          LOGGER.info(String.format("** Entry segment ("+entrySegment.toString()+") - Zone (" + bush.getRootZone().getXmlId()+") - start flow shift: %.10f", entrySegmentPasflowShift));
+
+          LOGGER.info(String.format("** Entry segment (" + entrySegment.toString() + ") - Zone (" + bush.getRootZone().getXmlId() + ") - start flow shift: %.10f",
+              entrySegmentPasflowShift));
 
           /* perform the flow shift for the current bush and its attributed portion */
           executeBushFlowShift(bush, entrySegment, entrySegmentPasflowShift, networkLoading.getCurrentFlowAcceptanceFactors());
@@ -499,24 +504,24 @@ public abstract class PasFlowShiftExecutor {
           if (smaller(networkLoading.getCurrentFlowAcceptanceFactors()[(int) entrySegment.getId()], 1, EPSILON)) {
             usedCongestedEntryEdgeSegments.add(entrySegment);
           }
-          
-          if(isPasS2RemovalAllowed()) {
+
+          if (isPasS2RemovalAllowed()) {
             /* no flow remaning on S2 for bush, unregister */
             bushEntrySegmentS1S2Flows.remove(entrySegment);
-          }                   
+          }
         }
       }
     }
-    
+
     /* remove zero-flow S2 bushes from PAS */
     var iter = pas.getRegisteredBushes().iterator();
-    while(iter.hasNext()) {
+    while (iter.hasNext()) {
       var bush = iter.next();
       final Map<EdgeSegment, Pair<Double, Double>> entrySegmentS1S2Flows = bushEntrySegmentS1S2SendingFlows.get(bush);
-      if(entrySegmentS1S2Flows!=null && entrySegmentS1S2Flows.isEmpty()) {
-        iter.remove();    
+      if (entrySegmentS1S2Flows != null && entrySegmentS1S2Flows.isEmpty()) {
+        iter.remove();
       }
-    }    
+    }
 
     return flowShifted;
   }
@@ -528,7 +533,7 @@ public abstract class PasFlowShiftExecutor {
    */
   public double getS2SendingFlow() {
     double totalS2 = 0;
-    for(var entry : totalEntrySegmentS1S2Flow.entrySet()) {
+    for (var entry : totalEntrySegmentS1S2Flow.entrySet()) {
       totalS2 += entry.getValue().second();
     }
     return totalS2;
@@ -541,15 +546,15 @@ public abstract class PasFlowShiftExecutor {
    */
   public double getS1SendingFlow() {
     double totalS1 = 0;
-    for(var entry : totalEntrySegmentS1S2Flow.entrySet()) {
+    for (var entry : totalEntrySegmentS1S2Flow.entrySet()) {
       totalS1 += entry.getValue().first();
     }
     return totalS1;
   }
 
   /**
-   * Check to see if last call to {@link #determineEntrySegmentFlowShift(RootedBush, EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBush)} caused a flow
-   * shift not trying to equate cost but equate flows given equal cost
+   * Check to see if last call to {@link #determineEntrySegmentFlowShift(RootedBush, EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBushRooted)}
+   * caused a flow shift not trying to equate cost but equate flows given equal cost
    * 
    * @return true when attempting to move to equal distribution of flow across alternatives, false otherwise
    */

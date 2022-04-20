@@ -22,7 +22,6 @@ import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
-import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -40,7 +39,7 @@ import org.goplanit.utils.zoning.Zone;
  * @author markr
  *
  */
-public abstract class RootedBush implements IdAble {
+public abstract class RootedBush implements Bush {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(RootedBush.class.getCanonicalName());

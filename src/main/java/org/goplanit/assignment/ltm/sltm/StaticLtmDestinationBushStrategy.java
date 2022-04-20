@@ -19,7 +19,7 @@ import org.goplanit.zoning.Zoning;
  * @author markr
  *
  */
-public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategy {
+public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRooted {
 
   /** Logger to use */
   @SuppressWarnings("unused")

@@ -3,96 +3,33 @@ package org.goplanit.assignment.ltm.sltm.loading;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.Pas;
 import org.goplanit.assignment.ltm.sltm.PasManager;
-import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.BushTurnFlowUpdateConsumer;
-import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
-import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
- * The bush based network loading scheme for sLTM
+ * The bush based network loading scheme for sLTM - base class
  * 
  * @author markr
  *
  */
-public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
+public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtmNetworkLoading {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingBush.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingBushBase.class.getCanonicalName());
 
   /** the bushes managed by the bush strategy but provided to be able to conduct a network loading based on the current state (bush splitting rates) of each bush */
-  private RootedBush[] bushes;
+  private B[] bushes;
 
   /**
    * the PAS manager with all the currently active PASs, used to determine which nodes to track flows and splitting rates for during network loading, namely all links and nodes
    * present in the active PASs
    */
   private PasManager pasManager;
-
-  /**
-   * TODO: Create factory class for this
-   * <p>
-   * Factory method to create the right flow update consumer to use when conducting a bush based flow update. We either create one that updates turn accepted flows (and possibly
-   * also sending flows), or one that only updates (network wide) link sending flows and/or link outflows. The latter is to be used for initialisation/finalisation purposes only.
-   * The former is the one used during the iterative loading procedure.
-   * 
-   * @param updateturnAcceptedFlows flag indicating if the turn accepted flows are to be updated by this consumer
-   * @param updateSendingFlows      flag indicating if the link sending flow are to be updated by this consumer
-   * @param updateOutflow           flag indicating if the link outflows are to be updated by this consumer
-   * @return created flow update consumer
-   */
-  private BushFlowUpdateConsumer<?> createBushFlowUpdateConsumer(boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows) {
-    if (!updateSendingFlows && !updateTurnAcceptedFlows) {
-      LOGGER.warning("Network flow updates using bushes must either updating link sending flows or turn accepted flows, neither are selected");
-      return null;
-    }
-
-    if (updateSendingFlows) {
-      sendingFlowData.reset();
-    }
-    if (updateOutflows) {
-      this.inFlowOutflowData.resetOutflows();
-    }
-
-    /* link based only */
-    if (!updateTurnAcceptedFlows) {
-      NetworkFlowUpdateData dataConfig = null;
-      if (updateOutflows) {
-        /* sending + outflow update only */
-        dataConfig = new NetworkFlowUpdateData(sendingFlowData, inFlowOutflowData, networkLoadingFactorData);
-      } else {
-        /* sending flow update only */
-        dataConfig = new NetworkFlowUpdateData(sendingFlowData, networkLoadingFactorData);
-      }
-      return new BushFlowUpdateConsumer<NetworkFlowUpdateData>(dataConfig);
-    }
-
-    /* turn based + optional link based */
-    if (updateTurnAcceptedFlows) {
-      NetworkTurnFlowUpdateData dataConfig = null;
-      if (updateSendingFlows) {
-        if (updateOutflows) {
-          LOGGER.warning("Network flow updates using bushes cannot update turn accepted flows and outflows, this is not yet supported");
-          return null;
-        } else {
-          dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), sendingFlowData, splittingRateData, networkLoadingFactorData);
-        }
-      } else if (updateOutflows) {
-        LOGGER.warning("Network flow updates using bushes must either updating link sending flows and otuflows, or just turn accepted flows, neither are selected");
-        return null;
-      } else {
-        dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), splittingRateData, networkLoadingFactorData);
-      }
-      return new BushTurnFlowUpdateConsumer(dataConfig);
-    }
-
-    LOGGER.warning("Invalid network flow update requested for bush absed laoding");
-    return null;
-  }
 
   /**
    * Conduct a loading update based on the provided consumer functionality
@@ -106,6 +43,20 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
       }
     }
   }
+
+  /**
+   * TODO: Create factory class for this
+   * <p>
+   * Factory method to create the right flow update consumer to use when conducting a bush based flow update. We either create one that updates turn accepted flows (and possibly
+   * also sending flows), or one that only updates (network wide) link sending flows and/or link outflows. The latter is to be used for initialisation/finalisation purposes only.
+   * The former is the one used during the iterative loading procedure.
+   * 
+   * @param updateturnAcceptedFlows flag indicating if the turn accepted flows are to be updated by this consumer
+   * @param updateSendingFlows      flag indicating if the link sending flow are to be updated by this consumer
+   * @param updateOutflow           flag indicating if the link outflows are to be updated by this consumer
+   * @return created flow update consumer
+   */
+  protected abstract BushFlowUpdateConsumer<?> createBushFlowUpdateConsumer(boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows);
 
   //@formatter:off
   /**
@@ -182,7 +133,7 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
    * @param assignmentId to use
    * @param settings to use
    */
-  public StaticLtmLoadingBush(IdGroupingToken idToken, long assignmentId, final StaticLtmSettings settings) {
+  public StaticLtmLoadingBushBase(IdGroupingToken idToken, long assignmentId, final StaticLtmSettings settings) {
     super(idToken, assignmentId, settings);
   }
   
@@ -190,7 +141,7 @@ public class StaticLtmLoadingBush extends StaticLtmNetworkLoading {
    * 
    * @param bushes to use
    */
-  public void setBushes(final RootedBush[] bushes) {
+  public void setBushes(final B[] bushes) {
     this.bushes = bushes;    
   }
   

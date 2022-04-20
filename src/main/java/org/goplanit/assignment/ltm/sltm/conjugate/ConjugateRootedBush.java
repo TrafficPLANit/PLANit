@@ -17,6 +17,7 @@ import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
+import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.graph.directed.acyclic.ConjugateACyclicSubGraphImpl;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
@@ -44,7 +45,7 @@ import org.goplanit.utils.zoning.Zone;
  * @author markr
  *
  */
-public abstract class ConjugateRootedBush implements IdAble {
+public abstract class ConjugateRootedBush implements Bush {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateRootedBush.class.getCanonicalName());
@@ -377,8 +378,11 @@ public abstract class ConjugateRootedBush implements IdAble {
     return dag.iterator();
   }
 
-  BELOW HAS NOT YET BEEN CONVERTED TO CONJUGATE
-  
+  BELOW HAS
+  NOT YET
+  BEEN CONVERTED
+  TO CONJUGATE
+
   /**
    * The alternative subpath is provided through link segment labels of value -1. The point at which they coincide with the bush is indicated with label 1 at the given reference
    * vertex (passed in). Here we do a breadth-first search on the bush in the direction towards its root to find a location the alternative path reconnects to the bush, which, at
