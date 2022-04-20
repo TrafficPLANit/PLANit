@@ -176,6 +176,17 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
   }
 
   /**
+   * Constructor. Only to be used when not relying on contiguous id generation within enclosing container
+   * 
+   * @param id to use
+   */
+  protected DirectedVertexImpl(long id) {
+    super(id);
+    this.entryEdgeSegments = new EdgeSegmentIterable<E>(true /* incoming */);
+    this.exitEdgeSegments = new EdgeSegmentIterable<E>(false /* outgoing */);
+  }
+
+  /**
    * Copy constructor
    * 
    * @param directedVertexImpl to copy

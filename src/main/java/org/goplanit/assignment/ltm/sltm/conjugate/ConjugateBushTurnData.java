@@ -152,11 +152,11 @@ public class ConjugateBushTurnData implements Cloneable {
   /**
    * Collect the accepted flow towards a conjugate node (original edge segment) in the bush, if not present, zero flow is returned
    * 
-   * @param node                           conjugate node to collect accepted flow towards to
-   * @param conjugateFlowAcceptanceFactors to convert sending flow to accepted flow (based on conjugate node ids)
+   * @param node                                        conjugate node to collect accepted flow towards to
+   * @param originalNetworkSegmentFlowAcceptanceFactors to convert sending flow to accepted flow (based on original edge segment ids)
    * @return bush sending flow found
    */
-  public double getTotalAcceptedFlowToPcuH(final ConjugateDirectedVertex node, double[] conjugateFlowAcceptanceFactors) {
+  public double getTotalAcceptedFlowToPcuH(final ConjugateDirectedVertex node, double[] originalNetworkSegmentFlowAcceptanceFactors) {
     if (!node.hasEntryEdgeSegments()) {
       /* no preceding conjugate link segments, so no incoming turns, hence it must be a root vertex connected to an origin */
       return getTotalSendingFlowFromPcuH(node);
@@ -165,7 +165,9 @@ public class ConjugateBushTurnData implements Cloneable {
     double totalAcceptedFlow = 0;
     for (var turn : node.getEntryEdgeSegments()) {
       double s_ab = getTurnSendingFlowPcuH(turn);
-      double v_ab = s_ab * conjugateFlowAcceptanceFactors[(int) turn.getId()];
+
+      var originalEntrySegment = turn.getOriginalAdjcentEdgeSegments().first();
+      double v_ab = s_ab * originalNetworkSegmentFlowAcceptanceFactors[(int) originalEntrySegment.getId()];
       totalAcceptedFlow += v_ab;
     }
     return totalAcceptedFlow;
@@ -185,14 +187,14 @@ public class ConjugateBushTurnData implements Cloneable {
    * Collect the splitting rates for a given conjugate node (original link segment). Splitting rates are based on the current turn sending flows s_ab. In case no flows are present
    * zero splitting rates for all turns are returned.
    * 
-   * @param node to collect bush splitting rates for
+   * @param conjugateVertex to collect bush splitting rates for
    * @return splitting rates in primitive array in order of which one iterates over the outgoing edge segments of the conjugate node
    */
-  public double[] getSplittingRates(final ConjugateDirectedVertex node) {
-    var turns = node.getExitEdgeSegments();
+  public double[] getSplittingRates(final ConjugateDirectedVertex conjugateVertex) {
+    var turns = conjugateVertex.getExitEdgeSegments();
 
     /* determining number of edge segment is costly, instead use edges (which is larger or equal) and then copy result */
-    double[] splittingRates = new double[node.getNumberOfEdges()];
+    double[] splittingRates = new double[conjugateVertex.getNumberOfEdges()];
 
     double totalSendingFlow = 0;
     int index = 0;

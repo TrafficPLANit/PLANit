@@ -44,8 +44,17 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
    * @param tokenId to use
    * @param clazz   to register for
    */
-  public GraphEntityImpl(IdGroupingToken tokenId, Class<? extends GraphEntity> clazz) {
+  protected GraphEntityImpl(IdGroupingToken tokenId, Class<? extends GraphEntity> clazz) {
     super(generateId(tokenId, clazz));
+  }
+
+  /**
+   * Constructor. Note only to be used when entity is not reliant on an id generation procedure
+   * 
+   * @param id to use
+   */
+  protected GraphEntityImpl(long id) {
+    super(id);
   }
 
   /**
@@ -53,7 +62,7 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
    * 
    * @param other to copy from
    */
-  public GraphEntityImpl(GraphEntityImpl other) {
+  protected GraphEntityImpl(GraphEntityImpl other) {
     super(other);
   }
 

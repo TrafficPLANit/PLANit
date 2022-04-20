@@ -38,4 +38,14 @@ public abstract class GraphEntityFactoryImpl<E extends GraphEntity> extends Mana
     this.graphEntities = graphEntities;
   }
 
+  /**
+   * Constructor. Do not use unless the entities do not rely on id generation but obtain their unique id from elsewhere
+   * 
+   * @param graphEntities to register the created instances on
+   */
+  protected GraphEntityFactoryImpl(GraphEntities<E> graphEntities) {
+    super();
+    this.graphEntities = graphEntities;
+  }
+
 }

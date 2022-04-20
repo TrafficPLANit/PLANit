@@ -1,7 +1,5 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,12 +8,9 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.logging.Logger;
 
-import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
-import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
@@ -26,7 +21,6 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ConjugateACyclicSubGraph;
-import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
@@ -326,11 +320,11 @@ public abstract class ConjugateRootedBush implements Bush {
   /**
    * Collect the bush splitting rates for a given conjugate node (original incoming edge segment). If no flow, zero splitting rates are returned
    * 
-   * @param conjugateNode to use
+   * @param conjugateVertex to use
    * @return splitting rates in primitive array in order of which one iterates over the outgoing (conjugate) edge segments
    */
-  public double[] getSplittingRates(final ConjugateNode conjugateNode) {
-    return bushData.getSplittingRates(conjugateNode);
+  public double[] getSplittingRates(final ConjugateDirectedVertex conjugateVertex) {
+    return bushData.getSplittingRates(conjugateVertex);
   }
 
   /**
@@ -378,11 +372,6 @@ public abstract class ConjugateRootedBush implements Bush {
     return dag.iterator();
   }
 
-  BELOW HAS
-  NOT YET
-  BEEN CONVERTED
-  TO CONJUGATE
-
   /**
    * The alternative subpath is provided through link segment labels of value -1. The point at which they coincide with the bush is indicated with label 1 at the given reference
    * vertex (passed in). Here we do a breadth-first search on the bush in the direction towards its root to find a location the alternative path reconnects to the bush, which, at
@@ -403,59 +392,59 @@ public abstract class ConjugateRootedBush implements Bush {
    *         method
    */
   public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpath(DirectedVertex referenceVertex, final short[] alternativeSubpathVertexLabels) {
-    Deque<Pair<DirectedVertex, EdgeSegment>> openVertexQueue = new ArrayDeque<>(30);
-    Map<DirectedVertex, EdgeSegment> processedVertices = new TreeMap<>();
-
-    /*
-     * Construct results in same direction as shortest path search, so So, for one-to-all regular search, we construct results where we have for each vertex its upstream segment,
-     * while for all-to-one we have the downstream segment for each vertex
-     */
-    final boolean invertNextDirection = true;
-    final var getNextEdgeSegments = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(this, invertNextDirection);
-    final var getNextVertex = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(this, invertNextDirection);
-
-    /* start with eligible edge segments of reference vertex except alternative labelled segment */
-    processedVertices.put(referenceVertex, null);
-    var nextEdgeSegments = getNextEdgeSegments.apply(referenceVertex);
-    for (var nextSegment : nextEdgeSegments) {
-      if (containsTurnSegment(nextSegment) && alternativeSubpathVertexLabels[(int) referenceVertex.getId()] != -1) {
-        openVertexQueue.add(Pair.of(getNextVertex.apply(nextSegment), nextSegment));
-      }
-    }
-
-    while (!openVertexQueue.isEmpty()) {
-      Pair<DirectedVertex, EdgeSegment> current = openVertexQueue.pop();
-      var currentVertex = current.first();
-      if (processedVertices.containsKey(currentVertex)) {
-        continue;
-      }
-
-      if (alternativeSubpathVertexLabels[(int) currentVertex.getId()] == -1) {
-        /* first point of coincidence with alternative labelled path */
-        processedVertices.put(currentVertex, current.second());
-        return Pair.of(current.first(), processedVertices);
-      }
-
-      /* breadth-first loop for used turns that not yet have been processed */
-      nextEdgeSegments = getNextEdgeSegments.apply(currentVertex);
-      for (var nextSegment : nextEdgeSegments) {
-        if (containsTurnSegment(nextSegment) && bushData.containsTurnSendingFlow(nextSegment, current.second())) {
-          var nextVertex = getNextVertex.apply(nextSegment);
-          if (!processedVertices.containsKey(nextVertex)) {
-            openVertexQueue.add(Pair.of(nextVertex, nextSegment));
-          }
-        }
-      }
-
-      processedVertices.put(currentVertex, current.second());
-    }
-
-    /*
-     * no result could be found, only possible when cycle is detected before reaching origin Not sure this will actually happen, so created warning to check, when it does happen
-     * investigate and see if this expected behaviour (if so remove statement). this would equate to finding a vertex marked with a '1' in Xie & Xie, which I do not do because I
-     * don't think it is needed, but I might be wrong.
-     */
-    LOGGER.warning(String.format("Cycle found when finding alternative subpath on bush merging at vertex %s", referenceVertex.getXmlId()));
+//    Deque<Pair<DirectedVertex, EdgeSegment>> openVertexQueue = new ArrayDeque<>(30);
+//    Map<DirectedVertex, EdgeSegment> processedVertices = new TreeMap<>();
+//
+//    /*
+//     * Construct results in same direction as shortest path search, so So, for one-to-all regular search, we construct results where we have for each vertex its upstream segment,
+//     * while for all-to-one we have the downstream segment for each vertex
+//     */
+//    final boolean invertNextDirection = true;
+//    final var getNextEdgeSegments = ShortestPathSearchUtils.getEdgeSegmentsInDirectionLambda(this, invertNextDirection);
+//    final var getNextVertex = ShortestPathSearchUtils.getVertexFromEdgeSegmentLambda(this, invertNextDirection);
+//
+//    /* start with eligible edge segments of reference vertex except alternative labelled segment */
+//    processedVertices.put(referenceVertex, null);
+//    var nextEdgeSegments = getNextEdgeSegments.apply(referenceVertex);
+//    for (var nextSegment : nextEdgeSegments) {
+//      if (containsTurnSegment(nextSegment) && alternativeSubpathVertexLabels[(int) referenceVertex.getId()] != -1) {
+//        openVertexQueue.add(Pair.of(getNextVertex.apply(nextSegment), nextSegment));
+//      }
+//    }
+//
+//    while (!openVertexQueue.isEmpty()) {
+//      Pair<DirectedVertex, EdgeSegment> current = openVertexQueue.pop();
+//      var currentVertex = current.first();
+//      if (processedVertices.containsKey(currentVertex)) {
+//        continue;
+//      }
+//
+//      if (alternativeSubpathVertexLabels[(int) currentVertex.getId()] == -1) {
+//        /* first point of coincidence with alternative labelled path */
+//        processedVertices.put(currentVertex, current.second());
+//        return Pair.of(current.first(), processedVertices);
+//      }
+//
+//      /* breadth-first loop for used turns that not yet have been processed */
+//      nextEdgeSegments = getNextEdgeSegments.apply(currentVertex);
+//      for (var nextSegment : nextEdgeSegments) {
+//        if (containsTurnSegment(nextSegment) && bushData.containsTurnSendingFlow(nextSegment, current.second())) {
+//          var nextVertex = getNextVertex.apply(nextSegment);
+//          if (!processedVertices.containsKey(nextVertex)) {
+//            openVertexQueue.add(Pair.of(nextVertex, nextSegment));
+//          }
+//        }
+//      }
+//
+//      processedVertices.put(currentVertex, current.second());
+//    }
+//
+//    /*
+//     * no result could be found, only possible when cycle is detected before reaching origin Not sure this will actually happen, so created warning to check, when it does happen
+//     * investigate and see if this expected behaviour (if so remove statement). this would equate to finding a vertex marked with a '1' in Xie & Xie, which I do not do because I
+//     * don't think it is needed, but I might be wrong.
+//     */
+//    LOGGER.warning(String.format("Cycle found when finding alternative subpath on bush merging at vertex %s", referenceVertex.getXmlId()));
     return null;
   }
 
@@ -469,20 +458,21 @@ public abstract class ConjugateRootedBush implements Bush {
    * @return sendingFlowPcuH between start and end vertex following the found sub-path
    */
   public double computeSubPathSendingFlow(final DirectedVertex startVertex, final DirectedVertex endVertex, final Map<DirectedVertex, EdgeSegment> subPathMap) {
-    EdgeSegment nextEdgeSegment = subPathMap.get(startVertex);
-    double subPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(nextEdgeSegment);
-
-    if (Precision.positive(subPathSendingFlow)) {
-      var currEdgeSegment = nextEdgeSegment;
-      nextEdgeSegment = subPathMap.get(currEdgeSegment.getDownstreamVertex());
-      do {
-        subPathSendingFlow *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
-        currEdgeSegment = nextEdgeSegment;
-        nextEdgeSegment = subPathMap.get(currEdgeSegment.getDownstreamVertex());
-      } while (nextEdgeSegment != null && Precision.positive(subPathSendingFlow));
-    }
-
-    return subPathSendingFlow;
+//    EdgeSegment nextEdgeSegment = subPathMap.get(startVertex);
+//    double subPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(nextEdgeSegment);
+//
+//    if (Precision.positive(subPathSendingFlow)) {
+//      var currEdgeSegment = nextEdgeSegment;
+//      nextEdgeSegment = subPathMap.get(currEdgeSegment.getDownstreamVertex());
+//      do {
+//        subPathSendingFlow *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment);
+//        currEdgeSegment = nextEdgeSegment;
+//        nextEdgeSegment = subPathMap.get(currEdgeSegment.getDownstreamVertex());
+//      } while (nextEdgeSegment != null && Precision.positive(subPathSendingFlow));
+//    }
+//
+//    return subPathSendingFlow;
+    return Double.NEGATIVE_INFINITY;
   }
 
   /**
@@ -497,20 +487,21 @@ public abstract class ConjugateRootedBush implements Bush {
    */
   public double computeSubPathAcceptedFlow(final DirectedVertex startVertex, final DirectedVertex endVertex, final EdgeSegment[] subPathArray,
       final double[] linkSegmentAcceptanceFactors) {
-
-    int index = 0;
-    EdgeSegment currEdgeSegment = subPathArray[index++];
-    double subPathAcceptedFlowPcuH = bushData.getTotalSendingFlowFromPcuH(currEdgeSegment);
-
-    var nextEdgeSegment = currEdgeSegment;
-    while (index < subPathArray.length && Precision.positive(subPathAcceptedFlowPcuH)) {
-      currEdgeSegment = nextEdgeSegment;
-      nextEdgeSegment = subPathArray[index++];
-      subPathAcceptedFlowPcuH *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment) * linkSegmentAcceptanceFactors[(int) currEdgeSegment.getId()];
-    }
-    subPathAcceptedFlowPcuH *= linkSegmentAcceptanceFactors[(int) nextEdgeSegment.getId()];
-
-    return subPathAcceptedFlowPcuH;
+//
+//    int index = 0;
+//    EdgeSegment currEdgeSegment = subPathArray[index++];
+//    double subPathAcceptedFlowPcuH = bushData.getTotalSendingFlowFromPcuH(currEdgeSegment);
+//
+//    var nextEdgeSegment = currEdgeSegment;
+//    while (index < subPathArray.length && Precision.positive(subPathAcceptedFlowPcuH)) {
+//      currEdgeSegment = nextEdgeSegment;
+//      nextEdgeSegment = subPathArray[index++];
+//      subPathAcceptedFlowPcuH *= bushData.getSplittingRate(currEdgeSegment, nextEdgeSegment) * linkSegmentAcceptanceFactors[(int) currEdgeSegment.getId()];
+//    }
+//    subPathAcceptedFlowPcuH *= linkSegmentAcceptanceFactors[(int) nextEdgeSegment.getId()];
+//
+//    return subPathAcceptedFlowPcuH;
+    return Double.NEGATIVE_INFINITY;
   }
 
   /**
@@ -522,35 +513,36 @@ public abstract class ConjugateRootedBush implements Bush {
    * @return sendingFlowPcuH between start and end vertex following the sub-path
    */
   public double determineSubPathSendingFlow(EdgeSegment entrySegment, EdgeSegment[] subPathArray) {
-
-    int index = 0;
-    var usedEntryLabels = getFlowCompositionLabels(entrySegment);
-    double subPathSendingFlow = 0;
-    for (var entryLabel : usedEntryLabels) {
-      double labelSendingFlow = bushData.getTotalSendingFlowFromPcuH(entrySegment, entryLabel);
-
-      /* determine flow from entry segment into initial segment, from there on recursively traverse sub-path */
-      var initialSubPathEdgeSegment = subPathArray[index];
-      var exitLabels = getFlowCompositionLabels(initialSubPathEdgeSegment);
-      if (exitLabels == null) {
-        return 0;
-      }
-
-      var exitSegmentExitLabelSplittingRates = bushData.getSplittingRates(entrySegment, entryLabel);
-      double remainingSubPathSendingFlow = 0;
-      for (var exitLabel : exitLabels) {
-        Double currSplittingRate = exitSegmentExitLabelSplittingRates.get(initialSubPathEdgeSegment, exitLabel);
-        if (currSplittingRate == null || currSplittingRate <= 0) {
-          continue;
-        }
-        remainingSubPathSendingFlow += labelSendingFlow * currSplittingRate;
-      }
-
-      labelSendingFlow = determineSubPathSendingFlow(remainingSubPathSendingFlow, entryLabel, index, subPathArray);
-      subPathSendingFlow += labelSendingFlow;
-    }
-
-    return subPathSendingFlow;
+//
+//    int index = 0;
+//    var usedEntryLabels = getFlowCompositionLabels(entrySegment);
+//    double subPathSendingFlow = 0;
+//    for (var entryLabel : usedEntryLabels) {
+//      double labelSendingFlow = bushData.getTotalSendingFlowFromPcuH(entrySegment, entryLabel);
+//
+//      /* determine flow from entry segment into initial segment, from there on recursively traverse sub-path */
+//      var initialSubPathEdgeSegment = subPathArray[index];
+//      var exitLabels = getFlowCompositionLabels(initialSubPathEdgeSegment);
+//      if (exitLabels == null) {
+//        return 0;
+//      }
+//
+//      var exitSegmentExitLabelSplittingRates = bushData.getSplittingRates(entrySegment, entryLabel);
+//      double remainingSubPathSendingFlow = 0;
+//      for (var exitLabel : exitLabels) {
+//        Double currSplittingRate = exitSegmentExitLabelSplittingRates.get(initialSubPathEdgeSegment, exitLabel);
+//        if (currSplittingRate == null || currSplittingRate <= 0) {
+//          continue;
+//        }
+//        remainingSubPathSendingFlow += labelSendingFlow * currSplittingRate;
+//      }
+//
+//      labelSendingFlow = determineSubPathSendingFlow(remainingSubPathSendingFlow, entryLabel, index, subPathArray);
+//      subPathSendingFlow += labelSendingFlow;
+//    }
+//
+//    return subPathSendingFlow;
+    return Double.NEGATIVE_INFINITY;
   }
 
   /**
@@ -562,162 +554,59 @@ public abstract class ConjugateRootedBush implements Bush {
    * @return the rates at hand for each found composition label
    */
   public TreeMap<BushFlowLabel, Double> determineProportionalFlowCompositionRates(final EdgeSegment edgeSegment, final Set<BushFlowLabel> pasFlowCompositionLabels) {
-    double totalSendingFlow = 0;
-    var rateMap = new TreeMap<BushFlowLabel, Double>();
-    for (var label : pasFlowCompositionLabels) {
-      double labelFlow = bushData.getTotalSendingFlowFromPcuH(edgeSegment, label);
-      rateMap.put(label, labelFlow);
-      totalSendingFlow += labelFlow;
-    }
-
-    for (var entry : rateMap.entrySet()) {
-      entry.setValue(entry.getValue() / totalSendingFlow);
-    }
-
-    return rateMap;
+//    double totalSendingFlow = 0;
+//    var rateMap = new TreeMap<BushFlowLabel, Double>();
+//    for (var label : pasFlowCompositionLabels) {
+//      double labelFlow = bushData.getTotalSendingFlowFromPcuH(edgeSegment, label);
+//      rateMap.put(label, labelFlow);
+//      totalSendingFlow += labelFlow;
+//    }
+//
+//    for (var entry : rateMap.entrySet()) {
+//      entry.setValue(entry.getValue() / totalSendingFlow);
+//    }
+//
+//    return rateMap;
+    return null;
   }
 
   /**
-   * The labels present for the given segment
+   * Conduct an update of the conjugate bush turn flows based on the network flow acceptance factors by conducting a bush DAG loading and updating the turn sending flows from the
+   * root, i.e., scale them back with the flow acceptance factor whenever one is encountered.
    * 
-   * @param edgeSegment to collect composition labels for
-   * @return the flow composition labels found
+   * @param originalNetworkFlowAcceptanceFactors to use (based on original edge segment ids)
    */
-  public TreeSet<BushFlowLabel> getFlowCompositionLabels(EdgeSegment edgeSegment) {
-    return bushData.getFlowCompositionLabels(edgeSegment);
-  }
-
-  /**
-   * The first of the flow composition labels present on the given segment. If no lables are present null is returned
-   * 
-   * @param edgeSegment to collect composition labels for
-   * @return the flow composition labels found
-   */
-  public BushFlowLabel getFirstFlowCompositionLabel(EdgeSegment edgeSegment) {
-    return hasFlowCompositionLabel(edgeSegment) ? bushData.getFlowCompositionLabels(edgeSegment).first() : null;
-  }
-
-  /**
-   * Verify if the edge segment has any flow composition labels registered on it
-   * 
-   * @param edgeSegment to verify
-   * @return true when present, false otherwise
-   */
-  public boolean hasFlowCompositionLabel(final EdgeSegment edgeSegment) {
-    return bushData.hasFlowCompositionLabel(edgeSegment);
-  }
-
-  /**
-   * Verify if the edge segment has the flow composition label provided
-   * 
-   * @param edgeSegment      to verify
-   * @param compositionLabel to verify
-   * @return true when present, false otherwise
-   */
-  public boolean hasFlowCompositionLabel(final EdgeSegment edgeSegment, final BushFlowLabel compositionLabel) {
-    return bushData.hasFlowCompositionLabel(edgeSegment, compositionLabel);
-  }
-
-  /**
-   * Relabel existing flow from one composition from-to combination to a new from-to label
-   * 
-   * @param fromSegment    from segment of turn
-   * @param oldFromLabel   from composition label to replace
-   * @param toSegment      to segment of turn
-   * @param oldToLabel     to composition label to replace
-   * @param newFromToLabel label to replace flow with
-   * @return the amount of flow that was relabelled
-   */
-  public double relabel(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel, BushFlowLabel newFromToLabel) {
-    return bushData.relabel(fromSegment, oldFromLabel, toSegment, oldToLabel, newFromToLabel);
-  }
-
-  /**
-   * Relabel the from label of existing flow from one composition from-to combination to a new from-to label
-   * 
-   * @param fromSegment  from segment of turn
-   * @param oldFromLabel from composition label to replace
-   * @param toSegment    to segment of turn
-   * @param toLabel      to composition label
-   * @param newFromLabel label to replace flow with
-   * @return the amount of flow that was relabelled
-   */
-  public double relabelFrom(EdgeSegment fromSegment, BushFlowLabel oldFromLabel, EdgeSegment toSegment, BushFlowLabel toLabel, BushFlowLabel newFromLabel) {
-    return bushData.relabelFrom(fromSegment, oldFromLabel, toSegment, toLabel, newFromLabel);
-  }
-
-  /**
-   * Relabel the to label of existing flow from one composition from-to combination to a new from-to label
-   * 
-   * @param fromSegment from segment of turn
-   * @param fromLabel   from composition label
-   * @param toSegment   to segment of turn
-   * @param oldToLabel  to composition label to replace
-   * @param newToLabel  label to replace flow with
-   * @return the amount of flow that was relabelled
-   */
-  public double relabelTo(EdgeSegment fromSegment, BushFlowLabel fromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel, BushFlowLabel newToLabel) {
-    return bushData.relabelTo(fromSegment, fromLabel, toSegment, oldToLabel, newToLabel);
-  }
-
-  /**
-   * Conduct an update of the bush turn flows based on the network flow acceptance factors by conducting a bush DAG loading and updating the turn sending flows from the root, i.e.,
-   * scale them back with the flow acceptance factor whenever one is encountered.
-   * 
-   * @param flowAcceptanceFactors to use
-   */
-  public void updateTurnFlows(double[] flowAcceptanceFactors) {
+  public void updateTurnFlows(double[] originalNetworkFlowAcceptanceFactors) {
 
     /* get topological sorted vertices to process */
-    var vertexIter = getTopologicalIterator(true /* od-direction */);
-    if (vertexIter == null) {
+    var conjugateVertexIter = getTopologicalIterator(true /* od-direction */);
+    if (conjugateVertexIter == null) {
       LOGGER.severe(String.format("Topologically sorted vertices on bush not available, this shouldn't happen, skip turn flow update"));
       return;
     }
-    var currVertex = vertexIter.next();
+    var currConjugateVertex = conjugateVertexIter.next();
 
-    /* pass over bush in topological order updating turn sending flows based on flow acceptance factors */
+    /* pass over conjugate bush in topological order updating turn sending flows based on flow acceptance factors */
     final boolean AllowTurnRemoval = false;
-    while (vertexIter.hasNext()) {
-      currVertex = vertexIter.next();
-      for (var entrySegment : currVertex.getEntryEdgeSegments()) {
-        if (!containsTurnSegment(entrySegment)) {
+    while (conjugateVertexIter.hasNext()) {
+      currConjugateVertex = conjugateVertexIter.next();
+      double conjugateVertexAcceptedFlow = bushData.getTotalAcceptedFlowToPcuH(currConjugateVertex, originalNetworkFlowAcceptanceFactors);
+
+      /*
+       * bush splitting rates by [conjugate exit segment index] - splitting rates are computed based on turn flows but placed in new array. So once we have the splitting rates we
+       * can safely update the turn flows without affecting these splitting rates
+       */
+      double[] splittingRates = getSplittingRates(currConjugateVertex);
+      int index = -1;
+      for (var turnSegment : currConjugateVertex.getExitEdgeSegments()) {
+        ++index;
+        if (!containsTurnSegment(turnSegment)) {
           continue;
         }
-
-        /* if flow has fallen below threshold due to queues, remove from bush */
-        var usedLabels = getFlowCompositionLabels(entrySegment);
-        if (usedLabels == null) {
-          continue;
-        }
-
-        for (var entrylabel : usedLabels) {
-          double entryLabelAcceptedFlow = bushData.getTotalAcceptedFlowToPcuH(entrySegment, entrylabel, flowAcceptanceFactors);
-
-          /*
-           * bush splitting rates by [exit segment, exit label] as key - splitting rates are computed based on turn flows but placed in new map. so once we have the splitting rates
-           * in this map, we can safely update the turn flows without affecting these splitting rates
-           */
-          MultiKeyMap<Object, Double> splittingRates = getSplittingRates(entrySegment, entrylabel);
-
-          for (var exitSegment : currVertex.getExitEdgeSegments()) {
-            if (!containsTurnSegment(exitSegment)) {
-              continue;
-            }
-
-            var exitLabels = getFlowCompositionLabels(exitSegment);
-            if (exitLabels == null) {
-              continue;
-            }
-
-            for (var exitLabel : exitLabels) {
-              Double bushExitSegmentLabelSplittingRate = splittingRates.get(exitSegment, exitLabel);
-              if (bushExitSegmentLabelSplittingRate != null && Precision.positive(bushExitSegmentLabelSplittingRate)) {
-                double bushTurnLabeledAcceptedFlow = entryLabelAcceptedFlow * bushExitSegmentLabelSplittingRate;
-                bushData.setTurnSendingFlow(entrySegment, entrylabel, exitSegment, exitLabel, bushTurnLabeledAcceptedFlow, AllowTurnRemoval);
-              }
-            }
-          }
+        double currTurnSplittingRate = splittingRates[index];
+        if (currTurnSplittingRate > 0) {
+          double bushTurnLabeledAcceptedFlow = conjugateVertexAcceptedFlow * currTurnSplittingRate;
+          bushData.setTurnSendingFlow(turnSegment, bushTurnLabeledAcceptedFlow, AllowTurnRemoval);
         }
       }
     }

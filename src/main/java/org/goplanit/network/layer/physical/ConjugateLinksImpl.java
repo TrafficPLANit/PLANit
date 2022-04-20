@@ -24,7 +24,7 @@ public class ConjugateLinksImpl extends ManagedIdEntitiesImpl<ConjugateLink> imp
    * @param groupId to use for creating ids for instances
    */
   public ConjugateLinksImpl(final IdGroupingToken groupId) {
-    super(ConjugateLink::getId, ConjugateLink.CONJUGATE_LINK_ID_CLASS);
+    super(ConjugateLink::getId, ConjugateLink.EDGE_ID_CLASS);
     this.factory = new ConjugateLinkFactoryImpl(groupId, this);
   }
 
@@ -35,7 +35,7 @@ public class ConjugateLinksImpl extends ManagedIdEntitiesImpl<ConjugateLink> imp
    * @param factory the factory to use
    */
   public ConjugateLinksImpl(final IdGroupingToken groupId, ConjugateLinkFactory factory) {
-    super(ConjugateLink::getId, ConjugateLink.CONJUGATE_LINK_ID_CLASS);
+    super(ConjugateLink::getId, ConjugateLink.EDGE_ID_CLASS);
     this.factory = factory;
   }
 

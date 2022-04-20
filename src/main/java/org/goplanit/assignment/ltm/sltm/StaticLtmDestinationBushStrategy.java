@@ -22,7 +22,6 @@ import org.goplanit.zoning.Zoning;
 public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRooted {
 
   /** Logger to use */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmDestinationBushStrategy.class.getCanonicalName());
 
   /** single dummy label used throughout for destination bushes */

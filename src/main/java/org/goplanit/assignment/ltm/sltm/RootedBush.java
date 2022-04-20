@@ -144,15 +144,6 @@ public abstract class RootedBush implements Bush {
   public abstract MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices);
 
   /**
-   * Collect an iterator over topologically sorted bush in origin-destination or destination-origin direction. Depending on the derived bush implementation this might require
-   * inverting the iteration direction. Hence it is an abstract method here
-   * 
-   * @param originDestinationDirection when true, iterator runs topological order from origin towards destinatino, when false, they other way around
-   * @return iterator over topologically ordered bush vertices
-   */
-  public abstract Iterator<DirectedVertex> getTopologicalIterator(boolean originDestinationDirection);
-
-  /**
    * determine the search type supported by the bush based on the underlying dag's construction, i.e., a destination-based dag results in ALL-To-One, whereas an origin based dag
    * results in One-To-All searches.
    * 

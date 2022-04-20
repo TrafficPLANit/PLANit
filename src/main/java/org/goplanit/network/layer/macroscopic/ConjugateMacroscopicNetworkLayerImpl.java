@@ -29,7 +29,6 @@ import org.goplanit.utils.network.layer.physical.Node;
 public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImpl<ConjugateNode, ConjugateLink, ConjugateLinkSegment> implements ConjugateMacroscopicNetworkLayer {
 
   /** the logger */
-  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ConjugateMacroscopicNetworkLayerImpl.class.getCanonicalName());
 
   /** original layer this conjugate layer is based on */
@@ -96,7 +95,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
    * @param originalLayer this conjugate is based on
    */
   protected ConjugateMacroscopicNetworkLayerImpl(final IdGroupingToken groupId, final MacroscopicNetworkLayer originalLayer) {
-    this(groupId, new ConjugateNodesImpl(groupId), new ConjugateLinksImpl(groupId), new ConjugateLinkSegmentsImpl(groupId), originalLayer);
+    this(groupId, new ConjugateNodesImpl(), new ConjugateLinksImpl(groupId), new ConjugateLinkSegmentsImpl(groupId), originalLayer);
   }
 
   /**

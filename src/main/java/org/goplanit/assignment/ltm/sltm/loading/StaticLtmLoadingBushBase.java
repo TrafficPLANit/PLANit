@@ -8,7 +8,7 @@ import org.goplanit.assignment.ltm.sltm.Pas;
 import org.goplanit.assignment.ltm.sltm.PasManager;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
-import org.goplanit.assignment.ltm.sltm.consumer.BushTurnFlowUpdateConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.RootedBushTurnFlowUpdateConsumer;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -75,7 +75,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
     boolean updateTurnAcceptedFlows = true;
     boolean updateSendingFlowDuringLoading = !isIterativeSendingFlowUpdateActivated();
     boolean updateOutflows = false;
-    var bushTurnFlowUpdateConsumer = (BushTurnFlowUpdateConsumer) createBushFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows);    
+    var bushTurnFlowUpdateConsumer = (RootedBushTurnFlowUpdateConsumer) createBushFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows);    
     
     /* execute */
     executeNetworkLoadingUpdate(bushTurnFlowUpdateConsumer);

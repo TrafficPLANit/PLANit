@@ -5,6 +5,7 @@ import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
 import org.goplanit.utils.network.layer.physical.ConjugateLinkSegmentFactory;
 import org.goplanit.utils.network.layer.physical.ConjugateLinkSegments;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
  * 
@@ -24,7 +25,7 @@ public class ConjugateLinkSegmentsImpl extends ManagedIdEntitiesImpl<ConjugateLi
    * @param groupId to use for creating ids for instances
    */
   public ConjugateLinkSegmentsImpl(final IdGroupingToken groupId) {
-    super(ConjugateLinkSegment::getId, ConjugateLinkSegment.CONJUGATE_LINK_SEGMENT_ID_CLASS);
+    super(ConjugateLinkSegment::getId, LinkSegment.EDGE_SEGMENT_ID_CLASS);
     this.factory = new ConjugateLinkSegmentFactoryImpl(groupId, this);
   }
 
@@ -35,7 +36,7 @@ public class ConjugateLinkSegmentsImpl extends ManagedIdEntitiesImpl<ConjugateLi
    * @param factory the factory to use
    */
   public ConjugateLinkSegmentsImpl(final IdGroupingToken groupId, ConjugateLinkSegmentFactory factory) {
-    super(ConjugateLinkSegment::getId, ConjugateLinkSegment.CONJUGATE_LINK_SEGMENT_ID_CLASS);
+    super(ConjugateLinkSegment::getId, LinkSegment.EDGE_SEGMENT_ID_CLASS);
     this.factory = factory;
   }
 

@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
-import org.goplanit.assignment.ltm.sltm.consumer.BushTurnFlowUpdateConsumer;
+import org.goplanit.assignment.ltm.sltm.consumer.RootedBushTurnFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -67,7 +67,7 @@ public class StaticLtmLoadingBushRooted extends StaticLtmLoadingBushBase<RootedB
       } else {
         dataConfig = new NetworkTurnFlowUpdateData(isTrackAllNodeTurnFlows(), splittingRateData, networkLoadingFactorData);
       }
-      return new BushTurnFlowUpdateConsumer(dataConfig);
+      return new RootedBushTurnFlowUpdateConsumer(dataConfig);
     }
 
     LOGGER.warning("Invalid network flow update requested for bush absed laoding");

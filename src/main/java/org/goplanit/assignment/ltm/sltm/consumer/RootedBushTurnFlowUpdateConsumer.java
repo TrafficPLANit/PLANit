@@ -1,11 +1,9 @@
 package org.goplanit.assignment.ltm.sltm.consumer;
 
-import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
-import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
@@ -25,18 +23,18 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
  * @author markr
  *
  */
-public class BushTurnFlowUpdateConsumer extends BushFlowUpdateConsumer<NetworkTurnFlowUpdateData> implements Consumer<RootedBush> {
+public class RootedBushTurnFlowUpdateConsumer extends RootedBushFlowUpdateConsumerImpl<NetworkTurnFlowUpdateData> {
 
   /** logger to use */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(BushTurnFlowUpdateConsumer.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(RootedBushTurnFlowUpdateConsumer.class.getCanonicalName());
 
   /**
    * constructor
    * 
    * @param dataConfig to use
    */
-  public BushTurnFlowUpdateConsumer(final NetworkTurnFlowUpdateData dataConfig) {
+  public RootedBushTurnFlowUpdateConsumer(final NetworkTurnFlowUpdateData dataConfig) {
     super(dataConfig);
   }
 

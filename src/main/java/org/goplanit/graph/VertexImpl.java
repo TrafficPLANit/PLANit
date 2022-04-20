@@ -52,10 +52,19 @@ public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Verte
   /**
    * Constructor
    * 
-   * @param groupId, contiguous id generation within this group for instances of this class
+   * @param groupId contiguous id generation within this group for instances of this class
    */
   protected VertexImpl(final IdGroupingToken groupId, final Class<? extends Vertex> vertexIdClass) {
     super(groupId, vertexIdClass);
+  }
+
+  /**
+   * Constructor. Only to be used when not reliant on contiguous id generation within enclosing container
+   * 
+   * @param id to use
+   */
+  protected VertexImpl(long id) {
+    super(id);
   }
 
   /**
