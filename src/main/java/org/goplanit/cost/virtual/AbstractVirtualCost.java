@@ -3,9 +3,9 @@ package org.goplanit.cost.virtual;
 import java.io.Serializable;
 
 import org.goplanit.component.PlanitComponent;
-import org.goplanit.network.virtual.VirtualNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.time.TimePeriod;
 
 /**

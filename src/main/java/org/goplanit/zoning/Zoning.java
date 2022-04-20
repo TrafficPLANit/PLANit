@@ -6,11 +6,12 @@ import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.demands.Demands;
-import org.goplanit.network.virtual.VirtualNetwork;
+import org.goplanit.network.virtual.VirtualNetworkImpl;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.DirectedConnectoids;
 import org.goplanit.utils.zoning.OdZones;
@@ -87,7 +88,7 @@ public class Zoning extends PlanitComponent<Zoning> implements Serializable {
    */
   public Zoning(IdGroupingToken groupId, IdGroupingToken networkGroupId) {
     super(groupId, Zoning.class);
-    virtualNetwork = new VirtualNetwork(networkGroupId);
+    virtualNetwork = new VirtualNetworkImpl(networkGroupId);
 
     odConnectoids = new UndirectedConnectoidsImpl(networkGroupId);
     transferConnectoids = new DirectedConnectoidsImpl(networkGroupId);

@@ -24,15 +24,17 @@ import org.goplanit.utils.zoning.OdZone;
 public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData> implements BushFlowUpdateConsumer<ConjugateRootedBush> {
 
   NOT REWRITTEN YET
-  
+
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateBushFlowUpdateConsumerImpl.class.getCanonicalName());
 
   /** data and configuration used for a flow update by derived classes */
   protected T dataConfig;
-  
-  BELOW METHOD NOT REFACTORED YET -> CONTINUE HERE
-  
+
+  BELOW METHOD
+  NOT REFACTORED YET->
+  CONTINUE HERE
+
   /**
    * Initialise the bush sending flows for the bush's root exit edge segments to bootstrap the loading for this bush
    * 
@@ -43,6 +45,11 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
     Set<OdZone> origins = bush.getOrigins();
     for (var origin : origins) {
       double totalOriginsSendingFlow = 0;
+      for (var originEdge : origin.getCentroid().getEdges()) {        
+        boolean directionAb = originEdge.isVertexA(origin.getCentroid());
+        originEdge.getEdgeSegment(directionAb);
+        bush.getRootVertices()
+      }
       for (var originExit : origin.getCentroid().getExitEdgeSegments()) {
         if (bush.containsEdgeSegment(originExit)) {
           var usedLabels = bush.getFlowCompositionLabels(originExit);
@@ -62,8 +69,8 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
   }
 
   /**
-   * Register the conjugate bush accepted turn flow to the turn if required. Default implementation does nothing but provide a hook for derived classes that do require to do something with
-   * turn accepted flows
+   * Register the conjugate bush accepted turn flow to the turn if required. Default implementation does nothing but provide a hook for derived classes that do require to do
+   * something with turn accepted flows
    * 
    * @param turnSegment          of turn
    * @param turnAcceptedFlowPcuH sending flow rate of turn
@@ -104,8 +111,8 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
     }
     var currConjugateVertex = conjugateVertexIter.next();
 
-    //TODO: BELOW NOT CHANGED YET!
-    
+    // TODO: BELOW NOT CHANGED YET!
+
     /* initialise root vertex outgoing edge sending flows */
     initialiseRootExitSegmentSendingFlows(bush, bushSendingFlows);
 

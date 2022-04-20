@@ -8,7 +8,6 @@ import org.goplanit.assignment.ltm.sltm.Pas;
 import org.goplanit.assignment.ltm.sltm.PasManager;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
-import org.goplanit.assignment.ltm.sltm.consumer.RootedBushTurnFlowUpdateConsumer;
 import org.goplanit.utils.id.IdGroupingToken;
 
 /**
@@ -36,7 +35,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * 
    * @param bushFlowUpdateConsumer to use
    */
-  private void executeNetworkLoadingUpdate(final BushFlowUpdateConsumer<?> bushFlowUpdateConsumer) {
+  private void executeNetworkLoadingUpdate(final BushFlowUpdateConsumer<B> bushFlowUpdateConsumer) {
     for (var bush : bushes) {
       if (bush != null) {
         bushFlowUpdateConsumer.accept(bush);
@@ -56,7 +55,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * @param updateOutflow           flag indicating if the link outflows are to be updated by this consumer
    * @return created flow update consumer
    */
-  protected abstract BushFlowUpdateConsumer<?> createBushFlowUpdateConsumer(boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows);
+  protected abstract BushFlowUpdateConsumer<B> createBushFlowUpdateConsumer(boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows);
 
   //@formatter:off
   /**
@@ -75,7 +74,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
     boolean updateTurnAcceptedFlows = true;
     boolean updateSendingFlowDuringLoading = !isIterativeSendingFlowUpdateActivated();
     boolean updateOutflows = false;
-    var bushTurnFlowUpdateConsumer = (RootedBushTurnFlowUpdateConsumer) createBushFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows);    
+    var bushTurnFlowUpdateConsumer = createBushFlowUpdateConsumer(updateTurnAcceptedFlows, updateSendingFlowDuringLoading, updateOutflows);    
     
     /* execute */
     executeNetworkLoadingUpdate(bushTurnFlowUpdateConsumer);

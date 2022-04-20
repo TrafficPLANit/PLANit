@@ -35,15 +35,6 @@ public abstract class StaticLtmBushStrategyBase<B extends Bush> extends StaticLt
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategyBase.class.getCanonicalName());
 
-  /** tracked bushes (with non-zero demand) */
-  protected B[] bushes;
-
-  /** track all unique PASs */
-  protected final PasManager pasManager;
-
-  /** track all PASs where we are attempting to distribute flow equally to obtain unique solution under unequal flow but equal cost/cost-derivative */
-  protected Set<Pas> equalFlowDistributedPass;
-
   /**
    * Shift flows based on the registered PASs and their origins.
    * 
@@ -54,42 +45,42 @@ public abstract class StaticLtmBushStrategyBase<B extends Bush> extends StaticLt
     equalFlowDistributedPass.clear();
     var flowShiftedPass = new ArrayList<Pas>((int) pasManager.getNumberOfPass());
     var passWithoutOrigins = new ArrayList<Pas>();
-
+  
     var networkLoading = getLoading();
     var gapFunction = (LinkBasedRelativeDualityGapFunction) getTrafficAssignmentComponent(GapFunction.class);
     var physicalCost = getTrafficAssignmentComponent(AbstractPhysicalCost.class);
     var virtualCost = getTrafficAssignmentComponent(AbstractVirtualCost.class);
-
+  
     /**
      * Sort all PAss by their reduced cost ensuring we shift flows from the most attractive shift towards the least where we exclude all link segments of a processed PAS such that
      * no other PASs are allowed to shift flows if they overlap to avoid using inconsistent costs after a flow shift to or from a link segment
      */
     BitSet linkSegmentsUsed = new BitSet(networkLoading.getCurrentInflowsPcuH().length);
     Collection<Pas> sortedPass = pasManager.getPassSortedByReducedCost();
-
+  
     double factor = 1;
     for (Pas pas : sortedPass) {
-
+  
       var pasFlowShifter = createPasFlowShiftExecutor(pas, getSettings());
       pasFlowShifter.initialise(); // to be able to collect pas sending flows for gap
-
+  
       if (!(pasFlowShifter.getS2SendingFlow() > 0)) {
         /* PAS is redundant, no more flow remaining (for example due to flow shifts on other PASs with initial overlapping S2 segments) */
         pas.removeAllRegisteredBushes();
         passWithoutOrigins.add(pas);
         continue;
       }
-
+  
       updateGap(gapFunction, pas, pasFlowShifter.getS1SendingFlow(), pasFlowShifter.getS2SendingFlow());
       if (pas.containsAny(linkSegmentsUsed)) {
         continue;
       }
-
+  
       /* untouched PAS (no flows shifted yet) in this iteration */
       boolean pasFlowShifted = pasFlowShifter.run(theMode, physicalCost, virtualCost, networkLoading, factor);
       if (pasFlowShifted) {
         flowShiftedPass.add(pas);
-
+  
         /*
          * When flow is shifted we disallow overlapping other PASs to shift flow in this iteration as cost is likely to change. However, when flow is shifted to maximise entropy,
          * it means cost is already equal, and is expected to not be affected by shift. Hence, in that case we do not disallow other PASs to shift flow and do not mark the PASs
@@ -99,26 +90,35 @@ public abstract class StaticLtmBushStrategyBase<B extends Bush> extends StaticLt
           equalFlowDistributedPass.add(pas);
           continue;
         }
-
+  
         /* s1 */
         pas.forEachEdgeSegment(true /* low cost */, (es) -> linkSegmentsUsed.set((int) es.getId()));
         /* s2 */
         pas.forEachEdgeSegment(false /* high cost */, (es) -> linkSegmentsUsed.set((int) es.getId()));
-
+  
         pasFlowShifter.getUsedCongestedEntrySegments().forEach(es -> linkSegmentsUsed.set((int) es.getId()));
-
+  
         /* when s2 no longer used on any bush - mark PAS for overall removal */
         if (!pas.hasRegisteredBushes()) {
           passWithoutOrigins.add(pas);
         }
       }
     }
-
+  
     if (!passWithoutOrigins.isEmpty()) {
       passWithoutOrigins.forEach((pas) -> pasManager.removePas(pas, getSettings().isDetailedLogging()));
     }
     return flowShiftedPass;
   }
+
+  /** tracked bushes (with non-zero demand) */
+  protected B[] bushes;
+
+  /** track all unique PASs */
+  protected final PasManager pasManager;
+
+  /** track all PASs where we are attempting to distribute flow equally to obtain unique solution under unequal flow but equal cost/cost-derivative */
+  protected Set<Pas> equalFlowDistributedPass;
 
   /**
    * Update gap. Unconventional gap function where we update the GAP based on PAS cost discrepancy. This is due to the impossibility of efficiently determining the network and

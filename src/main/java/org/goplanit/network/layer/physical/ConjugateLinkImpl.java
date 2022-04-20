@@ -3,21 +3,24 @@ package org.goplanit.network.layer.physical;
 import java.util.logging.Logger;
 
 import org.goplanit.graph.directed.DirectedEdgeImpl;
+import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.ConjugateLink;
 import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
-import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.locationtech.jts.geom.LineString;
 
 /**
  * Conjugate (non-directional) link class connecting two conjugate nodes.
+ * <p>
+ * Since a conjugate link is in fact a turn it may be that the node is a connectoid edge and its conjugate is not a conjugate node but a conjugate connectoid node. Therefore we use
+ * conjugate directed vertices rather than require a conjugate node as the base class
  *
  * @author markr
  *
  */
-public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateNode, ConjugateLinkSegment> implements ConjugateLink {
+public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex, ConjugateLinkSegment> implements ConjugateLink {
 
   // Protected
 
@@ -49,7 +52,8 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateNode, Conjugate
    * @param nodeA    the first node in the link
    * @param nodeB    the second node in the link
    */
-  protected ConjugateLinkImpl(final IdGroupingToken groupId, final ConjugateNode nodeA, final ConjugateNode nodeB, final Link originalLink1, final Link originalLink2) {
+  protected ConjugateLinkImpl(final IdGroupingToken groupId, final ConjugateDirectedVertex nodeA, final ConjugateDirectedVertex nodeB, final Link originalLink1,
+      final Link originalLink2) {
     super(groupId, nodeA, nodeB);
     this.originalLinks = Pair.of(originalLink1, originalLink2);
   }

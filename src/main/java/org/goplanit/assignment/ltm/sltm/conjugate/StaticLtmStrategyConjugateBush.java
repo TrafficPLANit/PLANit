@@ -11,7 +11,9 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.zoning.Zoning;
 
 /**
@@ -20,11 +22,14 @@ import org.goplanit.zoning.Zoning;
  * @author markr
  *
  */
-public abstract class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<ConjugateRootedBush> {
+public abstract class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<ConjugateDestinationBush> {
 
   /** logger to use */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(StaticLtmStrategyConjugateBush.class.getCanonicalName());
+
+  /** the conjugate network layer we base our conjugate bushes on */
+  private final ConjugateMacroscopicNetworkLayer conjugateNetworkLayer;
 
   /**
    * Constructor
@@ -38,23 +43,45 @@ public abstract class StaticLtmStrategyConjugateBush extends StaticLtmBushStrate
   protected StaticLtmStrategyConjugateBush(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork,
       final StaticLtmSettings settings, final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
+
+    /* generate conjugate network - generate ids separate from other vertices/edges/segments by providing new token */
+    var token = IdGenerator.createIdGroupingToken("conjugate for network " + getInfrastructureNetwork().getId());
+    this.conjugateNetworkLayer = getInfrastructureNetwork().getLayerByMode(getInfrastructureNetwork().getModes().getFirst()).createConjugate(token);
   }
 
   /**
-   * Create initial conjugate empty bushes
+   * Create initial conjugate (destination based) empty bushes
    * 
    * @return created empty bushes suitable for this strategy
    */
-  protected ConjugateRootedBush[] createEmptyBushes() {
-    // TODO
-    return null;
+  protected ConjugateDestinationBush[] createEmptyBushes() {
+    Zoning zoning = getTransportNetwork().getZoning();
+    ConjugateDestinationBush[] conjugateBushes = new ConjugateDestinationBush[(int) zoning.getNumberOfCentroids()];
+
+    OdDemands odDemands = getOdDemands();
+    for (var destination : zoning.getOdZones()) {
+      for (var origin : zoning.getOdZones()) {
+        if (destination.idEquals(origin)) {
+          continue;
+        }
+
+        Double currOdDemand = odDemands.getValue(origin, destination);
+        if (currOdDemand != null && currOdDemand > 0) {
+          /* register new bush */
+          var bush = new ConjugateDestinationBush(conjugateNetworkLayer.getLayerIdGroupingToken(), destination, conjugateNetworkLayer.getConjugateLinkSegments().size());
+          conjugateBushes[(int) destination.getOdZoneId()] = bush;
+          break;
+        }
+      }
+    }
+    return conjugateBushes;
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  protected void initialiseBush(ConjugateRootedBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
+  protected void initialiseBush(ConjugateDestinationBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
     // TODO;
   }
 

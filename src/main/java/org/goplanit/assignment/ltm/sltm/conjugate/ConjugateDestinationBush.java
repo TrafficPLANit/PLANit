@@ -39,10 +39,10 @@ import org.goplanit.utils.zoning.Zone;
  * @author markr
  *
  */
-public abstract class ConjugateRootedBush implements Bush {
+public class ConjugateDestinationBush implements Bush {
 
   /** Logger to use */
-  private static final Logger LOGGER = Logger.getLogger(ConjugateRootedBush.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(ConjugateDestinationBush.class.getCanonicalName());
 
   /**
    * Determine the sending flow between origin,destination vertex using the subpath given by the subPathArray in order from start to finish. We utilise the initial sending flow on
@@ -102,7 +102,7 @@ public abstract class ConjugateRootedBush implements Bush {
    *                         succeed it
    * @param maxSubGraphTurns The maximum number of conjugate edge segments, i.e. turns, the conjugate bush can at most register given the parent network it is a subset of
    */
-  public ConjugateRootedBush(final IdGroupingToken idToken, Set<ConjugateDirectedVertex> rootVertices, boolean inverted, long maxSubGraphTurns) {
+  public ConjugateDestinationBush(final IdGroupingToken idToken, Set<ConjugateDirectedVertex> rootVertices, boolean inverted, long maxSubGraphTurns) {
     this.dag = new ConjugateACyclicSubGraphImpl(idToken, rootVertices, inverted, (int) maxSubGraphTurns);
     this.bushData = new ConjugateBushTurnData();
     this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, dag.getId());
@@ -114,7 +114,7 @@ public abstract class ConjugateRootedBush implements Bush {
    * 
    * @param bush to (shallow) copy
    */
-  public ConjugateRootedBush(ConjugateRootedBush bush) {
+  public ConjugateDestinationBush(ConjugateDestinationBush bush) {
     this.originDemandsPcuH = new HashMap<>(bush.originDemandsPcuH);
     this.dag = bush.dag.clone();
     this.bushData = bush.bushData.clone();
@@ -153,7 +153,7 @@ public abstract class ConjugateRootedBush implements Bush {
    * {@inheritDoc}
    */
   @Override
-  public abstract ConjugateRootedBush clone();
+  public abstract ConjugateDestinationBush clone();
 
   /**
    * {@inheritDoc}

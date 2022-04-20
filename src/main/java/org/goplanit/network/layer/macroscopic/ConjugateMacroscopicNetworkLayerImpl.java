@@ -8,6 +8,8 @@ import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.layer.physical.ConjugateLinkSegmentsImpl;
 import org.goplanit.network.layer.physical.ConjugateLinksImpl;
 import org.goplanit.network.layer.physical.ConjugateNodesImpl;
+import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
+import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
@@ -19,6 +21,7 @@ import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.network.layer.physical.ConjugateNodes;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
 
 /**
  * Conjugate of macroscopic physical Network (layer), i.e. the edge-to-vertex dual of its original form
@@ -36,15 +39,25 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
 
   /**
    * Reset and re-populate entire conjugate network layer based on current state of original layer this is the conjugate of
+   * 
+   * @param conjugateVirtualNetwork to use when connecting to original connectoid edges/segments
    */
-  protected void update() {
+  protected void update(ConjugateVirtualNetwork conjugateVirtualNetwork) {
     reset();
 
     /* link -> conjugate node */
-    Map<Link, ConjugateNode> linkToConjugateNode = new HashMap<>();
+    Map<DirectedEdge, ConjugateDirectedVertex> edgeToConjugateNode = new HashMap<>();
     for (Link link : originalLayer.getLinks()) {
-      var conjugateNode = getConjugateNodes().getFactory().registerNew(link);
-      linkToConjugateNode.put(link, conjugateNode);
+      ConjugateNode conjugateNode = getConjugateNodes().getFactory().registerNew(link);
+      edgeToConjugateNode.put(link, conjugateNode);
+    }
+
+    /* also allow for connectoids to be available and connected to newly created conjugate links */
+    if (conjugateVirtualNetwork != null) {
+      for (var conjugateConnectoidNode : conjugateVirtualNetwork.getConjugateConnectoidNodes()) {
+        var originalEdge = conjugateConnectoidNode.getOriginalEdge();
+        edgeToConjugateNode.put(originalEdge, conjugateConnectoidNode);
+      }
     }
 
     /* (link,link) -> conjugate link + conjugate link segments */
@@ -69,8 +82,16 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
         /* for all remaining next links after current link create combinations (and in both directions for segments) */
         while (nextLinkIter.hasNext()) {
           var nextLink = nextLinkIter.next();
+
+          ConjugateDirectedVertex conjugateVertexA = edgeToConjugateNode.get(link);
+          ConjugateDirectedVertex conjugateVertexB = edgeToConjugateNode.get(nextLink);
+          if ((conjugateVertexA == null || conjugateVertexB == null) && conjugateVirtualNetwork != null) {
+            LOGGER.warning("Unable to obtain conjugate vertex for original link, this shouldn't happen, skip");
+            continue;
+          }
+
           /* conjugate link */
-          ConjugateLink conjugateLink = getConjugateLinks().getFactory().registerNew(linkToConjugateNode.get(link), linkToConjugateNode.get(nextLink), true, link, nextLink);
+          ConjugateLink conjugateLink = getConjugateLinks().getFactory().registerNew(conjugateVertexA, conjugateVertexB, true, link, nextLink);
 
           /* conjugate link segments for conjugate link */
           boolean directionAb = true;

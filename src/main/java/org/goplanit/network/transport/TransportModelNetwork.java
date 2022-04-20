@@ -5,13 +5,13 @@ import java.util.logging.Logger;
 
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
-import org.goplanit.network.virtual.VirtualNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.ConnectoidEdge;
 import org.goplanit.utils.network.virtual.ConnectoidEdgeFactory;
 import org.goplanit.utils.network.virtual.ConnectoidSegmentFactory;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.UndirectedConnectoid;
 import org.goplanit.zoning.Zoning;
