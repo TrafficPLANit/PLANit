@@ -24,6 +24,7 @@ import org.goplanit.utils.misc.CollectionUtils;
  */
 public class ShortestBushResultGeneralised extends ShortestResultGeneralised implements ShortestBushResult {
 
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ShortestBushResultGeneralised.class.getCanonicalName());
 
   /**
@@ -62,7 +63,7 @@ public class ShortestBushResultGeneralised extends ShortestResultGeneralised imp
 
     var dag = new ACyclicSubGraphImpl(idToken, endSearchVertex, isInverted(), numberOfEdgeSegments);
 
-    // extract bush from destination -> backwards to origin
+    // extract bush -> backwards to root
     TreeSet<Vertex> openVertices = new TreeSet<Vertex>();
     Set<Vertex> processedVertices = new HashSet<Vertex>();
     openVertices.add(startSearchVertex);
@@ -80,9 +81,6 @@ public class ShortestBushResultGeneralised extends ShortestResultGeneralised imp
             openVertices.add(nextVertex);
           }
         }
-      } else if (!currVertex.equals(endSearchVertex)) {
-        LOGGER.warning(String.format("No eligible next segments found for regular vertex (%s) on shortest-bush, this shouldn't happen", currVertex.getXmlId()));
-        continue;
       }
 
       processedVertices.add(currVertex);

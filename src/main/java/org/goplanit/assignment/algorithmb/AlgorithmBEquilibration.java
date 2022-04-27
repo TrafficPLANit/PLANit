@@ -2,8 +2,6 @@ package org.goplanit.assignment.algorithmb;
 
 import java.util.Set;
 
-import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
-import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.output.OutputManager;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.mode.Mode;
@@ -31,17 +29,6 @@ public class AlgorithmBEquilibration {
    * initialiseBushes
    */
   private void initialiseBushes() {
-    TransportModelNetwork transportNetwork = assignment.getTransportNetwork();
-    double[] edgeSegmentCosts = null; // <-- to do
-
-    @SuppressWarnings("unused")
-    ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(edgeSegmentCosts, transportNetwork.getNumberOfEdgeSegmentsAllLayers(),
-        transportNetwork.getNumberOfVerticesAllLayers());
-
-    for (@SuppressWarnings("unused")
-    Zone zone : assignment.getTransportNetwork().getZoning().getOdZones()) {
-      /* for each origin create initial bush with shortest path */
-    }
   }
 
   /**

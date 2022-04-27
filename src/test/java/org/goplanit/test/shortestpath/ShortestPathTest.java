@@ -217,8 +217,7 @@ public class ShortestPathTest {
   public void dijkstraOneToAllTest() {
     try {
 
-      ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(linkSegmentCosts, transportNetwork.getNumberOfEdgeSegmentsAllLayers(),
-          transportNetwork.getNumberOfVerticesAllLayers());
+      ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
 
       ShortestPathResult result = dijkstra.executeOneToAll(centroidA);
 
@@ -259,8 +258,7 @@ public class ShortestPathTest {
   public void dijkstraAllToOneTest() {
     try {
 
-      ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(linkSegmentCosts, transportNetwork.getNumberOfEdgeSegmentsAllLayers(),
-          transportNetwork.getNumberOfVerticesAllLayers());
+      ShortestPathDijkstra dijkstra = new ShortestPathDijkstra(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers());
 
       ShortestPathResult result = dijkstra.executeAllToOne(networkLayer.getNodes().get(1));
 

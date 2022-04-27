@@ -41,8 +41,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    * @throws PlanItException thrown if error
    */
   private OdPaths createOdPaths(final double[] currentSegmentCosts) throws PlanItException {
-    final ShortestPathOneToAll shortestPathAlgorithm = new ShortestPathDijkstra(currentSegmentCosts, getTransportNetwork().getNumberOfEdgeSegmentsAllLayers(),
-        getTransportNetwork().getNumberOfVerticesAllLayers());
+    final ShortestPathOneToAll shortestPathAlgorithm = new ShortestPathDijkstra(currentSegmentCosts, getTransportNetwork().getNumberOfVerticesAllLayers());
     DirectedPathFactory pathFactory = new DirectedPathFactoryImpl(getIdGroupingToken());
     OdPaths odPaths = new OdPathsHashed(getIdGroupingToken(), getTransportNetwork().getZoning().getOdZones());
 

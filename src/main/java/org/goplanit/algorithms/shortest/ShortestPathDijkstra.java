@@ -58,12 +58,11 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised implements Sho
   /**
    * Constructor for an edge cost based Dijkstra algorithm for finding shortest paths.
    * 
-   * @param edgeSegmentCosts     Edge segment costs
-   * @param numberOfEdgeSegments Edge segments, both physical and connectoid
-   * @param numberOfVertices     Vertices, both nodes and centroids
+   * @param edgeSegmentCosts edge segment costs both physical and virtual
+   * @param numberOfVertices Vertices, both nodes and centroids
    */
-  public ShortestPathDijkstra(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
-    super(edgeSegmentCosts, numberOfEdgeSegments, numberOfVertices);
+  public ShortestPathDijkstra(final double[] edgeSegmentCosts, int numberOfVertices) {
+    super(edgeSegmentCosts, numberOfVertices);
   }
 
   /**

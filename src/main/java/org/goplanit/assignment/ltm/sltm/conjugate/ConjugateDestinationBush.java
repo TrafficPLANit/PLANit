@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -11,7 +12,6 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
-import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.graph.directed.acyclic.ConjugateACyclicSubGraphImpl;
@@ -27,7 +27,6 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.ConjugateNode;
 import org.goplanit.utils.zoning.OdZone;
-import org.goplanit.utils.zoning.Zone;
 
 /**
  * A conjugate rooted bush is an acyclic directed graph comprising of implicit paths along a conjugate network, i.e. turn based network (conjugate edge segments). It has a single
@@ -67,6 +66,9 @@ public class ConjugateDestinationBush implements Bush {
     return subPathSendingFlow;
   }
 
+  /** destination of this conjugate bush */
+  protected final OdZone destination;
+
   /** the origin demands (PCU/h) of the bush all representing a root (starting point) within the DAG */
   protected Map<OdZone, Double> originDemandsPcuH;
 
@@ -97,16 +99,28 @@ public class ConjugateDestinationBush implements Bush {
    * Constructor. It is expected that all provided root vertices represent edges in the orignal network leading to a single root.
    * 
    * @param idToken          the token to base the id generation on
+   * @param destination      this conjugate destination bush has rooted conjugate vertices for
    * @param rootVertices     the root vertices of the conjugate bush which can be the end or starting point depending whether or not direction is inverted.
-   * @param inverted         when true bush ends at root vertex and all conjugate directed entities precede it, when false the root is the starting point and all conjugate entities
-   *                         succeed it
    * @param maxSubGraphTurns The maximum number of conjugate edge segments, i.e. turns, the conjugate bush can at most register given the parent network it is a subset of
    */
-  public ConjugateDestinationBush(final IdGroupingToken idToken, Set<ConjugateDirectedVertex> rootVertices, boolean inverted, long maxSubGraphTurns) {
-    this.dag = new ConjugateACyclicSubGraphImpl(idToken, rootVertices, inverted, (int) maxSubGraphTurns);
+  public ConjugateDestinationBush(final IdGroupingToken idToken, final OdZone destination, Set<? extends ConjugateDirectedVertex> rootVertices, int maxSubGraphTurns) {
+    this.dag = new ConjugateACyclicSubGraphImpl(idToken, new HashSet<>(rootVertices), true /* inverted */, maxSubGraphTurns);
     this.bushData = new ConjugateBushTurnData();
     this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, dag.getId());
     this.originDemandsPcuH = new HashMap<>();
+    this.destination = destination;
+  }
+
+  /**
+   * Constructor. It is expected that all provided root vertices represent edges in the orignal network leading to a single root.
+   * 
+   * @param idToken          the token to base the id generation on
+   * @param destination      this conjugate destination bush has rooted conjugate vertices for
+   * @param rootVertices     the root vertices of the conjugate bush which can be the end or starting point depending whether or not direction is inverted.
+   * @param maxSubGraphTurns The maximum number of conjugate edge segments, i.e. turns, the conjugate bush can at most register given the parent network it is a subset of
+   */
+  public ConjugateDestinationBush(final IdGroupingToken idToken, final OdZone destination, Collection<? extends ConjugateDirectedVertex> rootVertices, int maxSubGraphTurns) {
+    this(idToken, destination, new HashSet<>(rootVertices), maxSubGraphTurns);
   }
 
   /**
@@ -120,6 +134,7 @@ public class ConjugateDestinationBush implements Bush {
     this.bushData = bush.bushData.clone();
     this.requireTopologicalSortUpdate = bush.requireTopologicalSortUpdate;
     this.bushGroupingToken = bush.bushGroupingToken;
+    this.destination = bush.destination;
   }
 
   /**
@@ -139,21 +154,16 @@ public class ConjugateDestinationBush implements Bush {
    * @param originDestinationDirection when true, iterator runs topological order from origin towards destinatino, when false, they other way around
    * @return iterator over topologically ordered bush vertices
    */
+  @Override
   public abstract Iterator<ConjugateDirectedVertex> getTopologicalIterator(boolean originDestinationDirection);
-
-  /**
-   * determine the search type supported by the bush based on the underlying dag's construction, i.e., a destination-based dag results in All-To-One, whereas an origin based dag
-   * results in One-To-All searches.
-   * 
-   * @return shortest search type compatible with this bush implementation
-   */
-  public abstract ShortestSearchType getShortestSearchType();
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public abstract ConjugateDestinationBush clone();
+  public ConjugateDestinationBush clone() {
+    new ConjugateDestinationBush(this);
+  }
 
   /**
    * {@inheritDoc}
@@ -641,9 +651,11 @@ public class ConjugateDestinationBush implements Bush {
   }
 
   /**
-   * Each rooted bush is expected to have a zone attached to its root vertex, which is to be returned here
+   * Each conjugate destination bush is expected to have a single destination zone to which all of its root vertices are connected, which is to be returned here
    * 
-   * @return root zone
+   * @return destination zone
    */
-  protected abstract Zone getRootZone();
+  public OdZone getDestination() {
+    return this.destination;
+  }
 }

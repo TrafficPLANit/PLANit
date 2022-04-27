@@ -16,7 +16,6 @@ import java.util.logging.Logger;
 import org.apache.commons.collections4.map.MultiKeyMap;
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestPathSearchUtils;
-import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.graph.directed.DirectedVertex;
@@ -142,14 +141,6 @@ public abstract class RootedBush implements Bush {
    * @return minMaxPathResult, null if unable to complete
    */
   public abstract MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices);
-
-  /**
-   * determine the search type supported by the bush based on the underlying dag's construction, i.e., a destination-based dag results in ALL-To-One, whereas an origin based dag
-   * results in One-To-All searches.
-   * 
-   * @return shortest searcht ype compatible with this bush implementation
-   */
-  public abstract ShortestSearchType getShortestSearchType();
 
   /**
    * {@inheritDoc}

@@ -31,25 +31,66 @@ public class ShortestPathGeneralised {
   });
 
   /**
+   * Reference to starting point for search for which we collect shortest paths from/to
+   */
+  protected DirectedVertex currentSource = null;
+
+  /**
+   * Track the cost for each edge to determine shortest paths
+   */
+  protected final double[] edgeSegmentCosts;
+
+  /**
+   * The number of vertices in the network
+   */
+  protected final int numberOfVertices;
+
+  /** depending on configuration this function collects vertex at desired edge segment extremity */
+  protected Function<EdgeSegment, DirectedVertex> getVertexAtExtreme;
+
+  /** depending on configuration this function collects edge segments in entry or exit direction of vertex */
+  protected Function<DirectedVertex, Iterable<? extends EdgeSegment>> getEdgeSegmentsInDirection;
+
+  /**
+   * The standard way to collect edge segment costs is by edge segment id from the edge segment cost raw array.
+   * 
+   * @param edgeSegment to use
+   * @return cost of traversing edge segment
+   */
+  protected Double getEdgeSegmentCost(final EdgeSegment edgeSegment) {
+    return edgeSegmentCosts[(int) edgeSegment.getId()];
+  }
+
+  /**
+   * Initialise the open vertices. Default behaviour is to place the (single) source vertex at zero cost
+   * 
+   * @param openVertices       to bootstrap with one or more initial vertices
+   * @param vertexMeasuredCost to initialise based on the bootstrapping of the open vertices, otherwise all entries have maximum double values
+   */
+  protected void initialiseOpenVertices(PriorityQueue<Pair<DirectedVertex, Double>> openVertices, double[] vertexMeasuredCost) {
+    vertexMeasuredCost[(int) currentSource.getId()] = 0.0;
+    openVertices.add(Pair.of(currentSource, 0.0)); // cost to reach self is zero
+  }
+
+  /**
    * Generalised shortest-X search
    * 
    * @param verifyVertex                           predicate to test if the new cost to reach vertex is considered shortest compared to existing cost
    * @param shortestAlternativeEdgeSegmentConsumer process the "shortest" alternative edge segment when verified by the predicate
    * @return found shortest costs for vertices, where the most recent found "shortest" cost is the one available in the array
    */
-  private double[] internalExecute(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestAlternativeEdgeSegmentConsumer) {
+  protected double[] internalExecute(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestAlternativeEdgeSegmentConsumer) {
     boolean[] vertexVisited = new boolean[numberOfVertices];
 
     // track measured cost for each vertex
-    double[] vertexMeasuredCost = new double[numberOfVertices];
+    final double[] vertexMeasuredCost = new double[numberOfVertices];
     Arrays.fill(vertexMeasuredCost, Double.MAX_VALUE);
-    vertexMeasuredCost[(int) currentSource.getId()] = 0.0;
     // precedingVertex for each vertex (used to reconstruct path)
     EdgeSegment[] nextEdgeSegmentByVertex = new EdgeSegment[numberOfVertices];
     Arrays.fill(nextEdgeSegmentByVertex, null);
 
     PriorityQueue<Pair<DirectedVertex, Double>> openVertices = new PriorityQueue<Pair<DirectedVertex, Double>>(numberOfVertices, pairSecondComparator);
-    openVertices.add(Pair.of(currentSource, 0.0)); // cost to reach self is zero
+    initialiseOpenVertices(openVertices, vertexMeasuredCost);
 
     // collect cheapest cost and expand the vertex if not already visited
     while (!openVertices.isEmpty()) {
@@ -68,7 +109,7 @@ public class ShortestPathGeneralised {
       // track all adjacent edge segments for possible improved shortest paths
       var edgeSegments = this.getEdgeSegmentsInDirection.apply(currentVertex);
       for (var adjacentEdgeSegment : edgeSegments) {
-        double currentEdgeSegmentCost = edgeSegmentCosts[(int) adjacentEdgeSegment.getId()];
+        double currentEdgeSegmentCost = getEdgeSegmentCost(adjacentEdgeSegment);
         if (currentEdgeSegmentCost < Double.MAX_VALUE) {
 
           DirectedVertex adjacentVertex = this.getVertexAtExtreme.apply(adjacentEdgeSegment);
@@ -90,32 +131,6 @@ public class ShortestPathGeneralised {
 
     return vertexMeasuredCost;
   }
-
-  /**
-   * Reference to starting point for search for which we collect shortest paths from/to
-   */
-  protected DirectedVertex currentSource = null;
-
-  /**
-   * Track the cost for each edge to determine shortest paths
-   */
-  protected final double[] edgeSegmentCosts;
-
-  /**
-   * The number of edge segments considered
-   */
-  protected final int numberOfEdgeSegments;
-
-  /**
-   * The number of vertices in the network
-   */
-  protected final int numberOfVertices;
-
-  /** depending on configuration this function collects vertex at desired edge segment extremity */
-  protected Function<EdgeSegment, DirectedVertex> getVertexAtExtreme;
-
-  /** depending on configuration this function collects edge segments in entry or exit direction of vertex */
-  protected Function<DirectedVertex, Iterable<? extends EdgeSegment>> getEdgeSegmentsInDirection;
 
   /**
    * Generalised shortest-X search where the search type determines to which of the other methods to delegate, oneToAll or AllToOne.
@@ -160,14 +175,12 @@ public class ShortestPathGeneralised {
   /**
    * Constructor for an edge cost based Dijkstra algorithm for finding shortest paths.
    * 
-   * @param edgeSegmentCosts     Edge segment costs
-   * @param numberOfEdgeSegments Edge segments, both physical and connectoid
-   * @param numberOfVertices     Vertices, both nodes and centroids
+   * @param edgeSegmentCosts Edge segment costs, both physical and connectoid
+   * @param numberOfVertices Vertices, both nodes and centroids
    */
-  public ShortestPathGeneralised(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
+  public ShortestPathGeneralised(final double[] edgeSegmentCosts, int numberOfVertices) {
     this.edgeSegmentCosts = edgeSegmentCosts;
     this.numberOfVertices = numberOfVertices;
-    this.numberOfEdgeSegments = numberOfEdgeSegments;
   }
 
 }

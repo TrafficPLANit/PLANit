@@ -167,7 +167,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   private void executeTimePeriodAndMode(final Mode mode, final TimePeriod timePeriod, final ModeData currentModeData, final double[] modalNetworkSegmentCosts)
       throws PlanItException {
 
-    final var shortestPathAlgorithm = new ShortestPathDijkstra(modalNetworkSegmentCosts, getTotalNumberOfNetworkSegments(), getTotalNumberOfNetworkVertices());
+    final var shortestPathAlgorithm = new ShortestPathDijkstra(modalNetworkSegmentCosts, getTotalNumberOfNetworkVertices());
     final OdDemands odDemands = getDemands().get(mode, timePeriod);
 
     final var dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());

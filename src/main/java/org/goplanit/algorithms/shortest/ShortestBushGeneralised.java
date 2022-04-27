@@ -83,12 +83,11 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised implements 
   /**
    * Constructor for an edge cost based algorithm for finding shortest bushes.
    * 
-   * @param edgeSegmentCosts     Edge segment costs
-   * @param numberOfEdgeSegments Edge segments, both physical and connectoid
-   * @param numberOfVertices     Vertices, both nodes and centroids
+   * @param edgeSegmentCosts Edge segment costs, both physical and connectoid
+   * @param numberOfVertices Vertices, both nodes and centroids
    */
-  public ShortestBushGeneralised(final double[] edgeSegmentCosts, int numberOfEdgeSegments, int numberOfVertices) {
-    super(edgeSegmentCosts, numberOfEdgeSegments, numberOfVertices);
+  public ShortestBushGeneralised(final double[] edgeSegmentCosts, int numberOfVertices) {
+    super(edgeSegmentCosts, numberOfVertices);
   }
 
   /**
@@ -110,7 +109,7 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised implements 
      * segment is shortest in which case the entry is just the edge segment
      */
     var vertexMeasuredCost = super.executeOneToAll(this::isShorterOrEqual, this::processShorterOrEqualIncomingEdgeSegment);
-    return new ShortestBushResultGeneralised(vertexMeasuredCost, nextEdgeSegments, numberOfEdgeSegments, ShortestSearchType.ONE_TO_ALL);
+    return new ShortestBushResultGeneralised(vertexMeasuredCost, nextEdgeSegments, edgeSegmentCosts.length, ShortestSearchType.ONE_TO_ALL);
   }
 
   /**
@@ -131,6 +130,6 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised implements 
      * edge segment is shortest in which case the entry is just the edge segment
      */
     var vertexMeasuredCost = super.executeAllToOne(this::isShorterOrEqual, this::processShorterOrEqualIncomingEdgeSegment);
-    return new ShortestBushResultGeneralised(vertexMeasuredCost, nextEdgeSegments, numberOfEdgeSegments, ShortestSearchType.ALL_TO_ONE);
+    return new ShortestBushResultGeneralised(vertexMeasuredCost, nextEdgeSegments, edgeSegmentCosts.length, ShortestSearchType.ALL_TO_ONE);
   }
 }

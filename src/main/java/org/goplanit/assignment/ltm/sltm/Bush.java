@@ -2,6 +2,7 @@ package org.goplanit.assignment.ltm.sltm;
 
 import java.util.Iterator;
 
+import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdAble;
 
@@ -22,4 +23,12 @@ public interface Bush extends IdAble {
    * @return iterator over topologically ordered bush vertices
    */
   public abstract Iterator<? extends DirectedVertex> getTopologicalIterator(boolean originDestinationDirection);
+
+  /**
+   * determine the search type supported by the bush based on the underlying dag's construction, i.e., a destination-based dag results in All-To-One, whereas an origin based dag
+   * results in One-To-All searches.
+   * 
+   * @return shortest search type compatible with this bush implementation
+   */
+  public abstract ShortestSearchType getShortestSearchType();
 }
