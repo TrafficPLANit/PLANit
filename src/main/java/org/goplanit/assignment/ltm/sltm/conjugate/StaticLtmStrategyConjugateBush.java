@@ -4,7 +4,6 @@ import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
 import org.goplanit.algorithms.shortest.ShortestBushResult;
-import org.goplanit.assignment.ltm.sltm.DestinationBush;
 import org.goplanit.assignment.ltm.sltm.Pas;
 import org.goplanit.assignment.ltm.sltm.PasFlowShiftExecutor;
 import org.goplanit.assignment.ltm.sltm.StaticLtmBushStrategyBase;
@@ -115,20 +114,21 @@ public abstract class StaticLtmStrategyConjugateBush extends StaticLtmBushStrate
       Double currOdDemand = odDemands.getValue(origin, destination);
       if (currOdDemand != null && currOdDemand > 0) {
 
-        /* find all-to-one shortest paths */
-        if (allToOneResult == null) {
-          allToOneResult = shortestBushAlgorithm.executeAllToOne(destination.getCentroid());
-        }
-
-        /* initialise bush with this origin shortest path(s) */
-        var originDag = allToOneResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), origin.getCentroid(), destination.getCentroid());
-        if (originDag.isEmpty()) {
-          LOGGER.severe(String.format("Unable to create bush connection(s) from origin (%s) to destination %s", origin.getXmlId(), destination.getXmlId()));
-          continue;
-        }
-
-        bush.addOriginDemandPcuH(origin, currOdDemand);
-        initialiseBushForOrigin((DestinationBush) bush, origin, currOdDemand, originDag, dummyLabel);
+        //TODO: not rewritten yet requires use of conjugate dags and conugate shortest path algorithms based on original network costs
+//        /* find all-to-one shortest paths */
+//        if (allToOneResult == null) {
+//          allToOneResult = shortestBushAlgorithm.executeAllToOne(destination.getCentroid());
+//        }
+//
+//        /* initialise bush with this origin shortest path(s) */
+//        var originDag = allToOneResult.createDirectedAcyclicSubGraph(getIdGroupingToken(), origin.getCentroid(), destination.getCentroid());
+//        if (originDag.isEmpty()) {
+//          LOGGER.severe(String.format("Unable to create bush connection(s) from origin (%s) to destination %s", origin.getXmlId(), destination.getXmlId()));
+//          continue;
+//        }
+//
+//        bush.addOriginDemandPcuH(origin, currOdDemand);
+//        initialiseBushForOrigin(bush, origin, currOdDemand, originDag, dummyLabel);
       }
     }
   }
@@ -138,7 +138,7 @@ public abstract class StaticLtmStrategyConjugateBush extends StaticLtmBushStrate
    */
   @Override
   protected PasFlowShiftExecutor createPasFlowShiftExecutor(final Pas pas, final StaticLtmSettings settings) {
-    // TODO
+    // TODO: not implemented yet
     return null;
   }
 

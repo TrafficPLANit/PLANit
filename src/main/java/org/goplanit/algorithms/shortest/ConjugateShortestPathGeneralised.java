@@ -29,10 +29,9 @@ public class ConjugateShortestPathGeneralised extends ShortestPathGeneralised {
   @Override
   protected double[] internalExecute(BiPredicate<Double, Double> verifyVertex, Consumer<EdgeSegment> shortestAlternativeEdgeSegmentConsumer) {
     var vertexMeasuredCost = super.internalExecute(verifyVertex, shortestAlternativeEdgeSegmentConsumer);
-    /* add costs of final edge segment of final turns */
-    for (var conjugateConnectoid : conjugateConnectoidNodes) {
-      ConjugateEdgeSegment finalTurn = conjugateConnectoid.getPRecedingTurn()
-    }
+    //TODO: currently we are missing cost of final turn, once we have updated the structure of conjugate (virtual) network (by adding dummy turns at start and end, it should not longer be needed to do this 
+    // as all link costs are included then and method can be removed
+    return vertexMeasuredCost;
   }
 
   /**

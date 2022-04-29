@@ -138,8 +138,9 @@ public class ConjugateNetworkTest {
   public void conjugateNetworkTest() {
     try {
 
+      var conjugateVirtualNetwork = zoning.getVirtualNetwork().createConjugate();
       /* use a different token to ensure vertices/edges/edgesegments count from zero again, if we use the same token, they would simply continue */
-      ConjugateMacroscopicNetworkLayer conjugateLayer = networkLayer.createConjugate(conjugateTestToken);
+      ConjugateMacroscopicNetworkLayer conjugateLayer = networkLayer.createConjugate(conjugateTestToken, conjugateVirtualNetwork);
 
       assertEquals(networkLayer.getLinks().size(), conjugateLayer.getConjugateNodes().size());
 

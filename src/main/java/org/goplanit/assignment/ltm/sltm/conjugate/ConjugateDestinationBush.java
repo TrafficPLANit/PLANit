@@ -12,6 +12,7 @@ import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
+import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.graph.directed.acyclic.ConjugateACyclicSubGraphImpl;
@@ -145,7 +146,10 @@ public class ConjugateDestinationBush implements Bush {
    * @param totalConjugateVertices    needed to be able to create primitive array recording the (partial) subgraph backward conjugate link segment results (efficiently)
    * @return minMaxPathResult, null if unable to complete
    */
-  public abstract MinMaxPathResult computeMinMaxShortestPaths(final double[] conjugatelinkSegmentCosts, final int totalConjugateVertices);
+  public MinMaxPathResult computeMinMaxShortestPaths(final double[] conjugatelinkSegmentCosts, final int totalConjugateVertices) {
+    //TODO: not rewritten yet
+    return null;
+  }
 
   /**
    * Collect an iterator over topologically sorted bush in origin-destination or destination-origin direction. Depending on the derived bush implementation this might require
@@ -155,14 +159,23 @@ public class ConjugateDestinationBush implements Bush {
    * @return iterator over topologically ordered bush vertices
    */
   @Override
-  public abstract Iterator<ConjugateDirectedVertex> getTopologicalIterator(boolean originDestinationDirection);
+  public Iterator<ConjugateDirectedVertex> getTopologicalIterator(boolean originDestinationDirection){
+    //TODO: not rewritten yet
+    return null;
+  }
+  
+  @Override
+  public ShortestSearchType getShortestSearchType() {
+    //TODO: not rewritten yet
+    return null;
+  }
 
   /**
    * {@inheritDoc}
    */
   @Override
   public ConjugateDestinationBush clone() {
-    new ConjugateDestinationBush(this);
+    return new ConjugateDestinationBush(this);
   }
 
   /**
@@ -233,22 +246,23 @@ public class ConjugateDestinationBush implements Bush {
    * @return edge segment that would introduces a cycle, null otherwise
    */
   public ConjugateEdgeSegment determineIntroduceCycle(ConjugateEdgeSegment[] alternative) {
-    if (alternative == null) {
-      LOGGER.severe("Cannot verify if conjugate edge segments introduce cycle when parameters are null");
-      return null;
-    }
-    ConjugateEdgeSegment currTurnSegment = null;
-    for (int index = 0; index < alternative.length; ++index) {
-      currTurnSegment = alternative[index];
-      if (currTurnSegment == null) {
-        LOGGER.severe(String.format("Alternative's conjugate edge segment at position %d on array is null, this shouldn't happen", index));
-        break;
-      }
-      currTurnSegment = currTurnSegment.getOppositeDirectionSegment();
-      if (currTurnSegment != null && containsTurnSegment(currTurnSegment)) {
-        return alternative[index];
-      }
-    }
+    //TODO: see if can be reused across other bush implementations
+//    if (alternative == null) {
+//      LOGGER.severe("Cannot verify if conjugate edge segments introduce cycle when parameters are null");
+//      return null;
+//    }
+//    ConjugateEdgeSegment currTurnSegment = null;
+//    for (int index = 0; index < alternative.length; ++index) {
+//      currTurnSegment = alternative[index];
+//      if (currTurnSegment == null) {
+//        LOGGER.severe(String.format("Alternative's conjugate edge segment at position %d on array is null, this shouldn't happen", index));
+//        break;
+//      }
+//      currTurnSegment = currTurnSegment.getOppositeDirectionSegment();
+//      if (currTurnSegment != null && containsTurnSegment(currTurnSegment)) {
+//        return alternative[index];
+//      }
+//    }
     return null;
   }
 
@@ -402,6 +416,7 @@ public class ConjugateDestinationBush implements Bush {
    *         method
    */
   public Pair<DirectedVertex, Map<DirectedVertex, EdgeSegment>> findBushAlternativeSubpath(DirectedVertex referenceVertex, final short[] alternativeSubpathVertexLabels) {
+    // TODO: not rewritten yet
 //    Deque<Pair<DirectedVertex, EdgeSegment>> openVertexQueue = new ArrayDeque<>(30);
 //    Map<DirectedVertex, EdgeSegment> processedVertices = new TreeMap<>();
 //
@@ -468,6 +483,7 @@ public class ConjugateDestinationBush implements Bush {
    * @return sendingFlowPcuH between start and end vertex following the found sub-path
    */
   public double computeSubPathSendingFlow(final DirectedVertex startVertex, final DirectedVertex endVertex, final Map<DirectedVertex, EdgeSegment> subPathMap) {
+    // TODO: not rewritten yet
 //    EdgeSegment nextEdgeSegment = subPathMap.get(startVertex);
 //    double subPathSendingFlow = bushData.getTotalSendingFlowFromPcuH(nextEdgeSegment);
 //
@@ -497,6 +513,7 @@ public class ConjugateDestinationBush implements Bush {
    */
   public double computeSubPathAcceptedFlow(final DirectedVertex startVertex, final DirectedVertex endVertex, final EdgeSegment[] subPathArray,
       final double[] linkSegmentAcceptanceFactors) {
+    // TODO: not rewritten yet    
 //
 //    int index = 0;
 //    EdgeSegment currEdgeSegment = subPathArray[index++];
@@ -523,6 +540,7 @@ public class ConjugateDestinationBush implements Bush {
    * @return sendingFlowPcuH between start and end vertex following the sub-path
    */
   public double determineSubPathSendingFlow(EdgeSegment entrySegment, EdgeSegment[] subPathArray) {
+    // TODO: not rewritten yet
 //
 //    int index = 0;
 //    var usedEntryLabels = getFlowCompositionLabels(entrySegment);
@@ -564,6 +582,7 @@ public class ConjugateDestinationBush implements Bush {
    * @return the rates at hand for each found composition label
    */
   public TreeMap<BushFlowLabel, Double> determineProportionalFlowCompositionRates(final EdgeSegment edgeSegment, final Set<BushFlowLabel> pasFlowCompositionLabels) {
+    // TODO: not rewritten yet
 //    double totalSendingFlow = 0;
 //    var rateMap = new TreeMap<BushFlowLabel, Double>();
 //    for (var label : pasFlowCompositionLabels) {
@@ -658,4 +677,6 @@ public class ConjugateDestinationBush implements Bush {
   public OdZone getDestination() {
     return this.destination;
   }
+
+
 }

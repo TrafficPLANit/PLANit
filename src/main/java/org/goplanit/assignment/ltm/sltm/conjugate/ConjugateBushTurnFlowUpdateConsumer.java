@@ -26,8 +26,6 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
  *
  */
 public class ConjugateBushTurnFlowUpdateConsumer extends ConjugateBushFlowUpdateConsumerImpl<NetworkTurnFlowUpdateData> {
-
-  NOT REWRITTEN YET
   
   /** logger to use */
   @SuppressWarnings("unused")
@@ -50,9 +48,10 @@ public class ConjugateBushTurnFlowUpdateConsumer extends ConjugateBushFlowUpdate
    */
   @Override
   protected void applyAcceptedTurnFlowUpdate(final ConjugateEdgeSegment turnSegment, double turnAcceptedFlowPcuH) {
-    if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(currentSegment.getUpstreamVertex())) {
-      dataConfig.addToAcceptedTurnFlows(prevSegment, currentSegment, turnAcceptedFlowPcuH); // network level
-    }
+    //TODO: not rewritten yet
+//    if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(currentSegment.getUpstreamVertex())) {
+//      dataConfig.addToAcceptedTurnFlows(prevSegment, currentSegment, turnAcceptedFlowPcuH); // network level
+//    }
   }
 
   /**
