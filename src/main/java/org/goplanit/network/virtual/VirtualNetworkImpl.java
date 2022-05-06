@@ -81,8 +81,8 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
    * {@inheritDoc}
    */
   @Override
-  public ConjugateVirtualNetworkImpl createConjugate() {
-    var conjugateVirtualNetwork = new ConjugateVirtualNetworkImpl(this);
+  public ConjugateVirtualNetworkImpl createConjugate(IdGroupingToken idToken) {
+    var conjugateVirtualNetwork = new ConjugateVirtualNetworkImpl(idToken, this);
     conjugateVirtualNetwork.update();
     return conjugateVirtualNetwork;
   }

@@ -1,14 +1,14 @@
 package org.goplanit.network.virtual;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
+import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidNodeFactory;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidNodes;
 import org.goplanit.utils.network.virtual.ConnectoidEdge;
 
 /**
- * Factory for creating conjugate connectoid nodes on container. Note that because conjugate connectoid nodes are 1:1 replacement for original connectoid links we sync their ids by
- * default so they can be used interchangeably
+ * Factory for creating conjugate connectoid nodes on container.
  * 
  * @author markr
  */
@@ -20,8 +20,8 @@ public class ConjugateConnectoidNodeFactoryImpl extends GraphEntityFactoryImpl<C
    * @param groupId   to use
    * @param container to use
    */
-  protected ConjugateConnectoidNodeFactoryImpl(final ConjugateConnectoidNodes container) {
-    super(container);
+  protected ConjugateConnectoidNodeFactoryImpl(final IdGroupingToken groupId, final ConjugateConnectoidNodes container) {
+    super(groupId, container);
   }
 
   /**

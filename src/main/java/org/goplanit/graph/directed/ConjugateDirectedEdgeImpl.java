@@ -17,7 +17,7 @@ import org.locationtech.jts.geom.LineString;
  * @author markr
  *
  */
-public class ConjugateDirectedEdgeImpl extends DirectedEdgeImpl<ConjugateDirectedVertex, ConjugateEdgeSegment> implements ConjugateDirectedEdge {
+public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES extends ConjugateEdgeSegment> extends DirectedEdgeImpl<V, ES> implements ConjugateDirectedEdge {
 
   // Protected
 
@@ -39,7 +39,7 @@ public class ConjugateDirectedEdgeImpl extends DirectedEdgeImpl<ConjugateDirecte
    * @param vertexA  first conjugate vertex in the link
    * @param vertexB  second conjugate vertex in the link
    */
-  protected ConjugateDirectedEdgeImpl(final IdGroupingToken groupId, final ConjugateDirectedVertex vertexA, final ConjugateDirectedVertex vertexB, final DirectedEdge originalEdge1,
+  protected ConjugateDirectedEdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB, final DirectedEdge originalEdge1,
       final DirectedEdge originalEdge2) {
     super(groupId, vertexA, vertexB);
     this.originalEdges = Pair.of(originalEdge1, originalEdge2);
@@ -50,7 +50,7 @@ public class ConjugateDirectedEdgeImpl extends DirectedEdgeImpl<ConjugateDirecte
    * 
    * @param conjugateDirectedEdgeImpl to copy
    */
-  protected ConjugateDirectedEdgeImpl(ConjugateDirectedEdgeImpl conjugateDirectedEdgeImpl) {
+  protected ConjugateDirectedEdgeImpl(ConjugateDirectedEdgeImpl<V,ES> conjugateDirectedEdgeImpl) {
     super(conjugateDirectedEdgeImpl);
     this.originalEdges = conjugateDirectedEdgeImpl.originalEdges.copy();
   }

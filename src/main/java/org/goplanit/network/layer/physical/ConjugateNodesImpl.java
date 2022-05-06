@@ -8,9 +8,7 @@ import org.goplanit.utils.network.layer.physical.ConjugateNodes;
 
 /**
  * 
- * Conjugate nodes primary managed container implementation. Note that each conjugate node will be indexed by its original link's id to allow for easy matching. In turn it is
- * expected that the conjugate node's id is also synced to the original link's id anyway. However we explicit map to the original link's id as this ensures that when recreating
- * managed ids the correct id is used
+ * Conjugate nodes primary managed container implementation. 
  * 
  * @author markr
  *
@@ -25,9 +23,9 @@ public class ConjugateNodesImpl extends ManagedIdEntitiesImpl<ConjugateNode> imp
    * 
    * @param groupId to use for creating ids for instances
    */
-  public ConjugateNodesImpl() {
-    super(n -> n.getOriginalEdge().getId());
-    this.factory = new ConjugateNodeFactoryImpl(this);
+  public ConjugateNodesImpl(final IdGroupingToken groupId) {
+    super(ConjugateNode::getId);
+    this.factory = new ConjugateNodeFactoryImpl(groupId, this);
   }
 
   /**

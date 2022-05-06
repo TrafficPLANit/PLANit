@@ -49,11 +49,11 @@ public abstract class StaticLtmStrategyConjugateBush extends StaticLtmBushStrate
       final StaticLtmSettings settings, final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
 
-    /* generate conjugate virtual network - generate ids separate from other vertices/edges/segments by providing new token */
-    this.conjugateVirtualNetwork = transportModelNetwork.getZoning().getVirtualNetwork().createConjugate();
-
     /* generate conjugate network - generate ids separate from other vertices/edges/segments by providing new token */
     var token = IdGenerator.createIdGroupingToken("conjugate for network " + getInfrastructureNetwork().getId());
+    
+    /* generate conjugate virtual network - generate ids separate from other vertices/edges/segments by providing new token */
+    this.conjugateVirtualNetwork = transportModelNetwork.getZoning().getVirtualNetwork().createConjugate(token);
     this.conjugateNetworkLayer = getInfrastructureNetwork().getLayerByMode(getInfrastructureNetwork().getModes().getFirst()).createConjugate(token, conjugateVirtualNetwork);
   }
 

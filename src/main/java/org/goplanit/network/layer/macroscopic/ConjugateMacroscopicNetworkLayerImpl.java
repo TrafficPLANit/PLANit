@@ -116,7 +116,7 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
    * @param originalLayer this conjugate is based on
    */
   protected ConjugateMacroscopicNetworkLayerImpl(final IdGroupingToken groupId, final MacroscopicNetworkLayer originalLayer) {
-    this(groupId, new ConjugateNodesImpl(), new ConjugateLinksImpl(groupId), new ConjugateLinkSegmentsImpl(groupId), originalLayer);
+    this(groupId, new ConjugateNodesImpl(groupId), new ConjugateLinksImpl(groupId), new ConjugateLinkSegmentsImpl(groupId), originalLayer);
   }
 
   /**

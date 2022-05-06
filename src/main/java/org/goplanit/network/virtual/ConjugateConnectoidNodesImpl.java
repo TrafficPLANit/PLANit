@@ -25,9 +25,9 @@ public class ConjugateConnectoidNodesImpl extends ManagedIdEntitiesImpl<Conjugat
    * 
    * @param groupId to use for creating ids for instances
    */
-  public ConjugateConnectoidNodesImpl() {
-    super(n -> n.getOriginalEdge().getId());
-    this.factory = new ConjugateConnectoidNodeFactoryImpl(this);
+  public ConjugateConnectoidNodesImpl(final IdGroupingToken groupId) {
+    super(ConjugateConnectoidNode::getId);
+    this.factory = new ConjugateConnectoidNodeFactoryImpl(groupId, this);
   }
 
   /**

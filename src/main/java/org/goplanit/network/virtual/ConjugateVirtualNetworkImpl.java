@@ -6,10 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
-import org.goplanit.utils.network.virtual.ConjugateConnectoidNodes;
-import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
-import org.goplanit.utils.network.virtual.VirtualNetwork;
+import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.layer.physical.ConjugateNode;
+import org.goplanit.utils.network.virtual.*;
 import org.goplanit.utils.zoning.Centroid;
 
 /**
@@ -28,6 +28,16 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
    */
   protected final ConjugateConnectoidNodesImpl conjugateConnectoidNodes;
 
+  /**
+   * Container for conjugate connectoid edges
+   */
+  protected final ConjugateConnectoidEdgesImpl conjugateConnectoidEdges;
+
+  /**
+   * Container for conjugate connectoid edge segments
+   */
+  protected final ConjugateConnectoidSegmentsImpl conjugateConnectoidSegments;
+
   /** original virtual network this conjugate is based on */
   protected final VirtualNetwork originalVirtualNetwork;
 
@@ -36,14 +46,20 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
    */
   protected void update() {
     reset();
+    
+    Map<DirectedVertex, ConjugateConnectoidNode> dummyConjugatePerZone = new HashMap<>();
 
     /* connectoid edge -> conjugate connectoid node */
     for (var connectoidEdge : originalVirtualNetwork.getConnectoidEdges()) {
 
       // TODO -> for the nodes -> do use tokenId so it can be homogeneised across all conjugate components
       // due to additional creation of nodes we can't keep it in sync with the original edges anywayy -> so change throughout
-
-      var conjugateDummyNode = getConjugateConnectoidNodes().getFactory().registerNew(null); // no original network equivalent
+      var centroid = connectoidEdge.getCentroidVertex();
+      var conjugateDummyNode = dummyConjugatePerZone.get(centroid);
+      if(conjugateDummyNode == null) {
+        conjugateDummyNode = getConjugateConnectoidNodes().getFactory().registerNew(null);
+        dummyConjugatePerZone.put(centroid, conjugateDummyNode);
+      }
       var conjugateNode = getConjugateConnectoidNodes().getFactory().registerNew(connectoidEdge);
 
       /* create "fake" conjugate connectoid edge (where one of the two conjugate connectoid nodes has no original network equivalent but reflects a conjugate centroid) */
@@ -65,13 +81,25 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
     return conjugateConnectoidNodes;
   }
 
+  @Override
+  public ConjugateConnectoidEdges getConjugateConnectoidEdges() {
+    return conjugateConnectoidEdges;
+  }
+
+  @Override
+  public ConjugateConnectoidSegments getConjugateConnectoidEdgeSegments() {
+    return conjugateConnectoidSegments;
+  }
+
   /**
    * Constructor
    * 
-   * @param tokenId contiguous id generation for instances of this class
+   * @param idToken contiguous id generation for instances of this class
    */
-  public ConjugateVirtualNetworkImpl(final VirtualNetwork originalVirtualNetwork) {
-    this.conjugateConnectoidNodes = new ConjugateConnectoidNodesImpl();
+  public ConjugateVirtualNetworkImpl(IdGroupingToken idToken, final VirtualNetwork originalVirtualNetwork) {
+    this.conjugateConnectoidNodes = new ConjugateConnectoidNodesImpl(idToken);
+    this.conjugateConnectoidEdges = new ConjugateConnectoidEdgesImpl(idToken);
+    this.conjugateConnectoidSegments = new ConjugateConnectoidSegmentsImpl(idToken);
     this.originalVirtualNetwork = originalVirtualNetwork;
   }
 
