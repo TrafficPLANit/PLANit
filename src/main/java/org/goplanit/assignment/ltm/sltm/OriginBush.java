@@ -7,6 +7,7 @@ import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestPathAcyclicMinMaxGeneralised;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.utils.graph.directed.DirectedVertex;
+import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.OdZone;
 
@@ -18,7 +19,7 @@ import org.goplanit.utils.zoning.OdZone;
  * @author markr
  *
  */
-public class OriginBush extends RootedBush {
+public class OriginBush extends RootedLabelledBush {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(OriginBush.class.getCanonicalName());
@@ -68,7 +69,7 @@ public class OriginBush extends RootedBush {
   public MinMaxPathResult computeMinMaxShortestPaths(final double[] linkSegmentCosts, final int totalTransportNetworkVertices) {
 
     /* build min/max path tree */
-    var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(dag, requireTopologicalSortUpdate, linkSegmentCosts, totalTransportNetworkVertices);
+    var minMaxBushPaths = new ShortestPathAcyclicMinMaxGeneralised(getDag(), requireTopologicalSortUpdate, linkSegmentCosts, totalTransportNetworkVertices);
     try {
       return minMaxBushPaths.executeOneToAll(getRootVertex());
     } catch (Exception e) {
@@ -90,7 +91,7 @@ public class OriginBush extends RootedBush {
    */
   @Override
   public Iterator<DirectedVertex> getTopologicalIterator(boolean originDestinationDirection) {
-    return this.dag.getTopologicalIterator(requireTopologicalSortUpdate, !originDestinationDirection /* do not invert direction, dag is in od direction */ );
+    return getDag().getTopologicalIterator(requireTopologicalSortUpdate, !originDestinationDirection /* do not invert direction, dag is in od direction */ );
   }
 
   /**

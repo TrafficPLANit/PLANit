@@ -42,7 +42,7 @@ public class Pas {
   private double s2Cost;
 
   /** registered origin bushes */
-  private final Set<RootedBush> registeredBushes;
+  private final Set<RootedLabelledBush> registeredBushes;
 
   /**
    * Constructor
@@ -53,7 +53,7 @@ public class Pas {
   private Pas(final EdgeSegment[] s1, final EdgeSegment[] s2) {
     this.s1 = s1;
     this.s2 = s2;
-    this.registeredBushes = new HashSet<RootedBush>();
+    this.registeredBushes = new HashSet<RootedLabelledBush>();
   }
 
   /**
@@ -117,7 +117,7 @@ public class Pas {
    * @param bush bush to register
    * @return true when newly added, false, when already present
    */
-  public boolean registerBush(final RootedBush bush) {
+  public boolean registerBush(final RootedLabelledBush bush) {
     return registeredBushes.add(bush);
   }
 
@@ -127,7 +127,7 @@ public class Pas {
    * @param bush to check
    * @return true when registered, false otherwise
    */
-  public boolean hasRegisteredBush(final RootedBush bush) {
+  public boolean hasRegisteredBush(final RootedLabelledBush bush) {
     return registeredBushes.contains(bush);
   }
 
@@ -136,7 +136,7 @@ public class Pas {
    * 
    * @return registered bushes
    */
-  public Set<RootedBush> getRegisteredBushes() {
+  public Set<RootedLabelledBush> getRegisteredBushes() {
     return registeredBushes;
   }
 
@@ -161,7 +161,7 @@ public class Pas {
    * 
    * @param bushes to remove
    */
-  public void removeBushes(List<RootedBush> bushes) {
+  public void removeBushes(List<RootedLabelledBush> bushes) {
     bushes.forEach((bush) -> removeBush(bush));
   }
 
@@ -170,7 +170,7 @@ public class Pas {
    * 
    * @param bush to remove
    */
-  public void removeBush(RootedBush bush) {
+  public void removeBush(RootedLabelledBush bush) {
     registeredBushes.remove(bush);
   }
 
@@ -183,7 +183,7 @@ public class Pas {
    * @return when non-negative the segment is overlapping with the PAS, where the value indicates the accepted flow on this sub-path for the bush (with sendinf flow at start as
    *         base demand)
    */
-  public double computeOverlappingAcceptedFlow(RootedBush bush, boolean lowCost, double[] linkSegmentFlowAcceptanceFactors) {
+  public double computeOverlappingAcceptedFlow(RootedLabelledBush bush, boolean lowCost, double[] linkSegmentFlowAcceptanceFactors) {
     EdgeSegment[] alternative = lowCost ? s1 : s2;
     return bush.computeSubPathAcceptedFlow(getDivergeVertex(), getMergeVertex(), alternative, linkSegmentFlowAcceptanceFactors);
   }

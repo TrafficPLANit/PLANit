@@ -30,7 +30,7 @@ import org.goplanit.zoning.Zoning;
  * @author markr
  *
  */
-public abstract class StaticLtmBushStrategyBase<B extends Bush> extends StaticLtmAssignmentStrategy {
+public abstract class StaticLtmBushStrategyBase<B extends RootedBush> extends StaticLtmAssignmentStrategy {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategyBase.class.getCanonicalName());
@@ -142,7 +142,15 @@ public abstract class StaticLtmBushStrategyBase<B extends Bush> extends StaticLt
   /**
    * Based on the network loading results, update the bush' turn sending flows
    */
-  protected abstract void syncBushTurnFlows();
+  protected void syncBushFlowsToNetworkFlows() {
+    for (var bush : bushes) {
+      if (bush == null) {
+        continue;
+      }
+
+      bush.syncToNetworkFlows(getLoading().getCurrentFlowAcceptanceFactors());
+    }
+  }
 
   /**
    * Update the PASs for bushes given the network costs and current bushes DAGs
@@ -355,7 +363,7 @@ public abstract class StaticLtmBushStrategyBase<B extends Bush> extends StaticLt
       
       /* 3 - BUSH LOADING - SYNC BUSH TURN FLOWS - USE NETWORK LOADING ALPHAS - MODE AGNOSTIC FOR NOW */
       {
-        syncBushTurnFlows(); 
+        syncBushFlowsToNetworkFlows();
       }
       
       /* 4 - BUSH ROUTE CHOICE - UPDATE BUSH SPLITTING RATES - SHIFT BUSH TURN FLOWS - MODE AGNOSTIC FOR NOW */     

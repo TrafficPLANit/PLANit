@@ -18,7 +18,7 @@ public class BushInitialiserHelper {
   private static final Logger LOGGER = Logger.getLogger(BushInitialiserHelper.class.getCanonicalName());
 
   /** to initialise */
-  private final RootedBush bush;
+  private final RootedLabelledBush bush;
 
   /** to use to initialise bush */
   private final ACyclicSubGraph odDag;
@@ -229,7 +229,7 @@ public class BushInitialiserHelper {
    * @param pasManager to use
    * @param logNewPass when true log new PASs, otherwise not
    */
-  protected BushInitialiserHelper(final RootedBush bush, final ACyclicSubGraph odDag, final PasManager pasManager, boolean logNewPass) {
+  protected BushInitialiserHelper(final RootedLabelledBush bush, final ACyclicSubGraph odDag, final PasManager pasManager, boolean logNewPass) {
     this.bush = bush;
     this.odDag = odDag;
     this.pasManager = pasManager;
@@ -243,7 +243,7 @@ public class BushInitialiserHelper {
    * @param odDag to use
    * @return created helper
    */
-  public static BushInitialiserHelper create(final RootedBush bush, final ACyclicSubGraph odDag, final PasManager pasManager, boolean logNewPass) {
+  public static BushInitialiserHelper create(final RootedLabelledBush bush, final ACyclicSubGraph odDag, final PasManager pasManager, boolean logNewPass) {
     return new BushInitialiserHelper(bush, odDag, pasManager, logNewPass);
   }
 

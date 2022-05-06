@@ -93,7 +93,7 @@ public class PasManager {
    * @param flowAcceptanceFactors the accepted flow found passing through the final vertex of the PAS from the origin of the bush, i.e., all sub-paths to this vertex
    * @return true when considered effective, false otherwise
    */
-  private boolean isFlowEffective(Pas pas, RootedBush originBush, double[] flowAcceptanceFactors) {
+  private boolean isFlowEffective(Pas pas, RootedLabelledBush originBush, double[] flowAcceptanceFactors) {
     boolean lowCostPath = true;
     /* usage of high cost segment on bush */
     double s2SubPathAcceptedFlowOnBush = pas.computeOverlappingAcceptedFlow(originBush, !lowCostPath, flowAcceptanceFactors);
@@ -107,7 +107,7 @@ public class PasManager {
 
   /**
    * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both {@link #isCostEffective(Pas, double)} and
-   * {@link #isFlowEffective(Pas, RootedBush, double[])}
+   * {@link #isFlowEffective(Pas, RootedLabelledBush, double[])}
    * 
    * @param pas                   to use
    * @param originBush            to use
@@ -115,7 +115,7 @@ public class PasManager {
    * @param reducedCost           to use
    * @return true when considered effective, false otherwise
    */
-  private boolean isPasEffectiveForBush(Pas pas, RootedBush originBush, double[] flowAcceptanceFactors, double reducedCost) {
+  private boolean isPasEffectiveForBush(Pas pas, RootedLabelledBush originBush, double[] flowAcceptanceFactors, double reducedCost) {
     /* Verify if low-cost PAS alternative is effective (enough) in improving the bush within the identified upper bound of the reduced cost */
     return isCostEffective(pas.getAlternativeHighCost(), pas.getAlternativeLowCost(), reducedCost) && isFlowEffective(pas, originBush, flowAcceptanceFactors);
   }
@@ -323,7 +323,7 @@ public class PasManager {
    * @param s2         expensive alternative segment
    * @return createdPas
    */
-  public Pas createAndRegisterNewPas(final RootedBush bush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
+  public Pas createAndRegisterNewPas(final RootedLabelledBush bush, final EdgeSegment[] s1, final EdgeSegment[] s2) {
     Pas newPas = Pas.create(s1, s2);
     if (newPas == null) {
       return null;
@@ -343,7 +343,7 @@ public class PasManager {
    * @param s2         expensive alternative segment
    * @return createdPas
    */
-  public Pas createAndRegisterNewPas(final RootedBush bush, final Collection<EdgeSegment> s1, final Collection<EdgeSegment> s2) {
+  public Pas createAndRegisterNewPas(final RootedLabelledBush bush, final Collection<EdgeSegment> s1, final Collection<EdgeSegment> s2) {
     return createAndRegisterNewPas(bush, s1.toArray(new EdgeSegment[s1.size()]), s2.toArray(new EdgeSegment[s2.size()]));
   }
 
@@ -439,7 +439,7 @@ public class PasManager {
    * @param referenceVertex to test for
    * @return true when PAS is used by origin bush ending at this vertex, false otherwise
    */
-  public boolean isRegisteredOnAnyPasAtReferenceVertex(final RootedBush bush, final DirectedVertex referenceVertex) {
+  public boolean isRegisteredOnAnyPasAtReferenceVertex(final RootedLabelledBush bush, final DirectedVertex referenceVertex) {
     /* verify potential PASs */
     var potentialPass = getPassByReferenceVertex(referenceVertex);
     if (potentialPass == null) {
@@ -467,7 +467,7 @@ public class PasManager {
    * @param reducedCost           the upper bound on the improvement that is known for this merge vertex
    * @return pas found, null if no suitable candidates exist
    */
-  public Pas findFirstSuitableExistingPas(final RootedBush bush, final DirectedVertex referenceVertex, double[] flowAcceptanceFactors, double reducedCost) {
+  public Pas findFirstSuitableExistingPas(final RootedLabelledBush bush, final DirectedVertex referenceVertex, double[] flowAcceptanceFactors, double reducedCost) {
 
     /* verify potential PASs */
     var potentialPass = getPassByReferenceVertex(referenceVertex);

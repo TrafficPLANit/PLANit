@@ -22,10 +22,10 @@ import org.goplanit.utils.misc.Pair;
  * @author markr
  *
  */
-public abstract class StaticLtmBushStrategyRooted extends StaticLtmBushStrategyBase<RootedBush> {
+public abstract class StaticLtmBushStrategyRootLabelled extends StaticLtmBushStrategyBase<RootedLabelledBush> {
 
   /** logger to use */
-  private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategyRooted.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategyRootLabelled.class.getCanonicalName());
 
   /**
    * Check if an existing PAS exists that terminates at the given bush vertex. If so, it is considered a match when:
@@ -43,7 +43,7 @@ public abstract class StaticLtmBushStrategyRooted extends StaticLtmBushStrategyB
    * 
    * @return true when a match is found and bush is newly registered on a PAS, false otherwise
    */
-  private boolean extendBushWithSuitableExistingPas(final RootedBush bush, final DirectedVertex mergeVertex, final double reducedCost) {
+  private boolean extendBushWithSuitableExistingPas(final RootedLabelledBush bush, final DirectedVertex mergeVertex, final double reducedCost) {
 
     boolean bushFlowThroughMergeVertex = false;
     for (var entrySegment : mergeVertex.getEntryEdgeSegments()) {
@@ -90,7 +90,7 @@ public abstract class StaticLtmBushStrategyRooted extends StaticLtmBushStrategyB
    * @param networkMinPaths   the current network shortest path tree
    * @return new created PAS if successfully created, null otherwise
    */
-  private Pas extendBushWithNewPas(final RootedBush bush, final DirectedVertex reducedCostVertex, final ShortestPathResult networkMinPaths) {
+  private Pas extendBushWithNewPas(final RootedLabelledBush bush, final DirectedVertex reducedCostVertex, final ShortestPathResult networkMinPaths) {
 
     /* Label all vertices on shortest path root-reducedCostVertex as -1, and PAS merge Vertex itself as 1 */
     final short[] alternativeSegmentVertexLabels = new short[getTransportNetwork().getNumberOfVerticesAllLayers()];
@@ -161,7 +161,7 @@ public abstract class StaticLtmBushStrategyRooted extends StaticLtmBushStrategyB
     final var networkShortestPathAlgo = createNetworkShortestPathAlgo(linkSegmentCosts);
 
     for (int index = 0; index < bushes.length; ++index) {
-      RootedBush bush = bushes[index];
+      RootedLabelledBush bush = bushes[index];
       if (bush == null) {
         continue;
       }
@@ -224,20 +224,6 @@ public abstract class StaticLtmBushStrategyRooted extends StaticLtmBushStrategyB
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected void syncBushTurnFlows() {
-    for (var bush : bushes) {
-      if (bush == null) {
-        continue;
-      }
-
-      bush.updateTurnFlows(getLoading().getCurrentFlowAcceptanceFactors());
-    }
-  }
-
-  /**
    * Constructor
    * 
    * @param idGroupingToken       to use for internal managed ids
@@ -246,8 +232,8 @@ public abstract class StaticLtmBushStrategyRooted extends StaticLtmBushStrategyB
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
    */
-  protected StaticLtmBushStrategyRooted(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork,
-      final StaticLtmSettings settings, final TrafficAssignmentComponentAccessee taComponents) {
+  protected StaticLtmBushStrategyRootLabelled(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork,
+                                              final StaticLtmSettings settings, final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
   }
 

@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.assignment.ltm.LtmAssignment;
+import org.goplanit.assignment.ltm.sltm.conjugate.StaticLtmStrategyConjugateBush;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.network.MacroscopicNetwork;
@@ -66,6 +67,8 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
         return new StaticLtmOriginBushDestLabelledStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
       case DESTINATION_BUSH_BASED:
         return new StaticLtmDestinationBushStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
+      case CONJUGATE_DESTINATION_BUSH_BASED:
+        return new StaticLtmStrategyConjugateBush(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);
       case PATH_BASED:
         return new StaticLtmPathStrategy(getIdGroupingToken(), getId(), getTransportNetwork(), settings, this);        
       default:
@@ -78,7 +81,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * Record some basic iteration information such as duration and gap
    *
    * @param startTime  the original start time of the iteration
-   * @param dualityGap the duality gap at the end of the iteration
+   * @param gapFunction the duality gap at the end of the iteration
    * @return the time (in ms) at the end of the iteration for profiling purposes only
    */
   private Calendar logBasicIterationInformation(final Calendar startTime, final LinkBasedRelativeDualityGapFunction gapFunction) {

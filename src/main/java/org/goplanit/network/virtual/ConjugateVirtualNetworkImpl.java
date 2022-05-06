@@ -130,24 +130,23 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
    * {@inheritDoc}
    */
   @Override
-  public Map<Centroid, Collection<ConjugateConnectoidNode>> createCentroidToConjugateNodeMapping() {
-    var mapping = new HashMap<Centroid, Collection<ConjugateConnectoidNode>>();
+  public Map<Centroid, ConjugateConnectoidNode> createCentroidToConjugateNodeMapping() {
+    var mapping = new HashMap<Centroid, ConjugateConnectoidNode>();
     for (ConjugateConnectoidNode conjugateNode : getConjugateConnectoidNodes()) {
       var originalEdge = conjugateNode.getOriginalEdge();
-      Centroid centroid = null;
-      if (originalEdge.getVertexA() instanceof Centroid) {
-        centroid = (Centroid) originalEdge.getVertexA();
-      } else if (originalEdge.getVertexB() instanceof Centroid) {
-        centroid = (Centroid) originalEdge.getVertexB();
-      } else {
-        LOGGER.severe(String.format("Conjugate node's (%s) original edge not connected to centroid, this shouldn't happen", conjugateNode.getXmlId()));
+      if(originalEdge!=null) {
+        /* not dummy connected to original centroid */
+        continue;
       }
-      var mappedConjugateNodes = mapping.get(centroid);
-      if (mappedConjugateNodes == null) {
-        mappedConjugateNodes = new ArrayList<ConjugateConnectoidNode>(2);
-        mapping.put(centroid, mappedConjugateNodes);
+
+      /* found eligible dymmy conjugate, determine to what centroid it maps */
+      var conjugateDummyEdge = conjugateNode.getEdges().iterator().next();
+      var originalConnectoidEdge = (ConnectoidEdge) conjugateDummyEdge.getOriginalAdjacentEdges().getEarliestNonNull();
+      if(originalConnectoidEdge==null) {
+        LOGGER.severe(String.format("Conjugate connectoid dummy node's (%s) not connected to original centroid, this shouldn't happen", conjugateNode.getXmlId()));
       }
-      mappedConjugateNodes.add(conjugateNode);
+      /* set mapping */
+      mapping.put(originalConnectoidEdge.getCentroidVertex(),conjugateNode);
     }
     return mapping;
   }

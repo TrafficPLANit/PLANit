@@ -19,7 +19,7 @@ import org.goplanit.zoning.Zoning;
  * @author markr
  *
  */
-public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrategyRooted {
+public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrategyRootLabelled {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmOriginBushDestLabelledStrategy.class.getCanonicalName());
@@ -61,7 +61,7 @@ public class StaticLtmOriginBushDestLabelledStrategy extends StaticLtmBushStrate
    * @param shortestBushAlgorithm to use
    */
   @Override
-  protected void initialiseBush(RootedBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
+  protected void initialiseBush(RootedLabelledBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
     var origin = ((OriginBush) bush).getOrigin();
     ShortestBushResult shortestBushResult = null;
 

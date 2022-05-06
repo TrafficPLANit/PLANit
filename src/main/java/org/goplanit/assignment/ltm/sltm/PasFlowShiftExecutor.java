@@ -44,7 +44,7 @@ public abstract class PasFlowShiftExecutor {
 
   /**
    * flag indicating of most recent call to
-   * {@link #determineEntrySegmentFlowShift(RootedBush, EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBushRooted)} identified that flow distribution
+   * {@link #determineEntrySegmentFlowShift(RootedLabelledBush, EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBushRooted)} identified that flow distribution
    * between s1 and s2 should be made equal.
    */
   boolean towardsEqualAlternativeFlowDistribution;
@@ -226,7 +226,7 @@ public abstract class PasFlowShiftExecutor {
   protected Map<EdgeSegment, Pair<Double, Double>> totalEntrySegmentS1S2Flow;
 
   /** Track the desired sending flows for s1 and s2 per bush per entry segment */
-  protected final Map<RootedBush, Map<EdgeSegment, Pair<Double, Double>>> bushEntrySegmentS1S2SendingFlows;
+  protected final Map<RootedLabelledBush, Map<EdgeSegment, Pair<Double, Double>>> bushEntrySegmentS1S2SendingFlows;
 
   protected final Set<EdgeSegment> usedCongestedEntryEdgeSegments;
 
@@ -268,7 +268,7 @@ public abstract class PasFlowShiftExecutor {
    * @param bushEntrySegmentFlowShift the absolute shift to apply for the given PAS-bush-entrysegment combination
    * @param flowAcceptanceFactors     to use
    */
-  protected abstract void executeBushFlowShift(final RootedBush bush, final EdgeSegment entrySegment, double bushEntrySegmentFlowShift, final double[] flowAcceptanceFactors);
+  protected abstract void executeBushFlowShift(final RootedLabelledBush bush, final EdgeSegment entrySegment, double bushEntrySegmentFlowShift, final double[] flowAcceptanceFactors);
 
   /**
    * For the given PAS-entrysegment determine the flow shift to apply from the high cost to the low cost segment. Depending on the state of the segments we utilise their
@@ -553,7 +553,7 @@ public abstract class PasFlowShiftExecutor {
   }
 
   /**
-   * Check to see if last call to {@link #determineEntrySegmentFlowShift(RootedBush, EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBushRooted)}
+   * Check to see if last call to {@link #determineEntrySegmentFlowShift(RootedLabelledBush, EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBushRooted)}
    * caused a flow shift not trying to equate cost but equate flows given equal cost
    * 
    * @return true when attempting to move to equal distribution of flow across alternatives, false otherwise

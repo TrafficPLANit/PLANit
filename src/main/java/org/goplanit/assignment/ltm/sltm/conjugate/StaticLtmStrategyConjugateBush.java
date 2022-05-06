@@ -1,5 +1,6 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
+import java.util.Collection;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.ShortestBushGeneralised;
@@ -12,6 +13,7 @@ import org.goplanit.assignment.ltm.sltm.loading.StaticLtmLoadingBushConjugate;
 import org.goplanit.interactor.TrafficAssignmentComponentAccessee;
 import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
+import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
@@ -24,7 +26,7 @@ import org.goplanit.zoning.Zoning;
  * @author markr
  *
  */
-public abstract class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<ConjugateDestinationBush> {
+public class StaticLtmStrategyConjugateBush extends StaticLtmBushStrategyBase<ConjugateDestinationBush> {
 
   /** logger to use */
   @SuppressWarnings("unused")
@@ -45,7 +47,7 @@ public abstract class StaticLtmStrategyConjugateBush extends StaticLtmBushStrate
    * @param settings              to use
    * @param taComponents          to use for access to user configured assignment components
    */
-  protected StaticLtmStrategyConjugateBush(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork,
+  public StaticLtmStrategyConjugateBush(final IdGroupingToken idGroupingToken, long assignmentId, final TransportModelNetwork transportModelNetwork,
       final StaticLtmSettings settings, final TrafficAssignmentComponentAccessee taComponents) {
     super(idGroupingToken, assignmentId, transportModelNetwork, settings, taComponents);
 
@@ -81,11 +83,11 @@ public abstract class StaticLtmStrategyConjugateBush extends StaticLtmBushStrate
         Double currOdDemand = odDemands.getValue(origin, destination);
         if (currOdDemand != null && currOdDemand > 0) {
           if (bush == null) {
-            /* collect conjugate root nodes for this conjugate destination bush */
-            var rootConjugateConnectoidNodes = centroid2ConjugateNodeMapping.get(destination.getCentroid());
+            /* collect conjugate root node for this conjugate destination bush */
+            var rootConjugateConnectoidNode = centroid2ConjugateNodeMapping.get(destination.getCentroid());
             /* register new bush */
-            bush = new ConjugateDestinationBush(conjugateNetworkLayer.getLayerIdGroupingToken(), destination, rootConjugateConnectoidNodes,
-                conjugateNetworkLayer.getConjugateLinkSegments().size());
+            bush = new ConjugateDestinationBush(conjugateNetworkLayer.getLayerIdGroupingToken(), destination, rootConjugateConnectoidNode,
+                conjugateNetworkLayer.getConjugateLinkSegments().size() + conjugateVirtualNetwork.getConjugateConnectoidEdgeSegments().size());
             conjugateBushes[(int) destination.getOdZoneId()] = bush;
             break;
           }
@@ -103,7 +105,7 @@ public abstract class StaticLtmStrategyConjugateBush extends StaticLtmBushStrate
     // TODO: we now create this mapping twice, see #createEmptyBushes, not efficient
     var centroid2ConjugateNodeMapping = conjugateVirtualNetwork.createCentroidToConjugateNodeMapping();
 
-    var destination = bush.getDestination();
+    var destination = bush.getRootZone();
     ShortestBushResult allToOneResult = null;
 
     for (var origin : zoning.getOdZones()) {
@@ -114,7 +116,7 @@ public abstract class StaticLtmStrategyConjugateBush extends StaticLtmBushStrate
       Double currOdDemand = odDemands.getValue(origin, destination);
       if (currOdDemand != null && currOdDemand > 0) {
 
-        //TODO: not rewritten yet requires use of conjugate dags and conugate shortest path algorithms based on original network costs
+        //TODO: not rewritten yet requires use of conjugate dags and conjugate shortest path algorithms based on original network costs
 //        /* find all-to-one shortest paths */
 //        if (allToOneResult == null) {
 //          allToOneResult = shortestBushAlgorithm.executeAllToOne(destination.getCentroid());
@@ -158,6 +160,28 @@ public abstract class StaticLtmStrategyConjugateBush extends StaticLtmBushStrate
   @Override
   protected StaticLtmLoadingBushConjugate getLoading() {
     return (StaticLtmLoadingBushConjugate) super.getLoading();
+  }
+
+  /**
+   * Based on provided original network link segment costs see if we can update the existing collection of PASs
+   *
+   * @param linkSegmentCosts to use
+   * @return newly created PASs
+   * @throws PlanItException thrown if error
+   */
+  @Override
+  protected Collection<Pas> updateBushPass(double[] linkSegmentCosts) throws PlanItException {
+    // TODO: not yet implemented for conjugate, take inspiration from "normal" implementation
+    return null;
+  }
+
+  /**
+   *
+   * @return description of this strategy for sLTM
+   */
+  @Override
+  public String getDescription() {
+    return "Conjugate destination-based Bush";
   }
 
 }

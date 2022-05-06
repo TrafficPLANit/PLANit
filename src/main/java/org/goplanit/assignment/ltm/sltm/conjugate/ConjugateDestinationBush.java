@@ -15,6 +15,7 @@ import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
 import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
+import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.graph.directed.acyclic.ConjugateACyclicSubGraphImpl;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
@@ -27,6 +28,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.physical.ConjugateNode;
+import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
 import org.goplanit.utils.zoning.OdZone;
 
 /**
@@ -39,7 +41,7 @@ import org.goplanit.utils.zoning.OdZone;
  * @author markr
  *
  */
-public class ConjugateDestinationBush implements Bush {
+public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex, ConjugateEdgeSegment> {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(ConjugateDestinationBush.class.getCanonicalName());
@@ -70,30 +72,15 @@ public class ConjugateDestinationBush implements Bush {
   /** destination of this conjugate bush */
   protected final OdZone destination;
 
-  /** the origin demands (PCU/h) of the bush all representing a root (starting point) within the DAG */
-  protected Map<OdZone, Double> originDemandsPcuH;
-
-  /** the conjugate directed acyclic subgraph representation of the conjugate bush, pertaining solely to the topology */
-  protected final ConjugateACyclicSubGraph dag;
-
   /** track bush specific data */
   protected final ConjugateBushTurnData bushData;
 
-  /** token for id generation unique within this bush */
-  protected final IdGroupingToken bushGroupingToken;
-
-  /** track if underlying acyclic graph is modified, if so, an update of the topological sort is required flagged by this member */
-  protected boolean requireTopologicalSortUpdate = false;
-
   /**
-   * Track origin demands for bush
-   * 
-   * @param originZone to set
-   * @param demandPcuH demand to set
+   * {@inheritDoc}
    */
-  protected void addOriginDemandPcuH(OdZone originZone, double demandPcuH) {
-    double currentDemandPcuH = this.originDemandsPcuH.getOrDefault(originZone, 0.0);
-    this.originDemandsPcuH.put(originZone, currentDemandPcuH + demandPcuH);
+  @Override
+  protected ConjugateACyclicSubGraph getDag(){
+    return (ConjugateACyclicSubGraph) super.getDag();
   }
 
   /**
@@ -101,27 +88,13 @@ public class ConjugateDestinationBush implements Bush {
    * 
    * @param idToken          the token to base the id generation on
    * @param destination      this conjugate destination bush has rooted conjugate vertices for
-   * @param rootVertices     the root vertices of the conjugate bush which can be the end or starting point depending whether or not direction is inverted.
+   * @param rootVertex        this conjugate node represents the root vertex as it is the dummy node from which all initial turns enter/exit the conjugate network from theconjugate  destination
    * @param maxSubGraphTurns The maximum number of conjugate edge segments, i.e. turns, the conjugate bush can at most register given the parent network it is a subset of
    */
-  public ConjugateDestinationBush(final IdGroupingToken idToken, final OdZone destination, Set<? extends ConjugateDirectedVertex> rootVertices, int maxSubGraphTurns) {
-    this.dag = new ConjugateACyclicSubGraphImpl(idToken, new HashSet<>(rootVertices), true /* inverted */, maxSubGraphTurns);
+  public ConjugateDestinationBush(final IdGroupingToken idToken, final OdZone destination, ConjugateConnectoidNode rootVertex, int maxSubGraphTurns) {
+    super(idToken, rootVertex, true /*inverted */, new ConjugateACyclicSubGraphImpl(idToken, rootVertex, true /* inverted */, maxSubGraphTurns));
     this.bushData = new ConjugateBushTurnData();
-    this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, dag.getId());
-    this.originDemandsPcuH = new HashMap<>();
     this.destination = destination;
-  }
-
-  /**
-   * Constructor. It is expected that all provided root vertices represent edges in the orignal network leading to a single root.
-   * 
-   * @param idToken          the token to base the id generation on
-   * @param destination      this conjugate destination bush has rooted conjugate vertices for
-   * @param rootVertices     the root vertices of the conjugate bush which can be the end or starting point depending whether or not direction is inverted.
-   * @param maxSubGraphTurns The maximum number of conjugate edge segments, i.e. turns, the conjugate bush can at most register given the parent network it is a subset of
-   */
-  public ConjugateDestinationBush(final IdGroupingToken idToken, final OdZone destination, Collection<? extends ConjugateDirectedVertex> rootVertices, int maxSubGraphTurns) {
-    this(idToken, destination, new HashSet<>(rootVertices), maxSubGraphTurns);
   }
 
   /**
@@ -130,11 +103,8 @@ public class ConjugateDestinationBush implements Bush {
    * @param bush to (shallow) copy
    */
   public ConjugateDestinationBush(ConjugateDestinationBush bush) {
-    this.originDemandsPcuH = new HashMap<>(bush.originDemandsPcuH);
-    this.dag = bush.dag.clone();
+    super(bush);
     this.bushData = bush.bushData.clone();
-    this.requireTopologicalSortUpdate = bush.requireTopologicalSortUpdate;
-    this.bushGroupingToken = bush.bushGroupingToken;
     this.destination = bush.destination;
   }
 
@@ -176,67 +146,6 @@ public class ConjugateDestinationBush implements Bush {
   @Override
   public ConjugateDestinationBush clone() {
     return new ConjugateDestinationBush(this);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getId() {
-    return dag.getId();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String toString() {
-    var sb = new StringBuilder("[");
-    /* log all edge segments on bush */
-    var roots = this.dag.getRootVertices();
-    Queue<DirectedVertex> openVertices = new PriorityQueue<>();
-    openVertices.addAll(roots);
-    Set<DirectedVertex> processed = new HashSet<>();
-
-    final var getNextEdgeSegments = isInverted() ? DirectedVertex.getEntryEdgeSegments : DirectedVertex.getExitEdgeSegments;
-    final var getNextVertex = isInverted() ? EdgeSegment.getUpstreamVertex : EdgeSegment.getDownstreamVertex;
-
-    while (!openVertices.isEmpty()) {
-      var vertex = openVertices.poll();
-      processed.add(vertex);
-      for (var nextSegment : getNextEdgeSegments.apply(vertex)) {
-        if (!containsTurnSegment((ConjugateEdgeSegment) nextSegment)) {
-          continue;
-        }
-        var nextVertex = getNextVertex.apply(nextSegment);
-        sb.append(nextSegment.getXmlId() + ",");
-        if (processed.contains(nextVertex)) {
-          continue;
-        }
-        openVertices.add(nextVertex);
-      }
-    }
-    sb.deleteCharAt(sb.length() - 1);
-    sb.append("]");
-    return sb.toString();
-  }
-
-  /**
-   * root vertices of the conjugate bush
-   * 
-   * @return root vertices
-   */
-  public Set<ConjugateDirectedVertex> getRootVertices() {
-    return dag.getRootVertices();
-  }
-
-  /**
-   * Indicates if bush has inverted direction w.r.t. its root
-   * 
-   * @return true when inverted, false otherwise
-   */
-  public boolean isInverted() {
-    return dag.isDirectionInverted();
   }
 
   /**
@@ -294,7 +203,7 @@ public class ConjugateDestinationBush implements Bush {
         if (containsTurnSegment(turn.getOppositeDirectionSegment())) {
           LOGGER.warning(String.format("Trying to add turn flow on bush where the opposite direction is already part of the bush, this break acyclicity"));
         }
-        dag.addEdgeSegment(turn);
+        getDag().addEdgeSegment(turn);
         requireTopologicalSortUpdate = true;
       }
     }
@@ -358,7 +267,7 @@ public class ConjugateDestinationBush implements Bush {
    */
   public void removeTurn(final ConjugateEdgeSegment turn) {
     bushData.removeTurn(turn);
-    dag.removeEdgeSegment(turn);
+    getDag().removeEdgeSegment(turn);
     requireTopologicalSortUpdate = true;
   }
 
@@ -369,7 +278,7 @@ public class ConjugateDestinationBush implements Bush {
    * @return true when present, false otherwise
    */
   public boolean containsTurnSegment(ConjugateEdgeSegment turnSegment) {
-    return dag.containsEdgeSegment(turnSegment);
+    return getDag().containsEdgeSegment(turnSegment);
   }
 
   /**
@@ -380,20 +289,11 @@ public class ConjugateDestinationBush implements Bush {
    */
   public boolean containsAnyTurnSegmentOf(ConjugateDirectedEdge conjugateEdge) {
     for (var turnSegment : conjugateEdge.getEdgeSegments()) {
-      if (dag.containsEdgeSegment(turnSegment)) {
+      if (getDag().containsEdgeSegment(turnSegment)) {
         return true;
       }
     }
     return false;
-  }
-
-  /**
-   * Collect iterator for all unique directed vertices in the bush
-   * 
-   * @return iterator
-   */
-  public Iterator<ConjugateDirectedVertex> getDirectedVertexIterator() {
-    return dag.iterator();
   }
 
   /**
@@ -599,13 +499,12 @@ public class ConjugateDestinationBush implements Bush {
     return null;
   }
 
+
   /**
-   * Conduct an update of the conjugate bush turn flows based on the network flow acceptance factors by conducting a bush DAG loading and updating the turn sending flows from the
-   * root, i.e., scale them back with the flow acceptance factor whenever one is encountered.
-   * 
-   * @param originalNetworkFlowAcceptanceFactors to use (based on original edge segment ids)
+   * {@inheritDoc}
    */
-  public void updateTurnFlows(double[] originalNetworkFlowAcceptanceFactors) {
+  @Override
+  public void syncToNetworkFlows(double[] originalNetworkFlowAcceptanceFactors) {
 
     /* get topological sorted vertices to process */
     var conjugateVertexIter = getTopologicalIterator(true /* od-direction */);
@@ -651,30 +550,12 @@ public class ConjugateDestinationBush implements Bush {
   }
 
   /**
-   * Origins (witrh non-zero flow) registered on this bush
-   * 
-   * @return origins on this bush
-   */
-  public Set<OdZone> getOrigins() {
-    return this.originDemandsPcuH.keySet();
-  }
-
-  /**
-   * Get the origin demand for a given origin
-   * 
-   * @param originZone to collect demand for
-   * @return demand (if any)
-   */
-  public Double getOriginDemandPcuH(OdZone originZone) {
-    return this.originDemandsPcuH.get(originZone);
-  }
-
-  /**
    * Each conjugate destination bush is expected to have a single destination zone to which all of its root vertices are connected, which is to be returned here
    * 
    * @return destination zone
    */
-  public OdZone getDestination() {
+  @Override
+  public OdZone getRootZone() {
     return this.destination;
   }
 

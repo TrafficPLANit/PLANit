@@ -2,7 +2,7 @@ package org.goplanit.assignment.ltm.sltm.loading;
 
 import java.util.logging.Logger;
 
-import org.goplanit.assignment.ltm.sltm.RootedBush;
+import org.goplanit.assignment.ltm.sltm.RootedLabelledBush;
 import org.goplanit.assignment.ltm.sltm.StaticLtmSettings;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
@@ -17,7 +17,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class StaticLtmLoadingBushRooted extends StaticLtmLoadingBushBase<RootedBush> {
+public class StaticLtmLoadingBushRooted extends StaticLtmLoadingBushBase<RootedLabelledBush> {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmLoadingBushRooted.class.getCanonicalName());
@@ -26,7 +26,7 @@ public class StaticLtmLoadingBushRooted extends StaticLtmLoadingBushBase<RootedB
    * {@inheritDoc}
    */
   @Override
-  protected BushFlowUpdateConsumer<RootedBush> createBushFlowUpdateConsumer(boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows) {
+  protected BushFlowUpdateConsumer<RootedLabelledBush> createBushFlowUpdateConsumer(boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows) {
     if (!updateSendingFlows && !updateTurnAcceptedFlows) {
       LOGGER.warning("Network flow updates using bushes must either updating link sending flows or turn accepted flows, neither are selected");
       return null;

@@ -32,7 +32,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
    * @param flowShiftPcuH turn flow shift to apply by adding this flow to the turn
    * @return new turn flow after shift
    */
-  private double executeTurnFlowShift(RootedBush bush, EdgeSegment turnEntry, EdgeSegment turnExit, double flowShiftPcuH) {
+  private double executeTurnFlowShift(RootedLabelledBush bush, EdgeSegment turnEntry, EdgeSegment turnExit, double flowShiftPcuH) {
     double newTurnFlow = bush.addTurnSendingFlow(turnEntry, dummyLabel, turnExit, dummyLabel, flowShiftPcuH, isPasS2RemovalAllowed());
     if (isPasS2RemovalAllowed() && !Precision.positive(newTurnFlow, EPSILON) && !Precision.positive(bush.getTurnSendingFlow(turnEntry, turnExit), EPSILON)) {
       /* no remaining flow at all on turn after flow shift, remove turn from bush entirely */
@@ -50,7 +50,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
    * @param s2MergeExitSplittingRates splitting rates to use with multi-key (exit segment, label)
    * @return exitShiftedSendingFlows  found exit segment flows
    */
-  private double[] executeBushS2FlowShiftEndMerge(RootedBush bush, double s2FinalFlowShift, MultiKeyMap<Object, Double> s2MergeExitSplittingRates) {
+  private double[] executeBushS2FlowShiftEndMerge(RootedLabelledBush bush, double s2FinalFlowShift, MultiKeyMap<Object, Double> s2MergeExitSplittingRates) {
 
     var exitShiftedSendingFlows = new double[pasMergeVertexNumExitSegments];
     /* remove shifted flows through final merge towards exit segments proportionally, to later add to s1 turns through merge */
@@ -92,7 +92,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
    * @param s1FinalFlowShift          the flow shift applied so far up to the final merge
    * @param exitSegmentSplittingRates the splitting rates to apply towards the available exit segments
    */
-  private void executeBushS1FlowShiftEndMerge(RootedBush bush, double s1FinalFlowShift, double[] exitSegmentSplittingRates) {
+  private void executeBushS1FlowShiftEndMerge(RootedLabelledBush bush, double s1FinalFlowShift, double[] exitSegmentSplittingRates) {
 
     /* add shifted flows through final merge towards exit segments proportionally based on labelled exit usage */
     if (pas.getMergeVertex().hasExitEdgeSegments()) {
@@ -124,8 +124,8 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
    * @param flowAcceptanceFactors to use when updating the flows
    * @return sending flow on last edge segment of the PAS alternative after the flow shift (considering encountered reductions)
    */
-  private double executeBushPasFlowShift(final RootedBush origin, final EdgeSegment entrySegment, double flowShiftPcuH,
-      final EdgeSegment[] pasSegment, final double[] flowAcceptanceFactors) {
+  private double executeBushPasFlowShift(final RootedLabelledBush origin, final EdgeSegment entrySegment, double flowShiftPcuH,
+                                         final EdgeSegment[] pasSegment, final double[] flowAcceptanceFactors) {
 
     /* initial turn into pas segment */
     int index = 0;
@@ -150,7 +150,7 @@ public class PasFlowShiftDestinationBasedExecutor extends PasFlowShiftExecutor {
   /**
    * {@inheritDoc}
    */
-  protected void executeBushFlowShift(RootedBush bush, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
+  protected void executeBushFlowShift(RootedLabelledBush bush, EdgeSegment entrySegment, double bushFlowShift, double[] flowAcceptanceFactors) {
     /* prep - pas */
     final var s2 = pas.getAlternative(false);
     final var s1 = pas.getAlternative(true);

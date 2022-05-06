@@ -19,7 +19,7 @@ import org.goplanit.zoning.Zoning;
  * @author markr
  *
  */
-public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRooted {
+public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRootLabelled {
 
   /** Logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmDestinationBushStrategy.class.getCanonicalName());
@@ -31,7 +31,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRoote
    * Populate with initial demand for given OD and shortest bush DAG
    * 
    * @param destinationBush  to populate
-   * @param destination      to use
+   * @param  origin     to use
    * @param oDDemandPcuH     to use
    * @param odDag            to use
    * @param destinationLabel dummy destination label to use
@@ -64,7 +64,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRoote
    * @param shortestBushAlgorithm to use
    */
   @Override
-  protected void initialiseBush(RootedBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
+  protected void initialiseBush(RootedLabelledBush bush, Zoning zoning, OdDemands odDemands, ShortestBushGeneralised shortestBushAlgorithm) {
     var destination = ((DestinationBush) bush).getDestination();
     ShortestBushResult allToOneResult = null;
 
@@ -155,7 +155,7 @@ public class StaticLtmDestinationBushStrategy extends StaticLtmBushStrategyRoote
    */
   @Override
   public String getDescription() {
-    return "Destination-based Bush (unlabelled)";
+    return "Destination-based Bush (single dummy label)";
   }
 
 }
