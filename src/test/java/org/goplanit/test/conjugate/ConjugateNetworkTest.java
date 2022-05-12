@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
-import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
@@ -157,8 +156,10 @@ public class ConjugateNetworkTest {
       assertEquals(totalEdgePairs, conjugateLayer.getConjugateLinks().size());
       assertEquals(totalEdgePairs * 2, conjugateLayer.getConjugateLinkSegments().size());
 
-      /* virtual conjugate network check (where we add a partial dummy turn around each centroid to enter/exit the virtual network. Therefore, we have
-      *  a single conjugate edge + 2 conjugate segments for each original connectoid edge */
+      /*
+       * virtual conjugate network check (where we add a partial dummy turn around each centroid to enter/exit the virtual network. Therefore, we have a single conjugate edge + 2
+       * conjugate segments for each original connectoid edge
+       */
       assertEquals(zoning.getVirtualNetwork().getConnectoidEdges().size(), conjugateVirtualNetwork.getConjugateConnectoidEdges().size());
       assertEquals(zoning.getVirtualNetwork().getConnectoidSegments().size(), conjugateVirtualNetwork.getConjugateConnectoidEdgeSegments().size());
 

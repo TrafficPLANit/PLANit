@@ -101,7 +101,6 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
         brokenEdge.replace(oldEdgeSegmentAb, newEdgeSegmentAb);
         newEdgeSegmentAb.setParent(brokenEdge);
 
-
         if (hasListener(BreakEdgeSegmentEvent.EVENT_TYPE)) {
           fireEvent(new BreakEdgeSegmentEvent(this, vertexAtBreak, newEdgeSegmentAb));
         }
@@ -223,7 +222,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * @return newly created edge due to breaking, null if not feasible
    */
   @Override
-  public <Ex extends DirectedEdge> Ex breakEdgeAt(DirectedVertex vertexToBreakAt, Ex edgeToBreak, PlanitJtsCrsUtils geoUtils) throws PlanItException {
+  public <Ex extends DirectedEdge> Ex breakEdgeAt(DirectedVertex vertexToBreakAt, Ex edgeToBreak, PlanitJtsCrsUtils geoUtils) {
     Ex aToBreak = edgeToBreak;
     Ex breakToB = graphModifier.breakEdgeAt(vertexToBreakAt, edgeToBreak, geoUtils);
 
@@ -239,8 +238,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * {@inheritDoc}
    */
   @Override
-  public <Ex extends DirectedEdge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(List<Ex> edgesToBreak, DirectedVertex vertexToBreakAt, CoordinateReferenceSystem crs)
-      throws PlanItException {
+  public <Ex extends DirectedEdge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(List<Ex> edgesToBreak, DirectedVertex vertexToBreakAt, CoordinateReferenceSystem crs) {
 
     /* delegate regular breaking of edges */
     Map<Long, Pair<Ex, Ex>> brokenEdges = graphModifier.breakEdgesAt(edgesToBreak, vertexToBreakAt, crs);
@@ -257,7 +255,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * {@inheritDoc}
    */
   @Override
-  public void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
+  public void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
     graphModifier.removeDanglingSubGraphs(belowSize, aboveSize, alwaysKeepLargest);
   }
 

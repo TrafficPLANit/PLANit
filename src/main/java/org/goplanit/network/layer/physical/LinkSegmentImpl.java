@@ -71,9 +71,8 @@ public class LinkSegmentImpl<L extends Link> extends EdgeSegmentImpl<L> implemen
    * @param groupId,    contiguous id generation within this group for instances of this class
    * @param parentLink  parent link of segment
    * @param directionAB direction of travel
-   * @throws PlanItException throw when error
    */
-  protected LinkSegmentImpl(final IdGroupingToken groupId, final L parentLink, final boolean directionAB) throws PlanItException {
+  protected LinkSegmentImpl(final IdGroupingToken groupId, final L parentLink, final boolean directionAB) {
     super(groupId, parentLink, directionAB);
     setLinkSegmentId(generateLinkSegmentId(groupId));
   }

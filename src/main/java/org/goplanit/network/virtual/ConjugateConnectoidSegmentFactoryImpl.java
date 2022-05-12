@@ -1,13 +1,13 @@
 package org.goplanit.network.virtual;
 
+import java.util.logging.Logger;
+
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidEdge;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidSegment;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidSegmentFactory;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidSegments;
-
-import java.util.logging.Logger;
 
 /**
  * Factory for creating conjugate connectoid segments on container
@@ -17,6 +17,7 @@ import java.util.logging.Logger;
 public class ConjugateConnectoidSegmentFactoryImpl extends GraphEntityFactoryImpl<ConjugateConnectoidSegment> implements ConjugateConnectoidSegmentFactory {
 
   /** Logger to use */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ConjugateConnectoidSegmentFactoryImpl.class.getCanonicalName());
 
   /**

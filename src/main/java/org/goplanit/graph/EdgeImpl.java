@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -254,7 +253,7 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
    */
   @SuppressWarnings("unchecked")
   @Override
-  public boolean replace(final Vertex vertexToReplace, final Vertex vertexToReplaceWith) throws PlanItException {
+  public boolean replace(final Vertex vertexToReplace, final Vertex vertexToReplaceWith) {
     boolean vertexReplaced = false;
 
     /* replace vertices on edge */

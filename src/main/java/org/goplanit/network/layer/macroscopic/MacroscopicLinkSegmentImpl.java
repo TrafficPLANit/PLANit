@@ -4,7 +4,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.network.layer.physical.LinkSegmentImpl;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
@@ -42,9 +41,8 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl<Link> implements
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param parentLink  the parent link of this link segment
    * @param directionAB direction of travel
-   * @throws PlanItException thrown when error
    */
-  protected MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) throws PlanItException {
+  protected MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) {
     super(groupId, parentLink, directionAB);
   }
 

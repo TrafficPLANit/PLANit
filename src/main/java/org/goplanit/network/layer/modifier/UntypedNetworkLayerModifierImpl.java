@@ -49,7 +49,7 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   /**
    * Constructor
    *
-   * @param graph parent graph to abse modifier on
+   * @param graph parent graph to base modifier on
    */
   public UntypedNetworkLayerModifierImpl(UntypedDirectedGraphImpl<V, E, S> graph) {
     this.graphModifier = new DirectedGraphModifierImpl(graph);
@@ -67,10 +67,9 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
    * @param nodeToBreakAt the node to break at
    * @param crs           to use to recompute link lengths of broken links
    * @return the broken links for each original link's internal id
-   * @throws PlanItException thrown if error
    */
   @Override
-  public Map<Long, Pair<E, E>> breakAt(List<E> linksToBreak, V nodeToBreakAt, CoordinateReferenceSystem crs) throws PlanItException {
+  public Map<Long, Pair<E, E>> breakAt(List<E> linksToBreak, V nodeToBreakAt, CoordinateReferenceSystem crs) {
     return graphModifier.breakEdgesAt(linksToBreak, nodeToBreakAt, crs);
   }
 

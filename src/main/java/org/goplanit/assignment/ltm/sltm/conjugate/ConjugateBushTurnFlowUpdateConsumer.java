@@ -3,10 +3,8 @@ package org.goplanit.assignment.ltm.sltm.conjugate;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkTurnFlowUpdateData;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.EdgeSegment;
 
 /**
  * Consumer to apply during bush based network loading turn flow update for each non-zero demand bush
@@ -26,7 +24,7 @@ import org.goplanit.utils.graph.directed.EdgeSegment;
  *
  */
 public class ConjugateBushTurnFlowUpdateConsumer extends ConjugateBushFlowUpdateConsumerImpl<NetworkTurnFlowUpdateData> {
-  
+
   /** logger to use */
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ConjugateBushTurnFlowUpdateConsumer.class.getCanonicalName());
@@ -48,7 +46,7 @@ public class ConjugateBushTurnFlowUpdateConsumer extends ConjugateBushFlowUpdate
    */
   @Override
   protected void applyAcceptedTurnFlowUpdate(final ConjugateEdgeSegment turnSegment, double turnAcceptedFlowPcuH) {
-    //TODO: not rewritten yet
+    // TODO: not rewritten yet
 //    if (dataConfig.trackAllNodeTurnFlows || dataConfig.splittingRateData.isTracked(currentSegment.getUpstreamVertex())) {
 //      dataConfig.addToAcceptedTurnFlows(prevSegment, currentSegment, turnAcceptedFlowPcuH); // network level
 //    }
