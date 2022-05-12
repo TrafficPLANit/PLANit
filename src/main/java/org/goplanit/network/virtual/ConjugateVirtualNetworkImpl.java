@@ -1,15 +1,18 @@
 package org.goplanit.network.virtual;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.ConjugateNode;
-import org.goplanit.utils.network.virtual.*;
+import org.goplanit.utils.network.virtual.ConjugateConnectoidEdges;
+import org.goplanit.utils.network.virtual.ConjugateConnectoidNode;
+import org.goplanit.utils.network.virtual.ConjugateConnectoidNodes;
+import org.goplanit.utils.network.virtual.ConjugateConnectoidSegments;
+import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
+import org.goplanit.utils.network.virtual.ConnectoidEdge;
+import org.goplanit.utils.network.virtual.VirtualNetwork;
 import org.goplanit.utils.zoning.Centroid;
 
 /**
@@ -46,7 +49,7 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
    */
   protected void update() {
     reset();
-    
+
     Map<DirectedVertex, ConjugateConnectoidNode> dummyConjugatePerZone = new HashMap<>();
 
     /* connectoid edge -> conjugate connectoid node */
@@ -54,7 +57,7 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
 
       var centroid = connectoidEdge.getCentroidVertex();
       var conjugateDummyNode = dummyConjugatePerZone.get(centroid);
-      if(conjugateDummyNode == null) {
+      if (conjugateDummyNode == null) {
         conjugateDummyNode = getConjugateConnectoidNodes().getFactory().registerNew(null);
         dummyConjugatePerZone.put(centroid, conjugateDummyNode);
       }
@@ -65,8 +68,8 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
 
       // create conjugate connectoid segments between the two nodes to create connectoid turn segments where either the incoming or outgoing original edge segment is null
       // this ensures we can have a generic path search algorithm where we consistently use either incoming or outgoing original edge segment costs
-      getConjugateConnectoidEdgeSegments().getFactory().registerNew(conjugateEdge,true /*ab direction*/, true);
-      getConjugateConnectoidEdgeSegments().getFactory().registerNew(conjugateEdge,false /*ba direction*/, true);
+      getConjugateConnectoidEdgeSegments().getFactory().registerNew(conjugateEdge, true /* ab direction */, true);
+      getConjugateConnectoidEdgeSegments().getFactory().registerNew(conjugateEdge, false /* ba direction */, true);
     }
   }
 
@@ -134,7 +137,7 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
     var mapping = new HashMap<Centroid, ConjugateConnectoidNode>();
     for (ConjugateConnectoidNode conjugateNode : getConjugateConnectoidNodes()) {
       var originalEdge = conjugateNode.getOriginalEdge();
-      if(originalEdge!=null) {
+      if (originalEdge != null) {
         /* not dummy connected to original centroid */
         continue;
       }
@@ -142,11 +145,11 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
       /* found eligible dymmy conjugate, determine to what centroid it maps */
       var conjugateDummyEdge = conjugateNode.getEdges().iterator().next();
       var originalConnectoidEdge = (ConnectoidEdge) conjugateDummyEdge.getOriginalAdjacentEdges().getEarliestNonNull();
-      if(originalConnectoidEdge==null) {
+      if (originalConnectoidEdge == null) {
         LOGGER.severe(String.format("Conjugate connectoid dummy node's (%s) not connected to original centroid, this shouldn't happen", conjugateNode.getXmlId()));
       }
       /* set mapping */
-      mapping.put(originalConnectoidEdge.getCentroidVertex(),conjugateNode);
+      mapping.put(originalConnectoidEdge.getCentroidVertex(), conjugateNode);
     }
     return mapping;
   }

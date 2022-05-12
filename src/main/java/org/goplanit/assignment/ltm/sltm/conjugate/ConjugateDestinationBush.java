@@ -1,19 +1,13 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
 import org.goplanit.algorithms.shortest.ShortestSearchType;
-import org.goplanit.assignment.ltm.sltm.Bush;
 import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.assignment.ltm.sltm.RootedBush;
 import org.goplanit.graph.directed.acyclic.ConjugateACyclicSubGraphImpl;
@@ -23,7 +17,6 @@ import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.directed.acyclic.ConjugateACyclicSubGraph;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
@@ -79,7 +72,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * {@inheritDoc}
    */
   @Override
-  protected ConjugateACyclicSubGraph getDag(){
+  protected ConjugateACyclicSubGraph getDag() {
     return (ConjugateACyclicSubGraph) super.getDag();
   }
 
@@ -88,11 +81,12 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * 
    * @param idToken          the token to base the id generation on
    * @param destination      this conjugate destination bush has rooted conjugate vertices for
-   * @param rootVertex        this conjugate node represents the root vertex as it is the dummy node from which all initial turns enter/exit the conjugate network from theconjugate  destination
+   * @param rootVertex       this conjugate node represents the root vertex as it is the dummy node from which all initial turns enter/exit the conjugate network from theconjugate
+   *                         destination
    * @param maxSubGraphTurns The maximum number of conjugate edge segments, i.e. turns, the conjugate bush can at most register given the parent network it is a subset of
    */
   public ConjugateDestinationBush(final IdGroupingToken idToken, final OdZone destination, ConjugateConnectoidNode rootVertex, int maxSubGraphTurns) {
-    super(idToken, rootVertex, true /*inverted */, new ConjugateACyclicSubGraphImpl(idToken, rootVertex, true /* inverted */, maxSubGraphTurns));
+    super(idToken, rootVertex, true /* inverted */, new ConjugateACyclicSubGraphImpl(idToken, rootVertex, true /* inverted */, maxSubGraphTurns));
     this.bushData = new ConjugateBushTurnData();
     this.destination = destination;
   }
@@ -117,7 +111,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * @return minMaxPathResult, null if unable to complete
    */
   public MinMaxPathResult computeMinMaxShortestPaths(final double[] conjugatelinkSegmentCosts, final int totalConjugateVertices) {
-    //TODO: not rewritten yet
+    // TODO: not rewritten yet
     return null;
   }
 
@@ -129,14 +123,14 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * @return iterator over topologically ordered bush vertices
    */
   @Override
-  public Iterator<ConjugateDirectedVertex> getTopologicalIterator(boolean originDestinationDirection){
-    //TODO: not rewritten yet
+  public Iterator<ConjugateDirectedVertex> getTopologicalIterator(boolean originDestinationDirection) {
+    // TODO: not rewritten yet
     return null;
   }
-  
+
   @Override
   public ShortestSearchType getShortestSearchType() {
-    //TODO: not rewritten yet
+    // TODO: not rewritten yet
     return null;
   }
 
@@ -155,7 +149,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    * @return edge segment that would introduces a cycle, null otherwise
    */
   public ConjugateEdgeSegment determineIntroduceCycle(ConjugateEdgeSegment[] alternative) {
-    //TODO: see if can be reused across other bush implementations
+    // TODO: see if can be reused across other bush implementations
 //    if (alternative == null) {
 //      LOGGER.severe("Cannot verify if conjugate edge segments introduce cycle when parameters are null");
 //      return null;
@@ -413,7 +407,7 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    */
   public double computeSubPathAcceptedFlow(final DirectedVertex startVertex, final DirectedVertex endVertex, final EdgeSegment[] subPathArray,
       final double[] linkSegmentAcceptanceFactors) {
-    // TODO: not rewritten yet    
+    // TODO: not rewritten yet
 //
 //    int index = 0;
 //    EdgeSegment currEdgeSegment = subPathArray[index++];
@@ -499,7 +493,6 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
     return null;
   }
 
-
   /**
    * {@inheritDoc}
    */
@@ -558,6 +551,5 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   public OdZone getRootZone() {
     return this.destination;
   }
-
 
 }

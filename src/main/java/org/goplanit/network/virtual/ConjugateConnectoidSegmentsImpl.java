@@ -1,11 +1,7 @@
 package org.goplanit.network.virtual;
 
-import org.goplanit.network.layer.physical.ConjugateLinkSegmentFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.network.layer.physical.ConjugateLinkSegment;
-import org.goplanit.utils.network.layer.physical.ConjugateLinkSegmentFactory;
-import org.goplanit.utils.network.layer.physical.ConjugateLinkSegments;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidSegment;
 import org.goplanit.utils.network.virtual.ConjugateConnectoidSegmentFactory;

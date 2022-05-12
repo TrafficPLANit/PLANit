@@ -1,17 +1,11 @@
 package org.goplanit.assignment.ltm.sltm.conjugate;
 
-import java.util.Set;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections4.map.MultiKeyMap;
-import org.goplanit.assignment.ltm.sltm.BushFlowLabel;
 import org.goplanit.assignment.ltm.sltm.consumer.BushFlowUpdateConsumer;
 import org.goplanit.assignment.ltm.sltm.consumer.NetworkFlowUpdateData;
 import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
-import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.math.Precision;
-import org.goplanit.utils.network.virtual.ConnectoidSegment;
-import org.goplanit.utils.zoning.OdZone;
 
 /**
  * Conjugate Bush consumer to apply during conjugate bush based network loading flow update for each origin bush
@@ -36,7 +30,7 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
    * @param bushSendingFlows to populate as a starting point for the bush loading
    */
   private void initialiseRootExitSegmentSendingFlows(final ConjugateDestinationBush bush, final MultiKeyMap<Object, Double> bushSendingFlows) {
-    //TODO:
+    // TODO:
 //    Set<OdZone> origins = bush.getOrigins();
 //    for (var origin : origins) {
 //      double totalOriginsSendingFlow = 0;
@@ -108,7 +102,7 @@ public class ConjugateBushFlowUpdateConsumerImpl<T extends NetworkFlowUpdateData
 
     /* initialise root vertex outgoing edge sending flows */
     initialiseRootExitSegmentSendingFlows(bush, bushSendingFlows);
-    
+
     // TODO: BELOW NOT CHANGED YET!
 
 //    /* pass over bush in topological order propagating flow from origin */

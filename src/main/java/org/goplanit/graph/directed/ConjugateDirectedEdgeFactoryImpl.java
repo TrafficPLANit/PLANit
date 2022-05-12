@@ -6,6 +6,7 @@ import org.goplanit.utils.graph.directed.ConjugateDirectedEdge;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdgeFactory;
 import org.goplanit.utils.graph.directed.ConjugateDirectedEdges;
 import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
+import org.goplanit.utils.graph.directed.ConjugateEdgeSegment;
 import org.goplanit.utils.graph.directed.DirectedEdge;
 import org.goplanit.utils.id.IdGroupingToken;
 
@@ -32,7 +33,7 @@ public class ConjugateDirectedEdgeFactoryImpl extends GraphEntityFactoryImpl<Con
   @Override
   public ConjugateDirectedEdge registerNew(ConjugateDirectedVertex vertexA, ConjugateDirectedVertex vertexB, DirectedEdge originalEdge1, DirectedEdge originalEdge2,
       boolean registerOnVertices) throws PlanItException {
-    final var newConjugateEdge = new ConjugateDirectedEdgeImpl(getIdGroupingToken(), vertexA, vertexB, originalEdge1, originalEdge2);
+    final var newConjugateEdge = new ConjugateDirectedEdgeImpl<ConjugateDirectedVertex, ConjugateEdgeSegment>(getIdGroupingToken(), vertexA, vertexB, originalEdge1, originalEdge2);
     getGraphEntities().register(newConjugateEdge);
     if (registerOnVertices) {
       vertexA.addEdge(newConjugateEdge);

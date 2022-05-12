@@ -20,6 +20,7 @@ import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.Edge;
@@ -60,9 +61,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    * 
    * @param brokenEdge     the broken edge
    * @param vertexBrokenAt the vertex it was broken at
-   * @throws PlanItException thrown if error
    */
-  protected static void updateBrokenEdgeGeometry(Edge brokenEdge, Vertex vertexBrokenAt) throws PlanItException {
+  protected static void updateBrokenEdgeGeometry(Edge brokenEdge, Vertex vertexBrokenAt) {
     LineString updatedGeometry = null;
     if (brokenEdge.getVertexA().equals(vertexBrokenAt)) {
       updatedGeometry = PlanitJtsUtils.createCopyWithoutCoordinatesBefore(vertexBrokenAt.getPosition(), brokenEdge.getGeometry());
@@ -80,10 +80,9 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    * 
    * @param referenceVertex to process
    * @return all vertices in the subnetwork connected to passed in reference vertex
-   * @throws PlanItException thrown if parameters are null
    */
-  protected Set<Vertex> processSubNetworkVertex(Vertex referenceVertex) throws PlanItException {
-    PlanItException.throwIfNull(referenceVertex, "provided reference vertex is null when identifying its subnetwork, thisis not allowed");
+  protected Set<Vertex> processSubNetworkVertex(Vertex referenceVertex) {
+    PlanItRunTimeException.throwIfNull(referenceVertex, "provided reference vertex is null when identifying its subnetwork, thisis not allowed");
     Set<Vertex> subNetworkVertices = new HashSet<Vertex>();
     subNetworkVertices.add(referenceVertex);
 
@@ -135,7 +134,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    * 
    */
   @Override
-  public void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) throws PlanItException {
+  public void removeDanglingSubGraphs(Integer belowSize, Integer aboveSize, boolean alwaysKeepLargest) {
 
     Map<Integer, LongAdder> removedDanglingNetworksBySize = new HashMap<>();
     Set<Vertex> remainingVertices = new HashSet<Vertex>(theGraph.getVertices().size());
@@ -235,8 +234,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    * 
    */
   @Override
-  public <Ex extends Edge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(final List<Ex> edgesToBreak, final Vertex vertexToBreakAt, final CoordinateReferenceSystem crs)
-      throws PlanItException {
+  public <Ex extends Edge> Map<Long, Pair<Ex, Ex>> breakEdgesAt(final List<Ex> edgesToBreak, final Vertex vertexToBreakAt, final CoordinateReferenceSystem crs) {
     PlanitJtsCrsUtils geoUtils = new PlanitJtsCrsUtils(crs);
 
     Map<Long, Pair<Ex, Ex>> affectedEdges = new HashMap<Long, Pair<Ex, Ex>>();
@@ -261,7 +259,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    */
   @SuppressWarnings("unchecked")
   @Override
-  public <Ex extends Edge> Ex breakEdgeAt(final Vertex vertexToBreakAt, final Ex edgeToBreak, final PlanitJtsCrsUtils geoUtils) throws PlanItException {
+  public <Ex extends Edge> Ex breakEdgeAt(final Vertex vertexToBreakAt, final Ex edgeToBreak, final PlanitJtsCrsUtils geoUtils) {
     Ex aToBreak = edgeToBreak;
 
     /* create copy of edge with unique id and register it */

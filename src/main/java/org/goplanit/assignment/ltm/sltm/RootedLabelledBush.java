@@ -3,7 +3,6 @@ package org.goplanit.assignment.ltm.sltm;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Queue;
@@ -75,10 +74,11 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
 
   /**
    * Access to DAG as regular acylic subgraph rather than untyped
+   * 
    * @return dag
    */
   @Override
-  protected ACyclicSubGraph getDag(){
+  protected ACyclicSubGraph getDag() {
     return (ACyclicSubGraph) super.getDag();
   }
 
@@ -690,7 +690,6 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   public double relabelTo(EdgeSegment fromSegment, BushFlowLabel fromLabel, EdgeSegment toSegment, BushFlowLabel oldToLabel, BushFlowLabel newToLabel) {
     return bushData.relabelTo(fromSegment, fromLabel, toSegment, oldToLabel, newToLabel);
   }
-
 
   /**
    * {@inheritDoc}

@@ -30,7 +30,7 @@ import org.goplanit.zoning.Zoning;
  * @author markr
  *
  */
-public abstract class StaticLtmBushStrategyBase<B extends RootedBush> extends StaticLtmAssignmentStrategy {
+public abstract class StaticLtmBushStrategyBase<B extends RootedBush<?, ?>> extends StaticLtmAssignmentStrategy {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(StaticLtmBushStrategyBase.class.getCanonicalName());

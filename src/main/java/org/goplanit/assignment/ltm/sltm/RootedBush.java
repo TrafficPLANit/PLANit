@@ -1,18 +1,19 @@
 package org.goplanit.assignment.ltm.sltm;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
+
 import org.goplanit.algorithms.shortest.MinMaxPathResult;
-import org.goplanit.utils.graph.directed.ConjugateDirectedVertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.graph.directed.acyclic.UntypedACyclicSubGraph;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.OdZone;
 import org.goplanit.utils.zoning.Zone;
-
-import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * A rooted bush is an acyclic directed graph comprising of implicit paths along a network. It has a single root which can be any vertex with only outgoing edge segments. while
@@ -27,10 +28,11 @@ import java.util.logging.Logger;
 public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegment> implements Bush {
 
   /** Logger to use */
+  @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(RootedBush.class.getCanonicalName());
 
   /** the directed acyclic subgraph representation of the bush, pertaining solely to the topology */
-  private final UntypedACyclicSubGraph<V,ES> dag;
+  private final UntypedACyclicSubGraph<V, ES> dag;
 
   /** the origin demands (PCU/h) of the bush all representing a root (starting point) within the DAG */
   protected Map<OdZone, Double> originDemandsPcuH;
@@ -57,10 +59,9 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    *
    * @return dag of the bush
    */
-  protected  UntypedACyclicSubGraph<V,ES> getDag(){
+  protected UntypedACyclicSubGraph<V, ES> getDag() {
     return this.dag;
   }
-
 
   /**
    * Conduct an update of the bush turn flows based on the network flow acceptance factors by conducting a bush DAG loading and updating the turn sending flows from the root, i.e.,
@@ -73,13 +74,12 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   /**
    * Constructor
    *
-   * @param idToken                 the token to base the id generation on
-   * @param rootVertex              the root vertex of the bush which can be the end or starting point depending whether or not direction is inverted
-   * @param inverted                when true bush ends at root vertex and all other vertices precede it, when false the root is the starting point and all other vertices succeed
-   *                                it
-   * @param dag to use for the subgraph representation
+   * @param idToken    the token to base the id generation on
+   * @param rootVertex the root vertex of the bush which can be the end or starting point depending whether or not direction is inverted
+   * @param inverted   when true bush ends at root vertex and all other vertices precede it, when false the root is the starting point and all other vertices succeed it
+   * @param dag        to use for the subgraph representation
    */
-  public RootedBush(final IdGroupingToken idToken, DirectedVertex rootVertex, boolean inverted, UntypedACyclicSubGraph<V,ES> dag) {
+  public RootedBush(final IdGroupingToken idToken, DirectedVertex rootVertex, boolean inverted, UntypedACyclicSubGraph<V, ES> dag) {
     this.dag = dag;
     this.bushGroupingToken = IdGenerator.createIdGroupingToken(this, dag.getId());
     this.originDemandsPcuH = new HashMap<>();
@@ -90,9 +90,9 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    *
    * @param bush to (shallow) copy
    */
-  public RootedBush(RootedBush bush) {
+  public RootedBush(RootedBush<V, ES> bush) {
     this.originDemandsPcuH = new HashMap<>(bush.originDemandsPcuH);
-    this.dag = bush.dag.clone();
+    this.dag = bush.getDag().clone();
     this.requireTopologicalSortUpdate = bush.requireTopologicalSortUpdate;
     this.bushGroupingToken = bush.bushGroupingToken;
   }
@@ -111,7 +111,7 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    * {@inheritDoc}
    */
   @Override
-  public abstract RootedBush<V,ES> clone();
+  public abstract RootedBush<V, ES> clone();
 
   /**
    * {@inheritDoc}
