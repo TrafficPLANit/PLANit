@@ -5,8 +5,6 @@ This is the core module of the PLANit project. It contains algorithms and traffi
 For more information on PLANit such as the user the manual, licensing, installation, getting started, reference documentation, and more, please visit [www.goPLANit.org](http://www.goplanit.org)
 
 
-## Development
-
 ### Maven build
 
 PLANit core has the following PLANit specific dependencies (See pom.xml):
