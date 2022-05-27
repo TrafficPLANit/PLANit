@@ -1,7 +1,7 @@
 package org.goplanit.output.formatter;
 
-import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.time.TimePeriod;
@@ -39,15 +39,15 @@ public abstract class FileOutputFormatter extends BaseOutputFormatter {
    * @param outputType      the OutputType of the output
    * @param runId           the id of the traffic assignment run
    * @param iteration       current iteration
-   * @return the name of the output file
+   * @return the name of the output file in absolute form
    * @throws PlanItException thrown if the output directory cannot be opened
    */
-  protected String generateOutputFileName(String outputDirectory, String nameRoot, String nameExtension, TimePeriod timePeriod, OutputType outputType, long runId, int iteration)
+  protected String generateAbsoluteOutputFileName(String outputDirectory, String nameRoot, String nameExtension, TimePeriod timePeriod, OutputType outputType, long runId, int iteration)
       throws PlanItException {
     try {
-      File directory = new File(outputDirectory);
-      if (!directory.isDirectory()) {
-        Files.createDirectories(directory.toPath());
+      Path outputDirPath = Path.of(outputDirectory).toAbsolutePath();
+      if (!Files.isDirectory(outputDirPath)) {
+        Files.createDirectories(outputDirPath);
       }
 
       // make sure all spaces are removed from result file
@@ -56,17 +56,17 @@ public abstract class FileOutputFormatter extends BaseOutputFormatter {
       String newFileName = null;
       if (timePeriod == null) {
         if (iteration == -1) {
-          newFileName = outputDirectory + "\\" + outputType.value() + "_RunId_" + runId + "_" + nameRootNoSpace + nameExtension;
+          newFileName = Path.of(outputDirPath.toString(), outputType.value() + "_RunId_" + runId + "_" + nameRootNoSpace + nameExtension).toString();
         } else {
-          newFileName = outputDirectory + "\\" + outputType.value() + "_RunId_" + runId + "_" + nameRootNoSpace + "_" + iteration + nameExtension;
+          newFileName = Path.of(outputDirPath.toString(),  outputType.value() + "_RunId_" + runId + "_" + nameRootNoSpace + "_" + iteration + nameExtension).toString();
         }
       } else {
         if (iteration == -1) {
-          newFileName = outputDirectory + "\\" + outputType.value() + "_RunId_" + runId + "_" + nameRootNoSpace + "_" + timePeriod.getDescription().replace(' ', '_')
-              + nameExtension;
+          newFileName = Path.of(outputDirPath.toString(),outputType.value() + "_RunId_" + runId + "_" + nameRootNoSpace + "_" + timePeriod.getDescription().replace(' ', '_')
+              + nameExtension).toString();
         } else {
-          newFileName = outputDirectory + "\\" + outputType.value() + "_RunId_" + runId + "_" + nameRootNoSpace + "_" + timePeriod.getDescription().replace(' ', '_') + "_"
-              + iteration + nameExtension;
+          newFileName =Path.of(outputDirPath.toString(), outputType.value() + "_RunId_" + runId + "_" + nameRootNoSpace + "_" + timePeriod.getDescription().replace(' ', '_') + "_"
+              + iteration + nameExtension).toString();
         }
       }
       return newFileName;
@@ -88,9 +88,9 @@ public abstract class FileOutputFormatter extends BaseOutputFormatter {
    * @return the name of the output file
    * @throws PlanItException thrown if the output directory cannot be opened
    */
-  protected String generateOutputFileName(String outputDirectory, String nameRoot, String nameExtension, TimePeriod timePeriod, OutputType outputType, long runId)
+  protected String generateAbsoluteOutputFileName(String outputDirectory, String nameRoot, String nameExtension, TimePeriod timePeriod, OutputType outputType, long runId)
       throws PlanItException {
-    return generateOutputFileName(outputDirectory, nameRoot, nameExtension, timePeriod, outputType, runId, -1);
+    return generateAbsoluteOutputFileName(outputDirectory, nameRoot, nameExtension, timePeriod, outputType, runId, -1);
   }
 
 }
