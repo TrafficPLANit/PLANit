@@ -22,9 +22,8 @@ public class ConjugateLinkSegmentImpl extends EdgeSegmentImpl<ConjugateLink> imp
    *
    * @param groupId,    contiguous id generation within this group for instances of this class
    * @param directionAB direction of travel
-   * @throws PlanItException throw when error
    */
-  protected ConjugateLinkSegmentImpl(final IdGroupingToken groupId, final boolean directionAB) throws PlanItException {
+  protected ConjugateLinkSegmentImpl(final IdGroupingToken groupId, final boolean directionAB) {
     this(groupId, null, directionAB);
   }
 
@@ -34,7 +33,6 @@ public class ConjugateLinkSegmentImpl extends EdgeSegmentImpl<ConjugateLink> imp
    * @param groupId,    contiguous id generation within this group for instances of this class
    * @param parent      parent link of segment
    * @param directionAb direction of travel
-   * @throws PlanItException throw when error
    */
   protected ConjugateLinkSegmentImpl(final IdGroupingToken groupId, final ConjugateLink parent, final boolean directionAb) {
     super(groupId, parent, directionAb);

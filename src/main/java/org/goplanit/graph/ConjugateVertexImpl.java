@@ -29,6 +29,7 @@ public class ConjugateVertexImpl extends VertexImpl<ConjugateEdge> implements Co
    * Constructor
    * 
    * @param groupId, contiguous id generation within this group for instances of this class
+   * @param originalEdge representing the conjugate vertex
    */
   protected ConjugateVertexImpl(final IdGroupingToken groupId, final Edge originalEdge) {
     super(groupId, CONJUGATE_VERTEX_ID_CLASS);

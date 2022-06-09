@@ -106,7 +106,7 @@ public class PasManager {
   }
 
   /**
-   * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both {@link #isCostEffective(Pas, double)} and
+   * Verify if PAS is considered effective (enough) to improve the provided bush. This is verified by being both {@link #isCostEffective(double, double, double)} and
    * {@link #isFlowEffective(Pas, RootedLabelledBush, double[])}
    * 
    * @param pas                   to use
@@ -156,12 +156,15 @@ public class PasManager {
   /**
    * Verify if extending a bush with the given PAS given the reduced cost found, it would be effective in improving the bush. This is verified by
    * <p>
-   * reducedCost = bush_min_path_cost - PAS_min_path_cost, then <br\> it is considered effective if <br\> (PAS_max_path_cost - PAS_min_path_cost) > mu*bushReducedCost.
+   * reducedCost = bush_min_path_cost - PAS_min_path_cost, then it is considered effective if (PAS_max_path_cost - PAS_min_path_cost) exceeds mu*bushReducedCost.
    * <p>
    * Formulation based on Bar-Gera (2010). IDea is that if the PAS has little difference between high and low cost, we can't shift much flow to improve and it is less attractive.
    * This is ok if the reduced cost, i.e., the maximum improvement given the current state of the network, is also low, but when the best option (which might not exactly follow
    * this PAS) is much better than what this PAS offers, we regard this PAS as not cost-effective and ignore it as a viable option.
-   * 
+   *
+   * @param alternativeHighCost to use
+   * @param alternativeLowCost to use
+   * @param reducedCost to use
    * @return true when considered effective, false otherwise
    */
   public static boolean isCostEffective(double alternativeHighCost, double alternativeLowCost, double reducedCost) {
@@ -404,7 +407,7 @@ public class PasManager {
   }
 
   /**
-   * Find PAS that exactly matches the provides alternative segments. Identical to {@link #findExistingPas(ArrayList, ArrayList)}
+   * Find PAS that exactly matches the provides alternative segments. Identical to {@link #findExistingPas(EdgeSegment[], EdgeSegment[])}
    * 
    * @param alternative1 alternative segment of PAS
    * @param alternative2 alternative segment of PAS

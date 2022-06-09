@@ -50,9 +50,9 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
    * also sending flows), or one that only updates (network wide) link sending flows and/or link outflows. The latter is to be used for initialisation/finalisation purposes only.
    * The former is the one used during the iterative loading procedure.
    * 
-   * @param updateturnAcceptedFlows flag indicating if the turn accepted flows are to be updated by this consumer
+   * @param updateTurnAcceptedFlows flag indicating if the turn accepted flows are to be updated by this consumer
    * @param updateSendingFlows      flag indicating if the link sending flow are to be updated by this consumer
-   * @param updateOutflow           flag indicating if the link outflows are to be updated by this consumer
+   * @param updateOutflows           flag indicating if the link outflows are to be updated by this consumer
    * @return created flow update consumer
    */
   protected abstract BushFlowUpdateConsumer<B> createBushFlowUpdateConsumer(boolean updateTurnAcceptedFlows, boolean updateSendingFlows, boolean updateOutflows);
@@ -68,7 +68,7 @@ public abstract class StaticLtmLoadingBushBase<B extends Bush> extends StaticLtm
   protected MultiKeyMap<Object, Double> networkLoadingTurnFlowUpdate() {
    
     /* update network turn flows (and sending flows if POINT_QUEUE_BASIC) by performing a network loading
-     * on all bushes using the bush-splitting rates (and updating the bush turn sending flows in the process so they remain consistent
+     * on all bushes using the bush-splitting rates (and updating the bush turn sending flows in the process, so they remain consistent
      * with the loading)
      */
     boolean updateTurnAcceptedFlows = true;

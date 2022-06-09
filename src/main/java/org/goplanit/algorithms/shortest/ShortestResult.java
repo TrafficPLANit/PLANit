@@ -15,7 +15,7 @@ public interface ShortestResult {
   /**
    * Find the next vertex on the given edge segment extremity based on the underlying search this can be either in upstream or downstream direction
    * 
-   * @param segment to get next vertex for
+   * @param edgeSegment to get next vertex for
    * @return next vertex
    */
   public abstract DirectedVertex getNextVertexForEdgeSegment(EdgeSegment edgeSegment);

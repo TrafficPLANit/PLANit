@@ -62,6 +62,7 @@ public class ShortestPathAcyclicMinMaxGeneralised implements ShortestPathOneToAl
    * search on a cyclic graph.
    * 
    * @param startVertex to conduct search for
+   * @return created result
    */
   public MinMaxPathResultImpl execute(final DirectedVertex startVertex) {
     /* prep cost arrays */

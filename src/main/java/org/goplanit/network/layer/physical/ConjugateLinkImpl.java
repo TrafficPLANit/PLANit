@@ -51,6 +51,8 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param nodeA    the first node in the link
    * @param nodeB    the second node in the link
+   * @param originalLink1 to use
+   * @param originalLink2 to use
    */
   protected ConjugateLinkImpl(final IdGroupingToken groupId, final ConjugateDirectedVertex nodeA, final ConjugateDirectedVertex nodeB, final Link originalLink1,
       final Link originalLink2) {

@@ -33,7 +33,7 @@ public class ConjugateDirectedVertexImpl extends DirectedVertexImpl<ConjugateEdg
    * Constructor
    * 
    * @param groupId,          contiguous id generation within this group for instances of this class
-   * @param originEdgeSegment this conjugate represents in the conjugate graph
+   * @param originalEdge this conjugate represents in the conjugate graph
    */
   protected ConjugateDirectedVertexImpl(final IdGroupingToken groupId, final DirectedEdge originalEdge) {
     super(groupId);

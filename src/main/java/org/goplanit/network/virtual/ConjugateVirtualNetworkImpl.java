@@ -75,19 +75,23 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
 
   /**
    * {@inheritDoc}
-   * 
-   * @return
    */
   @Override
   public ConjugateConnectoidNodes getConjugateConnectoidNodes() {
     return conjugateConnectoidNodes;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ConjugateConnectoidEdges getConjugateConnectoidEdges() {
     return conjugateConnectoidEdges;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public ConjugateConnectoidSegments getConjugateConnectoidEdgeSegments() {
     return conjugateConnectoidSegments;
@@ -97,6 +101,7 @@ public class ConjugateVirtualNetworkImpl implements ConjugateVirtualNetwork {
    * Constructor
    * 
    * @param idToken contiguous id generation for instances of this class
+   * @param originalVirtualNetwork to use
    */
   public ConjugateVirtualNetworkImpl(IdGroupingToken idToken, final VirtualNetwork originalVirtualNetwork) {
     this.conjugateConnectoidNodes = new ConjugateConnectoidNodesImpl(idToken);

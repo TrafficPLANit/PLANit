@@ -101,7 +101,6 @@ public class ShortestPathDijkstra extends ShortestPathGeneralised implements Sho
    * 
    * @param currentDestination destination vertex
    * @return shortest path result that can be used to extract paths
-   * @throws PlanItException thrown if an error occurs
    */
   @Override
   public ShortestPathResult executeAllToOne(DirectedVertex currentDestination) {

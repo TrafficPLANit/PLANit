@@ -200,8 +200,8 @@ public class TampereNodeModelFixedInput {
 
   /**
    * Collect current maximum in link capacity that is being used
-   * 
-   * @return max in capacity
+   *
+   * @param maxInLinkSegmentCapacity set the capacity
    */
   public void setMaxInLinkSegmentCapacity(double maxInLinkSegmentCapacity) {
     this.maxInLinkSegmentCapacity = maxInLinkSegmentCapacity;

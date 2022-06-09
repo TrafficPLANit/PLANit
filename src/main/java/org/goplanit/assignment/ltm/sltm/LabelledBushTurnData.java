@@ -225,7 +225,7 @@ public class LabelledBushTurnData implements Cloneable {
    * @param fromLabel        of turn flow
    * @param to               of turn
    * @param toLabel          of turn flow
-   * @param FlowPcuH         to add
+   * @param flowPcuH         to add
    * @param allowTurnRemoval when true we allow for removal of turn/edge segment flow labels when no flow remains, when false we keep labelling regardless of the remaining flow
    * @return the new labelled turn sending flow after adding the given flow
    */

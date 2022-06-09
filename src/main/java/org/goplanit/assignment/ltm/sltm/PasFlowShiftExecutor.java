@@ -44,7 +44,7 @@ public abstract class PasFlowShiftExecutor {
 
   /**
    * flag indicating of most recent call to
-   * {@link #determineEntrySegmentFlowShift(RootedLabelledBush, EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBushRooted)} identified that flow distribution
+   * {@link #determineEntrySegmentFlowShift(EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBushBase)} identified that flow distribution
    * between s1 and s2 should be made equal.
    */
   boolean towardsEqualAlternativeFlowDistribution;
@@ -553,7 +553,7 @@ public abstract class PasFlowShiftExecutor {
   }
 
   /**
-   * Check to see if last call to {@link #determineEntrySegmentFlowShift(RootedLabelledBush, EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBushRooted)}
+   * Check to see if last call to {@link #determineEntrySegmentFlowShift(EdgeSegment, Mode, AbstractPhysicalCost, AbstractVirtualCost, StaticLtmLoadingBushBase)}
    * caused a flow shift not trying to equate cost but equate flows given equal cost
    * 
    * @return true when attempting to move to equal distribution of flow across alternatives, false otherwise

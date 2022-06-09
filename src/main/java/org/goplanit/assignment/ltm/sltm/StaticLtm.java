@@ -362,9 +362,9 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   }
 
   /**
-   * Set the flag indicating if bush based assignment is to be applied or not
+   * Set the flag indicating what type of bush based assignment is to be applied
    * 
-   * @param flag when true activate, when false disable
+   * @param type to use
    */
   public void setType(StaticLtmType type) {
     settings.setSltmType(type);

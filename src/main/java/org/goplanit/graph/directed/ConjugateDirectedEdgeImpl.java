@@ -38,6 +38,8 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param vertexA  first conjugate vertex in the link
    * @param vertexB  second conjugate vertex in the link
+   * @param originalEdge1 to use
+   * @param originalEdge2 to use
    */
   protected ConjugateDirectedEdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB, final DirectedEdge originalEdge1,
       final DirectedEdge originalEdge2) {

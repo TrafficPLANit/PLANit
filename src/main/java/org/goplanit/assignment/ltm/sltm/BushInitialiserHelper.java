@@ -241,6 +241,8 @@ public class BushInitialiserHelper {
    * 
    * @param bush  to use
    * @param odDag to use
+   * @param pasManager to use
+   * @param logNewPass when true new pass are logged, when false not
    * @return created helper
    */
   public static BushInitialiserHelper create(final RootedLabelledBush bush, final ACyclicSubGraph odDag, final PasManager pasManager, boolean logNewPass) {
@@ -250,7 +252,7 @@ public class BushInitialiserHelper {
   /**
    * Execute the initialisation by ensuring the correct flow is added to the bush for the given od dag and it related demand.
    * 
-   * @param currVertex     to start with, expected to be the centroid of the od's origin. It is expected the iterator proceeds in downstream direction until reaching the
+   * @param originVertex   to start with, expected to be the centroid of the od's origin. It is expected the iterator proceeds in downstream direction until reaching the
    *                       destination
    * @param oDDemandPcuH   to use for the origin vertex
    * @param vertexIter     flag indicating if new pass are to be logged

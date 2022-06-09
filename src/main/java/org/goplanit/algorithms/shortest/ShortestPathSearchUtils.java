@@ -21,8 +21,8 @@ public final class ShortestPathSearchUtils {
   private static final Logger LOGGER = Logger.getLogger(ShortestPathSearchUtils.class.getCanonicalName());
 
   /**
-   * Identical to {@link #getVertexFromEdgeSegmentLambda(ShortestSearchType, false)}
-   * 
+   * Identical to {@link #getVertexFromEdgeSegmentLambda(ShortestSearchType)}
+   *
    * @param shortestPathSearchType to base lambda on
    * @return lambda collecting vertex based on given edge segment
    */

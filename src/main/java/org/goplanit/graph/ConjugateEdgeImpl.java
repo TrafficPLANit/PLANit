@@ -34,6 +34,8 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
    * @param groupId, contiguous id generation within this group for instances of this class
    * @param vertexA  first vertex in the link
    * @param vertexB  second vertex in the link
+   * @param originalEdge1 to use
+   * @param originalEdge2 to use
    */
   protected ConjugateEdgeImpl(final IdGroupingToken groupId, final V vertexA, final V vertexB, final Edge originalEdge1, final Edge originalEdge2) {
     super(groupId, vertexA, vertexB);

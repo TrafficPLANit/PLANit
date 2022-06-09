@@ -39,7 +39,6 @@ public class ShortestBushResultGeneralised extends ShortestResultGeneralised imp
   /**
    * Constructor only to be used by shortest path algorithms
    * 
-   * @param origin                   to use
    * @param vertexMeasuredCost       measured costs to get to the vertex (by id)
    * @param nextEdgeSegmentsByVertex the found next edge segment for each vertex (by id)
    * @param numberOfEdgeSegments     on the parent network

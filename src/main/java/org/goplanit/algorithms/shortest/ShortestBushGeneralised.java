@@ -35,6 +35,10 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised implements 
   /**
    * Test whether shortest bush means less or equal cost compared to existing cost, so cheaper and equal cost paths are considered. also store the costs so we can test if they were
    * equal or shorter in {@link #processShorterOrEqualIncomingEdgeSegment(EdgeSegment)}
+   *
+   * @param currShortestCostToVertex curr min cost to compare
+   * @param currComputedCostToVertex curr found cost to compare to min cost
+   * @return true when shorter or equal
    */
   private boolean isShorterOrEqual(double currShortestCostToVertex, double currComputedCostToVertex) {
     currEqualShortestCosts = false;
@@ -115,7 +119,7 @@ public class ShortestBushGeneralised extends ShortestPathGeneralised implements 
   /**
    * Construct shortest bush result from all nodes to destination node in the network based on directed LinkSegment edges
    * 
-   * @param currentOrigin origin vertex of source node
+   * @param currentDestination origin vertex of source node
    * @return shortest bush result that can be used to extract bushes
    */
   @Override
