@@ -104,7 +104,7 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     setName(name);
     this.capacityPerLanePcuHourLane = capacityPerLane;
     this.maximumDensityPerLanePcuKmLane = maximumDensityPerLane;
-    this.modeAccessProperties = new TreeMap<Mode, AccessGroupProperties>();
+    this.modeAccessProperties = new TreeMap<>();
   }
 
   /**
@@ -119,8 +119,8 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     this.capacityPerLanePcuHourLane = other.getExplicitCapacityPerLane();
     this.maximumDensityPerLanePcuKmLane = other.getExplicitMaximumDensityPerLane();
 
-    this.modeAccessProperties = new TreeMap<Mode, AccessGroupProperties>();
-    Set<Mode> modesDone = new TreeSet<Mode>();
+    this.modeAccessProperties = new TreeMap<>();
+    Set<Mode> modesDone = new TreeSet<>();
     for (Mode mode : other.getAllowedModes()) {
       if (!modesDone.contains(mode)) {
         AccessGroupProperties clonedEntry = other.getAccessProperties(mode).clone();
@@ -259,7 +259,12 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
     if (accessProperties == null) {
       return false;
     }
-    return accessProperties.removeAccessMode(toBeRemovedMode);
+    boolean success = accessProperties.removeAccessMode(toBeRemovedMode);
+    this.modeAccessProperties.remove(toBeRemovedMode);
+    if(!accessProperties.hasAccessModes() && !hasAllowedModes()){
+      LOGGER.warning(String.format("Link segment type (%s) has no more supported modes, consider removing", this.getXmlId()));
+    }
+    return success;
   }
 
   /**
@@ -279,6 +284,23 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
       processedModes.addAll(properties.getAccessModes());
     }
     return null;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void registerModeOnAccessGroup(Mode accessMode, AccessGroupProperties accessGroupProperties) {
+    if(findEqualAccessPropertiesForAnyMode(accessGroupProperties) == null){
+      LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group because access group does not exist on this link segment type (%s)", getXmlId()));
+      return;
+    }
+    if(modeAccessProperties.containsKey(accessMode)){
+      LOGGER.warning(String.format("IGNORE: Unable to register new access mode on provided access group because mode is already registered on an access group for this link segment type (%s)", getXmlId()));
+      return;
+    }
+    this.modeAccessProperties.put(accessMode, accessGroupProperties);
+    accessGroupProperties.addAccessMode(accessMode);
   }
 
   /**

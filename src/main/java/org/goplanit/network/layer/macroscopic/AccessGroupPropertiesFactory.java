@@ -105,7 +105,7 @@ public class AccessGroupPropertiesFactory {
    */
   public static void createOnLinkSegmentType(final MacroscopicLinkSegmentType linkSegmentType, final Mode modeToAdd, final double maxSpeedKmH) {
     if (Precision.greater(maxSpeedKmH, modeToAdd.getMaximumSpeedKmH())) {
-      create(modeToAdd);
+      create(modeToAdd); //todo: this does not seem to do anything...
     } else {
       linkSegmentType.setAccessGroupProperties(create(maxSpeedKmH, modeToAdd));
     }

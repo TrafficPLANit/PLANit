@@ -41,7 +41,7 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
     super();
     this.maxSpeedKmH = maxSpeedKmH;
     this.criticalSpeedKmH = criticalSpeedKmH;
-    this.supportedModes = new TreeSet<Mode>(accessModes);
+    this.supportedModes = new TreeSet<>(accessModes);
   }
 
   /**
@@ -169,7 +169,21 @@ public class AccessGroupPropertiesImpl implements AccessGroupProperties {
    */
   @Override
   public boolean isEqualExceptForModes(AccessGroupProperties accessProperties) {
-    return Precision.equal(getMaximumSpeedKmH(), accessProperties.getMaximumSpeedKmH()) && Precision.equal(getCriticalSpeedKmH(), accessProperties.getCriticalSpeedKmH());
+    boolean maxSpeedEqual = false;
+    if(getMaximumSpeedKmH() ==null || accessProperties.getMaximumSpeedKmH() == null){
+      maxSpeedEqual = getMaximumSpeedKmH() ==null && accessProperties.getMaximumSpeedKmH() == null;
+    }else{
+      maxSpeedEqual = Precision.equal(getMaximumSpeedKmH(), accessProperties.getMaximumSpeedKmH());
+    }
+
+    boolean critSpeedEqual = false;
+    if(getCriticalSpeedKmH()==null || accessProperties.getCriticalSpeedKmH()==null){
+      critSpeedEqual = getCriticalSpeedKmH()==null && accessProperties.getCriticalSpeedKmH()==null;
+    }else{
+      critSpeedEqual = Precision.equal(getCriticalSpeedKmH(), accessProperties.getCriticalSpeedKmH());
+    }
+
+    return maxSpeedEqual && critSpeedEqual;
   }
 
   /**
