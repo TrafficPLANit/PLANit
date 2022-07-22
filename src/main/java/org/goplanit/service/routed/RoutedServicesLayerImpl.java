@@ -134,4 +134,12 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isEmpty() {
+    return routedServicesByMode.isEmpty();
+  }
+
 }

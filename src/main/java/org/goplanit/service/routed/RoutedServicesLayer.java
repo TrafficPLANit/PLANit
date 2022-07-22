@@ -33,6 +33,13 @@ public interface RoutedServicesLayer extends ManagedId, ExternalIdAble, Iterable
   public abstract void logInfo(final String prefix);
 
   /**
+   * Check if the layer is empty of any routed services
+   *
+   * @return true when empty, false otherwise
+   */
+  public abstract boolean isEmpty();
+
+  /**
    * The parent service layer of this routed services layer
    * 
    * @return parent layer

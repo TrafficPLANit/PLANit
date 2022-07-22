@@ -54,7 +54,7 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
    * @param layerConfiguration to use for configuration
    */
   public void initialiseLayers(MacroscopicNetworkLayerConfigurator layerConfiguration) {
-    if (!getTransportLayers().isNoLayers()) {
+    if (!getTransportLayers().isEmpty()) {
       LOGGER.warning("unable to initialise layers based on provided configuration, since network already has layers defined");
       return;
     }
