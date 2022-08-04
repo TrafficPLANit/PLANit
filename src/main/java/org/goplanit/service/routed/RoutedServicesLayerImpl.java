@@ -109,6 +109,9 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    */
   @Override
   public RoutedModeServices getServicesByMode(Mode mode) {
+    if(!parentLayer.supports(mode)){
+      LOGGER.warning(String.format("Unable to collect services for mode %s since it is not supported on the parent layer", mode.toString()));
+    }
     if (!routedServicesByMode.containsKey(mode)) {
       routedServicesByMode.put(mode, createRoutedModeServices(this.tokenId, mode));
     }

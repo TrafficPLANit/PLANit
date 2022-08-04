@@ -1,12 +1,14 @@
 package org.goplanit.service.routed;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.Mode;
 
 /**
  * Routed services are service that follow a predefined paths (route) on a service network layer that are offered as a service of some sort, i.e., it either follows a schedule or a
