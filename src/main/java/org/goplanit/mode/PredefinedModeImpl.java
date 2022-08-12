@@ -47,4 +47,12 @@ public class PredefinedModeImpl extends ModeImpl implements PredefinedMode {
     return modeType;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString(){
+    return modeType.toString();
+  }
+
 }
