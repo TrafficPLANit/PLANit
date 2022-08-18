@@ -19,7 +19,7 @@ public class RoutedServiceFactory extends ManagedIdEntityFactoryImpl<RoutedServi
    * @return created routed service
    */
   protected RoutedServiceImpl createNew() {
-    return new RoutedServiceImpl(getIdGroupingToken());
+    return new RoutedServiceImpl(getIdGroupingToken(), routedModeServices.getMode());
   }
 
   /**

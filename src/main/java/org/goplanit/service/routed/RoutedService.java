@@ -2,6 +2,7 @@ package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.ManagedId;
+import org.goplanit.utils.mode.Mode;
 
 /**
  * Interface to reflect a routed service. A routed service reflects a route on a service network comprising of one or more legs. A leg comprises one or more physical links on an
@@ -79,5 +80,12 @@ public interface RoutedService extends ManagedId, ExternalIdAble {
    * @return known routed service trips
    */
   public abstract RoutedServiceTripInfo getTripInfo();
+
+  /**
+   * Access to the mode this routed service utilises
+   *
+   * @return mode for this routed service
+   */
+  public abstract Mode getMode();
 
 }

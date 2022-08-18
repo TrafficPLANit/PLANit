@@ -3,6 +3,7 @@ package org.goplanit.service.routed;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.mode.Mode;
 
 /**
  * Implementation of a RoutedService instance based on the RoutedService interface
@@ -23,6 +24,9 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
   /** the trip information for this service */
   private final RoutedServiceTripInfo trips;
 
+  /** mode of the routed service */
+  private final Mode mode;
+
   /**
    * Generate id for instances of this class based on the token and class identifier
    * 
@@ -37,26 +41,29 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
    * Constructor
    * 
    * @param tokenId to use for id generation
+   * @param mode of the service
    */
-  public RoutedServiceImpl(final IdGroupingToken tokenId) {
+  public RoutedServiceImpl(final IdGroupingToken tokenId, final Mode mode) {
     super(generateId(tokenId));
     this.name = null;
     this.nameDescription = null;
     this.serviceDescription = null;
+    this.mode = mode;
     this.trips = new RoutedServiceTripInfoImpl(tokenId);
   }
 
   /**
    * Copy constructor
    * 
-   * @param routedServiceImpl to copy
+   * @param other to copy
    */
-  public RoutedServiceImpl(RoutedServiceImpl routedServiceImpl) {
-    super(routedServiceImpl);
-    this.name = routedServiceImpl.name;
-    this.nameDescription = routedServiceImpl.nameDescription;
-    this.serviceDescription = routedServiceImpl.serviceDescription;
-    this.trips = routedServiceImpl.trips.clone();
+  public RoutedServiceImpl(RoutedServiceImpl other) {
+    super(other);
+    this.name = other.name;
+    this.nameDescription = other.nameDescription;
+    this.serviceDescription = other.serviceDescription;
+    this.mode = other.mode;
+    this.trips = other.trips.clone();
   }
 
   /**
@@ -131,6 +138,14 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
   @Override
   public RoutedServiceTripInfo getTripInfo() {
     return trips;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Mode getMode() {
+    return mode;
   }
 
   /**
