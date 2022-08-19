@@ -83,6 +83,16 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
   }
 
   /**
+   * Set the network layer parent node. It is not recommended to do this unless you know what you are doing as it can introduce
+   * inconsistencies between network layers
+   *
+   * @param parentNode new parent node in the network layer
+   */
+  public void setParentNode(Node parentNode) {
+    this.networkNode = parentNode;
+  }
+
+  /**
    * {@inheritDoc}
    */
   @Override

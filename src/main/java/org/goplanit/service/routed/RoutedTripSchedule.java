@@ -50,4 +50,12 @@ public interface RoutedTripSchedule extends RoutedTrip {
    */
   public abstract int getRelativeLegTimingsSize();
 
+  /**
+   * Collect the last relative leg timing available, i.e., having the highest index
+   *
+   * @return found relative leg timing if any, otherwise null
+   */
+  public default RelativeLegTiming getLastRelativeLegTiming(){
+    return getRelativeLegTiming(getRelativeLegTimingsSize()-1);
+  }
 }
