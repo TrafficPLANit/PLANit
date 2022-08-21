@@ -6,6 +6,7 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedId;
+import org.goplanit.utils.time.ExtendedLocalTime;
 
 /**
  * A representation of a departure within a routed trip
@@ -19,7 +20,7 @@ public class RoutedTripDeparture extends ExternalIdAbleImpl implements ManagedId
   public static final Class<RoutedTripDeparture> ROUTED_TRIP_DEPARTURE_ID_CLASS = RoutedTripDeparture.class;
 
   /** departure time of this instance */
-  private final LocalTime departureTime;
+  private final ExtendedLocalTime departureTime;
 
   /**
    * Generate id for instances of this class based on the token and class identifier
@@ -37,7 +38,7 @@ public class RoutedTripDeparture extends ExternalIdAbleImpl implements ManagedId
    * @param tokenId       to use for id generation
    * @param departureTime to use
    */
-  public RoutedTripDeparture(final IdGroupingToken tokenId, LocalTime departureTime) {
+  public RoutedTripDeparture(final IdGroupingToken tokenId, ExtendedLocalTime departureTime) {
     super(generateId(tokenId));
     this.departureTime = departureTime;
   }

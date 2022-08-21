@@ -4,6 +4,7 @@ import java.time.LocalTime;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
+import org.goplanit.utils.time.ExtendedLocalTime;
 
 /**
  * Factory for creating routed trip departure instances (on container)
@@ -21,7 +22,7 @@ public class RoutedTripDepartureFactory extends ManagedIdEntityFactoryImpl<Route
    * @param departureTime the departure time
    * @return created routed services layer
    */
-  protected RoutedTripDeparture createNew(LocalTime departureTime) {
+  protected RoutedTripDeparture createNew(ExtendedLocalTime departureTime) {
     return new RoutedTripDeparture(getIdGroupingToken(), departureTime);
   }
 
@@ -39,10 +40,10 @@ public class RoutedTripDepartureFactory extends ManagedIdEntityFactoryImpl<Route
   /**
    * Register a newly created instance on the underlying container
    * 
-   * @param departureTime the departure time
+   * @param departureTime the departure time (which is allowed to be beyond midnight of that day)
    * @return created instance
    */
-  public RoutedTripDeparture registerNew(final LocalTime departureTime) {
+  public RoutedTripDeparture registerNew(final ExtendedLocalTime departureTime) {
     RoutedTripDeparture newDeparture = createNew(departureTime);
     routedTripDepartures.register(newDeparture);
     return newDeparture;

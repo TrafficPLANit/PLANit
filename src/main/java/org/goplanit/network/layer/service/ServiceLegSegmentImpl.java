@@ -42,7 +42,7 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
    * {@inheritDoc}
    */
   @Override
-  public ServiceLeg getParentLeg() {
-    return (ServiceLeg) getParent();
+  public ServiceLeg getParent() {
+    return super.getParent();
   }
 }
