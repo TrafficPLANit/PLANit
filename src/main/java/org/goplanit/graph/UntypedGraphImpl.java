@@ -71,8 +71,8 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
    */
   public UntypedGraphImpl(final UntypedGraphImpl<V, E> graphImpl) {
     super(graphImpl);
-    this.edges = (GraphEntities<E>) graphImpl.getEdges().clone();
-    this.vertices = (GraphEntities<V>) graphImpl.getVertices().clone();
+    this.edges = graphImpl.getEdges().clone();
+    this.vertices = graphImpl.getVertices().clone();
     this.groupId = graphImpl.groupId;
   }
 

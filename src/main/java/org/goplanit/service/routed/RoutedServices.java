@@ -1,14 +1,13 @@
 package org.goplanit.service.routed;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.network.ServiceNetwork;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.misc.LoggingUtils;
 
 /**
  * Routed services are service that follow a predefined paths (route) on a service network layer that are offered as a service of some sort, i.e., it either follows a schedule or a
@@ -108,4 +107,10 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
     return layers;
   }
 
+  /** Log the stats for the routed services , e.g., the layers and their aggregate contents */
+  public void logInfo() {
+    String prefix = LoggingUtils.routedServicesPrefix(getId());
+    LOGGER.info(String.format("[STATS]%s Routed Services %s (external id: %s) has %d layers", prefix, getXmlId(), getExternalId(), getLayers().size()));
+    getLayers().forEach( layer -> layer.logInfo(prefix.concat(LoggingUtils.routedServiceLayerPrefix(layer.getId()))));
+  }
 }

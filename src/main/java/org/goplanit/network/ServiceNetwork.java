@@ -2,8 +2,11 @@ package org.goplanit.network;
 
 import org.goplanit.network.layers.ServiceNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 import org.goplanit.utils.network.layers.ServiceNetworkLayers;
+
+import java.util.logging.Logger;
 
 /**
  * A service network is a network built on top of a topological (physical) transport network providing services leveraging this underlying network. Each ServiceNetworkLayer in turn
@@ -16,6 +19,9 @@ public class ServiceNetwork extends TopologicalLayerNetwork<ServiceNetworkLayer,
 
   /** generated UID */
   private static final long serialVersionUID = 632938213490189010L;
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger(ServiceNetwork.class.getCanonicalName());
 
   /** the parent network and its layers upon which the service layers can built */
   private final MacroscopicNetwork parentNetwork;
@@ -48,4 +54,10 @@ public class ServiceNetwork extends TopologicalLayerNetwork<ServiceNetworkLayer,
     return parentNetwork;
   }
 
+  /** Log the stats for the service network, e.g., the layers and their aggregate contents */
+  public void logInfo() {
+    String prefix = LoggingUtils.routedServicesPrefix(getId());
+    LOGGER.info(String.format("[STATS] %s Service network %s (external id: %s) has %d layers", prefix, getXmlId(), getExternalId(), getTransportLayers().size()));
+    getTransportLayers().forEach( layer -> layer.logInfo(prefix.concat(LoggingUtils.serviceNetworkLayerPrefix(layer.getId()))));
+  }
 }
