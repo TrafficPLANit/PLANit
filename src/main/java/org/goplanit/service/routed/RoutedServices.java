@@ -107,10 +107,12 @@ public class RoutedServices extends PlanitComponent<RoutedServices> implements S
     return layers;
   }
 
-  /** Log the stats for the routed services , e.g., the layers and their aggregate contents */
-  public void logInfo() {
-    String prefix = LoggingUtils.routedServicesPrefix(getId());
-    LOGGER.info(String.format("[STATS]%s Routed Services %s (external id: %s) has %d layers", prefix, getXmlId(), getExternalId(), getLayers().size()));
+  /** Log the stats for the routed services , e.g., the layers and their aggregate contents
+   *
+   * @param prefix to apply
+   * */
+  public void logInfo(String prefix) {
+    LOGGER.info(String.format("%s XML id %s (external id: %s) has %d layers", prefix, getXmlId(), getExternalId(), getLayers().size()));
     getLayers().forEach( layer -> layer.logInfo(prefix.concat(LoggingUtils.routedServiceLayerPrefix(layer.getId()))));
   }
 }

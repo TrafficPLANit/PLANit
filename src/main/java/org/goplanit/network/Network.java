@@ -14,7 +14,7 @@ import org.goplanit.utils.id.IdGroupingToken;
  * @author markr
  *
  */
-public class Network extends PlanitComponent<Network> implements Serializable {
+public abstract class Network extends PlanitComponent<Network> implements Serializable {
 
   /** generated serial id */
   private static final long serialVersionUID = -1434577945513081778L;
@@ -59,9 +59,7 @@ public class Network extends PlanitComponent<Network> implements Serializable {
    * @return cloned network
    */
   @Override
-  public Network clone() {
-    return new Network(this);
-  }
+  public abstract Network clone();
 
   /**
    * {@inheritDoc}
@@ -78,4 +76,11 @@ public class Network extends PlanitComponent<Network> implements Serializable {
   public Map<String, String> collectSettingsAsKeyValueMap() {
     return null;
   }
+
+  /**
+   * Log general information on this network to the user
+   *
+   * @param prefix to use
+   */
+  public abstract void logInfo(String prefix);
 }

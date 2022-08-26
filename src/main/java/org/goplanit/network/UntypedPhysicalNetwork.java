@@ -39,6 +39,15 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
   }
 
   /**
+   * Copy constructor. Beware shallow copy only for managed id containers.
+   *
+   * @param other                   to copy
+   */
+  protected UntypedPhysicalNetwork(final UntypedPhysicalNetwork<L, LS> other) {
+    super(other);
+  }
+
+  /**
    * remove any dangling subnetworks from the network's layers if they exist and subsequently reorder the internal ids if needed
    * 
    * @throws PlanItException thrown if error

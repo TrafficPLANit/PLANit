@@ -54,6 +54,16 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
   }
 
   /**
+   * Copy constructor. Beware shallow copy only for managed id containers.
+   *
+   * @param other                   to copy
+   */
+  protected TopologicalLayerNetwork(final TopologicalLayerNetwork<T, U> other) {
+    super(other);
+    this.coordinateReferenceSystem = other.getCoordinateReferenceSystem();
+  }
+
+  /**
    * collect the used crs
    * 
    * @return coordinateReferencesystem used by this infrastructure network

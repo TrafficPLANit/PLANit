@@ -49,6 +49,29 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
   }
 
   /**
+   * Copy constructor. Beware shallow copy only for managed id containers.
+   *
+   * @param other to clone
+   */
+  protected MacroscopicNetwork(final MacroscopicNetwork other) {
+    super(other);
+  }
+
+  /**
+   * Beware shallow copy only for managed id containers.
+   * @return shallow copy
+   */
+  @Override
+  public MacroscopicNetwork clone() {
+    return new MacroscopicNetwork(this);
+  }
+
+  @Override
+  public void logInfo(String prefix) {
+
+  }
+
+  /**
    * Tries to initialise and create/register layers via a predefined configuration rather than letting the user do this manually via the infrastructure layers container. Only
    * possible when the network is still empty and no layers are yet active
    * 

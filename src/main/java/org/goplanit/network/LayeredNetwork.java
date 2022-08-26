@@ -58,9 +58,20 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
     /* for mode management */
     this.modes = new ModesImpl(tokenId);
 
-    /* until accessed remaines null */
+    /* until accessed remains null */
     this.transportLayers = null;
+  }
 
+  /**
+   * Copy constructor. Beware shallow copy only for managed id containers.
+   *
+   * @param other                   to copy
+   */
+  protected LayeredNetwork(final LayeredNetwork<U, T> other) {
+    super(other);
+    this.modes = new ModesImpl(other.getIdGroupingToken());
+    this.modes.addAll(other.getModes());
+    this.transportLayers = (T) other.getTransportLayers().clone();
   }
 
   /**

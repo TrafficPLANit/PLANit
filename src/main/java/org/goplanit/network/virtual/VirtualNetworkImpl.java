@@ -3,8 +3,11 @@ package org.goplanit.network.virtual;
 import org.goplanit.network.Network;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.virtual.ConnectoidEdges;
+import org.goplanit.utils.network.virtual.ConnectoidSegment;
 import org.goplanit.utils.network.virtual.ConnectoidSegments;
 import org.goplanit.utils.network.virtual.VirtualNetwork;
+
+import java.util.logging.Logger;
 
 /**
  * Model free virtual network which is part of the zoning and holds all the virtual infrastructure connecting the zones to the physical road network.
@@ -17,6 +20,9 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
 
   /** generated id */
   private static final long serialVersionUID = -4088201905917614130L;
+
+  /** logger to use */
+  private static final Logger LOGGER = Logger.getLogger((VirtualNetworkImpl.class.getCanonicalName()));
 
   // Protected
 
@@ -41,6 +47,27 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
     super(tokenId);
     this.connectoidSegments = new ConnectoidSegmentsImpl(getIdGroupingToken());
     this.connectoidEdges = new ConnectoidEdgesImpl(getIdGroupingToken());
+  }
+
+  /**
+   * Copy constructor. Beware of shallow copying managed id containers within this instance
+   *
+   * @param other to clone (shallow copy)
+   */
+  protected VirtualNetworkImpl(final VirtualNetworkImpl other) {
+    super(other);
+    this.connectoidSegments = new ConnectoidSegmentsImpl(getIdGroupingToken());
+    connectoidSegments.addAll(() -> other.getConnectoidSegments().iterator());
+    this.connectoidEdges = new ConnectoidEdgesImpl(getIdGroupingToken());
+    connectoidEdges.addAll(() -> other.getConnectoidEdges().iterator());
+  }
+
+  /**
+   * Beware of cloning due to shallow copying managed id containers within this instance
+   */
+  @Override
+  public Network clone() {
+    return new VirtualNetworkImpl(this);
   }
 
   /**
@@ -75,6 +102,15 @@ public class VirtualNetworkImpl extends Network implements VirtualNetwork {
   public void reset() {
     connectoidEdges.reset();
     connectoidSegments.reset();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void logInfo(String prefix) {
+    LOGGER.info(String.format("%s#connectoid edges: %d", prefix, getConnectoidEdges().size()));
+    LOGGER.info(String.format("%s#connectoid segments: %d", prefix, getConnectoidSegments().size()));
   }
 
   /**

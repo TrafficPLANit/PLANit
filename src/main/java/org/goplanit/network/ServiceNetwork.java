@@ -46,6 +46,16 @@ public class ServiceNetwork extends TopologicalLayerNetwork<ServiceNetworkLayer,
   }
 
   /**
+   * Copy constructor. Beware of shallow copying mnaged id containers.
+   *
+   * @param other to (shallow) copy.
+   */
+  public ServiceNetwork(final ServiceNetwork other) {
+    super(other);
+    this.parentNetwork = other.parentNetwork;
+  }
+
+  /**
    * The parent network of the service network
    * 
    * @return parent network
@@ -54,10 +64,22 @@ public class ServiceNetwork extends TopologicalLayerNetwork<ServiceNetworkLayer,
     return parentNetwork;
   }
 
-  /** Log the stats for the service network, e.g., the layers and their aggregate contents */
-  public void logInfo() {
-    String prefix = LoggingUtils.routedServicesPrefix(getId());
+  /** Log the stats for the service network, e.g., the layers and their aggregate contents
+   *
+   * @param prefix to apply
+   * */
+  @Override
+  public void logInfo(String prefix) {
     LOGGER.info(String.format("[STATS] %s Service network %s (external id: %s) has %d layers", prefix, getXmlId(), getExternalId(), getTransportLayers().size()));
     getTransportLayers().forEach( layer -> layer.logInfo(prefix.concat(LoggingUtils.serviceNetworkLayerPrefix(layer.getId()))));
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNetwork clone() {
+    return new ServiceNetwork(this);
+  }
+
 }
