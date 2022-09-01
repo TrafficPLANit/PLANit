@@ -11,7 +11,7 @@ import org.goplanit.utils.network.layer.service.ServiceLegSegment;
  * @author markr
  *
  */
-public interface RoutedTripSchedule extends RoutedTrip {
+public interface RoutedTripSchedule extends RoutedTrip, Iterable<RelativeLegTiming> {
 
   /**
    * Access to the departures of this schedule

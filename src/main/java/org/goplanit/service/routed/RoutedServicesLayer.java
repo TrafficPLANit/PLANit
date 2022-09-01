@@ -5,6 +5,8 @@ import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
 
+import java.util.Collection;
+
 /**
  * Interface to reflect a routed services layer which in turn is to be managed by a container class that implements the RoutedServicesLayers interface. A RoutedServiceLayer
  * contains routed services for a given parent service network layer such as for example - but not limited to - bus routes, train lines etc.
@@ -62,4 +64,10 @@ public interface RoutedServicesLayer extends ManagedId, ExternalIdAble, Iterable
     forEach(routedModeServices -> routedModeServices.reset());
   }
 
+  /** Collect the supported modes that potentially have services registered
+   * @return supported modes
+   */
+  public default Collection<Mode> getSupportedModes(){
+    return getParentLayer().getSupportedModes();
+  }
 }

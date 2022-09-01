@@ -2,6 +2,7 @@ package org.goplanit.service.routed;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.goplanit.utils.id.IdGroupingToken;
@@ -132,4 +133,12 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
     this.defaultDwellTime = defaultDwellTime;
   }
 
+  /**
+   * Iterate over currently available relative leg timings
+   * @return iterator of relative leg timings
+   */
+  @Override
+  public Iterator<RelativeLegTiming> iterator() {
+    return this.relativeLegTimings.iterator();
+  }
 }
