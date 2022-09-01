@@ -1,12 +1,11 @@
 package org.goplanit.service.routed;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 
 /**
  * Implementation of a RoutedTripFrequency interface.
@@ -129,4 +128,16 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
     return this.orderedLegSegments.get(index);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<ServiceNode> getUsedServiceNodes() {
+    Set<ServiceNode> usedServiceNodes = new HashSet<>();
+    for(var legSegments : this){
+      usedServiceNodes.add(legSegments.getUpstreamServiceNode());
+    }
+    usedServiceNodes.add(getLastLegSegment().getDownstreamServiceNode());
+    return usedServiceNodes;
+  }
 }

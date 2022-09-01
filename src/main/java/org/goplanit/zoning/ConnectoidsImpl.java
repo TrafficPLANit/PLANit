@@ -1,5 +1,9 @@
 package org.goplanit.zoning;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.goplanit.utils.event.EventType;
@@ -7,6 +11,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.zoning.Connectoid;
 import org.goplanit.utils.zoning.Connectoids;
+import org.goplanit.utils.zoning.Zone;
 import org.goplanit.utils.zoning.modifier.event.ZoningModificationEvent;
 import org.goplanit.zoning.modifier.event.ModifiedZoneIdsEvent;
 
@@ -77,4 +82,18 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Map<Zone, Set<T>> createIndexByAccessZone() {
+    HashMap<Zone,Set<T>> indexByAccessZone = new HashMap<>();
+    for( var connectoid : this){
+      for(var validAccessZone : connectoid){
+        createIndexByAccessZone().putIfAbsent(validAccessZone,new HashSet<>());
+        createIndexByAccessZone().get(validAccessZone).add(connectoid);
+      }
+    }
+    return indexByAccessZone;
+  }
 }

@@ -1,12 +1,11 @@
 package org.goplanit.service.routed;
 
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
+import org.goplanit.utils.network.layer.service.ServiceNode;
 
 /**
  * Implementation of a RoutedTripSchedule interface.
@@ -140,5 +139,18 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
   @Override
   public Iterator<RelativeLegTiming> iterator() {
     return this.relativeLegTimings.iterator();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Set<ServiceNode> getUsedServiceNodes() {
+    Set<ServiceNode> usedServiceNodes = new HashSet<>();
+    for(var relLegTiming : this){
+      usedServiceNodes.add(relLegTiming.getParentLegSegment().getUpstreamServiceNode());
+    }
+    usedServiceNodes.add(getRelativeLegTiming(getRelativeLegTimingsSize()-1).getParentLegSegment().getDownstreamServiceNode());
+    return usedServiceNodes;
   }
 }

@@ -2,6 +2,9 @@ package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.ExternalIdAble;
 import org.goplanit.utils.id.ManagedId;
+import org.goplanit.utils.network.layer.service.ServiceNode;
+
+import java.util.Set;
 
 /**
  * Base interface for routed trips. Derived interfaces and classes are to be used to define what type of routed trip, e.g., a routed trip with a schedule or frequency. However,
@@ -21,5 +24,11 @@ public interface RoutedTrip extends ExternalIdAble, ManagedId {
   public default Class<RoutedTrip> getIdClass() {
     return ROUTED_TRIP_ID_CLASS;
   }
+
+  /**
+   * Get all used service nodes along the trip
+   * @return used service nodes
+   */
+  public abstract Set<ServiceNode> getUsedServiceNodes();
 
 }

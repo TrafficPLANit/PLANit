@@ -133,9 +133,9 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
   @Override
   public void logInfo(String prefix) {
     LOGGER.info(String.format("%s [layer: %s]", prefix, getXmlId()));
-    int numScheduleBasedTrips = 0;
-    int numFrequencyBasedTrips = 0;
     for (RoutedModeServices modeServices : this) {
+      int numScheduleBasedTrips = 0;
+      int numFrequencyBasedTrips = 0;
       LOGGER.info(String.format("%s [layer: %s] [mode: %s] #routedServices: %d", prefix, getXmlId(), modeServices.getMode().getXmlId(), modeServices.size()));
       for(var entry : modeServices){
         numScheduleBasedTrips += entry.getTripInfo().getScheduleBasedTrips().size();

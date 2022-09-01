@@ -1,6 +1,9 @@
 package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.network.layer.service.ServiceNode;
+
+import java.util.Set;
 
 /**
  * Implementation of the RoutedTripsSchedule interface.
