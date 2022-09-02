@@ -90,8 +90,8 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
     HashMap<Zone,Set<T>> indexByAccessZone = new HashMap<>();
     for( var connectoid : this){
       for(var validAccessZone : connectoid){
-        createIndexByAccessZone().putIfAbsent(validAccessZone,new HashSet<>());
-        createIndexByAccessZone().get(validAccessZone).add(connectoid);
+        indexByAccessZone.putIfAbsent(validAccessZone,new HashSet<>());
+        indexByAccessZone.get(validAccessZone).add(connectoid);
       }
     }
     return indexByAccessZone;
