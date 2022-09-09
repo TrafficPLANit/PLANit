@@ -16,7 +16,16 @@ import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 public abstract class GraphEntityFactoryImpl<E extends GraphEntity> extends ManagedIdEntityFactoryImpl<E> implements GraphEntityFactory<E> {
 
   /** container on which newly created entities are to be registered */
-  private final GraphEntities<E> graphEntities;
+  private GraphEntities<E> graphEntities;
+
+  /**
+   * Use with caution as it replaces the managed id container in its entirety
+   *
+   * @param graphEntities to use as the managed id container
+   */
+  protected void setGraphEntities( GraphEntities<E> graphEntities){
+    this.graphEntities = graphEntities;
+  }
 
   /**
    * The entities to register on
@@ -25,6 +34,16 @@ public abstract class GraphEntityFactoryImpl<E extends GraphEntity> extends Mana
    */
   protected GraphEntities<E> getGraphEntities() {
     return graphEntities;
+  }
+
+  /**
+   * Constructor without a container. Only use when the graph entities are know to be set manually afterward by derived class
+   *
+   * @param groupIdToken  to use for creating element ids
+   */
+  protected GraphEntityFactoryImpl(IdGroupingToken groupIdToken) {
+    super(groupIdToken);
+    this.graphEntities = null;
   }
 
   /**

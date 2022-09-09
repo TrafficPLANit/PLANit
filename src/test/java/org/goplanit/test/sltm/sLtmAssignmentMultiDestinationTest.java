@@ -26,6 +26,7 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
 import org.goplanit.utils.network.layer.physical.Links;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
@@ -264,7 +265,7 @@ public class sLtmAssignmentMultiDestinationTest {
                      
       
       Nodes nodes = networkLayer.getNodes();
-      Links links = networkLayer.getLinks();
+      MacroscopicLinks links = networkLayer.getLinks();
       //links
       links.getFactory().registerNew(nodes.getByXmlId("0"), nodes.getByXmlId("1"), 1, true).setXmlId("0");
       links.getFactory().registerNew(nodes.getByXmlId("1"), nodes.getByXmlId("2"), 1, true).setXmlId("1");

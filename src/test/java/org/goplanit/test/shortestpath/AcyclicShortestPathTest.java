@@ -26,6 +26,7 @@ import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
 import org.goplanit.utils.network.layer.physical.Link;
@@ -127,7 +128,7 @@ public class AcyclicShortestPathTest {
           Node nodeA = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex-1);
           Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1) + linkColIndex);
           // all links are 1 km in length and move from left to right         
-          Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
+          MacroscopicLink link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
         }
       }
@@ -138,7 +139,7 @@ public class AcyclicShortestPathTest {
           // all links are 1 km in length
           Node nodeA = networkLayer.getNodes().get((linkRowIndex-1)*(gridSize+1)+linkColIndex);
           Node nodeB = networkLayer.getNodes().get(linkRowIndex*(gridSize+1)+linkColIndex);
-          Link link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
+          MacroscopicLink link = networkLayer.getLinks().getFactory().registerNew(nodeA, nodeB, 1, true);
           networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
         }  
       }
@@ -254,7 +255,7 @@ public class AcyclicShortestPathTest {
 
       // now add a link segment connecting 8 back to 0 (cycle), this should cause the topological
       // sorting to fail
-      Link link = networkLayer.getLinks().getFactory().registerNew(networkLayer.getNodes().get(8), networkLayer.getNodes().get(0), 1, true);
+      MacroscopicLink link = networkLayer.getLinks().getFactory().registerNew(networkLayer.getNodes().get(8), networkLayer.getNodes().get(0), 1, true);
       MacroscopicLinkSegment cyclicSegment = networkLayer.getLinkSegments().getFactory().registerNew(link, true, true);
       acyclicSubGraph.addEdgeSegment(cyclicSegment);
 

@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 import org.goplanit.network.layer.physical.LinkSegmentImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentType;
 import org.goplanit.utils.network.layer.physical.Link;
@@ -15,7 +16,7 @@ import org.goplanit.utils.network.layer.physical.Link;
  *
  * @author markr
  */
-public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl<Link> implements MacroscopicLinkSegment {
+public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl<MacroscopicLink> implements MacroscopicLinkSegment {
 
   // Private
 
@@ -42,7 +43,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl<Link> implements
    * @param parentLink  the parent link of this link segment
    * @param directionAB direction of travel
    */
-  protected MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final Link parentLink, final boolean directionAB) {
+  protected MacroscopicLinkSegmentImpl(final IdGroupingToken groupId, final MacroscopicLink parentLink, final boolean directionAB) {
     super(groupId, parentLink, directionAB);
   }
 
@@ -101,6 +102,7 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl<Link> implements
   public MacroscopicLinkSegmentType getLinkSegmentType() {
     return linkSegmentType;
   }
+
 
   /**
    * {@inheritDoc}

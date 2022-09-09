@@ -8,9 +8,7 @@ import org.goplanit.network.layer.physical.UntypedPhysicalLayerImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.ConjugateMacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
+import org.goplanit.utils.network.layer.macroscopic.*;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.Links;
 import org.goplanit.utils.network.layer.physical.Node;
@@ -23,7 +21,7 @@ import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
  * @author markr
  *
  */
-public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, Link, MacroscopicLinkSegment> implements MacroscopicNetworkLayer {
+public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, MacroscopicLink, MacroscopicLinkSegment> implements MacroscopicNetworkLayer {
 
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(MacroscopicNetworkLayerImpl.class.getCanonicalName());
@@ -37,7 +35,7 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    * @param groupId contiguous id generation within this group for instances of this class
    */
   protected MacroscopicNetworkLayerImpl(final IdGroupingToken groupId) {
-    this(groupId, new NodesImpl(groupId), new LinksImpl(groupId), new MacroscopicLinkSegmentsImpl(groupId));
+    this(groupId, new NodesImpl(groupId), new MacroscopicLinksImpl(groupId), new MacroscopicLinkSegmentsImpl(groupId));
   }
 
   /**
@@ -48,7 +46,7 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    * @param links        to use
    * @param linkSegments to use
    */
-  protected MacroscopicNetworkLayerImpl(final IdGroupingToken groupId, Nodes nodes, Links links, MacroscopicLinkSegments linkSegments) {
+  protected MacroscopicNetworkLayerImpl(final IdGroupingToken groupId, Nodes nodes, MacroscopicLinks links, MacroscopicLinkSegments linkSegments) {
     super(groupId, nodes, links, linkSegments);
     linkSegmentTypes = new MacroscopicLinkSegmentTypesImpl(groupId);
   }
@@ -88,8 +86,8 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    * {@inheritDoc}
    */
   @Override
-  public Links getLinks() {
-    return (Links) getGraph().getEdges();
+  public MacroscopicLinks getLinks() {
+    return (MacroscopicLinks) getGraph().getEdges();
   }
 
   /**

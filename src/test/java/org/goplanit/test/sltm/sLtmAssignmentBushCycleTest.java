@@ -24,6 +24,7 @@ import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegmentTypes;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinks;
 import org.goplanit.utils.network.layer.physical.Links;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
@@ -168,7 +169,7 @@ public class sLtmAssignmentBushCycleTest {
                      
       
       Nodes nodes = networkLayer.getNodes();
-      Links links = networkLayer.getLinks();
+      MacroscopicLinks links = networkLayer.getLinks();
       //links
       double oneKm = 1;
       double manyKm = 5;

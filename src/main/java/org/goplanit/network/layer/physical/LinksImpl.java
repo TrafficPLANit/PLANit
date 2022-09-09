@@ -14,10 +14,21 @@ import org.goplanit.utils.network.layer.physical.Links;
  * @author markr
  * 
  */
-public class LinksImpl extends ManagedIdEntitiesImpl<Link> implements Links {
+public class LinksImpl<L extends Link> extends ManagedIdEntitiesImpl<L> implements Links<L> {
 
   /** factory to use */
-  private final LinkFactory linkFactory;
+  protected final LinkFactory linkFactory;
+
+  /**
+   * Constructor
+   *
+   * @param groupId to use for creating ids for instances
+   * @param linkFactory to use
+   */
+  protected LinksImpl(final IdGroupingToken groupId, LinkFactory linkFactory) {
+    super(L::getId, L.EDGE_ID_CLASS);
+    this.linkFactory = linkFactory;
+  }
 
   /**
    * Constructor
@@ -25,19 +36,8 @@ public class LinksImpl extends ManagedIdEntitiesImpl<Link> implements Links {
    * @param groupId to use for creating ids for instances
    */
   public LinksImpl(final IdGroupingToken groupId) {
-    super(Link::getId, Link.EDGE_ID_CLASS);
-    this.linkFactory = new LinkFactoryImpl(groupId, this);
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param groupId     to use for creating ids for instances
-   * @param linkFactory the factory to use
-   */
-  public LinksImpl(final IdGroupingToken groupId, LinkFactory linkFactory) {
-    super(Link::getId, Link.EDGE_ID_CLASS);
-    this.linkFactory = linkFactory;
+    super(L::getId, L.EDGE_ID_CLASS);
+    this.linkFactory = new LinkFactoryImpl(groupId, (Links<Link>) this);
   }
 
   /**
@@ -72,7 +72,7 @@ public class LinksImpl extends ManagedIdEntitiesImpl<Link> implements Links {
   @Override
   public void recreateIds(boolean resetManagedIdClass) {
     /* always reset the additional link id class */
-    IdGenerator.reset(getFactory().getIdGroupingToken(), Link.LINK_ID_CLASS);
+    IdGenerator.reset(getFactory().getIdGroupingToken(), L.LINK_ID_CLASS);
 
     super.recreateIds(resetManagedIdClass);
   }
@@ -82,7 +82,7 @@ public class LinksImpl extends ManagedIdEntitiesImpl<Link> implements Links {
    */
   @Override
   public void reset() {
-    IdGenerator.reset(getFactory().getIdGroupingToken(), Link.LINK_ID_CLASS);
+    IdGenerator.reset(getFactory().getIdGroupingToken(), L.LINK_ID_CLASS);
     super.reset();
   }
 
