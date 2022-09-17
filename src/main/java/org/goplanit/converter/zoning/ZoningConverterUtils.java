@@ -1,9 +1,6 @@
 package org.goplanit.converter.zoning;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.*;
 import java.util.function.Function;
 
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
@@ -63,11 +60,6 @@ public class ZoningConverterUtils {
       final Function<Point,String> getOverwrittenWaitingAreaSourceId,
       String countryName,
       PlanitJtsCrsUtils geoUtils) {
-
-    //todo to be replaced by function for Point mapping on top level call
-    MacroscopicNetworkLayer networkLayer = getSettings().getReferenceNetwork().getLayerByMode(accessMode);
-    OsmNode osmNode = getNetworkToZoningData().getNetworkLayerData(networkLayer).getOsmNodeByLocation(connectoidLocation);
-    Long osmStopLocationId = osmNode!= null ? osmNode.getId() : null;
 
     boolean mustAvoidCrossingTraffic =
         isAvoidCrossTrafficForAccessModeOrAccessNodeWaitingAreaOverwritten(
@@ -165,17 +157,45 @@ public class ZoningConverterUtils {
     return matchedLinks;
   }
 
-  /**
-   * Exclude the closest link if it is situated on the wrong side of the road, then if links are remaining keep going with removing the then closest if it is also
-   * on the wrong side of the road etc.
+  /** Find the access link segments ineligible given the intended location and the access mode.
+   * When transfer zone location differs from the connectoid location determine on which side of the infrastructure it exists and based on the country's driving direction
+   * and access mode determine the access link segments
    *
-   * @param location to verify against, typically a transfer zone location
-   * @param links to update
-   * @param isLeftHandDrive network driving direction
-   * @param accessModes for the location
-   * @param geoUtils to use
-   * @return pair with remaining closest link found and boolean indicating if any closest links were removed before finding a compatible closest links (true when one or more closest links are removed, false otherwise)
+   * @param accessLinkSegments to filter
+   * @param location to identify incorrectly located link segments for
+   * @param accessMode that is accessible
+   * @param leftHandDrive is infrastructure left hand drive or not
+   * @param geoUtils to use for determining geographic eligibility
+   * @return ineligible link segments to be access link segments for connectoid at this location
    */
+  public static Collection<EdgeSegment> identifyLinkSegmentsOnWrongSideOf(Geometry location,
+          final Collection<EdgeSegment> accessLinkSegments, final Mode accessMode, boolean leftHandDrive, final PlanitJtsCrsUtils geoUtils) {
+
+    List<EdgeSegment> invalidAccessLinkSegments = new ArrayList<>(accessLinkSegments.size());
+    /* use line geometry closest to connectoid location */
+    for (EdgeSegment linkSegment : accessLinkSegments) {
+      LineSegment finalLineSegment = PlanitGraphGeoUtils.extractClosestLineSegmentTo(location, linkSegment, geoUtils);
+      /* determine location relative to infrastructure */
+      boolean isTransferZoneLeftOfInfrastructure = geoUtils.isGeometryLeftOf(location, finalLineSegment.p0, finalLineSegment.p1);
+      if (isTransferZoneLeftOfInfrastructure != leftHandDrive) {
+        /* not viable opposite traffic directions needs to be crossed on the link to get to stop location --> remove */
+        invalidAccessLinkSegments.add(linkSegment);
+      }
+    }
+    return invalidAccessLinkSegments;
+  }
+
+    /**
+     * Exclude the closest link if it is situated on the wrong side of the road, then if links are remaining keep going with removing the then closest if it is also
+     * on the wrong side of the road etc.
+     *
+     * @param location to verify against, typically a transfer zone location
+     * @param links to update
+     * @param isLeftHandDrive network driving direction
+     * @param accessModes for the location
+     * @param geoUtils to use
+     * @return pair with remaining closest link found and boolean indicating if any closest links were removed before finding a compatible closest links (true when one or more closest links are removed, false otherwise)
+     */
   public static Pair<MacroscopicLink,Boolean> excludeClosestLinksIncrementallyOnWrongSideOf(Geometry location, Collection<MacroscopicLink> links, boolean isLeftHandDrive, Collection<Mode> accessModes, PlanitJtsCrsUtils geoUtils) {
     boolean entriesRemoved = false;
     MacroscopicLink closestLink = null;
@@ -206,6 +226,7 @@ public class ZoningConverterUtils {
    * mode compatibility.
    *
    * @param waitingAreaSourceId these link segments pertain to
+   * @param waitingAreaGeometry these link segments pertain to
    * @param accessLink that is nominated
    * @param node extreme node of the link
    * @param accessMode eligible access mode
@@ -219,6 +240,7 @@ public class ZoningConverterUtils {
    */
   public static Collection<EdgeSegment> findAccessLinkSegmentsForWaitingArea(
       String waitingAreaSourceId,
+      Geometry waitingAreaGeometry,
       MacroscopicLink accessLink,
       String accessLinkSourceId,
       Node node,
@@ -228,9 +250,6 @@ public class ZoningConverterUtils {
       Function<String,String> getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId,
       Function<Node,String> getOverwrittenWaitingAreaSourceId,
       PlanitJtsCrsUtils geoUtils) {
-
-    //todo: move to function to pass ing
-    Long osmNodeIdOfLinkExtremeNode = node.getExternalId() != null ? Long.valueOf(node.getExternalId()) : null;
 
     /* potential link segments based on mode compatibility and access link restriction */
     Collection<EdgeSegment> accessLinkSegments = new ArrayList<>(4);
@@ -251,15 +270,11 @@ public class ZoningConverterUtils {
        * that are invalid, but if due to this check no matches remain, we revert this and instead use all entry link segments on the osm way
        * since the user has indicated to explicitly use this combination which overrules the automatic filter we would ordinarily apply */
 
-      // todo part of the function to be passed in
-      EntityType osmWaitingAreaEntityType = PlanitTransferZoneUtils.extractOsmEntityType(transferZone);
-      long osmWayId = getSettings().getWaitingAreaNominatedOsmWayForStopLocation(waitingAreaSourceId, osmWaitingAreaEntityType);
-
-      /* stopLocation -> waiting area overwrite */
+      /* stopLocation point -> waiting area overwrite */
       if (getOverwrittenWaitingAreaSourceId.apply(node) != null) {
         removeInvalidAccessLinkSegmentsIfNoMatchLeft = !(waitingAreaSourceId == getOverwrittenWaitingAreaSourceId.apply(node));
       }
-      /* waiting area -> osm way (stop_location) overwrite */
+      /* waiting area -> link (source id) stop_location overwrite */
       else if (getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId.apply(waitingAreaSourceId) != null) {
         removeInvalidAccessLinkSegmentsIfNoMatchLeft = !(getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId.apply(waitingAreaSourceId).equals(accessLinkSourceId));
       }
@@ -269,10 +284,8 @@ public class ZoningConverterUtils {
     if(mustAvoidCrossingTraffic) {
 
       boolean isLeftHandDrive = DrivingDirectionDefaultByCountry.isLeftHandDrive(countryName);
-      //todo continue here below is not working yet!
-      Collection<EdgeSegment> toBeRemoveAccessLinkSegments = null;
-//      Collection<EdgeSegment> toBeRemoveAccessLinkSegments = null
-//          PlanitTransferZoneUtils.identifyInvalidTransferZoneAccessLinkSegmentsBasedOnRelativeLocationToInfrastructure(accessLinkSegments, transferZone, accessMode, isLeftHandDrive, geoUtils);
+      Collection<EdgeSegment> toBeRemoveAccessLinkSegments =
+          identifyLinkSegmentsOnWrongSideOf(waitingAreaGeometry, accessLinkSegments, accessMode, isLeftHandDrive, geoUtils);
 
       if(removeInvalidAccessLinkSegmentsIfNoMatchLeft || toBeRemoveAccessLinkSegments.size() < accessLinkSegments.size()) {
         /* filter because "normal" situation or there are still matches left even after filtering despite the explicit user override for this  combination */
@@ -287,6 +300,7 @@ public class ZoningConverterUtils {
    * any explicit overwrites that may exist that are not bounded by any limitations on compatibility.
    *
    * @param waitingAreaSourceId we're checking for
+   * @param waitingAreaGeometry we're checking for
    * @param accessLink nominated
    * @param accessNode that is nominated
    * @param accessMode used
@@ -299,6 +313,7 @@ public class ZoningConverterUtils {
    */
   public static boolean hasWaitingAreaPotentialAccessLinkSegmentForLinkNodeModeCombination(
       String waitingAreaSourceId,
+      Geometry waitingAreaGeometry,
       final MacroscopicLink accessLink,
       String accessLinkSourceId,
       final Node accessNode,
@@ -315,7 +330,7 @@ public class ZoningConverterUtils {
     /* now collect the available access link segments (if any) - switch of logging of issues, since we are only interested in determining if this is feasible, we are not creating anything yet */
     Collection<EdgeSegment> accessLinkSegments =
         findAccessLinkSegmentsForWaitingArea(
-            waitingAreaSourceId, accessLink, accessLinkSourceId, accessNode, accessMode, countryName, mustAvoidCrossingTraffic, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, getOverwrittenWaitingAreaSourceId, geoUtils);
+            waitingAreaSourceId, waitingAreaGeometry, accessLink, accessLinkSourceId, accessNode, accessMode, countryName, mustAvoidCrossingTraffic, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, getOverwrittenWaitingAreaSourceId, geoUtils);
 
     return !accessLinkSegments.isEmpty();
   }
@@ -358,12 +373,6 @@ public class ZoningConverterUtils {
     Point connectoidLocation = null;
     if(distanceToExistingCoordinateOnLinkInMeters < maxAllowedDistanceMeters) {
 
-      //todo -> this is the function to pass in from OSM
-      /* road based modes must stop with the waiting area in the driving direction, i.e., must avoid cross traffic, because otherwise they
-       * have no doors at the right side, e.g., travellers have to cross the road to get to the vehicle, which should not happen... */
-      Long osmStopLocationId = accessNode.getExternalId()!= null ? Long.valueOf(accessNode.getExternalId()) : null;
-      settings.getOverwrittenStopLocationWaitingArea(osmStopLocationNodeId).second()
-
       /* close enough, see if it can be reused:
        * 1) node is an extreme node
        * 2) or node is internal to link
@@ -376,12 +385,12 @@ public class ZoningConverterUtils {
          * and relative location to the transfer zone (left or right of the road). Therefore, we must check this here before accepting this pre-existing extreme node. If this is a problem,
          * we do not create the location on the existing location, but instead choose a location on the link so that we can use the access link segment in the opposite direction instead */
         if(hasWaitingAreaPotentialAccessLinkSegmentForLinkNodeModeCombination(
-            waitingAreaSourceId, accessLink, accessLinkSourceId, accessLink.getNodeA(), accessMode, getOverwrittenWaitingAreaSourceIdForNode, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, countryName, geoUtils)) {
+            waitingAreaSourceId, waitingAreaGeometry, accessLink, accessLinkSourceId, accessLink.getNodeA(), accessMode, getOverwrittenWaitingAreaSourceIdForNode, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, countryName, geoUtils)) {
           connectoidLocation = PlanitJtsUtils.createPoint(closestExistingCoordinate);
         }
       }else if(accessLink.getVertexB().isPositionEqual2D(closestExistingCoordinate)) {
         if(hasWaitingAreaPotentialAccessLinkSegmentForLinkNodeModeCombination(
-            waitingAreaSourceId, accessLink, accessLinkSourceId, accessLink.getNodeB(), accessMode, getOverwrittenWaitingAreaSourceIdForNode, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, countryName, geoUtils)){
+            waitingAreaSourceId, waitingAreaGeometry, accessLink, accessLinkSourceId, accessLink.getNodeB(), accessMode, getOverwrittenWaitingAreaSourceIdForNode, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, countryName, geoUtils)){
           connectoidLocation = PlanitJtsUtils.createPoint(closestExistingCoordinate);
         }
       }else {
@@ -389,7 +398,7 @@ public class ZoningConverterUtils {
         /* 2) must be internal if not an extreme node */
         int coordinateIndex = PlanitJtsUtils.getCoordinateIndexOf(closestExistingCoordinate, accessLink.getGeometry().getCoordinates());
         if(coordinateIndex <= 0 || coordinateIndex==(accessLink.getGeometry().getCoordinates().length-1)) {
-          throw new PlanItRunTimeException("Unable to locate link internal osm node even though it is expected to exist when creating stop locations for osm entity %s",transferZone.getExternalId());
+          throw new PlanItRunTimeException("Unable to locate link internal location even though it is expected to exist when identifying connectoid location for waiting area %s", waitingAreaSourceId);
         }
 
         connectoidLocation = PlanitJtsUtils.createPoint(closestExistingCoordinate);
@@ -404,24 +413,17 @@ public class ZoningConverterUtils {
       }
     }
 
-    //TODO --- TODO ----- TODO ---- TODO --- TODO ----- TODO ---- TODO --- TODO ----- TODO ---- TODO --- TODO ----- TODO ---- TODO --- TODO ----- TODO ----
-    // Continue HERE:
-    // 1: the below needs refactoring into OSM indepenent version as is done above (see connectoid helper for original
-    // 2. left and right are old parts of the osm bits present here that are to replaced by the functions to pass in
-    // 3. when done remove the old functions on OSM side and call this instead
-    // 4. create the functions on the GTFS side and call this as well
-    // 5. test-test-test +/or create a little helper data class to pass around for this to reduce number of parameters that are being passed around
-
     if(connectoidLocation == null) {
-      /* too far, or identified existing location is not suitable, so we must break the existing link in appropriate location instead */
-      LinearLocation projectedLinearLocationOnLink = PlanitTransferZoneUtils.extractClosestProjectedLinearLocationOnEdgeForTransferZone(transferZone,accessLink, geoUtils);
+      /* too far, or identified existing location is not suitable, so we must check if breaking the existing link in appropriate location instead would work */
+      LinearLocation projectedLinLocOnLink = PlanitEntityGeoUtils.extractClosestProjectedLinearLocationToGeometryFromEdge(waitingAreaGeometry, accessLink, geoUtils);
 
       /* verify projected location is valid */
-      Coordinate closestProjectedCoordinate = projectedLinearLocationOnLink.getCoordinate(accessLink.getGeometry());
+      Coordinate closestProjectedCoordinate = projectedLinLocOnLink.getCoordinate(accessLink.getGeometry());
       if( closestExistingCoordinate.equals2D(closestProjectedCoordinate) ||
           geoUtils.getClosestDistanceInMeters(closestProjectedCoordinate, waitingAreaGeometry) > maxAllowedDistanceMeters) {
-        /* no need to break link, the projected closest point is too far away or deemed not suitable */
+        /* no option to break link, the projected closest point is too far away or deemed not suitable */
       }else {
+        /* acceptable location, create proposed connectoid location as result */
         connectoidLocation = PlanitJtsUtils.createPoint(closestProjectedCoordinate);
       }
     }
