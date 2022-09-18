@@ -252,7 +252,7 @@ public class ZoningConverterUtils {
       PlanitJtsCrsUtils geoUtils) {
 
     /* potential link segments based on mode compatibility and access link restriction */
-    Collection<EdgeSegment> accessLinkSegments = new ArrayList<>(4);
+    List<EdgeSegment> accessLinkSegments = new ArrayList<>(4);
     for (EdgeSegment linkSegment : node.getEntryEdgeSegments()) {
       if (((MacroscopicLinkSegment) linkSegment).isModeAllowed(accessMode) && (linkSegment.getParent().idEquals(accessLink))) {
         accessLinkSegments.add(linkSegment);
