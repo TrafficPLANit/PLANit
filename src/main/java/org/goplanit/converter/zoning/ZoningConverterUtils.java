@@ -222,12 +222,43 @@ public class ZoningConverterUtils {
     return Pair.of(closestLink,entriesRemoved);
   }
 
+  /** Same as node based equivalent, only now we do not know yet which node is our reference node, so we consider both as options
+   */
+  public static Collection<EdgeSegment> findAccessLinkSegmentsForWaitingArea(
+      String waitingAreaSourceId,
+      Geometry waitingAreaGeometry,
+      MacroscopicLink accessLink,
+      String accessLinkSourceId,
+      Mode accessMode,
+      String countryName,
+      boolean mustAvoidCrossingTraffic,
+      Function<String,String> getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId,
+      Function<Node,String> getOverwrittenWaitingAreaSourceId,
+      PlanitJtsCrsUtils geoUtils) {
+
+    // node A of potential access link
+    var accessLinkSegments = findAccessLinkSegmentsForWaitingArea(waitingAreaSourceId,
+        waitingAreaGeometry, accessLink, accessLinkSourceId, accessLink.getNodeA(), accessMode, countryName, mustAvoidCrossingTraffic, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, getOverwrittenWaitingAreaSourceId, geoUtils);
+
+    // node B of potential access link
+    var accessLinkSegmentsB = findAccessLinkSegmentsForWaitingArea(waitingAreaSourceId,
+        waitingAreaGeometry, accessLink, accessLinkSourceId, accessLink.getNodeB(), accessMode, countryName, mustAvoidCrossingTraffic, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, getOverwrittenWaitingAreaSourceId, geoUtils);
+
+    if(accessLinkSegments!=null){
+      accessLinkSegments.addAll(accessLinkSegmentsB);
+    }else{
+      accessLinkSegments = accessLinkSegmentsB;
+    }
+    return accessLinkSegments;
+  }
+
   /** Find the link segments that are accessible for the given access link, node, mode combination taking into account the relative location of the transfer zone if needed and
    * mode compatibility.
    *
    * @param waitingAreaSourceId these link segments pertain to
    * @param waitingAreaGeometry these link segments pertain to
    * @param accessLink that is nominated
+   * @param accessLinkSourceId source id of the access link
    * @param node extreme node of the link
    * @param accessMode eligible access mode
    * @param countryName we are considering from which we will extract whether it is a left or right hand drive country
@@ -271,11 +302,11 @@ public class ZoningConverterUtils {
        * since the user has indicated to explicitly use this combination which overrules the automatic filter we would ordinarily apply */
 
       /* stopLocation point -> waiting area overwrite */
-      if (getOverwrittenWaitingAreaSourceId.apply(node) != null) {
+      if (getOverwrittenWaitingAreaSourceId!= null && getOverwrittenWaitingAreaSourceId.apply(node) != null) {
         removeInvalidAccessLinkSegmentsIfNoMatchLeft = !(waitingAreaSourceId == getOverwrittenWaitingAreaSourceId.apply(node));
       }
       /* waiting area -> link (source id) stop_location overwrite */
-      else if (getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId.apply(waitingAreaSourceId) != null) {
+      else if (getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId!= null && getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId.apply(waitingAreaSourceId) != null) {
         removeInvalidAccessLinkSegmentsIfNoMatchLeft = !(getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId.apply(waitingAreaSourceId).equals(accessLinkSourceId));
       }
     }
