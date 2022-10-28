@@ -67,8 +67,7 @@ public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl imp
             edgeSegment.getExternalId()));
         return false;
       }
-    }
-    if (edgeSegment.getParent().getVertexB() == edgeSegment.getUpstreamVertex() && !edgeSegment.isDirectionAb()) {
+    }else if(edgeSegment.getParent().getVertexB() == edgeSegment.getUpstreamVertex() && !edgeSegment.isDirectionAb()){
       if (edgeSegment.getParent().getEdgeSegmentBa() == null) {
         LOGGER.warning(String.format("edge segment A->B on parent edge of this edge segment (id:%d externalId:%s) should be the same but it is null", edgeSegment.getId(),
             edgeSegment.getExternalId()));

@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 import org.goplanit.utils.graph.Edge;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.CloneUtils;
 import org.locationtech.jts.geom.LineString;
 
@@ -306,6 +307,11 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
     if (getVertexB().getEdges(getVertexA()) == null || !(getVertexB().getEdges(getVertexA()).contains(this))) {
       LOGGER.warning(String.format("edge (id:%d externalId:%s) not registered on vertex B", getId(), getExternalId()));
       return false;
+    }
+
+    if(getGeometry()!=null &&
+        (!getGeometry().isWithinDistance(getVertexB().getPosition(), Precision.EPSILON_6) || !getGeometry().isWithinDistance(getVertexB().getPosition(), Precision.EPSILON_6))){
+      LOGGER.warning(String.format("edge (id:%d externalId:%s) internal geometry does not cover its vertices", getId(), getExternalId()));
     }
 
     return true;

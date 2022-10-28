@@ -10,6 +10,7 @@ import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.locale.DrivingDirectionDefaultByCountry;
+import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.TrackModeType;
@@ -318,7 +319,8 @@ public class ZoningConverterUtils {
       Collection<EdgeSegment> toBeRemoveAccessLinkSegments =
           identifyLinkSegmentsOnWrongSideOf(waitingAreaGeometry, accessLinkSegments, accessMode, isLeftHandDrive, geoUtils);
 
-      if(removeInvalidAccessLinkSegmentsIfNoMatchLeft || toBeRemoveAccessLinkSegments.size() < accessLinkSegments.size()) {
+      if(!toBeRemoveAccessLinkSegments.isEmpty() &&
+          (removeInvalidAccessLinkSegmentsIfNoMatchLeft || toBeRemoveAccessLinkSegments.size() < accessLinkSegments.size())) {
         /* filter because "normal" situation or there are still matches left even after filtering despite the explicit user override for this  combination */
         accessLinkSegments.removeAll(toBeRemoveAccessLinkSegments);
       }
@@ -410,7 +412,7 @@ public class ZoningConverterUtils {
        * */
 
       /* 1) verify if extreme node */
-      if(accessLink.getVertexA().isPositionEqual2D(closestExistingCoordinate)) {
+      if(accessLink.getVertexA().isPositionEqual2D(closestExistingCoordinate, Precision.EPSILON_6)) {
         /* because it is an extreme node there is only one of the two directions accessible since an access link segments are assumed to be directly upstream of the node. This
          * can result in choosing a connectoid location that is not feasible when only considering the proximity and not the link segment specific information such as the mode
          * and relative location to the transfer zone (left or right of the road). Therefore, we must check this here before accepting this pre-existing extreme node. If this is a problem,
@@ -419,7 +421,7 @@ public class ZoningConverterUtils {
             waitingAreaSourceId, waitingAreaGeometry, accessLink, accessLinkSourceId, accessLink.getNodeA(), accessMode, getOverwrittenWaitingAreaSourceIdForNode, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, countryName, geoUtils)) {
           connectoidLocation = PlanitJtsUtils.createPoint(closestExistingCoordinate);
         }
-      }else if(accessLink.getVertexB().isPositionEqual2D(closestExistingCoordinate)) {
+      }else if(accessLink.getVertexB().isPositionEqual2D(closestExistingCoordinate, Precision.EPSILON_6)) {
         if(hasWaitingAreaPotentialAccessLinkSegmentForLinkNodeModeCombination(
             waitingAreaSourceId, waitingAreaGeometry, accessLink, accessLinkSourceId, accessLink.getNodeB(), accessMode, getOverwrittenWaitingAreaSourceIdForNode, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, countryName, geoUtils)){
           connectoidLocation = PlanitJtsUtils.createPoint(closestExistingCoordinate);
