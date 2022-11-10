@@ -7,7 +7,6 @@ import org.apache.commons.collections4.map.HashedMap;
 import org.goplanit.network.layer.macroscopic.MacroscopicGridNetworkLayerGenerator;
 import org.goplanit.network.layers.MacroscopicNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.PredefinedModeType;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.NetworkLayer;

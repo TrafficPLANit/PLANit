@@ -3,6 +3,7 @@ package org.goplanit.zoning;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.zoning.TransferZone;
 import org.goplanit.utils.zoning.TransferZoneFactory;
+import org.goplanit.utils.zoning.TransferZoneType;
 import org.goplanit.utils.zoning.TransferZones;
 
 /**
@@ -34,6 +35,16 @@ public class TransferZoneFactoryImpl extends ZoneFactoryImpl<TransferZone> imple
     TransferZone newOdZone = createNew();
     transferZones.register(newOdZone);
     return newOdZone;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZone registerNew(TransferZoneType type, boolean syncXmlIdToId) {
+    var transferZone = createNew(type, syncXmlIdToId);
+    transferZones.register(transferZone);
+    return transferZone;
   }
 
   /**

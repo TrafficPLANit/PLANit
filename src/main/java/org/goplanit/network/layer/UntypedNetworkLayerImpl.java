@@ -16,6 +16,7 @@ import org.goplanit.utils.id.ManagedIdEntities;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.network.layer.UntypedDirectedGraphLayer;
 import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
+import org.locationtech.jts.geom.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 /**
@@ -122,6 +123,22 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
       PlanitJtsUtils.findMathTransform(fromCoordinateReferenceSystem, toCoordinateReferenceSystem);
       throw new PlanItException(String.format("%s error during transformation of physical network %s CRS", NetworkLayer.createLayerLogPrefix(this), getXmlId()), e);
     }
+  }
+
+  /**
+   * Create bounding box based on underlying nodes, this means that any geometries of links tht are internal may cross the boundary of the bounding box
+   *
+   * @return bounding box for this layer based on its nodes' locations, if no vertices are present null is returned
+   */
+  @Override
+  public Envelope createBoundingBox() {
+    if(getGraph().getVertices().isEmpty()){
+      return null;
+    }
+
+    Envelope envelope = new Envelope(getGraph().getVertices().iterator().next().getPosition().getCoordinate());
+    getGraph().getVertices().forEach(v -> envelope.expandToInclude(v.getPosition().getCoordinate()));
+    return envelope;
   }
 
   /**

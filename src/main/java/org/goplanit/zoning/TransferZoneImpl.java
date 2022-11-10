@@ -100,6 +100,10 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
    */
   @Override
   public boolean addTransferZonePlatformName(String platformName) {
+    if(platformName == null){
+      return false;
+    }
+
     if(this.platformNames == null){
       this.platformNames = new ArrayList<>(1);
     }else if(this.platformNames.contains(platformName)){

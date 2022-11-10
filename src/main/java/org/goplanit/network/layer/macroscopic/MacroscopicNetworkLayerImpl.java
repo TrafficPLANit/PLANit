@@ -14,6 +14,7 @@ import org.goplanit.utils.network.layer.physical.Links;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.Nodes;
 import org.goplanit.utils.network.virtual.ConjugateVirtualNetwork;
+import org.locationtech.jts.geom.Envelope;
 
 /**
  * Macroscopic physical Network (layer) that supports one or more modes and link segment types, where the modes are registered on the network (Infrastructure network) level

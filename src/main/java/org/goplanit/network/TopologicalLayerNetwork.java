@@ -2,6 +2,7 @@ package org.goplanit.network;
 
 import java.util.logging.Logger;
 
+import org.locationtech.jts.geom.Envelope;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
@@ -98,4 +99,22 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
     }
   }
 
+  /**
+   * Based on the underlying layer geographies construct a rectangular bounding box reflecting the extremities of the network.
+   * Note this is created from scratch with every call, so for large networks this is a costly operation
+   *
+   * @return bounding box envelope
+   */
+  public Envelope createBoundingBox(){
+    Envelope envelope = null;
+    for(TopologicalLayer layer : getTransportLayers()){
+      Envelope layerBoundingBox = layer.createBoundingBox();
+      if(envelope==null){
+        envelope = layerBoundingBox;
+      }else{
+        envelope.expandToInclude(layerBoundingBox);
+      }
+    }
+    return envelope;
+  }
 }
