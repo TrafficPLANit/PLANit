@@ -129,7 +129,7 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    * {@inheritDoc}
    */
   @Override
-  public void replaceAccessLinkSegment(EdgeSegment exitEdgeSegment) {
+  public void replaceAccessLinkSegment(LinkSegment accessEdgeSegment) {
     setAccessLinkSegment(accessEdgeSegment);
   }
 
