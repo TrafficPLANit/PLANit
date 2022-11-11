@@ -6,6 +6,7 @@ import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.network.layer.physical.NodeFactory;
 import org.goplanit.utils.network.layer.physical.Nodes;
+import org.locationtech.jts.geom.Point;
 
 /**
  * Factory for creating nodes on nodes container
@@ -40,6 +41,16 @@ public class NodeFactoryImpl extends GraphEntityFactoryImpl<Node> implements Nod
     final Node newVertex = createNew();
     getGraphEntities().register(newVertex);
     return newVertex;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Node registerNew(Point position, boolean syncXmlIdToId) {
+    var node = createNew(position, syncXmlIdToId);
+    getGraphEntities().register(node);
+    return node;
   }
 
 }

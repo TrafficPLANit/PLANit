@@ -18,6 +18,7 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
 import org.goplanit.utils.zoning.TransferZone;
 import org.locationtech.jts.geom.Coordinate;
@@ -169,12 +170,12 @@ public class ZoningConverterUtils {
    * @param geoUtils to use for determining geographic eligibility
    * @return ineligible link segments to be access link segments for connectoid at this location
    */
-  public static Collection<EdgeSegment> identifyLinkSegmentsOnWrongSideOf(Geometry location,
-          final Collection<EdgeSegment> accessLinkSegments, final Mode accessMode, boolean leftHandDrive, final PlanitJtsCrsUtils geoUtils) {
+  public static Collection<LinkSegment> identifyLinkSegmentsOnWrongSideOf(Geometry location,
+          final Collection<LinkSegment> accessLinkSegments, final Mode accessMode, boolean leftHandDrive, final PlanitJtsCrsUtils geoUtils) {
 
-    List<EdgeSegment> invalidAccessLinkSegments = new ArrayList<>(accessLinkSegments.size());
+    List<LinkSegment> invalidAccessLinkSegments = new ArrayList<>(accessLinkSegments.size());
     /* use line geometry closest to connectoid location */
-    for (EdgeSegment linkSegment : accessLinkSegments) {
+    for (LinkSegment linkSegment : accessLinkSegments) {
       LineSegment finalLineSegment = PlanitGraphGeoUtils.extractClosestLineSegmentTo(location, linkSegment, geoUtils);
       /* determine location relative to infrastructure */
       boolean isTransferZoneLeftOfInfrastructure = geoUtils.isGeometryLeftOf(location, finalLineSegment.p0, finalLineSegment.p1);
@@ -225,7 +226,7 @@ public class ZoningConverterUtils {
 
   /** Same as node based equivalent, only now we do not know yet which node is our reference node, so we consider both as options
    */
-  public static Collection<EdgeSegment> findAccessLinkSegmentsForWaitingArea(
+  public static Collection<LinkSegment> findAccessLinkSegmentsForWaitingArea(
       String waitingAreaSourceId,
       Geometry waitingAreaGeometry,
       MacroscopicLink accessLink,
@@ -270,7 +271,7 @@ public class ZoningConverterUtils {
    * @param geoUtils to use
    * @return found link segments that are deemed valid given the constraints
    */
-  public static Collection<EdgeSegment> findAccessLinkSegmentsForWaitingArea(
+  public static Collection<LinkSegment> findAccessLinkSegmentsForWaitingArea(
       String waitingAreaSourceId,
       Geometry waitingAreaGeometry,
       MacroscopicLink accessLink,
@@ -284,8 +285,8 @@ public class ZoningConverterUtils {
       PlanitJtsCrsUtils geoUtils) {
 
     /* potential link segments based on mode compatibility and access link restriction */
-    List<EdgeSegment> accessLinkSegments = new ArrayList<>(4);
-    for (EdgeSegment linkSegment : node.getEntryEdgeSegments()) {
+    List<LinkSegment> accessLinkSegments = new ArrayList<>(4);
+    for (var linkSegment : node.<LinkSegment>getEntryLinkSegments()) {
       if (((MacroscopicLinkSegment) linkSegment).isModeAllowed(accessMode) && (linkSegment.getParent().idEquals(accessLink))) {
         accessLinkSegments.add(linkSegment);
       }
@@ -316,13 +317,13 @@ public class ZoningConverterUtils {
     if(mustAvoidCrossingTraffic) {
 
       boolean isLeftHandDrive = DrivingDirectionDefaultByCountry.isLeftHandDrive(countryName);
-      Collection<EdgeSegment> toBeRemoveAccessLinkSegments =
+      Collection<LinkSegment> toBeRemovedAccessLinkSegments =
           identifyLinkSegmentsOnWrongSideOf(waitingAreaGeometry, accessLinkSegments, accessMode, isLeftHandDrive, geoUtils);
 
-      if(!toBeRemoveAccessLinkSegments.isEmpty() &&
-          (removeInvalidAccessLinkSegmentsIfNoMatchLeft || toBeRemoveAccessLinkSegments.size() < accessLinkSegments.size())) {
+      if(!toBeRemovedAccessLinkSegments.isEmpty() &&
+          (removeInvalidAccessLinkSegmentsIfNoMatchLeft || toBeRemovedAccessLinkSegments.size() < accessLinkSegments.size())) {
         /* filter because "normal" situation or there are still matches left even after filtering despite the explicit user override for this  combination */
-        accessLinkSegments.removeAll(toBeRemoveAccessLinkSegments);
+        accessLinkSegments.removeAll(toBeRemovedAccessLinkSegments);
       }
       /* else  keep the access link segments so far */
     }
@@ -361,7 +362,7 @@ public class ZoningConverterUtils {
             accessMode, waitingAreaSourceId, accessNode, getOverwrittenWaitingAreaSourceId);
 
     /* now collect the available access link segments (if any) - switch of logging of issues, since we are only interested in determining if this is feasible, we are not creating anything yet */
-    Collection<EdgeSegment> accessLinkSegments =
+    Collection<LinkSegment> accessLinkSegments =
         findAccessLinkSegmentsForWaitingArea(
             waitingAreaSourceId, waitingAreaGeometry, accessLink, accessLinkSourceId, accessNode, accessMode, countryName, mustAvoidCrossingTraffic, getOverwrittenAccessLinkSourceIdForWaitingAreaSourceId, getOverwrittenWaitingAreaSourceId, geoUtils);
 
