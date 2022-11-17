@@ -28,7 +28,7 @@ import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.linearref.LinearLocation;
 
 /**
- * Utilities regarding Zoning conversions that might be useful for implementations of this particular converter, especially focussed on supporting the mapping of
+ * Utilities regarding Zoning conversions that might be useful for implementations supporting the mapping of
  * non-PLANit geometry based entities to PLANit transfer zones and connectoids
  *
  * @author markr
@@ -370,7 +370,8 @@ public class ZoningConverterUtils {
   }
 
   /** find a suitable connectoid location on the given link based on the constraints that it must be able to reside on a link segment that is in the correct relative position
-   * to the transfer zone and supports the access mode on at least one of the designated link segment(s) that is eligible (if any). If not null is returned
+   * to the transfer zone and supports the access mode on at least one of the designated link segment(s) that is eligible (if any). If not null is returned, otherwise the returned
+   * location may be an existing extreme node's location, or a location internal to the link if the extreme node does not fall within the constraints provided
    *
    * @param waitingAreaSourceId supplies a relevant source id of the waiting area in question to use for exceptions or logging when needed
    * @param waitingAreaGeometry to find location for (which is either sourced from a PLANit transfer zone, or to be created transfer zone) that will reflect this waiting area)
