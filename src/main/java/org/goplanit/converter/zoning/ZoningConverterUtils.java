@@ -20,7 +20,9 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.network.layer.physical.Node;
+import org.goplanit.utils.zoning.DirectedConnectoid;
 import org.goplanit.utils.zoning.TransferZone;
+import org.goplanit.zoning.Zoning;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.LineSegment;
@@ -464,5 +466,44 @@ public class ZoningConverterUtils {
     }
 
     return connectoidLocation;
+  }
+
+  /** create directed connectoid for the link segment provided, all related to the given transfer zone and with access modes provided. When the link segment does not have any of the
+   * passed in modes listed as allowed, no connectoid is created and null is returned
+   *
+   * @param zoning to register on
+   * @param accessZone to relate connectoids to
+   * @param linkSegment to create connectoid for
+   * @param allowedModes used for the connectoid
+   * @return created connectoid when at least one of the allowed modes is also allowed on the link segment
+   */
+  public static DirectedConnectoid createAndRegisterDirectedConnectoid(Zoning zoning, final TransferZone accessZone, final MacroscopicLinkSegment linkSegment, final Set<Mode> allowedModes){
+    final Set<Mode> realAllowedModes = linkSegment.getAllowedModesFrom(allowedModes);
+    if(realAllowedModes!= null && !realAllowedModes.isEmpty()) {
+      var connectoid = zoning.getTransferConnectoids().getFactory().registerNew(linkSegment,accessZone, true, realAllowedModes);
+      return connectoid;
+    }
+    return null;
+  }
+
+  /** create directed connectoids, one per link segment provided, all related to the given transfer zone and with access modes provided. connectoids are only created
+   * when the access link segment has at least one of the allowed modes as an eligible mode
+   *
+   * @param zoning to register on
+   * @param transferZone to relate connectoids to
+   * @param linkSegments to create connectoids for (one per segment)
+   * @param allowedModes used for each connectoid
+   * @return created connectoids
+   */
+  public static Collection<DirectedConnectoid> createAndRegisterDirectedConnectoids(Zoning zoning, final TransferZone transferZone, final Iterable<? extends MacroscopicLinkSegment> linkSegments, final Set<Mode> allowedModes){
+    Set<DirectedConnectoid> createdConnectoids = new HashSet<>();
+    for(var linkSegment : linkSegments) {
+      DirectedConnectoid newConnectoid = createAndRegisterDirectedConnectoid(zoning, transferZone, linkSegment, allowedModes);
+      if(newConnectoid != null) {
+        createdConnectoids.add(newConnectoid);
+      }
+    }
+
+    return createdConnectoids;
   }
 }

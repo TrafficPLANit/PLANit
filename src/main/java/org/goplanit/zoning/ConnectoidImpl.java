@@ -83,7 +83,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
      */
     void addAllowedMode(Mode mode) {
       if (allowedModes == null) {
-        allowedModes = new TreeMap<Long, Mode>();
+        allowedModes = new TreeMap<>();
       }
       allowedModes.put(mode.getId(), mode);
     }
