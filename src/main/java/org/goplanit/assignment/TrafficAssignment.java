@@ -26,6 +26,7 @@ import org.goplanit.supply.networkloading.NetworkLoading;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.zoning.Zoning;
 
@@ -510,9 +511,8 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
    * Set the physical cost where in case the cost is an InteractorAccessor will trigger an event to get access to the required data via requesting an InteractorAccessee
    *
    * @param physicalCost the physical cost object for the current assignment
-   * @throws PlanItException thrown if there is an error
    */
-  public void setPhysicalCost(final AbstractPhysicalCost physicalCost) throws PlanItException {
+  public <LS extends MacroscopicLinkSegment> void setPhysicalCost(final AbstractPhysicalCost physicalCost) {
     logRegisteredComponentName(physicalCost, true);
     registerComponent(AbstractPhysicalCost.class, physicalCost);
   }

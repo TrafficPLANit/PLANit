@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.component.PlanitComponentFactory;
-import org.goplanit.cost.physical.initial.InitialLinkSegmentCost;
+import org.goplanit.cost.physical.initial.InitialMacroscopicLinkSegmentCost;
 import org.goplanit.cost.physical.initial.InitialPhysicalCost;
 import org.goplanit.demands.Demands;
 import org.goplanit.input.InputBuilderListener;
@@ -21,6 +21,7 @@ import org.goplanit.path.OdPathSets;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.service.routed.RoutedServicesLayer;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
+import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -97,18 +98,18 @@ public class PlanItProjectInput {
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  protected InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(LayeredNetwork<?, ?> network, String fileName, final TimePeriod timePeriod) throws PlanItException {
+  protected InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(LayeredNetwork<?, ?> network, String fileName, final TimePeriod timePeriod) throws PlanItException {
     PlanItException.throwIf(network == null, "Physical network must be read in before initial costs can be read");
 
     if (!initialLinkSegmentCosts.containsKey(network)) {
-      initialLinkSegmentCosts.put(network, new ArrayList<InitialLinkSegmentCost>());
+      initialLinkSegmentCosts.put(network, new ArrayList<>());
     }
         
     /* note that the time period(s) are hidden in the eventual event (although available via additional content) as it is generally not useful
      * to the handler who's task it is to populate the component based on the file, regardless to what period it is mapped */
-    final InitialLinkSegmentCost initialLinkSegmentCost = 
-        (InitialLinkSegmentCost) getComponentFactory(InitialPhysicalCost.class).create(
-            InitialLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId}, fileName, network, timePeriod);
+    final InitialMacroscopicLinkSegmentCost initialLinkSegmentCost =
+        (InitialMacroscopicLinkSegmentCost) getComponentFactory(InitialPhysicalCost.class).create(
+            InitialMacroscopicLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId}, fileName, network, timePeriod);
     
     if(timePeriod!=null) {   
       LOGGER.info(LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.timePeriodPrefix(timePeriod)+"populated initial link segment costs");
@@ -123,7 +124,7 @@ public class PlanItProjectInput {
   /**
    * Map to store all InitialLinkSegmentCost objects for each physical network
    */
-  protected final Map<LayeredNetwork<?,?>, List<InitialLinkSegmentCost>> initialLinkSegmentCosts = new HashMap<LayeredNetwork<?,?>, List<InitialLinkSegmentCost>>();
+  protected final Map<LayeredNetwork<?,?>, List<InitialMacroscopicLinkSegmentCost>> initialLinkSegmentCosts = new HashMap<>();
 
   // FACTORIES
   
@@ -354,7 +355,7 @@ public class PlanItProjectInput {
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final LayeredNetwork<?,?> network, final String fileName) throws PlanItException {
+  public InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final LayeredNetwork<?,?> network, final String fileName) throws PlanItException {
     return createAndRegisterInitialLinkSegmentCost(network, fileName, (TimePeriod) null);
   }
 
@@ -365,7 +366,7 @@ public class PlanItProjectInput {
    * @param network the specified network
    * @return the initial link segment costs for the specified physical network
    */
-  public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final LayeredNetwork<?,?> network) {
+  public List<InitialMacroscopicLinkSegmentCost> getInitialLinkSegmentCost(final LayeredNetwork<?,?> network) {
     return initialLinkSegmentCosts.get(network);
   }
 }

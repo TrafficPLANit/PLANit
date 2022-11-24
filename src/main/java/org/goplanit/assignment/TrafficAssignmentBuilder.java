@@ -110,9 +110,11 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected Smoothing createSmoothingInstance() throws PlanItException {
-    var smoothingFactory = new PlanitComponentFactory<Smoothing>(Smoothing.class);
-    smoothingFactory.addListener(getInputBuilderListener());
-    return smoothingFactory.create(getConfigurator().getSmoothing().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
+    return PlanitComponentFactory.createWithListeners(
+        Smoothing.class,
+        getConfigurator().getSmoothing().getClassTypeToConfigure(),
+        new Object[] { getGroupIdToken() },
+        getInputBuilderListener());
   }
 
   /**
@@ -122,10 +124,12 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected AbstractPhysicalCost createPhysicalCostInstance() throws PlanItException {
-    var physicalCostFactory = new PlanitComponentFactory<AbstractPhysicalCost>(AbstractPhysicalCost.class);
-    physicalCostFactory.addListener(getInputBuilderListener());
-    return physicalCostFactory.create(getConfigurator().getPhysicalCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() },
-        new Object[] { getConfigurator().getInfrastructureNetwork() });
+    return PlanitComponentFactory.createWithListeners(
+        AbstractPhysicalCost.class,
+        getConfigurator().getPhysicalCost().getClassTypeToConfigure(),
+        new Object[] { getGroupIdToken() },
+        new Object[] { getConfigurator().getInfrastructureNetwork() },
+        getInputBuilderListener());
   }
 
   /**
@@ -135,9 +139,11 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected AbstractVirtualCost createVirtualCostInstance() throws PlanItException {
-    var virtualCostFactory = new PlanitComponentFactory<AbstractVirtualCost>(AbstractVirtualCost.class);
-    virtualCostFactory.addListener(getInputBuilderListener());
-    return virtualCostFactory.create(getConfigurator().getVirtualCost().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken() });
+    return PlanitComponentFactory.createWithListeners(
+        AbstractVirtualCost.class,
+        getConfigurator().getVirtualCost().getClassTypeToConfigure(),
+        new Object[] { getGroupIdToken() },
+        getInputBuilderListener());
   }
 
   /**
@@ -148,9 +154,11 @@ public abstract class TrafficAssignmentBuilder<T extends TrafficAssignment> exte
    * @throws PlanItException thrown if error
    */
   protected GapFunction createGapFunctionInstance(StopCriterion stopCriterion) throws PlanItException {
-    var gapFunctionFactory = new PlanitComponentFactory<GapFunction>(GapFunction.class);
-    gapFunctionFactory.addListener(getInputBuilderListener());
-    return gapFunctionFactory.create(getConfigurator().getGapFunction().getClassTypeToConfigure().getCanonicalName(), new Object[] { getGroupIdToken(), stopCriterion });
+    return PlanitComponentFactory.createWithListeners(
+        GapFunction.class,
+        getConfigurator().getGapFunction().getClassTypeToConfigure(),
+        new Object[] { getGroupIdToken(), stopCriterion },
+        getInputBuilderListener());
   }
 
   /**

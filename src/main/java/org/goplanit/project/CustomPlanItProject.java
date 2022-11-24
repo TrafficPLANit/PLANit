@@ -12,7 +12,7 @@ import org.goplanit.assignment.TrafficAssignmentBuilderFactory;
 import org.goplanit.assignment.TrafficAssignmentConfigurator;
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.component.PlanitComponentFactory;
-import org.goplanit.cost.physical.initial.InitialLinkSegmentCost;
+import org.goplanit.cost.physical.initial.InitialMacroscopicLinkSegmentCost;
 import org.goplanit.demands.Demands;
 import org.goplanit.input.InputBuilderListener;
 import org.goplanit.network.LayeredNetwork;
@@ -258,7 +258,7 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCost object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final LayeredNetwork<?, ?> network, final String fileName) throws PlanItException {
+  public InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final LayeredNetwork<?, ?> network, final String fileName) throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName);
   }
 
@@ -271,7 +271,7 @@ public class CustomPlanItProject {
    * @return the InitialLinkSegmentCostPeriod object
    * @throws PlanItException thrown if there is an error
    */
-  public InitialLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final LayeredNetwork<?, ?> network, final String fileName, final TimePeriod timePeriod)
+  public InitialMacroscopicLinkSegmentCost createAndRegisterInitialLinkSegmentCost(final LayeredNetwork<?, ?> network, final String fileName, final TimePeriod timePeriod)
       throws PlanItException {
     return inputs.createAndRegisterInitialLinkSegmentCost(network, fileName, timePeriod);
   }
@@ -297,7 +297,7 @@ public class CustomPlanItProject {
    * @param network the specified network
    * @return the initial link segment costs for the specified physical network
    */
-  public List<InitialLinkSegmentCost> getInitialLinkSegmentCost(final LayeredNetwork<?, ?> network) {
+  public List<InitialMacroscopicLinkSegmentCost> getInitialLinkSegmentCost(final LayeredNetwork<?, ?> network) {
     return inputs.getInitialLinkSegmentCost(network);
   }
 

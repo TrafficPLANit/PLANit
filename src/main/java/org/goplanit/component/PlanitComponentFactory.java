@@ -26,7 +26,7 @@ import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.physical.BPRLinkTravelTimeCost;
 import org.goplanit.cost.physical.FreeFlowLinkTravelTimeCost;
 import org.goplanit.cost.physical.SteadyStateTravelTimeCost;
-import org.goplanit.cost.physical.initial.InitialLinkSegmentCost;
+import org.goplanit.cost.physical.initial.InitialMacroscopicLinkSegmentCost;
 import org.goplanit.cost.physical.initial.InitialPhysicalCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.cost.virtual.FixedConnectoidTravelTimeCost;
@@ -55,6 +55,7 @@ import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventListenerPriority;
 import org.goplanit.utils.event.EventProducerImpl;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.reflection.ReflectionUtils;
 import org.goplanit.utils.time.TimePeriod;
@@ -120,7 +121,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
     registerPlanitComponentType(BPRLinkTravelTimeCost.class);
     registerPlanitComponentType(FreeFlowLinkTravelTimeCost.class);
     registerPlanitComponentType(SteadyStateTravelTimeCost.class);
-    registerPlanitComponentType(InitialLinkSegmentCost.class);
+    registerPlanitComponentType(InitialMacroscopicLinkSegmentCost.class);
     registerPlanitComponentType(FixedConnectoidTravelTimeCost.class);
     registerPlanitComponentType(SpeedConnectoidTravelTimeCost.class);
     registerPlanitComponentType(NewellFundamentalDiagramComponent.class);
@@ -137,17 +138,21 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @param planitComponentClassName the name of the PLANit component to be created
    * @param constructorParameters    parameters to pass to the constructor
    * @return the created component object
-   * @throws PlanItException thrown if there is an error
    */
-  @SuppressWarnings("unchecked")
-  private T createTrafficComponent(final String planitComponentClassName, final Object[] constructorParameters) throws PlanItException {
+  private <T extends PlanitComponent<?>> T createTrafficComponent(final String planitComponentClassName, final Object[] constructorParameters) {
     final var eligibleComponentTypes = registeredPlanitComponents.get(componentSuperTypeCanonicalName);
-    PlanItException.throwIf(eligibleComponentTypes == null || !eligibleComponentTypes.contains(planitComponentClassName),
+    PlanItRunTimeException.throwIf(eligibleComponentTypes == null || !eligibleComponentTypes.contains(planitComponentClassName),
         "Provided PLANit Component class %s is not eligible for construction", planitComponentClassName != null ? planitComponentClassName : "");
 
-    Object instance = ReflectionUtils.createInstance(planitComponentClassName, constructorParameters);
-    PlanItException.throwIf(!(instance instanceof PlanitComponent<?>), "provided factory class is not eligible for construction since it is not derived from PLANitComponent<?>");
-    T typedInstance = (T) instance;
+    T typedInstance = null;
+    try {
+      Object instance = ReflectionUtils.createInstance(planitComponentClassName, constructorParameters);
+      PlanItRunTimeException.throwIf(!(instance instanceof PlanitComponent<?>), "provided factory class is not eligible for construction since it is not derived from PLANitComponent<?>");
+      typedInstance = (T) instance;
+    }catch(Exception e){
+      throw new PlanItRunTimeException(e);
+    }
+
 
     /* register as listener for PLANit component events, so it can act upon them before other registered listeners */
     addListener(typedInstance, EventListenerPriority.HIGH);
@@ -159,9 +164,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    *
    * @param newPlanitComponent the PLANit component being created
    * @param parameters         parameter object array to be used by the event
-   * @throws PlanItException thrown if there is an exception
    */
-  private void dispatchPopulatePlanitComponentEvent(final T newPlanitComponent, final Object[] parameters) throws PlanItException {
+  private <T extends PlanitComponent<?>> void dispatchPopulatePlanitComponentEvent(final T newPlanitComponent, final Object[] parameters) {
 
     /* when possible use more specific event for user friendly access to event content on listeners */
     /* TODO: type check parameters and issue message when not correct */
@@ -179,8 +183,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
       fireEvent(new PopulateGapFunctionEvent(this, (GapFunction) newPlanitComponent));
     } else if (newPlanitComponent instanceof FundamentalDiagramComponent) {
       fireEvent(new PopulateFundamentalDiagramEvent(this, (FundamentalDiagramComponent) newPlanitComponent, (MacroscopicNetworkLayer) parameters[0]));
-    } else if (newPlanitComponent instanceof InitialLinkSegmentCost) {
-      fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1],
+    } else if (newPlanitComponent instanceof InitialMacroscopicLinkSegmentCost) {
+      fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialMacroscopicLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1],
           (TimePeriod) parameters[2]));
     } else if (newPlanitComponent instanceof AbstractPhysicalCost) {
       fireEvent(new PopulatePhysicalCostEvent(this, (AbstractPhysicalCost) newPlanitComponent, (MacroscopicNetwork) parameters[0]));
@@ -262,14 +266,51 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
   }
 
   /**
+   * Simplified factory method which creates the component, registers the provided listeners for the temporary factory instance component and
+   * then invokes the creation with those listeners as a one-off call
+   *
+   * @param clazzCategory the concrete component belongs to
+   * @param concreteClass to create
+   * @param constructorParameters to use
+   * @param eventParameters to apply for the event listeners that are listening (if any)
+   * @param listeners to register (may be null)
+   * @return created component
+   */
+  public static <C extends PlanitComponent<?>, U extends C> U createWithListeners(
+      Class<C> clazzCategory, Class<U> concreteClass, final Object[] constructorParameters, final Object[] eventParameters, PlanitComponentListener... listeners) {
+    var factoryInstance = new PlanitComponentFactory<C>(clazzCategory.getCanonicalName());
+    if(listeners != null) {
+      for (var listener : listeners) {
+        factoryInstance.addListener(listener);
+      }
+      return factoryInstance.create(concreteClass.getCanonicalName(), constructorParameters, eventParameters);
+    }
+    return factoryInstance.create(concreteClass.getCanonicalName(), constructorParameters);
+  }
+
+  /**
+   * Simplified factory method which creates the component, registers the provided listeners for the temporary factory instance component and
+   * then invokes the creation with those listeners as a one-off call
+   *
+   * @param clazzCategory the concrete component belongs to
+   * @param concreteClass to create
+   * @param constructorParameters to use
+   * @param listeners to register (may be null)
+   * @return created component
+   */
+  public static <C extends PlanitComponent<?>, U extends C> U createWithListeners(
+      Class<C> clazzCategory, Class<U> concreteClass, final Object[] constructorParameters, PlanitComponentListener... listeners) {
+    return createWithListeners(clazzCategory, concreteClass, constructorParameters, null, listeners);
+  }
+
+  /**
    * Create PLANit component
    *
    * @param planitComponentClassName the derived class name of the PLANit component (without packages)
    * @param constructorParameters    parameters to pass to the constructor
    * @return the created TrafficAssignmentComponent
-   * @throws PlanItException thrown if there is an error
    */
-  public T create(final String planitComponentClassName, final Object[] constructorParameters) throws PlanItException {
+  public <T extends PlanitComponent<?>> T create(final String planitComponentClassName, final Object[] constructorParameters) {
     final T newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
     dispatchPopulatePlanitComponentEvent(newTrafficComponent, constructorParameters);
     return newTrafficComponent;
@@ -282,9 +323,8 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    * @param constructorParameters    parameters to pass to the constructor
    * @param eventParameters          object array which contains any additional data that might be required to populate the component
    * @return the created component
-   * @throws PlanItException thrown if there is an error
    */
-  public T create(final String planitComponentClassName, final Object[] constructorParameters, final Object... eventParameters) throws PlanItException {
+  public <T extends PlanitComponent<?>> T create(final String planitComponentClassName, final Object[] constructorParameters, final Object... eventParameters) {
     final T newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
     dispatchPopulatePlanitComponentEvent(newTrafficComponent, eventParameters);
     return newTrafficComponent;

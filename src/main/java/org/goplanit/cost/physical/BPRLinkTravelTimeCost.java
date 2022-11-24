@@ -47,7 +47,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
      * Constructor
      */
     public BPRParameters() {
-      parametersMap = new HashMap<Mode, Pair<Double, Double>>();
+      parametersMap = new HashMap<>();
     }
 
     /**
@@ -355,7 +355,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    * @param costToFill the cost to populate (in hours)
    */
   @Override
-  public void populateWithCost(UntypedPhysicalLayer<?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
+  public void populateWithCost(UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> physicalLayer, Mode mode, double[] costToFill) {
     double[] linkSegmentFlows = linkVolumeAccessee.getLinkSegmentVolumes();
 
     for (var linkSegment : physicalLayer.getLinkSegments()) {
@@ -363,7 +363,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
       // we should not be using the id that is unique across both, just the one for physical link segments. By accident this did work so far due to connectoid segments being
       // created after the link segments. Verify if tests still succeed. IF so, remove this comment
       final int id = (int) linkSegment.getLinkSegmentId();
-      costToFill[id] = computeCostInHours((MacroscopicLinkSegment) linkSegment, mode, linkSegmentFlows[id]);
+      costToFill[id] = computeCostInHours(linkSegment, mode, linkSegmentFlows[id]);
     }
   }
 

@@ -9,7 +9,7 @@ import org.goplanit.utils.mode.Mode;
  * @author gman6028
  *
  */
-public class ManualInitialLinkSegmentCost extends InitialLinkSegmentCost {
+public class FixedInitialMacroscopicLinkSegmentCost extends InitialMacroscopicLinkSegmentCost {
 
   /** generated UID */
   private static final long serialVersionUID = 535851629771497368L;
@@ -19,7 +19,7 @@ public class ManualInitialLinkSegmentCost extends InitialLinkSegmentCost {
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  public ManualInitialLinkSegmentCost(IdGroupingToken groupId) {
+  public FixedInitialMacroscopicLinkSegmentCost(IdGroupingToken groupId) {
     super(groupId);
   }
 
@@ -28,7 +28,7 @@ public class ManualInitialLinkSegmentCost extends InitialLinkSegmentCost {
    * 
    * @param other to copy
    */
-  public ManualInitialLinkSegmentCost(ManualInitialLinkSegmentCost other) {
+  public FixedInitialMacroscopicLinkSegmentCost(FixedInitialMacroscopicLinkSegmentCost other) {
     super(other);
   }
 
@@ -49,8 +49,8 @@ public class ManualInitialLinkSegmentCost extends InitialLinkSegmentCost {
    * {@inheritDoc}
    */
   @Override
-  public ManualInitialLinkSegmentCost clone() {
-    return new ManualInitialLinkSegmentCost(this);
+  public FixedInitialMacroscopicLinkSegmentCost clone() {
+    return new FixedInitialMacroscopicLinkSegmentCost(this);
   }
 
   /**

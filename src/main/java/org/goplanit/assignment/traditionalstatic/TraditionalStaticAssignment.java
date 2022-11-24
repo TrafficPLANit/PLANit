@@ -10,6 +10,7 @@ import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.StaticTrafficAssignment;
 import org.goplanit.cost.Cost;
+import org.goplanit.cost.CostUtils;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
 import org.goplanit.interactor.LinkVolumeAccessee;
 import org.goplanit.network.MacroscopicNetwork;
@@ -24,6 +25,7 @@ import org.goplanit.output.enums.OutputType;
 import org.goplanit.path.DirectedPathFactoryImpl;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -171,7 +173,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
     final OdDemands odDemands = getDemands().get(mode, timePeriod);
 
     final var dualityGapFunction = ((LinkBasedRelativeDualityGapFunction) getGapFunction());
-    final var odpathMatrix = simulationData.getOdPathMatrix(mode);
+    final var odPathMatrix = simulationData.getOdPathMatrix(mode);
     final Map<OdSkimSubOutputType, OdSkimMatrix> skimMatrixMap = simulationData.getSkimMatrixMap(mode);
 
     // loop over all available OD demands
@@ -219,7 +221,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
           /* update skim and path data if needed */
 
           updateODOutputData(skimMatrixMap, currentOriginZone, currentDestinationZone, odDemand, shortestPathResult);
-          updatePathOutputData(mode, odpathMatrix, currentOriginZone, currentDestinationZone, shortestPathResult);
+          updatePathOutputData(mode, odPathMatrix, currentOriginZone, currentDestinationZone, shortestPathResult);
         }
       }
     }
@@ -359,32 +361,6 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   }
 
   /**
-   * Populate the current segment costs for connectoids
-   *
-   * @param mode                current mode of travel
-   * @param currentSegmentCosts array to store the current segment costs
-   * @throws PlanItException thrown if there is an error
-   */
-  private void populateModalConnectoidCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
-    for (var currentSegment : getTransportNetwork().getVirtualNetwork().getConnectoidSegments()) {
-      currentSegmentCosts[(int) currentSegment.getId()] = getVirtualCost().getGeneralisedCost(mode, currentSegment);
-    }
-  }
-
-  /**
-   * Calculate and store the link segment costs for links for the current iteration
-   *
-   * This method is called during the second and subsequent iterations of the simulation.
-   *
-   * @param mode                current mode of travel
-   * @param currentSegmentCosts array to store the current segment costs
-   * @throws PlanItException thrown if there is an error
-   */
-  private void populateModalLinkSegmentCosts(final Mode mode, final double[] currentSegmentCosts) throws PlanItException {
-    getPhysicalCost().populateWithCost(getInfrastructureNetwork().getLayerByMode(mode), mode, currentSegmentCosts);
-  }
-
-  /**
    * Initialize the link segment costs from the InitialLinkSegmentCost that is not time period specific
    *
    * This method is called during the first iteration of the simulation.
@@ -431,13 +407,12 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param cost            Cost object used to calculate the cost*
    * @param mode            current mode of travel
    * @param costsToPopulate array to store the current segment costs
-   * @throws PlanItException thrown if there is an error
    */
-  private void populateCost(Cost<MacroscopicLinkSegment> cost, final Mode mode, final double[] costsToPopulate) throws PlanItException {
+  private void populateCost(Cost<MacroscopicLinkSegment> cost, final Mode mode, final double[] costsToPopulate) {
     for (var linkSegment : networkLayer.getLinkSegments()) {
       double currentSegmentCost = cost.getGeneralisedCost(mode, linkSegment);
       if (currentSegmentCost < 0.0) {
-        throw new PlanItException(String.format("link segment cost is negative for link segment %d (id: %d)", linkSegment.getExternalId(), linkSegment.getId()));
+        throw new PlanItRunTimeException(String.format("link segment cost is negative for link segment %d (id: %d)", linkSegment.getExternalId(), linkSegment.getId()));
       }
       costsToPopulate[(int) linkSegment.getId()] = currentSegmentCost;
     }
@@ -454,16 +429,16 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @throws PlanItException thrown if there is an error
    */
   private double[] initialiseLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
-    final double[] currentSegmentCosts = new double[getTransportNetwork().getNumberOfEdgeSegmentsAllLayers()];
+    final double[] currentSegmentCosts = CostUtils.createEmptyLinkSegmentCostArray(getInfrastructureNetwork(), getZoning());
 
     /* virtual component */
-    populateModalConnectoidCosts(mode, currentSegmentCosts);
+    CostUtils.populateModalVirtualLinkSegmentCosts(mode, getVirtualCost(), getZoning().getVirtualNetwork(), currentSegmentCosts);
 
     /* physical component */
-    if (populateToInitialCost(mode, timePeriod, currentSegmentCosts)) {
+    if(populateToInitialCost(mode, timePeriod, currentSegmentCosts)) {
       return currentSegmentCosts;
     } else {
-      populateModalLinkSegmentCosts(mode, currentSegmentCosts);
+      CostUtils.populateModalPhysicalLinkSegmentCosts(mode, getPhysicalCost(), getInfrastructureNetwork(), currentSegmentCosts);
       return currentSegmentCosts;
     }
   }
@@ -472,15 +447,10 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * Collect the modal link and connectoid segment costs based on the current state of the cost components
    *
    * @param mode       current mode
-   * @param timePeriod current time period
    * @return array containing costs for each link segment
-   * @throws PlanItException thrown if there is an error
    */
-  private double[] collectModalLinkSegmentCosts(final Mode mode, final TimePeriod timePeriod) throws PlanItException {
-    final double[] currentSegmentCosts = new double[getTransportNetwork().getNumberOfEdgeSegmentsAllLayers()];
-    populateModalConnectoidCosts(mode, currentSegmentCosts);
-    populateModalLinkSegmentCosts(mode, currentSegmentCosts);
-    return currentSegmentCosts;
+  private double[] collectModalLinkSegmentCosts(final Mode mode) {
+    return CostUtils.createModalSegmentCost(mode, getVirtualCost(), getPhysicalCost(), getInfrastructureNetwork(), getZoning());
   }
 
   /**
@@ -528,7 +498,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
       iterationStartTime = logBasicIterationInformation(iterationStartTime, dualityGapFunction.getMeasuredNetworkCost(), dualityGapFunction.getGap());
 
       for (var mode : modes) {
-        final double[] modalLinkSegmentCosts = collectModalLinkSegmentCosts(mode, timePeriod);
+        final double[] modalLinkSegmentCosts = collectModalLinkSegmentCosts(mode);
         simulationData.setModalLinkSegmentCosts(mode, modalLinkSegmentCosts);
       }
       converged = dualityGapFunction.hasConverged(simulationData.getIterationIndex());

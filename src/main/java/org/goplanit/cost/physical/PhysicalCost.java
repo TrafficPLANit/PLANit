@@ -2,6 +2,7 @@ package org.goplanit.cost.physical;
 
 import org.goplanit.cost.Cost;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 
 /**
  * Interface to classify costs of physical links
@@ -12,7 +13,7 @@ import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
  * @author markr
  *
  */
-public interface PhysicalCost extends Cost<MacroscopicLinkSegment> {
+public interface PhysicalCost<LS extends LinkSegment> extends Cost<LS> {
 
   /** short hand for configuring physical cost with BPR function instance */
   public static final String BPR = BPRLinkTravelTimeCost.class.getCanonicalName();

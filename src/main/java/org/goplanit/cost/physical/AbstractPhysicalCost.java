@@ -12,12 +12,12 @@ import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
- * Class for dynamic cost functions, which calculate link segment costs for each iteration
+ * Class for dynamic cost functions, which calculate link segment costs for each iteration and assumes an underlying macroscopic link segment approach
  *
  * @author markr, gman6028
  *
  */
-public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysicalCost> implements PhysicalCost, Serializable {
+public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysicalCost> implements PhysicalCost<MacroscopicLinkSegment>, Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = 3657719270477537657L;
@@ -46,11 +46,10 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
    * @param physicalLayer these cost pertain to
    * @param mode          the mode these costs pertain to
    * @param costToFill    array of link segment costs identified by the link segment's internal id
-   * @throws PlanItException thrown if error
    */
-  public void populateWithCost(final UntypedPhysicalLayer<?, ?, ?> physicalLayer, Mode mode, double[] costToFill) throws PlanItException {
+  public void populateWithCost(final UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> physicalLayer, Mode mode, double[] costToFill) {
     for (var linkSegment : physicalLayer.getLinkSegments()) {
-      costToFill[(int) linkSegment.getId()] = getGeneralisedCost(mode, (MacroscopicLinkSegment) linkSegment);
+      costToFill[(int) linkSegment.getId()] = getGeneralisedCost(mode, linkSegment);
     }
   }
 

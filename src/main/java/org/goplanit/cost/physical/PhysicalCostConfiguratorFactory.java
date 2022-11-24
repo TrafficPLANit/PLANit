@@ -19,11 +19,11 @@ public class PhysicalCostConfiguratorFactory {
    */
   public static PhysicalCostConfigurator<? extends AbstractPhysicalCost> createConfigurator(final String physicalCostType) throws PlanItException {
 
-    if (physicalCostType.equals(AbstractPhysicalCost.BPR)) {
+    if (physicalCostType.equals(PhysicalCost.BPR)) {
       return new BPRConfigurator();
-    } else if (physicalCostType.equals(AbstractPhysicalCost.FREEFLOW)) {
+    } else if (physicalCostType.equals(PhysicalCost.FREEFLOW)) {
       return new FreeFlowLinkTravelTimeConfigurator();
-    } else if (physicalCostType.equals(AbstractPhysicalCost.STEADY_STATE)) {
+    } else if (physicalCostType.equals(PhysicalCost.STEADY_STATE)) {
       return new SteadyStateTravelTimeConfigurator();
     } else {
       // TODO when not explicitly available try to instantiate using passed in string and reflection instead

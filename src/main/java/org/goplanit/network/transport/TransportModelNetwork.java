@@ -7,6 +7,7 @@ import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.Edge;
+import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.physical.UntypedPhysicalLayer;
 import org.goplanit.utils.network.virtual.ConnectoidEdge;
 import org.goplanit.utils.network.virtual.ConnectoidEdgeFactory;
@@ -50,9 +51,8 @@ public class TransportModelNetwork {
    * Add Edge to both vertices
    * 
    * @param edge Edge to be added to upstream and downstream vertices
-   * @throws PlanItException thrown if there is an error
    */
-  protected void connectVerticesToEdge(Edge edge) throws PlanItException {
+  protected void connectVerticesToEdge(Edge edge) {
     edge.getVertexA().addEdge(edge);
     edge.getVertexB().addEdge(edge);
   }
@@ -61,9 +61,8 @@ public class TransportModelNetwork {
    * Remove Edge from both vertices
    * 
    * @param edge Edge to be removed from upstream and downstream vertices
-   * @throws PlanItException thrown if there is an error
    */
-  protected void disconnectVerticesFromEdge(Edge edge) throws PlanItException {
+  protected void disconnectVerticesFromEdge(Edge edge) {
     edge.getVertexA().removeEdge(edge);
     edge.getVertexB().removeEdge(edge);
   }
@@ -90,6 +89,66 @@ public class TransportModelNetwork {
   }
 
   /**
+   * Returns the total number of edge segments available in this traffic assignment by combining the physical and non-physical link segments
+   *
+   * @return total number of physical and virtual edge segments
+   */
+  public static int getNumberOfEdgeSegmentsAllLayers(LayeredNetwork<?, ?> theNetwork, Zoning theZoning) {
+    return getNumberOfPhysicalLinkSegmentsAllLayers(theNetwork) + getNumberOfConnectoidSegments(theZoning);
+  }
+
+  /**
+   * Returns the total number of connectoid segments available in this transport network
+   *
+   * @param theZoning to use
+   * @return the number of connectoid segments in this network
+   */
+  public static int getNumberOfConnectoidSegments(Zoning theZoning) {
+    return theZoning.getVirtualNetwork().getConnectoidSegments().size();
+  }
+
+  /**
+   * Returns the total number of link segments available in this physical layered network across all eligible layers
+   *
+   * @param theNetwork to use
+   * @return the number of physical link segments in this network
+   */
+  public static int getNumberOfPhysicalLinkSegmentsAllLayers(LayeredNetwork<?, ?> theNetwork) {
+    int totalPhysicalLinkSegments = 0;
+    var networkLayers = theNetwork.getTransportLayers().<MacroscopicNetworkLayerImpl>getLayersOfType();
+    for (var layer : networkLayers) {
+      totalPhysicalLinkSegments += layer.getNumberOfLinkSegments();
+    }
+    return totalPhysicalLinkSegments;
+  }
+
+  /**
+   * Returns the total physical vertices and centroid vertices (of od and/or transfer zones) in this transport network
+   *
+   * @param physicalNetwork to use
+   * @param zoning to use
+   * @return the total number of vertices
+   */
+  public static int getNumberOfVerticesAllLayers(LayeredNetwork<?, ?> physicalNetwork, Zoning zoning) {
+    return zoning.getOdZones().getNumberOfCentroids() + zoning.getTransferZones().getNumberOfCentroids() + getNumberOfPhysicalNodesAllLayers(physicalNetwork);
+  }
+
+  /**
+   * Returns the total number of physical nodes available in this transport network across all eligible layers
+   *
+   * @param theNetwork to use
+   * @return the number of physical nodes in this network
+   */
+  public static int getNumberOfPhysicalNodesAllLayers(LayeredNetwork<?, ?> theNetwork) {
+    int totalPhysicalNodes = 0;
+    var networkLayers = theNetwork.getTransportLayers().<UntypedPhysicalLayer>getLayersOfType();
+    for (var layer : networkLayers) {
+      totalPhysicalNodes += layer.getNumberOfNodes();
+    }
+    return totalPhysicalNodes;
+  }
+
+  /**
    * Constructor
    * 
    * @param infrastructureNetwork the network used to generate this TransportNetwork
@@ -106,7 +165,7 @@ public class TransportModelNetwork {
    * @throws PlanItException thrown if there is an error
    */
   public void integrateTransportNetworkViaConnectoids() throws PlanItException {
-    LOGGER.info(String.format("Integrating physical network %d (xml id %s) with zoning %d (XML id %s)", infrastructureNetwork.getId(),
+    LOGGER.info(String.format("Integrating physical network %d (XML id %s) with zoning %d (XML id %s)", infrastructureNetwork.getId(),
         infrastructureNetwork.getXmlId() != null ? infrastructureNetwork.getXmlId() : "N/A", zoning.getId(), zoning.getXmlId() != null ? zoning.getXmlId() : "N/A"));
 
     VirtualNetwork virtualNetwork = zoning.getVirtualNetwork();
@@ -138,7 +197,7 @@ public class TransportModelNetwork {
    * @return total number of physical and virtual edge segments
    */
   public int getNumberOfEdgeSegmentsAllLayers() {
-    return getNumberOfPhysicalLinkSegmentsAllLayers() + getNumberOfConnectoidSegments();
+    return getNumberOfPhysicalLinkSegmentsAllLayers(getInfrastructureNetwork()) + getNumberOfConnectoidSegments(getZoning());
   }
 
   /**
@@ -147,12 +206,7 @@ public class TransportModelNetwork {
    * @return the number of physical link segments in this network
    */
   public int getNumberOfPhysicalLinkSegmentsAllLayers() {
-    int totalPhysicalLinkSegments = 0;
-    Collection<MacroscopicNetworkLayerImpl> networkLayers = getInfrastructureNetwork().getTransportLayers().<MacroscopicNetworkLayerImpl>getLayersOfType();
-    for (MacroscopicNetworkLayerImpl layer : networkLayers) {
-      totalPhysicalLinkSegments += layer.getNumberOfLinkSegments();
-    }
-    return totalPhysicalLinkSegments;
+    return getNumberOfPhysicalLinkSegmentsAllLayers(getInfrastructureNetwork());
   }
 
   /**
@@ -170,22 +224,16 @@ public class TransportModelNetwork {
    * @return the total number of vertices
    */
   public int getNumberOfVerticesAllLayers() {
-    return zoning.getOdZones().getNumberOfCentroids() + zoning.getTransferZones().getNumberOfCentroids() + getNumberOfPhysicalNodesAllLayers();
+    return getNumberOfVerticesAllLayers(getInfrastructureNetwork(), zoning);
   }
 
   /**
    * Returns the total number of physical nodes available in this transport network across all eligible layers
-   * 
+   *
    * @return the number of physical nodes in this network
    */
-  @SuppressWarnings("rawtypes")
   public int getNumberOfPhysicalNodesAllLayers() {
-    int totalPhysicalNodes = 0;
-    Collection<UntypedPhysicalLayer> networkLayers = getInfrastructureNetwork().getTransportLayers().<UntypedPhysicalLayer>getLayersOfType();
-    for (UntypedPhysicalLayer layer : networkLayers) {
-      totalPhysicalNodes += layer.getNumberOfNodes();
-    }
-    return totalPhysicalNodes;
+    return getNumberOfPhysicalNodesAllLayers(getInfrastructureNetwork());
   }
 
   /**

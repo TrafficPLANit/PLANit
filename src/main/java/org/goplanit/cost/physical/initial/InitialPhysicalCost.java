@@ -7,6 +7,7 @@ import org.goplanit.cost.physical.PhysicalCost;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -15,7 +16,7 @@ import org.goplanit.utils.time.TimePeriod;
  * @author gman6028, markr
  *
  */
-public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysicalCost> implements PhysicalCost, Serializable {
+public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysicalCost> implements PhysicalCost<MacroscopicLinkSegment>, Serializable {
 
   /** generated UID */
   private static final long serialVersionUID = -7894043964147010621L;

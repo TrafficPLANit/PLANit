@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import org.goplanit.cost.physical.AbstractPhysicalCost;
 import org.goplanit.cost.physical.PhysicalCostConfigurator;
 import org.goplanit.cost.physical.PhysicalCostConfiguratorFactory;
-import org.goplanit.cost.physical.initial.InitialLinkSegmentCost;
+import org.goplanit.cost.physical.initial.InitialMacroscopicLinkSegmentCost;
 import org.goplanit.cost.physical.initial.InitialModesLinkSegmentCost;
 import org.goplanit.cost.virtual.AbstractVirtualCost;
 import org.goplanit.cost.virtual.VirtualCostConfigurator;
@@ -264,7 +264,7 @@ public class TrafficAssignmentConfigurator<T extends TrafficAssignment> extends 
    *
    * @param initialLinkSegmentCost initial link segment cost for the current traffic assignment
    */
-  public void registerInitialLinkSegmentCost(InitialLinkSegmentCost initialLinkSegmentCost) {
+  public void registerInitialLinkSegmentCost(InitialMacroscopicLinkSegmentCost initialLinkSegmentCost) {
     registerInitialLinkSegmentCost(initialLinkSegmentCost.getTimePeriodAgnosticCosts());
     if (initialLinkSegmentCost.getTimePeriods() != null) {
       for (var timePeriod : initialLinkSegmentCost.getTimePeriods()) {

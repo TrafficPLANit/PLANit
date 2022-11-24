@@ -91,7 +91,7 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * {@inheritDoc}
    */
   @Override
-  public void populateWithCost(final VirtualNetwork virtualNetwork, final Mode mode, double[] costToFill) throws PlanItException {
+  public void populateWithCost(final VirtualNetwork virtualNetwork, final Mode mode, double[] costToFill) {
     for (var virtualSegment : virtualNetwork.getConnectoidSegments()) {
       costToFill[(int) virtualSegment.getId()] = fixedConnectoidCost;
     }
@@ -135,7 +135,7 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
   @Override
   public Map<String, String> collectSettingsAsKeyValueMap() {
     var settings = new HashMap<String, String>();
-    settings.put("fixed-connectoid-cost (h)", "" + fixedConnectoidCost);
+    settings.put("Fixed-connectoid-cost (h)", "" + fixedConnectoidCost);
     return settings;
   }
 }

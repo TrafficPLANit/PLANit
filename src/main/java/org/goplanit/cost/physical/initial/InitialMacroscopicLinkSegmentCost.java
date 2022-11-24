@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import org.goplanit.cost.physical.PhysicalCost;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
@@ -17,9 +18,9 @@ import org.goplanit.utils.time.TimePeriod;
  * @author gman6028, markr
  *
  */
-public class InitialLinkSegmentCost extends InitialPhysicalCost {
+public class InitialMacroscopicLinkSegmentCost extends InitialPhysicalCost implements PhysicalCost<MacroscopicLinkSegment> {
 
-  private static final Logger LOGGER = Logger.getLogger(InitialLinkSegmentCost.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(InitialMacroscopicLinkSegmentCost.class.getCanonicalName());
 
   /** generated UID */
   private static final long serialVersionUID = 2164407379859550420L;
@@ -68,10 +69,10 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
    * 
    * @param groupId contiguous id generation within this group for instances of this class
    */
-  public InitialLinkSegmentCost(IdGroupingToken groupId) {
+  public InitialMacroscopicLinkSegmentCost(IdGroupingToken groupId) {
     super(groupId);
     timePeriodAgnosticCosts = new InitialModesLinkSegmentCost();
-    timePeriodCosts = new HashMap<TimePeriod, InitialModesLinkSegmentCost>();
+    timePeriodCosts = new HashMap<>();
   }
 
   /**
@@ -79,10 +80,10 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
    * 
    * @param other to copy
    */
-  public InitialLinkSegmentCost(InitialLinkSegmentCost other) {
+  public InitialMacroscopicLinkSegmentCost(InitialMacroscopicLinkSegmentCost other) {
     super(other);
     this.timePeriodAgnosticCosts = other.timePeriodAgnosticCosts.clone();
-    this.timePeriodCosts = new HashMap<TimePeriod, InitialModesLinkSegmentCost>();
+    this.timePeriodCosts = new HashMap<>();
     other.timePeriodCosts.forEach((k, v) -> timePeriodCosts.put(k, v.clone()));
   }
 
@@ -199,8 +200,8 @@ public class InitialLinkSegmentCost extends InitialPhysicalCost {
    * {@inheritDoc}
    */
   @Override
-  public InitialLinkSegmentCost clone() {
-    return new InitialLinkSegmentCost(this);
+  public InitialMacroscopicLinkSegmentCost clone() {
+    return new InitialMacroscopicLinkSegmentCost(this);
   }
 
   /**
