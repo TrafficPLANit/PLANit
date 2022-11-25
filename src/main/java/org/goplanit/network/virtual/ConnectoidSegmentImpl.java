@@ -67,9 +67,8 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl<ConnectoidEdge> imple
    * @param groupId     contiguous id generation within this group for instances of this class
    * @param parentEdge  parent connectoid
    * @param directionAb direction of travel
-   * @throws PlanItException thrown when error
    */
-  protected ConnectoidSegmentImpl(final IdGroupingToken groupId, final ConnectoidEdge parentEdge, final boolean directionAb) throws PlanItException {
+  protected ConnectoidSegmentImpl(final IdGroupingToken groupId, final ConnectoidEdge parentEdge, final boolean directionAb) {
     super(groupId, parentEdge, directionAb);
     setConnectoidSegmentId(generateConnectoidSegmentId(groupId));
   }

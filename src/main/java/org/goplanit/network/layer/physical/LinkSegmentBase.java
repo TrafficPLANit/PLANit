@@ -13,7 +13,7 @@ import org.goplanit.utils.network.layer.physical.Node;
  * @author gman6028, markr
  *
  */
-public class LinkSegmentImpl<L extends Link> extends EdgeSegmentImpl<L> implements LinkSegment {
+public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L> implements LinkSegment {
 
   /** generated UID */
   private static final long serialVersionUID = -4893553215218232006L;
@@ -61,7 +61,7 @@ public class LinkSegmentImpl<L extends Link> extends EdgeSegmentImpl<L> implemen
    * @param directionAB direction of travel
    * @throws PlanItException throw when error
    */
-  protected LinkSegmentImpl(final IdGroupingToken groupId, final boolean directionAB) throws PlanItException {
+  protected LinkSegmentBase(final IdGroupingToken groupId, final boolean directionAB) throws PlanItException {
     this(groupId, null, directionAB);
   }
 
@@ -72,7 +72,7 @@ public class LinkSegmentImpl<L extends Link> extends EdgeSegmentImpl<L> implemen
    * @param parentLink  parent link of segment
    * @param directionAB direction of travel
    */
-  protected LinkSegmentImpl(final IdGroupingToken groupId, final L parentLink, final boolean directionAB) {
+  protected LinkSegmentBase(final IdGroupingToken groupId, final L parentLink, final boolean directionAB) {
     super(groupId, parentLink, directionAB);
     setLinkSegmentId(generateLinkSegmentId(groupId));
   }
@@ -80,13 +80,13 @@ public class LinkSegmentImpl<L extends Link> extends EdgeSegmentImpl<L> implemen
   /**
    * Copy constructor
    * 
-   * @param linkSegmentImpl to copy
+   * @param linkSegmentBase to copy
    */
-  protected LinkSegmentImpl(LinkSegmentImpl<L> linkSegmentImpl) {
-    super(linkSegmentImpl);
-    setLinkSegmentId(linkSegmentImpl.getLinkSegmentId());
-    setNumberOfLanes(linkSegmentImpl.getNumberOfLanes());
-    setPhysicalSpeedLimitKmH(linkSegmentImpl.getPhysicalSpeedLimitKmH());
+  protected LinkSegmentBase(LinkSegmentBase<L> linkSegmentBase) {
+    super(linkSegmentBase);
+    setLinkSegmentId(linkSegmentBase.getLinkSegmentId());
+    setNumberOfLanes(linkSegmentBase.getNumberOfLanes());
+    setPhysicalSpeedLimitKmH(linkSegmentBase.getPhysicalSpeedLimitKmH());
   }
 
   // Public
@@ -178,8 +178,6 @@ public class LinkSegmentImpl<L extends Link> extends EdgeSegmentImpl<L> implemen
    * {@inheritDoc}
    */
   @Override
-  public LinkSegmentImpl<L> clone() {
-    return new LinkSegmentImpl<L>(this);
-  }
+  public abstract LinkSegmentBase<L> clone();
 
 }

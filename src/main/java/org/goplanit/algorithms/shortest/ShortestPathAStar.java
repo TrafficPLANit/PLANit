@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -52,9 +53,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
   /**
    * Comparator to sort based on the second elements minimum value (ascending order)
    */
-  protected static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator = Comparator.comparing(Pair<DirectedVertex, Double>::second, (f1, f2) -> {
-    return f1.compareTo(f2);
-  });
+  protected static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator = Comparator.comparing(Pair::second, Comparator.naturalOrder());
 
   /**
    * Constructor for an edge cost based A* algorithm for finding shortest paths.
@@ -63,8 +62,8 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
    * @param numberOfVertices            number of vertices in the network
    * @param crs                         the coordinate reference system used in the network, i.e., we can draw upon the geo information of the vertices to compute our heuristic
    *                                    component
-   * @param heuristicDistanceMultiplier used to convert the distance between two vertices to a cost, in transport context this would generally be the maximum speed (km/h) that is
-   *                                    allowed on the network assuming the cost is representing travel time (h).
+   * @param heuristicDistanceMultiplier used to convert the distance between two vertices to a cost, in transport context this would generally be the 1/(maximum speed (km/h)), e.g. pace to convert
+   *                                    a heuristic distance (km) into travel time (h) since (km* h/km = h).
    */
   public ShortestPathAStar(final double[] edgeSegmentCosts, int numberOfVertices, CoordinateReferenceSystem crs, double heuristicDistanceMultiplier) {
     this.edgeSegmentCosts = edgeSegmentCosts;
@@ -80,11 +79,12 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
    * We create the heuristic costs on-the-fly based on the coordinates of the vertex and computing the as-the-crow-flies lower bound cost. Can only be used when instance was
    * created by providing ${code CRS} and ${codeheuristicDistanceMultiplier} in constructor. Also, all network entities should hold geo positions otherwise the execution will fail
    * with a nullpointer.
+   *
    */
   @Override
-  public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) throws PlanItException {
+  public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) {
     if (origin.getPosition() == null || destination.getPosition() == null) {
-      throw new PlanItException(
+      throw new PlanItRunTimeException(
           "aStar shortest path must compute distances between vertices on-the-fly. One or more vertices do not have location information available making this impossible");
     }
 
@@ -100,7 +100,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
     boolean[] closedVertex = new boolean[numberOfVertices];
     Arrays.fill(closedVertex, Boolean.FALSE);
 
-    PriorityQueue<Pair<DirectedVertex, Double>> openVertices = new PriorityQueue<Pair<DirectedVertex, Double>>(numberOfVertices, pairSecondComparator);
+    PriorityQueue<Pair<DirectedVertex, Double>> openVertices = new PriorityQueue<>(numberOfVertices, pairSecondComparator);
 
     // initialise for origin
     openVertices.add(Pair.of(origin, 0.0));
@@ -162,8 +162,9 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
       }
     }
 
-    PlanItException.throwIf(currentVertex.getId() != destination.getId(),
-        String.format("destination %s (id:%d) unreachable from origin %S (id:%d)", destination.getXmlId(), destination.getId(), origin.getXmlId(), origin.getId()));
+    if(currentVertex.getId() != destination.getId()) {
+      throw new PlanItRunTimeException("Destination %s (id:%d) unreachable from origin %S (id:%d)", destination.getXmlId(), destination.getId(), origin.getXmlId(), origin.getId());
+    }
 
     return new ShortestPathResultGeneralised(vertexMeasuredCost, incomingEdgeSegment, ShortestSearchType.ONE_TO_ONE);
   }

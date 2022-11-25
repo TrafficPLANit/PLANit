@@ -3,7 +3,7 @@ package org.goplanit.od.path;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.od.OdHashedImpl;
 import org.goplanit.utils.od.OdHashedIterator;
-import org.goplanit.utils.path.DirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.zoning.OdZones;
 
 /**
@@ -14,13 +14,13 @@ import org.goplanit.utils.zoning.OdZones;
  * @author markr
  *
  */
-public class OdPathsHashed extends OdHashedImpl<DirectedPath> implements OdPaths {
+public class OdPathsHashed extends OdHashedImpl<ManagedDirectedPath> implements OdPaths {
 
   /**
    * Wrapper around hashed iterator for od paths
    * 
    */
-  public class OdPathsHashedIterator extends OdHashedIterator<DirectedPath> {
+  public class OdPathsHashedIterator extends OdHashedIterator<ManagedDirectedPath> {
 
     public OdPathsHashedIterator(OdPathsHashed container) {
       super(container, container.zones);

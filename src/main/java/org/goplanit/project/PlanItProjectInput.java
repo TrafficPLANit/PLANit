@@ -108,7 +108,7 @@ public class PlanItProjectInput {
     /* note that the time period(s) are hidden in the eventual event (although available via additional content) as it is generally not useful
      * to the handler who's task it is to populate the component based on the file, regardless to what period it is mapped */
     final InitialMacroscopicLinkSegmentCost initialLinkSegmentCost =
-        (InitialMacroscopicLinkSegmentCost) getComponentFactory(InitialPhysicalCost.class).create(
+        getComponentFactory(InitialPhysicalCost.class).create(
             InitialMacroscopicLinkSegmentCost.class.getCanonicalName(), new Object[] { projectGroupId}, fileName, network, timePeriod);
     
     if(timePeriod!=null) {   

@@ -5,8 +5,10 @@ import java.util.function.Consumer;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.path.DirectedPath;
 import org.goplanit.utils.path.DirectedPathFactory;
+import org.goplanit.utils.path.ManagedDirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPathFactory;
+import org.goplanit.utils.path.SimpleDirectedPath;
 
 /**
  * Interfaces that defines how to access results of a shortest path execution allowing one to extract paths or cost information
@@ -24,7 +26,7 @@ public interface ShortestPathResult extends ShortestResult{
    * @param destination the specified destination vertex
    * @return the path that is created, when no path could be extracted null is returned
    */
-  public abstract DirectedPath createPath(final DirectedPathFactory pathFactory, DirectedVertex origin, DirectedVertex destination);
+  public abstract <T extends SimpleDirectedPath> T createPath(final DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination);
   
   /**
    * Find the next edge segment for a given vertex, depending on the underlying search this can be either in upstream or downstream direction

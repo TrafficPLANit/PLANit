@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
@@ -38,7 +39,7 @@ public class ConnectoidEdgeFactoryImpl extends GraphEntityFactoryImpl<Connectoid
   /**
    * {@inheritDoc}
    */
-  public Collection<ConnectoidEdge> registerNew(Connectoid connectoid) throws PlanItException {
+  public Collection<ConnectoidEdge> registerNew(Connectoid connectoid) {
 
     /* constructed from connectoid information */
     ArrayList<ConnectoidEdge> connectoidEdges = new ArrayList<ConnectoidEdge>();
@@ -54,12 +55,12 @@ public class ConnectoidEdgeFactoryImpl extends GraphEntityFactoryImpl<Connectoid
         EdgeSegment accessEdgeSegment = DirectedConnectoid.class.cast(connectoid).getAccessLinkSegment();
         accessVertex = (Node) (accessEdgeSegment != null ? accessEdgeSegment.getDownstreamVertex() : null);
       } else {
-        throw new PlanItException(String.format("connectoid %s is of unrecognised type and access node could not be retrieved", connectoid.getXmlId()));
+        throw new PlanItRunTimeException("Connectoid %s is of unrecognised type and access node could not be retrieved", connectoid.getXmlId());
       }
 
       /* create and register connectoid edge */
       Optional<Double> connectoidLength = connectoid.getLengthKm(accessZone);
-      connectoidLength.orElseThrow(() -> new PlanItException("unable to retrieve lenght for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
+      connectoidLength.orElseThrow(() -> new PlanItRunTimeException("unable to retrieve lenght for connectoid %s (id:%d)", connectoid.getXmlId(), connectoid.getId()));
       ConnectoidEdge newConnectoidEdge = new ConnectoidEdgeImpl(getIdGroupingToken(), accessZone.getCentroid(), accessVertex, connectoidLength.get());
       getGraphEntities().register(newConnectoidEdge);
       connectoidEdges.add(newConnectoidEdge);

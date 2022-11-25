@@ -267,7 +267,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    * {@inheritDoc}
    */
   @Override
-  public boolean isModeAllowed(Zone accessZone, Mode mode) throws PlanItException {
+  public boolean isModeAllowed(Zone accessZone, Mode mode) {
     if (!hasAccessZone(accessZone)) {
       LOGGER.warning(String.format("unknown access zone %s (id:%d) for connectoid %s (id:%d) when checking if mode is allowed", accessZone.getXmlId(), accessZone.getId(),
           getXmlId(), getId()));

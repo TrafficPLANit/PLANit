@@ -3,7 +3,7 @@ package org.goplanit.network.layer.macroscopic;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.goplanit.network.layer.physical.LinkSegmentImpl;
+import org.goplanit.network.layer.physical.LinkSegmentBase;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
@@ -16,7 +16,7 @@ import org.goplanit.utils.network.layer.physical.Link;
  *
  * @author markr
  */
-public class MacroscopicLinkSegmentImpl extends LinkSegmentImpl<MacroscopicLink> implements MacroscopicLinkSegment {
+public class MacroscopicLinkSegmentImpl extends LinkSegmentBase<MacroscopicLink> implements MacroscopicLinkSegment {
 
   // Private
 

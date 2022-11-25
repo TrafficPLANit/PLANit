@@ -2,15 +2,15 @@ package org.goplanit.path;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.path.DirectedPath;
-import org.goplanit.utils.path.DirectedPaths;
+import org.goplanit.utils.path.ManagedDirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPaths;
 
 /**
- * Implementation of DirectedPaths interface
+ * Implementation of (managed) DirectedPaths interface
  * 
  * @author markr
  */
-public class DirectedPathsImpl extends ManagedIdEntitiesImpl<DirectedPath> implements DirectedPaths {
+public class ManagedDirectedPathsImpl extends ManagedIdEntitiesImpl<ManagedDirectedPath> implements ManagedDirectedPaths {
 
   /** factory to use */
   private final ContainerisedDirectedPathFactoryImpl directedPathFactory;
@@ -20,8 +20,8 @@ public class DirectedPathsImpl extends ManagedIdEntitiesImpl<DirectedPath> imple
    * 
    * @param groupId to use for creating ids for instances
    */
-  public DirectedPathsImpl(final IdGroupingToken groupId) {
-    super(DirectedPath::getId, DirectedPath.PATH_ID_CLASS);
+  public ManagedDirectedPathsImpl(final IdGroupingToken groupId) {
+    super(ManagedDirectedPath::getId, ManagedDirectedPath.PATH_ID_CLASS);
     this.directedPathFactory = new ContainerisedDirectedPathFactoryImpl(groupId, this);
   }
 
@@ -31,8 +31,8 @@ public class DirectedPathsImpl extends ManagedIdEntitiesImpl<DirectedPath> imple
    * @param groupId             to use for creating ids for instances
    * @param directedPathFactory the factory to use
    */
-  public DirectedPathsImpl(final IdGroupingToken groupId, ContainerisedDirectedPathFactoryImpl directedPathFactory) {
-    super(DirectedPath::getId, DirectedPath.PATH_ID_CLASS);
+  public ManagedDirectedPathsImpl(final IdGroupingToken groupId, ContainerisedDirectedPathFactoryImpl directedPathFactory) {
+    super(ManagedDirectedPath::getId, ManagedDirectedPath.PATH_ID_CLASS);
     this.directedPathFactory = directedPathFactory;
   }
 
@@ -41,7 +41,7 @@ public class DirectedPathsImpl extends ManagedIdEntitiesImpl<DirectedPath> imple
    * 
    * @param directedPathsImpl to copy
    */
-  public DirectedPathsImpl(DirectedPathsImpl directedPathsImpl) {
+  public ManagedDirectedPathsImpl(ManagedDirectedPathsImpl directedPathsImpl) {
     super(directedPathsImpl);
     this.directedPathFactory = directedPathsImpl.directedPathFactory;
   }
@@ -58,8 +58,8 @@ public class DirectedPathsImpl extends ManagedIdEntitiesImpl<DirectedPath> imple
    * {@inheritDoc}
    */
   @Override
-  public DirectedPathsImpl clone() {
-    return new DirectedPathsImpl(this);
+  public ManagedDirectedPathsImpl clone() {
+    return new ManagedDirectedPathsImpl(this);
   }
 
 }

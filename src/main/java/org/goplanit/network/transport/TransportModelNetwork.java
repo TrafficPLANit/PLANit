@@ -33,8 +33,8 @@ public class TransportModelNetwork {
    * log info on transport model network assuming it has integrated virtual and physical network it reports on the connectoid edges and segments to do so
    */
   private void logInfo() {
-    LOGGER.info(String.format("#od connectoid edges: %d", getVirtualNetwork().getConnectoidEdges().size()));
-    LOGGER.info(String.format("#od connectoid segments: %d", getVirtualNetwork().getConnectoidSegments().size()));
+    LOGGER.info(String.format("#OD connectoid edges: %d", getVirtualNetwork().getConnectoidEdges().size()));
+    LOGGER.info(String.format("#OD connectoid segments: %d", getVirtualNetwork().getConnectoidSegments().size()));
   }
 
   /**
@@ -74,9 +74,8 @@ public class TransportModelNetwork {
    * 
    * @param virtualNetwork  to create and register on
    * @param connectoidEdges to process
-   * @throws PlanItException thrown if error
    */
-  protected void createAndRegisterConnectoidEdgeSegments(VirtualNetwork virtualNetwork, Collection<ConnectoidEdge> connectoidEdges) throws PlanItException {
+  protected void createAndRegisterConnectoidEdgeSegments(VirtualNetwork virtualNetwork, Collection<ConnectoidEdge> connectoidEdges) {
 
     ConnectoidSegmentFactory connectoidSegmentFactory = virtualNetwork.getConnectoidSegments().getFactory();
     for (ConnectoidEdge connectoidEdge : connectoidEdges) {
@@ -161,10 +160,9 @@ public class TransportModelNetwork {
 
   /**
    * Integrate physical and virtual links within od zones (undirected connectoid access node and centroid)
-   * 
-   * @throws PlanItException thrown if there is an error
+   *r
    */
-  public void integrateTransportNetworkViaConnectoids() throws PlanItException {
+  public void integrateTransportNetworkViaConnectoids(){
     LOGGER.info(String.format("Integrating physical network %d (XML id %s) with zoning %d (XML id %s)", infrastructureNetwork.getId(),
         infrastructureNetwork.getXmlId() != null ? infrastructureNetwork.getXmlId() : "N/A", zoning.getId(), zoning.getXmlId() != null ? zoning.getXmlId() : "N/A"));
 

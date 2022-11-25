@@ -169,28 +169,32 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
 
     /* when possible use more specific event for user friendly access to event content on listeners */
     /* TODO: type check parameters and issue message when not correct */
-    if (newPlanitComponent instanceof MacroscopicNetwork) {
-      fireEvent(new PopulateNetworkEvent(this, (MacroscopicNetwork) newPlanitComponent));
-    } else if (newPlanitComponent instanceof Zoning) {
-      fireEvent(new PopulateZoningEvent(this, (Zoning) newPlanitComponent, (MacroscopicNetwork) parameters[0]));
-    } else if (newPlanitComponent instanceof Demands) {
-      fireEvent(new PopulateDemandsEvent(this, (Demands) newPlanitComponent, (Zoning) parameters[0], (MacroscopicNetwork) parameters[1]));
-    } else if (newPlanitComponent instanceof ServiceNetwork) {
-      fireEvent(new PopulateServiceNetworkEvent(this, (ServiceNetwork) newPlanitComponent));
-    } else if (newPlanitComponent instanceof RoutedServices) {
-      fireEvent(new PopulateRoutedServicesEvent(this, (RoutedServices) newPlanitComponent));
-    } else if (newPlanitComponent instanceof GapFunction) {
-      fireEvent(new PopulateGapFunctionEvent(this, (GapFunction) newPlanitComponent));
-    } else if (newPlanitComponent instanceof FundamentalDiagramComponent) {
-      fireEvent(new PopulateFundamentalDiagramEvent(this, (FundamentalDiagramComponent) newPlanitComponent, (MacroscopicNetworkLayer) parameters[0]));
-    } else if (newPlanitComponent instanceof InitialMacroscopicLinkSegmentCost) {
-      fireEvent(new PopulateInitialLinkSegmentCostEvent(this, (InitialMacroscopicLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1],
-          (TimePeriod) parameters[2]));
-    } else if (newPlanitComponent instanceof AbstractPhysicalCost) {
-      fireEvent(new PopulatePhysicalCostEvent(this, (AbstractPhysicalCost) newPlanitComponent, (MacroscopicNetwork) parameters[0]));
-    } else {
+    PlanitComponentEvent event = null;
+    if (newPlanitComponent instanceof MacroscopicNetwork && hasListener(PopulateNetworkEvent.EVENT_TYPE)) {
+      event = new PopulateNetworkEvent(this, (MacroscopicNetwork) newPlanitComponent);
+    } else if (newPlanitComponent instanceof Zoning && hasListener(PopulateZoningEvent.EVENT_TYPE)) {
+      event = new PopulateZoningEvent(this, (Zoning) newPlanitComponent, (MacroscopicNetwork) parameters[0]);
+    } else if (newPlanitComponent instanceof Demands && hasListener(PopulateDemandsEvent.EVENT_TYPE)) {
+      event = new PopulateDemandsEvent(this, (Demands) newPlanitComponent, (Zoning) parameters[0], (MacroscopicNetwork) parameters[1]);
+    } else if (newPlanitComponent instanceof ServiceNetwork && hasListener(PopulateServiceNetworkEvent.EVENT_TYPE)) {
+      event = new PopulateServiceNetworkEvent(this, (ServiceNetwork) newPlanitComponent);
+    } else if (newPlanitComponent instanceof RoutedServices && hasListener(PopulateRoutedServicesEvent.EVENT_TYPE)) {
+      event = new PopulateRoutedServicesEvent(this, (RoutedServices) newPlanitComponent);
+    } else if (newPlanitComponent instanceof GapFunction && hasListener(PopulateGapFunctionEvent.EVENT_TYPE)) {
+      event = new PopulateGapFunctionEvent(this, (GapFunction) newPlanitComponent);
+    } else if (newPlanitComponent instanceof FundamentalDiagramComponent && hasListener(PopulateFundamentalDiagramEvent.EVENT_TYPE)) {
+      event = new PopulateFundamentalDiagramEvent(this, (FundamentalDiagramComponent) newPlanitComponent, (MacroscopicNetworkLayer) parameters[0]);
+    } else if (newPlanitComponent instanceof InitialMacroscopicLinkSegmentCost && hasListener(PopulateInitialLinkSegmentCostEvent.EVENT_TYPE)) {
+      event = new PopulateInitialLinkSegmentCostEvent(this, (InitialMacroscopicLinkSegmentCost) newPlanitComponent, (String) parameters[0], (MacroscopicNetwork) parameters[1], (TimePeriod) parameters[2]);
+    } else if (newPlanitComponent instanceof AbstractPhysicalCost && hasListener(PopulatePhysicalCostEvent.EVENT_TYPE)) {
+      event = new PopulatePhysicalCostEvent(this, (AbstractPhysicalCost) newPlanitComponent, (MacroscopicNetwork) parameters[0]);
+    } else if(hasListener(PopulateComponentEvent.EVENT_TYPE)){
       /* fire generic populate component event, likely third party class, or one that is likely not meant for user listeners to do anything with */
-      fireEvent(new PopulateComponentEvent(this, newPlanitComponent, parameters));
+      event = new PopulateComponentEvent(this, newPlanitComponent, parameters);
+    }
+
+    if(event != null) {
+      fireEvent(event);
     }
   }
 
@@ -278,14 +282,58 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    */
   public static <C extends PlanitComponent<?>, U extends C> U createWithListeners(
       Class<C> clazzCategory, Class<U> concreteClass, final Object[] constructorParameters, final Object[] eventParameters, PlanitComponentListener... listeners) {
+    return (U) createWithListeners(clazzCategory, concreteClass.getCanonicalName(), constructorParameters, eventParameters, listeners);
+  }
+
+  /**
+   * Simplified factory method which creates the component, registers the provided listeners for the temporary factory instance component and
+   * then invokes the creation with those listeners as a one-off call
+   *
+   * @param clazzCategory the concrete component belongs to
+   * @param concreteClassCanonicalName to create
+   * @param constructorParameters to use
+   * @param eventParameters to apply for the event listeners that are listening (if any)
+   * @param listeners to register (may be null)
+   * @return created component
+   */
+  public static <C extends PlanitComponent<?>> C createWithListeners(
+      Class<C> clazzCategory, String concreteClassCanonicalName, final Object[] constructorParameters, final Object[] eventParameters, PlanitComponentListener... listeners) {
     var factoryInstance = new PlanitComponentFactory<C>(clazzCategory.getCanonicalName());
     if(listeners != null) {
       for (var listener : listeners) {
         factoryInstance.addListener(listener);
       }
-      return factoryInstance.create(concreteClass.getCanonicalName(), constructorParameters, eventParameters);
+      return factoryInstance.create(concreteClassCanonicalName, constructorParameters, eventParameters);
     }
-    return factoryInstance.create(concreteClass.getCanonicalName(), constructorParameters);
+    return factoryInstance.create(concreteClassCanonicalName, constructorParameters);
+  }
+
+  /**
+   * Simplified factory method which creates the component, registers the provided listeners for the temporary factory instance component and
+   * then invokes the creation with those listeners as a one-off call
+   *
+   * @param clazzCategory the concrete component belongs to
+   * @param concreteClassCanonicalName to create
+   * @param constructorParameters to use
+   * @param listeners to register (may be null)
+   * @return created component
+   */
+  public static <C extends PlanitComponent<?>> C createWithListeners(
+      Class<C> clazzCategory, String concreteClassCanonicalName, final Object[] constructorParameters, PlanitComponentListener... listeners) {
+    return createWithListeners(clazzCategory, concreteClassCanonicalName, constructorParameters, null, listeners);
+  }
+
+  /**
+   * Simplified factory method which creates the component (without any listeners)
+   *
+   * @param clazzCategory the concrete component belongs to
+   * @param concreteClassCanonicalName to create
+   * @param constructorParameters to use
+   * @return created component
+   */
+  public static <C extends PlanitComponent<?>> C create(
+      Class<C> clazzCategory, String concreteClassCanonicalName, final Object[] constructorParameters) {
+    return createWithListeners(clazzCategory, concreteClassCanonicalName, constructorParameters, null, null);
   }
 
   /**
@@ -312,7 +360,7 @@ public class PlanitComponentFactory<T extends PlanitComponent<?>> extends EventP
    */
   public <T extends PlanitComponent<?>> T create(final String planitComponentClassName, final Object[] constructorParameters) {
     final T newTrafficComponent = createTrafficComponent(planitComponentClassName, constructorParameters);
-    dispatchPopulatePlanitComponentEvent(newTrafficComponent, constructorParameters);
+    dispatchPopulatePlanitComponentEvent(newTrafficComponent, null);
     return newTrafficComponent;
   }
 

@@ -10,7 +10,7 @@ import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.od.OdDataIterator;
-import org.goplanit.utils.path.DirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.PathUtils;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -95,8 +95,8 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @param pathOutputType the type of objects being used in the path
    * @return the OD path as a String of comma-separated node external Id values
    */
-  public static Optional<String> getPathAsString(OdDataIterator<? extends DirectedPath> odPathIterator, PathOutputIdentificationType pathOutputType) {
-    DirectedPath path = odPathIterator.getCurrentValue();
+  public static Optional<String> getPathAsString(OdDataIterator<? extends ManagedDirectedPath> odPathIterator, PathOutputIdentificationType pathOutputType) {
+    ManagedDirectedPath path = odPathIterator.getCurrentValue();
     if (path != null) {
       switch (pathOutputType) {
       case LINK_SEGMENT_EXTERNAL_ID:
@@ -126,8 +126,8 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @param odPathIterator ODPathIterator object containing the required data
    * @return the id of the current path, or -1 if no path exists
    */
-  public static Optional<Long> getPathId(OdDataIterator<? extends DirectedPath> odPathIterator) {
-    DirectedPath path = odPathIterator.getCurrentValue();
+  public static Optional<Long> getPathId(OdDataIterator<? extends ManagedDirectedPath> odPathIterator) {
+    ManagedDirectedPath path = odPathIterator.getCurrentValue();
     if (path == null) {
       return Optional.of(-1l);
     }
@@ -152,6 +152,6 @@ public interface PathOutputTypeAdapter extends OutputTypeAdapter {
    * @param pathOutputType the type of objects in the path list
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
-  public abstract Optional<?> getPathOutputPropertyValue(OutputProperty outputProperty, OdDataIterator<? extends DirectedPath> odPathIterator, Mode mode, TimePeriod timePeriod,
-      PathOutputIdentificationType pathOutputType);
+  public abstract Optional<?> getPathOutputPropertyValue(OutputProperty outputProperty, OdDataIterator<? extends ManagedDirectedPath> odPathIterator, Mode mode, TimePeriod timePeriod,
+                                                         PathOutputIdentificationType pathOutputType);
 }

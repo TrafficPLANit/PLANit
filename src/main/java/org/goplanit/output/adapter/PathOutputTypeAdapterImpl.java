@@ -9,7 +9,7 @@ import org.goplanit.output.property.OutputProperty;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.od.OdDataIterator;
-import org.goplanit.utils.path.DirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.time.TimePeriod;
 
 /**
@@ -41,8 +41,8 @@ public abstract class PathOutputTypeAdapterImpl extends OutputTypeAdapterImpl im
    * @return the value of the specified property (or an Exception if an error has occurred)
    */
   @Override
-  public Optional<?> getPathOutputPropertyValue(OutputProperty outputProperty, OdDataIterator<? extends DirectedPath> odPathIterator, Mode mode, TimePeriod timePeriod,
-      PathOutputIdentificationType pathOutputType) {
+  public Optional<?> getPathOutputPropertyValue(OutputProperty outputProperty, OdDataIterator<? extends ManagedDirectedPath> odPathIterator, Mode mode, TimePeriod timePeriod,
+                                                PathOutputIdentificationType pathOutputType) {
     try {
 
       Optional<?> value = getOutputTypeIndependentPropertyValue(outputProperty, mode, timePeriod);

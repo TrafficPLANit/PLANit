@@ -1,6 +1,7 @@
 package org.goplanit.cost.physical;
 
 import java.io.Serializable;
+import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.network.LayeredNetwork;
@@ -21,6 +22,9 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
 
   /** generated UID */
   private static final long serialVersionUID = 3657719270477537657L;
+
+  /** Logger ot use */
+  private static final Logger LOGGER = Logger.getLogger(AbstractPhysicalCost.class.getCanonicalName());
 
   /**
    * @param groupId, contiguous id generation within this group for instances of this class
@@ -48,6 +52,9 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
    * @param costToFill    array of link segment costs identified by the link segment's internal id
    */
   public void populateWithCost(final UntypedPhysicalLayer<?, ?, MacroscopicLinkSegment> physicalLayer, Mode mode, double[] costToFill) {
+    if(physicalLayer.getLinkSegments().isEmpty()){
+      LOGGER.warning("No physical links segments found in provided network layer, unable to populate link segment costs");
+    }
     for (var linkSegment : physicalLayer.getLinkSegments()) {
       costToFill[(int) linkSegment.getId()] = getGeneralisedCost(mode, linkSegment);
     }

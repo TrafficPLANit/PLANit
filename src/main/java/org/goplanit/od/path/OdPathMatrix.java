@@ -3,7 +3,7 @@ package org.goplanit.od.path;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.od.OdNonPrimitiveMatrix;
 import org.goplanit.utils.od.OdNonPrimitiveMatrixIterator;
-import org.goplanit.utils.path.DirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.zoning.OdZones;
 
 /**
@@ -12,14 +12,14 @@ import org.goplanit.utils.zoning.OdZones;
  * @author gman6028, markr
  *
  */
-public class OdPathMatrix extends OdNonPrimitiveMatrix<DirectedPath> implements OdPaths {
+public class OdPathMatrix extends OdNonPrimitiveMatrix<ManagedDirectedPath> implements OdPaths {
 
   /**
    * Wrapper around primitive matrix iterator
    * 
    * @author markr
    */
-  public class OdPathMatrixIterator extends OdNonPrimitiveMatrixIterator<DirectedPath> implements OdPathIterator {
+  public class OdPathMatrixIterator extends OdNonPrimitiveMatrixIterator<ManagedDirectedPath> implements OdPathIterator {
 
     public OdPathMatrixIterator(final OdPathMatrix matrix) {
       super(matrix.matrixContents, matrix.zones);
@@ -33,7 +33,7 @@ public class OdPathMatrix extends OdNonPrimitiveMatrix<DirectedPath> implements 
    * @param zones   the zones being used
    */
   public OdPathMatrix(final IdGroupingToken groupId, final OdZones zones) {
-    super(OdPathMatrix.class, groupId, zones, new DirectedPath[zones.size()][zones.size()]);
+    super(OdPathMatrix.class, groupId, zones, new ManagedDirectedPath[zones.size()][zones.size()]);
   }
 
   /**

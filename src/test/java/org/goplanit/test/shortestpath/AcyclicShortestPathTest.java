@@ -19,7 +19,7 @@ import org.goplanit.graph.directed.acyclic.ACyclicSubGraphImpl;
 import org.goplanit.logging.Logging;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.transport.TransportModelNetwork;
-import org.goplanit.path.DirectedPathFactoryImpl;
+import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.acyclic.ACyclicSubGraph;
 import org.goplanit.utils.id.IdGenerator;
@@ -29,10 +29,9 @@ import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLink;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegments;
-import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.physical.Node;
-import org.goplanit.utils.path.DirectedPath;
-import org.goplanit.utils.path.DirectedPathFactory;
+import org.goplanit.utils.path.ManagedDirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
 import org.goplanit.zoning.Zoning;
@@ -66,7 +65,7 @@ public class AcyclicShortestPathTest {
   private Centroid centroidA;
   private Centroid centroidB;
 
-  private DirectedPathFactory pathFactory;
+  private ManagedDirectedPathFactory pathFactory;
 
   @BeforeClass
   public static void setUp() throws Exception {
@@ -198,7 +197,7 @@ public class AcyclicShortestPathTest {
       acyclicSubGraph.addEdgeSegment(centroidA.getEdgeSegment(networkLayer.getNodes().get(0)));
       acyclicSubGraph.addEdgeSegment(networkLayer.getNodes().get(8).getEdgeSegment(centroidB));
       
-      pathFactory = new DirectedPathFactoryImpl(networkLayer.getLayerIdGroupingToken());
+      pathFactory = new ManagedDirectedPathFactoryImpl(networkLayer.getLayerIdGroupingToken());
       
     }catch(Exception e) {
       e.printStackTrace();
@@ -323,7 +322,7 @@ public class AcyclicShortestPathTest {
       // MIN PATH RESULT
       minMaxResult.setMinPathState(true);
       assertEquals(minMaxResult.getCostOf(centroidB),20.0, Precision.EPSILON_6);
-      DirectedPath minPath = minMaxResult.createPath(pathFactory, centroidA, centroidB);
+      ManagedDirectedPath minPath = minMaxResult.createPath(pathFactory, centroidA, centroidB);
       
       MacroscopicLinkSegments segments = networkLayer.getLinkSegments();
       assertTrue(minPath.containsSubPath(List.of(segments.get(0),segments.get(1), segments.get(8), segments.get(11))));
@@ -332,7 +331,7 @@ public class AcyclicShortestPathTest {
       minMaxResult.setMinPathState(false);
       
       assertEquals(24.0, minMaxResult.getCostOf(centroidB), Precision.EPSILON_6);
-      DirectedPath maxPath = minMaxResult.createPath(pathFactory, centroidA, centroidB);
+      ManagedDirectedPath maxPath = minMaxResult.createPath(pathFactory, centroidA, centroidB);
       
       assertTrue(maxPath.containsSubPath(List.of(segments.get(6),segments.get(9), segments.get(4), segments.get(5))));      
       

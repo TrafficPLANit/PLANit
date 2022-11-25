@@ -3,8 +3,10 @@ package org.goplanit.algorithms.shortest;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.path.DirectedPath;
 import org.goplanit.utils.path.DirectedPathFactory;
+import org.goplanit.utils.path.ManagedDirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPathFactory;
+import org.goplanit.utils.path.SimpleDirectedPath;
 
 /**
  * Implementation of the MinMaxPathResult interface
@@ -55,7 +57,7 @@ public class MinMaxPathResultImpl implements MinMaxPathResult {
    * {@inheritDoc}
    */
   @Override
-  public DirectedPath createPath(DirectedPathFactory pathFactory, DirectedVertex origin, DirectedVertex destination) {
+  public <T extends SimpleDirectedPath> T createPath(DirectedPathFactory<T> pathFactory, DirectedVertex origin, DirectedVertex destination) {
     return minPathState ? minPathResult.createPath(pathFactory, origin, destination) : maxPathResult.createPath(pathFactory, origin, destination);
   }
 

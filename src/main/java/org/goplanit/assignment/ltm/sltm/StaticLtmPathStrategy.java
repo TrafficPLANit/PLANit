@@ -11,12 +11,12 @@ import org.goplanit.network.transport.TransportModelNetwork;
 import org.goplanit.od.demand.OdDemands;
 import org.goplanit.od.path.OdPaths;
 import org.goplanit.od.path.OdPathsHashed;
-import org.goplanit.path.DirectedPathFactoryImpl;
+import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.path.DirectedPathFactory;
+import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.zoning.Zoning;
 
 /**
@@ -42,7 +42,7 @@ public class StaticLtmPathStrategy extends StaticLtmAssignmentStrategy {
    */
   private OdPaths createOdPaths(final double[] currentSegmentCosts) throws PlanItException {
     final ShortestPathOneToAll shortestPathAlgorithm = new ShortestPathDijkstra(currentSegmentCosts, getTransportNetwork().getNumberOfVerticesAllLayers());
-    DirectedPathFactory pathFactory = new DirectedPathFactoryImpl(getIdGroupingToken());
+    ManagedDirectedPathFactory pathFactory = new ManagedDirectedPathFactoryImpl(getIdGroupingToken());
     OdPaths odPaths = new OdPathsHashed(getIdGroupingToken(), getTransportNetwork().getZoning().getOdZones());
 
     Zoning zoning = getTransportNetwork().getZoning();

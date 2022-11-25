@@ -22,7 +22,7 @@ import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.configuration.OdOutputTypeConfiguration;
 import org.goplanit.output.enums.OdSkimSubOutputType;
 import org.goplanit.output.enums.OutputType;
-import org.goplanit.path.DirectedPathFactoryImpl;
+import org.goplanit.path.ManagedDirectedPathFactoryImpl;
 import org.goplanit.utils.arrays.ArrayUtils;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
@@ -34,8 +34,8 @@ import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.utils.network.layer.physical.LinkSegment;
-import org.goplanit.utils.path.DirectedPath;
-import org.goplanit.utils.path.DirectedPathFactory;
+import org.goplanit.utils.path.ManagedDirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPathFactory;
 import org.goplanit.utils.time.TimePeriod;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
@@ -65,7 +65,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   private MacroscopicNetworkLayerImpl networkLayer;
 
   /** to generate paths we use a path factory that is configured to generate appropriate ids */
-  private DirectedPathFactory localPathFactory;
+  private ManagedDirectedPathFactory localPathFactory;
 
   /**
    * create the logging prefix for logging statements during equilibration
@@ -135,7 +135,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
      * ensure this when creating paths based on the shortest path algorithm used
      */
     if (this.localPathFactory == null) {
-      this.localPathFactory = new DirectedPathFactoryImpl(networkLayer.getLayerIdGroupingToken());
+      this.localPathFactory = new ManagedDirectedPathFactoryImpl(networkLayer.getLayerIdGroupingToken());
     }
 
     /* register new time period on costs */
@@ -336,7 +336,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
 
     // TODO: we are now creating a path separate from finding shortest path. This makes no sense as it is very costly when switched on
     if (getOutputManager().isOutputTypeActive(OutputType.PATH)) {
-      final DirectedPath path = shortestPathResult.createPath(localPathFactory, origin.getCentroid(), destination.getCentroid());
+      final ManagedDirectedPath path = shortestPathResult.createPath(localPathFactory, origin.getCentroid(), destination.getCentroid());
       if (path == null) {
         LOGGER.fine(String.format("Unable to create path from origin %s (id:%d) to destination %s (id:%d) for mode %s (id:%d)", origin.getXmlId(), origin.getId(),
             destination.getXmlId(), destination.getId(), mode.getXmlId(), mode.getId()));

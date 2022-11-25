@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import org.goplanit.od.path.OdPaths;
 import org.goplanit.utils.functionalinterface.TriConsumer;
 import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.path.DirectedPath;
+import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.zoning.OdZone;
 
 /**
@@ -65,7 +65,7 @@ public abstract class PathFlowUpdateConsumer<T extends NetworkFlowUpdateData> im
   @Override
   public void accept(OdZone origin, OdZone destination, Double odDemand) {
     /* path */
-    DirectedPath odPath = odPaths.getValue(origin, destination);
+    ManagedDirectedPath odPath = odPaths.getValue(origin, destination);
     double acceptedPathFlowRate = odDemand;
     if (odPath == null || odPath.isEmpty()) {
       LOGGER.warning(String.format("IGNORE: encountered empty path %s", odPath == null ? "" : odPath.getXmlId()));

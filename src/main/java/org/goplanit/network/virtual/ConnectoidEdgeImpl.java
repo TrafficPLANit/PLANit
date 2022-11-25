@@ -67,9 +67,8 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl<DirectedVertex, EdgeSeg
    * @param centroidA the centroid at one end of the connectoid
    * @param vertexB   the vertex at the other end of the connectoid
    * @param length    length of the current connectoid
-   * @throws PlanItException thrown if there is an error
    */
-  protected ConnectoidEdgeImpl(final IdGroupingToken groupId, final Centroid centroidA, final DirectedVertex vertexB, final double length) throws PlanItException {
+  protected ConnectoidEdgeImpl(final IdGroupingToken groupId, final Centroid centroidA, final DirectedVertex vertexB, final double length) {
     super(groupId, centroidA, vertexB, length);
     setConnectoidEdgeId(generateConnectoidEdgeId(groupId));
   }
@@ -99,7 +98,7 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl<DirectedVertex, EdgeSeg
    * {@inheritDoc}
    */
   @Override
-  public ConnectoidSegment registerConnectoidSegment(ConnectoidSegment connectoidSegment, boolean directionAB) throws PlanItException {
+  public ConnectoidSegment registerConnectoidSegment(ConnectoidSegment connectoidSegment, boolean directionAB) {
     return (ConnectoidSegment) registerEdgeSegment(connectoidSegment, directionAB);
   }
 

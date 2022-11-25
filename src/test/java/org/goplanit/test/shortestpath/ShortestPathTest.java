@@ -319,7 +319,7 @@ public class ShortestPathTest {
   public void aStarTest() {
     try {
 
-      // each link is 1 km long. Yet smallest cost for a link is 3 in the network, so the minimum cost multiplier per km is 3
+      // each link is 1 km long. Yet smallest cost for a link is 3 in the network, so the maximum pace per km is 3 which we would use as a muliplier
       double multiplier = 3;
 
       ShortestPathAStar aStar = new ShortestPathAStar(linkSegmentCosts, transportNetwork.getNumberOfVerticesAllLayers(), crs, multiplier);

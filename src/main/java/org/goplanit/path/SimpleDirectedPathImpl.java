@@ -1,30 +1,29 @@
 package org.goplanit.path;
 
+import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.id.ExternalIdAbleImpl;
+import org.goplanit.utils.id.IdGenerator;
+import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.path.ManagedDirectedPath;
+import org.goplanit.utils.path.SimpleDirectedPath;
+
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
-import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.id.ExternalIdAbleImpl;
-import org.goplanit.utils.id.IdGenerator;
-import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.path.DirectedPath;
-
 /**
- * This object represents a path based on a number of consecutive LinkSegments
+ * This object represents a simple directed path based on a number of consecutive LinkSegments
  *
- * The path creation makes use of the fact that the origin pair will have a null EdgeSegment, so there is no need to specify the origin.
- *
- * @author gman6028, markr
+ * @author markr
  *
  */
-public class DirectedPathImpl extends ExternalIdAbleImpl implements DirectedPath {
+public class SimpleDirectedPathImpl implements SimpleDirectedPath {
 
   /** the logger */
   @SuppressWarnings("unused")
-  private static final Logger LOGGER = Logger.getLogger(DirectedPathImpl.class.getCanonicalName());
+  private static final Logger LOGGER = Logger.getLogger(SimpleDirectedPathImpl.class.getCanonicalName());
 
   /**
    * deque containing the edge segments in the path (we use a deque for easy insertion at both ends which is generally preferable when constructing paths based on shortest path
@@ -33,34 +32,21 @@ public class DirectedPathImpl extends ExternalIdAbleImpl implements DirectedPath
   private final Deque<EdgeSegment> path;
 
   /**
-   * Generate an id for this instance
-   * 
-   * @param groupId to use
-   * @return created id
+   * Constructor
    */
-  protected static long generateId(final IdGroupingToken groupId) {
-    return IdGenerator.generateId(groupId, DirectedPath.PATH_ID_CLASS);
+  protected SimpleDirectedPathImpl() {
+    super();
+    path = new ArrayDeque<>();
   }
 
   /**
    * Constructor
-   * 
-   * @param groupId contiguous id generation within this group for instances of this class
-   */
-  protected DirectedPathImpl(final IdGroupingToken groupId) {
-    super(generateId(groupId));
-    path = new ArrayDeque<EdgeSegment>();
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param groupId          contiguous id generation within this group for instances of this class
+   *
    * @param pathEdgeSegments the path to set (not copied)
    */
   @SuppressWarnings("unchecked")
-  protected DirectedPathImpl(final IdGroupingToken groupId, final Deque<? extends EdgeSegment> pathEdgeSegments) {
-    super(generateId(groupId));
+  protected SimpleDirectedPathImpl(final Deque<? extends EdgeSegment> pathEdgeSegments) {
+    super();
     path = (Deque<EdgeSegment>) pathEdgeSegments;
   }
 
@@ -70,16 +56,6 @@ public class DirectedPathImpl extends ExternalIdAbleImpl implements DirectedPath
   @Override
   public Iterator<EdgeSegment> iterator() {
     return path.iterator();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long recreateManagedIds(IdGroupingToken tokenId) {
-    long newId = generateId(tokenId);
-    setId(newId);
-    return newId;
   }
 
   /**

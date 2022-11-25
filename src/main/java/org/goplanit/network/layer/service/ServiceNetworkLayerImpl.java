@@ -149,7 +149,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    */
   @Override
   public boolean registerSupportedMode(Mode supportedMode) {
-    LOGGER.warning(String.format("Unable to register additional supported modes on service network layer %s, do so on parent network layer %sinstead", getXmlId(),
+    LOGGER.warning(String.format("Unable to register additional supported modes on service network layer %s, do so on parent network layer %s instead", getXmlId(),
         getParentNetworkLayer().getXmlId()));
     return false;
   }
@@ -162,7 +162,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    */
   @Override
   public boolean registerSupportedModes(Collection<Mode> supportedModes) {
-    LOGGER.warning(String.format("Unable to register additional supported modes on service network layer %s, do so on parent network layer %sinstead", getXmlId(),
+    LOGGER.warning(String.format("Unable to register additional supported modes on service network layer %s, do so on parent network layer %s instead", getXmlId(),
         getParentNetworkLayer().getXmlId()));
     return false;
   }
