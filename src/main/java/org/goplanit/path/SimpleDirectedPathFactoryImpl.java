@@ -17,7 +17,7 @@ public class SimpleDirectedPathFactoryImpl implements DirectedPathFactory<Simple
    * {@inheritDoc}
    */
   @Override
-  public SimpleDirectedPath createNew() {
+  public SimpleDirectedPathImpl createNew() {
     return new SimpleDirectedPathImpl();
   }
 
@@ -25,7 +25,7 @@ public class SimpleDirectedPathFactoryImpl implements DirectedPathFactory<Simple
    * {@inheritDoc}
    */
   @Override
-  public SimpleDirectedPath createNew(Deque<? extends EdgeSegment> edgeSegments) {
+  public SimpleDirectedPathImpl createNew(Deque<? extends EdgeSegment> edgeSegments) {
     return new SimpleDirectedPathImpl(edgeSegments);
   }
 

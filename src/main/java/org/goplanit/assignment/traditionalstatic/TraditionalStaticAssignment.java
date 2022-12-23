@@ -450,7 +450,7 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @return array containing costs for each link segment
    */
   private double[] collectModalLinkSegmentCosts(final Mode mode) {
-    return CostUtils.createModalSegmentCost(mode, getVirtualCost(), getPhysicalCost(), getInfrastructureNetwork(), getZoning());
+    return CostUtils.createAndPopulateModalSegmentCost(mode, getVirtualCost(), getPhysicalCost(), getInfrastructureNetwork(), getZoning());
   }
 
   /**

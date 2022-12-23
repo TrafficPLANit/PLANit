@@ -91,7 +91,7 @@ public class CostUtils {
    * @param network physical network
    * @return generalised cost array by link segment id
    */
-  public static double[] createModalSegmentCost(Mode mode,AbstractPhysicalCost physicalCost, UntypedPhysicalNetwork network){
+  public static double[] createAndPopulateModalSegmentCost(Mode mode, AbstractPhysicalCost physicalCost, UntypedPhysicalNetwork network){
     double[] segmentCosts =createEmptyLinkSegmentCostArray(network);
     populateModalPhysicalLinkSegmentCosts(mode, physicalCost, network, segmentCosts);
     return segmentCosts;
@@ -107,7 +107,7 @@ public class CostUtils {
    * @param zoning zoning containing virtual part of the network
    * @return generalised cost array by link segment id
    */
-  public static double[] createModalSegmentCost(Mode mode, VirtualCost virtualCost, AbstractPhysicalCost physicalCost, UntypedPhysicalNetwork network, Zoning zoning){
+  public static double[] createAndPopulateModalSegmentCost(Mode mode, VirtualCost virtualCost, AbstractPhysicalCost physicalCost, UntypedPhysicalNetwork network, Zoning zoning){
     double[] segmentCosts =createEmptyLinkSegmentCostArray(network, zoning);
     populateModalVirtualLinkSegmentCosts(mode, virtualCost, zoning.getVirtualNetwork(), segmentCosts);
     populateModalPhysicalLinkSegmentCosts(mode, physicalCost, network, segmentCosts);

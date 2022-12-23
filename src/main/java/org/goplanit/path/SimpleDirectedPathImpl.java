@@ -7,10 +7,7 @@ import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.SimpleDirectedPath;
 
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.Iterator;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -71,26 +68,53 @@ public class SimpleDirectedPathImpl implements SimpleDirectedPath {
    */
   @Override
   public boolean containsSubPath(Collection<? extends EdgeSegment> subPath) {
-    if (subPath == null || subPath.isEmpty()) {
+    return containsSubPath(subPath.iterator());
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean containsSubPath(Iterator<? extends EdgeSegment> subPathIter) {
+    if (subPathIter == null && subPathIter.hasNext()) {
       return false;
     }
 
-    Iterator<? extends EdgeSegment> subPathIter = subPath.iterator();
-    EdgeSegment subPathSegment = subPathIter.next();
+    EdgeSegment subPathSegment = null;
     boolean started = false;
     for (EdgeSegment edgeSegment : path) {
+      subPathSegment = subPathIter.next();
       if (edgeSegment.idEquals(subPathSegment)) {
         started = true;
-        if (!subPathIter.hasNext()) {
-          break;
-        }
-        subPathSegment = subPathIter.next();
-      } else if (started && subPathIter.hasNext()) {
-        return false;
+      } else if (started) {
+        started = false;
+        break;
+      }
+
+      if (!subPathIter.hasNext()) {
+        break;
       }
     }
 
-    return started;
+    return started && !subPathIter.hasNext();
+  }
+
+  /**
+   * Append given edge segments to the simple path
+   *
+   * @param edgeSegments to add
+   */
+  public void append(EdgeSegment... edgeSegments){
+    Arrays.stream(edgeSegments).forEach(e -> this.path.add(e));
+  }
+
+  /**
+   * Prepend given edge segments to the simple path
+   *
+   * @param edgeSegments to add
+   */
+  public void prepend(EdgeSegment... edgeSegments){
+    Arrays.stream(edgeSegments).forEach(e -> this.path.push(e));
   }
 
 }

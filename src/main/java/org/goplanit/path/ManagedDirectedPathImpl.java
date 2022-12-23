@@ -97,4 +97,12 @@ public class ManagedDirectedPathImpl extends ExternalIdAbleImpl implements Manag
     return path.containsSubPath(subPath);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean containsSubPath(Iterator<? extends EdgeSegment> subPath) {
+    return path.containsSubPath(subPath);
+  }
+
 }
