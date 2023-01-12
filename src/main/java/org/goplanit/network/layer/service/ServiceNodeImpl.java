@@ -54,7 +54,7 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    */
   protected ServiceNodeImpl(final ServiceNodeImpl serviceNode) {
     super(serviceNode);
-    this.networkNode = serviceNode.getParentNode();
+    this.networkNode = serviceNode.getPhysicalParentNode();
   }
 
   /**
@@ -78,7 +78,7 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    * @return related network layer node
    */
   @Override
-  public final Node getParentNode() {
+  public final Node getPhysicalParentNode() {
     return networkNode;
   }
 

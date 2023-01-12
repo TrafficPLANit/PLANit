@@ -1,18 +1,16 @@
 package org.goplanit.path;
 
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Deque;
-import java.util.Iterator;
-import java.util.logging.Logger;
-
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.path.ManagedDirectedPath;
 import org.goplanit.utils.path.SimpleDirectedPath;
-import org.w3.xlink.Simple;
+
+import java.util.Collection;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.logging.Logger;
 
 /**
  * This object represents a path based on a number of consecutive LinkSegments

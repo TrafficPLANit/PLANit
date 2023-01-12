@@ -80,10 +80,13 @@ public class SimpleDirectedPathImpl implements SimpleDirectedPath {
       return false;
     }
 
-    EdgeSegment subPathSegment = null;
+    EdgeSegment subPathSegment = subPathIter.next();
     boolean started = false;
     for (EdgeSegment edgeSegment : path) {
-      subPathSegment = subPathIter.next();
+      if (started){
+        subPathSegment = subPathIter.next();
+      }
+
       if (edgeSegment.idEquals(subPathSegment)) {
         started = true;
       } else if (started) {

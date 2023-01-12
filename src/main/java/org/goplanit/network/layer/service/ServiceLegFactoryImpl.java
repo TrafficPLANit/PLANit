@@ -50,17 +50,4 @@ public class ServiceLegFactoryImpl extends GraphEntityFactoryImpl<ServiceLeg> im
     return newServiceLeg;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ServiceLeg registerNew(final ServiceNode nodeA, final ServiceNode nodeB, final List<Link> networkLayerLinks, boolean registerOnNodes) {
-    ServiceLegImpl newServiceLeg = new ServiceLegImpl(getIdGroupingToken(), nodeA, nodeB, networkLayerLinks);
-    getGraphEntities().register(newServiceLeg);
-    if (registerOnNodes) {
-      registerOnNodes(newServiceLeg);
-    }
-    return newServiceLeg;
-  }
-
 }

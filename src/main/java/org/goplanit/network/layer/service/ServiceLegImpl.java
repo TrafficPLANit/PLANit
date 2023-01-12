@@ -1,11 +1,9 @@
 package org.goplanit.network.layer.service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.goplanit.graph.directed.DirectedEdgeImpl;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Link;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
@@ -31,18 +29,6 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(ServiceLegImpl.class.getCanonicalName());
 
-  /** Service leg's underlying links connecting its two service nodes */
-  protected List<Link> networkLayerLinks;
-
-  /**
-   * Set the network layer link that make up this leg
-   * 
-   * @param networkLayerLinks to use
-   */
-  protected void setNetworkLayerLinks(final List<Link> networkLayerLinks) {
-    this.networkLayerLinks = networkLayerLinks;
-  }
-
   /**
    * Constructor which injects link lengths directly
    *
@@ -51,20 +37,7 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
    * @param nodeB   second vertex in the link
    */
   protected ServiceLegImpl(final IdGroupingToken tokenId, final ServiceNode nodeA, final ServiceNode nodeB) {
-    this(tokenId, nodeA, nodeB, null);
-  }
-
-  /**
-   * Constructor which injects link lengths directly
-   *
-   * @param tokenId           contiguous id generation within this group for instances of this class
-   * @param nodeA             first vertex in the link
-   * @param nodeB             second vertex in the link
-   * @param networkLayerLinks to use
-   */
-  protected ServiceLegImpl(final IdGroupingToken tokenId, final ServiceNode nodeA, final ServiceNode nodeB, final List<Link> networkLayerLinks) {
     super(tokenId, nodeA, nodeB);
-    this.networkLayerLinks = networkLayerLinks;
   }
 
   /**
@@ -74,31 +47,27 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
    */
   protected ServiceLegImpl(ServiceLegImpl serviceLeg) {
     super(serviceLeg);
-    this.networkLayerLinks = new ArrayList<Link>(serviceLeg.networkLayerLinks);
   }
 
   /**
-   * Sum of the underlying network layer link lengths. If no links are registered 0 is returned
+   * Not allowed in service context as each segment may have different lengths derived from underlying physical leg segments
    * 
    * @return found length
    */
   @Override
   public double getLengthKm() {
-    if (networkLayerLinks == null || networkLayerLinks.isEmpty()) {
-      return 0;
-    }
-    return networkLayerLinks.stream().collect(Collectors.summingDouble(link -> link.getLengthKm()));
+    throw new PlanItRunTimeException("Not possible to determine length based on service leg, underlying leg segments may have different lengths");
   }
 
   /**
-   * @return true when all underlying links have a geometry, false otherwise
+   * @return true when all underlying service leg segments have a geometry, false otherwise
    */
   @Override
   public boolean hasGeometry() {
-    if (networkLayerLinks == null || networkLayerLinks.isEmpty()) {
+    if (getLegSegments() == null || getLegSegments().isEmpty()) {
       return false;
     } else {
-      return networkLayerLinks.stream().allMatch(link -> link.hasGeometry());
+      return getLegSegments().stream().allMatch(ls -> ls.hasGeometry());
     }
   }
 
@@ -107,10 +76,7 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
    */
   @Override
   public boolean isGeometryInAbDirection() {
-    if (hasGeometry()) {
-      return networkLayerLinks.stream().allMatch(link -> link.isGeometryInAbDirection());
-    }
-    return false;
+    throw new PlanItRunTimeException("Not possible to determine geometry direction unambiguously as geomtry is derived from service leg segments");
   }
 
   /**
@@ -124,22 +90,24 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
   }
 
   /**
-   * Create absed on underlying links that have a geometry
+   * Create based on underlying links that have a geometry
    * 
    * @return composite envelope, null if no underlying links, or links have no geometry
    */
   @Override
   public Envelope createEnvelope() {
-    if (networkLayerLinks == null || networkLayerLinks.isEmpty()) {
+    if (getLegSegments() == null || getLegSegments().isEmpty()) {
       return null;
     }
     Envelope envelope = null;
-    for (Link link : networkLayerLinks) {
-      if (link.hasGeometry()) {
-        if (envelope == null) {
-          envelope = link.createEnvelope();
-        } else {
-          envelope.expandToInclude(link.createEnvelope());
+    for(ServiceLegSegment legSegment : getLegSegments()){
+      for (Link link : legSegment.getPhysicalParentSegments()) {
+        if (link.hasGeometry()) {
+          if (envelope == null) {
+            envelope = link.createEnvelope();
+          } else {
+            envelope.expandToInclude(link.createEnvelope());
+          }
         }
       }
     }
@@ -157,7 +125,7 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
   }
 
   /**
-   * Not allowed, set geometry via underlying links instead
+   * Not allowed, set geometry via underlying leg segment physical links instead
    * 
    * @param lineString to use
    */
@@ -173,15 +141,7 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
    */
   @Override
   public void setLengthKm(double lengthInKm) {
-    LOGGER.warning("Not allowed to set length on service leg, do so on underlying links instead");
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public List<Link> getParentLinks() {
-    return this.networkLayerLinks;
+    LOGGER.warning("Not allowed to set length on service leg, do so on underlying leg segment's physical links instead");
   }
 
   /**
@@ -191,16 +151,9 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
   @Override
   public boolean validate() {
     boolean valid = super.validate();
-    if (valid) {
-      if (!(getServiceNodeA().getParentNode().equals(getFirstParentLink().getNodeA()))) {
-        LOGGER.severe(String.format("Service Node A its parent node (%s) on leg %s does not equate to node A (%s) of the first parent link (%s)",
-            getServiceNodeA().getParentNode().getXmlId(), getXmlId(), getFirstParentLink().getNodeA().getXmlId(), getFirstParentLink().getXmlId()));
-        valid = false;
-      }
-      if (!(getServiceNodeB().getParentNode().equals(getLastParentLink().getNodeB()))) {
-        LOGGER.severe(String.format("Service Node B its parent node (%s) on leg %s does not equate to node B (%s) of the last parent link (%s)",
-            getServiceNodeB().getParentNode().getXmlId(), getXmlId(), getLastParentLink().getNodeB().getXmlId(), getLastParentLink().getXmlId()));
-        valid = false;
+    if (valid && hasEdgeSegment()) {
+      for(var serviceLegSegment : getLegSegments()) {
+        serviceLegSegment.validate();
       }
     }
     return true;
