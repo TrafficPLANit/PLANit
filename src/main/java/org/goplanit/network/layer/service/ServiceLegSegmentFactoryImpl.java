@@ -4,6 +4,8 @@ import org.goplanit.graph.GraphEntityFactoryImpl;
 import org.goplanit.utils.graph.GraphEntities;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegments;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceLegSegmentFactory;
@@ -39,8 +41,8 @@ public class ServiceLegSegmentFactoryImpl extends GraphEntityFactoryImpl<Service
    * {@inheritDoc}
    */
   @Override
-  public ServiceLegSegmentImpl registerNew(ServiceLeg parentLeg, boolean directionAb, final List<Link> networkLayerLinks, boolean registerOnServiceNodeAndLeg){
-    final ServiceLegSegmentImpl legSegment = new ServiceLegSegmentImpl(getIdGroupingToken(), parentLeg, directionAb, networkLayerLinks);
+  public ServiceLegSegmentImpl registerNew(ServiceLeg parentLeg, boolean directionAb, final List<LinkSegment> networkLayerLinkSegments, boolean registerOnServiceNodeAndLeg){
+    final ServiceLegSegmentImpl legSegment = new ServiceLegSegmentImpl(getIdGroupingToken(), parentLeg, directionAb, networkLayerLinkSegments);
     getGraphEntities().register(legSegment);
 
     if (registerOnServiceNodeAndLeg) {

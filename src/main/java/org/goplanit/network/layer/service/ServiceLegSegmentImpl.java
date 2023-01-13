@@ -2,7 +2,8 @@ package org.goplanit.network.layer.service;
 
 import org.goplanit.graph.directed.EdgeSegmentImpl;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.physical.Link;
+import org.goplanit.utils.network.layer.physical.LinkSegment;
+import org.goplanit.utils.network.layer.physical.LinkSegments;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 
@@ -28,16 +29,7 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
   private static final Logger LOGGER = Logger.getLogger(ServiceLegSegmentImpl.class.getCanonicalName());
 
   /** Service leg's underlying links connecting its two service nodes */
-  protected List<Link> networkLayerLinks;
-
-  /**
-   * Set the network layer link that make up this leg
-   *
-   * @param networkLayerLinks to use
-   */
-  protected void setNetworkLayerLinks(final List<Link> networkLayerLinks) {
-    this.networkLayerLinks = networkLayerLinks;
-  }
+  protected List<LinkSegment> networkLayerLinkSegments;
 
   /**
    * Constructor with no reference to underlying physical links (to be populated later)
@@ -56,11 +48,11 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
    * @param tokenId     contiguous id generation within this group for instances of this class
    * @param parentLeg   parent leg of segment
    * @param directionAB direction of travel
-   * @param networkLayerLinks to use
+   * @param networkLayerLinkSegments to use
    */
-  protected ServiceLegSegmentImpl(final IdGroupingToken tokenId, final ServiceLeg parentLeg, final boolean directionAB, final List<Link> networkLayerLinks) {
+  protected ServiceLegSegmentImpl(final IdGroupingToken tokenId, final ServiceLeg parentLeg, final boolean directionAB, final List<LinkSegment> networkLayerLinkSegments) {
     super(tokenId, parentLeg, directionAB);
-    this.networkLayerLinks = networkLayerLinks;
+    this.networkLayerLinkSegments = networkLayerLinkSegments;
   }
 
   /**
@@ -70,7 +62,7 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
    */
   protected ServiceLegSegmentImpl(ServiceLegSegmentImpl serviceLegSegment) {
     super(serviceLegSegment);
-    this.networkLayerLinks = new ArrayList<>(serviceLegSegment.networkLayerLinks);
+    this.networkLayerLinkSegments = new ArrayList<>(serviceLegSegment.networkLayerLinkSegments);
   }
 
   /**
@@ -88,10 +80,10 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
    */
   @Override
   public double getLengthKm() {
-    if (networkLayerLinks == null || networkLayerLinks.isEmpty()) {
+    if (networkLayerLinkSegments == null || networkLayerLinkSegments.isEmpty()) {
       return 0;
     }
-    return networkLayerLinks.stream().collect(Collectors.summingDouble(link -> link.getLengthKm()));
+    return networkLayerLinkSegments.stream().collect(Collectors.summingDouble(ls -> ls.getParent().getLengthKm()));
   }
 
   /**
@@ -99,10 +91,10 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
    */
   @Override
   public boolean hasGeometry() {
-    if (networkLayerLinks == null || networkLayerLinks.isEmpty()) {
+    if (networkLayerLinkSegments == null || networkLayerLinkSegments.isEmpty()) {
       return false;
     } else {
-      return networkLayerLinks.stream().allMatch(link -> link.hasGeometry());
+      return networkLayerLinkSegments.stream().allMatch(ls -> ls.getParent().hasGeometry());
     }
   }
 
@@ -110,8 +102,16 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
    * {@inheritDoc}
    */
   @Override
-  public List<Link> getPhysicalParentSegments() {
-    return this.networkLayerLinks;
+  public List<LinkSegment> getPhysicalParentSegments() {
+    return this.networkLayerLinkSegments;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void setPhysicalParentSegments(final List<LinkSegment> networkLayerLinkSegments) {
+    this.networkLayerLinkSegments = networkLayerLinkSegments;
   }
 
   /**
@@ -124,14 +124,14 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
     if (valid && hasPhysicalParentSegments()) {
       var nodeA = isDirectionAb() ? getUpstreamServiceNode() : getDownstreamServiceNode();
       var nodeB = isDirectionAb() ? getDownstreamServiceNode(): getUpstreamServiceNode();
-      if (!(getParent().getServiceNodeA().getPhysicalParentNode().equals( isDirectionAb() ? getFirstPhysicalLink().getNodeA() : getLastPhysicalLink().getNodeB()))) {
+      if (!(getParent().getServiceNodeA().getPhysicalParentNode().equals( isDirectionAb() ? getFirstPhysicalLinkSegment().getUpstreamNode() : getLastPhysicalLinkSegment().getDownstreamNode()))) {
         LOGGER.severe(String.format("Service Node A its parent node (%s) on leg %s does not equate to node A (%s) of the first parent link (%s)",
-            getParent().getServiceNodeA().getPhysicalParentNode().getXmlId(), getXmlId(), getFirstPhysicalLink().getNodeA().getXmlId(), getFirstPhysicalLink().getXmlId()));
+            getParent().getServiceNodeA().getPhysicalParentNode().getXmlId(), getXmlId(), getFirstPhysicalLinkSegment().getUpstreamNode().getXmlId(), getFirstPhysicalLinkSegment().getXmlId()));
         valid = false;
       }
-      if (!(getParent().getServiceNodeB().getPhysicalParentNode().equals(isDirectionAb() ? getLastPhysicalLink().getNodeB() : getFirstPhysicalLink().getNodeA()))) {
+      if (!(getParent().getServiceNodeB().getPhysicalParentNode().equals(isDirectionAb() ? getLastPhysicalLinkSegment().getDownstreamNode() : getFirstPhysicalLinkSegment().getUpstreamNode()))) {
         LOGGER.severe(String.format("Service Node B its parent node (%s) on leg %s does not equate to node B (%s) of the last parent link (%s)",
-            getParent().getServiceNodeB().getPhysicalParentNode().getXmlId(), getXmlId(), getLastPhysicalLink().getNodeB().getXmlId(), getLastPhysicalLink().getXmlId()));
+            getParent().getServiceNodeB().getPhysicalParentNode().getXmlId(), getXmlId(), getLastPhysicalLinkSegment().getDownstreamNode().getXmlId(), getLastPhysicalLinkSegment().getXmlId()));
         valid = false;
       }
     }

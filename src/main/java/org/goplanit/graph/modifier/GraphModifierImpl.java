@@ -224,7 +224,7 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   /**
    * {@inheritDoc}
    */
-  public void removeSubGraphOf(Vertex referenceVertex) throws PlanItException {
+  public void removeSubGraphOf(Vertex referenceVertex) {
     Set<Vertex> subNetworkNodesToRemove = processSubNetworkVertex(referenceVertex);
     removeSubGraph(subNetworkNodesToRemove);
   }

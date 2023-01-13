@@ -35,7 +35,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   /**
    * The graph containing the vertices, edges, and edge segments (or derived implementations)
    */
-  private final UntypedDirectedGraphImpl<V, E, S> graph;
+  protected final UntypedDirectedGraphImpl<V, E, S> graph;
 
   /** the modifier to use to apply larger modifications */
   protected UntypedDirectedGraphLayerModifier<V, E, S> layerModifier;
@@ -68,27 +68,8 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   public <Vx extends ManagedGraphEntities<V>, Ex extends ManagedGraphEntities<E>, Sx extends ManagedGraphEntities<S>> 
       UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final Vx vertices, final Ex edges, final Sx edgeSegments) {
     super(tokenId);
-    this.graph = new UntypedDirectedGraphImpl<V, E, S>(tokenId, vertices, edges, edgeSegments);
-    this.layerModifier = new UntypedNetworkLayerModifierImpl<V, E, S>(this.graph);
-  }
-
-  /**
-   * Network Constructor
-   *
-   * @param <Vx> container type for vertices
-   * @param <Ex> container type for vertices
-   * @param <Sx> container type for vertices
-   * @param tokenId       contiguous id generation within this group for instances of this class
-   * @param vertices      vertices container to use
-   * @param edges         edges container to use
-   * @param edgeSegments  edge Segments container to use
-   * @param layerModifier to use for applying modifications to the graph
-   */
-  public <Vx extends ManagedGraphEntities<V>, Ex extends ManagedGraphEntities<E>, Sx extends ManagedGraphEntities<S>>
-      UntypedNetworkLayerImpl(final IdGroupingToken tokenId, final Vx vertices, final Ex edges, final Sx edgeSegments, UntypedDirectedGraphLayerModifier<V, E, S> layerModifier) {
-    super(tokenId);
-    this.graph = new UntypedDirectedGraphImpl<V, E, S>(tokenId, vertices, edges, edgeSegments);
-    this.layerModifier = layerModifier;
+    this.graph = new UntypedDirectedGraphImpl<>(tokenId, vertices, edges, edgeSegments);
+    this.layerModifier = new UntypedNetworkLayerModifierImpl<>(this.graph);
   }
 
   /**
@@ -99,7 +80,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   public UntypedNetworkLayerImpl(UntypedNetworkLayerImpl<V, E, S> untypedDirectedGraphLayerImpl) {
     super(untypedDirectedGraphLayerImpl);
     this.graph = untypedDirectedGraphLayerImpl.graph.clone();
-    this.layerModifier = new UntypedNetworkLayerModifierImpl<V, E, S>(graph);
+    this.layerModifier = new UntypedNetworkLayerModifierImpl<>(graph);
   }
 
   // Getters - Setters
@@ -180,7 +161,7 @@ public abstract class UntypedNetworkLayerImpl<V extends DirectedVertex, E extend
   public void reset() {
     super.reset();
     ((ManagedIdEntities<V>) this.graph.getVertices()).reset();
-    ((ManagedIdEntities<V>) this.graph.getEdges()).reset();
-    ((ManagedIdEntities<V>) this.graph.getEdgeSegments()).reset();
+    ((ManagedIdEntities<E>) this.graph.getEdges()).reset();
+    ((ManagedIdEntities<S>) this.graph.getEdgeSegments()).reset();
   }
 }

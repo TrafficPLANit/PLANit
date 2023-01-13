@@ -101,12 +101,12 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
     }
     Envelope envelope = null;
     for(ServiceLegSegment legSegment : getLegSegments()){
-      for (Link link : legSegment.getPhysicalParentSegments()) {
-        if (link.hasGeometry()) {
+      for (var linkSegment : legSegment.getPhysicalParentSegments()) {
+        if (linkSegment.hasGeometry()) {
           if (envelope == null) {
-            envelope = link.createEnvelope();
+            envelope = linkSegment.getParentLink().createEnvelope();
           } else {
-            envelope.expandToInclude(link.createEnvelope());
+            envelope.expandToInclude(linkSegment.getParentLink().createEnvelope());
           }
         }
       }

@@ -3,11 +3,14 @@ package org.goplanit.network.layer.service;
 import java.util.Collection;
 import java.util.logging.Logger;
 
+import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
+import org.goplanit.network.layer.modifier.ServiceNetworkLayerModifierImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
+import org.goplanit.utils.network.layer.modifier.ServiceNetworkLayerModifier;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceLegSegments;
@@ -73,6 +76,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   protected ServiceNetworkLayerImpl(final IdGroupingToken tokenId, final MacroscopicNetworkLayer parentNetworkLayer, final ServiceNodes nodes, final ServiceLegs legs,
       final ServiceLegSegments legSegments) {
     super(tokenId, nodes, legs, legSegments);
+    this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this.graph); // overwrite default from super <-- not pretty but otherwise no access to graph yet
     this.parentNetworkLayer = parentNetworkLayer;
   }
 
@@ -187,4 +191,11 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
     return getParentNetworkLayer().supports(mode);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNetworkLayerModifierImpl<ServiceNode, ServiceLeg, ServiceLegSegment> getLayerModifier(){
+    return (ServiceNetworkLayerModifierImpl<ServiceNode, ServiceLeg, ServiceLegSegment>) super.getLayerModifier();
+  }
 }

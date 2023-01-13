@@ -3,6 +3,7 @@ package org.goplanit.algorithms.shortest;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
@@ -82,7 +83,7 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
    *
    */
   @Override
-  public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) {
+  public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination, Set<? extends EdgeSegment> bannedSegments) {
     if (origin.getPosition() == null || destination.getPosition() == null) {
       throw new PlanItRunTimeException(
           "aStar shortest path must compute distances between vertices on-the-fly. One or more vertices do not have location information available making this impossible");
@@ -132,11 +133,19 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
 
       // for all exiting edges
       for (var adjacentEdgeSegment : currentVertex.getExitEdgeSegments()) {
+        if(bannedSegments!= null && !bannedSegments.isEmpty() && bannedSegments.contains(adjacentEdgeSegment)){
+          continue;
+        }
+
+//        if(adjacentEdgeSegment.getParent().hasExternalId() && adjacentEdgeSegment.getParent().getExternalId().equals("279958930")){
+//          int bla = 4;
+//        }
+
         int adjacentVertexId = (int) adjacentEdgeSegment.getDownstreamVertex().getId();
 
         // edge cost
         double exitEdgeCost = edgeSegmentCosts[(int) adjacentEdgeSegment.getId()];
-        if (exitEdgeCost < Double.POSITIVE_INFINITY) {
+        if (exitEdgeCost < Double.MAX_VALUE) {
 
           // updated actual cost to adjacent node
           double tentativeCost = costToVertex + exitEdgeCost;
@@ -167,6 +176,11 @@ public class ShortestPathAStar implements ShortestPathOneToOne {
     }
 
     return new ShortestPathResultGeneralised(vertexMeasuredCost, incomingEdgeSegment, ShortestSearchType.ONE_TO_ONE);
+  }
+
+  @Override
+  public ShortestPathResult executeOneToOne(DirectedVertex origin, DirectedVertex destination) {
+    return executeOneToOne(origin, destination, null);
   }
 
 }
