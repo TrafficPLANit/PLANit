@@ -8,6 +8,7 @@ import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
 import org.goplanit.graph.modifier.DirectedGraphModifierImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.graph.directed.DirectedEdge;
+import org.goplanit.utils.graph.directed.DirectedGraph;
 import org.goplanit.utils.graph.directed.DirectedVertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
 import org.goplanit.utils.graph.modifier.DirectedGraphModifier;
@@ -33,18 +34,16 @@ public class UntypedNetworkLayerModifierImpl<V extends DirectedVertex, E extends
   private static final Logger LOGGER = Logger.getLogger(UntypedNetworkLayerModifierImpl.class.getCanonicalName());
 
   /** the graph modifier to use to apply larger modifications */
-  protected DirectedGraphModifier graphModifier;
+  protected DirectedGraphModifierImpl graphModifier;
+
+  /** Access to the underlying graph registered on the modifier
+   *
+   * @return underlying directed graph */
+  protected UntypedDirectedGraphImpl<V,E,S> getUntypedDirectedGraph(){
+    return (UntypedDirectedGraphImpl<V, E, S>) graphModifier.getUntypedDirectedGraph();
+  }
 
   // PUBLIC
-
-  /**
-   * Constructor
-   *
-   * @param graphModifier parent graph modifier
-   */
-  public UntypedNetworkLayerModifierImpl(final DirectedGraphModifier graphModifier) {
-    this.graphModifier = graphModifier;
-  }
 
   /**
    * Constructor

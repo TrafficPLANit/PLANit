@@ -64,7 +64,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * 
    * @return directed graph
    */
-  protected UntypedDirectedGraph<?, ?, ?> getUntypedDirectedGraph() {
+  public UntypedDirectedGraph<?, ?, ?> getUntypedDirectedGraph() {
     return (UntypedDirectedGraph<?, ?, ?>) graphModifier.theGraph;
   }
 
@@ -149,52 +149,47 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
    * {@inheritDoc}
    */
   @Override
+  public void removeVertex(DirectedVertex vertex) {
+    this.graphModifier.removeVertex(vertex);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeEdge(DirectedEdge edge) {
+    edge.removeEdgeSegments();
+    this.graphModifier.removeEdge(edge);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeEdgeSegment(EdgeSegment edgeSegment) {
+    edgeSegment.removeParentEdge();
+    getUntypedDirectedGraph().getEdgeSegments().remove(edgeSegment.getId());
+    if (hasListener(RemoveSubGraphEdgeSegmentEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveSubGraphEdgeSegmentEvent(this, edgeSegment));
+    }
+    // edge segments will be removed from edge via overridden removeEdge method
+    // todo remove this line if this works (old: directedEdge.removeEdgeSegments(); here within removeSubgraph implementation before this method existed)
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void removeSubGraph(Set<? extends DirectedVertex> subGraphToRemove) {
     UntypedDirectedGraph<?, ?, ?> directedGraph = getUntypedDirectedGraph();
 
-    /* remove the edge segment portion of the directed subgraph from the actual directed graph */
+    /* remove the edge segment portion of the directed subgraph from the actual directed graph and fire event(s)*/
     for (DirectedVertex directedVertex : subGraphToRemove) {
-
-      /* remove directed graph specific elements from edge --> edge segments */
       for (DirectedEdge directedEdge : directedVertex.getEdges()) {
         for (EdgeSegment edgeSegment : directedEdge.getEdgeSegments()) {
-          edgeSegment.removeParentEdge();
-          directedGraph.getEdgeSegments().remove(edgeSegment.getId());
-          if (hasListener(RemoveSubGraphEdgeSegmentEvent.EVENT_TYPE)) {
-            fireEvent(new RemoveSubGraphEdgeSegmentEvent(this, edgeSegment));
-          }
+          removeEdgeSegment(edgeSegment);
         }
-        directedEdge.removeEdgeSegments();
       }
-
-//      Set<EdgeSegment> entryEdgeSegments = new HashSet<EdgeSegment>(directedVertex.getEntryEdgeSegments());
-//      Set<EdgeSegment> exitEdgeSegments = new HashSet<EdgeSegment>(directedVertex.getExitEdgeSegments());
-//
-//      /* remove vertex' edge segments from graph */
-//      entryEdgeSegments.forEach(edgeSegment -> directedGraph.getEdgeSegments().remove(edgeSegment.getId()));
-//      exitEdgeSegments.forEach(edgeSegment -> directedGraph.getEdgeSegments().remove(edgeSegment.getId()));
-//
-//      /* remove edge from edge segments */
-//      entryEdgeSegments.forEach(edgeSegment -> edgeSegment.removeParentEdge());
-//      exitEdgeSegments.forEach(edgeSegment -> edgeSegment.removeParentEdge());
-//
-//      /* remove edge segments from vertex */
-//      entryEdgeSegments.forEach(edgeSegment -> directedVertex.removeEdgeSegment(edgeSegment));
-//      exitEdgeSegments.forEach(edgeSegment -> directedVertex.removeEdgeSegment(edgeSegment));
-//
-//      /* remove edge segments from graph */
-//      for (EdgeSegment edgeSegment : entryEdgeSegments) {
-//        directedGraph.getEdgeSegments().remove(edgeSegment.getId());
-//        if (hasListener(RemoveSubGraphEdgeSegmentEvent.EVENT_TYPE)) {
-//          fireEvent(new RemoveSubGraphEdgeSegmentEvent(this, edgeSegment));
-//        }
-//      }
-//      for (EdgeSegment edgeSegment : exitEdgeSegments) {
-//        directedGraph.getEdgeSegments().remove(edgeSegment.getId());
-//        if (hasListener(RemoveSubGraphEdgeSegmentEvent.EVENT_TYPE)) {
-//          fireEvent(new RemoveSubGraphEdgeSegmentEvent(this, edgeSegment));
-//        }
-//      }
     }
 
     /* do the same for vertices and edges */

@@ -21,6 +21,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Modifier class for service network layer, added functionality for service networks to:
@@ -30,7 +31,8 @@ import java.util.logging.Logger;
  *
  * @author markr
  */
-public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends ServiceLeg, S extends ServiceLegSegment> extends UntypedNetworkLayerModifierImpl<V, E, S> implements ServiceNetworkLayerModifier<V,E,S> {
+public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends ServiceLeg, S extends ServiceLegSegment>
+        extends UntypedNetworkLayerModifierImpl<V, E, S> implements ServiceNetworkLayerModifier<V,E,S> {
 
   // INNER CLASSES
 
@@ -39,15 +41,6 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
   private static final Logger LOGGER = Logger.getLogger(ServiceNetworkLayerModifierImpl.class.getCanonicalName());
 
   // PUBLIC
-
-  /**
-   * Constructor
-   *
-   * @param graphModifier parent graph modifier
-   */
-  public ServiceNetworkLayerModifierImpl(final DirectedGraphModifier graphModifier) {
-    super(graphModifier);
-  }
 
   /**
    * Constructor
@@ -81,17 +74,33 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
    */
   @Override
   public void removeUnmappedServiceNetworkEntities() {
-    //TODO: --> the one to implement
+    //TODO: CONTINUE HERE --> TEST AND DEBUG IF THIS IS CORRECT!!!! 13/1/2023
 
-    // todo do so via modifier for service networks for which we will create some additional methods on top of the general one based on:
-    //  to remove dangling unmapped service nodes, service links(segments) and their related unmapped (portions of) service routes
-    //  then update the service network/routing ids accordingly
+    var graph = this.getUntypedDirectedGraph();
 
-    //  prune service network and routes for unmatched service nodes (and routes) --> many routes/service nodes/legs might not have been matched due to network
-    //  not covering entire GTFS area in which case we should remove them as it does result in an invalid/incomplete routedservices/servicenetwork
-    //removeServiceLegSegmentsWithoutPhysicalNetworkMapping();
-    //removeServiceLegsWithoutPhysicalNetworkMapping();
-    //removeServiceNodesWithoutPhysicalNetworkMapping();
-    //todo redo id's due to gaps in numbering
+    /* identify and remove service nodes without a mapped physical node in the network layer */
+    var toBeRemovedServiceNodes = graph.getVertices().stream().filter( v -> !v.hasPhysicalParentNode()).collect(Collectors.toList());
+    toBeRemovedServiceNodes.forEach( n -> this.graphModifier.removeVertex(n));
+
+    /* remove all service legs and service leg segments connected to an already removed service node, in which case they are now invalid as well */
+    var toBeRemovedServiceLegSegments =
+            graph.getEdgeSegments().stream().filter(
+                    ls -> ls.getUpstreamServiceNode()==null || ls.getDownstreamServiceNode()==null).collect(Collectors.toList());
+    toBeRemovedServiceLegSegments.forEach( ls -> this.graphModifier.removeEdgeSegment(ls));
+
+    var toBeRemovedServiceLegs =
+            graph.getEdges().stream().filter(
+                    e -> e.getVertexA()==null || e.getVertexB()==null).collect(Collectors.toList());
+    toBeRemovedServiceLegs.forEach( e -> this.graphModifier.removeEdge(e));
+
+    /* special case --> can be that service leg segments are connected to valid service nodes, but the leg segment itself is not valid due to missing
+     * physical parent segments -> remove as well but log since this seems very unlikely and possible a result of an error upstream */
+    toBeRemovedServiceLegSegments = graph.getEdgeSegments().stream().filter( ls -> !ls.hasPhysicalParentSegments()).collect(Collectors.toList());
+    if(!toBeRemovedServiceLegSegments.isEmpty()) {
+      toBeRemovedServiceLegSegments.forEach(ls -> this.graphModifier.removeEdgeSegment(ls));
+      //todo: check connected edges and service nodes have service leg segments correctly removed
+    }
+
+    //todo redo id's due to gaps in numbering + remove routedServices afterwards (not here, needs its own modifier or events to be triggered...!)
   }
 }

@@ -131,6 +131,52 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
 
   /**
    * {@inheritDoc}
+   *
+   */
+  @Override
+  public void removeVertex(Vertex vertex) {
+    /* remove edges from vertex */
+    for (Edge edge : vertex.getEdges()) {
+      vertex.removeEdge(edge);
+    }
+
+    /* remove vertex from vertex' edges */
+    for (Edge edge : vertex.getEdges()) {
+      edge.removeVertex(vertex);
+    }
+
+    /* remove vertex from graph and fire event */
+    theGraph.getVertices().remove(vertex.getId());
+    if (hasListener(RemoveSubGraphVertexEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveSubGraphVertexEvent(this, vertex));
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   */
+  @Override
+  public void removeEdge(Edge edge) {
+    /* remove edge from vertex A */
+    if(edge.getVertexA()!= null){
+      edge.getVertexA().removeEdge(edge);
+    }
+
+    /* remove edge from vertex B */
+    if(edge.getVertexB()!= null){
+      edge.getVertexB().removeEdge(edge);
+    }
+
+    /* remove edge from graph and fire event */
+    theGraph.getEdges().remove(edge.getId());
+    if (hasListener(RemoveSubGraphEdgeEvent.EVENT_TYPE)) {
+      fireEvent(new RemoveSubGraphEdgeEvent(this, edge));
+    }
+  }
+
+  /**
+   * {@inheritDoc}
    * 
    */
   @Override
@@ -188,32 +234,17 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
 
     /* remove the subnetwork from the actual network */
     for (Vertex vertex : subGraphToRemove) {
+
+      /* remove vertex and fire vertex removal event */
+      removeVertex(vertex);
+
+      /* remove vertex' edges from graph  and fire edge removal event(s) */
       Set<? extends Edge> vertexEdges = new HashSet<>(vertex.getEdges());
-
-      /* remove edges from vertex */
       for (Edge edge : vertexEdges) {
-        vertex.removeEdge(edge);
+        removeEdge(edge);
       }
 
-      /* remove vertex from vertex' edges */
-      for (Edge edge : vertexEdges) {
-        edge.removeVertex(vertex);
-      }
-
-      /* remove vertex from graph */
-      theGraph.getVertices().remove(vertex.getId());
-      if (hasListener(RemoveSubGraphVertexEvent.EVENT_TYPE)) {
-        fireEvent(new RemoveSubGraphVertexEvent(this, vertex));
-      }
-
-      /* remove vertex' edges from graph */
-      for (Edge edge : vertexEdges) {
-        theGraph.getEdges().remove(edge.getId());
-        if (hasListener(RemoveSubGraphEdgeEvent.EVENT_TYPE)) {
-          fireEvent(new RemoveSubGraphEdgeEvent(this, edge));
-        }
-      }
-
+      /* fire remove subgraph event */
       if (hasListener(RemoveSubGraphEvent.EVENT_TYPE)) {
         fireEvent(new RemoveSubGraphEvent(this));
       }
