@@ -2,6 +2,7 @@ package org.goplanit.network.layer.service;
 
 import java.util.logging.Logger;
 
+import org.goplanit.network.ServiceNetwork;
 import org.goplanit.network.layers.ServiceNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;

@@ -88,7 +88,8 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    *
    * @param parentNode new parent node in the network layer
    */
-  public void setParentNode(Node parentNode) {
+  @Override
+  public void setPhysicalParentNode(Node parentNode) {
     this.networkNode = parentNode;
   }
 

@@ -148,6 +148,14 @@ public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Verte
    * {@inheritDoc}
    */
   @Override
+  public void removeAllEdges(){
+    edges.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public Collection<? extends E> getEdges() {
     return Collections.unmodifiableCollection(edges);
   }

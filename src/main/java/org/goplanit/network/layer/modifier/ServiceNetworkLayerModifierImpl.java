@@ -1,18 +1,13 @@
 package org.goplanit.network.layer.modifier;
 
 import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
-import org.goplanit.graph.modifier.DirectedGraphModifierImpl;
+import org.goplanit.network.ServiceNetwork;
+import org.goplanit.network.layer.service.ServiceNetworkLayerImpl;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
-import org.goplanit.utils.graph.directed.DirectedEdge;
-import org.goplanit.utils.graph.directed.DirectedVertex;
-import org.goplanit.utils.graph.directed.EdgeSegment;
-import org.goplanit.utils.graph.modifier.DirectedGraphModifier;
-import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
-import org.goplanit.utils.graph.modifier.event.GraphModifierListener;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.network.layer.modifier.ServiceNetworkLayerModifier;
-import org.goplanit.utils.network.layer.modifier.UntypedDirectedGraphLayerModifier;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
@@ -40,6 +35,9 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
   @SuppressWarnings("unused")
   private static final Logger LOGGER = Logger.getLogger(ServiceNetworkLayerModifierImpl.class.getCanonicalName());
 
+  /** the related service network layer */
+  private ServiceNetworkLayerImpl serviceNetworkLayer;
+
   // PUBLIC
 
   /**
@@ -47,8 +45,9 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
    *
    * @param graph parent graph to base modifier on
    */
-  public ServiceNetworkLayerModifierImpl(UntypedDirectedGraphImpl<V, E, S> graph) {
+  public ServiceNetworkLayerModifierImpl(ServiceNetworkLayerImpl serviceNetworkLayer, UntypedDirectedGraphImpl<V, E, S> graph) {
     super(graph);
+    this.serviceNetworkLayer = serviceNetworkLayer;
   }
 
   /**
@@ -74,24 +73,26 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
    */
   @Override
   public void removeUnmappedServiceNetworkEntities() {
-    //TODO: CONTINUE HERE --> TEST AND DEBUG IF THIS IS CORRECT!!!! 13/1/2023
-
     var graph = this.getUntypedDirectedGraph();
+    final String serviceLayerLoggingPrefix = LoggingUtils.serviceNetworkLayerPrefix(this.serviceNetworkLayer.getId());
 
     /* identify and remove service nodes without a mapped physical node in the network layer */
     var toBeRemovedServiceNodes = graph.getVertices().stream().filter( v -> !v.hasPhysicalParentNode()).collect(Collectors.toList());
     toBeRemovedServiceNodes.forEach( n -> this.graphModifier.removeVertex(n));
+    LOGGER.info(String.format("%s Removed %d service nodes without a mapping to physical network", serviceLayerLoggingPrefix, toBeRemovedServiceNodes.size()));
 
     /* remove all service legs and service leg segments connected to an already removed service node, in which case they are now invalid as well */
     var toBeRemovedServiceLegSegments =
             graph.getEdgeSegments().stream().filter(
                     ls -> ls.getUpstreamServiceNode()==null || ls.getDownstreamServiceNode()==null).collect(Collectors.toList());
     toBeRemovedServiceLegSegments.forEach( ls -> this.graphModifier.removeEdgeSegment(ls));
+    LOGGER.info(String.format("%s Removed %d service leg segments without a mapping to physical network",serviceLayerLoggingPrefix, toBeRemovedServiceLegSegments.size()));
 
     var toBeRemovedServiceLegs =
             graph.getEdges().stream().filter(
                     e -> e.getVertexA()==null || e.getVertexB()==null).collect(Collectors.toList());
     toBeRemovedServiceLegs.forEach( e -> this.graphModifier.removeEdge(e));
+    LOGGER.info(String.format("%s Removed %d service legs without a mapping to physical network", serviceLayerLoggingPrefix, toBeRemovedServiceLegs.size()));
 
     /* special case --> can be that service leg segments are connected to valid service nodes, but the leg segment itself is not valid due to missing
      * physical parent segments -> remove as well but log since this seems very unlikely and possible a result of an error upstream */

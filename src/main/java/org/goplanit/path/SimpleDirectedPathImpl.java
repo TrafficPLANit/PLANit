@@ -103,6 +103,22 @@ public class SimpleDirectedPathImpl implements SimpleDirectedPath {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegment getFirstSegment() {
+    return path.getFirst();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegment getLastSegment() {
+    return path.getLast();
+  }
+
+  /**
    * Append given edge segments to the simple path
    *
    * @param edgeSegments to add

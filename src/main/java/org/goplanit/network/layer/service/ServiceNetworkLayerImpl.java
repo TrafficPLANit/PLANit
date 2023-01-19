@@ -3,14 +3,13 @@ package org.goplanit.network.layer.service;
 import java.util.Collection;
 import java.util.logging.Logger;
 
-import org.goplanit.graph.directed.UntypedDirectedGraphImpl;
+import org.goplanit.network.ServiceNetwork;
 import org.goplanit.network.layer.UntypedNetworkLayerImpl;
 import org.goplanit.network.layer.modifier.ServiceNetworkLayerModifierImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
-import org.goplanit.utils.network.layer.modifier.ServiceNetworkLayerModifier;
 import org.goplanit.utils.network.layer.service.ServiceLeg;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceLegSegments;
@@ -33,12 +32,12 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   /** the logger */
   private static final Logger LOGGER = Logger.getLogger(ServiceNetworkLayerImpl.class.getCanonicalName());
 
-  /** the parent layer */
+  /** the related physical layer */
   protected MacroscopicNetworkLayer parentNetworkLayer;
 
   /**
    * The parent network layer this service network layer is to be build upon
-   * 
+   *
    * @param parentNetworkLayer to use
    */
   protected void setParentNetworkLayer(final MacroscopicNetworkLayer parentNetworkLayer) {
@@ -74,9 +73,9 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    * @param legSegments        to use
    */
   protected ServiceNetworkLayerImpl(final IdGroupingToken tokenId, final MacroscopicNetworkLayer parentNetworkLayer, final ServiceNodes nodes, final ServiceLegs legs,
-      final ServiceLegSegments legSegments) {
+                                    final ServiceLegSegments legSegments) {
     super(tokenId, nodes, legs, legSegments);
-    this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this.graph); // overwrite default from super <-- not pretty but otherwise no access to graph yet
+    this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this, this.graph); // overwrite default from super <-- not pretty but otherwise no access to graph yet
     this.parentNetworkLayer = parentNetworkLayer;
   }
 
@@ -90,6 +89,7 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   public ServiceNetworkLayerImpl(ServiceNetworkLayerImpl serviceNetworkLayerImpl) {
     super(serviceNetworkLayerImpl);
     this.parentNetworkLayer = serviceNetworkLayerImpl.parentNetworkLayer;
+    this.layerModifier = serviceNetworkLayerImpl.getLayerModifier();
   }
 
   /**

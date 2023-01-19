@@ -2,6 +2,7 @@ package org.goplanit.network.layer.macroscopic;
 
 import java.util.Arrays;
 
+import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
 import org.goplanit.utils.mode.Mode;
@@ -21,7 +22,7 @@ public class MacroscopicNetworkLayerFactoryImpl extends ManagedIdEntityFactoryIm
 
   /**
    * Constructor
-   * 
+   *
    * @param groupIdToken to use
    * @param container    to use for network layers
    */

@@ -135,15 +135,13 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
    */
   @Override
   public void removeVertex(Vertex vertex) {
-    /* remove edges from vertex */
-    for (Edge edge : vertex.getEdges()) {
-      vertex.removeEdge(edge);
-    }
-
     /* remove vertex from vertex' edges */
     for (Edge edge : vertex.getEdges()) {
       edge.removeVertex(vertex);
     }
+
+    /* remove edges from vertex */
+    vertex.removeAllEdges();
 
     /* remove vertex from graph and fire event */
     theGraph.getVertices().remove(vertex.getId());

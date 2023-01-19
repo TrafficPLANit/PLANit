@@ -21,7 +21,6 @@ import org.goplanit.path.OdPathSets;
 import org.goplanit.service.routed.RoutedServices;
 import org.goplanit.service.routed.RoutedServicesLayer;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
-import org.goplanit.utils.network.layer.macroscopic.MacroscopicLinkSegment;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
@@ -277,7 +276,7 @@ public class PlanItProjectInput {
       throw new PlanItException(
           "we currently only support ServiceNetwork derived classes when creating service networks");
     }
-    ServiceNetwork serviceNetwork = (ServiceNetwork) theNetwork;    
+    ServiceNetwork serviceNetwork = (ServiceNetwork) theNetwork;
     
     String prefix = LoggingUtils.projectPrefix(this.projectId)+LoggingUtils.serviceNetworkPrefix(serviceNetwork.getId());    
     if(serviceNetwork.getTransportLayers().isEmpty()) {
