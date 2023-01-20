@@ -6,6 +6,7 @@ import java.util.logging.Logger;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
+import org.goplanit.utils.service.routed.RoutedTripFrequency;
 
 /**
  * Implementation of a RoutedTripFrequency interface.

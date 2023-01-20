@@ -3,6 +3,7 @@ package org.goplanit.service.routed;
 import java.time.LocalTime;
 
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
+import org.goplanit.utils.service.routed.RelativeLegTiming;
 
 /**
  * Simple POJO class that refers to a service leg and its duration and dwell time on a scheduled routed trip
@@ -10,7 +11,7 @@ import org.goplanit.utils.network.layer.service.ServiceLegSegment;
  * @author markr
  *
  */
-public class RelativeLegTiming implements Cloneable {
+public class RelativeLegTimingImpl implements RelativeLegTiming {
 
   /** parent service leg segment (directed leg) of the relative leg timing, indicates the route */
   private final ServiceLegSegment parentLegSegment;
@@ -28,7 +29,7 @@ public class RelativeLegTiming implements Cloneable {
    * @param duration         to use
    * @param dwellTime        to use
    */
-  protected RelativeLegTiming(final ServiceLegSegment parentLegSegment, final LocalTime duration, final LocalTime dwellTime) {
+  protected RelativeLegTimingImpl(final ServiceLegSegment parentLegSegment, final LocalTime duration, final LocalTime dwellTime) {
     this.duration = duration;
     this.dwellTime = dwellTime;
     this.parentLegSegment = parentLegSegment;
@@ -39,42 +40,41 @@ public class RelativeLegTiming implements Cloneable {
    * 
    * @param relativeLegTiming to copy
    */
-  protected RelativeLegTiming(final RelativeLegTiming relativeLegTiming) {
+  protected RelativeLegTimingImpl(final RelativeLegTimingImpl relativeLegTiming) {
     this.duration = relativeLegTiming.duration;
     this.dwellTime = relativeLegTiming.dwellTime;
     this.parentLegSegment = relativeLegTiming.parentLegSegment;
   }
 
+
   /**
-   * Clone this class
+   * {@inheritDoc}
    */
+  @Override
   public RelativeLegTiming clone() {
-    return new RelativeLegTiming(this);
+    return new RelativeLegTimingImpl(this);
   }
 
   /**
-   * Collect parent leg segment
-   * 
-   * @return parent leg segment
+   * {@inheritDoc}
    */
+  @Override
   public ServiceLegSegment getParentLegSegment() {
     return parentLegSegment;
   }
 
   /**
-   * Collect duration
-   * 
-   * @return duration
+   * {@inheritDoc}
    */
+  @Override
   public LocalTime getDuration() {
     return duration;
   }
 
   /**
-   * Collect dwell time
-   * 
-   * @return dwell time
+   * {@inheritDoc}
    */
+  @Override
   public LocalTime getDwellTime() {
     return dwellTime;
   }

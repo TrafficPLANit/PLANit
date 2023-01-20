@@ -19,7 +19,7 @@ import org.goplanit.network.ServiceNetwork;
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.path.OdPathSets;
 import org.goplanit.service.routed.RoutedServices;
-import org.goplanit.service.routed.RoutedServicesLayer;
+import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.supply.fundamentaldiagram.FundamentalDiagramComponent;
 import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;

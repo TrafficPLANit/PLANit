@@ -1,6 +1,8 @@
 package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.service.routed.RoutedTripFrequency;
+import org.goplanit.utils.service.routed.RoutedTripsFrequency;
 
 /**
  * Implementation of the RoutedTripsFrequency interface.
@@ -16,7 +18,7 @@ public class RoutedTripsFrequencyImpl extends RoutedTripsImpl<RoutedTripFrequenc
    */
   protected RoutedTripsFrequencyImpl(final IdGroupingToken tokenId) {
     super(tokenId);
-    setFactory(new RoutedTripFrequencyFactory(tokenId, this));
+    setFactory(new RoutedTripFrequencyFactoryImpl(tokenId, this));
   }
 
   /**
@@ -40,8 +42,8 @@ public class RoutedTripsFrequencyImpl extends RoutedTripsImpl<RoutedTripFrequenc
    * {@inheritDoc}
    */
   @Override
-  public RoutedTripFrequencyFactory getFactory() {
-    return (RoutedTripFrequencyFactory) super.getFactory();
+  public RoutedTripFrequencyFactoryImpl getFactory() {
+    return (RoutedTripFrequencyFactoryImpl) super.getFactory();
   }
 
 }

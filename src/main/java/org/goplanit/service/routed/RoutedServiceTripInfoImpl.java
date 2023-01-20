@@ -1,6 +1,9 @@
 package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.service.routed.RoutedServiceTripInfo;
+import org.goplanit.utils.service.routed.RoutedTripsFrequency;
+import org.goplanit.utils.service.routed.RoutedTripsSchedule;
 
 /**
  * Implementation of a RoutedServiceTripInfo interface

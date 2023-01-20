@@ -1,9 +1,10 @@
 package org.goplanit.service.routed;
 
-import java.time.LocalTime;
-
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
+import org.goplanit.utils.service.routed.RoutedTripDeparture;
+import org.goplanit.utils.service.routed.RoutedTripDepartureFactory;
+import org.goplanit.utils.service.routed.RoutedTripDepartures;
 import org.goplanit.utils.time.ExtendedLocalTime;
 
 /**
@@ -11,7 +12,7 @@ import org.goplanit.utils.time.ExtendedLocalTime;
  * 
  * @author markr
  */
-public class RoutedTripDepartureFactory extends ManagedIdEntityFactoryImpl<RoutedTripDeparture> {
+public class RoutedTripDepartureFactoryImpl extends ManagedIdEntityFactoryImpl<RoutedTripDeparture> implements RoutedTripDepartureFactory {
 
   /** container to use */
   protected final RoutedTripDepartures routedTripDepartures;
@@ -22,8 +23,8 @@ public class RoutedTripDepartureFactory extends ManagedIdEntityFactoryImpl<Route
    * @param departureTime the departure time
    * @return created routed services layer
    */
-  protected RoutedTripDeparture createNew(ExtendedLocalTime departureTime) {
-    return new RoutedTripDeparture(getIdGroupingToken(), departureTime);
+  protected RoutedTripDepartureImpl createNew(ExtendedLocalTime departureTime) {
+    return new RoutedTripDepartureImpl(getIdGroupingToken(), departureTime);
   }
 
   /**
@@ -32,19 +33,17 @@ public class RoutedTripDepartureFactory extends ManagedIdEntityFactoryImpl<Route
    * @param tokenId              to use
    * @param routedTripDepartures to use
    */
-  protected RoutedTripDepartureFactory(final IdGroupingToken tokenId, final RoutedTripDepartures routedTripDepartures) {
+  protected RoutedTripDepartureFactoryImpl(final IdGroupingToken tokenId, final RoutedTripDepartures routedTripDepartures) {
     super(tokenId);
     this.routedTripDepartures = routedTripDepartures;
   }
 
   /**
-   * Register a newly created instance on the underlying container
-   * 
-   * @param departureTime the departure time (which is allowed to be beyond midnight of that day)
-   * @return created instance
+   * {@inheritDoc}
    */
-  public RoutedTripDeparture registerNew(final ExtendedLocalTime departureTime) {
-    RoutedTripDeparture newDeparture = createNew(departureTime);
+  @Override
+  public RoutedTripDepartureImpl registerNew(final ExtendedLocalTime departureTime) {
+    RoutedTripDepartureImpl newDeparture = createNew(departureTime);
     routedTripDepartures.register(newDeparture);
     return newDeparture;
   }

@@ -2,7 +2,9 @@ package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
-import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.service.routed.RoutedServicesLayer;
+import org.goplanit.utils.service.routed.RoutedServicesLayerFactory;
+import org.goplanit.utils.service.routed.RoutedServicesLayers;
 
 /**
  * Implementation of the RoutedServicesLayers interface.
@@ -12,7 +14,7 @@ import org.goplanit.utils.mode.Mode;
 public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServicesLayer> implements RoutedServicesLayers {
 
   /** factory for this container class */
-  protected final RoutedServicesLayerFactory factory;
+  protected final RoutedServicesLayerFactoryImpl factory;
 
   /**
    * Constructor
@@ -21,7 +23,7 @@ public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServic
    */
   protected RoutedServicesLayersImpl(final IdGroupingToken tokenId) {
     super(RoutedServicesLayer::getId, RoutedServicesLayer.ROUTED_SERVICES_LAYER_ID_CLASS);
-    this.factory = new RoutedServicesLayerFactory(tokenId, this);
+    this.factory = new RoutedServicesLayerFactoryImpl(tokenId, this);
   }
 
   /**
@@ -46,7 +48,7 @@ public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServic
    * {@inheritDoc}
    */
   @Override
-  public RoutedServicesLayerFactory getFactory() {
+  public RoutedServicesLayerFactoryImpl getFactory() {
     return factory;
   }
 

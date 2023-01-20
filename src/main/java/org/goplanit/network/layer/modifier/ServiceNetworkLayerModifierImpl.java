@@ -76,15 +76,17 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
     var graph = this.getUntypedDirectedGraph();
     final String serviceLayerLoggingPrefix = LoggingUtils.serviceNetworkLayerPrefix(this.serviceNetworkLayer.getId());
 
+    LOGGER.info(String.format("%s Removing GTFS based service network elements without a mapping to physical underlying network, likely due to being outside of network bounding box", serviceLayerLoggingPrefix));
     /* identify and remove service nodes without a mapped physical node in the network layer */
     var toBeRemovedServiceNodes = graph.getVertices().stream().filter( v -> !v.hasPhysicalParentNode()).collect(Collectors.toList());
     toBeRemovedServiceNodes.forEach( n -> this.graphModifier.removeVertex(n));
     LOGGER.info(String.format("%s Removed %d service nodes without a mapping to physical network", serviceLayerLoggingPrefix, toBeRemovedServiceNodes.size()));
 
-    /* remove all service legs and service leg segments connected to an already removed service node, in which case they are now invalid as well */
+    /* remove all service legs and service leg segments connected to an already removed service node or lacking a mapping to underlying physical link segments,
+     * in which case they are now invalid as well */
     var toBeRemovedServiceLegSegments =
             graph.getEdgeSegments().stream().filter(
-                    ls -> ls.getUpstreamServiceNode()==null || ls.getDownstreamServiceNode()==null).collect(Collectors.toList());
+                    ls -> ls.getUpstreamServiceNode()==null || ls.getDownstreamServiceNode()==null || !ls.hasPhysicalParentSegments()).collect(Collectors.toList());
     toBeRemovedServiceLegSegments.forEach( ls -> this.graphModifier.removeEdgeSegment(ls));
     LOGGER.info(String.format("%s Removed %d service leg segments without a mapping to physical network",serviceLayerLoggingPrefix, toBeRemovedServiceLegSegments.size()));
 
@@ -94,13 +96,8 @@ public class ServiceNetworkLayerModifierImpl<V extends ServiceNode, E extends Se
     toBeRemovedServiceLegs.forEach( e -> this.graphModifier.removeEdge(e));
     LOGGER.info(String.format("%s Removed %d service legs without a mapping to physical network", serviceLayerLoggingPrefix, toBeRemovedServiceLegs.size()));
 
-    /* special case --> can be that service leg segments are connected to valid service nodes, but the leg segment itself is not valid due to missing
-     * physical parent segments -> remove as well but log since this seems very unlikely and possible a result of an error upstream */
-    toBeRemovedServiceLegSegments = graph.getEdgeSegments().stream().filter( ls -> !ls.hasPhysicalParentSegments()).collect(Collectors.toList());
-    if(!toBeRemovedServiceLegSegments.isEmpty()) {
-      toBeRemovedServiceLegSegments.forEach(ls -> this.graphModifier.removeEdgeSegment(ls));
-      //todo: check connected edges and service nodes have service leg segments correctly removed
-    }
+    /* recreate managed ids, so they are contiguous again */
+    graphModifier.recreateManagedEntitiesIds();
 
     //todo redo id's due to gaps in numbering + remove routedServices afterwards (not here, needs its own modifier or events to be triggered...!)
   }

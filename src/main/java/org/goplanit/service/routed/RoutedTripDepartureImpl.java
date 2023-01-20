@@ -6,6 +6,8 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedId;
+import org.goplanit.utils.service.routed.RoutedTripDeparture;
+import org.goplanit.utils.service.routed.RoutedTripDepartures;
 import org.goplanit.utils.time.ExtendedLocalTime;
 
 /**
@@ -14,10 +16,7 @@ import org.goplanit.utils.time.ExtendedLocalTime;
  * @author markr
  *
  */
-public class RoutedTripDeparture extends ExternalIdAbleImpl implements ManagedId {
-
-  /** id class for generating ids */
-  public static final Class<RoutedTripDeparture> ROUTED_TRIP_DEPARTURE_ID_CLASS = RoutedTripDeparture.class;
+public class RoutedTripDepartureImpl extends ExternalIdAbleImpl implements RoutedTripDeparture {
 
   /** departure time of this instance */
   private final ExtendedLocalTime departureTime;
@@ -38,7 +37,7 @@ public class RoutedTripDeparture extends ExternalIdAbleImpl implements ManagedId
    * @param tokenId       to use for id generation
    * @param departureTime to use
    */
-  public RoutedTripDeparture(final IdGroupingToken tokenId, ExtendedLocalTime departureTime) {
+  public RoutedTripDepartureImpl(final IdGroupingToken tokenId, ExtendedLocalTime departureTime) {
     super(generateId(tokenId));
     this.departureTime = departureTime;
   }
@@ -48,7 +47,7 @@ public class RoutedTripDeparture extends ExternalIdAbleImpl implements ManagedId
    * 
    * @param routedTripDeparture to copy
    */
-  public RoutedTripDeparture(RoutedTripDeparture routedTripDeparture) {
+  public RoutedTripDepartureImpl(RoutedTripDepartureImpl routedTripDeparture) {
     super(routedTripDeparture);
     this.departureTime = routedTripDeparture.departureTime;
   }
@@ -75,7 +74,7 @@ public class RoutedTripDeparture extends ExternalIdAbleImpl implements ManagedId
    * {@inheritDoc}
    */
   @Override
-  public RoutedTripDeparture clone() {
-    return new RoutedTripDeparture(this);
+  public RoutedTripDepartureImpl clone() {
+    return new RoutedTripDepartureImpl(this);
   }
 }

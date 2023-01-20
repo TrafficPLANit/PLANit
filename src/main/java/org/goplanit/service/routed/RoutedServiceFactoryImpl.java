@@ -2,13 +2,16 @@ package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
+import org.goplanit.utils.service.routed.RoutedModeServices;
+import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.utils.service.routed.RoutedServiceFactory;
 
 /**
  * Factory for creating routed service instances on underlying container
  * 
  * @author markr
  */
-public class RoutedServiceFactory extends ManagedIdEntityFactoryImpl<RoutedService> {
+public class RoutedServiceFactoryImpl extends ManagedIdEntityFactoryImpl<RoutedService> implements RoutedServiceFactory {
 
   /** container to use */
   protected final RoutedModeServices routedModeServices;
@@ -28,16 +31,15 @@ public class RoutedServiceFactory extends ManagedIdEntityFactoryImpl<RoutedServi
    * @param tokenId            to use
    * @param routedModeServices to use
    */
-  protected RoutedServiceFactory(final IdGroupingToken tokenId, final RoutedModeServices routedModeServices) {
+  protected RoutedServiceFactoryImpl(final IdGroupingToken tokenId, final RoutedModeServices routedModeServices) {
     super(tokenId);
     this.routedModeServices = routedModeServices;
   }
 
   /**
-   * Register a newly created instance on the underlying container
-   * 
-   * @return created instance
+   * {@inheritDoc}
    */
+  @Override
   public RoutedService registerNew() {
     RoutedService newRoutedService = createNew();
     routedModeServices.register(newRoutedService);

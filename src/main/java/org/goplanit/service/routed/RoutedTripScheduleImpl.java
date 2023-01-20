@@ -6,6 +6,9 @@ import java.util.*;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.service.ServiceLegSegment;
 import org.goplanit.utils.network.layer.service.ServiceNode;
+import org.goplanit.utils.service.routed.RelativeLegTiming;
+import org.goplanit.utils.service.routed.RoutedTripDepartures;
+import org.goplanit.utils.service.routed.RoutedTripSchedule;
 
 /**
  * Implementation of a RoutedTripSchedule interface.
@@ -31,7 +34,7 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
   public RoutedTripScheduleImpl(final IdGroupingToken tokenId) {
     super(tokenId);
     this.departures = new RoutedTripDeparturesImpl(tokenId);
-    this.relativeLegTimings = new ArrayList<RelativeLegTiming>(1);
+    this.relativeLegTimings = new ArrayList<>(1);
   }
 
   /**
@@ -42,7 +45,7 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
   public RoutedTripScheduleImpl(RoutedTripScheduleImpl routedTripScheduleImpl) {
     super(routedTripScheduleImpl);
     this.departures = routedTripScheduleImpl.departures.clone();
-    this.relativeLegTimings = new ArrayList<RelativeLegTiming>(routedTripScheduleImpl.relativeLegTimings);
+    this.relativeLegTimings = new ArrayList<>(routedTripScheduleImpl.relativeLegTimings);
   }
 
   /**
@@ -92,8 +95,16 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
    * {@inheritDoc}
    */
   @Override
+  public void clearDepartures() {
+    departures.clear();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public RelativeLegTiming addRelativeLegSegmentTiming(ServiceLegSegment parentLegSegment, LocalTime duration, LocalTime dwellTime) {
-    RelativeLegTiming newEntry = new RelativeLegTiming(parentLegSegment, duration, dwellTime);
+    RelativeLegTiming newEntry = new RelativeLegTimingImpl(parentLegSegment, duration, dwellTime);
     relativeLegTimings.add(newEntry);
     return newEntry;
   }

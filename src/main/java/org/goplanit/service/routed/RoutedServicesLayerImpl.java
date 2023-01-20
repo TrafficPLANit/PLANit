@@ -8,9 +8,11 @@ import java.util.logging.Logger;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.misc.IterableUtils;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.network.layer.ServiceNetworkLayer;
+import org.goplanit.utils.service.routed.RoutedModeServices;
+import org.goplanit.utils.service.routed.RoutedServicesLayer;
+import org.goplanit.utils.service.routed.RoutedServicesLayerModifier;
 
 /**
  * Implementation of the RoutedServicesLayer interface
@@ -27,6 +29,9 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
 
   /** parent layer all routed services are built upon */
   private final ServiceNetworkLayer parentLayer;
+
+  /** Modifier utilities for this layer consolidated in a single class */
+  private final RoutedServicesLayerModifierImpl layerModifier;
 
   /** container for routed services categorised by mode */
   private final Map<Mode, RoutedModeServices> routedServicesByMode;
@@ -62,7 +67,8 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
     super(generateId(tokenId));
     this.tokenId = tokenId;
     this.parentLayer = parentLayer;
-    this.routedServicesByMode = new HashMap<Mode, RoutedModeServices>();
+    this.layerModifier = new RoutedServicesLayerModifierImpl(this);
+    this.routedServicesByMode = new HashMap<>();
   }
 
   /**
@@ -74,7 +80,8 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
     super(routedServicesLayerImpl);
     this.tokenId = routedServicesLayerImpl.tokenId;
     this.parentLayer = routedServicesLayerImpl.parentLayer;
-    this.routedServicesByMode = new HashMap<Mode, RoutedModeServices>();
+    this.layerModifier = new RoutedServicesLayerModifierImpl(routedServicesLayerImpl);
+    this.routedServicesByMode = new HashMap<>();
     routedServicesLayerImpl.routedServicesByMode.values().forEach(modeServices -> routedServicesByMode.put(modeServices.getMode(), modeServices));
   }
 
@@ -117,6 +124,14 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
       routedServicesByMode.put(mode, createRoutedModeServices(this.tokenId, mode));
     }
     return routedServicesByMode.get(mode);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServicesLayerModifier getLayerModifier() {
+    return null;
   }
 
   /**

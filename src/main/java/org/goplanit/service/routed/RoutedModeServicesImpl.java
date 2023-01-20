@@ -3,6 +3,9 @@ package org.goplanit.service.routed;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 import org.goplanit.utils.mode.Mode;
+import org.goplanit.utils.service.routed.RoutedModeServices;
+import org.goplanit.utils.service.routed.RoutedService;
+import org.goplanit.utils.service.routed.RoutedServiceFactory;
 
 /**
  * Implementation of the RoutedModeServices interface
@@ -15,7 +18,7 @@ public class RoutedModeServicesImpl extends ManagedIdEntitiesImpl<RoutedService>
   private final Mode supportedMode;
 
   /** factory to use to create routed service instances */
-  private final RoutedServiceFactory factory;
+  private final RoutedServiceFactoryImpl factory;
 
   /**
    * Constructor
@@ -26,7 +29,7 @@ public class RoutedModeServicesImpl extends ManagedIdEntitiesImpl<RoutedService>
   public RoutedModeServicesImpl(final IdGroupingToken tokenId, final Mode supportedMode) {
     super(RoutedService::getId, RoutedService.ROUTED_SERVICE_ID_CLASS);
     this.supportedMode = supportedMode;
-    this.factory = new RoutedServiceFactory(tokenId, this);
+    this.factory = new RoutedServiceFactoryImpl(tokenId, this);
   }
 
   /**
@@ -37,7 +40,7 @@ public class RoutedModeServicesImpl extends ManagedIdEntitiesImpl<RoutedService>
   public RoutedModeServicesImpl(RoutedModeServicesImpl routedModeServicesImpl) {
     super(routedModeServicesImpl);
     this.supportedMode = routedModeServicesImpl.supportedMode;
-    this.factory = new RoutedServiceFactory(routedModeServicesImpl.factory.getIdGroupingToken(), this);
+    this.factory = new RoutedServiceFactoryImpl(routedModeServicesImpl.factory.getIdGroupingToken(), this);
   }
 
   /**
@@ -52,7 +55,7 @@ public class RoutedModeServicesImpl extends ManagedIdEntitiesImpl<RoutedService>
    * {@inheritDoc}
    */
   @Override
-  public RoutedServiceFactory getFactory() {
+  public RoutedServiceFactoryImpl getFactory() {
     return factory;
   }
 

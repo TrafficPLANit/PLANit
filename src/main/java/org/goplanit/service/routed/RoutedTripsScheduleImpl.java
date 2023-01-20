@@ -1,9 +1,8 @@
 package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.network.layer.service.ServiceNode;
-
-import java.util.Set;
+import org.goplanit.utils.service.routed.RoutedTripSchedule;
+import org.goplanit.utils.service.routed.RoutedTripsSchedule;
 
 /**
  * Implementation of the RoutedTripsSchedule interface.
@@ -19,7 +18,7 @@ public class RoutedTripsScheduleImpl extends RoutedTripsImpl<RoutedTripSchedule>
    */
   protected RoutedTripsScheduleImpl(final IdGroupingToken tokenId) {
     super(tokenId);
-    setFactory(new RoutedTripScheduleFactory(tokenId, this));
+    setFactory(new RoutedTripScheduleFactoryImpl(tokenId, this));
   }
 
   /**
@@ -43,8 +42,8 @@ public class RoutedTripsScheduleImpl extends RoutedTripsImpl<RoutedTripSchedule>
    * {@inheritDoc}
    */
   @Override
-  public RoutedTripScheduleFactory getFactory() {
-    return (RoutedTripScheduleFactory) super.getFactory();
+  public RoutedTripScheduleFactoryImpl getFactory() {
+    return (RoutedTripScheduleFactoryImpl) super.getFactory();
   }
 
 }

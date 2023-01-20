@@ -3,6 +3,7 @@ package org.goplanit.service.routed;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.service.routed.RoutedTrip;
 
 /**
  * Implementation of a RoutedTrip interface. Acts as a base class for derived implementations that are not abstract

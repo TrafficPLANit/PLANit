@@ -2,6 +2,9 @@ package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntitiesImpl;
+import org.goplanit.utils.service.routed.RoutedTripDeparture;
+import org.goplanit.utils.service.routed.RoutedTripDepartureFactory;
+import org.goplanit.utils.service.routed.RoutedTripDepartures;
 
 /**
  * Class that manages all routed trip departures
@@ -12,7 +15,7 @@ import org.goplanit.utils.id.ManagedIdEntitiesImpl;
 public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDeparture> implements RoutedTripDepartures {
 
   /** The factory to use */
-  RoutedTripDepartureFactory factory;
+  RoutedTripDepartureFactoryImpl factory;
 
   /**
    * Constructor
@@ -21,7 +24,7 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
    */
   protected RoutedTripDeparturesImpl(final IdGroupingToken tokenId) {
     super(RoutedTripDeparture::getId, RoutedTripDeparture.ROUTED_TRIP_DEPARTURE_ID_CLASS);
-    this.factory = new RoutedTripDepartureFactory(tokenId, this);
+    this.factory = new RoutedTripDepartureFactoryImpl(tokenId, this);
   }
 
   /**
@@ -38,7 +41,7 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
    * {@inheritDoc}
    */
   @Override
-  public RoutedTripDepartureFactory getFactory() {
+  public RoutedTripDepartureFactoryImpl getFactory() {
     return factory;
   }
 

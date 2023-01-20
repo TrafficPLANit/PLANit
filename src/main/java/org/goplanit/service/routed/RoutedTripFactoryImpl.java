@@ -2,6 +2,9 @@ package org.goplanit.service.routed;
 
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
+import org.goplanit.utils.service.routed.RoutedTrip;
+import org.goplanit.utils.service.routed.RoutedTripFactory;
+import org.goplanit.utils.service.routed.RoutedTrips;
 
 /**
  * Factory for creating routed trips of type T
@@ -10,7 +13,7 @@ import org.goplanit.utils.id.ManagedIdEntityFactoryImpl;
  * 
  * @author markr
  */
-public abstract class RoutedTripFactory<T extends RoutedTrip> extends ManagedIdEntityFactoryImpl<T> {
+public abstract class RoutedTripFactoryImpl<T extends RoutedTrip> extends ManagedIdEntityFactoryImpl<T> implements RoutedTripFactory<T> {
 
   /** container to use */
   protected final RoutedTrips<T> routedTrips;
@@ -28,7 +31,7 @@ public abstract class RoutedTripFactory<T extends RoutedTrip> extends ManagedIdE
    * @param tokenId     to use
    * @param routedTrips to use
    */
-  protected RoutedTripFactory(final IdGroupingToken tokenId, final RoutedTrips<T> routedTrips) {
+  protected RoutedTripFactoryImpl(final IdGroupingToken tokenId, final RoutedTrips<T> routedTrips) {
     super(tokenId);
     this.routedTrips = routedTrips;
   }
