@@ -126,6 +126,14 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void removeLegTiming(int legTimingIndex) {
+    relativeLegTimings.remove(legTimingIndex);
+  }
+
+  /**
    * Get default
    * 
    * @return default dwell time

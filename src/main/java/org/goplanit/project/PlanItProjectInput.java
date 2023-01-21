@@ -25,7 +25,7 @@ import org.goplanit.zoning.Zoning;
 import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
-import org.goplanit.utils.network.layer.ServiceNetworkLayer;
+import org.goplanit.utils.network.layer.RoutedServiceLayer;
 import org.goplanit.utils.network.layer.NetworkLayer;
 import org.goplanit.utils.time.TimePeriod;
 
@@ -286,7 +286,7 @@ public class PlanItProjectInput {
       /* log info across layers */
       LOGGER.info(String.format("%s#modes: %d", prefix, serviceNetwork.getModes().size()));      
       /* for each layer log information regarding contents */
-      for(ServiceNetworkLayer networkLayer : serviceNetwork.getTransportLayers()) {
+      for(RoutedServiceLayer networkLayer : serviceNetwork.getTransportLayers()) {
         networkLayer.logInfo(prefix);
       }
     }

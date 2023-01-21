@@ -3,7 +3,7 @@ package org.goplanit.network;
 import org.goplanit.network.layers.ServiceNetworkLayersImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
-import org.goplanit.utils.network.layer.ServiceNetworkLayer;
+import org.goplanit.utils.network.layer.RoutedServiceLayer;
 import org.goplanit.utils.network.layers.ServiceNetworkLayers;
 
 import java.util.logging.Logger;
@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  * @author markr
  *
  */
-public class ServiceNetwork extends TopologicalLayerNetwork<ServiceNetworkLayer, ServiceNetworkLayers> {
+public class ServiceNetwork extends TopologicalLayerNetwork<RoutedServiceLayer, ServiceNetworkLayers> {
 
   /** generated UID */
   private static final long serialVersionUID = 632938213490189010L;

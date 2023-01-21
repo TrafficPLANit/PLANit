@@ -6,6 +6,8 @@ import org.goplanit.utils.service.routed.RoutedTripDeparture;
 import org.goplanit.utils.service.routed.RoutedTripDepartureFactory;
 import org.goplanit.utils.service.routed.RoutedTripDepartures;
 
+import java.time.LocalTime;
+
 /**
  * Class that manages all routed trip departures
  * 
@@ -43,6 +45,22 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
   @Override
   public RoutedTripDepartureFactoryImpl getFactory() {
     return factory;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void allDepartLaterBy(LocalTime departureTimeIncrease) {
+    forEach( routedTripDeparture -> routedTripDeparture.departLater(departureTimeIncrease));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void allDepartEarlierBy(LocalTime departureTimeIncrease) {
+    forEach( routedTripDeparture -> routedTripDeparture.departEarlier(departureTimeIncrease));
   }
 
   /**

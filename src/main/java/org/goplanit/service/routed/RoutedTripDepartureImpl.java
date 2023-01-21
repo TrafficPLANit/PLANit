@@ -1,14 +1,13 @@
 package org.goplanit.service.routed;
 
-import java.time.LocalTime;
-
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
-import org.goplanit.utils.id.ManagedId;
 import org.goplanit.utils.service.routed.RoutedTripDeparture;
-import org.goplanit.utils.service.routed.RoutedTripDepartures;
 import org.goplanit.utils.time.ExtendedLocalTime;
+
+import java.time.LocalTime;
+import java.util.logging.Logger;
 
 /**
  * A representation of a departure within a routed trip
@@ -18,8 +17,11 @@ import org.goplanit.utils.time.ExtendedLocalTime;
  */
 public class RoutedTripDepartureImpl extends ExternalIdAbleImpl implements RoutedTripDeparture {
 
-  /** departure time of this instance */
-  private final ExtendedLocalTime departureTime;
+  /** Logger to use */
+  private static final Logger LOGGER = Logger.getLogger(RoutedTripDepartureImpl.class.getCanonicalName());
+
+  /** Departure time of this instance */
+  private ExtendedLocalTime departureTime;
 
   /**
    * Generate id for instances of this class based on the token and class identifier
@@ -74,7 +76,37 @@ public class RoutedTripDepartureImpl extends ExternalIdAbleImpl implements Route
    * {@inheritDoc}
    */
   @Override
+  public ExtendedLocalTime getDepartureTime() {
+    return departureTime;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public RoutedTripDepartureImpl clone() {
     return new RoutedTripDepartureImpl(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void departLater(LocalTime departureTimeIncrease) {
+    if(!ExtendedLocalTime.isNanosValid(departureTime.toNanoOfTime() + departureTimeIncrease.toNanoOfDay())){
+      LOGGER.warning(String.format("Unable to depart later by % when existing departure is at %s", departureTimeIncrease, this));
+    }
+    departureTime = departureTime.plus(ExtendedLocalTime.of(departureTimeIncrease));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void departEarlier(LocalTime departureTimeDecrease) {
+    if(!ExtendedLocalTime.isNanosValid(departureTime.toNanoOfTime() - departureTimeDecrease.toNanoOfDay())){
+      LOGGER.warning(String.format("Unable to depart earlier by % when existing departure is at %s", departureTimeDecrease, this));
+    }
+    departureTime = departureTime.minus(ExtendedLocalTime.of(departureTimeDecrease));
   }
 }

@@ -9,7 +9,7 @@ import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
-import org.goplanit.utils.network.layer.ServiceNetworkLayer;
+import org.goplanit.utils.network.layer.RoutedServiceLayer;
 import org.goplanit.utils.service.routed.RoutedModeServices;
 import org.goplanit.utils.service.routed.RoutedServicesLayer;
 import org.goplanit.utils.service.routed.RoutedServicesLayerModifier;
@@ -28,7 +28,7 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
   private final IdGroupingToken tokenId;
 
   /** parent layer all routed services are built upon */
-  private final ServiceNetworkLayer parentLayer;
+  private final RoutedServiceLayer parentLayer;
 
   /** Modifier utilities for this layer consolidated in a single class */
   private final RoutedServicesLayerModifierImpl layerModifier;
@@ -63,7 +63,7 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    * @param tokenId     to use for id generation
    * @param parentLayer the parent layer these routed services are built upon
    */
-  public RoutedServicesLayerImpl(final IdGroupingToken tokenId, final ServiceNetworkLayer parentLayer) {
+  public RoutedServicesLayerImpl(final IdGroupingToken tokenId, final RoutedServiceLayer parentLayer) {
     super(generateId(tokenId));
     this.tokenId = tokenId;
     this.parentLayer = parentLayer;
@@ -108,7 +108,7 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    * 
    * @return parent layer
    */
-  public final ServiceNetworkLayer getParentLayer() {
+  public final RoutedServiceLayer getParentLayer() {
     return parentLayer;
   }
 
