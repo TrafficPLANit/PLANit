@@ -9,7 +9,7 @@ import org.goplanit.utils.service.routed.RoutedTripDepartures;
 import java.time.LocalTime;
 
 /**
- * Class that manages all routed trip departures
+ * Class that manages all routed trip departures for a given routed trip schedule
  * 
  * @author markr
  *
@@ -30,7 +30,7 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
   }
 
   /**
-   * Copy constructor
+   * Copy constructor. Reuses the factory and underlying container, use with caution
    * 
    * @param routedTripDepartures to copy
    */

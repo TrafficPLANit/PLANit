@@ -58,6 +58,16 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
   }
 
   /**
+   * Remove a given routed services by mode
+   *
+   * @param servicesByMode to remove
+   * @return removed entry (if any)
+   */
+  protected RoutedModeServices removeServicesByMode(RoutedModeServices servicesByMode) {
+    return routedServicesByMode.remove(servicesByMode);
+  }
+
+  /**
    * Constructor
    * 
    * @param tokenId     to use for id generation
@@ -131,7 +141,7 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    */
   @Override
   public RoutedServicesLayerModifier getLayerModifier() {
-    return null;
+    return this.layerModifier;
   }
 
   /**

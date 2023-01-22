@@ -51,7 +51,7 @@ public class UntypedDirectedGraphImpl<V extends DirectedVertex, E extends Direct
    */
   public UntypedDirectedGraphImpl(final UntypedDirectedGraphImpl<V, E, ES> directedGraphImpl) {
     super(directedGraphImpl);
-    this.edgeSegments = (GraphEntities<ES>) directedGraphImpl.getEdgeSegments().clone();
+    this.edgeSegments = directedGraphImpl.getEdgeSegments().clone();
   }
 
   // Getters - Setters

@@ -1,18 +1,24 @@
 package org.goplanit.service.routed;
 
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
+import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.service.routed.*;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * Implementation of {@link RoutedServicesLayerModifier}
  */
 public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModifier {
 
+  /** Logger to use */
+  private static final Logger LOGGER = Logger.getLogger(RoutedServicesLayerModifierImpl.class.getCanonicalName());
   protected final RoutedServicesLayer routedServicesLayer;
 
   /**
@@ -27,42 +33,58 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
     //todo
   }
 
-  // todo javadoc
+  /**
+   * Recursive method that based on the given offset related to the to be removed timing segments, identifies the first
+   * upcoming valid chain after this offset. If found, it creates a copy of the original schedule and removes all segments
+   * around the identified valid chain and adds it to the list of new "truncated" routed trip schedules to replace the origina
+   * schedule after finishing
+   *
+   * @param indexOffset to use, relates to index in the toBeRemovedRelativeTimingLegSegments
+   * @param toBeRemovedRelativeTimingLegSegments identified leg segments to remove in the routedTripSchedule
+   * @param routedTripSchedule to base the truncated routedTripSchedules on
+   * @param factory to create new truncated routed trip schedules
+   * @return list of newly created truncated trip schedules if any
+   */
   private List<RoutedTripSchedule> truncateScheduledTripChainToServiceNetwork(
           int indexOffset, final List<Integer> toBeRemovedRelativeTimingLegSegments, final RoutedTripSchedule routedTripSchedule, RoutedTripScheduleFactory factory) {
-
-    /* determine departure times for each chain of consecutive valid leg segments taking into account:
-     * last valid chain final leg segment arrival time
-     * gap of invalid chain travel time (duration + dwell times)
-     * creating new schedules for the trips not departing in the very first chain (which we can reuse) */
+    /* in case last chain ended at final leg timing, offset is not in range and we can stop */
+    if(indexOffset >= toBeRemovedRelativeTimingLegSegments.size()){
+      return null;
+    }
 
     /* consider all to be removed entries leading up to the next valid chain until */
     List<Integer> consecutiveLegsToRemove = toBeRemovedRelativeTimingLegSegments.stream().takeWhile(
             myInt -> toBeRemovedRelativeTimingLegSegments.indexOf(myInt) + indexOffset == myInt).collect(Collectors.toList());
+    boolean legsToRemoveAreAtEndOfTimingSegments = (consecutiveLegsToRemove.get(consecutiveLegsToRemove.size()-1) == routedTripSchedule.getLastRelativeLegTimingIndex());
+    if(legsToRemoveAreAtEndOfTimingSegments){
+      return null;
+    }
 
-    /* determine to where the departure is to be offset to */
-    int firstValidLegInChainIndex = consecutiveLegsToRemove.get(consecutiveLegsToRemove.size()-1)+1;
-
-    /* create a copy of the original to adjust */
-    var truncatedRoutedTripSchedule = factory.createUniqueCopyOf(routedTripSchedule);
-
+    /* determine to where the departure is to be offset to, i.e., offset from initial offset to this leg (exclusive)... */
+    final int lastLegIndexToRemoveBeforeChain = consecutiveLegsToRemove.get(consecutiveLegsToRemove.size()-1);
+    final var allIndicesBeforeFirstChainLeg = IntStream.range(0,lastLegIndexToRemoveBeforeChain+1).boxed().collect(Collectors.toList());
     /*... then , get the durations and dwell times leading up to the valid chain of this portion of the entry and sum them
      * to serve as the departure time offset in addition to the original departure time */
-    long departureShiftInNanos = IntStream.range(0,firstValidLegInChainIndex).mapToLong(ltIndex ->
+    long departureShiftInNanos = allIndicesBeforeFirstChainLeg.stream().mapToLong(ltIndex ->
             routedTripSchedule.getRelativeLegTiming(ltIndex).getDuration().toNanoOfDay()
                     + routedTripSchedule.getRelativeLegTiming(ltIndex).getDwellTime().toNanoOfDay()).sum();
 
+    /* create a copy of the original to adjust */
+    var truncatedRoutedTripSchedule = factory.createUniqueCopyOf(routedTripSchedule);
     /* update the departure times */
     truncatedRoutedTripSchedule.getDepartures().allDepartLaterBy(LocalTime.ofNanoOfDay(departureShiftInNanos));
 
-    /* remove all leg timings except the ones belonging to this chain */
+    /* identify indices after end of chain...*/
+    int firstLegIndexToRemoveAfterChain = toBeRemovedRelativeTimingLegSegments.indexOf(lastLegIndexToRemoveBeforeChain)+1;
+    final var allIndicesAfterLastChainLeg = IntStream.range(firstLegIndexToRemoveAfterChain,routedTripSchedule.getRelativeLegTimingsSize()).boxed().collect(Collectors.toList());
+
+    /* ...remove all leg timings except the ones belonging to this chain */
     truncatedRoutedTripSchedule.removeLegTimingsIn(
-            null /*todo: all leg timings BEFORE first leg of this valid chain AND all leg timings after last leg of this valid chain */);
+            Stream.concat(allIndicesBeforeFirstChainLeg.stream(), allIndicesAfterLastChainLeg.stream()).collect(Collectors.toList()));
 
     /* call next recursion */
-    //todo check if we can call next recursion. IF there is no more NEXT then we are done...
     var recursiveResult = truncateScheduledTripChainToServiceNetwork(
-            -1,  /* TODO update offset to first next entry that is not consecutive AFTER current offset index */
+            firstLegIndexToRemoveAfterChain,
             toBeRemovedRelativeTimingLegSegments,
             routedTripSchedule,
             factory
@@ -89,30 +111,32 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
    * @param routedTripSchedule a routed trip(s) group for a given schedule to truncate to underlying service network
    * @param factory to use when we need to split a routedTripSchedule in multiple entries due to possible gaps that are identified
    */
-  private void truncateScheduledTripToServiceNetwork(final RoutedTripSchedule routedTripSchedule, RoutedTripScheduleFactory factory) {
+  private List<RoutedTripSchedule> truncateScheduledTripToServiceNetwork(final RoutedTripSchedule routedTripSchedule, RoutedTripScheduleFactory factory) {
 
     /* identify the rel timing leg segments */
     List<Integer> toBeRemovedRelativeTimingLegSegments = RelativeLegTimingUtils.findLegTimingsNotMappedToServiceNetwork(routedTripSchedule, this.routedServicesLayer);
 
     /* if none to be removed, end invocation here */
     if(toBeRemovedRelativeTimingLegSegments.isEmpty()){
-      return;
+      return null;
     }
 
-    /* if all to be removed, clear the schedule entirely */
-    if(routedTripSchedule.getRelativeLegTimingsSize() == toBeRemovedRelativeTimingLegSegments.size()){
+    /* if all to be removed, just clear the schedule and stop */
+    if(toBeRemovedRelativeTimingLegSegments.size() == routedTripSchedule.getRelativeLegTimingsSize()){
       routedTripSchedule.clear();
-      return;
+      return null;
     }
 
-
-    /* replace existing routed trip schedule by one or more truncated ones, one per identified consecutive chain with adjusted departure times */
+    /* (Recursive) replace existing routed trip schedule by one or more truncated ones, one per identified consecutive chain with adjusted departure times */
     List<RoutedTripSchedule> truncatedRoutedTripSchedules = truncateScheduledTripChainToServiceNetwork(
             0, toBeRemovedRelativeTimingLegSegments, routedTripSchedule, factory);
+    if(truncatedRoutedTripSchedules.isEmpty()){
+      throw new PlanItRunTimeException("Invalid truncation of routed trip schedule, expected at least on alternative schedule to be created");
+    }
+    /* now mark existing schedule for removal, it is replaced by partial (truncated) copies reflecting new valid sub-trips */
+    routedTripSchedule.clear();
 
-    // process these routed trip schedules
-    //todo: clear existing one if we have new ones so it is deleted 
-
+    return truncatedRoutedTripSchedules;
   }
 
   /**
@@ -128,7 +152,16 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
     var scheduleIterator = scheduledTrips.iterator();
     while(scheduleIterator.hasNext()){
       var currEntry = scheduleIterator.next();
-      truncateScheduledTripToServiceNetwork(currEntry, scheduledTrips.getFactory());
+
+      /* truncate existing schedule and generate (unregistered) partial replacements (if any) */
+      var replacementScheduledTrips = truncateScheduledTripToServiceNetwork(currEntry, scheduledTrips.getFactory());
+
+      /* register partial replacements */
+      if(replacementScheduledTrips != null){
+        replacementScheduledTrips.forEach( st -> scheduledTrips.register(st));
+      }
+
+      /* remove original if it has been cleared (either because it is truncated entirely, or replaced by partials) */
       if(currEntry.getDepartures().isEmpty() || !currEntry.hasRelativeLegTimings()){
         scheduleIterator.remove();
       }
@@ -148,7 +181,8 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
 
   /**
    * Truncate all routed services for a mode and match them to the remaining service network (which likely has undergone changes), i.e.,
-   * remove all service network entities that are now missing.
+   * remove all service network entities that are now missing. If, for some reason, the provided services by mode have no (more) entries
+   * the services by mode are removed from the layer.
    * <p>
    *   Ids are not recreated in this call, only truncation is performed
    * </p>
@@ -156,6 +190,12 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
    * @param servicesByMode routed services to truncate to underlying service network
    */
   private void truncateToServiceNetworkByMode(RoutedModeServices servicesByMode) {
+    if(servicesByMode.isEmpty()){
+      return;
+    }
+
+    LOGGER.info(String.format("%s Truncating routed services to remaining service network for mode %s",
+            LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId()), servicesByMode.getMode()));
     servicesByMode.forEach( routedService -> truncateRoutedServiceToServiceNetwork(routedService));
   }
 
@@ -175,6 +215,7 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
    *  todo: add support for events upon making changes to routed services as with other modifier implementations
    */
   public void truncateToServiceNetwork(){
+    LOGGER.info(String.format("%s Truncating routed services to remaining service network",LoggingUtils.routedServiceLayerPrefix(routedServicesLayer.getId())));
     /* identify missing service network entities per routed service mode and truncate to become consistent again */
     routedServicesLayer.getSupportedModes().forEach(m -> truncateToServiceNetworkByMode(routedServicesLayer.getServicesByMode(m)));
 
