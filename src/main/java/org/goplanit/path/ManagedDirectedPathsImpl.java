@@ -37,13 +37,13 @@ public class ManagedDirectedPathsImpl extends ManagedIdEntitiesImpl<ManagedDirec
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param directedPathsImpl to copy
    */
   public ManagedDirectedPathsImpl(ManagedDirectedPathsImpl directedPathsImpl) {
     super(directedPathsImpl);
-    this.directedPathFactory = directedPathsImpl.directedPathFactory;
+    this.directedPathFactory = new ContainerisedDirectedPathFactoryImpl(directedPathsImpl.directedPathFactory.getIdGroupingToken(), this);
   }
 
   /**

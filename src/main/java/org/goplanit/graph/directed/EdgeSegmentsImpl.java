@@ -47,13 +47,14 @@ public class EdgeSegmentsImpl extends GraphEntitiesImpl<EdgeSegment> implements 
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates a new factory with reference to this container
    * 
    * @param edgeSegmentsImpl top copy
    */
   public EdgeSegmentsImpl(EdgeSegmentsImpl edgeSegmentsImpl) {
     super(edgeSegmentsImpl);
-    this.edgeSegmentFactory = edgeSegmentsImpl.edgeSegmentFactory;
+    this.edgeSegmentFactory =
+            new EdgeSegmentFactoryImpl(edgeSegmentsImpl.edgeSegmentFactory.getIdGroupingToken(), this);
   }
 
   /**

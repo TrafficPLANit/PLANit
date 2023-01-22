@@ -41,13 +41,14 @@ public class ConnectoidSegmentsImpl extends ManagedIdEntitiesImpl<ConnectoidSegm
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param connectoidSegmentImpl to copy
    */
   public ConnectoidSegmentsImpl(ConnectoidSegmentsImpl connectoidSegmentImpl) {
     super(connectoidSegmentImpl);
-    this.connectoidSegmentFactory = connectoidSegmentImpl.connectoidSegmentFactory;
+    this.connectoidSegmentFactory =
+            new ConnectoidSegmentFactoryImpl(connectoidSegmentImpl.connectoidSegmentFactory.getIdGroupingToken(), this);
   }
 
   /**

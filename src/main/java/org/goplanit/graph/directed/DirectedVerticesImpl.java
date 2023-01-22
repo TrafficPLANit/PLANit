@@ -41,13 +41,14 @@ public class DirectedVerticesImpl extends GraphEntitiesImpl<DirectedVertex> impl
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates a new factory with reference to this container
    * 
    * @param verticesImpl to copy
    */
   public DirectedVerticesImpl(DirectedVerticesImpl verticesImpl) {
     super(verticesImpl);
-    this.directedVertexFactory = verticesImpl.directedVertexFactory;
+    this.directedVertexFactory =
+            new DirectedVertexFactoryImpl(verticesImpl.directedVertexFactory.getIdGroupingToken(), this);
   }
 
   /**

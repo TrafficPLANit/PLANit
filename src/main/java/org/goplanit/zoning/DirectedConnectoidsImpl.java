@@ -39,13 +39,14 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
    */
   public DirectedConnectoidsImpl(DirectedConnectoidsImpl other) {
     super(other);
-    this.directedConnectoidFactory = other.directedConnectoidFactory;
+    this.directedConnectoidFactory =
+            new DirectedConnectoidFactoryImpl(other.directedConnectoidFactory.getIdGroupingToken(), this);
   }
 
   /**

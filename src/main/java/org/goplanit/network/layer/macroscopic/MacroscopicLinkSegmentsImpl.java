@@ -40,13 +40,13 @@ public class MacroscopicLinkSegmentsImpl extends ManagedIdEntitiesImpl<Macroscop
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param linkSegmentsImpl to copy
    */
   public MacroscopicLinkSegmentsImpl(MacroscopicLinkSegmentsImpl linkSegmentsImpl) {
     super(linkSegmentsImpl);
-    this.linkSegmentFactory = linkSegmentsImpl.linkSegmentFactory;
+    this.linkSegmentFactory = new MacroscopicLinkSegmentFactoryImpl(linkSegmentsImpl.linkSegmentFactory.getIdGroupingToken(), this);
   }
 
   /**

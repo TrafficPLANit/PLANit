@@ -39,13 +39,14 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
    */
   public UndirectedConnectoidsImpl(UndirectedConnectoidsImpl other) {
     super(other);
-    this.undirectedConnectoidFactory = other.undirectedConnectoidFactory;
+    this.undirectedConnectoidFactory =
+            new UndirectedConnectoidFactoryImpl(other.undirectedConnectoidFactory.getIdGroupingToken(), this);
   }
 
   /**

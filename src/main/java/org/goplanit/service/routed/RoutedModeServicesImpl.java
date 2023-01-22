@@ -33,7 +33,7 @@ public class RoutedModeServicesImpl extends ManagedIdEntitiesImpl<RoutedService>
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param routedModeServicesImpl to copy
    */

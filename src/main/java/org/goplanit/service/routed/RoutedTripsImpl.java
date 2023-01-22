@@ -34,13 +34,13 @@ public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEnt
   }
 
   /**
-   * Copy constructor
-   * 
+   * Copy constructor, incomplete, requires derived class to explicitly set factory
+   *
    * @param routedTripsBase to copy
    */
-  public RoutedTripsImpl(RoutedTripsImpl<T> routedTripsBase) {
+  protected RoutedTripsImpl(RoutedTripsImpl<T> routedTripsBase) {
     super(routedTripsBase);
-    this.factory = routedTripsBase.factory;
+    this.factory = null; // reset so it is clear it needs to be set by concrete implementing class afterwards
   }
 
   /**

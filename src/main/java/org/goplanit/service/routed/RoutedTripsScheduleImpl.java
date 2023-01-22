@@ -22,12 +22,13 @@ public class RoutedTripsScheduleImpl extends RoutedTripsImpl<RoutedTripSchedule>
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param routedTripsScheduleImpl to copy
    */
   public RoutedTripsScheduleImpl(RoutedTripsScheduleImpl routedTripsScheduleImpl) {
     super(routedTripsScheduleImpl);
+    setFactory(new RoutedTripScheduleFactoryImpl(routedTripsScheduleImpl.getFactory().getIdGroupingToken(), this));
   }
 
   /**

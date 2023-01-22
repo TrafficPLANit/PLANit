@@ -39,13 +39,13 @@ public class VerticesImpl extends GraphEntitiesImpl<Vertex> implements Vertices 
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates a new factory with reference to this container
    * 
    * @param verticesImpl to copy
    */
   public VerticesImpl(VerticesImpl verticesImpl) {
     super(verticesImpl);
-    this.vertexFactory = verticesImpl.vertexFactory;
+    this.vertexFactory = new VertexFactoryImpl(verticesImpl.vertexFactory.getIdGroupingToken(), this);
   }
 
   /**

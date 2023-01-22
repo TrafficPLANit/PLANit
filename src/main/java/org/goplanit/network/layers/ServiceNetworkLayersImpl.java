@@ -34,14 +34,14 @@ public class ServiceNetworkLayersImpl extends TopologicalLayersImpl<RoutedServic
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param serviceNetworkLayersImpl to copy
    */
   public ServiceNetworkLayersImpl(ServiceNetworkLayersImpl serviceNetworkLayersImpl) {
     super(serviceNetworkLayersImpl);
     this.parentNetwork = serviceNetworkLayersImpl.parentNetwork;
-    this.factory = serviceNetworkLayersImpl.factory;
+    this.factory = new ServiceNetworkLayerFactoryImpl(serviceNetworkLayersImpl.factory.getIdGroupingToken(), this);
   }
 
   /**

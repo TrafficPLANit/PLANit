@@ -36,13 +36,13 @@ public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates a new factory with reference to this container
    * 
    * @param edgesImpl to copy
    */
   public EdgesImpl(EdgesImpl edgesImpl) {
     super(edgesImpl);
-    this.edgeFactory = edgesImpl.edgeFactory;
+    this.edgeFactory = new EdgeFactoryImpl(edgesImpl.edgeFactory.getIdGroupingToken(), this);
   }
 
   /**

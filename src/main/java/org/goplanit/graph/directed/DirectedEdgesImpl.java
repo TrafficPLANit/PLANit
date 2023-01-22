@@ -38,13 +38,14 @@ public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implement
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates a new factory with reference to this container
    * 
    * @param directedEdgesImpl to copy
    */
   public DirectedEdgesImpl(DirectedEdgesImpl directedEdgesImpl) {
     super(directedEdgesImpl);
-    this.directedEdgeFactory = directedEdgesImpl.directedEdgeFactory;
+    this.directedEdgeFactory =
+            new DirectedEdgeFactoryImpl(directedEdgesImpl.directedEdgeFactory.getIdGroupingToken(), this);
   }
 
   /**

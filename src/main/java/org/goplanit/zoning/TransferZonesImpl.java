@@ -38,13 +38,13 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Transf
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
    */
   public TransferZonesImpl(TransferZonesImpl other) {
     super(other);
-    this.transferZoneFactory = other.transferZoneFactory;
+    this.transferZoneFactory = new TransferZoneFactoryImpl(other.transferZoneFactory.getIdGroupingToken(), this);
   }
 
   /**

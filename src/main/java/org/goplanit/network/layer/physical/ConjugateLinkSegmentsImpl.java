@@ -41,13 +41,14 @@ public class ConjugateLinkSegmentsImpl extends ManagedIdEntitiesImpl<ConjugateLi
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param conjugateLinkSegmentsImpl to copy
    */
   public ConjugateLinkSegmentsImpl(ConjugateLinkSegmentsImpl conjugateLinkSegmentsImpl) {
     super(conjugateLinkSegmentsImpl);
-    this.factory = conjugateLinkSegmentsImpl.factory;
+    this.factory =
+            new ConjugateLinkSegmentFactoryImpl(conjugateLinkSegmentsImpl.factory.getIdGroupingToken(), this);
   }
 
   /**

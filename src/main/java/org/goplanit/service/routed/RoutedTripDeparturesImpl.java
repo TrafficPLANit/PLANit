@@ -30,13 +30,14 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
   }
 
   /**
-   * Copy constructor. Reuses the factory and underlying container, use with caution
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param routedTripDepartures to copy
    */
   public RoutedTripDeparturesImpl(RoutedTripDeparturesImpl routedTripDepartures) {
     super(routedTripDepartures);
-    this.factory = routedTripDepartures.factory;
+    this.factory =
+            new RoutedTripDepartureFactoryImpl(routedTripDepartures.factory.getIdGroupingToken(), this);
   }
 
   /**

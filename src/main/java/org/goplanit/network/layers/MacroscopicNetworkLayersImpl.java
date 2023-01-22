@@ -1,6 +1,5 @@
 package org.goplanit.network.layers;
 
-import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.network.layer.macroscopic.MacroscopicNetworkLayerFactoryImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.network.layer.MacroscopicNetworkLayer;
@@ -29,13 +28,13 @@ public class MacroscopicNetworkLayersImpl extends UntypedPhysicalNetworkLayersIm
   }
 
   /**
-   * Constructor
+   * Constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
    */
   public MacroscopicNetworkLayersImpl(MacroscopicNetworkLayersImpl other) {
     super(other);
-    this.factory = other.factory;
+    this.factory = new MacroscopicNetworkLayerFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
   /**

@@ -39,13 +39,13 @@ public class ServiceLegsImpl extends ManagedIdEntitiesImpl<ServiceLeg> implement
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param serviceNodesImpl to copy
    */
   public ServiceLegsImpl(ServiceLegsImpl serviceNodesImpl) {
     super(serviceNodesImpl);
-    this.serviceLegFactory = serviceNodesImpl.serviceLegFactory;
+    this.serviceLegFactory = new ServiceLegFactoryImpl(serviceNodesImpl.serviceLegFactory.getIdGroupingToken(), this);
   }
 
   /**

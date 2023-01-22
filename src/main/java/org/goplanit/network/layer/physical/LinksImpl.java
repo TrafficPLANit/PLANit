@@ -17,7 +17,7 @@ import org.goplanit.utils.network.layer.physical.Links;
 public class LinksImpl<L extends Link> extends ManagedIdEntitiesImpl<L> implements Links<L> {
 
   /** factory to use */
-  protected final LinkFactory linkFactory;
+  protected LinkFactory linkFactory;
 
   /**
    * Constructor
@@ -41,13 +41,13 @@ public class LinksImpl<L extends Link> extends ManagedIdEntitiesImpl<L> implemen
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param linksImpl to copy
    */
   public LinksImpl(LinksImpl linksImpl) {
     super(linksImpl);
-    this.linkFactory = linksImpl.linkFactory;
+    this.linkFactory = new LinkFactoryImpl(linksImpl.linkFactory.getIdGroupingToken(), this);
   }
 
   /**

@@ -27,13 +27,13 @@ public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServic
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param routedServicesLayersImpl to copy
    */
   public RoutedServicesLayersImpl(final RoutedServicesLayersImpl routedServicesLayersImpl) {
     super(routedServicesLayersImpl);
-    this.factory = routedServicesLayersImpl.factory;
+    this.factory = new RoutedServicesLayerFactoryImpl(routedServicesLayersImpl.factory.getIdGroupingToken(), this);
   }
 
   /**

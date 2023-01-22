@@ -45,13 +45,13 @@ public class ModesImpl extends ManagedIdEntitiesImpl<Mode> implements Modes {
   }
 
   /**
-   * Copy Constructor
+   * Copy Constructor, also creates a new factory with reference to this container
    * 
    * @param modesImpl to copy
    */
   public ModesImpl(ModesImpl modesImpl) {
     super(modesImpl);
-    this.modeFactory = modesImpl.modeFactory;
+    this.modeFactory = new ModeFactoryImpl(modesImpl.modeFactory.getIdGroupingToken(), this);
   }
 
   /**

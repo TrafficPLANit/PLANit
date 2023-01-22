@@ -32,5 +32,4 @@ public abstract class ZoneFactoryImpl<Z extends Zone> extends ManagedIdEntityFac
     this.centroidFactory = new CentroidFactoryImpl(groupId);
   }
 
-
 }

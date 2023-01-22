@@ -22,12 +22,13 @@ public class RoutedTripsFrequencyImpl extends RoutedTripsImpl<RoutedTripFrequenc
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param routedTripsFrequencyImpl to copy
    */
   public RoutedTripsFrequencyImpl(RoutedTripsFrequencyImpl routedTripsFrequencyImpl) {
     super(routedTripsFrequencyImpl);
+    setFactory(new RoutedTripFrequencyFactoryImpl(routedTripsFrequencyImpl.getFactory().getIdGroupingToken(), this));
   }
 
   /**

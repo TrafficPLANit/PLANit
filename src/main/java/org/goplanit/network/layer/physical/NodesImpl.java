@@ -41,13 +41,13 @@ public class NodesImpl extends ManagedIdEntitiesImpl<Node> implements Nodes {
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param nodesImpl to copy
    */
   public NodesImpl(NodesImpl nodesImpl) {
     super(nodesImpl);
-    this.nodeFactory = nodesImpl.nodeFactory;
+    this.nodeFactory = new NodeFactoryImpl(nodesImpl.nodeFactory.getIdGroupingToken(), this);
   }
 
   /**

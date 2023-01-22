@@ -60,13 +60,14 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
    */
   public TransferZoneGroupsImpl(TransferZoneGroupsImpl other) {
     super(other);
-    this.transferZoneGroupFactory = other.transferZoneGroupFactory;
+    this.transferZoneGroupFactory =
+            new TransferZoneGroupFactoryImpl(other.transferZoneGroupFactory.getIdGroupingToken(), this);
   }
 
   /**

@@ -40,13 +40,13 @@ public class ConjugateLinksImpl extends ManagedIdEntitiesImpl<ConjugateLink> imp
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param linksImpl to copy
    */
   public ConjugateLinksImpl(ConjugateLinksImpl linksImpl) {
     super(linksImpl);
-    this.factory = linksImpl.factory;
+    this.factory = new ConjugateLinkFactoryImpl(linksImpl.factory.getIdGroupingToken(), this);
   }
 
   /**

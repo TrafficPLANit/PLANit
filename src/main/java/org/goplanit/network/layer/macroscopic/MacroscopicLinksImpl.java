@@ -40,12 +40,13 @@ public class MacroscopicLinksImpl extends LinksImpl<MacroscopicLink> implements 
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates a new factory with reference to this container
    *
    * @param toCopy to copy
    */
   public MacroscopicLinksImpl(MacroscopicLinksImpl toCopy) {
     super(toCopy);
+    this.linkFactory = new MacroscopicLinkFactoryImpl(toCopy.getFactory().getIdGroupingToken(), this);
   }
 
   /**

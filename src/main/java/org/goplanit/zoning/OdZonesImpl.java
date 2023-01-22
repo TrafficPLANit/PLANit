@@ -38,13 +38,13 @@ public class OdZonesImpl extends ZonesImpl<OdZone> implements OdZones {
   }
 
   /**
-   * Copy constructor
+   * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
    */
   public OdZonesImpl(OdZonesImpl other) {
     super(other);
-    this.odZoneFactory = other.odZoneFactory;
+    this.odZoneFactory = new OdZoneFactoryImpl(other.odZoneFactory.getIdGroupingToken(), this);
   }
 
   /**
