@@ -115,6 +115,14 @@ public class UserClass extends ExternalIdAbleImpl {
    * {@inheritDoc}
    */
   @Override
+  public UserClass deepClone() {
+    return clone(); // no impact;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public String toString() {
     return String.format("[id: %d, XMLid: %s, name: %s, mode %s, travellertype %s]", getId(), getXmlId(), getName(), getMode().toString(), travellerType.toString());
   }

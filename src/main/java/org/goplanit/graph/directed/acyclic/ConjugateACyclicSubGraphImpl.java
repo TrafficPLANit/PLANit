@@ -38,10 +38,11 @@ public class ConjugateACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<Con
   /**
    * Copy constructor
    * 
-   * @param aCyclicSubGraphImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ConjugateACyclicSubGraphImpl(ConjugateACyclicSubGraphImpl aCyclicSubGraphImpl) {
-    super(aCyclicSubGraphImpl);
+  public ConjugateACyclicSubGraphImpl(ConjugateACyclicSubGraphImpl other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -49,7 +50,15 @@ public class ConjugateACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<Con
    */
   @Override
   public ConjugateACyclicSubGraphImpl clone() {
-    return new ConjugateACyclicSubGraphImpl(this);
+    return new ConjugateACyclicSubGraphImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateACyclicSubGraphImpl deepClone() {
+    return new ConjugateACyclicSubGraphImpl(this, true);
   }
 
 }

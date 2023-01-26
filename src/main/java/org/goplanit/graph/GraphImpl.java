@@ -40,9 +40,10 @@ public class GraphImpl<V extends Vertex, E extends Edge> extends UntypedGraphImp
    * Copy constructor for shallow copy
    * 
    * @param graphImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public GraphImpl(final GraphImpl<V, E> graphImpl) {
-    super(graphImpl);
+  public GraphImpl(final GraphImpl<V, E> graphImpl, boolean deepCopy) {
+    super(graphImpl, deepCopy);
   }
 
   /**
@@ -50,7 +51,15 @@ public class GraphImpl<V extends Vertex, E extends Edge> extends UntypedGraphImp
    */
   @Override
   public GraphImpl<V, E> clone() {
-    return new GraphImpl<V, E>(this);
+    return new GraphImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public GraphImpl<V, E> deepClone() {
+    return new GraphImpl<>(this, true);
   }
 
 }

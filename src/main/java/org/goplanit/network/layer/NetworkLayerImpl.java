@@ -23,7 +23,7 @@ public abstract class NetworkLayerImpl extends ExternalIdAbleImpl implements Net
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(NetworkLayerImpl.class.getCanonicalName());
 
-  /** the modes supported by this layer **/
+  /** the modes supported by this layer (not owned) **/
   protected final Map<Long, Mode> supportedModes;
 
   /**
@@ -43,17 +43,18 @@ public abstract class NetworkLayerImpl extends ExternalIdAbleImpl implements Net
    */
   protected NetworkLayerImpl(IdGroupingToken tokenId) {
     super(generateId(tokenId));
-    this.supportedModes = new TreeMap<Long, Mode>();
+    this.supportedModes = new TreeMap<>();
   }
 
   /**
    * Copy constructor
    * 
-   * @param transportLayerImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected NetworkLayerImpl(NetworkLayerImpl transportLayerImpl) {
-    super(transportLayerImpl);
-    this.supportedModes = new TreeMap<Long, Mode>(transportLayerImpl.supportedModes);
+  protected NetworkLayerImpl(NetworkLayerImpl other, boolean deepCopy /* no impact yet */) {
+    super(other);
+    this.supportedModes = new TreeMap<>(other.supportedModes);
   }
 
   /**
@@ -129,5 +130,11 @@ public abstract class NetworkLayerImpl extends ExternalIdAbleImpl implements Net
    */
   @Override
   public abstract NetworkLayerImpl clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract NetworkLayerImpl deepClone();
 
 }

@@ -94,12 +94,15 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
   /**
    * Copy constructor
    * 
-   * @param bush to (shallow) copy
+   * @param bush to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public ConjugateDestinationBush(ConjugateDestinationBush bush) {
-    super(bush);
-    this.bushData = bush.bushData.clone();
+  public ConjugateDestinationBush(ConjugateDestinationBush bush, boolean deepCopy) {
+    super(bush, deepCopy);
     this.destination = bush.destination;
+
+    // container wrapper with primitives, so always clone
+    this.bushData = bush.bushData.clone();
   }
 
   /**
@@ -139,7 +142,15 @@ public class ConjugateDestinationBush extends RootedBush<ConjugateDirectedVertex
    */
   @Override
   public ConjugateDestinationBush clone() {
-    return new ConjugateDestinationBush(this);
+    return new ConjugateDestinationBush(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateDestinationBush deepClone() {
+    return new ConjugateDestinationBush(this, true);
   }
 
   /**

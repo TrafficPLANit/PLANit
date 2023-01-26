@@ -36,12 +36,13 @@ public class ServiceNetworkLayersImpl extends TopologicalLayersImpl<RoutedServic
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param serviceNetworkLayersImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ServiceNetworkLayersImpl(ServiceNetworkLayersImpl serviceNetworkLayersImpl) {
-    super(serviceNetworkLayersImpl);
-    this.parentNetwork = serviceNetworkLayersImpl.parentNetwork;
-    this.factory = new ServiceNetworkLayerFactoryImpl(serviceNetworkLayersImpl.factory.getIdGroupingToken(), this);
+  public ServiceNetworkLayersImpl(ServiceNetworkLayersImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.parentNetwork = other.parentNetwork;
+    this.factory = new ServiceNetworkLayerFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
   /**
@@ -58,7 +59,15 @@ public class ServiceNetworkLayersImpl extends TopologicalLayersImpl<RoutedServic
    */
   @Override
   public ServiceNetworkLayersImpl clone() {
-    return new ServiceNetworkLayersImpl(this);
+    return new ServiceNetworkLayersImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNetworkLayersImpl deepClone() {
+    return new ServiceNetworkLayersImpl(this, true);
   }
 
   /**

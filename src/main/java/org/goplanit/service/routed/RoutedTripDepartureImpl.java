@@ -10,7 +10,7 @@ import java.time.LocalTime;
 import java.util.logging.Logger;
 
 /**
- * A representation of a departure within a routed trip
+ * An representation of a departure within a routed trip
  * 
  * @author markr
  *
@@ -48,8 +48,9 @@ public class RoutedTripDepartureImpl extends ExternalIdAbleImpl implements Route
    * Copy constructor
    * 
    * @param routedTripDeparture to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedTripDepartureImpl(RoutedTripDepartureImpl routedTripDeparture) {
+  public RoutedTripDepartureImpl(RoutedTripDepartureImpl routedTripDeparture, boolean deepCopy /* no impact yet */) {
     super(routedTripDeparture);
     this.departureTime = routedTripDeparture.departureTime;
   }
@@ -85,7 +86,15 @@ public class RoutedTripDepartureImpl extends ExternalIdAbleImpl implements Route
    */
   @Override
   public RoutedTripDepartureImpl clone() {
-    return new RoutedTripDepartureImpl(this);
+    return new RoutedTripDepartureImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedTripDepartureImpl deepClone() {
+    return new RoutedTripDepartureImpl(this, true);
   }
 
   /**

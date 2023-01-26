@@ -43,11 +43,13 @@ public class ConnectoidEdgesImpl extends ManagedIdEntitiesImpl<ConnectoidEdge> i
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param connectoidSegmentImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ConnectoidEdgesImpl(ConnectoidEdgesImpl connectoidSegmentImpl) {
-    super(connectoidSegmentImpl);
-    this.connectoidEdgeFactory = new ConnectoidEdgeFactoryImpl(connectoidSegmentImpl.connectoidEdgeFactory.getIdGroupingToken(), this);
+  public ConnectoidEdgesImpl(ConnectoidEdgesImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.connectoidEdgeFactory =
+            new ConnectoidEdgeFactoryImpl(other.connectoidEdgeFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -74,7 +76,15 @@ public class ConnectoidEdgesImpl extends ManagedIdEntitiesImpl<ConnectoidEdge> i
    */
   @Override
   public ConnectoidEdgesImpl clone() {
-    return new ConnectoidEdgesImpl(this);
+    return new ConnectoidEdgesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidEdgesImpl deepClone() {
+    return new ConnectoidEdgesImpl(this, true);
   }
 
   /**

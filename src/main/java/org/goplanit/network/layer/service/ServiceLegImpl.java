@@ -43,10 +43,11 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
   /**
    * Copy Constructor. network layer links are shallow copied.
    * 
-   * @param serviceLeg to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  protected ServiceLegImpl(ServiceLegImpl serviceLeg) {
-    super(serviceLeg);
+  protected ServiceLegImpl(ServiceLegImpl other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -159,4 +160,19 @@ public class ServiceLegImpl extends DirectedEdgeImpl<ServiceNode, ServiceLegSegm
     return true;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegImpl clone(){
+    return new ServiceLegImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegImpl deepClone(){
+    return new ServiceLegImpl(this, true);
+  }
 }

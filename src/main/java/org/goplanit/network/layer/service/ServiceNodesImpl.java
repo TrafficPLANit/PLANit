@@ -42,11 +42,13 @@ public class ServiceNodesImpl extends ManagedIdEntitiesImpl<ServiceNode> impleme
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param serviceNodesImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ServiceNodesImpl(ServiceNodesImpl serviceNodesImpl) {
-    super(serviceNodesImpl);
-    this.serviceNodeFactory = new ServiceNodeFactoryImpl(serviceNodesImpl.serviceNodeFactory.getIdGroupingToken(), this);
+  public ServiceNodesImpl(ServiceNodesImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.serviceNodeFactory =
+            new ServiceNodeFactoryImpl(other.serviceNodeFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -62,7 +64,15 @@ public class ServiceNodesImpl extends ManagedIdEntitiesImpl<ServiceNode> impleme
    */
   @Override
   public ServiceNodesImpl clone() {
-    return new ServiceNodesImpl(this);
+    return new ServiceNodesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNodesImpl deepClone() {
+    return new ServiceNodesImpl(this, true);
   }
 
 }

@@ -41,9 +41,10 @@ public class OdZonesImpl extends ZonesImpl<OdZone> implements OdZones {
    * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public OdZonesImpl(OdZonesImpl other) {
-    super(other);
+  public OdZonesImpl(OdZonesImpl other, boolean deepCopy) {
+    super(other, deepCopy);
     this.odZoneFactory = new OdZoneFactoryImpl(other.odZoneFactory.getIdGroupingToken(), this);
   }
 
@@ -71,7 +72,15 @@ public class OdZonesImpl extends ZonesImpl<OdZone> implements OdZones {
    */
   @Override
   public OdZonesImpl clone() {
-    return new OdZonesImpl(this);
+    return new OdZonesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdZonesImpl deepClone() {
+    return new OdZonesImpl(this, true);
   }
 
 }

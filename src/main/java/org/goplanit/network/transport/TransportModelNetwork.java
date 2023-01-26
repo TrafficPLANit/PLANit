@@ -236,10 +236,9 @@ public class TransportModelNetwork {
 
   /**
    * Remove the edges and edge segments on the vertices of both virtual and physical networks
-   * 
-   * @throws PlanItException thrown if there is an error
+   *
    */
-  public void removeVirtualNetworkFromPhysicalNetwork() throws PlanItException {
+  public void removeVirtualNetworkFromPhysicalNetwork() {
     for (ConnectoidEdge connectoidEdge : zoning.getVirtualNetwork().getConnectoidEdges()) {
       disconnectVerticesFromEdge(connectoidEdge);
     }

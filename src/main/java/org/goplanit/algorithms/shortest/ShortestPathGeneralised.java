@@ -26,9 +26,7 @@ import org.goplanit.utils.misc.Pair;
 public class ShortestPathGeneralised {
 
   /** Comparator to sort based on the second elements minimum value (ascending order) */
-  private static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator = Comparator.comparing(Pair<DirectedVertex, Double>::second, (f1, f2) -> {
-    return f1.compareTo(f2);
-  });
+  private static final Comparator<Pair<DirectedVertex, Double>> pairSecondComparator = Comparator.comparing(Pair::second, Comparator.naturalOrder());
 
   /**
    * Reference to starting point for search for which we collect shortest paths from/to

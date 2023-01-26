@@ -298,18 +298,25 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
   /**
    * Copy Constructor
    * 
-   * @param trafficAssignment to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected TrafficAssignment(TrafficAssignment trafficAssignment) {
-    super(trafficAssignment);
-    this.demands = trafficAssignment.demands;
-    this.physicalNetwork = trafficAssignment.physicalNetwork;
-    this.zoning = trafficAssignment.zoning;
+  protected TrafficAssignment(TrafficAssignment other, boolean deepCopy) {
+    super(other, deepCopy);
 
-    this.trafficAssignmentComponents = new HashMap<Class<? extends PlanitComponent<?>>, PlanitComponent<?>>(trafficAssignment.trafficAssignmentComponents);
+    this.demands        = deepCopy ? other.demands.deepClone()          : other.demands.clone();
+    this.physicalNetwork= deepCopy ? other.physicalNetwork.deepClone()  : other.physicalNetwork.clone();
+    this.zoning         = deepCopy ? other.zoning.deepClone()           : other.zoning.clone();
 
-    this.initialLinkSegmentCostTimePeriodAgnostic = trafficAssignment.initialLinkSegmentCostTimePeriodAgnostic;
-    this.initialLinkSegmentCostByTimePeriod = new HashMap<TimePeriod, InitialModesLinkSegmentCost>(trafficAssignment.initialLinkSegmentCostByTimePeriod);
+    this.trafficAssignmentComponents = new HashMap<>();
+    other.trafficAssignmentComponents.entrySet().forEach(
+            entry -> trafficAssignmentComponents.put(entry.getKey(), deepCopy ? entry.getValue().deepClone() : entry.getValue()));
+
+    // primitive container wrapper, so clone equates to deep clone
+    this.initialLinkSegmentCostTimePeriodAgnostic = other.initialLinkSegmentCostTimePeriodAgnostic.clone();
+    // map of primitive container wrappers, so clone equates to deep clone
+    this.initialLinkSegmentCostByTimePeriod = new HashMap<>();
+    other.initialLinkSegmentCostByTimePeriod.forEach( (p,e) -> initialLinkSegmentCostByTimePeriod.put(p, e.clone()));
   }
 
   /**
@@ -576,5 +583,17 @@ public abstract class TrafficAssignment extends NetworkLoading implements Traffi
     outputManager.getOutputFormatters().forEach(of -> logRegisteredComponentName(of, true));
     outputManager.getRegisteredOutputTypeConfigurations().forEach(oc -> LOGGER.info(LoggingUtils.runIdPrefix(this.getId()) + "activated: OutputType." + oc.getOutputType()));
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TrafficAssignment clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TrafficAssignment deepClone();
 
 }

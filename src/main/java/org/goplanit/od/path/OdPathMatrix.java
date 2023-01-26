@@ -37,12 +37,21 @@ public class OdPathMatrix extends OdNonPrimitiveMatrix<ManagedDirectedPath> impl
   }
 
   /**
-   * Copy constructor (shallow copy of matrix contents)
+   * Copy constructor
    * 
-   * @param odPathMatrix to copy from
+   * @param other to copy from
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public OdPathMatrix(final OdPathMatrix odPathMatrix) {
-    super(odPathMatrix);
+  public OdPathMatrix(final OdPathMatrix other, boolean deepCopy) {
+    super(other);
+
+    this.matrixContents = new ManagedDirectedPath[other.zones.size()][other.zones.size()];
+    for (var origin : other.zones) {
+      for (var destination : other.zones) {
+        var currValue = other.getValue(origin, destination);
+        setValue(origin, destination, deepCopy ? currValue.deepClone() : currValue);
+      }
+    }
   }
 
   /**
@@ -58,7 +67,15 @@ public class OdPathMatrix extends OdNonPrimitiveMatrix<ManagedDirectedPath> impl
    */
   @Override
   public OdPathMatrix clone() {
-    return new OdPathMatrix(this);
+    return new OdPathMatrix(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdPathMatrix deepClone() {
+    return new OdPathMatrix(this, true);
   }
 
   // getters - setters

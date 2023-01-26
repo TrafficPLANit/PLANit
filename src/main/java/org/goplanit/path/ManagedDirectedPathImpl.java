@@ -27,7 +27,7 @@ public class ManagedDirectedPathImpl extends ExternalIdAbleImpl implements Manag
   private static final Logger LOGGER = Logger.getLogger(ManagedDirectedPathImpl.class.getCanonicalName());
 
   /** representation of path through simple path */
-  private final SimpleDirectedPath path;
+  private final SimpleDirectedPathImpl path;
 
   /**
    * Generate an id for this instance
@@ -59,6 +59,17 @@ public class ManagedDirectedPathImpl extends ExternalIdAbleImpl implements Manag
   protected ManagedDirectedPathImpl(final IdGroupingToken groupId, final Deque<? extends EdgeSegment> pathEdgeSegments) {
     super(generateId(groupId));
     path = new SimpleDirectedPathImpl(pathEdgeSegments);
+  }
+
+  /** Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected ManagedDirectedPathImpl(ManagedDirectedPathImpl other, boolean deepCopy /* no impact yet */) {
+    super(other);
+    /* composite, so simple path is managed path and therefore required copy */
+    this.path = new SimpleDirectedPathImpl(other.path);
   }
 
   /**
@@ -119,4 +130,19 @@ public class ManagedDirectedPathImpl extends ExternalIdAbleImpl implements Manag
     return this.path.getLastSegment();
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ManagedDirectedPathImpl clone() {
+    return new ManagedDirectedPathImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ManagedDirectedPathImpl deepClone() {
+    return new ManagedDirectedPathImpl(this, true);
+  }
 }

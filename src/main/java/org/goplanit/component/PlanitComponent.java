@@ -57,11 +57,14 @@ public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializabl
    * Copy constructor
    * 
    * @param other, to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected PlanitComponent(PlanitComponent<T> other) {
+  protected PlanitComponent(PlanitComponent<T> other, boolean deepCopy) {
     this.planitComponentType = other.planitComponentType;
     this.tokenId = other.tokenId;
-    this.idImpl = other.idImpl.clone();
+
+    // clone because idImpl is not a member but is a composite and part of PlanitComponent itself
+    this.idImpl = deepCopy ? other.idImpl.deepClone() : other.idImpl.clone();
   }
 
   /**
@@ -69,6 +72,12 @@ public abstract class PlanitComponent<T extends PlanitComponent<T> & Serializabl
    */
   @Override
   public abstract PlanitComponent<T> clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract PlanitComponent<T> deepClone();
 
   /**
    * All components should be able to reset going back to some representative initial state

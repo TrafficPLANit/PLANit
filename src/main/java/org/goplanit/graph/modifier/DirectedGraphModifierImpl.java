@@ -80,7 +80,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
   private <Ex extends DirectedEdge> void updateBrokenEdgeItsEdgeSegments(Ex aToBreak, Ex breakToB) {
     DirectedVertex vertexAtBreak = aToBreak.getVertexB();
 
-    List<EdgeSegment> identifiedEdgeSegmentOnEdge = new ArrayList<EdgeSegment>(2);
+    List<EdgeSegment> identifiedEdgeSegmentOnEdge = new ArrayList<>(2);
     for (Ex brokenEdge : List.of(aToBreak, breakToB)) {
       /* attach edge segment A-> B to the right vertices/edges, and make a unique copy if needed */
       if (brokenEdge.hasEdgeSegmentAb()) {
@@ -89,7 +89,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
 
         if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentAb)) {
           /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
-          newEdgeSegmentAb = getUntypedDirectedGraph().getEdgeSegments().getFactory().createUniqueCopyOf(oldEdgeSegmentAb);
+          newEdgeSegmentAb = getUntypedDirectedGraph().getEdgeSegments().getFactory().createUniqueDeepCopyOf(oldEdgeSegmentAb);
           ((GraphEntities<EdgeSegment>) getUntypedDirectedGraph().getEdgeSegments()).register(newEdgeSegmentAb);
           newEdgeSegmentAb.setParent(brokenEdge);
         } else {
@@ -116,7 +116,7 @@ public class DirectedGraphModifierImpl extends EventProducerImpl implements Dire
 
         if (identifiedEdgeSegmentOnEdge.contains(oldEdgeSegmentBa)) {
           /* edge segment shallow copy present from breaking link in super implementation, replace by register a unique copy of edge segment on this edge */
-          newEdgeSegmentBa = getUntypedDirectedGraph().getEdgeSegments().getFactory().createUniqueCopyOf(oldEdgeSegmentBa);
+          newEdgeSegmentBa = getUntypedDirectedGraph().getEdgeSegments().getFactory().createUniqueDeepCopyOf(oldEdgeSegmentBa);
           ((GraphEntities<EdgeSegment>) getUntypedDirectedGraph().getEdgeSegments()).register(newEdgeSegmentBa);
           newEdgeSegmentBa.setParent(brokenEdge);
         } else {

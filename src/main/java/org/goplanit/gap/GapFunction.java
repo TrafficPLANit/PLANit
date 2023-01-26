@@ -47,10 +47,11 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public GapFunction(final GapFunction other) {
-    super(other);
-    this.stopCriterion = other.stopCriterion.clone();
+  public GapFunction(final GapFunction other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.stopCriterion = deepCopy ? other.stopCriterion.deepClone() : other.stopCriterion;
   }
 
   /**
@@ -105,5 +106,11 @@ public abstract class GapFunction extends PlanitComponent<GapFunction> implement
    */
   @Override
   public abstract GapFunction clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract GapFunction deepClone();
 
 }

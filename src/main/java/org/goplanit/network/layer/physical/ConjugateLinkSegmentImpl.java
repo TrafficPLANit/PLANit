@@ -41,10 +41,11 @@ public class ConjugateLinkSegmentImpl extends EdgeSegmentImpl<ConjugateLink> imp
   /**
    * Copy constructor
    * 
-   * @param conjugateLinkSegmentImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  protected ConjugateLinkSegmentImpl(ConjugateLinkSegmentImpl conjugateLinkSegmentImpl) {
-    super(conjugateLinkSegmentImpl);
+  protected ConjugateLinkSegmentImpl(ConjugateLinkSegmentImpl other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -52,7 +53,15 @@ public class ConjugateLinkSegmentImpl extends EdgeSegmentImpl<ConjugateLink> imp
    */
   @Override
   public ConjugateLinkSegmentImpl clone() {
-    return new ConjugateLinkSegmentImpl(this);
+    return new ConjugateLinkSegmentImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateLinkSegmentImpl deepClone() {
+    return new ConjugateLinkSegmentImpl(this, true);
   }
 
 }

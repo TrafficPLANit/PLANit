@@ -53,4 +53,18 @@ public interface OdDemands extends OdData<Double> {
     });
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract OdDemands clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public default OdDemands deepClone(){
+    return clone();
+  }
+
 }

@@ -37,12 +37,13 @@ public class ConjugateGraphImpl<V extends ConjugateVertex, E extends ConjugateEd
   // Getters - Setters
 
   /**
-   * Copy constructor for shallow copy
+   * Copy constructor
    * 
-   * @param graphImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ConjugateGraphImpl(final ConjugateGraphImpl<V, E> graphImpl) {
-    super(graphImpl);
+  public ConjugateGraphImpl(final ConjugateGraphImpl<V, E> other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -50,7 +51,15 @@ public class ConjugateGraphImpl<V extends ConjugateVertex, E extends ConjugateEd
    */
   @Override
   public ConjugateGraphImpl<V, E> clone() {
-    return new ConjugateGraphImpl<V, E>(this);
+    return new ConjugateGraphImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateGraphImpl<V, E> deepClone() {
+    return new ConjugateGraphImpl<>(this, true);
   }
 
 }

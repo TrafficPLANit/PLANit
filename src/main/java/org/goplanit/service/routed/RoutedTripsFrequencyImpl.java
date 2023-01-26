@@ -24,11 +24,13 @@ public class RoutedTripsFrequencyImpl extends RoutedTripsImpl<RoutedTripFrequenc
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param routedTripsFrequencyImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedTripsFrequencyImpl(RoutedTripsFrequencyImpl routedTripsFrequencyImpl) {
-    super(routedTripsFrequencyImpl);
-    setFactory(new RoutedTripFrequencyFactoryImpl(routedTripsFrequencyImpl.getFactory().getIdGroupingToken(), this));
+  public RoutedTripsFrequencyImpl(RoutedTripsFrequencyImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    setFactory(
+            new RoutedTripFrequencyFactoryImpl(other.getFactory().getIdGroupingToken(), this));
   }
 
   /**
@@ -36,7 +38,15 @@ public class RoutedTripsFrequencyImpl extends RoutedTripsImpl<RoutedTripFrequenc
    */
   @Override
   public RoutedTripsFrequencyImpl clone() {
-    return new RoutedTripsFrequencyImpl(this);
+    return new RoutedTripsFrequencyImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedTripsFrequencyImpl deepClone() {
+    return new RoutedTripsFrequencyImpl(this, true);
   }
 
   /**

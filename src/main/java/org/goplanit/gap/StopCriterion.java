@@ -42,8 +42,9 @@ public class StopCriterion implements Cloneable {
 
   /**
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public StopCriterion(StopCriterion other) {
+  public StopCriterion(StopCriterion other, boolean deepCopy /* no impact yet*/) {
     this.epsilon = other.epsilon;
     this.maxIterations = other.maxIterations;
   }
@@ -98,10 +99,17 @@ public class StopCriterion implements Cloneable {
   }
 
   /**
-   * clone this instance
+   * Shallow clone this instance
    */
   public StopCriterion clone() {
-    return new StopCriterion(this);
+    return new StopCriterion(this, false);
+  }
+
+  /**
+   * Deep clone this instance
+   */
+  public StopCriterion deepClone() {
+    return new StopCriterion(this, true);
   }
 
   /**

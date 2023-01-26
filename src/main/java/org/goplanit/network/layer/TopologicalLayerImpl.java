@@ -23,10 +23,11 @@ public abstract class TopologicalLayerImpl extends NetworkLayerImpl implements T
   /**
    * Copy Constructor
    * 
-   * @param topologicalLayerImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public TopologicalLayerImpl(TopologicalLayerImpl topologicalLayerImpl) {
-    super(topologicalLayerImpl);
+  public TopologicalLayerImpl(TopologicalLayerImpl other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -34,5 +35,11 @@ public abstract class TopologicalLayerImpl extends NetworkLayerImpl implements T
    */
   @Override
   public abstract TopologicalLayerImpl clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TopologicalLayerImpl deepClone();
 
 }

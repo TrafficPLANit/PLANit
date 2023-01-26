@@ -138,11 +138,12 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
   /**
    * Copy constructor
    * 
-   * @param conjugateMacroscopicNetworkLayerImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConjugateMacroscopicNetworkLayerImpl(ConjugateMacroscopicNetworkLayerImpl conjugateMacroscopicNetworkLayerImpl) {
-    super(conjugateMacroscopicNetworkLayerImpl);
-    this.originalLayer = conjugateMacroscopicNetworkLayerImpl.originalLayer;
+  protected ConjugateMacroscopicNetworkLayerImpl(ConjugateMacroscopicNetworkLayerImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.originalLayer = other.originalLayer;
   }
 
   /**
@@ -183,7 +184,15 @@ public class ConjugateMacroscopicNetworkLayerImpl extends UntypedNetworkLayerImp
    */
   @Override
   public ConjugateMacroscopicNetworkLayerImpl clone() {
-    return new ConjugateMacroscopicNetworkLayerImpl(this);
+    return new ConjugateMacroscopicNetworkLayerImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateMacroscopicNetworkLayerImpl deepClone() {
+    return new ConjugateMacroscopicNetworkLayerImpl(this, true);
   }
 
   /**

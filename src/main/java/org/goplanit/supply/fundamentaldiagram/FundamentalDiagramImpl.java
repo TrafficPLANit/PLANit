@@ -35,10 +35,13 @@ public abstract class FundamentalDiagramImpl implements FundamentalDiagram {
    * Copy Constructor
    * 
    * @param fundamentalDiagramImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public FundamentalDiagramImpl(final FundamentalDiagramImpl fundamentalDiagramImpl) {
-    this.freeFlowBranch = fundamentalDiagramImpl.freeFlowBranch.clone();
-    this.congestedBranch = fundamentalDiagramImpl.congestedBranch.clone();
+  public FundamentalDiagramImpl(final FundamentalDiagramImpl fundamentalDiagramImpl, boolean deepCopy) {
+    super();
+    /* deep copy makes an actual copy, otherwise we just reuse existing references */
+    this.freeFlowBranch = deepCopy ? fundamentalDiagramImpl.freeFlowBranch.clone() : fundamentalDiagramImpl.freeFlowBranch;
+    this.congestedBranch = deepCopy ? fundamentalDiagramImpl.congestedBranch.clone() : fundamentalDiagramImpl.congestedBranch;
   }
 
   /**
@@ -70,4 +73,9 @@ public abstract class FundamentalDiagramImpl implements FundamentalDiagram {
    */
   @Override
   public abstract FundamentalDiagram clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  public abstract FundamentalDiagram deepClone();
 }

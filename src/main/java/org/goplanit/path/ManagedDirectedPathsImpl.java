@@ -40,10 +40,12 @@ public class ManagedDirectedPathsImpl extends ManagedIdEntitiesImpl<ManagedDirec
    * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param directedPathsImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ManagedDirectedPathsImpl(ManagedDirectedPathsImpl directedPathsImpl) {
-    super(directedPathsImpl);
-    this.directedPathFactory = new ContainerisedDirectedPathFactoryImpl(directedPathsImpl.directedPathFactory.getIdGroupingToken(), this);
+  public ManagedDirectedPathsImpl(ManagedDirectedPathsImpl directedPathsImpl, boolean deepCopy) {
+    super(directedPathsImpl, deepCopy);
+    this.directedPathFactory =
+            new ContainerisedDirectedPathFactoryImpl(directedPathsImpl.directedPathFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -59,7 +61,15 @@ public class ManagedDirectedPathsImpl extends ManagedIdEntitiesImpl<ManagedDirec
    */
   @Override
   public ManagedDirectedPathsImpl clone() {
-    return new ManagedDirectedPathsImpl(this);
+    return new ManagedDirectedPathsImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ManagedDirectedPathsImpl deepClone() {
+    return new ManagedDirectedPathsImpl(this, true);
   }
 
 }

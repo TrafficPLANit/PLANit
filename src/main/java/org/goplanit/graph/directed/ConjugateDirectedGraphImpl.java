@@ -41,10 +41,27 @@ public class ConjugateDirectedGraphImpl<V extends ConjugateDirectedVertex, E ext
   /**
    * Copy constructor
    * 
-   * @param directedGraphImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ConjugateDirectedGraphImpl(final ConjugateDirectedGraphImpl<V, E, ES> directedGraphImpl) {
-    super(directedGraphImpl);
+  public ConjugateDirectedGraphImpl(final ConjugateDirectedGraphImpl<V, E, ES> other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateDirectedGraphImpl<V, E, ES> clone() {
+    return new ConjugateDirectedGraphImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateDirectedGraphImpl<V, E, ES> deepClone() {
+    return new ConjugateDirectedGraphImpl<>(this, true);
   }
 
 }

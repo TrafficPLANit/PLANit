@@ -41,10 +41,12 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Transf
    * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public TransferZonesImpl(TransferZonesImpl other) {
-    super(other);
-    this.transferZoneFactory = new TransferZoneFactoryImpl(other.transferZoneFactory.getIdGroupingToken(), this);
+  public TransferZonesImpl(TransferZonesImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.transferZoneFactory =
+            new TransferZoneFactoryImpl(other.transferZoneFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -71,7 +73,15 @@ public class TransferZonesImpl extends ZonesImpl<TransferZone> implements Transf
    */
   @Override
   public TransferZonesImpl clone() {
-    return new TransferZonesImpl(this);
+    return new TransferZonesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZonesImpl deepClone() {
+    return new TransferZonesImpl(this, true);
   }
 
 }

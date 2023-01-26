@@ -25,9 +25,10 @@ public abstract class TopologicalLayersImpl<T extends TopologicalLayer> extends 
    * Constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public TopologicalLayersImpl(TopologicalLayersImpl<T> other) {
-    super(other);
+  public TopologicalLayersImpl(TopologicalLayersImpl<T> other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -35,5 +36,11 @@ public abstract class TopologicalLayersImpl<T extends TopologicalLayer> extends 
    */
   @Override
   public abstract TopologicalLayersImpl<T> clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TopologicalLayersImpl<T> deepClone();
 
 }

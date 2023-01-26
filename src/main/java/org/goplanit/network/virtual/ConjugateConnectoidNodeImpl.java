@@ -55,11 +55,12 @@ public class ConjugateConnectoidNodeImpl extends DirectedVertexImpl<ConjugateEdg
   /**
    * Copy constructor, see also {@code VertexImpl}
    * 
-   * @param nodeImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConjugateConnectoidNodeImpl(ConjugateConnectoidNodeImpl nodeImpl) {
-    super(nodeImpl);
-    this.original = nodeImpl.original;
+  protected ConjugateConnectoidNodeImpl(ConjugateConnectoidNodeImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.original = other.original;
   }
 
   // Protected
@@ -78,7 +79,15 @@ public class ConjugateConnectoidNodeImpl extends DirectedVertexImpl<ConjugateEdg
    */
   @Override
   public ConjugateConnectoidNodeImpl clone() {
-    return new ConjugateConnectoidNodeImpl(this);
+    return new ConjugateConnectoidNodeImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateConnectoidNodeImpl deepClone() {
+    return new ConjugateConnectoidNodeImpl(this, true);
   }
 
   /**

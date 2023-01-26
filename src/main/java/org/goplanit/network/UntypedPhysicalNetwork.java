@@ -39,12 +39,13 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
   }
 
   /**
-   * Copy constructor. Beware shallow copy only for managed id containers.
+   * Copy constructor.
    *
    * @param other                   to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected UntypedPhysicalNetwork(final UntypedPhysicalNetwork<L, LS> other) {
-    super(other);
+  protected UntypedPhysicalNetwork(final UntypedPhysicalNetwork<L, LS> other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -70,4 +71,16 @@ public abstract class UntypedPhysicalNetwork<L extends UntypedPhysicalLayer<?, ?
       infrastructureLayer.getLayerModifier().removeDanglingSubnetworks(belowSize, aboveSize, alwaysKeepLargest);
     }
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract UntypedPhysicalNetwork clone();
+
+  /**
+   * {@inheritDoc
+   */
+  @Override
+  public abstract UntypedPhysicalNetwork deepClone();
 }

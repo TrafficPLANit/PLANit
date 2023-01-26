@@ -15,7 +15,7 @@ public class ProjectAssignmentBuilders implements Iterable<TrafficAssignmentBuil
   /**
    * The traffic assignment(s) registered on this project
    */
-  protected final Set<TrafficAssignmentBuilder<?>> builders = new HashSet<TrafficAssignmentBuilder<?>>();
+  protected final Set<TrafficAssignmentBuilder<?>> builders = new HashSet<>();
 
   /**
    * add traffic assignment

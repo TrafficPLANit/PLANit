@@ -43,6 +43,15 @@ public class BushFlowLabel implements Comparable<BushFlowLabel> {
   }
 
   /**
+   * Copy constructor
+   * @param other to copy
+   */
+  protected BushFlowLabel(final BushFlowLabel other) {
+    id = other.id;
+    name = other.name;
+  }
+
+  /**
    * Generate id
    * 
    * @param idToken to use

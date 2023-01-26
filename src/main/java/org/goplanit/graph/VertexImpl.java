@@ -38,7 +38,7 @@ public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Verte
   /**
    * Edges of this vertex. List used to ensure fixed order in iterating and minimal memory overhead
    */
-  protected final ArrayList<E> edges = new ArrayList<E>(2);
+  protected final ArrayList<E> edges = new ArrayList<>(2);
 
   /**
    * Constructor
@@ -69,17 +69,21 @@ public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Verte
   }
 
   /**
-   * Copy constructor. Geometry and input properties are deep copied, edges are not because they are not owned by this class by the vertex.
+   * Copy constructor.
    * 
-   * @param vertexImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected VertexImpl(VertexImpl<E> vertexImpl) {
-    super(vertexImpl);
-    setPosition((Point) vertexImpl.getPosition().copy());
-    edges.addAll(vertexImpl.edges);
-    if (vertexImpl.inputProperties != null && !vertexImpl.inputProperties.isEmpty()) {
-      for (var entry : vertexImpl.inputProperties.entrySet()) {
-        addInputProperty(new String(entry.getKey()), CloneUtils.clone(entry.getValue()));
+  protected VertexImpl(VertexImpl<E> other, boolean deepCopy) {
+    super(other, deepCopy);
+    edges.addAll(other.edges); // edges not owned, so not deep copied
+
+    setPosition(deepCopy ? (Point) other.getPosition().copy() : other.getPosition());
+    if (other.inputProperties != null && !other.inputProperties.isEmpty()) {
+      if(deepCopy) {
+        CloneUtils.deepCloneFromTo(other.inputProperties, this.inputProperties);
+      }else{
+        this.inputProperties.putAll(other.inputProperties);
       }
     }
   }
@@ -110,7 +114,7 @@ public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Verte
   @Override
   public void addInputProperty(final String key, final Object value) {
     if (inputProperties == null) {
-      inputProperties = new HashMap<String, Object>();
+      inputProperties = new HashMap<>();
     }
     inputProperties.put(key, value);
   }
@@ -165,7 +169,14 @@ public class VertexImpl<E extends Edge> extends GraphEntityImpl implements Verte
    */
   @Override
   public VertexImpl<E> clone() {
-    return new VertexImpl<E>(this);
+    return new VertexImpl<>(this, false);
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public VertexImpl<E> deepClone() {
+    return new VertexImpl<>(this, true);
+  }
 }

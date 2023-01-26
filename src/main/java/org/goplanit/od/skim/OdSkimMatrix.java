@@ -53,7 +53,7 @@ public class OdSkimMatrix extends OdPrimitiveMatrix<Double> {
    * @param other to copy
    */
   public OdSkimMatrix(final OdSkimMatrix other) {
-    super(other);
+    super(other, Array2D.PRIMITIVE32);
     this.odSkimOutputType = other.odSkimOutputType;
   }
 

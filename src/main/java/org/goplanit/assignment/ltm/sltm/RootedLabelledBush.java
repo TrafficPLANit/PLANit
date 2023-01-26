@@ -102,11 +102,12 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
   /**
    * Copy constructor
    * 
-   * @param bush to (shallow) copy
+   * @param bush to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public RootedLabelledBush(RootedLabelledBush bush) {
-    super(bush);
-    this.bushData = bush.bushData.clone();
+  public RootedLabelledBush(RootedLabelledBush bush, boolean deepCopy) {
+    super(bush, deepCopy);
+    this.bushData = deepCopy ? bush.bushData.deepClone() : bush.bushData.clone();
   }
 
   /**
@@ -124,6 +125,12 @@ public abstract class RootedLabelledBush extends RootedBush<DirectedVertex, Edge
    */
   @Override
   public abstract RootedLabelledBush clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract RootedLabelledBush deepClone();
 
   /**
    * {@inheritDoc}

@@ -29,9 +29,10 @@ public class TampereNodeModelComponent extends NodeModelComponent {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public TampereNodeModelComponent(final TampereNodeModelComponent other) {
-    super(other);
+  public TampereNodeModelComponent(final TampereNodeModelComponent other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -39,7 +40,15 @@ public class TampereNodeModelComponent extends NodeModelComponent {
    */
   @Override
   public TampereNodeModelComponent clone() {
-    return new TampereNodeModelComponent(this);
+    return new TampereNodeModelComponent(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TampereNodeModelComponent deepClone() {
+    return new TampereNodeModelComponent(this, true);
   }
 
   /**

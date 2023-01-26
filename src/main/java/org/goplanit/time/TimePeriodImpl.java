@@ -76,8 +76,9 @@ public class TimePeriodImpl extends ExternalIdAbleImpl implements TimePeriod {
    * Copy constructor
    * 
    * @param timePeriodImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public TimePeriodImpl(TimePeriodImpl timePeriodImpl) {
+  public TimePeriodImpl(TimePeriodImpl timePeriodImpl, boolean deepCopy /* no impact yet */) {
     super(timePeriodImpl);
     this.startTimeSeconds = timePeriodImpl.startTimeSeconds;
     this.durationSeconds = timePeriodImpl.durationSeconds;
@@ -113,7 +114,15 @@ public class TimePeriodImpl extends ExternalIdAbleImpl implements TimePeriod {
    */
   @Override
   public TimePeriodImpl clone() {
-    return new TimePeriodImpl(this);
+    return new TimePeriodImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TimePeriodImpl deepClone() {
+    return new TimePeriodImpl(this, true);
   }
 
   /**

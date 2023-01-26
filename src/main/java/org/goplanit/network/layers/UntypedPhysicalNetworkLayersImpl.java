@@ -25,9 +25,10 @@ public abstract class UntypedPhysicalNetworkLayersImpl<L extends UntypedPhysical
    * Constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public UntypedPhysicalNetworkLayersImpl(UntypedPhysicalNetworkLayersImpl<L> other) {
-    super(other);
+  public UntypedPhysicalNetworkLayersImpl(UntypedPhysicalNetworkLayersImpl<L> other, boolean deepCopy) {
+    super(other,deepCopy);
   }
 
   /**
@@ -35,5 +36,11 @@ public abstract class UntypedPhysicalNetworkLayersImpl<L extends UntypedPhysical
    */
   @Override
   public abstract UntypedPhysicalNetworkLayersImpl<L> clone();
+
+  /**
+   * {@inheritDoc}}
+   */
+  @Override
+  public abstract UntypedPhysicalNetworkLayersImpl<L> deepClone();
 
 }

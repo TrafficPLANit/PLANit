@@ -50,11 +50,12 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
   /**
    * Copy Constructor. Edge segments are shallow copied and point to the passed in edge as their parent So additional effort is needed to make the new edge usable
    * 
-   * @param conjugateDirectedEdgeImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConjugateDirectedEdgeImpl(ConjugateDirectedEdgeImpl<V,ES> conjugateDirectedEdgeImpl) {
-    super(conjugateDirectedEdgeImpl);
-    this.originalEdges = conjugateDirectedEdgeImpl.originalEdges.copy();
+  protected ConjugateDirectedEdgeImpl(ConjugateDirectedEdgeImpl<V,ES> other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.originalEdges = other.originalEdges.copy(); // not owned so never deep copied
   }
 
   /**
@@ -105,6 +106,22 @@ public class ConjugateDirectedEdgeImpl<V extends ConjugateDirectedVertex, ES ext
   @Override
   public Pair<DirectedEdge, DirectedEdge> getOriginalAdjacentEdges() {
     return originalEdges;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateDirectedEdgeImpl<V, ES> clone() {
+    return new ConjugateDirectedEdgeImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateDirectedEdgeImpl<V, ES> deepClone() {
+    return new ConjugateDirectedEdgeImpl<>(this, true);
   }
 
 }

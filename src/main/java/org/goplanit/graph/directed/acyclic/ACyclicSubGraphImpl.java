@@ -39,10 +39,11 @@ public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVert
   /**
    * Copy constructor
    * 
-   * @param aCyclicSubGraphImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ACyclicSubGraphImpl(ACyclicSubGraphImpl aCyclicSubGraphImpl) {
-    super(aCyclicSubGraphImpl);
+  public ACyclicSubGraphImpl(ACyclicSubGraphImpl other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -50,7 +51,15 @@ public class ACyclicSubGraphImpl extends UntypedACyclicSubGraphImpl<DirectedVert
    */
   @Override
   public ACyclicSubGraphImpl clone() {
-    return new ACyclicSubGraphImpl(this);
+    return new ACyclicSubGraphImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ACyclicSubGraphImpl deepClone() {
+    return new ACyclicSubGraphImpl(this, true);
   }
 
 }

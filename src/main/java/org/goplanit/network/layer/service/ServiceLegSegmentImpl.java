@@ -58,11 +58,12 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
   /**
    * Copy constructor
    * 
-   * @param serviceLegSegment to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  protected ServiceLegSegmentImpl(ServiceLegSegmentImpl serviceLegSegment) {
-    super(serviceLegSegment);
-    this.networkLayerLinkSegments = new ArrayList<>(serviceLegSegment.networkLayerLinkSegments);
+  protected ServiceLegSegmentImpl(ServiceLegSegmentImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.networkLayerLinkSegments = new ArrayList<>(other.networkLayerLinkSegments);
   }
 
   /**
@@ -136,5 +137,21 @@ public class ServiceLegSegmentImpl extends EdgeSegmentImpl<ServiceLeg> implement
       }
     }
     return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegSegmentImpl clone() {
+    return new ServiceLegSegmentImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegSegmentImpl deepClone() {
+    return new ServiceLegSegmentImpl(this, true);
   }
 }

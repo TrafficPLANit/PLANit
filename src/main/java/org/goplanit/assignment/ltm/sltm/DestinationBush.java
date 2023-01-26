@@ -41,10 +41,11 @@ public class DestinationBush extends RootedLabelledBush {
   /**
    * Copy constructor
    * 
-   * @param bush to (shallow) copy
+   * @param bush to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public DestinationBush(DestinationBush bush) {
-    super(bush);
+  public DestinationBush(DestinationBush bush, boolean deepCopy) {
+    super(bush, deepCopy);
     this.destination = bush.destination;
   }
 
@@ -98,7 +99,15 @@ public class DestinationBush extends RootedLabelledBush {
    */
   @Override
   public DestinationBush clone() {
-    return new DestinationBush(this);
+    return new DestinationBush(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DestinationBush deepClone() {
+    return new DestinationBush(this, true);
   }
 
   /**

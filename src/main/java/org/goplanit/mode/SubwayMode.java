@@ -47,4 +47,29 @@ public class SubwayMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.SUBWAY, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, SUBWAY_PHYSICAL_FEATURES, SUBWAY_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected SubwayMode(SubwayMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SubwayMode clone() {
+    return new SubwayMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SubwayMode deepClone() {
+    return new SubwayMode(this, true);
+  }
 }

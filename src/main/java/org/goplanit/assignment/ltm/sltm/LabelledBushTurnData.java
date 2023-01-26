@@ -160,12 +160,20 @@ public class LabelledBushTurnData implements Cloneable {
   /**
    * copy constructor.
    * 
-   * @param bushTurnData to copy
+   * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public LabelledBushTurnData(LabelledBushTurnData bushTurnData) {
-    this.compositionTurnSendingFlows = bushTurnData.compositionTurnSendingFlows.clone();
-    this.linkSegmentCompositionLabels = new HashMap<EdgeSegment, TreeSet<BushFlowLabel>>();
-    bushTurnData.linkSegmentCompositionLabels.forEach((k, v) -> linkSegmentCompositionLabels.put(k, new TreeSet<BushFlowLabel>(v)));
+  public LabelledBushTurnData(LabelledBushTurnData other, boolean deepCopy) {
+    this.compositionTurnSendingFlows = other.compositionTurnSendingFlows.clone();
+
+    this.linkSegmentCompositionLabels = new HashMap<>();
+    for( var entry : other.linkSegmentCompositionLabels.entrySet()) {
+      var toFill = new TreeSet<BushFlowLabel>();
+      linkSegmentCompositionLabels.put(entry.getKey(), toFill);
+      for (var otherValue : entry.getValue()) {
+        toFill.add(deepCopy ? new BushFlowLabel(otherValue) : otherValue);
+      }
+    }
   }
 
   /**
@@ -664,7 +672,16 @@ public class LabelledBushTurnData implements Cloneable {
    */
   @Override
   public LabelledBushTurnData clone() {
-    return new LabelledBushTurnData(this);
+    return new LabelledBushTurnData(this, false);
+  }
+
+  /**
+   * Support deep clone
+   *
+   * @return deep copy
+   */
+  public LabelledBushTurnData deepClone() {
+    return new LabelledBushTurnData(this, true);
   }
 
   /**

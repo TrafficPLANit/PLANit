@@ -6,6 +6,7 @@ import java.util.Map;
 import org.goplanit.utils.id.ExternalIdAbleImpl;
 import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
+import org.goplanit.utils.misc.CloneUtils;
 import org.goplanit.utils.zoning.Centroid;
 import org.goplanit.utils.zoning.Zone;
 import org.locationtech.jts.geom.Geometry;
@@ -81,15 +82,23 @@ public abstract class ZoneImpl extends ExternalIdAbleImpl implements Zone {
    * Constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ZoneImpl(final ZoneImpl other) {
+  public ZoneImpl(final ZoneImpl other, boolean deepCopy) {
     super(other);
     this.name = other.name;
-    if (other.inputProperties != null) {
-      this.inputProperties = new HashMap<String, Object>(other.inputProperties);
-    }
+
     this.centroid = other.centroid;
-    this.geometry = other.geometry;
+
+    this.geometry = deepCopy ? other.getGeometry().copy() : other.geometry;
+    this.inputProperties = new HashMap<>();
+    if (other.inputProperties != null) {
+      if (deepCopy) {
+        CloneUtils.deepCloneFromTo(other.inputProperties, this.inputProperties);
+      } else {
+        this.inputProperties.putAll(other.inputProperties);
+      }
+    }
   }
 
   /**
@@ -171,6 +180,12 @@ public abstract class ZoneImpl extends ExternalIdAbleImpl implements Zone {
    */
   @Override
   public abstract ZoneImpl clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ZoneImpl deepClone();
 
   /**
    * {@inheritDoc}

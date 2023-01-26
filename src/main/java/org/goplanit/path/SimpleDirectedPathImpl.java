@@ -37,6 +37,14 @@ public class SimpleDirectedPathImpl implements SimpleDirectedPath {
   }
 
   /**
+   * Copy constructor (shallow copy)
+   */
+  protected SimpleDirectedPathImpl(SimpleDirectedPathImpl other) {
+    super();
+    path = new ArrayDeque<>(other.path);
+  }
+
+  /**
    * Constructor
    *
    * @param pathEdgeSegments the path to set (not copied)

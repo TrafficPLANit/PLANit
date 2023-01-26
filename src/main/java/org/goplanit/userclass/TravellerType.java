@@ -91,6 +91,14 @@ public class TravellerType extends ExternalIdAbleImpl {
    * {@inheritDoc}
    */
   @Override
+  public TravellerType deepClone() {
+    return clone(); // no impact
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public String toString() {
     return String.format("[id: %d, XMLid: %s, name: %s]", getId(), getXmlId(), getName());
   }

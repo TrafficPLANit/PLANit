@@ -1,7 +1,9 @@
 package org.goplanit.cost.physical;
 
+import java.util.Arrays;
 import java.util.Map;
 
+import org.goplanit.component.PlanitComponent;
 import org.goplanit.interactor.LinkInflowOutflowAccessee;
 import org.goplanit.interactor.LinkInflowOutflowAccessor;
 import org.goplanit.network.LayeredNetwork;
@@ -134,10 +136,15 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    * Copy Constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public SteadyStateTravelTimeCost(SteadyStateTravelTimeCost other) {
-    super(other);
+  public SteadyStateTravelTimeCost(SteadyStateTravelTimeCost other, boolean deepCopy /*no impact at present */) {
+    super(other, deepCopy);
     this.accessee = other.accessee;
+
+    this.currentTimePeriodHours = other.currentTimePeriodHours;
+    this.freeFlowTravelTimePerLinkSegment = Arrays.copyOf(other.freeFlowTravelTimePerLinkSegment, other.freeFlowTravelTimePerLinkSegment.length);
+    this.linkSegmentFundamentalDiagrams = Arrays.copyOf(other.linkSegmentFundamentalDiagrams, other.linkSegmentFundamentalDiagrams.length);
   }
 
   /**
@@ -209,7 +216,15 @@ public class SteadyStateTravelTimeCost extends AbstractPhysicalCost implements L
    */
   @Override
   public SteadyStateTravelTimeCost clone() {
-    return new SteadyStateTravelTimeCost(this);
+    return new SteadyStateTravelTimeCost(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SteadyStateTravelTimeCost deepClone() {
+    return new SteadyStateTravelTimeCost(this, true);
   }
 
   /**

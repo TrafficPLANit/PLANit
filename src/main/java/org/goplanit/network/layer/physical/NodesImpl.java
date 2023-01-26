@@ -43,11 +43,12 @@ public class NodesImpl extends ManagedIdEntitiesImpl<Node> implements Nodes {
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param nodesImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  public NodesImpl(NodesImpl nodesImpl) {
-    super(nodesImpl);
-    this.nodeFactory = new NodeFactoryImpl(nodesImpl.nodeFactory.getIdGroupingToken(), this);
+  public NodesImpl(NodesImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.nodeFactory = new NodeFactoryImpl(other.nodeFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -74,7 +75,15 @@ public class NodesImpl extends ManagedIdEntitiesImpl<Node> implements Nodes {
    */
   @Override
   public NodesImpl clone() {
-    return new NodesImpl(this);
+    return new NodesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public NodesImpl deepClone() {
+    return new NodesImpl(this, true);
   }
 
   /**

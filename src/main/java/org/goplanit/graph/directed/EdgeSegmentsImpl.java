@@ -49,12 +49,13 @@ public class EdgeSegmentsImpl extends GraphEntitiesImpl<EdgeSegment> implements 
   /**
    * Copy constructor, also creates a new factory with reference to this container
    * 
-   * @param edgeSegmentsImpl top copy
+   * @param other top copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public EdgeSegmentsImpl(EdgeSegmentsImpl edgeSegmentsImpl) {
-    super(edgeSegmentsImpl);
+  public EdgeSegmentsImpl(EdgeSegmentsImpl other, boolean deepCopy) {
+    super(other, deepCopy);
     this.edgeSegmentFactory =
-            new EdgeSegmentFactoryImpl(edgeSegmentsImpl.edgeSegmentFactory.getIdGroupingToken(), this);
+            new EdgeSegmentFactoryImpl(other.edgeSegmentFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -78,7 +79,15 @@ public class EdgeSegmentsImpl extends GraphEntitiesImpl<EdgeSegment> implements 
    */
   @Override
   public EdgeSegmentsImpl clone() {
-    return new EdgeSegmentsImpl(this);
+    return new EdgeSegmentsImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegmentsImpl deepClone() {
+    return new EdgeSegmentsImpl(this, true);
   }
 
 }

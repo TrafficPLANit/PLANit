@@ -41,12 +41,13 @@ public class ServiceLegSegmentsImpl extends ManagedIdEntitiesImpl<ServiceLegSegm
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param serviceNodesImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ServiceLegSegmentsImpl(ServiceLegSegmentsImpl serviceNodesImpl) {
-    super(serviceNodesImpl);
+  public ServiceLegSegmentsImpl(ServiceLegSegmentsImpl other, boolean deepCopy) {
+    super(other,deepCopy);
     this.serviceLegSegmentFactory =
-            new ServiceLegSegmentFactoryImpl(serviceNodesImpl.serviceLegSegmentFactory.getIdGroupingToken(), this);
+            new ServiceLegSegmentFactoryImpl(other.serviceLegSegmentFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -62,7 +63,15 @@ public class ServiceLegSegmentsImpl extends ManagedIdEntitiesImpl<ServiceLegSegm
    */
   @Override
   public ServiceLegSegmentsImpl clone() {
-    return new ServiceLegSegmentsImpl(this);
+    return new ServiceLegSegmentsImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceLegSegmentsImpl deepClone() {
+    return new ServiceLegSegmentsImpl(this, true);
   }
 
 }

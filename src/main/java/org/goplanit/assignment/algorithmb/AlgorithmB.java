@@ -11,6 +11,7 @@ import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.supply.networkloading.NetworkLoading;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.time.TimePeriod;
@@ -77,7 +78,7 @@ public class AlgorithmB extends StaticTrafficAssignment {
    * @param algorithmB to copy
    */
   public AlgorithmB(AlgorithmB algorithmB) {
-    super(algorithmB);
+    super(algorithmB, false);
     equilibration = algorithmB.equilibration;
   }
 
@@ -108,8 +109,16 @@ public class AlgorithmB extends StaticTrafficAssignment {
    * {@inheritDoc}
    */
   @Override
-  public PlanitComponent<NetworkLoading> clone() {
+  public AlgorithmB clone() {
     return new AlgorithmB(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public AlgorithmB deepClone() {
+    throw new PlanItRunTimeException("Not yet implemented");
   }
 
   /**

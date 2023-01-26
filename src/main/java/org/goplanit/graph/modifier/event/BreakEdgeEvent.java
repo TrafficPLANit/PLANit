@@ -6,6 +6,7 @@ import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.modifier.GraphModifier;
 import org.goplanit.utils.graph.modifier.event.GraphModificationEvent;
 import org.goplanit.utils.graph.modifier.event.GraphModifierEventType;
+import org.goplanit.utils.id.IdAble;
 
 /**
  * Wrapper around break edge event

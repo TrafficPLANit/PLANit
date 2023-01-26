@@ -74,9 +74,10 @@ public class NormBasedGapFunction extends GapFunction {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public NormBasedGapFunction(NormBasedGapFunction other) {
-    super(other);
+  public NormBasedGapFunction(NormBasedGapFunction other, boolean deepCopy) {
+    super(other, deepCopy);
     this.averaged = other.averaged;
     this.count = other.count;
     this.gap = other.gap;
@@ -193,7 +194,15 @@ public class NormBasedGapFunction extends GapFunction {
    */
   @Override
   public NormBasedGapFunction clone() {
-    return new NormBasedGapFunction(this);
+    return new NormBasedGapFunction(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public NormBasedGapFunction deepClone() {
+    return new NormBasedGapFunction(this, true);
   }
 
   // GETTERS - SETTERS

@@ -50,10 +50,11 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
   /**
    * Copy constructor
    * 
-   * @param connectoidsImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ConnectoidsImpl(ConnectoidsImpl<T> connectoidsImpl) {
-    super(connectoidsImpl);
+  public ConnectoidsImpl(ConnectoidsImpl<T> other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -61,6 +62,12 @@ public abstract class ConnectoidsImpl<T extends Connectoid> extends ManagedIdEnt
    */
   @Override
   public abstract ConnectoidsImpl<T> clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ConnectoidsImpl<T> deepClone();
 
   /**
    * {@inheritDoc}

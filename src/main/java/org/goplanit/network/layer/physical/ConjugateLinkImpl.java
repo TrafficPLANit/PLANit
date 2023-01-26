@@ -36,13 +36,14 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
   protected final Pair<Link, Link> originalLinks;
 
   /**
-   * Copy constructor, geometry is deep copied, see also {@code LinkImpl} copy constructed
+   * Copy constructor
    * 
-   * @param conjugateLinkImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConjugateLinkImpl(ConjugateLinkImpl conjugateLinkImpl) {
-    super(conjugateLinkImpl);
-    this.originalLinks = conjugateLinkImpl.originalLinks.copy();
+  protected ConjugateLinkImpl(ConjugateLinkImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.originalLinks = other.originalLinks.copy();
   }
 
   /**
@@ -107,7 +108,15 @@ public class ConjugateLinkImpl extends DirectedEdgeImpl<ConjugateDirectedVertex,
    */
   @Override
   public ConjugateLinkImpl clone() {
-    return new ConjugateLinkImpl(this);
+    return new ConjugateLinkImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateLinkImpl deepClone() {
+    return new ConjugateLinkImpl(this, true);
   }
 
   /**

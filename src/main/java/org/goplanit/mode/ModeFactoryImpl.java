@@ -81,7 +81,8 @@ public class ModeFactoryImpl extends ManagedIdEntityFactoryImpl<Mode> implements
    */
   @Override
   public Mode registerNewCustomMode(String name, double maxSpeed, double pcu, PhysicalModeFeatures physicalFeatures, UsabilityModeFeatures usabilityFeatures) {
-    final Mode newMode = new ModeImpl(getIdGroupingToken(), name, maxSpeed, pcu, physicalFeatures, usabilityFeatures);
+    final Mode newMode = new ModeImpl(
+            getIdGroupingToken(), name, maxSpeed, pcu, (PhysicalModeFeaturesImpl) physicalFeatures, (UsabilityModeFeaturesImpl) usabilityFeatures);
     modes.register(newMode);
     return newMode;
   }

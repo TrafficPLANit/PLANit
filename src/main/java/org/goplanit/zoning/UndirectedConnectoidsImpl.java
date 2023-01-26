@@ -42,9 +42,10 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
    * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public UndirectedConnectoidsImpl(UndirectedConnectoidsImpl other) {
-    super(other);
+  public UndirectedConnectoidsImpl(UndirectedConnectoidsImpl other, boolean deepCopy) {
+    super(other, deepCopy);
     this.undirectedConnectoidFactory =
             new UndirectedConnectoidFactoryImpl(other.undirectedConnectoidFactory.getIdGroupingToken(), this);
   }
@@ -73,6 +74,14 @@ public class UndirectedConnectoidsImpl extends ConnectoidsImpl<UndirectedConnect
    */
   @Override
   public UndirectedConnectoidsImpl clone() {
-    return new UndirectedConnectoidsImpl(this);
+    return new UndirectedConnectoidsImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UndirectedConnectoidsImpl deepClone() {
+    return new UndirectedConnectoidsImpl(this, true);
   }
 }

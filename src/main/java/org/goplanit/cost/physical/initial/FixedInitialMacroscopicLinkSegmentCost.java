@@ -27,9 +27,10 @@ public class FixedInitialMacroscopicLinkSegmentCost extends InitialMacroscopicLi
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public FixedInitialMacroscopicLinkSegmentCost(FixedInitialMacroscopicLinkSegmentCost other) {
-    super(other);
+  public FixedInitialMacroscopicLinkSegmentCost(FixedInitialMacroscopicLinkSegmentCost other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -50,7 +51,15 @@ public class FixedInitialMacroscopicLinkSegmentCost extends InitialMacroscopicLi
    */
   @Override
   public FixedInitialMacroscopicLinkSegmentCost clone() {
-    return new FixedInitialMacroscopicLinkSegmentCost(this);
+    return new FixedInitialMacroscopicLinkSegmentCost(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public FixedInitialMacroscopicLinkSegmentCost deepClone() {
+    return new FixedInitialMacroscopicLinkSegmentCost(this, true);
   }
 
   /**

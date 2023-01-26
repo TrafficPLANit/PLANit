@@ -131,7 +131,7 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    * Register the given fundamental diagram for the link segment type. In case there already exists an identical fundamental diagram (based on relaxed hashcode comparison), the
    * link segment type is assigned the already present fundamental diagram. The fundamental diagram used for the link segment type is returned, which is either the passed in one,
    * or an already present functionally identical version
-   * 
+   *
    * @param linkSegmentType    to use
    * @param fundamentalDiagram to register
    * @return used Fd for the link segment type, can be different (but functionally equivalent) if registered Fd was already present for another link segment
@@ -160,21 +160,41 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    */
   public FundamentalDiagramComponent(final IdGroupingToken groupId) {
     super(groupId, FundamentalDiagramComponent.class);
-    this.uniqueFundamentalDiagrams = new HashMap<Integer, FundamentalDiagram>();
-    this.linkSegmentFundamentalDiagrams = new HashMap<MacroscopicLinkSegment, FundamentalDiagram>();
-    this.linkSegmentTypeFundamentalDiagrams = new HashMap<MacroscopicLinkSegmentType, FundamentalDiagram>();
+    this.uniqueFundamentalDiagrams = new HashMap<>();
+    this.linkSegmentFundamentalDiagrams = new HashMap<>();
+    this.linkSegmentTypeFundamentalDiagrams = new HashMap<>();
   }
 
   /**
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public FundamentalDiagramComponent(final FundamentalDiagramComponent other) {
-    super(other);
-    this.uniqueFundamentalDiagrams = new HashMap<Integer, FundamentalDiagram>(other.uniqueFundamentalDiagrams);
-    this.linkSegmentFundamentalDiagrams = new HashMap<MacroscopicLinkSegment, FundamentalDiagram>(other.linkSegmentFundamentalDiagrams);
-    this.linkSegmentTypeFundamentalDiagrams = new HashMap<MacroscopicLinkSegmentType, FundamentalDiagram>(other.linkSegmentTypeFundamentalDiagrams);
+  public FundamentalDiagramComponent(final FundamentalDiagramComponent other, boolean deepCopy) {
+    super(other, deepCopy);
+
+    this.uniqueFundamentalDiagrams = new HashMap<>();
+    other.uniqueFundamentalDiagrams.entrySet().forEach( e ->
+            uniqueFundamentalDiagrams.put( e.getKey(), deepCopy ? e.getValue().deepClone() : e.getValue()));
+
+      this.linkSegmentFundamentalDiagrams = new HashMap<>();
+      this.linkSegmentTypeFundamentalDiagrams = new HashMap<>();
+
+      /* replace old references with deep copied new ones if needed */
+      other.linkSegmentFundamentalDiagrams.entrySet().forEach( entry ->
+              linkSegmentFundamentalDiagrams.put(
+                      entry.getKey(),
+                      deepCopy
+                              ? linkSegmentFundamentalDiagrams.get(entry.getValue().relaxedHashCode(RELAXED_HASH_CODE_SCALE))
+                              : entry.getValue()));
+
+      other.linkSegmentTypeFundamentalDiagrams.entrySet().forEach( entry ->
+              linkSegmentTypeFundamentalDiagrams.put(
+                      entry.getKey(),
+                      deepCopy
+                              ? linkSegmentTypeFundamentalDiagrams.get(entry.getValue().relaxedHashCode(RELAXED_HASH_CODE_SCALE))
+                              : entry.getValue()));
   }
 
   /**
@@ -313,5 +333,11 @@ public abstract class FundamentalDiagramComponent extends PlanitComponent<Fundam
    */
   @Override
   public abstract FundamentalDiagramComponent clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract FundamentalDiagramComponent deepClone();
 
 }

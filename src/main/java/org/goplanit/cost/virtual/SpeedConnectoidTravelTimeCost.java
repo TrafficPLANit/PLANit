@@ -43,9 +43,10 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public SpeedConnectoidTravelTimeCost(SpeedConnectoidTravelTimeCost other) {
-    super(other);
+  public SpeedConnectoidTravelTimeCost(SpeedConnectoidTravelTimeCost other, boolean deepCopy /* no impact yet */) {
+    super(other, deepCopy);
     connectoidSpeed = other.connectoidSpeed;
   }
 
@@ -101,7 +102,15 @@ public class SpeedConnectoidTravelTimeCost extends AbstractVirtualCost {
    */
   @Override
   public SpeedConnectoidTravelTimeCost clone() {
-    return new SpeedConnectoidTravelTimeCost(this);
+    return new SpeedConnectoidTravelTimeCost(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public SpeedConnectoidTravelTimeCost deepClone() {
+    return new SpeedConnectoidTravelTimeCost(this, true);
   }
 
   /**

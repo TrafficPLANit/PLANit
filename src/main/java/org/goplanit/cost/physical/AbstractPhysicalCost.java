@@ -37,9 +37,10 @@ public abstract class AbstractPhysicalCost extends PlanitComponent<AbstractPhysi
    * Copy Constructor
    * 
    * @param abstractPhysicalCost to use
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public AbstractPhysicalCost(AbstractPhysicalCost abstractPhysicalCost) {
-    super(abstractPhysicalCost);
+  public AbstractPhysicalCost(AbstractPhysicalCost abstractPhysicalCost, boolean deepCopy) {
+    super(abstractPhysicalCost, deepCopy);
   }
 
   /**

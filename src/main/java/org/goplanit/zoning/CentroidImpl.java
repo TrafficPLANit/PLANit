@@ -59,12 +59,13 @@ public class CentroidImpl extends DirectedVertexImpl<EdgeSegment> implements Cen
   /**
    * Copy constructor
    * 
-   * @param centroidImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected CentroidImpl(final CentroidImpl centroidImpl) {
-    super(centroidImpl);
-    setParentzone(centroidImpl.getParentZone());
-    setName(centroidImpl.getName());
+  protected CentroidImpl(final CentroidImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    setParentzone(other.getParentZone());
+    setName(other.getName());
   }
 
   // Public
@@ -74,7 +75,15 @@ public class CentroidImpl extends DirectedVertexImpl<EdgeSegment> implements Cen
    */
   @Override
   public CentroidImpl clone() {
-    return new CentroidImpl(this);
+    return new CentroidImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public CentroidImpl deepClone() {
+    return new CentroidImpl(this, true);
   }
 
   // Getters-Setters

@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 import org.goplanit.algorithms.shortest.ShortestPathDijkstra;
 import org.goplanit.algorithms.shortest.ShortestPathResult;
 import org.goplanit.assignment.StaticTrafficAssignment;
+import org.goplanit.assignment.ltm.sltm.StaticLtm;
 import org.goplanit.cost.Cost;
 import org.goplanit.cost.CostUtils;
 import org.goplanit.gap.LinkBasedRelativeDualityGapFunction;
@@ -28,6 +29,7 @@ import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.graph.Vertex;
 import org.goplanit.utils.graph.directed.EdgeSegment;
+import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.math.Precision;
 import org.goplanit.utils.misc.LoggingUtils;
@@ -532,10 +534,14 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
    * @param traditionalStaticAssignment to copy
    */
   public TraditionalStaticAssignment(TraditionalStaticAssignment traditionalStaticAssignment) {
-    super(traditionalStaticAssignment);
-    this.simulationData = traditionalStaticAssignment.simulationData;
+    super(traditionalStaticAssignment, false);
+
     this.localPathFactory = traditionalStaticAssignment.localPathFactory;
     this.networkLayer = traditionalStaticAssignment.networkLayer;
+
+    //todo: even shallow clones should copy simulation data given that it is essentially an extension of this class
+    //      with containers
+    this.simulationData = traditionalStaticAssignment.simulationData;
   }
 
   /**
@@ -598,6 +604,14 @@ public class TraditionalStaticAssignment extends StaticTrafficAssignment impleme
   @Override
   public TraditionalStaticAssignment clone() {
     return new TraditionalStaticAssignment(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TraditionalStaticAssignment deepClone() {
+    throw new PlanItRunTimeException("Deep clone not yet implemented");
   }
 
   /**

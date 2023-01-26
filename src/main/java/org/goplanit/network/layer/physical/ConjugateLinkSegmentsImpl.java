@@ -43,12 +43,13 @@ public class ConjugateLinkSegmentsImpl extends ManagedIdEntitiesImpl<ConjugateLi
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param conjugateLinkSegmentsImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  public ConjugateLinkSegmentsImpl(ConjugateLinkSegmentsImpl conjugateLinkSegmentsImpl) {
-    super(conjugateLinkSegmentsImpl);
+  public ConjugateLinkSegmentsImpl(ConjugateLinkSegmentsImpl other, boolean deepCopy) {
+    super(other, deepCopy);
     this.factory =
-            new ConjugateLinkSegmentFactoryImpl(conjugateLinkSegmentsImpl.factory.getIdGroupingToken(), this);
+            new ConjugateLinkSegmentFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
   /**
@@ -64,7 +65,15 @@ public class ConjugateLinkSegmentsImpl extends ManagedIdEntitiesImpl<ConjugateLi
    */
   @Override
   public ConjugateLinkSegmentsImpl clone() {
-    return new ConjugateLinkSegmentsImpl(this);
+    return new ConjugateLinkSegmentsImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateLinkSegmentsImpl deepClone() {
+    return new ConjugateLinkSegmentsImpl(this, true);
   }
 
 }

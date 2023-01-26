@@ -43,7 +43,7 @@ public class CentroidFactoryImpl extends ManagedIdEntityFactoryImpl<Centroid> im
    * {@inheritDoc}
    */
   @Override
-  public Centroid createUniqueCopyOf(final ManagedId entityToCopy) {
+  public Centroid createUniqueDeepCopyOf(final ManagedId entityToCopy) {
     Centroid copy = (Centroid) entityToCopy.clone();
     copy.recreateManagedIds(getIdGroupingToken());
     return copy;

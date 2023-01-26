@@ -47,4 +47,29 @@ public class GoodsMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.GOODS_VEHICLE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, GV_PHYSICAL_FEATURES, GV_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected GoodsMode(GoodsMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public GoodsMode clone() {
+    return new GoodsMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public GoodsMode deepClone() {
+    return new GoodsMode(this, true);
+  }
 }

@@ -33,12 +33,13 @@ public class ConjugateConnectoidEdgeImpl extends ConjugateDirectedEdgeImpl<Conju
   private static final Logger LOGGER = Logger.getLogger(ConjugateConnectoidEdgeImpl.class.getCanonicalName());
 
   /**
-   * Copy constructor, geometry is deep copied, see also {@code LinkImpl} copy constructed
+   * Copy constructor
    *
-   * @param conjugateLinkImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConjugateConnectoidEdgeImpl(ConjugateConnectoidEdgeImpl conjugateLinkImpl) {
-    super(conjugateLinkImpl);
+  protected ConjugateConnectoidEdgeImpl(ConjugateConnectoidEdgeImpl other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -59,7 +60,15 @@ public class ConjugateConnectoidEdgeImpl extends ConjugateDirectedEdgeImpl<Conju
    */
   @Override
   public ConjugateConnectoidEdgeImpl clone() {
-    return new ConjugateConnectoidEdgeImpl(this);
+    return new ConjugateConnectoidEdgeImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateConnectoidEdgeImpl deepClone() {
+    return new ConjugateConnectoidEdgeImpl(this, true);
   }
 
 }

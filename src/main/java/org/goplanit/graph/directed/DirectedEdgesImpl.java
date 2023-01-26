@@ -41,9 +41,10 @@ public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implement
    * Copy constructor, also creates a new factory with reference to this container
    * 
    * @param directedEdgesImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public DirectedEdgesImpl(DirectedEdgesImpl directedEdgesImpl) {
-    super(directedEdgesImpl);
+  public DirectedEdgesImpl(DirectedEdgesImpl directedEdgesImpl, boolean deepCopy) {
+    super(directedEdgesImpl, deepCopy);
     this.directedEdgeFactory =
             new DirectedEdgeFactoryImpl(directedEdgesImpl.directedEdgeFactory.getIdGroupingToken(), this);
   }
@@ -61,7 +62,15 @@ public class DirectedEdgesImpl extends GraphEntitiesImpl<DirectedEdge> implement
    */
   @Override
   public DirectedEdgesImpl clone() {
-    return new DirectedEdgesImpl(this);
+    return new DirectedEdgesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedEdgesImpl deepClone() {
+    return new DirectedEdgesImpl(this, true);
   }
 
 }

@@ -59,9 +59,8 @@ public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L>
    *
    * @param groupId,    contiguous id generation within this group for instances of this class
    * @param directionAB direction of travel
-   * @throws PlanItException throw when error
    */
-  protected LinkSegmentBase(final IdGroupingToken groupId, final boolean directionAB) throws PlanItException {
+  protected LinkSegmentBase(final IdGroupingToken groupId, final boolean directionAB) {
     this(groupId, null, directionAB);
   }
 
@@ -80,13 +79,14 @@ public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L>
   /**
    * Copy constructor
    * 
-   * @param linkSegmentBase to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected LinkSegmentBase(LinkSegmentBase<L> linkSegmentBase) {
-    super(linkSegmentBase);
-    setLinkSegmentId(linkSegmentBase.getLinkSegmentId());
-    setNumberOfLanes(linkSegmentBase.getNumberOfLanes());
-    setPhysicalSpeedLimitKmH(linkSegmentBase.getPhysicalSpeedLimitKmH());
+  protected LinkSegmentBase(LinkSegmentBase<L> other, boolean deepCopy) {
+    super(other, deepCopy);
+    setLinkSegmentId(other.getLinkSegmentId());
+    setNumberOfLanes(other.getNumberOfLanes());
+    setPhysicalSpeedLimitKmH(other.getPhysicalSpeedLimitKmH());
   }
 
   // Public
@@ -179,5 +179,11 @@ public abstract class LinkSegmentBase<L extends Link> extends EdgeSegmentImpl<L>
    */
   @Override
   public abstract LinkSegmentBase<L> clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract LinkSegmentBase<L> deepClone();
 
 }

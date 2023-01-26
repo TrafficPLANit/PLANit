@@ -35,8 +35,9 @@ public abstract class RoutedTripImpl extends ExternalIdAbleImpl implements Route
    * Copy constructor
    * 
    * @param routedTripImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedTripImpl(RoutedTripImpl routedTripImpl) {
+  public RoutedTripImpl(RoutedTripImpl routedTripImpl, boolean deepCopy /* no impact yet */) {
     super(routedTripImpl);
   }
 
@@ -55,5 +56,11 @@ public abstract class RoutedTripImpl extends ExternalIdAbleImpl implements Route
    */
   @Override
   public abstract RoutedTripImpl clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract RoutedTripImpl deepClone();
 
 }

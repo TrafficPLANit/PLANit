@@ -1,5 +1,6 @@
 package org.goplanit.cost.physical;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +11,7 @@ import org.goplanit.interactor.LinkVolumeAccessor;
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.Pair;
 import org.goplanit.utils.mode.Mode;
@@ -36,7 +38,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   /**
    * Inner class to store Map of alpha and beta parameters used in BPR function for each mode
    */
-  public class BPRParameters {
+  public class BprParameters {
 
     /**
      * Alpha and Beta parameters in BPR function
@@ -46,8 +48,15 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     /**
      * Constructor
      */
-    public BPRParameters() {
+    public BprParameters() {
       parametersMap = new HashMap<>();
+    }
+
+    /**
+     * Constructor
+     */
+    public BprParameters(BprParameters other) {
+      parametersMap = new HashMap<>(other.parametersMap);
     }
 
     /**
@@ -95,6 +104,14 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     public Set<Mode> getModes() {
       return this.parametersMap.keySet();
     }
+
+    /** create a copy
+     *
+     * @return copy
+     */
+    public BprParameters copy(){
+      return new BprParameters(this);
+    }
   }
 
   /**
@@ -110,22 +127,22 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
   /**
    * Map to store default alpha and beta values for each mode
    */
-  protected BPRParameters defaultParametersPerMode;
+  protected BprParameters defaultParametersPerMode;
 
   /**
    * Map to store default alpha and beta values for each link type and mode
    */
-  protected Map<MacroscopicLinkSegmentType, BPRParameters> defaultParametersPerLinkSegmentTypeAndMode;
+  protected Map<MacroscopicLinkSegmentType, BprParameters> defaultParametersPerLinkSegmentTypeAndMode;
 
   /**
    * Map to store default alpha and beta values for a specific link segment
    */
-  protected Map<MacroscopicLinkSegment, BPRParameters> parametersPerLinkSegmentAndMode;
+  protected Map<MacroscopicLinkSegment, BprParameters> parametersPerLinkSegmentAndMode;
 
   /**
    * Array to store BPRParameters objects for each link segment to be used in calculateSegmentCost()
    */
-  protected BPRParameters[] bprParametersPerLinkSegment = null;
+  protected BprParameters[] bprParametersPerLinkSegment = null;
 
   /**
    * 2d Array to store free flow travel time for each [mode][link segment] to be used in calculateSegmentCost()
@@ -174,28 +191,43 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    */
   public BPRLinkTravelTimeCost(IdGroupingToken groupId) {
     super(groupId);
-    this.parametersPerLinkSegmentAndMode = new HashMap<MacroscopicLinkSegment, BPRParameters>();
-    this.defaultParametersPerMode = new BPRParameters();
-    this.defaultParametersPerLinkSegmentTypeAndMode = new HashMap<MacroscopicLinkSegmentType, BPRParameters>();
+    this.parametersPerLinkSegmentAndMode = new HashMap<>();
+    this.defaultParametersPerMode = new BprParameters();
+    this.defaultParametersPerLinkSegmentTypeAndMode = new HashMap<>();
     this.defaultParameters = Pair.of(DEFAULT_ALPHA, DEFAULT_BETA);
   }
 
   /**
    * Copy Constructor
    * 
-   * @param bprLinkTravelTimeCost to use
+   * @param other to use
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public BPRLinkTravelTimeCost(BPRLinkTravelTimeCost bprLinkTravelTimeCost) {
-    super(bprLinkTravelTimeCost);
-    this.linkVolumeAccessee = bprLinkTravelTimeCost.linkVolumeAccessee;
+  public BPRLinkTravelTimeCost(BPRLinkTravelTimeCost other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.linkVolumeAccessee = other.linkVolumeAccessee;
 
-    this.parametersPerLinkSegmentAndMode = bprLinkTravelTimeCost.parametersPerLinkSegmentAndMode;
-    this.defaultParametersPerMode = bprLinkTravelTimeCost.defaultParametersPerMode;
-    this.defaultParametersPerLinkSegmentTypeAndMode = bprLinkTravelTimeCost.defaultParametersPerLinkSegmentTypeAndMode;
-    this.defaultParameters = bprLinkTravelTimeCost.defaultParameters;
+    // container wrapper around owned primitives, always copy contents
+    this.parametersPerLinkSegmentAndMode = new HashMap<>();
 
-    this.bprParametersPerLinkSegment = bprLinkTravelTimeCost.bprParametersPerLinkSegment;
-    this.freeFlowTravelTimePerLinkSegment = bprLinkTravelTimeCost.freeFlowTravelTimePerLinkSegment;
+    other.parametersPerLinkSegmentAndMode.forEach( (k,v) -> parametersPerLinkSegmentAndMode.put(k, v.copy()));
+    this.defaultParametersPerMode = other.defaultParametersPerMode.copy();
+
+    this.defaultParametersPerLinkSegmentTypeAndMode = new HashMap<>();
+    other.defaultParametersPerLinkSegmentTypeAndMode.forEach( (k,v) -> defaultParametersPerLinkSegmentTypeAndMode.put(k, v.copy()));
+
+    this.defaultParameters = other.defaultParameters.copy();
+
+    this.bprParametersPerLinkSegment = new BprParameters[other.bprParametersPerLinkSegment.length];
+    for(int index = 0 ; index < bprParametersPerLinkSegment.length ; ++index) {
+      this.bprParametersPerLinkSegment[index] = other.bprParametersPerLinkSegment[index].copy();
+    }
+
+    // copy primitve values in container always
+    this.freeFlowTravelTimePerLinkSegment = new double[other.freeFlowTravelTimePerLinkSegment.length][other.freeFlowTravelTimePerLinkSegment[0].length];
+    for(int index = 0 ; index < bprParametersPerLinkSegment.length ; ++index) {
+      freeFlowTravelTimePerLinkSegment[index] = Arrays.copyOf(other.freeFlowTravelTimePerLinkSegment[index], other.freeFlowTravelTimePerLinkSegment[index].length);
+    }
   }
 
   /**
@@ -208,7 +240,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    */
   public void setParameters(final MacroscopicLinkSegment linkSegment, final Mode mode, final double alpha, final double beta) {
     if (parametersPerLinkSegmentAndMode.get(linkSegment) == null) {
-      parametersPerLinkSegmentAndMode.put(linkSegment, new BPRParameters());
+      parametersPerLinkSegmentAndMode.put(linkSegment, new BprParameters());
     }
     parametersPerLinkSegmentAndMode.get(linkSegment).registerParameters(mode, alpha, beta);
   }
@@ -234,7 +266,7 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    */
   public void setDefaultParameters(final MacroscopicLinkSegmentType macroscopicLinkSegmentType, final Mode mode, final double alpha, final double beta) {
     if (defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType) == null) {
-      defaultParametersPerLinkSegmentTypeAndMode.put(macroscopicLinkSegmentType, new BPRParameters());
+      defaultParametersPerLinkSegmentTypeAndMode.put(macroscopicLinkSegmentType, new BprParameters());
     }
     defaultParametersPerLinkSegmentTypeAndMode.get(macroscopicLinkSegmentType).registerParameters(mode, alpha, beta);
   }
@@ -272,10 +304,10 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
     }
 
     /* explicitly set BPR parameters for each mode/segment combination */
-    bprParametersPerLinkSegment = new BPRParameters[(int) networkLayer.getLinkSegments().size()];
+    bprParametersPerLinkSegment = new BprParameters[(int) networkLayer.getLinkSegments().size()];
     for (var macroscopicLinkSegment : networkLayer.getLinkSegments()) {
       final int id = (int) macroscopicLinkSegment.getLinkSegmentId(); // changed 7/9/21, see comment in #populateWithCost
-      bprParametersPerLinkSegment[id] = new BPRParameters();
+      bprParametersPerLinkSegment[id] = new BprParameters();
       final var macroscopicLinkSegmentType = macroscopicLinkSegment.getLinkSegmentType();
       for (var mode : network.getModes()) {
         Pair<Double, Double> alphaBetaPair;
@@ -382,8 +414,17 @@ public class BPRLinkTravelTimeCost extends AbstractPhysicalCost implements LinkV
    */
   @Override
   public BPRLinkTravelTimeCost clone() {
-    return new BPRLinkTravelTimeCost(this);
+    return new BPRLinkTravelTimeCost(this, false);
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public BPRLinkTravelTimeCost deepClone() {
+    return new BPRLinkTravelTimeCost(this, true);
+  }
+
 
   /**
    * return to pre-{@link #initialiseBeforeSimulation(LayeredNetwork)} state

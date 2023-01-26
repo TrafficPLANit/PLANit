@@ -15,7 +15,7 @@ public class ProjectNetworks extends LongMapWrapperImpl<LayeredNetwork<?, ?>> {
    * Constructor
    */
   protected ProjectNetworks() {
-    super(new TreeMap<Long, LayeredNetwork<?, ?>>(), LayeredNetwork<?, ?>::getId);
+    super(new TreeMap<>(), LayeredNetwork::getId);
   }
 
   /**

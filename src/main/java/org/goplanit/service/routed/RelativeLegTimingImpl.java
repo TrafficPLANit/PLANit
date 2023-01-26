@@ -30,6 +30,7 @@ public class RelativeLegTimingImpl implements RelativeLegTiming {
    * @param dwellTime        to use
    */
   protected RelativeLegTimingImpl(final ServiceLegSegment parentLegSegment, final LocalTime duration, final LocalTime dwellTime) {
+    super();
     this.duration = duration;
     this.dwellTime = dwellTime;
     this.parentLegSegment = parentLegSegment;
@@ -38,21 +39,13 @@ public class RelativeLegTimingImpl implements RelativeLegTiming {
   /**
    * Copy constructor
    * 
-   * @param relativeLegTiming to copy
+   * @param other to copy
    */
-  protected RelativeLegTimingImpl(final RelativeLegTimingImpl relativeLegTiming) {
-    this.duration = relativeLegTiming.duration;
-    this.dwellTime = relativeLegTiming.dwellTime;
-    this.parentLegSegment = relativeLegTiming.parentLegSegment;
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public RelativeLegTiming clone() {
-    return new RelativeLegTimingImpl(this);
+  protected RelativeLegTimingImpl(final RelativeLegTimingImpl other) {
+    super();
+    this.duration = other.duration;
+    this.dwellTime = other.dwellTime;
+    this.parentLegSegment = other.parentLegSegment;
   }
 
   /**

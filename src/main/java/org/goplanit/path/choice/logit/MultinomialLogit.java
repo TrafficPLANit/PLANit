@@ -28,9 +28,10 @@ public class MultinomialLogit extends LogitChoiceModel {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected MultinomialLogit(MultinomialLogit other) {
-    super(other);
+  protected MultinomialLogit(MultinomialLogit other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -38,7 +39,15 @@ public class MultinomialLogit extends LogitChoiceModel {
    */
   @Override
   public MultinomialLogit clone() {
-    return new MultinomialLogit(this);
+    return new MultinomialLogit(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MultinomialLogit deepClone() {
+    return new MultinomialLogit(this, true);
   }
 
   /**

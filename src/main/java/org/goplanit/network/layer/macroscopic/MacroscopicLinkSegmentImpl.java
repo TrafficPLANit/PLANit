@@ -50,11 +50,12 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentBase<MacroscopicLink>
   /**
    * Copy constructor
    * 
-   * @param macroscopicLinkSegmentImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected MacroscopicLinkSegmentImpl(MacroscopicLinkSegmentImpl macroscopicLinkSegmentImpl) {
-    super(macroscopicLinkSegmentImpl);
-    setLinkSegmentType(macroscopicLinkSegmentImpl.getLinkSegmentType());
+  protected MacroscopicLinkSegmentImpl(MacroscopicLinkSegmentImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    setLinkSegmentType(other.getLinkSegmentType());
   }
 
   /**
@@ -108,7 +109,14 @@ public class MacroscopicLinkSegmentImpl extends LinkSegmentBase<MacroscopicLink>
    * {@inheritDoc}
    */
   public MacroscopicLinkSegmentImpl clone() {
-    return new MacroscopicLinkSegmentImpl(this);
+    return new MacroscopicLinkSegmentImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public MacroscopicLinkSegmentImpl deepClone() {
+    return new MacroscopicLinkSegmentImpl(this, true);
   }
 
 }

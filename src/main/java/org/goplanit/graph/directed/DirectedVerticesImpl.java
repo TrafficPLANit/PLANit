@@ -43,12 +43,13 @@ public class DirectedVerticesImpl extends GraphEntitiesImpl<DirectedVertex> impl
   /**
    * Copy constructor, also creates a new factory with reference to this container
    * 
-   * @param verticesImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public DirectedVerticesImpl(DirectedVerticesImpl verticesImpl) {
-    super(verticesImpl);
+  public DirectedVerticesImpl(DirectedVerticesImpl other, boolean deepCopy) {
+    super(other, deepCopy);
     this.directedVertexFactory =
-            new DirectedVertexFactoryImpl(verticesImpl.directedVertexFactory.getIdGroupingToken(), this);
+            new DirectedVertexFactoryImpl(other.directedVertexFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -64,7 +65,15 @@ public class DirectedVerticesImpl extends GraphEntitiesImpl<DirectedVertex> impl
    */
   @Override
   public DirectedVerticesImpl clone() {
-    return new DirectedVerticesImpl(this);
+    return new DirectedVerticesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedVerticesImpl deepClone() {
+    return new DirectedVerticesImpl(this, true);
   }
 
 }

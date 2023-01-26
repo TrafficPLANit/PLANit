@@ -32,12 +32,13 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param routedTripDepartures to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedTripDeparturesImpl(RoutedTripDeparturesImpl routedTripDepartures) {
-    super(routedTripDepartures);
+  public RoutedTripDeparturesImpl(RoutedTripDeparturesImpl other, boolean deepCopy) {
+    super(other, deepCopy);
     this.factory =
-            new RoutedTripDepartureFactoryImpl(routedTripDepartures.factory.getIdGroupingToken(), this);
+            new RoutedTripDepartureFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
   /**
@@ -69,6 +70,14 @@ public class RoutedTripDeparturesImpl extends ManagedIdEntitiesImpl<RoutedTripDe
    */
   @Override
   public RoutedTripDeparturesImpl clone() {
-    return new RoutedTripDeparturesImpl(this);
+    return new RoutedTripDeparturesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedTripDeparturesImpl deepClone() {
+    return new RoutedTripDeparturesImpl(this, true);
   }
 }

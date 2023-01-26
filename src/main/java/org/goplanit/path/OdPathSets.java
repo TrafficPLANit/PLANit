@@ -33,7 +33,7 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    */
   public OdPathSets(IdGroupingToken groupId) {
     super(groupId, OdPathSets.class);
-    this.odPathMatrices = new TreeMap<Long, OdPathMatrix>();
+    this.odPathMatrices = new TreeMap<>();
     ;
   }
 
@@ -41,10 +41,15 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    * Constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public OdPathSets(OdPathSets other) {
-    super(other);
-    this.odPathMatrices = new TreeMap<Long, OdPathMatrix>(other.odPathMatrices);
+  public OdPathSets(OdPathSets other, boolean deepCopy) {
+    super(other, deepCopy);
+
+    // container wrapper so requires clone also for shallow copy
+    this.odPathMatrices = new TreeMap<>();
+    other.odPathMatrices.entrySet().forEach(
+            entry -> odPathMatrices.put(entry.getKey(), deepCopy ? entry.getValue().deepClone() : entry.getValue()));
   }
 
   /**
@@ -100,7 +105,15 @@ public class OdPathSets extends PlanitComponent<OdPathSets> implements Serializa
    */
   @Override
   public OdPathSets clone() {
-    return new OdPathSets(this);
+    return new OdPathSets(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdPathSets deepClone() {
+    return new OdPathSets(this, true);
   }
 
   /**

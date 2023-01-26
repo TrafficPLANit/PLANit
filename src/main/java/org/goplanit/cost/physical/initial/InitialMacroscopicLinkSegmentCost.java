@@ -79,9 +79,12 @@ public class InitialMacroscopicLinkSegmentCost extends InitialPhysicalCost imple
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public InitialMacroscopicLinkSegmentCost(InitialMacroscopicLinkSegmentCost other) {
-    super(other);
+  public InitialMacroscopicLinkSegmentCost(InitialMacroscopicLinkSegmentCost other, boolean deepCopy) {
+    super(other, deepCopy);
+
+    // all container wrappers around primitves in the end so always clone
     this.timePeriodAgnosticCosts = other.timePeriodAgnosticCosts.clone();
     this.timePeriodCosts = new HashMap<>();
     other.timePeriodCosts.forEach((k, v) -> timePeriodCosts.put(k, v.clone()));
@@ -201,7 +204,15 @@ public class InitialMacroscopicLinkSegmentCost extends InitialPhysicalCost imple
    */
   @Override
   public InitialMacroscopicLinkSegmentCost clone() {
-    return new InitialMacroscopicLinkSegmentCost(this);
+    return new InitialMacroscopicLinkSegmentCost(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public InitialMacroscopicLinkSegmentCost deepClone() {
+    return new InitialMacroscopicLinkSegmentCost(this, true);
   }
 
   /**

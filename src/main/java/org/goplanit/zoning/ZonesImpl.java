@@ -25,9 +25,10 @@ public abstract class ZonesImpl<Z extends Zone> extends ManagedIdEntitiesImpl<Z>
    * Copy constructor
    * 
    * @param zonesImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ZonesImpl(ZonesImpl<Z> zonesImpl) {
-    super(zonesImpl);
+  public ZonesImpl(ZonesImpl<Z> zonesImpl, boolean deepCopy) {
+    super(zonesImpl, deepCopy);
   }
 
   /**
@@ -35,5 +36,11 @@ public abstract class ZonesImpl<Z extends Zone> extends ManagedIdEntitiesImpl<Z>
    */
   @Override
   public abstract ZonesImpl<Z> clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ZonesImpl<Z> deepClone();
 
 }

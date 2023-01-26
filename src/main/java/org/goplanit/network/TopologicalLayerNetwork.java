@@ -58,9 +58,10 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
    * Copy constructor. Beware shallow copy only for managed id containers.
    *
    * @param other                   to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected TopologicalLayerNetwork(final TopologicalLayerNetwork<T, U> other) {
-    super(other);
+  protected TopologicalLayerNetwork(final TopologicalLayerNetwork<T, U> other, boolean deepCopy) {
+    super(other, deepCopy);
     this.coordinateReferenceSystem = other.getCoordinateReferenceSystem();
   }
 
@@ -117,4 +118,16 @@ public abstract class TopologicalLayerNetwork<T extends TopologicalLayer, U exte
     }
     return envelope;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TopologicalLayerNetwork clone();
+
+  /**
+   * {@inheritDoc
+   */
+  @Override
+  public abstract TopologicalLayerNetwork deepClone();
 }

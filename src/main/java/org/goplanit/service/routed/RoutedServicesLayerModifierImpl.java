@@ -6,6 +6,7 @@ import org.goplanit.utils.service.routed.*;
 
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -52,11 +53,14 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
       return null;
     }
 
-    /* consider all to be removed entries leading up to the next valid chain until */
-    List<Integer> consecutiveLegsToRemove = toBeRemovedRelativeTimingLegSegments.stream().takeWhile(
-            myInt -> toBeRemovedRelativeTimingLegSegments.indexOf(myInt) + indexOffset == myInt).collect(Collectors.toList());
-    boolean legsToRemoveAreAtEndOfTimingSegments = (consecutiveLegsToRemove.get(consecutiveLegsToRemove.size()-1) == routedTripSchedule.getLastRelativeLegTimingIndex());
-    if(legsToRemoveAreAtEndOfTimingSegments){
+    /* consider all to be removed consecutive entries leading up to the next valid chain (meaning a leg is not to be removed and missing from list) */
+    final int indexValueOffset = toBeRemovedRelativeTimingLegSegments.get(indexOffset)-indexOffset;
+    /* keep going until first gap found starting from offset */
+    List<Integer> consecutiveLegsToRemove = IntStream.range(indexOffset,toBeRemovedRelativeTimingLegSegments.size()).takeWhile( // take while no gap is found
+            index -> toBeRemovedRelativeTimingLegSegments.get(index) - index ==  indexValueOffset).map(
+                    index -> toBeRemovedRelativeTimingLegSegments.get(index)).boxed().collect(Collectors.toList()); // map indices in to be removed list to its values
+    boolean noNextValidChain = (consecutiveLegsToRemove.get(consecutiveLegsToRemove.size()-1) == routedTripSchedule.getLastRelativeLegTimingIndex());
+    if(noNextValidChain){
       return null;
     }
 
@@ -65,18 +69,20 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
     final var allIndicesBeforeFirstChainLeg = IntStream.range(0,lastLegIndexToRemoveBeforeChain+1).boxed().collect(Collectors.toList());
     /*... then , get the durations and dwell times leading up to the valid chain of this portion of the entry and sum them
      * to serve as the departure time offset in addition to the original departure time */
-    long departureShiftInNanos = allIndicesBeforeFirstChainLeg.stream().mapToLong(ltIndex ->
+    final long departureShiftInNanos = allIndicesBeforeFirstChainLeg.stream().mapToLong(ltIndex ->
             routedTripSchedule.getRelativeLegTiming(ltIndex).getDuration().toNanoOfDay()
                     + routedTripSchedule.getRelativeLegTiming(ltIndex).getDwellTime().toNanoOfDay()).sum();
 
     /* create a copy of the original to adjust */
-    var truncatedRoutedTripSchedule = factory.createUniqueCopyOf(routedTripSchedule);
+    var truncatedRoutedTripSchedule = factory.createUniqueDeepCopyOf(routedTripSchedule);
     /* update the departure times */
     truncatedRoutedTripSchedule.getDepartures().allDepartLaterBy(LocalTime.ofNanoOfDay(departureShiftInNanos));
 
     /* identify indices after end of chain...*/
-    int firstLegIndexToRemoveAfterChain = toBeRemovedRelativeTimingLegSegments.indexOf(lastLegIndexToRemoveBeforeChain)+1;
-    final var allIndicesAfterLastChainLeg = IntStream.range(firstLegIndexToRemoveAfterChain,routedTripSchedule.getRelativeLegTimingsSize()).boxed().collect(Collectors.toList());
+    final int nextToBeRemovedIndexOffset = lastLegIndexToRemoveBeforeChain+1;
+    final int firstLegIndexToRemoveAfterChain = toBeRemovedRelativeTimingLegSegments.get(nextToBeRemovedIndexOffset);
+    final var allIndicesAfterLastChainLeg =
+            IntStream.range(firstLegIndexToRemoveAfterChain,routedTripSchedule.getLastRelativeLegTimingIndex()+1).boxed().collect(Collectors.toList());
 
     /* ...remove all leg timings except the ones belonging to this chain */
     truncatedRoutedTripSchedule.removeLegTimingsIn(
@@ -84,11 +90,10 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
 
     /* call next recursion */
     var recursiveResult = truncateScheduledTripChainToServiceNetwork(
-            firstLegIndexToRemoveAfterChain,
+            nextToBeRemovedIndexOffset,
             toBeRemovedRelativeTimingLegSegments,
             routedTripSchedule,
-            factory
-            );
+            factory);
     if(recursiveResult == null){
       recursiveResult = new ArrayList<>(1);
     }
@@ -150,21 +155,29 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
     /* schedule based */
     var scheduledTrips = routedService.getTripInfo().getScheduleBasedTrips();
     var scheduleIterator = scheduledTrips.iterator();
+    Collection<RoutedTripSchedule> allReplacementScheduledTrips = null;
     while(scheduleIterator.hasNext()){
       var currEntry = scheduleIterator.next();
 
       /* truncate existing schedule and generate (unregistered) partial replacements (if any) */
-      var replacementScheduledTrips = truncateScheduledTripToServiceNetwork(currEntry, scheduledTrips.getFactory());
+      var currReplacementScheduledTrips = truncateScheduledTripToServiceNetwork(currEntry, scheduledTrips.getFactory());
 
-      /* register partial replacements */
-      if(replacementScheduledTrips != null){
-        replacementScheduledTrips.forEach( st -> scheduledTrips.register(st));
+      if(currReplacementScheduledTrips != null){
+        if(allReplacementScheduledTrips == null){
+          allReplacementScheduledTrips = currReplacementScheduledTrips;
+        }else{
+          allReplacementScheduledTrips.addAll(allReplacementScheduledTrips);
+        }
       }
 
       /* remove original if it has been cleared (either because it is truncated entirely, or replaced by partials) */
       if(currEntry.getDepartures().isEmpty() || !currEntry.hasRelativeLegTimings()){
         scheduleIterator.remove();
       }
+    }
+    /* register all partial replacements */
+    if(allReplacementScheduledTrips != null) {
+      allReplacementScheduledTrips.forEach(st -> scheduledTrips.register(st));
     }
 
     /* frequency based */
@@ -173,6 +186,9 @@ public class RoutedServicesLayerModifierImpl implements RoutedServicesLayerModif
     while(frequencyIterator.hasNext()){
       var currEntry = frequencyIterator.next();
       truncateFrequencyTripToServiceNetwork(currEntry);
+
+      //todo use structure from above regarding replacements
+
       if(!currEntry.hasLegSegments() || !currEntry.hasPositiveFrequency()){
         frequencyIterator.remove();
       }

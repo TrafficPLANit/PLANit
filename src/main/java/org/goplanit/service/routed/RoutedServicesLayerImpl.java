@@ -84,15 +84,20 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
   /**
    * Copy constructor
    * 
-   * @param routedServicesLayerImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedServicesLayerImpl(RoutedServicesLayerImpl routedServicesLayerImpl) {
-    super(routedServicesLayerImpl);
-    this.tokenId = routedServicesLayerImpl.tokenId;
-    this.parentLayer = routedServicesLayerImpl.parentLayer;
-    this.layerModifier = new RoutedServicesLayerModifierImpl(routedServicesLayerImpl);
+  public RoutedServicesLayerImpl(RoutedServicesLayerImpl other, boolean deepCopy) {
+    super(other);
+    this.tokenId = other.tokenId;
+    this.parentLayer = other.parentLayer;
+    this.layerModifier = new RoutedServicesLayerModifierImpl(other);
+
+    // container wrappers so require clone always
     this.routedServicesByMode = new HashMap<>();
-    routedServicesLayerImpl.routedServicesByMode.values().forEach(modeServices -> routedServicesByMode.put(modeServices.getMode(), modeServices));
+    other.routedServicesByMode.values().forEach(
+            modeServices -> routedServicesByMode.put(
+                    modeServices.getMode(), deepCopy ? modeServices.deepClone() : modeServices.clone()));
   }
 
   /**
@@ -110,7 +115,15 @@ public class RoutedServicesLayerImpl extends ExternalIdAbleImpl implements Route
    */
   @Override
   public RoutedServicesLayerImpl clone() {
-    return new RoutedServicesLayerImpl(this);
+    return new RoutedServicesLayerImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServicesLayerImpl deepClone() {
+    return new RoutedServicesLayerImpl(this, true);
   }
 
   /**

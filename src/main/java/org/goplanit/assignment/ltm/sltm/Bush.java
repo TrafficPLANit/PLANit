@@ -31,4 +31,14 @@ public interface Bush extends IdAble {
    * @return shortest search type compatible with this bush implementation
    */
   public abstract ShortestSearchType getShortestSearchType();
+
+  /**
+   * {@inheritDoc}
+   */
+  public abstract Bush clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  public abstract Bush deepClone();
 }

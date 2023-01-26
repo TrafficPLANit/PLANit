@@ -34,9 +34,10 @@ public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysica
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public InitialPhysicalCost(InitialPhysicalCost other) {
-    super(other);
+  public InitialPhysicalCost(InitialPhysicalCost other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -101,5 +102,17 @@ public abstract class InitialPhysicalCost extends PlanitComponent<InitialPhysica
    * @return cost the initial cost for this mode and link segment
    */
   public abstract double getSegmentCost(final TimePeriod timePeriod, final Mode mode, final MacroscopicLinkSegment linkSegment);
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract InitialPhysicalCost clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract InitialPhysicalCost deepClone();
 
 }

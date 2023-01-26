@@ -47,4 +47,30 @@ public class CarMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.CAR, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, CAR_PHYSICAL_FEATURES, CAR_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected CarMode(CarMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public CarMode clone() {
+    return new CarMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public CarMode deepClone() {
+    return new CarMode(this, true);
+  }
+
 }

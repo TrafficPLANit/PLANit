@@ -44,10 +44,12 @@ public class LinksImpl<L extends Link> extends ManagedIdEntitiesImpl<L> implemen
    * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param linksImpl to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  public LinksImpl(LinksImpl linksImpl) {
-    super(linksImpl);
-    this.linkFactory = new LinkFactoryImpl(linksImpl.linkFactory.getIdGroupingToken(), this);
+  public LinksImpl(LinksImpl linksImpl, boolean deepCopy) {
+    super(linksImpl, deepCopy);
+    this.linkFactory =
+            new LinkFactoryImpl(linksImpl.linkFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -63,7 +65,15 @@ public class LinksImpl<L extends Link> extends ManagedIdEntitiesImpl<L> implemen
    */
   @Override
   public LinksImpl clone() {
-    return new LinksImpl(this);
+    return new LinksImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinksImpl deepClone() {
+    return new LinksImpl(this, true);
   }
 
   /**

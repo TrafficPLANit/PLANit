@@ -58,14 +58,17 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedServiceImpl(RoutedServiceImpl other) {
+  public RoutedServiceImpl(RoutedServiceImpl other, boolean deepCopy) {
     super(other);
     this.name = other.name;
     this.nameDescription = other.nameDescription;
     this.serviceDescription = other.serviceDescription;
     this.mode = other.mode;
-    this.trips = other.trips.clone();
+
+    // container wrapper so requires clone also for shallow copy
+    this.trips = deepCopy ? other.trips.deepClone() : other.trips.clone();
   }
 
   /**
@@ -83,7 +86,15 @@ public class RoutedServiceImpl extends ExternalIdAbleImpl implements RoutedServi
    */
   @Override
   public RoutedServiceImpl clone() {
-    return new RoutedServiceImpl(this);
+    return new RoutedServiceImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServiceImpl deepClone() {
+    return new RoutedServiceImpl(this, true);
   }
 
   /**

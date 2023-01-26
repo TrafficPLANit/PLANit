@@ -108,25 +108,28 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
   }
 
   /**
-   * Copy constructor. Use carefully since ids are also copied causing non-unique ids. Note that the mode properties are owned by each instance so they are deep copied, everything
-   * else is not
+   * Copy constructor. Use carefully since ids are also copied causing non-unique ids.
    * 
    * @param other to copy from
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  protected MacroscopicLinkSegmentTypeImpl(final MacroscopicLinkSegmentTypeImpl other) {
+  protected MacroscopicLinkSegmentTypeImpl(final MacroscopicLinkSegmentTypeImpl other, boolean deepCopy) {
     super(other);
     setName(other.getName());
     this.capacityPerLanePcuHourLane = other.getExplicitCapacityPerLane();
     this.maximumDensityPerLanePcuKmLane = other.getExplicitMaximumDensityPerLane();
 
-    this.modeAccessProperties = new TreeMap<>();
     Set<Mode> modesDone = new TreeSet<>();
-    for (Mode mode : other.getAllowedModes()) {
-      if (!modesDone.contains(mode)) {
-        AccessGroupProperties clonedEntry = other.getAccessProperties(mode).clone();
-        setAccessGroupProperties(clonedEntry);
-        modesDone.addAll(clonedEntry.getAccessModes());
+    if(deepCopy){
+      for (Mode mode : other.getAllowedModes()) {
+        if (!modesDone.contains(mode)) {
+          AccessGroupProperties clonedEntry =other.getAccessProperties(mode).deepClone();
+          setAccessGroupProperties(clonedEntry);
+          modesDone.addAll(clonedEntry.getAccessModes());
+        }
       }
+    }else{
+      this.modeAccessProperties.putAll(other.modeAccessProperties);
     }
   }
 
@@ -199,7 +202,15 @@ public class MacroscopicLinkSegmentTypeImpl extends ExternalIdAbleImpl implement
    */
   @Override
   public MacroscopicLinkSegmentTypeImpl clone() {
-    return new MacroscopicLinkSegmentTypeImpl(this);
+    return new MacroscopicLinkSegmentTypeImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegmentTypeImpl deepClone() {
+    return new MacroscopicLinkSegmentTypeImpl(this, true);
   }
 
   /**

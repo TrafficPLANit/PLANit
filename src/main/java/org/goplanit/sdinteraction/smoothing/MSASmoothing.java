@@ -39,9 +39,10 @@ public class MSASmoothing extends Smoothing {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public MSASmoothing(MSASmoothing other) {
-    super(other);
+  public MSASmoothing(MSASmoothing other, boolean deepCopy) {
+    super(other, deepCopy);
     this.stepSize = other.stepSize;
   }
 
@@ -80,7 +81,15 @@ public class MSASmoothing extends Smoothing {
    */
   @Override
   public MSASmoothing clone() {
-    return new MSASmoothing(this);
+    return new MSASmoothing(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MSASmoothing deepClone() {
+    return new MSASmoothing(this, true);
   }
 
   /**

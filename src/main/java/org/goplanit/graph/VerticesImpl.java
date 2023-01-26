@@ -42,9 +42,10 @@ public class VerticesImpl extends GraphEntitiesImpl<Vertex> implements Vertices 
    * Copy constructor, also creates a new factory with reference to this container
    * 
    * @param verticesImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public VerticesImpl(VerticesImpl verticesImpl) {
-    super(verticesImpl);
+  public VerticesImpl(VerticesImpl verticesImpl, boolean deepCopy) {
+    super(verticesImpl, deepCopy);
     this.vertexFactory = new VertexFactoryImpl(verticesImpl.vertexFactory.getIdGroupingToken(), this);
   }
 
@@ -61,7 +62,15 @@ public class VerticesImpl extends GraphEntitiesImpl<Vertex> implements Vertices 
    */
   @Override
   public VerticesImpl clone() {
-    return new VerticesImpl(this);
+    return new VerticesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public VerticesImpl deepClone() {
+    return new VerticesImpl(this, true);
   }
 
 }

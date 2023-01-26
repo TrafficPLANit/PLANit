@@ -66,13 +66,15 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public TransferZoneImpl(TransferZoneImpl other) {
-    super(other);
+  public TransferZoneImpl(TransferZoneImpl other, boolean deepCopy) {
+    super(other, deepCopy);
     this.transferZoneId = other.transferZoneId;
     this.type = other.type;
+
     if (other.hasTransferZoneGroup()) {
-      this.transferZoneGroups = new HashSet<TransferZoneGroup>(other.getTransferZoneGroups());
+      this.transferZoneGroups = new HashSet<>(other.getTransferZoneGroups());
     }
     if(other.hasPlatformNames()){
       this.platformNames = new ArrayList<>(other.getTransferZonePlatformNames());
@@ -235,7 +237,15 @@ public class TransferZoneImpl extends ZoneImpl implements TransferZone {
    */
   @Override
   public TransferZoneImpl clone() {
-    return new TransferZoneImpl(this);
+    return new TransferZoneImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZoneImpl deepClone() {
+    return new TransferZoneImpl(this, true);
   }
 
 }

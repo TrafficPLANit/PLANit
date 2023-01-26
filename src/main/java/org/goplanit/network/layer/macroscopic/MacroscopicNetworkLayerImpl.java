@@ -55,11 +55,14 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
   /**
    * Copy constructor
    * 
-   * @param macroscopicNetworkLayerImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  protected MacroscopicNetworkLayerImpl(MacroscopicNetworkLayerImpl macroscopicNetworkLayerImpl) {
-    super(macroscopicNetworkLayerImpl);
-    this.linkSegmentTypes = macroscopicNetworkLayerImpl.linkSegmentTypes.clone();
+  protected MacroscopicNetworkLayerImpl(MacroscopicNetworkLayerImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+
+    // container wrapper so requires clone also for shallow copy
+    this.linkSegmentTypes = deepCopy ? other.linkSegmentTypes.deepClone() : other.linkSegmentTypes.clone();
   }
 
   /**
@@ -112,7 +115,15 @@ public class MacroscopicNetworkLayerImpl extends UntypedPhysicalLayerImpl<Node, 
    */
   @Override
   public MacroscopicNetworkLayerImpl clone() {
-    return new MacroscopicNetworkLayerImpl(this);
+    return new MacroscopicNetworkLayerImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicNetworkLayerImpl deepClone() {
+    return new MacroscopicNetworkLayerImpl(this, true);
   }
 
   /**

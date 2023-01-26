@@ -19,7 +19,7 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
   private static final Logger LOGGER = Logger.getLogger(RoutedTripFrequencyImpl.class.getCanonicalName());
 
   /**
-   * Ordered list of leg segments for this trip from start to end
+   * Ordered list of leg segments for this trip from start to end (leg segments not owned)
    */
   public final List<ServiceLegSegment> orderedLegSegments;
 
@@ -33,7 +33,7 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
    */
   public RoutedTripFrequencyImpl(final IdGroupingToken tokenId) {
     super(tokenId);
-    this.orderedLegSegments = new ArrayList<ServiceLegSegment>(1);
+    this.orderedLegSegments = new ArrayList<>(1);
     this.frequencyPerHour = -1;
   }
 
@@ -41,10 +41,11 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
    * Copy constructor
    * 
    * @param routedTripFrequencyImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedTripFrequencyImpl(RoutedTripFrequencyImpl routedTripFrequencyImpl) {
-    super(routedTripFrequencyImpl);
-    this.orderedLegSegments = new ArrayList<ServiceLegSegment>(routedTripFrequencyImpl.orderedLegSegments);
+  public RoutedTripFrequencyImpl(RoutedTripFrequencyImpl routedTripFrequencyImpl, boolean deepCopy) {
+    super(routedTripFrequencyImpl, deepCopy);
+    this.orderedLegSegments = new ArrayList<>(routedTripFrequencyImpl.orderedLegSegments);
     this.frequencyPerHour = -1;
   }
 
@@ -63,7 +64,15 @@ public class RoutedTripFrequencyImpl extends RoutedTripImpl implements RoutedTri
    */
   @Override
   public RoutedTripFrequencyImpl clone() {
-    return new RoutedTripFrequencyImpl(this);
+    return new RoutedTripFrequencyImpl(this, true);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedTripFrequencyImpl deepClone() {
+    return new RoutedTripFrequencyImpl(this, false);
   }
 
   /**

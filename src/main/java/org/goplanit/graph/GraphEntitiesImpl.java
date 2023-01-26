@@ -22,16 +22,22 @@ public abstract class GraphEntitiesImpl<E extends GraphEntity> extends LongMapWr
    * @param valueToKey the mapping from key to value of the graph entity
    */
   protected GraphEntitiesImpl(Function<E, Long> valueToKey) {
-    super(new TreeMap<Long, E>(), valueToKey);
+    super(new TreeMap<>(), valueToKey);
   }
 
   /**
    * copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected GraphEntitiesImpl(GraphEntitiesImpl<E> other) {
+  protected GraphEntitiesImpl(GraphEntitiesImpl<E> other, boolean deepCopy) {
     super(other);
+
+    if(deepCopy){
+      this.clear();
+      other.forEach(v -> this.register((E) v.deepClone()));
+    }
   }
 
   /**
@@ -39,5 +45,11 @@ public abstract class GraphEntitiesImpl<E extends GraphEntity> extends LongMapWr
    */
   @Override
   public abstract GraphEntitiesImpl<E> clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract GraphEntitiesImpl<E> deepClone();
 
 }

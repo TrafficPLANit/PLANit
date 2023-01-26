@@ -31,10 +31,12 @@ public class MacroscopicNetworkLayersImpl extends UntypedPhysicalNetworkLayersIm
    * Constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public MacroscopicNetworkLayersImpl(MacroscopicNetworkLayersImpl other) {
-    super(other);
-    this.factory = new MacroscopicNetworkLayerFactoryImpl(other.factory.getIdGroupingToken(), this);
+  public MacroscopicNetworkLayersImpl(MacroscopicNetworkLayersImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.factory =
+            new MacroscopicNetworkLayerFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
   /**
@@ -42,7 +44,15 @@ public class MacroscopicNetworkLayersImpl extends UntypedPhysicalNetworkLayersIm
    */
   @Override
   public MacroscopicNetworkLayersImpl clone() {
-    return new MacroscopicNetworkLayersImpl(this);
+    return new MacroscopicNetworkLayersImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicNetworkLayersImpl deepClone() {
+    return new MacroscopicNetworkLayersImpl(this, true);
   }
 
   /**

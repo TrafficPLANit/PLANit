@@ -42,11 +42,13 @@ public class MacroscopicLinkSegmentsImpl extends ManagedIdEntitiesImpl<Macroscop
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param linkSegmentsImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  public MacroscopicLinkSegmentsImpl(MacroscopicLinkSegmentsImpl linkSegmentsImpl) {
-    super(linkSegmentsImpl);
-    this.linkSegmentFactory = new MacroscopicLinkSegmentFactoryImpl(linkSegmentsImpl.linkSegmentFactory.getIdGroupingToken(), this);
+  public MacroscopicLinkSegmentsImpl(MacroscopicLinkSegmentsImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.linkSegmentFactory =
+            new MacroscopicLinkSegmentFactoryImpl(other.linkSegmentFactory.getIdGroupingToken(), this);
   }
 
   /**
@@ -62,7 +64,15 @@ public class MacroscopicLinkSegmentsImpl extends ManagedIdEntitiesImpl<Macroscop
    */
   @Override
   public MacroscopicLinkSegmentsImpl clone() {
-    return new MacroscopicLinkSegmentsImpl(this);
+    return new MacroscopicLinkSegmentsImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkSegmentsImpl deepClone() {
+    return new MacroscopicLinkSegmentsImpl(this, true);
   }
 
 }

@@ -48,9 +48,10 @@ public abstract class TransportLayersImpl<T extends NetworkLayer> extends Manage
    * Constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public TransportLayersImpl(TransportLayersImpl<T> other) {
-    super(other);
+  public TransportLayersImpl(TransportLayersImpl<T> other, boolean deepCopy) {
+    super(other, deepCopy);
     this.idToken = other.idToken;
   }
 
@@ -75,5 +76,11 @@ public abstract class TransportLayersImpl<T extends NetworkLayer> extends Manage
    */
   @Override
   public abstract TransportLayersImpl<T> clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract TransportLayersImpl<T> deepClone();
 
 }

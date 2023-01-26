@@ -42,11 +42,13 @@ public class MacroscopicLinksImpl extends LinksImpl<MacroscopicLink> implements 
   /**
    * Copy constructor, also creates a new factory with reference to this container
    *
-   * @param toCopy to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  public MacroscopicLinksImpl(MacroscopicLinksImpl toCopy) {
-    super(toCopy);
-    this.linkFactory = new MacroscopicLinkFactoryImpl(toCopy.getFactory().getIdGroupingToken(), this);
+  public MacroscopicLinksImpl(MacroscopicLinksImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.linkFactory =
+            new MacroscopicLinkFactoryImpl(other.getFactory().getIdGroupingToken(), this);
   }
 
   /**
@@ -62,7 +64,15 @@ public class MacroscopicLinksImpl extends LinksImpl<MacroscopicLink> implements 
    */
   @Override
   public MacroscopicLinksImpl clone() {
-    return new MacroscopicLinksImpl(this);
+    return new MacroscopicLinksImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinksImpl deepClone() {
+    return new MacroscopicLinksImpl(this, true);
   }
 
   /**

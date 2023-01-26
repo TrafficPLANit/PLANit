@@ -60,10 +60,11 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
   /**
    * Copy Constructor
    * 
-   * @param staticTrafficAssignment to copy
+   * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  protected StaticTrafficAssignment(StaticTrafficAssignment staticTrafficAssignment) {
-    super(staticTrafficAssignment);
+  protected StaticTrafficAssignment(StaticTrafficAssignment other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -81,5 +82,17 @@ public abstract class StaticTrafficAssignment extends TrafficAssignment {
       executeTimePeriod(timePeriod);
     }
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract StaticTrafficAssignment clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract StaticTrafficAssignment deepClone();
 
 }

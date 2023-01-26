@@ -19,7 +19,6 @@ import org.goplanit.graph.modifier.event.RemoveSubGraphVertexEvent;
 import org.goplanit.utils.event.Event;
 import org.goplanit.utils.event.EventListener;
 import org.goplanit.utils.event.EventProducerImpl;
-import org.goplanit.utils.exceptions.PlanItException;
 import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.geo.PlanitJtsCrsUtils;
 import org.goplanit.utils.geo.PlanitJtsUtils;
@@ -291,8 +290,8 @@ public class GraphModifierImpl extends EventProducerImpl implements GraphModifie
   public <Ex extends Edge> Ex breakEdgeAt(final Vertex vertexToBreakAt, final Ex edgeToBreak, final PlanitJtsCrsUtils geoUtils) {
     Ex aToBreak = edgeToBreak;
 
-    /* create copy of edge with unique id and register it */
-    Ex breakToB = (Ex) theGraph.getEdges().getFactory().createUniqueCopyOf(edgeToBreak);
+    /* create unique copy of edge with unique id and register it, do a deep copy to ensure any input properties are duplicated */
+    Ex breakToB = (Ex) theGraph.getEdges().getFactory().createUniqueDeepCopyOf(edgeToBreak);
     ((GraphEntities<Ex>) theGraph.getEdges()).register((Ex) breakToB);
 
     if (edgeToBreak.getVertexA() == null || edgeToBreak.getVertexB() == null) {

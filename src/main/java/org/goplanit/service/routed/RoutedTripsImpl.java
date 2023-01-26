@@ -37,9 +37,10 @@ public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEnt
    * Copy constructor, incomplete, requires derived class to explicitly set factory
    *
    * @param routedTripsBase to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected RoutedTripsImpl(RoutedTripsImpl<T> routedTripsBase) {
-    super(routedTripsBase);
+  protected RoutedTripsImpl(RoutedTripsImpl<T> routedTripsBase, boolean deepCopy) {
+    super(routedTripsBase, deepCopy);
     this.factory = null; // reset so it is clear it needs to be set by concrete implementing class afterwards
   }
 
@@ -51,4 +52,15 @@ public abstract class RoutedTripsImpl<T extends RoutedTrip> extends ManagedIdEnt
     return factory;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract RoutedTripsImpl clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract RoutedTripsImpl deepClone();
 }

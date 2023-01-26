@@ -61,8 +61,9 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
    * Copy constructor
    * 
    * @param other to copy from
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected GraphEntityImpl(GraphEntityImpl other) {
+  protected GraphEntityImpl(GraphEntityImpl other, boolean deepCopy /* no impact yet */) {
     super(other);
   }
 
@@ -81,4 +82,16 @@ public abstract class GraphEntityImpl extends ExternalIdAbleImpl implements Grap
   public String toString() {
     return String.format("%s [%d %s]", getClass().getSimpleName(), getId(), getXmlId() == null ? "" : getXmlId());
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract GraphEntityImpl clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract GraphEntityImpl deepClone();
 }

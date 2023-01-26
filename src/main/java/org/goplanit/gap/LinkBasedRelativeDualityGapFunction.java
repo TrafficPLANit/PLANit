@@ -34,9 +34,10 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public LinkBasedRelativeDualityGapFunction(LinkBasedRelativeDualityGapFunction other) {
-    super(other);
+  public LinkBasedRelativeDualityGapFunction(LinkBasedRelativeDualityGapFunction other, boolean deepCopy) {
+    super(other, deepCopy);
     this.measuredNetworkCost = other.measuredNetworkCost;
     this.gap = other.gap;
     this.minimumNetworkCost = other.minimumNetworkCost;
@@ -136,7 +137,15 @@ public class LinkBasedRelativeDualityGapFunction extends GapFunction {
    */
   @Override
   public LinkBasedRelativeDualityGapFunction clone() {
-    return new LinkBasedRelativeDualityGapFunction(this);
+    return new LinkBasedRelativeDualityGapFunction(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinkBasedRelativeDualityGapFunction deepClone() {
+    return new LinkBasedRelativeDualityGapFunction(this, true);
   }
 
 }

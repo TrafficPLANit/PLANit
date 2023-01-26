@@ -39,11 +39,27 @@ public class DirectedGraphImpl<V extends DirectedVertex, E extends DirectedEdge,
 
   /**
    * Copy constructor
-   * 
-   * @param directedGraphImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public DirectedGraphImpl(final DirectedGraphImpl<V, E, ES> directedGraphImpl) {
-    super(directedGraphImpl);
+  public DirectedGraphImpl(final DirectedGraphImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UntypedDirectedGraphImpl<V, E, ES> clone() {
+    return new DirectedGraphImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UntypedDirectedGraphImpl<V, E, ES> deepClone() {
+    return new DirectedGraphImpl(this, true);
   }
 
 }

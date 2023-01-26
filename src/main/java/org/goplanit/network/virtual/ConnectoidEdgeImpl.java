@@ -76,11 +76,12 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl<DirectedVertex, EdgeSeg
   /**
    * Copy constructor
    * 
-   * @param connectoidEdgeImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConnectoidEdgeImpl(ConnectoidEdgeImpl connectoidEdgeImpl) {
-    super(connectoidEdgeImpl);
-    setConnectoidEdgeId(connectoidEdgeImpl.getConnectoidEdgeId());
+  protected ConnectoidEdgeImpl(ConnectoidEdgeImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    setConnectoidEdgeId(other.getConnectoidEdgeId());
   }
 
   /**
@@ -108,6 +109,22 @@ public class ConnectoidEdgeImpl extends DirectedEdgeImpl<DirectedVertex, EdgeSeg
   @Override
   public long getConnectoidEdgeId() {
     return connectoidEdgeId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidEdgeImpl clone() {
+    return new ConnectoidEdgeImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidEdgeImpl deepClone() {
+    return new ConnectoidEdgeImpl(this, true);
   }
 
 }

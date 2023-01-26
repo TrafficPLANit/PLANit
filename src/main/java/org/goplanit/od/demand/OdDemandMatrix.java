@@ -1,5 +1,6 @@
 package org.goplanit.od.demand;
 
+import org.goplanit.utils.id.IdAble;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.od.OdPrimitiveMatrix;
 import org.goplanit.utils.od.OdPrimitiveMatrixIterator;
@@ -42,7 +43,7 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
    * @param odDemandMatrix to copy
    */
   public OdDemandMatrix(final OdDemandMatrix odDemandMatrix) {
-    super(odDemandMatrix);
+    super(odDemandMatrix, Array2D.PRIMITIVE32);
   }
 
   /**
@@ -80,6 +81,15 @@ public class OdDemandMatrix extends OdPrimitiveMatrix<Double> implements OdDeman
   @Override
   public OdDemandMatrix clone() {
     return new OdDemandMatrix(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdDemandMatrix deepClone() {
+    /* primitive wrapper so deep clone and clone are the same */
+    return clone();
   }
 
 }

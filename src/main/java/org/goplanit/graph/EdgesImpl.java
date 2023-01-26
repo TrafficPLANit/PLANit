@@ -16,6 +16,17 @@ public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
   private final EdgeFactory edgeFactory;
 
   /**
+   * Copy constructor, also creates a new factory with reference to this container
+   *
+   * @param edgesImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected EdgesImpl(EdgesImpl edgesImpl, boolean deepCopy) {
+    super(edgesImpl, deepCopy);
+    this.edgeFactory = new EdgeFactoryImpl(edgesImpl.edgeFactory.getIdGroupingToken(), this);
+  }
+
+  /**
    * Constructor
    * 
    * @param groupId to use for creating ids for instances
@@ -36,16 +47,6 @@ public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
   }
 
   /**
-   * Copy constructor, also creates a new factory with reference to this container
-   * 
-   * @param edgesImpl to copy
-   */
-  public EdgesImpl(EdgesImpl edgesImpl) {
-    super(edgesImpl);
-    this.edgeFactory = new EdgeFactoryImpl(edgesImpl.edgeFactory.getIdGroupingToken(), this);
-  }
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -58,7 +59,15 @@ public class EdgesImpl extends GraphEntitiesImpl<Edge> implements Edges {
    */
   @Override
   public EdgesImpl clone() {
-    return new EdgesImpl(this);
+    return new EdgesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public GraphEntitiesImpl<Edge> deepClone() {
+    return new EdgesImpl(this, true);
   }
 
 }

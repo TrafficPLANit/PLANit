@@ -17,7 +17,7 @@ import org.goplanit.utils.zoning.Centroid;
  * @author markr
  *
  */
-public class BushTurnData implements Cloneable {
+public class BushTurnData {
 
   /** logger to use */
   private static final Logger LOGGER = Logger.getLogger(BushTurnData.class.getCanonicalName());
@@ -41,7 +41,7 @@ public class BushTurnData implements Cloneable {
    * 
    */
   BushTurnData() {
-    this.compositionTurnSendingFlows = new MultiKeyMap<Object, Double>();
+    this.compositionTurnSendingFlows = new MultiKeyMap<>();
   }
 
   /**
@@ -236,14 +236,6 @@ public class BushTurnData implements Cloneable {
     } else {
       return 0;
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public BushTurnData clone() {
-    return new BushTurnData(this);
   }
 
   /**

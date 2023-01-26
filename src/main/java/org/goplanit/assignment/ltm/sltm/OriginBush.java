@@ -50,10 +50,11 @@ public class OriginBush extends RootedLabelledBush {
   /**
    * Copy constructor
    * 
-   * @param bush to (shallow) copy
+   * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public OriginBush(OriginBush bush) {
-    super(bush);
+  public OriginBush(OriginBush other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -106,7 +107,15 @@ public class OriginBush extends RootedLabelledBush {
    */
   @Override
   public OriginBush clone() {
-    return new OriginBush(this);
+    return new OriginBush(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OriginBush deepClone() {
+    return new OriginBush(this, true);
   }
 
   /**

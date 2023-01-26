@@ -70,6 +70,7 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
     public AccessZoneProperties(AccessZoneProperties other) {
       this.accessZone = other.accessZone;
       this.lengthKm = other.lengthKm;
+
       /* shallow */
       if (other.allowedModes != null) {
         this.allowedModes = (TreeMap<Long, Mode>) other.allowedModes.clone();
@@ -164,15 +165,17 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
   /**
    * Copy constructor
    * 
-   * @param connectoidImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConnectoidImpl(ConnectoidImpl connectoidImpl) {
-    super(connectoidImpl);
-    for (AccessZoneProperties entry : connectoidImpl.accessZones.values()) {
-      accessZones.put(entry.accessZone.getId(), new AccessZoneProperties(entry));
-    }
-    this.name = connectoidImpl.name;
-    this.type = connectoidImpl.type;
+  protected ConnectoidImpl(ConnectoidImpl other, boolean deepCopy) {
+    super(other);
+    this.name = other.name;
+    this.type = other.type;
+
+    this.accessZones = new TreeMap<>();
+    other.accessZones.forEach( (k,v) ->
+            accessZones.put( k, deepCopy ? new AccessZoneProperties(v) : v));
   }
 
   // Public
@@ -371,5 +374,11 @@ public abstract class ConnectoidImpl extends ExternalIdAbleImpl implements Conne
    */
   @Override
   public abstract ConnectoidImpl clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract ConnectoidImpl deepClone();
 
 }

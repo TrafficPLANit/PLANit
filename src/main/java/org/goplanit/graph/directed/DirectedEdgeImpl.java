@@ -79,11 +79,12 @@ public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment> 
    * Copy Constructor. Edge segments are shallow copied and point to the passed in edge as their parent So additional effort is needed to make the new edge usable
    * 
    * @param directedEdgeImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected DirectedEdgeImpl(DirectedEdgeImpl<V, ES> directedEdgeImpl) {
-    super(directedEdgeImpl);
-    setEdgeSegmentAb(directedEdgeImpl.getEdgeSegmentAb());
-    setEdgeSegmentBa(directedEdgeImpl.getEdgeSegmentBa());
+  protected DirectedEdgeImpl(DirectedEdgeImpl<V, ES> directedEdgeImpl, final boolean deepCopy) {
+    super(directedEdgeImpl, deepCopy);
+    setEdgeSegmentAb(directedEdgeImpl.getEdgeSegmentAb()); // not owned, so not deep copied
+    setEdgeSegmentBa(directedEdgeImpl.getEdgeSegmentBa()); // not owned, so not deep copied
   }
 
   // Public
@@ -135,7 +136,15 @@ public class DirectedEdgeImpl<V extends DirectedVertex, ES extends EdgeSegment> 
    */
   @Override
   public DirectedEdgeImpl<V, ES> clone() {
-    return new DirectedEdgeImpl<V, ES>(this);
+    return new DirectedEdgeImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedEdgeImpl<V, ES> deepClone() {
+    return new DirectedEdgeImpl<>(this, true);
   }
 
   /**

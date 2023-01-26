@@ -28,12 +28,13 @@ public class MacroscopicLinkImpl<N extends DirectedVertex, LS extends Macroscopi
 
 
   /**
-   * Copy constructor, geometry is deep copied, see also {@code DirectedEdge} copy constructed
+   * Copy constructor
    * 
-   * @param macroscopicLinkImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected MacroscopicLinkImpl(MacroscopicLinkImpl<N, LS> macroscopicLinkImpl) {
-    super(macroscopicLinkImpl);
+  protected MacroscopicLinkImpl(MacroscopicLinkImpl<N, LS> other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -68,7 +69,15 @@ public class MacroscopicLinkImpl<N extends DirectedVertex, LS extends Macroscopi
    */
   @Override
   public MacroscopicLinkImpl<N, LS> clone() {
-    return new MacroscopicLinkImpl<>(this);
+    return new MacroscopicLinkImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public MacroscopicLinkImpl<N, LS> deepClone() {
+    return new MacroscopicLinkImpl<>(this, true);
   }
 
 }

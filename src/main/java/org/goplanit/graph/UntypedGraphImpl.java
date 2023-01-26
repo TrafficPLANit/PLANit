@@ -67,13 +67,14 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
   /**
    * Copy constructor for shallow copy
    * 
-   * @param graphImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public UntypedGraphImpl(final UntypedGraphImpl<V, E> graphImpl) {
-    super(graphImpl);
-    this.edges = graphImpl.getEdges().clone();
-    this.vertices = graphImpl.getVertices().clone();
-    this.groupId = graphImpl.groupId;
+  public UntypedGraphImpl(final UntypedGraphImpl<V, E> other,boolean deepCopy) {
+    super(other);
+    this.edges    = deepCopy ? other.getEdges().deepClone()     : other.getEdges().clone();     // container class, so clone upon shallow copy
+    this.vertices = deepCopy ? other.getVertices().deepClone()  : other.getVertices(). clone(); // container class, so clone upon shallow copy
+    this.groupId  = other.groupId;
   }
 
   /**
@@ -110,7 +111,15 @@ public class UntypedGraphImpl<V extends Vertex, E extends Edge> extends IdAbleIm
    */
   @Override
   public UntypedGraph<V, E> clone() {
-    return new UntypedGraphImpl<V, E>(this);
+    return new UntypedGraphImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UntypedGraph<V, E> deepClone() {
+    return new UntypedGraphImpl<>(this, true);
   }
 
   /**

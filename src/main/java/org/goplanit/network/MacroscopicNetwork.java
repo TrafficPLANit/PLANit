@@ -48,21 +48,29 @@ public class MacroscopicNetwork extends UntypedPhysicalNetwork<MacroscopicNetwor
   }
 
   /**
-   * Copy constructor. Beware shallow copy only for managed id containers.
+   * Copy constructor.
    *
    * @param other to clone
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected MacroscopicNetwork(final MacroscopicNetwork other) {
-    super(other);
+  protected MacroscopicNetwork(final MacroscopicNetwork other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
-   * Beware shallow copy only for managed id containers.
-   * @return shallow copy
+   * {@inheritDoc}
    */
   @Override
   public MacroscopicNetwork clone() {
-    return new MacroscopicNetwork(this);
+    return new MacroscopicNetwork(this, false);
+  }
+
+  /**
+   * {@inheritDoc
+   */
+  @Override
+  public MacroscopicNetwork deepClone() {
+    return new MacroscopicNetwork(this, true);
   }
 
   @Override

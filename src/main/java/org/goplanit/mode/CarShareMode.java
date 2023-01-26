@@ -44,4 +44,29 @@ public class CarShareMode extends PredefinedModeImpl {
     super(groupId, PredefinedModeType.CAR_SHARE, DEFAULT_MAX_SPEED_KMH, DEFAULT_PCU, CAR_SHARE_PHYSICAL_FEATURES, CAR_SHARE_USABLITY_FEATURES);
   }
 
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
+   */
+  protected CarShareMode(CarShareMode other, boolean deepCopy) {
+    super(other, deepCopy);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public CarShareMode clone() {
+    return new CarShareMode(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public CarShareMode deepClone() {
+    return new CarShareMode(this, true);
+  }
 }

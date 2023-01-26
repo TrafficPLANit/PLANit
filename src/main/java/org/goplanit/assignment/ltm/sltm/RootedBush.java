@@ -88,13 +88,15 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
   /**
    * Copy constructor
    *
-   * @param bush to (shallow) copy
+   * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public RootedBush(RootedBush<V, ES> bush) {
-    this.originDemandsPcuH = new HashMap<>(bush.originDemandsPcuH);
-    this.dag = bush.getDag().clone();
-    this.requireTopologicalSortUpdate = bush.requireTopologicalSortUpdate;
-    this.bushGroupingToken = bush.bushGroupingToken;
+  public RootedBush(RootedBush<V, ES> other, boolean deepCopy) {
+    this.originDemandsPcuH = new HashMap<>(other.originDemandsPcuH);
+    this.requireTopologicalSortUpdate = other.requireTopologicalSortUpdate;
+    this.bushGroupingToken = other.bushGroupingToken;
+
+    this.dag = deepCopy ? other.getDag().deepClone() : other.dag.clone();
   }
 
   /**
@@ -112,6 +114,12 @@ public abstract class RootedBush<V extends DirectedVertex, ES extends EdgeSegmen
    */
   @Override
   public abstract RootedBush<V, ES> clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract RootedBush<V, ES> deepClone();
 
   /**
    * {@inheritDoc}

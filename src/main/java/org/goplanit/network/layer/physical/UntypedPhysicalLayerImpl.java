@@ -50,11 +50,12 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
   /**
    * Copy constructor
    * 
-   * @param physicalLayerImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  public UntypedPhysicalLayerImpl(UntypedPhysicalLayerImpl physicalLayerImpl) {
-    super(physicalLayerImpl);
+  public UntypedPhysicalLayerImpl(UntypedPhysicalLayerImpl other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -76,5 +77,11 @@ public abstract class UntypedPhysicalLayerImpl<N extends Node, L extends Link, L
    */
   @Override
   public abstract UntypedPhysicalLayerImpl<N, L, LS> clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract UntypedPhysicalLayerImpl<N, L, LS> deepClone();
 
 }

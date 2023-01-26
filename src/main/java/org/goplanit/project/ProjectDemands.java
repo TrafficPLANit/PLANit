@@ -15,7 +15,7 @@ public class ProjectDemands extends LongMapWrapperImpl<Demands> {
    * Constructor
    */
   protected ProjectDemands() {
-    super(new TreeMap<Long, Demands>(), Demands::getId);
+    super(new TreeMap<>(), Demands::getId);
   }
 
   /**

@@ -53,7 +53,7 @@ public class PhysicalModeFeaturesImpl implements PhysicalModeFeatures {
   /**
    * Default constructor
    */
-  public PhysicalModeFeaturesImpl() {
+  protected PhysicalModeFeaturesImpl() {
     this.vehicularType = DEFAULT_VEHICULAR_TYPE;
     this.motorisationType = DEFAULT_MOTORISATION_TYPE;
     this.trackType = DEFAULT_TRACK_TYPE;
@@ -64,10 +64,21 @@ public class PhysicalModeFeaturesImpl implements PhysicalModeFeatures {
    * @param motorisationType to use
    * @param trackType        to use
    */
-  public PhysicalModeFeaturesImpl(VehicularModeType vehicularType, MotorisationModeType motorisationType, TrackModeType trackType) {
+  protected PhysicalModeFeaturesImpl(VehicularModeType vehicularType, MotorisationModeType motorisationType, TrackModeType trackType) {
     this.vehicularType = vehicularType;
     this.motorisationType = motorisationType;
     this.trackType = trackType;
+  }
+
+  /**
+   * Copy constructor
+   *
+   * @param other to copy
+   */
+  protected PhysicalModeFeaturesImpl(PhysicalModeFeaturesImpl other) {
+    this.vehicularType = other.vehicularType;
+    this.motorisationType = other.motorisationType;
+    this.trackType = other.trackType;
   }
 
   /* getters - setters */

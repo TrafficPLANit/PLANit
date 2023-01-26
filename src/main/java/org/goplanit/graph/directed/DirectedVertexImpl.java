@@ -41,12 +41,26 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
     }
 
     /**
+     * Shallow copy constructor
+     * @param other to copy
+     */
+    private EdgeSegmentIterable(EdgeSegmentIterable other) {
+      this(other.incoming);
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
-    public Iterator<ESI> iterator() {
-      return new EdgeSegmentIterator<ESI>(incoming);
+    public EdgeSegmentIterator<ESI> iterator() {
+      return new EdgeSegmentIterator<>(incoming);
     }
+
+    /**
+     * shallow copy
+     */
+    @Override
+    public EdgeSegmentIterable<ESI> clone(){ return new EdgeSegmentIterable<>(this);}
 
   }
 
@@ -80,7 +94,7 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
      */
     private EdgeSegmentIterator(boolean incoming) {
       this.incoming = incoming;
-      edgesIter = (Iterator<? extends DirectedEdge>) DirectedVertexImpl.this.getEdges().iterator();
+      edgesIter = DirectedVertexImpl.this.getEdges().iterator();
       nextEdgeSegment = null;
       hasNext();
     }
@@ -162,8 +176,8 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
    */
   protected DirectedVertexImpl(final IdGroupingToken groupId, Class<? extends Vertex> idClazz) {
     super(groupId, idClazz);
-    this.entryEdgeSegments = new EdgeSegmentIterable<E>(true /* incoming */);
-    this.exitEdgeSegments = new EdgeSegmentIterable<E>(false /* outgoing */);
+    this.entryEdgeSegments = new EdgeSegmentIterable<>(true /* incoming */);
+    this.exitEdgeSegments = new EdgeSegmentIterable<>(false /* outgoing */);
   }
 
   /**
@@ -182,8 +196,8 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
    */
   protected DirectedVertexImpl(long id) {
     super(id);
-    this.entryEdgeSegments = new EdgeSegmentIterable<E>(true /* incoming */);
-    this.exitEdgeSegments = new EdgeSegmentIterable<E>(false /* outgoing */);
+    this.entryEdgeSegments = new EdgeSegmentIterable<>(true /* incoming */);
+    this.exitEdgeSegments = new EdgeSegmentIterable<>(false /* outgoing */);
   }
 
   /**
@@ -191,10 +205,12 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
    * 
    * @param directedVertexImpl to copy
    */
-  protected DirectedVertexImpl(DirectedVertexImpl<E> directedVertexImpl) {
-    super(directedVertexImpl);
-    this.entryEdgeSegments = directedVertexImpl.entryEdgeSegments;
-    this.exitEdgeSegments = directedVertexImpl.exitEdgeSegments;
+  protected DirectedVertexImpl(DirectedVertexImpl<E> directedVertexImpl, boolean deepCopy) {
+    super(directedVertexImpl, deepCopy);
+
+    // container of non-owned references so always clone required
+    this.entryEdgeSegments = directedVertexImpl.entryEdgeSegments.clone();
+    this.exitEdgeSegments = directedVertexImpl.exitEdgeSegments.clone();
   }
 
   // Public
@@ -229,7 +245,15 @@ public class DirectedVertexImpl<E extends EdgeSegment> extends VertexImpl<Edge> 
    */
   @Override
   public DirectedVertexImpl<E> clone() {
-    return new DirectedVertexImpl<E>(this);
+    return new DirectedVertexImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedVertexImpl<E> deepClone() {
+    return new DirectedVertexImpl<>(this, true);
   }
 
 }

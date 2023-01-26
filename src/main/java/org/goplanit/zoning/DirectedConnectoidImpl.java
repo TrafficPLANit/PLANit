@@ -95,13 +95,14 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
   /**
    * Copy constructor
    * 
-   * @param connectoidImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected DirectedConnectoidImpl(final DirectedConnectoidImpl connectoidImpl) {
-    super(connectoidImpl);
-    setDirectedConnectoidId(connectoidImpl.getDirectedConnectoidId());
-    setAccessLinkSegment(connectoidImpl.getAccessLinkSegment());
-    setNodeAccessDownstream(connectoidImpl.isNodeAccessDownstream());
+  protected DirectedConnectoidImpl(final DirectedConnectoidImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    setDirectedConnectoidId(other.getDirectedConnectoidId());
+    setAccessLinkSegment(other.getAccessLinkSegment());
+    setNodeAccessDownstream(other.isNodeAccessDownstream());
   }
 
   // Public
@@ -171,7 +172,15 @@ public class DirectedConnectoidImpl extends ConnectoidImpl implements DirectedCo
    */
   @Override
   public DirectedConnectoidImpl clone() {
-    return new DirectedConnectoidImpl(this);
+    return new DirectedConnectoidImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedConnectoidImpl deepClone() {
+    return new DirectedConnectoidImpl(this, true);
   }
 
 }

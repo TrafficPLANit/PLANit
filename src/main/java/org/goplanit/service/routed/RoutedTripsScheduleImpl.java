@@ -24,11 +24,12 @@ public class RoutedTripsScheduleImpl extends RoutedTripsImpl<RoutedTripSchedule>
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param routedTripsScheduleImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedTripsScheduleImpl(RoutedTripsScheduleImpl routedTripsScheduleImpl) {
-    super(routedTripsScheduleImpl);
-    setFactory(new RoutedTripScheduleFactoryImpl(routedTripsScheduleImpl.getFactory().getIdGroupingToken(), this));
+  public RoutedTripsScheduleImpl(RoutedTripsScheduleImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    setFactory(new RoutedTripScheduleFactoryImpl(other.getFactory().getIdGroupingToken(), this));
   }
 
   /**
@@ -36,7 +37,15 @@ public class RoutedTripsScheduleImpl extends RoutedTripsImpl<RoutedTripSchedule>
    */
   @Override
   public RoutedTripsScheduleImpl clone() {
-    return new RoutedTripsScheduleImpl(this);
+    return new RoutedTripsScheduleImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedTripsScheduleImpl deepClone() {
+    return new RoutedTripsScheduleImpl(this, true);
   }
 
   /**

@@ -40,10 +40,11 @@ public class ConjugateVertexImpl extends VertexImpl<ConjugateEdge> implements Co
    * Copy constructor
    * 
    * @param conjugateVertexImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConjugateVertexImpl(ConjugateVertexImpl conjugateVertexImpl) {
-    super(conjugateVertexImpl);
-    this.originalEdge = conjugateVertexImpl.originalEdge;
+  protected ConjugateVertexImpl(ConjugateVertexImpl conjugateVertexImpl, boolean deepCopy) {
+    super(conjugateVertexImpl, deepCopy);
+    this.originalEdge = conjugateVertexImpl.originalEdge; // not owned
   }
 
   // Public
@@ -70,7 +71,15 @@ public class ConjugateVertexImpl extends VertexImpl<ConjugateEdge> implements Co
    */
   @Override
   public ConjugateVertexImpl clone() {
-    return new ConjugateVertexImpl(this);
+    return new ConjugateVertexImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateVertexImpl deepClone() {
+    return new ConjugateVertexImpl(this, true);
   }
 
   /**

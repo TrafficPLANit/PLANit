@@ -3,6 +3,7 @@ package org.goplanit.network;
 import java.util.logging.Logger;
 
 import org.goplanit.mode.ModesImpl;
+import org.goplanit.network.virtual.VirtualNetworkImpl;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.mode.Modes;
@@ -63,15 +64,17 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
   }
 
   /**
-   * Copy constructor. Beware shallow copy only for managed id containers.
+   * Copy constructor.
    *
    * @param other                   to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected LayeredNetwork(final LayeredNetwork<U, T> other) {
-    super(other);
-    this.modes = new ModesImpl(other.getIdGroupingToken());
-    this.modes.addAll(other.getModes());
-    this.transportLayers = (T) other.getTransportLayers().clone();
+  protected LayeredNetwork(final LayeredNetwork<U, T> other, boolean deepCopy) {
+    super(other, deepCopy);
+
+    // both are container wrappers, so requireing cloning also for shallow copy
+    this.modes = deepCopy ? other.modes.deepClone() : other.modes.clone();
+    this.transportLayers = (T) (deepCopy ? other.getTransportLayers().deepClone() : other.getTransportLayers().clone());
   }
 
   /**
@@ -115,5 +118,17 @@ public abstract class LayeredNetwork<U extends NetworkLayer, T extends NetworkLa
     modes.reset();
     transportLayers.reset();
   }
+
+  /**
+   * {@inheritDoc
+   */
+  @Override
+  public abstract LayeredNetwork clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract LayeredNetwork deepClone();
 
 }

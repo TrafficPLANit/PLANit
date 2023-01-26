@@ -42,11 +42,12 @@ public class ConjugateLinksImpl extends ManagedIdEntitiesImpl<ConjugateLink> imp
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param linksImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  public ConjugateLinksImpl(ConjugateLinksImpl linksImpl) {
-    super(linksImpl);
-    this.factory = new ConjugateLinkFactoryImpl(linksImpl.factory.getIdGroupingToken(), this);
+  public ConjugateLinksImpl(ConjugateLinksImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.factory = new ConjugateLinkFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
   /**
@@ -62,7 +63,15 @@ public class ConjugateLinksImpl extends ManagedIdEntitiesImpl<ConjugateLink> imp
    */
   @Override
   public ConjugateLinksImpl clone() {
-    return new ConjugateLinksImpl(this);
+    return new ConjugateLinksImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateLinksImpl deepClone() {
+    return new ConjugateLinksImpl(this, true);
   }
 
 }

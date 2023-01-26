@@ -63,13 +63,14 @@ public class LinkImpl<N extends DirectedVertex, LS extends EdgeSegment> extends 
   }
 
   /**
-   * Copy constructor, geometry is deep copied, see also {@code DirectedEdge} copy constructed
+   * Copy constructor
    * 
-   * @param linkImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected LinkImpl(LinkImpl<N, LS> linkImpl) {
-    super(linkImpl);
-    setLinkId(linkImpl.getLinkId());
+  protected LinkImpl(LinkImpl<N, LS> other, boolean deepCopy) {
+    super(other, deepCopy);
+    setLinkId(other.getLinkId());
   }
 
   /**
@@ -126,7 +127,15 @@ public class LinkImpl<N extends DirectedVertex, LS extends EdgeSegment> extends 
    */
   @Override
   public LinkImpl<N, LS> clone() {
-    return new LinkImpl<N, LS>(this);
+    return new LinkImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public LinkImpl<N, LS> deepClone() {
+    return new LinkImpl<>(this, true);
   }
 
   /**

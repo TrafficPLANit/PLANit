@@ -36,11 +36,13 @@ public class RoutedModeServicesImpl extends ManagedIdEntitiesImpl<RoutedService>
    * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param routedModeServicesImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedModeServicesImpl(RoutedModeServicesImpl routedModeServicesImpl) {
-    super(routedModeServicesImpl);
+  public RoutedModeServicesImpl(RoutedModeServicesImpl routedModeServicesImpl, boolean deepCopy) {
+    super(routedModeServicesImpl, deepCopy);
     this.supportedMode = routedModeServicesImpl.supportedMode;
-    this.factory = new RoutedServiceFactoryImpl(routedModeServicesImpl.factory.getIdGroupingToken(), this);
+    this.factory =
+            new RoutedServiceFactoryImpl(routedModeServicesImpl.factory.getIdGroupingToken(), this);
   }
 
   /**
@@ -48,7 +50,15 @@ public class RoutedModeServicesImpl extends ManagedIdEntitiesImpl<RoutedService>
    */
   @Override
   public RoutedModeServicesImpl clone() {
-    return new RoutedModeServicesImpl(this);
+    return new RoutedModeServicesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedModeServicesImpl deepClone() {
+    return new RoutedModeServicesImpl(this, true);
   }
 
   /**

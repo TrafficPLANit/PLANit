@@ -50,11 +50,12 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
   /**
    * Copy constructor
    * 
-   * @param serviceNode to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ServiceNodeImpl(final ServiceNodeImpl serviceNode) {
-    super(serviceNode);
-    this.networkNode = serviceNode.getPhysicalParentNode();
+  protected ServiceNodeImpl(final ServiceNodeImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.networkNode = other.getPhysicalParentNode();
   }
 
   /**
@@ -98,7 +99,15 @@ public class ServiceNodeImpl extends DirectedVertexImpl<ServiceLegSegment> imple
    */
   @Override
   public ServiceNodeImpl clone() {
-    return new ServiceNodeImpl(this);
+    return new ServiceNodeImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNodeImpl deepClone() {
+    return new ServiceNodeImpl(this, true);
   }
 
 }

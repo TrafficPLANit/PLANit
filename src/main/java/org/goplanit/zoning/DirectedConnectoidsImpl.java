@@ -42,9 +42,10 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
    * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public DirectedConnectoidsImpl(DirectedConnectoidsImpl other) {
-    super(other);
+  public DirectedConnectoidsImpl(DirectedConnectoidsImpl other, boolean deepCopy) {
+    super(other, deepCopy);
     this.directedConnectoidFactory =
             new DirectedConnectoidFactoryImpl(other.directedConnectoidFactory.getIdGroupingToken(), this);
   }
@@ -73,7 +74,15 @@ public class DirectedConnectoidsImpl extends ConnectoidsImpl<DirectedConnectoid>
    */
   @Override
   public DirectedConnectoidsImpl clone() {
-    return new DirectedConnectoidsImpl(this);
+    return new DirectedConnectoidsImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public DirectedConnectoidsImpl deepClone() {
+    return new DirectedConnectoidsImpl(this, true);
   }
 
 }

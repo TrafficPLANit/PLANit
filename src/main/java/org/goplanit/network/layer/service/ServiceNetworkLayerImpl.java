@@ -83,12 +83,13 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
   /**
    * Copy constructor
    * 
-   * @param serviceNetworkLayerImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ServiceNetworkLayerImpl(ServiceNetworkLayerImpl serviceNetworkLayerImpl) {
-    super(serviceNetworkLayerImpl);
-    this.parentNetworkLayer = serviceNetworkLayerImpl.parentNetworkLayer;
-    this.layerModifier = serviceNetworkLayerImpl.getLayerModifier();
+  public ServiceNetworkLayerImpl(ServiceNetworkLayerImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.parentNetworkLayer = other.parentNetworkLayer;
+    this.layerModifier = new ServiceNetworkLayerModifierImpl<>(this, this.graph);
   }
 
   /**
@@ -141,7 +142,15 @@ public class ServiceNetworkLayerImpl extends UntypedNetworkLayerImpl<ServiceNode
    */
   @Override
   public ServiceNetworkLayerImpl clone() {
-    return new ServiceNetworkLayerImpl(this);
+    return new ServiceNetworkLayerImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNetworkLayerImpl deepClone() {
+    return new ServiceNetworkLayerImpl(this, true);
   }
 
   /**

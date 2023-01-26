@@ -36,9 +36,10 @@ public abstract class PathChoice extends PlanitComponent<PathChoice> implements 
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected PathChoice(final PathChoice other) {
-    super(other);
+  protected PathChoice(final PathChoice other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -46,5 +47,11 @@ public abstract class PathChoice extends PlanitComponent<PathChoice> implements 
    */
   @Override
   public abstract PathChoice clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract PathChoice deepClone();
 
 }

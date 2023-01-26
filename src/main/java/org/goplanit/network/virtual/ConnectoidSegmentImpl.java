@@ -76,11 +76,12 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl<ConnectoidEdge> imple
   /**
    * Copy constructor
    * 
-   * @param connectoidSegmentImpl to set
+   * @param other to set
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConnectoidSegmentImpl(ConnectoidSegmentImpl connectoidSegmentImpl) {
-    super(connectoidSegmentImpl);
-    setConnectoidSegmentId(connectoidSegmentImpl.getConnectoidSegmentId());
+  protected ConnectoidSegmentImpl(ConnectoidSegmentImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    setConnectoidSegmentId(other.getConnectoidSegmentId());
   }
 
   // Public getters - setters
@@ -109,7 +110,15 @@ public class ConnectoidSegmentImpl extends EdgeSegmentImpl<ConnectoidEdge> imple
    */
   @Override
   public ConnectoidSegmentImpl clone() {
-    return new ConnectoidSegmentImpl(this);
+    return new ConnectoidSegmentImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConnectoidSegmentImpl deepClone() {
+    return new ConnectoidSegmentImpl(this, true);
   }
 
 }

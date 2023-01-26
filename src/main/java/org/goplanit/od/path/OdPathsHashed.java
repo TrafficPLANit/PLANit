@@ -39,12 +39,20 @@ public class OdPathsHashed extends OdHashedImpl<ManagedDirectedPath> implements 
   }
 
   /**
-   * Copy constructor (shallow copy of contents)
+   * Copy constructor
    * 
    * @param other to copy from
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public OdPathsHashed(final OdPathsHashed other) {
+  public OdPathsHashed(final OdPathsHashed other, boolean deepCopy) {
     super(other);
+    if(deepCopy){
+      this.odHashed.clear();
+      other.zones.forEach(
+              origin -> other.zones.forEach(
+                      destination -> other.odHashed.values().forEach( original ->
+                              setValue(origin, destination,original.deepClone()))));
+    }
   }
 
   /**
@@ -60,7 +68,15 @@ public class OdPathsHashed extends OdHashedImpl<ManagedDirectedPath> implements 
    */
   @Override
   public OdPathsHashed clone() {
-    return new OdPathsHashed(this);
+    return new OdPathsHashed(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public OdPathsHashed deepClone() {
+    return new OdPathsHashed(this, true);
   }
 
   // getters - setters

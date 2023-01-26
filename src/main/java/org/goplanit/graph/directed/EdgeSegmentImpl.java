@@ -138,9 +138,10 @@ public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl imp
    * Copy constructor
    * 
    * @param edgeSegmentImpl to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected EdgeSegmentImpl(EdgeSegmentImpl<E> edgeSegmentImpl) {
-    super(edgeSegmentImpl);
+  protected EdgeSegmentImpl(EdgeSegmentImpl<E> edgeSegmentImpl, boolean deepCopy) {
+    super(edgeSegmentImpl, deepCopy);
     setParent(edgeSegmentImpl.getParent());
     this.directionAb = edgeSegmentImpl.directionAb;
   }
@@ -191,7 +192,15 @@ public class EdgeSegmentImpl<E extends DirectedEdge> extends GraphEntityImpl imp
    */
   @Override
   public EdgeSegmentImpl<E> clone() {
-    return new EdgeSegmentImpl<E>(this);
+    return new EdgeSegmentImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public EdgeSegmentImpl<E> deepClone() {
+    return new EdgeSegmentImpl<>(this, true);
   }
 
   /**

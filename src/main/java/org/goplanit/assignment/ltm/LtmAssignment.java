@@ -76,10 +76,11 @@ public abstract class LtmAssignment extends TrafficAssignment {
   /**
    * Copy Constructor
    * 
-   * @param sltm to copy
+   * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  protected LtmAssignment(final LtmAssignment sltm) {
-    super(sltm);
+  protected LtmAssignment(final LtmAssignment other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -87,6 +88,12 @@ public abstract class LtmAssignment extends TrafficAssignment {
    */
   @Override
   public abstract LtmAssignment clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract LtmAssignment deepClone();
 
   // Getters - Setters
 

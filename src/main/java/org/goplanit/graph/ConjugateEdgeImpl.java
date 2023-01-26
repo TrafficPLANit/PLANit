@@ -45,11 +45,12 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
   /**
    * Copy constructor
    * 
-   * @param conjugateEdgeImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConjugateEdgeImpl(ConjugateEdgeImpl<V> conjugateEdgeImpl) {
-    super(conjugateEdgeImpl);
-    originalEdges = conjugateEdgeImpl.originalEdges.copy();
+  protected ConjugateEdgeImpl(ConjugateEdgeImpl<V> other, boolean deepCopy) {
+    super(other, deepCopy);
+    originalEdges = other.originalEdges.copy();
   }
 
   /**
@@ -99,7 +100,15 @@ public class ConjugateEdgeImpl<V extends ConjugateVertex> extends EdgeImpl<V> im
    */
   @Override
   public ConjugateEdgeImpl<V> clone() {
-    return new ConjugateEdgeImpl<V>(this);
+    return new ConjugateEdgeImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateEdgeImpl<V> deepClone() {
+    return new ConjugateEdgeImpl<>(this, true);
   }
 
   /**

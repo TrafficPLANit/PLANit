@@ -44,11 +44,12 @@ public class ConjugateConnectoidNodesImpl extends ManagedIdEntitiesImpl<Conjugat
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param nodesImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ConjugateConnectoidNodesImpl(ConjugateConnectoidNodesImpl nodesImpl) {
-    super(nodesImpl);
-    this.factory = new ConjugateConnectoidNodeFactoryImpl(nodesImpl.factory.getIdGroupingToken(), this);
+  public ConjugateConnectoidNodesImpl(ConjugateConnectoidNodesImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.factory = new ConjugateConnectoidNodeFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
   /**
@@ -64,7 +65,15 @@ public class ConjugateConnectoidNodesImpl extends ManagedIdEntitiesImpl<Conjugat
    */
   @Override
   public ConjugateConnectoidNodesImpl clone() {
-    return new ConjugateConnectoidNodesImpl(this);
+    return new ConjugateConnectoidNodesImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateConnectoidNodesImpl deepClone() {
+    return new ConjugateConnectoidNodesImpl(this, true);
   }
 
 }

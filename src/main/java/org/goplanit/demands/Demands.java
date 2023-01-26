@@ -1,26 +1,16 @@
 package org.goplanit.demands;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.goplanit.component.PlanitComponent;
 import org.goplanit.od.demand.OdDemands;
-import org.goplanit.time.TimePeriodImpl;
-import org.goplanit.userclass.TravellerType;
-import org.goplanit.userclass.UserClass;
-import org.goplanit.utils.exceptions.PlanItException;
-import org.goplanit.utils.id.IdGenerator;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.mode.Mode;
 import org.goplanit.utils.time.TimePeriod;
-import org.goplanit.utils.time.TimePeriodUtils;
-import org.goplanit.utils.wrapper.LongMapWrapperImpl;
 
 /**
  * Container class for all demands registered on the project. In PlanIt we assume that all traffic flows between an origin and destination. Hence all demand for a given time period
@@ -50,220 +40,6 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
   protected final TreeMap<Long, TreeMap<Mode, OdDemands>> odDemandsByTimePeriodAndMode;
 
   /**
-   * Inner class to register and store traveler types for the current demand object
-   * 
-   * @author markr
-   *
-   */
-  public class TravelerTypes extends LongMapWrapperImpl<TravellerType> {
-
-    /**
-     * Constructor
-     */
-    public TravelerTypes() {
-      super(new HashMap<Long, TravellerType>(), TravellerType::getId);
-    }
-
-    /**
-     * Copy constructor
-     * 
-     * @param other to copy
-     */
-    public TravelerTypes(TravelerTypes other) {
-      super(other);
-    }
-
-    /**
-     * Factory method to create and register a new travel type on the demands
-     * 
-     * @param name the name of the travel type
-     * @return new traveler type created
-     */
-    public TravellerType createAndRegisterNew(String name) {
-      TravellerType newTravelerType = new TravellerType(getIdGroupingToken(), name);
-      register(newTravelerType);
-      return newTravelerType;
-    }
-
-    /**
-     * Retrieve a TravelerType by its XML Id
-     * 
-     * This method is not efficient, since it loops through all the registered traveler type in order to find the required entry.
-     * 
-     * @param xmlId the XML Id of the specified traveler type
-     * @return the retrieved traveler type, or null if no traveler type was found
-     */
-    public TravellerType getByXmlId(String xmlId) {
-      return findFirst(travelerType -> xmlId.equals(((TravellerType) travelerType).getXmlId()));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public TravelerTypes clone() {
-      return new TravelerTypes(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void clear() {
-      super.clear();
-      IdGenerator.reset(getIdGroupingToken(), TravellerType.class);
-    }
-  }
-
-  /**
-   * Inner class to register and store user classes for the current demand object
-   * 
-   * @author markr
-   *
-   */
-  public class UserClasses extends LongMapWrapperImpl<UserClass> {
-
-    /**
-     * Constructor
-     */
-    public UserClasses() {
-      super(new HashMap<Long, UserClass>(), UserClass::getId);
-    }
-
-    /**
-     * Copy constructor
-     * 
-     * @param other to copy
-     */
-    public UserClasses(UserClasses other) {
-      super(other);
-    }
-
-    /**
-     * Factory method to create and register a new user class on the demands
-     * 
-     * @param name          the name for this user class
-     * @param mode          the mode for this user class
-     * @param travellerType the travel type for this user class
-     * @return new traveler type created
-     */
-    public UserClass createAndRegister(String name, Mode mode, TravellerType travellerType) {
-      var newUserClass = new UserClass(getIdGroupingToken(), name, mode, travellerType);
-      register(newUserClass);
-      return newUserClass;
-    }
-
-    /**
-     * Retrieve a UserClass by its XML Id
-     * 
-     * This method is not efficient, since it loops through all the registered user classes in order to find the required entry.
-     * 
-     * @param xmlId the XML Id of the specified user class
-     * @return the retrieved user class, or null if no user class was found
-     */
-    public UserClass getUserClassByXmlId(String xmlId) {
-      return findFirst(userClass -> xmlId.equals(((UserClass) userClass).getXmlId()));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public UserClasses clone() {
-      return new UserClasses(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void clear() {
-      super.clear();
-      IdGenerator.reset(getIdGroupingToken(), UserClass.class);
-    }
-  }
-
-  /**
-   * Inner class to register and store time periods for the current demand object
-   * 
-   * @author garym, markr
-   *
-   */
-  public class TimePeriods extends LongMapWrapperImpl<TimePeriod> {
-
-    /**
-     * Constructor
-     */
-    public TimePeriods() {
-      super(new HashMap<Long, TimePeriod>(), TimePeriod::getId);
-    }
-
-    /**
-     * Copy constructor
-     * 
-     * @param other to copy
-     */
-    public TimePeriods(TimePeriods other) {
-      super(other);
-    }
-
-    /**
-     * Factory method to create and register a new time period on the demands
-     * 
-     * @param description      the description for this time period
-     * @param startTimeSeconds the start time in seconds since midnight (00:00)
-     * @param durationSeconds  the duration in seconds since start time
-     * @return new time period created
-     * @throws PlanItException thrown if start time and/or duration are invalid
-     */
-    public TimePeriod createAndRegisterNewTimePeriod(String description, long startTimeSeconds, long durationSeconds) throws PlanItException {
-      var newTimePeriod = new TimePeriodImpl(getIdGroupingToken(), description, startTimeSeconds, durationSeconds);
-      register(newTimePeriod);
-      return newTimePeriod;
-    }
-
-    /**
-     * Returns a set of all registered time periods sorted by the start time, i.e., the way the time period is comparable
-     * 
-     * @return Set of all registered time periods
-     */
-    public SortedSet<TimePeriod> asSortedSetByStartTime() {
-      SortedSet<TimePeriod> timePeriodSet = new TreeSet<>(TimePeriodUtils.comparatorByStartTime());
-      timePeriodSet.addAll(getMap().values());
-      return timePeriodSet;
-    }
-
-    /**
-     * Retrieve a TimePeriod by its xml Id
-     * 
-     * This method is not efficient, since it loops through all the registered time periods in order to find the required time period.
-     * 
-     * @param xmlId the XML Id of the specified time period
-     * @return the retrieved time period, or null if no time period was found
-     */
-    public TimePeriod getByXmlId(final String xmlId) {
-      return findFirst(timePeriod -> xmlId.equals(((TimePeriod) timePeriod).getXmlId()));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public TimePeriods clone() {
-      return new TimePeriods(this);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void clear() {
-      super.clear();
-      IdGenerator.reset(getIdGroupingToken(), TimePeriod.class);
-    }
-  }
-
-  /**
    * internal class instance containing all time periods on this demand instance
    */
   public final TimePeriods timePeriods;
@@ -285,9 +61,9 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    */
   public Demands(IdGroupingToken groupId) {
     super(groupId, Demands.class);
-    this.travelerTypes = new TravelerTypes();
-    this.userClasses = new UserClasses();
-    this.timePeriods = new TimePeriods();
+    this.travelerTypes = new TravelerTypes(this);
+    this.userClasses = new UserClasses(this);
+    this.timePeriods = new TimePeriods(this);
     odDemandsByTimePeriodAndMode = new TreeMap<Long, TreeMap<Mode, OdDemands>>();
   }
 
@@ -295,19 +71,26 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    * Copy constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public Demands(Demands other) {
-    super(other);
-    this.travelerTypes = other.travelerTypes.clone();
-    this.userClasses = other.userClasses.clone();
-    this.timePeriods = other.timePeriods.clone();
-    this.odDemandsByTimePeriodAndMode = new TreeMap<Long, TreeMap<Mode, OdDemands>>();
-    for (var timePeriod : timePeriods) {
-      var modes = getRegisteredModesForTimePeriod(timePeriod);
-      for (var mode : modes) {
-        OdDemands odDemandMatrix = get(mode, timePeriod);
-        this.registerOdDemandPcuHour(timePeriod, mode, odDemandMatrix);
+  public Demands(Demands other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.travelerTypes  = deepCopy ? other.travelerTypes.deepClone()  : other.travelerTypes.clone(); // container class so clone for copy
+    this.userClasses    = deepCopy ? other.userClasses.deepClone()    : other.userClasses. clone();  // container class so clone for copy
+    this.timePeriods    = deepCopy ? other.timePeriods.deepClone()    : other.timePeriods. clone();  // container class so clone for copy
+
+    this.odDemandsByTimePeriodAndMode = new TreeMap<>();
+    if(deepCopy) {
+      for (var timePeriod : timePeriods) {
+        var modes = other.getRegisteredModesForTimePeriod(timePeriod);
+        for (var mode : modes) {
+          OdDemands odDemandMatrix = other.get(mode, timePeriod);
+          this.registerOdDemandPcuHour(
+                  timePeriods.get(timePeriod.getId()), mode, odDemandMatrix.deepClone());
+        }
       }
+    }else{
+      this.odDemandsByTimePeriodAndMode.putAll(other.odDemandsByTimePeriodAndMode);
     }
   }
 
@@ -361,7 +144,15 @@ public class Demands extends PlanitComponent<Demands> implements Serializable {
    */
   @Override
   public Demands clone() {
-    return new Demands(this);
+    return new Demands(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Demands deepClone() {
+    return new Demands(this, true);
   }
 
   /**

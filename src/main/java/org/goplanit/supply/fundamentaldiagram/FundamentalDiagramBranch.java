@@ -96,7 +96,7 @@ public interface FundamentalDiagramBranch extends Cloneable {
   public abstract int relaxedHashCode(int scale);
 
   /**
-   * Clone a branch
+   * shallow clone a branch
    * 
    * @return cloned branch
    */

@@ -57,14 +57,15 @@ public class NodeImpl<LS extends EdgeSegment> extends DirectedVertexImpl<LS> imp
   }
 
   /**
-   * Copy constructor, see also {@code VertexImpl}
+   * Copy constructor
    * 
-   * @param nodeImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  protected NodeImpl(NodeImpl<LS> nodeImpl) {
-    super(nodeImpl);
-    setNodeId(nodeImpl.getNodeId());
-    setName(nodeImpl.getName());
+  protected NodeImpl(NodeImpl<LS> other, boolean deepCopy) {
+    super(other, deepCopy);
+    setNodeId(other.getNodeId());
+    setName(other.getName());
   }
 
   // Getters-Setters
@@ -82,7 +83,15 @@ public class NodeImpl<LS extends EdgeSegment> extends DirectedVertexImpl<LS> imp
    */
   @Override
   public NodeImpl<LS> clone() {
-    return new NodeImpl<LS>(this);
+    return new NodeImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public NodeImpl<LS> deepClone() {
+    return new NodeImpl<>(this, true);
   }
 
   /**

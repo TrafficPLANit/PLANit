@@ -19,6 +19,7 @@ import org.goplanit.output.adapter.OutputTypeAdapter;
 import org.goplanit.output.enums.OutputType;
 import org.goplanit.sdinteraction.smoothing.MSASmoothing;
 import org.goplanit.utils.exceptions.PlanItException;
+import org.goplanit.utils.exceptions.PlanItRunTimeException;
 import org.goplanit.utils.id.IdGroupingToken;
 import org.goplanit.utils.misc.LoggingUtils;
 import org.goplanit.utils.mode.Mode;
@@ -272,7 +273,7 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
    * @param sltm to copy
    */
   public StaticLtm(StaticLtm sltm) {
-    super(sltm);
+    super(sltm, false);
     this.settings = sltm.settings.clone();
     this.simulationData = sltm.simulationData.clone();
   }
@@ -321,6 +322,14 @@ public class StaticLtm extends LtmAssignment implements LinkInflowOutflowAccesse
   @Override
   public StaticLtm clone() {
     return new StaticLtm(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public StaticLtm deepClone() {
+    throw new PlanItRunTimeException("Deep clone not yet implemented");
   }
 
   // GETTERS/SETTERS

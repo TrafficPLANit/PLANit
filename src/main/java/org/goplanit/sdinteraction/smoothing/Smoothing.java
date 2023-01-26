@@ -32,9 +32,10 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
    * Constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public Smoothing(Smoothing other) {
-    super(other);
+  public Smoothing(Smoothing other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -68,5 +69,11 @@ public abstract class Smoothing extends PlanitComponent<Smoothing> implements Se
    */
   @Override
   public abstract Smoothing clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract Smoothing deepClone();
 
 }

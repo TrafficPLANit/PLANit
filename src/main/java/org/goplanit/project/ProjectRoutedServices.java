@@ -15,7 +15,7 @@ public class ProjectRoutedServices extends LongMapWrapperImpl<RoutedServices> {
    * Constructor
    */
   protected ProjectRoutedServices() {
-    super(new TreeMap<Long, RoutedServices>(), RoutedServices::getId);
+    super(new TreeMap<>(), RoutedServices::getId);
   }
 
   /**

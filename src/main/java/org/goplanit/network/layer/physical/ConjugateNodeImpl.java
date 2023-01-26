@@ -54,13 +54,14 @@ public class ConjugateNodeImpl extends DirectedVertexImpl<ConjugateLinkSegment> 
   }
 
   /**
-   * Copy constructor, see also {@code VertexImpl}
+   * Copy constructor
    * 
-   * @param nodeImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep cpy, shallow copy otherwise
    */
-  protected ConjugateNodeImpl(ConjugateNodeImpl nodeImpl) {
-    super(nodeImpl);
-    this.original = nodeImpl.original;
+  protected ConjugateNodeImpl(ConjugateNodeImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.original = other.original;
   }
 
   // Protected
@@ -79,7 +80,15 @@ public class ConjugateNodeImpl extends DirectedVertexImpl<ConjugateLinkSegment> 
    */
   @Override
   public ConjugateNodeImpl clone() {
-    return new ConjugateNodeImpl(this);
+    return new ConjugateNodeImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateNodeImpl deepClone() {
+    return new ConjugateNodeImpl(this, true);
   }
 
   /**

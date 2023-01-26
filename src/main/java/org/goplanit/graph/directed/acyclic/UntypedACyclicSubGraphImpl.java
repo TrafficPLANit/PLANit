@@ -103,7 +103,7 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
   /**
    * Traverse the graph recursively with the purpose of sorting it topologically
    * 
-   * @param vertexIndex      current index we are at
+   * @param vertex      current index we are at
    * @param visited          track which vertices have been visited
    * @param topologicalOrder the list of vertices to populate in topological order
    * 
@@ -225,20 +225,21 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
   /**
    * Copy constructor
    * 
-   * @param aCyclicSubGraphImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public UntypedACyclicSubGraphImpl(UntypedACyclicSubGraphImpl<V, E> aCyclicSubGraphImpl) {
-    this.id = aCyclicSubGraphImpl.getId();
+  public UntypedACyclicSubGraphImpl(UntypedACyclicSubGraphImpl<V, E> other, boolean deepCopy) {
+    this.id = other.getId();
 
-    this.rootVertices = new HashSet<>(aCyclicSubGraphImpl.rootVertices);
-    this.invertedDirection = aCyclicSubGraphImpl.isDirectionInverted();
+    this.rootVertices = new HashSet<>(other.rootVertices);
+    this.invertedDirection = other.isDirectionInverted();
 
-    this.registeredLinkSegments = BitSet.valueOf(aCyclicSubGraphImpl.registeredLinkSegments.toByteArray());
+    this.registeredLinkSegments = BitSet.valueOf(other.registeredLinkSegments.toByteArray());
 
-    this.vertexData = new HashMap<V, AcyclicVertexData>();
-    aCyclicSubGraphImpl.vertexData.forEach((v, d) -> this.vertexData.put(v, d.clone()));
+    this.vertexData = new HashMap<>();
+    other.vertexData.forEach((v, d) -> this.vertexData.put(v, deepCopy ? new AcyclicVertexData(d) : d));
 
-    this.topologicalOrder = aCyclicSubGraphImpl.topologicalOrder != null ? new ArrayDeque<V>(aCyclicSubGraphImpl.topologicalOrder) : null;
+    this.topologicalOrder = other.topologicalOrder != null ? new ArrayDeque<>(other.topologicalOrder) : null;
   }
 
   /**
@@ -355,7 +356,15 @@ public class UntypedACyclicSubGraphImpl<V extends DirectedVertex, E extends Edge
    */
   @Override
   public UntypedACyclicSubGraphImpl<V, E> clone() {
-    return new UntypedACyclicSubGraphImpl<V, E>(this);
+    return new UntypedACyclicSubGraphImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public UntypedACyclicSubGraphImpl<V, E> deepClone() {
+    return new UntypedACyclicSubGraphImpl<>(this, true);
   }
 
   /**

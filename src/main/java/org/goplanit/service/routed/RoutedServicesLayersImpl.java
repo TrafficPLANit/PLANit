@@ -29,11 +29,12 @@ public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServic
   /**
    * Copy constructor, also creates new factory with this as its underlying container
    * 
-   * @param routedServicesLayersImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedServicesLayersImpl(final RoutedServicesLayersImpl routedServicesLayersImpl) {
-    super(routedServicesLayersImpl);
-    this.factory = new RoutedServicesLayerFactoryImpl(routedServicesLayersImpl.factory.getIdGroupingToken(), this);
+  public RoutedServicesLayersImpl(final RoutedServicesLayersImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.factory = new RoutedServicesLayerFactoryImpl(other.factory.getIdGroupingToken(), this);
   }
 
   /**
@@ -41,7 +42,15 @@ public class RoutedServicesLayersImpl extends ManagedIdEntitiesImpl<RoutedServic
    */
   @Override
   public RoutedServicesLayersImpl clone() {
-    return new RoutedServicesLayersImpl(this);
+    return new RoutedServicesLayersImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedServicesLayersImpl deepClone() {
+    return new RoutedServicesLayersImpl(this, true);
   }
 
   /**

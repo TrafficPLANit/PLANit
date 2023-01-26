@@ -59,10 +59,11 @@ public class ConjugateEdgeSegmentImpl extends EdgeSegmentImpl<ConjugateDirectedE
   /**
    * Copy constructor
    * 
-   * @param edgeSegmentImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConjugateEdgeSegmentImpl(ConjugateEdgeSegmentImpl edgeSegmentImpl) {
-    super(edgeSegmentImpl);
+  protected ConjugateEdgeSegmentImpl(ConjugateEdgeSegmentImpl other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -70,7 +71,15 @@ public class ConjugateEdgeSegmentImpl extends EdgeSegmentImpl<ConjugateDirectedE
    */
   @Override
   public ConjugateEdgeSegmentImpl clone() {
-    return new ConjugateEdgeSegmentImpl(this);
+    return new ConjugateEdgeSegmentImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateEdgeSegmentImpl deepClone() {
+    return new ConjugateEdgeSegmentImpl(this, true);
   }
 
   /**

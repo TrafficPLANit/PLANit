@@ -43,11 +43,12 @@ public class ConjugateDirectedVertexImpl extends DirectedVertexImpl<ConjugateEdg
   /**
    * Copy constructor
    * 
-   * @param conjugateDirectedVertexImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected ConjugateDirectedVertexImpl(ConjugateDirectedVertexImpl conjugateDirectedVertexImpl) {
-    super(conjugateDirectedVertexImpl);
-    this.originalEdge = conjugateDirectedVertexImpl.originalEdge;
+  protected ConjugateDirectedVertexImpl(ConjugateDirectedVertexImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+    this.originalEdge = other.originalEdge;
   }
 
   // Public
@@ -82,7 +83,15 @@ public class ConjugateDirectedVertexImpl extends DirectedVertexImpl<ConjugateEdg
    */
   @Override
   public ConjugateDirectedVertexImpl clone() {
-    return new ConjugateDirectedVertexImpl(this);
+    return new ConjugateDirectedVertexImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ConjugateDirectedVertexImpl deepClone() {
+    return new ConjugateDirectedVertexImpl(this, true);
   }
 
   /**

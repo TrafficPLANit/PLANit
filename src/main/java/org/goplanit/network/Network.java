@@ -39,9 +39,10 @@ public abstract class Network extends PlanitComponent<Network> implements Serial
    * Copy constructor
    * 
    * @param network to clone
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public Network(Network network) {
-    super(network);
+  public Network(Network network, boolean deepCopy) {
+    super(network, deepCopy);
   }
 
   /**
@@ -54,12 +55,16 @@ public abstract class Network extends PlanitComponent<Network> implements Serial
   }
 
   /**
-   * Clone the network
-   * 
-   * @return cloned network
+   * {@inheritDoc}
    */
   @Override
   public abstract Network clone();
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public abstract Network deepClone();
 
   /**
    * {@inheritDoc}

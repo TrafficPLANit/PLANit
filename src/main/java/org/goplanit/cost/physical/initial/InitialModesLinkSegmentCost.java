@@ -37,7 +37,7 @@ public class InitialModesLinkSegmentCost implements Cloneable, Cost<MacroscopicL
    */
   protected InitialModesLinkSegmentCost(InitialModesLinkSegmentCost initialLinkSegmentCostMode) {
     this();
-    initialLinkSegmentCostMode.costPerModeAndLinkSegment.forEach((mode, map) -> costPerModeAndLinkSegment.put(mode, new HashMap<Long, Double>(map)));
+    initialLinkSegmentCostMode.costPerModeAndLinkSegment.forEach((mode, map) -> costPerModeAndLinkSegment.put(mode, new HashMap<>(map)));
   }
 
   /**

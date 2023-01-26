@@ -40,12 +40,19 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
   /**
    * Copy constructor
    * 
-   * @param routedTripScheduleImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public RoutedTripScheduleImpl(RoutedTripScheduleImpl routedTripScheduleImpl) {
-    super(routedTripScheduleImpl);
-    this.departures = routedTripScheduleImpl.departures.clone();
-    this.relativeLegTimings = new ArrayList<>(routedTripScheduleImpl.relativeLegTimings);
+  public RoutedTripScheduleImpl(RoutedTripScheduleImpl other, boolean deepCopy) {
+    super(other, deepCopy);
+
+    // container wrapper requires clone always
+    this.departures = deepCopy ? other.departures.deepClone() : other.departures.clone();
+
+    this.relativeLegTimings = new ArrayList<>(other.getRelativeLegTimingsSize());
+    other.relativeLegTimings.forEach(lt ->
+            relativeLegTimings.add(
+                    deepCopy ? new RelativeLegTimingImpl((RelativeLegTimingImpl) lt) : lt));
   }
 
   /**
@@ -72,7 +79,15 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
    */
   @Override
   public RoutedTripScheduleImpl clone() {
-    return new RoutedTripScheduleImpl(this);
+    return new RoutedTripScheduleImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public RoutedTripScheduleImpl deepClone() {
+    return new RoutedTripScheduleImpl(this, true);
   }
 
   /**
@@ -104,7 +119,7 @@ public class RoutedTripScheduleImpl extends RoutedTripImpl implements RoutedTrip
    */
   @Override
   public RelativeLegTiming addRelativeLegSegmentTiming(ServiceLegSegment parentLegSegment, LocalTime duration, LocalTime dwellTime) {
-    RelativeLegTiming newEntry = new RelativeLegTimingImpl(parentLegSegment, duration, dwellTime);
+    var newEntry = new RelativeLegTimingImpl(parentLegSegment, duration, dwellTime);
     relativeLegTimings.add(newEntry);
     return newEntry;
   }

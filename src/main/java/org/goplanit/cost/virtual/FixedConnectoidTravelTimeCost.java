@@ -48,9 +48,10 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
    * Copy Constructor
    *
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public FixedConnectoidTravelTimeCost(FixedConnectoidTravelTimeCost other) {
-    super(other);
+  public FixedConnectoidTravelTimeCost(FixedConnectoidTravelTimeCost other, boolean deepCopy /* no impact at present */) {
+    super(other, deepCopy);
     this.fixedConnectoidCost = other.fixedConnectoidCost;
   }
 
@@ -102,7 +103,15 @@ public class FixedConnectoidTravelTimeCost extends AbstractVirtualCost {
    */
   @Override
   public FixedConnectoidTravelTimeCost clone() {
-    return new FixedConnectoidTravelTimeCost(this);
+    return new FixedConnectoidTravelTimeCost(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public FixedConnectoidTravelTimeCost deepClone() {
+    return new FixedConnectoidTravelTimeCost(this, true);
   }
 
   /**

@@ -2,6 +2,7 @@ package org.goplanit.cost.physical;
 
 import java.util.Map;
 
+import org.goplanit.component.PlanitComponent;
 import org.goplanit.network.LayeredNetwork;
 import org.goplanit.network.MacroscopicNetwork;
 import org.goplanit.utils.exceptions.PlanItException;
@@ -33,9 +34,10 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
    * Copy Constructor
    * 
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public FreeFlowLinkTravelTimeCost(FreeFlowLinkTravelTimeCost other) {
-    super(other);
+  public FreeFlowLinkTravelTimeCost(FreeFlowLinkTravelTimeCost other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**
@@ -93,7 +95,15 @@ public class FreeFlowLinkTravelTimeCost extends AbstractPhysicalCost {
    */
   @Override
   public FreeFlowLinkTravelTimeCost clone() {
-    return new FreeFlowLinkTravelTimeCost(this);
+    return new FreeFlowLinkTravelTimeCost(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public FreeFlowLinkTravelTimeCost deepClone() {
+    return new FreeFlowLinkTravelTimeCost(this, true);
   }
 
   /**

@@ -32,9 +32,10 @@ public abstract class AbstractVirtualCost extends PlanitComponent<AbstractVirtua
    * Copy Constructor
    *
    * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public AbstractVirtualCost(final AbstractVirtualCost other) {
-    super(other);
+  public AbstractVirtualCost(final AbstractVirtualCost other, boolean deepCopy) {
+    super(other, deepCopy);
   }
 
   /**

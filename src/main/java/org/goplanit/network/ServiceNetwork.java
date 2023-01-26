@@ -46,12 +46,13 @@ public class ServiceNetwork extends TopologicalLayerNetwork<RoutedServiceLayer, 
   }
 
   /**
-   * Copy constructor. Beware of shallow copying mnaged id containers.
+   * Copy constructor.
    *
-   * @param other to (shallow) copy.
+   * @param other to copy.
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  public ServiceNetwork(final ServiceNetwork other) {
-    super(other);
+  public ServiceNetwork(final ServiceNetwork other, boolean deepCopy) {
+    super(other, deepCopy);
     this.parentNetwork = other.parentNetwork;
   }
 
@@ -79,7 +80,15 @@ public class ServiceNetwork extends TopologicalLayerNetwork<RoutedServiceLayer, 
    */
   @Override
   public ServiceNetwork clone() {
-    return new ServiceNetwork(this);
+    return new ServiceNetwork(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public ServiceNetwork deepClone() {
+    return new ServiceNetwork(this, true);
   }
 
 }

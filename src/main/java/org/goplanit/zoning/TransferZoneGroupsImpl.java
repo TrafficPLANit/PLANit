@@ -63,9 +63,10 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
    * Copy constructor, also creates new factory with this as its underlying container
    * 
    * @param other to copy
+   * @param deepCopy when true, create a eep copy, shallow copy otherwise
    */
-  public TransferZoneGroupsImpl(TransferZoneGroupsImpl other) {
-    super(other);
+  public TransferZoneGroupsImpl(TransferZoneGroupsImpl other, boolean deepCopy) {
+    super(other, deepCopy);
     this.transferZoneGroupFactory =
             new TransferZoneGroupFactoryImpl(other.transferZoneGroupFactory.getIdGroupingToken(), this);
   }
@@ -83,7 +84,15 @@ public class TransferZoneGroupsImpl extends ManagedIdEntitiesImpl<TransferZoneGr
    */
   @Override
   public TransferZoneGroupsImpl clone() {
-    return new TransferZoneGroupsImpl(this);
+    return new TransferZoneGroupsImpl(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public TransferZoneGroupsImpl deepClone() {
+    return new TransferZoneGroupsImpl(this, true);
   }
 
   /**

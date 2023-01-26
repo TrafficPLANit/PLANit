@@ -103,22 +103,24 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
   }
 
   /**
-   * Copy constructor, input properties are copied using serialisation/deserialisation because shallow copy is considered dangerous
+   * Copy constructor
    * 
-   * @param edgeImpl to copy
+   * @param other to copy
+   * @param deepCopy when true, create a deep copy, shallow copy otherwise
    */
-  protected EdgeImpl(EdgeImpl<V> edgeImpl) {
-    super(edgeImpl);
-    if (edgeImpl.hasGeometry()) {
-      setGeometry((LineString) edgeImpl.getGeometry().copy());
-    }
-    this.vertexA = edgeImpl.vertexA;
-    this.vertexB = edgeImpl.vertexB;
-    this.lengthInKm = edgeImpl.lengthInKm;
-    this.name = edgeImpl.name;
-    if (edgeImpl.inputProperties != null && !edgeImpl.inputProperties.isEmpty()) {
-      for (var entry : edgeImpl.inputProperties.entrySet()) {
-        addInputProperty(new String(entry.getKey()), CloneUtils.clone(entry.getValue()));
+  protected EdgeImpl(EdgeImpl<V> other, boolean deepCopy) {
+    super(other, deepCopy);
+
+    setGeometry((other.hasGeometry() && deepCopy) ? (LineString) other.getGeometry().copy() : other.lineGeometry);
+
+    this.vertexA = other.vertexA;
+    this.vertexB = other.vertexB;
+    this.lengthInKm = other.lengthInKm;
+    this.name = other.name;
+
+    if (other.inputProperties != null && !other.inputProperties.isEmpty()) {
+      for (var entry : other.inputProperties.entrySet()) {
+        addInputProperty(entry.getKey(), deepCopy ? CloneUtils.deepClone(entry.getValue()): entry.getValue());
       }
     }
   }
@@ -275,11 +277,19 @@ public class EdgeImpl<V extends Vertex> extends GraphEntityImpl implements Edge 
 
   /**
    * {@inheritDoc}
-   * 
    */
   @Override
   public EdgeImpl<V> clone() {
-    return new EdgeImpl<V>(this);
+    return new EdgeImpl<>(this, false);
+  }
+
+  /**
+   * {@inheritDoc}
+   *
+   */
+  @Override
+  public EdgeImpl<V>  deepClone() {
+    return new EdgeImpl<>(this, true);
   }
 
   /**
